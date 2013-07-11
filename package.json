@@ -1,0 +1,40 @@
+{
+  "name": "orbit.js",
+  "barename": "orbit",
+  "description": "",
+  "version": "0.0.1",
+  "homepage": "https://github.com/cerebris/orbit.js",
+  "readmeFilename": "README.md",
+  "author": {
+    "name": "Cerebris Corporation",
+    "url": "http://cerebris.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/cerebris/orbit.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cerebris/orbit.js/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/cerebris/orbit.js/blob/master/LICENSE"
+    }
+  ],
+  "main": "Gruntfile.js",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "connect": "~2.7.4",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-clean": "~0.4.1",
+    "grunt-contrib-connect": "~0.3.0",
+    "grunt-contrib-jshint": "~0.1.1",
+    "grunt-contrib-watch": "~0.4.4",
+    "grunt-es6-module-transpiler": "~0.3.0",
+    "grunt-hang": "~0.1.2"
+  }
+}
