@@ -1,20 +1,46 @@
 import Orbit from 'orbit/core';
+import Publisher from 'orbit/publisher';
 
 var Transformable = function() {
+  this.notifier = new Publisher();
 };
 
 Transformable.prototype = {
-  /**
-   @param {Object}
+  insertObject: function() {
+    this.action('insertObject', arguments);
+  },
 
-   */
-  insertObject: Orbit.required,
+  replaceObject: function() {
+    this.action('replaceObject', arguments);
+  },
 
-  replaceObject: Orbit.required,
+  setProperty: function() {
+    this.action('setProperty', arguments);
+  },
 
-  setProperty: Orbit.required,
+  removeObject: function() {
+    this.action('removeObject', arguments);
+  },
 
-  removeObject: Orbit.required
+  action: function(name, args) {
+    var _this = this;
+    _this.notifier.publish('will' + name);
+
+    return this['perform' + name].apply(this, args).then(
+      null,
+      function() {
+        _this.notifier.publish('did' + name);
+      }
+    );
+  },
+
+  performInsertObject: Orbit.required,
+
+  performReplaceObject: Orbit.required,
+
+  performSetProperty: Orbit.required,
+
+  performRemoveObject: Orbit.required
 };
 
 export default Transformable;
