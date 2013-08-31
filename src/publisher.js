@@ -17,9 +17,10 @@ Publisher.prototype = {
     });
   },
 
-  publish: function(message) {
+  publish: function() {
+    var _arguments = arguments;
     this.subscribers.forEach(function(subscriber) {
-      subscriber.call(this, message);
+      subscriber.apply(this, _arguments);
     });
   }
 }

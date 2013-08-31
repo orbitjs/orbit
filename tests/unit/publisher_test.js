@@ -26,7 +26,7 @@ test("it maintains a list of subscribers", function() {
   equal(publisher.subscribers.length, 0);
 });
 
-test("it notifies subscribers when publishing", function() {
+test("it notifies subscribers when publishing a simple message", function() {
   expect(2);
 
   var publisher = new Publisher(),
@@ -41,4 +41,23 @@ test("it notifies subscribers when publishing", function() {
   publisher.addSubscriber(subscriber2);
 
   publisher.publish('hello');
+});
+
+test("it notifies subscribers when publishing any number of arguments", function() {
+  expect(4);
+
+  var publisher = new Publisher(),
+      subscriber1 = function() {
+        equal(arguments[0], 'hello');
+        equal(arguments[1], 'world');
+      },
+      subscriber2 = function() {
+        equal(arguments[0], 'hello');
+        equal(arguments[1], 'world');
+      };
+
+  publisher.addSubscriber(subscriber1);
+  publisher.addSubscriber(subscriber2);
+
+  publisher.publish('hello', 'world');
 });
