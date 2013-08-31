@@ -1,6 +1,8 @@
 import Orbit from 'orbit/core';
+import Publisher from 'orbit/publisher';
 
 var Requestable = function() {
+  this.notifier = new Publisher();
 };
 
 Requestable.prototype = {
