@@ -1,15 +1,22 @@
+import Orbit from 'orbit/core';
+
 var Requestable = function() {
 };
 
 Requestable.prototype = {
-  find: function(type, data, options) {
-  },
-  create: function(type, data, options) {
-  },
-  update: function(type, data, options) {
-  },
-  destroy: function(type, data, options) {
-  }
+  /**
+   @param {String} type
+   @param {String} data
+   @param {Object} options
+   @return {Object} promise
+   */
+  find: Orbit.required,
+
+  create: Orbit.required,
+
+  update: Orbit.required,
+
+  destroy: Orbit.required
 };
 
 export default Requestable;
