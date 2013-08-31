@@ -1,16 +1,23 @@
 import Publisher from 'orbit/publisher';
 
-module("Unit - Publisher", {
+var publisher;
 
+module("Unit - Publisher", {
+  setup: function() {
+    publisher = new Publisher;
+  },
+
+  teardown: function() {
+    publisher = null;
+  }
 });
 
 test("it exists", function() {
-  ok(Publisher);
+  ok(publisher);
 });
 
 test("it maintains a list of subscribers", function() {
-  var publisher = new Publisher(),
-      subscriber1 = function() {},
+  var subscriber1 = function() {},
       subscriber2 = function() {};
 
   equal(publisher.subscribers.length, 0);
@@ -29,8 +36,7 @@ test("it maintains a list of subscribers", function() {
 test("it notifies subscribers when publishing a simple message", function() {
   expect(2);
 
-  var publisher = new Publisher(),
-      subscriber1 = function(message) {
+  var subscriber1 = function(message) {
         equal(message, 'hello');
       },
       subscriber2 = function(message) {
@@ -46,8 +52,7 @@ test("it notifies subscribers when publishing a simple message", function() {
 test("it notifies subscribers when publishing any number of arguments", function() {
   expect(4);
 
-  var publisher = new Publisher(),
-      subscriber1 = function() {
+  var subscriber1 = function() {
         equal(arguments[0], 'hello');
         equal(arguments[1], 'world');
       },
