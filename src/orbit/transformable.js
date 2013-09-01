@@ -1,8 +1,8 @@
 import Orbit from 'orbit/core';
-import Publisher from 'orbit/publisher';
+import Notifier from 'orbit/notifier';
 
 var Transformable = function() {
-  this.notifier = new Publisher();
+  this.notifier = new Notifier();
 };
 
 Transformable.prototype = {
@@ -24,12 +24,12 @@ Transformable.prototype = {
 
   action: function(name, args) {
     var _this = this;
-    _this.notifier.publish('will' + name);
+    _this.notifier.send('will' + name);
 
     return this['perform' + name].apply(this, args).then(
       null,
       function() {
-        _this.notifier.publish('did' + name);
+        _this.notifier.send('did' + name);
       }
     );
   },
