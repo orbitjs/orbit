@@ -1,46 +1,44 @@
 import Orbit from 'orbit/core';
-import Notifier from 'orbit/notifier';
+import Evented from 'orbit/evented';
 
-var Transformable = function() {
-  this.notifier = new Notifier();
+var performAction = function(object, name, args) {
+  var action = object['perform' + name];
+  Orbit.assert("Transformable action should be defined", action);
+
+  object.trigger('will' + name);
+  return action.apply(object, args).then(
+    function() {
+      object.trigger('did' + name, arguments);
+    }
+  );
+
 };
 
-Transformable.prototype = {
+var Transformable = {
+  extend: function(object) {
+    Evented.extend(object);
+    object.insertObject = this.insertObject;
+    object.replaceObject = this.replaceObject;
+    object.setProperty = this.setProperty;
+    object.removeObject = this.removeObject;
+    return object;
+  },
+
   insertObject: function() {
-    this.action('insertObject', arguments);
+    return performAction(this, 'InsertObject', arguments);
   },
 
   replaceObject: function() {
-    this.action('replaceObject', arguments);
+    return performAction(this, 'ReplaceObject', arguments);
   },
 
   setProperty: function() {
-    this.action('setProperty', arguments);
+    return performAction(this, 'SetProperty', arguments);
   },
 
   removeObject: function() {
-    this.action('removeObject', arguments);
-  },
-
-  action: function(name, args) {
-    var _this = this;
-    _this.notifier.send('will' + name);
-
-    return this['perform' + name].apply(this, args).then(
-      null,
-      function() {
-        _this.notifier.send('did' + name);
-      }
-    );
-  },
-
-  performInsertObject: Orbit.required,
-
-  performReplaceObject: Orbit.required,
-
-  performSetProperty: Orbit.required,
-
-  performRemoveObject: Orbit.required
+    return performAction(this, 'RemoveObject', arguments);
+  }
 };
 
 export default Transformable;
