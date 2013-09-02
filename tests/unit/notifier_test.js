@@ -37,10 +37,10 @@ test("it notifies listeners when sending a simple message", function() {
   expect(2);
 
   var listener1 = function(message) {
-        equal(message, 'hello');
+        equal(message, 'hello', 'notification message should match');
       },
       listener2 = function(message) {
-        equal(message, 'hello');
+        equal(message, 'hello', 'notification message should match');
       };
 
   notifier.addListener(listener1);
@@ -49,16 +49,36 @@ test("it notifies listeners when sending a simple message", function() {
   notifier.send('hello');
 });
 
+test("it notifies listeners using custom bindings, if specified", function() {
+  expect(4);
+
+  var binding1 = {},
+      binding2 = {},
+      listener1 = function(message) {
+        equal(this, binding1, 'custom binding should match');
+        equal(message, 'hello', 'notification message should match');
+      },
+      listener2 = function(message) {
+        equal(this, binding2, 'custom binding should match');
+        equal(message, 'hello', 'notification message should match');
+      };
+
+  notifier.addListener(listener1, binding1);
+  notifier.addListener(listener2, binding2);
+
+  notifier.send('hello');
+});
+
 test("it notifies listeners when publishing any number of arguments", function() {
   expect(4);
 
   var listener1 = function() {
-        equal(arguments[0], 'hello');
-        equal(arguments[1], 'world');
+        equal(arguments[0], 'hello', 'notification message should match');
+        equal(arguments[1], 'world', 'notification message should match');
       },
       listener2 = function() {
-        equal(arguments[0], 'hello');
-        equal(arguments[1], 'world');
+        equal(arguments[0], 'hello', 'notification message should match');
+        equal(arguments[1], 'world', 'notification message should match');
       };
 
   notifier.addListener(listener1);
