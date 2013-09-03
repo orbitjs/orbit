@@ -37,11 +37,11 @@ test("it exists", function() {
 ['insertObject', 'replaceObject', 'setProperty', 'removeObject'].forEach(function(actionName) {
   var ActionName = actionName.charAt(0).toUpperCase() + actionName.slice(1);
 
-  test("it should define perform" + ActionName, function() {
-    transformable['perform' + ActionName] = successfulOperation;
+  test("it should define _" + actionName, function() {
+    transformable['_' + actionName] = successfulOperation;
 
     transformable[actionName].call(transformable).then(function() {
-      ok(true, 'perform' + ActionName + ' promise resolved')
+      ok(true, '_' + actionName + ' promise resolved')
     });
   });
 
@@ -50,7 +50,7 @@ test("it exists", function() {
 
     var order = 0;
 
-    transformable['perform' + ActionName] = function() {
+    transformable['_' + actionName] = function() {
       equal(order++, 1, 'action performed after will' + ActionName);
       return successfulOperation();
     };
@@ -73,7 +73,7 @@ test("it exists", function() {
 
     var order = 0;
 
-    transformable['perform' + ActionName] = function() {
+    transformable['_' + actionName] = function() {
       equal(order++, 1, 'action performed after will' + ActionName);
       return failedOperation();
     };
@@ -91,11 +91,3 @@ test("it exists", function() {
     });
   });
 });
-//
-//test("it should define performInsertObject", function() {
-//  transformable.performInsertObject = successfulOperation;
-//
-//  transformable.insertObject().then(function() {
-//    ok(true, 'performInsertObject promise resolved')
-//  });
-//});

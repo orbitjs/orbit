@@ -1,19 +1,6 @@
 import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
-
-var performAction = function(object, name, args) {
-  var performableActionName = 'perform' + name,
-      action = object[performableActionName];
-
-  Orbit.assert("Requestable action `" + performableActionName + "` should be defined", action);
-
-  object.trigger('will' + name);
-  return action.apply(object, args).then(
-    function() {
-      object.trigger('did' + name, arguments);
-    }
-  );
-};
+import Action from 'orbit/action';
 
 var Requestable = {
   /**
@@ -26,17 +13,10 @@ var Requestable = {
    */
   extend: function(object) {
     Evented.extend(object);
-    ['find',
-     'create',
-     'update',
-     'destroy'].forEach(function(method) {
-
-      object[method] = function() {
-        return performAction(this,
-          method.charAt(0).toUpperCase() + method.slice(1),
-          arguments);
-      };
-    });
+    Action.define(object, 'find');
+    Action.define(object, 'create');
+    Action.define(object, 'update');
+    Action.define(object, 'destroy');
     return object;
   }
 };
