@@ -2,42 +2,34 @@ import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
 
 var performAction = function(object, name, args) {
-  var action = object['perform' + name];
-  Orbit.assert("Transformable action should be defined", action);
+  var performableActionName = 'perform' + name,
+      performableAction = object[performableActionName];
+
+  Orbit.assert("Transformable action `" + performableActionName + "` should be defined", performableAction);
 
   object.trigger('will' + name);
-  return action.apply(object, args).then(
+  return performableAction.apply(object, args).then(
     function() {
       object.trigger('did' + name, arguments);
     }
   );
-
 };
 
 var Transformable = {
   extend: function(object) {
     Evented.extend(object);
-    object.insertObject = this.insertObject;
-    object.replaceObject = this.replaceObject;
-    object.setProperty = this.setProperty;
-    object.removeObject = this.removeObject;
+    ['insertObject',
+     'replaceObject',
+     'setProperty',
+     'removeObject'].forEach(function(method) {
+
+      object[method] = function() {
+        return performAction(object,
+          method.charAt(0).toUpperCase() + method.slice(1),
+          arguments);
+      };
+    });
     return object;
-  },
-
-  insertObject: function() {
-    return performAction(this, 'InsertObject', arguments);
-  },
-
-  replaceObject: function() {
-    return performAction(this, 'ReplaceObject', arguments);
-  },
-
-  setProperty: function() {
-    return performAction(this, 'SetProperty', arguments);
-  },
-
-  removeObject: function() {
-    return performAction(this, 'RemoveObject', arguments);
   }
 };
 

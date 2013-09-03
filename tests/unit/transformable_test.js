@@ -34,56 +34,68 @@ test("it exists", function() {
   ok(transformable);
 });
 
-test("it should define performInsertObject", function() {
-  transformable.performInsertObject = successfulOperation;
+['insertObject', 'replaceObject', 'setProperty', 'removeObject'].forEach(function(actionName) {
+  var ActionName = actionName.charAt(0).toUpperCase() + actionName.slice(1);
 
-  transformable.insertObject().then(function() {
-    ok(true, 'performInsertObject promise resolved')
+  test("it should define perform" + ActionName, function() {
+    transformable['perform' + ActionName] = successfulOperation;
+
+    transformable[actionName].call(transformable).then(function() {
+      ok(true, 'perform' + ActionName + ' promise resolved')
+    });
+  });
+
+  test("it should trigger `will" + ActionName + "` and `did" + ActionName + "` events around a successful action", function() {
+    expect(4);
+
+    var order = 0;
+
+    transformable['perform' + ActionName] = function() {
+      equal(order++, 1, 'action performed after will' + ActionName);
+      return successfulOperation();
+    };
+
+    transformable.on('will' + ActionName, function() {
+      equal(order++, 0, 'will' + ActionName + ' triggered first');
+    });
+
+    transformable.on('did' + ActionName, function() {
+      equal(order++, 2, 'did' + ActionName + ' triggered after action performed');
+    });
+
+    transformable[actionName].call(transformable).then(function() {
+      equal(order++, 3, 'promise resolved after did' + ActionName);
+    });
+  });
+
+  test("it should trigger `will" + ActionName + "`, but not `did" + ActionName + "`, events for an unsuccessful action", function() {
+    expect(3);
+
+    var order = 0;
+
+    transformable['perform' + ActionName] = function() {
+      equal(order++, 1, 'action performed after will' + ActionName);
+      return failedOperation();
+    };
+
+    transformable.on('will' + ActionName, function() {
+      equal(order++, 0, 'will' + ActionName + ' triggered first');
+    });
+
+    transformable.on('did' + ActionName, function() {
+      ok(false, 'did' + ActionName + ' should not be triggered');
+    });
+
+    transformable[actionName].call(transformable).then(null, function() {
+      equal(order++, 2, 'promise resolved after did' + ActionName);
+    });
   });
 });
-
-test("it should trigger `willInsertObject` and `didInsertObject` events around a successful action", function() {
-  expect(4);
-
-  var order = 0;
-
-  transformable.performInsertObject = function() {
-    equal(order++, 1, 'action performed after willInsertObject');
-    return successfulOperation();
-  };
-
-  transformable.on('willInsertObject', function() {
-    equal(order++, 0, 'willInsertObject triggered first');
-  });
-
-  transformable.on('didInsertObject', function() {
-    equal(order++, 2, 'didInsertObject triggered after action performed');
-  });
-
-  transformable.insertObject().then(function() {
-    equal(order++, 3, 'promise resolved after didInsertObject');
-  });
-});
-
-test("it should trigger `willInsertObject`, but not `didInsertObject`, events for an unsuccessful action", function() {
-  expect(3);
-
-  var order = 0;
-
-  transformable.performInsertObject = function() {
-    equal(order++, 1, 'action performed after willInsertObject');
-    return failedOperation();
-  };
-
-  transformable.on('willInsertObject', function() {
-    equal(order++, 0, 'willInsertObject triggered first');
-  });
-
-  transformable.on('didInsertObject', function() {
-    ok(false, 'didInsertObject should not be triggered');
-  });
-
-  transformable.insertObject().then(null, function() {
-    equal(order++, 2, 'promise resolved after didInsertObject');
-  });
-});
+//
+//test("it should define performInsertObject", function() {
+//  transformable.performInsertObject = successfulOperation;
+//
+//  transformable.insertObject().then(function() {
+//    ok(true, 'performInsertObject promise resolved')
+//  });
+//});
