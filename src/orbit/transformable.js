@@ -5,10 +5,7 @@ import Action from 'orbit/action';
 var Transformable = {
   extend: function(object) {
     Evented.extend(object);
-    Action.define(object, 'insertObject');
-    Action.define(object, 'replaceObject');
-    Action.define(object, 'setProperty');
-    Action.define(object, 'removeObject');
+    Action.define(object, ['insertObject', 'replaceObject', 'setProperty', 'removeObject']);
     return object;
   }
 };

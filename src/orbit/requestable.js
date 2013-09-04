@@ -13,10 +13,7 @@ var Requestable = {
    */
   extend: function(object) {
     Evented.extend(object);
-    Action.define(object, 'find');
-    Action.define(object, 'create');
-    Action.define(object, 'update');
-    Action.define(object, 'destroy');
+    Action.define(object, ['find', 'create', 'update', 'destroy']);
     return object;
   }
 };

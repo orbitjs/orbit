@@ -15,15 +15,27 @@ var performAction = function(object, name, args) {
   );
 };
 
+var defineAction = function(object, name) {
+  object[name] = function() {
+    return performAction(
+      object,
+      name,
+      arguments);
+  };
+};
+
 var Action = {
-  define: function(object, name) {
-    object[name] = function() {
-      return performAction(
-        object,
-        name,
-        arguments);
-    };
-  }
+  define: function(object, action) {
+    Orbit.assert("Object must extend Evented to be able to trigger actions", object.trigger);
+    if (typeof action === "object") {
+      action.forEach(function(name) {
+        defineAction(object, name);
+      })
+    } else {
+      defineAction(object, action);
+    }
+  },
+
 };
 
 export default Action;
