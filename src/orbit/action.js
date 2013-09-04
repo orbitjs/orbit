@@ -34,8 +34,7 @@ var Action = {
     } else {
       defineAction(object, action);
     }
-  },
-
+  }
 };
 
 export default Action;
