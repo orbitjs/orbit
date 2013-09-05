@@ -33,7 +33,7 @@ test("it maintains a list of listeners", function() {
   equal(notifier.listeners.length, 0);
 });
 
-test("it notifies listeners when sending a simple message", function() {
+test("it notifies listeners when emitting a simple message", function() {
   expect(2);
 
   var listener1 = function(message) {
@@ -46,7 +46,7 @@ test("it notifies listeners when sending a simple message", function() {
   notifier.addListener(listener1);
   notifier.addListener(listener2);
 
-  notifier.send('hello');
+  notifier.emit('hello');
 });
 
 test("it notifies listeners using custom bindings, if specified", function() {
@@ -66,7 +66,7 @@ test("it notifies listeners using custom bindings, if specified", function() {
   notifier.addListener(listener1, binding1);
   notifier.addListener(listener2, binding2);
 
-  notifier.send('hello');
+  notifier.emit('hello');
 });
 
 test("it notifies listeners when publishing any number of arguments", function() {
@@ -84,5 +84,27 @@ test("it notifies listeners when publishing any number of arguments", function()
   notifier.addListener(listener1);
   notifier.addListener(listener2);
 
-  notifier.send('hello', 'world');
+  notifier.emit('hello', 'world');
+});
+
+test("it notifies listeners when polling with a simple message and returns the first response", function() {
+  expect(3);
+
+  var listener1 = function(message) {
+        equal(message, 'hello', 'notification message should match');
+      },
+      listener2 = function(message) {
+        equal(message, 'hello', 'notification message should match');
+        return 'bonjour';
+      },
+      listener3 = function(message) {
+        ok(false, 'this listener should not be reached');
+        return 'bonjour';
+      };
+
+  notifier.addListener(listener1);
+  notifier.addListener(listener2);
+  notifier.addListener(listener3);
+
+  equal(notifier.poll('hello'), 'bonjour', 'poll response should match the response of the first listener to respond');
 });

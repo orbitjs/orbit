@@ -9,21 +9,43 @@ Notifier.prototype = {
   },
 
   removeListener: function(callback, binding) {
+    var listeners = this.listeners,
+        listener;
+
     binding = binding || this;
-    var listeners = this.listeners;
-    listeners.forEach(function(listener, index) {
-      if (listener[0] === callback && listener[1] === binding) {
-        listeners.splice(index, 1);
+    for (var i = 0, l = listeners.length; i < l; i++) {
+      listener = listeners[i];
+      if (listener && listener[0] === callback && listener[1] === binding) {
+        listeners.splice(i, 1);
         return;
       }
-    });
+    }
   },
 
-  send: function() {
-    var _arguments = arguments;
-    this.listeners.forEach(function(listener) {
-      listener[0].apply(listener[1], _arguments);
-    });
+  emit: function() {
+    var listeners = this.listeners,
+        listener;
+
+    for (var i = 0, l = listeners.length; i < l; i++) {
+      listener = listeners[i];
+      if (listener) {
+        listener[0].apply(listener[1], arguments);
+      }
+    }
+  },
+
+  poll: function() {
+    var listeners = this.listeners,
+        listener,
+        ret;
+
+    for (var i = 0, l = listeners.length; i < l; i++) {
+      listener = listeners[i];
+      if (listener) {
+        ret = listener[0].apply(listener[1], arguments);
+        if (ret) { return ret; }
+      }
+    }
   }
 }
 
