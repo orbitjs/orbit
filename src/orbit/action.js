@@ -1,7 +1,7 @@
 import Orbit from 'orbit/core';
 
 var performAction = function(object, name, args) {
-  var capitalizedName = name.charAt(0).toUpperCase() + name.slice(1),
+  var capitalizedName = Orbit.capitalize(name),
       performableActionName = '_' + name,
       performableAction = object[performableActionName];
 
