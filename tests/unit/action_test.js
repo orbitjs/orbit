@@ -76,6 +76,35 @@ var verifyAction = function(actionName) {
       equal(order++, 2, 'promise resolved after did' + ActionName);
     });
   });
+
+  test("it should allow action to be overridden by return of `will" + ActionName + "`", function() {
+    expect(4);
+
+    var order = 0;
+
+    var alternativeAction = function() {
+      equal(order++, 1, 'action performed after will' + ActionName);
+      return successfulOperation();
+    };
+
+    object['_' + actionName] = function() {
+      ok(false, 'default action should not be reached');
+    };
+
+    object.on('will' + ActionName, function() {
+      equal(order++, 0, 'will' + ActionName + ' triggered first');
+      return alternativeAction;
+    });
+
+    object.on('did' + ActionName, function() {
+      equal(order++, 2, 'did' + ActionName + ' triggered after action performed');
+    });
+
+    object[actionName].call(object).then(function() {
+      equal(order++, 3, 'promise resolved after did' + ActionName);
+    });
+  });
+
 };
 
 module("Unit - Action", {

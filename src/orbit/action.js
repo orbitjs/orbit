@@ -5,12 +5,14 @@ var performAction = function(object, name, args) {
       performableActionName = '_' + name,
       performableAction = object[performableActionName];
 
-  Orbit.assert("Action `" + performableActionName + "` should be defined", performableAction);
+  var alternativeAction = object.poll('will' + capitalizedName, args);
+  performableAction = alternativeAction || performableAction;
 
-  object.trigger('will' + capitalizedName);
+  Orbit.assert("Action should be a function", typeof performableAction === "function");
+
   return performableAction.apply(object, args).then(
     function() {
-      object.trigger('did' + capitalizedName, arguments);
+      object.emit('did' + capitalizedName, arguments);
     }
   );
 };
@@ -26,7 +28,7 @@ var defineAction = function(object, name) {
 
 var Action = {
   define: function(object, action) {
-    Orbit.assert("Object must extend Evented to be able to trigger actions", object.trigger);
+    Orbit.assert("Object must extend Evented", object.emit);
     if (typeof action === "object") {
       action.forEach(function(name) {
         defineAction(object, name);
