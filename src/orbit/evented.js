@@ -13,7 +13,8 @@ var Evented = {
     object._eventedNotifiers = {};
     object.on = this.on;
     object.off = this.off;
-    object.trigger = this.trigger;
+    object.emit = this.emit;
+    object.poll = this.poll;
     return object;
   },
 
@@ -35,11 +36,18 @@ var Evented = {
     });
   },
 
-  trigger: function(eventName) {
+  emit: function(eventName) {
     var notifier = notifierForEvent(this, eventName),
-        eventArgs = Array.prototype.slice.call(arguments, 1);
+        args = Array.prototype.slice.call(arguments, 1);
 
-    notifier.send.apply(notifier, eventArgs);
+    notifier.emit.apply(notifier, args);
+  },
+
+  poll: function(eventName) {
+    var notifier = notifierForEvent(this, eventName),
+        args = Array.prototype.slice.call(arguments, 1);
+
+    return notifier.poll.apply(notifier, args);
   }
 };
 

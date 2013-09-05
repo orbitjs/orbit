@@ -17,7 +17,7 @@ test("it exists", function() {
   ok(evented);
 });
 
-test("it notifies listeners when sending a simple message", function() {
+test("it notifies listeners when emitting a simple message", function() {
   expect(2);
 
   var listener1 = function(message) {
@@ -30,7 +30,7 @@ test("it notifies listeners when sending a simple message", function() {
   evented.on('greeting', listener1);
   evented.on('greeting', listener2);
 
-  evented.trigger('greeting', 'hello');
+  evented.emit('greeting', 'hello');
 });
 
 test("it allows listeners to be unregistered", function() {
@@ -47,7 +47,7 @@ test("it allows listeners to be unregistered", function() {
   evented.on('greeting', listener2);
   evented.off('greeting', listener1);
 
-  evented.trigger('greeting', 'hello');
+  evented.emit('greeting', 'hello');
 });
 
 test("it allows listeners to be registered for multiple events", function() {
@@ -63,8 +63,8 @@ test("it allows listeners to be registered for multiple events", function() {
   evented.on('greeting salutation', listener1);
   evented.on('salutation', listener2);
 
-  evented.trigger('greeting', 'hello');
-  evented.trigger('salutation', 'hello');
+  evented.emit('greeting', 'hello');
+  evented.emit('salutation', 'hello');
 });
 
 test("it notifies listeners using custom bindings, if specified", function() {
@@ -84,10 +84,10 @@ test("it notifies listeners using custom bindings, if specified", function() {
   evented.on('greeting', listener1, binding1);
   evented.on('greeting', listener2, binding2);
 
-  evented.trigger('greeting', 'hello');
+  evented.emit('greeting', 'hello');
 });
 
-test("it notifies listeners when triggering events with any number of arguments", function() {
+test("it notifies listeners when emitting events with any number of arguments", function() {
   expect(4);
 
   var listener1 = function() {
@@ -102,5 +102,28 @@ test("it notifies listeners when triggering events with any number of arguments"
   evented.on('greeting', listener1);
   evented.on('greeting', listener2);
 
-  evented.trigger('greeting', 'hello', 'world');
+  evented.emit('greeting', 'hello', 'world');
 });
+
+test("it notifies listeners when polling with a message and returns the first response", function() {
+  expect(3);
+
+  var listener1 = function(message) {
+        equal(message, 'hello', 'notification message should match');
+      },
+      listener2 = function(message) {
+        equal(message, 'hello', 'notification message should match');
+        return 'bonjour';
+      },
+      listener3 = function(message) {
+        ok(false, 'this listener should not be reached');
+        return 'bonjour';
+      };
+
+  evented.on('greeting', listener1);
+  evented.on('greeting', listener2);
+  evented.on('greeting', listener3);
+
+  equal(evented.poll('greeting', 'hello'), 'bonjour', 'poll response should match the response of the first listener to respond');
+});
+
