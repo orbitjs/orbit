@@ -11,9 +11,11 @@ var Requestable = {
    @param {Object} options
    @return {Object} promise
    */
+  actionNames: ['find', 'create', 'update', 'destroy'],
+
   extend: function(object) {
     Evented.extend(object);
-    Action.define(object, ['find', 'create', 'update', 'destroy']);
+    Action.define(object, this.actionNames);
     return object;
   }
 };
