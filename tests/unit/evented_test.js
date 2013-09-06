@@ -106,24 +106,25 @@ test("it notifies listeners when emitting events with any number of arguments", 
 });
 
 test("it notifies listeners when polling with a message and returns the first response", function() {
-  expect(3);
+  expect(4);
 
   var listener1 = function(message) {
         equal(message, 'hello', 'notification message should match');
+        // note: no return value
       },
       listener2 = function(message) {
         equal(message, 'hello', 'notification message should match');
         return 'bonjour';
       },
       listener3 = function(message) {
-        ok(false, 'this listener should not be reached');
-        return 'bonjour';
+        equal(message, 'hello', 'notification message should match');
+        return 'sup';
       };
 
   evented.on('greeting', listener1);
   evented.on('greeting', listener2);
   evented.on('greeting', listener3);
 
-  equal(evented.poll('greeting', 'hello'), 'bonjour', 'poll response should match the response of the first listener to respond');
+  deepEqual(evented.poll('greeting', 'hello'), ['bonjour', 'sup'], 'poll response should include the responses of all listeners');
 });
 
