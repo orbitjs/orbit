@@ -37,15 +37,18 @@ Notifier.prototype = {
   poll: function() {
     var listeners = this.listeners,
         listener,
-        ret;
+        allResponses = [],
+        response;
 
     for (var i = 0, l = listeners.length; i < l; i++) {
       listener = listeners[i];
       if (listener) {
-        ret = listener[0].apply(listener[1], arguments);
-        if (ret) { return ret; }
+        response = listener[0].apply(listener[1], arguments);
+        if (response !== undefined) { allResponses.push(response); }
       }
     }
+
+    return allResponses;
   }
 }
 
