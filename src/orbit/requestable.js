@@ -3,19 +3,11 @@ import Evented from 'orbit/evented';
 import Action from 'orbit/action';
 
 var Requestable = {
-  /**
-   `find`, `create`, `update` and `destroy` should all have the following signatures
+  defaultActions: ['find'],
 
-   @param {String} type
-   @param {String} data
-   @param {Object} options
-   @return {Object} promise
-   */
-  actionNames: ['find', 'create', 'update', 'destroy'],
-
-  extend: function(object) {
+  extend: function(object, actions) {
     Evented.extend(object);
-    Action.define(object, this.actionNames);
+    Action.define(object, actions || this.defaultActions);
     return object;
   }
 };

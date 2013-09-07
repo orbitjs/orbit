@@ -13,12 +13,25 @@ module("Unit - Requestable", {
   }
 });
 
+var verifyAction = function(object, action) {
+  ok(object[action], "has the required action " + action);
+};
+
 test("it exists", function() {
   ok(requestable);
 });
 
-test("it defines the required actions", function() {
-  ['find', 'create', 'update', 'destroy'].forEach(function(action) {
-    ok(requestable[action], "has the required action " + action);
+test("it defines `find` as an action by default", function() {
+  verifyAction(requestable, 'find');
+});
+
+test("it can define any number of custom actions", function() {
+  var customRequestable = {},
+      customActions = ['find', 'create', 'update', 'destroy'];
+
+  Requestable.extend(customRequestable, customActions);
+
+  customActions.forEach(function(action) {
+    verifyAction(customRequestable, action);
   });
 });
