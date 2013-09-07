@@ -10,11 +10,14 @@ var notifierForEvent = function(object, eventName, createIfUndefined) {
 
 var Evented = {
   extend: function(object) {
-    object._eventedNotifiers = {};
-    object.on = this.on;
-    object.off = this.off;
-    object.emit = this.emit;
-    object.poll = this.poll;
+    if (object._evented === undefined) {
+      object._evented = true;
+      object._eventedNotifiers = {};
+      object.on = this.on;
+      object.off = this.off;
+      object.emit = this.emit;
+      object.poll = this.poll;
+    }
     return object;
   },
 

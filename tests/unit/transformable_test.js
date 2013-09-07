@@ -16,9 +16,3 @@ module("Unit - Transformable", {
 test("it exists", function() {
   ok(transformable);
 });
-
-test("it defines the required actions", function() {
-  ['insertObject', 'replaceObject', 'setProperty', 'removeObject'].forEach(function(action) {
-    ok(transformable[action], "has the required action " + action);
-  });
-});
