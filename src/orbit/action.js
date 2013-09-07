@@ -12,21 +12,33 @@ var defineAction = function(object, name) {
 var performAction = function(object, name, args) {
   var actions = object.poll('will' + Orbit.capitalize(name), args);
   actions.push(object['_' + name]);
-  return performActions(actions, object, name, args);
+  return performActions(false, actions, object, name, args);
 };
 
-var performActions = function(actions, object, name, args) {
+var performActions = function(afterAction, actions, object, name, args) {
   var action = actions.shift();
 
-  Orbit.assert("No actions could be completed successfully", action);
+  if (!action) {
+    if (afterAction) {
+      object.emit('after' + Orbit.capitalize(name), arguments);
+      throw new Error('Action could not be completed successfully');
+    } else {
+      // Notify listeners that action was not successful, and allow
+      // them the chance to perform it as part of the same promise.
+      actions = object.poll('didNot' + Orbit.capitalize(name), args);
+      return performActions(true, actions, object, name, args);
+    }
+  }
+
   Orbit.assert("Action should be a function", typeof action === "function");
 
   return action.apply(object, args).then(
     function() {
-      object.emit('did' + Orbit.capitalize(name), arguments);
+      var Name = Orbit.capitalize(name);
+      object.emit('did' + Name + ' after' + Name, arguments);
     },
     function() {
-      return performActions(actions, object, name, args);
+      return performActions(afterAction, actions, object, name, args);
     }
   );
 };
