@@ -1,22 +1,5 @@
 import Orbit from 'orbit/core';
 
-var performAction = function(object, name, args) {
-  var capitalizedName = Orbit.capitalize(name),
-      performableActionName = '_' + name,
-      performableAction = object[performableActionName];
-
-  var alternativeAction = object.poll('will' + capitalizedName, args);
-  performableAction = alternativeAction || performableAction;
-
-  Orbit.assert("Action should be a function", typeof performableAction === "function");
-
-  return performableAction.apply(object, args).then(
-    function() {
-      object.emit('did' + capitalizedName, arguments);
-    }
-  );
-};
-
 var defineAction = function(object, name) {
   object[name] = function() {
     return performAction(
@@ -24,6 +7,28 @@ var defineAction = function(object, name) {
       name,
       arguments);
   };
+};
+
+var performAction = function(object, name, args) {
+  var actions = object.poll('will' + Orbit.capitalize(name), args);
+  actions.push(object['_' + name]);
+  return performActions(actions, object, name, args);
+};
+
+var performActions = function(actions, object, name, args) {
+  var action = actions.shift();
+
+  Orbit.assert("No actions could be completed successfully", action);
+  Orbit.assert("Action should be a function", typeof action === "function");
+
+  return action.apply(object, args).then(
+    function() {
+      object.emit('did' + Orbit.capitalize(name), arguments);
+    },
+    function() {
+      return performActions(actions, object, name, args);
+    }
+  );
 };
 
 var Action = {

@@ -77,13 +77,18 @@ var verifyAction = function(actionName) {
     });
   });
 
-  test("it should allow action to be overridden by return of `will" + ActionName + "`", function() {
-    expect(4);
+  test("it should queue actions returned from `will" + ActionName + "` and try them in order until one succeeds", function() {
+    expect(6);
 
     var order = 0;
 
-    var alternativeAction = function() {
-      equal(order++, 1, 'action performed after will' + ActionName);
+    var fail = function() {
+      equal(order++, 2, 'action performed after will' + ActionName);
+      return failedOperation();
+    };
+
+    var success = function() {
+      equal(order++, 3, 'action performed after failed action');
       return successfulOperation();
     };
 
@@ -93,18 +98,66 @@ var verifyAction = function(actionName) {
 
     object.on('will' + ActionName, function() {
       equal(order++, 0, 'will' + ActionName + ' triggered first');
-      return alternativeAction;
+      return fail;
+    });
+
+    object.on('will' + ActionName, function() {
+      equal(order++, 1, 'will' + ActionName + ' triggered first');
+      return success;
     });
 
     object.on('did' + ActionName, function() {
-      equal(order++, 2, 'did' + ActionName + ' triggered after action performed');
+      equal(order++, 4, 'did' + ActionName + ' triggered after successful action performed');
     });
 
     object[actionName].call(object).then(function() {
-      equal(order++, 3, 'promise resolved after did' + ActionName);
+      equal(order++, 5, 'promise resolved after did' + ActionName);
     });
   });
 
+  test("it should queue actions returned from `will" + ActionName + "` and fail if they all fail", function() {
+    expect(6);
+
+    var order = 0;
+
+    var fail = function() {
+      equal(order++, 2, 'action performed after will' + ActionName);
+      return failedOperation();
+    };
+
+    var fail2 = function() {
+      equal(order++, 3, 'action performed after will' + ActionName);
+      return failedOperation();
+    };
+
+    object['_' + actionName] = function() {
+      equal(order++, 4, 'default action performed after second failed action');
+      return failedOperation();
+    };
+
+    object.on('will' + ActionName, function() {
+      equal(order++, 0, 'will' + ActionName + ' triggered first');
+      return fail;
+    });
+
+    object.on('will' + ActionName, function() {
+      equal(order++, 1, 'will' + ActionName + ' triggered again');
+      return fail2;
+    });
+
+    object.on('did' + ActionName, function() {
+      ok(false, 'did' + ActionName + ' should not be reached');
+    });
+
+    object[actionName].call(object).then(
+      function() {
+        ok(false, 'promise should not succeed');
+      },
+      function() {
+        equal(order++, 5, 'promise failed because no actions succeeded');
+      }
+    );
+  });
 };
 
 module("Unit - Action", {
