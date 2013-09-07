@@ -3,7 +3,7 @@ import Notifier from 'orbit/notifier';
 var notifierForEvent = function(object, eventName, createIfUndefined) {
   var notifier = object._eventedNotifiers[eventName];
   if (!notifier && createIfUndefined) {
-    notifier = object._eventedNotifiers[eventName] = new Notifier;
+    notifier = object._eventedNotifiers[eventName] = new Notifier();
   }
   return notifier;
 };

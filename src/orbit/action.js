@@ -47,10 +47,10 @@ var performActions = function(afterAction, actions, object, name, args) {
 var Action = {
   define: function(object, action) {
     Orbit.assert("Object must extend Evented", object.emit);
-    if (typeof action === "object") {
+    if (Object.prototype.toString.call(action) === "[object Array]") {
       action.forEach(function(name) {
         defineAction(object, name);
-      })
+      });
     } else {
       defineAction(object, action);
     }

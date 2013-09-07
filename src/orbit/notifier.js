@@ -50,6 +50,6 @@ Notifier.prototype = {
 
     return allResponses;
   }
-}
+};
 
 export default Notifier;
