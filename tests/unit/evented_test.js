@@ -105,7 +105,23 @@ test("it notifies listeners when emitting events with any number of arguments", 
   evented.emit('greeting', 'hello', 'world');
 });
 
-test("it notifies listeners when polling with a message and returns the first response", function() {
+test("it can emit multiple events with the same arguments sequentially", function() {
+  expect(3);
+
+  var listener1 = function(message) {
+        equal(message, 'hello', 'notification message should match');
+      },
+      listener2 = function(message) {
+        equal(message, 'hello', 'notification message should match');
+      };
+
+  evented.on('greeting salutation', listener1);
+  evented.on('salutation', listener2);
+
+  evented.emit('greeting salutation', 'hello');
+});
+
+test("it can poll listeners with an event and return all the responses in an array", function() {
   expect(4);
 
   var listener1 = function(message) {
@@ -128,3 +144,27 @@ test("it notifies listeners when polling with a message and returns the first re
   deepEqual(evented.poll('greeting', 'hello'), ['bonjour', 'sup'], 'poll response should include the responses of all listeners');
 });
 
+test("it can poll listeners with multiple event and return all the responses in a single array", function() {
+  expect(2);
+
+  var dog1 = function() {
+        return 'Winky'
+      },
+      dog2 = function() {
+        return 'Hubert'
+      },
+      owner1 = function() {
+        return 'Cookie Fleck';
+      },
+      owner2 = function() {
+        return 'Harlan Pepper';
+      };
+
+  evented.on('dog', dog1);
+  evented.on('dog', dog2);
+  evented.on('owner', owner1);
+  evented.on('owner', owner2);
+
+  deepEqual(evented.poll('dog owner'), ['Winky', 'Hubert', 'Cookie Fleck', 'Harlan Pepper'], 'poll response should include the responses of all listeners in order');
+  deepEqual(evented.poll('owner dog'), ['Cookie Fleck', 'Harlan Pepper', 'Winky', 'Hubert'], 'poll response should include the responses of all listeners in order');
+});

@@ -1,8 +1,8 @@
 import Notifier from 'orbit/notifier';
 
-var notifierForEvent = function(object, eventName) {
+var notifierForEvent = function(object, eventName, createIfUndefined) {
   var notifier = object._eventedNotifiers[eventName];
-  if (!notifier) {
+  if (!notifier && createIfUndefined) {
     notifier = object._eventedNotifiers[eventName] = new Notifier;
   }
   return notifier;
@@ -23,31 +23,51 @@ var Evented = {
     binding = binding || this;
 
     eventNames.split(/\s+/).forEach(function(eventName) {
-      notifierForEvent(_this, eventName).addListener(callback, binding);
+      notifierForEvent(_this, eventName, true).addListener(callback, binding);
     });
   },
 
   off: function(eventNames, callback, binding) {
-    var _this = this;
+    var _this = this,
+        notifier;
+
     binding = binding || this;
 
     eventNames.split(/\s+/).forEach(function(eventName) {
-      notifierForEvent(_this, eventName).removeListener(callback, binding);
+      notifier = notifierForEvent(_this, eventName);
+      if (notifier) {
+        notifier.removeListener(callback, binding);
+      }
     });
   },
 
-  emit: function(eventName) {
-    var notifier = notifierForEvent(this, eventName),
-        args = Array.prototype.slice.call(arguments, 1);
+  emit: function(eventNames) {
+    var _this = this,
+        args = Array.prototype.slice.call(arguments, 1),
+        notifier;
 
-    notifier.emit.apply(notifier, args);
+    eventNames.split(/\s+/).forEach(function(eventName) {
+      notifier = notifierForEvent(_this, eventName);
+      if (notifier) {
+        notifier.emit.apply(notifier, args);
+      }
+    });
   },
 
-  poll: function(eventName) {
-    var notifier = notifierForEvent(this, eventName),
-        args = Array.prototype.slice.call(arguments, 1);
+  poll: function(eventNames) {
+    var _this = this,
+        args = Array.prototype.slice.call(arguments, 1),
+        notifier,
+        responses = [];
 
-    return notifier.poll.apply(notifier, args);
+    eventNames.split(/\s+/).forEach(function(eventName) {
+      notifier = notifierForEvent(_this, eventName);
+      if (notifier) {
+        responses = responses.concat(notifier.poll.apply(notifier, args));
+      }
+    });
+
+    return responses;
   }
 };
 
