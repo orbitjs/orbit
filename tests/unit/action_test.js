@@ -171,7 +171,7 @@ var verifyAction = function(actionName) {
     });
 
     object.on('did' + ActionName, function() {
-      ok(false, 'did' + ActionName + ' should not be reached');
+      ok(false, 'did' + ActionName + ' should not be triggered');
     });
 
     object.on('after' + ActionName, function() {
@@ -188,7 +188,7 @@ var verifyAction = function(actionName) {
     );
   });
 
-  test("after an unsuccessful action, it should queue actions returned from `didNot" + ActionName + "` and try them in order until one succeeds", function() {
+  test("after an unsuccessful action, it should queue actions returned from `rescue" + ActionName + "` and try them in order until one succeeds", function() {
     expect(8);
 
     var order = 0;
@@ -208,18 +208,22 @@ var verifyAction = function(actionName) {
       return failedOperation();
     };
 
-    object.on('didNot' + ActionName, function() {
-      equal(++order, 2, 'didNot' + ActionName + ' listener triggered after failed action');
+    object.on('rescue' + ActionName, function() {
+      equal(++order, 2, 'rescue' + ActionName + ' listener triggered after failed action');
       return fail;
     });
 
-    object.on('didNot' + ActionName, function() {
-      equal(++order, 3, 'didNot' + ActionName + ' listener triggered after second failed action');
+    object.on('rescue' + ActionName, function() {
+      equal(++order, 3, 'rescue' + ActionName + ' listener triggered after second failed action');
       return success;
     });
 
     object.on('did' + ActionName, function() {
       equal(++order, 6, 'did' + ActionName + ' triggered after action performed successfully');
+    });
+
+    object.on('didNot' + ActionName, function() {
+      ok(false, 'didNot' + ActionName + ' should not be triggered');
     });
 
     object.on('after' + ActionName, function() {
@@ -231,8 +235,8 @@ var verifyAction = function(actionName) {
     });
   });
 
-  test("after an unsuccessful action, it should queue actions returned from `didNot" + ActionName + "` and fail if they all fail", function() {
-    expect(7);
+  test("after an unsuccessful action, it should queue actions returned from `rescue" + ActionName + "` and fail if they all fail", function() {
+    expect(8);
 
     var order = 0;
 
@@ -251,22 +255,26 @@ var verifyAction = function(actionName) {
       return failedOperation();
     };
 
-    object.on('didNot' + ActionName, function() {
-      equal(++order, 2, 'didNot' + ActionName + ' listener triggered after failed action');
+    object.on('rescue' + ActionName, function() {
+      equal(++order, 2, 'rescue' + ActionName + ' listener triggered after failed action');
       return fail1;
     });
 
-    object.on('didNot' + ActionName, function() {
-      equal(++order, 3, 'didNot' + ActionName + ' listener triggered after second failed action');
+    object.on('rescue' + ActionName, function() {
+      equal(++order, 3, 'rescue' + ActionName + ' listener triggered after second failed action');
       return fail2;
     });
 
     object.on('did' + ActionName, function() {
-      ok(false, 'did' + ActionName + ' should not be reached');
+      ok(false, 'did' + ActionName + ' should not be triggered');
+    });
+
+    object.on('didNot' + ActionName, function() {
+      equal(++order, 6, 'didNot' + ActionName + ' triggered because action failed');
     });
 
     object.on('after' + ActionName, function() {
-      equal(++order, 6, 'after' + ActionName + ' triggered after any action performed');
+      equal(++order, 7, 'after' + ActionName + ' triggered after any action performed');
     });
 
     object[actionName].call(object).then(
@@ -274,7 +282,7 @@ var verifyAction = function(actionName) {
         ok(false, 'promise should not succeed');
       },
       function() {
-        equal(++order, 7, 'promise failed because no actions succeeded');
+        equal(++order, 8, 'promise failed because no actions succeeded');
       }
     );
   });};
