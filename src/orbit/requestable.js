@@ -3,35 +3,42 @@ import Evented from 'orbit/evented';
 
 var performAction = function(object, name, args) {
   var actions = object.poll('will' + Orbit.capitalize(name), args);
-  actions.push(object['_' + name]);
-  return performActions(false, actions, object, name, args);
+  return performActions('pre', actions, null, object, name, args);
 };
 
-var performActions = function(afterAction, actions, object, name, args) {
+var performActions = function(state, actions, error, object, name, args) {
   var action = actions.shift();
 
   if (!action) {
-    if (afterAction) {
-      var Name = Orbit.capitalize(name);
-      object.emit('didNot' + Name + ' after' + Name, arguments);
-      throw new Error('Action could not be completed successfully');
-    } else {
-      // Notify listeners that the action was not successful, and provide
-      // them with the chance to perform it as part of the same promise.
+    if (state === 'pre') {
+      actions = [object['_' + name]];
+      state = 'current';
+
+    } else if (state === 'current') {
       actions = object.poll('rescue' + Orbit.capitalize(name), args);
-      return performActions(true, actions, object, name, args);
+      state = 'post';
+
+    } else {
+      var Name = Orbit.capitalize(name);
+      object.emit('didNot' + Name + ' after' + Name, args);
+      throw error || 'Action could not be completed successfully';
     }
+    return performActions(state, actions, error, object, name, args);
   }
 
   Orbit.assert("Action should be a function", typeof action === "function");
 
   return action.apply(object, args).then(
-    function() {
+    function(result) {
       var Name = Orbit.capitalize(name);
-      object.emit('did' + Name + ' after' + Name, arguments);
+      object.emit('did' + Name + ' after' + Name, args);
+      return result;
     },
-    function() {
-      return performActions(afterAction, actions, object, name, args);
+    function(result) {
+      if (state === 'current') {
+        error = result;
+      }
+      return performActions(state, actions, error, object, name, args);
     }
   );
 };
