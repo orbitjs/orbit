@@ -2,43 +2,44 @@ import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
 
 var performAction = function(object, name, args) {
-  var actions = object.poll('will' + Orbit.capitalize(name), args);
-  return performActions('pre', actions, null, object, name, args);
+  var handlers = object.poll('will' + Orbit.capitalize(name), args);
+  return performActionHandlers('will', handlers, null, object, name, args);
 };
 
-var performActions = function(state, actions, error, object, name, args) {
-  var action = actions.shift();
+var performActionHandlers = function(queue, handlers, error, object, name, args) {
+  var handler = handlers.shift();
 
-  if (!action) {
-    if (state === 'pre') {
-      actions = [object['_' + name]];
-      state = 'current';
+  if (!handler) {
+    if (queue === 'will') {
+      handlers = [object['_' + name]];
+      queue = 'default';
 
-    } else if (state === 'current') {
-      actions = object.poll('rescue' + Orbit.capitalize(name), args);
-      state = 'post';
+    } else if (queue === 'default') {
+      handlers = object.poll('rescue' + Orbit.capitalize(name), args);
+      queue = 'rescue';
 
     } else {
       var Name = Orbit.capitalize(name);
       object.emit('didNot' + Name + ' after' + Name, args);
-      throw error || 'Action could not be completed successfully';
+      throw error; // raise the error from the default handler
     }
-    return performActions(state, actions, error, object, name, args);
+    return performActionHandlers(queue, handlers, error, object, name, args);
   }
 
-  Orbit.assert("Action should be a function", typeof action === "function");
+  Orbit.assert("Action handler should be a function", typeof handler === "function");
 
-  return action.apply(object, args).then(
+  return handler.apply(object, args).then(
     function(result) {
       var Name = Orbit.capitalize(name);
       object.emit('did' + Name + ' after' + Name, args);
       return result;
     },
     function(result) {
-      if (state === 'current') {
+      // Only capture the error from the default handler
+      if (queue === 'default') {
         error = result;
       }
-      return performActions(state, actions, error, object, name, args);
+      return performActionHandlers(queue, handlers, error, object, name, args);
     }
   );
 };
