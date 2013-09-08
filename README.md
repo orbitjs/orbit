@@ -1,7 +1,7 @@
 # Orbit.js
 
-Orbit.js is a low level library that can coordinate access to data sources and
-keep them effortlessly in sync.
+Orbit.js is a low level library for keeping data sources coordinated and
+synchronized.
 
 Orbit has no specific external dependencies. However, it does require use of
 a library that implements the
@@ -49,6 +49,7 @@ Or you can add actions later with `Requestable.defineAction()`:
 var source = {};
 Requestable.extend(source); // defines 'find' by default
 Requestable.defineAction(source, ['create', 'update', 'destroy']);
+Requestable.defineAction(source, 'patch');
 ```
 
 In order to fulfill the contract of an action, define a
@@ -68,7 +69,7 @@ source._find = function(type, id) {
 };
 ```
 
-Actions combine promise-based returns with an event-driven flow.
+Actions combine promise-based return values with an event-driven flow.
 Events can be used to coordinate multiple handlers interested in participating
 with or simply observing the resolution of an action.
 
@@ -107,7 +108,7 @@ var memStore = new InMemoryStore();
 var restStore = new RESTStore();
 var localStore = new LocalStore();
 
-////// Connect the sources
+////// Connect the sources via events
 
 // Check local storage before making a remote call
 restStore.on('willFind', localStore.find);
@@ -133,10 +134,13 @@ memStore.find('contact', 1).then(function(contact) {
 ```
 
 Note that all of the configuration steps can (and probably should) be done
-well in advance of the action being called. You essentially want to hook up the
-wiring between sources and focus only on the entry points to your data from
-your application, such as an in-memory store. This eliminates the need to
-chain together a large number of promises with every call.
+well in advance of actions being called. You essentially want to hook up the
+wiring between sources and then restrict your application's direct access to
+most of them. It's much simpler to work directly with an in-memory
+store from your application code, knowing that Orbit is working behind the
+scenes to keep that store fresh and synchronized with other sources. This
+approach eliminates the need to chain together a large number of promises
+with every call.
 
 ### Transformable
 
