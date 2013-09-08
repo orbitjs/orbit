@@ -4,7 +4,7 @@ var notifier;
 
 module("Unit - Notifier", {
   setup: function() {
-    notifier = new Notifier;
+    notifier = new Notifier();
   },
 
   teardown: function() {
