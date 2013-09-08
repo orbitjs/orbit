@@ -83,7 +83,7 @@ called successively, prior to `_find`, until one resolves successfully.
 * `rescueFind` -  if no handlers queued by `willFind` are successfully
 resolved, nor is the default `_find` method itself, then `rescueFind` will be
 triggered to allow listeners to respond with handlers that might be able to
-resolve the action. Again, these actions will be called successively,
+resolve the action. Again, these handlers will be called successively,
 until one resolves or the whole queue fails.
 
 * `didFind` - triggered upon the successful resolution of the action by any
@@ -133,26 +133,135 @@ memStore.find('contact', 1).then(function(contact) {
 });
 ```
 
-Note that all of the configuration steps can (and probably should) be done
-well in advance of actions being called. You essentially want to hook up the
-wiring between sources and then restrict your application's direct access to
-most of them. It's much simpler to work directly with an in-memory
-store from your application code, knowing that Orbit is working behind the
-scenes to keep that store fresh and synchronized with other sources. This
-approach eliminates the need to chain together a large number of promises
-with every call.
+Configuration can (and probably should) be done well in advance of actions
+being called. You essentially want to hook up the wiring between sources and
+then restrict your application's direct access to most of them. This greatly
+simplifies your application code: instead of chaining together a large number
+of promises that include multiple sources in every call,
+you can interact with a single source of truth (typically an in-memory store).
 
 ### Transformable
+
+Although the `Requestable` interface can help multiple sources coordinate in
+fulfilling a request, it's not sufficient to keep data sources synchronized.
+When one source fields a request, other sources may need to be notified of
+the precise data changes brought about in that source,
+so that they can all stay synchronized. That's where the `Transformable`
+interace comes in...
 
 COMING SOON!
 
 ## Notifications and Events
 
 Orbit also contains a couple classes for handling notifications and events.
-These may be separated into one or more microlibs.
+These will likely be separated into one or more microlibs.
 
 ### Notifier
 
+The `Notifier` class can emit messages to an array of subscribed listeners.
+Here's a simple example:
+
+```javascript
+var notifier = new Notifier();
+notifier.addListener(function(message) {
+  console.log("I heard " + message);
+});
+notifier.addListener(function(message) {
+  console.log("I also heard " + message);
+});
+
+notifier.emit('hello'); // logs "I heard hello" and "I also heard hello"
+```
+
+Notifiers can also poll listeners with an event and return their responses:
+
+```javascript
+var dailyQuestion = new Notifier();
+dailyQuestion.addListener(function(question) {
+  if (question === 'favorite food?') return 'beer';
+});
+dailyQuestion.addListener(function(question) {
+  if (question === 'favorite food?') return 'wasabi almonds';
+});
+dailyQuestion.addListener(function(question) {
+  // this listener doesn't return anything, and therefore won't participate
+  // in the poll
+});
+
+notifier.poll('favorite food?'); // returns ['beer', 'wasabi almonds']
+```
+
+Calls to `emit` and `poll` will send along all of their arguments.
+
 ### Evented
 
+The `Evented` interface uses notifiers to add events to an object. Like
+notifiers, events will send along all of their arguments to subscribed
+listeners.
+
+The `Evented` interface can extend an object or prototype as follows:
+
+```javascript
+var source = {};
+Evented.extend(source);
+```
+
+Listeners can then register themselves for particular events with `on`:
+
+```javascript
+var listener1 = function(message) {
+      console.log('listener1 heard ' + message);
+    },
+    listener2 = function(message) {
+      console.log('listener2 heard ' + message);
+    };
+
+source.on('greeting', listener1);
+source.on('greeting', listener2);
+
+evented.emit('greeting', 'hello'); // logs "listener1 heard hello" and
+                                   //      "listener2 heard hello"
+```
+
+Listeners can be unregistered from events at any time with `off`:
+
+```javascript
+source.off('greeting', listener2);
+```
+
+A listener can register itself for multiple events at once:
+
+```javascript
+source.on('greeting salutation', listener2);
+```
+
+And multiple events can be triggered sequentially at once,
+assuming that you want to pass them all the same arguments:
+
+```javascript
+source.emit('greeting salutation', 'hello', 'bonjour', 'guten tag');
+```
+
+Last but not least, listeners can be polled, just like in the notifier example
+(note that spaces can't be used in event names):
+
+```javascript
+source.on('question', function(question) {
+  if (question === 'favorite food?') return 'beer';
+});
+
+source.on('question', function(question) {
+  if (question === 'favorite food?') return 'wasabi almonds';
+});
+
+source.on('question', function(question) {
+  // this listener doesn't return anything, and therefore won't participate
+  // in the poll
+});
+
+source.poll('question', 'favorite food?'); // returns ['beer', 'wasabi almonds']
+```
+
 ## License
+
+Copyright 2013 Cerebris Corporation. MIT License (see LICENSE for details).
