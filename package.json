@@ -1,7 +1,7 @@
 {
   "name": "orbit.js",
   "namespace": "orbit",
-  "description": "Data sync",
+  "description": "Keep data sources coordinated and synchronized",
   "version": "0.0.1",
   "homepage": "https://github.com/cerebris/orbit.js",
   "readmeFilename": "README.md",
@@ -34,7 +34,6 @@
   },
   "devDependencies": {
     "grunt": "~0.4.1",
-    "connect": "~2.7.4",
     "glob": "~3.2.1",
     "grunt-contrib-clean": "~0.4.1",
     "grunt-contrib-concat": "~0.3.0",
