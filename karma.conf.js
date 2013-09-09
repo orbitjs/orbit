@@ -10,9 +10,11 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'vendor/loader.js',
-      'assets/app.js',
+      'assets/vendor.js',
+      'assets/orbit.js',
       'tests/test_helper.js',
-      'tests/tests.js'
+      'tests/tests.js',
+      'tests/test_loader.js'
     ],
 
     frameworks: ['qunit'],
