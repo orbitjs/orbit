@@ -24,7 +24,7 @@ var Transformable = {
           throw result;
         }
       );
-    }
+    };
 
     return object;
   }
