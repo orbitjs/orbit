@@ -1,48 +1,43 @@
 import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
 
-var performAction = function(name) {
-  var args = Array.prototype.slice.call(arguments, 1);
-  var handlers = this.poll.apply(this, ['will' + Orbit.capitalize(name)].concat(args));
-  return performActionHandlers('will', handlers, null, this, name, args);
-};
-
-var performActionHandlers = function(queue, handlers, error, object, name, args) {
-  var handler = handlers.shift();
+var performActionHandlers = function(action, args, handlers, queue, defaultHandlerError) {
+  var _this = this,
+      handler = handlers.shift();
 
   if (!handler) {
     if (queue === 'will') {
-      handlers = [object['_' + name]];
+      handlers = [_this['_' + action]];
       queue = 'default';
 
     } else if (queue === 'default') {
-      handlers = object.poll.apply(object, ['rescue' + Orbit.capitalize(name)].concat(args));
+      handlers = _this.poll.apply(_this, ['rescue' + Orbit.capitalize(action)].concat(args));
       queue = 'rescue';
 
     } else {
-      var Name = Orbit.capitalize(name);
-      object.emit.apply(object, ['didNot' + Name].concat(args).concat(error));
-      object.emit.apply(object, ['after' + Name].concat(args));
-      throw error; // raise the error from the default handler
+      var Name = Orbit.capitalize(action);
+      _this.emit.apply(_this, ['didNot' + Name].concat(args).concat(defaultHandlerError));
+      _this.emit.apply(_this, ['after' + Name].concat(args));
+      throw defaultHandlerError;
     }
-    return performActionHandlers(queue, handlers, error, object, name, args);
+
+    return performActionHandlers.call(_this, action, args, handlers, queue, defaultHandlerError);
   }
 
   Orbit.assert("Action handler should be a function", typeof handler === "function");
 
-  return handler.apply(object, args).then(
+  return handler.apply(_this, args).then(
     function(result) {
-      var Name = Orbit.capitalize(name);
-      object.emit.apply(object, ['did' + Name].concat(args).concat(result));
-      object.emit.apply(object, ['after' + Name].concat(args));
+      var Name = Orbit.capitalize(action);
+      _this.emit.apply(_this, ['did' + Name].concat(args).concat(result));
+      _this.emit.apply(_this, ['after' + Name].concat(args));
       return result;
     },
     function(result) {
-      // Only capture the error from the default handler
       if (queue === 'default') {
-        error = result;
+        defaultHandlerError = result;
       }
-      return performActionHandlers(queue, handlers, error, object, name, args);
+      return performActionHandlers.call(_this, action, args, handlers, queue, defaultHandlerError);
     }
   );
 };
@@ -66,7 +61,9 @@ var Requestable = {
       }, this);
     } else {
       object[action] = function() {
-        return performAction.apply(object, [action].concat(Array.prototype.slice.call(arguments, 0)));
+        var args = Array.prototype.slice.call(arguments, 0);
+        var handlers = this.poll.apply(object, ['will' + Orbit.capitalize(action)].concat(args));
+        return performActionHandlers.call(object, action, args, handlers, 'will');
       };
     }
   }
