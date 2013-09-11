@@ -1,21 +1,16 @@
 import Transformable from 'orbit/transformable';
 import RSVP from 'rsvp';
 
-var source,
-    target;
+var source;
 
 var successfulOperation = function() {
-  stop();
   return new RSVP.Promise(function(resolve, reject) {
-    start();
     resolve(':)');
   });
 };
 
 var failedOperation = function() {
-  stop();
   return new RSVP.Promise(function(resolve, reject) {
-    start();
     reject(':(');
   });
 };
@@ -25,9 +20,7 @@ var failedOperation = function() {
 module("Unit - Transformable", {
   setup: function() {
     source = {};
-    target = {};
     Transformable.extend(source);
-    Transformable.extend(target);
   },
 
   teardown: function() {
@@ -55,13 +48,16 @@ test("it requires the definition of `_transform`", function() {
 
 test("`transform` returns the value of `_transform`", function() {
   source._transform = successfulOperation;
+
+  stop();
   source.transform().then(function(result) {
     equal(result, ':)', 'tranform returns the same value as _tranform');
+    start();
   });
 });
 
 test("it should emit `willTransform` and `didTransform` events for a successful transform", function() {
-  expect(9);
+  expect(10);
 
   var order = 0;
 
@@ -83,9 +79,12 @@ test("it should emit `willTransform` and `didTransform` events for a successful 
 
   source.on('afterTransform', function() {
     equal(++order, 4, 'afterTransform emitted after didTransform');
+    deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
   });
 
+  stop();
   source.transform.call(source, 'abc', 'def').then(function(result) {
+    start();
     equal(++order, 5, 'promise resolved last');
     equal(result, ':)', 'success!');
   });
@@ -121,7 +120,9 @@ test("it should emit `willTransform` and `didNotTransform` events for an unsucce
     deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
   });
 
+  stop();
   source.transform.call(source, 'abc', 'def').then(null, function(result) {
+    start();
     equal(++order, 5, 'promise resolved last');
     equal(result, ':(', 'failure');
   });

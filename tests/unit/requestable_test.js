@@ -7,17 +7,13 @@ var testActionBehavior = function(actionName) {
   var ActionName = actionName.charAt(0).toUpperCase() + actionName.slice(1);
 
   var successfulOperation = function() {
-    stop();
     return new RSVP.Promise(function(resolve, reject) {
-      start();
       resolve(':)');
     });
   };
 
   var failedOperation = function() {
-    stop();
     return new RSVP.Promise(function(resolve, reject) {
-      start();
       reject(':(');
     });
   };
@@ -27,7 +23,9 @@ var testActionBehavior = function(actionName) {
 
     object['_' + actionName] = successfulOperation;
 
+    stop();
     object[actionName].call(object).then(function(result) {
+      start();
       ok(true, '_' + actionName + ' promise resolved')
       equal(result, ':)', 'success!');
     });
@@ -36,11 +34,14 @@ var testActionBehavior = function(actionName) {
   test("it should resolve as a failure when _" + actionName + " fails", function() {
     object['_' + actionName] = failedOperation;
 
+    stop();
     object[actionName].call(object).then(
       function() {
+        start();
         ok(false, '_' + actionName + ' should not be resolved successfully')
       },
       function(result) {
+        start();
         ok(true, '_' + actionName + ' promise resolved as a failure')
         equal(result, ':(', 'failure');
       }
@@ -73,7 +74,9 @@ var testActionBehavior = function(actionName) {
       deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
     });
 
+    stop();
     object[actionName].call(object, 'abc', 'def').then(function(result) {
+      start();
       equal(++order, 5, 'promise resolved last');
       equal(result, ':)', 'success!');
     });
@@ -109,7 +112,9 @@ var testActionBehavior = function(actionName) {
       deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
     });
 
+    stop();
     object[actionName].call(object, 'abc', 'def').then(null, function(result) {
+      start();
       equal(++order, 5, 'promise resolved last');
       equal(result, ':(', 'failure');
     });
@@ -152,7 +157,9 @@ var testActionBehavior = function(actionName) {
       equal(++order, 6, 'after' + ActionName + ' triggered after any action performed');
     });
 
+    stop();
     object[actionName].call(object).then(function(result) {
+      start();
       equal(++order, 7, 'promise resolved last');
       equal(result, ':)', 'success!');
     });
@@ -196,11 +203,14 @@ var testActionBehavior = function(actionName) {
       equal(++order, 6, 'after' + ActionName + ' triggered after any action performed');
     });
 
+    stop();
     object[actionName].call(object).then(
       function() {
+        start();
         ok(false, 'promise should not succeed');
       },
       function(result) {
+        start();
         equal(++order, 7, 'promise failed because no actions succeeded');
         equal(result, ':(', 'failure');
       }
@@ -249,7 +259,9 @@ var testActionBehavior = function(actionName) {
       equal(++order, 7, 'after' + ActionName + ' triggered after any action performed');
     });
 
+    stop();
     object[actionName].call(object).then(function(result) {
+      start();
       equal(++order, 8, 'promise resolved last');
       equal(result, ':)', 'success!');
     });
@@ -297,11 +309,14 @@ var testActionBehavior = function(actionName) {
       equal(++order, 7, 'after' + ActionName + ' triggered after any action performed');
     });
 
+    stop();
     object[actionName].call(object).then(
       function() {
+        start();
         ok(false, 'promise should not succeed');
       },
       function(result) {
+        start();
         equal(++order, 8, 'promise failed because no actions succeeded');
         equal(result, ':(', 'failure');
       }
