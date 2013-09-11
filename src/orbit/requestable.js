@@ -1,9 +1,10 @@
 import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
 
-var performAction = function(object, name, args) {
-  var handlers = object.poll('will' + Orbit.capitalize(name), args);
-  return performActionHandlers('will', handlers, null, object, name, args);
+var performAction = function(name) {
+  var args = Array.prototype.slice.call(arguments, 1);
+  var handlers = this.poll.apply(this, ['will' + Orbit.capitalize(name)].concat(args));
+  return performActionHandlers('will', handlers, null, this, name, args);
 };
 
 var performActionHandlers = function(queue, handlers, error, object, name, args) {
@@ -15,12 +16,13 @@ var performActionHandlers = function(queue, handlers, error, object, name, args)
       queue = 'default';
 
     } else if (queue === 'default') {
-      handlers = object.poll('rescue' + Orbit.capitalize(name), args);
+      handlers = object.poll.apply(object, ['rescue' + Orbit.capitalize(name)].concat(args));
       queue = 'rescue';
 
     } else {
       var Name = Orbit.capitalize(name);
-      object.emit('didNot' + Name + ' after' + Name, args);
+      object.emit.apply(object, ['didNot' + Name].concat(args).concat(error));
+      object.emit.apply(object, ['after' + Name].concat(args));
       throw error; // raise the error from the default handler
     }
     return performActionHandlers(queue, handlers, error, object, name, args);
@@ -31,7 +33,8 @@ var performActionHandlers = function(queue, handlers, error, object, name, args)
   return handler.apply(object, args).then(
     function(result) {
       var Name = Orbit.capitalize(name);
-      object.emit('did' + Name + ' after' + Name, args);
+      object.emit.apply(object, ['did' + Name].concat(args).concat(result));
+      object.emit.apply(object, ['after' + Name].concat(args));
       return result;
     },
     function(result) {
@@ -63,10 +66,7 @@ var Requestable = {
       }, this);
     } else {
       object[action] = function() {
-        return performAction(
-          object,
-          action,
-          arguments);
+        return performAction.apply(object, [action].concat(Array.prototype.slice.call(arguments, 0)));
       };
     }
   }
