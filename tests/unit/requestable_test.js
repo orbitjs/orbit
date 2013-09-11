@@ -48,50 +48,52 @@ var testActionBehavior = function(actionName) {
   });
 
   test("it should trigger `will" + ActionName + "` and `did" + ActionName + "` events around a successful action", function() {
-    expect(9);
+    expect(10);
 
     var order = 0;
 
+    object.on('will' + ActionName, function() {
+      equal(++order, 1, 'will' + ActionName + ' triggered first');
+      deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
+    });
+
     object['_' + actionName] = function() {
       equal(++order, 2, 'action performed after will' + ActionName);
+      deepEqual(toArray(arguments), ['abc', 'def'], '_handler args match original call args');
       return successfulOperation();
     };
 
-    object.on('will' + ActionName, function() {
-      equal(++order, 1, 'will' + ActionName + ' triggered first');
-      deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match action args');
-    });
-
     object.on('did' + ActionName, function() {
       equal(++order, 3, 'did' + ActionName + ' triggered after action performed successfully');
-      deepEqual(toArray(arguments), ['abc', 'def', ':)'], 'event handler args match action args + return value');
+      deepEqual(toArray(arguments), ['abc', 'def', ':)'], 'event handler args match original call args + return value');
     });
 
     object.on('after' + ActionName, function() {
       equal(++order, 4, 'after' + ActionName + ' triggered after any action performed');
-      deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match action args');
+      deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
     });
 
     object[actionName].call(object, 'abc', 'def').then(function(result) {
-      equal(++order, 5, 'promise resolved after did' + ActionName);
+      equal(++order, 5, 'promise resolved last');
       equal(result, ':)', 'success!');
     });
   });
 
   test("it should trigger `will" + ActionName + "` and `didNot" + ActionName + "` events for an unsuccessful action", function() {
-    expect(9);
+    expect(10);
 
     var order = 0;
 
-    object['_' + actionName] = function() {
-      equal(++order, 2, 'action performed after will' + ActionName);
-      return failedOperation();
-    };
-
     object.on('will' + ActionName, function() {
       equal(++order, 1, 'will' + ActionName + ' triggered first');
-      deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match action args');
+      deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
     });
+
+    object['_' + actionName] = function() {
+      equal(++order, 2, 'action performed after will' + ActionName);
+      deepEqual(toArray(arguments), ['abc', 'def'], '_handler args match original call args');
+      return failedOperation();
+    };
 
     object.on('did' + ActionName, function() {
       ok(false, 'did' + ActionName + ' should not be triggered');
@@ -99,16 +101,16 @@ var testActionBehavior = function(actionName) {
 
     object.on('didNot' + ActionName, function() {
       equal(++order, 3, 'didNot' + ActionName + ' triggered after an unsuccessful action');
-      deepEqual(toArray(arguments), ['abc', 'def', ':('], 'event handler args match action args + return value');
+      deepEqual(toArray(arguments), ['abc', 'def', ':('], 'event handler args match original call args + return value');
     });
 
     object.on('after' + ActionName, function() {
       equal(++order, 4, 'after' + ActionName + ' triggered after any action performed');
-      deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match action args');
+      deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
     });
 
     object[actionName].call(object, 'abc', 'def').then(null, function(result) {
-      equal(++order, 5, 'promise resolved after did' + ActionName);
+      equal(++order, 5, 'promise resolved last');
       equal(result, ':(', 'failure');
     });
   });
@@ -151,7 +153,7 @@ var testActionBehavior = function(actionName) {
     });
 
     object[actionName].call(object).then(function(result) {
-      equal(++order, 7, 'promise resolved after did' + ActionName);
+      equal(++order, 7, 'promise resolved last');
       equal(result, ':)', 'success!');
     });
   });
@@ -171,11 +173,6 @@ var testActionBehavior = function(actionName) {
       return failedOperation();
     };
 
-    object['_' + actionName] = function() {
-      equal(++order, 5, 'default action performed after second failed action');
-      return failedOperation();
-    };
-
     object.on('will' + ActionName, function() {
       equal(++order, 1, 'will' + ActionName + ' triggered first');
       return fail;
@@ -185,6 +182,11 @@ var testActionBehavior = function(actionName) {
       equal(++order, 2, 'will' + ActionName + ' triggered again');
       return fail2;
     });
+
+    object['_' + actionName] = function() {
+      equal(++order, 5, 'default action performed after second failed action');
+      return failedOperation();
+    };
 
     object.on('did' + ActionName, function() {
       ok(false, 'did' + ActionName + ' should not be triggered');
@@ -248,7 +250,7 @@ var testActionBehavior = function(actionName) {
     });
 
     object[actionName].call(object).then(function(result) {
-      equal(++order, 8, 'promise resolved after did' + ActionName);
+      equal(++order, 8, 'promise resolved last');
       equal(result, ':)', 'success!');
     });
   });
