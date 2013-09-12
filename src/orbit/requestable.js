@@ -1,18 +1,44 @@
 import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
 
-var performActionHandlers = function(action, args, handlers, queue, defaultHandlerError) {
+var nextQueue = function(queue) {
+  if (queue === undefined) {
+    return 'will';
+  } else if (queue === 'will') {
+    return 'default';
+  } else if (queue === 'default') {
+    return 'rescue';
+  } else {
+    return null;
+  }
+};
+
+var actionHandlers = function(action, args, queue) {
+  if (queue === 'will') {
+    return this.poll.apply(this, ['will' + Orbit.capitalize(action)].concat(args));
+
+  } else if (queue === 'default') {
+    return [this['_' + action]];
+
+  } else if (queue === 'rescue') {
+    return this.poll.apply(this, ['rescue' + Orbit.capitalize(action)].concat(args));
+
+  }
+};
+
+var performAction = function(action, args, handlers, queue, defaultHandlerError) {
   var _this = this,
-      handler = handlers.shift();
+      handler;
+
+  if (handlers) {
+    handler = handlers.shift();
+  }
 
   if (!handler) {
-    if (queue === 'will') {
-      handlers = [_this['_' + action]];
-      queue = 'default';
+    queue = nextQueue(queue);
 
-    } else if (queue === 'default') {
-      handlers = _this.poll.apply(_this, ['rescue' + Orbit.capitalize(action)].concat(args));
-      queue = 'rescue';
+    if (queue) {
+      handlers = actionHandlers.call(this, action, args, queue);
 
     } else {
       var Name = Orbit.capitalize(action);
@@ -21,7 +47,7 @@ var performActionHandlers = function(action, args, handlers, queue, defaultHandl
       throw defaultHandlerError;
     }
 
-    return performActionHandlers.call(_this, action, args, handlers, queue, defaultHandlerError);
+    return performAction.call(_this, action, args, handlers, queue, defaultHandlerError);
   }
 
   Orbit.assert("Action handler should be a function", typeof handler === "function");
@@ -37,7 +63,7 @@ var performActionHandlers = function(action, args, handlers, queue, defaultHandl
       if (queue === 'default') {
         defaultHandlerError = result;
       }
-      return performActionHandlers.call(_this, action, args, handlers, queue, defaultHandlerError);
+      return performAction.call(_this, action, args, handlers, queue, defaultHandlerError);
     }
   );
 };
@@ -61,9 +87,7 @@ var Requestable = {
       }, this);
     } else {
       object[action] = function() {
-        var args = Array.prototype.slice.call(arguments, 0);
-        var handlers = this.poll.apply(object, ['will' + Orbit.capitalize(action)].concat(args));
-        return performActionHandlers.call(object, action, args, handlers, 'will');
+        return performAction.call(object, action, Array.prototype.slice.call(arguments, 0));
       };
     }
   }
