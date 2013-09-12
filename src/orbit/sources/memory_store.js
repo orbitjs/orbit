@@ -5,7 +5,8 @@ import RSVP from 'rsvp';
 
 var NOT_FOUND = 'Record not found';
 
-var MemoryStore = function() {
+var MemoryStore = function(idField) {
+  this.idField = idField || 'id';
   this._data = {};
   this.length = 0;
   this._newId = 0;
@@ -45,13 +46,13 @@ MemoryStore.prototype = {
       var record;
 
       if (operation === 'insert') {
-        data.id = _this._generateId();
-        _this._data[data.id] = data;
+        data[_this.idField] = _this._generateId();
+        _this._data[data[_this.idField]] = data;
         _this.length++;
         resolve(data);
 
       } else if (operation === 'update') {
-        record = _this._data[data.id];
+        record = _this._data[data[_this.idField]];
         if (record) {
           updateRecord(record, data);
           resolve(record);
@@ -60,7 +61,7 @@ MemoryStore.prototype = {
         }
 
       } else if (operation === 'patch') {
-        record = _this._data[data.id];
+        record = _this._data[data[_this.idField]];
         if (record) {
           patchRecord(record, data);
           resolve(record);
@@ -69,9 +70,9 @@ MemoryStore.prototype = {
         }
 
       } else if (operation === 'destroy') {
-        record = _this._data[data.id];
+        record = _this._data[data[_this.idField]];
         if (record) {
-          delete _this._data[data.id];
+          delete _this._data[data[_this.idField]];
           _this.length--;
           resolve();
         } else {

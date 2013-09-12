@@ -131,3 +131,21 @@ test("it can find all records", function() {
     });
   });
 });
+
+test("it can use a custom id field", function() {
+  expect(2);
+
+  dogs.idField = '_memStoreId';
+
+  stop();
+  dogs.transform('insert', {name: 'Hubert', gender: 'm'}).then(function(dog) {
+    ok(dog._memStoreId, 'custom id should be defined');
+    return dog;
+
+  }).then(function(dog) {
+    dogs.find(dog._memStoreId).then(function(foundDog) {
+      start();
+      equal(foundDog._memStoreId, dog._memStoreId, 'record can be looked up by id');
+    });
+  });
+});
