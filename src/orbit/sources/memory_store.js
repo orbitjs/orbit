@@ -79,7 +79,6 @@ MemoryStore.prototype = {
         }
       }
     });
-
   },
 
   _generateId: function() {
