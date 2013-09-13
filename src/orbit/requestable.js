@@ -1,7 +1,7 @@
 import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
 
-var ActionQueue = function(object, action, args) {
+var ActionHandler = function(object, action, args) {
   this.object = object;
   this.action = action;
   this.args = args;
@@ -12,7 +12,7 @@ var ActionQueue = function(object, action, args) {
   this.error = undefined;
 };
 
-ActionQueue.prototype = {
+ActionHandler.prototype = {
   retrieveHandlers: function() {
     if (this.queue === 'will') {
       this.handlers = this.object.poll.apply(this.object, ['will' + Orbit.capitalize(this.action)].concat(this.args));
@@ -88,9 +88,9 @@ var Requestable = {
     } else {
       object[action] = function() {
         var args = Array.prototype.slice.call(arguments, 0),
-            actionQueue = new ActionQueue(object, action, args);
+            actionHandler = new ActionHandler(object, action, args);
 
-        return actionQueue.perform();
+        return actionHandler.perform();
       };
     }
   }
