@@ -1,71 +1,71 @@
 import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
 
-var nextQueue = function(queue) {
-  if (queue === undefined) {
-    return 'will';
-  } else if (queue === 'will') {
-    return 'default';
-  } else if (queue === 'default') {
-    return 'rescue';
-  } else {
-    return null;
-  }
+var ActionQueue = function(object, action, args) {
+  this.object = object;
+  this.action = action;
+  this.args = args;
+
+  this.queues = ['will', 'default', 'rescue'];
+  this.queue = undefined;
+  this.handlers = undefined;
+  this.error = undefined;
 };
 
-var actionHandlers = function(action, args, queue) {
-  if (queue === 'will') {
-    return this.poll.apply(this, ['will' + Orbit.capitalize(action)].concat(args));
+ActionQueue.prototype = {
+  retrieveHandlers: function() {
+    if (this.queue === 'will') {
+      this.handlers = this.object.poll.apply(this.object, ['will' + Orbit.capitalize(this.action)].concat(this.args));
 
-  } else if (queue === 'default') {
-    return [this['_' + action]];
+    } else if (this.queue === 'default') {
+      this.handlers = [this.object['_' + this.action]];
 
-  } else if (queue === 'rescue') {
-    return this.poll.apply(this, ['rescue' + Orbit.capitalize(action)].concat(args));
+    } else if (this.queue === 'rescue') {
+      this.handlers = this.object.poll.apply(this.object, ['rescue' + Orbit.capitalize(this.action)].concat(this.args));
+    }
+  },
 
-  }
-};
+  perform: function() {
+    var handler,
+        _this = this;
 
-var performAction = function(action, args, handlers, queue, defaultHandlerError) {
-  var _this = this,
-      handler;
-
-  if (handlers) {
-    handler = handlers.shift();
-  }
-
-  if (!handler) {
-    queue = nextQueue(queue);
-
-    if (queue) {
-      handlers = actionHandlers.call(this, action, args, queue);
-
-    } else {
-      var Name = Orbit.capitalize(action);
-      _this.emit.apply(_this, ['didNot' + Name].concat(args).concat(defaultHandlerError));
-      _this.emit.apply(_this, ['after' + Name].concat(args));
-      throw defaultHandlerError;
+    if (_this.handlers) {
+      handler = _this.handlers.shift();
     }
 
-    return performAction.call(_this, action, args, handlers, queue, defaultHandlerError);
-  }
+    if (!handler) {
+      _this.queue = _this.queues.shift();
 
-  Orbit.assert("Action handler should be a function", typeof handler === "function");
+      if (_this.queue) {
+        _this.retrieveHandlers();
 
-  return handler.apply(_this, args).then(
-    function(result) {
-      var Name = Orbit.capitalize(action);
-      _this.emit.apply(_this, ['did' + Name].concat(args).concat(result));
-      _this.emit.apply(_this, ['after' + Name].concat(args));
-      return result;
-    },
-    function(result) {
-      if (queue === 'default') {
-        defaultHandlerError = result;
+      } else {
+        var Name = Orbit.capitalize(_this.action);
+        _this.object.emit.apply(_this.object, ['didNot' + Name].concat(_this.args).concat(_this.error));
+        _this.object.emit.apply(_this.object, ['after' + Name].concat(_this.args));
+        throw _this.error;
       }
-      return performAction.call(_this, action, args, handlers, queue, defaultHandlerError);
+
+      return _this.perform.call(_this);
     }
-  );
+
+    Orbit.assert("Action handler should be a function", typeof handler === "function");
+
+    return handler.apply(_this.object, _this.args).then(
+      function(result) {
+        var Name = Orbit.capitalize(_this.action);
+        _this.object.emit.apply(_this.object, ['did' + Name].concat(_this.args).concat(result));
+        _this.object.emit.apply(_this.object, ['after' + Name].concat(_this.args));
+        return result;
+      },
+      function(result) {
+        if (_this.queue === 'default') {
+          _this.error = result;
+        }
+        return _this.perform.call(_this);
+      }
+    );
+  }
 };
 
 var Requestable = {
@@ -87,7 +87,10 @@ var Requestable = {
       }, this);
     } else {
       object[action] = function() {
-        return performAction.call(object, action, Array.prototype.slice.call(arguments, 0));
+        var args = Array.prototype.slice.call(arguments, 0),
+            actionQueue = new ActionQueue(object, action, args);
+
+        return actionQueue.perform();
       };
     }
   }
