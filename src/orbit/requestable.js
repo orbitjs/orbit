@@ -22,18 +22,19 @@ var Requestable = {
       }, this);
     } else {
       object[action] = function() {
-        var args = Array.prototype.slice.call(arguments, 0),
-            actionHandler = new ActionHandler(object, action, args);
+        var args = Array.prototype.slice.call(arguments, 0);
 
-        actionHandler.queues = [
+        var queues = [
           new ActionHandlerQueue('will',    function() {
-            return this.object.poll.apply(this.object, ['will' + Orbit.capitalize(this.action)].concat(this.args));
+            return object.poll.apply(object, ['will' + Orbit.capitalize(action)].concat(args));
           }),
-          new ActionHandlerQueue('default', [actionHandler.object['_' + actionHandler.action]]),
+          new ActionHandlerQueue('default', [object['_' + action]]),
           new ActionHandlerQueue('rescue',  function() {
-            return this.object.poll.apply(this.object, ['rescue' + Orbit.capitalize(this.action)].concat(this.args));
+            return object.poll.apply(object, ['rescue' + Orbit.capitalize(action)].concat(args));
           })
         ];
+
+        var actionHandler = new ActionHandler(object, action, args, queues);
 
         return actionHandler.perform();
       };

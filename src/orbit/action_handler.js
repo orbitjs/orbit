@@ -1,11 +1,11 @@
 import Orbit from 'orbit/core';
 
-var ActionHandler = function(object, action, args) {
+var ActionHandler = function(object, action, args, queues) {
   this.object = object;
   this.action = action;
   this.args = args;
+  this.queues = queues;
 
-  this.queues = undefined;
   this.queue = undefined;
   this.error = undefined;
 };
