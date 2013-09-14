@@ -1,43 +1,34 @@
 import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
 
+var ActionHandlerQueue = function(name, handlers) {
+  this.name = name;
+  this.handlers = handlers;
+};
+
 var ActionHandler = function(object, action, args) {
   this.object = object;
   this.action = action;
   this.args = args;
 
-  this.queues = ['will', 'default', 'rescue'];
+  this.queues = undefined;
   this.queue = undefined;
-  this.handlers = undefined;
   this.error = undefined;
 };
 
 ActionHandler.prototype = {
-  retrieveHandlers: function() {
-    if (this.queue === 'will') {
-      this.handlers = this.object.poll.apply(this.object, ['will' + Orbit.capitalize(this.action)].concat(this.args));
-
-    } else if (this.queue === 'default') {
-      this.handlers = [this.object['_' + this.action]];
-
-    } else if (this.queue === 'rescue') {
-      this.handlers = this.object.poll.apply(this.object, ['rescue' + Orbit.capitalize(this.action)].concat(this.args));
-    }
-  },
-
   perform: function() {
     var handler,
         _this = this;
 
-    if (_this.handlers) {
-      handler = _this.handlers.shift();
-    }
-
-    if (!handler) {
+    if (!_this.queue) {
       _this.queue = _this.queues.shift();
 
       if (_this.queue) {
-        _this.retrieveHandlers();
+        if (typeof _this.queue.handlers === 'function') {
+          _this.queue.handlers = _this.queue.handlers.call(_this);
+          console.log(_this.queue.handlers);
+        }
 
       } else {
         var Name = Orbit.capitalize(_this.action);
@@ -45,7 +36,12 @@ ActionHandler.prototype = {
         _this.object.emit.apply(_this.object, ['after' + Name].concat(_this.args));
         throw _this.error;
       }
+    }
 
+    handler = _this.queue.handlers.shift();
+
+    if (!handler) {
+      _this.queue = undefined;
       return _this.perform.call(_this);
     }
 
@@ -59,7 +55,7 @@ ActionHandler.prototype = {
         return result;
       },
       function(result) {
-        if (_this.queue === 'default') {
+        if (_this.queue.name === 'default') {
           _this.error = result;
         }
         return _this.perform.call(_this);
@@ -89,6 +85,18 @@ var Requestable = {
       object[action] = function() {
         var args = Array.prototype.slice.call(arguments, 0),
             actionHandler = new ActionHandler(object, action, args);
+
+        actionHandler.queues = [
+          new ActionHandlerQueue('will',    function() {
+            return this.object.poll.apply(this.object, ['will' + Orbit.capitalize(this.action)].concat(this.args))
+          }),
+          new ActionHandlerQueue('default', function() {
+            return [this.object['_' + this.action]]
+          }),
+          new ActionHandlerQueue('rescue',  function() {
+            return this.object.poll.apply(this.object, ['rescue' + Orbit.capitalize(this.action)].concat(this.args))
+          })
+        ];
 
         return actionHandler.perform();
       };
