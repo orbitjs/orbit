@@ -27,7 +27,6 @@ ActionHandler.prototype = {
       if (_this.queue) {
         if (typeof _this.queue.handlers === 'function') {
           _this.queue.handlers = _this.queue.handlers.call(_this);
-          console.log(_this.queue.handlers);
         }
 
       } else {
@@ -88,13 +87,11 @@ var Requestable = {
 
         actionHandler.queues = [
           new ActionHandlerQueue('will',    function() {
-            return this.object.poll.apply(this.object, ['will' + Orbit.capitalize(this.action)].concat(this.args))
+            return this.object.poll.apply(this.object, ['will' + Orbit.capitalize(this.action)].concat(this.args));
           }),
-          new ActionHandlerQueue('default', function() {
-            return [this.object['_' + this.action]]
-          }),
+          new ActionHandlerQueue('default', [actionHandler.object['_' + actionHandler.action]]),
           new ActionHandlerQueue('rescue',  function() {
-            return this.object.poll.apply(this.object, ['rescue' + Orbit.capitalize(this.action)].concat(this.args))
+            return this.object.poll.apply(this.object, ['rescue' + Orbit.capitalize(this.action)].concat(this.args));
           })
         ];
 
