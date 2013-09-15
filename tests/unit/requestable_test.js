@@ -1,9 +1,9 @@
 import Requestable from 'orbit/requestable';
 import RSVP from 'rsvp';
 
-var object;
+var source;
 
-var testActionBehavior = function(actionName) {
+var testRequestableAction = function(actionName) {
   var ActionName = actionName.charAt(0).toUpperCase() + actionName.slice(1);
 
   var successfulOperation = function() {
@@ -19,16 +19,16 @@ var testActionBehavior = function(actionName) {
   };
 
   test("it should require the definition of _" + actionName, function() {
-    throws(object[actionName], "presence of _" + actionName + " should be verified");
+    throws(source[actionName], "presence of _" + actionName + " should be verified");
   });
 
   test("it should require that _" + actionName + " returns a promise", function() {
     expect(2);
 
-    object['_' + actionName] = successfulOperation;
+    source['_' + actionName] = successfulOperation;
 
     stop();
-    object[actionName]().then(function(result) {
+    source[actionName]().then(function(result) {
       start();
       ok(true, '_' + actionName + ' promise resolved')
       equal(result, ':)', 'success!');
@@ -36,10 +36,10 @@ var testActionBehavior = function(actionName) {
   });
 
   test("it should resolve as a failure when _" + actionName + " fails", function() {
-    object['_' + actionName] = failedOperation;
+    source['_' + actionName] = failedOperation;
 
     stop();
-    object[actionName]().then(
+    source[actionName]().then(
       function() {
         start();
         ok(false, '_' + actionName + ' should not be resolved successfully')
@@ -57,24 +57,24 @@ var testActionBehavior = function(actionName) {
 
     var order = 0;
 
-    object.on('will' + ActionName, function() {
+    source.on('will' + ActionName, function() {
       equal(++order, 1, 'will' + ActionName + ' triggered first');
       deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
     });
 
-    object['_' + actionName] = function() {
+    source['_' + actionName] = function() {
       equal(++order, 2, 'action performed after will' + ActionName);
       deepEqual(toArray(arguments), ['abc', 'def'], '_handler args match original call args');
       return successfulOperation();
     };
 
-    object.on('did' + ActionName, function() {
+    source.on('did' + ActionName, function() {
       equal(++order, 3, 'did' + ActionName + ' triggered after action performed successfully');
       deepEqual(toArray(arguments), ['abc', 'def', ':)'], 'event handler args match original call args + return value');
     });
 
     stop();
-    object[actionName]('abc', 'def').then(function(result) {
+    source[actionName]('abc', 'def').then(function(result) {
       start();
       equal(++order, 4, 'promise resolved last');
       equal(result, ':)', 'success!');
@@ -86,28 +86,28 @@ var testActionBehavior = function(actionName) {
 
     var order = 0;
 
-    object.on('will' + ActionName, function() {
+    source.on('will' + ActionName, function() {
       equal(++order, 1, 'will' + ActionName + ' triggered first');
       deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
     });
 
-    object['_' + actionName] = function() {
+    source['_' + actionName] = function() {
       equal(++order, 2, 'action performed after will' + ActionName);
       deepEqual(toArray(arguments), ['abc', 'def'], '_handler args match original call args');
       return failedOperation();
     };
 
-    object.on('did' + ActionName, function() {
+    source.on('did' + ActionName, function() {
       ok(false, 'did' + ActionName + ' should not be triggered');
     });
 
-    object.on('didNot' + ActionName, function() {
+    source.on('didNot' + ActionName, function() {
       equal(++order, 3, 'didNot' + ActionName + ' triggered after an unsuccessful action');
       deepEqual(toArray(arguments), ['abc', 'def', ':('], 'event handler args match original call args + return value');
     });
 
     stop();
-    object[actionName]('abc', 'def').then(null, function(result) {
+    source[actionName]('abc', 'def').then(null, function(result) {
       start();
       equal(++order, 4, 'promise resolved last');
       equal(result, ':(', 'failure');
@@ -129,26 +129,26 @@ var testActionBehavior = function(actionName) {
       return successfulOperation();
     };
 
-    object['_' + actionName] = function() {
+    source['_' + actionName] = function() {
       ok(false, 'default action should not be reached');
     };
 
-    object.on('will' + ActionName, function() {
+    source.on('will' + ActionName, function() {
       equal(++order, 1, 'will' + ActionName + ' triggered first');
       return fail;
     });
 
-    object.on('will' + ActionName, function() {
+    source.on('will' + ActionName, function() {
       equal(++order, 2, 'will' + ActionName + ' triggered first');
       return success;
     });
 
-    object.on('did' + ActionName, function() {
+    source.on('did' + ActionName, function() {
       equal(++order, 5, 'did' + ActionName + ' triggered after action performed successfully');
     });
 
     stop();
-    object[actionName]().then(function(result) {
+    source[actionName]().then(function(result) {
       start();
       equal(++order, 6, 'promise resolved last');
       equal(result, ':)', 'success!');
@@ -170,27 +170,27 @@ var testActionBehavior = function(actionName) {
       return failedOperation();
     };
 
-    object.on('will' + ActionName, function() {
+    source.on('will' + ActionName, function() {
       equal(++order, 1, 'will' + ActionName + ' triggered first');
       return fail;
     });
 
-    object.on('will' + ActionName, function() {
+    source.on('will' + ActionName, function() {
       equal(++order, 2, 'will' + ActionName + ' triggered again');
       return fail2;
     });
 
-    object['_' + actionName] = function() {
+    source['_' + actionName] = function() {
       equal(++order, 5, 'default action performed after second failed action');
       return failedOperation();
     };
 
-    object.on('did' + ActionName, function() {
+    source.on('did' + ActionName, function() {
       ok(false, 'did' + ActionName + ' should not be triggered');
     });
 
     stop();
-    object[actionName]().then(
+    source[actionName]().then(
       function() {
         start();
         ok(false, 'promise should not succeed');
@@ -218,31 +218,31 @@ var testActionBehavior = function(actionName) {
       return successfulOperation();
     };
 
-    object['_' + actionName] = function() {
+    source['_' + actionName] = function() {
       equal(++order, 1, '_' + actionName + ' triggered first');
       return failedOperation();
     };
 
-    object.on('rescue' + ActionName, function() {
+    source.on('rescue' + ActionName, function() {
       equal(++order, 2, 'rescue' + ActionName + ' listener triggered after failed action');
       return fail;
     });
 
-    object.on('rescue' + ActionName, function() {
+    source.on('rescue' + ActionName, function() {
       equal(++order, 3, 'rescue' + ActionName + ' listener triggered after second failed action');
       return success;
     });
 
-    object.on('did' + ActionName, function() {
+    source.on('did' + ActionName, function() {
       equal(++order, 6, 'did' + ActionName + ' triggered after action performed successfully');
     });
 
-    object.on('didNot' + ActionName, function() {
+    source.on('didNot' + ActionName, function() {
       ok(false, 'didNot' + ActionName + ' should not be triggered');
     });
 
     stop();
-    object[actionName]().then(function(result) {
+    source[actionName]().then(function(result) {
       start();
       equal(++order, 7, 'promise resolved last');
       equal(result, ':)', 'success!');
@@ -264,31 +264,31 @@ var testActionBehavior = function(actionName) {
       return failedOperation();
     };
 
-    object['_' + actionName] = function() {
+    source['_' + actionName] = function() {
       equal(++order, 1, '_' + actionName + ' triggered first');
       return failedOperation();
     };
 
-    object.on('rescue' + ActionName, function() {
+    source.on('rescue' + ActionName, function() {
       equal(++order, 2, 'rescue' + ActionName + ' listener triggered after failed action');
       return fail1;
     });
 
-    object.on('rescue' + ActionName, function() {
+    source.on('rescue' + ActionName, function() {
       equal(++order, 3, 'rescue' + ActionName + ' listener triggered after second failed action');
       return fail2;
     });
 
-    object.on('did' + ActionName, function() {
+    source.on('did' + ActionName, function() {
       ok(false, 'did' + ActionName + ' should not be triggered');
     });
 
-    object.on('didNot' + ActionName, function() {
+    source.on('didNot' + ActionName, function() {
       equal(++order, 6, 'didNot' + ActionName + ' triggered because action failed');
     });
 
     stop();
-    object[actionName]().then(
+    source[actionName]().then(
       function() {
         start();
         ok(false, 'promise should not succeed');
@@ -302,35 +302,35 @@ var testActionBehavior = function(actionName) {
   });
 };
 
-var verifyActionExists = function(object, name) {
-  ok(object[name], 'action exists');
+var verifyActionExists = function(source, name) {
+  ok(source[name], 'action exists');
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
 module("Unit - Requestable", {
   setup: function() {
-    object = {};
-    Requestable.extend(object);
+    source = {};
+    Requestable.extend(source);
   },
 
   teardown: function() {
-    object = null;
+    source = null;
   }
 });
 
 test("it exists", function() {
-  ok(object);
+  ok(source);
 });
 
 test("it should mixin Evented", function() {
   ['on', 'off', 'emit', 'poll'].forEach(function(prop) {
-    ok(object[prop], 'should have Evented properties');
+    ok(source[prop], 'should have Evented properties');
   })
 });
 
 test("it defines `find` as an action by default", function() {
-  verifyActionExists(object, 'find');
+  verifyActionExists(source, 'find');
 });
 
 test("it can define any number of custom actions", function() {
@@ -344,4 +344,4 @@ test("it can define any number of custom actions", function() {
   });
 });
 
-testActionBehavior('find');
+testRequestableAction('find');
