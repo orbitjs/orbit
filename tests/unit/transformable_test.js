@@ -57,7 +57,7 @@ test("`transform` returns the value of `_transform`", function() {
 });
 
 test("it should emit `willTransform` and `didTransform` events for a successful transform", function() {
-  expect(10);
+  expect(8);
 
   var order = 0;
 
@@ -77,21 +77,16 @@ test("it should emit `willTransform` and `didTransform` events for a successful 
     deepEqual(toArray(arguments), ['abc', 'def', ':)'], 'event handler args match original call args + return value');
   });
 
-  source.on('afterTransform', function() {
-    equal(++order, 4, 'afterTransform emitted after didTransform');
-    deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
-  });
-
   stop();
   source.transform.call(source, 'abc', 'def').then(function(result) {
     start();
-    equal(++order, 5, 'promise resolved last');
+    equal(++order, 4, 'promise resolved last');
     equal(result, ':)', 'success!');
   });
 });
 
 test("it should emit `willTransform` and `didNotTransform` events for an unsuccessful transform", function() {
-  expect(10);
+  expect(8);
 
   var order = 0;
 
@@ -115,15 +110,10 @@ test("it should emit `willTransform` and `didNotTransform` events for an unsucce
     deepEqual(toArray(arguments), ['abc', 'def', ':('], 'event handler args match original call args + return value');
   });
 
-  source.on('afterTransform', function() {
-    equal(++order, 4, 'afterTransform emitted after didNotTransform');
-    deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
-  });
-
   stop();
   source.transform.call(source, 'abc', 'def').then(null, function(result) {
     start();
-    equal(++order, 5, 'promise resolved last');
+    equal(++order, 4, 'promise resolved last');
     equal(result, ':(', 'failure');
   });
 });

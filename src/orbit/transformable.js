@@ -15,12 +15,10 @@ var Transformable = {
       return object._transform.apply(object, args).then(
         function(result) {
           object.emit.apply(object, ['didTransform'].concat(args).concat([result]));
-          object.emit.apply(object, ['afterTransform'].concat(args));
           return result;
         },
         function(result) {
           object.emit.apply(object, ['didNotTransform'].concat(args).concat([result]));
-          object.emit.apply(object, ['afterTransform'].concat(args));
           throw result;
         }
       );

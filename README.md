@@ -91,9 +91,6 @@ handler.
 
 * `didNotFind` - triggered when an action can't be resolved by any handler.
 
-* `afterFind` - triggered after either `didFind` or `didNotFind`,
-indicating the conclusion of an action.
-
 Note that the arguments for actions can be customized for your application.
 Orbit will simply pass them through regardless of their number and type. You
 will typically want actions of the same name (e.g. `find`) to accept the same

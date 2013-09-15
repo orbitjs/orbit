@@ -49,7 +49,7 @@ var testActionBehavior = function(actionName) {
   });
 
   test("it should trigger `will" + ActionName + "` and `did" + ActionName + "` events around a successful action", function() {
-    expect(10);
+    expect(8);
 
     var order = 0;
 
@@ -69,21 +69,16 @@ var testActionBehavior = function(actionName) {
       deepEqual(toArray(arguments), ['abc', 'def', ':)'], 'event handler args match original call args + return value');
     });
 
-    object.on('after' + ActionName, function() {
-      equal(++order, 4, 'after' + ActionName + ' triggered after any action performed');
-      deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
-    });
-
     stop();
     object[actionName].call(object, 'abc', 'def').then(function(result) {
       start();
-      equal(++order, 5, 'promise resolved last');
+      equal(++order, 4, 'promise resolved last');
       equal(result, ':)', 'success!');
     });
   });
 
   test("it should trigger `will" + ActionName + "` and `didNot" + ActionName + "` events for an unsuccessful action", function() {
-    expect(10);
+    expect(8);
 
     var order = 0;
 
@@ -107,21 +102,16 @@ var testActionBehavior = function(actionName) {
       deepEqual(toArray(arguments), ['abc', 'def', ':('], 'event handler args match original call args + return value');
     });
 
-    object.on('after' + ActionName, function() {
-      equal(++order, 4, 'after' + ActionName + ' triggered after any action performed');
-      deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
-    });
-
     stop();
     object[actionName].call(object, 'abc', 'def').then(null, function(result) {
       start();
-      equal(++order, 5, 'promise resolved last');
+      equal(++order, 4, 'promise resolved last');
       equal(result, ':(', 'failure');
     });
   });
 
   test("it should queue actions returned from `will" + ActionName + "` and try them in order until one succeeds", function() {
-    expect(8);
+    expect(7);
 
     var order = 0;
 
@@ -153,20 +143,16 @@ var testActionBehavior = function(actionName) {
       equal(++order, 5, 'did' + ActionName + ' triggered after action performed successfully');
     });
 
-    object.on('after' + ActionName, function() {
-      equal(++order, 6, 'after' + ActionName + ' triggered after any action performed');
-    });
-
     stop();
     object[actionName].call(object).then(function(result) {
       start();
-      equal(++order, 7, 'promise resolved last');
+      equal(++order, 6, 'promise resolved last');
       equal(result, ':)', 'success!');
     });
   });
 
   test("it should queue actions returned from `will" + ActionName + "` and fail if they all fail", function() {
-    expect(8);
+    expect(7);
 
     var order = 0;
 
@@ -199,10 +185,6 @@ var testActionBehavior = function(actionName) {
       ok(false, 'did' + ActionName + ' should not be triggered');
     });
 
-    object.on('after' + ActionName, function() {
-      equal(++order, 6, 'after' + ActionName + ' triggered after any action performed');
-    });
-
     stop();
     object[actionName].call(object).then(
       function() {
@@ -211,14 +193,14 @@ var testActionBehavior = function(actionName) {
       },
       function(result) {
         start();
-        equal(++order, 7, 'promise failed because no actions succeeded');
+        equal(++order, 6, 'promise failed because no actions succeeded');
         equal(result, ':(', 'failure');
       }
     );
   });
 
   test("after an unsuccessful action, it should queue actions returned from `rescue" + ActionName + "` and try them in order until one succeeds", function() {
-    expect(9);
+    expect(8);
 
     var order = 0;
 
@@ -255,20 +237,16 @@ var testActionBehavior = function(actionName) {
       ok(false, 'didNot' + ActionName + ' should not be triggered');
     });
 
-    object.on('after' + ActionName, function() {
-      equal(++order, 7, 'after' + ActionName + ' triggered after any action performed');
-    });
-
     stop();
     object[actionName].call(object).then(function(result) {
       start();
-      equal(++order, 8, 'promise resolved last');
+      equal(++order, 7, 'promise resolved last');
       equal(result, ':)', 'success!');
     });
   });
 
   test("after an unsuccessful action, it should queue actions returned from `rescue" + ActionName + "` and fail if they all fail", function() {
-    expect(9);
+    expect(8);
 
     var order = 0;
 
@@ -305,10 +283,6 @@ var testActionBehavior = function(actionName) {
       equal(++order, 6, 'didNot' + ActionName + ' triggered because action failed');
     });
 
-    object.on('after' + ActionName, function() {
-      equal(++order, 7, 'after' + ActionName + ' triggered after any action performed');
-    });
-
     stop();
     object[actionName].call(object).then(
       function() {
@@ -317,7 +291,7 @@ var testActionBehavior = function(actionName) {
       },
       function(result) {
         start();
-        equal(++order, 8, 'promise failed because no actions succeeded');
+        equal(++order, 7, 'promise failed because no actions succeeded');
         equal(result, ':(', 'failure');
       }
     );
