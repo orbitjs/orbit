@@ -1,7 +1,6 @@
 import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
-import ActionHandler from 'orbit/action_handler';
-import ActionHandlerQueue from 'orbit/action_handler_queue';
+import {ActionHandlerQueue, ActionHandler} from 'orbit/action_handler';
 
 var Requestable = {
   defaultActions: ['find'],

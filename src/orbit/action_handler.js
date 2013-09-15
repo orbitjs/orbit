@@ -1,5 +1,10 @@
 import Orbit from 'orbit/core';
 
+var ActionHandlerQueue = function(name, handlers) {
+  this.name = name;
+  this.handlers = handlers;
+};
+
 var ActionHandler = function(object, action, args, queues) {
   this.object = object;
   this.action = action;
@@ -57,4 +62,4 @@ ActionHandler.prototype = {
   }
 };
 
-export default ActionHandler;
+export {ActionHandlerQueue, ActionHandler};
