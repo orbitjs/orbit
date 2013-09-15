@@ -39,45 +39,56 @@ var patchRecord = function(record, data) {
 MemoryStore.prototype = {
   constructor: MemoryStore,
 
-  _transform: function(operation, data) {
+  _insertRecord: function(data) {
     var _this = this;
 
     return new RSVP.Promise(function(resolve, reject) {
-      var record;
+      data[_this.idField] = _this._generateId();
+      _this._data[data[_this.idField]] = data;
+      _this.length++;
+      resolve(data);
+    });
+  },
 
-      if (operation === 'insert') {
-        data[_this.idField] = _this._generateId();
-        _this._data[data[_this.idField]] = data;
-        _this.length++;
-        resolve(data);
+  _updateRecord: function(data) {
+    var _this = this;
 
-      } else if (operation === 'update') {
-        record = _this._data[data[_this.idField]];
-        if (record) {
-          updateRecord(record, data);
-          resolve(record);
-        } else {
-          reject(NOT_FOUND);
-        }
+    return new RSVP.Promise(function(resolve, reject) {
+      var record = _this._data[data[_this.idField]];
+      if (record) {
+        updateRecord(record, data);
+        resolve(record);
+      } else {
+        reject(NOT_FOUND);
+      }
+    });
+  },
 
-      } else if (operation === 'patch') {
-        record = _this._data[data[_this.idField]];
-        if (record) {
-          patchRecord(record, data);
-          resolve(record);
-        } else {
-          reject(NOT_FOUND);
-        }
+  _patchRecord: function(data) {
+    var _this = this;
 
-      } else if (operation === 'destroy') {
-        record = _this._data[data[_this.idField]];
-        if (record) {
-          delete _this._data[data[_this.idField]];
-          _this.length--;
-          resolve();
-        } else {
-          reject(NOT_FOUND);
-        }
+    return new RSVP.Promise(function(resolve, reject) {
+      var record = _this._data[data[_this.idField]];
+      if (record) {
+        patchRecord(record, data);
+        resolve(record);
+      } else {
+        reject(NOT_FOUND);
+      }
+    });
+  },
+
+  _destroyRecord: function(data) {
+    var _this = this;
+
+    return new RSVP.Promise(function(resolve, reject) {
+      var record = _this._data[data[_this.idField]];
+      if (record) {
+        delete _this._data[data[_this.idField]];
+        _this.length--;
+        resolve();
+      } else {
+        reject(NOT_FOUND);
       }
     });
   },

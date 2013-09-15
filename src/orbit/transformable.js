@@ -4,7 +4,7 @@ import ActionHandler from 'orbit/action_handler';
 import ActionHandlerQueue from 'orbit/action_handler_queue';
 
 var Transformable = {
-  defaultActions: ['transform'],
+  defaultActions: ['insertRecord', 'updateRecord', 'patchRecord', 'destroyRecord'],
 
   extend: function(object, actions) {
     if (object._requestable === undefined) {

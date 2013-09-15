@@ -127,12 +127,18 @@ test("it should mixin Evented", function() {
 });
 
 test("it defines `transform` as an action by default", function() {
-  verifyActionExists(source, 'transform');
+  expect(4);
+
+  ['insertRecord', 'updateRecord', 'patchRecord', 'destroyRecord'].forEach(function(action) {
+    verifyActionExists(source, action);
+  });
 });
 
 test("it can define any number of custom actions", function() {
+  expect(2);
+
   var transformable = {},
-      customActions = ['find', 'create', 'update', 'destroy'];
+      customActions = ['doSomething', 'undoSomething'];
 
   Transformable.extend(transformable, customActions);
 
@@ -141,4 +147,5 @@ test("it can define any number of custom actions", function() {
   });
 });
 
-testTransformableAction('transform');
+// Fully test just one of the default actions, since they're all defined in the same way
+testTransformableAction('insertRecord');
