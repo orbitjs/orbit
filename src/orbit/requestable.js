@@ -25,6 +25,8 @@ var Requestable = {
         var args = Array.prototype.slice.call(arguments, 0),
             Action = Orbit.capitalize(action);
 
+        Orbit.assert('_' + action + ' must be defined', object['_' + action]);
+
         var queues = [
           new ActionHandlerQueue('will',    function() {
             return object.poll.apply(object, ['will' + Action].concat(args));

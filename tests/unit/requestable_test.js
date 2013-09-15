@@ -18,13 +18,17 @@ var testActionBehavior = function(actionName) {
     });
   };
 
+  test("it should require the definition of _" + actionName, function() {
+    throws(object[actionName], "presence of _" + actionName + " should be verified");
+  });
+
   test("it should require that _" + actionName + " returns a promise", function() {
     expect(2);
 
     object['_' + actionName] = successfulOperation;
 
     stop();
-    object[actionName].call(object).then(function(result) {
+    object[actionName]().then(function(result) {
       start();
       ok(true, '_' + actionName + ' promise resolved')
       equal(result, ':)', 'success!');
@@ -35,7 +39,7 @@ var testActionBehavior = function(actionName) {
     object['_' + actionName] = failedOperation;
 
     stop();
-    object[actionName].call(object).then(
+    object[actionName]().then(
       function() {
         start();
         ok(false, '_' + actionName + ' should not be resolved successfully')
@@ -70,7 +74,7 @@ var testActionBehavior = function(actionName) {
     });
 
     stop();
-    object[actionName].call(object, 'abc', 'def').then(function(result) {
+    object[actionName]('abc', 'def').then(function(result) {
       start();
       equal(++order, 4, 'promise resolved last');
       equal(result, ':)', 'success!');
@@ -103,7 +107,7 @@ var testActionBehavior = function(actionName) {
     });
 
     stop();
-    object[actionName].call(object, 'abc', 'def').then(null, function(result) {
+    object[actionName]('abc', 'def').then(null, function(result) {
       start();
       equal(++order, 4, 'promise resolved last');
       equal(result, ':(', 'failure');
@@ -144,7 +148,7 @@ var testActionBehavior = function(actionName) {
     });
 
     stop();
-    object[actionName].call(object).then(function(result) {
+    object[actionName]().then(function(result) {
       start();
       equal(++order, 6, 'promise resolved last');
       equal(result, ':)', 'success!');
@@ -186,7 +190,7 @@ var testActionBehavior = function(actionName) {
     });
 
     stop();
-    object[actionName].call(object).then(
+    object[actionName]().then(
       function() {
         start();
         ok(false, 'promise should not succeed');
@@ -238,7 +242,7 @@ var testActionBehavior = function(actionName) {
     });
 
     stop();
-    object[actionName].call(object).then(function(result) {
+    object[actionName]().then(function(result) {
       start();
       equal(++order, 7, 'promise resolved last');
       equal(result, ':)', 'success!');
@@ -284,7 +288,7 @@ var testActionBehavior = function(actionName) {
     });
 
     stop();
-    object[actionName].call(object).then(
+    object[actionName]().then(
       function() {
         start();
         ok(false, 'promise should not succeed');
