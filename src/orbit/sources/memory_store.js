@@ -12,7 +12,7 @@ var MemoryStore = function(idField) {
   this._newId = 0;
 
   Transformable.extend(this);
-  Requestable.extend(this, ['find']);
+  Requestable.extend(this, ['find', 'create', 'update', 'patch', 'destroy']);
 };
 
 var updateRecord = function(record, data) {
@@ -118,6 +118,26 @@ MemoryStore.prototype = {
         }
       }
     });
+  },
+
+  _create: function(data) {
+    return this.insertRecord(data);
+  },
+
+  _update: function(id, data) {
+    data[this.idField] = id;
+    return this.updateRecord(data);
+  },
+
+  _patch: function(id, data) {
+    data[this.idField] = id;
+    return this.patchRecord(data);
+  },
+
+  _destroy: function(id) {
+    var data = {};
+    data[this.idField] = id;
+    return this.destroyRecord(data);
   }
 };
 
