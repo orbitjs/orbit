@@ -3,16 +3,104 @@ import RSVP from 'rsvp';
 
 var source;
 
-var successfulOperation = function() {
-  return new RSVP.Promise(function(resolve, reject) {
-    resolve(':)');
+var testTransformableAction = function(actionName) {
+  var ActionName = actionName.charAt(0).toUpperCase() + actionName.slice(1);
+
+  var successfulOperation = function() {
+    return new RSVP.Promise(function(resolve, reject) {
+      resolve(':)');
+    });
+  };
+
+  var failedOperation = function() {
+    return new RSVP.Promise(function(resolve, reject) {
+      reject(':(');
+    });
+  };
+
+  test("it should require the definition of _" + actionName, function() {
+    throws(source[actionName], "presence of _" + actionName + " should be verified");
+  });
+
+
+  test("it should require that _" + actionName + " returns a promise", function() {
+    expect(2);
+
+    source['_' + actionName] = successfulOperation;
+
+    stop();
+    source[actionName]().then(function(result) {
+      start();
+      ok(true, '_' + actionName + ' promise resolved')
+      equal(result, ':)', 'success!');
+    });
+  });
+
+  test("it should trigger `will" + ActionName + "` and `did" + ActionName + "` events around a successful action", function() {
+    expect(8);
+
+    var order = 0;
+
+    source.on('will' + ActionName, function() {
+      equal(++order, 1, 'will' + ActionName + ' triggered first');
+      deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
+    });
+
+    source['_' + actionName] = function() {
+      equal(++order, 2, 'action performed after will' + ActionName);
+      deepEqual(toArray(arguments), ['abc', 'def'], '_handler args match original call args');
+      return successfulOperation();
+    };
+
+    source.on('did' + ActionName, function() {
+      equal(++order, 3, 'did' + ActionName + ' triggered after action performed successfully');
+      deepEqual(toArray(arguments), ['abc', 'def', ':)'], 'event handler args match original call args + return value');
+    });
+
+    stop();
+    source[actionName]('abc', 'def').then(function(result) {
+      start();
+      equal(++order, 4, 'promise resolved last');
+      equal(result, ':)', 'success!');
+    });
+  });
+
+  test("it should trigger `will" + ActionName + "` and `didNot" + ActionName + "` events for an unsuccessful action", function() {
+    expect(8);
+
+    var order = 0;
+
+    source.on('will' + ActionName, function() {
+      equal(++order, 1, 'will' + ActionName + ' triggered first');
+      deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
+    });
+
+    source['_' + actionName] = function() {
+      equal(++order, 2, 'action performed after will' + ActionName);
+      deepEqual(toArray(arguments), ['abc', 'def'], '_handler args match original call args');
+      return failedOperation();
+    };
+
+    source.on('did' + ActionName, function() {
+      ok(false, 'did' + ActionName + ' should not be triggered');
+    });
+
+    source.on('didNot' + ActionName, function() {
+      equal(++order, 3, 'didNot' + ActionName + ' triggered after an unsuccessful action');
+      deepEqual(toArray(arguments), ['abc', 'def', ':('], 'event handler args match original call args + return value');
+    });
+
+    stop();
+    source[actionName]('abc', 'def').then(null, function(result) {
+      start();
+      equal(++order, 4, 'promise resolved last');
+      equal(result, ':(', 'failure');
+    });
   });
 };
 
-var failedOperation = function() {
-  return new RSVP.Promise(function(resolve, reject) {
-    reject(':(');
-  });
+var verifyActionExists = function(source, name) {
+  ok(source[name], 'action exists');
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -38,82 +126,19 @@ test("it should mixin Evented", function() {
   })
 });
 
-test("it defines `transform`", function() {
-  ok(source.transform, 'should define `transform`');
+test("it defines `transform` as an action by default", function() {
+  verifyActionExists(source, 'transform');
 });
 
-test("it requires the definition of `_transform`", function() {
-  throws(source.transform, "presence of `_transform` should be verified");
-});
+test("it can define any number of custom actions", function() {
+  var transformable = {},
+      customActions = ['find', 'create', 'update', 'destroy'];
 
-test("`transform` returns the value of `_transform`", function() {
-  source._transform = successfulOperation;
+  Transformable.extend(transformable, customActions);
 
-  stop();
-  source.transform().then(function(result) {
-    equal(result, ':)', 'tranform returns the same value as _tranform');
-    start();
+  customActions.forEach(function(action) {
+    verifyActionExists(transformable, action);
   });
 });
 
-test("it should emit `willTransform` and `didTransform` events for a successful transform", function() {
-  expect(8);
-
-  var order = 0;
-
-  source.on('willTransform', function() {
-    equal(++order, 1, 'willTransform emitted first');
-    deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
-  });
-
-  source._transform = function() {
-    equal(++order, 2, '_transform called next');
-    deepEqual(toArray(arguments), ['abc', 'def'], '_transform args match original call args');
-    return successfulOperation();
-  };
-
-  source.on('didTransform', function() {
-    equal(++order, 3, 'didTransform emitted after transform performed successfully');
-    deepEqual(toArray(arguments), ['abc', 'def', ':)'], 'event handler args match original call args + return value');
-  });
-
-  stop();
-  source.transform.call(source, 'abc', 'def').then(function(result) {
-    start();
-    equal(++order, 4, 'promise resolved last');
-    equal(result, ':)', 'success!');
-  });
-});
-
-test("it should emit `willTransform` and `didNotTransform` events for an unsuccessful transform", function() {
-  expect(8);
-
-  var order = 0;
-
-  source.on('willTransform', function() {
-    equal(++order, 1, 'willTransform emitted first');
-    deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
-  });
-
-  source._transform = function() {
-    equal(++order, 2, '_transform called next');
-    deepEqual(toArray(arguments), ['abc', 'def'], '_transform args match original call args');
-    return failedOperation();
-  };
-
-  source.on('didTransform', function() {
-    ok(false, 'didTransform should not be triggered');
-  });
-
-  source.on('didNotTransform', function() {
-    equal(++order, 3, 'didNotTransform emitted after transform could not be performed successfully');
-    deepEqual(toArray(arguments), ['abc', 'def', ':('], 'event handler args match original call args + return value');
-  });
-
-  stop();
-  source.transform.call(source, 'abc', 'def').then(null, function(result) {
-    start();
-    equal(++order, 4, 'promise resolved last');
-    equal(result, ':(', 'failure');
-  });
-});
+testTransformableAction('transform');
