@@ -22,15 +22,16 @@ var Requestable = {
       }, this);
     } else {
       object[action] = function() {
-        var args = Array.prototype.slice.call(arguments, 0);
+        var args = Array.prototype.slice.call(arguments, 0),
+            Action = Orbit.capitalize(action);
 
         var queues = [
           new ActionHandlerQueue('will',    function() {
-            return object.poll.apply(object, ['will' + Orbit.capitalize(action)].concat(args));
+            return object.poll.apply(object, ['will' + Action].concat(args));
           }),
           new ActionHandlerQueue('default', [object['_' + action]]),
           new ActionHandlerQueue('rescue',  function() {
-            return object.poll.apply(object, ['rescue' + Orbit.capitalize(action)].concat(args));
+            return object.poll.apply(object, ['rescue' + Action].concat(args));
           })
         ];
 
