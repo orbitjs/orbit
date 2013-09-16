@@ -1,6 +1,7 @@
 import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
 import {ActionHandlerQueue, ActionHandler} from 'orbit/action_handler';
+import RSVP from 'rsvp';
 
 var Requestable = {
   defaultActions: ['find'],
@@ -38,7 +39,18 @@ var Requestable = {
 
         var actionHandler = new ActionHandler(object, action, args, queues);
 
-        return actionHandler.perform();
+        return actionHandler.perform().then(
+          function(result) {
+            return RSVP.all(object.poll.apply(object, ['did' + Action].concat(args).concat(result))).then(
+              function() { return result; }
+            );
+          },
+          function(error) {
+            return RSVP.all(object.poll.apply(object, ['didNot' + Action].concat(args).concat(error))).then(
+              function() { throw error; }
+            );
+          }
+        );
       };
     }
   }

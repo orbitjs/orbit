@@ -31,8 +31,6 @@ ActionHandler.prototype = {
         }
 
       } else {
-        var Name = Orbit.capitalize(_this.action);
-        _this.object.emit.apply(_this.object, ['didNot' + Name].concat(_this.args).concat(_this.error));
         throw _this.error;
       }
     }
@@ -48,8 +46,6 @@ ActionHandler.prototype = {
 
     return handler.apply(_this.object, _this.args).then(
       function(result) {
-        var Name = Orbit.capitalize(_this.action);
-        _this.object.emit.apply(_this.object, ['did' + Name].concat(_this.args).concat(result));
         return result;
       },
       function(result) {
