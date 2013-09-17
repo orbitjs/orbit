@@ -139,7 +139,7 @@ var testRequestableAction = function(actionName) {
     });
 
     source.on('will' + ActionName, function() {
-      equal(++order, 2, 'will' + ActionName + ' triggered first');
+      equal(++order, 2, 'will' + ActionName + ' triggered next');
       return success;
     });
 

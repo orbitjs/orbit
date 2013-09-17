@@ -1,6 +1,5 @@
 import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
-import {ActionHandlerQueue, ActionHandler} from 'orbit/action_handler';
 import RSVP from 'rsvp';
 
 var Transformable = {
@@ -29,13 +28,7 @@ var Transformable = {
 
         return RSVP.all(object.poll.apply(object, ['will' + Action].concat(args))).then(
           function() {
-            var queues = [
-              new ActionHandlerQueue('default', [object['_' + action]])
-            ];
-
-            var actionHandler = new ActionHandler(object, action, args, queues);
-
-            return actionHandler.perform().then(
+            return object['_' + action].apply(object, args).then(
               function(result) {
                 return RSVP.all(object.poll.apply(object, ['did' + Action].concat(args).concat(result))).then(
                   function() { return result; }
