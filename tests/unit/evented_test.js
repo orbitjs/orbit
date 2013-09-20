@@ -255,7 +255,7 @@ test("it can fulfill promises returned by listeners to an event, in order, until
   evented.on('greeting', listener4, this);
 
   stop();
-  evented.resolveResponses('greeting', 'hello').then(
+  evented.resolve('greeting', 'hello').then(
     function(result) {
       start();
       equal(result, ':)', 'success!');
@@ -298,7 +298,7 @@ test("it can fulfill all promises returned by listeners to an event, in order, u
   evented.on('greeting', listener4, this);
 
   stop();
-  evented.settleResponses('greeting', 'hello').then(
+  evented.settle('greeting', 'hello').then(
     function(result) {
       start();
       equal(result, undefined, 'no result returned');

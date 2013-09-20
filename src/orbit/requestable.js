@@ -25,9 +25,9 @@ var Requestable = {
         var args = Array.prototype.slice.call(arguments, 0),
             Action = Orbit.capitalize(action);
 
-        return object.settleResponses.apply(object, ['will' + Action].concat(args)).then(
+        return object.settle.apply(object, ['will' + Action].concat(args)).then(
           function() {
-            return object.resolveResponses.apply(object, ['assist' + Action].concat(args));
+            return object.resolve.apply(object, ['assist' + Action].concat(args));
           }
         ).then(
           null,
@@ -37,7 +37,7 @@ var Requestable = {
         ).then(
           null,
           function(error) {
-            return object.resolveResponses.apply(object, ['rescue' + Action].concat(args)).then(
+            return object.resolve.apply(object, ['rescue' + Action].concat(args)).then(
               null,
               function() {
                 throw error;
@@ -46,14 +46,14 @@ var Requestable = {
           }
         ).then(
           function(result) {
-            return object.settleResponses.apply(object, ['did' + Action].concat(args).concat(result)).then(
+            return object.settle.apply(object, ['did' + Action].concat(args).concat(result)).then(
               function() {
                 return result;
               }
             );
           },
           function(error) {
-            return object.settleResponses.apply(object, ['didNot' + Action].concat(args).concat(error)).then(
+            return object.settle.apply(object, ['didNot' + Action].concat(args).concat(error)).then(
               function() {
                 throw error;
               }

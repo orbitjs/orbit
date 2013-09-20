@@ -19,8 +19,8 @@ var Evented = {
       object.emit = this.emit;
       object.poll = this.poll;
       object.listeners = this.listeners;
-      object.resolveResponses = this.resolveResponses;
-      object.settleResponses = this.settleResponses;
+      object.resolve = this.resolve;
+      object.settle = this.settle;
     }
     return object;
   },
@@ -92,7 +92,7 @@ var Evented = {
     return listeners;
   },
 
-  resolveResponses: function(eventNames) {
+  resolve: function(eventNames) {
     var _this = this,
         listeners = this.listeners(eventNames),
         args = Array.prototype.slice.call(arguments, 1);
@@ -124,7 +124,7 @@ var Evented = {
     });
   },
 
-  settleResponses: function(eventNames) {
+  settle: function(eventNames) {
     var _this = this,
         listeners = this.listeners(eventNames),
         args = Array.prototype.slice.call(arguments, 1);

@@ -25,20 +25,20 @@ var Transformable = {
 
         Orbit.assert('_' + action + ' must be defined', object['_' + action]);
 
-        return object.settleResponses.apply(object, ['will' + Action].concat(args)).then(
+        return object.settle.apply(object, ['will' + Action].concat(args)).then(
           function() {
             return object['_' + action].apply(object, args);
           }
         ).then(
           function(result) {
-            return object.settleResponses.apply(object, ['did' + Action].concat(args).concat(result)).then(
+            return object.settle.apply(object, ['did' + Action].concat(args).concat(result)).then(
               function() {
                 return result;
               }
             );
           },
           function(error) {
-            return object.settleResponses.apply(object, ['didNot' + Action].concat(args).concat(error)).then(
+            return object.settle.apply(object, ['didNot' + Action].concat(args).concat(error)).then(
               function() {
                 throw error;
               }
