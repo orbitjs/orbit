@@ -1,4 +1,5 @@
 import Notifier from 'orbit/notifier';
+import RSVP from 'rsvp';
 
 var notifierForEvent = function(object, eventName, createIfUndefined) {
   var notifier = object._eventedNotifiers[eventName];
@@ -17,6 +18,9 @@ var Evented = {
       object.off = this.off;
       object.emit = this.emit;
       object.poll = this.poll;
+      object.listeners = this.listeners;
+      object.resolveResponses = this.resolveResponses;
+      object.settleResponses = this.settleResponses;
     }
     return object;
   },
@@ -71,6 +75,85 @@ var Evented = {
     });
 
     return responses;
+  },
+
+  listeners: function(eventNames) {
+    var _this = this,
+        notifier,
+        listeners = [];
+
+    eventNames.split(/\s+/).forEach(function(eventName) {
+      notifier = notifierForEvent(_this, eventName);
+      if (notifier) {
+        listeners = listeners.concat(notifier.listeners);
+      }
+    });
+
+    return listeners;
+  },
+
+  resolveResponses: function(eventNames) {
+    var _this = this,
+        listeners = this.listeners(eventNames),
+        args = Array.prototype.slice.call(arguments, 1);
+
+    return new RSVP.Promise(function(resolve, reject) {
+      var resolveEach = function() {
+        if (listeners.length === 0) {
+          reject();
+        } else {
+          var listener = listeners.shift();
+          var response = listener[0].apply(listener[1], args);
+
+          if (response) {
+            response.then(
+              function(success) {
+                resolve(success);
+              },
+              function(error) {
+                resolveEach();
+              }
+            );
+          } else {
+            resolveEach();
+          }
+        }
+      };
+
+      resolveEach();
+    });
+  },
+
+  settleResponses: function(eventNames) {
+    var _this = this,
+        listeners = this.listeners(eventNames),
+        args = Array.prototype.slice.call(arguments, 1);
+
+    return new RSVP.Promise(function(resolve, reject) {
+      var settleEach = function() {
+        if (listeners.length === 0) {
+          resolve();
+        } else {
+          var listener = listeners.shift(),
+              response = listener[0].apply(listener[1], args);
+
+          if (response) {
+            return response.then(
+              function(success) {
+                settleEach();
+              },
+              function(error) {
+                settleEach();
+              }
+            );
+          } else {
+            settleEach();
+          }
+        }
+      };
+
+      settleEach();
+    });
   }
 };
 

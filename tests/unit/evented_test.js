@@ -1,6 +1,19 @@
 import Evented from 'orbit/evented';
+import RSVP from 'rsvp';
 
 var evented;
+
+var successfulOperation = function() {
+  return new RSVP.Promise(function(resolve, reject) {
+    resolve(':)');
+  });
+};
+
+var failedOperation = function() {
+  return new RSVP.Promise(function(resolve, reject) {
+    reject(':(');
+  });
+};
 
 module("Unit - Evented", {
   setup: function() {
@@ -144,7 +157,7 @@ test("it can poll listeners with an event and return all the responses in an arr
   deepEqual(evented.poll('greeting', 'hello'), ['bonjour', 'sup'], 'poll response should include the responses of all listeners');
 });
 
-test("it can poll listeners with multiple event and return all the responses in a single array", function() {
+test("it can poll listeners with multiple events and return all the responses in a single array", function() {
   expect(2);
 
   var dog1 = function() {
@@ -167,4 +180,132 @@ test("it can poll listeners with multiple event and return all the responses in 
 
   deepEqual(evented.poll('dog owner'), ['Winky', 'Hubert', 'Cookie Fleck', 'Harlan Pepper'], 'poll response should include the responses of all listeners in order');
   deepEqual(evented.poll('owner dog'), ['Cookie Fleck', 'Harlan Pepper', 'Winky', 'Hubert'], 'poll response should include the responses of all listeners in order');
+});
+
+test("it can return all the listeners (and bindings) for an event", function() {
+  expect(1);
+
+  var binding1 = {},
+      binding2 = {},
+      dog1 = function() {
+        return 'Winky'
+      },
+      dog2 = function() {
+        return 'Hubert'
+      };
+
+  evented.on('dog', dog1, binding1);
+  evented.on('dog', dog2, binding2);
+
+  deepEqual(evented.listeners('dog'), [[dog1, binding1], [dog2, binding2]], 'listeners include nested arrays of functions and bindings');
+});
+
+test("it can return all the listeners (and bindings) for multiple events", function() {
+  expect(1);
+
+  var binding1 = {},
+      binding2 = {},
+      dog1 = function() {
+        return 'Winky'
+      },
+      dog2 = function() {
+        return 'Hubert'
+      },
+      owner1 = function() {
+        return 'Cookie Fleck';
+      },
+      owner2 = function() {
+        return 'Harlan Pepper';
+      };
+
+  evented.on('dog', dog1, binding1);
+  evented.on('dog', dog2, binding2);
+  evented.on('owner', owner1, binding1);
+  evented.on('owner', owner2, binding2);
+
+  deepEqual(evented.listeners('dog owner'), [[dog1, binding1], [dog2, binding2], [owner1, binding1], [owner2, binding2]], 'listeners include nested arrays of functions and bindings');
+});
+
+test("it can fulfill promises returned by listeners to an event, in order, until one resolves", function() {
+  expect(8);
+
+  var order = 0,
+      listener1 = function(message) {
+        equal(message, 'hello', 'notification message should match');
+        equal(++order, 1, 'listener1 triggered first');
+        // doesn't return anything
+      },
+      listener2 = function(message) {
+        equal(message, 'hello', 'notification message should match');
+        equal(++order, 2, 'listener2 triggered second');
+        return failedOperation();
+      },
+      listener3 = function(message) {
+        equal(message, 'hello', 'notification message should match');
+        equal(++order, 3, 'listener3 triggered third');
+        return successfulOperation();
+      },
+      listener4 = function(message) {
+        ok(false, "listener should not be reached");
+      };
+
+  evented.on('greeting', listener1, this);
+  evented.on('greeting', listener2, this);
+  evented.on('greeting', listener3, this);
+  evented.on('greeting', listener4, this);
+
+  stop();
+  evented.resolveResponses('greeting', 'hello').then(
+    function(result) {
+      start();
+      equal(result, ':)', 'success!');
+      equal(++order, 4, 'promise resolved last');
+    },
+    function(error) {
+      ok(false, "error handler should not be reached");
+    }
+  )
+});
+
+test("it can fulfill all promises returned by listeners to an event, in order, until all are settled", function() {
+  expect(10);
+
+  var order = 0,
+      listener1 = function(message) {
+        equal(message, 'hello', 'notification message should match');
+        equal(++order, 1, 'listener1 triggered first');
+        // doesn't return anything
+      },
+      listener2 = function(message) {
+        equal(message, 'hello', 'notification message should match');
+        equal(++order, 2, 'listener2 triggered second');
+        return failedOperation();
+      },
+      listener3 = function(message) {
+        equal(message, 'hello', 'notification message should match');
+        equal(++order, 3, 'listener3 triggered third');
+        return successfulOperation();
+      },
+      listener4 = function(message) {
+        equal(message, 'hello', 'notification message should match');
+        equal(++order, 4, 'listener4 triggered fourth');
+        return failedOperation();
+      };
+
+  evented.on('greeting', listener1, this);
+  evented.on('greeting', listener2, this);
+  evented.on('greeting', listener3, this);
+  evented.on('greeting', listener4, this);
+
+  stop();
+  evented.settleResponses('greeting', 'hello').then(
+    function(result) {
+      start();
+      equal(result, undefined, 'no result returned');
+      equal(++order, 5, 'promise resolved last');
+    },
+    function(error) {
+      ok(false, "error handler should not be reached");
+    }
+  )
 });
