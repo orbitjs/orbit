@@ -1,6 +1,5 @@
 import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
-import RSVP from 'rsvp';
 
 var Transformable = {
   defaultActions: ['insertRecord', 'updateRecord', 'patchRecord', 'destroyRecord'],
@@ -26,18 +25,22 @@ var Transformable = {
 
         Orbit.assert('_' + action + ' must be defined', object['_' + action]);
 
-        return RSVP.all(object.poll.apply(object, ['will' + Action].concat(args))).then(
+        return object.settleResponses.apply(object, ['will' + Action].concat(args)).then(
           function() {
-            return object['_' + action].apply(object, args).then(
-              function(result) {
-                return RSVP.all(object.poll.apply(object, ['did' + Action].concat(args).concat(result))).then(
-                  function() { return result; }
-                );
-              },
-              function(error) {
-                return RSVP.all(object.poll.apply(object, ['didNot' + Action].concat(args).concat(error))).then(
-                  function() { throw error; }
-                );
+            return object['_' + action].apply(object, args);
+          }
+        ).then(
+          function(result) {
+            return object.settleResponses.apply(object, ['did' + Action].concat(args).concat(result)).then(
+              function() {
+                return result;
+              }
+            );
+          },
+          function(error) {
+            return object.settleResponses.apply(object, ['didNot' + Action].concat(args).concat(error)).then(
+              function() {
+                throw error;
               }
             );
           }

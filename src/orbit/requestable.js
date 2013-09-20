@@ -1,19 +1,5 @@
 import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
-import RSVP from 'rsvp';
-
-var performUntilSuccess = function(handlers, object, args) {
-  return handlers.shift().apply(object, args).then(
-    null,
-    function(error) {
-      if (handlers.length > 0) {
-        return performUntilSuccess(handlers, object, args);
-      } else {
-        throw error;
-      }
-    }
-  );
-};
 
 var Requestable = {
   defaultActions: ['find'],
@@ -37,35 +23,36 @@ var Requestable = {
         Orbit.assert('_' + action + ' must be defined', object['_' + action]);
 
         var args = Array.prototype.slice.call(arguments, 0),
-            Action = Orbit.capitalize(action),
-            handlers = object.poll.apply(object, ['will' + Action].concat(args));
+            Action = Orbit.capitalize(action);
 
-        handlers.push(object['_' + action]);
-
-        return performUntilSuccess(handlers, object, args).then(
+        return object.resolveResponses.apply(object, ['will' + Action].concat(args)).then(
+          null,
+          function() {
+            return object['_' + action].apply(object, args);
+          }
+        ).then(
           null,
           function(error) {
-            handlers = object.poll.apply(object, ['rescue' + Action].concat(args));
-            if (handlers.length > 0) {
-              return performUntilSuccess(handlers, object, args).then(
-                null,
-                function() {
-                  throw error;
-                }
-              );
-            } else {
-              throw error;
-            }
+            return object.resolveResponses.apply(object, ['rescue' + Action].concat(args)).then(
+              null,
+              function() {
+                throw error;
+              }
+            );
           }
         ).then(
           function(result) {
-            return RSVP.all(object.poll.apply(object, ['did' + Action].concat(args).concat(result))).then(
-              function() { return result; }
+            return object.settleResponses.apply(object, ['did' + Action].concat(args).concat(result)).then(
+              function() {
+                return result;
+              }
             );
           },
           function(error) {
-            return RSVP.all(object.poll.apply(object, ['didNot' + Action].concat(args).concat(error))).then(
-              function() { throw error; }
+            return object.settleResponses.apply(object, ['didNot' + Action].concat(args).concat(error)).then(
+              function() {
+                throw error;
+              }
             );
           }
         );

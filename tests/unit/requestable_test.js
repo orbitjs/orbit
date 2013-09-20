@@ -115,78 +115,66 @@ var testRequestableAction = function(actionName) {
   });
 
   test("it should queue actions returned from `will" + ActionName + "` and try them in order until one succeeds", function() {
-    expect(7);
+    expect(5);
 
     var order = 0;
 
-    var fail = function() {
-      equal(++order, 3, 'action performed after will' + ActionName);
+    source.on('will' + ActionName, function() {
+      equal(++order, 1, 'will' + ActionName + ' triggered first');
       return failedOperation();
-    };
+    });
 
-    var success = function() {
-      equal(++order, 4, 'action performed after failed action');
+    source.on('will' + ActionName, function() {
+      equal(++order, 2, 'will' + ActionName + ' triggered next');
       return successfulOperation();
-    };
+    });
+
+    source.on('will' + ActionName, function() {
+      ok(false, 'will' + ActionName + ' handler should not be called after success');
+    });
 
     source['_' + actionName] = function() {
       ok(false, 'default action should not be reached');
     };
 
-    source.on('will' + ActionName, function() {
-      equal(++order, 1, 'will' + ActionName + ' triggered first');
-      return fail;
-    });
-
-    source.on('will' + ActionName, function() {
-      equal(++order, 2, 'will' + ActionName + ' triggered next');
-      return success;
-    });
-
     source.on('did' + ActionName, function() {
-      equal(++order, 5, 'did' + ActionName + ' triggered after action performed successfully');
+      equal(++order, 3, 'did' + ActionName + ' triggered after action performed successfully');
     });
 
     stop();
     source[actionName]().then(function(result) {
       start();
-      equal(++order, 6, 'promise resolved last');
+      equal(++order, 4, 'promise resolved last');
       equal(result, ':)', 'success!');
     });
   });
 
   test("it should queue actions returned from `will" + ActionName + "` and fail if they all fail", function() {
-    expect(7);
+    expect(6);
 
     var order = 0;
 
-    var fail = function() {
-      equal(++order, 3, 'action performed after will' + ActionName);
-      return failedOperation();
-    };
-
-    var fail2 = function() {
-      equal(++order, 4, 'action performed after will' + ActionName);
-      return failedOperation();
-    };
-
     source.on('will' + ActionName, function() {
       equal(++order, 1, 'will' + ActionName + ' triggered first');
-      return fail;
+      return failedOperation();
     });
 
     source.on('will' + ActionName, function() {
       equal(++order, 2, 'will' + ActionName + ' triggered again');
-      return fail2;
+      return failedOperation();
     });
 
     source['_' + actionName] = function() {
-      equal(++order, 5, 'default action performed after second failed action');
+      equal(++order, 3, 'default action performed after second failed action');
       return failedOperation();
     };
 
     source.on('did' + ActionName, function() {
       ok(false, 'did' + ActionName + ' should not be triggered');
+    });
+
+    source.on('didNot' + ActionName, function() {
+      equal(++order, 4, 'didNot' + ActionName + ' triggered after action failed');
     });
 
     stop();
@@ -197,26 +185,16 @@ var testRequestableAction = function(actionName) {
       },
       function(result) {
         start();
-        equal(++order, 6, 'promise failed because no actions succeeded');
+        equal(++order, 5, 'promise failed because no actions succeeded');
         equal(result, ':(', 'failure');
       }
     );
   });
 
   test("after an unsuccessful action, it should queue actions returned from `rescue" + ActionName + "` and try them in order until one succeeds", function() {
-    expect(8);
+    expect(6);
 
     var order = 0;
-
-    var fail = function() {
-      equal(++order, 4, 'action performed after polling with didNot' + ActionName);
-      return failedOperation();
-    };
-
-    var success = function() {
-      equal(++order, 5, 'action performed after polling with didNot' + ActionName);
-      return successfulOperation();
-    };
 
     source['_' + actionName] = function() {
       equal(++order, 1, '_' + actionName + ' triggered first');
@@ -225,16 +203,16 @@ var testRequestableAction = function(actionName) {
 
     source.on('rescue' + ActionName, function() {
       equal(++order, 2, 'rescue' + ActionName + ' listener triggered after failed action');
-      return fail;
+      return failedOperation();
     });
 
     source.on('rescue' + ActionName, function() {
       equal(++order, 3, 'rescue' + ActionName + ' listener triggered after second failed action');
-      return success;
+      return successfulOperation();
     });
 
     source.on('did' + ActionName, function() {
-      equal(++order, 6, 'did' + ActionName + ' triggered after action performed successfully');
+      equal(++order, 4, 'did' + ActionName + ' triggered after action performed successfully');
     });
 
     source.on('didNot' + ActionName, function() {
@@ -244,25 +222,15 @@ var testRequestableAction = function(actionName) {
     stop();
     source[actionName]().then(function(result) {
       start();
-      equal(++order, 7, 'promise resolved last');
+      equal(++order, 5, 'promise resolved last');
       equal(result, ':)', 'success!');
     });
   });
 
   test("after an unsuccessful action, it should queue actions returned from `rescue" + ActionName + "` and fail if they all fail", function() {
-    expect(8);
+    expect(6);
 
     var order = 0;
-
-    var fail1 = function() {
-      equal(++order, 4, '1st action performed after polling with didNot' + ActionName);
-      return failedOperation();
-    };
-
-    var fail2 = function() {
-      equal(++order, 5, '2nd action performed after polling with didNot' + ActionName);
-      return failedOperation();
-    };
 
     source['_' + actionName] = function() {
       equal(++order, 1, '_' + actionName + ' triggered first');
@@ -271,12 +239,12 @@ var testRequestableAction = function(actionName) {
 
     source.on('rescue' + ActionName, function() {
       equal(++order, 2, 'rescue' + ActionName + ' listener triggered after failed action');
-      return fail1;
+      return failedOperation();
     });
 
     source.on('rescue' + ActionName, function() {
       equal(++order, 3, 'rescue' + ActionName + ' listener triggered after second failed action');
-      return fail2;
+      return failedOperation();
     });
 
     source.on('did' + ActionName, function() {
@@ -284,7 +252,7 @@ var testRequestableAction = function(actionName) {
     });
 
     source.on('didNot' + ActionName, function() {
-      equal(++order, 6, 'didNot' + ActionName + ' triggered because action failed');
+      equal(++order, 4, 'didNot' + ActionName + ' triggered because action failed');
     });
 
     stop();
@@ -295,7 +263,7 @@ var testRequestableAction = function(actionName) {
       },
       function(result) {
         start();
-        equal(++order, 7, 'promise failed because no actions succeeded');
+        equal(++order, 5, 'promise failed because no actions succeeded');
         equal(result, ':(', 'failure');
       }
     );
