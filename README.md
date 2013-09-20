@@ -114,7 +114,7 @@ var localStore = new LocalStore();
 ////// Connect the sources via events
 
 // Check local storage before making a remote call
-restStore.on('rescueFind', localStore.find);
+restStore.on('assistFind', localStore.find);
 
 // If the in-memory store can't find the record, query our rest server
 memoryStore.on('rescueFind', restStore.find);
