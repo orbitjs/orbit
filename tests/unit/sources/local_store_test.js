@@ -85,12 +85,15 @@ test("it can patch records", function() {
   stop();
   dogs.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     original = dog;
-    dogs.patchRecord({id: dog.id, name: 'Beatrice'}).then(function(updatedDog) {
+    return dog;
+
+  }).then(function(dog) {
+    return dogs.patchRecord({id: dog.id, name: 'Beatrice'}).then(function(updatedDog) {
       equal(updatedDog.id, dog.id, 'id remains the same');
       equal(updatedDog.name, 'Beatrice', 'name has been updated');
       equal(updatedDog.gender, 'm', 'gender has not been updated');
-    })
-    return dog;
+      return updatedDog;
+    });
 
   }).then(function(dog) {
     dogs.find(dog.id).then(function(foundDog) {
