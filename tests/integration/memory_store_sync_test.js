@@ -39,9 +39,7 @@ test("records inserted into the primary store should be automatically copied to 
     ok(dog.id, 'id should be defined');
     equal(dog.name, 'Hubert', 'name should match');
     equal(dog.gender, 'm', 'gender should match');
-    return dog;
 
-  }).then(function(dog) {
     backupStore.find(dog.id).then(function(backupDog) {
       start();
       equal(backupDog.id, dog.id,     'backup record has the same id');
@@ -63,16 +61,15 @@ test("updates to records in the primary store should be automatically copied to 
       equal(updatedDog.id, dog.id, 'id remains the same');
       equal(updatedDog.name, 'Beatrice', 'name has been updated');
       equal(updatedDog.gender, 'f', 'gender has been updated');
-    })
-    return dog;
 
-  }).then(function(dog) {
+    }).then(function() {
       backupStore.find(dog.id).then(function(backupDog) {
-      start();
-      strictEqual(backupDog, original, 'still the same object as the one originally inserted');
-      equal(backupDog.id, dog.id, 'record can be looked up by id');
-      equal(backupDog.name, 'Beatrice', 'name has been updated');
-      equal(backupDog.gender, 'f', 'gender has been updated');
+        start();
+        strictEqual(backupDog, original, 'still the same object as the one originally inserted');
+        equal(backupDog.id, dog.id, 'record can be looked up by id');
+        equal(backupDog.name, 'Beatrice', 'name has been updated');
+        equal(backupDog.gender, 'f', 'gender has been updated');
+      });
     });
   });
 });
@@ -85,20 +82,20 @@ test("patches to records in the primary store should be automatically copied to 
   stop();
   primaryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     original = dog;
+
     primaryStore.patchRecord({id: dog.id, name: 'Beatrice'}).then(function(updatedDog) {
       equal(updatedDog.id, dog.id, 'id remains the same');
       equal(updatedDog.name, 'Beatrice', 'name has been updated');
       equal(updatedDog.gender, 'm', 'gender has not been updated');
-    })
-    return dog;
 
-  }).then(function(dog) {
-    backupStore.find(dog.id).then(function(backupDog) {
-      start();
-      strictEqual(backupDog, original, 'still the same object as the one originally inserted');
-      equal(backupDog.id, dog.id, 'record can be looked up by id');
-      equal(backupDog.name, 'Beatrice', 'name has been updated');
-      equal(backupDog.gender, 'm', 'gender has not been updated');
+    }).then(function() {
+      backupStore.find(dog.id).then(function(backupDog) {
+        start();
+        strictEqual(backupDog, original, 'still the same object as the one originally inserted');
+        equal(backupDog.id, dog.id, 'record can be looked up by id');
+        equal(backupDog.name, 'Beatrice', 'name has been updated');
+        equal(backupDog.gender, 'm', 'gender has not been updated');
+      });
     });
   });
 });
@@ -121,4 +118,3 @@ test("records destroyed in the primary store should be automatically destroyed i
     })
   });
 });
-
