@@ -25,7 +25,11 @@ var Requestable = {
         var args = Array.prototype.slice.call(arguments, 0),
             Action = Orbit.capitalize(action);
 
-        return object.resolveResponses.apply(object, ['will' + Action].concat(args)).then(
+        return object.settleResponses.apply(object, ['will' + Action].concat(args)).then(
+          function() {
+            return object.resolveResponses.apply(object, ['assist' + Action].concat(args));
+          }
+        ).then(
           null,
           function() {
             return object['_' + action].apply(object, args);

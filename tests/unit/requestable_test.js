@@ -114,23 +114,23 @@ var testRequestableAction = function(actionName) {
     });
   });
 
-  test("it should queue actions returned from `will" + ActionName + "` and try them in order until one succeeds", function() {
+  test("it should queue actions returned from `assist" + ActionName + "` and try them in order until one succeeds", function() {
     expect(5);
 
     var order = 0;
 
-    source.on('will' + ActionName, function() {
-      equal(++order, 1, 'will' + ActionName + ' triggered first');
+    source.on('assist' + ActionName, function() {
+      equal(++order, 1, 'assist' + ActionName + ' triggered first');
       return failedOperation();
     });
 
-    source.on('will' + ActionName, function() {
-      equal(++order, 2, 'will' + ActionName + ' triggered next');
+    source.on('assist' + ActionName, function() {
+      equal(++order, 2, 'assist' + ActionName + ' triggered next');
       return successfulOperation();
     });
 
-    source.on('will' + ActionName, function() {
-      ok(false, 'will' + ActionName + ' handler should not be called after success');
+    source.on('assist' + ActionName, function() {
+      ok(false, 'assist' + ActionName + ' handler should not be called after success');
     });
 
     source['_' + actionName] = function() {
@@ -149,18 +149,18 @@ var testRequestableAction = function(actionName) {
     });
   });
 
-  test("it should queue actions returned from `will" + ActionName + "` and fail if they all fail", function() {
+  test("it should queue actions returned from `assist" + ActionName + "` and fail if they all fail", function() {
     expect(6);
 
     var order = 0;
 
-    source.on('will' + ActionName, function() {
-      equal(++order, 1, 'will' + ActionName + ' triggered first');
+    source.on('assist' + ActionName, function() {
+      equal(++order, 1, 'assist' + ActionName + ' triggered first');
       return failedOperation();
     });
 
-    source.on('will' + ActionName, function() {
-      equal(++order, 2, 'will' + ActionName + ' triggered again');
+    source.on('assist' + ActionName, function() {
+      equal(++order, 2, 'assist' + ActionName + ' triggered again');
       return failedOperation();
     });
 
