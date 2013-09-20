@@ -3,11 +3,10 @@
 Orbit.js is a low level library for keeping data sources coordinated and
 synchronized.
 
-Orbit has a single dependency, [RSVP](https://github.com/tildeio/rsvp.js),
-which it uses for handling promises.
-
-Clients are not required to use RSVP - any library that implements the
-[Promises/A+](http://promises-aplus.github.io/promises-spec/) spec will do.
+Orbit.js has a single dependency, [RSVP](https://github.com/tildeio/rsvp.js),
+which is used for handling promises. Clients are not required to
+use RSVP - any library that implements the [Promises/A+]
+(http://promises-aplus.github.io/promises-spec/) spec will be compatible.
 
 ## Interfaces
 
