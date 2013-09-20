@@ -13,8 +13,11 @@ var LocalStore = function(idField, namespace) {
   this._newId = 0;
   this._data = undefined;
 
+  this._autosave = true;
+  this._isDirty = false;
+
   // namespace used for local storage
-  this.namespace = namespace || 'Orbit';
+  this.namespace = namespace || 'orbit';
 
   Transformable.extend(this);
   Requestable.extend(this, ['find', 'create', 'update', 'patch', 'destroy']);
@@ -23,7 +26,7 @@ var LocalStore = function(idField, namespace) {
 var supportsLocalStorage = function() {
   try {
     return 'localStorage' in window && window['localStorage'] !== null;
-  } catch (e) {
+  } catch(e) {
     return false;
   }
 };
@@ -51,6 +54,19 @@ var patchRecord = function(record, data) {
 
 LocalStore.prototype = {
   constructor: LocalStore,
+
+  enableAutosave: function() {
+    if (!this._autosave) {
+      this._autosave = true;
+      if (this._isDirty) this._saveData();
+    }
+  },
+
+  disableAutosave: function() {
+    if (this._autosave) {
+      this._autosave = false;
+    }
+  },
 
   _insertRecord: function(data) {
     var _this = this;
@@ -177,16 +193,24 @@ LocalStore.prototype = {
 
   // Local storage access
 
-  _loadData: function(reload) {
-    if (this._data === undefined || reload) {
+  _loadData: function(forceReload) {
+    if (this._data === undefined || forceReload) {
       var storage = window.localStorage.getItem(this.namespace);
       this._data = storage ? JSON.parse(storage) : {};
     }
   },
 
-  _saveData: function() {
-    this._loadData();
-    window.localStorage.setItem(this.namespace, JSON.stringify(this._data));
+  _saveData: function(forceSave) {
+    if (!this._autosave && !forceSave) {
+      this._isDirty = true;
+      return;
+    }
+    if (this._data === undefined) {
+      this._loadData();
+    } else {
+      window.localStorage.setItem(this.namespace, JSON.stringify(this._data));
+    }
+    this._isDirty = false;
   }
 };
 
