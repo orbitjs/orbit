@@ -9,6 +9,10 @@ var notifierForEvent = function(object, eventName, createIfUndefined) {
   return notifier;
 };
 
+var removeNotifierForEvent = function(object, eventName) {
+  delete object._eventedNotifiers[eventName];
+};
+
 var Evented = {
   extend: function(object) {
     if (object._evented === undefined) {
@@ -43,7 +47,11 @@ var Evented = {
     eventNames.split(/\s+/).forEach(function(eventName) {
       notifier = notifierForEvent(_this, eventName);
       if (notifier) {
-        notifier.removeListener(callback, binding);
+        if (callback) {
+          notifier.removeListener(callback, binding);
+        } else {
+          removeNotifierForEvent(_this, eventName);
+        }
       }
     });
   },

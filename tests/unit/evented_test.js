@@ -46,7 +46,7 @@ test("it notifies listeners when emitting a simple message", function() {
   evented.emit('greeting', 'hello');
 });
 
-test("it allows listeners to be unregistered", function() {
+test("it can unregister individual listeners from an event", function() {
   expect(1);
 
   var listener1 = function(message) {
@@ -61,6 +61,47 @@ test("it allows listeners to be unregistered", function() {
   evented.off('greeting', listener1);
 
   evented.emit('greeting', 'hello');
+});
+
+test("it can unregister all listeners from an event", function() {
+  expect(6);
+
+  var listener1 = function() {},
+      listener2 = function() {};
+
+  evented.on('greeting salutation', listener1);
+  evented.on('salutation', listener2);
+
+  equal(evented.listeners('greeting').length, 1);
+  equal(evented.listeners('salutation').length, 2);
+
+  evented.off('salutation');
+
+  equal(evented.listeners('greeting').length, 1);
+  equal(evented.listeners('salutation').length, 0);
+
+  evented.off('greeting');
+
+  equal(evented.listeners('greeting').length, 0);
+  equal(evented.listeners('salutation').length, 0);
+});
+
+test("it can unregister all listeners from multiple events", function() {
+  expect(4);
+
+  var listener1 = function() {},
+      listener2 = function() {};
+
+  evented.on('greeting salutation', listener1);
+  evented.on('salutation', listener2);
+
+  equal(evented.listeners('greeting').length, 1);
+  equal(evented.listeners('salutation').length, 2);
+
+  evented.off('salutation greeting');
+
+  equal(evented.listeners('greeting').length, 0);
+  equal(evented.listeners('salutation').length, 0);
 });
 
 test("it allows listeners to be registered for multiple events", function() {
