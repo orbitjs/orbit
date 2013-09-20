@@ -3,10 +3,11 @@
 Orbit.js is a low level library for keeping data sources coordinated and
 synchronized.
 
-Orbit has no specific external dependencies. However, it does require use of
-a library that implements the
-[Promises/A+](http://promises-aplus.github.io/promises-spec/) spec,
-such as [RSVP](https://github.com/tildeio/rsvp.js).
+Orbit has a single dependency, [RSVP](https://github.com/tildeio/rsvp.js),
+which it uses for handling promises.
+
+Clients are not required to use RSVP - any library that implements the
+[Promises/A+](http://promises-aplus.github.io/promises-spec/) spec will do.
 
 ## Interfaces
 
@@ -75,21 +76,27 @@ with or simply observing the resolution of an action.
 
 The following events are associated with an action (`find` in this case):
 
-* `willFind` - triggered prior to calling the default `_find` handler.
-Listeners can each optionally respond with an additional handler,
-which must be a function that returns a promise. Handlers will be
-called successively, prior to `_find`, until one resolves successfully.
+* `willFind` - triggered before an action is performed. Any promises
+returned by event listeners will be settled in series before proceeding.
 
-* `rescueFind` -  if no handlers queued by `willFind` are successfully
-resolved, nor is the default `_find` method itself, then `rescueFind` will be
-triggered to allow listeners to respond with handlers that might be able to
-resolve the action. Again, these handlers will be called successively,
-until one resolves or the whole queue fails.
+* `assistFind` - triggered prior to calling the default `_find` handler.
+Listeners can optionally return a promise. If any promise resolves
+successfully, its resolved value will be used as the return value of
+`find`, and no further listeners will called.
 
-* `didFind` - triggered upon the successful resolution of the action by any
-handler.
+* `rescueFind` -  if `assistFind` and the default `_find` method fail
+to resolve, then `rescueFind` will be triggered. Again, listeners can
+optionally return a promise. If any promise resolves successfully,
+its resolved value will be used as the return value of `find`, and no further
+listeners will called.
 
-* `didNotFind` - triggered when an action can't be resolved by any handler.
+* `didFind` - Triggered upon the successful resolution of the action by any
+handler. Any promises returned by event listeners will be settled in series
+before proceeding.
+
+* `didNotFind` - Triggered when an action can't be resolved by any handler.
+Any promises returned by event listeners will be settled in series before
+proceeding.
 
 Note that the arguments for actions can be customized for your application.
 Orbit will simply pass them through regardless of their number and type. You
@@ -101,29 +108,29 @@ Let's take a look at how this could all work:
 ```javascript
 
 // Create some new sources - assume their prototypes are already `Requestable`
-var memStore = new InMemoryStore();
+var memoryStore = new MemoryStore();
 var restStore = new RESTStore();
 var localStore = new LocalStore();
 
 ////// Connect the sources via events
 
 // Check local storage before making a remote call
-restStore.on('willFind', localStore.find);
+restStore.on('rescueFind', localStore.find);
 
 // If the in-memory store can't find the record, query our rest server
-memStore.on('rescueFind', restStore.find);
+memoryStore.on('rescueFind', restStore.find);
 
 // Audit success / failure
-memStore.on('didFind', function(type, id) {
+memoryStore.on('didFind', function(type, id) {
     audit('find', type, id, true);
 });
-memStore.on('didNotFind', function(type, id) {
+memoryStore.on('didNotFind', function(type, id) {
     audit('find', type, id, false);
 });
 
 ////// Perform the action
 
-memStore.find('contact', 1).then(function(contact) {
+memoryStore.find('contact', 1).then(function(contact) {
   // do something with the contact
 }, function(error) {
   // there was a problem
