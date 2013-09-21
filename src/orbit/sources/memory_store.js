@@ -1,11 +1,12 @@
 import Orbit from 'orbit/core';
 import Transformable from 'orbit/transformable';
 import Requestable from 'orbit/requestable';
-import RSVP from 'rsvp';
 
 var NOT_FOUND = 'Record not found';
 
 var MemoryStore = function(idField) {
+  Orbit.assert('MemoryStore requires Orbit.Promise to be defined', Orbit.Promise);
+
   this.idField = idField || 'id';
   this._data = {};
   this.length = 0;
@@ -42,7 +43,7 @@ MemoryStore.prototype = {
   _insertRecord: function(data) {
     var _this = this;
 
-    return new RSVP.Promise(function(resolve, reject) {
+    return new Orbit.Promise(function(resolve, reject) {
       data[_this.idField] = _this._generateId();
       _this._data[data[_this.idField]] = data;
       _this.length++;
@@ -53,7 +54,7 @@ MemoryStore.prototype = {
   _updateRecord: function(data) {
     var _this = this;
 
-    return new RSVP.Promise(function(resolve, reject) {
+    return new Orbit.Promise(function(resolve, reject) {
       var record = _this._data[data[_this.idField]];
       if (record) {
         updateRecord(record, data);
@@ -67,7 +68,7 @@ MemoryStore.prototype = {
   _patchRecord: function(data) {
     var _this = this;
 
-    return new RSVP.Promise(function(resolve, reject) {
+    return new Orbit.Promise(function(resolve, reject) {
       var record = _this._data[data[_this.idField]];
       if (record) {
         patchRecord(record, data);
@@ -81,7 +82,7 @@ MemoryStore.prototype = {
   _destroyRecord: function(data) {
     var _this = this;
 
-    return new RSVP.Promise(function(resolve, reject) {
+    return new Orbit.Promise(function(resolve, reject) {
       var record = _this._data[data[_this.idField]];
       if (record) {
         delete _this._data[data[_this.idField]];
@@ -100,7 +101,7 @@ MemoryStore.prototype = {
 
   _find: function(id) {
     var _this = this;
-    return new RSVP.Promise(function(resolve, reject) {
+    return new Orbit.Promise(function(resolve, reject) {
       if (id === undefined) {
         var all = [];
         for (var i in _this._data) {

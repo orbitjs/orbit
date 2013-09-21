@@ -1,11 +1,11 @@
 import Orbit from 'orbit/core';
 import Transformable from 'orbit/transformable';
 import Requestable from 'orbit/requestable';
-import RSVP from 'rsvp';
 
 var NOT_FOUND = 'Record not found';
 
 var LocalStore = function(idField, namespace) {
+  Orbit.assert('LocalStore requires Orbit.Promise be defined', Orbit.Promise);
   Orbit.assert('Your browser does not support local storage!', supportsLocalStorage());
 
   this.idField = idField || 'id';
@@ -71,7 +71,7 @@ LocalStore.prototype = {
   _insertRecord: function(data) {
     var _this = this;
 
-    return new RSVP.Promise(function(resolve, reject) {
+    return new Orbit.Promise(function(resolve, reject) {
       _this._loadData();
 
       data[_this.idField] = _this._generateId();
@@ -87,7 +87,7 @@ LocalStore.prototype = {
   _updateRecord: function(data) {
     var _this = this;
 
-    return new RSVP.Promise(function(resolve, reject) {
+    return new Orbit.Promise(function(resolve, reject) {
       _this._loadData();
 
       var record = _this._data[data[_this.idField]];
@@ -106,7 +106,7 @@ LocalStore.prototype = {
   _patchRecord: function(data) {
     var _this = this;
 
-    return new RSVP.Promise(function(resolve, reject) {
+    return new Orbit.Promise(function(resolve, reject) {
       _this._loadData();
 
       var record = _this._data[data[_this.idField]];
@@ -125,7 +125,7 @@ LocalStore.prototype = {
   _destroyRecord: function(data) {
     var _this = this;
 
-    return new RSVP.Promise(function(resolve, reject) {
+    return new Orbit.Promise(function(resolve, reject) {
       var record = _this._data[data[_this.idField]];
       if (record) {
         _this._loadData();
@@ -149,7 +149,7 @@ LocalStore.prototype = {
 
   _find: function(id) {
     var _this = this;
-    return new RSVP.Promise(function(resolve, reject) {
+    return new Orbit.Promise(function(resolve, reject) {
       _this._loadData();
 
       if (id === undefined) {

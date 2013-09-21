@@ -1,3 +1,4 @@
+import Orbit from 'orbit/core';
 import MemoryStore from 'orbit/sources/memory_store';
 import RSVP from 'rsvp';
 
@@ -7,6 +8,7 @@ var dogs;
 
 module("Unit - MemoryStore", {
   setup: function() {
+    Orbit.Promise = RSVP.Promise;
     dogs = new MemoryStore();
   },
 

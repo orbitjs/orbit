@@ -1,5 +1,5 @@
+import Orbit from 'orbit/core';
 import Notifier from 'orbit/notifier';
-import RSVP from 'rsvp';
 
 var notifierForEvent = function(object, eventName, createIfUndefined) {
   var notifier = object._eventedNotifiers[eventName];
@@ -15,6 +15,8 @@ var removeNotifierForEvent = function(object, eventName) {
 
 var Evented = {
   extend: function(object) {
+    Orbit.assert('Evented requires Orbit.Promise be defined', Orbit.Promise);
+
     if (object._evented === undefined) {
       object._evented = true;
       object._eventedNotifiers = {};
@@ -105,7 +107,7 @@ var Evented = {
         listeners = this.listeners(eventNames),
         args = Array.prototype.slice.call(arguments, 1);
 
-    return new RSVP.Promise(function(resolve, reject) {
+    return new Orbit.Promise(function(resolve, reject) {
       var resolveEach = function() {
         if (listeners.length === 0) {
           reject();
@@ -137,7 +139,7 @@ var Evented = {
         listeners = this.listeners(eventNames),
         args = Array.prototype.slice.call(arguments, 1);
 
-    return new RSVP.Promise(function(resolve, reject) {
+    return new Orbit.Promise(function(resolve, reject) {
       var settleEach = function() {
         if (listeners.length === 0) {
           resolve();

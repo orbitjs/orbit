@@ -1,3 +1,4 @@
+import Orbit from 'orbit/core';
 import MemoryStore from 'orbit/sources/memory_store';
 import RSVP from 'rsvp';
 
@@ -8,6 +9,8 @@ var primaryStore,
 
 module("Integration - MemoryStore Sync", {
   setup: function() {
+    Orbit.Promise = RSVP.Promise;
+
     primaryStore = new MemoryStore();
     backupStore = new MemoryStore();
 
