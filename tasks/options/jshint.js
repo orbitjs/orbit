@@ -2,7 +2,8 @@ module.exports = {
   all: {
     src: [
       'Gruntfile.js',
-      'src/**/*.js'
+      'src/orbit/**/*.js',
+      'tests/**/*.js'
     ]
   },
   options: {

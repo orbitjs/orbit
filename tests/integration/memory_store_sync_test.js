@@ -118,6 +118,6 @@ test("records destroyed in the primary store should be automatically destroyed i
       start();
       equal(primaryStore.length, 0, 'primary store should be empty');
       equal(backupStore.length, 0, 'backup store should be empty');
-    })
+    });
   });
 });

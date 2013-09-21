@@ -27,4 +27,8 @@ Orbit.capitalize = function(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
 
+Orbit.toArray = function(obj, startingIndex) {
+  return Array.prototype.slice.call(obj, startingIndex || 0);
+};
+
 export default Orbit;

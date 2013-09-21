@@ -56,7 +56,7 @@ test("it can update records", function() {
       equal(updatedDog.id, dog.id, 'id remains the same');
       equal(updatedDog.name, 'Beatrice', 'name has been updated');
       equal(updatedDog.gender, 'f', 'gender has been updated');
-    })
+    });
     return dog;
 
   }).then(function(dog) {
@@ -113,7 +113,7 @@ test("it can destroy records", function() {
     dogs.destroyRecord({id: dog.id}).then(function() {
       start();
       equal(dogs.length, 0, 'store should be empty');
-    })
+    });
   });
 });
 

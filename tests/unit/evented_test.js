@@ -202,10 +202,10 @@ test("it can poll listeners with multiple events and return all the responses in
   expect(2);
 
   var dog1 = function() {
-        return 'Winky'
+        return 'Winky';
       },
       dog2 = function() {
-        return 'Hubert'
+        return 'Hubert';
       },
       owner1 = function() {
         return 'Cookie Fleck';
@@ -229,10 +229,10 @@ test("it can return all the listeners (and bindings) for an event", function() {
   var binding1 = {},
       binding2 = {},
       dog1 = function() {
-        return 'Winky'
+        return 'Winky';
       },
       dog2 = function() {
-        return 'Hubert'
+        return 'Hubert';
       };
 
   evented.on('dog', dog1, binding1);
@@ -247,10 +247,10 @@ test("it can return all the listeners (and bindings) for multiple events", funct
   var binding1 = {},
       binding2 = {},
       dog1 = function() {
-        return 'Winky'
+        return 'Winky';
       },
       dog2 = function() {
-        return 'Hubert'
+        return 'Hubert';
       },
       owner1 = function() {
         return 'Cookie Fleck';
@@ -305,7 +305,7 @@ test("it can fulfill promises returned by listeners to an event, in order, until
     function(error) {
       ok(false, "error handler should not be reached");
     }
-  )
+  );
 });
 
 test("it can fulfill all promises returned by listeners to an event, in order, until all are settled", function() {
@@ -348,5 +348,5 @@ test("it can fulfill all promises returned by listeners to an event, in order, u
     function(error) {
       ok(false, "error handler should not be reached");
     }
-  )
+  );
 });

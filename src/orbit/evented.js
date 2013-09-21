@@ -60,7 +60,7 @@ var Evented = {
 
   emit: function(eventNames) {
     var _this = this,
-        args = Array.prototype.slice.call(arguments, 1),
+        args = Orbit.toArray(arguments, 1),
         notifier;
 
     eventNames.split(/\s+/).forEach(function(eventName) {
@@ -73,7 +73,7 @@ var Evented = {
 
   poll: function(eventNames) {
     var _this = this,
-        args = Array.prototype.slice.call(arguments, 1),
+        args = Orbit.toArray(arguments, 1),
         notifier,
         responses = [];
 
@@ -105,7 +105,7 @@ var Evented = {
   resolve: function(eventNames) {
     var _this = this,
         listeners = this.listeners(eventNames),
-        args = Array.prototype.slice.call(arguments, 1);
+        args = Orbit.toArray(arguments, 1);
 
     return new Orbit.Promise(function(resolve, reject) {
       var resolveEach = function() {
@@ -137,7 +137,7 @@ var Evented = {
   settle: function(eventNames) {
     var _this = this,
         listeners = this.listeners(eventNames),
-        args = Array.prototype.slice.call(arguments, 1);
+        args = Orbit.toArray(arguments, 1);
 
     return new Orbit.Promise(function(resolve, reject) {
       var settleEach = function() {

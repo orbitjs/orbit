@@ -1,3 +1,4 @@
+import Orbit from 'orbit/core';
 import Requestable from 'orbit/requestable';
 import RSVP from 'rsvp';
 
@@ -30,7 +31,7 @@ var testRequestableAction = function(actionName) {
     stop();
     source[actionName]().then(function(result) {
       start();
-      ok(true, '_' + actionName + ' promise resolved')
+      ok(true, '_' + actionName + ' promise resolved');
       equal(result, ':)', 'success!');
     });
   });
@@ -42,11 +43,11 @@ var testRequestableAction = function(actionName) {
     source[actionName]().then(
       function() {
         start();
-        ok(false, '_' + actionName + ' should not be resolved successfully')
+        ok(false, '_' + actionName + ' should not be resolved successfully');
       },
       function(result) {
         start();
-        ok(true, '_' + actionName + ' promise resolved as a failure')
+        ok(true, '_' + actionName + ' promise resolved as a failure');
         equal(result, ':(', 'failure');
       }
     );
@@ -59,18 +60,18 @@ var testRequestableAction = function(actionName) {
 
     source.on('will' + ActionName, function() {
       equal(++order, 1, 'will' + ActionName + ' triggered first');
-      deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
+      deepEqual(Orbit.toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
     });
 
     source['_' + actionName] = function() {
       equal(++order, 2, 'action performed after will' + ActionName);
-      deepEqual(toArray(arguments), ['abc', 'def'], '_handler args match original call args');
+      deepEqual(Orbit.toArray(arguments), ['abc', 'def'], '_handler args match original call args');
       return successfulOperation();
     };
 
     source.on('did' + ActionName, function() {
       equal(++order, 3, 'did' + ActionName + ' triggered after action performed successfully');
-      deepEqual(toArray(arguments), ['abc', 'def', ':)'], 'event handler args match original call args + return value');
+      deepEqual(Orbit.toArray(arguments), ['abc', 'def', ':)'], 'event handler args match original call args + return value');
     });
 
     stop();
@@ -88,12 +89,12 @@ var testRequestableAction = function(actionName) {
 
     source.on('will' + ActionName, function() {
       equal(++order, 1, 'will' + ActionName + ' triggered first');
-      deepEqual(toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
+      deepEqual(Orbit.toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
     });
 
     source['_' + actionName] = function() {
       equal(++order, 2, 'action performed after will' + ActionName);
-      deepEqual(toArray(arguments), ['abc', 'def'], '_handler args match original call args');
+      deepEqual(Orbit.toArray(arguments), ['abc', 'def'], '_handler args match original call args');
       return failedOperation();
     };
 
@@ -103,7 +104,7 @@ var testRequestableAction = function(actionName) {
 
     source.on('didNot' + ActionName, function() {
       equal(++order, 3, 'didNot' + ActionName + ' triggered after an unsuccessful action');
-      deepEqual(toArray(arguments), ['abc', 'def', ':('], 'event handler args match original call args + return value');
+      deepEqual(Orbit.toArray(arguments), ['abc', 'def', ':('], 'event handler args match original call args + return value');
     });
 
     stop();
@@ -294,7 +295,7 @@ test("it exists", function() {
 test("it should mixin Evented", function() {
   ['on', 'off', 'emit', 'poll'].forEach(function(prop) {
     ok(source[prop], 'should have Evented properties');
-  })
+  });
 });
 
 test("it defines `find` as an action by default", function() {
