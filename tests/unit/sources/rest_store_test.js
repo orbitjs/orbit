@@ -2,8 +2,8 @@ import Orbit from 'orbit/core';
 import RestStore from 'orbit/sources/rest_store';
 import RSVP from 'rsvp';
 
-var server;
-var dogs;
+var server,
+    store;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -16,19 +16,19 @@ module("Unit - RestStore", {
     server = window.sinon.fakeServer.create();
     server.autoRespond = true;
 
-    dogs = new RestStore();
-    dogs.namespace = 'dogs';
+    store = new RestStore();
+    store.namespace = 'dogs';
   },
 
   teardown: function() {
-    dogs = null;
+    store = null;
 
     server.restore();
   }
 });
 
 test("it exists", function() {
-  ok(dogs);
+  ok(store);
 });
 
 test("it can insert records", function() {
@@ -43,7 +43,7 @@ test("it can insert records", function() {
   });
 
   stop();
-  dogs.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
+  store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     start();
     deepEqual(dog, response, 'data matches response');
   });
@@ -61,7 +61,7 @@ test("it can update records", function() {
   });
 
   stop();
-  dogs.updateRecord({id: 12345, name: 'Hubert', gender: 'm'}).then(function(dog) {
+  store.updateRecord({id: 12345, name: 'Hubert', gender: 'm'}).then(function(dog) {
     start();
     deepEqual(dog, response, 'data matches response');
   });
@@ -79,7 +79,7 @@ test("it can patch records", function() {
   });
 
   stop();
-  dogs.patchRecord({id: 12345, gender: 'm'}).then(function(dog) {
+  store.patchRecord({id: 12345, gender: 'm'}).then(function(dog) {
     start();
     deepEqual(dog, response, 'data matches response');
   });
@@ -95,7 +95,7 @@ test("it can delete records", function() {
   });
 
   stop();
-  dogs.destroyRecord({id: 12345}).then(function() {
+  store.destroyRecord({id: 12345}).then(function() {
     start();
     ok(true, 'record deleted');
   });
@@ -113,7 +113,7 @@ test("it can find individual records", function() {
   });
 
   stop();
-  dogs.find(12345).then(function(dog) {
+  store.find(12345).then(function(dog) {
     start();
     deepEqual(dog, response, 'data matches response');
   });
@@ -134,7 +134,7 @@ test("it can find all records", function() {
   });
 
   stop();
-  dogs.find().then(function(dogs) {
+  store.find().then(function(dogs) {
     start();
     deepEqual(dogs, response, 'data matches response');
   });
