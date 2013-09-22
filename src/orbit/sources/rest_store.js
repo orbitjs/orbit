@@ -80,15 +80,15 @@ RestStore.prototype = {
   },
 
   _updateRecord: function(data) {
-    return this.ajax(this.buildURL(data[_this.idField]), 'PUT', {data: data});
+    return this.ajax(this.buildURL(data[this.idField]), 'PUT', {data: data});
   },
 
   _patchRecord: function(data) {
-    return this.ajax(this.buildURL(data[_this.idField]), 'PATCH', {data: data});
+    return this.ajax(this.buildURL(data[this.idField]), 'PATCH', {data: data});
   },
 
   _destroyRecord: function(data) {
-    return this.ajax(this.buildURL(data[_this.idField]), 'DELETE');
+    return this.ajax(this.buildURL(data[this.idField]), 'DELETE');
   },
 
   _find: function(id) {

@@ -32,39 +32,90 @@ test("it exists", function() {
 });
 
 test("it can insert records", function() {
-  expect(3);
+  expect(1);
+
+  var response = {id: 12345, name: 'Hubert', gender: 'm'};
 
   server.respondWith('POST', '/dogs', function(xhr) {
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+                JSON.stringify(response));
   });
 
   stop();
   dogs.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     start();
-    equal(dog.id, 12345, 'id should be defined');
-    equal(dog.name, 'Hubert', 'name should match');
-    equal(dog.gender, 'm', 'gender should match');
-    return dog;
+    deepEqual(dog, response, 'data matches response');
+  });
+});
+
+test("it can update records", function() {
+  expect(1);
+
+  var response = {id: 12345, name: 'Hubert', gender: 'm'};
+
+  server.respondWith('PUT', '/dogs/12345', function(xhr) {
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify(response));
+  });
+
+  stop();
+  dogs.updateRecord({id: 12345, name: 'Hubert', gender: 'm'}).then(function(dog) {
+    start();
+    deepEqual(dog, response, 'data matches response');
+  });
+});
+
+test("it can patch records", function() {
+  expect(1);
+
+  var response = {id: 12345, name: 'Hubert', gender: 'm'};
+
+  server.respondWith('PATCH', '/dogs/12345', function(xhr) {
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify(response));
+  });
+
+  stop();
+  dogs.patchRecord({id: 12345, gender: 'm'}).then(function(dog) {
+    start();
+    deepEqual(dog, response, 'data matches response');
+  });
+});
+
+test("it can delete records", function() {
+  expect(1);
+
+  server.respondWith('DELETE', '/dogs/12345', function(xhr) {
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({}));
+  });
+
+  stop();
+  dogs.destroyRecord({id: 12345}).then(function() {
+    start();
+    ok(true, 'record deleted');
   });
 });
 
 test("it can find individual records", function() {
-  expect(3);
+  expect(1);
+
+  var response = {id: 12345, name: 'Hubert', gender: 'm'};
 
   server.respondWith('GET', '/dogs/12345', function(xhr) {
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+                JSON.stringify(response));
   });
 
   stop();
   dogs.find(12345).then(function(dog) {
     start();
-    equal(dog.id, 12345, 'id should be defined');
-    equal(dog.name, 'Hubert', 'name should match');
-    equal(dog.gender, 'm', 'gender should match');
+    deepEqual(dog, response, 'data matches response');
   });
 });
 
@@ -85,6 +136,6 @@ test("it can find all records", function() {
   stop();
   dogs.find().then(function(dogs) {
     start();
-    deepEqual(dogs, response);
+    deepEqual(dogs, response, 'data matches response');
   });
 });
