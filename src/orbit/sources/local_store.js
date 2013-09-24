@@ -2,8 +2,6 @@ import Orbit from 'orbit/core';
 import Transformable from 'orbit/transformable';
 import Requestable from 'orbit/requestable';
 
-var NOT_FOUND = 'Record not found';
-
 var LocalStore = function(idField, namespace) {
   Orbit.assert('LocalStore requires Orbit.Promise be defined', Orbit.Promise);
   Orbit.assert('Your browser does not support local storage!', supportsLocalStorage());
@@ -98,7 +96,7 @@ LocalStore.prototype = {
 
         resolve(record);
       } else {
-        reject(NOT_FOUND);
+        reject(Orbit.NOT_FOUND);
       }
     });
   },
@@ -117,7 +115,7 @@ LocalStore.prototype = {
 
         resolve(record);
       } else {
-        reject(NOT_FOUND);
+        reject(Orbit.NOT_FOUND);
       }
     });
   },
@@ -137,7 +135,7 @@ LocalStore.prototype = {
 
         resolve();
       } else {
-        reject(NOT_FOUND);
+        reject(Orbit.NOT_FOUND);
       }
     });
   },
@@ -165,7 +163,7 @@ LocalStore.prototype = {
         if (record) {
           resolve(record);
         } else {
-          reject(NOT_FOUND);
+          reject(Orbit.NOT_FOUND);
         }
       }
     });

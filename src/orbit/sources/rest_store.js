@@ -2,8 +2,6 @@ import Orbit from 'orbit/core';
 import Transformable from 'orbit/transformable';
 import Requestable from 'orbit/requestable';
 
-var NOT_FOUND = 'Record not found';
-
 var RestStore = function(idField) {
   Orbit.assert('RestStore requires Orbit.Promise be defined', Orbit.Promise);
   Orbit.assert('RestStore requires Orbit.ajax be defined', Orbit.ajax);
