@@ -25,11 +25,7 @@ var Transformable = {
 
         Orbit.assert('_' + action + ' must be defined', object['_' + action]);
 
-        return object.settle.apply(object, ['will' + Action].concat(args)).then(
-          function() {
-            return object['_' + action].apply(object, args);
-          }
-        ).then(
+        return object['_' + action].apply(object, args).then(
           function(result) {
             return object.settle.apply(object, ['did' + Action].concat(args).concat(result)).then(
               function() {

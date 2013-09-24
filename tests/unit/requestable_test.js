@@ -53,47 +53,37 @@ var testRequestableAction = function(actionName) {
     );
   });
 
-  test("it should trigger `will" + ActionName + "` and `did" + ActionName + "` events around a successful action", function() {
-    expect(8);
+  test("it should trigger `did" + ActionName + "` event after a successful action", function() {
+    expect(6);
 
     var order = 0;
 
-    source.on('will' + ActionName, function() {
-      equal(++order, 1, 'will' + ActionName + ' triggered first');
-      deepEqual(Orbit.toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
-    });
-
     source['_' + actionName] = function() {
-      equal(++order, 2, 'action performed after will' + ActionName);
+      equal(++order, 1, 'action performed after will' + ActionName);
       deepEqual(Orbit.toArray(arguments), ['abc', 'def'], '_handler args match original call args');
       return successfulOperation();
     };
 
     source.on('did' + ActionName, function() {
-      equal(++order, 3, 'did' + ActionName + ' triggered after action performed successfully');
+      equal(++order, 2, 'did' + ActionName + ' triggered after action performed successfully');
       deepEqual(Orbit.toArray(arguments), ['abc', 'def', ':)'], 'event handler args match original call args + return value');
     });
 
     stop();
     source[actionName]('abc', 'def').then(function(result) {
       start();
-      equal(++order, 4, 'promise resolved last');
+      equal(++order, 3, 'promise resolved last');
       equal(result, ':)', 'success!');
     });
   });
 
-  test("it should trigger `will" + ActionName + "` and `didNot" + ActionName + "` events for an unsuccessful action", function() {
-    expect(8);
+  test("it should trigger `didNot" + ActionName + "` event after an unsuccessful action", function() {
+    expect(6);
 
     var order = 0;
 
-    source.on('will' + ActionName, function() {
-      equal(++order, 1, 'will' + ActionName + ' triggered first');
-      deepEqual(Orbit.toArray(arguments), ['abc', 'def'], 'event handler args match original call args');
-    });
-
     source['_' + actionName] = function() {
-      equal(++order, 2, 'action performed after will' + ActionName);
+      equal(++order, 1, 'action performed after will' + ActionName);
       deepEqual(Orbit.toArray(arguments), ['abc', 'def'], '_handler args match original call args');
       return failedOperation();
     };
@@ -103,14 +93,14 @@ var testRequestableAction = function(actionName) {
     });
 
     source.on('didNot' + ActionName, function() {
-      equal(++order, 3, 'didNot' + ActionName + ' triggered after an unsuccessful action');
+      equal(++order, 2, 'didNot' + ActionName + ' triggered after an unsuccessful action');
       deepEqual(Orbit.toArray(arguments), ['abc', 'def', ':('], 'event handler args match original call args + return value');
     });
 
     stop();
     source[actionName]('abc', 'def').then(null, function(result) {
       start();
-      equal(++order, 4, 'promise resolved last');
+      equal(++order, 3, 'promise resolved last');
       equal(result, ':(', 'failure');
     });
   });

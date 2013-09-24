@@ -75,9 +75,6 @@ with or simply observing the resolution of an action.
 
 The following events are associated with an action (`find` in this case):
 
-* `willFind` - triggered before an action is performed. Any promises
-returned by event listeners will be settled in series before proceeding.
-
 * `assistFind` - triggered prior to calling the default `_find` handler.
 Listeners can optionally return a promise. If any promise resolves
 successfully, its resolved value will be used as the return value of
