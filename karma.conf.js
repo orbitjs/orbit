@@ -10,6 +10,7 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'vendor/loader.js',
+      'vendor/sinon.js',
       'assets/vendor.js',
       'assets/orbit.js',
       'tests/test_helper.js',
