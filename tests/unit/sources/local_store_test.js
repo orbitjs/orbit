@@ -1,3 +1,4 @@
+import Orbit from 'orbit/core';
 import LocalStore from 'orbit/sources/local_store';
 import RSVP from 'rsvp';
 
@@ -7,12 +8,14 @@ var store;
 
 module("Unit - LocalStore", {
   setup: function() {
+    Orbit.Promise = RSVP.Promise;
     store = new LocalStore();
   },
 
   teardown: function() {
     window.localStorage.removeItem(store.namespace);
     store = null;
+    Orbit.Promise = null;
   }
 });
 

@@ -279,12 +279,14 @@ var verifyActionExists = function(source, name) {
 
 module("Unit - Requestable", {
   setup: function() {
+    Orbit.Promise = RSVP.Promise;
     source = {};
     Requestable.extend(source);
   },
 
   teardown: function() {
     source = null;
+    Orbit.Promise = null;
   }
 });
 

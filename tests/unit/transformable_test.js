@@ -108,12 +108,14 @@ var verifyActionExists = function(source, name) {
 
 module("Unit - Transformable", {
   setup: function() {
+    Orbit.Promise = RSVP.Promise;
     source = {};
     Transformable.extend(source);
   },
 
   teardown: function() {
     source = null;
+    Orbit.Promise = null;
   }
 });
 
