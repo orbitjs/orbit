@@ -14,6 +14,7 @@ module("Unit - MemoryStore", {
 
   teardown: function() {
     store = null;
+    Orbit.Promise = null;
   }
 });
 
@@ -29,15 +30,34 @@ test("it can insert records and assign ids", function() {
   stop();
   store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     equal(store.length, 1, 'store should contain one record');
-    ok(dog.id, 'id should be defined');
+    ok(dog.__id, '__id should be defined');
     equal(dog.name, 'Hubert', 'name should match');
     equal(dog.gender, 'm', 'gender should match');
     return dog;
 
   }).then(function(dog) {
-    store.find(dog.id).then(function(foundDog) {
+    store.find(dog.__id).then(function(foundDog) {
       start();
-      equal(foundDog.id, dog.id, 'record can be looked up by id');
+      equal(foundDog.__id, dog.__id, 'record can be looked up by __id');
+    });
+  });
+});
+
+test("it throws an error when a record with a duplicate id is inserted", function() {
+  expect(4);
+
+  equal(store.length, 0, 'store should be empty');
+
+  stop();
+  store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
+    equal(store.length, 1, 'store should contain one record');
+    ok(dog.__id, '__id should be defined');
+    return dog;
+
+  }).then(function(dog) {
+    store.insertRecord({__id: dog.__id, name: 'Hubert', gender: 'm'}).then(null, function(e) {
+      start();
+      equal(e, Orbit.ALREADY_EXISTS, 'duplicate error');
     });
   });
 });
@@ -52,18 +72,18 @@ test("it can update records", function() {
   stop();
   store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     original = dog;
-    store.updateRecord({id: dog.id, name: 'Beatrice', gender: 'f'}).then(function(updatedDog) {
-      equal(updatedDog.id, dog.id, 'id remains the same');
+    store.updateRecord({__id: dog.__id, name: 'Beatrice', gender: 'f'}).then(function(updatedDog) {
+      equal(updatedDog.__id, dog.__id, '__id remains the same');
       equal(updatedDog.name, 'Beatrice', 'name has been updated');
       equal(updatedDog.gender, 'f', 'gender has been updated');
     });
     return dog;
 
   }).then(function(dog) {
-    store.find(dog.id).then(function(foundDog) {
+    store.find(dog.__id).then(function(foundDog) {
       start();
       strictEqual(foundDog, original, 'still the same object as the one originally inserted');
-      equal(foundDog.id, dog.id, 'record can be looked up by id');
+      equal(foundDog.__id, dog.__id, 'record can be looked up by __id');
       equal(foundDog.name, 'Beatrice', 'name has been updated');
       equal(foundDog.gender, 'f', 'gender has been updated');
     });
@@ -83,18 +103,18 @@ test("it can patch records", function() {
     return dog;
 
   }).then(function(dog) {
-    return store.patchRecord({id: dog.id, name: 'Beatrice'}).then(function(updatedDog) {
-      equal(updatedDog.id, dog.id, 'id remains the same');
+    return store.patchRecord({__id: dog.__id, name: 'Beatrice'}).then(function(updatedDog) {
+      equal(updatedDog.__id, dog.__id, '__id remains the same');
       equal(updatedDog.name, 'Beatrice', 'name has been updated');
       equal(updatedDog.gender, 'm', 'gender has not been updated');
       return updatedDog;
     });
 
   }).then(function(dog) {
-    store.find(dog.id).then(function(foundDog) {
+    store.find(dog.__id).then(function(foundDog) {
       start();
       strictEqual(foundDog, original, 'still the same object as the one originally inserted');
-      equal(foundDog.id, dog.id, 'record can be looked up by id');
+      equal(foundDog.__id, dog.__id, 'record can be looked up by __id');
       equal(foundDog.name, 'Beatrice', 'name has been updated');
       equal(foundDog.gender, 'm', 'gender has not been updated');
     });
@@ -110,7 +130,7 @@ test("it can destroy records", function() {
   store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     equal(store.length, 1, 'store should contain one record');
 
-    store.destroyRecord({id: dog.id}).then(function() {
+    store.destroyRecord({__id: dog.__id}).then(function() {
       start();
       equal(store.length, 0, 'store should be empty');
     });
@@ -128,7 +148,7 @@ test("it can find all records", function() {
     store.insertRecord({name: 'Beatrice', gender: 'f'}),
     store.insertRecord({name: 'Winky', gender: 'm'})
   ]).then(function() {
-    equal(store.length, 3, 'store should contain 3 store');
+    equal(store.length, 3, 'store should contain 3 records');
 
     store.find().then(function(allDogs) {
       start();
@@ -137,20 +157,43 @@ test("it can find all records", function() {
   });
 });
 
+test("it can find records by one or more filters", function() {
+  expect(5);
+
+  equal(store.length, 0, 'store should be empty');
+
+  stop();
+  RSVP.all([
+    store.insertRecord({name: 'Hubert', gender: 'm', species: 'dog'}),
+    store.insertRecord({name: 'Beatrice', gender: 'f', species: 'dog'}),
+    store.insertRecord({name: 'Winky', gender: 'm', species: 'dog'}),
+    store.insertRecord({name: 'Gorbypuff', gender: 'm', species: 'cat'})
+  ]).then(function() {
+    equal(store.length, 4, 'store should contain 4 records');
+
+    store.find({gender: 'm', species: 'dog'}).then(function(allDogs) {
+      start();
+      equal(allDogs.length, 2, 'find() should return all records');
+      equal(allDogs[0].name, 'Hubert', 'first male dog');
+      equal(allDogs[1].name, 'Winky', 'second male dog');
+    });
+  });
+});
+
 test("it can use a custom id field", function() {
   expect(2);
 
-  store.idField = '_memStoreId';
+  store.idField = '__memStoreId';
 
   stop();
   store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    ok(dog._memStoreId, 'custom id should be defined');
+    ok(dog.__memStoreId, 'custom id should be defined');
     return dog;
 
   }).then(function(dog) {
-    store.find(dog._memStoreId).then(function(foundDog) {
+    store.find(dog.__memStoreId).then(function(foundDog) {
       start();
-      equal(foundDog._memStoreId, dog._memStoreId, 'record can be looked up by id');
+      equal(foundDog.__memStoreId, dog.__memStoreId, 'record can be looked up by id');
     });
   });
 });

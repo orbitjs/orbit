@@ -31,4 +31,7 @@ Orbit.toArray = function(obj, startingIndex) {
   return Array.prototype.slice.call(obj, startingIndex || 0);
 };
 
+Orbit.NOT_FOUND = 'Record not found';
+Orbit.ALREADY_EXISTS = 'Record already exists';
+
 export default Orbit;

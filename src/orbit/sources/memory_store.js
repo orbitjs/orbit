@@ -2,12 +2,10 @@ import Orbit from 'orbit/core';
 import Transformable from 'orbit/transformable';
 import Requestable from 'orbit/requestable';
 
-var NOT_FOUND = 'Record not found';
-
 var MemoryStore = function(idField) {
   Orbit.assert('MemoryStore requires Orbit.Promise to be defined', Orbit.Promise);
 
-  this.idField = idField || 'id';
+  this.idField = idField || '__id';
   this._data = {};
   this.length = 0;
   this._newId = 0;
@@ -44,10 +42,14 @@ MemoryStore.prototype = {
     var _this = this;
 
     return new Orbit.Promise(function(resolve, reject) {
-      data[_this.idField] = _this._generateId();
-      _this._data[data[_this.idField]] = data;
-      _this.length++;
-      resolve(data);
+      if (data[_this.idField]) {
+        reject(Orbit.ALREADY_EXISTS);
+      } else {
+        data[_this.idField] = _this._generateId();
+        _this._data[data[_this.idField]] = data;
+        _this.length++;
+        resolve(data);
+      }
     });
   },
 
@@ -55,12 +57,12 @@ MemoryStore.prototype = {
     var _this = this;
 
     return new Orbit.Promise(function(resolve, reject) {
-      var record = _this._data[data[_this.idField]];
+      var record = _this._data[_this._localId(data)];
       if (record) {
         updateRecord(record, data);
         resolve(record);
       } else {
-        reject(NOT_FOUND);
+        reject(Orbit.NOT_FOUND);
       }
     });
   },
@@ -69,12 +71,12 @@ MemoryStore.prototype = {
     var _this = this;
 
     return new Orbit.Promise(function(resolve, reject) {
-      var record = _this._data[data[_this.idField]];
+      var record = _this._data[_this._localId(data)];
       if (record) {
         patchRecord(record, data);
         resolve(record);
       } else {
-        reject(NOT_FOUND);
+        reject(Orbit.NOT_FOUND);
       }
     });
   },
@@ -83,15 +85,47 @@ MemoryStore.prototype = {
     var _this = this;
 
     return new Orbit.Promise(function(resolve, reject) {
-      var record = _this._data[data[_this.idField]];
+      var localId = _this._localId(data),
+          record = _this._data[localId];
+
       if (record) {
-        delete _this._data[data[_this.idField]];
+        delete _this._data[localId];
         _this.length--;
         resolve();
       } else {
-        reject(NOT_FOUND);
+        reject(Orbit.NOT_FOUND);
       }
     });
+  },
+
+  _localId: function(data) {
+    if (typeof data === 'object') {
+      if (data[this.idField]) {
+        return data[this.idField];
+
+      } else {
+        var i,
+            prop,
+            match;
+
+        for (i in this._data) {
+          if (this._data.hasOwnProperty(i)) {
+            match = false;
+            for (prop in data) {
+              if (this._data[i][prop] === data[prop]) {
+                match = true;
+              } else {
+                match = false;
+                break;
+              }
+            }
+            if (match) return i;
+          }
+        }
+      }
+    } else {
+      return data;
+    }
   },
 
   _generateId: function() {
@@ -101,21 +135,48 @@ MemoryStore.prototype = {
 
   _find: function(id) {
     var _this = this;
+
     return new Orbit.Promise(function(resolve, reject) {
+      var all,
+          i,
+          prop,
+          match;
+
       if (id === undefined) {
-        var all = [];
-        for (var i in _this._data) {
+        all = [];
+        for (i in _this._data) {
           if (_this._data.hasOwnProperty(i)) {
             all.push(_this._data[i]);
           }
         }
         resolve(all);
+
+      } else if (typeof id === 'object') {
+        all = [];
+        for (i in _this._data) {
+          if (_this._data.hasOwnProperty(i)) {
+            match = false;
+            for (prop in id) {
+              if (_this._data[i][prop] === id[prop]) {
+                match = true;
+              } else {
+                match = false;
+                break;
+              }
+            }
+            if (match) {
+              all.push(_this._data[i]);
+            }
+          }
+        }
+        resolve(all);
+
       } else {
         var record = _this._data[id];
         if (record) {
           resolve(record);
         } else {
-          reject(NOT_FOUND);
+          reject(Orbit.NOT_FOUND);
         }
       }
     });
