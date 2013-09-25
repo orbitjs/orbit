@@ -14,89 +14,8 @@ var MemoryStore = function(idField) {
   Requestable.extend(this, ['find', 'create', 'update', 'patch', 'destroy']);
 };
 
-var updateRecord = function(record, data) {
-  for (var i in data) {
-    if (data.hasOwnProperty(i)) {
-      record[i] = data[i];
-    }
-  }
-  for (i in record) {
-    if (data.hasOwnProperty(i) && data[i] === undefined) {
-      delete record[i];
-    }
-  }
-};
-
-var patchRecord = function(record, data) {
-  for (var i in data) {
-    if (data.hasOwnProperty(i)) {
-      record[i] = data[i];
-    }
-  }
-};
-
 MemoryStore.prototype = {
   constructor: MemoryStore,
-
-  _insertRecord: function(data) {
-    var _this = this;
-
-    return new Orbit.Promise(function(resolve, reject) {
-      if (data[_this.idField]) {
-        reject(Orbit.ALREADY_EXISTS);
-      } else {
-        data[_this.idField] = _this._generateId();
-        _this._data[data[_this.idField]] = data;
-        _this.length++;
-        resolve(data);
-      }
-    });
-  },
-
-  _updateRecord: function(data) {
-    var _this = this;
-
-    return new Orbit.Promise(function(resolve, reject) {
-      var record = _this._data[_this._localId(data)];
-      if (record) {
-        updateRecord(record, data);
-        resolve(record);
-      } else {
-        reject(Orbit.NOT_FOUND);
-      }
-    });
-  },
-
-  _patchRecord: function(data) {
-    var _this = this;
-
-    return new Orbit.Promise(function(resolve, reject) {
-      var record = _this._data[_this._localId(data)];
-      if (record) {
-        patchRecord(record, data);
-        resolve(record);
-      } else {
-        reject(Orbit.NOT_FOUND);
-      }
-    });
-  },
-
-  _destroyRecord: function(data) {
-    var _this = this;
-
-    return new Orbit.Promise(function(resolve, reject) {
-      var localId = _this._localId(data),
-          record = _this._data[localId];
-
-      if (record) {
-        delete _this._data[localId];
-        _this.length--;
-        resolve();
-      } else {
-        reject(Orbit.NOT_FOUND);
-      }
-    });
-  },
 
   _localId: function(data) {
     if (typeof data === 'object') {
@@ -132,6 +51,87 @@ MemoryStore.prototype = {
     this._newId++;
     return this._newId;
   },
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Transformable interface implementation
+  /////////////////////////////////////////////////////////////////////////////
+
+  _insertRecord: function(data) {
+    var _this = this;
+
+    return new Orbit.Promise(function(resolve, reject) {
+      if (data[_this.idField]) {
+        reject(Orbit.ALREADY_EXISTS);
+      } else {
+        data[_this.idField] = _this._generateId();
+        _this._data[data[_this.idField]] = data;
+        _this.length++;
+        resolve(data);
+      }
+    });
+  },
+
+  _updateRecord: function(data) {
+    var _this = this;
+
+    return new Orbit.Promise(function(resolve, reject) {
+      var record = _this._data[_this._localId(data)];
+      if (record) {
+        for (var i in data) {
+          if (data.hasOwnProperty(i)) {
+            record[i] = data[i];
+          }
+        }
+        for (i in record) {
+          if (data.hasOwnProperty(i) && data[i] === undefined) {
+            delete record[i];
+          }
+        }
+        resolve(record);
+      } else {
+        reject(Orbit.NOT_FOUND);
+      }
+    });
+  },
+
+  _patchRecord: function(data) {
+    var _this = this;
+
+    return new Orbit.Promise(function(resolve, reject) {
+      var record = _this._data[_this._localId(data)];
+      if (record) {
+        for (var i in data) {
+          if (data.hasOwnProperty(i)) {
+            record[i] = data[i];
+          }
+        }
+        resolve(record);
+      } else {
+        reject(Orbit.NOT_FOUND);
+      }
+    });
+  },
+
+  _destroyRecord: function(data) {
+    var _this = this;
+
+    return new Orbit.Promise(function(resolve, reject) {
+      var localId = _this._localId(data),
+          record = _this._data[localId];
+
+      if (record) {
+        delete _this._data[localId];
+        _this.length--;
+        resolve();
+      } else {
+        reject(Orbit.NOT_FOUND);
+      }
+    });
+  },
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Requestable interface implementation
+  /////////////////////////////////////////////////////////////////////////////
 
   _find: function(id) {
     var _this = this;
