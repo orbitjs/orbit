@@ -9,12 +9,115 @@ var RestStore = function(idField) {
   this.idField = idField || 'id';
   this.headers = undefined;
 
+  this._cache = {};
+
   Transformable.extend(this);
   Requestable.extend(this, ['find', 'create', 'update', 'patch', 'destroy']);
 };
 
 RestStore.prototype = {
   constructor: RestStore,
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Transformable interface implementation
+  /////////////////////////////////////////////////////////////////////////////
+
+  _insertRecord: function(data) {
+    var _this = this;
+    var orbitId = data[Orbit.idField];
+
+    return this.ajax(this.buildURL(), 'POST', {data: this.serialize(data)}).then(
+      function(raw) {
+        var record = _this.deserialize(raw);
+
+        if (orbitId) {
+          record[Orbit.idField] = orbitId;
+          _this._cache[orbitId] = record;
+        }
+
+        return record;
+      }
+    );
+  },
+
+  _updateRecord: function(data) {
+    var _this = this;
+    var orbitId = data[Orbit.idField];
+
+    return this.ajax(this.buildURL(data[this.idField]), 'PUT', {data: data}).then(
+      function(raw) {
+        var record = _this.deserialize(raw);
+
+        if (orbitId) {
+          record[Orbit.idField] = orbitId;
+          _this._cache[orbitId] = record;
+        }
+
+        return record;
+      }
+    );
+  },
+
+  _patchRecord: function(data) {
+    var _this = this;
+    var orbitId = data[Orbit.idField];
+
+    return this.ajax(this.buildURL(data[this.idField]), 'PATCH', {data: data}).then(
+      function(raw) {
+        var record = _this.deserialize(raw);
+
+        if (orbitId) {
+          record[Orbit.idField] = orbitId;
+          _this._cache[orbitId] = record;
+        }
+
+        return record;
+      }
+    );
+  },
+
+  _destroyRecord: function(data) {
+    return this.ajax(this.buildURL(data[this.idField]), 'DELETE');
+  },
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Requestable interface implementation
+  /////////////////////////////////////////////////////////////////////////////
+
+  _find: function(id) {
+    return this.ajax(this.buildURL(id), 'GET');
+  },
+
+  _create: function(data) {
+    return this.insertRecord(data);
+  },
+
+  _update: function(data) {
+    return this.updateRecord(data);
+  },
+
+  _patch: function(data) {
+    return this.patchRecord(data);
+  },
+
+  _destroy: function(data) {
+    return this.destroyRecord(data);
+  },
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Public
+  /////////////////////////////////////////////////////////////////////////////
+
+  retrieve: function(id) {
+    if (typeof id === 'object') {
+      id = id[Orbit.idField];
+    }
+    return this._cache[id];
+  },
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Internals
+  /////////////////////////////////////////////////////////////////////////////
 
   ajax: function(url, type, hash) {
     var _this = this;
@@ -43,6 +146,7 @@ RestStore.prototype = {
       }
 
       hash.success = function(json) {
+        console.log('ajax success', json);
         resolve(json);
       };
 
@@ -50,6 +154,7 @@ RestStore.prototype = {
         if (jqXHR) {
           jqXHR.then = null;
         }
+        console.log('ajax error', jqXHR);
 
         reject(jqXHR);
       };
@@ -73,44 +178,14 @@ RestStore.prototype = {
     return url;
   },
 
-  _insertRecord: function(data) {
-    return this.ajax(this.buildURL(), 'POST', {data: data});
+  serialize: function(data) {
+    var serialized = Orbit.clone(data);
+    delete serialized[Orbit.idField];
+    return serialized;
   },
 
-  _updateRecord: function(data) {
-    return this.ajax(this.buildURL(data[this.idField]), 'PUT', {data: data});
-  },
-
-  _patchRecord: function(data) {
-    return this.ajax(this.buildURL(data[this.idField]), 'PATCH', {data: data});
-  },
-
-  _destroyRecord: function(data) {
-    return this.ajax(this.buildURL(data[this.idField]), 'DELETE');
-  },
-
-  _find: function(id) {
-    return this.ajax(this.buildURL(id), 'GET');
-  },
-
-  _create: function(data) {
-    return this.insertRecord(data);
-  },
-
-  _update: function(id, data) {
-    data[this.idField] = id;
-    return this.updateRecord(data);
-  },
-
-  _patch: function(id, data) {
-    data[this.idField] = id;
-    return this.patchRecord(data);
-  },
-
-  _destroy: function(id) {
-    var data = {};
-    data[this.idField] = id;
-    return this.destroyRecord(data);
+  deserialize: function(data) {
+    return data;
   }
 };
 
