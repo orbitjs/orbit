@@ -1,3 +1,5 @@
+import eq from 'orbit/lib/eq';
+
 /**
  * Prototype extensions
  */
@@ -38,6 +40,8 @@ var Orbit = {
     return str.charAt(0).toUpperCase() + str.slice(1);
   },
 
+  isEqual: eq,
+
   clone: function(obj) {
     if (obj === undefined || obj === null || typeof obj !== 'object') return obj;
 
@@ -72,6 +76,31 @@ var Orbit = {
       }
     }
     return dup;
+  },
+
+  delta: function(a, b) {
+    if (a === b) {
+      return undefined;
+
+    } else if (typeof b === 'object' &&
+               typeof a === 'object') {
+
+      var d;
+      for (var i in b) {
+        // We are deliberately just checking equality at the top level.
+        // Any nested objects are either equal or not, and will be returned
+        // in the delta in their entirety.
+
+        if (!eq(a[i], b[i])) {
+          if (d === undefined) d = {};
+          d[i] = Orbit.clone(b[i]);
+        }
+      }
+      return d;
+
+    } else {
+      return b;
+    }
   }
 };
 

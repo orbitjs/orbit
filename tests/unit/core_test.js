@@ -37,3 +37,31 @@ test("#clone creates a deep clone of an object's own properties", function() {
   notStrictEqual(obj, copy, 'clone is not strictly equal to original');
 });
 
+test("#delta creates a delta object when comparing two objects", function() {
+  var a, b;
+
+  a = {name: "Hubert", gender: "m", __id: "1380308346603-1"};
+  b = {id: 12345, name: "Hubert", gender: "m", __id: "1380308346603-1"};
+
+  deepEqual(Orbit.delta(a, b), {id: 12345});
+
+  a = {id: 12345, name: "Hubert", gender: "m", __id: "1380308346603-1"};
+  b = {name: "Hubert", gender: "m", __id: "1380308346603-1"};
+
+  strictEqual(Orbit.delta(a, b), undefined, 'no positive delta to get from a -> b');
+
+  a = {name: "Hubert", gender: "m", __id: "1380308346603-1"};
+  b = {id: {a: '1', b: '2'}, name: "Hubert", gender: "m", __id: "1380308346603-1"};
+
+  deepEqual(Orbit.delta(a, b), {id: {a: '1', b: '2'}});
+
+  a = {id: {a: '1', b: '2'}, name: "Hubert", gender: "m", __id: "1380308346603-1"};
+  b = {id: {a: '1', b: '2'}, name: "Hubert", gender: "m", __id: "1380308346603-1"};
+
+  deepEqual(Orbit.delta(a, b), undefined);
+
+  a = {id: {a: '1', b: '2'}, name: "Hubert", gender: "m", __id: "1380308346603-1"};
+  b = {id: {a: '1', b: '3'}, name: "Hubert", gender: "m", __id: "1380308346603-1"};
+
+  deepEqual(Orbit.delta(a, b), {id: {a: '1', b: '3'}});
+});
