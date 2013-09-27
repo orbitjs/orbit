@@ -22,7 +22,7 @@ test("it exists", function() {
   ok(store);
 });
 
-test("it can insert records and assign ids", function() {
+test("#insertRecord - can insert records and assign ids", function() {
   expect(6);
 
   equal(store.length, 0, 'store should be empty');
@@ -43,7 +43,7 @@ test("it can insert records and assign ids", function() {
   });
 });
 
-test("it throws an error when a record with a duplicate id is inserted", function() {
+test("#insertRecord - throws an error when a record with a duplicate id is inserted", function() {
   expect(4);
 
   equal(store.length, 0, 'store should be empty');
@@ -62,7 +62,7 @@ test("it throws an error when a record with a duplicate id is inserted", functio
   });
 });
 
-test("it can update records", function() {
+test("#updateRecord - can update records", function() {
   expect(8);
 
   equal(store.length, 0, 'store should be empty');
@@ -90,7 +90,7 @@ test("it can update records", function() {
   });
 });
 
-test("it can patch records", function() {
+test("#patchRecord - can patch records", function() {
   expect(8);
 
   equal(store.length, 0, 'store should be empty');
@@ -121,7 +121,7 @@ test("it can patch records", function() {
   });
 });
 
-test("it can destroy records", function() {
+test("#destroyRecord - can destroy records", function() {
   expect(3);
 
   equal(store.length, 0, 'store should be empty');
@@ -137,7 +137,7 @@ test("it can destroy records", function() {
   });
 });
 
-test("it can find all records", function() {
+test("#find - can find all records", function() {
   expect(3);
 
   equal(store.length, 0, 'store should be empty');
@@ -157,7 +157,7 @@ test("it can find all records", function() {
   });
 });
 
-test("it can find records by one or more filters", function() {
+test("#find - can find records by one or more filters", function() {
   expect(5);
 
   equal(store.length, 0, 'store should be empty');
@@ -180,20 +180,98 @@ test("it can find records by one or more filters", function() {
   });
 });
 
-test("it can use a custom id field", function() {
-  expect(2);
+test("#create - creates a record", function() {
+  expect(6);
 
-  store.idField = '__memStoreId';
+  equal(store.length, 0, 'store should be empty');
 
   stop();
-  store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    ok(dog.__memStoreId, 'custom id should be defined');
+  store.create({name: 'Hubert', gender: 'm'}).then(function(dog) {
+    equal(store.length, 1, 'store should contain one record');
+    ok(dog.__id, '__id should be defined');
+    equal(dog.name, 'Hubert', 'name should match');
+    equal(dog.gender, 'm', 'gender should match');
     return dog;
 
   }).then(function(dog) {
-    store.find(dog.__memStoreId).then(function(foundDog) {
+    store.find(dog.__id).then(function(foundDog) {
       start();
-      equal(foundDog.__memStoreId, dog.__memStoreId, 'record can be looked up by id');
+      equal(foundDog.__id, dog.__id, 'record can be looked up by __id');
+    });
+  });
+});
+
+test("#update - can update records", function() {
+  expect(8);
+
+  equal(store.length, 0, 'store should be empty');
+
+  var original;
+
+  stop();
+  store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
+    original = dog;
+    store.update({__id: dog.__id, name: 'Beatrice', gender: 'f'}).then(function(updatedDog) {
+      equal(updatedDog.__id, dog.__id, '__id remains the same');
+      equal(updatedDog.name, 'Beatrice', 'name has been updated');
+      equal(updatedDog.gender, 'f', 'gender has been updated');
+    });
+    return dog;
+
+  }).then(function(dog) {
+    store.find(dog.__id).then(function(foundDog) {
+      start();
+      strictEqual(foundDog, original, 'still the same object as the one originally inserted');
+      equal(foundDog.__id, dog.__id, 'record can be looked up by __id');
+      equal(foundDog.name, 'Beatrice', 'name has been updated');
+      equal(foundDog.gender, 'f', 'gender has been updated');
+    });
+  });
+});
+
+test("#patch - can patch records", function() {
+  expect(8);
+
+  equal(store.length, 0, 'store should be empty');
+
+  var original;
+
+  stop();
+  store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
+    original = dog;
+    return dog;
+
+  }).then(function(dog) {
+    return store.patch({__id: dog.__id, name: 'Beatrice'}).then(function(updatedDog) {
+      equal(updatedDog.__id, dog.__id, '__id remains the same');
+      equal(updatedDog.name, 'Beatrice', 'name has been updated');
+      equal(updatedDog.gender, 'm', 'gender has not been updated');
+      return updatedDog;
+    });
+
+  }).then(function(dog) {
+    store.find(dog.__id).then(function(foundDog) {
+      start();
+      strictEqual(foundDog, original, 'still the same object as the one originally inserted');
+      equal(foundDog.__id, dog.__id, 'record can be looked up by __id');
+      equal(foundDog.name, 'Beatrice', 'name has been updated');
+      equal(foundDog.gender, 'm', 'gender has not been updated');
+    });
+  });
+});
+
+test("#destroy - can destroy records", function() {
+  expect(3);
+
+  equal(store.length, 0, 'store should be empty');
+
+  stop();
+  store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
+    equal(store.length, 1, 'store should contain one record');
+
+    store.destroy({__id: dog.__id}).then(function() {
+      start();
+      equal(store.length, 0, 'store should be empty');
     });
   });
 });
