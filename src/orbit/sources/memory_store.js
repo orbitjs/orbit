@@ -31,8 +31,7 @@ MemoryStore.prototype = {
       } else {
         data = Orbit.clone(data);
         if (!id) {
-          id = _this._generateId();
-          data[_this.idField] = id;
+          id = data[_this.idField] = _this._generateId();
         }
         _this._data[id] = data;
         _this.length++;
@@ -45,7 +44,7 @@ MemoryStore.prototype = {
     var _this = this;
 
     return new Orbit.Promise(function(resolve, reject) {
-      var record = _this._lookupRecord(data);
+      var record = _this.retrieve(data);
       if (record) {
         for (var i in data) {
           if (data.hasOwnProperty(i)) {
@@ -68,7 +67,7 @@ MemoryStore.prototype = {
     var _this = this;
 
     return new Orbit.Promise(function(resolve, reject) {
-      var record = _this._lookupRecord(data);
+      var record = _this.retrieve(data);
       if (record) {
         for (var i in data) {
           if (data.hasOwnProperty(i)) {
@@ -86,7 +85,7 @@ MemoryStore.prototype = {
     var _this = this;
 
     return new Orbit.Promise(function(resolve, reject) {
-      var record = _this._lookupRecord(data);
+      var record = _this.retrieve(data);
       if (record) {
         delete _this._data[record[_this.idField]];
         _this.length--;
@@ -135,15 +134,19 @@ MemoryStore.prototype = {
   },
 
   /////////////////////////////////////////////////////////////////////////////
-  // Internals
+  // Public
   /////////////////////////////////////////////////////////////////////////////
 
-  _lookupRecord: function(id) {
+  retrieve: function(id) {
     if (typeof id === 'object') {
       id = id[this.idField];
     }
     return this._data[id];
   },
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Internals
+  /////////////////////////////////////////////////////////////////////////////
 
   _filter: function(query) {
     var all = [],
