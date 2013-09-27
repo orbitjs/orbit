@@ -38,10 +38,6 @@ var Orbit = {
     return str.charAt(0).toUpperCase() + str.slice(1);
   },
 
-  toArray: function(obj, startingIndex) {
-    return Array.prototype.slice.call(obj, startingIndex || 0);
-  },
-
   clone: function(obj) {
     if (obj === undefined || obj === null || typeof obj !== 'object') return obj;
 

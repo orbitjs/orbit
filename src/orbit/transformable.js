@@ -20,7 +20,7 @@ var Transformable = {
       }, this);
     } else {
       object[action] = function() {
-        var args = Orbit.toArray(arguments),
+        var args = Array.prototype.slice.call(arguments, 0),
             Action = Orbit.capitalize(action);
 
         Orbit.assert('_' + action + ' must be defined', object['_' + action]);

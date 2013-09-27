@@ -44,13 +44,13 @@ var testTransformableAction = function(actionName) {
 
     source['_' + actionName] = function() {
       equal(++order, 1, 'action performed after will' + ActionName);
-      deepEqual(Orbit.toArray(arguments), ['abc', 'def'], '_handler args match original call args');
+      deepEqual(Array.prototype.slice.call(arguments, 0), ['abc', 'def'], '_handler args match original call args');
       return successfulOperation();
     };
 
     source.on('did' + ActionName, function() {
       equal(++order, 2, 'did' + ActionName + ' triggered after action performed successfully');
-      deepEqual(Orbit.toArray(arguments), ['abc', 'def', ':)'], 'event handler args match original call args + return value');
+      deepEqual(Array.prototype.slice.call(arguments, 0), ['abc', 'def', ':)'], 'event handler args match original call args + return value');
     });
 
     stop();
@@ -68,7 +68,7 @@ var testTransformableAction = function(actionName) {
 
     source['_' + actionName] = function() {
       equal(++order, 1, 'action performed after will' + ActionName);
-      deepEqual(Orbit.toArray(arguments), ['abc', 'def'], '_handler args match original call args');
+      deepEqual(Array.prototype.slice.call(arguments, 0), ['abc', 'def'], '_handler args match original call args');
       return failedOperation();
     };
 
@@ -78,7 +78,7 @@ var testTransformableAction = function(actionName) {
 
     source.on('didNot' + ActionName, function() {
       equal(++order, 2, 'didNot' + ActionName + ' triggered after an unsuccessful action');
-      deepEqual(Orbit.toArray(arguments), ['abc', 'def', ':('], 'event handler args match original call args + return value');
+      deepEqual(Array.prototype.slice.call(arguments, 0), ['abc', 'def', ':('], 'event handler args match original call args + return value');
     });
 
     stop();

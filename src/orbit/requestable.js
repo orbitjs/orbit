@@ -22,7 +22,7 @@ var Requestable = {
       object[action] = function() {
         Orbit.assert('_' + action + ' must be defined', object['_' + action]);
 
-        var args = Orbit.toArray(arguments),
+        var args = Array.prototype.slice.call(arguments, 0),
             Action = Orbit.capitalize(action);
 
         return object.resolve.apply(object, ['assist' + Action].concat(args)).then(
