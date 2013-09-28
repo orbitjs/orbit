@@ -35,7 +35,7 @@ module("Integration - RestStore / MemoryStore Sync", {
   }
 });
 
-test("records inserted into the memory store should be automatically posted to the rest server", function() {
+test("records inserted into memory should be posted with rest", function() {
   expect(6);
 
   server.respondWith('POST', '/dogs', function(xhr) {
@@ -56,7 +56,28 @@ test("records inserted into the memory store should be automatically posted to t
   });
 });
 
-test("records updated in the memory store should be automatically updated on the rest server (via PATCH)", function() {
+test("records posted with rest should be inserted into memory", function() {
+  expect(6);
+
+  server.respondWith('POST', '/dogs', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
+    xhr.respond(201,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+  });
+
+  stop();
+  restStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
+    start();
+    equal(memoryStore.length, 1, 'store should contain one record');
+    ok(dog.__id, 'memory store id should be defined');
+    equal(dog.id, 12345, 'server id should be defined');
+    equal(dog.name, 'Hubert', 'name should match');
+    equal(dog.gender, 'm', 'gender should match');
+  });
+});
+
+test("records updated in memory should be updated with rest (via PATCH)", function() {
   expect(7);
 
   server.respondWith('POST', '/dogs', function(xhr) {
@@ -87,7 +108,38 @@ test("records updated in the memory store should be automatically updated on the
   });
 });
 
-test("records patched in the memory store should be automatically patched on the rest server", function() {
+test("records updated with rest should be updated in memory", function() {
+  expect(7);
+
+  server.respondWith('POST', '/dogs', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
+    xhr.respond(201,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+  });
+  server.respondWith('PUT', '/dogs/12345', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {id: 12345, name: 'Beatrice', gender: 'f'}, 'PUT request');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({id: 12345, name: 'Beatrice', gender: 'f'}));
+  });
+
+  stop();
+  restStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
+    restStore.updateRecord({__id: dog.__id, id: dog.id, name: 'Beatrice', gender: 'f'}).then(
+      function(dog) {
+        start();
+        equal(memoryStore.length, 1, 'store should contain one record');
+        ok(dog.__id, 'memory store id should be defined');
+        equal(dog.id, 12345, 'server id should be defined');
+        equal(dog.name, 'Beatrice', 'name should match');
+        equal(dog.gender, 'f', 'gender should match');
+      }
+    );
+  });
+});
+
+test("records patched in memory should be patched with rest", function() {
   expect(7);
 
   server.respondWith('POST', '/dogs', function(xhr) {
@@ -118,7 +170,65 @@ test("records patched in the memory store should be automatically patched on the
   });
 });
 
-test("records deleted in the memory store should be automatically deleted on the rest server", function() {
+test("records patched with rest should be patched in memory", function() {
+  expect(7);
+
+  server.respondWith('POST', '/dogs', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
+    xhr.respond(201,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+  });
+  server.respondWith('PATCH', '/dogs/12345', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {gender: 'f'}, 'PATCH request');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({id: 12345, name: 'Hubert', gender: 'f'}));
+  });
+
+  stop();
+  memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
+    memoryStore.patchRecord({__id: dog.__id, gender: 'f'}).then(
+      function(dog) {
+        start();
+        equal(memoryStore.length, 1, 'store should contain one record');
+        ok(dog.__id, 'memory store id should be defined');
+        equal(dog.id, 12345, 'server id should be defined');
+        equal(dog.name, 'Hubert', 'name should match');
+        equal(dog.gender, 'f', 'gender should match');
+      }
+    );
+  });
+});
+
+test("records deleted in memory should be deleted with rest", function() {
+  expect(3);
+
+  server.respondWith('POST', '/dogs', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
+    xhr.respond(201,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+  });
+  server.respondWith('DELETE', '/dogs/12345', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({}));
+  });
+
+  stop();
+  memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
+    memoryStore.destroyRecord({__id: dog.__id}).then(
+      function() {
+        start();
+        equal(memoryStore.length, 0, 'memory store should be empty');
+      }
+    );
+  });
+});
+
+test("records deleted with rest should be deleted in memory", function() {
   expect(3);
 
   server.respondWith('POST', '/dogs', function(xhr) {
