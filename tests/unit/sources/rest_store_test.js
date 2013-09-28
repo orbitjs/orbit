@@ -32,63 +32,70 @@ test("it exists", function() {
 });
 
 test("it can insert records", function() {
-  expect(1);
-
-  var response = {id: 12345, name: 'Hubert', gender: 'm'};
+  expect(5);
 
   server.respondWith('POST', '/dogs', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify(response));
+                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
   });
 
   stop();
   store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     start();
-    deepEqual(dog, response, 'data matches response');
+    ok(dog.__id, 'orbit id should be defined');
+    equal(dog.id, 12345, 'server id should be defined');
+    equal(dog.name, 'Hubert', 'name should match');
+    equal(dog.gender, 'm', 'gender should match');
   });
 });
 
 test("it can update records", function() {
-  expect(1);
-
-  var response = {id: 12345, name: 'Hubert', gender: 'm'};
+  expect(5);
 
   server.respondWith('PUT', '/dogs/12345', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {id: 12345, name: 'Hubert', gender: 'm'}, 'PUT request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify(response));
+                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
   });
 
   stop();
   store.updateRecord({id: 12345, name: 'Hubert', gender: 'm'}).then(function(dog) {
     start();
-    deepEqual(dog, response, 'data matches response');
+    ok(dog.__id, 'orbit id should be defined');
+    equal(dog.id, 12345, 'server id should be defined');
+    equal(dog.name, 'Hubert', 'name should match');
+    equal(dog.gender, 'm', 'gender should match');
   });
 });
 
 test("it can patch records", function() {
-  expect(1);
-
-  var response = {id: 12345, name: 'Hubert', gender: 'm'};
+  expect(5);
 
   server.respondWith('PATCH', '/dogs/12345', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {gender: 'm'}, 'PATCH request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify(response));
+                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
   });
 
   stop();
   store.patchRecord({id: 12345, gender: 'm'}).then(function(dog) {
     start();
-    deepEqual(dog, response, 'data matches response');
+    ok(dog.__id, 'orbit id should be defined');
+    equal(dog.id, 12345, 'server id should be defined');
+    equal(dog.name, 'Hubert', 'name should match');
+    equal(dog.gender, 'm', 'gender should match');
   });
 });
 
 test("it can delete records", function() {
-  expect(1);
+  expect(2);
 
   server.respondWith('DELETE', '/dogs/12345', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
                 JSON.stringify({}));
