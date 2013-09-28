@@ -20,7 +20,9 @@ var LocalStore = function(namespace) {
    'find', 'create', 'update', 'patch', 'destroy',
    'retrieve'].forEach(function(method) {
 
-    _this[method] = _this._store[method];
+    _this[method] = function() {
+      return _this._store[method].apply(_this._store, arguments);
+    };
   });
 
   _this._store.on('didInsertRecord didUpdateRecord didPatchRecord didDestroyRecord', function() {
