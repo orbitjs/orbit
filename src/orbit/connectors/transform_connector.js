@@ -53,7 +53,17 @@ var TransformConnector = function(source, target) {
 
   _this.source.on('didDestroyRecord', function(data, record) {
     console.log('destroyed', _this.source, record);
-    return _this.target.destroyRecord(record).then(null, failHandler);
+
+    // attempt to retrieve target record to determine whether it needs to be deleted
+    var targetRecordExists = true;
+    if (_this.target.retrieve) {
+      targetRecordExists = !!_this.target.retrieve(record);
+    }
+
+    // delete the record if we know it exists (or we're not sure)
+    if (targetRecordExists) {
+      return _this.target.destroyRecord(record).then(null, failHandler);
+    }
   }, failHandler);
 };
 
