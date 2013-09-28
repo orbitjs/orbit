@@ -28,7 +28,7 @@ module.exports = function(config) {
     ],
 
     preprocessors: {
-      'assets/*.js': 'coverage'
+      'assets/orbit.js': 'coverage'
     },
 
     // list of files to exclude
