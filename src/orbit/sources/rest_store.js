@@ -59,10 +59,13 @@ RestStore.prototype = {
   },
 
   _patchRecord: function(data) {
-    var _this = this;
-    var orbitId = data[Orbit.idField];
+    var _this = this,
+        id = data[this.idField],
+        orbitId = data[Orbit.idField];
 
-    return this.ajax(this.buildURL(data[this.idField]), 'PATCH', {data: data}).then(
+    delete data[this.idField];
+
+    return this.ajax(this.buildURL(id), 'PATCH', {data: data}).then(
       function(raw) {
         var record = _this.deserialize(raw);
 
