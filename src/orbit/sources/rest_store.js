@@ -23,37 +23,27 @@ RestStore.prototype = {
   /////////////////////////////////////////////////////////////////////////////
 
   _insertRecord: function(data) {
-    var _this = this;
-    var orbitId = data[Orbit.idField];
+    var _this = this,
+        orbitId = data[Orbit.idField];
 
     return this.ajax(this.buildURL(), 'POST', {data: this.serialize(data)}).then(
       function(raw) {
         var record = _this.deserialize(raw);
-
-        if (orbitId === undefined) {
-          orbitId = Orbit.generateId();
-        }
-        record[Orbit.idField] = orbitId;
-        _this._cache[orbitId] = record;
-
+        _this._addToCache(record, orbitId);
         return record;
       }
     );
   },
 
   _updateRecord: function(data) {
-    var _this = this;
-    var orbitId = data[Orbit.idField];
+    var _this = this,
+        id = data[this.idField],
+        orbitId = data[Orbit.idField];
 
-    return this.ajax(this.buildURL(data[this.idField]), 'PUT', {data: this.serialize(data)}).then(
+    return this.ajax(this.buildURL(id), 'PUT', {data: this.serialize(data)}).then(
       function(raw) {
         var record = _this.deserialize(raw);
-
-        if (orbitId) {
-          record[Orbit.idField] = orbitId;
-          _this._cache[orbitId] = record;
-        }
-
+        _this._addToCache(record, orbitId);
         return record;
       }
     );
@@ -64,24 +54,30 @@ RestStore.prototype = {
         id = data[this.idField],
         orbitId = data[Orbit.idField];
 
+    // no need to transmit `id` along with a patched record
     delete data[this.idField];
 
     return this.ajax(this.buildURL(id), 'PATCH', {data: this.serialize(data)}).then(
       function(raw) {
         var record = _this.deserialize(raw);
-
-        if (orbitId) {
-          record[Orbit.idField] = orbitId;
-          _this._cache[orbitId] = record;
-        }
-
+        _this._addToCache(record, orbitId);
         return record;
       }
     );
   },
 
   _destroyRecord: function(data) {
-    return this.ajax(this.buildURL(data[this.idField]), 'DELETE');
+    var _this = this,
+        id = data[this.idField],
+        orbitId = data[Orbit.idField];
+
+    return this.ajax(this.buildURL(id), 'DELETE').then(
+      function() {
+        if (orbitId) {
+          delete _this._cache[orbitId];
+        }
+      }
+    );
   },
 
   /////////////////////////////////////////////////////////////////////////////
@@ -122,6 +118,14 @@ RestStore.prototype = {
   /////////////////////////////////////////////////////////////////////////////
   // Internals
   /////////////////////////////////////////////////////////////////////////////
+
+  _addToCache: function(record, orbitId) {
+    if (orbitId === undefined) {
+      orbitId = Orbit.generateId();
+    }
+    record[Orbit.idField] = orbitId;
+    this._cache[orbitId] = record;
+  },
 
   ajax: function(url, type, hash) {
     var _this = this;
