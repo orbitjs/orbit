@@ -20,7 +20,6 @@ module("Integration - RestStore / MemoryStore Sync", {
     server.autoRespond = true;
 
     memoryStore = new MemoryStore();
-    memoryStore.idField = '__id';
     restStore = new RestStore();
     restStore.namespace = 'dogs';
 
