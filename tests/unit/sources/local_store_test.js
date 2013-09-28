@@ -4,6 +4,14 @@ import RSVP from 'rsvp';
 
 var store;
 
+var verifyLocalStorageContainsDog = function(dog) {
+  var expected = {};
+  expected[dog.__id] = dog;
+  deepEqual(JSON.parse(window.localStorage.getItem(store.namespace)),
+            expected,
+            'data in local storage matches expectations');
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 
 module("Unit - LocalStore", {
@@ -23,7 +31,7 @@ test("it exists", function() {
   ok(store);
 });
 
-test("it can insert records and assign ids", function() {
+test("#insertRecord - can insert records and assign ids", function() {
   expect(7);
 
   equal(store.length, 0, 'store should be empty');
@@ -31,15 +39,13 @@ test("it can insert records and assign ids", function() {
   stop();
   store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     equal(store.length, 1, 'store should contain one record');
-    ok(dog.id, 'id should be defined');
+    ok(dog.__id, 'id should be defined');
     equal(dog.name, 'Hubert', 'name should match');
     equal(dog.gender, 'm', 'gender should match');
     return dog;
 
   }).then(function(dog) {
-    deepEqual(JSON.parse(window.localStorage.getItem(store.namespace)),
-              {1: dog},
-              'data in local storage matches expectations');
+    verifyLocalStorageContainsDog(dog);
     store.find(dog.id).then(function(foundDog) {
       start();
       equal(foundDog.id, dog.id, 'record can be looked up by id');
@@ -47,7 +53,7 @@ test("it can insert records and assign ids", function() {
   });
 });
 
-test("it can update records", function() {
+test("#updateRecord - can update records", function() {
   expect(9);
 
   equal(store.length, 0, 'store should be empty');
@@ -57,28 +63,27 @@ test("it can update records", function() {
   stop();
   store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     original = dog;
-    store.updateRecord({id: dog.id, name: 'Beatrice', gender: 'f'}).then(function(updatedDog) {
-      equal(updatedDog.id, dog.id, 'id remains the same');
+    return store.updateRecord({__id: dog.__id, name: 'Beatrice', gender: 'f'}).then(function(updatedDog) {
+      equal(updatedDog.__id, dog.__id, '__id remains the same');
       equal(updatedDog.name, 'Beatrice', 'name has been updated');
       equal(updatedDog.gender, 'f', 'gender has been updated');
+      return dog;
     });
-    return dog;
 
   }).then(function(dog) {
-    store.find(dog.id).then(function(foundDog) {
+    verifyLocalStorageContainsDog(dog);
+    store.find(dog.__id).then(function(foundDog) {
       start();
-      deepEqual(JSON.parse(window.localStorage.getItem(store.namespace)),
-                {1: dog},
-                'data in local storage matches expectations');
       strictEqual(foundDog, original, 'still the same object as the one originally inserted');
-      equal(foundDog.id, dog.id, 'record can be looked up by id');
+      equal(foundDog.__id, dog.__id, 'record can be looked up by __id');
       equal(foundDog.name, 'Beatrice', 'name has been updated');
       equal(foundDog.gender, 'f', 'gender has been updated');
+      return dog;
     });
   });
 });
 
-test("it can patch records", function() {
+test("#patchRecord - can patch records", function() {
   expect(9);
 
   equal(store.length, 0, 'store should be empty');
@@ -91,28 +96,27 @@ test("it can patch records", function() {
     return dog;
 
   }).then(function(dog) {
-    return store.patchRecord({id: dog.id, name: 'Beatrice'}).then(function(updatedDog) {
-      equal(updatedDog.id, dog.id, 'id remains the same');
+    return store.patchRecord({__id: dog.__id, name: 'Beatrice'}).then(function(updatedDog) {
+      equal(updatedDog.__id, dog.__id, '__id remains the same');
       equal(updatedDog.name, 'Beatrice', 'name has been updated');
       equal(updatedDog.gender, 'm', 'gender has not been updated');
-      return updatedDog;
+      return dog;
     });
 
   }).then(function(dog) {
-    store.find(dog.id).then(function(foundDog) {
+    verifyLocalStorageContainsDog(dog);
+    store.find(dog.__id).then(function(foundDog) {
       start();
-      deepEqual(JSON.parse(window.localStorage.getItem(store.namespace)),
-                {1: dog},
-                'data in local storage matches expectations');
       strictEqual(foundDog, original, 'still the same object as the one originally inserted');
-      equal(foundDog.id, dog.id, 'record can be looked up by id');
+      equal(foundDog.__id, dog.__id, 'record can be looked up by __id');
       equal(foundDog.name, 'Beatrice', 'name has been updated');
       equal(foundDog.gender, 'm', 'gender has not been updated');
+      return dog;
     });
   });
 });
 
-test("it can destroy records", function() {
+test("#destroyRecord - can destroy records", function() {
   expect(4);
 
   equal(store.length, 0, 'store should be empty');
@@ -121,7 +125,7 @@ test("it can destroy records", function() {
   store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     equal(store.length, 1, 'store should contain one record');
 
-    store.destroyRecord({id: dog.id}).then(function() {
+    store.destroyRecord({__id: dog.__id}).then(function() {
       start();
       deepEqual(JSON.parse(window.localStorage.getItem(store.namespace)),
                 {},
@@ -131,7 +135,7 @@ test("it can destroy records", function() {
   });
 });
 
-test("it can find all records", function() {
+test("#find - can find all records", function() {
   expect(3);
 
   equal(store.length, 0, 'store should be empty');
@@ -151,24 +155,6 @@ test("it can find all records", function() {
   });
 });
 
-test("it can use a custom id field", function() {
-  expect(2);
-
-  store.idField = '_localStoreId';
-
-  stop();
-  store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    ok(dog._localStoreId, 'custom id should be defined');
-    return dog;
-
-  }).then(function(dog) {
-    store.find(dog._localStoreId).then(function(foundDog) {
-      start();
-      equal(foundDog._localStoreId, dog._localStoreId, 'record can be looked up by id');
-    });
-  });
-});
-
 test("it can use a custom local storage namespace for storing data", function() {
   expect(1);
 
@@ -177,7 +163,7 @@ test("it can use a custom local storage namespace for storing data", function() 
   stop();
   store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     start();
-    deepEqual(JSON.parse(window.localStorage.getItem('dogs')), {1: dog});
+    verifyLocalStorageContainsDog(dog);
   });
 });
 
@@ -200,9 +186,7 @@ test("autosave can be disabled to delay writing to local storage", function() {
 
     store.enableAutosave();
 
-    deepEqual(JSON.parse(window.localStorage.getItem(store.namespace)),
-              {1: dog},
-              'local storage should contain data');
+    verifyLocalStorageContainsDog(dog);
   });
 });
 
