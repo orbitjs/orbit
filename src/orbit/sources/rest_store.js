@@ -30,10 +30,11 @@ RestStore.prototype = {
       function(raw) {
         var record = _this.deserialize(raw);
 
-        if (orbitId) {
-          record[Orbit.idField] = orbitId;
-          _this._cache[orbitId] = record;
+        if (orbitId === undefined) {
+          orbitId = Orbit.generateId();
         }
+        record[Orbit.idField] = orbitId;
+        _this._cache[orbitId] = record;
 
         return record;
       }
@@ -44,7 +45,7 @@ RestStore.prototype = {
     var _this = this;
     var orbitId = data[Orbit.idField];
 
-    return this.ajax(this.buildURL(data[this.idField]), 'PUT', {data: data}).then(
+    return this.ajax(this.buildURL(data[this.idField]), 'PUT', {data: this.serialize(data)}).then(
       function(raw) {
         var record = _this.deserialize(raw);
 
@@ -65,7 +66,7 @@ RestStore.prototype = {
 
     delete data[this.idField];
 
-    return this.ajax(this.buildURL(id), 'PATCH', {data: data}).then(
+    return this.ajax(this.buildURL(id), 'PATCH', {data: this.serialize(data)}).then(
       function(raw) {
         var record = _this.deserialize(raw);
 
