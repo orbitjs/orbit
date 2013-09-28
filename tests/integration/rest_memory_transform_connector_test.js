@@ -49,7 +49,7 @@ test("records inserted into memory should be posted with rest", function() {
   memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     start();
     equal(memoryStore.length, 1, 'store should contain one record');
-    ok(dog.__id, 'memory store id should be defined');
+    ok(dog.__id, 'orbit id should be defined');
     equal(dog.id, 12345, 'server id should be defined');
     equal(dog.name, 'Hubert', 'name should match');
     equal(dog.gender, 'm', 'gender should match');
@@ -70,7 +70,7 @@ test("records posted with rest should be inserted into memory", function() {
   restStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     start();
     equal(memoryStore.length, 1, 'store should contain one record');
-    ok(dog.__id, 'memory store id should be defined');
+    ok(dog.__id, 'orbit id should be defined');
     equal(dog.id, 12345, 'server id should be defined');
     equal(dog.name, 'Hubert', 'name should match');
     equal(dog.gender, 'm', 'gender should match');
@@ -99,7 +99,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
       function(dog) {
         start();
         equal(memoryStore.length, 1, 'store should contain one record');
-        ok(dog.__id, 'memory store id should be defined');
+        ok(dog.__id, 'orbit id should be defined');
         equal(dog.id, 12345, 'server id should be defined');
         equal(dog.name, 'Beatrice', 'name should match');
         equal(dog.gender, 'f', 'gender should match');
@@ -130,7 +130,7 @@ test("records updated with rest should be updated in memory", function() {
       function(dog) {
         start();
         equal(memoryStore.length, 1, 'store should contain one record');
-        ok(dog.__id, 'memory store id should be defined');
+        ok(dog.__id, 'orbit id should be defined');
         equal(dog.id, 12345, 'server id should be defined');
         equal(dog.name, 'Beatrice', 'name should match');
         equal(dog.gender, 'f', 'gender should match');
@@ -161,7 +161,7 @@ test("records patched in memory should be patched with rest", function() {
       function(dog) {
         start();
         equal(memoryStore.length, 1, 'store should contain one record');
-        ok(dog.__id, 'memory store id should be defined');
+        ok(dog.__id, 'orbit id should be defined');
         equal(dog.id, 12345, 'server id should be defined');
         equal(dog.name, 'Hubert', 'name should match');
         equal(dog.gender, 'f', 'gender should match');
@@ -192,7 +192,7 @@ test("records patched with rest should be patched in memory", function() {
       function(dog) {
         start();
         equal(memoryStore.length, 1, 'store should contain one record');
-        ok(dog.__id, 'memory store id should be defined');
+        ok(dog.__id, 'orbit id should be defined');
         equal(dog.id, 12345, 'server id should be defined');
         equal(dog.name, 'Hubert', 'name should match');
         equal(dog.gender, 'f', 'gender should match');
