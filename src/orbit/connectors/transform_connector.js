@@ -4,29 +4,6 @@ var failHandler = function(e) {
   console.log('FAIL', e);
 };
 
-var patchIfNecessary = function(record, otherwise) {
-  var targetRecord;
-
-  if (this.target.retrieve) {
-    targetRecord = this.target.retrieve(record);
-  }
-
-  if (targetRecord) {
-    var delta = Orbit.delta(targetRecord, record);
-    if (delta) {
-      var orbitIdField = Orbit.idField,
-          targetIdField = this.target.idField;
-
-      delta[targetIdField] = record[targetIdField];
-      if (targetIdField !== orbitIdField) delta[orbitIdField] = record[orbitIdField];
-
-      return this.target.patchRecord(delta).then(null, failHandler);
-    }
-  } else {
-    return otherwise(record);
-  }
-};
-
 var TransformConnector = function(source, target, options) {
   var _this = this;
 
@@ -49,9 +26,9 @@ TransformConnector.prototype = {
 
     if (this._active) return;
 
-    this.source.on('didInsertRecord',  this._onInsert, this);
-    this.source.on('didUpdateRecord',  this._onUpdate, this);
-    this.source.on('didPatchRecord',   this._onPatch, this);
+    this.source.on('didInsertRecord',  this._onInsert,  this);
+    this.source.on('didUpdateRecord',  this._onUpdate,  this);
+    this.source.on('didPatchRecord',   this._onPatch,   this);
     this.source.on('didDestroyRecord', this._onDestroy, this);
 
     this._active = true;
@@ -59,10 +36,11 @@ TransformConnector.prototype = {
 
 
   deactivate: function() {
-    this.source.off('didInsertRecord',  this._onInsert, this);
-    this.source.off('didUpdateRecord',  this._onUpdate, this);
-    this.source.off('didPatchRecord',   this._onPatch, this);
+    this.source.off('didInsertRecord',  this._onInsert,  this);
+    this.source.off('didUpdateRecord',  this._onUpdate,  this);
+    this.source.off('didPatchRecord',   this._onPatch,   this);
     this.source.off('didDestroyRecord', this._onDestroy, this);
+
     this._active = false;
   },
 
@@ -119,26 +97,41 @@ TransformConnector.prototype = {
   },
 
   _handleInsert: function(record) {
-    var _this = this;
-    var promise = patchIfNecessary.call(_this, record, function() {
-      return _this.target.insertRecord(record).then(null, failHandler);
-    });
+    var promise,
+        targetRecord = this._targetRecord(record);
+
+    if (targetRecord) {
+      promise = this._patchTargetRecord(targetRecord, record);
+    } else {
+      promise = this.target.insertRecord(record);
+    }
+
     if (!this._async) return promise;
   },
 
   _handleUpdate: function(record) {
-    var _this = this;
-    var promise = patchIfNecessary.call(_this, record, function() {
-      return _this.target.updateRecord(record).then(null, failHandler);
-    });
+    var promise,
+        targetRecord = this._targetRecord(record);
+
+    if (targetRecord) {
+      promise = this._patchTargetRecord(targetRecord, record);
+    } else {
+      promise = this.target.updateRecord(record);
+    }
+
     if (!this._async) return promise;
   },
 
   _handlePatch: function(record) {
-    var _this = this;
-    var promise = patchIfNecessary.call(_this, record, function() {
-      return _this.target.patchRecord(record).then(null, failHandler);
-    });
+    var promise,
+        targetRecord = this._targetRecord(record);
+
+    if (targetRecord) {
+      promise = this._patchTargetRecord(targetRecord, record);
+    } else {
+      promise = this.target.patchRecord(record);
+    }
+
     if (!this._async) return promise;
   },
 
@@ -154,14 +147,29 @@ TransformConnector.prototype = {
 
     // delete the record if we know it exists (or we're not sure)
     if (targetRecordExists) {
-      return _this.target.destroyRecord(record).then(null, failHandler);
+      promise = _this.target.destroyRecord(record).then(null, failHandler);
     }
 
-    promise = patchIfNecessary.call(_this, record, function() {
-      return _this.target.destroyRecord(record).then(null, failHandler);
-    });
-
     if (!this._async) return promise;
+  },
+
+  _targetRecord: function(record) {
+    if (this.target.retrieve) {
+      return this.target.retrieve(record);
+    }
+  },
+
+  _patchTargetRecord: function(targetRecord, record) {
+    var delta = Orbit.delta(targetRecord, record);
+    if (delta) {
+      var orbitIdField = Orbit.idField,
+          targetIdField = this.target.idField;
+
+      delta[targetIdField] = record[targetIdField];
+      if (targetIdField !== orbitIdField) delta[orbitIdField] = record[orbitIdField];
+
+      return this.target.patchRecord(delta).then(null, failHandler);
+    }
   }
 };
 
