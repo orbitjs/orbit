@@ -4,9 +4,9 @@ import RSVP from 'rsvp';
 
 var store;
 
-var verifyLocalStorageContainsDog = function(dog) {
+var verifyLocalStorageContainsRecord = function(record) {
   var expected = {};
-  expected[dog.__id] = dog;
+  expected[record.__id] = record;
   deepEqual(JSON.parse(window.localStorage.getItem(store.namespace)),
             expected,
             'data in local storage matches expectations');
@@ -45,7 +45,7 @@ test("#insertRecord - can insert records and assign ids", function() {
     return dog;
 
   }).then(function(dog) {
-    verifyLocalStorageContainsDog(dog);
+    verifyLocalStorageContainsRecord(dog);
     store.find(dog.id).then(function(foundDog) {
       start();
       equal(foundDog.id, dog.id, 'record can be looked up by id');
@@ -71,7 +71,7 @@ test("#updateRecord - can update records", function() {
     });
 
   }).then(function(dog) {
-    verifyLocalStorageContainsDog(dog);
+    verifyLocalStorageContainsRecord(dog);
     store.find(dog.__id).then(function(foundDog) {
       start();
       strictEqual(foundDog, original, 'still the same object as the one originally inserted');
@@ -104,7 +104,7 @@ test("#patchRecord - can patch records", function() {
     });
 
   }).then(function(dog) {
-    verifyLocalStorageContainsDog(dog);
+    verifyLocalStorageContainsRecord(dog);
     store.find(dog.__id).then(function(foundDog) {
       start();
       strictEqual(foundDog, original, 'still the same object as the one originally inserted');
@@ -163,7 +163,7 @@ test("it can use a custom local storage namespace for storing data", function() 
   stop();
   store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     start();
-    verifyLocalStorageContainsDog(dog);
+    verifyLocalStorageContainsRecord(dog);
   });
 });
 
@@ -186,7 +186,7 @@ test("autosave can be disabled to delay writing to local storage", function() {
 
     store.enableAutosave();
 
-    verifyLocalStorageContainsDog(dog);
+    verifyLocalStorageContainsRecord(dog);
   });
 });
 
