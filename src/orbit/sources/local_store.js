@@ -16,9 +16,10 @@ var LocalStore = function(namespace) {
   this.namespace = namespace || 'orbit';
 
   var _this = this;
-  ['insertRecord', 'updateRecord', 'patchRecord', 'destroyRecord',
-   'find', 'create', 'update', 'patch', 'destroy',
-   'retrieve'].forEach(function(method) {
+  ['on', 'off', 'emit', 'poll', 'listeners', 'resolve', 'settle',  // Evented interface
+   'insertRecord', 'updateRecord', 'patchRecord', 'destroyRecord', // Transformable interface
+   'find', 'create', 'update', 'patch', 'destroy',                 // Requestable interface
+   'retrieve'].forEach(function(method) {                          // Directly defined
 
     _this[method] = function() {
       return _this._store[method].apply(_this._store, arguments);
