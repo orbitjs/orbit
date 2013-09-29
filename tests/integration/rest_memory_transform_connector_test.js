@@ -1,16 +1,19 @@
 import Orbit from 'orbit/core';
 import MemoryStore from 'orbit/sources/memory_store';
 import RestStore from 'orbit/sources/rest_store';
+import LocalStore from 'orbit/sources/local_store';
 import TransformConnector from 'orbit/connectors/transform_connector';
 import RSVP from 'rsvp';
 
 var server,
     memoryStore,
     restStore,
+    localStore,
+    memToLocalConnector,
     memToRestConnector,
     restToMemConnector;
 
-module("Integration - RestStore / MemoryStore Sync", {
+module("Integration - RestStore / MemoryStore / LocalStore", {
   setup: function() {
     Orbit.Promise = RSVP.Promise;
     Orbit.ajax = window.jQuery.ajax;
@@ -21,8 +24,10 @@ module("Integration - RestStore / MemoryStore Sync", {
 
     memoryStore = new MemoryStore();
     restStore = new RestStore();
+    localStore = new LocalStore();
     restStore.namespace = 'dogs';
 
+    memToLocalConnector = new TransformConnector(memoryStore, localStore);
     memToRestConnector = new TransformConnector(memoryStore, restStore);
     restToMemConnector = new TransformConnector(restStore, memoryStore);
   },
@@ -36,7 +41,7 @@ module("Integration - RestStore / MemoryStore Sync", {
 });
 
 test("records inserted into memory should be posted with rest", function() {
-  expect(6);
+  expect(8);
 
   server.respondWith('POST', '/dogs', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
@@ -48,16 +53,19 @@ test("records inserted into memory should be posted with rest", function() {
   stop();
   memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     start();
-    equal(memoryStore.length, 1, 'store should contain one record');
+    equal(memoryStore.length, 1, 'memory store should contain one record');
     ok(dog.__id, 'orbit id should be defined');
     equal(dog.id, 12345, 'server id should be defined');
     equal(dog.name, 'Hubert', 'name should match');
     equal(dog.gender, 'm', 'gender should match');
+
+    equal(localStore.length, 1, 'local store should contain one record');
+    verifyLocalStorageContainsRecord(localStore.namespace, dog);
   });
 });
 
 test("records posted with rest should be inserted into memory", function() {
-  expect(6);
+  expect(8);
 
   server.respondWith('POST', '/dogs', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
@@ -69,16 +77,19 @@ test("records posted with rest should be inserted into memory", function() {
   stop();
   restStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     start();
-    equal(memoryStore.length, 1, 'store should contain one record');
+    equal(memoryStore.length, 1, 'memory store should contain one record');
     ok(dog.__id, 'orbit id should be defined');
     equal(dog.id, 12345, 'server id should be defined');
     equal(dog.name, 'Hubert', 'name should match');
     equal(dog.gender, 'm', 'gender should match');
+
+    equal(localStore.length, 1, 'local store should contain one record');
+    verifyLocalStorageContainsRecord(localStore.namespace, dog);
   });
 });
 
 test("records updated in memory should be updated with rest (via PATCH)", function() {
-  expect(7);
+  expect(9);
 
   server.respondWith('POST', '/dogs', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
@@ -98,18 +109,21 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
     memoryStore.updateRecord({__id: dog.__id, name: 'Beatrice', gender: 'f'}).then(
       function(dog) {
         start();
-        equal(memoryStore.length, 1, 'store should contain one record');
+        equal(memoryStore.length, 1, 'memory store should contain one record');
         ok(dog.__id, 'orbit id should be defined');
         equal(dog.id, 12345, 'server id should be defined');
         equal(dog.name, 'Beatrice', 'name should match');
         equal(dog.gender, 'f', 'gender should match');
+
+        equal(localStore.length, 1, 'local store should contain one record');
+        verifyLocalStorageContainsRecord(localStore.namespace, dog);
       }
     );
   });
 });
 
 test("records updated with rest should be updated in memory", function() {
-  expect(7);
+  expect(9);
 
   server.respondWith('POST', '/dogs', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
@@ -129,11 +143,14 @@ test("records updated with rest should be updated in memory", function() {
     restStore.updateRecord({__id: dog.__id, id: dog.id, name: 'Beatrice', gender: 'f'}).then(
       function(dog) {
         start();
-        equal(memoryStore.length, 1, 'store should contain one record');
+        equal(memoryStore.length, 1, 'memory store should contain one record');
         ok(dog.__id, 'orbit id should be defined');
         equal(dog.id, 12345, 'server id should be defined');
         equal(dog.name, 'Beatrice', 'name should match');
         equal(dog.gender, 'f', 'gender should match');
+
+        equal(localStore.length, 1, 'local store should contain one record');
+        verifyLocalStorageContainsRecord(localStore.namespace, dog);
       }
     );
   });
@@ -160,7 +177,7 @@ test("records patched in memory should be patched with rest", function() {
     memoryStore.patchRecord({__id: dog.__id, gender: 'f'}).then(
       function(dog) {
         start();
-        equal(memoryStore.length, 1, 'store should contain one record');
+        equal(memoryStore.length, 1, 'memory store should contain one record');
         ok(dog.__id, 'orbit id should be defined');
         equal(dog.id, 12345, 'server id should be defined');
         equal(dog.name, 'Hubert', 'name should match');
@@ -171,7 +188,7 @@ test("records patched in memory should be patched with rest", function() {
 });
 
 test("records patched with rest should be patched in memory", function() {
-  expect(7);
+  expect(9);
 
   server.respondWith('POST', '/dogs', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
@@ -191,18 +208,21 @@ test("records patched with rest should be patched in memory", function() {
     memoryStore.patchRecord({__id: dog.__id, gender: 'f'}).then(
       function(dog) {
         start();
-        equal(memoryStore.length, 1, 'store should contain one record');
+        equal(memoryStore.length, 1, 'memory store should contain one record');
         ok(dog.__id, 'orbit id should be defined');
         equal(dog.id, 12345, 'server id should be defined');
         equal(dog.name, 'Hubert', 'name should match');
         equal(dog.gender, 'f', 'gender should match');
+
+        equal(localStore.length, 1, 'local store should contain one record');
+        verifyLocalStorageContainsRecord(localStore.namespace, dog);
       }
     );
   });
 });
 
 test("records deleted in memory should be deleted with rest", function() {
-  expect(3);
+  expect(5);
 
   server.respondWith('POST', '/dogs', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
@@ -223,13 +243,16 @@ test("records deleted in memory should be deleted with rest", function() {
       function() {
         start();
         equal(memoryStore.length, 0, 'memory store should be empty');
+
+        equal(localStore.length, 0, 'local store should be empty');
+        verifyLocalStorageIsEmpty(localStore.namespace);
       }
     );
   });
 });
 
 test("records deleted with rest should be deleted in memory", function() {
-  expect(3);
+  expect(5);
 
   server.respondWith('POST', '/dogs', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
@@ -250,6 +273,9 @@ test("records deleted with rest should be deleted in memory", function() {
       function() {
         start();
         equal(memoryStore.length, 0, 'memory store should be empty');
+
+        equal(localStore.length, 0, 'local store should be empty');
+        verifyLocalStorageIsEmpty(localStore.namespace);
       }
     );
   });
