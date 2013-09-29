@@ -12,7 +12,7 @@ var TransformConnector = function(source, target, options) {
   this.queue = [];
 
   options = options || {};
-  this._async = options['async'] !== undefined ? options['async'] : false;
+  this.async = options['async'] !== undefined ? options['async'] : false;
   this._queueEnabled = options['queue'] !== undefined ? options['queue'] : false;
   var active = options['active'] !== undefined ? options['active'] : true;
   if (active) this.activate();
@@ -46,18 +46,6 @@ TransformConnector.prototype = {
 
   isActive: function() {
     return this._active;
-  },
-
-  enableAsync: function() {
-    this._async = true;
-  },
-
-  disableAsync: function() {
-    this._async = false;
-  },
-
-  isAsync: function() {
-    return this._async;
   },
 
   /////////////////////////////////////////////////////////////////////////////
@@ -106,7 +94,7 @@ TransformConnector.prototype = {
       promise = this.target.insertRecord(record);
     }
 
-    if (!this._async) return promise;
+    if (!this.async) return promise;
   },
 
   _handleUpdate: function(record) {
@@ -119,7 +107,7 @@ TransformConnector.prototype = {
       promise = this.target.updateRecord(record);
     }
 
-    if (!this._async) return promise;
+    if (!this.async) return promise;
   },
 
   _handlePatch: function(record) {
@@ -132,7 +120,7 @@ TransformConnector.prototype = {
       promise = this.target.patchRecord(record);
     }
 
-    if (!this._async) return promise;
+    if (!this.async) return promise;
   },
 
   _handleDestroy: function(record) {
@@ -150,7 +138,7 @@ TransformConnector.prototype = {
       promise = _this.target.destroyRecord(record).then(null, failHandler);
     }
 
-    if (!this._async) return promise;
+    if (!this.async) return promise;
   },
 
   _targetRecord: function(record) {
