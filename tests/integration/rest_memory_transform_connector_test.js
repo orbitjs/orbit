@@ -33,8 +33,8 @@ module("Integration - RestStore / MemoryStore / LocalStore", {
   },
 
   teardown: function() {
-    memToRestConnector = restToMemConnector = null;
-    memoryStore = restStore = null;
+    memToLocalConnector = memToRestConnector = restToMemConnector = null;
+    memoryStore = restStore = localStore = null;
 
     server.restore();
   }
