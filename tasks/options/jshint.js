@@ -1,12 +1,24 @@
 module.exports = {
-  all: {
+  lib: {
+    src: [
+      'src/orbit/**/*.js',
+      '!src/orbit/lib/eq.js',
+    ],
+    options: { jshintrc: '.jshintrc' }
+  },
+  tooling: {
     src: [
       'Gruntfile.js',
-      'src/orbit/**/*.js',
+      'tasks/**/*.js'
+    ],
+    options: { jshintrc: 'tasks/.jshintrc' }
+  },
+  tests: {
+    src: [
       'tests/**/*.js',
-      '!src/orbit/lib/eq.js',
       '!tests/unit/lib/eq_test.js'
-    ]
+    ],
+    options: { jshintrc: 'tests/.jshintrc' }
   },
   options: {
     jshintrc: '.jshintrc',
