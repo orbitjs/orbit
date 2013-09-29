@@ -13,7 +13,7 @@ var server,
     memToRestConnector,
     restToMemConnector;
 
-module("Integration - RestStore / MemoryStore / LocalStore", {
+module("Integration - Rest / Memory / Local Synchronous Transforms", {
   setup: function() {
     Orbit.Promise = RSVP.Promise;
     Orbit.ajax = window.jQuery.ajax;
@@ -25,11 +25,16 @@ module("Integration - RestStore / MemoryStore / LocalStore", {
     memoryStore = new MemoryStore();
     restStore = new RestStore();
     localStore = new LocalStore();
-    restStore.namespace = 'dogs';
 
+    // Connect MemoryStore -> LocalStore
     memToLocalConnector = new TransformConnector(memoryStore, localStore);
+
+    // Connect MemoryStore <-> RestStore
     memToRestConnector = new TransformConnector(memoryStore, restStore);
     restToMemConnector = new TransformConnector(restStore, memoryStore);
+
+    // Minimal RestStore config
+    restStore.namespace = 'dogs';
   },
 
   teardown: function() {

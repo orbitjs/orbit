@@ -7,7 +7,7 @@ var primaryStore,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Integration - MemoryStore Sync", {
+module("Integration - MemoryStore Sync without Connector", {
   setup: function() {
     Orbit.Promise = RSVP.Promise;
 
