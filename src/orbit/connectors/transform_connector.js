@@ -14,7 +14,12 @@ var patchIfNecessary = function(record, otherwise) {
   if (targetRecord) {
     var delta = Orbit.delta(targetRecord, record);
     if (delta) {
-      delta[Orbit.idField] = record[Orbit.idField];
+      var orbitIdField = Orbit.idField,
+          targetIdField = this.target.idField;
+
+      delta[targetIdField] = record[targetIdField];
+      if (targetIdField !== orbitIdField) delta[orbitIdField] = record[orbitIdField];
+
       return this.target.patchRecord(delta).then(null, failHandler);
     }
   } else {
