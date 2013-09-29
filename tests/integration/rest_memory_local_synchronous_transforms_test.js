@@ -209,8 +209,8 @@ test("records patched with rest should be patched in memory", function() {
   });
 
   stop();
-  memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    memoryStore.patchRecord({__id: dog.__id, gender: 'f'}).then(
+  restStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
+    restStore.patchRecord({__id: dog.__id, gender: 'f'}).then(
       function(dog) {
         start();
         equal(memoryStore.length, 1, 'memory store should contain one record');
