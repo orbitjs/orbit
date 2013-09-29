@@ -37,8 +37,8 @@ RestStore.prototype = {
 
   _updateRecord: function(data) {
     var _this = this,
-        id = data[this.idField],
-        orbitId = data[Orbit.idField];
+        orbitId = data[Orbit.idField],
+        id = data[this.idField] || this.retrieve(orbitId)[this.idField];
 
     return this.ajax(this.buildURL(id), 'PUT', {data: this.serialize(data)}).then(
       function(raw) {
@@ -51,8 +51,8 @@ RestStore.prototype = {
 
   _patchRecord: function(data) {
     var _this = this,
-        id = data[this.idField],
-        orbitId = data[Orbit.idField];
+        orbitId = data[Orbit.idField],
+        id = data[this.idField] || this.retrieve(orbitId)[this.idField];
 
     // no need to transmit `id` along with a patched record
     delete data[this.idField];
@@ -68,8 +68,8 @@ RestStore.prototype = {
 
   _destroyRecord: function(data) {
     var _this = this,
-        id = data[this.idField],
-        orbitId = data[Orbit.idField];
+        orbitId = data[Orbit.idField],
+        id = data[this.idField] || this.retrieve(orbitId)[this.idField];
 
     return this.ajax(this.buildURL(id), 'DELETE').then(
       function() {
