@@ -4,14 +4,6 @@ import RSVP from 'rsvp';
 
 var store;
 
-var verifyLocalStorageContainsRecord = function(record) {
-  var expected = {};
-  expected[record.__id] = record;
-  deepEqual(JSON.parse(window.localStorage.getItem(store.namespace)),
-            expected,
-            'data in local storage matches expectations');
-};
-
 ///////////////////////////////////////////////////////////////////////////////
 
 module("Unit - LocalStore", {
@@ -45,7 +37,7 @@ test("#insertRecord - can insert records and assign ids", function() {
     return dog;
 
   }).then(function(dog) {
-    verifyLocalStorageContainsRecord(dog);
+    verifyLocalStorageContainsRecord(store.namespace, dog);
     store.find(dog.id).then(function(foundDog) {
       start();
       equal(foundDog.id, dog.id, 'record can be looked up by id');
@@ -71,7 +63,7 @@ test("#updateRecord - can update records", function() {
     });
 
   }).then(function(dog) {
-    verifyLocalStorageContainsRecord(dog);
+    verifyLocalStorageContainsRecord(store.namespace, dog);
     store.find(dog.__id).then(function(foundDog) {
       start();
       strictEqual(foundDog, original, 'still the same object as the one originally inserted');
@@ -104,7 +96,7 @@ test("#patchRecord - can patch records", function() {
     });
 
   }).then(function(dog) {
-    verifyLocalStorageContainsRecord(dog);
+    verifyLocalStorageContainsRecord(store.namespace, dog);
     store.find(dog.__id).then(function(foundDog) {
       start();
       strictEqual(foundDog, original, 'still the same object as the one originally inserted');
@@ -163,7 +155,7 @@ test("it can use a custom local storage namespace for storing data", function() 
   stop();
   store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     start();
-    verifyLocalStorageContainsRecord(dog);
+    verifyLocalStorageContainsRecord(store.namespace, dog);
   });
 });
 
@@ -180,13 +172,11 @@ test("autosave can be disabled to delay writing to local storage", function() {
 
     equal(store.length, 1, 'store should contain one record');
 
-    deepEqual(JSON.parse(window.localStorage.getItem(store.namespace)),
-              null,
-              'local storage should still be empty');
+    verifyLocalStorageIsEmpty(store.namespace);
 
     store.enableAutosave();
 
-    verifyLocalStorageContainsRecord(dog);
+    verifyLocalStorageContainsRecord(store.namespace, dog);
   });
 });
 
