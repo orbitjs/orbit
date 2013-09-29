@@ -14,7 +14,7 @@ var patchIfNecessary = function(record, otherwise) {
   if (targetRecord) {
     var delta = Orbit.delta(targetRecord, record);
     if (delta) {
-      delta[this.target.idField] = record[this.target.idField];
+      delta[Orbit.idField] = record[Orbit.idField];
       return this.target.patchRecord(delta).then(null, failHandler);
     }
   } else {
