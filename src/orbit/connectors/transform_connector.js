@@ -53,35 +53,27 @@ TransformConnector.prototype = {
   /////////////////////////////////////////////////////////////////////////////
 
   _onInsert: function(data, record) {
-    if (this._queueEnabled) {
-      this.queue.push({type: 'insert', record: record});
-    } else {
-      return this._handleInsert(record);
-    }
+    var targetRecord = this._targetRecord(record);
+    console.log('insert', this.target, data, targetRecord, record);
+    return this._handleInsert(record);
   },
 
   _onUpdate: function(data, record) {
-    if (this._queueEnabled) {
-      this.queue.push({type: 'update', record: record});
-    } else {
-      return this._handleUpdate(record);
-    }
+    var targetRecord = this._targetRecord(record);
+    console.log('update', this.target, data, targetRecord, record);
+    return this._handleUpdate(record);
   },
 
   _onPatch: function(data, record) {
-    if (this._queueEnabled) {
-      this.queue.push({type: 'patch', record: record});
-    } else {
-      return this._handlePatch(record);
-    }
+    var targetRecord = this._targetRecord(record);
+    console.log('patch', this.target, data, targetRecord, record);
+    return this._handlePatch(record);
   },
 
   _onDestroy: function(data, record) {
-    if (this._queueEnabled) {
-      this.queue.push({type: 'destroy', record: record});
-    } else {
-      return this._handleDestroy(record);
-    }
+    var targetRecord = this._targetRecord(record);
+    console.log('destroy', this.target, data, targetRecord, record);
+    return this._handleDestroy(record);
   },
 
   _handleInsert: function(record) {
@@ -148,13 +140,15 @@ TransformConnector.prototype = {
   },
 
   _patchTargetRecord: function(targetRecord, record) {
-    var delta = Orbit.delta(targetRecord, record);
+    var delta = Orbit.delta(targetRecord, record, [Orbit.versionField]);
     if (delta) {
       var orbitIdField = Orbit.idField,
           targetIdField = this.target.idField;
 
-      delta[targetIdField] = record[targetIdField];
+      if (record[targetIdField]) delta[targetIdField] = record[targetIdField];
       if (targetIdField !== orbitIdField) delta[orbitIdField] = record[orbitIdField];
+
+      console.log('patch-delta', delta);
 
       return this.target.patchRecord(delta).then(null, failHandler);
     }

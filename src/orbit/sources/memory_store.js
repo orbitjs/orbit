@@ -29,13 +29,16 @@ MemoryStore.prototype = {
       if (_this._data[id]) {
         reject(Orbit.ALREADY_EXISTS);
       } else {
-        data = Orbit.clone(data);
+        var record = Orbit.clone(data);
         if (!id) {
-          id = data[_this.idField] = _this._generateId();
+          id = record[_this.idField] = _this._generateId();
         }
-        _this._data[id] = data;
+        _this._data[id] = record;
         _this.length++;
-        resolve(data);
+
+        Orbit.incrementVersion(record);
+
+        resolve(record);
       }
     });
   },
@@ -56,6 +59,9 @@ MemoryStore.prototype = {
             delete record[i];
           }
         }
+
+        Orbit.incrementVersion(record);
+
         resolve(record);
       } else {
         reject(Orbit.NOT_FOUND);
@@ -74,6 +80,9 @@ MemoryStore.prototype = {
             record[i] = data[i];
           }
         }
+
+        Orbit.incrementVersion(record);
+
         resolve(record);
       } else {
         reject(Orbit.NOT_FOUND);
@@ -89,6 +98,9 @@ MemoryStore.prototype = {
       if (record) {
         delete _this._data[record[_this.idField]];
         _this.length--;
+
+        Orbit.incrementVersion(record);
+
         resolve(record);
       } else {
         reject(Orbit.NOT_FOUND);

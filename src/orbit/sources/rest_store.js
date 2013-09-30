@@ -30,6 +30,7 @@ RestStore.prototype = {
       function(raw) {
         var record = _this.deserialize(raw);
         _this._addToCache(record, orbitId);
+        Orbit.incrementVersion(record);
         return record;
       }
     );
@@ -44,6 +45,7 @@ RestStore.prototype = {
       function(raw) {
         var record = _this.deserialize(raw);
         _this._addToCache(record, orbitId);
+        Orbit.incrementVersion(record);
         return record;
       }
     );
@@ -61,6 +63,7 @@ RestStore.prototype = {
       function(raw) {
         var record = _this.deserialize(raw);
         _this._addToCache(record, orbitId);
+        Orbit.incrementVersion(record);
         return record;
       }
     );
@@ -74,7 +77,10 @@ RestStore.prototype = {
     return this.ajax(this.buildURL(id), 'DELETE').then(
       function() {
         if (orbitId) {
+          var record = _this._cache[orbitId];
           delete _this._cache[orbitId];
+          Orbit.incrementVersion(record);
+          return record;
         }
       }
     );
@@ -189,6 +195,7 @@ RestStore.prototype = {
   serialize: function(data) {
     var serialized = Orbit.clone(data);
     delete serialized[Orbit.idField];
+    delete serialized[Orbit.versionField];
     return serialized;
   },
 

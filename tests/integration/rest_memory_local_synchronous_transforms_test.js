@@ -65,7 +65,7 @@ test("records inserted into memory should be posted with rest", function() {
     equal(dog.gender, 'm', 'gender should match');
 
     equal(localStore.length, 1, 'local store should contain one record');
-    verifyLocalStorageContainsRecord(localStore.namespace, dog);
+    verifyLocalStorageContainsRecord(localStore.namespace, dog, ['__ver']);
   });
 });
 
@@ -89,7 +89,7 @@ test("records posted with rest should be inserted into memory", function() {
     equal(dog.gender, 'm', 'gender should match');
 
     equal(localStore.length, 1, 'local store should contain one record');
-    verifyLocalStorageContainsRecord(localStore.namespace, dog);
+    verifyLocalStorageContainsRecord(localStore.namespace, dog, ['__ver']);
   });
 });
 
@@ -121,7 +121,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
         equal(dog.gender, 'f', 'gender should match');
 
         equal(localStore.length, 1, 'local store should contain one record');
-        verifyLocalStorageContainsRecord(localStore.namespace, dog);
+        verifyLocalStorageContainsRecord(localStore.namespace, dog, ['__ver']);
       }
     );
   });
@@ -155,7 +155,7 @@ test("records updated with rest should be updated in memory", function() {
         equal(dog.gender, 'f', 'gender should match');
 
         equal(localStore.length, 1, 'local store should contain one record');
-        verifyLocalStorageContainsRecord(localStore.namespace, dog);
+        verifyLocalStorageContainsRecord(localStore.namespace, dog, ['__ver']);
       }
     );
   });
@@ -220,7 +220,7 @@ test("records patched with rest should be patched in memory", function() {
         equal(dog.gender, 'f', 'gender should match');
 
         equal(localStore.length, 1, 'local store should contain one record');
-        verifyLocalStorageContainsRecord(localStore.namespace, dog);
+        verifyLocalStorageContainsRecord(localStore.namespace, dog, ['__ver']);
       }
     );
   });

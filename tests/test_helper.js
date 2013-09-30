@@ -1,7 +1,17 @@
-function verifyLocalStorageContainsRecord(namespace, record) {
+function verifyLocalStorageContainsRecord(namespace, record, ignoreFields) {
   var expected = {};
   expected[record.__id] = record;
-  deepEqual(JSON.parse(window.localStorage.getItem(namespace)),
+
+  var actual = JSON.parse(window.localStorage.getItem(namespace));
+
+  if (ignoreFields) {
+    for (var i = 0, l = ignoreFields.length, field; i < l; i++) {
+      field = ignoreFields[i];
+      actual[record.__id][field] = record[field];
+    }
+  }
+
+  deepEqual(actual,
             expected,
             'data in local storage matches expectations');
 }
