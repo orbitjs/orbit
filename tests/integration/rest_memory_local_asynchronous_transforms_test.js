@@ -21,7 +21,7 @@ module("Integration - Rest / Memory / Local Asynchronous Transforms", {
     // fake xhr
     server = window.sinon.fakeServer.create();
     server.autoRespond = true;
-    server.autoRespondAfter = 50;
+    server.autoRespondAfter = 100;
 
     memoryStore = new MemoryStore();
     restStore = new RestStore();
@@ -82,9 +82,9 @@ test("records inserted into memory should be posted with rest", function() {
 });
 
 test("records updated in memory should be updated with rest (via PATCH)", function() {
-  expect(15);
+  expect(19);
 
-  stop();
+  var localStorePatchCount = 0;
 
   server.respondWith('POST', '/dogs', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
@@ -100,29 +100,45 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
                 JSON.stringify({id: 12345, name: 'Beatrice', gender: 'f'}));
   });
 
+  localStore.on('didInsertRecord', function(data, record) {
+    equal(localStore.length, 1, 'local store - inserted - should contain one record');
+  });
+
+  localStore.on('didPatchRecord', function(data, record) {
+    localStorePatchCount++;
+
+    if (localStorePatchCount === 1) {
+      equal(record.id, undefined, 'local store - patch 1 - server id should NOT be defined yet');
+
+    } else if (localStorePatchCount === 2) {
+      equal(record.id, 12345, 'local store - patch 2 - server id should be defined now');
+      verifyLocalStorageContainsRecord(localStore.namespace, record, ['__ver']);
+    }
+  });
+
   restStore.on('didInsertRecord', function(data, record) {
-    equal(record.id, 12345, 'server id should be defined now');
+    ok(record.__id,                'rest store - inserted - orbit id should be defined');
+    equal(record.id, 12345,        'rest store - inserted - server id should be defined');
+    equal(record.name, 'Hubert',   'rest store - inserted - name should be original');
+    equal(record.gender, 'm',      'rest store - inserted - gender should be original');
   });
 
   restStore.on('didPatchRecord', function(data, record) {
     start();
 
-    ok(record.__id, 'orbit id should be defined');
-    equal(record.id, 12345, 'server id should be defined');
-    equal(record.name, 'Beatrice', 'name should match');
-    equal(record.gender, 'f', 'gender should match');
-    equal(memoryStore.length, 1, 'memory store should contain one record');
-    equal(localStore.length, 1, 'local store should contain one record');
-
-    verifyLocalStorageContainsRecord(localStore.namespace, record, ['__ver']);
+    ok(record.__id,                'rest store - patched - orbit id should be defined');
+    equal(record.id, 12345,        'rest store - patched - server id should be defined');
+    equal(record.name, 'Beatrice', 'rest store - patched - name should be updated');
+    equal(record.gender, 'f',      'rest store - patched - gender should be updated');
   });
 
+  stop();
   memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(record) {
-    equal(memoryStore.length, 1, 'memory store should contain one record');
-    ok(record.__id, 'orbit id should be defined');
-    equal(record.id, undefined, 'server id should NOT be defined yet');
-    equal(record.name, 'Hubert', 'name should match');
-    equal(record.gender, 'm', 'gender should match');
+    equal(memoryStore.length, 1, 'memory store - inserted - should contain one record');
+    ok(record.__id,              'memory store - inserted - orbit id should be defined');
+    equal(record.id, undefined,  'memory store - inserted - server id should NOT be defined yet');
+    equal(record.name, 'Hubert', 'memory store - inserted - name should match');
+    equal(record.gender, 'm',    'memory store - inserted - gender should match');
 
     memoryStore.updateRecord({__id: record.__id, name: 'Beatrice', gender: 'f'});
   });

@@ -173,9 +173,11 @@ TransformConnector.prototype = {
       if (record[targetIdField]) delta[targetIdField] = record[targetIdField];
       if (targetIdField !== orbitIdField) delta[orbitIdField] = record[orbitIdField];
 
-      console.log('patch-delta', delta);
+      console.log('patch record: delta', delta);
 
       return this.target.patchRecord(delta).then(null, failHandler);
+    } else {
+      console.log('patch record: no delta');
     }
   }
 };
