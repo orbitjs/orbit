@@ -17,6 +17,18 @@ test("#generateId generates unique ids", function() {
   notEqual(Orbit.generateId(), Orbit.generateId(), 'a weak test to ensure uniqueness');
 });
 
+test("#incrementVersion generates unique versions", function() {
+  var record = {__id: '1'};
+
+  Orbit.incrementVersion(record);
+  var v1 = record.__ver;
+
+  Orbit.incrementVersion(record);
+  var v2 = record.__ver;
+
+  notEqual(v1, v2, 'a weak test to ensure uniqueness');
+});
+
 test("#capitalize capitalizes the first letter of a word", function() {
   equal(Orbit.capitalize('cauliflower'), 'Cauliflower', 'capitalize capitalizes the first letter of a word');
   equal(Orbit.capitalize('aSAP'), 'ASAP', 'capitalize doesn\'t touch the rest of the word');
@@ -64,4 +76,15 @@ test("#delta creates a delta object when comparing two objects", function() {
   b = {id: {a: '1', b: '3'}, name: "Hubert", gender: "m", __id: "1380308346603-1"};
 
   deepEqual(Orbit.delta(a, b), {id: {a: '1', b: '3'}});
+
+  a = {id: {a: '1', b: '2'}, name: "Hubert", gender: "m", __id: "1380308346603-1"};
+  b = {id: {a: '1', b: '3'}, name: "Winky", gender: "m", __id: "1380308346603-1"};
+
+  deepEqual(Orbit.delta(a, b, ['id']), {name: "Winky"}, 'specified items are ignored in delta');
 });
+
+test('#arrayToOptions converts an array to an options hash', function() {
+  deepEqual(Orbit.arrayToOptions(), {}, 'no args return empty hash');
+  deepEqual(Orbit.arrayToOptions([]), {}, 'empty array returns empty hash');
+  deepEqual(Orbit.arrayToOptions(['a', 'b']), {a: true, b: true}, 'items in array are converted to items in hash');
+})
