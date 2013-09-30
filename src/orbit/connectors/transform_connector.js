@@ -34,7 +34,6 @@ TransformConnector.prototype = {
     this._active = true;
   },
 
-
   deactivate: function() {
     this.source.off('didInsertRecord',  this._onInsert,  this);
     this.source.off('didUpdateRecord',  this._onUpdate,  this);
@@ -48,86 +47,112 @@ TransformConnector.prototype = {
     return this._active;
   },
 
+  resolveConflicts: function(type, data, targetRecord, record) {
+    // TODO - this is a naive default conflict resolver
+    if (data.__ver && targetRecord.__ver && data.__ver !== targetRecord.__ver) {
+      console.log('resolveConflicts - versions differ', type, this.target, data, targetRecord, record);
+
+      var originalDelta = Orbit.delta(data, record, [Orbit.versionField]);
+      var currentDelta = Orbit.delta(targetRecord, record, [Orbit.versionField]);
+
+      console.log('originalDelta', originalDelta);
+      console.log('currentDelta', currentDelta);
+
+      originalDelta[Orbit.idField] = targetRecord[Orbit.idField];
+      return this._patchTargetRecord(targetRecord, originalDelta);
+    }
+  },
+
   /////////////////////////////////////////////////////////////////////////////
   // Internals
   /////////////////////////////////////////////////////////////////////////////
 
   _onInsert: function(data, record) {
-    var targetRecord = this._targetRecord(record);
-    console.log('insert', this.target, data, targetRecord, record);
-    return this._handleInsert(record);
+    // TODO - queue if needed
+    return this._handleInsert(data, record);
   },
 
   _onUpdate: function(data, record) {
-    var targetRecord = this._targetRecord(record);
-    console.log('update', this.target, data, targetRecord, record);
-    return this._handleUpdate(record);
+    // TODO - queue if needed
+    return this._handleUpdate(data, record);
   },
 
   _onPatch: function(data, record) {
-    var targetRecord = this._targetRecord(record);
-    console.log('patch', this.target, data, targetRecord, record);
-    return this._handlePatch(record);
+    // TODO - queue if needed
+    return this._handlePatch(data, record);
   },
 
   _onDestroy: function(data, record) {
-    var targetRecord = this._targetRecord(record);
-    console.log('destroy', this.target, data, targetRecord, record);
-    return this._handleDestroy(record);
+    // TODO - queue if needed
+    return this._handleDestroy(data, record);
   },
 
-  _handleInsert: function(record) {
+  _handleInsert: function(data, record) {
     var promise,
         targetRecord = this._targetRecord(record);
 
+    console.log('insert', this.target, data, targetRecord, record);
+
     if (targetRecord) {
-      promise = this._patchTargetRecord(targetRecord, record);
+      promise = this.resolveConflicts('insert', data, targetRecord, record);
+      if (promise === undefined) {
+        promise = this._patchTargetRecord(targetRecord, record);
+      }
     } else {
-      promise = this.target.insertRecord(record);
+      promise = this.target.insertRecord(Orbit.clone(record));
     }
 
     if (!this.async) return promise;
   },
 
-  _handleUpdate: function(record) {
+  _handleUpdate: function(data, record) {
     var promise,
         targetRecord = this._targetRecord(record);
 
+    console.log('update', this.target, data, targetRecord, record);
+
     if (targetRecord) {
-      promise = this._patchTargetRecord(targetRecord, record);
+      promise = this.resolveConflicts('update', data, targetRecord, record);
+      if (promise === undefined) {
+        promise = this._patchTargetRecord(targetRecord, record);
+      }
     } else {
-      promise = this.target.updateRecord(record);
+      promise = this.target.updateRecord(Orbit.clone(record));
     }
 
     if (!this.async) return promise;
   },
 
-  _handlePatch: function(record) {
+  _handlePatch: function(data, record) {
     var promise,
         targetRecord = this._targetRecord(record);
 
+    console.log('patch', this.target, data, targetRecord, record);
+
     if (targetRecord) {
-      promise = this._patchTargetRecord(targetRecord, record);
+      promise = this.resolveConflicts('patch', data, targetRecord, record);
+      if (promise === undefined) {
+        promise = this._patchTargetRecord(targetRecord, record);
+      }
     } else {
-      promise = this.target.patchRecord(record);
+      promise = this.target.patchRecord(Orbit.clone(record));
     }
 
     if (!this.async) return promise;
   },
 
-  _handleDestroy: function(record) {
+  _handleDestroy: function(data, record) {
     var _this = this,
-        promise;
+        promise,
+        targetRecord = this._targetRecord(record);
 
-    // attempt to retrieve target record to determine whether it needs to be deleted
-    var targetRecordExists = true;
-    if (_this.target.retrieve) {
-      targetRecordExists = !!_this.target.retrieve(record);
-    }
+    console.log('destroy', this.target, data, targetRecord, record);
 
-    // delete the record if we know it exists (or we're not sure)
-    if (targetRecordExists) {
-      promise = _this.target.destroyRecord(record).then(null, failHandler);
+    if (targetRecord) {
+      promise = this.resolveConflicts('destroy', data, targetRecord, record);
+      if (promise === undefined) {
+        promise = _this.target.destroyRecord(Orbit.clone(record)).then(null, failHandler);
+      }
     }
 
     if (!this.async) return promise;
