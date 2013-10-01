@@ -27,7 +27,7 @@ MemoryStore.prototype = {
     return new Orbit.Promise(function(resolve, reject) {
       var id = data[_this.idField];
       if (_this._data[id]) {
-        reject(Orbit.ALREADY_EXISTS);
+        reject(new Orbit.AlreadyExistsException(data));
       } else {
         var record = Orbit.clone(data);
         if (!id) {
@@ -64,7 +64,7 @@ MemoryStore.prototype = {
 
         resolve(record);
       } else {
-        reject(Orbit.NOT_FOUND);
+        reject(new Orbit.NotFoundException(data));
       }
     });
   },
@@ -85,7 +85,7 @@ MemoryStore.prototype = {
 
         resolve(record);
       } else {
-        reject(Orbit.NOT_FOUND);
+        reject(new Orbit.NotFoundException(data));
       }
     });
   },
@@ -103,7 +103,7 @@ MemoryStore.prototype = {
 
         resolve(record);
       } else {
-        reject(Orbit.NOT_FOUND);
+        reject(new Orbit.NotFoundException(data));
       }
     });
   },
@@ -123,7 +123,7 @@ MemoryStore.prototype = {
         if (record) {
           resolve(record);
         } else {
-          reject(Orbit.NOT_FOUND);
+          reject(new Orbit.NotFoundException(id));
         }
       }
     });

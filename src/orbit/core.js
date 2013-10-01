@@ -18,9 +18,6 @@ if (!Array.prototype.forEach) {
  * Orbit
  */
 var Orbit = {
-  NOT_FOUND: 'Record not found',
-  ALREADY_EXISTS: 'Record already exists',
-
   idField: '__id',
 
   generateId: function() {
@@ -124,5 +121,20 @@ var Orbit = {
     return options;
   }
 };
+
+Orbit.NotFoundException = function(record) {
+  this.record = record;
+};
+Orbit.NotFoundException.prototype = {
+  constructor: 'NotFoundException'
+};
+
+Orbit.AlreadyExistsException = function(record) {
+  this.record = record;
+};
+Orbit.AlreadyExistsException.prototype = {
+  constructor: 'AlreadyExistsException'
+};
+
 
 export default Orbit;

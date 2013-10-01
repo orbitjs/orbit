@@ -58,7 +58,7 @@ test("#insertRecord - throws an error when a record with a duplicate id is inser
   }).then(function(dog) {
     store.insertRecord({__id: dog.__id, name: 'Hubert', gender: 'm'}).then(null, function(e) {
       start();
-      equal(e, Orbit.ALREADY_EXISTS, 'duplicate error');
+      equal(e.constructor, 'AlreadyExistsException', 'duplicate error');
     });
   });
 });
