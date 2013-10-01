@@ -227,7 +227,7 @@ test("records patched with rest should be patched in memory", function() {
 });
 
 test("records deleted in memory should be deleted with rest", function() {
-  expect(5);
+  expect(6);
 
   server.respondWith('POST', '/dogs', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
@@ -245,19 +245,20 @@ test("records deleted in memory should be deleted with rest", function() {
   stop();
   memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     memoryStore.destroyRecord({__id: dog.__id}).then(
-      function() {
+      function(record) {
         start();
         equal(memoryStore.length, 0, 'memory store should be empty');
-
         equal(localStore.length, 0, 'local store should be empty');
-        verifyLocalStorageIsEmpty(localStore.namespace);
+
+        ok(record.deleted, 'record should be marked `deleted`');
+        verifyLocalStorageContainsRecord(localStore.namespace, record, ['__ver']);
       }
     );
   });
 });
 
 test("records deleted with rest should be deleted in memory", function() {
-  expect(5);
+  expect(6);
 
   server.respondWith('POST', '/dogs', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
@@ -275,12 +276,13 @@ test("records deleted with rest should be deleted in memory", function() {
   stop();
   memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     memoryStore.destroyRecord({__id: dog.__id}).then(
-      function() {
+      function(record) {
         start();
         equal(memoryStore.length, 0, 'memory store should be empty');
-
         equal(localStore.length, 0, 'local store should be empty');
-        verifyLocalStorageIsEmpty(localStore.namespace);
+
+        ok(record.deleted, 'record should be marked `deleted`');
+        verifyLocalStorageContainsRecord(localStore.namespace, record, ['__ver']);
       }
     );
   });

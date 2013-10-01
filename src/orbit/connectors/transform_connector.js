@@ -49,7 +49,10 @@ TransformConnector.prototype = {
 
   resolveConflicts: function(type, data, targetRecord, record) {
     // TODO - this is a naive default conflict resolver
-    if (data.__ver && targetRecord.__ver && data.__ver !== targetRecord.__ver) {
+    if (data.__ver &&
+        targetRecord.__ver &&
+        data.__ver !== targetRecord.__ver) {
+
       console.log('resolveConflicts - versions differ', type, this.target, data, targetRecord, record);
 
       var originalDelta = Orbit.delta(data, record, [Orbit.versionField]);
@@ -91,12 +94,12 @@ TransformConnector.prototype = {
     var promise,
         targetRecord = this._targetRecord(record);
 
-    console.log('insert', this.target, data, targetRecord, record);
-
     if (targetRecord) {
-      promise = this.resolveConflicts('insert', data, targetRecord, record);
-      if (promise === undefined) {
-        promise = this._patchTargetRecord(targetRecord, record);
+      if (!targetRecord.deleted) {
+        promise = this.resolveConflicts('insert', data, targetRecord, record);
+        if (promise === undefined) {
+          promise = this._patchTargetRecord(targetRecord, record);
+        }
       }
     } else {
       promise = this.target.insertRecord(Orbit.clone(record));
@@ -109,12 +112,12 @@ TransformConnector.prototype = {
     var promise,
         targetRecord = this._targetRecord(record);
 
-    console.log('update', this.target, data, targetRecord, record);
-
     if (targetRecord) {
-      promise = this.resolveConflicts('update', data, targetRecord, record);
-      if (promise === undefined) {
-        promise = this._patchTargetRecord(targetRecord, record);
+      if (!targetRecord.deleted) {
+        promise = this.resolveConflicts('update', data, targetRecord, record);
+        if (promise === undefined) {
+          promise = this._patchTargetRecord(targetRecord, record);
+        }
       }
     } else {
       promise = this.target.updateRecord(Orbit.clone(record));
@@ -127,12 +130,12 @@ TransformConnector.prototype = {
     var promise,
         targetRecord = this._targetRecord(record);
 
-    console.log('patch', this.target, data, targetRecord, record);
-
     if (targetRecord) {
-      promise = this.resolveConflicts('patch', data, targetRecord, record);
-      if (promise === undefined) {
-        promise = this._patchTargetRecord(targetRecord, record);
+      if (!targetRecord.deleted) {
+        promise = this.resolveConflicts('patch', data, targetRecord, record);
+        if (promise === undefined) {
+          promise = this._patchTargetRecord(targetRecord, record);
+        }
       }
     } else {
       promise = this.target.patchRecord(Orbit.clone(record));
@@ -146,13 +149,15 @@ TransformConnector.prototype = {
         promise,
         targetRecord = this._targetRecord(record);
 
-    console.log('destroy', this.target, data, targetRecord, record);
-
     if (targetRecord) {
-      promise = this.resolveConflicts('destroy', data, targetRecord, record);
-      if (promise === undefined) {
-        promise = _this.target.destroyRecord(Orbit.clone(record)).then(null, failHandler);
+      if (!targetRecord.deleted) {
+        promise = this.resolveConflicts('destroy', data, targetRecord, record);
+        if (promise === undefined) {
+          promise = this.target.destroyRecord(Orbit.clone(record));
+        }
       }
+    } else {
+      promise = this.target.destroyRecord(Orbit.clone(record));
     }
 
     if (!this.async) return promise;
@@ -173,11 +178,7 @@ TransformConnector.prototype = {
       if (record[targetIdField]) delta[targetIdField] = record[targetIdField];
       if (targetIdField !== orbitIdField) delta[orbitIdField] = record[orbitIdField];
 
-      console.log('patch record: delta', delta);
-
       return this.target.patchRecord(delta).then(null, failHandler);
-    } else {
-      console.log('patch record: no delta');
     }
   }
 };

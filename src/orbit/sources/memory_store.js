@@ -96,7 +96,7 @@ MemoryStore.prototype = {
     return new Orbit.Promise(function(resolve, reject) {
       var record = _this.retrieve(data);
       if (record) {
-        delete _this._data[record[_this.idField]];
+        record.deleted = true;
         _this.length--;
 
         Orbit.incrementVersion(record);

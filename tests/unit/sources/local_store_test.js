@@ -109,7 +109,7 @@ test("#patchRecord - can patch records", function() {
 });
 
 test("#destroyRecord - can destroy records", function() {
-  expect(4);
+  expect(5);
 
   equal(store.length, 0, 'store should be empty');
 
@@ -117,12 +117,11 @@ test("#destroyRecord - can destroy records", function() {
   store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     equal(store.length, 1, 'store should contain one record');
 
-    store.destroyRecord({__id: dog.__id}).then(function() {
+    store.destroyRecord({__id: dog.__id}).then(function(record) {
       start();
-      deepEqual(JSON.parse(window.localStorage.getItem(store.namespace)),
-                {},
-                'data in local storage matches expectations');
       equal(store.length, 0, 'store should be empty');
+      ok(record.deleted, 'record should be marked `deleted`');
+      verifyLocalStorageContainsRecord(store.namespace, record);
     });
   });
 });
@@ -169,13 +168,10 @@ test("autosave can be disabled to delay writing to local storage", function() {
   stop();
   store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
     start();
-
     equal(store.length, 1, 'store should contain one record');
-
     verifyLocalStorageIsEmpty(store.namespace);
 
     store.enableAutosave();
-
     verifyLocalStorageContainsRecord(store.namespace, dog);
   });
 });

@@ -29,9 +29,25 @@ RestStore.prototype = {
     return this.ajax(this.buildURL(), 'POST', {data: this.serialize(data)}).then(
       function(raw) {
         var record = _this.deserialize(raw);
-        _this._addToCache(record, orbitId);
-        Orbit.incrementVersion(record);
-        return record;
+
+        // If the record has already been deleted by the time the POST response
+        // returns, we need to immediately destroy it.
+        var recordInCache = _this.retrieve(orbitId);
+        if (recordInCache && recordInCache.deleted) {
+          // Add the inserted record to the cache, since it will contain
+          // the latest data from the server (including an `id` field)
+          record.deleted = true;
+          _this._addToCache(record, orbitId);
+          Orbit.incrementVersion(record);
+
+          // Immediate destroy the record
+          return _this.destroyRecord(record);
+
+        } else {
+          _this._addToCache(record, orbitId);
+          Orbit.incrementVersion(record);
+          return record;
+        }
       }
     );
   },
@@ -72,13 +88,31 @@ RestStore.prototype = {
   _destroyRecord: function(data) {
     var _this = this,
         orbitId = data[Orbit.idField],
-        id = data[this.idField] || this.retrieve(orbitId)[this.idField];
+        id = data[this.idField];
+
+    if (id === undefined) {
+      var record = this.retrieve(orbitId);
+      if (record) {
+        id = record[this.idField];
+      } else {
+        return new Orbit.Promise(function(resolve, reject) {
+          // Mark record as deleted, even if it hasn't been inserted yet
+          record = {deleted: true};
+          _this._addToCache(record, orbitId);
+          resolve(record);
+        });
+      }
+    }
 
     return this.ajax(this.buildURL(id), 'DELETE').then(
       function() {
         if (orbitId) {
           var record = _this._cache[orbitId];
-          delete _this._cache[orbitId];
+          if (!record) {
+            record = {};
+            _this._addToCache(record, orbitId);
+          }
+          record.deleted = true;
           Orbit.incrementVersion(record);
           return record;
         }
@@ -130,7 +164,13 @@ RestStore.prototype = {
       orbitId = Orbit.generateId();
     }
     record[Orbit.idField] = orbitId;
-    this._cache[orbitId] = record;
+
+    var recordInCache = this._cache[orbitId];
+    if (recordInCache && recordInCache.deleted) {
+      recordInCache[this.idField] = record[this.idField];
+    } else {
+      this._cache[orbitId] = record;
+    }
   },
 
   ajax: function(url, type, hash) {
