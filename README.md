@@ -3,6 +3,13 @@
 Orbit.js is a low level library for keeping data sources coordinated and
 synchronized.
 
+## Dependencies
+
+Orbit.js has no specific external dependencies, but must be used with a
+library that implements the
+[Promises/A+](http://promises-aplus.github.io/promises-spec/)
+spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
+
 ## Goals
 
 * Support any number of different data sources in an application and
@@ -20,12 +27,67 @@ synchronized.
 
 * Work with plain JavaScript objects.
 
-## Dependencies
+## Simple Example
 
-Orbit.js has no specific external dependencies, but must be used with a
-library that implements the
-[Promises/A+](http://promises-aplus.github.io/promises-spec/)
-spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
+```javascript
+
+  // Create stores
+  memoryStore = new MemoryStore();
+  restStore = new RestStore();
+  localStore = new LocalStore();
+
+  // Connect MemoryStore -> LocalStore
+  memToLocalConnector = new TransformConnector(memoryStore, localStore);
+
+  // Connect MemoryStore <-> RestStore
+  memToRestConnector = new TransformConnector(memoryStore, restStore);
+  restToMemConnector = new TransformConnector(restStore, memoryStore);
+
+  // Create a record
+  memoryStore.create({name: 'Dan', gender: 'm'}).then(function(person) {
+    console.log('memoryStore - RESOLVED', person.name);
+  });
+
+  // Log the transforms
+  memoryStore.on('didInsertRecord', function(data, person) {
+    console.log('restStore - inserted', person.name);
+  });
+
+  localStore.on('didInsertRecord', function(data, person) {
+    console.log('localStore - inserted', person.name);
+  });
+
+  restStore.on('didInsertRecord', function(data, person) {
+    console.log('restStore - inserted', person.name);
+  });
+
+  // CONSOLE OUTPUT
+  // memoryStore - inserted Dan
+  // localStore  - inserted Dan
+  // restStore - inserted Dan
+  // memoryStore - RESOLVED Dan
+```
+
+In this example, we're creating three separate stores and connecting them
+*synchronously*. Next, we're creating a record in the memory store,
+which will automatically be duplicated in both the REST store and local storage.
+
+Note that we could also connect the stores *asynchronously* by adding an
+`async` option to our connectors:
+
+```javascript
+  // Connect MemoryStore -> LocalStore
+  memToLocalConnector = new TransformConnector(memoryStore, localStore, {async: true});
+
+  // Connect MemoryStore <-> RestStore
+  memToRestConnector = new TransformConnector(memoryStore, restStore, {async: true});
+  restToMemConnector = new TransformConnector(restStore, memoryStore, {async: true});
+```
+
+In this case, the promise generated from `memoryStore.create` will be resolved
+immediately, and records will be asynchronously created in the REST store and
+local storage. Any differences, such as an `id` returned from the server, will
+be automatically patched back to the record in the memory store.
 
 ## Interfaces
 
