@@ -3,6 +3,25 @@
 Orbit.js is a low level library for keeping data sources coordinated and
 synchronized.
 
+## Goals
+
+* Support any number of different data sources in an application.
+  Standardize access to those sources with common interfaces.
+
+* Allow for the fulfillment of requests from an application by different
+  sources, including the ability to specify priority and fallback plans.
+
+* Allow records to simultaneously exist in different states across sources.
+
+* Coordinate transformations across sources. Handle merges automatically
+  where possible but allow for complete custom control.
+
+* Allow for synchronous and asynchronous requests and transformations.
+
+* Work with plain JavaScript objects.
+
+## Dependencies
+
 Orbit.js has no specific external dependencies, but must be used with a
 library that implements the
 [Promises/A+](http://promises-aplus.github.io/promises-spec/)
