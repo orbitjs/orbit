@@ -5,11 +5,11 @@ synchronized.
 
 ## Goals
 
-* Support any number of different data sources in an application.
-  Standardize access to those sources with common interfaces.
+* Support any number of different data sources in an application and
+  provide access to them through common interfaces.
 
-* Allow for the fulfillment of requests from an application by different
-  sources, including the ability to specify priority and fallback plans.
+* Allow for the fulfillment of requests by different sources, including
+  the ability to specify priority and fallback plans.
 
 * Allow records to simultaneously exist in different states across sources.
 
