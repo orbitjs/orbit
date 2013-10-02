@@ -186,6 +186,8 @@ RestStore.prototype = {
       hash.dataType = 'json';
       hash.context = _this;
 
+      console.log('ajax start', type);
+
       if (hash.data && type !== 'GET') {
         hash.contentType = 'application/json; charset=utf-8';
         hash.data = JSON.stringify(hash.data);
@@ -203,7 +205,7 @@ RestStore.prototype = {
       }
 
       hash.success = function(json) {
-        console.log('ajax success', json);
+        console.log('ajax success', type, json);
         resolve(json);
       };
 
@@ -211,7 +213,7 @@ RestStore.prototype = {
         if (jqXHR) {
           jqXHR.then = null;
         }
-        console.log('ajax error', jqXHR);
+        console.log('ajax error', type, jqXHR);
 
         reject(jqXHR);
       };
