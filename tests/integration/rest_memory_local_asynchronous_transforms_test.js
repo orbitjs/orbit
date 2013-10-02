@@ -20,7 +20,6 @@ module("Integration - Rest / Memory / Local Asynchronous Transforms", {
 
     // Fake xhr
     server = window.sinon.fakeServer.create();
-    server.autoRespond = true;
 
     // Create stores
     memoryStore = new MemoryStore();
@@ -51,11 +50,21 @@ module("Integration - Rest / Memory / Local Asynchronous Transforms", {
 test("records inserted into memory should be posted with rest", function() {
   expect(12);
 
-  server.respondWith('POST', '/dogs', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
-    xhr.respond(201,
-                {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+  stop();
+  memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(record) {
+    equal(memoryStore.length, 1, 'memory store should contain one record');
+    ok(record.__id,              'orbit id should be defined');
+    equal(record.id, undefined,  'server id should NOT be defined yet');
+    equal(record.name, 'Hubert', 'name should match');
+    equal(record.gender, 'm',    'gender should match');
+
+  }).then(function() {
+    server.respond('POST', '/dogs', function(xhr) {
+      deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
+      xhr.respond(201,
+                  {'Content-Type': 'application/json'},
+                  JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+    });
   });
 
   localStore.on('didInsertRecord', function(data, record) {
@@ -70,15 +79,6 @@ test("records inserted into memory should be posted with rest", function() {
     equal(record.name, 'Hubert', 'name should match');
     equal(record.gender, 'm',    'gender should match');
   });
-
-  stop();
-  memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(record) {
-    equal(memoryStore.length, 1, 'memory store should contain one record');
-    ok(record.__id,              'orbit id should be defined');
-    equal(record.id, undefined,  'server id should NOT be defined yet');
-    equal(record.name, 'Hubert', 'name should match');
-    equal(record.gender, 'm',    'gender should match');
-  });
 });
 
 test("records updated in memory should be updated with rest (via PATCH)", function() {
@@ -86,22 +86,34 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
 
   var localStorePatchCount = 0;
 
-  server.respondWith('POST', '/dogs', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
-    xhr.respond(201,
-                {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
-  });
+  stop();
+  memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(record) {
+    equal(memoryStore.length, 1, 'memory store - inserted - should contain one record');
+    ok(record.__id,              'memory store - inserted - orbit id should be defined');
+    equal(record.id, undefined,  'memory store - inserted - server id should NOT be defined yet');
+    equal(record.name, 'Hubert', 'memory store - inserted - name should match');
+    equal(record.gender, 'm',    'memory store - inserted - gender should match');
 
-  server.respondWith('PATCH', '/dogs/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Beatrice', gender: 'f'}, 'PATCH request');
-    xhr.respond(200,
-                {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Beatrice', gender: 'f'}));
+    server.respond('POST', '/dogs', function(xhr) {
+      console.log('POST');
+      deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
+      xhr.respond(201,
+                  {'Content-Type': 'application/json'},
+                  JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+    });
+
+    memoryStore.updateRecord({__id: record.__id, name: 'Beatrice', gender: 'f'});
   });
 
   localStore.on('didInsertRecord', function(data, record) {
     equal(localStore.length, 1, 'local store - inserted - should contain one record');
+  });
+
+  restStore.on('didInsertRecord', function(data, record) {
+    ok(record.__id,                'rest store - inserted - orbit id should be defined');
+    equal(record.id, 12345,        'rest store - inserted - server id should be defined');
+    equal(record.name, 'Hubert',   'rest store - inserted - name should be original');
+    equal(record.gender, 'm',      'rest store - inserted - gender should be original');
   });
 
   localStore.on('didPatchRecord', function(data, record) {
@@ -113,14 +125,15 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
     } else if (localStorePatchCount === 2) {
       equal(record.id, 12345, 'local store - patch 2 - server id should be defined now');
       verifyLocalStorageContainsRecord(localStore.namespace, record, ['__ver']);
-    }
-  });
 
-  restStore.on('didInsertRecord', function(data, record) {
-    ok(record.__id,                'rest store - inserted - orbit id should be defined');
-    equal(record.id, 12345,        'rest store - inserted - server id should be defined');
-    equal(record.name, 'Hubert',   'rest store - inserted - name should be original');
-    equal(record.gender, 'm',      'rest store - inserted - gender should be original');
+      server.respond('PATCH', '/dogs/12345', function(xhr) {
+        console.log('PATCH');
+        deepEqual(JSON.parse(xhr.requestBody), {name: 'Beatrice', gender: 'f'}, 'PATCH request');
+        xhr.respond(200,
+                    {'Content-Type': 'application/json'},
+                    JSON.stringify({id: 12345, name: 'Beatrice', gender: 'f'}));
+      });
+    }
   });
 
   restStore.on('didPatchRecord', function(data, record) {
@@ -129,17 +142,6 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
     equal(record.id, 12345,        'rest store - patched - server id should be defined');
     equal(record.name, 'Beatrice', 'rest store - patched - name should be updated');
     equal(record.gender, 'f',      'rest store - patched - gender should be updated');
-  });
-
-  stop();
-  memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(record) {
-    equal(memoryStore.length, 1, 'memory store - inserted - should contain one record');
-    ok(record.__id,              'memory store - inserted - orbit id should be defined');
-    equal(record.id, undefined,  'memory store - inserted - server id should NOT be defined yet');
-    equal(record.name, 'Hubert', 'memory store - inserted - name should match');
-    equal(record.gender, 'm',    'memory store - inserted - gender should match');
-
-    memoryStore.updateRecord({__id: record.__id, name: 'Beatrice', gender: 'f'});
   });
 });
 
@@ -148,22 +150,33 @@ test("records patched in memory should be patched with rest", function() {
 
   var localStorePatchCount = 0;
 
-  server.respondWith('POST', '/dogs', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
-    xhr.respond(201,
-                {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
-  });
+  stop();
+  memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(record) {
+    equal(memoryStore.length, 1, 'memory store - inserted - should contain one record');
+    ok(record.__id,              'memory store - inserted - orbit id should be defined');
+    equal(record.id, undefined,  'memory store - inserted - server id should NOT be defined yet');
+    equal(record.name, 'Hubert', 'memory store - inserted - name should match');
+    equal(record.gender, 'm',    'memory store - inserted - gender should match');
 
-  server.respondWith('PATCH', '/dogs/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Beatrice', gender: 'f'}, 'PATCH request');
-    xhr.respond(200,
-                {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Beatrice', gender: 'f'}));
+    server.respond('POST', '/dogs', function(xhr) {
+      deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
+      xhr.respond(201,
+                  {'Content-Type': 'application/json'},
+                  JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+    });
+
+    memoryStore.patchRecord({__id: record.__id, name: 'Beatrice', gender: 'f'});
   });
 
   localStore.on('didInsertRecord', function(data, record) {
     equal(localStore.length, 1, 'local store - inserted - should contain one record');
+  });
+
+  restStore.on('didInsertRecord', function(data, record) {
+    ok(record.__id,                'rest store - inserted - orbit id should be defined');
+    equal(record.id, 12345,        'rest store - inserted - server id should be defined');
+    equal(record.name, 'Hubert',   'rest store - inserted - name should be original');
+    equal(record.gender, 'm',      'rest store - inserted - gender should be original');
   });
 
   localStore.on('didPatchRecord', function(data, record) {
@@ -175,14 +188,14 @@ test("records patched in memory should be patched with rest", function() {
     } else if (localStorePatchCount === 2) {
       equal(record.id, 12345, 'local store - patch 2 - server id should be defined now');
       verifyLocalStorageContainsRecord(localStore.namespace, record, ['__ver']);
-    }
-  });
 
-  restStore.on('didInsertRecord', function(data, record) {
-    ok(record.__id,                'rest store - inserted - orbit id should be defined');
-    equal(record.id, 12345,        'rest store - inserted - server id should be defined');
-    equal(record.name, 'Hubert',   'rest store - inserted - name should be original');
-    equal(record.gender, 'm',      'rest store - inserted - gender should be original');
+      server.respond('PATCH', '/dogs/12345', function(xhr) {
+        deepEqual(JSON.parse(xhr.requestBody), {name: 'Beatrice', gender: 'f'}, 'PATCH request');
+        xhr.respond(200,
+                    {'Content-Type': 'application/json'},
+                    JSON.stringify({id: 12345, name: 'Beatrice', gender: 'f'}));
+      });
+    }
   });
 
   restStore.on('didPatchRecord', function(data, record) {
@@ -192,34 +205,35 @@ test("records patched in memory should be patched with rest", function() {
     equal(record.name, 'Beatrice', 'rest store - patched - name should be updated');
     equal(record.gender, 'f',      'rest store - patched - gender should be updated');
   });
-
-  stop();
-  memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(record) {
-    equal(memoryStore.length, 1, 'memory store - inserted - should contain one record');
-    ok(record.__id,              'memory store - inserted - orbit id should be defined');
-    equal(record.id, undefined,  'memory store - inserted - server id should NOT be defined yet');
-    equal(record.name, 'Hubert', 'memory store - inserted - name should match');
-    equal(record.gender, 'm',    'memory store - inserted - gender should match');
-
-    memoryStore.patchRecord({__id: record.__id, name: 'Beatrice', gender: 'f'});
-  });
 });
 
 test("records deleted in memory should be deleted with rest", function() {
   expect(10);
 
-  server.respondWith('POST', '/dogs', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
-    xhr.respond(201,
-                {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+  stop();
+  memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
+    equal(memoryStore.length, 1, 'memory store - inserted - should contain one record');
+
+    server.respond('POST', '/dogs', function(xhr) {
+      deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
+      xhr.respond(201,
+                  {'Content-Type': 'application/json'},
+                  JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+    });
+
+    return memoryStore.destroyRecord({__id: dog.__id});
+
+  }).then(function() {
+    server.respond('DELETE', '/dogs/12345', function(xhr) {
+      deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
+      xhr.respond(200,
+                  {'Content-Type': 'application/json'},
+                  JSON.stringify({}));
+    });
   });
 
-  server.respondWith('DELETE', '/dogs/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
-    xhr.respond(200,
-                {'Content-Type': 'application/json'},
-                JSON.stringify({}));
+  restStore.on('didInsertRecord', function(data, record) {
+    ok(true, 'rest store - record inserted');
   });
 
   memoryStore.on('didDestroyRecord', function(data, record) {
@@ -232,20 +246,9 @@ test("records deleted in memory should be deleted with rest", function() {
     verifyLocalStorageContainsRecord(localStore.namespace, record);
   });
 
-  restStore.on('didInsertRecord', function(data, record) {
-    ok(true, 'rest store - record inserted');
-  });
-
   restStore.on('didDestroyRecord', function(data, record) {
     start();
     equal(record.id, 12345, 'rest store - deleted - server id should be defined');
     ok(record.deleted,      'rest store - deleted - record marked as deleted');
-  });
-
-  stop();
-  memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    equal(memoryStore.length, 1, 'memory store - inserted - should contain one record');
-
-    memoryStore.destroyRecord({__id: dog.__id});
   });
 });
