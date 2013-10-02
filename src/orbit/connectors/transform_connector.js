@@ -70,101 +70,128 @@ TransformConnector.prototype = {
   // Internals
   /////////////////////////////////////////////////////////////////////////////
 
+  _processTransform: function(transformType, data, record) {
+    // console.log('processTransform', transformType, this.target, record);
+    if (this.activeTransform || this._queueEnabled) {
+      this._enqueueTransform(transformType, data, record);
+
+    } else {
+      var promise = this._handleTransform(transformType, data, record);
+      if (promise) {
+        if (this.async) {
+          this._resolveTransform(promise);
+        } else {
+          return promise;
+        }
+      }
+    }
+  },
+
+  _enqueueTransform: function(transformType, data, record) {
+    // console.log('_enqueueTransform', transformType, this.target, record);
+    this.queue.push({
+      transformType: transformType,
+      data: data,
+      record: record
+    });
+  },
+
+  _dequeueTransform: function() {
+    // console.log('_dequeueTransform');
+    var transform = this.queue.shift();
+    if (transform) {
+      // console.log('_dequeueTransform', transform);
+      this._processTransform(transform.transformType, transform.data, transform.record);
+    }
+  },
+
+  _resolveTransform: function(transform) {
+    var _this = this;
+    this.activeTransform = transform;
+    transform.then(
+      function() {
+        _this.activeTransform = null;
+        if (!_this._queueEnabled) {
+          _this._dequeueTransform();
+        }
+      }
+    );
+  },
+
+  _handleTransform: function(transformType, data, record) {
+    return this['_handle' + Orbit.capitalize(transformType)].call(this, data, record);
+  },
+
   _onInsert: function(data, record) {
-    // TODO - queue if needed
-    return this._handleInsert(data, record);
+    return this._processTransform('insert', data, record);
   },
 
   _onUpdate: function(data, record) {
-    // TODO - queue if needed
-    return this._handleUpdate(data, record);
+    return this._processTransform('update', data, record);
   },
 
   _onPatch: function(data, record) {
-    // TODO - queue if needed
-    return this._handlePatch(data, record);
+    return this._processTransform('patch', data, record);
   },
 
   _onDestroy: function(data, record) {
-    // TODO - queue if needed
-    return this._handleDestroy(data, record);
+    return this._processTransform('destroy', data, record);
   },
 
   _handleInsert: function(data, record) {
-    var promise,
-        targetRecord = this._targetRecord(record);
+    var targetRecord = this._targetRecord(record);
 
     if (targetRecord) {
       if (!targetRecord.deleted) {
-        promise = this.resolveConflicts('insert', data, targetRecord, record);
-        if (promise === undefined) {
-          promise = this._patchTargetRecord(targetRecord, record);
-        }
+        return this.resolveConflicts('insert', data, targetRecord, record) ||
+               this._patchTargetRecord(targetRecord, record);
       }
     } else {
-      promise = this.target.insertRecord(Orbit.clone(record));
+      return this.target.insertRecord(Orbit.clone(record));
     }
-
-    if (!this.async) return promise;
   },
 
   _handleUpdate: function(data, record) {
-    var promise,
-        targetRecord = this._targetRecord(record);
+    var targetRecord = this._targetRecord(record);
 
     if (targetRecord) {
       if (!targetRecord.deleted) {
-        promise = this.resolveConflicts('update', data, targetRecord, record);
-        if (promise === undefined) {
-          promise = this._patchTargetRecord(targetRecord, record);
-        }
+        return this.resolveConflicts('update', data, targetRecord, record) ||
+               this._patchTargetRecord(targetRecord, record);
       }
     } else {
-      promise = this.target.updateRecord(Orbit.clone(record));
+      return this.target.updateRecord(Orbit.clone(record));
     }
-
-    if (!this.async) return promise;
   },
 
   _handlePatch: function(data, record) {
-    var promise,
-        targetRecord = this._targetRecord(record);
+    var targetRecord = this._targetRecord(record);
 
     if (targetRecord) {
       if (!targetRecord.deleted) {
-        promise = this.resolveConflicts('patch', data, targetRecord, record);
-        if (promise === undefined) {
-          promise = this._patchTargetRecord(targetRecord, record);
-        }
+        return this.resolveConflicts('patch', data, targetRecord, record) ||
+               this._patchTargetRecord(targetRecord, record);
       }
     } else {
-      promise = this.target.patchRecord(Orbit.clone(record));
+      return this.target.patchRecord(Orbit.clone(record));
     }
-
-    if (!this.async) return promise;
   },
 
   _handleDestroy: function(data, record) {
-    var _this = this,
-        promise,
-        targetRecord = this._targetRecord(record);
+    var targetRecord = this._targetRecord(record);
 
     if (targetRecord) {
       if (!targetRecord.deleted) {
-        promise = this.resolveConflicts('destroy', data, targetRecord, record);
-        if (promise === undefined) {
-          promise = this.target.destroyRecord(Orbit.clone(record));
-        }
+        return this.resolveConflicts('destroy', data, targetRecord, record) ||
+               this.target.destroyRecord(Orbit.clone(record));
       }
     } else {
-      promise = this.target.destroyRecord(Orbit.clone(record));
+      return this.target.destroyRecord(Orbit.clone(record));
     }
-
-    if (!this.async) return promise;
   },
 
   _targetRecord: function(record) {
-    if (this.target.retrieve) {
+    if (this.target.retrieve && record) {
       return this.target.retrieve(record);
     }
   },

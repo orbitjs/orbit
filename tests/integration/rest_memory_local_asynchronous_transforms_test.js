@@ -206,7 +206,7 @@ test("records patched in memory should be patched with rest", function() {
 });
 
 test("records deleted in memory should be deleted with rest", function() {
-  expect(11);
+  expect(10);
 
   server.respondWith('POST', '/dogs', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
@@ -236,17 +236,10 @@ test("records deleted in memory should be deleted with rest", function() {
     ok(true, 'rest store - record inserted');
   });
 
-  var restDestroyCount = 0;
   restStore.on('didDestroyRecord', function(data, record) {
-    restDestroyCount++;
-    console.log('rest store - record deleted', restDestroyCount);
-    if (restDestroyCount === 1) {
-      equal(record.id, undefined,  'rest store - deleted - server id should NOT be defined yet (because record hasn\'t POSTed yet)');
-    } else if (restDestroyCount === 2) {
-      start();
-      equal(record.id, 12345,      'rest store - deleted - server id should be defined');
-      ok(record.deleted,           'rest store - deleted - record marked as deleted');
-    }
+    start();
+    equal(record.id, 12345, 'rest store - deleted - server id should be defined');
+    ok(record.deleted,      'rest store - deleted - record marked as deleted');
   });
 
   stop();

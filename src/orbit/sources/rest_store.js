@@ -55,7 +55,9 @@ RestStore.prototype = {
   _updateRecord: function(data) {
     var _this = this,
         orbitId = data[Orbit.idField],
-        id = data[this.idField] || this.retrieve(orbitId)[this.idField];
+        id = this._lookupId(data);
+
+    if (!id) throw new Orbit.NotFoundException(data);
 
     return this.ajax(this.buildURL(id), 'PUT', {data: this.serialize(data)}).then(
       function(raw) {
@@ -70,7 +72,9 @@ RestStore.prototype = {
   _patchRecord: function(data) {
     var _this = this,
         orbitId = data[Orbit.idField],
-        id = data[this.idField] || this.retrieve(orbitId)[this.idField];
+        id = this._lookupId(data);
+
+    if (!id) throw new Orbit.NotFoundException(data);
 
     // no need to transmit `id` along with a patched record
     delete data[this.idField];
@@ -88,21 +92,9 @@ RestStore.prototype = {
   _destroyRecord: function(data) {
     var _this = this,
         orbitId = data[Orbit.idField],
-        id = data[this.idField];
+        id = this._lookupId(data);
 
-    if (id === undefined) {
-      var record = this.retrieve(orbitId);
-      if (record) {
-        id = record[this.idField];
-      } else {
-        return new Orbit.Promise(function(resolve, reject) {
-          // Mark record as deleted, even if it hasn't been inserted yet
-          record = {deleted: true};
-          _this._addToCache(record, orbitId);
-          resolve(record);
-        });
-      }
-    }
+    if (!id) throw new Orbit.NotFoundException(data);
 
     return this.ajax(this.buildURL(id), 'DELETE').then(
       function() {
@@ -158,6 +150,17 @@ RestStore.prototype = {
   /////////////////////////////////////////////////////////////////////////////
   // Internals
   /////////////////////////////////////////////////////////////////////////////
+
+  _lookupId: function(data) {
+    var id = data[this.idField];
+    if (!id) {
+      var record = this.retrieve(data);
+      if (record) {
+        id = record[this.idField];
+      }
+    }
+    return id;
+  },
 
   _addToCache: function(record, orbitId) {
     if (orbitId === undefined) {
