@@ -3,13 +3,6 @@
 Orbit.js is a low level library for keeping data sources coordinated and
 synchronized.
 
-## Dependencies
-
-Orbit.js has no specific external dependencies, but must be used with a
-library that implements the
-[Promises/A+](http://promises-aplus.github.io/promises-spec/)
-spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
-
 ## Goals
 
 * Support any number of different data sources in an application and
@@ -26,6 +19,13 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
 * Allow for synchronous and asynchronous requests and transformations.
 
 * Work with plain JavaScript objects.
+
+## Dependencies
+
+Orbit.js has no specific external dependencies, but must be used with a
+library that implements the
+[Promises/A+](http://promises-aplus.github.io/promises-spec/)
+spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
 
 ## Simple Example
 
@@ -70,7 +70,7 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
 
 In this example, we're creating three separate stores and connecting them
 *synchronously*. Next, we're creating a record in the memory store,
-which will automatically be duplicated in both the REST store and local storage.
+which is automatically duplicated in both the REST store and local storage.
 
 Note that we could also connect the stores *asynchronously* by adding an
 `async` option to our connectors:
@@ -231,6 +231,12 @@ so that they can all stay synchronized. That's where the `Transformable`
 interace comes in...
 
 COMING SOON!
+
+## Connectors
+
+### TransformConnector
+
+TODO
 
 ## Notifications and Events
 
