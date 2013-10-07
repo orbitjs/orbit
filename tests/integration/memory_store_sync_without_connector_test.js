@@ -14,10 +14,10 @@ module("Integration - MemoryStore Sync without Connector", {
     primaryStore = new MemoryStore();
     backupStore = new MemoryStore();
 
-    primaryStore.on('didInsertRecord',  function(data, record) { backupStore.insertRecord(record); });
-    primaryStore.on('didUpdateRecord',  function(data, record) { backupStore.updateRecord(record); });
-    primaryStore.on('didPatchRecord',   function(data, record) { backupStore.patchRecord(record); });
-    primaryStore.on('didDestroyRecord', function(data, record) { backupStore.destroyRecord(record); });
+    primaryStore.on('didInsertRecord',  function(type, data, record) { backupStore.insertRecord(type, record); });
+    primaryStore.on('didUpdateRecord',  function(type, data, record) { backupStore.updateRecord(type, record); });
+    primaryStore.on('didPatchRecord',   function(type, data, record) { backupStore.patchRecord(type, record); });
+    primaryStore.on('didDestroyRecord', function(type, data, record) { backupStore.destroyRecord(type, record); });
   },
 
   teardown: function() {
@@ -29,32 +29,32 @@ test("both sources exist and are empty", function() {
   ok(primaryStore);
   ok(backupStore);
 
-  equal(primaryStore.length, 0, 'store should be empty');
-  equal(backupStore.length, 0, 'store should be empty');
+  equal(primaryStore.length('planet'), 0, 'store should be empty');
+  equal(backupStore.length('planet'), 0, 'store should be empty');
 });
 
 test("records inserted into the primary store should be automatically copied to the backup store", function() {
   expect(9);
 
-  var originalDog;
+  var originalPlanet;
 
   stop();
-  primaryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    originalDog = dog;
+  primaryStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    originalPlanet = planet;
 
-    equal(primaryStore.length, 1, 'primary store should contain one record');
-    equal(backupStore.length, 1, 'backup store should contain one record');
+    equal(primaryStore.length('planet'), 1, 'primary store should contain one record');
+    equal(backupStore.length('planet'), 1, 'backup store should contain one record');
 
-    ok(dog.__id, 'primary id should be defined');
-    equal(dog.name, 'Hubert', 'name should match');
-    equal(dog.gender, 'm', 'gender should match');
+    ok(planet.__id, 'primary id should be defined');
+    equal(planet.name, 'Jupiter', 'name should match');
+    equal(planet.classification, 'gas giant', 'classification should match');
 
-    backupStore.find(dog.__id).then(function(backupDog) {
+    backupStore.find('planet', planet.__id).then(function(backupPlanet) {
       start();
-      notStrictEqual(backupDog, originalDog, 'not the same object as the one originally inserted');
-      equal(backupDog.__id, dog.__id, 'backup record has the same primary id');
-      equal(backupDog.name, 'Hubert', 'backup record has the same name');
-      equal(backupDog.gender, 'm',    'backup record has the same gender');
+      notStrictEqual(backupPlanet, originalPlanet, 'not the same object as the one originally inserted');
+      equal(backupPlanet.__id, planet.__id, 'backup record has the same primary id');
+      equal(backupPlanet.name, 'Jupiter', 'backup record has the same name');
+      equal(backupPlanet.classification, 'gas giant',    'backup record has the same classification');
     });
   });
 });
@@ -62,24 +62,24 @@ test("records inserted into the primary store should be automatically copied to 
 test("updates to records in the primary store should be automatically copied to the backup store", function() {
   expect(7);
 
-  var originalDog;
+  var originalPlanet;
 
   stop();
-  primaryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    originalDog = dog;
+  primaryStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    originalPlanet = planet;
 
-    primaryStore.updateRecord({__id: dog.__id, name: 'Beatrice', gender: 'f'}).then(function(updatedDog) {
-      equal(updatedDog.__id, dog.__id, 'primary id remains the same');
-      equal(updatedDog.name, 'Beatrice', 'name has been updated');
-      equal(updatedDog.gender, 'f', 'gender has been updated');
+    primaryStore.updateRecord('planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
+      equal(updatedPlanet.__id, planet.__id, 'primary id remains the same');
+      equal(updatedPlanet.name, 'Earth', 'name has been updated');
+      equal(updatedPlanet.classification, 'terrestrial', 'classification has been updated');
 
     }).then(function() {
-      backupStore.find(dog.__id).then(function(backupDog) {
+      backupStore.find('planet', planet.__id).then(function(backupPlanet) {
         start();
-        notStrictEqual(backupDog, originalDog, 'not the same object as the one originally inserted');
-        equal(backupDog.__id, dog.__id, 'backup record has the same primary id');
-        equal(backupDog.name, 'Beatrice', 'backup record has updated name');
-        equal(backupDog.gender, 'f',      'backup record has udpated gender');
+        notStrictEqual(backupPlanet, originalPlanet, 'not the same object as the one originally inserted');
+        equal(backupPlanet.__id, planet.__id, 'backup record has the same primary id');
+        equal(backupPlanet.name, 'Earth', 'backup record has updated name');
+        equal(backupPlanet.classification, 'terrestrial',      'backup record has udpated classification');
       });
     });
   });
@@ -88,24 +88,24 @@ test("updates to records in the primary store should be automatically copied to 
 test("patches to records in the primary store should be automatically copied to the backup store", function() {
   expect(7);
 
-  var originalDog;
+  var originalPlanet;
 
   stop();
-  primaryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    originalDog = dog;
+  primaryStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    originalPlanet = planet;
 
-    primaryStore.patchRecord({__id: dog.__id, name: 'Beatrice'}).then(function(updatedDog) {
-      equal(updatedDog.__id, dog.__id, 'primary id remains the same');
-      equal(updatedDog.name, 'Beatrice', 'name has been updated');
-      equal(updatedDog.gender, 'm', 'gender has not been updated');
+    primaryStore.patchRecord('planet', {__id: planet.__id, name: 'Earth'}).then(function(updatedPlanet) {
+      equal(updatedPlanet.__id, planet.__id, 'primary id remains the same');
+      equal(updatedPlanet.name, 'Earth', 'name has been updated');
+      equal(updatedPlanet.classification, 'gas giant', 'classification has not been updated');
 
     }).then(function() {
-      backupStore.find(dog.__id).then(function(backupDog) {
+      backupStore.find('planet', planet.__id).then(function(backupPlanet) {
         start();
-        notStrictEqual(backupDog, originalDog, 'not the same object as the one originally inserted');
-        equal(backupDog.__id, dog.__id, 'backup record has the same primary id');
-        equal(backupDog.name, 'Beatrice', 'backup record has updated name');
-        equal(backupDog.gender, 'm',      'backup record has not udpated gender');
+        notStrictEqual(backupPlanet, originalPlanet, 'not the same object as the one originally inserted');
+        equal(backupPlanet.__id, planet.__id, 'backup record has the same primary id');
+        equal(backupPlanet.name, 'Earth', 'backup record has updated name');
+        equal(backupPlanet.classification, 'gas giant',      'backup record has not udpated classification');
       });
     });
   });
@@ -114,18 +114,18 @@ test("patches to records in the primary store should be automatically copied to 
 test("records destroyed in the primary store should be automatically destroyed in the backup store", function() {
   expect(6);
 
-  equal(primaryStore.length, 0, 'primary store should be empty');
-  equal(backupStore.length, 0, 'backup store should be empty');
+  equal(primaryStore.length('planet'), 0, 'primary store should be empty');
+  equal(backupStore.length('planet'), 0, 'backup store should be empty');
 
   stop();
-  primaryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    equal(primaryStore.length, 1, 'primary store should contain one record');
-    equal(backupStore.length, 1, 'backup store should contain one record');
+  primaryStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    equal(primaryStore.length('planet'), 1, 'primary store should contain one record');
+    equal(backupStore.length('planet'), 1, 'backup store should contain one record');
 
-    primaryStore.destroyRecord(dog.__id).then(function() {
+    primaryStore.destroyRecord('planet', planet.__id).then(function() {
       start();
-      equal(primaryStore.length, 0, 'primary store should be empty');
-      equal(backupStore.length, 0, 'backup store should be empty');
+      equal(primaryStore.length('planet'), 0, 'primary store should be empty');
+      equal(backupStore.length('planet'), 0, 'backup store should be empty');
     });
   });
 });

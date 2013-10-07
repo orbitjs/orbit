@@ -44,28 +44,28 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
   restToMemConnector = new TransformConnector(restStore, memoryStore);
 
   // Create a record
-  memoryStore.create({name: 'Dan', gender: 'm'}).then(function(person) {
-    console.log('memoryStore - RESOLVED', person.name);
+  memoryStore.create('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    console.log('memoryStore - RESOLVED', planet.name);
   });
 
   // Log the transforms
-  memoryStore.on('didInsertRecord', function(data, person) {
-    console.log('restStore - inserted', person.name);
+  memoryStore.on('didInsertRecord', function(type, data, planet) {
+    console.log('restStore - inserted', planet.name);
   });
 
-  localStore.on('didInsertRecord', function(data, person) {
-    console.log('localStore - inserted', person.name);
+  localStore.on('didInsertRecord', function(type, data, planet) {
+    console.log('localStore - inserted', planet.name);
   });
 
-  restStore.on('didInsertRecord', function(data, person) {
-    console.log('restStore - inserted', person.name);
+  restStore.on('didInsertRecord', function(type, data, planet) {
+    console.log('restStore - inserted', planet.name);
   });
 
   // CONSOLE OUTPUT
-  // memoryStore - inserted Dan
-  // localStore  - inserted Dan
-  // restStore - inserted Dan
-  // memoryStore - RESOLVED Dan
+  // memoryStore - inserted Jupiter
+  // localStore  - inserted Jupiter
+  // restStore - inserted Jupiter
+  // memoryStore - RESOLVED Jupiter
 ```
 
 In this example, we're creating three separate stores and connecting them

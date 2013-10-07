@@ -17,7 +17,6 @@ module("Unit - RestStore", {
     server.autoRespond = true;
 
     store = new RestStore();
-    store.namespace = 'dogs';
   },
 
   teardown: function() {
@@ -34,67 +33,67 @@ test("it exists", function() {
 test("it can insert records", function() {
   expect(5);
 
-  server.respondWith('POST', '/dogs', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
+  server.respondWith('POST', '/planets', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
   });
 
   stop();
-  store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
+  store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
-    ok(dog.__id, 'orbit id should be defined');
-    equal(dog.id, 12345, 'server id should be defined');
-    equal(dog.name, 'Hubert', 'name should match');
-    equal(dog.gender, 'm', 'gender should match');
+    ok(planet.__id, 'orbit id should be defined');
+    equal(planet.id, 12345, 'server id should be defined');
+    equal(planet.name, 'Jupiter', 'name should match');
+    equal(planet.classification, 'gas giant', 'classification should match');
   });
 });
 
 test("it can update records", function() {
   expect(5);
 
-  server.respondWith('PUT', '/dogs/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {id: 12345, name: 'Hubert', gender: 'm'}, 'PUT request');
+  server.respondWith('PUT', '/planets/12345', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {id: 12345, name: 'Jupiter', classification: 'gas giant'}, 'PUT request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
   });
 
   stop();
-  store.updateRecord({id: 12345, name: 'Hubert', gender: 'm'}).then(function(dog) {
+  store.updateRecord('planet', {id: 12345, name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
-    ok(dog.__id, 'orbit id should be defined');
-    equal(dog.id, 12345, 'server id should be defined');
-    equal(dog.name, 'Hubert', 'name should match');
-    equal(dog.gender, 'm', 'gender should match');
+    ok(planet.__id, 'orbit id should be defined');
+    equal(planet.id, 12345, 'server id should be defined');
+    equal(planet.name, 'Jupiter', 'name should match');
+    equal(planet.classification, 'gas giant', 'classification should match');
   });
 });
 
 test("it can patch records", function() {
   expect(5);
 
-  server.respondWith('PATCH', '/dogs/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {gender: 'm'}, 'PATCH request');
+  server.respondWith('PATCH', '/planets/12345', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {classification: 'gas giant'}, 'PATCH request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
   });
 
   stop();
-  store.patchRecord({id: 12345, gender: 'm'}).then(function(dog) {
+  store.patchRecord('planet', {id: 12345, classification: 'gas giant'}).then(function(planet) {
     start();
-    ok(dog.__id, 'orbit id should be defined');
-    equal(dog.id, 12345, 'server id should be defined');
-    equal(dog.name, 'Hubert', 'name should match');
-    equal(dog.gender, 'm', 'gender should match');
+    ok(planet.__id, 'orbit id should be defined');
+    equal(planet.id, 12345, 'server id should be defined');
+    equal(planet.name, 'Jupiter', 'name should match');
+    equal(planet.classification, 'gas giant', 'classification should match');
   });
 });
 
 test("it can delete records", function() {
   expect(2);
 
-  server.respondWith('DELETE', '/dogs/12345', function(xhr) {
+  server.respondWith('DELETE', '/planets/12345', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
@@ -102,7 +101,7 @@ test("it can delete records", function() {
   });
 
   stop();
-  store.destroyRecord({id: 12345}).then(function() {
+  store.destroyRecord('planet', {id: 12345}).then(function() {
     start();
     ok(true, 'record deleted');
   });
@@ -111,18 +110,18 @@ test("it can delete records", function() {
 test("it can find individual records", function() {
   expect(1);
 
-  var response = {id: 12345, name: 'Hubert', gender: 'm'};
+  var response = {id: 12345, name: 'Jupiter', classification: 'gas giant'};
 
-  server.respondWith('GET', '/dogs/12345', function(xhr) {
+  server.respondWith('GET', '/planets/12345', function(xhr) {
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
                 JSON.stringify(response));
   });
 
   stop();
-  store.find(12345).then(function(dog) {
+  store.find('planet', 12345).then(function(planet) {
     start();
-    deepEqual(dog, response, 'data matches response');
+    deepEqual(planet, response, 'data matches response');
   });
 });
 
@@ -130,19 +129,19 @@ test("it can find all records", function() {
   expect(1);
 
   var response = [
-    {id: 12345, name: 'Hubert', gender: 'm'},
-    {id: 12346, name: 'Beatrice', gender: 'f'}
+    {id: 12345, name: 'Jupiter', classification: 'gas giant'},
+    {id: 12346, name: 'Earth', classification: 'terrestrial'}
   ];
 
-  server.respondWith('GET', '/dogs', function(xhr) {
+  server.respondWith('GET', '/planets', function(xhr) {
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
                 JSON.stringify(response));
   });
 
   stop();
-  store.find().then(function(dogs) {
+  store.find('planet').then(function(planets) {
     start();
-    deepEqual(dogs, response, 'data matches response');
+    deepEqual(planets, response, 'data matches response');
   });
 });

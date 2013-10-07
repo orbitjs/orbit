@@ -26,21 +26,21 @@ test("it exists", function() {
 test("#insertRecord - can insert records and assign ids", function() {
   expect(7);
 
-  equal(store.length, 0, 'store should be empty');
+  equal(store.length('planet'), 0, 'store should be empty');
 
   stop();
-  store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    equal(store.length, 1, 'store should contain one record');
-    ok(dog.__id, 'id should be defined');
-    equal(dog.name, 'Hubert', 'name should match');
-    equal(dog.gender, 'm', 'gender should match');
-    return dog;
+  store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    equal(store.length('planet'), 1, 'store should contain one record');
+    ok(planet.__id, 'id should be defined');
+    equal(planet.name, 'Jupiter', 'name should match');
+    equal(planet.classification, 'gas giant', 'classification should match');
+    return planet;
 
-  }).then(function(dog) {
-    verifyLocalStorageContainsRecord(store.namespace, dog);
-    store.find(dog.id).then(function(foundDog) {
+  }).then(function(planet) {
+    verifyLocalStorageContainsRecord(store.namespace, 'planet', planet);
+    store.find('planet', planet.id).then(function(foundPlanet) {
       start();
-      equal(foundDog.id, dog.id, 'record can be looked up by id');
+      equal(foundPlanet.id, planet.id, 'record can be looked up by id');
     });
   });
 });
@@ -48,29 +48,29 @@ test("#insertRecord - can insert records and assign ids", function() {
 test("#updateRecord - can update records", function() {
   expect(9);
 
-  equal(store.length, 0, 'store should be empty');
+  equal(store.length('planet'), 0, 'store should be empty');
 
   var original;
 
   stop();
-  store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    original = dog;
-    return store.updateRecord({__id: dog.__id, name: 'Beatrice', gender: 'f'}).then(function(updatedDog) {
-      equal(updatedDog.__id, dog.__id, '__id remains the same');
-      equal(updatedDog.name, 'Beatrice', 'name has been updated');
-      equal(updatedDog.gender, 'f', 'gender has been updated');
-      return dog;
+  store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    original = planet;
+    return store.updateRecord('planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
+      equal(updatedPlanet.__id, planet.__id, '__id remains the same');
+      equal(updatedPlanet.name, 'Earth', 'name has been updated');
+      equal(updatedPlanet.classification, 'terrestrial', 'classification has been updated');
+      return planet;
     });
 
-  }).then(function(dog) {
-    verifyLocalStorageContainsRecord(store.namespace, dog);
-    store.find(dog.__id).then(function(foundDog) {
+  }).then(function(planet) {
+    verifyLocalStorageContainsRecord(store.namespace, 'planet', planet);
+    store.find('planet', planet.__id).then(function(foundPlanet) {
       start();
-      strictEqual(foundDog, original, 'still the same object as the one originally inserted');
-      equal(foundDog.__id, dog.__id, 'record can be looked up by __id');
-      equal(foundDog.name, 'Beatrice', 'name has been updated');
-      equal(foundDog.gender, 'f', 'gender has been updated');
-      return dog;
+      strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
+      equal(foundPlanet.__id, planet.__id, 'record can be looked up by __id');
+      equal(foundPlanet.name, 'Earth', 'name has been updated');
+      equal(foundPlanet.classification, 'terrestrial', 'classification has been updated');
+      return planet;
     });
   });
 });
@@ -78,32 +78,32 @@ test("#updateRecord - can update records", function() {
 test("#patchRecord - can patch records", function() {
   expect(9);
 
-  equal(store.length, 0, 'store should be empty');
+  equal(store.length('planet'), 0, 'store should be empty');
 
   var original;
 
   stop();
-  store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    original = dog;
-    return dog;
+  store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    original = planet;
+    return planet;
 
-  }).then(function(dog) {
-    return store.patchRecord({__id: dog.__id, name: 'Beatrice'}).then(function(updatedDog) {
-      equal(updatedDog.__id, dog.__id, '__id remains the same');
-      equal(updatedDog.name, 'Beatrice', 'name has been updated');
-      equal(updatedDog.gender, 'm', 'gender has not been updated');
-      return dog;
+  }).then(function(planet) {
+    return store.patchRecord('planet', {__id: planet.__id, name: 'Earth'}).then(function(updatedPlanet) {
+      equal(updatedPlanet.__id, planet.__id, '__id remains the same');
+      equal(updatedPlanet.name, 'Earth', 'name has been updated');
+      equal(updatedPlanet.classification, 'gas giant', 'classification has not been updated');
+      return planet;
     });
 
-  }).then(function(dog) {
-    verifyLocalStorageContainsRecord(store.namespace, dog);
-    store.find(dog.__id).then(function(foundDog) {
+  }).then(function(planet) {
+    verifyLocalStorageContainsRecord(store.namespace, 'planet', planet);
+    store.find('planet', planet.__id).then(function(foundPlanet) {
       start();
-      strictEqual(foundDog, original, 'still the same object as the one originally inserted');
-      equal(foundDog.__id, dog.__id, 'record can be looked up by __id');
-      equal(foundDog.name, 'Beatrice', 'name has been updated');
-      equal(foundDog.gender, 'm', 'gender has not been updated');
-      return dog;
+      strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
+      equal(foundPlanet.__id, planet.__id, 'record can be looked up by __id');
+      equal(foundPlanet.name, 'Earth', 'name has been updated');
+      equal(foundPlanet.classification, 'gas giant', 'classification has not been updated');
+      return planet;
     });
   });
 });
@@ -111,17 +111,17 @@ test("#patchRecord - can patch records", function() {
 test("#destroyRecord - can destroy records", function() {
   expect(5);
 
-  equal(store.length, 0, 'store should be empty');
+  equal(store.length('planet'), 0, 'store should be empty');
 
   stop();
-  store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    equal(store.length, 1, 'store should contain one record');
+  store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    equal(store.length('planet'), 1, 'store should contain one record');
 
-    store.destroyRecord({__id: dog.__id}).then(function(record) {
+    store.destroyRecord('planet', {__id: planet.__id}).then(function(record) {
       start();
-      equal(store.length, 0, 'store should be empty');
+      equal(store.length('planet'), 0, 'store should be empty');
       ok(record.deleted, 'record should be marked `deleted`');
-      verifyLocalStorageContainsRecord(store.namespace, record);
+      verifyLocalStorageContainsRecord(store.namespace, 'planet', record);
     });
   });
 });
@@ -129,19 +129,19 @@ test("#destroyRecord - can destroy records", function() {
 test("#find - can find all records", function() {
   expect(3);
 
-  equal(store.length, 0, 'store should be empty');
+  equal(store.length('planet'), 0, 'store should be empty');
 
   stop();
   RSVP.all([
-    store.insertRecord({name: 'Hubert', gender: 'm'}),
-    store.insertRecord({name: 'Beatrice', gender: 'f'}),
-    store.insertRecord({name: 'Winky', gender: 'm'})
+    store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}),
+    store.insertRecord('planet', {name: 'Earth', classification: 'terrestrial'}),
+    store.insertRecord('planet', {name: 'Saturn', classification: 'gas giant'})
   ]).then(function() {
-    equal(store.length, 3, 'store should contain 3 records');
+    equal(store.length('planet'), 3, 'store should contain 3 records');
 
-    store.find().then(function(dogs) {
+    store.find('planet').then(function(planets) {
       start();
-      equal(dogs.length, 3, 'find() should return all records');
+      equal(planets.length, 3, 'find() should return all records');
     });
   });
 });
@@ -149,12 +149,12 @@ test("#find - can find all records", function() {
 test("it can use a custom local storage namespace for storing data", function() {
   expect(1);
 
-  store.namespace = 'dogs';
+  store.namespace = 'planets';
 
   stop();
-  store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
+  store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
-    verifyLocalStorageContainsRecord(store.namespace, dog);
+    verifyLocalStorageContainsRecord(store.namespace, 'planet', planet);
   });
 });
 
@@ -163,16 +163,16 @@ test("autosave can be disabled to delay writing to local storage", function() {
 
   store.disableAutosave();
 
-  equal(store.length, 0, 'store should be empty');
+  equal(store.length('planet'), 0, 'store should be empty');
 
   stop();
-  store.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
+  store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
-    equal(store.length, 1, 'store should contain one record');
+    equal(store.length('planet'), 1, 'store should contain one record');
     verifyLocalStorageIsEmpty(store.namespace);
 
     store.enableAutosave();
-    verifyLocalStorageContainsRecord(store.namespace, dog);
+    verifyLocalStorageContainsRecord(store.namespace, 'planet', planet);
   });
 });
 

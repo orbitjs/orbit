@@ -38,7 +38,7 @@ test("#clone creates a deep clone of an object's own properties", function() {
   var obj = {
     a: 1,
     b: '2',
-    c: ["3", {d: "4", e: ["5", "6"]}, 7],
+    c: ['3', {d: '4', e: ['5', '6']}, 7],
     f: new Date(),
     g: /123/g
   };
@@ -52,38 +52,38 @@ test("#clone creates a deep clone of an object's own properties", function() {
 test("#delta creates a delta object when comparing two objects", function() {
   var a, b;
 
-  a = {name: "Hubert", gender: "m", __id: "1380308346603-1"};
-  b = {id: 12345, name: "Hubert", gender: "m", __id: "1380308346603-1"};
+  a = {name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
+  b = {id: 12345, name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
 
   deepEqual(Orbit.delta(a, b), {id: 12345});
 
-  a = {id: 12345, name: "Hubert", gender: "m", __id: "1380308346603-1"};
-  b = {name: "Hubert", gender: "m", __id: "1380308346603-1"};
+  a = {id: 12345, name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
+  b = {name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
 
   strictEqual(Orbit.delta(a, b), undefined, 'no positive delta to get from a -> b');
 
-  a = {name: "Hubert", gender: "m", __id: "1380308346603-1"};
-  b = {id: {a: '1', b: '2'}, name: "Hubert", gender: "m", __id: "1380308346603-1"};
+  a = {name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
+  b = {id: {a: '1', b: '2'}, name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
 
   deepEqual(Orbit.delta(a, b), {id: {a: '1', b: '2'}});
 
-  a = {id: {a: '1', b: '2'}, name: "Hubert", gender: "m", __id: "1380308346603-1"};
-  b = {id: {a: '1', b: '2'}, name: "Hubert", gender: "m", __id: "1380308346603-1"};
+  a = {id: {a: '1', b: '2'}, name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
+  b = {id: {a: '1', b: '2'}, name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
 
   deepEqual(Orbit.delta(a, b), undefined);
 
-  a = {id: {a: '1', b: '2'}, name: "Hubert", gender: "m", __id: "1380308346603-1"};
-  b = {id: {a: '1', b: '3'}, name: "Hubert", gender: "m", __id: "1380308346603-1"};
+  a = {id: {a: '1', b: '2'}, name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
+  b = {id: {a: '1', b: '3'}, name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
 
   deepEqual(Orbit.delta(a, b), {id: {a: '1', b: '3'}});
 
-  a = {id: {a: '1', b: '2'}, name: "Hubert", gender: "m", __id: "1380308346603-1"};
-  b = {id: {a: '1', b: '3'}, name: "Winky", gender: "m", __id: "1380308346603-1"};
+  a = {id: {a: '1', b: '2'}, name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
+  b = {id: {a: '1', b: '3'}, name: 'Saturn', classification: 'gas giant', __id: '1380308346603-1'};
 
-  deepEqual(Orbit.delta(a, b, ['id']), {name: "Winky"}, 'specified items are ignored in delta');
+  deepEqual(Orbit.delta(a, b, ['id']), {name: 'Saturn'}, 'specified items are ignored in delta');
 });
 
-test('#arrayToOptions converts an array to an options hash', function() {
+test("#arrayToOptions converts an array to an options hash", function() {
   deepEqual(Orbit.arrayToOptions(), {}, 'no args return empty hash');
   deepEqual(Orbit.arrayToOptions([]), {}, 'empty array returns empty hash');
   deepEqual(Orbit.arrayToOptions(['a', 'b']), {a: true, b: true}, 'items in array are converted to items in hash');

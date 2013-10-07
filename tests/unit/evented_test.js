@@ -204,26 +204,26 @@ test("it can poll listeners with an event and return all the responses in an arr
 test("it can poll listeners with multiple events and return all the responses in a single array", function() {
   expect(2);
 
-  var dog1 = function() {
-        return 'Winky';
+  var greeting1 = function() {
+        return 'Hello';
       },
-      dog2 = function() {
-        return 'Hubert';
+      greeting2 = function() {
+        return 'Bon jour';
       },
-      owner1 = function() {
-        return 'Cookie Fleck';
+      parting1 = function() {
+        return 'Goodbye';
       },
-      owner2 = function() {
-        return 'Harlan Pepper';
+      parting2 = function() {
+        return 'Au revoir';
       };
 
-  evented.on('dog', dog1);
-  evented.on('dog', dog2);
-  evented.on('owner', owner1);
-  evented.on('owner', owner2);
+  evented.on('greeting', greeting1);
+  evented.on('greeting', greeting2);
+  evented.on('parting', parting1);
+  evented.on('parting', parting2);
 
-  deepEqual(evented.poll('dog owner'), ['Winky', 'Hubert', 'Cookie Fleck', 'Harlan Pepper'], 'poll response should include the responses of all listeners in order');
-  deepEqual(evented.poll('owner dog'), ['Cookie Fleck', 'Harlan Pepper', 'Winky', 'Hubert'], 'poll response should include the responses of all listeners in order');
+  deepEqual(evented.poll('greeting parting'), ['Hello', 'Bon jour', 'Goodbye', 'Au revoir'], 'poll response should include the responses of all listeners in order');
+  deepEqual(evented.poll('parting greeting'), ['Goodbye', 'Au revoir', 'Hello', 'Bon jour'], 'poll response should include the responses of all listeners in order');
 });
 
 test("it can return all the listeners (and bindings) for an event", function() {
@@ -231,17 +231,17 @@ test("it can return all the listeners (and bindings) for an event", function() {
 
   var binding1 = {},
       binding2 = {},
-      dog1 = function() {
-        return 'Winky';
+      greeting1 = function() {
+        return 'Hello';
       },
-      dog2 = function() {
-        return 'Hubert';
+      greeting2 = function() {
+        return 'Bon jour';
       };
 
-  evented.on('dog', dog1, binding1);
-  evented.on('dog', dog2, binding2);
+  evented.on('greeting', greeting1, binding1);
+  evented.on('greeting', greeting2, binding2);
 
-  deepEqual(evented.listeners('dog'), [[dog1, binding1], [dog2, binding2]], 'listeners include nested arrays of functions and bindings');
+  deepEqual(evented.listeners('greeting'), [[greeting1, binding1], [greeting2, binding2]], 'listeners include nested arrays of functions and bindings');
 });
 
 test("it can return all the listeners (and bindings) for multiple events", function() {
@@ -249,25 +249,25 @@ test("it can return all the listeners (and bindings) for multiple events", funct
 
   var binding1 = {},
       binding2 = {},
-      dog1 = function() {
-        return 'Winky';
+      greeting1 = function() {
+        return 'Hello';
       },
-      dog2 = function() {
-        return 'Hubert';
+      greeting2 = function() {
+        return 'Bon jour';
       },
-      owner1 = function() {
-        return 'Cookie Fleck';
+      parting1 = function() {
+        return 'Goodbye';
       },
-      owner2 = function() {
-        return 'Harlan Pepper';
+      parting2 = function() {
+        return 'Au revoir';
       };
 
-  evented.on('dog', dog1, binding1);
-  evented.on('dog', dog2, binding2);
-  evented.on('owner', owner1, binding1);
-  evented.on('owner', owner2, binding2);
+  evented.on('greeting', greeting1, binding1);
+  evented.on('greeting', greeting2, binding2);
+  evented.on('parting', parting1, binding1);
+  evented.on('parting', parting2, binding2);
 
-  deepEqual(evented.listeners('dog owner'), [[dog1, binding1], [dog2, binding2], [owner1, binding1], [owner2, binding2]], 'listeners include nested arrays of functions and bindings');
+  deepEqual(evented.listeners('greeting parting'), [[greeting1, binding1], [greeting2, binding2], [parting1, binding1], [parting2, binding2]], 'listeners include nested arrays of functions and bindings');
 });
 
 test("it can fulfill promises returned by listeners to an event, in order, until one resolves", function() {

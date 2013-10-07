@@ -22,6 +22,7 @@ module("Integration - Rest / Memory / Local Synchronous Transforms", {
     server = window.sinon.fakeServer.create();
     server.autoRespond = true;
 
+    // Create stores
     memoryStore = new MemoryStore();
     restStore = new RestStore();
     localStore = new LocalStore();
@@ -32,9 +33,6 @@ module("Integration - Rest / Memory / Local Synchronous Transforms", {
     // Connect MemoryStore <-> RestStore
     memToRestConnector = new TransformConnector(memoryStore, restStore);
     restToMemConnector = new TransformConnector(restStore, memoryStore);
-
-    // Minimal RestStore config
-    restStore.namespace = 'dogs';
   },
 
   teardown: function() {
@@ -48,80 +46,80 @@ module("Integration - Rest / Memory / Local Synchronous Transforms", {
 test("records inserted into memory should be posted with rest", function() {
   expect(8);
 
-  server.respondWith('POST', '/dogs', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
+  server.respondWith('POST', '/planets', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
   });
 
   stop();
-  memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
+  memoryStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
-    equal(memoryStore.length, 1, 'memory store should contain one record');
-    ok(dog.__id, 'orbit id should be defined');
-    equal(dog.id, 12345, 'server id should be defined');
-    equal(dog.name, 'Hubert', 'name should match');
-    equal(dog.gender, 'm', 'gender should match');
+    equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
+    ok(planet.__id, 'orbit id should be defined');
+    equal(planet.id, 12345, 'server id should be defined');
+    equal(planet.name, 'Jupiter', 'name should match');
+    equal(planet.classification, 'gas giant', 'classification should match');
 
-    equal(localStore.length, 1, 'local store should contain one record');
-    verifyLocalStorageContainsRecord(localStore.namespace, dog, ['__ver']);
+    equal(localStore.length('planet'), 1, 'local store should contain one record');
+    verifyLocalStorageContainsRecord(localStore.namespace, 'planet', planet, ['__ver']);
   });
 });
 
 test("records posted with rest should be inserted into memory", function() {
   expect(8);
 
-  server.respondWith('POST', '/dogs', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
+  server.respondWith('POST', '/planets', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
   });
 
   stop();
-  restStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
+  restStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
-    equal(memoryStore.length, 1, 'memory store should contain one record');
-    ok(dog.__id, 'orbit id should be defined');
-    equal(dog.id, 12345, 'server id should be defined');
-    equal(dog.name, 'Hubert', 'name should match');
-    equal(dog.gender, 'm', 'gender should match');
+    equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
+    ok(planet.__id, 'orbit id should be defined');
+    equal(planet.id, 12345, 'server id should be defined');
+    equal(planet.name, 'Jupiter', 'name should match');
+    equal(planet.classification, 'gas giant', 'classification should match');
 
-    equal(localStore.length, 1, 'local store should contain one record');
-    verifyLocalStorageContainsRecord(localStore.namespace, dog, ['__ver']);
+    equal(localStore.length('planet'), 1, 'local store should contain one record');
+    verifyLocalStorageContainsRecord(localStore.namespace, 'planet', planet, ['__ver']);
   });
 });
 
 test("records updated in memory should be updated with rest (via PATCH)", function() {
   expect(9);
 
-  server.respondWith('POST', '/dogs', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
+  server.respondWith('POST', '/planets', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
   });
-  server.respondWith('PATCH', '/dogs/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Beatrice', gender: 'f'}, 'PATCH request');
+  server.respondWith('PATCH', '/planets/12345', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {name: 'Earth', classification: 'terrestrial'}, 'PATCH request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Beatrice', gender: 'f'}));
+                JSON.stringify({id: 12345, name: 'Earth', classification: 'terrestrial'}));
   });
 
   stop();
-  memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    memoryStore.updateRecord({__id: dog.__id, name: 'Beatrice', gender: 'f'}).then(
-      function(dog) {
+  memoryStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    memoryStore.updateRecord('planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(
+      function(planet) {
         start();
-        equal(memoryStore.length, 1, 'memory store should contain one record');
-        ok(dog.__id, 'orbit id should be defined');
-        equal(dog.id, 12345, 'server id should be defined');
-        equal(dog.name, 'Beatrice', 'name should match');
-        equal(dog.gender, 'f', 'gender should match');
+        equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
+        ok(planet.__id, 'orbit id should be defined');
+        equal(planet.id, 12345, 'server id should be defined');
+        equal(planet.name, 'Earth', 'name should match');
+        equal(planet.classification, 'terrestrial', 'classification should match');
 
-        equal(localStore.length, 1, 'local store should contain one record');
-        verifyLocalStorageContainsRecord(localStore.namespace, dog, ['__ver']);
+        equal(localStore.length('planet'), 1, 'local store should contain one record');
+        verifyLocalStorageContainsRecord(localStore.namespace, 'planet', planet, ['__ver']);
       }
     );
   });
@@ -130,32 +128,32 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
 test("records updated with rest should be updated in memory", function() {
   expect(9);
 
-  server.respondWith('POST', '/dogs', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
+  server.respondWith('POST', '/planets', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
   });
-  server.respondWith('PUT', '/dogs/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {id: 12345, name: 'Beatrice', gender: 'f'}, 'PUT request');
+  server.respondWith('PUT', '/planets/12345', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {id: 12345, name: 'Earth', classification: 'terrestrial'}, 'PUT request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Beatrice', gender: 'f'}));
+                JSON.stringify({id: 12345, name: 'Earth', classification: 'terrestrial'}));
   });
 
   stop();
-  restStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    restStore.updateRecord({__id: dog.__id, id: dog.id, name: 'Beatrice', gender: 'f'}).then(
-      function(dog) {
+  restStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    restStore.updateRecord('planet', {__id: planet.__id, id: planet.id, name: 'Earth', classification: 'terrestrial'}).then(
+      function(planet) {
         start();
-        equal(memoryStore.length, 1, 'memory store should contain one record');
-        ok(dog.__id, 'orbit id should be defined');
-        equal(dog.id, 12345, 'server id should be defined');
-        equal(dog.name, 'Beatrice', 'name should match');
-        equal(dog.gender, 'f', 'gender should match');
+        equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
+        ok(planet.__id, 'orbit id should be defined');
+        equal(planet.id, 12345, 'server id should be defined');
+        equal(planet.name, 'Earth', 'name should match');
+        equal(planet.classification, 'terrestrial', 'classification should match');
 
-        equal(localStore.length, 1, 'local store should contain one record');
-        verifyLocalStorageContainsRecord(localStore.namespace, dog, ['__ver']);
+        equal(localStore.length('planet'), 1, 'local store should contain one record');
+        verifyLocalStorageContainsRecord(localStore.namespace, 'planet', planet, ['__ver']);
       }
     );
   });
@@ -164,29 +162,29 @@ test("records updated with rest should be updated in memory", function() {
 test("records patched in memory should be patched with rest", function() {
   expect(7);
 
-  server.respondWith('POST', '/dogs', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
+  server.respondWith('POST', '/planets', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
   });
-  server.respondWith('PATCH', '/dogs/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {gender: 'f'}, 'PATCH request');
+  server.respondWith('PATCH', '/planets/12345', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {classification: 'terrestrial'}, 'PATCH request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'f'}));
+                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'terrestrial'}));
   });
 
   stop();
-  memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    memoryStore.patchRecord({__id: dog.__id, gender: 'f'}).then(
-      function(dog) {
+  memoryStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    memoryStore.patchRecord('planet', {__id: planet.__id, classification: 'terrestrial'}).then(
+      function(planet) {
         start();
-        equal(memoryStore.length, 1, 'memory store should contain one record');
-        ok(dog.__id, 'orbit id should be defined');
-        equal(dog.id, 12345, 'server id should be defined');
-        equal(dog.name, 'Hubert', 'name should match');
-        equal(dog.gender, 'f', 'gender should match');
+        equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
+        ok(planet.__id, 'orbit id should be defined');
+        equal(planet.id, 12345, 'server id should be defined');
+        equal(planet.name, 'Jupiter', 'name should match');
+        equal(planet.classification, 'terrestrial', 'classification should match');
       }
     );
   });
@@ -195,32 +193,32 @@ test("records patched in memory should be patched with rest", function() {
 test("records patched with rest should be patched in memory", function() {
   expect(9);
 
-  server.respondWith('POST', '/dogs', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
+  server.respondWith('POST', '/planets', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
   });
-  server.respondWith('PATCH', '/dogs/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {gender: 'f'}, 'PATCH request');
+  server.respondWith('PATCH', '/planets/12345', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {classification: 'terrestrial'}, 'PATCH request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'f'}));
+                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'terrestrial'}));
   });
 
   stop();
-  restStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    restStore.patchRecord({__id: dog.__id, gender: 'f'}).then(
-      function(dog) {
+  restStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    restStore.patchRecord('planet', {__id: planet.__id, classification: 'terrestrial'}).then(
+      function(planet) {
         start();
-        equal(memoryStore.length, 1, 'memory store should contain one record');
-        ok(dog.__id, 'orbit id should be defined');
-        equal(dog.id, 12345, 'server id should be defined');
-        equal(dog.name, 'Hubert', 'name should match');
-        equal(dog.gender, 'f', 'gender should match');
+        equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
+        ok(planet.__id, 'orbit id should be defined');
+        equal(planet.id, 12345, 'server id should be defined');
+        equal(planet.name, 'Jupiter', 'name should match');
+        equal(planet.classification, 'terrestrial', 'classification should match');
 
-        equal(localStore.length, 1, 'local store should contain one record');
-        verifyLocalStorageContainsRecord(localStore.namespace, dog, ['__ver']);
+        equal(localStore.length('planet'), 1, 'local store should contain one record');
+        verifyLocalStorageContainsRecord(localStore.namespace, 'planet', planet, ['__ver']);
       }
     );
   });
@@ -229,13 +227,13 @@ test("records patched with rest should be patched in memory", function() {
 test("records deleted in memory should be deleted with rest", function() {
   expect(6);
 
-  server.respondWith('POST', '/dogs', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
+  server.respondWith('POST', '/planets', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
   });
-  server.respondWith('DELETE', '/dogs/12345', function(xhr) {
+  server.respondWith('DELETE', '/planets/12345', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
@@ -243,15 +241,15 @@ test("records deleted in memory should be deleted with rest", function() {
   });
 
   stop();
-  memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    memoryStore.destroyRecord({__id: dog.__id}).then(
+  memoryStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    memoryStore.destroyRecord('planet', {__id: planet.__id}).then(
       function(record) {
         start();
-        equal(memoryStore.length, 0, 'memory store should be empty');
-        equal(localStore.length, 0, 'local store should be empty');
+        equal(memoryStore.length('planet'), 0, 'memory store should be empty');
+        equal(localStore.length('planet'), 0, 'local store should be empty');
 
         ok(record.deleted, 'record should be marked `deleted`');
-        verifyLocalStorageContainsRecord(localStore.namespace, record, ['__ver']);
+        verifyLocalStorageContainsRecord(localStore.namespace, 'planet', record, ['__ver']);
       }
     );
   });
@@ -260,13 +258,13 @@ test("records deleted in memory should be deleted with rest", function() {
 test("records deleted with rest should be deleted in memory", function() {
   expect(6);
 
-  server.respondWith('POST', '/dogs', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Hubert', gender: 'm'}, 'POST request');
+  server.respondWith('POST', '/planets', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Hubert', gender: 'm'}));
+                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
   });
-  server.respondWith('DELETE', '/dogs/12345', function(xhr) {
+  server.respondWith('DELETE', '/planets/12345', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
@@ -274,15 +272,15 @@ test("records deleted with rest should be deleted in memory", function() {
   });
 
   stop();
-  memoryStore.insertRecord({name: 'Hubert', gender: 'm'}).then(function(dog) {
-    memoryStore.destroyRecord({__id: dog.__id}).then(
+  memoryStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    memoryStore.destroyRecord('planet', {__id: planet.__id}).then(
       function(record) {
         start();
-        equal(memoryStore.length, 0, 'memory store should be empty');
-        equal(localStore.length, 0, 'local store should be empty');
+        equal(memoryStore.length('planet'), 0, 'memory store should be empty');
+        equal(localStore.length('planet'), 0, 'local store should be empty');
 
         ok(record.deleted, 'record should be marked `deleted`');
-        verifyLocalStorageContainsRecord(localStore.namespace, record, ['__ver']);
+        verifyLocalStorageContainsRecord(localStore.namespace, 'planet', record, ['__ver']);
       }
     );
   });

@@ -1,25 +1,22 @@
 import Orbit from 'orbit/core';
 import MemoryStore from 'orbit/sources/memory_store';
 
-var LocalStore = function(namespace) {
+var LocalStore = function(options) {
   Orbit.assert('LocalStore requires Orbit.Promise be defined', Orbit.Promise);
   Orbit.assert('Your browser does not support local storage!', supportsLocalStorage());
 
+  options = options || {};
+  this.namespace = options['namespace'] || 'orbit'; // local storage key
+  this._autosave = options['autosave'] !== undefined ? options['autosave'] : true;
+
   this._store = new MemoryStore();
-
-  this._autosave = true;
   this._isDirty = false;
-
-  this.length = 0;
-
-  // namespace used for local storage
-  this.namespace = namespace || 'orbit';
 
   var _this = this;
   ['on', 'off', 'emit', 'poll', 'listeners', 'resolve', 'settle',  // Evented interface
    'insertRecord', 'updateRecord', 'patchRecord', 'destroyRecord', // Transformable interface
    'find', 'create', 'update', 'patch', 'destroy',                 // Requestable interface
-   'retrieve'].forEach(function(method) {                          // Directly defined
+   'retrieve', 'length'].forEach(function(method) {                // Directly defined
 
     _this[method] = function() {
       return _this._store[method].apply(_this._store, arguments);
@@ -27,7 +24,6 @@ var LocalStore = function(namespace) {
   });
 
   _this._store.on('didInsertRecord didUpdateRecord didPatchRecord didDestroyRecord', function() {
-    _this.length = _this._store.length;
     _this._saveData();
   });
 };

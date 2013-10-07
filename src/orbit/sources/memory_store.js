@@ -6,9 +6,9 @@ var MemoryStore = function() {
   Orbit.assert('MemoryStore requires Orbit.Promise to be defined', Orbit.Promise);
 
   this.idField = Orbit.idField;
-  this.length = 0;
 
   this._data = {};
+  this._length = {};
 
   Transformable.extend(this);
   Requestable.extend(this, ['find', 'create', 'update', 'patch', 'destroy']);
@@ -21,20 +21,27 @@ MemoryStore.prototype = {
   // Transformable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _insertRecord: function(data) {
+  _insertRecord: function(type, data) {
     var _this = this;
 
     return new Orbit.Promise(function(resolve, reject) {
       var id = data[_this.idField];
-      if (_this._data[id]) {
+      var dataForType = _this._data[type];
+
+      if (dataForType && dataForType[id]) {
         reject(new Orbit.AlreadyExistsException(data));
       } else {
         var record = Orbit.clone(data);
         if (!id) {
           id = record[_this.idField] = _this._generateId();
         }
-        _this._data[id] = record;
-        _this.length++;
+        if (!dataForType) {
+          dataForType = _this._data[type] = {};
+          _this._length[type] = 1;
+        } else {
+          _this._length[type]++;
+        }
+        dataForType[id] = record;
 
         Orbit.incrementVersion(record);
 
@@ -43,11 +50,11 @@ MemoryStore.prototype = {
     });
   },
 
-  _updateRecord: function(data) {
+  _updateRecord: function(type, data) {
     var _this = this;
 
     return new Orbit.Promise(function(resolve, reject) {
-      var record = _this.retrieve(data);
+      var record = _this.retrieve(type, data);
       if (record) {
         for (var i in data) {
           if (data.hasOwnProperty(i)) {
@@ -69,11 +76,11 @@ MemoryStore.prototype = {
     });
   },
 
-  _patchRecord: function(data) {
+  _patchRecord: function(type, data) {
     var _this = this;
 
     return new Orbit.Promise(function(resolve, reject) {
-      var record = _this.retrieve(data);
+      var record = _this.retrieve(type, data);
       if (record) {
         for (var i in data) {
           if (data.hasOwnProperty(i)) {
@@ -90,14 +97,14 @@ MemoryStore.prototype = {
     });
   },
 
-  _destroyRecord: function(data) {
+  _destroyRecord: function(type, data) {
     var _this = this;
 
     return new Orbit.Promise(function(resolve, reject) {
-      var record = _this.retrieve(data);
+      var record = _this.retrieve(type, data);
       if (record) {
         record.deleted = true;
-        _this.length--;
+        _this._length[type]--;
 
         Orbit.incrementVersion(record);
 
@@ -112,14 +119,14 @@ MemoryStore.prototype = {
   // Requestable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _find: function(id) {
+  _find: function(type, id) {
     var _this = this;
 
     return new Orbit.Promise(function(resolve, reject) {
       if (id === undefined || typeof id === 'object') {
-        resolve(_this._filter.call(_this, id));
+        resolve(_this._filter.call(_this, type, id));
       } else {
-        var record = _this._data[id];
+        var record = _this.retrieve(type, id);
         if (record) {
           resolve(record);
         } else {
@@ -129,51 +136,55 @@ MemoryStore.prototype = {
     });
   },
 
-  _create: function(data) {
-    return this.insertRecord(data);
+  _create: function(type, data) {
+    return this.insertRecord(type, data);
   },
 
-  _update: function(data) {
-    return this.updateRecord(data);
+  _update: function(type, data) {
+    return this.updateRecord(type, data);
   },
 
-  _patch: function(data) {
-    return this.patchRecord(data);
+  _patch: function(type, data) {
+    return this.patchRecord(type, data);
   },
 
-  _destroy: function(data) {
-    return this.destroyRecord(data);
+  _destroy: function(type, data) {
+    return this.destroyRecord(type, data);
   },
 
   /////////////////////////////////////////////////////////////////////////////
   // Public
   /////////////////////////////////////////////////////////////////////////////
 
-  retrieve: function(id) {
-    if (typeof id === 'object') {
-      id = id[this.idField];
-    }
-    return this._data[id];
+  retrieve: function(type, id) {
+    var dataForType = this._data[type];
+    if (id && typeof id === 'object') id = id[this.idField];
+    if (dataForType) return dataForType[id];
+  },
+
+  length: function(type) {
+    return this._length[type] || 0;
   },
 
   /////////////////////////////////////////////////////////////////////////////
   // Internals
   /////////////////////////////////////////////////////////////////////////////
 
-  _filter: function(query) {
+  _filter: function(type, query) {
     var all = [],
+        dataForType = this._data[type],
         i,
         prop,
         match;
 
-    for (i in this._data) {
-      if (this._data.hasOwnProperty(i)) {
+    for (i in dataForType) {
+      if (dataForType.hasOwnProperty(i)) {
         if (query === undefined) {
           match = true;
         } else {
           match = false;
           for (prop in query) {
-            if (this._data[i][prop] === query[prop]) {
+            if (dataForType[i][prop] === query[prop]) {
               match = true;
             } else {
               match = false;
@@ -182,7 +193,7 @@ MemoryStore.prototype = {
           }
         }
         if (match) {
-          all.push(this._data[i]);
+          all.push(dataForType[i]);
         }
       }
     }
