@@ -122,14 +122,16 @@ var Orbit = {
   }
 };
 
-Orbit.NotFoundException = function(record) {
+Orbit.NotFoundException = function(type, record) {
+  this.type = type;
   this.record = record;
 };
 Orbit.NotFoundException.prototype = {
   constructor: 'NotFoundException'
 };
 
-Orbit.AlreadyExistsException = function(record) {
+Orbit.AlreadyExistsException = function(type, record) {
+  this.type = type;
   this.record = record;
 };
 Orbit.AlreadyExistsException.prototype = {

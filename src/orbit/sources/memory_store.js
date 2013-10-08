@@ -29,7 +29,7 @@ MemoryStore.prototype = {
       var dataForType = _this._data[type];
 
       if (dataForType && dataForType[id]) {
-        reject(new Orbit.AlreadyExistsException(data));
+        reject(new Orbit.AlreadyExistsException(type, data));
       } else {
         var record = Orbit.clone(data);
         if (!id) {
@@ -71,7 +71,7 @@ MemoryStore.prototype = {
 
         resolve(record);
       } else {
-        reject(new Orbit.NotFoundException(data));
+        reject(new Orbit.NotFoundException(type, data));
       }
     });
   },
@@ -92,7 +92,7 @@ MemoryStore.prototype = {
 
         resolve(record);
       } else {
-        reject(new Orbit.NotFoundException(data));
+        reject(new Orbit.NotFoundException(type, data));
       }
     });
   },
@@ -110,7 +110,7 @@ MemoryStore.prototype = {
 
         resolve(record);
       } else {
-        reject(new Orbit.NotFoundException(data));
+        reject(new Orbit.NotFoundException(type, data));
       }
     });
   },
@@ -130,7 +130,7 @@ MemoryStore.prototype = {
         if (record) {
           resolve(record);
         } else {
-          reject(new Orbit.NotFoundException(id));
+          reject(new Orbit.NotFoundException(type, id));
         }
       }
     });
