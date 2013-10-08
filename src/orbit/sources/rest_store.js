@@ -7,11 +7,14 @@ var RestStore = function(options) {
   Orbit.assert('RestStore requires Orbit.ajax be defined', Orbit.ajax);
 
   options = options || {};
-  this.idField = options['idField'] || 'id';
+  this.remoteIdField = options['remoteIdField'] || 'id';
   this.namespace = options['namespace'];
   this.headers = options['headers'];
 
-  this._cache = {};
+  this.idField = Orbit.idField;
+
+  this._localCache = {};
+  this._remoteIdMap = {};
 
   Transformable.extend(this);
   Requestable.extend(this, ['find', 'create', 'update', 'patch', 'destroy']);
@@ -26,7 +29,16 @@ RestStore.prototype = {
 
   _insertRecord: function(type, data) {
     var _this = this,
-        orbitId = data[Orbit.idField];
+        id = data[this.idField];
+
+    if (id) {
+      var recordInCache = _this.retrieve(type, id);
+      if (recordInCache) {
+        return new Orbit.Promise(function(resolve, reject) {
+          reject(new Orbit.AlreadyExistsException(type, data));
+        });
+      }
+    }
 
     return this.ajax(this.buildURL(type), 'POST', {data: this.serialize(type, data)}).then(
       function(raw) {
@@ -34,19 +46,19 @@ RestStore.prototype = {
 
         // If the record has already been deleted by the time the POST response
         // returns, we need to immediately destroy it.
-        var recordInCache = _this.retrieve(type, orbitId);
+        var recordInCache = _this.retrieve(type, id);
         if (recordInCache && recordInCache.deleted) {
           // Add the inserted record to the cache, since it will contain
           // the latest data from the server (including an `id` field)
           record.deleted = true;
-          _this._addToCache(type, record, orbitId);
+          _this._addToCache(type, record, id);
           Orbit.incrementVersion(record);
 
-          // Immediate destroy the record
+          // Immediately destroy the record
           return _this.destroyRecord(type, record);
 
         } else {
-          _this._addToCache(type, record, orbitId);
+          _this._addToCache(type, record, id);
           Orbit.incrementVersion(record);
           return record;
         }
@@ -56,15 +68,15 @@ RestStore.prototype = {
 
   _updateRecord: function(type, data) {
     var _this = this,
-        orbitId = data[Orbit.idField],
-        id = this._lookupId(type, data);
+        id = data[this.idField],
+        remoteId = this._lookupRemoteId(type, data);
 
-    if (!id) throw new Orbit.NotFoundException(data);
+    if (!remoteId) throw new Orbit.NotFoundException(type, data);
 
-    return this.ajax(this.buildURL(type, id), 'PUT', {data: this.serialize(type, data)}).then(
+    return this.ajax(this.buildURL(type, remoteId), 'PUT', {data: this.serialize(type, data)}).then(
       function(raw) {
         var record = _this.deserialize(type, raw);
-        _this._addToCache(type, record, orbitId);
+        _this._addToCache(type, record, id);
         Orbit.incrementVersion(record);
         return record;
       }
@@ -73,18 +85,18 @@ RestStore.prototype = {
 
   _patchRecord: function(type, data) {
     var _this = this,
-        orbitId = data[Orbit.idField],
-        id = this._lookupId(type, data);
+        id = data[this.idField],
+        remoteId = this._lookupRemoteId(type, data);
 
-    if (!id) throw new Orbit.NotFoundException(data);
+    if (!remoteId) throw new Orbit.NotFoundException(type, data);
 
-    // no need to transmit `id` along with a patched record
-    delete data[this.idField];
+    // no need to transmit remote id along with a patched record
+    delete data[this.remoteIdField];
 
-    return this.ajax(this.buildURL(type, id), 'PATCH', {data: this.serialize(type, data)}).then(
+    return this.ajax(this.buildURL(type, remoteId), 'PATCH', {data: this.serialize(type, data)}).then(
       function(raw) {
         var record = _this.deserialize(type, raw);
-        _this._addToCache(type, record, orbitId);
+        _this._addToCache(type, record, id);
         Orbit.incrementVersion(record);
         return record;
       }
@@ -93,18 +105,18 @@ RestStore.prototype = {
 
   _destroyRecord: function(type, data) {
     var _this = this,
-        orbitId = data[Orbit.idField],
-        id = this._lookupId(type, data);
+        id = data[this.idField],
+        remoteId = this._lookupRemoteId(type, data);
 
-    if (!id) throw new Orbit.NotFoundException(data);
+    if (!remoteId) throw new Orbit.NotFoundException(type, data);
 
-    return this.ajax(this.buildURL(type, id), 'DELETE').then(
+    return this.ajax(this.buildURL(type, remoteId), 'DELETE').then(
       function() {
-        if (orbitId) {
-          var record = _this.retrieve(type, orbitId);
+        if (id) {
+          var record = _this.retrieve(type, id);
           if (!record) {
             record = {};
-            _this._addToCache(type, record, orbitId);
+            _this._addToCache(type, record, id);
           }
           record.deleted = true;
           Orbit.incrementVersion(record);
@@ -119,7 +131,17 @@ RestStore.prototype = {
   /////////////////////////////////////////////////////////////////////////////
 
   _find: function(type, id) {
-    return this.ajax(this.buildURL(type, id), 'GET');
+    if (id && (typeof id === 'number' || typeof id === 'string')) {
+      var remoteId = this._lookupRemoteId(type, id);
+      if (!remoteId) throw new Orbit.NotFoundException(type, id);
+      return this._findOne(type, remoteId);
+
+    } else if (id && (typeof id === 'object' && id[this.remoteIdField])) {
+      return this._findOne(type, id[this.remoteIdField]);
+
+    } else {
+      return this._findQuery(type, id);
+    }
   },
 
   _create: function(type, data) {
@@ -143,8 +165,8 @@ RestStore.prototype = {
   /////////////////////////////////////////////////////////////////////////////
 
   retrieve: function(type, id) {
-    var dataForType = this._cache[type];
-    if (id && typeof id === 'object') id = id[Orbit.idField];
+    var dataForType = this._localCache[type];
+    if (id && typeof id === 'object') id = id[this.idField];
     if (dataForType) return dataForType[id];
   },
 
@@ -152,33 +174,89 @@ RestStore.prototype = {
   // Internals
   /////////////////////////////////////////////////////////////////////////////
 
-  _lookupId: function(type, data) {
-    var id = data[this.idField];
-    if (!id) {
-      var record = this.retrieve(type, data);
-      if (record) {
-        id = record[this.idField];
+  _findOne: function(type, remoteId) {
+    var _this = this;
+    return this.ajax(this.buildURL(type, remoteId), 'GET').then(
+      function(raw) {
+        var record = _this.deserialize(type, raw);
+        _this._recordFound(type, record);
+        return record;
       }
-    }
-    return id;
+    );
   },
 
-  _addToCache: function(type, record, orbitId) {
-    if (orbitId === undefined) {
-      orbitId = Orbit.generateId();
-    }
-    record[Orbit.idField] = orbitId;
+  _findQuery: function(type, query) {
+    var _this = this;
 
-    var dataForType = this._cache[type];
+    return this.ajax(this.buildURL(type), 'GET', query).then(
+      function(raw) {
+        var eachRaw,
+            record,
+            records = [];
+
+        raw.forEach(function(eachRaw) {
+          record = _this.deserialize(type, eachRaw);
+          _this._recordFound(type, record);
+          records.push(record);
+        });
+
+        return records;
+      }
+    );
+  },
+
+  // TODO - this needs to invoke transform events to notify of changes in the cache
+  _recordFound: function(type, record) {
+    var remoteId = record[this.remoteIdField],
+        id = this._remoteToLocalId(type, remoteId);
+
+    if (!id) {
+      id = record[this.idField] = Orbit.generateId();
+    }
+    this._addToCache(type, record, id);
+    Orbit.incrementVersion(record);
+  },
+
+  _remoteToLocalId: function(type, remoteId) {
+    var dataForType = this._remoteIdMap[type];
+    if (dataForType) return dataForType[remoteId];
+  },
+
+  _lookupRemoteId: function(type, data) {
+    var remoteId = data[this.remoteIdField];
+    if (!remoteId) {
+      var record = this.retrieve(type, data);
+      if (record) {
+        remoteId = record[this.remoteIdField];
+      }
+    }
+    return remoteId;
+  },
+
+  _addToCache: function(type, record, id) {
+    if (id === undefined) {
+      id = Orbit.generateId();
+    }
+    record[this.idField] = id;
+
+    var dataForType = this._localCache[type];
     if (dataForType) {
-      var recordInCache = dataForType[orbitId];
+      var recordInCache = dataForType[id];
       if (recordInCache && recordInCache.deleted) {
-        recordInCache[this.idField] = record[this.idField];
+        recordInCache[this.remoteIdField] = record[this.remoteIdField];
       }
     } else {
-      dataForType = this._cache[type] = {};
+      dataForType = this._localCache[type] = {};
     }
-    dataForType[orbitId] = record;
+    dataForType[id] = record;
+
+    // Update remote id map
+    var remoteId = record[this.remoteIdField];
+    if (remoteId) {
+      var mapForType = this._remoteIdMap[type];
+      if (!mapForType) mapForType = this._remoteIdMap[type] = {};
+      mapForType[remoteId] = record[this.idField];
+    }
   },
 
   ajax: function(url, method, hash) {
@@ -227,20 +305,24 @@ RestStore.prototype = {
     });
   },
 
-  buildURL: function(type, id) {
+  buildURL: function(type, remoteId) {
     var host = this.host,
         namespace = this.namespace,
         url = [];
 
     if (host) { url.push(host); }
     if (namespace) { url.push(namespace); }
-    url.push(this.pluralize(type));
-    if (id) { url.push(id); }
+    url.push(this.pathForType(type));
+    if (remoteId) { url.push(remoteId); }
 
     url = url.join('/');
     if (!host) { url = '/' + url; }
 
     return url;
+  },
+
+  pathForType: function(type) {
+    return this.pluralize(type);
   },
 
   pluralize: function(name) {
@@ -250,7 +332,7 @@ RestStore.prototype = {
 
   serialize: function(type, data) {
     var serialized = Orbit.clone(data);
-    delete serialized[Orbit.idField];
+    delete serialized[this.idField];
     delete serialized[Orbit.versionField];
     return serialized;
   },
