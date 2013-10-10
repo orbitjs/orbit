@@ -43,25 +43,10 @@ RestStore.prototype = {
     return this.ajax(this.buildURL(type), 'POST', {data: this.serialize(type, data)}).then(
       function(raw) {
         var record = _this.deserialize(type, raw);
+        _this._addToCache(type, record, id);
+        Orbit.incrementVersion(record);
 
-        // If the record has already been deleted by the time the POST response
-        // returns, we need to immediately destroy it.
-        var recordInCache = _this.retrieve(type, id);
-        if (recordInCache && recordInCache.deleted) {
-          // Add the inserted record to the cache, since it will contain
-          // the latest data from the server (including an `id` field)
-          record.deleted = true;
-          _this._addToCache(type, record, id);
-          Orbit.incrementVersion(record);
-
-          // Immediately destroy the record
-          return _this.destroyRecord(type, record);
-
-        } else {
-          _this._addToCache(type, record, id);
-          Orbit.incrementVersion(record);
-          return record;
-        }
+        return record;
       }
     );
   },
@@ -78,6 +63,7 @@ RestStore.prototype = {
         var record = _this.deserialize(type, raw);
         _this._addToCache(type, record, id);
         Orbit.incrementVersion(record);
+
         return record;
       }
     );
@@ -98,6 +84,7 @@ RestStore.prototype = {
         var record = _this.deserialize(type, raw);
         _this._addToCache(type, record, id);
         Orbit.incrementVersion(record);
+
         return record;
       }
     );
@@ -112,16 +99,15 @@ RestStore.prototype = {
 
     return this.ajax(this.buildURL(type, remoteId), 'DELETE').then(
       function() {
-        if (id) {
-          var record = _this.retrieve(type, id);
-          if (!record) {
-            record = {};
-            _this._addToCache(type, record, id);
-          }
-          record.deleted = true;
-          Orbit.incrementVersion(record);
-          return record;
+        var record = _this.retrieve(type, id);
+        if (!record) {
+          record = {};
+          _this._addToCache(type, record, id);
         }
+        record.deleted = true;
+        Orbit.incrementVersion(record);
+
+        return record;
       }
     );
   },

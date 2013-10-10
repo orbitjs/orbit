@@ -44,17 +44,17 @@ var testTransformableAction = function(actionName) {
 
     source['_' + actionName] = function() {
       equal(++order, 1, 'action performed after will' + ActionName);
-      deepEqual(Array.prototype.slice.call(arguments, 0), ['abc', 'def'], '_handler args match original call args');
+      deepEqual(Array.prototype.slice.call(arguments, 0), ['planet', 'data'], '_handler args match original call args');
       return successfulOperation();
     };
 
     source.on('did' + ActionName, function() {
       equal(++order, 2, 'did' + ActionName + ' triggered after action performed successfully');
-      deepEqual(Array.prototype.slice.call(arguments, 0), ['abc', 'def', ':)'], 'event handler args match original call args + return value');
+      deepEqual(Array.prototype.slice.call(arguments, 0), ['planet', ':)'], 'event handler args include `type` + return value');
     });
 
     stop();
-    source[actionName]('abc', 'def').then(function(result) {
+    source[actionName]('planet', 'data').then(function(result) {
       start();
       equal(++order, 3, 'promise resolved last');
       equal(result, ':)', 'success!');

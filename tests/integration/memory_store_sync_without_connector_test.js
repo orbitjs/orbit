@@ -14,10 +14,10 @@ module("Integration - MemoryStore Sync without Connector", {
     primaryStore = new MemoryStore();
     backupStore = new MemoryStore();
 
-    primaryStore.on('didInsertRecord',  function(type, data, record) { backupStore.insertRecord(type, record); });
-    primaryStore.on('didUpdateRecord',  function(type, data, record) { backupStore.updateRecord(type, record); });
-    primaryStore.on('didPatchRecord',   function(type, data, record) { backupStore.patchRecord(type, record); });
-    primaryStore.on('didDestroyRecord', function(type, data, record) { backupStore.destroyRecord(type, record); });
+    primaryStore.on('didInsertRecord',  backupStore.insertRecord);
+    primaryStore.on('didUpdateRecord',  backupStore.updateRecord);
+    primaryStore.on('didPatchRecord',   backupStore.patchRecord);
+    primaryStore.on('didDestroyRecord', backupStore.destroyRecord);
   },
 
   teardown: function() {
@@ -54,7 +54,7 @@ test("records inserted into the primary store should be automatically copied to 
       notStrictEqual(backupPlanet, originalPlanet, 'not the same object as the one originally inserted');
       equal(backupPlanet.__id, planet.__id, 'backup record has the same primary id');
       equal(backupPlanet.name, 'Jupiter', 'backup record has the same name');
-      equal(backupPlanet.classification, 'gas giant',    'backup record has the same classification');
+      equal(backupPlanet.classification, 'gas giant', 'backup record has the same classification');
     });
   });
 });
@@ -79,7 +79,7 @@ test("updates to records in the primary store should be automatically copied to 
         notStrictEqual(backupPlanet, originalPlanet, 'not the same object as the one originally inserted');
         equal(backupPlanet.__id, planet.__id, 'backup record has the same primary id');
         equal(backupPlanet.name, 'Earth', 'backup record has updated name');
-        equal(backupPlanet.classification, 'terrestrial',      'backup record has udpated classification');
+        equal(backupPlanet.classification, 'terrestrial', 'backup record has udpated classification');
       });
     });
   });
@@ -105,7 +105,7 @@ test("patches to records in the primary store should be automatically copied to 
         notStrictEqual(backupPlanet, originalPlanet, 'not the same object as the one originally inserted');
         equal(backupPlanet.__id, planet.__id, 'backup record has the same primary id');
         equal(backupPlanet.name, 'Earth', 'backup record has updated name');
-        equal(backupPlanet.classification, 'gas giant',      'backup record has not udpated classification');
+        equal(backupPlanet.classification, 'gas giant', 'backup record has not udpated classification');
       });
     });
   });

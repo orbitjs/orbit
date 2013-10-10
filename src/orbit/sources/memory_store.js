@@ -70,6 +70,7 @@ MemoryStore.prototype = {
         Orbit.incrementVersion(record);
 
         resolve(record);
+
       } else {
         reject(new Orbit.NotFoundException(type, data));
       }
@@ -91,6 +92,7 @@ MemoryStore.prototype = {
         Orbit.incrementVersion(record);
 
         resolve(record);
+
       } else {
         reject(new Orbit.NotFoundException(type, data));
       }
@@ -109,6 +111,7 @@ MemoryStore.prototype = {
         Orbit.incrementVersion(record);
 
         resolve(record);
+
       } else {
         reject(new Orbit.NotFoundException(type, data));
       }
