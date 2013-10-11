@@ -119,6 +119,12 @@ var Orbit = {
       }
     }
     return options;
+  },
+
+  promisifyException: function(e) {
+    return new Orbit.Promise(function(resolve, reject) {
+      reject(e);
+    });
   }
 };
 
