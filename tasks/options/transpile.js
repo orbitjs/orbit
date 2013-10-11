@@ -16,8 +16,7 @@ module.exports = {
   "src": {
     type: 'amd',
     moduleName: function(path) {
-      //return path;
-      return grunt.config.process('<%= pkg.namespace %>/') + path;
+      return path;
     },
     files: [{
       expand: true,
