@@ -40,9 +40,7 @@ RestStore.prototype = {
 
     return this.ajax(this.buildURL(type), 'POST', {data: this.serialize(type, data)}).then(
       function(raw) {
-        var record = _this.deserialize(type, raw);
-        _this._addToCache(type, record, id);
-        return record;
+        return _this._addToCache(type, _this.deserialize(type, raw), id);
       }
     );
   },
@@ -56,9 +54,7 @@ RestStore.prototype = {
 
     return this.ajax(this.buildURL(type, remoteId), 'PUT', {data: this.serialize(type, data)}).then(
       function(raw) {
-        var record = _this.deserialize(type, raw);
-        _this._addToCache(type, record, id);
-        return record;
+        return _this._addToCache(type, _this.deserialize(type, raw), id);
       }
     );
   },
@@ -75,9 +71,7 @@ RestStore.prototype = {
 
     return this.ajax(this.buildURL(type, remoteId), 'PATCH', {data: this.serialize(type, data)}).then(
       function(raw) {
-        var record = _this.deserialize(type, raw);
-        _this._addToCache(type, record, id);
-        return record;
+        return _this._addToCache(type, _this.deserialize(type, raw), id);
       }
     );
   },
@@ -238,6 +232,8 @@ RestStore.prototype = {
       if (!mapForType) mapForType = this._remoteIdMap[type] = {};
       mapForType[remoteId] = record[this.idField];
     }
+
+    return record;
   },
 
   ajax: function(url, method, hash) {
