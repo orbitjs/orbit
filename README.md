@@ -1,7 +1,7 @@
 # Orbit.js
 
-Orbit.js is a low level library for keeping data sources coordinated and
-synchronized.
+Orbit.js is a low level library for coordinating access to data sources and
+keeping their contents synchronized.
 
 ## Goals
 
@@ -16,9 +16,33 @@ synchronized.
 * Coordinate transformations across sources. Handle merges automatically
   where possible but allow for complete custom control.
 
-* Allow for synchronous and asynchronous requests and transformations.
+* Allow for blocking and non-blocking transformations.
+
+* Allow for synchronous and asynchronous requests.
 
 * Work with plain JavaScript objects.
+
+## How does it work?
+
+Orbit requires that every data source support one or more common interfaces.
+These interfaces define how data can be both *accessed* and *transformed*.
+
+Orbit includes several data sources: a memory store, a local store, and a REST
+store. You can define your own data sources that will work with Orbit as long
+as they support Orbit's interfaces.
+
+The methods for accessing and transforming data return promises. These promises
+might be fulfilled synchronously or asynchronously. Depending on whether they
+successfully resolve, events are triggered. Any event listeners can engage with
+an event by returning a promise. In this way, multiple data sources can be
+involved in a single action.
+
+Standard connectors are supplied for listening to events on a data source and
+calling corresponding actions on a target. These connectors can be blocking
+(i.e. they don't resolve until all associated actions are resolved) or
+non-blocking (i.e. associated actions are resolved in the background without
+blocking the flow of the application). Connectors can be used to enable
+uni or bi-directional flow of data between sources.
 
 ## Dependencies
 
@@ -36,10 +60,10 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
   restStore = new RestStore();
   localStore = new LocalStore();
 
-  // Connect MemoryStore -> LocalStore
+  // Connect MemoryStore -> LocalStore (using the default blocking strategy)
   memToLocalConnector = new TransformConnector(memoryStore, localStore);
 
-  // Connect MemoryStore <-> RestStore
+  // Connect MemoryStore <-> RestStore (using the default blocking strategy)
   memToRestConnector = new TransformConnector(memoryStore, restStore);
   restToMemConnector = new TransformConnector(restStore, memoryStore);
 
@@ -68,26 +92,29 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
   // memoryStore - RESOLVED Jupiter
 ```
 
-In this example, we're creating three separate stores and connecting them
-*synchronously*. Next, we're creating a record in the memory store,
-which is automatically duplicated in both the REST store and local storage.
+In this example, we've created three separate stores and connected them with
+transform connectors that are *blocking*. In other words, the promise returned
+from an action won't be fulfilled until every event listener that engages with
+it (by returning a promise) has been fulfilled. In this case, we're creating
+a record in the memory store, which the connectors serve to automatically
+duplicate in both the REST store and local storage.
 
-Note that we could also connect the stores *asynchronously* by adding an
-`async` option to our connectors:
+Note that we could also connect the stores with *non-blocking* connectors by
+adding the `blocking: false` option to our connectors:
 
 ```javascript
-  // Connect MemoryStore -> LocalStore
-  memToLocalConnector = new TransformConnector(memoryStore, localStore, {async: true});
+  // Connect MemoryStore -> LocalStore (non-blocking)
+  memToLocalConnector = new TransformConnector(memoryStore, localStore, {blocking: false});
 
-  // Connect MemoryStore <-> RestStore
-  memToRestConnector = new TransformConnector(memoryStore, restStore, {async: true});
-  restToMemConnector = new TransformConnector(restStore, memoryStore, {async: true});
+  // Connect MemoryStore <-> RestStore (non-blocking)
+  memToRestConnector = new TransformConnector(memoryStore, restStore, {blocking: false});
+  restToMemConnector = new TransformConnector(restStore, memoryStore, {blocking: false});
 ```
 
 In this case, the promise generated from `memoryStore.create` will be resolved
-immediately, and records will be asynchronously created in the REST store and
-local storage. Any differences, such as an `id` returned from the server, will
-be automatically patched back to the record in the memory store.
+immediately, after which records will be asynchronously created in the REST
+store and local storage. Any differences, such as an `id` returned from the
+server, will be automatically patched back to the record in the memory store.
 
 ## Interfaces
 
@@ -198,10 +225,10 @@ restStore.on('assistFind', localStore.find);
 memoryStore.on('rescueFind', restStore.find);
 
 // Audit success / failure
-memoryStore.on('didFind', function(type, id) {
+memoryStore.on('didFind', function(type, id, record) {
     audit('find', type, id, true);
 });
-memoryStore.on('didNotFind', function(type, id) {
+memoryStore.on('didNotFind', function(type, id, error) {
     audit('find', type, id, false);
 });
 
