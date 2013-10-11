@@ -68,20 +68,22 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
   restToMemConnector = new TransformConnector(restStore, memoryStore);
 
   // Create a record
-  memoryStore.create('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    console.log('memoryStore - RESOLVED', planet.name);
-  });
+  memoryStore.create('planet', {name: 'Jupiter', classification: 'gas giant'}).then(
+    function(planet) {
+      console.log('memoryStore - RESOLVED', planet.name);
+    }
+  );
 
   // Log the transforms
-  memoryStore.on('didInsertRecord', function(type, data, planet) {
+  memoryStore.on('didInsertRecord', function(type, planet) {
     console.log('restStore - inserted', planet.name);
   });
 
-  localStore.on('didInsertRecord', function(type, data, planet) {
+  localStore.on('didInsertRecord', function(type, planet) {
     console.log('localStore - inserted', planet.name);
   });
 
-  restStore.on('didInsertRecord', function(type, data, planet) {
+  restStore.on('didInsertRecord', function(type, planet) {
     console.log('restStore - inserted', planet.name);
   });
 
@@ -95,12 +97,13 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
 In this example, we've created three separate stores and connected them with
 transform connectors that are *blocking*. In other words, the promise returned
 from an action won't be fulfilled until every event listener that engages with
-it (by returning a promise) has been fulfilled. In this case, we're creating
-a record in the memory store, which the connectors serve to automatically
-duplicate in both the REST store and local storage.
+it (by returning a promise) has been fulfilled.
 
-Note that we could also connect the stores with *non-blocking* connectors by
-adding the `blocking: false` option to our connectors:
+In this case, we're creating a record in the memory store, which the connectors
+help duplicate in both the REST store and local storage.
+
+Note that we could also connect the stores with *non-blocking* connectors with
+the `blocking: false` option:
 
 ```javascript
   // Connect MemoryStore -> LocalStore (non-blocking)
