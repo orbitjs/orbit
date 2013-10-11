@@ -34,9 +34,7 @@ RestStore.prototype = {
     if (id) {
       var recordInCache = _this.retrieve(type, id);
       if (recordInCache) {
-        return new Orbit.Promise(function(resolve, reject) {
-          reject(new Orbit.AlreadyExistsException(type, data));
-        });
+        throw new Orbit.AlreadyExistsException(type, data);
       }
     }
 
@@ -44,8 +42,6 @@ RestStore.prototype = {
       function(raw) {
         var record = _this.deserialize(type, raw);
         _this._addToCache(type, record, id);
-        Orbit.incrementVersion(record);
-
         return record;
       }
     );
@@ -62,8 +58,6 @@ RestStore.prototype = {
       function(raw) {
         var record = _this.deserialize(type, raw);
         _this._addToCache(type, record, id);
-        Orbit.incrementVersion(record);
-
         return record;
       }
     );
@@ -83,8 +77,6 @@ RestStore.prototype = {
       function(raw) {
         var record = _this.deserialize(type, raw);
         _this._addToCache(type, record, id);
-        Orbit.incrementVersion(record);
-
         return record;
       }
     );
@@ -174,7 +166,7 @@ RestStore.prototype = {
   _findQuery: function(type, query) {
     var _this = this;
 
-    return this.ajax(this.buildURL(type), 'GET', query).then(
+    return this.ajax(this.buildURL(type), 'GET', {data: query}).then(
       function(raw) {
         var eachRaw,
             record,
@@ -191,16 +183,17 @@ RestStore.prototype = {
     );
   },
 
-  // TODO - this needs to invoke transform events to notify of changes in the cache
   _recordFound: function(type, record) {
     var remoteId = record[this.remoteIdField],
-        id = this._remoteToLocalId(type, remoteId);
+        id = this._remoteToLocalId(type, remoteId),
+        newRecord = !id;
 
-    if (!id) {
+    if (newRecord) {
       id = record[this.idField] = Orbit.generateId();
     }
     this._addToCache(type, record, id);
-    Orbit.incrementVersion(record);
+
+    this['did' + (newRecord ? 'InsertRecord' : 'UpdateRecord')].call(this, type, record);
   },
 
   _remoteToLocalId: function(type, remoteId) {
@@ -224,6 +217,8 @@ RestStore.prototype = {
       id = Orbit.generateId();
     }
     record[this.idField] = id;
+
+    Orbit.incrementVersion(record);
 
     var dataForType = this._localCache[type];
     if (dataForType) {
