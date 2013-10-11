@@ -13,7 +13,7 @@ var server,
     memToRestConnector,
     restToMemConnector;
 
-module("Integration - Rest / Memory / Local Asynchronous Transforms", {
+module("Integration - Rest / Memory / Local Transforms (Non-Blocking)", {
   setup: function() {
     Orbit.Promise = RSVP.Promise;
     Orbit.ajax = window.jQuery.ajax;
@@ -27,11 +27,11 @@ module("Integration - Rest / Memory / Local Asynchronous Transforms", {
     localStore = new LocalStore();
 
     // Connect MemoryStore -> LocalStore
-    memToLocalConnector = new TransformConnector(memoryStore, localStore, {async: true});
+    memToLocalConnector = new TransformConnector(memoryStore, localStore, {blocking: false});
 
     // Connect MemoryStore <-> RestStore
-    memToRestConnector = new TransformConnector(memoryStore, restStore, {async: true});
-    restToMemConnector = new TransformConnector(restStore, memoryStore, {async: true});
+    memToRestConnector = new TransformConnector(memoryStore, restStore, {blocking: false});
+    restToMemConnector = new TransformConnector(restStore, memoryStore, {blocking: false});
   },
 
   teardown: function() {

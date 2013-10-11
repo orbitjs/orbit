@@ -13,7 +13,7 @@ var TransformConnector = function(source, target, options) {
   this.queue = [];
 
   options = options || {};
-  this.async = options['async'] !== undefined ? options['async'] : false;
+  this.blocking = options['blocking'] !== undefined ? options['blocking'] : true;
   this._queueEnabled = options['queue'] !== undefined ? options['queue'] : false;
   var active = options['active'] !== undefined ? options['active'] : true;
   if (active) this.activate();
@@ -72,10 +72,10 @@ TransformConnector.prototype = {
     } else {
       var promise = this._transform(action, type, record);
       if (promise) {
-        if (this.async) {
-          this._resolveTransform(promise);
-        } else {
+        if (this.blocking) {
           return promise;
+        } else {
+          this._resolveTransform(promise);
         }
       }
     }

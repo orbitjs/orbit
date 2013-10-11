@@ -13,7 +13,7 @@ var server,
     memToRestConnector,
     restToMemConnector;
 
-module("Integration - Rest / Memory / Local Synchronous Transforms", {
+module("Integration - Rest / Memory / Local Transforms (Blocking)", {
   setup: function() {
     Orbit.Promise = RSVP.Promise;
     Orbit.ajax = window.jQuery.ajax;
