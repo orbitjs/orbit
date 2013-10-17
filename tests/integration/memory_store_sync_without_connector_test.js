@@ -14,10 +14,7 @@ module("Integration - MemoryStore Sync without Connector", {
     primaryStore = new MemoryStore();
     backupStore = new MemoryStore();
 
-    primaryStore.on('didInsertRecord',  backupStore.insertRecord);
-    primaryStore.on('didUpdateRecord',  backupStore.updateRecord);
-    primaryStore.on('didPatchRecord',   backupStore.patchRecord);
-    primaryStore.on('didDestroyRecord', backupStore.destroyRecord);
+    primaryStore.on('didTransform',  backupStore.transform);
   },
 
   teardown: function() {
@@ -39,7 +36,7 @@ test("records inserted into the primary store should be automatically copied to 
   var originalPlanet;
 
   stop();
-  primaryStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  primaryStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     originalPlanet = planet;
 
     equal(primaryStore.length('planet'), 1, 'primary store should contain one record');
@@ -65,10 +62,10 @@ test("updates to records in the primary store should be automatically copied to 
   var originalPlanet;
 
   stop();
-  primaryStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  primaryStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     originalPlanet = planet;
 
-    primaryStore.updateRecord('planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
+    primaryStore.transform('update', 'planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
       equal(updatedPlanet.__id, planet.__id, 'primary id remains the same');
       equal(updatedPlanet.name, 'Earth', 'name has been updated');
       equal(updatedPlanet.classification, 'terrestrial', 'classification has been updated');
@@ -91,10 +88,10 @@ test("patches to records in the primary store should be automatically copied to 
   var originalPlanet;
 
   stop();
-  primaryStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  primaryStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     originalPlanet = planet;
 
-    primaryStore.patchRecord('planet', {__id: planet.__id, name: 'Earth'}).then(function(updatedPlanet) {
+    primaryStore.transform('patch', 'planet', {__id: planet.__id, name: 'Earth'}).then(function(updatedPlanet) {
       equal(updatedPlanet.__id, planet.__id, 'primary id remains the same');
       equal(updatedPlanet.name, 'Earth', 'name has been updated');
       equal(updatedPlanet.classification, 'gas giant', 'classification has not been updated');
@@ -111,18 +108,18 @@ test("patches to records in the primary store should be automatically copied to 
   });
 });
 
-test("records destroyed in the primary store should be automatically destroyed in the backup store", function() {
+test("records deleted in the primary store should be automatically deleted in the backup store", function() {
   expect(6);
 
   equal(primaryStore.length('planet'), 0, 'primary store should be empty');
   equal(backupStore.length('planet'), 0, 'backup store should be empty');
 
   stop();
-  primaryStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  primaryStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     equal(primaryStore.length('planet'), 1, 'primary store should contain one record');
     equal(backupStore.length('planet'), 1, 'backup store should contain one record');
 
-    primaryStore.destroyRecord('planet', planet.__id).then(function() {
+    primaryStore.transform('delete', 'planet', planet.__id).then(function() {
       start();
       equal(primaryStore.length('planet'), 0, 'primary store should be empty');
       equal(backupStore.length('planet'), 0, 'backup store should be empty');

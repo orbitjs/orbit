@@ -22,13 +22,13 @@ test("it exists", function() {
   ok(store);
 });
 
-test("#insertRecord - can insert records and assign ids", function() {
+test("#transform - can insert records and assign ids", function() {
   expect(6);
 
   equal(store.length('planet'), 0, 'store should be empty');
 
   stop();
-  store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     equal(store.length('planet'), 1, 'store should contain one record');
     ok(planet.__id, '__id should be defined');
     equal(planet.name, 'Jupiter', 'name should match');
@@ -44,26 +44,26 @@ test("#insertRecord - can insert records and assign ids", function() {
   });
 });
 
-test("#insertRecord - throws an error when a record with a duplicate id is inserted", function() {
+test("#transform - throws an error when a record with a duplicate id is inserted", function() {
   expect(4);
 
   equal(store.length('planet'), 0, 'store should be empty');
 
   stop();
-  store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     equal(store.length('planet'), 1, 'store should contain one record');
     ok(planet.__id, '__id should be defined');
     return planet;
 
   }).then(function(planet) {
-    store.insertRecord('planet', {__id: planet.__id, name: 'Jupiter', classification: 'gas giant'}).then(null, function(e) {
+    store.transform('insert', 'planet', {__id: planet.__id, name: 'Jupiter', classification: 'gas giant'}).then(null, function(e) {
       start();
       equal(e.constructor, 'AlreadyExistsException', 'duplicate error');
     });
   });
 });
 
-test("#updateRecord - can update records", function() {
+test("#transform - can update records", function() {
   expect(8);
 
   equal(store.length('planet'), 0, 'store should be empty');
@@ -71,9 +71,9 @@ test("#updateRecord - can update records", function() {
   var original;
 
   stop();
-  store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     original = planet;
-    return store.updateRecord('planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
+    return store.transform('update', 'planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
       equal(updatedPlanet.__id, planet.__id, '__id remains the same');
       equal(updatedPlanet.name, 'Earth', 'name has been updated');
       equal(updatedPlanet.classification, 'terrestrial', 'classification has been updated');
@@ -92,7 +92,7 @@ test("#updateRecord - can update records", function() {
   });
 });
 
-test("#patchRecord - can patch records", function() {
+test("#transform - can patch records", function() {
   expect(8);
 
   equal(store.length('planet'), 0, 'store should be empty');
@@ -100,12 +100,12 @@ test("#patchRecord - can patch records", function() {
   var original;
 
   stop();
-  store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     original = planet;
     return planet;
 
   }).then(function(planet) {
-    return store.patchRecord('planet', {__id: planet.__id, name: 'Earth'}).then(function(updatedPlanet) {
+    return store.transform('patch', 'planet', {__id: planet.__id, name: 'Earth'}).then(function(updatedPlanet) {
       equal(updatedPlanet.__id, planet.__id, '__id remains the same');
       equal(updatedPlanet.name, 'Earth', 'name has been updated');
       equal(updatedPlanet.classification, 'gas giant', 'classification has not been updated');
@@ -124,16 +124,16 @@ test("#patchRecord - can patch records", function() {
   });
 });
 
-test("#destroyRecord - can destroy records", function() {
+test("#transform - can delete records", function() {
   expect(3);
 
   equal(store.length('planet'), 0, 'store should be empty');
 
   stop();
-  store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     equal(store.length('planet'), 1, 'store should contain one record');
 
-    store.destroyRecord('planet', {__id: planet.__id}).then(function() {
+    store.transform('delete', 'planet', {__id: planet.__id}).then(function() {
       start();
       equal(store.length('planet'), 0, 'store should be empty');
     });
@@ -147,9 +147,9 @@ test("#find - can find all records", function() {
 
   stop();
   RSVP.all([
-    store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}),
-    store.insertRecord('planet', {name: 'Earth', classification: 'terrestrial'}),
-    store.insertRecord('planet', {name: 'Saturn', classification: 'gas giant'})
+    store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}),
+    store.transform('insert', 'planet', {name: 'Earth', classification: 'terrestrial'}),
+    store.transform('insert', 'planet', {name: 'Saturn', classification: 'gas giant'})
   ]).then(function() {
     equal(store.length('planet'), 3, 'store should contain 3 records');
 
@@ -168,10 +168,10 @@ test("#find - can find records by one or more filters", function() {
 
   stop();
   RSVP.all([
-    store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
-    store.insertRecord('planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}),
-    store.insertRecord('planet', {name: 'Venus', classification: 'terrestrial', atmosphere: true}),
-    store.insertRecord('planet', {name: 'Mercury', classification: 'terrestrial', atmosphere: false})
+    store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
+    store.transform('insert', 'planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}),
+    store.transform('insert', 'planet', {name: 'Venus', classification: 'terrestrial', atmosphere: true}),
+    store.transform('insert', 'planet', {name: 'Mercury', classification: 'terrestrial', atmosphere: false})
   ]).then(function() {
     equal(store.length('planet'), 4, 'store should contain 4 records');
 
@@ -218,7 +218,7 @@ test("#update - can update records", function() {
   var original;
 
   stop();
-  store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     original = planet;
     return store.update('planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
       equal(updatedPlanet.__id, planet.__id, '__id remains the same');
@@ -247,7 +247,7 @@ test("#patch - can patch records", function() {
   var original;
 
   stop();
-  store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     original = planet;
     return planet;
 
@@ -277,7 +277,7 @@ test("#destroy - can destroy records", function() {
   equal(store.length('planet'), 0, 'store should be empty');
 
   stop();
-  store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     equal(store.length('planet'), 1, 'store should contain one record');
 
     store.destroy('planet', {__id: planet.__id}).then(function() {

@@ -2,45 +2,29 @@ import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
 
 var Transformable = {
-  defaultActions: ['insertRecord', 'updateRecord', 'patchRecord', 'destroyRecord'],
-
-  extend: function(object, actions, options) {
+  extend: function(object, actions) {
     if (object._requestable === undefined) {
       this._requestable = true;
+
       Evented.extend(object);
 
-      options = options || {};
-      this.defineAction(object, actions || this.defaultActions, options);
-    }
-    return object;
-  },
-
-  defineAction: function(object, action, options) {
-    if (Object.prototype.toString.call(action) === "[object Array]") {
-      action.forEach(function(name) {
-        this.defineAction(object, name);
-      }, this);
-    } else {
-      var Action = Orbit.capitalize(action);
-
-      object['did' + Action] = function(type, data) {
-        return object.settle.call(object, 'did' + Action, type, data);
+      object.didTransform = function(action, type, data) {
+        return object.settle.call(object, 'didTransform', action, type, data);
       };
 
-      object[action] = function(type, data) {
-        Orbit.assert('_' + action + ' must be defined', object['_' + action]);
+      object.transform = function(action, type, data) {
+        Orbit.assert('_tranform must be defined', object._transform);
 
-        var args = Array.prototype.slice.call(arguments, 0);
-        return object['_' + action].apply(object, args).then(
+        return object._transform.call(object, action, type, data).then(
           function(result) {
-            return object['did' + Action].call(object, type, result).then(
+            return object.didTransform.call(object, action, type, result).then(
               function() {
                 return result;
               }
             );
           },
           function(error) {
-            return object.settle.apply(object, ['didNot' + Action].concat(args).concat(error)).then(
+            return object.settle.call(object, 'didNotTransform', action, type, data, error).then(
               function() {
                 throw error;
               }
@@ -49,6 +33,7 @@ var Transformable = {
         );
       };
     }
+    return object;
   }
 };
 

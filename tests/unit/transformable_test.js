@@ -4,94 +4,16 @@ import RSVP from 'rsvp';
 
 var source;
 
-var testTransformableAction = function(actionName) {
-  var ActionName = actionName.charAt(0).toUpperCase() + actionName.slice(1);
-
-  var successfulOperation = function() {
-    return new RSVP.Promise(function(resolve, reject) {
-      resolve(':)');
-    });
-  };
-
-  var failedOperation = function() {
-    return new RSVP.Promise(function(resolve, reject) {
-      reject(':(');
-    });
-  };
-
-  test("it should require the definition of _" + actionName, function() {
-    throws(source[actionName], "presence of _" + actionName + " should be verified");
-  });
-
-
-  test("it should require that _" + actionName + " returns a promise", function() {
-    expect(2);
-
-    source['_' + actionName] = successfulOperation;
-
-    stop();
-    source[actionName]().then(function(result) {
-      start();
-      ok(true, '_' + actionName + ' promise resolved');
-      equal(result, ':)', 'success!');
-    });
-  });
-
-  test("it should trigger `did" + ActionName + "` event after a successful action", function() {
-    expect(6);
-
-    var order = 0;
-
-    source['_' + actionName] = function() {
-      equal(++order, 1, 'action performed after will' + ActionName);
-      deepEqual(Array.prototype.slice.call(arguments, 0), ['planet', 'data'], '_handler args match original call args');
-      return successfulOperation();
-    };
-
-    source.on('did' + ActionName, function() {
-      equal(++order, 2, 'did' + ActionName + ' triggered after action performed successfully');
-      deepEqual(Array.prototype.slice.call(arguments, 0), ['planet', ':)'], 'event handler args include `type` + return value');
-    });
-
-    stop();
-    source[actionName]('planet', 'data').then(function(result) {
-      start();
-      equal(++order, 3, 'promise resolved last');
-      equal(result, ':)', 'success!');
-    });
-  });
-
-  test("it should trigger `didNot" + ActionName + "` event after an unsuccessful action", function() {
-    expect(6);
-
-    var order = 0;
-
-    source['_' + actionName] = function() {
-      equal(++order, 1, 'action performed after will' + ActionName);
-      deepEqual(Array.prototype.slice.call(arguments, 0), ['abc', 'def'], '_handler args match original call args');
-      return failedOperation();
-    };
-
-    source.on('did' + ActionName, function() {
-      ok(false, 'did' + ActionName + ' should not be triggered');
-    });
-
-    source.on('didNot' + ActionName, function() {
-      equal(++order, 2, 'didNot' + ActionName + ' triggered after an unsuccessful action');
-      deepEqual(Array.prototype.slice.call(arguments, 0), ['abc', 'def', ':('], 'event handler args match original call args + return value');
-    });
-
-    stop();
-    source[actionName]('abc', 'def').then(null, function(result) {
-      start();
-      equal(++order, 3, 'promise resolved last');
-      equal(result, ':(', 'failure');
-    });
+var successfulOperation = function() {
+  return new RSVP.Promise(function(resolve, reject) {
+    resolve(':)');
   });
 };
 
-var verifyActionExists = function(source, name) {
-  ok(source[name], 'action exists');
+var failedOperation = function() {
+  return new RSVP.Promise(function(resolve, reject) {
+    reject(':(');
+  });
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -119,26 +41,76 @@ test("it should mixin Evented", function() {
   });
 });
 
-test("it defines `transform` as an action by default", function() {
-  expect(4);
-
-  ['insertRecord', 'updateRecord', 'patchRecord', 'destroyRecord'].forEach(function(action) {
-    verifyActionExists(source, action);
-  });
+test("it defines `transform`", function() {
+  ok(source.transform, 'transform exists');
 });
 
-test("it can define any number of custom actions", function() {
+test("it should require the definition of _transform", function() {
+  throws(source._transform, "presence of _transform should be verified");
+});
+
+
+test("it should require that _transform returns a promise", function() {
   expect(2);
 
-  var transformable = {},
-      customActions = ['doSomething', 'undoSomething'];
+  source._transform = successfulOperation;
 
-  Transformable.extend(transformable, customActions);
-
-  customActions.forEach(function(action) {
-    verifyActionExists(transformable, action);
+  stop();
+  source.transform().then(function(result) {
+    start();
+    ok(true, '_transform promise resolved');
+    equal(result, ':)', 'success!');
   });
 });
 
-// Fully test just one of the default actions, since they're all defined in the same way
-testTransformableAction('insertRecord');
+test("it should trigger `didTransform` event after a successful transform", function() {
+  expect(6);
+
+  var order = 0;
+
+  source._transform = function() {
+    equal(++order, 1, '_transform performed first');
+    deepEqual(Array.prototype.slice.call(arguments, 0), ['insert', 'planet', 'data'], '_handler args match original call args');
+    return successfulOperation();
+  };
+
+  source.on('didTransform', function() {
+    equal(++order, 2, 'didTransform triggered after action performed successfully');
+    deepEqual(Array.prototype.slice.call(arguments, 0), ['insert', 'planet', ':)'], 'event handler args include `type` + return value');
+  });
+
+  stop();
+  source.transform('insert', 'planet', 'data').then(function(result) {
+    start();
+    equal(++order, 3, 'promise resolved last');
+    equal(result, ':)', 'success!');
+  });
+});
+
+test("it should trigger `didNotTransform` event after an unsuccessful action", function() {
+  expect(6);
+
+  var order = 0;
+
+  source._transform = function() {
+    equal(++order, 1, '_transform performed first');
+    deepEqual(Array.prototype.slice.call(arguments, 0), ['insert', 'planet', 'data'], '_handler args match original call args');
+    return failedOperation();
+  };
+
+  source.on('didTransform', function() {
+    ok(false, 'didTransform should not be triggered');
+  });
+
+  source.on('didNotTransform', function() {
+    equal(++order, 2, 'didNotTransform triggered after an unsuccessful action');
+    deepEqual(Array.prototype.slice.call(arguments, 0), ['insert', 'planet', 'data', ':('], 'event handler args match original call args + return value');
+  });
+
+  stop();
+  source.transform('insert', 'planet', 'data').then(null, function(result) {
+    start();
+    equal(++order, 3, 'promise resolved last');
+    equal(result, ':(', 'failure');
+  });
+});

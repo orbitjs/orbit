@@ -54,7 +54,7 @@ test("records inserted into memory should be posted with rest", function() {
   });
 
   stop();
-  memoryStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  memoryStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
     equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
     ok(planet.__id, 'orbit id should be defined');
@@ -78,7 +78,7 @@ test("records posted with rest should be inserted into memory", function() {
   });
 
   stop();
-  restStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  restStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
     equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
     ok(planet.__id, 'orbit id should be defined');
@@ -108,8 +108,8 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
   });
 
   stop();
-  memoryStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    memoryStore.updateRecord('planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(
+  memoryStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    memoryStore.transform('update', 'planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(
       function(planet) {
         start();
         equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
@@ -142,8 +142,8 @@ test("records updated with rest should be updated in memory", function() {
   });
 
   stop();
-  restStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    restStore.updateRecord('planet', {__id: planet.__id, id: planet.id, name: 'Earth', classification: 'terrestrial'}).then(
+  restStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    restStore.transform('update', 'planet', {__id: planet.__id, id: planet.id, name: 'Earth', classification: 'terrestrial'}).then(
       function(planet) {
         start();
         equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
@@ -176,8 +176,8 @@ test("records patched in memory should be patched with rest", function() {
   });
 
   stop();
-  memoryStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    memoryStore.patchRecord('planet', {__id: planet.__id, classification: 'terrestrial'}).then(
+  memoryStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    memoryStore.transform('patch', 'planet', {__id: planet.__id, classification: 'terrestrial'}).then(
       function(planet) {
         start();
         equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
@@ -207,8 +207,8 @@ test("records patched with rest should be patched in memory", function() {
   });
 
   stop();
-  restStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    restStore.patchRecord('planet', {__id: planet.__id, classification: 'terrestrial'}).then(
+  restStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    restStore.transform('patch', 'planet', {__id: planet.__id, classification: 'terrestrial'}).then(
       function(planet) {
         start();
         equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
@@ -241,8 +241,8 @@ test("records deleted in memory should be deleted with rest", function() {
   });
 
   stop();
-  memoryStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    memoryStore.destroyRecord('planet', {__id: planet.__id}).then(
+  memoryStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    memoryStore.transform('delete', 'planet', {__id: planet.__id}).then(
       function(record) {
         start();
         equal(memoryStore.length('planet'), 0, 'memory store should be empty');
@@ -272,8 +272,8 @@ test("records deleted with rest should be deleted in memory", function() {
   });
 
   stop();
-  memoryStore.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    memoryStore.destroyRecord('planet', {__id: planet.__id}).then(
+  memoryStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    memoryStore.transform('delete', 'planet', {__id: planet.__id}).then(
       function(record) {
         start();
         equal(memoryStore.length('planet'), 0, 'memory store should be empty');

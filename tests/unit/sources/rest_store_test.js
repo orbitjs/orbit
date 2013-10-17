@@ -41,7 +41,7 @@ test("it can insert records", function() {
   });
 
   stop();
-  store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
     ok(planet.__id, 'orbit id should be defined');
     equal(planet.id, 12345, 'server id should be defined');
@@ -61,7 +61,7 @@ test("it can update records", function() {
   });
 
   stop();
-  store.updateRecord('planet', {id: 12345, name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('update', 'planet', {id: 12345, name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
     ok(planet.__id, 'orbit id should be defined');
     equal(planet.id, 12345, 'server id should be defined');
@@ -81,7 +81,7 @@ test("it can patch records", function() {
   });
 
   stop();
-  store.patchRecord('planet', {id: 12345, classification: 'gas giant'}).then(function(planet) {
+  store.transform('patch', 'planet', {id: 12345, classification: 'gas giant'}).then(function(planet) {
     start();
     ok(planet.__id, 'orbit id should be defined');
     equal(planet.id, 12345, 'server id should be defined');
@@ -101,7 +101,7 @@ test("it can delete records", function() {
   });
 
   stop();
-  store.destroyRecord('planet', {id: 12345}).then(function() {
+  store.transform('delete', 'planet', {id: 12345}).then(function() {
     start();
     ok(true, 'record deleted');
   });
@@ -125,7 +125,7 @@ test("it can find individual records by passing in a single id", function() {
   });
 
   stop();
-  store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     store.find('planet', planet.__id).then(function(planet) {
       start();
       ok(planet.__id, 'orbit id should be defined');
@@ -154,7 +154,7 @@ test("it can find individual records by passing in a single remote id", function
   });
 
   stop();
-  store.insertRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     store.find('planet', {id: planet.id}).then(function(planet) {
       start();
       ok(planet.__id, 'orbit id should be defined');

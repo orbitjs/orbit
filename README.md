@@ -32,9 +32,9 @@ store. You can define your own data sources that will work with Orbit as long
 as they support Orbit's interfaces.
 
 The methods for accessing and transforming data return promises. These promises
-might be fulfilled synchronously or asynchronously. Depending on whether they
-successfully resolve, events are triggered. Any event listeners can engage with
-an event by returning a promise. In this way, multiple data sources can be
+might be fulfilled synchronously or asynchronously. Once fulfilled, events
+are triggered to indicate success or failure. Any event listeners can engage
+with an event by returning a promise. In this way, multiple data sources can be
 involved in a single action.
 
 Standard connectors are supplied for listening to events on a data source and
@@ -56,16 +56,16 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
 ```javascript
 
   // Create stores
-  memoryStore = new MemoryStore();
-  restStore = new RestStore();
-  localStore = new LocalStore();
+  var memoryStore = new Orbit.MemoryStore();
+  var restStore = new Orbit.RestStore();
+  var localStore = new Orbit.LocalStore();
 
   // Connect MemoryStore -> LocalStore (using the default blocking strategy)
-  memToLocalConnector = new TransformConnector(memoryStore, localStore);
+  var memToLocalConnector = new Orbit.TransformConnector(memoryStore, localStore);
 
   // Connect MemoryStore <-> RestStore (using the default blocking strategy)
-  memToRestConnector = new TransformConnector(memoryStore, restStore);
-  restToMemConnector = new TransformConnector(restStore, memoryStore);
+  var memToRestConnector = new Orbit.TransformConnector(memoryStore, restStore);
+  var restToMemConnector = new Orbit.TransformConnector(restStore, memoryStore);
 
   // Create a record
   memoryStore.create('planet', {name: 'Jupiter', classification: 'gas giant'}).then(
@@ -75,22 +75,22 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
   );
 
   // Log the transforms
-  memoryStore.on('didInsertRecord', function(type, planet) {
-    console.log('restStore - inserted', planet.name);
+  memoryStore.on('didTransform', function(action, type, planet) {
+    console.log('memoryStore', action, planet.name);
   });
 
-  localStore.on('didInsertRecord', function(type, planet) {
-    console.log('localStore - inserted', planet.name);
+  localStore.on('didTransform', function(action, type, planet) {
+    console.log('localStore', action, planet.name);
   });
 
-  restStore.on('didInsertRecord', function(type, planet) {
-    console.log('restStore - inserted', planet.name);
+  restStore.on('didTransform', function(action, type, planet) {
+    console.log('restStore', action, planet.name);
   });
 
   // CONSOLE OUTPUT
-  // memoryStore - inserted Jupiter
-  // localStore  - inserted Jupiter
-  // restStore - inserted Jupiter
+  // memoryStore insert Jupiter
+  // localStore insert Jupiter
+  // restStore insert Jupiter
   // memoryStore - RESOLVED Jupiter
 ```
 
@@ -107,11 +107,11 @@ the `blocking: false` option:
 
 ```javascript
   // Connect MemoryStore -> LocalStore (non-blocking)
-  memToLocalConnector = new TransformConnector(memoryStore, localStore, {blocking: false});
+  var memToLocalConnector = new Orbit.TransformConnector(memoryStore, localStore, {blocking: false});
 
   // Connect MemoryStore <-> RestStore (non-blocking)
-  memToRestConnector = new TransformConnector(memoryStore, restStore, {blocking: false});
-  restToMemConnector = new TransformConnector(restStore, memoryStore, {blocking: false});
+  var memToRestConnector = new Orbit.TransformConnector(memoryStore, restStore, {blocking: false});
+  var restToMemConnector = new Orbit.TransformConnector(restStore, memoryStore, {blocking: false});
 ```
 
 In this case, the promise generated from `memoryStore.create` will be resolved
@@ -143,7 +143,7 @@ The `Requestable` interface can extend an object or prototype as follows:
 
 ```javascript
 var source = {};
-Requestable.extend(source);
+Orbit.Requestable.extend(source);
 ```
 
 This will make your object `Evented` (see below) and create a single action,
@@ -151,16 +151,16 @@ This will make your object `Evented` (see below) and create a single action,
 
 ```javascript
 var source = {};
-Requestable.extend(source, ['find', 'create', 'update', 'destroy']);
+Orbit.Requestable.extend(source, ['find', 'create', 'update', 'destroy']);
 ```
 
-Or you can add actions later with `Requestable.defineAction()`:
+Or you can add actions later with `Orbit.Requestable.defineAction()`:
 
 ```javascript
 var source = {};
-Requestable.extend(source); // defines 'find' by default
-Requestable.defineAction(source, ['create', 'update', 'destroy']);
-Requestable.defineAction(source, 'patch');
+Orbit.Requestable.extend(source); // defines 'find' by default
+Orbit.Requestable.defineAction(source, ['create', 'update', 'destroy']);
+Orbit.Requestable.defineAction(source, 'patch');
 ```
 
 In order to fulfill the contract of an action, define a
@@ -215,9 +215,9 @@ Let's take a look at how this could all work:
 ```javascript
 
 // Create some new sources - assume their prototypes are already `Requestable`
-var memoryStore = new MemoryStore();
-var restStore = new RESTStore();
-var localStore = new LocalStore();
+var memoryStore = new Orbit.MemoryStore();
+var restStore = new Orbit.RestStore();
+var localStore = new Orbit.LocalStore();
 
 ////// Connect the sources via events
 
@@ -279,7 +279,7 @@ The `Notifier` class can emit messages to an array of subscribed listeners.
 Here's a simple example:
 
 ```javascript
-var notifier = new Notifier();
+var notifier = new Orbit.Notifier();
 notifier.addListener(function(message) {
   console.log("I heard " + message);
 });
@@ -293,7 +293,7 @@ notifier.emit('hello'); // logs "I heard hello" and "I also heard hello"
 Notifiers can also poll listeners with an event and return their responses:
 
 ```javascript
-var dailyQuestion = new Notifier();
+var dailyQuestion = new Orbit.Notifier();
 dailyQuestion.addListener(function(question) {
   if (question === 'favorite food?') return 'beer';
 });
@@ -320,7 +320,7 @@ The `Evented` interface can extend an object or prototype as follows:
 
 ```javascript
 var source = {};
-Evented.extend(source);
+Orbit.Evented.extend(source);
 ```
 
 Listeners can then register themselves for particular events with `on`:

@@ -1,7 +1,6 @@
 import Orbit from 'orbit/core';
 
 var failHandler = function(e) {
-  debugger;
   console.log('FAIL', e);
 };
 
@@ -27,19 +26,13 @@ TransformConnector.prototype = {
 
     if (this._active) return;
 
-    this.source.on('didInsertRecord',  this._onInsert,  this);
-    this.source.on('didUpdateRecord',  this._onUpdate,  this);
-    this.source.on('didPatchRecord',   this._onPatch,   this);
-    this.source.on('didDestroyRecord', this._onDestroy, this);
+    this.source.on('didTransform',  this._processTransform,  this);
 
     this._active = true;
   },
 
   deactivate: function() {
-    this.source.off('didInsertRecord',  this._onInsert,  this);
-    this.source.off('didUpdateRecord',  this._onUpdate,  this);
-    this.source.off('didPatchRecord',   this._onPatch,   this);
-    this.source.off('didDestroyRecord', this._onDestroy, this);
+    this.source.off('didTransform',  this._processTransform,  this);
 
     this._active = false;
   },
@@ -50,13 +43,26 @@ TransformConnector.prototype = {
 
   resolveConflicts: function(action, type, record, updatedRecord) {
     // TODO - this is a naive default conflict resolver
-    if (record.__ver &&
+    if ((action === 'insert' || action === 'update' || action === 'patch') &&
+        !record.deleted &&
+        record.__ver &&
         updatedRecord.__ver &&
         record.__ver !== updatedRecord.__ver) {
 
       //console.log('* resolveConflicts - ', action, type, this.target, record, updatedRecord);
 
-      return this._patchTargetRecord(type, record, updatedRecord);
+      var delta = Orbit.delta(record, updatedRecord, [Orbit.versionField]);
+      if (delta) {
+        var orbitIdField = Orbit.idField,
+            targetIdField = this.target.idField;
+
+        if (updatedRecord[targetIdField]) delta[targetIdField] = updatedRecord[targetIdField];
+        if (targetIdField !== orbitIdField) delta[orbitIdField] = updatedRecord[orbitIdField];
+
+        //console.log('* resolveConflicts - delta - ', delta);
+
+        return this.target.transform('patch', type, delta).then(null, failHandler);
+      }
     }
   },
 
@@ -112,92 +118,23 @@ TransformConnector.prototype = {
     );
   },
 
-  _onInsert: function(type, record) {
-    return this._processTransform('insert', type, record);
-  },
-
-  _onUpdate: function(type, record) {
-    return this._processTransform('update', type, record);
-  },
-
-  _onPatch: function(type, record) {
-    return this._processTransform('patch', type, record);
-  },
-
-  _onDestroy: function(type, record) {
-    return this._processTransform('destroy', type, record);
-  },
-
   _transform: function(action, type, record) {
-    return this['_' + action].call(this, type, record);
-  },
+    var targetRecord;
+    if (this.target.retrieve) {
+      targetRecord = this.target.retrieve(type, record);
+    }
 
-  _insert: function(type, record) {
-    var targetRecord = this._targetRecord(type, record);
-
-    if (targetRecord) {
-      if (!targetRecord.deleted) {
-        return this.resolveConflicts('insert', type, targetRecord, record) ||
-               this._patchTargetRecord(type, targetRecord, record);
+    if (action === 'insert' || action === 'update' || action === 'patch') {
+      if (targetRecord) {
+        return this.resolveConflicts(action, type, targetRecord, record);
+      } else {
+        return this.target.transform(action, type, Orbit.clone(record));
       }
-    } else {
-      return this.target.insertRecord(type, Orbit.clone(record));
-    }
-  },
 
-  _update: function(type, record) {
-    var targetRecord = this._targetRecord(type, record);
-
-    if (targetRecord) {
-      if (!targetRecord.deleted) {
-        return this.resolveConflicts('update', type, targetRecord, record) ||
-               this._patchTargetRecord(type, targetRecord, record);
+    } else if (action === 'delete') {
+      if (! (targetRecord && targetRecord.deleted)) {
+        return this.target.transform('delete', type, Orbit.clone(record));
       }
-    } else {
-      return this.target.updateRecord(type, Orbit.clone(record));
-    }
-  },
-
-  _patch: function(type, record) {
-    var targetRecord = this._targetRecord(type, record);
-
-    if (targetRecord) {
-      if (!targetRecord.deleted) {
-        return this.resolveConflicts('patch', type, targetRecord, record) ||
-               this._patchTargetRecord(type, targetRecord, record);
-      }
-    } else {
-      return this.target.patchRecord(type, Orbit.clone(record));
-    }
-  },
-
-  _destroy: function(type, record) {
-    var targetRecord = this._targetRecord(type, record);
-
-    if (! (targetRecord && targetRecord.deleted)) {
-      return this.target.destroyRecord(type, Orbit.clone(record));
-    }
-  },
-
-  _targetRecord: function(type, record) {
-    if (this.target.retrieve && type && record) {
-      //console.log('targetRecord', this.target, this.target.retrieve(type, record));
-      return this.target.retrieve(type, record);
-    }
-  },
-
-  _patchTargetRecord: function(type, targetRecord, updatedRecord) {
-    var delta = Orbit.delta(targetRecord, updatedRecord, [Orbit.versionField]);
-    if (delta) {
-      var orbitIdField = Orbit.idField,
-          targetIdField = this.target.idField;
-
-      if (updatedRecord[targetIdField]) delta[targetIdField] = updatedRecord[targetIdField];
-      if (targetIdField !== orbitIdField) delta[orbitIdField] = updatedRecord[orbitIdField];
-
-      //console.log('* patchTargetRecord -', delta);
-
-      return this.target.patchRecord(type, delta).then(null, failHandler);
     }
   }
 };

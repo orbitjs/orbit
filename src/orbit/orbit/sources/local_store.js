@@ -14,7 +14,7 @@ var LocalStore = function(options) {
 
   var _this = this;
   ['on', 'off', 'emit', 'poll', 'listeners', 'resolve', 'settle',  // Evented interface
-   'insertRecord', 'updateRecord', 'patchRecord', 'destroyRecord', // Transformable interface
+   'transform',                                                    // Transformable interface
    'find', 'create', 'update', 'patch', 'destroy',                 // Requestable interface
    'retrieve', 'length'].forEach(function(method) {                // Directly defined
 
@@ -23,7 +23,7 @@ var LocalStore = function(options) {
     };
   });
 
-  _this._store.on('didInsertRecord didUpdateRecord didPatchRecord didDestroyRecord', function() {
+  _this._store.on('didTransform', function() {
     _this._saveData();
   });
 };

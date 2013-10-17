@@ -27,75 +27,63 @@ RestStore.prototype = {
   // Transformable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _insertRecord: function(type, data) {
+  _transform: function(action, type, data) {
     var _this = this,
         id = data[this.idField];
 
-    if (id) {
-      var recordInCache = _this.retrieve(type, id);
-      if (recordInCache) {
-        throw new Orbit.AlreadyExistsException(type, data);
+    if (action === 'insert') {
+      if (id) {
+        var recordInCache = _this.retrieve(type, id);
+        if (recordInCache) {
+          throw new Orbit.AlreadyExistsException(type, data);
+        }
+      }
+
+      return this.ajax(this.buildURL(type), 'POST', {data: this.serialize(type, data)}).then(
+        function(raw) {
+          return _this._addToCache(type, _this.deserialize(type, raw), id);
+        }
+      );
+
+    } else {
+      var remoteId = this._lookupRemoteId(type, data);
+
+      if (!remoteId) throw new Orbit.NotFoundException(type, data);
+
+      if (action === 'update') {
+        return this.ajax(this.buildURL(type, remoteId), 'PUT', {data: this.serialize(type, data)}).then(
+          function(raw) {
+            return _this._addToCache(type, _this.deserialize(type, raw), id);
+          }
+        );
+
+      } else if (action === 'patch') {
+        // no need to transmit remote id along with a patched record
+        delete data[this.remoteIdField];
+
+        return this.ajax(this.buildURL(type, remoteId), 'PATCH', {data: this.serialize(type, data)}).then(
+          function(raw) {
+            return _this._addToCache(type, _this.deserialize(type, raw), id);
+          }
+        );
+
+      } else if (action === 'delete') {
+        return this.ajax(this.buildURL(type, remoteId), 'DELETE').then(
+          function() {
+            var record = _this.retrieve(type, id);
+            if (!record) {
+              record = {};
+              _this._addToCache(type, record, id);
+            }
+            record.deleted = true;
+            Orbit.incrementVersion(record);
+
+            return record;
+          }
+        );
+
       }
     }
-
-    return this.ajax(this.buildURL(type), 'POST', {data: this.serialize(type, data)}).then(
-      function(raw) {
-        return _this._addToCache(type, _this.deserialize(type, raw), id);
-      }
-    );
-  },
-
-  _updateRecord: function(type, data) {
-    var _this = this,
-        id = data[this.idField],
-        remoteId = this._lookupRemoteId(type, data);
-
-    if (!remoteId) throw new Orbit.NotFoundException(type, data);
-
-    return this.ajax(this.buildURL(type, remoteId), 'PUT', {data: this.serialize(type, data)}).then(
-      function(raw) {
-        return _this._addToCache(type, _this.deserialize(type, raw), id);
-      }
-    );
-  },
-
-  _patchRecord: function(type, data) {
-    var _this = this,
-        id = data[this.idField],
-        remoteId = this._lookupRemoteId(type, data);
-
-    if (!remoteId) throw new Orbit.NotFoundException(type, data);
-
-    // no need to transmit remote id along with a patched record
-    delete data[this.remoteIdField];
-
-    return this.ajax(this.buildURL(type, remoteId), 'PATCH', {data: this.serialize(type, data)}).then(
-      function(raw) {
-        return _this._addToCache(type, _this.deserialize(type, raw), id);
-      }
-    );
-  },
-
-  _destroyRecord: function(type, data) {
-    var _this = this,
-        id = data[this.idField],
-        remoteId = this._lookupRemoteId(type, data);
-
-    if (!remoteId) throw new Orbit.NotFoundException(type, data);
-
-    return this.ajax(this.buildURL(type, remoteId), 'DELETE').then(
-      function() {
-        var record = _this.retrieve(type, id);
-        if (!record) {
-          record = {};
-          _this._addToCache(type, record, id);
-        }
-        record.deleted = true;
-        Orbit.incrementVersion(record);
-
-        return record;
-      }
-    );
   },
 
   /////////////////////////////////////////////////////////////////////////////
@@ -117,19 +105,19 @@ RestStore.prototype = {
   },
 
   _create: function(type, data) {
-    return this.insertRecord(type, data);
+    return this.transform('insert', type, data);
   },
 
   _update: function(type, data) {
-    return this.updateRecord(type, data);
+    return this.transform('update', type, data);
   },
 
   _patch: function(type, data) {
-    return this.patchRecord(type, data);
+    return this.transform('patch', type, data);
   },
 
   _destroy: function(type, data) {
-    return this.destroyRecord(type, data);
+    return this.transform('delete', type, data);
   },
 
   /////////////////////////////////////////////////////////////////////////////
@@ -187,7 +175,7 @@ RestStore.prototype = {
     }
     this._addToCache(type, record, id);
 
-    this['did' + (newRecord ? 'InsertRecord' : 'UpdateRecord')].call(this, type, record);
+    this.didTransform.call(this, (newRecord ? 'insert' : 'update'), type, record);
   },
 
   _remoteToLocalId: function(type, remoteId) {
