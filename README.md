@@ -124,9 +124,9 @@ server, will be automatically patched back to the record in the memory store.
 The primary interfaces provided by Orbit are:
 
 * `Requestable` - for managing requests for data via methods such as `find`,
-`create`, `update` and `destoy`.
+`create`, `update` and `destroy`.
 
-* `Transformable` - for keeping data sources in sync through low level
+* `Transformable` - for keeping data sources in sync through a low level
 transformations.
 
 These interfaces can extend (i.e. be "mixed into") your data sources. They can
