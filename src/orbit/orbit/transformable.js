@@ -13,7 +13,7 @@ var Transformable = {
       };
 
       object.transform = function(action, type, data) {
-        Orbit.assert('_tranform must be defined', object._transform);
+        Orbit.assert('_transform must be defined', object._transform);
 
         return object._transform.call(object, action, type, data).then(
           function(result) {
