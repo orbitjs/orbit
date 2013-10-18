@@ -1,9 +1,5 @@
 import Orbit from 'orbit/core';
 
-var failHandler = function(e) {
-  console.log('FAIL', e);
-};
-
 var TransformConnector = function(source, target, options) {
   var _this = this;
 
@@ -41,31 +37,6 @@ TransformConnector.prototype = {
     return this._active;
   },
 
-  resolveConflicts: function(action, type, record, updatedRecord) {
-    // TODO - this is a naive default conflict resolver
-    if ((action === 'insert' || action === 'update' || action === 'patch') &&
-        !record.deleted &&
-        record.__ver &&
-        updatedRecord.__ver &&
-        record.__ver !== updatedRecord.__ver) {
-
-      //console.log('* resolveConflicts - ', action, type, this.target, record, updatedRecord);
-
-      var delta = Orbit.delta(record, updatedRecord, [Orbit.versionField]);
-      if (delta) {
-        var orbitIdField = Orbit.idField,
-            targetIdField = this.target.idField;
-
-        if (updatedRecord[targetIdField]) delta[targetIdField] = updatedRecord[targetIdField];
-        if (targetIdField !== orbitIdField) delta[orbitIdField] = updatedRecord[orbitIdField];
-
-        //console.log('* resolveConflicts - delta - ', delta);
-
-        return this.target.transform('patch', type, delta).then(null, failHandler);
-      }
-    }
-  },
-
   /////////////////////////////////////////////////////////////////////////////
   // Internals
   /////////////////////////////////////////////////////////////////////////////
@@ -76,7 +47,7 @@ TransformConnector.prototype = {
       this._enqueueTransform(action, type, record);
 
     } else {
-      var promise = this._transform(action, type, record);
+      var promise = this._transformTarget(action, type, record);
       if (promise) {
         if (this.blocking) {
           return promise;
@@ -118,23 +89,38 @@ TransformConnector.prototype = {
     );
   },
 
-  _transform: function(action, type, record) {
-    var targetRecord;
+  _transformTarget: function(action, type, record) {
     if (this.target.retrieve) {
-      targetRecord = this.target.retrieve(type, record);
-    }
-
-    if (action === 'insert' || action === 'update' || action === 'patch') {
+      var targetRecord = this.target.retrieve(type, record);
       if (targetRecord) {
-        return this.resolveConflicts(action, type, targetRecord, record);
-      } else {
-        return this.target.transform(action, type, Orbit.clone(record));
-      }
+        if (targetRecord.deleted) return;
 
-    } else if (action === 'delete') {
-      if (! (targetRecord && targetRecord.deleted)) {
-        return this.target.transform('delete', type, Orbit.clone(record));
+        if (action === 'insert' || action === 'update' || action === 'patch') {
+          if (this._recordsMatch(targetRecord, record)) {
+            return;
+          } else {
+            return this._resolveConflicts(type, targetRecord, record);
+          }
+        }
       }
+    }
+    return this.target.transform(action, type, Orbit.clone(record));
+  },
+
+  _recordsMatch: function(record1, record2) {
+    return record1.__ver !== undefined && record1.__ver === record2.__ver;
+  },
+
+  _resolveConflicts: function(type, targetRecord, updatedRecord) {
+    //console.log('* resolveConflicts - ', action, type, this.target, targetRecord, updatedRecord);
+
+    var delta = Orbit.delta(targetRecord, updatedRecord, [Orbit.versionField]);
+    if (delta) {
+      delta[Orbit.idField] = updatedRecord[Orbit.idField];
+
+      //console.log('* resolveConflicts - delta - ', delta);
+
+      return this.target.transform('patch', type, delta);
     }
   }
 };
