@@ -9,7 +9,7 @@ var store;
 module("Unit - LocalStore", {
   setup: function() {
     Orbit.Promise = RSVP.Promise;
-    store = new LocalStore();
+    store = new LocalStore({autoload: false});
   },
 
   teardown: function() {

@@ -24,7 +24,7 @@ module("Integration - Rest / Memory / Local Transforms (Non-Blocking)", {
     // Create stores
     memoryStore = new MemoryStore();
     restStore = new RestStore();
-    localStore = new LocalStore();
+    localStore = new LocalStore({autoload: false});
 
     // Connect MemoryStore -> LocalStore
     memToLocalConnector = new TransformConnector(memoryStore, localStore, {blocking: false});

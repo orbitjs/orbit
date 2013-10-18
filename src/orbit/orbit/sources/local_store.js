@@ -8,6 +8,7 @@ var LocalStore = function(options) {
   options = options || {};
   this.namespace = options['namespace'] || 'orbit'; // local storage key
   this._autosave = options['autosave'] !== undefined ? options['autosave'] : true;
+  var autoload = options['autoload'] !== undefined ? options['autoload'] : true;
 
   this._store = new MemoryStore();
   this._isDirty = false;
@@ -26,6 +27,8 @@ var LocalStore = function(options) {
   _this._store.on('didTransform', function() {
     _this._saveData();
   });
+
+  if (autoload) this.load();
 };
 
 var supportsLocalStorage = function() {
@@ -42,6 +45,11 @@ LocalStore.prototype = {
   /////////////////////////////////////////////////////////////////////////////
   // Public
   /////////////////////////////////////////////////////////////////////////////
+
+  load: function() {
+    var storage = window.localStorage.getItem(this.namespace);
+    this._store._data = storage ? JSON.parse(storage) : {};
+  },
 
   enableAutosave: function() {
     if (!this._autosave) {
@@ -60,23 +68,12 @@ LocalStore.prototype = {
   // Internals
   /////////////////////////////////////////////////////////////////////////////
 
-  _loadData: function(forceReload) {
-    if (this._store._data === undefined || forceReload) {
-      var storage = window.localStorage.getItem(this.namespace);
-      this._store._data = storage ? JSON.parse(storage) : {};
-    }
-  },
-
   _saveData: function(forceSave) {
     if (!this._autosave && !forceSave) {
       this._isDirty = true;
       return;
     }
-    if (this._store._data === undefined) {
-      this._loadData();
-    } else {
-      window.localStorage.setItem(this.namespace, JSON.stringify(this._store._data));
-    }
+    window.localStorage.setItem(this.namespace, JSON.stringify(this._store._data));
     this._isDirty = false;
   }
 };
