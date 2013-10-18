@@ -8,9 +8,12 @@ var TransformConnector = function(source, target, options) {
   this.queue = [];
 
   options = options || {};
-  this.blocking = options['blocking'] !== undefined ? options['blocking'] : true;
-  this._queueEnabled = options['queue'] !== undefined ? options['queue'] : false;
-  var active = options['active'] !== undefined ? options['active'] : true;
+  if (options.actions) this.actions = Orbit.arrayToOptions(options.actions);
+  if (options.types) this.types = Orbit.arrayToOptions(options.types);
+  this.blocking = options.blocking !== undefined ? options.blocking : true;
+  this._queueEnabled = options.queue !== undefined ? options.queue : false;
+  var active = options.active !== undefined ? options.active : true;
+
   if (active) this.activate();
 };
 
@@ -42,6 +45,9 @@ TransformConnector.prototype = {
   /////////////////////////////////////////////////////////////////////////////
 
   _processTransform: function(action, type, record) {
+    if (this.actions && !this.actions[action]) return;
+    if (this.types && !this.types[type]) return;
+
     //console.log('* processTransform - ', action, type, this.target, record);
     if (this.activeTransform || this._queueEnabled) {
       this._enqueueTransform(action, type, record);
