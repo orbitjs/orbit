@@ -38,7 +38,7 @@ test("#transform - can insert records and assign ids", function() {
 
   }).then(function(planet) {
     verifyLocalStorageContainsRecord(store.namespace, 'planet', planet);
-    store.find('planet', planet.id).then(function(foundPlanet) {
+    store.findRecord('planet', planet.id).then(function(foundPlanet) {
       start();
       equal(foundPlanet.id, planet.id, 'record can be looked up by id');
     });
@@ -64,7 +64,7 @@ test("#transform - can update records", function() {
 
   }).then(function(planet) {
     verifyLocalStorageContainsRecord(store.namespace, 'planet', planet);
-    store.find('planet', planet.__id).then(function(foundPlanet) {
+    store.findRecord('planet', planet.__id).then(function(foundPlanet) {
       start();
       strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
       equal(foundPlanet.__id, planet.__id, 'record can be looked up by __id');
@@ -97,7 +97,7 @@ test("#transform - can patch records", function() {
 
   }).then(function(planet) {
     verifyLocalStorageContainsRecord(store.namespace, 'planet', planet);
-    store.find('planet', planet.__id).then(function(foundPlanet) {
+    store.findRecord('planet', planet.__id).then(function(foundPlanet) {
       start();
       strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
       equal(foundPlanet.__id, planet.__id, 'record can be looked up by __id');
@@ -126,7 +126,7 @@ test("#transform - can delete records", function() {
   });
 });
 
-test("#find - can find all records", function() {
+test("#findRecord - can find all records", function() {
   expect(3);
 
   equal(store.length('planet'), 0, 'store should be empty');
@@ -139,9 +139,9 @@ test("#find - can find all records", function() {
   ]).then(function() {
     equal(store.length('planet'), 3, 'store should contain 3 records');
 
-    store.find('planet').then(function(planets) {
+    store.findRecord('planet').then(function(planets) {
       start();
-      equal(planets.length, 3, 'find() should return all records');
+      equal(planets.length, 3, 'findRecord() should return all records');
     });
   });
 });

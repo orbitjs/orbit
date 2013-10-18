@@ -46,7 +46,7 @@ test("records inserted into the primary store should be automatically copied to 
     equal(planet.name, 'Jupiter', 'name should match');
     equal(planet.classification, 'gas giant', 'classification should match');
 
-    backupStore.find('planet', planet.__id).then(function(backupPlanet) {
+    backupStore.findRecord('planet', planet.__id).then(function(backupPlanet) {
       start();
       notStrictEqual(backupPlanet, originalPlanet, 'not the same object as the one originally inserted');
       equal(backupPlanet.__id, planet.__id, 'backup record has the same primary id');
@@ -71,7 +71,7 @@ test("updates to records in the primary store should be automatically copied to 
       equal(updatedPlanet.classification, 'terrestrial', 'classification has been updated');
 
     }).then(function() {
-      backupStore.find('planet', planet.__id).then(function(backupPlanet) {
+      backupStore.findRecord('planet', planet.__id).then(function(backupPlanet) {
         start();
         notStrictEqual(backupPlanet, originalPlanet, 'not the same object as the one originally inserted');
         equal(backupPlanet.__id, planet.__id, 'backup record has the same primary id');
@@ -97,7 +97,7 @@ test("patches to records in the primary store should be automatically copied to 
       equal(updatedPlanet.classification, 'gas giant', 'classification has not been updated');
 
     }).then(function() {
-      backupStore.find('planet', planet.__id).then(function(backupPlanet) {
+      backupStore.findRecord('planet', planet.__id).then(function(backupPlanet) {
         start();
         notStrictEqual(backupPlanet, originalPlanet, 'not the same object as the one originally inserted');
         equal(backupPlanet.__id, planet.__id, 'backup record has the same primary id');

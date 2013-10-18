@@ -14,10 +14,10 @@ var LocalStore = function(options) {
   this._isDirty = false;
 
   var _this = this;
-  ['on', 'off', 'emit', 'poll', 'listeners', 'resolve', 'settle',  // Evented interface
-   'transform',                                                    // Transformable interface
-   'find', 'create', 'update', 'patch', 'destroy',                 // Requestable interface
-   'retrieve', 'length'].forEach(function(method) {                // Directly defined
+  ['on', 'off', 'emit', 'poll', 'listeners', 'resolve', 'settle',               // Evented interface
+   'transform',                                                                 // Transformable interface
+   'findRecord', 'createRecord', 'updateRecord', 'patchRecord', 'deleteRecord', // Requestable interface
+   'retrieve', 'length'].forEach(function(method) {                             // Directly defined
 
     _this[method] = function() {
       return _this._store[method].apply(_this._store, arguments);

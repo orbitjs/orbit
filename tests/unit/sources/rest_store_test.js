@@ -30,7 +30,7 @@ test("it exists", function() {
   ok(store);
 });
 
-test("it can insert records", function() {
+test("#transform - can insert records", function() {
   expect(5);
 
   server.respondWith('POST', '/planets', function(xhr) {
@@ -50,7 +50,7 @@ test("it can insert records", function() {
   });
 });
 
-test("it can update records", function() {
+test("#transform - can update records", function() {
   expect(5);
 
   server.respondWith('PUT', '/planets/12345', function(xhr) {
@@ -70,7 +70,7 @@ test("it can update records", function() {
   });
 });
 
-test("it can patch records", function() {
+test("#transform - can patch records", function() {
   expect(5);
 
   server.respondWith('PATCH', '/planets/12345', function(xhr) {
@@ -90,7 +90,7 @@ test("it can patch records", function() {
   });
 });
 
-test("it can delete records", function() {
+test("#transform - can delete records", function() {
   expect(2);
 
   server.respondWith('DELETE', '/planets/12345', function(xhr) {
@@ -107,7 +107,7 @@ test("it can delete records", function() {
   });
 });
 
-test("it can find individual records by passing in a single id", function() {
+test("#findRecord - can find individual records by passing in a single id", function() {
   expect(6);
 
   server.respondWith('POST', '/planets', function(xhr) {
@@ -126,7 +126,7 @@ test("it can find individual records by passing in a single id", function() {
 
   stop();
   store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    store.find('planet', planet.__id).then(function(planet) {
+    store.findRecord('planet', planet.__id).then(function(planet) {
       start();
       ok(planet.__id, 'orbit id should be defined');
       equal(planet.id, 12345, 'server id should be defined');
@@ -136,7 +136,7 @@ test("it can find individual records by passing in a single id", function() {
   });
 });
 
-test("it can find individual records by passing in a single remote id", function() {
+test("#findRecord - can find individual records by passing in a single remote id", function() {
   expect(6);
 
   server.respondWith('POST', '/planets', function(xhr) {
@@ -155,7 +155,7 @@ test("it can find individual records by passing in a single remote id", function
 
   stop();
   store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    store.find('planet', {id: planet.id}).then(function(planet) {
+    store.findRecord('planet', {id: planet.id}).then(function(planet) {
       start();
       ok(planet.__id, 'orbit id should be defined');
       equal(planet.id, 12345, 'server id should be defined');
@@ -165,7 +165,7 @@ test("it can find individual records by passing in a single remote id", function
   });
 });
 
-test("it can find all records", function() {
+test("#findRecord - can find all records", function() {
   expect(13);
 
   var records = [
@@ -182,7 +182,7 @@ test("it can find all records", function() {
   });
 
   stop();
-  store.find('planet').then(function(planets) {
+  store.findRecord('planet').then(function(planets) {
     start();
 
     var planet, record;
@@ -197,7 +197,7 @@ test("it can find all records", function() {
   });
 });
 
-test("it can find all records", function() {
+test("#findRecord - can find all records", function() {
   expect(18);
 
   var records = [
@@ -216,7 +216,7 @@ test("it can find all records", function() {
   });
 
   stop();
-  store.find('planet', {classification: 'terrestrial'}).then(function(planets) {
+  store.findRecord('planet', {classification: 'terrestrial'}).then(function(planets) {
     start();
 
     var planet, record;

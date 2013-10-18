@@ -2,7 +2,7 @@ import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
 
 var Requestable = {
-  defaultActions: ['find'],
+  defaultActions: ['findRecord'],
 
   extend: function(object, actions) {
     if (object._requestable === undefined) {

@@ -126,7 +126,7 @@ The primary interfaces provided by Orbit are:
 * `Requestable` - for managing requests for data via methods such as `find`,
 `create`, `update` and `destroy`.
 
-* `Transformable` - for keeping data sources in sync through a low level
+* `Transformable` - for keeping data sources in sync through low level
 transformations.
 
 These interfaces can extend (i.e. be "mixed into") your data sources. They can

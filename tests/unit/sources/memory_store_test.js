@@ -36,7 +36,7 @@ test("#transform - can insert records and assign ids", function() {
     return planet;
 
   }).then(function(planet) {
-    store.find('planet', planet.__id).then(function(foundPlanet) {
+    store.findRecord('planet', planet.__id).then(function(foundPlanet) {
       start();
       equal(foundPlanet.__id, planet.__id, 'record can be looked up by __id');
       return planet;
@@ -81,7 +81,7 @@ test("#transform - can update records", function() {
     });
 
   }).then(function(planet) {
-    store.find('planet', planet.__id).then(function(foundPlanet) {
+    store.findRecord('planet', planet.__id).then(function(foundPlanet) {
       start();
       strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
       equal(foundPlanet.__id, planet.__id, 'record can be looked up by __id');
@@ -113,7 +113,7 @@ test("#transform - can patch records", function() {
     });
 
   }).then(function(planet) {
-    store.find('planet', planet.__id).then(function(foundPlanet) {
+    store.findRecord('planet', planet.__id).then(function(foundPlanet) {
       start();
       strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
       equal(foundPlanet.__id, planet.__id, 'record can be looked up by __id');
@@ -140,7 +140,7 @@ test("#transform - can delete records", function() {
   });
 });
 
-test("#find - can find all records", function() {
+test("#findRecord - can find all records", function() {
   expect(3);
 
   equal(store.length('planet'), 0, 'store should be empty');
@@ -153,15 +153,15 @@ test("#find - can find all records", function() {
   ]).then(function() {
     equal(store.length('planet'), 3, 'store should contain 3 records');
 
-    store.find('planet').then(function(allPlanets) {
+    store.findRecord('planet').then(function(allPlanets) {
       start();
-      equal(allPlanets.length, 3, 'find() should return all records');
+      equal(allPlanets.length, 3, 'findRecord() should return all records');
       return allPlanets;
     });
   });
 });
 
-test("#find - can find records by one or more filters", function() {
+test("#findRecord - can find records by one or more filters", function() {
   expect(5);
 
   equal(store.length('planet'), 0, 'store should be empty');
@@ -175,9 +175,9 @@ test("#find - can find records by one or more filters", function() {
   ]).then(function() {
     equal(store.length('planet'), 4, 'store should contain 4 records');
 
-    store.find('planet', {classification: 'terrestrial', atmosphere: true}).then(function(allPlanets) {
+    store.findRecord('planet', {classification: 'terrestrial', atmosphere: true}).then(function(allPlanets) {
       start();
-      equal(allPlanets.length, 2, 'find() should return all records');
+      equal(allPlanets.length, 2, 'findRecord() should return all records');
       equal(allPlanets[0].name, 'Earth', 'first matching planet');
       equal(allPlanets[1].name, 'Venus', 'second matching planet');
       return allPlanets;
@@ -185,7 +185,7 @@ test("#find - can find records by one or more filters", function() {
   });
 });
 
-test("#create - creates a record", function() {
+test("#createRecord - creates a record", function() {
   expect(6);
 
   equal(store.length('planet'), 0, 'store should be empty');
@@ -193,7 +193,7 @@ test("#create - creates a record", function() {
   var original;
 
   stop();
-  store.create('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.createRecord('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     original = planet;
     equal(store.length('planet'), 1, 'store should contain one record');
     ok(planet.__id, '__id should be defined');
@@ -202,7 +202,7 @@ test("#create - creates a record", function() {
     return planet;
 
   }).then(function(planet) {
-    store.find('planet', planet.__id).then(function(foundPlanet) {
+    store.findRecord('planet', planet.__id).then(function(foundPlanet) {
       start();
       equal(foundPlanet.__id, original.__id, 'record can be looked up by __id');
       return planet;
@@ -210,7 +210,7 @@ test("#create - creates a record", function() {
   });
 });
 
-test("#update - can update records", function() {
+test("#updateRecord - can update records", function() {
   expect(8);
 
   equal(store.length('planet'), 0, 'store should be empty');
@@ -220,7 +220,7 @@ test("#update - can update records", function() {
   stop();
   store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     original = planet;
-    return store.update('planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
+    return store.updateRecord('planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
       equal(updatedPlanet.__id, planet.__id, '__id remains the same');
       equal(updatedPlanet.name, 'Earth', 'name has been updated');
       equal(updatedPlanet.classification, 'terrestrial', 'classification has been updated');
@@ -228,7 +228,7 @@ test("#update - can update records", function() {
     });
 
   }).then(function(planet) {
-    store.find('planet', planet.__id).then(function(foundPlanet) {
+    store.findRecord('planet', planet.__id).then(function(foundPlanet) {
       start();
       strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
       equal(foundPlanet.__id, original.__id, 'record can be looked up by __id');
@@ -239,7 +239,7 @@ test("#update - can update records", function() {
   });
 });
 
-test("#patch - can patch records", function() {
+test("#patchRecord - can patch records", function() {
   expect(8);
 
   equal(store.length('planet'), 0, 'store should be empty');
@@ -252,7 +252,7 @@ test("#patch - can patch records", function() {
     return planet;
 
   }).then(function(planet) {
-    return store.patch('planet', {__id: planet.__id, name: 'Earth'}).then(function(updatedPlanet) {
+    return store.patchRecord('planet', {__id: planet.__id, name: 'Earth'}).then(function(updatedPlanet) {
       equal(updatedPlanet.__id, planet.__id, '__id remains the same');
       equal(updatedPlanet.name, 'Earth', 'name has been updated');
       equal(updatedPlanet.classification, 'gas giant', 'classification has not been updated');
@@ -260,7 +260,7 @@ test("#patch - can patch records", function() {
     });
 
   }).then(function(planet) {
-    store.find('planet', planet.__id).then(function(foundPlanet) {
+    store.findRecord('planet', planet.__id).then(function(foundPlanet) {
       start();
       strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
       equal(foundPlanet.__id, planet.__id, 'record can be looked up by __id');
@@ -271,7 +271,7 @@ test("#patch - can patch records", function() {
   });
 });
 
-test("#destroy - can destroy records", function() {
+test("#deleteRecord - can destroy records", function() {
   expect(3);
 
   equal(store.length('planet'), 0, 'store should be empty');
@@ -280,7 +280,7 @@ test("#destroy - can destroy records", function() {
   store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     equal(store.length('planet'), 1, 'store should contain one record');
 
-    store.destroy('planet', {__id: planet.__id}).then(function() {
+    store.deleteRecord('planet', {__id: planet.__id}).then(function() {
       start();
       equal(store.length('planet'), 0, 'store should be empty');
     });

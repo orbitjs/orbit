@@ -11,7 +11,7 @@ var MemoryStore = function() {
   this._length = {};
 
   Transformable.extend(this);
-  Requestable.extend(this, ['find', 'create', 'update', 'patch', 'destroy']);
+  Requestable.extend(this, ['findRecord', 'createRecord', 'updateRecord', 'patchRecord', 'deleteRecord']);
 };
 
 MemoryStore.prototype = {
@@ -95,7 +95,7 @@ MemoryStore.prototype = {
   // Requestable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _find: function(type, id) {
+  _findRecord: function(type, id) {
     var _this = this;
 
     return new Orbit.Promise(function(resolve, reject) {
@@ -112,19 +112,19 @@ MemoryStore.prototype = {
     });
   },
 
-  _create: function(type, data) {
+  _createRecord: function(type, data) {
     return this.transform('insert', type, data);
   },
 
-  _update: function(type, data) {
+  _updateRecord: function(type, data) {
     return this.transform('update', type, data);
   },
 
-  _patch: function(type, data) {
+  _patchRecord: function(type, data) {
     return this.transform('patch', type, data);
   },
 
-  _destroy: function(type, data) {
+  _deleteRecord: function(type, data) {
     return this.transform('delete', type, data);
   },
 

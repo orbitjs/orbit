@@ -17,7 +17,7 @@ var RestStore = function(options) {
   this._remoteIdMap = {};
 
   Transformable.extend(this);
-  Requestable.extend(this, ['find', 'create', 'update', 'patch', 'destroy']);
+  Requestable.extend(this, ['findRecord', 'createRecord', 'updateRecord', 'patchRecord', 'deleteRecord']);
 };
 
 RestStore.prototype = {
@@ -96,7 +96,7 @@ RestStore.prototype = {
   // Requestable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _find: function(type, id) {
+  _findRecord: function(type, id) {
     if (id && (typeof id === 'number' || typeof id === 'string')) {
       var remoteId = this._lookupRemoteId(type, id);
       if (!remoteId) throw new Orbit.NotFoundException(type, id);
@@ -110,19 +110,19 @@ RestStore.prototype = {
     }
   },
 
-  _create: function(type, data) {
+  _createRecord: function(type, data) {
     return this.transform('insert', type, data);
   },
 
-  _update: function(type, data) {
+  _updateRecord: function(type, data) {
     return this.transform('update', type, data);
   },
 
-  _patch: function(type, data) {
+  _patchRecord: function(type, data) {
     return this.transform('patch', type, data);
   },
 
-  _destroy: function(type, data) {
+  _deleteRecord: function(type, data) {
     return this.transform('delete', type, data);
   },
 
