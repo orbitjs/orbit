@@ -50,7 +50,7 @@ MemoryStore.prototype = {
 
       } else {
         record = _this.retrieve(type, data);
-        if (record) {
+        if (record && !record.deleted) {
           if (action === 'update' || action === 'patch') {
             for (var i in data) {
               if (data.hasOwnProperty(i)) {
@@ -93,7 +93,7 @@ MemoryStore.prototype = {
         resolve(_this._filter.call(_this, type, id));
       } else {
         var record = _this.retrieve(type, id);
-        if (record) {
+        if (record && !record.deleted) {
           resolve(record);
         } else {
           reject(new Orbit.NotFoundException(type, id));
@@ -141,16 +141,18 @@ MemoryStore.prototype = {
         dataForType = this._data[type],
         i,
         prop,
-        match;
+        match,
+        record;
 
     for (i in dataForType) {
       if (dataForType.hasOwnProperty(i)) {
+        record = dataForType[i];
         if (query === undefined) {
           match = true;
         } else {
           match = false;
           for (prop in query) {
-            if (dataForType[i][prop] === query[prop]) {
+            if (record[prop] === query[prop]) {
               match = true;
             } else {
               match = false;
@@ -158,8 +160,8 @@ MemoryStore.prototype = {
             }
           }
         }
-        if (match) {
-          all.push(dataForType[i]);
+        if (match && !record.deleted) {
+          all.push(record);
         }
       }
     }
