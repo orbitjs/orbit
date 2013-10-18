@@ -8,15 +8,19 @@ var Requestable = {
     if (object._requestable === undefined) {
       this._requestable = true;
       Evented.extend(object);
-      this.defineAction(object, actions || this.defaultActions);
+      this._defineAction(object, actions || this.defaultActions);
     }
     return object;
   },
 
-  defineAction: function(object, action) {
+  /////////////////////////////////////////////////////////////////////////////
+  // Internals
+  /////////////////////////////////////////////////////////////////////////////
+
+  _defineAction: function(object, action) {
     if (Object.prototype.toString.call(action) === "[object Array]") {
       action.forEach(function(name) {
-        this.defineAction(object, name);
+        this._defineAction(object, name);
       }, this);
     } else {
       object[action] = function() {

@@ -42,10 +42,6 @@ var supportsLocalStorage = function() {
 LocalStore.prototype = {
   constructor: LocalStore,
 
-  /////////////////////////////////////////////////////////////////////////////
-  // Public
-  /////////////////////////////////////////////////////////////////////////////
-
   load: function() {
     var storage = window.localStorage.getItem(this.namespace);
     this._store._data = storage ? JSON.parse(storage) : {};

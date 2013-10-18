@@ -17,6 +17,16 @@ var MemoryStore = function() {
 MemoryStore.prototype = {
   constructor: MemoryStore,
 
+  retrieve: function(type, id) {
+    var dataForType = this._data[type];
+    if (id && typeof id === 'object') id = id[this.idField];
+    if (dataForType) return dataForType[id];
+  },
+
+  length: function(type) {
+    return this._length[type] || 0;
+  },
+
   /////////////////////////////////////////////////////////////////////////////
   // Transformable interface implementation
   /////////////////////////////////////////////////////////////////////////////
@@ -116,20 +126,6 @@ MemoryStore.prototype = {
 
   _destroy: function(type, data) {
     return this.transform('delete', type, data);
-  },
-
-  /////////////////////////////////////////////////////////////////////////////
-  // Public
-  /////////////////////////////////////////////////////////////////////////////
-
-  retrieve: function(type, id) {
-    var dataForType = this._data[type];
-    if (id && typeof id === 'object') id = id[this.idField];
-    if (dataForType) return dataForType[id];
-  },
-
-  length: function(type) {
-    return this._length[type] || 0;
   },
 
   /////////////////////////////////////////////////////////////////////////////

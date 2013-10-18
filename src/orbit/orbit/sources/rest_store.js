@@ -23,6 +23,12 @@ var RestStore = function(options) {
 RestStore.prototype = {
   constructor: RestStore,
 
+  retrieve: function(type, id) {
+    var dataForType = this._localCache[type];
+    if (id && typeof id === 'object') id = id[this.idField];
+    if (dataForType) return dataForType[id];
+  },
+
   /////////////////////////////////////////////////////////////////////////////
   // Transformable interface implementation
   /////////////////////////////////////////////////////////////////////////////
@@ -39,9 +45,9 @@ RestStore.prototype = {
         }
       }
 
-      return this.ajax(this.buildURL(type), 'POST', {data: this.serialize(type, data)}).then(
+      return this._ajax(this._buildURL(type), 'POST', {data: this._serialize(type, data)}).then(
         function(raw) {
-          return _this._addToCache(type, _this.deserialize(type, raw), id);
+          return _this._addToCache(type, _this._deserialize(type, raw), id);
         }
       );
 
@@ -51,9 +57,9 @@ RestStore.prototype = {
       if (!remoteId) throw new Orbit.NotFoundException(type, data);
 
       if (action === 'update') {
-        return this.ajax(this.buildURL(type, remoteId), 'PUT', {data: this.serialize(type, data)}).then(
+        return this._ajax(this._buildURL(type, remoteId), 'PUT', {data: this._serialize(type, data)}).then(
           function(raw) {
-            return _this._addToCache(type, _this.deserialize(type, raw), id);
+            return _this._addToCache(type, _this._deserialize(type, raw), id);
           }
         );
 
@@ -61,14 +67,14 @@ RestStore.prototype = {
         // no need to transmit remote id along with a patched record
         delete data[this.remoteIdField];
 
-        return this.ajax(this.buildURL(type, remoteId), 'PATCH', {data: this.serialize(type, data)}).then(
+        return this._ajax(this._buildURL(type, remoteId), 'PATCH', {data: this._serialize(type, data)}).then(
           function(raw) {
-            return _this._addToCache(type, _this.deserialize(type, raw), id);
+            return _this._addToCache(type, _this._deserialize(type, raw), id);
           }
         );
 
       } else if (action === 'delete') {
-        return this.ajax(this.buildURL(type, remoteId), 'DELETE').then(
+        return this._ajax(this._buildURL(type, remoteId), 'DELETE').then(
           function() {
             var record = _this.retrieve(type, id);
             if (!record) {
@@ -121,24 +127,14 @@ RestStore.prototype = {
   },
 
   /////////////////////////////////////////////////////////////////////////////
-  // Public
-  /////////////////////////////////////////////////////////////////////////////
-
-  retrieve: function(type, id) {
-    var dataForType = this._localCache[type];
-    if (id && typeof id === 'object') id = id[this.idField];
-    if (dataForType) return dataForType[id];
-  },
-
-  /////////////////////////////////////////////////////////////////////////////
   // Internals
   /////////////////////////////////////////////////////////////////////////////
 
   _findOne: function(type, remoteId) {
     var _this = this;
-    return this.ajax(this.buildURL(type, remoteId), 'GET').then(
+    return this._ajax(this._buildURL(type, remoteId), 'GET').then(
       function(raw) {
-        var record = _this.deserialize(type, raw);
+        var record = _this._deserialize(type, raw);
         _this._recordFound(type, record);
         return record;
       }
@@ -148,14 +144,14 @@ RestStore.prototype = {
   _findQuery: function(type, query) {
     var _this = this;
 
-    return this.ajax(this.buildURL(type), 'GET', {data: query}).then(
+    return this._ajax(this._buildURL(type), 'GET', {data: query}).then(
       function(raw) {
         var eachRaw,
             record,
             records = [];
 
         raw.forEach(function(eachRaw) {
-          record = _this.deserialize(type, eachRaw);
+          record = _this._deserialize(type, eachRaw);
           _this._recordFound(type, record);
           records.push(record);
         });
@@ -224,7 +220,7 @@ RestStore.prototype = {
     return record;
   },
 
-  ajax: function(url, method, hash) {
+  _ajax: function(url, method, hash) {
     var _this = this;
 
     return new Orbit.Promise(function(resolve, reject) {
@@ -270,14 +266,14 @@ RestStore.prototype = {
     });
   },
 
-  buildURL: function(type, remoteId) {
+  _buildURL: function(type, remoteId) {
     var host = this.host,
         namespace = this.namespace,
         url = [];
 
     if (host) { url.push(host); }
     if (namespace) { url.push(namespace); }
-    url.push(this.pathForType(type));
+    url.push(this._pathForType(type));
     if (remoteId) { url.push(remoteId); }
 
     url = url.join('/');
@@ -286,23 +282,23 @@ RestStore.prototype = {
     return url;
   },
 
-  pathForType: function(type) {
-    return this.pluralize(type);
+  _pathForType: function(type) {
+    return this._pluralize(type);
   },
 
-  pluralize: function(name) {
+  _pluralize: function(name) {
     // TODO - allow for pluggable inflector
     return name + 's';
   },
 
-  serialize: function(type, data) {
+  _serialize: function(type, data) {
     var serialized = Orbit.clone(data);
     delete serialized[this.idField];
     delete serialized[Orbit.versionField];
     return serialized;
   },
 
-  deserialize: function(type, data) {
+  _deserialize: function(type, data) {
     return data;
   }
 };
