@@ -36,7 +36,7 @@ test("records inserted into the primary store should be automatically copied to 
   var originalPlanet;
 
   stop();
-  primaryStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  primaryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     originalPlanet = planet;
 
     equal(primaryStore.length('planet'), 1, 'primary store should contain one record');
@@ -62,10 +62,10 @@ test("updates to records in the primary store should be automatically copied to 
   var originalPlanet;
 
   stop();
-  primaryStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  primaryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     originalPlanet = planet;
 
-    primaryStore.transform('update', 'planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
+    primaryStore.transform('replace', 'planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
       equal(updatedPlanet.__id, planet.__id, 'primary id remains the same');
       equal(updatedPlanet.name, 'Earth', 'name has been updated');
       equal(updatedPlanet.classification, 'terrestrial', 'classification has been updated');
@@ -88,7 +88,7 @@ test("patches to records in the primary store should be automatically copied to 
   var originalPlanet;
 
   stop();
-  primaryStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  primaryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     originalPlanet = planet;
 
     primaryStore.transform('patch', 'planet', {__id: planet.__id, name: 'Earth'}).then(function(updatedPlanet) {
@@ -115,11 +115,11 @@ test("records deleted in the primary store should be automatically deleted in th
   equal(backupStore.length('planet'), 0, 'backup store should be empty');
 
   stop();
-  primaryStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  primaryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     equal(primaryStore.length('planet'), 1, 'primary store should contain one record');
     equal(backupStore.length('planet'), 1, 'backup store should contain one record');
 
-    primaryStore.transform('delete', 'planet', planet.__id).then(function() {
+    primaryStore.transform('remove', 'planet', planet.__id).then(function() {
       start();
       equal(primaryStore.length('planet'), 0, 'primary store should be empty');
       equal(backupStore.length('planet'), 0, 'backup store should be empty');

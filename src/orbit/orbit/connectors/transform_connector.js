@@ -101,7 +101,7 @@ TransformConnector.prototype = {
       if (targetRecord) {
         if (targetRecord.deleted) return;
 
-        if (action === 'insert' || action === 'update' || action === 'patch') {
+        if (action === 'add' || action === 'replace' || action === 'patch') {
           if (this._recordsMatch(targetRecord, record)) {
             return;
           } else {

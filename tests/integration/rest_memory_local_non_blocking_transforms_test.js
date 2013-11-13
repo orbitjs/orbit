@@ -47,14 +47,14 @@ test("records inserted into memory should be posted with rest", function() {
   expect(12);
 
   localStore.on('didTransform', function(action, type, record) {
-    if (action === 'insert') {
+    if (action === 'add') {
       equal(localStore.length('planet'), 1,     'local store should contain one record');
       verifyLocalStorageContainsRecord(localStore.namespace, type, record, ['__ver']);
     }
   });
 
   restStore.on('didTransform', function(action, type, record) {
-    if (action === 'insert') {
+    if (action === 'add') {
       start();
       ok(record.__id,                           'orbit id should be defined');
       equal(record.id, 12345,                   'server id should be defined now');
@@ -66,7 +66,7 @@ test("records inserted into memory should be posted with rest", function() {
   /////////////////////////////////////////////////////////////////////////////
 
   stop();
-  memoryStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(record) {
+  memoryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(record) {
     equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
     ok(record.__id,              'orbit id should be defined');
     equal(record.id, undefined,  'server id should NOT be defined yet');
@@ -89,7 +89,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
   var localStorePatchCount = 0;
 
   localStore.on('didTransform', function(action, type, record) {
-    if (action === 'insert') {
+    if (action === 'add') {
       equal(localStore.length('planet'), 1, 'local store - inserted - should contain one record');
 
     } else if (action === 'patch') {
@@ -106,7 +106,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
   });
 
   restStore.on('didTransform', function(action, type, record) {
-    if (action === 'insert') {
+    if (action === 'add') {
       ok(record.__id,                           'rest store - inserted - orbit id should be defined');
       equal(record.id, 12345,                   'rest store - inserted - server id should be defined');
       equal(record.name, 'Jupiter',             'rest store - inserted - name should be original');
@@ -124,7 +124,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
   /////////////////////////////////////////////////////////////////////////////
 
   stop();
-  memoryStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(record) {
+  memoryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(record) {
     equal(memoryStore.length('planet'), 1, 'memory store - inserted - should contain one record');
     ok(record.__id,                           'memory store - inserted - orbit id should be defined');
     equal(record.id, undefined,               'memory store - inserted - server id should NOT be defined yet');
@@ -138,7 +138,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
                   JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
     });
 
-    return memoryStore.transform('update', 'planet', {__id: record.__id, name: 'Earth', classification: 'terrestrial'});
+    return memoryStore.transform('replace', 'planet', {__id: record.__id, name: 'Earth', classification: 'terrestrial'});
 
   }).then(function() {
 
@@ -157,7 +157,7 @@ test("records patched in memory should be patched with rest", function() {
   var localStorePatchCount = 0;
 
   localStore.on('didTransform', function(action, type, record) {
-    if (action === 'insert') {
+    if (action === 'add') {
       equal(localStore.length('planet'), 1, 'local store - inserted - should contain one record');
 
     } else if (action === 'patch') {
@@ -174,7 +174,7 @@ test("records patched in memory should be patched with rest", function() {
   });
 
   restStore.on('didTransform', function(action, type, record) {
-    if (action === 'insert') {
+    if (action === 'add') {
       ok(record.__id,                           'rest store - inserted - orbit id should be defined');
       equal(record.id, 12345,                   'rest store - inserted - server id should be defined');
       equal(record.name, 'Jupiter',             'rest store - inserted - name should be original');
@@ -192,7 +192,7 @@ test("records patched in memory should be patched with rest", function() {
   /////////////////////////////////////////////////////////////////////////////
 
   stop();
-  memoryStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(record) {
+  memoryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(record) {
     equal(memoryStore.length('planet'), 1, 'memory store - inserted - should contain one record');
     ok(record.__id,                           'memory store - inserted - orbit id should be defined');
     equal(record.id, undefined,               'memory store - inserted - server id should NOT be defined yet');
@@ -223,13 +223,13 @@ test("records deleted in memory should be deleted with rest", function() {
   expect(10);
 
   memoryStore.on('didTransform', function(action, type, record) {
-    if (action === 'delete') {
+    if (action === 'remove') {
       equal(memoryStore.length('planet'), 0, 'memory store should be empty');
     }
   });
 
   localStore.on('didTransform', function(action, type, record) {
-    if (action === 'delete') {
+    if (action === 'remove') {
       equal(localStore.length('planet'), 0, 'local store should be empty');
       ok(record.deleted, 'local store - record should be marked `deleted`');
       verifyLocalStorageContainsRecord(localStore.namespace, type, record);
@@ -237,10 +237,10 @@ test("records deleted in memory should be deleted with rest", function() {
   });
 
   restStore.on('didTransform', function(action, type, record) {
-    if (action === 'insert') {
+    if (action === 'add') {
       ok(true, 'rest store - record inserted');
 
-    } else if (action === 'delete') {
+    } else if (action === 'remove') {
       start();
       equal(record.id, 12345, 'rest store - deleted - server id should be defined');
       ok(record.deleted,      'rest store - deleted - record marked as deleted');
@@ -250,7 +250,7 @@ test("records deleted in memory should be deleted with rest", function() {
   /////////////////////////////////////////////////////////////////////////////
 
   stop();
-  memoryStore.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  memoryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     equal(memoryStore.length('planet'), 1, 'memory store - inserted - should contain one record');
 
     server.respond('POST', '/planets', function(xhr) {
@@ -260,7 +260,7 @@ test("records deleted in memory should be deleted with rest", function() {
                   JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
     });
 
-    return memoryStore.transform('delete', 'planet', {__id: planet.__id});
+    return memoryStore.transform('remove', 'planet', {__id: planet.__id});
 
   }).then(function() {
 

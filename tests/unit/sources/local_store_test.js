@@ -29,7 +29,7 @@ test("#transform - can insert records and assign ids", function() {
   equal(store.length('planet'), 0, 'store should be empty');
 
   stop();
-  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     equal(store.length('planet'), 1, 'store should contain one record');
     ok(planet.__id, 'id should be defined');
     equal(planet.name, 'Jupiter', 'name should match');
@@ -53,9 +53,9 @@ test("#transform - can update records", function() {
   var original;
 
   stop();
-  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     original = planet;
-    return store.transform('update', 'planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
+    return store.transform('replace', 'planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
       equal(updatedPlanet.__id, planet.__id, '__id remains the same');
       equal(updatedPlanet.name, 'Earth', 'name has been updated');
       equal(updatedPlanet.classification, 'terrestrial', 'classification has been updated');
@@ -83,7 +83,7 @@ test("#transform - can patch records", function() {
   var original;
 
   stop();
-  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     original = planet;
     return planet;
 
@@ -114,10 +114,10 @@ test("#transform - can delete records", function() {
   equal(store.length('planet'), 0, 'store should be empty');
 
   stop();
-  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     equal(store.length('planet'), 1, 'store should contain one record');
 
-    store.transform('delete', 'planet', {__id: planet.__id}).then(function(record) {
+    store.transform('remove', 'planet', {__id: planet.__id}).then(function(record) {
       start();
       equal(store.length('planet'), 0, 'store should be empty');
       ok(record.deleted, 'record should be marked `deleted`');
@@ -133,9 +133,9 @@ test("#findRecord - can find all records", function() {
 
   stop();
   RSVP.all([
-    store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}),
-    store.transform('insert', 'planet', {name: 'Earth', classification: 'terrestrial'}),
-    store.transform('insert', 'planet', {name: 'Saturn', classification: 'gas giant'})
+    store.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}),
+    store.transform('add', 'planet', {name: 'Earth', classification: 'terrestrial'}),
+    store.transform('add', 'planet', {name: 'Saturn', classification: 'gas giant'})
   ]).then(function() {
     equal(store.length('planet'), 3, 'store should contain 3 records');
 
@@ -152,7 +152,7 @@ test("it can use a custom local storage namespace for storing data", function() 
   store.namespace = 'planets';
 
   stop();
-  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
     verifyLocalStorageContainsRecord(store.namespace, 'planet', planet);
   });
@@ -166,7 +166,7 @@ test("autosave can be disabled to delay writing to local storage", function() {
   equal(store.length('planet'), 0, 'store should be empty');
 
   stop();
-  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
     equal(store.length('planet'), 1, 'store should contain one record');
     verifyLocalStorageIsEmpty(store.namespace);

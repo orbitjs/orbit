@@ -41,7 +41,7 @@ test("#transform - can insert records", function() {
   });
 
   stop();
-  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
     ok(planet.__id, 'orbit id should be defined');
     equal(planet.id, 12345, 'server id should be defined');
@@ -61,7 +61,7 @@ test("#transform - can update records", function() {
   });
 
   stop();
-  store.transform('update', 'planet', {id: 12345, name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('replace', 'planet', {id: 12345, name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
     ok(planet.__id, 'orbit id should be defined');
     equal(planet.id, 12345, 'server id should be defined');
@@ -101,7 +101,7 @@ test("#transform - can delete records", function() {
   });
 
   stop();
-  store.transform('delete', 'planet', {id: 12345}).then(function() {
+  store.transform('remove', 'planet', {id: 12345}).then(function() {
     start();
     ok(true, 'record deleted');
   });
@@ -125,7 +125,7 @@ test("#findRecord - can find individual records by passing in a single id", func
   });
 
   stop();
-  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     store.findRecord('planet', planet.__id).then(function(planet) {
       start();
       ok(planet.__id, 'orbit id should be defined');
@@ -154,7 +154,7 @@ test("#findRecord - can find individual records by passing in a single remote id
   });
 
   stop();
-  store.transform('insert', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     store.findRecord('planet', {id: planet.id}).then(function(planet) {
       start();
       ok(planet.__id, 'orbit id should be defined');

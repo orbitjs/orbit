@@ -37,7 +37,7 @@ MemoryStore.prototype = {
     return new Orbit.Promise(function(resolve, reject) {
       var record;
 
-      if (action === 'insert') {
+      if (action === 'add') {
         var id = data[_this.idField];
         var dataForType = _this._data[type];
 
@@ -61,13 +61,13 @@ MemoryStore.prototype = {
       } else {
         record = _this.retrieve(type, data);
         if (record && !record.deleted) {
-          if (action === 'update' || action === 'patch') {
+          if (action === 'replace' || action === 'patch') {
             for (var i in data) {
               if (data.hasOwnProperty(i)) {
                 record[i] = data[i];
               }
             }
-            if (action === 'update') {
+            if (action === 'replace') {
               for (i in record) {
                 if (data.hasOwnProperty(i) && data[i] === undefined) {
                   delete record[i];
@@ -75,7 +75,7 @@ MemoryStore.prototype = {
               }
             }
 
-          } else if (action === 'delete') {
+          } else if (action === 'remove') {
             record.deleted = true;
             _this._length[type]--;
           }
@@ -113,11 +113,11 @@ MemoryStore.prototype = {
   },
 
   _createRecord: function(type, data) {
-    return this.transform('insert', type, data);
+    return this.transform('add', type, data);
   },
 
   _updateRecord: function(type, data) {
-    return this.transform('update', type, data);
+    return this.transform('replace', type, data);
   },
 
   _patchRecord: function(type, data) {
@@ -125,7 +125,7 @@ MemoryStore.prototype = {
   },
 
   _deleteRecord: function(type, data) {
-    return this.transform('delete', type, data);
+    return this.transform('remove', type, data);
   },
 
   /////////////////////////////////////////////////////////////////////////////

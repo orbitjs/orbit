@@ -37,7 +37,7 @@ RestStore.prototype = {
     var _this = this,
         id = data[this.idField];
 
-    if (action === 'insert') {
+    if (action === 'add') {
       if (id) {
         var recordInCache = _this.retrieve(type, id);
         if (recordInCache) {
@@ -56,7 +56,7 @@ RestStore.prototype = {
 
       if (!remoteId) throw new Orbit.NotFoundException(type, data);
 
-      if (action === 'update') {
+      if (action === 'replace') {
         return this._ajax(this._buildURL(type, remoteId), 'PUT', {data: this._serialize(type, data)}).then(
           function(raw) {
             return _this._addToCache(type, _this._deserialize(type, raw), id);
@@ -73,7 +73,7 @@ RestStore.prototype = {
           }
         );
 
-      } else if (action === 'delete') {
+      } else if (action === 'remove') {
         return this._ajax(this._buildURL(type, remoteId), 'DELETE').then(
           function() {
             var record = _this.retrieve(type, id);
@@ -111,11 +111,11 @@ RestStore.prototype = {
   },
 
   _createRecord: function(type, data) {
-    return this.transform('insert', type, data);
+    return this.transform('add', type, data);
   },
 
   _updateRecord: function(type, data) {
-    return this.transform('update', type, data);
+    return this.transform('replace', type, data);
   },
 
   _patchRecord: function(type, data) {
@@ -123,7 +123,7 @@ RestStore.prototype = {
   },
 
   _deleteRecord: function(type, data) {
-    return this.transform('delete', type, data);
+    return this.transform('remove', type, data);
   },
 
   /////////////////////////////////////////////////////////////////////////////
@@ -171,7 +171,7 @@ RestStore.prototype = {
     }
     this._addToCache(type, record, id);
 
-    this.didTransform.call(this, (newRecord ? 'insert' : 'update'), type, record);
+    this.didTransform.call(this, (newRecord ? 'add' : 'replace'), type, record);
   },
 
   _remoteToLocalId: function(type, remoteId) {
