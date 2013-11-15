@@ -39,7 +39,7 @@ module.exports = function(config) {
     reporters: 'coverage',
 
     coverageReporter: {
-      type : ['text'],
+      type : ['html'],
       dir : 'coverage/'
     },
 
