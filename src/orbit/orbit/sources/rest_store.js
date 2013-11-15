@@ -1,4 +1,5 @@
 import Orbit from 'orbit/core';
+import clone from 'orbit/lib/clone';
 import Transformable from 'orbit/transformable';
 import Requestable from 'orbit/requestable';
 
@@ -292,7 +293,7 @@ RestStore.prototype = {
   },
 
   _serialize: function(type, data) {
-    var serialized = Orbit.clone(data);
+    var serialized = clone(data);
     delete serialized[this.idField];
     delete serialized[Orbit.versionField];
     return serialized;

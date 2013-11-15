@@ -1,4 +1,5 @@
 import Orbit from 'orbit/core';
+import clone from 'orbit/lib/clone';
 import Transformable from 'orbit/transformable';
 import Requestable from 'orbit/requestable';
 
@@ -45,7 +46,7 @@ MemoryStore.prototype = {
           reject(new Orbit.AlreadyExistsException(type, data));
           return;
         } else {
-          record = Orbit.clone(data);
+          record = clone(data);
           if (!id) {
             id = record[_this.idField] = _this._generateId();
           }

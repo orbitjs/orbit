@@ -1,4 +1,6 @@
 import Orbit from 'orbit/core';
+import clone from 'orbit/lib/clone';
+import diff from 'orbit/lib/diff';
 
 var TransformConnector = function(source, target, options) {
   var _this = this;
@@ -69,7 +71,7 @@ TransformConnector.prototype = {
     this.queue.push({
       action: action,
       type: type,
-      record: Orbit.clone(record)
+      record: clone(record)
     });
   },
 
@@ -110,7 +112,7 @@ TransformConnector.prototype = {
         }
       }
     }
-    return this.target.transform(action, type, Orbit.clone(record));
+    return this.target.transform(action, type, clone(record));
   },
 
   _recordsMatch: function(record1, record2) {
@@ -120,7 +122,7 @@ TransformConnector.prototype = {
   _resolveConflicts: function(type, targetRecord, updatedRecord) {
     //console.log('* resolveConflicts - ', action, type, this.target, targetRecord, updatedRecord);
 
-    var delta = Orbit.delta(targetRecord, updatedRecord, [Orbit.versionField]);
+    var delta = diff(targetRecord, updatedRecord, [Orbit.versionField]);
     if (delta) {
       delta[Orbit.idField] = updatedRecord[Orbit.idField];
 

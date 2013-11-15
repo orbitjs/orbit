@@ -34,55 +34,6 @@ test("#capitalize capitalizes the first letter of a word", function() {
   equal(Orbit.capitalize('aSAP'), 'ASAP', 'capitalize doesn\'t touch the rest of the word');
 });
 
-test("#clone creates a deep clone of an object's own properties", function() {
-  var obj = {
-    a: 1,
-    b: '2',
-    c: ['3', {d: '4', e: ['5', '6']}, 7],
-    f: new Date(),
-    g: /123/g
-  };
-
-  var copy = Orbit.clone(obj);
-
-  deepEqual(obj, copy, 'clone is deeply equal to original');
-  notStrictEqual(obj, copy, 'clone is not strictly equal to original');
-});
-
-test("#delta creates a delta object when comparing two objects", function() {
-  var a, b;
-
-  a = {name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
-  b = {id: 12345, name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
-
-  deepEqual(Orbit.delta(a, b), {id: 12345});
-
-  a = {id: 12345, name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
-  b = {name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
-
-  strictEqual(Orbit.delta(a, b), undefined, 'no positive delta to get from a -> b');
-
-  a = {name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
-  b = {id: {a: '1', b: '2'}, name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
-
-  deepEqual(Orbit.delta(a, b), {id: {a: '1', b: '2'}});
-
-  a = {id: {a: '1', b: '2'}, name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
-  b = {id: {a: '1', b: '2'}, name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
-
-  deepEqual(Orbit.delta(a, b), undefined);
-
-  a = {id: {a: '1', b: '2'}, name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
-  b = {id: {a: '1', b: '3'}, name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
-
-  deepEqual(Orbit.delta(a, b), {id: {a: '1', b: '3'}});
-
-  a = {id: {a: '1', b: '2'}, name: 'Jupiter', classification: 'gas giant', __id: '1380308346603-1'};
-  b = {id: {a: '1', b: '3'}, name: 'Saturn', classification: 'gas giant', __id: '1380308346603-1'};
-
-  deepEqual(Orbit.delta(a, b, ['id']), {name: 'Saturn'}, 'specified items are ignored in delta');
-});
-
 test("#arrayToOptions converts an array to an options hash", function() {
   deepEqual(Orbit.arrayToOptions(), {}, 'no args return empty hash');
   deepEqual(Orbit.arrayToOptions([]), {}, 'empty array returns empty hash');
