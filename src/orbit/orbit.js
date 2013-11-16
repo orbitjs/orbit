@@ -1,7 +1,7 @@
 import Orbit from './orbit/core';
 import eq from './orbit/lib/eq';
 import clone from './orbit/lib/clone';
-import diff from './orbit/lib/diff';
+import diffs from './orbit/lib/diffs';
 import Evented from './orbit/evented';
 import Notifier from './orbit/notifier';
 import Requestable from './orbit/requestable';
@@ -13,7 +13,7 @@ import TransformConnector from './orbit/connectors/transform_connector';
 
 Orbit.eq = eq;
 Orbit.clone = clone;
-Orbit.diff = diff;
+Orbit.diffs = diffs;
 Orbit.Evented = Evented;
 Orbit.Notifier = Notifier;
 Orbit.Requestable = Requestable;

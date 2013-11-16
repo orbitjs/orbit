@@ -1,6 +1,6 @@
 import Orbit from 'orbit/core';
 import clone from 'orbit/lib/clone';
-import diff from 'orbit/lib/diff';
+import diffs from 'orbit/lib/diffs';
 
 var TransformConnector = function(source, target, options) {
   var _this = this;
@@ -122,7 +122,7 @@ TransformConnector.prototype = {
   _resolveConflicts: function(type, targetRecord, updatedRecord) {
     //console.log('* resolveConflicts - ', action, type, this.target, targetRecord, updatedRecord);
 
-    var delta = diff(targetRecord, updatedRecord, [Orbit.versionField]);
+    var delta = diffs(targetRecord, updatedRecord, [Orbit.versionField]);
     if (delta) {
       delta[Orbit.idField] = updatedRecord[Orbit.idField];
 
