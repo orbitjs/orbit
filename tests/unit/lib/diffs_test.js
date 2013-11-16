@@ -55,6 +55,18 @@ test("#diffs creates an array of patches when comparing two objects", function()
             [{op: 'replace', path: 'planets/1/id/b', value: '3'}]);
 
   a = {id: {a: '1', b: '2'}, name: 'Jupiter', classification: 'gas giant'};
+  b = {id: {a: '1', b: '3'}, name: 'Earth', classification: 'terrestrial'};
+
+  deepEqual(diffs(a, b, {basePath: 'planets/1'}),
+            [{op: 'replace', path: 'planets/1/id/b', value: '3'},
+             {op: 'replace', path: 'planets/1/name', value: 'Earth'},
+             {op: 'replace', path: 'planets/1/classification', value: 'terrestrial'}]);
+});
+
+test("#diffs ignores specified items with `ignore` option", function() {
+  var a, b;
+
+  a = {id: {a: '1', b: '2'}, name: 'Jupiter', classification: 'gas giant'};
   b = {id: {a: '1', b: '3'}, name: 'Saturn', classification: 'gas giant'};
 
   deepEqual(diffs(a, b, {basePath: 'planets/1', ignore: ['id']}),

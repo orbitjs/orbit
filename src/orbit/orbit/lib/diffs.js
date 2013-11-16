@@ -18,40 +18,45 @@ var diffs = function(a, b, options) {
 
   } else {
     options = options || {};
-    options.ignore = arrayToOptions(options.ignore);
-    options.basePath = options.basePath || '';
 
-    if (typeof b === 'object' && typeof a === 'object') {
-      var i,
-          d;
+    var ignore = arrayToOptions(options.ignore),
+        basePath = options.basePath || '';
 
-      for (i in b) {
-        if (!options.ignore[i]) {
-          if (a[i] === undefined) {
-            if (d === undefined) d = [];
-            d.push({op: 'add', path: options.basePath + '/' + i, value: clone(b[i])});
+    var type = Object.prototype.toString.call(a);
+    if (type === Object.prototype.toString.call(b)) {
+      if (typeof a === 'object') {
+        var i,
+            d;
 
-          } else if (!eq(a[i], b[i])) {
-            if (d === undefined) d = [];
-            d = d.concat(diffs(a[i], b[i], {basePath: options.basePath + '/' + i}));
+        for (i in b) {
+          if (!ignore[i]) {
+            if (a[i] === undefined) {
+              if (d === undefined) d = [];
+              d.push({op: 'add', path: basePath + '/' + i, value: clone(b[i])});
+
+            } else if (!eq(a[i], b[i])) {
+              if (d === undefined) d = [];
+              d = d.concat(diffs(a[i], b[i], {basePath: basePath + '/' + i}));
+            }
           }
         }
-      }
 
-      for (i in a) {
-        if (!options.ignore[i]) {
-          if (b[i] === undefined) {
-            if (d === undefined) d = [];
-            d.push({op: 'remove', path: options.basePath + '/' + i});
+        for (i in a) {
+          if (!ignore[i]) {
+            if (b[i] === undefined) {
+              if (d === undefined) d = [];
+              d.push({op: 'remove', path: basePath + '/' + i});
+            }
           }
         }
+
+        return d;
+
+      } else if (eq(a, b)) {
+        return undefined;
       }
-
-      return d;
-
-    } else {
-      return [{op: 'replace', path: options.basePath, value: clone(b)}];
     }
+    return [{op: 'replace', path: basePath, value: clone(b)}];
   }
 };
 
