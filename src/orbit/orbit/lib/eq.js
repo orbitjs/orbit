@@ -39,13 +39,13 @@ var eq = function(a, b) {
     if (a.length !== b.length) return false;
   }
 
-  var d;
-  for (var i in b) {
+  var d, i;
+  for (i in b) {
     if (b.hasOwnProperty(i)) {
       if (!eq(a[i], b[i])) return false;
     }
   }
-  for (var i in a) {
+  for (i in a) {
     if (a.hasOwnProperty(i)) {
       if (!eq(a[i], b[i])) return false;
     }
