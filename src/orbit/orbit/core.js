@@ -73,6 +73,13 @@ Orbit.NotFoundException.prototype = {
   constructor: 'NotFoundException'
 };
 
+Orbit.PathNotFoundException = function(path) {
+  this.path;
+};
+Orbit.PathNotFoundException.prototype = {
+  constructor: 'PathNotFoundException'
+};
+
 Orbit.AlreadyExistsException = function(type, record) {
   this.type = type;
   this.record = record;
