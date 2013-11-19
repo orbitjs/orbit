@@ -8,23 +8,23 @@ var Transformable = {
 
       Evented.extend(object);
 
-      object.didTransform = function(action, type, data) {
-        return object.settle.call(object, 'didTransform', action, type, data);
+      object.didTransform = function(diff, result) {
+        return object.settle.call(object, 'didTransform', diff, result);
       };
 
-      object.transform = function(action, type, data) {
+      object.transform = function(diff) {
         Orbit.assert('_transform must be defined', object._transform);
 
-        return object._transform.call(object, action, type, data).then(
+        return object._transform.call(object, diff).then(
           function(result) {
-            return object.didTransform.call(object, action, type, result).then(
+            return object.didTransform.call(object, diff, result).then(
               function() {
                 return result;
               }
             );
           },
           function(error) {
-            return object.settle.call(object, 'didNotTransform', action, type, data, error).then(
+            return object.settle.call(object, 'didNotTransform', diff, error).then(
               function() {
                 throw error;
               }
