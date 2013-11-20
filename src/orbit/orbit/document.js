@@ -13,11 +13,54 @@ Document.prototype = {
   },
 
   retrieve: function(path) {
-    path = this._normalizePath(path);
-    var ptr = this._data;
+    return this._retrieve(this._normalizePath(path));
+  },
+
+  transform: function(diff) {
+    var path = this._normalizePath(diff.path);
+
+    if (diff.op === 'add') {
+      this._add(path, diff.value);
+
+    } else if (diff.op === 'remove') {
+      this._remove(path);
+
+    } else if (diff.op === 'replace') {
+      this._replace(path, diff.value);
+    }
+  },
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Internals
+  /////////////////////////////////////////////////////////////////////////////
+
+  _normalizePath: function(path) {
+    if (typeof path === 'string') {
+      if (path.indexOf('/') === 0) path = path.substr(1);
+      if (path.length === 0) {
+        return undefined;
+      } else {
+        return path.split('/');
+      }
+    }
+    return path;
+  },
+
+  _retrieve: function(path) {
+    var ptr = this._data,
+        segment;
     if (path) {
       for (var i = 0; i < path.length; i++) {
-        ptr = ptr[path[i]];
+        segment = path[i];
+        if (Object.prototype.toString.call(ptr) === '[object Array]') {
+          if (segment === '-') {
+            ptr = ptr[ptr.length-1];
+          } else {
+            ptr = ptr[parseInt(segment)];
+          }
+        } else {
+          ptr = ptr[segment];
+        }
         if (ptr === undefined) {
           throw new Document.PathNotFoundException(path.join('/'));
         }
@@ -30,7 +73,7 @@ Document.prototype = {
     if (path) {
       var parent = path[path.length-1];
       if (path.length > 1) {
-        var grandparent = this.retrieve(path[path.length-2]);
+        var grandparent = this._retrieve(path.slice(0, path.length-3));
         if (Object.prototype.toString.call(grandparent) === '[object Array]') {
           if (parent === '-') {
             grandparent.push(value);
@@ -57,7 +100,7 @@ Document.prototype = {
     if (path) {
       var parent = path[path.length-1];
       if (path.length > 1) {
-        var grandparent = this.retrieve(path[path.length-2]);
+        var grandparent = this._retrieve(path.slice(0, path.length-3));
         if (Object.prototype.toString.call(grandparent) === '[object Array]') {
           if (grandparent.length > 0) {
             if (parent === '-') {
@@ -95,7 +138,7 @@ Document.prototype = {
     if (path) {
       var parent = path[path.length-1];
       if (path.length > 1) {
-        var grandparent = this.retrieve(path[path.length-2]);
+        var grandparent = this._retrieve(path.slice(0, path.length-3));
         if (Object.prototype.toString.call(grandparent) === '[object Array]') {
           if (grandparent.length > 0) {
             if (parent === '-') {
@@ -127,36 +170,6 @@ Document.prototype = {
     } else {
       this._data = value;
     }
-  },
-
-  transform: function(diff) {
-    var path = this._normalizePath(diff.path);
-
-    if (diff.op === 'add') {
-      this._add(path, diff.value);
-
-    } else if (diff.op === 'remove') {
-      this._remove(path);
-
-    } else if (diff.op === 'replace') {
-      this._replace(path, diff.value);
-    }
-  },
-
-  /////////////////////////////////////////////////////////////////////////////
-  // Internals
-  /////////////////////////////////////////////////////////////////////////////
-
-  _normalizePath: function(path) {
-    if (typeof path === 'string') {
-      if (path.indexOf('/') === 0) path = path.substr(1);
-      if (path.length === 0) {
-        return undefined;
-      } else {
-        return path.split('/');
-      }
-    }
-    return path;
   }
 };
 

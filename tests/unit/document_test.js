@@ -19,17 +19,55 @@ test("it exists", function() {
   ok(doc);
 });
 
-test("#retrieve - will retrieve the full document by default", function() {
+/*
+  `reset` tests
+ */
+
+test("#reset - will clear the document by default", function() {
+  doc.reset();
   deepEqual(doc.retrieve(), {});
 });
 
-test("#reset - will reset the full document", function() {
+test("#reset - will reset the full document to the value specified", function() {
   var data = {a: 'b', c: ['d', 'e']};
-  doc.reset(data)
+  doc.reset(data);
   deepEqual(doc.retrieve(), data);
+});
 
-  doc.reset()
+/*
+  `retrieve` tests
+ */
+
+test("#retrieve - will retrieve the full document by default", function() {
   deepEqual(doc.retrieve(), {});
+
+  doc.reset({a: 'b', c: ['d', 'e']});
+  deepEqual(doc.retrieve(), {a: 'b', c: ['d', 'e']});
+});
+
+test("#retrieve - will retrieve a value from a simple object path", function() {
+  doc.reset({a: 'b', c: ['d', 'e']});
+  deepEqual(doc.retrieve('/a'), 'b');
+});
+
+test("#retrieve - will retrieve an array value from a simple object path", function() {
+  doc.reset({a: 'b', c: ['d', 'e']});
+  deepEqual(doc.retrieve('/c'), ['d', 'e']);
+});
+
+test("#retrieve - will retrieve a value at the end of an array", function() {
+  doc.reset({a: 'b', c: ['d', 'e', 'f']});
+  deepEqual(doc.retrieve('/c/-'), 'f');
+});
+
+test("#retrieve - will retrieve a value at a specific position in an array", function() {
+  doc.reset({a: 'b', c: ['d', 'e', 'f']});
+  deepEqual(doc.retrieve('/c/1'), 'e');
+});
+
+test("#retrieve - will retrieve a value with an array in the path", function() {
+  doc.reset({a: 'b', c: ['d', {e: 'f'}]});
+  deepEqual(doc.retrieve('/c/1/e'), 'f');
 });
 
 /*
