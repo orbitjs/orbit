@@ -27,6 +27,12 @@ Document.prototype = {
 
     } else if (diff.op === 'replace') {
       this._replace(path, diff.value);
+
+    } else if (diff.op === 'move') {
+      this._move(this._normalizePath(diff.from), path);
+
+    } else if (diff.op === 'copy') {
+      this._copy(this._normalizePath(diff.from), path);
     }
   },
 
@@ -56,7 +62,7 @@ Document.prototype = {
           if (segment === '-') {
             ptr = ptr[ptr.length-1];
           } else {
-            ptr = ptr[parseInt(segment)];
+            ptr = ptr[parseInt(segment, 10)];
           }
         } else {
           ptr = ptr[segment];
@@ -78,8 +84,8 @@ Document.prototype = {
           if (parent === '-') {
             grandparent.push(value);
           } else {
-            var parentIndex = parseInt(parent);
-            if (parentIndex >= grandparent.length) {
+            var parentIndex = parseInt(parent, 10);
+            if (parentIndex > grandparent.length) {
               throw new Document.PathNotFoundException(path.join('/'));
             } else {
               grandparent.splice(parentIndex, 0, value);
@@ -106,7 +112,7 @@ Document.prototype = {
             if (parent === '-') {
               grandparent.pop();
             } else {
-              var parentIndex = parseInt(parent);
+              var parentIndex = parseInt(parent, 10);
               if (grandparent[parentIndex] === undefined) {
                 throw new Document.PathNotFoundException(path.join('/'));
               } else {
@@ -144,7 +150,7 @@ Document.prototype = {
             if (parent === '-') {
               grandparent[grandparent.length-1] = value;
             } else {
-              var parentIndex = parseInt(parent);
+              var parentIndex = parseInt(parent, 10);
               if (grandparent[parentIndex] === undefined) {
                 throw new Document.PathNotFoundException(path.join('/'));
               } else {
@@ -170,6 +176,16 @@ Document.prototype = {
     } else {
       this._data = value;
     }
+  },
+
+  _move: function(fromPath, toPath) {
+    var value = this._retrieve(fromPath);
+    this._remove(fromPath);
+    this._add(toPath, value);
+  },
+
+  _copy: function(fromPath, toPath) {
+    this._add(toPath, this._retrieve(fromPath));
   }
 };
 
