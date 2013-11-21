@@ -16,23 +16,41 @@ Document.prototype = {
     return this._retrieve(this._normalizePath(path));
   },
 
-  transform: function(diff) {
-    var path = this._normalizePath(diff.path);
+  add: function(path, value) {
+    return this._add(this._normalizePath(path), value);
+  },
 
-    if (diff.op === 'add') {
-      this._add(path, diff.value);
+  remove: function(path) {
+    return this._remove(this._normalizePath(path));
+  },
 
-    } else if (diff.op === 'remove') {
-      this._remove(path);
+  replace: function(path, value) {
+    return this._replace(this._normalizePath(path), value);
+  },
 
-    } else if (diff.op === 'replace') {
-      this._replace(path, diff.value);
+  move: function(fromPath, toPath) {
+    return this._move(this._normalizePath(fromPath), this._normalizePath(toPath));
+  },
 
-    } else if (diff.op === 'move') {
-      this._move(this._normalizePath(diff.from), path);
+  copy: function(fromPath, toPath) {
+    return this._copy(this._normalizePath(fromPath), this._normalizePath(toPath));
+  },
 
-    } else if (diff.op === 'copy') {
-      this._copy(this._normalizePath(diff.from), path);
+  transform: function(operation) {
+    if (operation.op === 'add') {
+      this.add(operation.path, operation.value);
+
+    } else if (operation.op === 'remove') {
+      this.remove(operation.path);
+
+    } else if (operation.op === 'replace') {
+      this.replace(operation.path, operation.value);
+
+    } else if (operation.op === 'move') {
+      this.move(operation.from, operation.path);
+
+    } else if (operation.op === 'copy') {
+      this.copy(operation.from, operation.path);
     }
   },
 
