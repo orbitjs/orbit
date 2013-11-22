@@ -140,7 +140,7 @@ Document.prototype = {
         if (Object.prototype.toString.call(grandparent) === '[object Array]') {
           if (parent === '-') {
             if (invert) {
-              inverse = {op: 'remove', path: this._serializePath(path)};
+              inverse = [{op: 'remove', path: this._serializePath(path)}];
             }
             grandparent.push(value);
           } else {
@@ -149,7 +149,7 @@ Document.prototype = {
               this._pathNotFound(path);
             } else {
               if (invert) {
-                inverse = {op: 'remove', path: this._serializePath(path)};
+                inverse = [{op: 'remove', path: this._serializePath(path)}];
               }
               grandparent.splice(parentIndex, 0, value);
             }
@@ -157,9 +157,9 @@ Document.prototype = {
         } else {
           if (invert) {
             if (grandparent.hasOwnProperty(parent)) {
-              inverse = {op: 'replace', path: this._serializePath(path), value: clone(grandparent[parent])};
+              inverse = [{op: 'replace', path: this._serializePath(path), value: clone(grandparent[parent])}];
             } else {
-              inverse = {op: 'remove', path: this._serializePath(path.slice(0, -1))};
+              inverse = [{op: 'remove', path: this._serializePath(path.slice(0, -1))}];
             }
           }
           grandparent[parent] = value;
@@ -167,16 +167,16 @@ Document.prototype = {
       } else {
         if (invert) {
           if (this._data.hasOwnProperty(parent)) {
-            inverse = {op: 'replace', path: this._serializePath(path), value: clone(this._data[parent])};
+            inverse = [{op: 'replace', path: this._serializePath(path), value: clone(this._data[parent])}];
           } else {
-            inverse = {op: 'remove', path: this._serializePath(path)};
+            inverse = [{op: 'remove', path: this._serializePath(path)}];
           }
         }
         this._data[parent] = value;
       }
     } else {
       if (invert) {
-        inverse = {op: 'replace', path: this._serializePath(), value: clone(this._data)};
+        inverse = [{op: 'replace', path: this._serializePath(), value: clone(this._data)}];
       }
       this._data = value;
     }
@@ -193,7 +193,7 @@ Document.prototype = {
           if (grandparent.length > 0) {
             if (parent === '-') {
               if (invert) {
-                inverse = {op: 'add', path: this._serializePath(path), value: clone(grandparent.pop())};
+                inverse = [{op: 'add', path: this._serializePath(path), value: clone(grandparent.pop())}];
               } else {
                 grandparent.pop();
               }
@@ -203,7 +203,7 @@ Document.prototype = {
                 this._pathNotFound(path);
               } else {
                 if (invert) {
-                  inverse = {op: 'add', path: this._serializePath(path), value: clone(grandparent.splice(parentIndex, 1)[0])};
+                  inverse = [{op: 'add', path: this._serializePath(path), value: clone(grandparent.splice(parentIndex, 1)[0])}];
                 } else {
                   grandparent.splice(parentIndex, 1);
                 }
@@ -218,7 +218,7 @@ Document.prototype = {
 
         } else {
           if (invert) {
-            inverse = {op: 'add', path: this._serializePath(path), value: clone(grandparent[parent])};
+            inverse = [{op: 'add', path: this._serializePath(path), value: clone(grandparent[parent])}];
           }
           delete grandparent[parent];
         }
@@ -227,13 +227,13 @@ Document.prototype = {
 
       } else {
         if (invert) {
-          inverse = {op: 'add', path: this._serializePath(path), value: clone(this._data[parent])};
+          inverse = [{op: 'add', path: this._serializePath(path), value: clone(this._data[parent])}];
         }
         delete this._data[parent];
       }
     } else {
       if (invert) {
-        inverse = {op: 'add', path: this._serializePath(path), value: clone(this._data)};
+        inverse = [{op: 'add', path: this._serializePath(path), value: clone(this._data)}];
       }
       this._data = {};
     }
@@ -250,7 +250,7 @@ Document.prototype = {
           if (grandparent.length > 0) {
             if (parent === '-') {
               if (invert) {
-                inverse = {op: 'replace', path: this._serializePath(path), value: clone(grandparent[grandparent.length-1])};
+                inverse = [{op: 'replace', path: this._serializePath(path), value: clone(grandparent[grandparent.length-1])}];
               }
               grandparent[grandparent.length-1] = value;
             } else {
@@ -259,7 +259,7 @@ Document.prototype = {
                 this._pathNotFound(path);
               } else {
                 if (invert) {
-                  inverse = {op: 'replace', path: this._serializePath(path), value: clone(grandparent.splice(parentIndex, 1, value)[0])};
+                  inverse = [{op: 'replace', path: this._serializePath(path), value: clone(grandparent.splice(parentIndex, 1, value)[0])}];
                 } else {
                   grandparent.splice(parentIndex, 1, value);
                 }
@@ -274,7 +274,7 @@ Document.prototype = {
 
         } else {
           if (invert) {
-            inverse = {op: 'replace', path: this._serializePath(path), value: clone(grandparent[parent])};
+            inverse = [{op: 'replace', path: this._serializePath(path), value: clone(grandparent[parent])}];
           }
           grandparent[parent] = value;
         }
@@ -283,13 +283,13 @@ Document.prototype = {
 
       } else {
         if (invert) {
-          inverse = {op: 'replace', path: this._serializePath(path), value: clone(this._data[parent])};
+          inverse = [{op: 'replace', path: this._serializePath(path), value: clone(this._data[parent])}];
         }
         this._data[parent] = value;
       }
     } else {
       if (invert) {
-        inverse = {op: 'replace', path: this._serializePath(), value: clone(this._data)};
+        inverse = [{op: 'replace', path: this._serializePath(), value: clone(this._data)}];
       }
       this._data = value;
     }
@@ -303,10 +303,9 @@ Document.prototype = {
     } else {
       var value = this._retrieve(fromPath);
       if (invert) {
-        return [
-          this._remove(fromPath, true),
-          this._add(toPath, value, true)
-        ].reverse();
+        return this._remove(fromPath, true)
+            .concat(this._add(toPath, value, true))
+            .reverse();
 
       } else {
         this._remove(fromPath);
