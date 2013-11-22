@@ -38,23 +38,6 @@ Document.prototype = {
   },
 
   transform: function(operation, invert) {
-    if (Object.prototype.toString.call(operation) === '[object Array]') {
-      var i;
-      if (invert) {
-        var inverse = [];
-        for (i = 0; i < operation.length; i++) {
-          inverse.push(this.transform(operation[i], true));
-        }
-        return inverse;
-
-      } else {
-        for (i = 0; i < operation.length; i++) {
-          this.transform(operation[i]);
-        }
-        return;
-      }
-    }
-
     if (operation.op === 'add') {
       return this.add(operation.path, operation.value, invert);
 
