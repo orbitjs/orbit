@@ -37,6 +37,10 @@ Document.prototype = {
     return this._copy(this._normalizePath(fromPath), this._normalizePath(toPath), invert);
   },
 
+  test: function(path, value) {
+    return eq(this._retrieve(this._normalizePath(path)), value);
+  },
+
   transform: function(operation, invert) {
     if (operation.op === 'add') {
       return this.add(operation.path, operation.value, invert);
@@ -52,6 +56,9 @@ Document.prototype = {
 
     } else if (operation.op === 'copy') {
       return this.copy(operation.from, operation.path, invert);
+
+    } else if (operation.op === 'test') {
+      return this.copy(operation.path, operation.value);
     }
   },
 

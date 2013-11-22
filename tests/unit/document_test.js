@@ -51,29 +51,78 @@ test("#retrieve - will retrieve the full document by default", function() {
   deepEqual(doc.retrieve(), {a: 'b', c: ['d', 'e']});
 });
 
-test("#retrieve - will retrieve a value from a simple object path", function() {
+test("#retrieve - can retrieve a value from a simple object path", function() {
   doc.reset({a: 'b', c: ['d', 'e']});
   deepEqual(doc.retrieve('/a'), 'b');
 });
 
-test("#retrieve - will retrieve an array value from a simple object path", function() {
+test("#retrieve - can retrieve an array value from a simple object path", function() {
   doc.reset({a: 'b', c: ['d', 'e']});
   deepEqual(doc.retrieve('/c'), ['d', 'e']);
 });
 
-test("#retrieve - will retrieve a value at the end of an array", function() {
+test("#retrieve - can retrieve a value at the end of an array", function() {
   doc.reset({a: 'b', c: ['d', 'e', 'f']});
   deepEqual(doc.retrieve('/c/-'), 'f');
 });
 
-test("#retrieve - will retrieve a value at a specific position in an array", function() {
+test("#retrieve - can retrieve a value at a specific position in an array", function() {
   doc.reset({a: 'b', c: ['d', 'e', 'f']});
   deepEqual(doc.retrieve('/c/1'), 'e');
 });
 
-test("#retrieve - will retrieve a value with an array in the path", function() {
+test("#retrieve - can retrieve a value with an array in the path", function() {
   doc.reset({a: 'b', c: ['d', {e: 'f'}]});
   deepEqual(doc.retrieve('/c/1/e'), 'f');
+});
+
+/*
+  `test`
+ */
+
+test("#test - can verify the full document", function() {
+  doc.reset({a: 'b', c: ['d', 'e']});
+  equal(doc.test('/', {a: 'b', c: ['d', 'e']}), true);
+});
+
+test("#test - can verify a value from a simple object path", function() {
+  doc.reset({a: 'b', c: ['d', 'e']});
+  equal(doc.test('/a', 'b'), true);
+});
+
+test("#test - can verify an array value from a simple object path", function() {
+  doc.reset({a: 'b', c: ['d', 'e']});
+  equal(doc.test('/c', ['d', 'e']), true);
+});
+
+test("#test - can verify a value at the end of an array", function() {
+  doc.reset({a: 'b', c: ['d', 'e', 'f']});
+  equal(doc.test('/c/-', 'f'), true);
+});
+
+test("#test - can verify a value at a specific position in an array", function() {
+  doc.reset({a: 'b', c: ['d', 'e', 'f']});
+  equal(doc.test('/c/1', 'e'), true);
+});
+
+test("#test - can verify a value with an array in the path", function() {
+  doc.reset({a: 'b', c: ['d', {e: 'f'}]});
+  equal(doc.test('/c/1/e', 'f'), true);
+});
+
+test("#test - returns false for a mismatch", function() {
+  doc.reset({a: 'b'});
+  equal(doc.test('/a', 'c'), false);
+});
+
+test("#test - throws an exception for a path that doesn't exist", function() {
+  doc.reset({a: 'b'});
+  throws(
+    function() {
+      doc.test('/b', 'c');
+    },
+    Document.PathNotFoundException
+  );
 });
 
 /*
