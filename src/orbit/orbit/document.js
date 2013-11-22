@@ -1,5 +1,6 @@
 import clone from 'orbit/lib/clone';
 import diffs from 'orbit/lib/diffs';
+import eq from 'orbit/lib/eq';
 
 var Document = function(data) {
   this.reset(data);
@@ -16,41 +17,58 @@ Document.prototype = {
     return this._retrieve(this._normalizePath(path));
   },
 
-  add: function(path, value) {
-    return this._add(this._normalizePath(path), value);
+  add: function(path, value, invert) {
+    return this._add(this._normalizePath(path), value, invert);
   },
 
-  remove: function(path) {
-    return this._remove(this._normalizePath(path));
+  remove: function(path, invert) {
+    return this._remove(this._normalizePath(path), invert);
   },
 
-  replace: function(path, value) {
-    return this._replace(this._normalizePath(path), value);
+  replace: function(path, value, invert) {
+    return this._replace(this._normalizePath(path), value, invert);
   },
 
-  move: function(fromPath, toPath) {
-    return this._move(this._normalizePath(fromPath), this._normalizePath(toPath));
+  move: function(fromPath, toPath, invert) {
+    return this._move(this._normalizePath(fromPath), this._normalizePath(toPath), invert);
   },
 
-  copy: function(fromPath, toPath) {
-    return this._copy(this._normalizePath(fromPath), this._normalizePath(toPath));
+  copy: function(fromPath, toPath, invert) {
+    return this._copy(this._normalizePath(fromPath), this._normalizePath(toPath), invert);
   },
 
-  transform: function(operation) {
+  transform: function(operation, invert) {
+    if (Object.prototype.toString.call(operation) === '[object Array]') {
+      var i;
+      if (invert) {
+        var inverse = [];
+        for (i = 0; i < operation.length; i++) {
+          inverse.push(this.transform(operation[i], true));
+        }
+        return inverse;
+
+      } else {
+        for (i = 0; i < operation.length; i++) {
+          this.transform(operation[i]);
+        }
+        return;
+      }
+    }
+
     if (operation.op === 'add') {
-      this.add(operation.path, operation.value);
+      return this.add(operation.path, operation.value, invert);
 
     } else if (operation.op === 'remove') {
-      this.remove(operation.path);
+      return this.remove(operation.path, invert);
 
     } else if (operation.op === 'replace') {
-      this.replace(operation.path, operation.value);
+      return this.replace(operation.path, operation.value, invert);
 
     } else if (operation.op === 'move') {
-      this.move(operation.from, operation.path);
+      return this.move(operation.from, operation.path, invert);
 
     } else if (operation.op === 'copy') {
-      this.copy(operation.from, operation.path);
+      return this.copy(operation.from, operation.path, invert);
     }
   },
 
@@ -70,6 +88,26 @@ Document.prototype = {
     return path;
   },
 
+  _serializePath: function(path) {
+    if (path === undefined) {
+      return '/';
+
+    } else if (Object.prototype.toString.call(path) === '[object Array]') {
+      return '/' + path.join('/');
+
+    } else {
+      return path;
+    }
+  },
+
+  _pathNotFound: function(path) {
+    throw new Document.PathNotFoundException(this._serializePath(path));
+  },
+
+  _operation: function(op, path, value) {
+    return {op: op, path: this._serializePath(path), value: clone(value)};
+  },
+
   _retrieve: function(path) {
     var ptr = this._data,
         segment;
@@ -86,41 +124,67 @@ Document.prototype = {
           ptr = ptr[segment];
         }
         if (ptr === undefined) {
-          throw new Document.PathNotFoundException(path.join('/'));
+          this._pathNotFound(path);
         }
       }
     }
     return ptr;
   },
 
-  _add: function(path, value) {
+  _add: function(path, value, invert) {
+    var inverse;
     if (path) {
       var parent = path[path.length-1];
       if (path.length > 1) {
         var grandparent = this._retrieve(path.slice(0, path.length-3));
         if (Object.prototype.toString.call(grandparent) === '[object Array]') {
           if (parent === '-') {
+            if (invert) {
+              inverse = {op: 'remove', path: this._serializePath(path)};
+            }
             grandparent.push(value);
           } else {
             var parentIndex = parseInt(parent, 10);
             if (parentIndex > grandparent.length) {
-              throw new Document.PathNotFoundException(path.join('/'));
+              this._pathNotFound(path);
             } else {
+              if (invert) {
+                inverse = {op: 'remove', path: this._serializePath(path)};
+              }
               grandparent.splice(parentIndex, 0, value);
             }
           }
         } else {
+          if (invert) {
+            if (grandparent.hasOwnProperty(parent)) {
+              inverse = {op: 'replace', path: this._serializePath(path), value: clone(grandparent[parent])};
+            } else {
+              inverse = {op: 'remove', path: this._serializePath(path.slice(0, -1))};
+            }
+          }
           grandparent[parent] = value;
         }
       } else {
+        if (invert) {
+          if (this._data.hasOwnProperty(parent)) {
+            inverse = {op: 'replace', path: this._serializePath(path), value: clone(this._data[parent])};
+          } else {
+            inverse = {op: 'remove', path: this._serializePath(path)};
+          }
+        }
         this._data[parent] = value;
       }
     } else {
+      if (invert) {
+        inverse = {op: 'replace', path: this._serializePath(), value: clone(this._data)};
+      }
       this._data = value;
     }
+    return inverse;
   },
 
-  _remove: function(path) {
+  _remove: function(path, invert) {
+    var inverse;
     if (path) {
       var parent = path[path.length-1];
       if (path.length > 1) {
@@ -128,37 +192,56 @@ Document.prototype = {
         if (Object.prototype.toString.call(grandparent) === '[object Array]') {
           if (grandparent.length > 0) {
             if (parent === '-') {
-              grandparent.pop();
+              if (invert) {
+                inverse = {op: 'add', path: this._serializePath(path), value: clone(grandparent.pop())};
+              } else {
+                grandparent.pop();
+              }
             } else {
               var parentIndex = parseInt(parent, 10);
               if (grandparent[parentIndex] === undefined) {
-                throw new Document.PathNotFoundException(path.join('/'));
+                this._pathNotFound(path);
               } else {
-                grandparent.splice(parentIndex, 1);
+                if (invert) {
+                  inverse = {op: 'add', path: this._serializePath(path), value: clone(grandparent.splice(parentIndex, 1)[0])};
+                } else {
+                  grandparent.splice(parentIndex, 1);
+                }
               }
             }
           } else {
-            throw new Document.PathNotFoundException(path.join('/'));
+            this._pathNotFound(path);
           }
 
         } else if (grandparent[parent] === undefined) {
-          throw new Document.PathNotFoundException(path.join('/'));
+          this._pathNotFound(path);
 
         } else {
+          if (invert) {
+            inverse = {op: 'add', path: this._serializePath(path), value: clone(grandparent[parent])};
+          }
           delete grandparent[parent];
         }
       } else if (this._data[parent] === undefined) {
-        throw new Document.PathNotFoundException(path.join('/'));
+        this._pathNotFound(path);
 
       } else {
+        if (invert) {
+          inverse = {op: 'add', path: this._serializePath(path), value: clone(this._data[parent])};
+        }
         delete this._data[parent];
       }
     } else {
+      if (invert) {
+        inverse = {op: 'add', path: this._serializePath(path), value: clone(this._data)};
+      }
       this._data = {};
     }
+    return inverse;
   },
 
-  _replace: function(path, value) {
+  _replace: function(path, value, invert) {
+    var inverse;
     if (path) {
       var parent = path[path.length-1];
       if (path.length > 1) {
@@ -166,52 +249,88 @@ Document.prototype = {
         if (Object.prototype.toString.call(grandparent) === '[object Array]') {
           if (grandparent.length > 0) {
             if (parent === '-') {
+              if (invert) {
+                inverse = {op: 'replace', path: this._serializePath(path), value: clone(grandparent[grandparent.length-1])};
+              }
               grandparent[grandparent.length-1] = value;
             } else {
               var parentIndex = parseInt(parent, 10);
               if (grandparent[parentIndex] === undefined) {
-                throw new Document.PathNotFoundException(path.join('/'));
+                this._pathNotFound(path);
               } else {
-                grandparent.splice(parentIndex, 1, value);
+                if (invert) {
+                  inverse = {op: 'replace', path: this._serializePath(path), value: clone(grandparent.splice(parentIndex, 1, value)[0])};
+                } else {
+                  grandparent.splice(parentIndex, 1, value);
+                }
               }
             }
           } else {
-            throw new Document.PathNotFoundException(path.join('/'));
+            this._pathNotFound(path);
           }
 
         } else if (grandparent[parent] === undefined) {
-          throw new Document.PathNotFoundException(path.join('/'));
+          this._pathNotFound(path);
 
         } else {
+          if (invert) {
+            inverse = {op: 'replace', path: this._serializePath(path), value: clone(grandparent[parent])};
+          }
           grandparent[parent] = value;
         }
       } else if (this._data[parent] === undefined) {
-        throw new Document.PathNotFoundException(path.join('/'));
+        this._pathNotFound(path);
 
       } else {
+        if (invert) {
+          inverse = {op: 'replace', path: this._serializePath(path), value: clone(this._data[parent])};
+        }
         this._data[parent] = value;
       }
     } else {
+      if (invert) {
+        inverse = {op: 'replace', path: this._serializePath(), value: clone(this._data)};
+      }
       this._data = value;
+    }
+    return inverse;
+  },
+
+  _move: function(fromPath, toPath, invert) {
+    if (eq(fromPath, toPath)) {
+      return invert ? [] : undefined;
+
+    } else {
+      var value = this._retrieve(fromPath);
+      if (invert) {
+        return [
+          this._remove(fromPath, true),
+          this._add(toPath, value, true)
+        ].reverse();
+
+      } else {
+        this._remove(fromPath);
+        this._add(toPath, value);
+      }
     }
   },
 
-  _move: function(fromPath, toPath) {
-    var value = this._retrieve(fromPath);
-    this._remove(fromPath);
-    this._add(toPath, value);
-  },
+  _copy: function(fromPath, toPath, invert) {
+    if (eq(fromPath, toPath)) {
+      return invert ? [] : undefined;
 
-  _copy: function(fromPath, toPath) {
-    this._add(toPath, this._retrieve(fromPath));
+    } else {
+      return this._add(toPath, this._retrieve(fromPath), invert);
+    }
   }
 };
 
-Document.PathNotFoundException = function(path) {
+var PathNotFoundException = function(path) {
   this.path = path;
 };
-Document.PathNotFoundException.prototype = {
-  constructor: 'PathNotFoundException'
+PathNotFoundException.prototype = {
+  constructor: PathNotFoundException
 };
+Document.PathNotFoundException = PathNotFoundException;
 
 export default Document;
