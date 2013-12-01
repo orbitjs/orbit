@@ -126,7 +126,7 @@ Document.prototype = {
     if (path) {
       var parent = path[path.length-1];
       if (path.length > 1) {
-        var grandparent = this._retrieve(path.slice(0, path.length-3));
+        var grandparent = this._retrieve(path.slice(0, -1));
         if (Object.prototype.toString.call(grandparent) === '[object Array]') {
           if (parent === '-') {
             if (invert) {
@@ -178,7 +178,7 @@ Document.prototype = {
     if (path) {
       var parent = path[path.length-1];
       if (path.length > 1) {
-        var grandparent = this._retrieve(path.slice(0, path.length-3));
+        var grandparent = this._retrieve(path.slice(0, -1));
         if (Object.prototype.toString.call(grandparent) === '[object Array]') {
           if (grandparent.length > 0) {
             if (parent === '-') {
@@ -235,7 +235,7 @@ Document.prototype = {
     if (path) {
       var parent = path[path.length-1];
       if (path.length > 1) {
-        var grandparent = this._retrieve(path.slice(0, path.length-3));
+        var grandparent = this._retrieve(path.slice(0, -1));
         if (Object.prototype.toString.call(grandparent) === '[object Array]') {
           if (grandparent.length > 0) {
             if (parent === '-') {

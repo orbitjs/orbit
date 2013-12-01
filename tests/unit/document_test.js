@@ -157,6 +157,12 @@ test("#transform - `add` - can replace an object at a target object path", funct
   deepEqual(doc.retrieve(), {a: 'baz'});
 });
 
+test("#transform - `add` - can replace an object at a deep target object path", function() {
+  doc.reset({a: {b: {c: 'd'}}});
+  doc.transform({op: 'add', path: '/a/b/c', value: 'e'});
+  deepEqual(doc.retrieve(), {a: {b: {c: 'e'}}});
+});
+
 test("#transform - `add` - can append a value to the end of a targeted array", function() {
   doc.reset({foo: ['bar', 'baz']});
   doc.transform({op: 'add', path: '/foo/-', value: 'boo'});
@@ -210,6 +216,14 @@ test("#transform - `add` - can invert the replacement of an object at a target o
   deepEqual(doc.retrieve(), {a: 'bar'});
 });
 
+test("#transform - `add` - can invert the replacement of an object at a deep target object path", function() {
+  doc.reset({a: {b: {c: 'd'}}});
+  var inverse = doc.transform({op: 'add', path: '/a/b/c', value: 'e'}, true);
+  deepEqual(inverse, [{op: 'replace', path: '/a/b/c', value: 'd'}]);
+  applyTransforms(doc, inverse);
+  deepEqual(doc.retrieve(), {a: {b: {c: 'd'}}});
+});
+
 test("#transform - `add` - can invert the appending of a value to the end of a targeted array", function() {
   doc.reset({foo: ['bar', 'baz']});
   var inverse = doc.transform({op: 'add', path: '/foo/-', value: 'boo'}, true);
@@ -256,6 +270,12 @@ test("#transform - `remove` - can remove a nested object at a target object path
   doc.reset({a: {b: 'c'}});
   doc.transform({op: 'remove', path: '/a/b'});
   deepEqual(doc.retrieve(), {a: {}});
+});
+
+test("#transform - `remove` - can remove a deeply nested object at a target object path", function() {
+  doc.reset({a: {b: {c: 'd'}}});
+  doc.transform({op: 'remove', path: '/a/b/c'});
+  deepEqual(doc.retrieve(), {a: {b: {}}});
 });
 
 test("#transform - `remove` - verifies that a nested object path exists", function() {
@@ -328,6 +348,14 @@ test("#transform - `remove` - can invert removal of a nested object at a target 
   deepEqual(doc.retrieve(), {a: {b: 'c'}});
 });
 
+test("#transform - `remove` - can invert removal of a deeply nested object at a target object path", function() {
+  doc.reset({a: {b: {c: 'd'}}});
+  var inverse = doc.transform({op: 'remove', path: '/a/b/c'}, true);
+  deepEqual(inverse, [{op: 'add', path: '/a/b/c', value: 'd'}]);
+  applyTransforms(doc, inverse);
+  deepEqual(doc.retrieve(), {a: {b: {c: 'd'}}});
+});
+
 test("#transform - `remove` - can invert removal of an object from the end of a targeted array", function() {
   doc.reset({foo: ['bar', 'baz', 'boo']});
   var inverse = doc.transform({op: 'remove', path: '/foo/-'}, true);
@@ -374,6 +402,12 @@ test("#transform - `replace` - can replace a nested object at a target object pa
   doc.reset({a: {b: 'c'}});
   doc.transform({op: 'replace', path: '/a/b', value: 'd'});
   deepEqual(doc.retrieve(), {a: {b: 'd'}});
+});
+
+test("#transform - `replace` - can replace a deeply nested object at a target object path", function() {
+  doc.reset({a: {b: {c: 'd'}}});
+  doc.transform({op: 'replace', path: '/a/b/c', value: 'e'});
+  deepEqual(doc.retrieve(), {a: {b: {c: 'e'}}});
 });
 
 test("#transform - `replace` - verifies that a nested object path exists", function() {
@@ -444,6 +478,14 @@ test("#transform - `replace` - can invert replacement of a nested object at a ta
   deepEqual(inverse, [{op: 'replace', path: '/a/b', value: 'c'}]);
   applyTransforms(doc, inverse);
   deepEqual(doc.retrieve(), {a: {b: 'c'}});
+});
+
+test("#transform - `replace` - can invert replacement of a deeply nested object at a target object path", function() {
+  doc.reset({a: {b: {c: 'd'}}});
+  var inverse = doc.transform({op: 'replace', path: '/a/b/c', value: 'e'}, true);
+  deepEqual(inverse, [{op: 'replace', path: '/a/b/c', value: 'd'}]);
+  applyTransforms(doc, inverse);
+  deepEqual(doc.retrieve(), {a: {b: {c: 'd'}}});
 });
 
 test("#transform - `replace` - can invert replacement of an object from the end of a targeted array", function() {
