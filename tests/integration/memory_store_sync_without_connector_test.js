@@ -11,8 +11,12 @@ module("Integration - MemoryStore Sync without Connector", {
   setup: function() {
     Orbit.Promise = RSVP.Promise;
 
-    primaryStore = new MemoryStore();
-    backupStore = new MemoryStore();
+    var schema = {
+      models: ['planet']
+    }
+
+    primaryStore = new MemoryStore(schema);
+    backupStore = new MemoryStore(schema);
 
     primaryStore.on('didTransform',  backupStore.transform);
   },
@@ -36,7 +40,7 @@ test("records inserted into the primary store should be automatically copied to 
   var originalPlanet;
 
   stop();
-  primaryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  primaryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     originalPlanet = planet;
 
     equal(primaryStore.length('planet'), 1, 'primary store should contain one record');
@@ -46,7 +50,7 @@ test("records inserted into the primary store should be automatically copied to 
     equal(planet.name, 'Jupiter', 'name should match');
     equal(planet.classification, 'gas giant', 'classification should match');
 
-    backupStore.findRecord('planet', planet.__id).then(function(backupPlanet) {
+    backupStore.find('planet', planet.__id).then(function(backupPlanet) {
       start();
       notStrictEqual(backupPlanet, originalPlanet, 'not the same object as the one originally inserted');
       equal(backupPlanet.__id, planet.__id, 'backup record has the same primary id');
@@ -62,16 +66,16 @@ test("updates to records in the primary store should be automatically copied to 
   var originalPlanet;
 
   stop();
-  primaryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  primaryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     originalPlanet = planet;
 
-    primaryStore.transform('replace', 'planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
+    primaryStore.update('planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
       equal(updatedPlanet.__id, planet.__id, 'primary id remains the same');
       equal(updatedPlanet.name, 'Earth', 'name has been updated');
       equal(updatedPlanet.classification, 'terrestrial', 'classification has been updated');
 
     }).then(function() {
-      backupStore.findRecord('planet', planet.__id).then(function(backupPlanet) {
+      backupStore.find('planet', planet.__id).then(function(backupPlanet) {
         start();
         notStrictEqual(backupPlanet, originalPlanet, 'not the same object as the one originally inserted');
         equal(backupPlanet.__id, planet.__id, 'backup record has the same primary id');
@@ -88,16 +92,16 @@ test("patches to records in the primary store should be automatically copied to 
   var originalPlanet;
 
   stop();
-  primaryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  primaryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     originalPlanet = planet;
 
-    primaryStore.transform('patch', 'planet', {__id: planet.__id, name: 'Earth'}).then(function(updatedPlanet) {
+    primaryStore.patch('planet', {__id: planet.__id, name: 'Earth'}).then(function(updatedPlanet) {
       equal(updatedPlanet.__id, planet.__id, 'primary id remains the same');
       equal(updatedPlanet.name, 'Earth', 'name has been updated');
       equal(updatedPlanet.classification, 'gas giant', 'classification has not been updated');
 
     }).then(function() {
-      backupStore.findRecord('planet', planet.__id).then(function(backupPlanet) {
+      backupStore.find('planet', planet.__id).then(function(backupPlanet) {
         start();
         notStrictEqual(backupPlanet, originalPlanet, 'not the same object as the one originally inserted');
         equal(backupPlanet.__id, planet.__id, 'backup record has the same primary id');
@@ -115,11 +119,11 @@ test("records deleted in the primary store should be automatically deleted in th
   equal(backupStore.length('planet'), 0, 'backup store should be empty');
 
   stop();
-  primaryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  primaryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     equal(primaryStore.length('planet'), 1, 'primary store should contain one record');
     equal(backupStore.length('planet'), 1, 'backup store should contain one record');
 
-    primaryStore.transform('remove', 'planet', planet.__id).then(function() {
+    primaryStore.remove('planet', planet.__id).then(function() {
       start();
       equal(primaryStore.length('planet'), 0, 'primary store should be empty');
       equal(backupStore.length('planet'), 0, 'backup store should be empty');
