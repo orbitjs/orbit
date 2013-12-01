@@ -1,94 +1,98 @@
 import Orbit from 'orbit/core';
-import clone from 'orbit/lib/clone';
+import Document from 'orbit/document';
 import Transformable from 'orbit/transformable';
 import Requestable from 'orbit/requestable';
 
-var MemoryStore = function() {
+var MemoryStore = function(schema) {
   Orbit.assert('MemoryStore requires Orbit.Promise to be defined', Orbit.Promise);
 
   this.idField = Orbit.idField;
 
-  this._data = {};
-  this._length = {};
+  this._doc = new Document();
+
+  this.configure(schema);
 
   Transformable.extend(this);
-  Requestable.extend(this, ['findRecord', 'createRecord', 'updateRecord', 'patchRecord', 'deleteRecord']);
+  Requestable.extend(this, ['find', 'add', 'update', 'patch', 'remove']);
 };
 
 MemoryStore.prototype = {
   constructor: MemoryStore,
 
-  retrieve: function(type, id) {
-    var dataForType = this._data[type];
-    if (id && typeof id === 'object') id = id[this.idField];
-    if (dataForType) return dataForType[id];
+  configure: function(schema) {
+    this.schema = schema;
+    schema.models.forEach(function(model) {
+      this._doc.add([model], {});
+    }, this);
+  },
+
+  push: function(data) {
+    var ops = [],
+        type,
+        dataForType,
+        id,
+        dataForItem,
+        i;
+
+    for (type in data) {
+      if (data.hasOwnProperty(type)) {
+        dataForType = data[type];
+        for (i = 0; i < dataForType.length; i++) {
+          dataForItem = dataForType[i];
+          if (dataForItem[this.idField] === undefined) {
+            id = this._generateId();
+            dataForItem[this.idField] = id;
+          }
+          Orbit.incrementVersion(dataForItem);
+          ops.push({op: 'add', path: [type, id], value: dataForItem});
+        }
+      }
+    }
+
+    var doc = this._doc;
+    return this.transform(ops).then(function() {
+      var records = [];
+      for (i = 0; i < ops.length; i++) {
+        records.push(doc.retrieve(ops[i].path));
+      }
+      return records;
+    });
+  },
+
+  all: function(type) {
+    return this._doc.retrieve([type]);
   },
 
   length: function(type) {
-    return this._length[type] || 0;
+    return Object.keys(this.all(type)).length;
   },
 
   /////////////////////////////////////////////////////////////////////////////
   // Transformable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _transform: function(action, type, data) {
+  _transform: function(operation) {
     var _this = this;
 
     return new Orbit.Promise(function(resolve, reject) {
-      var record;
-
-      if (action === 'add') {
-        var id = data[_this.idField];
-        var dataForType = _this._data[type];
-
-        if (dataForType && dataForType[id]) {
-          reject(new Orbit.AlreadyExistsException(type, data));
-          return;
-        } else {
-          record = clone(data);
-          if (!id) {
-            id = record[_this.idField] = _this._generateId();
+      if (Object.prototype.toString.call(operation) === '[object Array]') {
+        var inverse = [];
+        for (var i = 0; i < operation.length; i++) {
+          try {
+            inverse.push(_this._doc.transform(operation[i], true));
+          } catch(e) {
+            inverse.reverse();
+            for (var j = 0; j < inverse.length; j++) {
+              _this._doc.transform(inverse[j]);
+            }
+            reject(e);
+            return;
           }
-          if (!dataForType) {
-            dataForType = _this._data[type] = {};
-            _this._length[type] = 1;
-          } else {
-            _this._length[type]++;
-          }
-          dataForType[id] = record;
         }
-
       } else {
-        record = _this.retrieve(type, data);
-        if (record && !record.deleted) {
-          if (action === 'replace' || action === 'patch') {
-            for (var i in data) {
-              if (data.hasOwnProperty(i)) {
-                record[i] = data[i];
-              }
-            }
-            if (action === 'replace') {
-              for (i in record) {
-                if (data.hasOwnProperty(i) && data[i] === undefined) {
-                  delete record[i];
-                }
-              }
-            }
-
-          } else if (action === 'remove') {
-            record.deleted = true;
-            _this._length[type]--;
-          }
-
-        } else {
-          reject(new Orbit.NotFoundException(type, data));
-          return;
-        }
+        _this._doc.transform(operation);
       }
-
-      Orbit.incrementVersion(record);
-      resolve(record);
+      resolve();
     });
   },
 
@@ -96,14 +100,14 @@ MemoryStore.prototype = {
   // Requestable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _findRecord: function(type, id) {
+  _find: function(type, id) {
     var _this = this;
 
     return new Orbit.Promise(function(resolve, reject) {
       if (id === undefined || typeof id === 'object') {
         resolve(_this._filter.call(_this, type, id));
       } else {
-        var record = _this.retrieve(type, id);
+        var record = _this._doc.retrieve([type, id]);
         if (record && !record.deleted) {
           resolve(record);
         } else {
@@ -113,20 +117,56 @@ MemoryStore.prototype = {
     });
   },
 
-  _createRecord: function(type, data) {
-    return this.transform('add', type, data);
+  _add: function(type, data) {
+    var id = this._generateId(),
+        path = [type, id],
+        _this = this;
+
+    data[this.idField] = id;
+    Orbit.incrementVersion(data);
+
+    return this.transform({op: 'add', path: path, value: data}).then(function() {
+      return _this._doc.retrieve(path);
+    });
   },
 
-  _updateRecord: function(type, data) {
-    return this.transform('replace', type, data);
+  _update: function(type, data) {
+    var id = data[this.idField],
+        path = [type, id],
+        _this = this;
+
+    Orbit.incrementVersion(data);
+
+    return this.transform({op: 'replace', path: path, value: data}).then(function() {
+      return _this._doc.retrieve(path);
+    });
   },
 
-  _patchRecord: function(type, data) {
-    return this.transform('patch', type, data);
+  _patch: function(type, data) {
+    var id = data[this.idField],
+        path = [type, id],
+        ops = [],
+        _this = this;
+
+    for (var i in data) {
+      if (data.hasOwnProperty(i) && i !== this.idField) {
+        ops.push({op: 'replace', path: path.concat([i]), value: data[i]});
+      }
+    }
+
+    return this.transform(ops).then(function() {
+      return _this._doc.retrieve(path);
+    }, function(e) {
+      debugger;
+    });
   },
 
-  _deleteRecord: function(type, data) {
-    return this.transform('remove', type, data);
+  _remove: function(type, data) {
+    var id = data[this.idField],
+        path = [type, id],
+        _this = this;
+
+    return this.transform({op: 'remove', path: type + '/' + data[this.idField]});
   },
 
   /////////////////////////////////////////////////////////////////////////////
@@ -135,11 +175,13 @@ MemoryStore.prototype = {
 
   _filter: function(type, query) {
     var all = [],
-        dataForType = this._data[type],
+        dataForType,
         i,
         prop,
         match,
         record;
+
+    dataForType = this._doc.retrieve([type]);
 
     for (i in dataForType) {
       if (dataForType.hasOwnProperty(i)) {
