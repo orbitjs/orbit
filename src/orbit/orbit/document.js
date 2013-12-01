@@ -124,17 +124,17 @@ Document.prototype = {
   _add: function(path, value, invert) {
     var inverse;
     if (path) {
-      var parent = path[path.length-1];
+      var parentKey = path[path.length-1];
       if (path.length > 1) {
         var grandparent = this._retrieve(path.slice(0, -1));
         if (Object.prototype.toString.call(grandparent) === '[object Array]') {
-          if (parent === '-') {
+          if (parentKey === '-') {
             if (invert) {
               inverse = [{op: 'remove', path: this._serializePath(path)}];
             }
             grandparent.push(value);
           } else {
-            var parentIndex = parseInt(parent, 10);
+            var parentIndex = parseInt(parentKey, 10);
             if (parentIndex > grandparent.length) {
               this._pathNotFound(path);
             } else {
@@ -146,23 +146,23 @@ Document.prototype = {
           }
         } else {
           if (invert) {
-            if (grandparent.hasOwnProperty(parent)) {
-              inverse = [{op: 'replace', path: this._serializePath(path), value: clone(grandparent[parent])}];
+            if (grandparent.hasOwnProperty(parentKey)) {
+              inverse = [{op: 'replace', path: this._serializePath(path), value: clone(grandparent[parentKey])}];
             } else {
               inverse = [{op: 'remove', path: this._serializePath(path.slice(0, -1))}];
             }
           }
-          grandparent[parent] = value;
+          grandparent[parentKey] = value;
         }
       } else {
         if (invert) {
-          if (this._data.hasOwnProperty(parent)) {
-            inverse = [{op: 'replace', path: this._serializePath(path), value: clone(this._data[parent])}];
+          if (this._data.hasOwnProperty(parentKey)) {
+            inverse = [{op: 'replace', path: this._serializePath(path), value: clone(this._data[parentKey])}];
           } else {
             inverse = [{op: 'remove', path: this._serializePath(path)}];
           }
         }
-        this._data[parent] = value;
+        this._data[parentKey] = value;
       }
     } else {
       if (invert) {
@@ -176,19 +176,19 @@ Document.prototype = {
   _remove: function(path, invert) {
     var inverse;
     if (path) {
-      var parent = path[path.length-1];
+      var parentKey = path[path.length-1];
       if (path.length > 1) {
         var grandparent = this._retrieve(path.slice(0, -1));
         if (Object.prototype.toString.call(grandparent) === '[object Array]') {
           if (grandparent.length > 0) {
-            if (parent === '-') {
+            if (parentKey === '-') {
               if (invert) {
                 inverse = [{op: 'add', path: this._serializePath(path), value: clone(grandparent.pop())}];
               } else {
                 grandparent.pop();
               }
             } else {
-              var parentIndex = parseInt(parent, 10);
+              var parentIndex = parseInt(parentKey, 10);
               if (grandparent[parentIndex] === undefined) {
                 this._pathNotFound(path);
               } else {
@@ -203,23 +203,23 @@ Document.prototype = {
             this._pathNotFound(path);
           }
 
-        } else if (grandparent[parent] === undefined) {
+        } else if (grandparent[parentKey] === undefined) {
           this._pathNotFound(path);
 
         } else {
           if (invert) {
-            inverse = [{op: 'add', path: this._serializePath(path), value: clone(grandparent[parent])}];
+            inverse = [{op: 'add', path: this._serializePath(path), value: clone(grandparent[parentKey])}];
           }
-          delete grandparent[parent];
+          delete grandparent[parentKey];
         }
-      } else if (this._data[parent] === undefined) {
+      } else if (this._data[parentKey] === undefined) {
         this._pathNotFound(path);
 
       } else {
         if (invert) {
-          inverse = [{op: 'add', path: this._serializePath(path), value: clone(this._data[parent])}];
+          inverse = [{op: 'add', path: this._serializePath(path), value: clone(this._data[parentKey])}];
         }
-        delete this._data[parent];
+        delete this._data[parentKey];
       }
     } else {
       if (invert) {
@@ -233,18 +233,18 @@ Document.prototype = {
   _replace: function(path, value, invert) {
     var inverse;
     if (path) {
-      var parent = path[path.length-1];
+      var parentKey = path[path.length-1];
       if (path.length > 1) {
         var grandparent = this._retrieve(path.slice(0, -1));
         if (Object.prototype.toString.call(grandparent) === '[object Array]') {
           if (grandparent.length > 0) {
-            if (parent === '-') {
+            if (parentKey === '-') {
               if (invert) {
                 inverse = [{op: 'replace', path: this._serializePath(path), value: clone(grandparent[grandparent.length-1])}];
               }
               grandparent[grandparent.length-1] = value;
             } else {
-              var parentIndex = parseInt(parent, 10);
+              var parentIndex = parseInt(parentKey, 10);
               if (grandparent[parentIndex] === undefined) {
                 this._pathNotFound(path);
               } else {
@@ -259,23 +259,23 @@ Document.prototype = {
             this._pathNotFound(path);
           }
 
-        } else if (grandparent[parent] === undefined) {
+        } else if (grandparent[parentKey] === undefined) {
           this._pathNotFound(path);
 
         } else {
           if (invert) {
-            inverse = [{op: 'replace', path: this._serializePath(path), value: clone(grandparent[parent])}];
+            inverse = [{op: 'replace', path: this._serializePath(path), value: clone(grandparent[parentKey])}];
           }
-          grandparent[parent] = value;
+          grandparent[parentKey] = value;
         }
-      } else if (this._data[parent] === undefined) {
+      } else if (this._data[parentKey] === undefined) {
         this._pathNotFound(path);
 
       } else {
         if (invert) {
-          inverse = [{op: 'replace', path: this._serializePath(path), value: clone(this._data[parent])}];
+          inverse = [{op: 'replace', path: this._serializePath(path), value: clone(this._data[parentKey])}];
         }
-        this._data[parent] = value;
+        this._data[parentKey] = value;
       }
     } else {
       if (invert) {
