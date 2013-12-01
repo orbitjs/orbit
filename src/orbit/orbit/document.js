@@ -94,10 +94,6 @@ Document.prototype = {
     throw new Document.PathNotFoundException(this._serializePath(path));
   },
 
-  _operation: function(op, path, value) {
-    return {op: op, path: this._serializePath(path), value: clone(value)};
-  },
-
   _retrieve: function(path) {
     var ptr = this._data,
         segment;
@@ -123,6 +119,7 @@ Document.prototype = {
 
   _add: function(path, value, invert) {
     var inverse;
+    value = clone(value);
     if (path) {
       var parentKey = path[path.length-1];
       if (path.length > 1) {
@@ -232,6 +229,7 @@ Document.prototype = {
 
   _replace: function(path, value, invert) {
     var inverse;
+    value = clone(value);
     if (path) {
       var parentKey = path[path.length-1];
       if (path.length > 1) {
