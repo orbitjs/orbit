@@ -162,11 +162,10 @@ MemoryStore.prototype = {
   },
 
   _remove: function(type, data) {
-    var id = data[this.idField],
-        path = [type, id],
-        _this = this;
+    var id = (typeof data === 'object' ? data[this.idField] : data),
+        path = [type, id];
 
-    return this.transform({op: 'remove', path: type + '/' + data[this.idField]});
+    return this.transform({op: 'remove', path: path});
   },
 
   /////////////////////////////////////////////////////////////////////////////
