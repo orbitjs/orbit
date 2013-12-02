@@ -53,18 +53,25 @@ MemoryStore.prototype = {
     return this.transform(ops).then(function() {
       var records = [];
       for (i = 0; i < ops.length; i++) {
-        records.push(_this.retrieve(ops[i].path));
+        records.push(_this._cache.retrieve(ops[i].path));
       }
       return records;
     });
   },
 
-  retrieve: function(path) {
+  retrieve: function(type, id) {
+    var path;
+    if (id !== undefined) {
+      if (typeof id === 'object') id = id[this.idField];
+      path = [type, id];
+    } else {
+      path = [type];
+    }
     return this._cache.retrieve(path);
   },
 
   length: function(type) {
-    return Object.keys(this.retrieve([type])).length;
+    return Object.keys(this.retrieve(type)).length;
   },
 
   /////////////////////////////////////////////////////////////////////////////
@@ -107,7 +114,7 @@ MemoryStore.prototype = {
       if (id === undefined || typeof id === 'object') {
         resolve(_this._filter.call(_this, type, id));
       } else {
-        var record = _this.retrieve([type, id]);
+        var record = _this.retrieve(type, id);
         if (record && !record.deleted) {
           resolve(record);
         } else {
@@ -126,7 +133,7 @@ MemoryStore.prototype = {
     Orbit.incrementVersion(data);
 
     return this.transform({op: 'add', path: path, value: data}).then(function() {
-      return _this.retrieve(path);
+      return _this.retrieve(type, id);
     });
   },
 
@@ -138,7 +145,7 @@ MemoryStore.prototype = {
     Orbit.incrementVersion(data);
 
     return this.transform({op: 'replace', path: path, value: data}).then(function() {
-      return _this.retrieve(path);
+      return _this.retrieve(type, id);
     });
   },
 
@@ -155,9 +162,7 @@ MemoryStore.prototype = {
     }
 
     return this.transform(ops).then(function() {
-      return _this.retrieve(path);
-    }, function(e) {
-      debugger;
+      return _this.retrieve(type, id);
     });
   },
 
@@ -180,7 +185,7 @@ MemoryStore.prototype = {
         match,
         record;
 
-    dataForType = this.retrieve([type]);
+    dataForType = this.retrieve(type);
 
     for (i in dataForType) {
       if (dataForType.hasOwnProperty(i)) {
