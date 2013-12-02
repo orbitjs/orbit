@@ -14,31 +14,31 @@ Document.prototype = {
   },
 
   retrieve: function(path) {
-    return this._retrieve(this._normalizePath(path));
+    return this._retrieve(this.deserializePath(path));
   },
 
   add: function(path, value, invert) {
-    return this._add(this._normalizePath(path), value, invert);
+    return this._add(this.deserializePath(path), value, invert);
   },
 
   remove: function(path, invert) {
-    return this._remove(this._normalizePath(path), invert);
+    return this._remove(this.deserializePath(path), invert);
   },
 
   replace: function(path, value, invert) {
-    return this._replace(this._normalizePath(path), value, invert);
+    return this._replace(this.deserializePath(path), value, invert);
   },
 
   move: function(fromPath, toPath, invert) {
-    return this._move(this._normalizePath(fromPath), this._normalizePath(toPath), invert);
+    return this._move(this.deserializePath(fromPath), this.deserializePath(toPath), invert);
   },
 
   copy: function(fromPath, toPath, invert) {
-    return this._copy(this._normalizePath(fromPath), this._normalizePath(toPath), invert);
+    return this._copy(this.deserializePath(fromPath), this.deserializePath(toPath), invert);
   },
 
   test: function(path, value) {
-    return eq(this._retrieve(this._normalizePath(path)), value);
+    return eq(this._retrieve(this.deserializePath(path)), value);
   },
 
   transform: function(operation, invert) {
@@ -62,23 +62,7 @@ Document.prototype = {
     }
   },
 
-  /////////////////////////////////////////////////////////////////////////////
-  // Internals
-  /////////////////////////////////////////////////////////////////////////////
-
-  _normalizePath: function(path) {
-    if (typeof path === 'string') {
-      if (path.indexOf('/') === 0) path = path.substr(1);
-      if (path.length === 0) {
-        return undefined;
-      } else {
-        return path.split('/');
-      }
-    }
-    return path;
-  },
-
-  _serializePath: function(path) {
+  serializePath: function(path) {
     if (path === undefined) {
       return '/';
 
@@ -90,8 +74,24 @@ Document.prototype = {
     }
   },
 
+  deserializePath: function(path) {
+    if (typeof path === 'string') {
+      if (path.indexOf('/') === 0) path = path.substr(1);
+      if (path.length === 0) {
+        return undefined;
+      } else {
+        return path.split('/');
+      }
+    }
+    return path;
+  },
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Internals
+  /////////////////////////////////////////////////////////////////////////////
+
   _pathNotFound: function(path) {
-    throw new Document.PathNotFoundException(this._serializePath(path));
+    throw new Document.PathNotFoundException(this.serializePath(path));
   },
 
   _retrieve: function(path) {
@@ -127,7 +127,7 @@ Document.prototype = {
         if (Object.prototype.toString.call(grandparent) === '[object Array]') {
           if (parentKey === '-') {
             if (invert) {
-              inverse = [{op: 'remove', path: this._serializePath(path)}];
+              inverse = [{op: 'remove', path: this.serializePath(path)}];
             }
             grandparent.push(value);
           } else {
@@ -136,7 +136,7 @@ Document.prototype = {
               this._pathNotFound(path);
             } else {
               if (invert) {
-                inverse = [{op: 'remove', path: this._serializePath(path)}];
+                inverse = [{op: 'remove', path: this.serializePath(path)}];
               }
               grandparent.splice(parentIndex, 0, value);
             }
@@ -144,9 +144,9 @@ Document.prototype = {
         } else {
           if (invert) {
             if (grandparent.hasOwnProperty(parentKey)) {
-              inverse = [{op: 'replace', path: this._serializePath(path), value: clone(grandparent[parentKey])}];
+              inverse = [{op: 'replace', path: this.serializePath(path), value: clone(grandparent[parentKey])}];
             } else {
-              inverse = [{op: 'remove', path: this._serializePath(path.slice(0, -1))}];
+              inverse = [{op: 'remove', path: this.serializePath(path.slice(0, -1))}];
             }
           }
           grandparent[parentKey] = value;
@@ -154,16 +154,16 @@ Document.prototype = {
       } else {
         if (invert) {
           if (this._data.hasOwnProperty(parentKey)) {
-            inverse = [{op: 'replace', path: this._serializePath(path), value: clone(this._data[parentKey])}];
+            inverse = [{op: 'replace', path: this.serializePath(path), value: clone(this._data[parentKey])}];
           } else {
-            inverse = [{op: 'remove', path: this._serializePath(path)}];
+            inverse = [{op: 'remove', path: this.serializePath(path)}];
           }
         }
         this._data[parentKey] = value;
       }
     } else {
       if (invert) {
-        inverse = [{op: 'replace', path: this._serializePath(), value: clone(this._data)}];
+        inverse = [{op: 'replace', path: this.serializePath(), value: clone(this._data)}];
       }
       this._data = value;
     }
@@ -180,7 +180,7 @@ Document.prototype = {
           if (grandparent.length > 0) {
             if (parentKey === '-') {
               if (invert) {
-                inverse = [{op: 'add', path: this._serializePath(path), value: clone(grandparent.pop())}];
+                inverse = [{op: 'add', path: this.serializePath(path), value: clone(grandparent.pop())}];
               } else {
                 grandparent.pop();
               }
@@ -190,7 +190,7 @@ Document.prototype = {
                 this._pathNotFound(path);
               } else {
                 if (invert) {
-                  inverse = [{op: 'add', path: this._serializePath(path), value: clone(grandparent.splice(parentIndex, 1)[0])}];
+                  inverse = [{op: 'add', path: this.serializePath(path), value: clone(grandparent.splice(parentIndex, 1)[0])}];
                 } else {
                   grandparent.splice(parentIndex, 1);
                 }
@@ -205,7 +205,7 @@ Document.prototype = {
 
         } else {
           if (invert) {
-            inverse = [{op: 'add', path: this._serializePath(path), value: clone(grandparent[parentKey])}];
+            inverse = [{op: 'add', path: this.serializePath(path), value: clone(grandparent[parentKey])}];
           }
           delete grandparent[parentKey];
         }
@@ -214,13 +214,13 @@ Document.prototype = {
 
       } else {
         if (invert) {
-          inverse = [{op: 'add', path: this._serializePath(path), value: clone(this._data[parentKey])}];
+          inverse = [{op: 'add', path: this.serializePath(path), value: clone(this._data[parentKey])}];
         }
         delete this._data[parentKey];
       }
     } else {
       if (invert) {
-        inverse = [{op: 'add', path: this._serializePath(path), value: clone(this._data)}];
+        inverse = [{op: 'add', path: this.serializePath(path), value: clone(this._data)}];
       }
       this._data = {};
     }
@@ -238,7 +238,7 @@ Document.prototype = {
           if (grandparent.length > 0) {
             if (parentKey === '-') {
               if (invert) {
-                inverse = [{op: 'replace', path: this._serializePath(path), value: clone(grandparent[grandparent.length-1])}];
+                inverse = [{op: 'replace', path: this.serializePath(path), value: clone(grandparent[grandparent.length-1])}];
               }
               grandparent[grandparent.length-1] = value;
             } else {
@@ -247,7 +247,7 @@ Document.prototype = {
                 this._pathNotFound(path);
               } else {
                 if (invert) {
-                  inverse = [{op: 'replace', path: this._serializePath(path), value: clone(grandparent.splice(parentIndex, 1, value)[0])}];
+                  inverse = [{op: 'replace', path: this.serializePath(path), value: clone(grandparent.splice(parentIndex, 1, value)[0])}];
                 } else {
                   grandparent.splice(parentIndex, 1, value);
                 }
@@ -262,7 +262,7 @@ Document.prototype = {
 
         } else {
           if (invert) {
-            inverse = [{op: 'replace', path: this._serializePath(path), value: clone(grandparent[parentKey])}];
+            inverse = [{op: 'replace', path: this.serializePath(path), value: clone(grandparent[parentKey])}];
           }
           grandparent[parentKey] = value;
         }
@@ -271,13 +271,13 @@ Document.prototype = {
 
       } else {
         if (invert) {
-          inverse = [{op: 'replace', path: this._serializePath(path), value: clone(this._data[parentKey])}];
+          inverse = [{op: 'replace', path: this.serializePath(path), value: clone(this._data[parentKey])}];
         }
         this._data[parentKey] = value;
       }
     } else {
       if (invert) {
-        inverse = [{op: 'replace', path: this._serializePath(), value: clone(this._data)}];
+        inverse = [{op: 'replace', path: this.serializePath(), value: clone(this._data)}];
       }
       this._data = value;
     }
