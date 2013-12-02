@@ -32,7 +32,8 @@ MemoryStore.prototype = {
         dataForType,
         id,
         dataForItem,
-        i;
+        i,
+        _this = this;
 
     for (type in data) {
       if (data.hasOwnProperty(type)) {
@@ -49,22 +50,21 @@ MemoryStore.prototype = {
       }
     }
 
-    var cache = this._cache;
     return this.transform(ops).then(function() {
       var records = [];
       for (i = 0; i < ops.length; i++) {
-        records.push(cache.retrieve(ops[i].path));
+        records.push(_this.retrieve(ops[i].path));
       }
       return records;
     });
   },
 
-  all: function(type) {
-    return this._cache.retrieve([type]);
+  retrieve: function(path) {
+    return this._cache.retrieve(path);
   },
 
   length: function(type) {
-    return Object.keys(this.all(type)).length;
+    return Object.keys(this.retrieve([type])).length;
   },
 
   /////////////////////////////////////////////////////////////////////////////
@@ -107,7 +107,7 @@ MemoryStore.prototype = {
       if (id === undefined || typeof id === 'object') {
         resolve(_this._filter.call(_this, type, id));
       } else {
-        var record = _this._cache.retrieve([type, id]);
+        var record = _this.retrieve([type, id]);
         if (record && !record.deleted) {
           resolve(record);
         } else {
@@ -126,7 +126,7 @@ MemoryStore.prototype = {
     Orbit.incrementVersion(data);
 
     return this.transform({op: 'add', path: path, value: data}).then(function() {
-      return _this._cache.retrieve(path);
+      return _this.retrieve(path);
     });
   },
 
@@ -138,7 +138,7 @@ MemoryStore.prototype = {
     Orbit.incrementVersion(data);
 
     return this.transform({op: 'replace', path: path, value: data}).then(function() {
-      return _this._cache.retrieve(path);
+      return _this.retrieve(path);
     });
   },
 
@@ -155,7 +155,7 @@ MemoryStore.prototype = {
     }
 
     return this.transform(ops).then(function() {
-      return _this._cache.retrieve(path);
+      return _this.retrieve(path);
     }, function(e) {
       debugger;
     });
@@ -180,7 +180,7 @@ MemoryStore.prototype = {
         match,
         record;
 
-    dataForType = this._cache.retrieve([type]);
+    dataForType = this.retrieve([type]);
 
     for (i in dataForType) {
       if (dataForType.hasOwnProperty(i)) {
