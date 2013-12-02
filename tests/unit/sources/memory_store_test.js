@@ -12,7 +12,8 @@ module("Unit - MemoryStore", {
 
     var schema = {
       models: ['planet']
-    }
+    };
+
     store = new MemoryStore(schema);
   },
 

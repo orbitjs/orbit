@@ -10,14 +10,14 @@ var LocalStore = function(options) {
   this._autosave = options['autosave'] !== undefined ? options['autosave'] : true;
   var autoload = options['autoload'] !== undefined ? options['autoload'] : true;
 
-  this._store = new MemoryStore();
+  this._store = new MemoryStore(options['schema']);
   this._isDirty = false;
 
   var _this = this;
   ['on', 'off', 'emit', 'poll', 'listeners', 'resolve', 'settle',               // Evented interface
    'transform',                                                                 // Transformable interface
-   'findRecord', 'createRecord', 'updateRecord', 'patchRecord', 'deleteRecord', // Requestable interface
-   'retrieve', 'length'].forEach(function(method) {                             // Directly defined
+   'find', 'add', 'update', 'patch', 'remove',                                 // Requestable interface
+   'push', 'all', 'length'].forEach(function(method) {                             // Directly defined
 
     _this[method] = function() {
       return _this._store[method].apply(_this._store, arguments);
@@ -69,7 +69,7 @@ LocalStore.prototype = {
       this._isDirty = true;
       return;
     }
-    window.localStorage.setItem(this.namespace, JSON.stringify(this._store._data));
+    window.localStorage.setItem(this.namespace, JSON.stringify(this._store._doc._data));
     this._isDirty = false;
   }
 };
