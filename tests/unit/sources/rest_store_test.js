@@ -16,7 +16,11 @@ module("Unit - RestStore", {
     server = window.sinon.fakeServer.create();
     server.autoRespond = true;
 
-    store = new RestStore();
+    var schema = {
+      models: ['planet']
+    };
+
+    store = new RestStore({schema: schema});
   },
 
   teardown: function() {
@@ -30,7 +34,7 @@ test("it exists", function() {
   ok(store);
 });
 
-test("#transform - can insert records", function() {
+test("#add - can insert records", function() {
   expect(5);
 
   server.respondWith('POST', '/planets', function(xhr) {
@@ -41,7 +45,7 @@ test("#transform - can insert records", function() {
   });
 
   stop();
-  store.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
     ok(planet.__id, 'orbit id should be defined');
     equal(planet.id, 12345, 'server id should be defined');
@@ -50,7 +54,7 @@ test("#transform - can insert records", function() {
   });
 });
 
-test("#transform - can update records", function() {
+test("#update - can update records", function() {
   expect(5);
 
   server.respondWith('PUT', '/planets/12345', function(xhr) {
@@ -61,7 +65,7 @@ test("#transform - can update records", function() {
   });
 
   stop();
-  store.transform('replace', 'planet', {id: 12345, name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  store.update('planet', {id: 12345, name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
     ok(planet.__id, 'orbit id should be defined');
     equal(planet.id, 12345, 'server id should be defined');
@@ -70,27 +74,29 @@ test("#transform - can update records", function() {
   });
 });
 
-test("#transform - can patch records", function() {
-  expect(5);
+//TODO
+//
+//test("#patch - can patch records", function() {
+//  expect(5);
+//
+//  server.respondWith('PATCH', '/planets/12345', function(xhr) {
+//    deepEqual(JSON.parse(xhr.requestBody), {classification: 'gas giant'}, 'PATCH request');
+//    xhr.respond(200,
+//                {'Content-Type': 'application/json'},
+//                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
+//  });
+//
+//  stop();
+//  store.patch('planet', {id: 12345, classification: 'gas giant'}).then(function(planet) {
+//    start();
+//    ok(planet.__id, 'orbit id should be defined');
+//    equal(planet.id, 12345, 'server id should be defined');
+//    equal(planet.name, 'Jupiter', 'name should match');
+//    equal(planet.classification, 'gas giant', 'classification should match');
+//  });
+//});
 
-  server.respondWith('PATCH', '/planets/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {classification: 'gas giant'}, 'PATCH request');
-    xhr.respond(200,
-                {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
-  });
-
-  stop();
-  store.transform('patch', 'planet', {id: 12345, classification: 'gas giant'}).then(function(planet) {
-    start();
-    ok(planet.__id, 'orbit id should be defined');
-    equal(planet.id, 12345, 'server id should be defined');
-    equal(planet.name, 'Jupiter', 'name should match');
-    equal(planet.classification, 'gas giant', 'classification should match');
-  });
-});
-
-test("#transform - can delete records", function() {
+test("#remove - can delete records", function() {
   expect(2);
 
   server.respondWith('DELETE', '/planets/12345', function(xhr) {
@@ -101,13 +107,13 @@ test("#transform - can delete records", function() {
   });
 
   stop();
-  store.transform('remove', 'planet', {id: 12345}).then(function() {
+  store.remove('planet', {id: 12345}).then(function() {
     start();
     ok(true, 'record deleted');
   });
 });
 
-test("#findRecord - can find individual records by passing in a single id", function() {
+test("#find - can find individual records by passing in a single id", function() {
   expect(6);
 
   server.respondWith('POST', '/planets', function(xhr) {
@@ -125,8 +131,8 @@ test("#findRecord - can find individual records by passing in a single id", func
   });
 
   stop();
-  store.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    store.findRecord('planet', planet.__id).then(function(planet) {
+  store.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    store.find('planet', planet.__id).then(function(planet) {
       start();
       ok(planet.__id, 'orbit id should be defined');
       equal(planet.id, 12345, 'server id should be defined');
@@ -136,7 +142,7 @@ test("#findRecord - can find individual records by passing in a single id", func
   });
 });
 
-test("#findRecord - can find individual records by passing in a single remote id", function() {
+test("#find - can find individual records by passing in a single remote id", function() {
   expect(6);
 
   server.respondWith('POST', '/planets', function(xhr) {
@@ -154,8 +160,8 @@ test("#findRecord - can find individual records by passing in a single remote id
   });
 
   stop();
-  store.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    store.findRecord('planet', {id: planet.id}).then(function(planet) {
+  store.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    store.find('planet', {id: planet.id}).then(function(planet) {
       start();
       ok(planet.__id, 'orbit id should be defined');
       equal(planet.id, 12345, 'server id should be defined');
@@ -165,7 +171,7 @@ test("#findRecord - can find individual records by passing in a single remote id
   });
 });
 
-test("#findRecord - can find all records", function() {
+test("#find - can find all records", function() {
   expect(13);
 
   var records = [
@@ -182,7 +188,7 @@ test("#findRecord - can find all records", function() {
   });
 
   stop();
-  store.findRecord('planet').then(function(planets) {
+  store.find('planet').then(function(planets) {
     start();
 
     var planet, record;
@@ -197,7 +203,7 @@ test("#findRecord - can find all records", function() {
   });
 });
 
-test("#findRecord - can find all records", function() {
+test("#find - can filter records", function() {
   expect(18);
 
   var records = [
@@ -216,7 +222,7 @@ test("#findRecord - can find all records", function() {
   });
 
   stop();
-  store.findRecord('planet', {classification: 'terrestrial'}).then(function(planets) {
+  store.find('planet', {classification: 'terrestrial'}).then(function(planets) {
     start();
 
     var planet, record;
