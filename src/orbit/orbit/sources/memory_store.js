@@ -3,14 +3,14 @@ import Document from 'orbit/document';
 import Transformable from 'orbit/transformable';
 import Requestable from 'orbit/requestable';
 
-var MemoryStore = function(schema) {
+var MemoryStore = function(options) {
   Orbit.assert('MemoryStore requires Orbit.Promise to be defined', Orbit.Promise);
 
+  options = options || {};
+
   this.idField = Orbit.idField;
-
-  this._doc = new Document();
-
-  this.configure(schema);
+  this._cache = new Document();
+  this.configure(options.schema);
 
   Transformable.extend(this);
   Requestable.extend(this, ['find', 'add', 'update', 'patch', 'remove']);
@@ -22,7 +22,7 @@ MemoryStore.prototype = {
   configure: function(schema) {
     this.schema = schema;
     schema.models.forEach(function(model) {
-      this._doc.add([model], {});
+      this._cache.add([model], {});
     }, this);
   },
 
@@ -49,18 +49,18 @@ MemoryStore.prototype = {
       }
     }
 
-    var doc = this._doc;
+    var cache = this._cache;
     return this.transform(ops).then(function() {
       var records = [];
       for (i = 0; i < ops.length; i++) {
-        records.push(doc.retrieve(ops[i].path));
+        records.push(cache.retrieve(ops[i].path));
       }
       return records;
     });
   },
 
   all: function(type) {
-    return this._doc.retrieve([type]);
+    return this._cache.retrieve([type]);
   },
 
   length: function(type) {
@@ -79,18 +79,18 @@ MemoryStore.prototype = {
         var inverse = [];
         for (var i = 0; i < operation.length; i++) {
           try {
-            inverse.push(_this._doc.transform(operation[i], true));
+            inverse.push(_this._cache.transform(operation[i], true));
           } catch(e) {
             inverse.reverse();
             for (var j = 0; j < inverse.length; j++) {
-              _this._doc.transform(inverse[j]);
+              _this._cache.transform(inverse[j]);
             }
             reject(e);
             return;
           }
         }
       } else {
-        _this._doc.transform(operation);
+        _this._cache.transform(operation);
       }
       resolve();
     });
@@ -107,7 +107,7 @@ MemoryStore.prototype = {
       if (id === undefined || typeof id === 'object') {
         resolve(_this._filter.call(_this, type, id));
       } else {
-        var record = _this._doc.retrieve([type, id]);
+        var record = _this._cache.retrieve([type, id]);
         if (record && !record.deleted) {
           resolve(record);
         } else {
@@ -126,7 +126,7 @@ MemoryStore.prototype = {
     Orbit.incrementVersion(data);
 
     return this.transform({op: 'add', path: path, value: data}).then(function() {
-      return _this._doc.retrieve(path);
+      return _this._cache.retrieve(path);
     });
   },
 
@@ -138,7 +138,7 @@ MemoryStore.prototype = {
     Orbit.incrementVersion(data);
 
     return this.transform({op: 'replace', path: path, value: data}).then(function() {
-      return _this._doc.retrieve(path);
+      return _this._cache.retrieve(path);
     });
   },
 
@@ -155,7 +155,7 @@ MemoryStore.prototype = {
     }
 
     return this.transform(ops).then(function() {
-      return _this._doc.retrieve(path);
+      return _this._cache.retrieve(path);
     }, function(e) {
       debugger;
     });
@@ -180,7 +180,7 @@ MemoryStore.prototype = {
         match,
         record;
 
-    dataForType = this._doc.retrieve([type]);
+    dataForType = this._cache.retrieve([type]);
 
     for (i in dataForType) {
       if (dataForType.hasOwnProperty(i)) {

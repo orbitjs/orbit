@@ -14,7 +14,7 @@ module("Unit - MemoryStore", {
       models: ['planet']
     };
 
-    store = new MemoryStore(schema);
+    store = new MemoryStore({schema: schema});
   },
 
   teardown: function() {

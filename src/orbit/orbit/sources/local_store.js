@@ -10,7 +10,7 @@ var LocalStore = function(options) {
   this._autosave = options['autosave'] !== undefined ? options['autosave'] : true;
   var autoload = options['autoload'] !== undefined ? options['autoload'] : true;
 
-  this._store = new MemoryStore(options['schema']);
+  this._store = new MemoryStore({schema: options.schema});
   this._isDirty = false;
 
   var _this = this;
@@ -69,7 +69,7 @@ LocalStore.prototype = {
       this._isDirty = true;
       return;
     }
-    window.localStorage.setItem(this.namespace, JSON.stringify(this._store._doc._data));
+    window.localStorage.setItem(this.namespace, JSON.stringify(this._store._cache._data));
     this._isDirty = false;
   }
 };

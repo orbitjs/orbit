@@ -15,8 +15,8 @@ module("Integration - MemoryStore Sync without Connector", {
       models: ['planet']
     }
 
-    primaryStore = new MemoryStore(schema);
-    backupStore = new MemoryStore(schema);
+    primaryStore = new MemoryStore({schema: schema});
+    backupStore = new MemoryStore({schema: schema});
 
     primaryStore.on('didTransform',  backupStore.transform);
   },
