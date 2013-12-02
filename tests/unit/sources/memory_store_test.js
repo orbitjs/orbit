@@ -151,11 +151,11 @@ test("#find - can find all records", function() {
   equal(store.length('planet'), 0, 'store should be empty');
 
   stop();
-  store.push({planet: [
-    {name: 'Jupiter', classification: 'gas giant', atmosphere: true},
-    {name: 'Earth', classification: 'terrestrial', atmosphere: true},
-    {name: 'Mercury', classification: 'terrestrial', atmosphere: false}
-  ]}).then(function() {
+  RSVP.all([
+    store.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
+    store.add('planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}),
+    store.add('planet', {name: 'Mercury', classification: 'terrestrial', atmosphere: false})
+  ]).then(function() {
     equal(store.length('planet'), 3, 'store should contain 3 records');
     store.find('planet').then(function(allPlanets) {
       start();
@@ -171,12 +171,12 @@ test("#find - can find records by one or more filters", function() {
   equal(store.length('planet'), 0, 'store should be empty');
 
   stop();
-  store.push({planet: [
-    {name: 'Jupiter', classification: 'gas giant', atmosphere: true},
-    {name: 'Earth', classification: 'terrestrial', atmosphere: true},
-    {name: 'Venus', classification: 'terrestrial', atmosphere: true},
-    {name: 'Mercury', classification: 'terrestrial', atmosphere: false}
-  ]}).then(function() {
+  RSVP.all([
+    store.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
+    store.add('planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}),
+    store.add('planet', {name: 'Venus', classification: 'terrestrial', atmosphere: true}),
+    store.add('planet', {name: 'Mercury', classification: 'terrestrial', atmosphere: false})
+  ]).then(function() {
     equal(store.length('planet'), 4, 'store should contain 4 records');
 
     store.find('planet', {classification: 'terrestrial', atmosphere: true}).then(function(allPlanets) {
@@ -255,7 +255,7 @@ test("#patch - can patch records", function() {
     return planet;
 
   }).then(function(planet) {
-    return store.patch('planet', {__id: planet.__id, name: 'Earth'}).then(function(updatedPlanet) {
+    return store.patch('planet', planet.__id, 'name', 'Earth').then(function(updatedPlanet) {
       equal(updatedPlanet.__id, planet.__id, '__id remains the same');
       equal(updatedPlanet.name, 'Earth', 'name has been updated');
       equal(updatedPlanet.classification, 'gas giant', 'classification has not been updated');

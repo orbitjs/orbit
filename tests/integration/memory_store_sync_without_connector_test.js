@@ -95,7 +95,7 @@ test("patches to records in the primary store should be automatically copied to 
   primaryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     originalPlanet = planet;
 
-    primaryStore.patch('planet', {__id: planet.__id, name: 'Earth'}).then(function(updatedPlanet) {
+    primaryStore.patch('planet', planet.__id, 'name', 'Earth').then(function(updatedPlanet) {
       equal(updatedPlanet.__id, planet.__id, 'primary id remains the same');
       equal(updatedPlanet.name, 'Earth', 'name has been updated');
       equal(updatedPlanet.classification, 'gas giant', 'classification has not been updated');

@@ -26,39 +26,6 @@ MemoryStore.prototype = {
     }, this);
   },
 
-  push: function(data) {
-    var ops = [],
-        type,
-        dataForType,
-        id,
-        dataForItem,
-        i,
-        _this = this;
-
-    for (type in data) {
-      if (data.hasOwnProperty(type)) {
-        dataForType = data[type];
-        for (i = 0; i < dataForType.length; i++) {
-          dataForItem = dataForType[i];
-          if (dataForItem[this.idField] === undefined) {
-            id = this._generateId();
-            dataForItem[this.idField] = id;
-          }
-          Orbit.incrementVersion(dataForItem);
-          ops.push({op: 'add', path: [type, id], value: dataForItem});
-        }
-      }
-    }
-
-    return this.transform(ops).then(function() {
-      var records = [];
-      for (i = 0; i < ops.length; i++) {
-        records.push(_this._cache.retrieve(ops[i].path));
-      }
-      return records;
-    });
-  },
-
   retrieve: function(type, id) {
     var path;
     if (id !== undefined) {
@@ -79,27 +46,9 @@ MemoryStore.prototype = {
   /////////////////////////////////////////////////////////////////////////////
 
   _transform: function(operation) {
-    var _this = this;
-
+    var cache = this._cache;
     return new Orbit.Promise(function(resolve, reject) {
-      if (Object.prototype.toString.call(operation) === '[object Array]') {
-        var inverse = [];
-        for (var i = 0; i < operation.length; i++) {
-          try {
-            inverse.push(_this._cache.transform(operation[i], true));
-          } catch(e) {
-            inverse.reverse();
-            for (var j = 0; j < inverse.length; j++) {
-              _this._cache.transform(inverse[j]);
-            }
-            reject(e);
-            return;
-          }
-        }
-      } else {
-        _this._cache.transform(operation);
-      }
-      resolve();
+      resolve(cache.transform(operation, true));
     });
   },
 
@@ -149,19 +98,14 @@ MemoryStore.prototype = {
     });
   },
 
-  _patch: function(type, data) {
-    var id = data[this.idField],
-        path = [type, id],
-        ops = [],
-        _this = this;
+  _patch: function(type, id, property, value) {
+    var _this = this,
+        path;
 
-    for (var i in data) {
-      if (data.hasOwnProperty(i) && i !== this.idField) {
-        ops.push({op: 'replace', path: path.concat([i]), value: data[i]});
-      }
-    }
+    if (typeof id === 'object') id = id[this.idField];
+    path = [type, id].concat(this._cache.deserializePath(property));
 
-    return this.transform(ops).then(function() {
+    return this.transform({op: 'replace', path: path, value: value}).then(function() {
       return _this.retrieve(type, id);
     });
   },
