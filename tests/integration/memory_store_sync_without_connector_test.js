@@ -13,7 +13,7 @@ module("Integration - MemoryStore Sync without Connector", {
 
     var schema = {
       models: ['planet']
-    }
+    };
 
     primaryStore = new MemoryStore({schema: schema});
     backupStore = new MemoryStore({schema: schema});
