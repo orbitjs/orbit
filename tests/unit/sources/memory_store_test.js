@@ -243,7 +243,7 @@ test("#update - can update records", function() {
 });
 
 test("#patch - can patch records", function() {
-  expect(8);
+  expect(5);
 
   equal(store.length('planet'), 0, 'store should be empty');
 
@@ -252,24 +252,15 @@ test("#patch - can patch records", function() {
   stop();
   store.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     original = planet;
-    return planet;
 
-  }).then(function(planet) {
-    return store.patch('planet', planet.__id, 'name', 'Earth').then(function(updatedPlanet) {
-      equal(updatedPlanet.__id, planet.__id, '__id remains the same');
-      equal(updatedPlanet.name, 'Earth', 'name has been updated');
-      equal(updatedPlanet.classification, 'gas giant', 'classification has not been updated');
-      return planet;
-    });
-
-  }).then(function(planet) {
-    store.find('planet', planet.__id).then(function(foundPlanet) {
-      start();
-      strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
-      equal(foundPlanet.__id, planet.__id, 'record can be looked up by __id');
-      equal(foundPlanet.name, 'Earth', 'name has been updated');
-      equal(foundPlanet.classification, 'gas giant', 'classification has not been updated');
-      return planet;
+    store.patch('planet', planet.__id, 'name', 'Earth').then(function() {
+      store.find('planet', planet.__id).then(function(foundPlanet) {
+        start();
+        strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
+        equal(foundPlanet.__id, planet.__id, 'record can be looked up by __id');
+        equal(foundPlanet.name, 'Earth', 'name has been updated');
+        equal(foundPlanet.classification, 'gas giant', 'classification has not been updated');
+      });
     });
   });
 });

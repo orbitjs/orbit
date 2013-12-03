@@ -87,7 +87,7 @@ test("updates to records in the primary store should be automatically copied to 
 });
 
 test("patches to records in the primary store should be automatically copied to the backup store", function() {
-  expect(7);
+  expect(4);
 
   var originalPlanet;
 
@@ -95,12 +95,7 @@ test("patches to records in the primary store should be automatically copied to 
   primaryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     originalPlanet = planet;
 
-    primaryStore.patch('planet', planet.__id, 'name', 'Earth').then(function(updatedPlanet) {
-      equal(updatedPlanet.__id, planet.__id, 'primary id remains the same');
-      equal(updatedPlanet.name, 'Earth', 'name has been updated');
-      equal(updatedPlanet.classification, 'gas giant', 'classification has not been updated');
-
-    }).then(function() {
+    primaryStore.patch('planet', planet.__id, 'name', 'Earth').then(function() {
       backupStore.find('planet', planet.__id).then(function(backupPlanet) {
         start();
         notStrictEqual(backupPlanet, originalPlanet, 'not the same object as the one originally inserted');

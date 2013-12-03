@@ -26,29 +26,31 @@ MemoryStore.prototype = {
     }, this);
   },
 
-  retrieve: function(type, id) {
-    var path;
-    if (id !== undefined) {
-      if (typeof id === 'object') id = id[this.idField];
-      path = [type, id];
-    } else {
-      path = [type];
+  retrieve: function(path) {
+    try {
+      return this._cache.retrieve(path);
+    } catch(e) {
+      return null;
     }
-    return this._cache.retrieve(path);
   },
 
-  length: function(type) {
-    return Object.keys(this.retrieve(type)).length;
+  length: function(path) {
+    return Object.keys(this.retrieve(path)).length;
   },
 
   /////////////////////////////////////////////////////////////////////////////
   // Transformable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _transform: function(operation) {
-    var cache = this._cache;
+  _transform: function(operation, transaction) {
+    var _this = this;
     return new Orbit.Promise(function(resolve, reject) {
-      resolve(cache.transform(operation, true));
+      if (transaction) {
+        transaction.inverse.push(_this._cache.transform(operation, true));
+      } else {
+        _this._cache.transform(operation);
+      }
+      resolve(_this.retrieve(operation.path));
     });
   },
 
@@ -63,7 +65,7 @@ MemoryStore.prototype = {
       if (id === undefined || typeof id === 'object') {
         resolve(_this._filter.call(_this, type, id));
       } else {
-        var record = _this.retrieve(type, id);
+        var record = _this.retrieve([type, id]);
         if (record && !record.deleted) {
           resolve(record);
         } else {
@@ -81,9 +83,7 @@ MemoryStore.prototype = {
     data[this.idField] = id;
     Orbit.incrementVersion(data);
 
-    return this.transform({op: 'add', path: path, value: data}).then(function() {
-      return _this.retrieve(type, id);
-    });
+    return this.transform({op: 'add', path: path, value: data});
   },
 
   _update: function(type, data) {
@@ -93,9 +93,7 @@ MemoryStore.prototype = {
 
     Orbit.incrementVersion(data);
 
-    return this.transform({op: 'replace', path: path, value: data}).then(function() {
-      return _this.retrieve(type, id);
-    });
+    return this.transform({op: 'replace', path: path, value: data});
   },
 
   _patch: function(type, id, property, value) {
@@ -105,9 +103,7 @@ MemoryStore.prototype = {
     if (typeof id === 'object') id = id[this.idField];
     path = [type, id].concat(this._cache.deserializePath(property));
 
-    return this.transform({op: 'replace', path: path, value: value}).then(function() {
-      return _this.retrieve(type, id);
-    });
+    return this.transform({op: 'replace', path: path, value: value});
   },
 
   _remove: function(type, data) {
@@ -129,7 +125,7 @@ MemoryStore.prototype = {
         match,
         record;
 
-    dataForType = this.retrieve(type);
+    dataForType = this.retrieve([type]);
 
     for (i in dataForType) {
       if (dataForType.hasOwnProperty(i)) {
