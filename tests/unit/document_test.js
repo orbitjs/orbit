@@ -7,7 +7,7 @@ var applyTransforms = function(doc, operations) {
   for (var i = 0; i < operations.length; i++) {
     doc.transform(operations[i]);
   }
-}
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 
