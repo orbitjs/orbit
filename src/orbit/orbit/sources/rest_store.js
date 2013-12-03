@@ -60,63 +60,63 @@ RestStore.prototype = {
     var _this = this,
         path = operation.path,
         data = operation.value,
-        id,
-        type = path[0];
+        type = path[0],
+        id = path[1],
+        remoteId;
 
-    if (data) {
-      id = data[this.idField];
-    } else {
-      id = path[1];
-    }
+    if (path.length > 2) {
+      remoteId = this._lookupRemoteId(type, id);
+      if (!remoteId) throw new Orbit.NotFoundException(type, data);
 
-    if (operation.op === 'add') {
-      if (id) {
-        var recordInCache = _this.retrieve(type, id);
-        if (recordInCache) {
-          throw new Orbit.AlreadyExistsException(type, data);
-        }
-      }
+      var baseURL = this._buildURL(type, remoteId),
+          pathURL = baseURL + '/' + path.slice(2).join('/');
 
-      return this._ajax(this._buildURL(type), 'POST', {data: this._serialize(type, data)}).then(
-        function(raw) {
-          _this._addToCache(type, _this._deserialize(type, raw), id);
+      return this._ajax(baseURL, 'PATCH', {data: {op: operation.op, path: pathURL, value: data}}).then(
+        function() {
+          if (operation.op === 'replace') operation.op = 'add';
+          _this._cache.transform(operation);
         }
       );
 
     } else {
-      var remoteId = this._lookupRemoteId(type, data || id);
-      if (!remoteId) throw new Orbit.NotFoundException(type, data);
+      if (operation.op === 'add') {
+        if (id) {
+          var recordInCache = _this.retrieve(type, id);
+          if (recordInCache) {
+            throw new Orbit.AlreadyExistsException(type, data);
+          }
+        }
 
-      if (operation.op === 'replace') {
-        return this._ajax(this._buildURL(type, remoteId), 'PUT', {data: this._serialize(type, data)}).then(
+        return this._ajax(this._buildURL(type), 'POST', {data: this._serialize(type, data)}).then(
           function(raw) {
             _this._addToCache(type, _this._deserialize(type, raw), id);
           }
         );
 
-      } else if (operation.op === 'patch') {
-        // no need to transmit remote id along with a patched record
-        delete data[this.remoteIdField];
+      } else {
+        remoteId = this._lookupRemoteId(type, data || id);
+        if (!remoteId) throw new Orbit.NotFoundException(type, data);
 
-        return this._ajax(this._buildURL(type, remoteId), 'PATCH', {data: this._serialize(type, data)}).then(
-          function(raw) {
-            _this._addToCache(type, _this._deserialize(type, raw), id);
-          }
-        );
-
-      } else if (operation.op === 'remove') {
-        return this._ajax(this._buildURL(type, remoteId), 'DELETE').then(
-          function() {
-            var record = _this.retrieve(type, id);
-            if (!record) {
-              record = {};
-              _this._addToCache(type, record, id);
+        if (operation.op === 'replace') {
+          return this._ajax(this._buildURL(type, remoteId), 'PUT', {data: this._serialize(type, data)}).then(
+            function(raw) {
+              _this._addToCache(type, _this._deserialize(type, raw), id);
             }
-            record.deleted = true;
-            Orbit.incrementVersion(record);
-          }
-        );
+          );
 
+        } else if (operation.op === 'remove') {
+          return this._ajax(this._buildURL(type, remoteId), 'DELETE').then(
+            function() {
+              var record = _this.retrieve(type, id);
+              if (!record) {
+                record = {};
+                _this._addToCache(type, record, id);
+              }
+              record.deleted = true;
+              Orbit.incrementVersion(record);
+            }
+          );
+        }
       }
     }
   },
@@ -154,13 +154,15 @@ RestStore.prototype = {
 
   _update: function(type, data) {
     var id = data[this.idField],
-        path = [type, id],
+        path,
         _this = this;
 
     if (id === undefined) {
       id = this._generateId();
       data[this.idField] = id;
     }
+
+    path = [type, id];
 
     Orbit.incrementVersion(data);
 
@@ -169,19 +171,24 @@ RestStore.prototype = {
     });
   },
 
-  _patch: function(type, data) {
-    var id = data[this.idField],
-        path = [type, id],
-        ops = [],
+  _patch: function(type, data, property, value) {
+    var id,
+        path,
         _this = this;
 
-    for (var i in data) {
-      if (data.hasOwnProperty(i) && i !== this.idField) {
-        ops.push({op: 'replace', path: path.concat([i]), value: data[i]});
+    if (typeof data === 'object') {
+      id = data[this.idField];
+      if (id === undefined) {
+        this._addToCache(type, data);
+        id = data[this.idField];
       }
+    } else {
+      id = data;
     }
 
-    return this.transform(ops).then(function() {
+    path = [type, id].concat(this._cache.deserializePath(property));
+
+    return this.transform({op: 'replace', path: path, value: value}).then(function() {
       return _this.retrieve(type, id);
     });
   },

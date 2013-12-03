@@ -74,27 +74,24 @@ test("#update - can update records", function() {
   });
 });
 
-//TODO
-//
-//test("#patch - can patch records", function() {
-//  expect(5);
-//
-//  server.respondWith('PATCH', '/planets/12345', function(xhr) {
-//    deepEqual(JSON.parse(xhr.requestBody), {classification: 'gas giant'}, 'PATCH request');
-//    xhr.respond(200,
-//                {'Content-Type': 'application/json'},
-//                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
-//  });
-//
-//  stop();
-//  store.patch('planet', {id: 12345, classification: 'gas giant'}).then(function(planet) {
-//    start();
-//    ok(planet.__id, 'orbit id should be defined');
-//    equal(planet.id, 12345, 'server id should be defined');
-//    equal(planet.name, 'Jupiter', 'name should match');
-//    equal(planet.classification, 'gas giant', 'classification should match');
-//  });
-//});
+test("#patch - can patch records", function() {
+  expect(4);
+
+  server.respondWith('PATCH', '/planets/12345', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/classification', value: 'gas giant'}, 'PATCH request');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({}));
+  });
+
+  stop();
+  store.patch('planet', {id: 12345}, 'classification', 'gas giant').then(function(planet) {
+    start();
+    ok(planet.__id, 'orbit id should be defined');
+    equal(planet.id, 12345, 'server id should be defined');
+    equal(planet.classification, 'gas giant', 'classification should match');
+  });
+});
 
 test("#remove - can delete records", function() {
   expect(2);
