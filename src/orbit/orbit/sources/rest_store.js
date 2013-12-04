@@ -33,14 +33,7 @@ RestStore.prototype = {
     }, this);
   },
 
-  retrieve: function(type, id) {
-    var path;
-    if (id !== undefined) {
-      if (typeof id === 'object') id = id[this.idField];
-      path = [type, id];
-    } else {
-      path = [type];
-    }
+  retrieve: function(path) {
     try {
       return this._cache.retrieve(path);
     } catch(e) {
@@ -48,21 +41,25 @@ RestStore.prototype = {
     }
   },
 
-  length: function(type) {
-    return Object.keys(this.retrieve(type)).length;
+  length: function(path) {
+    return Object.keys(this.retrieve(path)).length;
   },
 
   /////////////////////////////////////////////////////////////////////////////
   // Transformable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _transform: function(operation) {
+  _transform: function(operation, transaction) {
     var _this = this,
         path = operation.path,
         data = operation.value,
-        type = path[0],
-        id = path[1],
+        type,
+        id,
         remoteId;
+
+    if (typeof path === 'string') path = path.split('/');
+    type = path[0];
+    id = path[1];
 
     if (path.length > 2) {
       remoteId = this._lookupRemoteId(type, id);
@@ -75,13 +72,14 @@ RestStore.prototype = {
         function() {
           if (operation.op === 'replace') operation.op = 'add';
           _this._cache.transform(operation);
+          return _this.retrieve(path);
         }
       );
 
     } else {
       if (operation.op === 'add') {
         if (id) {
-          var recordInCache = _this.retrieve(type, id);
+          var recordInCache = _this.retrieve([type, id]);
           if (recordInCache) {
             throw new Orbit.AlreadyExistsException(type, data);
           }
@@ -89,7 +87,7 @@ RestStore.prototype = {
 
         return this._ajax(this._buildURL(type), 'POST', {data: this._serialize(type, data)}).then(
           function(raw) {
-            _this._addToCache(type, _this._deserialize(type, raw), id);
+            return _this._addToCache(type, _this._deserialize(type, raw), id);
           }
         );
 
@@ -100,20 +98,21 @@ RestStore.prototype = {
         if (operation.op === 'replace') {
           return this._ajax(this._buildURL(type, remoteId), 'PUT', {data: this._serialize(type, data)}).then(
             function(raw) {
-              _this._addToCache(type, _this._deserialize(type, raw), id);
+              return _this._addToCache(type, _this._deserialize(type, raw), id);
             }
           );
 
         } else if (operation.op === 'remove') {
           return this._ajax(this._buildURL(type, remoteId), 'DELETE').then(
             function() {
-              var record = _this.retrieve(type, id);
+              var record = _this.retrieve([type, id]);
               if (!record) {
                 record = {};
                 _this._addToCache(type, record, id);
               }
               record.deleted = true;
               Orbit.incrementVersion(record);
+              return record;
             }
           );
         }
@@ -147,9 +146,7 @@ RestStore.prototype = {
     data[this.idField] = id;
     Orbit.incrementVersion(data);
 
-    return this.transform({op: 'add', path: path, value: data}).then(function() {
-      return _this.retrieve(type, id);
-    });
+    return this.transform({op: 'add', path: path, value: data});
   },
 
   _update: function(type, data) {
@@ -166,9 +163,7 @@ RestStore.prototype = {
 
     Orbit.incrementVersion(data);
 
-    return this.transform({op: 'replace', path: path, value: data}).then(function() {
-      return _this.retrieve(type, id);
-    });
+    return this.transform({op: 'replace', path: path, value: data});
   },
 
   _patch: function(type, data, property, value) {
@@ -188,9 +183,7 @@ RestStore.prototype = {
 
     path = [type, id].concat(this._cache.deserializePath(property));
 
-    return this.transform({op: 'replace', path: path, value: value}).then(function() {
-      return _this.retrieve(type, id);
-    });
+    return this.transform({op: 'replace', path: path, value: value});
   },
 
   _remove: function(type, data) {
@@ -268,7 +261,7 @@ RestStore.prototype = {
       remoteId = data[this.remoteIdField];
     }
     if (!remoteId) {
-      var record = this.retrieve(type, data);
+      var record = this.retrieve([type, data]);
       if (record) {
         remoteId = record[this.remoteIdField];
       }

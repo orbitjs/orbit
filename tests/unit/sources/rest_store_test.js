@@ -75,7 +75,7 @@ test("#update - can update records", function() {
 });
 
 test("#patch - can patch records", function() {
-  expect(4);
+  expect(2);
 
   server.respondWith('PATCH', '/planets/12345', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/classification', value: 'gas giant'}, 'PATCH request');
@@ -85,11 +85,9 @@ test("#patch - can patch records", function() {
   });
 
   stop();
-  store.patch('planet', {id: 12345}, 'classification', 'gas giant').then(function(planet) {
+  store.patch('planet', {id: 12345}, 'classification', 'gas giant').then(function(result) {
     start();
-    ok(planet.__id, 'orbit id should be defined');
-    equal(planet.id, 12345, 'server id should be defined');
-    equal(planet.classification, 'gas giant', 'classification should match');
+    equal(result, 'gas giant', 'patched value should be returned');
   });
 });
 
