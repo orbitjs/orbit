@@ -33,11 +33,7 @@ var Orbit = {
   versionField: '__ver',
 
   incrementVersion: function(record) {
-    if (record[this.versionField] || record[this.idField] === undefined) {
-      record[this.versionField] = this.generateId();
-    } else {
-      record[this.versionField] = record[this.idField];
-    }
+    record[this.versionField] = this.generateId();
   },
 
   assert: function(desc, test) {
