@@ -46,16 +46,17 @@ TransformConnector.prototype = {
   // Internals
   /////////////////////////////////////////////////////////////////////////////
 
-  _processTransform: function(action, type, record) {
-    if (this.actions && !this.actions[action]) return;
-    if (this.types && !this.types[type]) return;
+  _processTransform: function(operation, record) {
+// TODO - add filtering back in
+//    if (this.actions && !this.actions[action]) return;
+//    if (this.types && !this.types[type]) return;
 
-    //console.log('* processTransform - ', action, type, this.target, record);
+    console.log('* processTransform - ', this.target, operation, record);
     if (this.activeTransform || this._queueEnabled) {
-      this._enqueueTransform(action, type, record);
+      this._enqueueTransform(operation, record);
 
     } else {
-      var promise = this._transformTarget(action, type, record);
+      var promise = this._transformTarget(operation, record);
       if (promise) {
         if (this.blocking) {
           return promise;
@@ -66,21 +67,20 @@ TransformConnector.prototype = {
     }
   },
 
-  _enqueueTransform: function(action, type, record) {
-    //console.log('_enqueueTransform', action, type, this.target, record);
+  _enqueueTransform: function(operation, record) {
+    console.log('_enqueueTransform', this.target, operation, record);
     this.queue.push({
-      action: action,
-      type: type,
+      operation: clone(operation),
       record: clone(record)
     });
   },
 
   _dequeueTransform: function() {
-    //console.log('_dequeueTransform');
+    console.log('_dequeueTransform');
     var transform = this.queue.shift();
     if (transform) {
-      //console.log('_dequeueTransform', transform);
-      this._processTransform(transform.action, transform.type, transform.record);
+      console.log('_dequeueTransform', transform);
+      this._processTransform(transform.operation, transform.record);
     }
   },
 
@@ -97,38 +97,70 @@ TransformConnector.prototype = {
     );
   },
 
-  _transformTarget: function(action, type, record) {
+  _transformTarget: function(operation, updatedValue) {
+    console.log('_transformTarget', this.target, operation, updatedValue);
     if (this.target.retrieve) {
-      var targetRecord = this.target.retrieve(type, record);
-      if (targetRecord) {
-        if (targetRecord.deleted) return;
-
-        if (action === 'add' || action === 'replace' || action === 'patch') {
-          if (this._recordsMatch(targetRecord, record)) {
+      var currentValue = this.target.retrieve(operation.path);
+      if (currentValue) {
+//TODO?        if (currentValue.deleted) return;
+        console.log('_transformTarget - currentValue', currentValue);
+        if (operation.op === 'add' || operation.op === 'replace') {
+          if (this._valuesMatch(currentValue, updatedValue)) {
             return;
           } else {
-            return this._resolveConflicts(type, targetRecord, record);
+            return this._resolveConflicts(operation.path, currentValue, updatedValue);
           }
         }
       }
     }
-    return this.target.transform(action, type, clone(record));
+    if (operation.op === 'add' || operation.op === 'replace') {
+      return this.target.transform({op: operation.op, path: operation.path, value: updatedValue});
+    } else {
+      return this.target.transform(operation);
+    }
   },
 
-  _recordsMatch: function(record1, record2) {
-    return record1.__ver !== undefined && record1.__ver === record2.__ver;
+  _valuesMatch: function(value1, value2) {
+    console.log('_valuesMatch', value1, value2, value1 === value2 || (value2.__ver !== undefined && value1.__ver === value2.__ver));
+    return value1 === value2 || (value2.__ver !== undefined && value1.__ver === value2.__ver);
   },
 
-  _resolveConflicts: function(type, targetRecord, updatedRecord) {
-    //console.log('* resolveConflicts - ', action, type, this.target, targetRecord, updatedRecord);
+  _resolveConflicts: function(path, currentValue, updatedValue) {
+    console.log('* resolveConflicts - ', path, currentValue, updatedValue);
 
-    var delta = diffs(targetRecord, updatedRecord, [Orbit.versionField]);
-    if (delta) {
-      delta[Orbit.idField] = updatedRecord[Orbit.idField];
+    var ops = diffs(currentValue, updatedValue,
+                    {basePath: path,
+                     ignore:   [Orbit.versionField]});
 
-      //console.log('* resolveConflicts - delta - ', delta);
+    console.log('* resolveConflicts - ops - ', ops);
+    if (ops) {
+      var _this = this;
 
-      return this.target.transform('patch', type, delta);
+      return new Orbit.Promise(function(resolve, reject) {
+        var settleEach = function() {
+          if (ops.length === 0) {
+            resolve();
+          } else {
+            var op = ops.shift();
+            var response = _this.target.transform(op);
+
+            if (response) {
+              return response.then(
+                function(success) {
+                  settleEach();
+                },
+                function(error) {
+                  settleEach();
+                }
+              );
+            } else {
+              settleEach();
+            }
+          }
+        };
+
+        settleEach();
+      });
     }
   }
 };
