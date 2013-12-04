@@ -22,6 +22,10 @@ var diffs = function(a, b, options) {
     var ignore = arrayToOptions(options.ignore),
         basePath = options.basePath || '';
 
+    if (Object.prototype.toString.call(basePath) === '[object Array]') {
+      basePath = basePath.join('/');
+    }
+
     var type = Object.prototype.toString.call(a);
     if (type === Object.prototype.toString.call(b)) {
       if (typeof a === 'object') {
