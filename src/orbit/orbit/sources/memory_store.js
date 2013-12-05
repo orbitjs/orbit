@@ -21,8 +21,10 @@ MemoryStore.prototype = {
 
   configure: function(schema) {
     this.schema = schema;
+    this._cache.add(['deleted'], {});
     schema.models.forEach(function(model) {
       this._cache.add([model], {});
+      this._cache.add(['deleted', model], {});
     }, this);
   },
 
@@ -38,6 +40,14 @@ MemoryStore.prototype = {
     return Object.keys(this.retrieve(path)).length;
   },
 
+  isDeleted: function(path) {
+    // TODO - normalize paths
+    if (typeof path === 'string') {
+      path = path.split('/');
+    }
+    return this.retrieve(['deleted'].concat(path));
+  },
+
   /////////////////////////////////////////////////////////////////////////////
   // Transformable interface implementation
   /////////////////////////////////////////////////////////////////////////////
@@ -49,6 +59,18 @@ MemoryStore.prototype = {
         transaction.inverse.push(_this._cache.transform(operation, true));
       } else {
         _this._cache.transform(operation);
+
+        // Track deleted records
+        if (operation.op === 'remove') {
+          // TODO - normalize paths
+          var path = operation.path;
+          if (typeof path === 'string') {
+            path = path.split('/');
+          }
+          if (path.length === 2) {
+            _this._cache.transform({op: 'add', path: ['deleted'].concat(path), value: true});
+          }
+        }
       }
       resolve(_this.retrieve(operation.path));
     });

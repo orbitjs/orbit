@@ -99,10 +99,12 @@ TransformConnector.prototype = {
 
   _transformTarget: function(operation, updatedValue) {
     console.log('_transformTarget', this.target, operation, updatedValue);
+
+    if (this.target.isDeleted && this.target.isDeleted(operation.path)) return;
+
     if (this.target.retrieve) {
       var currentValue = this.target.retrieve(operation.path);
       if (currentValue) {
-//TODO?        if (currentValue.deleted) return;
         console.log('_transformTarget - currentValue', currentValue);
         if (operation.op === 'add' || operation.op === 'replace') {
           if (this._valuesMatch(currentValue, updatedValue)) {

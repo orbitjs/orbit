@@ -23,9 +23,12 @@ module("Integration - Rest / Memory / Local Transforms (Blocking)", {
     server.autoRespond = true;
 
     // Create stores
-    memoryStore = new MemoryStore();
-    restStore = new RestStore();
-    localStore = new LocalStore({autoload: false});
+    var schema = {
+      models: ['planet']
+    };
+    memoryStore = new MemoryStore({schema: schema});
+    restStore = new RestStore({schema: schema});
+    localStore = new LocalStore({schema: schema, autoload: false});
 
     // Connect MemoryStore -> LocalStore
     memToLocalConnector = new TransformConnector(memoryStore, localStore);
@@ -54,7 +57,7 @@ test("records inserted into memory should be posted with rest", function() {
   });
 
   stop();
-  memoryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  memoryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
     equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
     ok(planet.__id, 'orbit id should be defined');
@@ -78,7 +81,7 @@ test("records posted with rest should be inserted into memory", function() {
   });
 
   stop();
-  restStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  restStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
     equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
     ok(planet.__id, 'orbit id should be defined');
@@ -101,22 +104,23 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
                 JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
   });
   server.respondWith('PATCH', '/planets/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Earth', classification: 'terrestrial'}, 'PATCH request');
+    deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/name', value: 'Earth'}, 'PATCH request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Earth', classification: 'terrestrial'}));
+                JSON.stringify());
   });
 
   stop();
-  memoryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    memoryStore.transform('replace', 'planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(
+  memoryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    planet.name = 'Earth';
+    memoryStore.update('planet', planet).then(
       function(planet) {
         start();
         equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
         ok(planet.__id, 'orbit id should be defined');
         equal(planet.id, 12345, 'server id should be defined');
         equal(planet.name, 'Earth', 'name should match');
-        equal(planet.classification, 'terrestrial', 'classification should match');
+        equal(planet.classification, 'gas giant', 'classification was not updated');
 
         equal(localStore.length('planet'), 1, 'local store should contain one record');
         verifyLocalStorageContainsRecord(localStore.namespace, 'planet', planet, ['__ver']);
@@ -142,8 +146,10 @@ test("records updated with rest should be updated in memory", function() {
   });
 
   stop();
-  restStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    restStore.transform('replace', 'planet', {__id: planet.__id, id: planet.id, name: 'Earth', classification: 'terrestrial'}).then(
+  restStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    planet.name = 'Earth';
+    planet.classification = 'terrestrial';
+    restStore.update('planet', planet).then(
       function(planet) {
         start();
         equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
@@ -169,24 +175,24 @@ test("records patched in memory should be patched with rest", function() {
                 JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
   });
   server.respondWith('PATCH', '/planets/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {classification: 'terrestrial'}, 'PATCH request');
+    deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/classification', value: 'terrestrial'}, 'PATCH request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'terrestrial'}));
+                JSON.stringify({}));
   });
 
   stop();
-  memoryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    memoryStore.transform('patch', 'planet', {__id: planet.__id, classification: 'terrestrial'}).then(
-      function(planet) {
+  memoryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    memoryStore.patch('planet', planet.__id, 'classification', 'terrestrial').then(function() {
+      memoryStore.find('planet', planet.__id).then(function(planet) {
         start();
         equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
         ok(planet.__id, 'orbit id should be defined');
         equal(planet.id, 12345, 'server id should be defined');
         equal(planet.name, 'Jupiter', 'name should match');
         equal(planet.classification, 'terrestrial', 'classification should match');
-      }
-    );
+      });
+    });
   });
 });
 
@@ -200,17 +206,18 @@ test("records patched with rest should be patched in memory", function() {
                 JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
   });
   server.respondWith('PATCH', '/planets/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {classification: 'terrestrial'}, 'PATCH request');
+    deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/classification', value: 'terrestrial'}, 'PATCH request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'terrestrial'}));
+                JSON.stringify({}));
   });
 
   stop();
-  restStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    restStore.transform('patch', 'planet', {__id: planet.__id, classification: 'terrestrial'}).then(
-      function(planet) {
+  restStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    restStore.patch('planet', planet.__id, 'classification', 'terrestrial').then(function() {
+      memoryStore.find('planet', planet.__id).then(function(planet) {
         start();
+
         equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
         ok(planet.__id, 'orbit id should be defined');
         equal(planet.id, 12345, 'server id should be defined');
@@ -219,13 +226,13 @@ test("records patched with rest should be patched in memory", function() {
 
         equal(localStore.length('planet'), 1, 'local store should contain one record');
         verifyLocalStorageContainsRecord(localStore.namespace, 'planet', planet, ['__ver']);
-      }
-    );
+      });
+    });
   });
 });
 
 test("records deleted in memory should be deleted with rest", function() {
-  expect(6);
+  expect(8);
 
   server.respondWith('POST', '/planets', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
@@ -241,22 +248,23 @@ test("records deleted in memory should be deleted with rest", function() {
   });
 
   stop();
-  memoryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    memoryStore.transform('remove', 'planet', {__id: planet.__id}).then(
-      function(record) {
-        start();
-        equal(memoryStore.length('planet'), 0, 'memory store should be empty');
-        equal(localStore.length('planet'), 0, 'local store should be empty');
+  memoryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    memoryStore.remove('planet', planet.__id).then(function() {
+      start();
 
-        ok(record.deleted, 'record should be marked `deleted`');
-        verifyLocalStorageContainsRecord(localStore.namespace, 'planet', record, ['__ver']);
-      }
-    );
+      equal(memoryStore.length('planet'), 0, 'memory store should be empty');
+      equal(localStore.length('planet'), 0, 'local store should be empty');
+      equal(restStore.length('planet'), 0, 'rest store cache should be empty');
+
+      equal(memoryStore.isDeleted(['planet', planet.__id]), true, 'record should be marked deleted in memory store');
+      equal(localStore.isDeleted(['planet', planet.__id]), true, 'record should be marked deleted in local store');
+      equal(restStore.isDeleted(['planet', planet.__id]), true, 'record should be marked deleted in rest store');
+    });
   });
 });
 
 test("records deleted with rest should be deleted in memory", function() {
-  expect(6);
+  expect(8);
 
   server.respondWith('POST', '/planets', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
@@ -272,16 +280,17 @@ test("records deleted with rest should be deleted in memory", function() {
   });
 
   stop();
-  memoryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    memoryStore.transform('remove', 'planet', {__id: planet.__id}).then(
-      function(record) {
-        start();
-        equal(memoryStore.length('planet'), 0, 'memory store should be empty');
-        equal(localStore.length('planet'), 0, 'local store should be empty');
+  restStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    restStore.remove('planet', planet.__id).then(function() {
+      start();
 
-        ok(record.deleted, 'record should be marked `deleted`');
-        verifyLocalStorageContainsRecord(localStore.namespace, 'planet', record, ['__ver']);
-      }
-    );
+      equal(memoryStore.length('planet'), 0, 'memory store should be empty');
+      equal(localStore.length('planet'), 0, 'local store should be empty');
+      equal(restStore.length('planet'), 0, 'rest store cache should be empty');
+
+      equal(memoryStore.isDeleted(['planet', planet.__id]), true, 'record should be marked deleted in memory store');
+      equal(localStore.isDeleted(['planet', planet.__id]), true, 'record should be marked deleted in local store');
+      equal(restStore.isDeleted(['planet', planet.__id]), true, 'record should be marked deleted in rest store');
+    });
   });
 });
