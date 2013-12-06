@@ -51,7 +51,7 @@ TransformConnector.prototype = {
 //    if (this.actions && !this.actions[action]) return;
 //    if (this.types && !this.types[type]) return;
 
-    console.log('* processTransform - ', this.target, operation, record);
+    console.log(this.target.id, 'processTransform', operation, record, this.activeTransform);
     if (this.activeTransform || this._queueEnabled) {
       this._enqueueTransform(operation, record);
 
@@ -68,7 +68,7 @@ TransformConnector.prototype = {
   },
 
   _enqueueTransform: function(operation, record) {
-    console.log('_enqueueTransform', this.target, operation, record);
+    console.log(this.target.id, '_enqueueTransform', operation, record);
     this.queue.push({
       operation: clone(operation),
       record: clone(record)
@@ -76,10 +76,10 @@ TransformConnector.prototype = {
   },
 
   _dequeueTransform: function() {
-    console.log('_dequeueTransform');
+    console.log(this.target.id, '_dequeueTransform');
     var transform = this.queue.shift();
     if (transform) {
-      console.log('_dequeueTransform', transform);
+      console.log(this.target.id, '_dequeueTransform', transform);
       this._processTransform(transform.operation, transform.record);
     }
   },
@@ -98,14 +98,14 @@ TransformConnector.prototype = {
   },
 
   _transformTarget: function(operation, updatedValue) {
-    console.log('_transformTarget', this.target, operation, updatedValue);
+    console.log(this.target.id, '_transformTarget', operation, updatedValue);
 
     if (this.target.isDeleted && this.target.isDeleted(operation.path)) return;
 
     if (this.target.retrieve) {
       var currentValue = this.target.retrieve(operation.path);
       if (currentValue) {
-        console.log('_transformTarget - currentValue', currentValue);
+        console.log(this.target.id, '_transformTarget - currentValue', currentValue);
         if (operation.op === 'add' || operation.op === 'replace') {
           if (this._valuesMatch(currentValue, updatedValue)) {
             return;
@@ -123,18 +123,18 @@ TransformConnector.prototype = {
   },
 
   _valuesMatch: function(value1, value2) {
-    console.log('_valuesMatch', value1, value2, value1 === value2 || (value2.__ver !== undefined && value1.__ver === value2.__ver));
+    console.log(this.target.id, '_valuesMatch', value1, value2, value1 === value2 || (value2.__ver !== undefined && value1.__ver === value2.__ver));
     return value1 === value2 || (value2.__ver !== undefined && value1.__ver === value2.__ver);
   },
 
   _resolveConflicts: function(path, currentValue, updatedValue) {
-    console.log('* resolveConflicts - ', path, currentValue, updatedValue);
+    console.log(this.target.id, 'resolveConflicts', path, currentValue, updatedValue);
 
     var ops = diffs(currentValue, updatedValue,
                     {basePath: path,
                      ignore:   [Orbit.versionField]});
 
-    console.log('* resolveConflicts - ops - ', ops);
+    console.log(this.target.id, 'resolveConflicts - ops - ', clone(ops));
     if (ops) {
       var _this = this;
 
