@@ -33,7 +33,17 @@ var Orbit = {
   versionField: '__ver',
 
   incrementVersion: function(record) {
-    record[this.versionField] = this.generateId();
+    record[this.versionField] = this.newVersion();
+  },
+
+  newVersion: function() {
+    // TODO - versioning scheme should work across sessions
+    if (this._newVersion) {
+      this._newVersion++;
+    } else {
+      this._newVersion = 1;
+    }
+    return this._newVersion;
   },
 
   assert: function(desc, test) {
