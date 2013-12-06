@@ -55,23 +55,31 @@ MemoryStore.prototype = {
   _transform: function(operation, transaction) {
     var _this = this;
     return new Orbit.Promise(function(resolve, reject) {
-      if (transaction) {
-        transaction.inverse.push(_this._cache.transform(operation, true));
-      } else {
-        _this._cache.transform(operation);
+      var ops = [operation];
 
-        // Track deleted records
-        if (operation.op === 'remove') {
-          // TODO - normalize paths
-          var path = operation.path;
-          if (typeof path === 'string') {
-            path = path.split('/');
-          }
-          if (path.length === 2) {
-            _this._cache.transform({op: 'add', path: ['deleted'].concat(path), value: true});
-          }
+      // TODO - normalize paths
+      var path = operation.path;
+      if (typeof path === 'string') {
+        path = path.split('/');
+      }
+
+      // Track deleted records
+      if (operation.op === 'remove' && path.length === 2) {
+        ops.push({op: 'add', path: ['deleted'].concat(path), value: true});
+
+      // Version other records
+      } else if (path.length > 1) {
+        ops.push({op: 'add', path: path.slice(0,2).concat([Orbit.versionField]), value: Orbit.newVersion()});
+      }
+
+      for (var i = 0; i < ops.length; i++) {
+        if (transaction) {
+          transaction.inverse.push(_this._cache.transform(ops[i], true));
+        } else {
+          _this._cache.transform(ops[i]);
         }
       }
+
       resolve(_this.retrieve(operation.path));
     });
   },
@@ -103,7 +111,6 @@ MemoryStore.prototype = {
         _this = this;
 
     data[this.idField] = id;
-    Orbit.incrementVersion(data);
 
     return this.transform({op: 'add', path: path, value: data});
   },
@@ -112,8 +119,6 @@ MemoryStore.prototype = {
     var id = data[this.idField],
         path = [type, id],
         _this = this;
-
-    Orbit.incrementVersion(data);
 
     return this.transform({op: 'replace', path: path, value: data});
   },
