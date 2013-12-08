@@ -66,10 +66,6 @@ MemoryStore.prototype = {
       // Track deleted records
       if (operation.op === 'remove' && path.length === 2) {
         ops.push({op: 'add', path: ['deleted'].concat(path), value: true});
-
-      // Version other records
-      } else if (path.length > 1) {
-        ops.push({op: 'add', path: path.slice(0,2).concat([Orbit.versionField]), value: Orbit.newVersion()});
       }
 
       for (var i = 0; i < ops.length; i++) {

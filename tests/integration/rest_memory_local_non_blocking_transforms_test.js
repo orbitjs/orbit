@@ -51,22 +51,45 @@ module("Integration - Rest / Memory / Local Transforms (Non-Blocking)", {
 });
 
 test("records inserted into memory should be posted with rest", function() {
-  expect(13);
+  expect(15);
 
-  localStore.on('didTransform', function(operation, record) {
-    if (operation.op === 'add') {
-      equal(localStore.length('planet'), 1, 'local store should contain one record');
-      verifyLocalStorageContainsRecord(localStore.namespace, 'planet', record, ['__ver']);
+  var localStoreTransforms = 0,
+      restStoreTransforms = 0;
+
+  localStore.on('didTransform', function(operation, result) {
+    localStoreTransforms++;
+
+    console.log('LOCAL STORE - didTransform', localStoreTransforms, operation, result);
+
+    if (localStoreTransforms === 1) {
+      equal(operation.op, 'add',                'local store - initial object addition');
+      equal(result.name, 'Jupiter',             'local store - inserted - name - Jupiter');
+      equal(result.classification, 'gas giant', 'local store - inserted - classification should be original');
+
+    } else if (localStoreTransforms === 2) {
+      // `id` is added when the REST POST response returns
+      equal(operation.op, 'add',     'local store - id added');
+      equal(result, 12345,           'local store - id');
+
+    } else {
+      ok(false, 'too many transforms');
     }
   });
 
-  restStore.on('didTransform', function(operation, record) {
-    if (operation.op === 'add') {
+  restStore.on('didTransform', function(operation, result) {
+    restStoreTransforms++;
+
+    console.log('REST STORE - didTransform', restStoreTransforms, operation, result);
+
+    if (restStoreTransforms === 1) {
       start();
-      ok(record.__id,                           'orbit id should be defined');
-      equal(record.id, 12345,                   'server id should be defined now');
-      equal(record.name, 'Jupiter',             'name should match');
-      equal(record.classification, 'gas giant', 'classification should match');
+      ok(result.__id,                           'orbit id should be defined');
+      equal(result.id, 12345,                   'server id should be defined now');
+      equal(result.name, 'Jupiter',             'name should match');
+      equal(result.classification, 'gas giant', 'classification should match');
+
+    } else {
+      ok(false, 'too many transforms');
     }
   });
 
@@ -74,11 +97,11 @@ test("records inserted into memory should be posted with rest", function() {
 
   stop();
   memoryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(record) {
-    equal(memoryStore.length('planet'), 1, 'memory store should contain one record');
-    ok(record.__id,              'orbit id should be defined');
-    equal(record.id, undefined,  'server id should NOT be defined yet');
-    equal(record.name, 'Jupiter', 'name should match');
-    equal(record.classification, 'gas giant',    'classification should match');
+    equal(memoryStore.length('planet'), 1,    'memory store should contain one record');
+    ok(record.__id,                           'orbit id should be defined');
+    equal(record.id, undefined,               'server id should NOT be defined yet');
+    equal(record.name, 'Jupiter',             'name should match');
+    equal(record.classification, 'gas giant', 'classification should match');
 
   }).then(function() {
     server.respond('POST', '/planets', function(xhr) {
@@ -201,7 +224,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
 //
 //      } else if (localStorePatchCount === 2) {
 //        equal(record.id, 12345, 'local store - patch 2 - server id should be defined now');
-//        verifyLocalStorageContainsRecord(localStore.namespace, type, record, ['__ver']);
+//        verifyLocalStorageContainsRecord(localStore.namespace, type, record);
 //      }
 //    }
 //  });

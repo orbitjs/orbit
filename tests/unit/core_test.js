@@ -17,18 +17,6 @@ test("#generateId generates unique ids", function() {
   notEqual(Orbit.generateId(), Orbit.generateId(), 'a weak test to ensure uniqueness');
 });
 
-test("#incrementVersion generates unique versions", function() {
-  var record = {__id: '1'};
-
-  Orbit.incrementVersion(record);
-  var v1 = record.__ver;
-
-  Orbit.incrementVersion(record);
-  var v2 = record.__ver;
-
-  notEqual(v1, v2, 'a weak test to ensure uniqueness');
-});
-
 test("#capitalize capitalizes the first letter of a word", function() {
   equal(Orbit.capitalize('cauliflower'), 'Cauliflower', 'capitalize capitalizes the first letter of a word');
   equal(Orbit.capitalize('aSAP'), 'ASAP', 'capitalize doesn\'t touch the rest of the word');

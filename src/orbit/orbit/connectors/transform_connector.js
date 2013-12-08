@@ -1,6 +1,7 @@
 import Orbit from 'orbit/core';
 import clone from 'orbit/lib/clone';
 import diffs from 'orbit/lib/diffs';
+import eq from 'orbit/lib/eq';
 
 var TransformConnector = function(source, target, options) {
   var _this = this;
@@ -107,7 +108,8 @@ TransformConnector.prototype = {
       if (currentValue) {
         console.log(this.target.id, '_transformTarget - currentValue', currentValue);
         if (operation.op === 'add' || operation.op === 'replace') {
-          if (this._valuesMatch(currentValue, updatedValue)) {
+          if (eq(currentValue, updatedValue)) {
+            console.log(this.target.id, '_transformTarget - currentValue == updatedValue', currentValue);
             return;
           } else {
             return this._resolveConflicts(operation.path, currentValue, updatedValue);
@@ -122,19 +124,18 @@ TransformConnector.prototype = {
     }
   },
 
-  _valuesMatch: function(value1, value2) {
-    console.log(this.target.id, '_valuesMatch', value1, value2, value1 === value2 || (value2.__ver !== undefined && value1.__ver === value2.__ver));
-    return value1 === value2 || (value2.__ver !== undefined && value1.__ver === value2.__ver);
-  },
-
   _resolveConflicts: function(path, currentValue, updatedValue) {
     console.log(this.target.id, 'resolveConflicts', path, currentValue, updatedValue);
 
-    var ops = diffs(currentValue, updatedValue,
-                    {basePath: path,
-                     ignore:   [Orbit.versionField]});
+    var ops = diffs(currentValue, updatedValue, {basePath: path});
 
-    console.log(this.target.id, 'resolveConflicts - ops - ', clone(ops));
+    if (ops) {
+      this._applyTransforms(path, ops);
+    }
+  },
+
+  _applyTransforms: function(path, ops) {
+    console.log(this.target.id, '_applyTransforms - ops - ', clone(ops));
     if (ops) {
       var _this = this;
 

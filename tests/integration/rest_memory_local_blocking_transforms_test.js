@@ -66,7 +66,7 @@ test("records inserted into memory should be posted with rest", function() {
     equal(planet.classification, 'gas giant', 'classification should match');
 
     equal(localStore.length('planet'), 1, 'local store should contain one record');
-    verifyLocalStorageContainsRecord(localStore.namespace, 'planet', planet, ['__ver']);
+    verifyLocalStorageContainsRecord(localStore.namespace, 'planet', planet);
   });
 });
 
@@ -90,7 +90,7 @@ test("records posted with rest should be inserted into memory", function() {
     equal(planet.classification, 'gas giant', 'classification should match');
 
     equal(localStore.length('planet'), 1, 'local store should contain one record');
-    verifyLocalStorageContainsRecord(localStore.namespace, 'planet', planet, ['__ver']);
+    verifyLocalStorageContainsRecord(localStore.namespace, 'planet', planet);
   });
 });
 
@@ -123,7 +123,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
         equal(planet.classification, 'gas giant', 'classification was not updated');
 
         equal(localStore.length('planet'), 1, 'local store should contain one record');
-        verifyLocalStorageContainsRecord(localStore.namespace, 'planet', planet, ['__ver']);
+        verifyLocalStorageContainsRecord(localStore.namespace, 'planet', planet);
       }
     );
   });
@@ -159,7 +159,7 @@ test("records updated with rest should be updated in memory", function() {
         equal(planet.classification, 'terrestrial', 'classification should match');
 
         equal(localStore.length('planet'), 1, 'local store should contain one record');
-        verifyLocalStorageContainsRecord(localStore.namespace, 'planet', planet, ['__ver']);
+        verifyLocalStorageContainsRecord(localStore.namespace, 'planet', planet);
       }
     );
   });
@@ -225,7 +225,7 @@ test("records patched with rest should be patched in memory", function() {
         equal(planet.classification, 'terrestrial', 'classification should match');
 
         equal(localStore.length('planet'), 1, 'local store should contain one record');
-        verifyLocalStorageContainsRecord(localStore.namespace, 'planet', planet, ['__ver']);
+        verifyLocalStorageContainsRecord(localStore.namespace, 'planet', planet);
       });
     });
   });

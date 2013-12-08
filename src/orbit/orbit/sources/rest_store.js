@@ -153,7 +153,6 @@ RestStore.prototype = {
         _this = this;
 
     data[this.idField] = id;
-    Orbit.incrementVersion(data);
 
     return this.transform({op: 'add', path: path, value: data});
   },
@@ -169,8 +168,6 @@ RestStore.prototype = {
     }
 
     path = [type, id];
-
-    Orbit.incrementVersion(data);
 
     return this.transform({op: 'replace', path: path, value: data});
   },
@@ -281,7 +278,6 @@ RestStore.prototype = {
   _addToCache: function(type, record) {
     var id = record[this.idField];
     if (id === undefined) record[this.idField] = id = this._generateId();
-    Orbit.incrementVersion(record);
 
     this._cache.add([type, id], record);
     this._updateRemoteIdMap(type, id, record[this.remoteIdField]);
@@ -371,7 +367,6 @@ RestStore.prototype = {
   _serialize: function(type, data) {
     var serialized = clone(data);
     delete serialized[this.idField];
-    delete serialized[Orbit.versionField];
     return serialized;
   },
 
