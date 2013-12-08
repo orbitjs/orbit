@@ -113,7 +113,112 @@ test("records inserted into memory should be posted with rest", function() {
   });
 });
 
-test("records updated in memory should be updated with rest (via PATCH)", function() {
+//test("records updated in memory should be updated with rest (via PATCH)", function() {
+//  expect(25);
+//
+//  var localStoreTransforms = 0,
+//      restStoreTransforms = 0;
+//
+//  localStore.on('didTransform', function(operation, result) {
+//    localStoreTransforms++;
+//
+//    console.log('LOCAL STORE - didTransform', localStoreTransforms, operation, result);
+//
+//    if (localStoreTransforms === 1) {
+//      equal(operation.op, 'add',                'local store - initial object addition');
+//      equal(result.name, 'Jupiter',             'local store - inserted - name - Jupiter');
+//      equal(result.classification, 'gas giant', 'local store - inserted - classification should be original');
+//
+//    } else if (localStoreTransforms === 2) {
+//      equal(operation.op, 'replace', 'local store - name replaced');
+//      equal(result, 'Earth',         'local store - name - Earth');
+//
+//    } else if (localStoreTransforms === 3) {
+//      // `id` is added when the REST POST response returns
+//      equal(operation.op, 'add',     'local store - id added');
+//      equal(result, 12345,           'local store - id');
+//
+//    } else if (localStoreTransforms === 4) {
+////TODO
+//      // `id` is added when the REST POST response returns
+//      equal(operation.op, 'add',     'local store - id added');
+//      equal(result, 12345,           'local store - id');
+//
+//    } else if (localStoreTransforms === 5) {
+//      // `name` gets temporarily changed back to Jupiter when the REST POST response returns
+//      equal(operation.op, 'replace', 'local store - name replaced');
+//      equal(result, 'Jupiter',       'local store - name - Jupiter');
+//
+//    } else if (localStoreTransforms === 6) {
+//      // `name` gets changed back to Earth when the REST PATCH response returns
+//      equal(operation.op, 'replace', 'local store - name replaced');
+//      equal(result, 'Earth',         'local store - name - Earth');
+//
+//    } else {
+//      ok(false, 'too many transforms');
+//    }
+//  });
+//
+//  restStore.on('didTransform', function(operation, result) {
+//    restStoreTransforms++;
+//
+//    console.log('REST STORE - didTransform', restStoreTransforms, operation, result);
+//
+//    if (restStoreTransforms === 1) {
+//      equal(operation.op, 'add',                'rest store - initial object addition');
+//      equal(result.id, 12345,                   'rest store - inserted - id');
+//      equal(result.name, 'Jupiter',             'rest store - inserted - name - Jupiter');
+//      equal(result.classification, 'gas giant', 'rest store - inserted - classification - gas giant');
+//
+//    } else if (restStoreTransforms === 2) {
+//      start();
+//
+//      // TODO - should be 'replace'?
+//      equal(operation.op, 'add',                'rest store - name added');
+//      equal(result, 'Earth',                    'rest store - name - Earth');
+//
+//    } else  {
+//      ok(false, 'too many transforms');
+//    }
+//  });
+//
+//  /////////////////////////////////////////////////////////////////////////////
+//
+//  stop();
+//  memoryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(record) {
+//    equal(memoryStore.length('planet'), 1,    'memory store - inserted - should contain one record');
+//    ok(record.__id,                           'memory store - inserted - orbit id should be defined');
+//    equal(record.id, undefined,               'memory store - inserted - server id should NOT be defined yet');
+//    equal(record.name, 'Jupiter',             'memory store - inserted - name - Jupiter');
+//    equal(record.classification, 'gas giant', 'memory store - inserted - classification - gas giant');
+//
+//    server.respond('POST', '/planets', function(xhr) {
+//      deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
+//      xhr.respond(201,
+//                  {'Content-Type': 'application/json'},
+//                  JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
+//    });
+//
+//    record.name = 'Earth';
+//    console.log("!!!!!!!!! BEFORE");
+//    return memoryStore.update('planet', record);
+//
+//  }).then(function(record) {
+//    console.log("!!!!!!!!! AFTER");
+//    equal(record.name, 'Earth',               'memory store - updated - name - Earth');
+//    equal(record.classification, 'gas giant', 'memory store - updated - classification - gas giant');
+////    equal(result, 'Earth',                    'memory store - name - Earth');
+//
+//    server.respond('PATCH', '/planets/12345', function(xhr) {
+//      deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/name', value: 'Earth'}, 'PATCH request');
+//      xhr.respond(200,
+//                  {'Content-Type': 'application/json'},
+//                  JSON.stringify({}));
+//    });
+//  });
+//});
+
+test("records patched in memory should be patched with rest", function() {
   expect(25);
 
   var localStoreTransforms = 0,
@@ -207,74 +312,6 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
   });
 });
 
-//test("records patched in memory should be patched with rest", function() {
-//  expect(19);
-//
-//  var localStorePatchCount = 0;
-//
-//  localStore.on('didTransform', function(action, type, record) {
-//    if (action === 'add') {
-//      equal(localStore.length('planet'), 1, 'local store - inserted - should contain one record');
-//
-//    } else if (action === 'patch') {
-//      localStorePatchCount++;
-//
-//      if (localStorePatchCount === 1) {
-//        equal(record.id, undefined, 'local store - patch 1 - server id should NOT be defined yet');
-//
-//      } else if (localStorePatchCount === 2) {
-//        equal(record.id, 12345, 'local store - patch 2 - server id should be defined now');
-//        verifyLocalStorageContainsRecord(localStore.namespace, type, record);
-//      }
-//    }
-//  });
-//
-//  restStore.on('didTransform', function(action, type, record) {
-//    if (action === 'add') {
-//      ok(record.__id,                           'rest store - inserted - orbit id should be defined');
-//      equal(record.id, 12345,                   'rest store - inserted - server id should be defined');
-//      equal(record.name, 'Jupiter',             'rest store - inserted - name should be original');
-//      equal(record.classification, 'gas giant', 'rest store - inserted - classification should be original');
-//
-//    } else if (action === 'patch') {
-//      start();
-//      ok(record.__id,                             'rest store - patched - orbit id should be defined');
-//      equal(record.id, 12345,                     'rest store - patched - server id should be defined');
-//      equal(record.name, 'Earth',                 'rest store - patched - name should be updated');
-//      equal(record.classification, 'terrestrial', 'rest store - patched - classification should be updated');
-//    }
-//  });
-//
-//  /////////////////////////////////////////////////////////////////////////////
-//
-//  stop();
-//  memoryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(record) {
-//    equal(memoryStore.length('planet'), 1, 'memory store - inserted - should contain one record');
-//    ok(record.__id,                           'memory store - inserted - orbit id should be defined');
-//    equal(record.id, undefined,               'memory store - inserted - server id should NOT be defined yet');
-//    equal(record.name, 'Jupiter',             'memory store - inserted - name should match');
-//    equal(record.classification, 'gas giant', 'memory store - inserted - classification should match');
-//
-//    server.respond('POST', '/planets', function(xhr) {
-//      deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
-//      xhr.respond(201,
-//                  {'Content-Type': 'application/json'},
-//                  JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
-//    });
-//
-//    return memoryStore.transform('patch', 'planet', {__id: record.__id, name: 'Earth', classification: 'terrestrial'});
-//
-//  }).then(function() {
-//
-//    server.respond('PATCH', '/planets/12345', function(xhr) {
-//      deepEqual(JSON.parse(xhr.requestBody), {name: 'Earth', classification: 'terrestrial'}, 'PATCH request');
-//      xhr.respond(200,
-//                  {'Content-Type': 'application/json'},
-//                  JSON.stringify({id: 12345, name: 'Earth', classification: 'terrestrial'}));
-//    });
-//  });
-//});
-//
 //test("records deleted in memory should be deleted with rest", function() {
 //  expect(10);
 //
