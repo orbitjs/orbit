@@ -312,56 +312,70 @@ test("records patched in memory should be patched with rest", function() {
   });
 });
 
-//test("records deleted in memory should be deleted with rest", function() {
-//  expect(10);
-//
-//  memoryStore.on('didTransform', function(action, type, record) {
-//    if (action === 'remove') {
-//      equal(memoryStore.length('planet'), 0, 'memory store should be empty');
-//    }
-//  });
-//
-//  localStore.on('didTransform', function(action, type, record) {
-//    if (action === 'remove') {
-//      equal(localStore.length('planet'), 0, 'local store should be empty');
-//      ok(record.deleted, 'local store - record should be marked `deleted`');
-//      verifyLocalStorageContainsRecord(localStore.namespace, type, record);
-//    }
-//  });
-//
-//  restStore.on('didTransform', function(action, type, record) {
-//    if (action === 'add') {
-//      ok(true, 'rest store - record inserted');
-//
-//    } else if (action === 'remove') {
-//      start();
-//      equal(record.id, 12345, 'rest store - deleted - server id should be defined');
-//      ok(record.deleted,      'rest store - deleted - record marked as deleted');
-//    }
-//  });
-//
-//  /////////////////////////////////////////////////////////////////////////////
-//
-//  stop();
-//  memoryStore.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-//    equal(memoryStore.length('planet'), 1, 'memory store - inserted - should contain one record');
-//
-//    server.respond('POST', '/planets', function(xhr) {
-//      deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
-//      xhr.respond(201,
-//                  {'Content-Type': 'application/json'},
-//                  JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
-//    });
-//
-//    return memoryStore.transform('remove', 'planet', {__id: planet.__id});
-//
-//  }).then(function() {
-//
-//    server.respond('DELETE', '/planets/12345', function(xhr) {
-//      deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
-//      xhr.respond(200,
-//                  {'Content-Type': 'application/json'},
-//                  JSON.stringify({}));
-//    });
-//  });
-//});
+test("records deleted in memory should be deleted with rest", function() {
+  expect(9);
+
+  var localStoreTransforms = 0,
+      restStoreTransforms = 0;
+
+  localStore.on('didTransform', function(operation, result) {
+    localStoreTransforms++;
+
+    console.log('LOCAL STORE - didTransform', localStoreTransforms, operation, result);
+
+    if (localStoreTransforms === 1) {
+      equal(operation.op, 'add',                'local store - initial object addition');
+
+    } else if (localStoreTransforms === 2) {
+      equal(operation.op, 'remove',              'local store - removed');
+      equal(localStore.length('planet'), 0,      'local store should be empty');
+
+    } else {
+      ok(false, 'too many transforms');
+    }
+  });
+
+  restStore.on('didTransform', function(operation, result) {
+    restStoreTransforms++;
+
+    console.log('REST STORE - didTransform', restStoreTransforms, operation, result);
+
+    if (restStoreTransforms === 1) {
+      equal(operation.op, 'add',                'rest store - initial object addition');
+
+    } else if (restStoreTransforms === 2) {
+      start();
+      equal(operation.op, 'remove',             'rest store - removed');
+
+    } else  {
+      ok(false, 'too many transforms');
+    }
+  });
+
+  /////////////////////////////////////////////////////////////////////////////
+
+  stop();
+  memoryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    equal(memoryStore.length('planet'), 1, 'memory store - inserted - should contain one record');
+
+    server.respond('POST', '/planets', function(xhr) {
+      deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
+      xhr.respond(201,
+                  {'Content-Type': 'application/json'},
+                  JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
+    });
+
+    return memoryStore.remove('planet', planet.__id);
+
+  }).then(function() {
+
+    equal(memoryStore.length('planet'), 0, 'memory store should be empty');
+
+    server.respond('DELETE', '/planets/12345', function(xhr) {
+      deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
+      xhr.respond(200,
+                  {'Content-Type': 'application/json'},
+                  JSON.stringify({}));
+    });
+  });
+});
