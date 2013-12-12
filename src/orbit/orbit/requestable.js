@@ -6,7 +6,7 @@ var Requestable = {
 
   extend: function(object, actions) {
     if (object._requestable === undefined) {
-      this._requestable = true;
+      object._requestable = true;
       Evented.extend(object);
       this._defineAction(object, actions || this.defaultActions);
     }
