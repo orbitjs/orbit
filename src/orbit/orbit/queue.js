@@ -3,6 +3,7 @@ import Orbit from 'orbit/core';
 var Queue = function() {
   this.queue = [];
   this.processing = false;
+  this.autoProcess = true;
 };
 
 Queue.prototype = {
@@ -13,19 +14,13 @@ Queue.prototype = {
 
     binding = binding || this;
 
-    if (this.processing) {
-      debugger;
-      var response = new Orbit.Promise(function(resolve) {
-        _this.queue.push(function() {
-          resolve(fn.call(binding));
-        });
+    var response = new Orbit.Promise(function(resolve) {
+      _this.queue.push(function() {
+        resolve(fn.call(binding));
       });
+    });
 
-      _this.process();
-
-    } else {
-      return fn.call(binding);
-    }
+    if (this.autoProcess) this.process();
 
     return response;
   },
