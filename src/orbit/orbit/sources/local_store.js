@@ -15,7 +15,7 @@ var LocalStore = function(options) {
 
   var _this = this;
   ['on', 'off', 'emit', 'poll', 'listeners', 'resolve', 'settle',               // Evented interface
-   'transform',                                                                 // Transformable interface
+   'transform', 'didTransform',                                                 // Transformable interface
    'find', 'add', 'update', 'patch', 'remove',                                  // Requestable interface
    'configure', 'retrieve', 'length', 'isDeleted'].forEach(function(method) {   // Directly defined
 

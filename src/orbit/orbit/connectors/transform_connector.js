@@ -45,20 +45,20 @@ TransformConnector.prototype = {
   // Internals
   /////////////////////////////////////////////////////////////////////////////
 
-  _processTransform: function(operation, record) {
+  _processTransform: function(operation) {
 // TODO - add filtering back in
 //    if (this.actions && !this.actions[action]) return;
 //    if (this.types && !this.types[type]) return;
 
-    console.log(this.target.id, 'processTransform', operation, record);
+    console.log(this.target.id, 'processTransform', operation);
 
-    var promise = this._transformTarget(operation, record);
+    var promise = this._transformTarget(operation);
 
     if (promise && this.blocking) return promise;
   },
 
-  _transformTarget: function(operation, updatedValue) {
-    console.log(this.target.id, '_transformTarget', operation, updatedValue);
+  _transformTarget: function(operation) {
+//    console.log(this.target.id, '_transformTarget', operation, updatedValue);
 
     if (this.target.isDeleted && this.target.isDeleted(operation.path)) return;
 
@@ -66,23 +66,19 @@ TransformConnector.prototype = {
       var currentValue = this.target.retrieve(operation.path);
 
       if (currentValue) {
-        console.log(this.target.id, '_transformTarget - currentValue', currentValue);
+//        console.log(this.target.id, '_transformTarget - currentValue', currentValue);
         if (operation.op === 'add' || operation.op === 'replace') {
-          if (eq(currentValue, updatedValue)) {
-            console.log(this.target.id, '_transformTarget - currentValue == updatedValue', currentValue);
+          if (eq(currentValue, operation.value)) {
+//            console.log(this.target.id, '_transformTarget - currentValue == updatedValue', currentValue);
             return;
           } else {
-            return this._resolveConflicts(operation.path, currentValue, updatedValue);
+            return this._resolveConflicts(operation.path, currentValue, operation.value);
           }
         }
       }
     }
 
-    if (operation.op === 'add' || operation.op === 'replace') {
-      return this.target.transform({op: operation.op, path: operation.path, value: updatedValue});
-    } else {
-      return this.target.transform(operation);
-    }
+    return this.target.transform(operation);
   },
 
   _resolveConflicts: function(path, currentValue, updatedValue) {

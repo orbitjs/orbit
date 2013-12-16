@@ -30,6 +30,10 @@ module("Integration - Rest / Memory / Local Transforms (Blocking)", {
     restStore = new RestStore({schema: schema});
     localStore = new LocalStore({schema: schema, autoload: false});
 
+    memoryStore.id = 'memoryStore';
+    restStore.id = 'restStore';
+    localStore.id = 'localStore';
+
     // Connect MemoryStore -> LocalStore
     memToLocalConnector = new TransformConnector(memoryStore, localStore);
 

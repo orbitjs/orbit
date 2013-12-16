@@ -67,52 +67,25 @@ test("it should trigger `didTransform` event after a successful transform", func
   expect(6);
 
   var order = 0,
-      diff = {op: 'add', path: 'planet', value: 'data'};
+      addOp = {op: 'add', path: 'planet/1', value: 'data'},
+      inverseOp = {op: 'remove', path: 'planet/1'};
 
-  source._transform = function() {
+  source._transform = function(operation) {
     equal(++order, 1, '_transform performed first');
-    deepEqual(Array.prototype.slice.call(arguments, 0), [diff], '_handler args match original call args');
+    deepEqual(Array.prototype.slice.call(arguments, 0), [addOp], '_handler args match original call args');
+    this.didTransform(addOp, inverseOp);
     return successfulOperation();
   };
 
-  source.on('didTransform', function() {
+  source.on('didTransform', function(operation, inverse) {
     equal(++order, 2, 'didTransform triggered after action performed successfully');
-    deepEqual(Array.prototype.slice.call(arguments, 0), [diff, ':)'], 'event handler args include `type` + return value');
+    deepEqual(operation, addOp, 'operation matches');
+    deepEqual(inverse, inverseOp, 'inverse matches');
   });
 
   stop();
-  source.transform(diff).then(function(result) {
+  source.transform(addOp).then(function() {
     start();
     equal(++order, 3, 'promise resolved last');
-    equal(result, ':)', 'success!');
-  });
-});
-
-test("it should trigger `didNotTransform` event after an unsuccessful action", function() {
-  expect(6);
-
-  var order = 0,
-      diff = {op: 'add', path: 'planet', value: 'data'};
-
-  source._transform = function() {
-    equal(++order, 1, '_transform performed first');
-    deepEqual(Array.prototype.slice.call(arguments, 0), [diff], '_handler args match original call args');
-    return failedOperation();
-  };
-
-  source.on('didTransform', function() {
-    ok(false, 'didTransform should not be triggered');
-  });
-
-  source.on('didNotTransform', function() {
-    equal(++order, 2, 'didNotTransform triggered after an unsuccessful action');
-    deepEqual(Array.prototype.slice.call(arguments, 0), [diff, ':('], 'event handler args match original call args + return value');
-  });
-
-  stop();
-  source.transform(diff).then(null, function(result) {
-    start();
-    equal(++order, 3, 'promise resolved last');
-    equal(result, ':(', 'failure');
   });
 });

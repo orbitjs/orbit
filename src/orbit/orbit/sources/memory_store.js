@@ -52,31 +52,23 @@ MemoryStore.prototype = {
   // Transformable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _transform: function(operation, transaction) {
+  _transform: function(operation) {
     var _this = this;
     return new Orbit.Promise(function(resolve, reject) {
-      var ops = [operation];
-
       // TODO - normalize paths
       var path = operation.path;
       if (typeof path === 'string') {
         path = path.split('/');
       }
 
-      // Track deleted records
+      _this._transformCache(operation);
+
+      // Track deleted records (Note: cache transforms won't be tracked)
       if (operation.op === 'remove' && path.length === 2) {
-        ops.push({op: 'add', path: ['deleted'].concat(path), value: true});
+        _this._cache.transform({op: 'add', path: ['deleted'].concat(path), value: true});
       }
 
-      for (var i = 0; i < ops.length; i++) {
-        if (transaction) {
-          transaction.inverse.push(_this._cache.transform(ops[i], true));
-        } else {
-          _this._cache.transform(ops[i]);
-        }
-      }
-
-      resolve(_this.retrieve(operation.path));
+      resolve();
     });
   },
 
@@ -108,7 +100,9 @@ MemoryStore.prototype = {
 
     data[this.idField] = id;
 
-    return this.transform({op: 'add', path: path, value: data});
+    return this.transform({op: 'add', path: path, value: data}).then(function() {
+      return _this.retrieve(path);
+    });
   },
 
   _update: function(type, data) {
@@ -116,7 +110,9 @@ MemoryStore.prototype = {
         path = [type, id],
         _this = this;
 
-    return this.transform({op: 'replace', path: path, value: data});
+    return this.transform({op: 'replace', path: path, value: data}).then(function() {
+      return _this.retrieve(path);
+    });
   },
 
   _patch: function(type, id, property, value) {
@@ -139,6 +135,11 @@ MemoryStore.prototype = {
   /////////////////////////////////////////////////////////////////////////////
   // Internals
   /////////////////////////////////////////////////////////////////////////////
+
+  _transformCache: function(operation) {
+    var inverse = this._cache.transform(operation, true);
+    this.didTransform(operation, inverse);
+  },
 
   _filter: function(type, query) {
     var all = [],

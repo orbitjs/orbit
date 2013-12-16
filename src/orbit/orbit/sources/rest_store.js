@@ -59,7 +59,7 @@ RestStore.prototype = {
   // Transformable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _transform: function(operation, transaction) {
+  _transform: function(operation) {
     var _this = this,
         path = operation.path,
         data = operation.value,
@@ -82,8 +82,7 @@ RestStore.prototype = {
       return this._ajax(baseURL, 'PATCH', {data: {op: operation.op, path: pathURL, value: data}}).then(
         function() {
           if (operation.op === 'replace') operation.op = 'add';
-          _this._cache.transform(operation);
-          return _this.retrieve(path);
+          _this._transformCache(operation);
         }
       );
 
@@ -100,7 +99,7 @@ RestStore.prototype = {
           function(raw) {
             record = _this._deserialize(type, raw);
             record[_this.idField] = id;
-            return _this._addToCache(type, record);
+            _this._addToCache(type, record);
           }
         );
 
@@ -113,16 +112,16 @@ RestStore.prototype = {
             function(raw) {
               record = _this._deserialize(type, raw);
               record[_this.idField] = id;
-              return _this._addToCache(type, record);
+              _this._addToCache(type, record);
             }
           );
 
         } else if (operation.op === 'remove') {
           return this._ajax(this._buildURL(type, remoteId), 'DELETE').then(function() {
-            record = _this.retrieve([type, id]);
-            if (record) _this._cache.transform({op: 'remove', path: [type, id]});
+            _this._transformCache(operation);
+
+            // Track deleted records (Note: cache transforms won't be tracked)
             _this._cache.transform({op: 'add', path: ['deleted', type, id], value: true});
-            return;
           });
         }
       }
@@ -154,7 +153,9 @@ RestStore.prototype = {
 
     data[this.idField] = id;
 
-    return this.transform({op: 'add', path: path, value: data});
+    return this.transform({op: 'add', path: path, value: data}).then(function() {
+      return _this.retrieve(path);
+    });
   },
 
   _update: function(type, data) {
@@ -169,7 +170,9 @@ RestStore.prototype = {
 
     path = [type, id];
 
-    return this.transform({op: 'replace', path: path, value: data});
+    return this.transform({op: 'replace', path: path, value: data}).then(function() {
+      return _this.retrieve(path);
+    });
   },
 
   _patch: function(type, data, property, value) {
@@ -275,14 +278,17 @@ RestStore.prototype = {
     return remoteId;
   },
 
+  _transformCache: function(operation) {
+    var inverse = this._cache.transform(operation, true);
+    this.didTransform(operation, inverse);
+  },
+
   _addToCache: function(type, record) {
     var id = record[this.idField];
     if (id === undefined) record[this.idField] = id = this._generateId();
 
-    this._cache.add([type, id], record);
+    this._transformCache({op: 'add', path: [type, id], value: record});
     this._updateRemoteIdMap(type, id, record[this.remoteIdField]);
-
-    return record;
   },
 
   _updateRemoteIdMap: function(type, id, remoteId) {
