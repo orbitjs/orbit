@@ -139,7 +139,7 @@ var Evented = {
         listeners = this.listeners(eventNames),
         args = Array.prototype.slice.call(arguments, 1);
 
-    return new Orbit.Promise(function(resolve, reject) {
+    return new Orbit.Promise(function(resolve) {
       var settleEach = function() {
         if (listeners.length === 0) {
           resolve();
