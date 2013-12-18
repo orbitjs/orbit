@@ -131,8 +131,8 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
       equal(operation.value.classification, 'gas giant', 'memory store - inserted - classification should be original');
 
     } else if (memoryStoreTransforms === 2) {
-      equal(operation.op, 'replace',  'memory store - name replaced');
-      equal(operation.value, 'Earth', 'memory store - name - Earth');
+      equal(operation.op, 'replace',  'memory store - planet replaced');
+      equal(operation.value.name, 'Earth', 'memory store - planet name - Earth');
 
     } else if (memoryStoreTransforms === 3) {
       // `id` is added when the REST POST response returns
