@@ -2,8 +2,7 @@ import Orbit from 'orbit/core';
 
 var TransformQueue = function(target) {
   this.target = target;
-  this.queue = [];
-  this.ops = []; // TODO - remove
+  this._queue = [];
   this.processing = false;
   this.autoProcess = true;
 };
@@ -11,19 +10,24 @@ var TransformQueue = function(target) {
 TransformQueue.prototype = {
   constructor: TransformQueue,
 
-  push: function(fn, binding) {
+  push: function(operation) {
     var _this = this;
 
-    binding = binding || this;
-
-    console.log(_this.target.id, 'queue - push', _this.ops);
+    console.log('>>>> TransformQueue', _this.target.id, operation);
 
     var response = new Orbit.Promise(function(resolve) {
-      _this.queue.push(function() {
-        fn.call(binding).then(function(result) {
-          resolve(result);
-        });
-      });
+      var transform = {
+        resolver: function() {
+          return _this.target._transform.call(_this.target, operation).then(
+            function(result) {
+              resolve(result);
+            }
+          );
+        },
+        op: operation
+      };
+
+      _this._queue.push(transform);
     });
 
     if (this.autoProcess) this.process();
@@ -38,28 +42,24 @@ TransformQueue.prototype = {
       _this.processing = true;
 
       var settleEach = function() {
-        if (_this.queue.length === 0) {
+        if (_this._queue.length === 0) {
 
           _this.processing = false;
-          console.log(_this.target.id, 'END - process queue', _this.queue.length);
+          console.log('---- TransformQueue', _this.target.id, 'EMPTY');
 
         } else {
-          console.log(_this.target.id, 'START - process queue', _this.queue.length, _this.ops.shift());
-          var fn = _this.queue.shift();
-          var response = fn.call(_this);
+          var transform = _this._queue.shift();
 
-          if (response) {
-            return response.then(
-              function(success) {
-                settleEach();
-              },
-              function(error) {
-                settleEach();
-              }
-            );
-          } else {
-            settleEach();
-          }
+          console.log('<<<< TransformQueue', _this.target.id, transform.operation);
+
+          return transform.resolver.call(_this).then(
+            function(success) {
+              settleEach();
+            },
+            function(error) {
+              settleEach();
+            }
+          );
         }
       };
 

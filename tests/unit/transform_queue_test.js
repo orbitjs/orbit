@@ -32,21 +32,21 @@ test("it exists", function() {
   ok(queue);
 });
 
-test("will auto-process pushed functions by default", function() {
-  expect(3);
-
-  var op1 = function() {
-    ok(true, 'function called');
-    return new RSVP.Promise(function(resolve) {
-      ok(true, 'promise resolved');
-      resolve(':)');
-    });
-  };
-
-  stop();
-  queue.push(op1).then(function() {
-    start();
-    ok(true, 'queue resolved');
-  });
-});
+//test("will auto-process pushed functions by default", function() {
+//  expect(3);
+//
+//  var op1 = function() {
+//    ok(true, 'function called');
+//    return new RSVP.Promise(function(resolve) {
+//      ok(true, 'promise resolved');
+//      resolve(':)');
+//    });
+//  };
+//
+//  stop();
+//  queue.push(op1).then(function() {
+//    start();
+//    ok(true, 'queue resolved');
+//  });
+//});
 

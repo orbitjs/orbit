@@ -36,26 +36,6 @@ var settleTransformEvents = function(ops) {
   });
 };
 
-var applyTransform = function(operation) {
-  var _this = this;
-
-  console.log('++++', 'transform', this.id, operation);
-
-  return _this._transform.call(_this, operation).then(
-    function(result) {
-      if (_this._completedTransforms.length > 0) {
-        return settleTransformEvents.call(_this, _this._completedTransforms).then(
-          function() {
-            return result;
-          }
-        );
-      } else {
-        return result;
-      }
-    }
-  );
-};
-
 var Transformable = {
   extend: function(object, actions) {
     if (object._transformable === undefined) {
@@ -72,12 +52,18 @@ var Transformable = {
       object.transform = function(operation) {
         Orbit.assert('_transform must be defined', object._transform);
 
-        object.transformQueue.ops.push(operation);
-        return object.transformQueue.push(
-          function() {
-            return applyTransform.call(object, operation);
-          },
-          object
+        return object.transformQueue.push(operation).then(
+          function(result) {
+            if (object._completedTransforms.length > 0) {
+              return settleTransformEvents.call(object, object._completedTransforms).then(
+                function() {
+                  return result;
+                }
+              );
+            } else {
+              return result;
+            }
+          }
         );
       };
     }
