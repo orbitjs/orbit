@@ -1,21 +1,22 @@
 import Orbit from 'orbit/core';
 
-var Queue = function() {
+var TransformQueue = function(target) {
+  this.target = target;
   this.queue = [];
   this.ops = []; // TODO - remove
   this.processing = false;
   this.autoProcess = true;
 };
 
-Queue.prototype = {
-  constructor: Queue,
+TransformQueue.prototype = {
+  constructor: TransformQueue,
 
   push: function(fn, binding) {
     var _this = this;
 
     binding = binding || this;
 
-    console.log(_this.id, 'queue - push', _this.ops);
+    console.log(_this.target.id, 'queue - push', _this.ops);
 
     var response = new Orbit.Promise(function(resolve) {
       _this.queue.push(function() {
@@ -40,10 +41,10 @@ Queue.prototype = {
         if (_this.queue.length === 0) {
 
           _this.processing = false;
-          console.log(_this.id, 'END - process queue', _this.queue.length);
+          console.log(_this.target.id, 'END - process queue', _this.queue.length);
 
         } else {
-          console.log(_this.id, 'START - process queue', _this.queue.length, _this.ops.shift());
+          console.log(_this.target.id, 'START - process queue', _this.queue.length, _this.ops.shift());
           var fn = _this.queue.shift();
           var response = fn.call(_this);
 
@@ -67,4 +68,4 @@ Queue.prototype = {
   }
 };
 
-export default Queue;
+export default TransformQueue;

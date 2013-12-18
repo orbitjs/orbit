@@ -1,6 +1,6 @@
 import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
-import Queue from 'orbit/queue';
+import TransformQueue from 'orbit/transform_queue';
 
 var settleTransformEvents = function(ops) {
   var _this = this;
@@ -60,7 +60,7 @@ var Transformable = {
   extend: function(object, actions) {
     if (object._transformable === undefined) {
       object._transformable = true;
-      object.transformQueue = new Queue();
+      object.transformQueue = new TransformQueue(object);
       object._completedTransforms = [];
 
       Evented.extend(object);
@@ -71,9 +71,6 @@ var Transformable = {
 
       object.transform = function(operation) {
         Orbit.assert('_transform must be defined', object._transform);
-
-// TODO - remove
-object.transformQueue.id = object.id;
 
         object.transformQueue.ops.push(operation);
         return object.transformQueue.push(

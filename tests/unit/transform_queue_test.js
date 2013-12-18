@@ -1,8 +1,9 @@
 import Orbit from 'orbit/core';
-import Queue from 'orbit/queue';
+import TransformQueue from 'orbit/transform_queue';
 import RSVP from 'rsvp';
 
-var queue;
+var queue,
+    target;
 
 var failedOperation = function() {
   return new RSVP.Promise(function(resolve, reject) {
@@ -12,10 +13,13 @@ var failedOperation = function() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Unit - Queue", {
+module("Unit - TransformQueue", {
   setup: function() {
     Orbit.Promise = RSVP.Promise;
-    queue = new Queue();
+    target = {
+      id: 'test'
+    };
+    queue = new TransformQueue(target);
   },
 
   teardown: function() {

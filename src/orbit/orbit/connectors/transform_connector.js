@@ -1,5 +1,4 @@
 import Orbit from 'orbit/core';
-//import Queue from 'orbit/queue';
 import clone from 'orbit/lib/clone';
 import diffs from 'orbit/lib/diffs';
 import eq from 'orbit/lib/eq';
