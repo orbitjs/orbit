@@ -2,6 +2,10 @@ import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
 import TransformQueue from 'orbit/transform_queue';
 
+var normalizeOperation = function(op) {
+  if (typeof op.path === 'string') op.path = op.path.split('/');
+};
+
 var settleTransformEvents = function(ops) {
   var _this = this;
 
@@ -39,6 +43,8 @@ var settleTransformEvents = function(ops) {
 var transformOne = function(operation) {
   var _this = this;
 
+  normalizeOperation(operation);
+
   return _this.transformQueue.push(operation).then(
     function(result) {
       if (_this._completedTransforms.length > 0) {
@@ -60,6 +66,9 @@ var transformMany = function(operations) {
       ret;
 
   operations.forEach(function(operation) {
+
+    normalizeOperation(operation);
+
     ret = _this.transformQueue.push(operation).then(
       function(inverse) {
         if (_this._completedTransforms.length > 0) {

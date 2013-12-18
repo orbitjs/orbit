@@ -56,7 +56,7 @@ test("it should require that _transform returns a promise", function() {
   source._transform = successfulOperation;
 
   stop();
-  source.transform().then(function(result) {
+  source.transform({op: 'add', path: 'planet/1', value: 'data'}).then(function(result) {
     start();
     ok(true, '_transform promise resolved');
     equal(result, ':)', 'success!');

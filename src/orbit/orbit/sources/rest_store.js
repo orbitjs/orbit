@@ -61,16 +61,12 @@ RestStore.prototype = {
 
   _transform: function(operation) {
     var _this = this,
-        path = operation.path,
-        data = operation.value,
-        type,
-        id,
+        path  = operation.path,
+        data  = operation.value,
+        type  = path[0],
+        id    = path[1],
         remoteId,
         record;
-
-    if (typeof path === 'string') path = path.split('/');
-    type = path[0];
-    id = path[1];
 
     if (path.length > 2) {
       remoteId = this._lookupRemoteId(type, id);
