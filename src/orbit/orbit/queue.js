@@ -2,6 +2,7 @@ import Orbit from 'orbit/core';
 
 var Queue = function() {
   this.queue = [];
+  this.ops = []; // TODO - remove
   this.processing = false;
   this.autoProcess = true;
 };
@@ -14,9 +15,13 @@ Queue.prototype = {
 
     binding = binding || this;
 
+    console.log(_this.id, 'queue - push', _this.ops);
+
     var response = new Orbit.Promise(function(resolve) {
       _this.queue.push(function() {
-        resolve(fn.call(binding));
+        fn.call(binding).then(function(result) {
+          resolve(result);
+        });
       });
     });
 
@@ -29,11 +34,16 @@ Queue.prototype = {
     if (!this.processing) {
       var _this = this;
 
+      _this.processing = true;
+
       var settleEach = function() {
         if (_this.queue.length === 0) {
+
           _this.processing = false;
+          console.log(_this.id, 'END - process queue', _this.queue.length);
 
         } else {
+          console.log(_this.id, 'START - process queue', _this.queue.length, _this.ops.shift());
           var fn = _this.queue.shift();
           var response = fn.call(_this);
 

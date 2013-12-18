@@ -38,11 +38,16 @@ var settleTransformEvents = function(ops) {
 
 var applyTransform = function(operation) {
   var _this = this;
+
+  console.log('++++', 'transform', this.id, operation);
+
   return _this._transform.call(_this, operation).then(
     function(result) {
-      if (_this._transformOps.length > 0) {
-        return settleTransformEvents.call(_this, _this._transformOps).then(
-          function() { return result; }
+      if (_this._completedTransforms.length > 0) {
+        return settleTransformEvents.call(_this, _this._completedTransforms).then(
+          function() {
+            return result;
+          }
         );
       } else {
         return result;
@@ -55,20 +60,26 @@ var Transformable = {
   extend: function(object, actions) {
     if (object._transformable === undefined) {
       object._transformable = true;
-      object._transformQueue = new Queue();
-      object._transformOps = [];
+      object.transformQueue = new Queue();
+      object._completedTransforms = [];
 
       Evented.extend(object);
 
       object.didTransform = function(operation, inverse) {
-        object._transformOps.push([operation, inverse]);
+        object._completedTransforms.push([operation, inverse]);
       };
 
       object.transform = function(operation) {
         Orbit.assert('_transform must be defined', object._transform);
 
-        return object._transformQueue.push(
-          function() { return applyTransform.call(object, operation); },
+// TODO - remove
+object.transformQueue.id = object.id;
+
+        object.transformQueue.ops.push(operation);
+        return object.transformQueue.push(
+          function() {
+            return applyTransform.call(object, operation);
+          },
           object
         );
       };

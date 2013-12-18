@@ -114,10 +114,43 @@ test("records inserted into memory should be posted with rest", function() {
 });
 
 test("records updated in memory should be updated with rest (via PATCH)", function() {
-  expect(25);
+  expect(35);
 
-  var localStoreTransforms = 0,
+  var memoryStoreTransforms = 0,
+      localStoreTransforms = 0,
       restStoreTransforms = 0;
+
+  memoryStore.on('didTransform', function(operation, inverse) {
+    memoryStoreTransforms++;
+
+    console.log('MEMORY STORE - didTransform', memoryStoreTransforms, operation, inverse);
+
+    if (memoryStoreTransforms === 1) {
+      equal(operation.op, 'add',                         'memory store - initial object addition');
+      equal(operation.value.name, 'Jupiter',             'memory store - inserted - name - Jupiter');
+      equal(operation.value.classification, 'gas giant', 'memory store - inserted - classification should be original');
+
+    } else if (memoryStoreTransforms === 2) {
+      equal(operation.op, 'replace',  'memory store - name replaced');
+      equal(operation.value, 'Earth', 'memory store - name - Earth');
+
+    } else if (memoryStoreTransforms === 3) {
+      // `id` is added when the REST POST response returns
+      equal(operation.op, 'add',     'memory store - id added');
+      equal(operation.value, 12345,  'memory store - id');
+
+    } else if (memoryStoreTransforms === 4) {
+      equal(operation.op, 'replace',    'memory store - name replaced when the REST POST response returns');
+      equal(operation.value, 'Jupiter', 'memory store - name temporarily changed back to Jupiter');
+
+    } else if (memoryStoreTransforms === 5) {
+      equal(operation.op, 'replace',  'memory store - name replaced when the REST PATCH response returns');
+      equal(operation.value, 'Earth', 'memory store - name changed back to Earth');
+
+    } else {
+      ok(false, 'too many transforms');
+    }
+  });
 
   localStore.on('didTransform', function(operation, inverse) {
     localStoreTransforms++;
@@ -125,28 +158,33 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
     console.log('LOCAL STORE - didTransform', localStoreTransforms, operation, inverse);
 
     if (localStoreTransforms === 1) {
-      equal(operation.op, 'add',                'local store - initial object addition');
+      equal(operation.op, 'add',                         'local store - initial object addition');
       equal(operation.value.name, 'Jupiter',             'local store - inserted - name - Jupiter');
       equal(operation.value.classification, 'gas giant', 'local store - inserted - classification should be original');
 
     } else if (localStoreTransforms === 2) {
-      equal(operation.op, 'replace', 'local store - name replaced');
-      equal(operation.value, 'Earth',         'local store - name - Earth');
+      equal(operation.op, 'replace',  'local store - name replaced');
+      equal(operation.value, 'Earth', 'local store - name - Earth');
 
     } else if (localStoreTransforms === 3) {
       // `id` is added when the REST POST response returns
       equal(operation.op, 'add',     'local store - id added');
-      equal(operation.value, 12345,           'local store - id');
+      equal(operation.value, 12345,  'local store - id');
 
     } else if (localStoreTransforms === 4) {
-      // `name` gets temporarily changed back to Jupiter when the REST POST response returns
-      equal(operation.op, 'replace', 'local store - name replaced');
-      equal(operation.value, 'Jupiter',       'local store - name - Jupiter');
+      equal(operation.op, 'replace',    'local store - name replaced when the REST POST response returns');
+      equal(operation.value, 'Jupiter', 'local store - name temporarily changed back to Jupiter');
+
+      server.respond('PATCH', '/planets/12345', function(xhr) {
+        deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/name', value: 'Earth'}, 'PATCH request');
+        xhr.respond(200,
+                    {'Content-Type': 'application/json'},
+                    JSON.stringify({}));
+      });
 
     } else if (localStoreTransforms === 5) {
-      // `name` gets changed back to Earth when the REST PATCH response returns
-      equal(operation.op, 'replace', 'local store - name replaced');
-      equal(operation.value, 'Earth',         'local store - name - Earth');
+      equal(operation.op, 'replace',  'local store - name replaced when the REST PATCH response returns');
+      equal(operation.value, 'Earth', 'local store - name changed back to Earth');
 
     } else {
       ok(false, 'too many transforms');
@@ -159,7 +197,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
     console.log('REST STORE - didTransform', restStoreTransforms, operation, inverse);
 
     if (restStoreTransforms === 1) {
-      equal(operation.op, 'add',                'rest store - initial object addition');
+      equal(operation.op, 'add',                         'rest store - initial object addition');
       equal(operation.value.id, 12345,                   'rest store - inserted - id');
       equal(operation.value.name, 'Jupiter',             'rest store - inserted - name - Jupiter');
       equal(operation.value.classification, 'gas giant', 'rest store - inserted - classification - gas giant');
@@ -168,8 +206,8 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
       start();
 
       // TODO - should be 'replace'?
-      equal(operation.op, 'add',                'rest store - name added');
-      equal(operation.value, 'Earth',                    'rest store - name - Earth');
+      equal(operation.op, 'add',      'rest store - name added');
+      equal(operation.value, 'Earth', 'rest store - name - Earth');
 
     } else  {
       ok(false, 'too many transforms');
@@ -195,25 +233,48 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
 
     record.name = 'Earth';
     return memoryStore.update('planet', record);
-
-  }).then(function() {
-//    equal(record.name, 'Earth',               'memory store - updated - name - Earth');
-//    equal(record.classification, 'gas giant', 'memory store - updated - classification - gas giant');
-
-    server.respond('PATCH', '/planets/12345', function(xhr) {
-      deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/name', value: 'Earth'}, 'PATCH request');
-      xhr.respond(200,
-                  {'Content-Type': 'application/json'},
-                  JSON.stringify({}));
-    });
   });
 });
 
-test("records patched in memory should be patched with rest", function() {
-  expect(24);
 
-  var localStoreTransforms = 0,
+test("records patched in memory should be patched with rest", function() {
+  expect(35);
+
+  var memoryStoreTransforms = 0,
+      localStoreTransforms = 0,
       restStoreTransforms = 0;
+
+  memoryStore.on('didTransform', function(operation, inverse) {
+    memoryStoreTransforms++;
+
+    console.log('MEMORY STORE - didTransform', memoryStoreTransforms, operation, inverse);
+
+    if (memoryStoreTransforms === 1) {
+      equal(operation.op, 'add',                         'memory store - initial object addition');
+      equal(operation.value.name, 'Jupiter',             'memory store - inserted - name - Jupiter');
+      equal(operation.value.classification, 'gas giant', 'memory store - inserted - classification should be original');
+
+    } else if (memoryStoreTransforms === 2) {
+      equal(operation.op, 'replace',  'memory store - name replaced');
+      equal(operation.value, 'Earth', 'memory store - name - Earth');
+
+    } else if (memoryStoreTransforms === 3) {
+      // `id` is added when the REST POST response returns
+      equal(operation.op, 'add',     'memory store - id added');
+      equal(operation.value, 12345,  'memory store - id');
+
+    } else if (memoryStoreTransforms === 4) {
+      equal(operation.op, 'replace',    'memory store - name replaced when the REST POST response returns');
+      equal(operation.value, 'Jupiter', 'memory store - name temporarily changed back to Jupiter');
+
+    } else if (memoryStoreTransforms === 5) {
+      equal(operation.op, 'replace',  'memory store - name replaced when the REST PATCH response returns');
+      equal(operation.value, 'Earth', 'memory store - name changed back to Earth');
+
+    } else {
+      ok(false, 'too many transforms');
+    }
+  });
 
   localStore.on('didTransform', function(operation, inverse) {
     localStoreTransforms++;
@@ -235,14 +296,19 @@ test("records patched in memory should be patched with rest", function() {
       equal(operation.value, 12345,  'local store - id');
 
     } else if (localStoreTransforms === 4) {
-      // `name` gets temporarily changed back to Jupiter when the REST POST response returns
-      equal(operation.op, 'replace', 'local store - name replaced');
-      equal(operation.value, 'Jupiter',       'local store - name - Jupiter');
+      equal(operation.op, 'replace',    'local store - name replaced when the REST POST response returns');
+      equal(operation.value, 'Jupiter', 'local store - name temporarily changed back to Jupiter');
+
+      server.respond('PATCH', '/planets/12345', function(xhr) {
+        deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/name', value: 'Earth'}, 'PATCH request');
+        xhr.respond(200,
+                    {'Content-Type': 'application/json'},
+                    JSON.stringify({}));
+      });
 
     } else if (localStoreTransforms === 5) {
-      // `name` gets changed back to Earth when the REST PATCH response returns
-      equal(operation.op, 'replace', 'local store - name replaced');
-      equal(operation.value, 'Earth',         'local store - name - Earth');
+      equal(operation.op, 'replace',  'local store - name replaced when the REST PATCH response returns');
+      equal(operation.value, 'Earth', 'local store - name changed back to Earth');
 
     } else {
       ok(false, 'too many transforms');
@@ -290,16 +356,9 @@ test("records patched in memory should be patched with rest", function() {
     });
 
     return memoryStore.patch('planet', record.__id, 'name', 'Earth');
-
-  }).then(function() {
-    server.respond('PATCH', '/planets/12345', function(xhr) {
-      deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/name', value: 'Earth'}, 'PATCH request');
-      xhr.respond(200,
-                  {'Content-Type': 'application/json'},
-                  JSON.stringify({}));
-    });
   });
 });
+
 
 test("records deleted in memory should be deleted with rest", function() {
   expect(9);

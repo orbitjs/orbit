@@ -1,4 +1,5 @@
 import Orbit from 'orbit/core';
+//import Queue from 'orbit/queue';
 import clone from 'orbit/lib/clone';
 import diffs from 'orbit/lib/diffs';
 import eq from 'orbit/lib/eq';
@@ -50,15 +51,17 @@ TransformConnector.prototype = {
 //    if (this.actions && !this.actions[action]) return;
 //    if (this.types && !this.types[type]) return;
 
-    console.log(this.target.id, 'processTransform', operation);
+//    console.log(this.target.id, 'processTransform', operation);
+    if (this.blocking) {
+      return this._transformTarget(operation);
 
-    var promise = this._transformTarget(operation);
-
-    if (promise && this.blocking) return promise;
+    } else {
+      this._transformTarget(operation);
+    }
   },
 
   _transformTarget: function(operation) {
-//    console.log(this.target.id, '_transformTarget', operation, updatedValue);
+    console.log('****', ' transform from ', this.source.id, ' to ', this.target.id, operation);
 
     if (this.target.isDeleted && this.target.isDeleted(operation.path)) return;
 
@@ -66,10 +69,9 @@ TransformConnector.prototype = {
       var currentValue = this.target.retrieve(operation.path);
 
       if (currentValue) {
-//        console.log(this.target.id, '_transformTarget - currentValue', currentValue);
         if (operation.op === 'add' || operation.op === 'replace') {
           if (eq(currentValue, operation.value)) {
-//            console.log(this.target.id, '_transformTarget - currentValue == updatedValue', currentValue);
+            console.log('==', ' transform from ', this.source.id, ' to ', this.target.id, operation);
             return;
           } else {
             return this._resolveConflicts(operation.path, currentValue, operation.value);
@@ -82,13 +84,17 @@ TransformConnector.prototype = {
   },
 
   _resolveConflicts: function(path, currentValue, updatedValue) {
-    var _this = this;
+    var ops = diffs(currentValue, updatedValue, {basePath: path}),
+        op,
+        ret;
 
     console.log(this.target.id, 'resolveConflicts', path, currentValue, updatedValue);
 
-    diffs(currentValue, updatedValue, {basePath: path}).forEach(function(op) {
-      _this.target.transform(op);
-    });
+    while(op = ops.shift()) {
+      ret = this.target.transform(op);
+    }
+
+    return ret;
   }
 };
 
