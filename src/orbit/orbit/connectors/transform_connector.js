@@ -83,17 +83,11 @@ TransformConnector.prototype = {
   },
 
   _resolveConflicts: function(path, currentValue, updatedValue) {
-    var ops = diffs(currentValue, updatedValue, {basePath: path}),
-        op,
-        ret;
+    var ops = diffs(currentValue, updatedValue, {basePath: path});
 
-    console.log(this.target.id, 'resolveConflicts', path, currentValue, updatedValue);
+    console.log(this.target.id, 'resolveConflicts', path, currentValue, updatedValue, ops);
 
-    while(op = ops.shift()) {
-      ret = this.target.transform(op);
-    }
-
-    return ret;
+    return this.target.transform(ops);
   }
 };
 

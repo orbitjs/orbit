@@ -36,38 +36,72 @@ var settleTransformEvents = function(ops) {
   });
 };
 
-var Transformable = {
-  extend: function(object, actions) {
-    if (object._transformable === undefined) {
-      object._transformable = true;
-      object.transformQueue = new TransformQueue(object);
-      object._completedTransforms = [];
+var transformOne = function(operation) {
+  var _this = this;
 
-      Evented.extend(object);
-
-      object.didTransform = function(operation, inverse) {
-        object._completedTransforms.push([operation, inverse]);
-      };
-
-      object.transform = function(operation) {
-        Orbit.assert('_transform must be defined', object._transform);
-
-        return object.transformQueue.push(operation).then(
-          function(result) {
-            if (object._completedTransforms.length > 0) {
-              return settleTransformEvents.call(object, object._completedTransforms).then(
-                function() {
-                  return result;
-                }
-              );
-            } else {
-              return result;
-            }
+  return _this.transformQueue.push(operation).then(
+    function(result) {
+      if (_this._completedTransforms.length > 0) {
+        return settleTransformEvents.call(_this, _this._completedTransforms).then(
+          function() {
+            return result;
           }
         );
+      } else {
+        return result;
+      }
+    }
+  );
+};
+
+var transformMany = function(operations) {
+  var _this = this,
+      inverses = [],
+      ret;
+
+  operations.forEach(function(operation) {
+    ret = _this.transformQueue.push(operation).then(
+      function(inverse) {
+        if (_this._completedTransforms.length > 0) {
+          return settleTransformEvents.call(_this, _this._completedTransforms).then(
+            function() {
+              inverses = inverses.concat(inverse);
+            }
+          );
+        } else {
+          inverses = inverses.concat(inverse);
+        }
+      }
+    );
+  });
+
+  return ret.then( function() { return inverses; } );
+};
+
+var Transformable = {
+  extend: function(_this, actions) {
+    if (_this._transformable === undefined) {
+      _this._transformable = true;
+      _this.transformQueue = new TransformQueue(_this);
+      _this._completedTransforms = [];
+
+      Evented.extend(_this);
+
+      _this.didTransform = function(operation, inverse) {
+        _this._completedTransforms.push([operation, inverse]);
+      };
+
+      _this.transform = function(operation) {
+        Orbit.assert('_transform must be defined', _this._transform);
+
+        if (Object.prototype.toString.call(operation) === '[object Array]') {
+          return transformMany.call(_this, operation);
+        } else {
+          return transformOne.call(_this, operation);
+        }
       };
     }
-    return object;
+    return _this;
   }
 };
 
