@@ -111,7 +111,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
     deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/name', value: 'Earth'}, 'PATCH request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify());
+                JSON.stringify({}));
   });
 
   stop();
