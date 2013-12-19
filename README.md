@@ -75,7 +75,7 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
   // Add a record to the memory store
   memoryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(
     function(planet) {
-      console.log('Planet added - ', planet.name);
+      console.log('Planet added - ', planet.name, '(id:', planet.id, ')');
     }
   );
 
@@ -99,7 +99,7 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
   // restStore   {op: 'add', path: 'planet/1', value: {__id: 1, id: 12345, name: 'Jupiter', classification: 'gas giant'}}
   // memoryStore {op: 'add', path: 'planet/1/id', value: 12345}
   // localStore  {op: 'add', path: 'planet/1/id', value: 12345}
-  // Planet added - Jupiter
+  // Planet added - Jupiter (id: 12345)
 ```
 
 In this example, we've created three separate stores and connected them with
@@ -305,13 +305,31 @@ event, which returns the operation and an array of inverse operations.
 `transform` may be called with a single transform operation, or an array of
 operations. Any number of `didTransform` events may be triggered as a result.
 
+Transforms will be queued and performed serially in the order requested.
+
 ## TransformConnector
 
-TODO
+A `TransformConnector` watches a transformable source and propagates any
+transforms to a transformable target.
+
+Each connector is "one way", so bi-directional synchronization between sources
+requires the creation of two connectors.
+
+Connectors can be "blocking" or "non-blocking". The difference is that
+"blocking" connectors will return a promise to the `didTransform` event, which
+will prevent the original transform from resolving until the promise itself has
+resolved. "Non-blocking" transforms do not block the resolution of the original
+transform - asynchronous actions are performed afterward.
 
 ## Document
 
-TODO
+`Document` is a complete implementation of the JSON PATCH spec detailed in
+[RFC 6902](http://http://tools.ietf.org/html/rfc6902).
+
+It can be manipulated via a `tranform` method that accepts an `operation`, or
+with methods `add`, `remove`, `replace`, `move`, `copy` and `test`.
+
+Data at a particular path can be retrieved from a `Document` with `retrieve()`.
 
 ## Notifications and Events
 
