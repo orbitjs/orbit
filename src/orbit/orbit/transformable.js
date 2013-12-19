@@ -17,7 +17,7 @@ var settleTransformEvents = function(ops) {
       } else {
         var op = ops.shift();
 
-        console.log(_this.id, ops.length + 1, 'didTransform', op[0], op[1]);
+//TODO-log        console.log(_this.id, ops.length + 1, 'didTransform', op[0], op[1]);
 
         var response = _this.settle.call(_this, 'didTransform', op[0], op[1]);
 

@@ -13,7 +13,7 @@ TransformQueue.prototype = {
   push: function(operation) {
     var _this = this;
 
-    console.log('>>>> TransformQueue', _this.target.id, operation);
+//TODO-log    console.log('>>>> TransformQueue', _this.target.id, operation);
 
     var response = new Orbit.Promise(function(resolve) {
       var transform = {
@@ -50,12 +50,12 @@ TransformQueue.prototype = {
         if (_this._queue.length === 0) {
 
           _this.processing = false;
-          console.log('---- TransformQueue', _this.target.id, 'EMPTY');
+//TODO-log          console.log('---- TransformQueue', _this.target.id, 'EMPTY');
 
         } else {
           var transform = _this._queue.shift();
 
-          console.log('<<<< TransformQueue', _this.target.id, transform.operation);
+//TODO-log          console.log('<<<< TransformQueue', _this.target.id, transform.operation);
 
           var ret = transform.resolver.call(_this);
           if (ret) {

@@ -58,7 +58,7 @@ test("it should resolve when _transform returns a promise", function() {
       ok(true, '_transform promise resolved');
       resolve();
     });
-  };;
+  };
 
   stop();
   source.transform({op: 'add', path: 'planet/1', value: 'data'}).then(function() {

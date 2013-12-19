@@ -59,7 +59,7 @@ test("records inserted into memory should be posted with rest", function() {
   localStore.on('didTransform', function(operation, inverse) {
     localStoreTransforms++;
 
-    console.log('LOCAL STORE - didTransform', localStoreTransforms, operation, inverse);
+//TODO-log    console.log('LOCAL STORE - didTransform', localStoreTransforms, operation, inverse);
 
     if (localStoreTransforms === 1) {
       equal(operation.op, 'add',                         'local store - initial object addition');
@@ -79,7 +79,7 @@ test("records inserted into memory should be posted with rest", function() {
   restStore.on('didTransform', function(operation, inverse) {
     restStoreTransforms++;
 
-    console.log('REST STORE - didTransform', restStoreTransforms, operation, inverse);
+//TODO-log    console.log('REST STORE - didTransform', restStoreTransforms, operation, inverse);
 
     if (restStoreTransforms === 1) {
       start();
@@ -123,7 +123,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
   memoryStore.on('didTransform', function(operation, inverse) {
     memoryStoreTransforms++;
 
-    console.log('MEMORY STORE - didTransform', memoryStoreTransforms, operation, inverse);
+//TODO-log    console.log('MEMORY STORE - didTransform', memoryStoreTransforms, operation, inverse);
 
     if (memoryStoreTransforms === 1) {
       equal(operation.op, 'add',                         'memory store - initial object addition');
@@ -155,7 +155,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
   localStore.on('didTransform', function(operation, inverse) {
     localStoreTransforms++;
 
-    console.log('LOCAL STORE - didTransform', localStoreTransforms, operation, inverse);
+//TODO-log    console.log('LOCAL STORE - didTransform', localStoreTransforms, operation, inverse);
 
     if (localStoreTransforms === 1) {
       equal(operation.op, 'add',                         'local store - initial object addition');
@@ -194,7 +194,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
   restStore.on('didTransform', function(operation, inverse) {
     restStoreTransforms++;
 
-    console.log('REST STORE - didTransform', restStoreTransforms, operation, inverse);
+//TODO-log    console.log('REST STORE - didTransform', restStoreTransforms, operation, inverse);
 
     if (restStoreTransforms === 1) {
       equal(operation.op, 'add',                         'rest store - initial object addition');
@@ -247,7 +247,7 @@ test("records patched in memory should be patched with rest", function() {
   memoryStore.on('didTransform', function(operation, inverse) {
     memoryStoreTransforms++;
 
-    console.log('MEMORY STORE - didTransform', memoryStoreTransforms, operation, inverse);
+//TODO-log    console.log('MEMORY STORE - didTransform', memoryStoreTransforms, operation, inverse);
 
     if (memoryStoreTransforms === 1) {
       equal(operation.op, 'add',                         'memory store - initial object addition');
@@ -279,7 +279,7 @@ test("records patched in memory should be patched with rest", function() {
   localStore.on('didTransform', function(operation, inverse) {
     localStoreTransforms++;
 
-    console.log('LOCAL STORE - didTransform', localStoreTransforms, operation, inverse);
+//TODO-log    console.log('LOCAL STORE - didTransform', localStoreTransforms, operation, inverse);
 
     if (localStoreTransforms === 1) {
       equal(operation.op, 'add',                         'local store - initial object addition');
@@ -318,7 +318,7 @@ test("records patched in memory should be patched with rest", function() {
   restStore.on('didTransform', function(operation, inverse) {
     restStoreTransforms++;
 
-    console.log('REST STORE - didTransform', restStoreTransforms, operation, inverse);
+//TODO-log    console.log('REST STORE - didTransform', restStoreTransforms, operation, inverse);
 
     if (restStoreTransforms === 1) {
       equal(operation.op, 'add',                         'rest store - initial object addition');
@@ -369,7 +369,7 @@ test("records deleted in memory should be deleted with rest", function() {
   localStore.on('didTransform', function(operation, inverse) {
     localStoreTransforms++;
 
-    console.log('LOCAL STORE - didTransform', localStoreTransforms, operation, inverse);
+//TODO-log    console.log('LOCAL STORE - didTransform', localStoreTransforms, operation, inverse);
 
     if (localStoreTransforms === 1) {
       equal(operation.op, 'add',                'local store - initial object addition');
@@ -386,7 +386,7 @@ test("records deleted in memory should be deleted with rest", function() {
   restStore.on('didTransform', function(operation, inverse) {
     restStoreTransforms++;
 
-    console.log('REST STORE - didTransform', restStoreTransforms, operation, inverse);
+//TODO-log    console.log('REST STORE - didTransform', restStoreTransforms, operation, inverse);
 
     if (restStoreTransforms === 1) {
       equal(operation.op, 'add',                'rest store - initial object addition');

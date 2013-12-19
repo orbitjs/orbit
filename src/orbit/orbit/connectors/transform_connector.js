@@ -60,7 +60,7 @@ TransformConnector.prototype = {
   },
 
   _transformTarget: function(operation) {
-    console.log('****', ' transform from ', this.source.id, ' to ', this.target.id, operation);
+//TODO-log    console.log('****', ' transform from ', this.source.id, ' to ', this.target.id, operation);
 
     if (this.target.isDeleted && this.target.isDeleted(operation.path)) return;
 
@@ -70,7 +70,7 @@ TransformConnector.prototype = {
       if (currentValue) {
         if (operation.op === 'add' || operation.op === 'replace') {
           if (eq(currentValue, operation.value)) {
-            console.log('==', ' transform from ', this.source.id, ' to ', this.target.id, operation);
+//TODO-log            console.log('==', ' transform from ', this.source.id, ' to ', this.target.id, operation);
             return;
           } else {
             return this._resolveConflicts(operation.path, currentValue, operation.value);
@@ -85,7 +85,7 @@ TransformConnector.prototype = {
   _resolveConflicts: function(path, currentValue, updatedValue) {
     var ops = diffs(currentValue, updatedValue, {basePath: path});
 
-    console.log(this.target.id, 'resolveConflicts', path, currentValue, updatedValue, ops);
+//TODO-log    console.log(this.target.id, 'resolveConflicts', path, currentValue, updatedValue, ops);
 
     return this.target.transform(ops);
   }
