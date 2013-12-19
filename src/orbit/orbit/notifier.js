@@ -13,7 +13,7 @@ Notifier.prototype = {
         listener;
 
     binding = binding || this;
-    for (var i = 0, l = listeners.length; i < l; i++) {
+    for (var i = 0, len = listeners.length; i < len; i++) {
       listener = listeners[i];
       if (listener && listener[0] === callback && listener[1] === binding) {
         listeners.splice(i, 1);
@@ -26,7 +26,7 @@ Notifier.prototype = {
     var listeners = this.listeners,
         listener;
 
-    for (var i = 0, l = listeners.length; i < l; i++) {
+    for (var i = 0, len = listeners.length; i < len; i++) {
       listener = listeners[i];
       if (listener) {
         listener[0].apply(listener[1], arguments);
@@ -40,7 +40,7 @@ Notifier.prototype = {
         allResponses = [],
         response;
 
-    for (var i = 0, l = listeners.length; i < l; i++) {
+    for (var i = 0, len = listeners.length; i < len; i++) {
       listener = listeners[i];
       if (listener) {
         response = listener[0].apply(listener[1], arguments);

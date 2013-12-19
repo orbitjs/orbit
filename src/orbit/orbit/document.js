@@ -98,7 +98,7 @@ Document.prototype = {
     var ptr = this._data,
         segment;
     if (path) {
-      for (var i = 0; i < path.length; i++) {
+      for (var i = 0, len = path.length; i < len; i++) {
         segment = path[i];
         if (Object.prototype.toString.call(ptr) === '[object Array]') {
           if (segment === '-') {
