@@ -20,6 +20,8 @@ keeping their contents synchronized.
 
 * Allow for synchronous and asynchronous requests.
 
+* Support transactions and undo/redo by tracking inverses of operations
+
 * Work with plain JavaScript objects.
 
 ## How does it work?
@@ -55,10 +57,13 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
 
 ```javascript
 
-  // Create stores
-  var memoryStore = new Orbit.MemoryStore();
-  var restStore = new Orbit.RestStore();
-  var localStore = new Orbit.LocalStore();
+  // Create stores with a common schema
+  var schema = {
+    models: ['planet']
+  };
+  var memoryStore = new Orbit.MemoryStore({schema: schema});
+  var restStore = new Orbit.RestStore({schema: schema});
+  var localStore = new Orbit.LocalStore({schema: schema});
 
   // Connect MemoryStore -> LocalStore (using the default blocking strategy)
   var memToLocalConnector = new Orbit.TransformConnector(memoryStore, localStore);
@@ -67,31 +72,34 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
   var memToRestConnector = new Orbit.TransformConnector(memoryStore, restStore);
   var restToMemConnector = new Orbit.TransformConnector(restStore, memoryStore);
 
-  // Create a record
-  memoryStore.create('planet', {name: 'Jupiter', classification: 'gas giant'}).then(
+  // Add a record to the memory store
+  memoryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(
     function(planet) {
-      console.log('memoryStore - RESOLVED', planet.name);
+      console.log('Planet added - ', planet.name);
     }
   );
 
-  // Log the transforms
-  memoryStore.on('didTransform', function(action, type, planet) {
-    console.log('memoryStore', action, planet.name);
+  // Log the transforms in all stores
+  memoryStore.on('didTransform', function(operation, inverse) {
+    console.log('memoryStore', operation);
   });
 
-  localStore.on('didTransform', function(action, type, planet) {
-    console.log('localStore', action, planet.name);
+  localStore.on('didTransform', function(operation, inverse) {
+    console.log('localStore', operation);
   });
 
-  restStore.on('didTransform', function(action, type, planet) {
-    console.log('restStore', action, planet.name);
+  restStore.on('didTransform', function(operation, inverse) {
+    console.log('restStore', operation);
   });
 
   // CONSOLE OUTPUT
-  // memoryStore insert Jupiter
-  // localStore insert Jupiter
-  // restStore insert Jupiter
-  // memoryStore - RESOLVED Jupiter
+  //
+  // memoryStore {op: 'add', path: 'planet/1', value: {__id: 1, name: 'Jupiter', classification: 'gas giant'}}
+  // localStore  {op: 'add', path: 'planet/1', value: {__id: 1, name: 'Jupiter', classification: 'gas giant'}}
+  // restStore   {op: 'add', path: 'planet/1', value: {__id: 1, id: 12345, name: 'Jupiter', classification: 'gas giant'}}
+  // memoryStore {op: 'add', path: 'planet/1/id', value: 12345}
+  // localStore  {op: 'add', path: 'planet/1/id', value: 12345}
+  // Planet added - Jupiter
 ```
 
 In this example, we've created three separate stores and connected them with
@@ -99,8 +107,10 @@ transform connectors that are *blocking*. In other words, the promise returned
 from an action won't be fulfilled until every event listener that engages with
 it (by returning a promise) has been fulfilled.
 
-In this case, we're creating a record in the memory store, which the connectors
-help duplicate in both the REST store and local storage.
+In this case, we're adding a record to the memory store, which the connectors
+help duplicate in both the REST store and local storage. The REST store returns
+an `id` from the server, which is then propagated back to the memory store and
+then the local store.
 
 Note that we could also connect the stores with *non-blocking* connectors with
 the `blocking: false` option:
@@ -114,7 +124,7 @@ the `blocking: false` option:
   var restToMemConnector = new Orbit.TransformConnector(restStore, memoryStore, {blocking: false});
 ```
 
-In this case, the promise generated from `memoryStore.create` will be resolved
+In this case, the promise generated from `memoryStore.add` will be resolved
 immediately, after which records will be asynchronously created in the REST
 store and local storage. Any differences, such as an `id` returned from the
 server, will be automatically patched back to the record in the memory store.
@@ -127,7 +137,8 @@ The primary interfaces provided by Orbit are:
 `create`, `update` and `destroy`.
 
 * `Transformable` - for keeping data sources in sync through low level
-transformations.
+transformations which follow the HTTP PATCH spec detailed in
+[RFC 5789](http://www.rfc-editor.org/rfc/rfc5789.txt).
 
 These interfaces can extend (i.e. be "mixed into") your data sources. They can
 be used together or in isolation.
@@ -136,7 +147,7 @@ be used together or in isolation.
 
 The `Requestable` interface provides a mechanism to define custom "action"
 methods on an object or prototype. Actions might typically include `find`,
-`create`, `update`, and `destroy`, although the number and names of actions
+`add`, `update`, `patch` and `remove`, although the number and names of actions
 can be completely customized.
 
 The `Requestable` interface can extend an object or prototype as follows:
@@ -151,7 +162,7 @@ This will make your object `Evented` (see below) and create a single action,
 
 ```javascript
 var source = {};
-Orbit.Requestable.extend(source, ['find', 'create', 'update', 'destroy']);
+Orbit.Requestable.extend(source, ['find', 'add', 'update', 'patch', 'remove']);
 ```
 
 Or you can add actions later with `Orbit.Requestable.defineAction()`:
@@ -159,7 +170,7 @@ Or you can add actions later with `Orbit.Requestable.defineAction()`:
 ```javascript
 var source = {};
 Orbit.Requestable.extend(source); // defines 'find' by default
-Orbit.Requestable.defineAction(source, ['create', 'update', 'destroy']);
+Orbit.Requestable.defineAction(source, ['add', 'update', 'remove']);
 Orbit.Requestable.defineAction(source, 'patch');
 ```
 
@@ -171,8 +182,8 @@ promise. Here's a simplistic example:
 ```javascript
 source._find = function(type, id) {
   return new RSVP.Promise(function(resolve, reject){
-    if (source.data[type] && source.data[type][id]) {
-      resolve(source.data[type][id];
+    if (source._data[type] && source._data[type][id]) {
+      resolve(source._data[type][id];
     } else {
       reject(type + ' not found');
     }
