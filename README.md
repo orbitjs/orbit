@@ -137,8 +137,8 @@ The primary interfaces provided by Orbit are:
 `create`, `update` and `destroy`.
 
 * `Transformable` - for keeping data sources in sync through low level
-transformations which follow the HTTP PATCH spec detailed in
-[RFC 5789](http://www.rfc-editor.org/rfc/rfc5789.txt).
+transformations which follow the JSON PATCH spec detailed in
+[RFC 6902](http://http://tools.ietf.org/html/rfc6902).
 
 These interfaces can extend (i.e. be "mixed into") your data sources. They can
 be used together or in isolation.
@@ -271,11 +271,45 @@ the precise data changes brought about in that source,
 so that they can all stay synchronized. That's where the `Transformable`
 interace comes in...
 
-COMING SOON!
+The `Transformable` interface provides a single method, `transform`, which can
+be used to change the contents of a source.
 
-## Connectors
+Transformations must follow the JSON PATCH spec detailed in
+[RFC 6902](http://http://tools.ietf.org/html/rfc6902).
+They must specify an operation (`add`, `remove`, or `replace`), a
+path, and a value. For instance, the following transformations add, patch and
+then remove a record:
 
-### TransformConnector
+```javascript
+{op: 'add', path: 'planet/1', value: {__id: 1, name: 'Jupiter', classification: 'gas giant'}
+{op: 'replace', path: 'planet/1/name', value: 'Earth'}
+{op: 'remove', path: 'planet/1'}
+```
+
+The `Transformable` interface can extend an object or prototype as follows:
+
+```javascript
+var source = {};
+Orbit.Transformable.extend(source);
+```
+
+This will make your object `Evented` (see below) and add a `tranform` method.
+In order to fulfill the `transform` method, your source should implement a
+`_transform` method that performs the transform and returns a promise.
+
+It's important to note that the requested transform may not match the actual
+transform applied to a source. Therefore, each source should call `didTransform`
+for any transforms that take place. This method triggers the `didTransform`
+event, which returns the operation and an array of inverse operations.
+
+`transform` may be called with a single transform operation, or an array of
+operations. Any number of `didTransform` events may be triggered as a result.
+
+## TransformConnector
+
+TODO
+
+## Document
 
 TODO
 
