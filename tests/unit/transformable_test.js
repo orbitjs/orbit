@@ -50,16 +50,35 @@ test("it should require the definition of _transform", function() {
 });
 
 
-test("it should require that _transform returns a promise", function() {
+test("it should resolve when _transform returns a promise", function() {
   expect(2);
 
-  source._transform = successfulOperation;
+  source._transform = function() {
+    return new RSVP.Promise(function(resolve, reject) {
+      ok(true, '_transform promise resolved');
+      resolve();
+    });
+  };;
 
   stop();
-  source.transform({op: 'add', path: 'planet/1', value: 'data'}).then(function(result) {
+  source.transform({op: 'add', path: 'planet/1', value: 'data'}).then(function() {
     start();
-    ok(true, '_transform promise resolved');
-    equal(result, ':)', 'success!');
+    ok(true, 'transform promise resolved');
+  });
+});
+
+test("it should resolve when _transform simply returns (without a promise)", function() {
+  expect(2);
+
+  source._transform = function() {
+    ok(true, '_transform called');
+    return;
+  };
+
+  stop();
+  source.transform({op: 'add', path: 'planet/1', value: 'data'}).then(function() {
+    start();
+    ok(true, 'transform promise returned');
   });
 });
 

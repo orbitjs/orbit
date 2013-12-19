@@ -1,7 +1,9 @@
 # Orbit.js
 
-Orbit.js is a low level library for coordinating access to data sources and
-keeping their contents synchronized.
+Orbit.js is a standalone library for coordinating access to data sources
+and keeping their contents synchronized.
+
+Orbit relies heavily on promises, events and low-level transforms.
 
 ## Goals
 
@@ -272,9 +274,8 @@ so that they can all stay synchronized. That's where the `Transformable`
 interace comes in...
 
 The `Transformable` interface provides a single method, `transform`, which can
-be used to change the contents of a source.
-
-Transformations must follow the JSON PATCH spec detailed in
+be used to change the contents of a source. Transformations must follow the
+JSON PATCH spec detailed in
 [RFC 6902](http://http://tools.ietf.org/html/rfc6902).
 They must specify an operation (`add`, `remove`, or `replace`), a
 path, and a value. For instance, the following transformations add, patch and
@@ -293,14 +294,16 @@ var source = {};
 Orbit.Transformable.extend(source);
 ```
 
-This will make your object `Evented` (see below) and add a `tranform` method.
-In order to fulfill the `transform` method, your source should implement a
-`_transform` method that performs the transform and returns a promise.
+This will ensure that your source is `Evented` (see below). It also adds a
+`tranform` method. In order to fulfill the `transform` method, your source
+should implement a `_transform` method that performs the transform and returns
+a promise if the transformation is asynchronous.
 
 It's important to note that the requested transform may not match the actual
 transform applied to a source. Therefore, each source should call `didTransform`
-for any transforms that take place. This method triggers the `didTransform`
-event, which returns the operation and an array of inverse operations.
+for any transforms that actually take place. This method triggers the
+`didTransform` event, which returns the operation and an array of inverse
+operations.
 
 `transform` may be called with a single transform operation, or an array of
 operations. Any number of `didTransform` events may be triggered as a result.

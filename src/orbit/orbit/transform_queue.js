@@ -18,11 +18,16 @@ TransformQueue.prototype = {
     var response = new Orbit.Promise(function(resolve) {
       var transform = {
         resolver: function() {
-          return _this.target._transform.call(_this.target, operation).then(
-            function(result) {
-              resolve(result);
-            }
-          );
+          var ret = _this.target._transform.call(_this.target, operation);
+          if (ret) {
+            return ret.then(
+              function() {
+                resolve();
+              }
+            );
+          } else {
+            resolve();
+          }
         },
         op: operation
       };
@@ -52,14 +57,19 @@ TransformQueue.prototype = {
 
           console.log('<<<< TransformQueue', _this.target.id, transform.operation);
 
-          return transform.resolver.call(_this).then(
-            function(success) {
-              settleEach();
-            },
-            function(error) {
-              settleEach();
-            }
-          );
+          var ret = transform.resolver.call(_this);
+          if (ret) {
+            return ret.then(
+              function(success) {
+                settleEach();
+              },
+              function(error) {
+                settleEach();
+              }
+            );
+          } else {
+            settleEach();
+          }
         }
       };
 

@@ -53,21 +53,16 @@ MemoryStore.prototype = {
   /////////////////////////////////////////////////////////////////////////////
 
   _transform: function(operation) {
-    var _this = this;
-    return new Orbit.Promise(function(resolve, reject) {
-      _this._transformCache(operation);
+    this._transformCache(operation);
 
-      // Track deleted records
-      // Note: cache transforms won't be tracked because we are directly
-      // accessing _this._cache, which will not trigger events
-      if (operation.op === 'remove' && operation.path.length === 2) {
-        _this._cache.transform({op: 'add',
-                                path: ['deleted'].concat(operation.path),
-                                value: true});
-      }
-
-      resolve();
-    });
+    // Track deleted records
+    // Note: cache transforms won't be tracked because we are directly
+    // accessing _this._cache, which will not trigger events
+    if (operation.op === 'remove' && operation.path.length === 2) {
+      this._cache.transform({op: 'add',
+                            path: ['deleted'].concat(operation.path),
+                            value: true});
+    }
   },
 
   /////////////////////////////////////////////////////////////////////////////
