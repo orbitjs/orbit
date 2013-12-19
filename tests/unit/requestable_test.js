@@ -291,12 +291,12 @@ test("it should mixin Evented", function() {
 });
 
 test("it defines `findRecord` as an action by default", function() {
-  verifyActionExists(source, 'findRecord');
+  verifyActionExists(source, 'find');
 });
 
 test("it can define any number of custom actions", function() {
   var requestable = {},
-      customActions = ['findRecord', 'createRecord', 'updateRecord', 'deleteRecord'];
+      customActions = ['find', 'add', 'update', 'remove'];
 
   Requestable.extend(requestable, customActions);
 
@@ -305,4 +305,4 @@ test("it can define any number of custom actions", function() {
   });
 });
 
-testRequestableAction('findRecord');
+testRequestableAction('find');
