@@ -10,8 +10,9 @@ var TransformConnector = function(source, target, options) {
   this.target = target;
 
   options = options || {};
-  if (options.actions) this.actions = Orbit.arrayToOptions(options.actions);
-  if (options.types) this.types = Orbit.arrayToOptions(options.types);
+// TODO - allow filtering of transforms
+//  if (options.actions) this.actions = Orbit.arrayToOptions(options.actions);
+//  if (options.types) this.types = Orbit.arrayToOptions(options.types);
   this.blocking = options.blocking !== undefined ? options.blocking : true;
   var active = options.active !== undefined ? options.active : true;
 
