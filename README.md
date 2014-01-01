@@ -1,6 +1,6 @@
 # Orbit.js
 
-Orbit.js is a standalone library for coordinating access to data sources
+Orbit is a standalone library for coordinating access to data sources
 and keeping their contents synchronized.
 
 Orbit relies heavily on promises, events and low-level transforms.
@@ -22,7 +22,7 @@ Orbit relies heavily on promises, events and low-level transforms.
 
 * Allow for synchronous and asynchronous requests.
 
-* Support transactions and undo/redo by tracking inverses of operations
+* Support transactions and undo/redo by tracking inverses of operations.
 
 * Work with plain JavaScript objects.
 
