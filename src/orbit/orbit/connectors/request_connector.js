@@ -24,15 +24,30 @@ RequestConnector.prototype = {
   constructor: RequestConnector,
 
   activate: function() {
-    var _this = this;
+    var _this = this,
+        handler;
 
     if (this._active) return;
 
+    this.handlers = {};
+
     this.actions.forEach(function(action) {
+      if (_this.types) {
+        handler = function(type) {
+          if (_this.types[type]) {
+            return _this.secondarySource[action].apply(_this.secondarySource, arguments);
+          }
+        };
+      } else {
+        handler = _this.secondarySource[action];
+      }
+
       _this.primarySource.on(_this.mode + Orbit.capitalize(action),
-        _this.secondarySource[action],
+        handler,
         _this.secondarySource
       );
+
+      _this.handlers[action] = handler;
     });
 
     this._active = true;
@@ -43,7 +58,7 @@ RequestConnector.prototype = {
 
     this.actions.forEach(function(action) {
       this.primarySource.off(_this.mode + Orbit.capitalize(action),
-        _this.secondarySource[action],
+        _this.handlers[action],
         _this.secondarySource
       );
     });

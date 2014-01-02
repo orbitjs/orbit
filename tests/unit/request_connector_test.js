@@ -27,8 +27,7 @@ var testRescueMode = function(actionName) {
 
     requestConnector = new RequestConnector(primarySource,
                                             secondarySource,
-                                            {mode: 'rescue',
-                                             blocking: true});
+                                            {mode: 'rescue'});
 
     var order = 0;
 
@@ -62,8 +61,7 @@ var testRescueMode = function(actionName) {
 
     requestConnector = new RequestConnector(primarySource,
                                             secondarySource,
-                                            {mode: 'rescue',
-                                             blocking: true});
+                                            {mode: 'rescue'});
 
     var order = 0;
 
@@ -102,8 +100,7 @@ var testRescueMode = function(actionName) {
 
     requestConnector = new RequestConnector(primarySource,
                                             secondarySource,
-                                            {mode: 'assist',
-                                             blocking: true});
+                                            {mode: 'assist'});
 
     var order = 0;
 
@@ -141,8 +138,7 @@ var testRescueMode = function(actionName) {
 
     requestConnector = new RequestConnector(primarySource,
                                             secondarySource,
-                                            {mode: 'assist',
-                                             blocking: true});
+                                            {mode: 'assist'});
 
     var order = 0;
 
@@ -175,6 +171,85 @@ var testRescueMode = function(actionName) {
       equal(result, ':)', 'success!');
     });
   });
+
+  test("a RequestConnector should connect calls that match the `type` filter", function() {
+    expect(6);
+
+    requestConnector = new RequestConnector(primarySource,
+                                            secondarySource,
+                                            {mode: 'rescue',
+                                             types: ['planet']});
+
+    var order = 0;
+
+    primarySource['_' + actionName] = function() {
+      equal(++order, 1, '_' + actionName + ' triggered first');
+      return failedOperation();
+    };
+
+    secondarySource['_' + actionName] = function() {
+      equal(++order, 2, '_' + actionName + ' triggered next');
+      return successfulOperation();
+    };
+
+    secondarySource.on('did' + ActionName, function() {
+      equal(++order, 3, 'did' + ActionName + ' triggered after action performed successfully');
+    });
+
+    primarySource.on('did' + ActionName, function() {
+      equal(++order, 4, 'did' + ActionName + ' triggered after action performed successfully');
+    });
+
+    primarySource.on('didNot' + ActionName, function() {
+      ok(false, 'didNot' + ActionName + ' should not be triggered');
+    });
+
+    stop();
+    primarySource[actionName]('planet').then(function(result) {
+      start();
+      equal(++order, 5, 'promise resolved last');
+      equal(result, ':)', 'success!');
+    });
+  });
+
+  test("a RequestConnector should not connect calls that don't match the `type` filter", function() {
+    expect(4);
+
+    requestConnector = new RequestConnector(primarySource,
+                                            secondarySource,
+                                            {mode: 'rescue',
+                                             types: ['planet']});
+
+    var order = 0;
+
+    primarySource['_' + actionName] = function() {
+      equal(++order, 1, '_' + actionName + ' triggered first for primary source');
+      return failedOperation();
+    };
+
+    secondarySource['_' + actionName] = function() {
+      ok(false, '_' + ActionName + ' should not be triggered for secondary source');
+    };
+
+    primarySource.on('didNot' + ActionName, function() {
+      equal(++order, 2, 'didNot' + ActionName + ' triggered after action failed');
+    });
+
+    primarySource.on('did' + ActionName, function() {
+      ok(false, 'did' + ActionName + ' should not be triggered');
+    });
+
+    stop();
+    primarySource[actionName]('moon').then(
+      null,
+      function(result) {
+        start();
+        equal(++order, 3, 'promise rejection resolved last');
+        equal(result, ':(', 'failure!');
+      }
+    );
+  });
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
