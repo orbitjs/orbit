@@ -140,7 +140,7 @@ The primary interfaces provided by Orbit are:
 
 * `Transformable` - for keeping data sources in sync through low level
 transformations which follow the JSON PATCH spec detailed in
-[RFC 6902](http://http://tools.ietf.org/html/rfc6902).
+[RFC 6902](http://tools.ietf.org/html/rfc6902).
 
 These interfaces can extend (i.e. be "mixed into") your data sources. They can
 be used together or in isolation.
@@ -276,7 +276,7 @@ interace comes in...
 The `Transformable` interface provides a single method, `transform`, which can
 be used to change the contents of a source. Transformations must follow the
 JSON PATCH spec detailed in
-[RFC 6902](http://http://tools.ietf.org/html/rfc6902).
+[RFC 6902](http://tools.ietf.org/html/rfc6902).
 They must specify an operation (`add`, `remove`, or `replace`), a
 path, and a value. For instance, the following transformations add, patch and
 then remove a record:
@@ -327,7 +327,7 @@ transform - asynchronous actions are performed afterward.
 ## Document
 
 `Document` is a complete implementation of the JSON PATCH spec detailed in
-[RFC 6902](http://http://tools.ietf.org/html/rfc6902).
+[RFC 6902](http://tools.ietf.org/html/rfc6902).
 
 It can be manipulated via a `tranform` method that accepts an `operation`, or
 with methods `add`, `remove`, `replace`, `move`, `copy` and `test`.
