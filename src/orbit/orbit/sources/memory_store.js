@@ -9,7 +9,7 @@ var MemoryStore = function(options) {
   options = options || {};
 
   this.idField = Orbit.idField;
-  this._cache = new Document();
+  this._cache = new Document(null, {arrayBasedPaths: true});
   this.configure(options.schema);
 
   Transformable.extend(this);

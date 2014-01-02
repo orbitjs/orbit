@@ -2,7 +2,10 @@ import clone from 'orbit/lib/clone';
 import diffs from 'orbit/lib/diffs';
 import eq from 'orbit/lib/eq';
 
-var Document = function(data) {
+var Document = function(data, options) {
+  options = options || {};
+  this.arrayBasedPaths = options.arrayBasedPaths !== undefined ? options.arrayBasedPaths : false;
+
   this.reset(data);
 };
 
@@ -63,27 +66,33 @@ Document.prototype = {
   },
 
   serializePath: function(path) {
-    if (path === undefined) {
-      return '/';
-
-    } else if (Object.prototype.toString.call(path) === '[object Array]') {
-      return '/' + path.join('/');
+    if (this.arrayBasedPaths) {
+      return path;
 
     } else {
-      return path;
+      if (path.length === 0) {
+        return '/';
+      } else {
+        return '/' + path.join('/');
+      }
     }
   },
 
   deserializePath: function(path) {
     if (typeof path === 'string') {
-      if (path.indexOf('/') === 0) path = path.substr(1);
+      if (path.indexOf('/') === 0) {
+        path = path.substr(1);
+      }
+
       if (path.length === 0) {
-        return undefined;
+        return [];
       } else {
         return path.split('/');
       }
+
+    } else {
+      return path;
     }
-    return path;
   },
 
   /////////////////////////////////////////////////////////////////////////////
@@ -120,7 +129,7 @@ Document.prototype = {
   _add: function(path, value, invert) {
     var inverse;
     value = clone(value);
-    if (path) {
+    if (path.length > 0) {
       var parentKey = path[path.length-1];
       if (path.length > 1) {
         var grandparent = this._retrieve(path.slice(0, -1));
@@ -146,7 +155,7 @@ Document.prototype = {
             if (grandparent.hasOwnProperty(parentKey)) {
               inverse = [{op: 'replace', path: this.serializePath(path), value: clone(grandparent[parentKey])}];
             } else {
-              inverse = [{op: 'remove', path: this.serializePath(path.slice(0, -1))}];
+              inverse = [{op: 'remove', path: this.serializePath(path)}];
             }
           }
           grandparent[parentKey] = value;
@@ -163,7 +172,7 @@ Document.prototype = {
       }
     } else {
       if (invert) {
-        inverse = [{op: 'replace', path: this.serializePath(), value: clone(this._data)}];
+        inverse = [{op: 'replace', path: this.serializePath([]), value: clone(this._data)}];
       }
       this._data = value;
     }
@@ -172,7 +181,7 @@ Document.prototype = {
 
   _remove: function(path, invert) {
     var inverse;
-    if (path) {
+    if (path.length > 0) {
       var parentKey = path[path.length-1];
       if (path.length > 1) {
         var grandparent = this._retrieve(path.slice(0, -1));
@@ -230,7 +239,7 @@ Document.prototype = {
   _replace: function(path, value, invert) {
     var inverse;
     value = clone(value);
-    if (path) {
+    if (path.length > 0) {
       var parentKey = path[path.length-1];
       if (path.length > 1) {
         var grandparent = this._retrieve(path.slice(0, -1));
@@ -277,7 +286,7 @@ Document.prototype = {
       }
     } else {
       if (invert) {
-        inverse = [{op: 'replace', path: this.serializePath(), value: clone(this._data)}];
+        inverse = [{op: 'replace', path: this.serializePath([]), value: clone(this._data)}];
       }
       this._data = value;
     }
@@ -286,7 +295,8 @@ Document.prototype = {
 
   _move: function(fromPath, toPath, invert) {
     if (eq(fromPath, toPath)) {
-      return invert ? [] : undefined;
+      if (invert) return [];
+      return;
 
     } else {
       var value = this._retrieve(fromPath);
@@ -304,7 +314,8 @@ Document.prototype = {
 
   _copy: function(fromPath, toPath, invert) {
     if (eq(fromPath, toPath)) {
-      return invert ? [] : undefined;
+      if (invert) return [];
+      return;
 
     } else {
       return this._add(toPath, this._retrieve(fromPath), invert);
