@@ -16,8 +16,6 @@ var RequestConnector = function(primarySource, secondarySource, options) {
   Orbit.assert("`mode` must be 'assist' or 'rescue'", this.mode === 'assist' ||
                                                       this.mode === 'rescue');
 
-  this.blocking = options.blocking !== undefined ? options.blocking : true;
-
   var active = options.active !== undefined ? options.active : true;
   if (active) this.activate();
 };
