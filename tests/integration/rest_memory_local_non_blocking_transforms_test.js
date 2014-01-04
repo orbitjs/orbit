@@ -23,7 +23,10 @@ module("Integration - Rest / Memory / Local Transforms (Non-Blocking)", {
 
     // Create stores
     var schema = {
-      models: ['planet']
+      models: {
+        planet: {
+        }
+      }
     };
     memoryStore = new MemoryStore({schema: schema});
     restStore = new RestStore({schema: schema});

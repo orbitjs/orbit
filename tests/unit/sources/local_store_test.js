@@ -11,7 +11,10 @@ module("Unit - LocalStore", {
     Orbit.Promise = RSVP.Promise;
 
     var schema = {
-      models: ['planet']
+      models: {
+        planet: {
+        }
+      }
     };
 
     store = new LocalStore({

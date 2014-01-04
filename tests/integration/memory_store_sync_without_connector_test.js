@@ -12,7 +12,10 @@ module("Integration - MemoryStore Sync without Connector", {
     Orbit.Promise = RSVP.Promise;
 
     var schema = {
-      models: ['planet']
+      models: {
+        planet: {
+        }
+      }
     };
 
     primaryStore = new MemoryStore({schema: schema});

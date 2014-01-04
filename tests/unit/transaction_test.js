@@ -12,7 +12,10 @@ module("Unit - Transaction", {
     Orbit.Promise = RSVP.Promise;
 
     var schema = {
-      models: ['planet']
+      models: {
+        planet: {
+        }
+      }
     };
 
     store = new MemoryStore({schema: schema});

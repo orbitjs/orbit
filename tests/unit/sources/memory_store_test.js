@@ -11,7 +11,25 @@ module("Unit - MemoryStore", {
     Orbit.Promise = RSVP.Promise;
 
     var schema = {
-      models: ['planet']
+      models: {
+        planet: {
+          attributes: {
+            name: {type: 'string'},
+            classification: {type: 'string'}
+          },
+          links: {
+            moons: {type: 'hasMany', model: 'moon', inverse: 'planet'}
+          }
+        },
+        moon: {
+          attributes: {
+            name: {type: 'string'}
+          },
+          links: {
+            planet: {type: 'hasOne', model: 'planet', inverse: 'moons'}
+          }
+        }
+      }
     };
 
     store = new MemoryStore({schema: schema});
@@ -279,3 +297,70 @@ test("#remove - can destroy records", function() {
     });
   });
 });
+
+test("#link and #unlink- can link and unlink records in a many-to-one relationship via the 'many' side", function() {
+  expect(6);
+
+  equal(store.length('planet'), 0, 'store should be empty');
+
+  var jupiter,
+      io;
+
+  stop();
+  store.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
+    jupiter = planet;
+    return store.add('moon', {name: 'Io'});
+
+  }).then(function(moon) {
+    io = moon;
+
+  }).then(function() {
+    return store.link('planet', jupiter, 'moons', io);
+
+  }).then(function() {
+    equal(Object.keys(jupiter.moons).length, 1, 'Jupiter has one moon after linking');
+    ok(jupiter.moons[io.__id], 'Jupiter\'s moon is Io');
+    equal(io.planet, jupiter.__id, 'Io\'s planet is Jupiter');
+
+    return store.unlink('planet', jupiter, 'moons', io);
+
+  }).then(function() {
+    start();
+    equal(io.planet, undefined, 'Io is not associated with a planet after unlinking');
+    equal(Object.keys(jupiter.moons).length, 0, 'Jupiter has no moons after unlinking');
+  });
+});
+
+test("#link and #unlink- can link and unlink records in a many-to-one relationship via the 'one' side", function() {
+  expect(6);
+
+  equal(store.length('planet'), 0, 'store should be empty');
+
+  var jupiter,
+      io;
+
+  stop();
+  store.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
+    jupiter = planet;
+    return store.add('moon', {name: 'Io'});
+
+  }).then(function(moon) {
+    io = moon;
+
+  }).then(function() {
+    return store.link('planet', jupiter, 'moons', io);
+
+  }).then(function() {
+    equal(Object.keys(jupiter.moons).length, 1, 'Jupiter has one moon after linking');
+    ok(jupiter.moons[io.__id], 'Jupiter\'s moon is Io');
+    equal(io.planet, jupiter.__id, 'Io\'s planet is Jupiter');
+
+    return store.unlink('moon', io, 'planet');
+
+  }).then(function() {
+    start();
+    equal(io.planet, undefined, 'Io is not associated with a planet after unlinking');
+    equal(Object.keys(jupiter.moons).length, 0, 'Jupiter has no moons after unlinking');
+  });
+});
+

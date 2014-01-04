@@ -29,10 +29,11 @@ RestStore.prototype = {
   configure: function(schema) {
     this.schema = schema;
     this._cache.add(['deleted'], {});
-    schema.models.forEach(function(model) {
-      this._cache.add([model], {});
-      this._cache.add(['deleted', model], {});
-    }, this);
+    for (var model in schema.models) {
+      if (schema.models.hasOwnProperty(model)) {
+        this._configureModel(model);
+      }
+    }
   },
 
   retrieve: function(path) {
@@ -210,6 +211,11 @@ RestStore.prototype = {
   /////////////////////////////////////////////////////////////////////////////
   // Internals
   /////////////////////////////////////////////////////////////////////////////
+
+  _configureModel: function(name) {
+    this._cache.add([name], {});
+    this._cache.add(['deleted', name], {});
+  },
 
   _findOne: function(type, remoteId) {
     var _this = this;

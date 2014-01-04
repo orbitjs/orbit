@@ -17,7 +17,10 @@ module("Unit - RestStore", {
     server.autoRespond = true;
 
     var schema = {
-      models: ['planet']
+      models: {
+        planet: {
+        }
+      }
     };
 
     store = new RestStore({schema: schema});

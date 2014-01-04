@@ -13,7 +13,7 @@ var MemoryStore = function(options) {
   this.configure(options.schema);
 
   Transformable.extend(this);
-  Requestable.extend(this, ['find', 'add', 'update', 'patch', 'remove']);
+  Requestable.extend(this, ['find', 'add', 'update', 'patch', 'remove', 'link', 'unlink']);
 };
 
 MemoryStore.prototype = {
@@ -22,10 +22,11 @@ MemoryStore.prototype = {
   configure: function(schema) {
     this.schema = schema;
     this._cache.add(['deleted'], {});
-    schema.models.forEach(function(model) {
-      this._cache.add([model], {});
-      this._cache.add(['deleted', model], {});
-    }, this);
+    for (var model in schema.models) {
+      if (schema.models.hasOwnProperty(model)) {
+        this._configureModel(model);
+      }
+    }
   },
 
   retrieve: function(path) {
@@ -46,6 +47,39 @@ MemoryStore.prototype = {
       path = path.split('/');
     }
     return this.retrieve(['deleted'].concat(path));
+  },
+
+  initRecord: function(type, data) {
+    var modelSchema = this.schema.models[type],
+        attributes = modelSchema.attributes,
+        links = modelSchema.links;
+
+    // init id
+    if (data[this.idField] === undefined) {
+      data[this.idField] = this._generateId();
+    }
+
+    // init default values
+    if (attributes) {
+      for (var attribute in attributes) {
+        if (data[attribute] === undefined && attributes[attribute].defaultValue) {
+          if (typeof attributes[attribute].defaultValue === 'function') {
+            data[attribute] = attributes[attribute].defaultValue.call(data);
+          } else {
+            data[attribute] = attributes[attribute].defaultValue;
+          }
+        }
+      }
+    }
+
+    // init links
+    if (links) {
+      for (var link in links) {
+        if (data[link] === undefined && links[link].type === 'hasMany') {
+          data[link] = {};
+        }
+      }
+    }
   },
 
   /////////////////////////////////////////////////////////////////////////////
@@ -87,11 +121,13 @@ MemoryStore.prototype = {
   },
 
   _add: function(type, data) {
-    var id = this._generateId(),
-        path = [type, id],
+    var id,
+        path,
         _this = this;
 
-    data[this.idField] = id;
+    this.initRecord(type, data);
+    id = data[this.idField];
+    path = [type, id];
 
     return this.transform({op: 'add', path: path, value: data}).then(function() {
       return _this.retrieve(path);
@@ -109,25 +145,100 @@ MemoryStore.prototype = {
   },
 
   _patch: function(type, id, property, value) {
-    var _this = this,
-        path;
-
-    if (typeof id === 'object') id = id[this.idField];
-    path = [type, id].concat(this._cache.deserializePath(property));
+    var path = [type, id].concat(this._cache.deserializePath(property));
 
     return this.transform({op: 'replace', path: path, value: value});
   },
 
-  _remove: function(type, data) {
-    var id = (typeof data === 'object' ? data[this.idField] : data),
-        path = [type, id];
+  _remove: function(type, id) {
+    if (typeof id === 'object') id = id[this.idField];
 
-    return this.transform({op: 'remove', path: path});
+    return this.transform({op: 'remove', path: [type, id]});
+  },
+
+  _link: function(type, id, property, value) {
+    // Normalize ids
+    if (typeof id === 'object') id = id[this.idField];
+    if (typeof value === 'object') value = value[this.idField];
+
+    var modelSchema = this.schema.models[type],
+        linkDef = modelSchema.links[property],
+        ops,
+        path,
+        _this = this;
+
+    // Create operation to add link to primary resource
+    path = [type, id, property];
+    if (linkDef.type === 'hasMany') path.push(value);
+    ops = [{op: 'add', path: path, value: value}];
+
+    // Add inverse link if needed
+    if (linkDef.inverse) {
+      var inverseModelSchema = this.schema.models[linkDef.model],
+          inverseLinkDef = inverseModelSchema.links[linkDef.inverse],
+          inversePath = [linkDef.model, value, linkDef.inverse];
+
+      if (inverseLinkDef.type === 'hasMany') inversePath.push(value);
+
+      ops.push({op: 'add', path: inversePath, value: id});
+    }
+
+    return this.transform(ops).then(function() {
+      return _this.retrieve([type, id]);
+    });
+  },
+
+  _unlink: function(type, id, property, value) {
+    var modelSchema = this.schema.models[type],
+        linkDef = modelSchema.links[property],
+        ops,
+        path,
+        record,
+        _this = this;
+
+    // Normalize ids
+    if (typeof id === 'object') {
+      record = id;
+      id = record[this.idField];
+    }
+    if (typeof value === 'object') value = value[this.idField];
+
+    // Create operation to remove link from primary resource
+    path = [type, id, property];
+    if (linkDef.type === 'hasMany') path.push(value);
+    ops = [{op: 'remove', path: path}];
+
+    // Add inverse link if needed
+    if (linkDef.inverse) {
+      if (value === undefined) {
+        if (record === undefined) {
+          record = this.retrieve(type, id);
+        }
+        value = record[property];
+      }
+
+      var inverseModelSchema = this.schema.models[linkDef.model],
+          inverseLinkDef = inverseModelSchema.links[linkDef.inverse],
+          inversePath = [linkDef.model, value, linkDef.inverse];
+
+      if (inverseLinkDef.type === 'hasMany') inversePath.push(id);
+
+      ops.push({op: 'remove', path: inversePath});
+    }
+
+    return this.transform(ops).then(function() {
+      return _this.retrieve([type, id]);
+    });
   },
 
   /////////////////////////////////////////////////////////////////////////////
   // Internals
   /////////////////////////////////////////////////////////////////////////////
+
+  _configureModel: function(name) {
+    this._cache.add([name], {});
+    this._cache.add(['deleted', name], {});
+  },
 
   _transformCache: function(operation) {
     var inverse = this._cache.transform(operation, true);
