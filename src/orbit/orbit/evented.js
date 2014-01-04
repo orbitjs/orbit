@@ -32,79 +32,73 @@ var Evented = {
   },
 
   on: function(eventNames, callback, binding) {
-    var _this = this;
     binding = binding || this;
 
     eventNames.split(/\s+/).forEach(function(eventName) {
-      notifierForEvent(_this, eventName, true).addListener(callback, binding);
-    });
+      notifierForEvent(this, eventName, true).addListener(callback, binding);
+    }, this);
   },
 
   off: function(eventNames, callback, binding) {
-    var _this = this,
-        notifier;
+    var notifier;
 
     binding = binding || this;
 
     eventNames.split(/\s+/).forEach(function(eventName) {
-      notifier = notifierForEvent(_this, eventName);
+      notifier = notifierForEvent(this, eventName);
       if (notifier) {
         if (callback) {
           notifier.removeListener(callback, binding);
         } else {
-          removeNotifierForEvent(_this, eventName);
+          removeNotifierForEvent(this, eventName);
         }
       }
-    });
+    }, this);
   },
 
   emit: function(eventNames) {
-    var _this = this,
-        args = Array.prototype.slice.call(arguments, 1),
+    var args = Array.prototype.slice.call(arguments, 1),
         notifier;
 
     eventNames.split(/\s+/).forEach(function(eventName) {
-      notifier = notifierForEvent(_this, eventName);
+      notifier = notifierForEvent(this, eventName);
       if (notifier) {
         notifier.emit.apply(notifier, args);
       }
-    });
+    }, this);
   },
 
   poll: function(eventNames) {
-    var _this = this,
-        args = Array.prototype.slice.call(arguments, 1),
+    var args = Array.prototype.slice.call(arguments, 1),
         notifier,
         responses = [];
 
     eventNames.split(/\s+/).forEach(function(eventName) {
-      notifier = notifierForEvent(_this, eventName);
+      notifier = notifierForEvent(this, eventName);
       if (notifier) {
         responses = responses.concat(notifier.poll.apply(notifier, args));
       }
-    });
+    }, this);
 
     return responses;
   },
 
   listeners: function(eventNames) {
-    var _this = this,
-        notifier,
+    var notifier,
         listeners = [];
 
     eventNames.split(/\s+/).forEach(function(eventName) {
-      notifier = notifierForEvent(_this, eventName);
+      notifier = notifierForEvent(this, eventName);
       if (notifier) {
         listeners = listeners.concat(notifier.listeners);
       }
-    });
+    }, this);
 
     return listeners;
   },
 
   resolve: function(eventNames) {
-    var _this = this,
-        listeners = this.listeners(eventNames),
+    var listeners = this.listeners(eventNames),
         args = Array.prototype.slice.call(arguments, 1);
 
     return new Orbit.Promise(function(resolve, reject) {
@@ -135,8 +129,7 @@ var Evented = {
   },
 
   settle: function(eventNames) {
-    var _this = this,
-        listeners = this.listeners(eventNames),
+    var listeners = this.listeners(eventNames),
         args = Array.prototype.slice.call(arguments, 1);
 
     return new Orbit.Promise(function(resolve) {
