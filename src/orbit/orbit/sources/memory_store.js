@@ -74,9 +74,10 @@ MemoryStore.prototype = {
 
     // init links
     if (links) {
+      data.links = {};
       for (var link in links) {
-        if (data[link] === undefined && links[link].type === 'hasMany') {
-          data[link] = {};
+        if (data.links[link] === undefined && links[link].type === 'hasMany') {
+          data.links[link] = {};
         }
       }
     }
@@ -168,7 +169,7 @@ MemoryStore.prototype = {
         _this = this;
 
     // Create operation to add link to primary resource
-    path = [type, id, property];
+    path = [type, id, 'links', property];
     if (linkDef.type === 'hasMany') path.push(value);
     ops = [{op: 'add', path: path, value: value}];
 
@@ -176,7 +177,7 @@ MemoryStore.prototype = {
     if (linkDef.inverse) {
       var inverseModelSchema = this.schema.models[linkDef.model],
           inverseLinkDef = inverseModelSchema.links[linkDef.inverse],
-          inversePath = [linkDef.model, value, linkDef.inverse];
+          inversePath = [linkDef.model, value, 'links', linkDef.inverse];
 
       if (inverseLinkDef.type === 'hasMany') inversePath.push(value);
 
@@ -204,7 +205,7 @@ MemoryStore.prototype = {
     if (typeof value === 'object') value = value[this.idField];
 
     // Create operation to remove link from primary resource
-    path = [type, id, property];
+    path = [type, id, 'links', property];
     if (linkDef.type === 'hasMany') path.push(value);
     ops = [{op: 'remove', path: path}];
 
@@ -214,12 +215,12 @@ MemoryStore.prototype = {
         if (record === undefined) {
           record = this.retrieve(type, id);
         }
-        value = record[property];
+        value = record.links[property];
       }
 
       var inverseModelSchema = this.schema.models[linkDef.model],
           inverseLinkDef = inverseModelSchema.links[linkDef.inverse],
-          inversePath = [linkDef.model, value, linkDef.inverse];
+          inversePath = [linkDef.model, value, 'links', linkDef.inverse];
 
       if (inverseLinkDef.type === 'hasMany') inversePath.push(id);
 
