@@ -136,11 +136,13 @@ RestStore.prototype = {
   },
 
   _add: function(type, data) {
-    var id = this._generateId(),
-        path = [type, id],
+    var id,
+        path,
         _this = this;
 
-    data[this.idField] = id;
+    this._cache.initRecord(type, data);
+    id = data[this.idField];
+    path = [type, id];
 
     return this.transform({op: 'add', path: path, value: data}).then(function() {
       return _this.retrieve(path);
@@ -153,8 +155,8 @@ RestStore.prototype = {
         _this = this;
 
     if (id === undefined) {
-      id = this._generateId();
-      data[this.idField] = id;
+      this._addToCache(type, data);
+      id = data[this.idField];
     }
 
     path = [type, id];
@@ -285,9 +287,6 @@ RestStore.prototype = {
         id = this._remoteToLocalId(type, remoteId),
         newRecord = (id === undefined);
 
-    if (newRecord) {
-      id = record[this.idField] = this._generateId();
-    }
     this._addToCache(type, record);
 
     this.didTransform.call(this, (newRecord ? 'add' : 'replace'), type, record);
@@ -319,7 +318,10 @@ RestStore.prototype = {
 
   _addToCache: function(type, record) {
     var id = record[this.idField];
-    if (id === undefined) record[this.idField] = id = this._generateId();
+    if (id === undefined) {
+      this._cache.initRecord(type, record);
+      id = record[this.idField];
+    }
 
     this._transformCache({op: 'add', path: [type, id], value: record});
     this._updateRemoteIdMap(type, id, record[this.remoteIdField]);
@@ -407,15 +409,25 @@ RestStore.prototype = {
   _serialize: function(type, data) {
     var serialized = clone(data);
     delete serialized[this.idField];
+
+    if (serialized.links) {
+      var links = {};
+      for (var i in serialized.links) {
+        var link = serialized.links[i];
+        if (typeof link === 'object') {
+          links[i] = Object.keys(link);
+        } else {
+          links[i] = link;
+        }
+      }
+      serialized.links = links;
+    }
+
     return serialized;
   },
 
   _deserialize: function(type, data) {
     return data;
-  },
-
-  _generateId: function() {
-    return Orbit.generateId();
   }
 };
 
