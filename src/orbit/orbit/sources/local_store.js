@@ -13,20 +13,21 @@ var LocalStore = function(options) {
   this._store = new MemoryStore({schema: options.schema});
   this._isDirty = false;
 
-  var _this = this;
-  ['on', 'off', 'emit', 'poll', 'listeners', 'resolve', 'settle',               // Evented interface
-   'transform', 'didTransform', 'transformQueue',                               // Transformable interface
-   'find', 'add', 'update', 'patch', 'remove',                                  // Requestable interface
-   'configure', 'retrieve', 'length', 'isDeleted'].forEach(function(method) {   // Directly defined
+  // Evented interface
+  Orbit.expose(this, this._store, 'on', 'off', 'emit', 'poll', 'listeners', 'resolve', 'settle');
 
-    _this[method] = function() {
-      return _this._store[method].apply(_this._store, arguments);
-    };
-  });
+  // Transformable interface
+  Orbit.expose(this, this._store, 'transform', 'didTransform', 'transformQueue');
 
-  _this._store.on('didTransform', function() {
-    _this._saveData();
-  });
+  // Requestable interface
+  Orbit.expose(this, this._store, 'find', 'add', 'update', 'patch', 'remove');
+
+  // Cache interface
+  Orbit.expose(this, this._store, 'retrieve', 'length', 'isDeleted');
+
+  this._store.on('didTransform', function() {
+    this._saveData();
+  }, this);
 
   if (autoload) this.load();
 };
@@ -44,7 +45,7 @@ LocalStore.prototype = {
 
   load: function() {
     var storage = window.localStorage.getItem(this.namespace);
-    this._store._data = storage ? JSON.parse(storage) : {};
+    this._store.reset(storage ? JSON.parse(storage) : {});
   },
 
   enableAutosave: function() {
@@ -69,7 +70,7 @@ LocalStore.prototype = {
       this._isDirty = true;
       return;
     }
-    window.localStorage.setItem(this.namespace, JSON.stringify(this._store._cache._data));
+    window.localStorage.setItem(this.namespace, JSON.stringify(this._store.retrieve()));
     this._isDirty = false;
   }
 };

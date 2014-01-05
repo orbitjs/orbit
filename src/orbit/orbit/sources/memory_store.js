@@ -1,4 +1,5 @@
 import Orbit from 'orbit/core';
+import Cache from 'orbit/cache';
 import Document from 'orbit/document';
 import Transformable from 'orbit/transformable';
 import Requestable from 'orbit/requestable';
@@ -9,8 +10,10 @@ var MemoryStore = function(options) {
   options = options || {};
 
   this.idField = Orbit.idField;
-  this._cache = new Document(null, {arrayBasedPaths: true});
-  this.configure(options.schema);
+
+  // Create an internal cache and expose some elements of its interface
+  this._cache = new Cache(options.schema);
+  Orbit.expose(this, this._cache, 'isDeleted', 'length', 'reset', 'retrieve');
 
   Transformable.extend(this);
   Requestable.extend(this, ['find', 'add', 'update', 'patch', 'remove', 'link', 'unlink']);
@@ -18,70 +21,6 @@ var MemoryStore = function(options) {
 
 MemoryStore.prototype = {
   constructor: MemoryStore,
-
-  configure: function(schema) {
-    this.schema = schema;
-    this._cache.add(['deleted'], {});
-    for (var model in schema.models) {
-      if (schema.models.hasOwnProperty(model)) {
-        this._configureModel(model);
-      }
-    }
-  },
-
-  retrieve: function(path) {
-    try {
-      return this._cache.retrieve(path);
-    } catch(e) {
-      return null;
-    }
-  },
-
-  length: function(path) {
-    return Object.keys(this.retrieve(path)).length;
-  },
-
-  isDeleted: function(path) {
-    // TODO - normalize paths
-    if (typeof path === 'string') {
-      path = path.split('/');
-    }
-    return this.retrieve(['deleted'].concat(path));
-  },
-
-  initRecord: function(type, data) {
-    var modelSchema = this.schema.models[type],
-        attributes = modelSchema.attributes,
-        links = modelSchema.links;
-
-    // init id
-    if (data[this.idField] === undefined) {
-      data[this.idField] = this._generateId();
-    }
-
-    // init default values
-    if (attributes) {
-      for (var attribute in attributes) {
-        if (data[attribute] === undefined && attributes[attribute].defaultValue) {
-          if (typeof attributes[attribute].defaultValue === 'function') {
-            data[attribute] = attributes[attribute].defaultValue.call(data);
-          } else {
-            data[attribute] = attributes[attribute].defaultValue;
-          }
-        }
-      }
-    }
-
-    // init links
-    if (links) {
-      data.links = {};
-      for (var link in links) {
-        if (data.links[link] === undefined && links[link].type === 'hasMany') {
-          data.links[link] = {};
-        }
-      }
-    }
-  },
 
   /////////////////////////////////////////////////////////////////////////////
   // Transformable interface implementation
@@ -126,7 +65,7 @@ MemoryStore.prototype = {
         path,
         _this = this;
 
-    this.initRecord(type, data);
+    this._cache.initRecord(type, data);
     id = data[this.idField];
     path = [type, id];
 
@@ -146,9 +85,13 @@ MemoryStore.prototype = {
   },
 
   _patch: function(type, id, property, value) {
-    var path = [type, id].concat(this._cache.deserializePath(property));
+    if (typeof id === 'object') id = id[this.idField];
 
-    return this.transform({op: 'replace', path: path, value: value});
+    return this.transform({
+      op: 'replace',
+      path: [type, id].concat(Document.prototype.deserializePath(property)),
+      value: value
+    });
   },
 
   _remove: function(type, id) {
@@ -158,7 +101,7 @@ MemoryStore.prototype = {
   },
 
   _link: function(type, id, property, value) {
-    var linkDef = this.schema.models[type].links[property],
+    var linkDef = this._cache.schema.models[type].links[property],
         ops,
         _this = this;
 
@@ -171,7 +114,7 @@ MemoryStore.prototype = {
 
     // Add inverse link if necessary
     if (linkDef.inverse) {
-      var inverseLinkDef = this.schema.models[linkDef.model].links[linkDef.inverse];
+      var inverseLinkDef = this._cache.schema.models[linkDef.model].links[linkDef.inverse];
       ops.push(this._linkOp(inverseLinkDef, linkDef.model, value, linkDef.inverse, id));
     }
 
@@ -181,7 +124,7 @@ MemoryStore.prototype = {
   },
 
   _unlink: function(type, id, property, value) {
-    var linkDef = this.schema.models[type].links[property],
+    var linkDef = this._cache.schema.models[type].links[property],
         ops,
         record,
         _this = this;
@@ -205,7 +148,7 @@ MemoryStore.prototype = {
         value = record.links[property];
       }
 
-      var inverseLinkDef = this.schema.models[linkDef.model].links[linkDef.inverse];
+      var inverseLinkDef = this._cache.schema.models[linkDef.model].links[linkDef.inverse];
       ops.push(this._unlinkOp(inverseLinkDef, linkDef.model, value, linkDef.inverse, id));
     }
 
@@ -217,11 +160,6 @@ MemoryStore.prototype = {
   /////////////////////////////////////////////////////////////////////////////
   // Internals
   /////////////////////////////////////////////////////////////////////////////
-
-  _configureModel: function(name) {
-    this._cache.add([name], {});
-    this._cache.add(['deleted', name], {});
-  },
 
   _linkOp: function(linkDef, type, id, property, value) {
     var path = [type, id, 'links', property];
@@ -270,10 +208,6 @@ MemoryStore.prototype = {
       }
     }
     return all;
-  },
-
-  _generateId: function() {
-    return Orbit.generateId();
   },
 
   _transformCache: function(operation) {

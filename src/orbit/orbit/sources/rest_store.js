@@ -1,4 +1,5 @@
 import Orbit from 'orbit/core';
+import Cache from 'orbit/cache';
 import Document from 'orbit/document';
 import Transformable from 'orbit/transformable';
 import Requestable from 'orbit/requestable';
@@ -15,8 +16,10 @@ var RestStore = function(options) {
 
   this.idField = Orbit.idField;
 
-  this._cache = new Document();
-  this.configure(options.schema);
+  // Create an internal cache and expose some elements of its interface
+  this._cache = new Cache(options.schema);
+  Orbit.expose(this, this._cache, 'isDeleted', 'length', 'reset', 'retrieve');
+
   this._remoteIdMap = {};
 
   Transformable.extend(this);
@@ -25,36 +28,6 @@ var RestStore = function(options) {
 
 RestStore.prototype = {
   constructor: RestStore,
-
-  configure: function(schema) {
-    this.schema = schema;
-    this._cache.add(['deleted'], {});
-    for (var model in schema.models) {
-      if (schema.models.hasOwnProperty(model)) {
-        this._configureModel(model);
-      }
-    }
-  },
-
-  retrieve: function(path) {
-    try {
-      return this._cache.retrieve(path);
-    } catch(e) {
-      return null;
-    }
-  },
-
-  length: function(path) {
-    return Object.keys(this.retrieve(path)).length;
-  },
-
-  isDeleted: function(path) {
-    // TODO - normalize paths
-    if (typeof path === 'string') {
-      path = path.split('/');
-    }
-    return this.retrieve(['deleted'].concat(path));
-  },
 
   /////////////////////////////////////////////////////////////////////////////
   // Transformable interface implementation
@@ -79,7 +52,7 @@ RestStore.prototype = {
 
       if (path[0] === 'links') {
         var property = path[1];
-        var linkDef = this.schema.models[type].links[property];
+        var linkDef = this._cache.schema.models[type].links[property];
 
         var linkedId;
         if (path.length > 2) {
@@ -205,7 +178,7 @@ RestStore.prototype = {
       id = data;
     }
 
-    path = [type, id].concat(this._cache.deserializePath(property));
+    path = [type, id].concat(Document.prototype.deserializePath(property));
 
     return this.transform({op: 'replace', path: path, value: value});
   },
@@ -227,7 +200,7 @@ RestStore.prototype = {
   },
 
   _link: function(type, id, property, value) {
-    var modelSchema = this.schema.models[type],
+    var modelSchema = this._cache.schema.models[type],
         linkDef = modelSchema.links[property],
         ops,
         path,
@@ -258,7 +231,7 @@ RestStore.prototype = {
 
     // Add inverse link if needed
     if (linkDef.inverse) {
-      var inverseModelSchema = this.schema.models[linkDef.model],
+      var inverseModelSchema = this._cache.schema.models[linkDef.model],
           inverseLinkDef = inverseModelSchema.links[linkDef.inverse],
           inversePath = [linkDef.model, value, 'links', linkDef.inverse];
 
@@ -275,11 +248,6 @@ RestStore.prototype = {
   /////////////////////////////////////////////////////////////////////////////
   // Internals
   /////////////////////////////////////////////////////////////////////////////
-
-  _configureModel: function(name) {
-    this._cache.add([name], {});
-    this._cache.add(['deleted', name], {});
-  },
 
   _findOne: function(type, remoteId) {
     var _this = this;
