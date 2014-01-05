@@ -38,6 +38,25 @@ var Orbit = {
     return str.charAt(0).toUpperCase() + str.slice(1);
   },
 
+  expose: function(destination, source) {
+    var properties;
+    if (arguments.length > 2) {
+      properties = Array.prototype.slice.call(arguments, 2);
+    } else {
+      properties = source;
+    }
+
+    properties.forEach(function(p) {
+      if (typeof source[p] === 'function') {
+        destination[p] = function() {
+          return source[p].apply(source, arguments);
+        };
+      } else {
+        destination[p] = source[p];
+      }
+    });
+  },
+
   arrayToOptions: function(arr) {
     var options = {};
     if (arr) {
