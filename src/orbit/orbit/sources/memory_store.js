@@ -158,30 +158,21 @@ MemoryStore.prototype = {
   },
 
   _link: function(type, id, property, value) {
+    var linkDef = this.schema.models[type].links[property],
+        ops,
+        _this = this;
+
     // Normalize ids
     if (typeof id === 'object') id = id[this.idField];
     if (typeof value === 'object') value = value[this.idField];
 
-    var modelSchema = this.schema.models[type],
-        linkDef = modelSchema.links[property],
-        ops,
-        path,
-        _this = this;
+    // Add link to primary resource
+    ops = [this._linkOp(linkDef, type, id, property, value)];
 
-    // Create operation to add link to primary resource
-    path = [type, id, 'links', property];
-    if (linkDef.type === 'hasMany') path.push(value);
-    ops = [{op: 'add', path: path, value: value}];
-
-    // Add inverse link if needed
+    // Add inverse link if necessary
     if (linkDef.inverse) {
-      var inverseModelSchema = this.schema.models[linkDef.model],
-          inverseLinkDef = inverseModelSchema.links[linkDef.inverse],
-          inversePath = [linkDef.model, value, 'links', linkDef.inverse];
-
-      if (inverseLinkDef.type === 'hasMany') inversePath.push(value);
-
-      ops.push({op: 'add', path: inversePath, value: id});
+      var inverseLinkDef = this.schema.models[linkDef.model].links[linkDef.inverse];
+      ops.push(this._linkOp(inverseLinkDef, linkDef.model, value, linkDef.inverse, id));
     }
 
     return this.transform(ops).then(function() {
@@ -190,10 +181,8 @@ MemoryStore.prototype = {
   },
 
   _unlink: function(type, id, property, value) {
-    var modelSchema = this.schema.models[type],
-        linkDef = modelSchema.links[property],
+    var linkDef = this.schema.models[type].links[property],
         ops,
-        path,
         record,
         _this = this;
 
@@ -204,12 +193,10 @@ MemoryStore.prototype = {
     }
     if (typeof value === 'object') value = value[this.idField];
 
-    // Create operation to remove link from primary resource
-    path = [type, id, 'links', property];
-    if (linkDef.type === 'hasMany') path.push(value);
-    ops = [{op: 'remove', path: path}];
+    // Remove link from primary resource
+    ops = [this._unlinkOp(linkDef, type, id, property, value)];
 
-    // Add inverse link if needed
+    // Remove inverse link if necessary
     if (linkDef.inverse) {
       if (value === undefined) {
         if (record === undefined) {
@@ -218,13 +205,8 @@ MemoryStore.prototype = {
         value = record.links[property];
       }
 
-      var inverseModelSchema = this.schema.models[linkDef.model],
-          inverseLinkDef = inverseModelSchema.links[linkDef.inverse],
-          inversePath = [linkDef.model, value, 'links', linkDef.inverse];
-
-      if (inverseLinkDef.type === 'hasMany') inversePath.push(id);
-
-      ops.push({op: 'remove', path: inversePath});
+      var inverseLinkDef = this.schema.models[linkDef.model].links[linkDef.inverse];
+      ops.push(this._unlinkOp(inverseLinkDef, linkDef.model, value, linkDef.inverse, id));
     }
 
     return this.transform(ops).then(function() {
@@ -241,9 +223,19 @@ MemoryStore.prototype = {
     this._cache.add(['deleted', name], {});
   },
 
-  _transformCache: function(operation) {
-    var inverse = this._cache.transform(operation, true);
-    this.didTransform(operation, inverse);
+  _linkOp: function(linkDef, type, id, property, value) {
+    var path = [type, id, 'links', property];
+
+    if (linkDef.type === 'hasMany') {
+      path.push(value);
+      value = true;
+    }
+
+    return {
+      op: 'add',
+      path: path,
+      value: value
+    };
   },
 
   _filter: function(type, query) {
@@ -282,6 +274,22 @@ MemoryStore.prototype = {
 
   _generateId: function() {
     return Orbit.generateId();
+  },
+
+  _transformCache: function(operation) {
+    var inverse = this._cache.transform(operation, true);
+    this.didTransform(operation, inverse);
+  },
+
+  _unlinkOp: function(linkDef, type, id, property, value) {
+    var path = [type, id, 'links', property];
+
+    if (linkDef.type === 'hasMany') path.push(value);
+
+    return {
+      op: 'remove',
+      path: path
+    };
   }
 };
 
