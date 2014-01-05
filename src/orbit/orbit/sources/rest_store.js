@@ -20,7 +20,7 @@ var RestStore = function(options) {
   this._remoteIdMap = {};
 
   Transformable.extend(this);
-  Requestable.extend(this, ['find', 'add', 'update', 'patch', 'remove']);
+  Requestable.extend(this, ['find', 'add', 'update', 'patch', 'remove', 'link', 'unlink']);
 };
 
 RestStore.prototype = {
@@ -73,11 +73,30 @@ RestStore.prototype = {
       remoteId = this._lookupRemoteId(type, id);
       if (!remoteId) throw new Orbit.NotFoundException(type, data);
 
-      var baseURL = this._buildURL(type, remoteId),
-          pathURL = baseURL + '/' + path.slice(2).join('/');
+      var baseURL = this._buildURL(type, remoteId);
 
+      path = path.slice(2);
+
+      if (path[0] === 'links') {
+        var property = path[1];
+        var linkDef = this.schema.models[type].links[property];
+
+        var linkedId;
+        if (path.length > 2) {
+          linkedId = path.pop();
+          path.push('-');
+        } else {
+          linkedId =  data;
+        }
+        data = this._lookupRemoteId(linkDef.model, linkedId);
+      }
+
+      var pathURL = baseURL + '/' + path.join('/');
+
+      console.log('ajax', 'PATCH', baseURL, {data: {op: operation.op, path: pathURL, value: data}});
       return this._ajax(baseURL, 'PATCH', {data: {op: operation.op, path: pathURL, value: data}}).then(
         function() {
+          // TODO - move this check/conversion to MemoryStore?
           if (operation.op === 'replace') operation.op = 'add';
           _this._transformCache(operation);
         }
@@ -174,8 +193,7 @@ RestStore.prototype = {
 
   _patch: function(type, data, property, value) {
     var id,
-        path,
-        _this = this;
+        path;
 
     if (typeof data === 'object') {
       id = data[this.idField];
@@ -206,6 +224,52 @@ RestStore.prototype = {
     }
 
     return this.transform({op: 'remove', path: [type, id]});
+  },
+
+  _link: function(type, id, property, value) {
+    var modelSchema = this.schema.models[type],
+        linkDef = modelSchema.links[property],
+        ops,
+        path,
+        _this = this;
+
+    if (typeof id === 'object') {
+      var primaryRecord = id;
+      id = primaryRecord[this.idField];
+      if (id === undefined) {
+        this._addToCache(type, primaryRecord);
+        id = primaryRecord[this.idField];
+      }
+    }
+    if (typeof value === 'object') {
+      var relatedRecord = value;
+      value = relatedRecord[this.idField];
+      if (value === undefined) {
+        var relatedRecordType = modelSchema.links[property].model;
+        this._addToCache(relatedRecordType, relatedRecord);
+        value = relatedRecord[this.idField];
+      }
+    }
+
+    // Create operation to add link to primary resource
+    path = [type, id, 'links', property];
+    if (linkDef.type === 'hasMany') path.push(value);
+    ops = [{op: 'add', path: path, value: value}];
+
+    // Add inverse link if needed
+    if (linkDef.inverse) {
+      var inverseModelSchema = this.schema.models[linkDef.model],
+          inverseLinkDef = inverseModelSchema.links[linkDef.inverse],
+          inversePath = [linkDef.model, value, 'links', linkDef.inverse];
+
+      if (inverseLinkDef.type === 'hasMany') inversePath.push(value);
+
+      ops.push({op: 'add', path: inversePath, value: id});
+    }
+
+    return this.transform(ops).then(function() {
+      return _this.retrieve([type, id]);
+    });
   },
 
   /////////////////////////////////////////////////////////////////////////////

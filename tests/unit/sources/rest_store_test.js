@@ -19,6 +19,21 @@ module("Unit - RestStore", {
     var schema = {
       models: {
         planet: {
+          attributes: {
+            name: {type: 'string'},
+            classification: {type: 'string'}
+          },
+          links: {
+            moons: {type: 'hasMany', model: 'moon', inverse: 'planet'}
+          }
+        },
+        moon: {
+          attributes: {
+            name: {type: 'string'}
+          },
+          links: {
+            planet: {type: 'hasOne', model: 'planet', inverse: 'moons'}
+          }
         }
       }
     };
@@ -110,6 +125,32 @@ test("#remove - can delete records", function() {
     ok(true, 'record deleted');
   });
 });
+
+//test("#link - can patch records with inverse relationships", function() {
+//  expect(2);
+//
+//  server.respondWith('PATCH', '/planets/12345', function(xhr) {
+//    deepEqual(JSON.parse(xhr.requestBody), {op: 'add', path: '/planets/12345/links/moons/-', value: 987}, 'PATCH request');
+//    xhr.respond(200,
+//                {'Content-Type': 'application/json'},
+//                JSON.stringify({}));
+//  });
+//
+//  server.respondWith('PATCH', '/moons/987', function(xhr) {
+//    deepEqual(JSON.parse(xhr.requestBody), {op: 'add', path: '/moons/987/links/planet', value: 12345}, 'PATCH request');
+//    xhr.respond(200,
+//                {'Content-Type': 'application/json'},
+//                JSON.stringify({}));
+//  });
+//
+//  stop();
+//  store.link('planet', {id: 12345}, 'moons', {id: 987}).then(function() {
+//    start();
+//    ok(true, 'records linked');
+//  }, function(e) {
+//    debugger;
+//  });
+//});
 
 test("#find - can find individual records by passing in a single id", function() {
   expect(6);
