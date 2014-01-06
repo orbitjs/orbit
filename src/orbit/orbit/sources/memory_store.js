@@ -22,21 +22,17 @@ var MemoryStore = function(options) {
 MemoryStore.prototype = {
   constructor: MemoryStore,
 
+  initRecord: function(type, record) {
+    this._cache.initRecord(type, record);
+  },
+
   /////////////////////////////////////////////////////////////////////////////
   // Transformable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
   _transform: function(operation) {
-    this._transformCache(operation);
-
-    // Track deleted records
-    // Note: cache transforms won't be tracked because we are directly
-    // accessing _this._cache, which will not trigger events
-    if (operation.op === 'remove' && operation.path.length === 2) {
-      this._cache.transform({op: 'add',
-                            path: ['deleted'].concat(operation.path),
-                            value: true});
-    }
+    var inverse = this._cache.transform(operation, true);
+    this.didTransform(operation, inverse);
   },
 
   /////////////////////////////////////////////////////////////////////////////
@@ -58,10 +54,6 @@ MemoryStore.prototype = {
         }
       }
     });
-  },
-
-  initRecord: function(type, record) {
-    this._cache.initRecord(type, record);
   },
 
   _add: function(type, data) {
@@ -241,11 +233,6 @@ MemoryStore.prototype = {
       }
     }
     return all;
-  },
-
-  _transformCache: function(operation) {
-    var inverse = this._cache.transform(operation, true);
-    this.didTransform(operation, inverse);
   }
 };
 
