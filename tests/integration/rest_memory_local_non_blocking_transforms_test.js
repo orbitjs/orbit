@@ -208,8 +208,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
     } else if (restStoreTransforms === 2) {
       start();
 
-      // TODO - should be 'replace'?
-      equal(operation.op, 'add',      'rest store - name added');
+      equal(operation.op, 'replace',  'rest store - name replaced');
       equal(operation.value, 'Earth', 'rest store - name - Earth');
 
     } else  {
@@ -332,8 +331,7 @@ test("records patched in memory should be patched with rest", function() {
     } else if (restStoreTransforms === 2) {
       start();
 
-      // TODO - should be 'replace'?
-      equal(operation.op, 'add',      'rest store - name added');
+      equal(operation.op, 'replace',  'rest store - name replaced');
       equal(operation.value, 'Earth', 'rest store - name - Earth');
 
     } else  {

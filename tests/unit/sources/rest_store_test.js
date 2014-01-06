@@ -126,31 +126,57 @@ test("#remove - can delete records", function() {
   });
 });
 
-//test("#link - can patch records with inverse relationships", function() {
-//  expect(2);
-//
-//  server.respondWith('PATCH', '/planets/12345', function(xhr) {
-//    deepEqual(JSON.parse(xhr.requestBody), {op: 'add', path: '/planets/12345/links/moons/-', value: 987}, 'PATCH request');
-//    xhr.respond(200,
-//                {'Content-Type': 'application/json'},
-//                JSON.stringify({}));
-//  });
-//
-//  server.respondWith('PATCH', '/moons/987', function(xhr) {
-//    deepEqual(JSON.parse(xhr.requestBody), {op: 'add', path: '/moons/987/links/planet', value: 12345}, 'PATCH request');
-//    xhr.respond(200,
-//                {'Content-Type': 'application/json'},
-//                JSON.stringify({}));
-//  });
-//
-//  stop();
-//  store.link('planet', {id: 12345}, 'moons', {id: 987}).then(function() {
-//    start();
-//    ok(true, 'records linked');
-//  }, function(e) {
-//    debugger;
-//  });
-//});
+test("#link - can patch records with inverse relationships", function() {
+  expect(3);
+
+  server.respondWith('PATCH', '/planets/12345', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {op: 'add', path: '/planets/12345/links/moons/-', value: 987},
+              'PATCH request to add link to primary record');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({}));
+  });
+
+  server.respondWith('PATCH', '/moons/987', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {op: 'add', path: '/moons/987/links/planet', value: 12345},
+              'PATCH request to add link to related record');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({}));
+  });
+
+  stop();
+  store.link('planet', {id: 12345}, 'moons', {id: 987}).then(function() {
+    start();
+    ok(true, 'records linked');
+  });
+});
+
+test("#unlink - can patch records with inverse relationships", function() {
+  expect(3);
+
+  server.respondWith('PATCH', '/planets/12345', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {op: 'remove', path: '/planets/12345/links/moons/987'},
+              'PATCH request to remove link from primary record');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({}));
+  });
+
+  server.respondWith('PATCH', '/moons/987', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {op: 'remove', path: '/moons/987/links/planet'},
+              'PATCH request to remove link from related record');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({}));
+  });
+
+  stop();
+  store.unlink('planet', {id: 12345}, 'moons', {id: 987}).then(function() {
+    start();
+    ok(true, 'records unlinked');
+  });
+});
 
 test("#find - can find individual records by passing in a single id", function() {
   expect(6);
