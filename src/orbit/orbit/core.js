@@ -57,6 +57,17 @@ var Orbit = {
     });
   },
 
+  extend: function(destination) {
+    var sources = Array.prototype.slice.call(arguments, 1);
+    sources.forEach(function(source) {
+      for (var p in source) {
+        destination[p] = source[p];
+      }
+    });
+  },
+
+  K: function() { return this; },
+
   arrayToOptions: function(arr) {
     var options = {};
     if (arr) {

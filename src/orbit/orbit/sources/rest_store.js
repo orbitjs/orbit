@@ -1,35 +1,28 @@
 import Orbit from 'orbit/core';
-import Cache from 'orbit/cache';
-import Document from 'orbit/document';
-import Transformable from 'orbit/transformable';
-import Requestable from 'orbit/requestable';
-import MemoryStore from 'orbit/sources/memory_store';
+import Store from 'orbit/sources/store';
 import clone from 'orbit/lib/clone';
 
 var RestStore = function(options) {
-  Orbit.assert('RestStore requires Orbit.Promise be defined', Orbit.Promise);
-  Orbit.assert('RestStore requires Orbit.ajax be defined', Orbit.ajax);
-
-  options = options || {};
-  this.remoteIdField = options['remoteIdField'] || 'id';
-  this.namespace = options['namespace'];
-  this.headers = options['headers'];
-
-  this.idField = Orbit.idField;
-
-  // Create an internal cache and expose some elements of its interface
-  this._cache = new Cache(options.schema);
-  Orbit.expose(this, this._cache, 'isDeleted', 'length', 'reset', 'retrieve');
-
-  this._remoteToLocalIdMap = {};
-  this._localToRemoteIdMap = {};
-
-  Transformable.extend(this);
-  Requestable.extend(this, ['find', 'add', 'update', 'patch', 'remove', 'link', 'unlink']);
+  this.init(options);
 };
 
-RestStore.prototype = {
+Orbit.extend(RestStore.prototype, Store.prototype, {
   constructor: RestStore,
+
+  init: function(options) {
+    Orbit.assert('RestStore requires Orbit.Promise be defined', Orbit.Promise);
+    Orbit.assert('RestStore requires Orbit.ajax be defined', Orbit.ajax);
+
+    Store.prototype.init.apply(this, arguments);
+
+    options = options || {};
+    this.remoteIdField = options['remoteIdField'] || 'id';
+    this.namespace = options['namespace'];
+    this.headers = options['headers'];
+
+    this._remoteToLocalIdMap = {};
+    this._localToRemoteIdMap = {};
+  },
 
   initRecord: function(type, record) {
     var id = record[this.idField],
@@ -154,13 +147,6 @@ RestStore.prototype = {
       return this._findQuery(type, id);
     }
   },
-
-  _add: MemoryStore.prototype._add,
-  _update: MemoryStore.prototype._update,
-  _patch: MemoryStore.prototype._patch,
-  _remove: MemoryStore.prototype._remove,
-  _link: MemoryStore.prototype._link,
-  _unlink: MemoryStore.prototype._unlink,
 
   /////////////////////////////////////////////////////////////////////////////
   // Internals
@@ -345,6 +331,6 @@ RestStore.prototype = {
   _deserialize: function(type, data) {
     return data;
   }
-};
+});
 
 export default RestStore;

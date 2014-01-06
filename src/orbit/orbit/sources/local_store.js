@@ -1,37 +1,6 @@
 import Orbit from 'orbit/core';
 import MemoryStore from 'orbit/sources/memory_store';
 
-var LocalStore = function(options) {
-  Orbit.assert('LocalStore requires Orbit.Promise be defined', Orbit.Promise);
-  Orbit.assert('Your browser does not support local storage!', supportsLocalStorage());
-
-  options = options || {};
-  this.namespace = options['namespace'] || 'orbit'; // local storage key
-  this._autosave = options['autosave'] !== undefined ? options['autosave'] : true;
-  var autoload = options['autoload'] !== undefined ? options['autoload'] : true;
-
-  this._store = new MemoryStore({schema: options.schema});
-  this._isDirty = false;
-
-  // Evented interface
-  Orbit.expose(this, this._store, 'on', 'off', 'emit', 'poll', 'listeners', 'resolve', 'settle');
-
-  // Transformable interface
-  Orbit.expose(this, this._store, 'transform', 'didTransform', 'transformQueue');
-
-  // Requestable interface
-  Orbit.expose(this, this._store, 'find', 'add', 'update', 'patch', 'remove');
-
-  // Cache interface
-  Orbit.expose(this, this._store, 'retrieve', 'length', 'isDeleted');
-
-  this._store.on('didTransform', function() {
-    this._saveData();
-  }, this);
-
-  if (autoload) this.load();
-};
-
 var supportsLocalStorage = function() {
   try {
     return 'localStorage' in window && window['localStorage'] !== null;
@@ -40,8 +9,43 @@ var supportsLocalStorage = function() {
   }
 };
 
+var LocalStore = function(options) {
+  this.init(options);
+};
+
 LocalStore.prototype = {
   constructor: LocalStore,
+
+  init: function(options) {
+    Orbit.assert('LocalStore requires Orbit.Promise be defined', Orbit.Promise);
+    Orbit.assert('Your browser does not support local storage!', supportsLocalStorage());
+
+    options = options || {};
+    this.namespace = options['namespace'] || 'orbit'; // local storage key
+    this._autosave = options['autosave'] !== undefined ? options['autosave'] : true;
+    var autoload = options['autoload'] !== undefined ? options['autoload'] : true;
+
+    this._store = new MemoryStore({schema: options.schema});
+    this._isDirty = false;
+
+    // Evented interface
+    Orbit.expose(this, this._store, 'on', 'off', 'emit', 'poll', 'listeners', 'resolve', 'settle');
+
+    // Transformable interface
+    Orbit.expose(this, this._store, 'transform', 'didTransform', 'transformQueue');
+
+    // Requestable interface
+    Orbit.expose(this, this._store, 'find', 'add', 'update', 'patch', 'remove');
+
+    // Cache interface
+    Orbit.expose(this, this._store, 'retrieve', 'length', 'isDeleted');
+
+    this._store.on('didTransform', function() {
+      this._saveData();
+    }, this);
+
+    if (autoload) this.load();
+  },
 
   load: function() {
     var storage = window.localStorage.getItem(this.namespace);
