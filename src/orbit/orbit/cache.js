@@ -24,14 +24,14 @@ Cache.prototype = {
   constructor: Cache,
 
   initRecord: function(type, data) {
+    if (data[this.idField] !== undefined) return;
+
     var modelSchema = this.schema.models[type],
         attributes = modelSchema.attributes,
         links = modelSchema.links;
 
     // init id
-    if (data[this.idField] === undefined) {
-      data[this.idField] = this.generateId();
-    }
+    data[this.idField] = this.generateId();
 
     // init default values
     if (attributes) {

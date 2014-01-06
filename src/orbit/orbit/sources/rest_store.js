@@ -3,6 +3,7 @@ import Cache from 'orbit/cache';
 import Document from 'orbit/document';
 import Transformable from 'orbit/transformable';
 import Requestable from 'orbit/requestable';
+import MemoryStore from 'orbit/sources/memory_store';
 import clone from 'orbit/lib/clone';
 
 var RestStore = function(options) {
@@ -136,6 +137,21 @@ RestStore.prototype = {
   // Requestable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
+  initRecord: function(type, record) {
+    this._cache.initRecord(type, record);
+
+    var id = record[this.idField],
+        path = [type, id],
+        remoteId = record[this.remoteIdField];
+
+    if (remoteId) {
+      if (!this.retrieve(path)) {
+        this._transformCache({op: 'add', path: path, value: record});
+      }
+      this._updateRemoteIdMap(type, id, remoteId);
+    }
+  },
+
   _find: function(type, id) {
     if (id && (typeof id === 'number' || typeof id === 'string')) {
       var remoteId = this._lookupRemoteId(type, id);
@@ -150,169 +166,12 @@ RestStore.prototype = {
     }
   },
 
-  _add: function(type, data) {
-    var id,
-        path,
-        _this = this;
-
-    this._cache.initRecord(type, data);
-    id = data[this.idField];
-    path = [type, id];
-
-    return this.transform({op: 'add', path: path, value: data}).then(function() {
-      return _this.retrieve(path);
-    });
-  },
-
-  _update: function(type, data) {
-    var id = data[this.idField],
-        path,
-        _this = this;
-
-    if (id === undefined) {
-      this._addToCache(type, data);
-      id = data[this.idField];
-    }
-
-    path = [type, id];
-
-    return this.transform({op: 'replace', path: path, value: data}).then(function() {
-      return _this.retrieve(path);
-    });
-  },
-
-  _patch: function(type, data, property, value) {
-    var id,
-        path;
-
-    if (typeof data === 'object') {
-      id = data[this.idField];
-      if (id === undefined) {
-        this._addToCache(type, data);
-        id = data[this.idField];
-      }
-    } else {
-      id = data;
-    }
-
-    path = [type, id].concat(Document.prototype.deserializePath(property));
-
-    return this.transform({op: 'replace', path: path, value: value});
-  },
-
-  _remove: function(type, data) {
-    var id;
-
-    if (typeof data === 'object') {
-      id = data[this.idField];
-      if (id === undefined) {
-        this._addToCache(type, data);
-        id = data[this.idField];
-      }
-    } else {
-      id = data;
-    }
-
-    return this.transform({op: 'remove', path: [type, id]});
-  },
-
-  _link: function(type, id, property, value) {
-    var modelSchema = this._cache.schema.models[type],
-        linkDef = modelSchema.links[property],
-        ops,
-        path,
-        record,
-        relatedRecord,
-        _this = this;
-
-    if (typeof id === 'object') {
-      record = id;
-      id = record[this.idField];
-      if (id === undefined) {
-        this._addToCache(type, record);
-        id = record[this.idField];
-      }
-    }
-
-    if (typeof value === 'object') {
-      relatedRecord = value;
-      value = relatedRecord[this.idField];
-      if (value === undefined) {
-        var relatedRecordType = modelSchema.links[property].model;
-        this._addToCache(relatedRecordType, relatedRecord);
-        value = relatedRecord[this.idField];
-      }
-    }
-
-    // Create operation to add link to primary resource
-    path = [type, id, 'links', property];
-    if (linkDef.type === 'hasMany') path.push(value);
-    ops = [{op: 'add', path: path, value: value}];
-
-    // Add inverse link if needed
-    if (linkDef.inverse) {
-      var inverseModelSchema = this._cache.schema.models[linkDef.model],
-          inverseLinkDef = inverseModelSchema.links[linkDef.inverse],
-          inversePath = [linkDef.model, value, 'links', linkDef.inverse];
-
-      if (inverseLinkDef.type === 'hasMany') inversePath.push(value);
-
-      ops.push({op: 'add', path: inversePath, value: id});
-    }
-
-    return this.transform(ops).then(function() {
-      return _this.retrieve([type, id]);
-    });
-  },
-
-  _unlink: function(type, id, property, value) {
-    var modelSchema = this._cache.schema.models[type],
-        linkDef = modelSchema.links[property],
-        ops,
-        record,
-        relatedRecord,
-        _this = this;
-
-    // Normalize ids
-    if (typeof id === 'object') {
-      record = id;
-      id = record[this.idField];
-      if (id === undefined) {
-        this._addToCache(type, record);
-        id = record[this.idField];
-      }
-    }
-
-    if (typeof value === 'object') {
-      relatedRecord = value;
-      value = relatedRecord[this.idField];
-      if (value === undefined) {
-        var relatedRecordType = modelSchema.links[property].model;
-        this._addToCache(relatedRecordType, relatedRecord);
-        value = relatedRecord[this.idField];
-      }
-    }
-
-    // Remove link from primary resource
-    ops = [this._unlinkOp(linkDef, type, id, property, value)];
-
-    // Remove inverse link if necessary
-    if (linkDef.inverse) {
-      if (value === undefined) {
-        if (record === undefined) {
-          record = this.retrieve(type, id);
-        }
-        value = record.links[property];
-      }
-
-      var inverseLinkDef = this._cache.schema.models[linkDef.model].links[linkDef.inverse];
-      ops.push(this._unlinkOp(inverseLinkDef, linkDef.model, value, linkDef.inverse, id));
-    }
-
-    return this.transform(ops).then(function() {
-      return _this.retrieve([type, id]);
-    });
-  },
+  _add: MemoryStore.prototype._add,
+  _update: MemoryStore.prototype._update,
+  _patch: MemoryStore.prototype._patch,
+  _remove: MemoryStore.prototype._remove,
+  _link: MemoryStore.prototype._link,
+  _unlink: MemoryStore.prototype._unlink,
 
   /////////////////////////////////////////////////////////////////////////////
   // Internals
@@ -355,8 +214,6 @@ RestStore.prototype = {
         newRecord = (id === undefined);
 
     this._addToCache(type, record);
-
-    this.didTransform.call(this, (newRecord ? 'add' : 'replace'), type, record);
   },
 
   _remoteToLocalId: function(type, remoteId) {
@@ -379,17 +236,12 @@ RestStore.prototype = {
   },
 
   _transformCache: function(operation) {
-    var inverse;
-
     if ((operation.op === 'remove' || operation.op === 'replace') &&
         !this.retrieve(operation.path)) {
-
-      inverse === [];
-
-    } else {
-      inverse = this._cache.transform(operation, true);
+      return;
     }
 
+    var inverse = this._cache.transform(operation, true);
     this.didTransform(operation, inverse);
   },
 
@@ -505,17 +357,6 @@ RestStore.prototype = {
 
   _deserialize: function(type, data) {
     return data;
-  },
-
-  _unlinkOp: function(linkDef, type, id, property, value) {
-    var path = [type, id, 'links', property];
-
-    if (linkDef.type === 'hasMany') path.push(value);
-
-    return {
-      op: 'remove',
-      path: path
-    };
   }
 };
 

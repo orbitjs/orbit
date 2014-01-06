@@ -60,14 +60,16 @@ MemoryStore.prototype = {
     });
   },
 
-  _add: function(type, data) {
-    var id,
-        path,
-        _this = this;
+  initRecord: function(type, record) {
+    this._cache.initRecord(type, record);
+  },
 
-    this._cache.initRecord(type, data);
-    id = data[this.idField];
-    path = [type, id];
+  _add: function(type, data) {
+    this.initRecord(type, data);
+
+    var id = data[this.idField],
+        path = [type, id],
+        _this = this;
 
     return this.transform({op: 'add', path: path, value: data}).then(function() {
       return _this.retrieve(path);
@@ -75,6 +77,8 @@ MemoryStore.prototype = {
   },
 
   _update: function(type, data) {
+    this.initRecord(type, data);
+
     var id = data[this.idField],
         path = [type, id],
         _this = this;
@@ -85,7 +89,11 @@ MemoryStore.prototype = {
   },
 
   _patch: function(type, id, property, value) {
-    if (typeof id === 'object') id = id[this.idField];
+    if (typeof id === 'object') {
+      var record = id;
+      this.initRecord(type, record);
+      id = record[this.idField];
+    }
 
     return this.transform({
       op: 'replace',
@@ -95,27 +103,52 @@ MemoryStore.prototype = {
   },
 
   _remove: function(type, id) {
-    if (typeof id === 'object') id = id[this.idField];
+    if (typeof id === 'object') {
+      var record = id;
+      this.initRecord(type, record);
+      id = record[this.idField];
+    }
 
     return this.transform({op: 'remove', path: [type, id]});
   },
 
   _link: function(type, id, property, value) {
+    var linkOp = function(linkDef, type, id, property, value) {
+      var path = [type, id, 'links', property];
+      if (linkDef.type === 'hasMany') {
+        path.push(value);
+        value = true;
+      }
+      return {
+        op: 'add',
+        path: path,
+        value: value
+      };
+    };
+
     var linkDef = this._cache.schema.models[type].links[property],
         ops,
         _this = this;
 
     // Normalize ids
-    if (typeof id === 'object') id = id[this.idField];
-    if (typeof value === 'object') value = value[this.idField];
+    if (typeof id === 'object') {
+      var record = id;
+      this.initRecord(type, record);
+      id = record[this.idField];
+    }
+    if (typeof value === 'object') {
+      var relatedRecord = value;
+      this.initRecord(linkDef.model, relatedRecord);
+      value = relatedRecord[this.idField];
+    }
 
     // Add link to primary resource
-    ops = [this._linkOp(linkDef, type, id, property, value)];
+    ops = [linkOp(linkDef, type, id, property, value)];
 
     // Add inverse link if necessary
     if (linkDef.inverse) {
       var inverseLinkDef = this._cache.schema.models[linkDef.model].links[linkDef.inverse];
-      ops.push(this._linkOp(inverseLinkDef, linkDef.model, value, linkDef.inverse, id));
+      ops.push(linkOp(inverseLinkDef, linkDef.model, value, linkDef.inverse, id));
     }
 
     return this.transform(ops).then(function() {
@@ -124,20 +157,35 @@ MemoryStore.prototype = {
   },
 
   _unlink: function(type, id, property, value) {
+    var unlinkOp = function(linkDef, type, id, property, value) {
+      var path = [type, id, 'links', property];
+      if (linkDef.type === 'hasMany') path.push(value);
+      return {
+        op: 'remove',
+        path: path
+      };
+    };
+
     var linkDef = this._cache.schema.models[type].links[property],
         ops,
         record,
+        relatedRecord,
         _this = this;
 
     // Normalize ids
     if (typeof id === 'object') {
       record = id;
+      this.initRecord(type, record);
       id = record[this.idField];
     }
-    if (typeof value === 'object') value = value[this.idField];
+    if (typeof value === 'object') {
+      relatedRecord = value;
+      this.initRecord(linkDef.model, relatedRecord);
+      value = relatedRecord[this.idField];
+    }
 
     // Remove link from primary resource
-    ops = [this._unlinkOp(linkDef, type, id, property, value)];
+    ops = [unlinkOp(linkDef, type, id, property, value)];
 
     // Remove inverse link if necessary
     if (linkDef.inverse) {
@@ -149,7 +197,7 @@ MemoryStore.prototype = {
       }
 
       var inverseLinkDef = this._cache.schema.models[linkDef.model].links[linkDef.inverse];
-      ops.push(this._unlinkOp(inverseLinkDef, linkDef.model, value, linkDef.inverse, id));
+      ops.push(unlinkOp(inverseLinkDef, linkDef.model, value, linkDef.inverse, id));
     }
 
     return this.transform(ops).then(function() {
@@ -160,21 +208,6 @@ MemoryStore.prototype = {
   /////////////////////////////////////////////////////////////////////////////
   // Internals
   /////////////////////////////////////////////////////////////////////////////
-
-  _linkOp: function(linkDef, type, id, property, value) {
-    var path = [type, id, 'links', property];
-
-    if (linkDef.type === 'hasMany') {
-      path.push(value);
-      value = true;
-    }
-
-    return {
-      op: 'add',
-      path: path,
-      value: value
-    };
-  },
 
   _filter: function(type, query) {
     var all = [],
@@ -213,17 +246,6 @@ MemoryStore.prototype = {
   _transformCache: function(operation) {
     var inverse = this._cache.transform(operation, true);
     this.didTransform(operation, inverse);
-  },
-
-  _unlinkOp: function(linkDef, type, id, property, value) {
-    var path = [type, id, 'links', property];
-
-    if (linkDef.type === 'hasMany') path.push(value);
-
-    return {
-      op: 'remove',
-      path: path
-    };
   }
 };
 
