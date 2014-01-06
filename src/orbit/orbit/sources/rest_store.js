@@ -21,7 +21,8 @@ var RestStore = function(options) {
   this._cache = new Cache(options.schema);
   Orbit.expose(this, this._cache, 'isDeleted', 'length', 'reset', 'retrieve');
 
-  this._remoteIdMap = {};
+  this._remoteToLocalIdMap = {};
+  this._localToRemoteIdMap = {};
 
   Transformable.extend(this);
   Requestable.extend(this, ['find', 'add', 'update', 'patch', 'remove', 'link', 'unlink']);
@@ -29,6 +30,22 @@ var RestStore = function(options) {
 
 RestStore.prototype = {
   constructor: RestStore,
+
+  initRecord: function(type, record) {
+    var id = record[this.idField],
+        remoteId = record[this.remoteIdField];
+
+    if (remoteId && !id) {
+      id = record[this.idField] = this._remoteToLocalId(remoteId);
+    }
+
+    if (!id) {
+      this._cache.initRecord(type, record);
+      id = record[this.idField];
+    }
+
+    this._updateRemoteIdMap(type, id, remoteId);
+  },
 
   /////////////////////////////////////////////////////////////////////////////
   // Transformable interface implementation
@@ -44,10 +61,8 @@ RestStore.prototype = {
         record;
 
     if (path.length > 2) {
-      // PATCH
-
-      remoteId = this._lookupRemoteId(type, id);
-      if (!remoteId) throw new Orbit.NotFoundException(type, data);
+      remoteId = this._localToRemoteId(type, id);
+      if (!remoteId) throw new Orbit.NotFoundException(type, id);
 
       var baseURL = this._buildURL(type, remoteId);
 
@@ -62,7 +77,7 @@ RestStore.prototype = {
         if (operation.op === 'remove') {
           if (path.length > 2) {
             linkedId = path.pop();
-            path.push(this._lookupRemoteId(linkDef.model, linkedId));
+            path.push(this._localToRemoteId(linkDef.model, linkedId));
           }
 
         } else {
@@ -72,7 +87,7 @@ RestStore.prototype = {
           } else {
             linkedId = data;
           }
-          data = this._lookupRemoteId(linkDef.model, linkedId);
+          data = this._localToRemoteId(linkDef.model, linkedId);
         }
       }
 
@@ -87,13 +102,9 @@ RestStore.prototype = {
 
     } else {
       if (operation.op === 'add') {
-        // POST
-
         if (id) {
           var recordInCache = _this.retrieve([type, id]);
-          if (recordInCache) {
-            throw new Orbit.AlreadyExistsException(type, data);
-          }
+          if (recordInCache) throw new Orbit.AlreadyExistsException(type, id);
         }
 
         return this._ajax(this._buildURL(type), 'POST', {data: this._serialize(type, data)}).then(
@@ -105,12 +116,10 @@ RestStore.prototype = {
         );
 
       } else {
-        remoteId = this._lookupRemoteId(type, data || id);
-        if (!remoteId) throw new Orbit.NotFoundException(type, data);
+        remoteId = this._localToRemoteId(type, id);
+        if (!remoteId) throw new Orbit.NotFoundException(type, id);
 
         if (operation.op === 'replace') {
-          // PUT
-
           return this._ajax(this._buildURL(type, remoteId), 'PUT', {data: this._serialize(type, data)}).then(
             function(raw) {
               record = _this._deserialize(type, raw);
@@ -120,13 +129,8 @@ RestStore.prototype = {
           );
 
         } else if (operation.op === 'remove') {
-          // DELETE
-
           return this._ajax(this._buildURL(type, remoteId), 'DELETE').then(function() {
             _this._transformCache(operation);
-
-            // Track deleted records (Note: cache transforms won't be tracked)
-            _this._cache.transform({op: 'add', path: ['deleted', type, id], value: true});
           });
         }
       }
@@ -137,24 +141,9 @@ RestStore.prototype = {
   // Requestable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  initRecord: function(type, record) {
-    this._cache.initRecord(type, record);
-
-    var id = record[this.idField],
-        path = [type, id],
-        remoteId = record[this.remoteIdField];
-
-    if (remoteId) {
-      if (!this.retrieve(path)) {
-        this._transformCache({op: 'add', path: path, value: record});
-      }
-      this._updateRemoteIdMap(type, id, remoteId);
-    }
-  },
-
   _find: function(type, id) {
     if (id && (typeof id === 'number' || typeof id === 'string')) {
-      var remoteId = this._lookupRemoteId(type, id);
+      var remoteId = this._localToRemoteId(type, id);
       if (!remoteId) throw new Orbit.NotFoundException(type, id);
       return this._findOne(type, remoteId);
 
@@ -177,12 +166,21 @@ RestStore.prototype = {
   // Internals
   /////////////////////////////////////////////////////////////////////////////
 
+  _addToCache: function(type, record) {
+    this.initRecord(type, record);
+    this._transformCache({
+      op: 'add',
+      path: [type, record[this.idField]],
+      value: record
+    });
+  },
+
   _findOne: function(type, remoteId) {
     var _this = this;
     return this._ajax(this._buildURL(type, remoteId), 'GET').then(
       function(raw) {
         var record = _this._deserialize(type, raw);
-        _this._recordFound(type, record);
+        _this._addToCache(type, record);
         return record;
       }
     );
@@ -199,7 +197,7 @@ RestStore.prototype = {
 
         raw.forEach(function(eachRaw) {
           record = _this._deserialize(type, eachRaw);
-          _this._recordFound(type, record);
+          _this._addToCache(type, record);
           records.push(record);
         });
 
@@ -208,59 +206,48 @@ RestStore.prototype = {
     );
   },
 
-  _recordFound: function(type, record) {
-    var remoteId = record[this.remoteIdField],
-        id = this._remoteToLocalId(type, remoteId),
-        newRecord = (id === undefined);
-
-    this._addToCache(type, record);
+  _localToRemoteId: function(type, id) {
+    var dataForType = this._localToRemoteIdMap[type];
+    if (dataForType) return dataForType[id];
   },
 
   _remoteToLocalId: function(type, remoteId) {
-    var dataForType = this._remoteIdMap[type];
+    var dataForType = this._remoteToLocalIdMap[type];
     if (dataForType) return dataForType[remoteId];
   },
 
-  _lookupRemoteId: function(type, data) {
-    var remoteId;
-    if (typeof data === 'object') {
-      remoteId = data[this.remoteIdField];
-    }
-    if (!remoteId) {
-      var record = this.retrieve([type, data]);
-      if (record) {
-        remoteId = record[this.remoteIdField];
-      }
-    }
-    return remoteId;
-  },
-
   _transformCache: function(operation) {
-    if ((operation.op === 'remove' || operation.op === 'replace') &&
-        !this.retrieve(operation.path)) {
-      return;
+    var pathToVerify,
+        inverse;
+
+    if (operation.op === 'add') {
+      pathToVerify = operation.path.slice(0, operation.path.length - 1);
+    } else {
+      pathToVerify = operation.path;
     }
 
-    var inverse = this._cache.transform(operation, true);
+    if (!this.retrieve(pathToVerify)) {
+      console.log('rest store does not have cached', pathToVerify, 'for operation', operation);
+      inverse = [];
+
+    } else {
+      inverse = this._cache.transform(operation, true);
+    }
+
     this.didTransform(operation, inverse);
   },
 
-  _addToCache: function(type, record) {
-    var id = record[this.idField];
-    if (id === undefined) {
-      this._cache.initRecord(type, record);
-      id = record[this.idField];
-    }
-
-    this._transformCache({op: 'add', path: [type, id], value: record});
-    this._updateRemoteIdMap(type, id, record[this.remoteIdField]);
-  },
-
   _updateRemoteIdMap: function(type, id, remoteId) {
-    if (remoteId) {
-      var mapForType = this._remoteIdMap[type];
-      if (!mapForType) mapForType = this._remoteIdMap[type] = {};
+    if (id && remoteId) {
+      var mapForType;
+
+      mapForType = this._remoteToLocalIdMap[type];
+      if (!mapForType) mapForType = this._remoteToLocalIdMap[type] = {};
       mapForType[remoteId] = id;
+
+      mapForType = this._localToRemoteIdMap[type];
+      if (!mapForType) mapForType = this._localToRemoteIdMap[type] = {};
+      mapForType[id] = remoteId;
     }
   },
 
