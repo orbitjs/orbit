@@ -62,10 +62,6 @@ Cache.prototype = {
   },
 
   isDeleted: function(path) {
-    // TODO - normalize paths
-    if (typeof path === 'string') {
-      path = path.split('/');
-    }
     return this.retrieve(['deleted'].concat(path));
   },
 
