@@ -63,9 +63,9 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
   var schema = {
     models: ['planet']
   };
-  var memoryStore = new Orbit.MemoryStore({schema: schema});
-  var restStore = new Orbit.RestStore({schema: schema});
-  var localStore = new Orbit.LocalStore({schema: schema});
+  var memoryStore = new Orbit.MemoryStore(schema);
+  var restStore = new Orbit.RestStore(schema);
+  var localStore = new Orbit.LocalStore(schema);
 
   // Connect MemoryStore -> LocalStore (using the default blocking strategy)
   var memToLocalConnector = new Orbit.TransformConnector(memoryStore, localStore);

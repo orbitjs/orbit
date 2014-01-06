@@ -18,8 +18,8 @@ module("Integration - MemoryStore Sync without Connector", {
       }
     };
 
-    primaryStore = new MemoryStore({schema: schema});
-    backupStore = new MemoryStore({schema: schema});
+    primaryStore = new MemoryStore(schema);
+    backupStore = new MemoryStore(schema);
 
     primaryStore.on('didTransform',  backupStore.transform);
   },

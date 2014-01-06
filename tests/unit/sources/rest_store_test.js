@@ -38,7 +38,7 @@ module("Unit - RestStore", {
       }
     };
 
-    store = new RestStore({schema: schema});
+    store = new RestStore(schema);
   },
 
   teardown: function() {

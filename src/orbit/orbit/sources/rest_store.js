@@ -9,7 +9,7 @@ var RestStore = function() {
 Orbit.extend(RestStore.prototype, Store.prototype, {
   constructor: RestStore,
 
-  init: function(options) {
+  init: function(schema, options) {
     Orbit.assert('RestStore requires Orbit.Promise be defined', Orbit.Promise);
     Orbit.assert('RestStore requires Orbit.ajax be defined', Orbit.ajax);
 

@@ -17,10 +17,7 @@ module("Unit - LocalStore", {
       }
     };
 
-    store = new LocalStore({
-      autoload: false,
-      schema: schema
-    });
+    store = new LocalStore(schema, {autoload: false});
   },
 
   teardown: function() {

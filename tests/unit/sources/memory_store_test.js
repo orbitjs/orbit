@@ -32,7 +32,7 @@ module("Unit - MemoryStore", {
       }
     };
 
-    store = new MemoryStore({schema: schema});
+    store = new MemoryStore(schema);
   },
 
   teardown: function() {

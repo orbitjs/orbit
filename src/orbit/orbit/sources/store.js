@@ -11,13 +11,15 @@ var Store = function() {
 Store.prototype = {
   constructor: Store,
 
-  init: function(options) {
+  init: function(schema, options) {
+    Orbit.assert('Store\'s `schema` must be specified', schema);
+
     options = options || {};
 
     this.idField = Orbit.idField;
 
     // Create an internal cache and expose some elements of its interface
-    this._cache = new Cache(options.schema);
+    this._cache = new Cache(schema);
     Orbit.expose(this, this._cache, 'isDeleted', 'length', 'reset', 'retrieve');
 
     Transformable.extend(this);

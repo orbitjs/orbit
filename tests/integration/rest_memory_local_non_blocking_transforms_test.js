@@ -28,9 +28,9 @@ module("Integration - Rest / Memory / Local Transforms (Non-Blocking)", {
         }
       }
     };
-    memoryStore = new MemoryStore({schema: schema});
-    restStore = new RestStore({schema: schema});
-    localStore = new LocalStore({schema: schema, autoload: false});
+    memoryStore = new MemoryStore(schema);
+    restStore = new RestStore(schema);
+    localStore = new LocalStore(schema, {autoload: false});
 
     memoryStore.id = 'memoryStore';
     restStore.id = 'restStore';

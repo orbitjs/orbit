@@ -16,7 +16,8 @@ var LocalStore = function() {
 LocalStore.prototype = {
   constructor: LocalStore,
 
-  init: function(options) {
+  init: function(schema, options) {
+    Orbit.assert('Store\'s `schema` must be specified', schema);
     Orbit.assert('LocalStore requires Orbit.Promise be defined', Orbit.Promise);
     Orbit.assert('Your browser does not support local storage!', supportsLocalStorage());
 
@@ -25,7 +26,7 @@ LocalStore.prototype = {
     this._autosave = options['autosave'] !== undefined ? options['autosave'] : true;
     var autoload = options['autoload'] !== undefined ? options['autoload'] : true;
 
-    this._store = new MemoryStore({schema: options.schema});
+    this._store = new MemoryStore(schema);
     this._isDirty = false;
 
     // Evented interface

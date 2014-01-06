@@ -18,7 +18,7 @@ module("Unit - Transaction", {
       }
     };
 
-    store = new MemoryStore({schema: schema});
+    store = new MemoryStore(schema);
   },
 
   teardown: function() {

@@ -8,7 +8,7 @@ var MemoryStore = function() {
 Orbit.extend(MemoryStore.prototype, Store.prototype, {
   constructor: MemoryStore,
 
-  init: function(options) {
+  init: function(schema, options) {
     Orbit.assert('MemoryStore requires Orbit.Promise to be defined', Orbit.Promise);
 
     Store.prototype.init.apply(this, arguments);
