@@ -8,7 +8,7 @@ var Cache = function(schema, options) {
   this._doc = new Document(null, {arrayBasedPaths: true});
 
   // Expose methods from the Document interface
-  Orbit.expose(this, this._doc, 'reset', 'transform');
+  Orbit.expose(this, this._doc, 'reset');
 
   this.schema = schema;
   this._doc.add(['deleted'], {});
@@ -75,6 +75,19 @@ Cache.prototype = {
     } catch(e) {
       return null;
     }
+  },
+
+  transform: function(operation, invert) {
+    var inverse = this._doc.transform(operation, invert);
+
+    // Track deleted records
+    if (operation.op === 'remove' && operation.path.length === 2) {
+      this._doc.transform({op: 'add',
+                           path: ['deleted'].concat(operation.path),
+                           value: true});
+    }
+
+    return inverse;
   }
 };
 
