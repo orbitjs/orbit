@@ -9,8 +9,8 @@ var supportsLocalStorage = function() {
   }
 };
 
-var LocalStore = function(options) {
-  this.init(options);
+var LocalStore = function() {
+  this.init.apply(this, arguments);
 };
 
 LocalStore.prototype = {

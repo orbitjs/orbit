@@ -4,8 +4,8 @@ import Document from 'orbit/document';
 import Transformable from 'orbit/transformable';
 import Requestable from 'orbit/requestable';
 
-var Store = function(options) {
-  this.init(options);
+var Store = function() {
+  this.init.apply(this, arguments);
 };
 
 Store.prototype = {

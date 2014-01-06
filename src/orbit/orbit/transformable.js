@@ -88,29 +88,29 @@ var transformMany = function(operations) {
 };
 
 var Transformable = {
-  extend: function(_this, actions) {
-    if (_this._transformable === undefined) {
-      _this._transformable = true;
-      _this.transformQueue = new TransformQueue(_this);
-      _this._completedTransforms = [];
+  extend: function(object, actions) {
+    if (object._transformable === undefined) {
+      object._transformable = true;
+      object.transformQueue = new TransformQueue(object);
+      object._completedTransforms = [];
 
-      Evented.extend(_this);
+      Evented.extend(object);
 
-      _this.didTransform = function(operation, inverse) {
-        _this._completedTransforms.push([operation, inverse]);
+      object.didTransform = function(operation, inverse) {
+        object._completedTransforms.push([operation, inverse]);
       };
 
-      _this.transform = function(operation) {
-        Orbit.assert('_transform must be defined', _this._transform);
+      object.transform = function(operation) {
+        Orbit.assert('_transform must be defined', object._transform);
 
         if (Object.prototype.toString.call(operation) === '[object Array]') {
-          return transformMany.call(_this, operation);
+          return transformMany.call(object, operation);
         } else {
-          return transformOne.call(_this, operation);
+          return transformOne.call(object, operation);
         }
       };
     }
-    return _this;
+    return object;
   }
 };
 

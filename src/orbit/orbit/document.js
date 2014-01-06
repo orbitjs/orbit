@@ -2,15 +2,18 @@ import clone from 'orbit/lib/clone';
 import diffs from 'orbit/lib/diffs';
 import eq from 'orbit/lib/eq';
 
-var Document = function(data, options) {
-  options = options || {};
-  this.arrayBasedPaths = options.arrayBasedPaths !== undefined ? options.arrayBasedPaths : false;
-
-  this.reset(data);
+var Document = function() {
+  this.init.apply(this, arguments);
 };
 
 Document.prototype = {
   constructor: Document,
+
+  init: function(data, options) {
+    options = options || {};
+    this.arrayBasedPaths = options.arrayBasedPaths !== undefined ? options.arrayBasedPaths : false;
+    this.reset(data);
+  },
 
   reset: function(data) {
     this._data = data || {};

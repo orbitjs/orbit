@@ -1,8 +1,8 @@
 import Orbit from 'orbit/core';
 import Store from 'orbit/sources/store';
 
-var MemoryStore = function(options) {
-  this.init(options);
+var MemoryStore = function() {
+  this.init.apply(this, arguments);
 };
 
 Orbit.extend(MemoryStore.prototype, Store.prototype, {

@@ -2,8 +2,8 @@ import Orbit from 'orbit/core';
 import Store from 'orbit/sources/store';
 import clone from 'orbit/lib/clone';
 
-var RestStore = function(options) {
-  this.init(options);
+var RestStore = function() {
+  this.init.apply(this, arguments);
 };
 
 Orbit.extend(RestStore.prototype, Store.prototype, {

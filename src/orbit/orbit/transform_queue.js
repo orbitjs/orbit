@@ -1,14 +1,20 @@
 import Orbit from 'orbit/core';
 
-var TransformQueue = function(target) {
-  this.target = target;
-  this._queue = [];
-  this.processing = false;
-  this.autoProcess = true;
+var TransformQueue = function() {
+  this.init.apply(this, arguments);
 };
 
 TransformQueue.prototype = {
   constructor: TransformQueue,
+
+  init: function(target) {
+    Orbit.assert('TransformQueue requires Orbit.Promise to be defined', Orbit.Promise);
+
+    this.target = target;
+    this._queue = [];
+    this.processing = false;
+    this.autoProcess = true;
+  },
 
   push: function(operation) {
     var _this = this;

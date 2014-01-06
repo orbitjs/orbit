@@ -18,145 +18,142 @@ var Evented = {
     Orbit.assert('Evented requires Orbit.Promise be defined', Orbit.Promise);
 
     if (object._evented === undefined) {
-      object._evented = true;
+      Orbit.extend(object, this.interface);
       object._eventedNotifiers = {};
-      object.on = this.on;
-      object.off = this.off;
-      object.emit = this.emit;
-      object.poll = this.poll;
-      object.listeners = this.listeners;
-      object.resolve = this.resolve;
-      object.settle = this.settle;
     }
     return object;
   },
 
-  on: function(eventNames, callback, binding) {
-    binding = binding || this;
+  interface: {
+    _evented: true,
 
-    eventNames.split(/\s+/).forEach(function(eventName) {
-      notifierForEvent(this, eventName, true).addListener(callback, binding);
-    }, this);
-  },
+    on: function(eventNames, callback, binding) {
+      binding = binding || this;
 
-  off: function(eventNames, callback, binding) {
-    var notifier;
+      eventNames.split(/\s+/).forEach(function(eventName) {
+        notifierForEvent(this, eventName, true).addListener(callback, binding);
+      }, this);
+    },
 
-    binding = binding || this;
+    off: function(eventNames, callback, binding) {
+      var notifier;
 
-    eventNames.split(/\s+/).forEach(function(eventName) {
-      notifier = notifierForEvent(this, eventName);
-      if (notifier) {
-        if (callback) {
-          notifier.removeListener(callback, binding);
-        } else {
-          removeNotifierForEvent(this, eventName);
-        }
-      }
-    }, this);
-  },
+      binding = binding || this;
 
-  emit: function(eventNames) {
-    var args = Array.prototype.slice.call(arguments, 1),
-        notifier;
-
-    eventNames.split(/\s+/).forEach(function(eventName) {
-      notifier = notifierForEvent(this, eventName);
-      if (notifier) {
-        notifier.emit.apply(notifier, args);
-      }
-    }, this);
-  },
-
-  poll: function(eventNames) {
-    var args = Array.prototype.slice.call(arguments, 1),
-        notifier,
-        responses = [];
-
-    eventNames.split(/\s+/).forEach(function(eventName) {
-      notifier = notifierForEvent(this, eventName);
-      if (notifier) {
-        responses = responses.concat(notifier.poll.apply(notifier, args));
-      }
-    }, this);
-
-    return responses;
-  },
-
-  listeners: function(eventNames) {
-    var notifier,
-        listeners = [];
-
-    eventNames.split(/\s+/).forEach(function(eventName) {
-      notifier = notifierForEvent(this, eventName);
-      if (notifier) {
-        listeners = listeners.concat(notifier.listeners);
-      }
-    }, this);
-
-    return listeners;
-  },
-
-  resolve: function(eventNames) {
-    var listeners = this.listeners(eventNames),
-        args = Array.prototype.slice.call(arguments, 1);
-
-    return new Orbit.Promise(function(resolve, reject) {
-      var resolveEach = function() {
-        if (listeners.length === 0) {
-          reject();
-        } else {
-          var listener = listeners.shift();
-          var response = listener[0].apply(listener[1], args);
-
-          if (response) {
-            response.then(
-              function(success) {
-                resolve(success);
-              },
-              function(error) {
-                resolveEach();
-              }
-            );
+      eventNames.split(/\s+/).forEach(function(eventName) {
+        notifier = notifierForEvent(this, eventName);
+        if (notifier) {
+          if (callback) {
+            notifier.removeListener(callback, binding);
           } else {
-            resolveEach();
+            removeNotifierForEvent(this, eventName);
           }
         }
-      };
+      }, this);
+    },
 
-      resolveEach();
-    });
-  },
+    emit: function(eventNames) {
+      var args = Array.prototype.slice.call(arguments, 1),
+          notifier;
 
-  settle: function(eventNames) {
-    var listeners = this.listeners(eventNames),
-        args = Array.prototype.slice.call(arguments, 1);
-
-    return new Orbit.Promise(function(resolve) {
-      var settleEach = function() {
-        if (listeners.length === 0) {
-          resolve();
-        } else {
-          var listener = listeners.shift(),
-              response = listener[0].apply(listener[1], args);
-
-          if (response) {
-            return response.then(
-              function(success) {
-                settleEach();
-              },
-              function(error) {
-                settleEach();
-              }
-            );
-          } else {
-            settleEach();
-          }
+      eventNames.split(/\s+/).forEach(function(eventName) {
+        notifier = notifierForEvent(this, eventName);
+        if (notifier) {
+          notifier.emit.apply(notifier, args);
         }
-      };
+      }, this);
+    },
 
-      settleEach();
-    });
+    poll: function(eventNames) {
+      var args = Array.prototype.slice.call(arguments, 1),
+          notifier,
+          responses = [];
+
+      eventNames.split(/\s+/).forEach(function(eventName) {
+        notifier = notifierForEvent(this, eventName);
+        if (notifier) {
+          responses = responses.concat(notifier.poll.apply(notifier, args));
+        }
+      }, this);
+
+      return responses;
+    },
+
+    listeners: function(eventNames) {
+      var notifier,
+          listeners = [];
+
+      eventNames.split(/\s+/).forEach(function(eventName) {
+        notifier = notifierForEvent(this, eventName);
+        if (notifier) {
+          listeners = listeners.concat(notifier.listeners);
+        }
+      }, this);
+
+      return listeners;
+    },
+
+    resolve: function(eventNames) {
+      var listeners = this.listeners(eventNames),
+          args = Array.prototype.slice.call(arguments, 1);
+
+      return new Orbit.Promise(function(resolve, reject) {
+        var resolveEach = function() {
+          if (listeners.length === 0) {
+            reject();
+          } else {
+            var listener = listeners.shift();
+            var response = listener[0].apply(listener[1], args);
+
+            if (response) {
+              response.then(
+                function(success) {
+                  resolve(success);
+                },
+                function(error) {
+                  resolveEach();
+                }
+              );
+            } else {
+              resolveEach();
+            }
+          }
+        };
+
+        resolveEach();
+      });
+    },
+
+    settle: function(eventNames) {
+      var listeners = this.listeners(eventNames),
+          args = Array.prototype.slice.call(arguments, 1);
+
+      return new Orbit.Promise(function(resolve) {
+        var settleEach = function() {
+          if (listeners.length === 0) {
+            resolve();
+          } else {
+            var listener = listeners.shift(),
+                response = listener[0].apply(listener[1], args);
+
+            if (response) {
+              return response.then(
+                function(success) {
+                  settleEach();
+                },
+                function(error) {
+                  settleEach();
+                }
+              );
+            } else {
+              settleEach();
+            }
+          }
+        };
+
+        settleEach();
+      });
+    }
   }
 };
 

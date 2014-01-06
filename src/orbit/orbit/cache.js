@@ -1,27 +1,31 @@
 import Orbit from 'orbit/core';
 import Document from 'orbit/document';
 
-var Cache = function(schema, options) {
-  options = options || {};
-
-  this.idField = Orbit.idField;
-  this._doc = new Document(null, {arrayBasedPaths: true});
-
-  // Expose methods from the Document interface
-  Orbit.expose(this, this._doc, 'reset');
-
-  this.schema = schema;
-  this._doc.add(['deleted'], {});
-  for (var model in schema.models) {
-    if (schema.models.hasOwnProperty(model)) {
-      this._doc.add([model], {});
-      this._doc.add(['deleted', model], {});
-    }
-  }
+var Cache = function() {
+  this.init.apply(this, arguments);
 };
 
 Cache.prototype = {
   constructor: Cache,
+
+  init: function(schema, options) {
+    options = options || {};
+
+    this.idField = Orbit.idField;
+    this._doc = new Document(null, {arrayBasedPaths: true});
+
+    // Expose methods from the Document interface
+    Orbit.expose(this, this._doc, 'reset');
+
+    this.schema = schema;
+    this._doc.add(['deleted'], {});
+    for (var model in schema.models) {
+      if (schema.models.hasOwnProperty(model)) {
+        this._doc.add([model], {});
+        this._doc.add(['deleted', model], {});
+      }
+    }
+  },
 
   initRecord: function(type, data) {
     if (data[this.idField] !== undefined) return;

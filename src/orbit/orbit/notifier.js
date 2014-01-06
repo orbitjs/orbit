@@ -1,8 +1,12 @@
 var Notifier = function() {
-  this.listeners = [];
+  this.init.apply(this, arguments);
 };
 
 Notifier.prototype = {
+  init: function() {
+    this.listeners = [];
+  },
+
   addListener: function(callback, binding) {
     binding = binding || this;
     this.listeners.push([callback, binding]);
