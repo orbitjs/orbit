@@ -37,7 +37,9 @@ Orbit.extend(LocalStore.prototype, MemoryStore.prototype, {
 
   load: function() {
     var storage = window.localStorage.getItem(this.namespace);
-    this.reset(storage ? JSON.parse(storage) : {});
+    if (storage) {
+      this.reset(JSON.parse(storage));
+    }
   },
 
   enableAutosave: function() {
