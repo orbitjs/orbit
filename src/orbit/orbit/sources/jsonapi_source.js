@@ -1,19 +1,19 @@
 import Orbit from 'orbit/core';
-import Store from 'orbit/sources/store';
+import Source from 'orbit/sources/source';
 import clone from 'orbit/lib/clone';
 
-var RestStore = function() {
+var JSONAPISource = function() {
   this.init.apply(this, arguments);
 };
 
-Orbit.extend(RestStore.prototype, Store.prototype, {
-  constructor: RestStore,
+Orbit.extend(JSONAPISource.prototype, Source.prototype, {
+  constructor: JSONAPISource,
 
   init: function(schema, options) {
-    Orbit.assert('RestStore requires Orbit.Promise be defined', Orbit.Promise);
-    Orbit.assert('RestStore requires Orbit.ajax be defined', Orbit.ajax);
+    Orbit.assert('JSONAPISource requires Orbit.Promise be defined', Orbit.Promise);
+    Orbit.assert('JSONAPISource requires Orbit.ajax be defined', Orbit.ajax);
 
-    Store.prototype.init.apply(this, arguments);
+    Source.prototype.init.apply(this, arguments);
 
     options = options || {};
     this.schema = schema;
@@ -214,7 +214,7 @@ Orbit.extend(RestStore.prototype, Store.prototype, {
     }
 
     if (!this.retrieve(pathToVerify)) {
-      console.log('rest store does not have cached', pathToVerify, 'for operation', operation);
+      // TODO console.log('JSONAPISource does not have cached', pathToVerify, 'for operation', operation);
       inverse = [];
 
     } else {
@@ -334,4 +334,4 @@ Orbit.extend(RestStore.prototype, Store.prototype, {
   }
 });
 
-export default RestStore;
+export default JSONAPISource;

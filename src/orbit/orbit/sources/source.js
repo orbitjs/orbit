@@ -4,16 +4,16 @@ import Document from 'orbit/document';
 import Transformable from 'orbit/transformable';
 import Requestable from 'orbit/requestable';
 
-var Store = function() {
+var Source = function() {
   this.init.apply(this, arguments);
 };
 
-Store.prototype = {
-  constructor: Store,
+Source.prototype = {
+  constructor: Source,
 
   init: function(schema, options) {
-    Orbit.assert('Store\'s `schema` must be specified', schema);
-    Orbit.assert('Store\'s `schema.idField` must be specified', schema.idField);
+    Orbit.assert("Source's `schema` must be specified", schema);
+    Orbit.assert("Source's `schema.idField` must be specified", schema.idField);
 
     this.schema = schema;
 
@@ -183,4 +183,4 @@ Store.prototype = {
   }
 };
 
-export default Store;
+export default Source;

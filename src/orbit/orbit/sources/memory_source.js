@@ -1,17 +1,17 @@
 import Orbit from 'orbit/core';
-import Store from 'orbit/sources/store';
+import Source from 'orbit/sources/source';
 
-var MemoryStore = function() {
+var MemorySource = function() {
   this.init.apply(this, arguments);
 };
 
-Orbit.extend(MemoryStore.prototype, Store.prototype, {
-  constructor: MemoryStore,
+Orbit.extend(MemorySource.prototype, Source.prototype, {
+  constructor: MemorySource,
 
   init: function(schema, options) {
-    Orbit.assert('MemoryStore requires Orbit.Promise to be defined', Orbit.Promise);
+    Orbit.assert('MemorySource requires Orbit.Promise to be defined', Orbit.Promise);
 
-    Store.prototype.init.apply(this, arguments);
+    Source.prototype.init.apply(this, arguments);
   },
 
   initRecord: function(type, record) {
@@ -87,4 +87,4 @@ Orbit.extend(MemoryStore.prototype, Store.prototype, {
   }
 });
 
-export default MemoryStore;
+export default MemorySource;

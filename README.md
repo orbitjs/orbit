@@ -31,9 +31,9 @@ Orbit relies heavily on promises, events and low-level transforms.
 Orbit requires that every data source support one or more common interfaces.
 These interfaces define how data can be both *accessed* and *transformed*.
 
-Orbit includes several data sources: a memory store, a local store, and a REST
-store. You can define your own data sources that will work with Orbit as long
-as they support Orbit's interfaces.
+Orbit includes several data sources: an in-memory cache, a local storage source,
+and a source for accessing RESTful APIs via AJAX. You can define your own data
+sources that will work with Orbit as long as they support Orbit's interfaces.
 
 The methods for accessing and transforming data return promises. These promises
 might be fulfilled synchronously or asynchronously. Once fulfilled, events
@@ -63,44 +63,44 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
   var schema = {
     models: ['planet']
   };
-  var memoryStore = new Orbit.MemoryStore(schema);
-  var restStore = new Orbit.RestStore(schema);
-  var localStore = new Orbit.LocalStore(schema);
+  var memorySource = new Orbit.MemorySource(schema);
+  var restSource = new Orbit.JSONAPISource(schema);
+  var localSource = new Orbit.LocalStorageSource(schema);
 
-  // Connect MemoryStore -> LocalStore (using the default blocking strategy)
-  var memToLocalConnector = new Orbit.TransformConnector(memoryStore, localStore);
+  // Connect MemorySource -> LocalStorageSource (using the default blocking strategy)
+  var memToLocalConnector = new Orbit.TransformConnector(memorySource, localSource);
 
-  // Connect MemoryStore <-> RestStore (using the default blocking strategy)
-  var memToRestConnector = new Orbit.TransformConnector(memoryStore, restStore);
-  var restToMemConnector = new Orbit.TransformConnector(restStore, memoryStore);
+  // Connect MemorySource <-> JSONAPISource (using the default blocking strategy)
+  var memToRestConnector = new Orbit.TransformConnector(memorySource, restSource);
+  var restToMemConnector = new Orbit.TransformConnector(restSource, memorySource);
 
   // Add a record to the memory store
-  memoryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(
+  memorySource.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(
     function(planet) {
       console.log('Planet added - ', planet.name, '(id:', planet.id, ')');
     }
   );
 
   // Log the transforms in all stores
-  memoryStore.on('didTransform', function(operation, inverse) {
-    console.log('memoryStore', operation);
+  memorySource.on('didTransform', function(operation, inverse) {
+    console.log('memorySource', operation);
   });
 
-  localStore.on('didTransform', function(operation, inverse) {
-    console.log('localStore', operation);
+  localSource.on('didTransform', function(operation, inverse) {
+    console.log('localSource', operation);
   });
 
-  restStore.on('didTransform', function(operation, inverse) {
-    console.log('restStore', operation);
+  restSource.on('didTransform', function(operation, inverse) {
+    console.log('restSource', operation);
   });
 
   // CONSOLE OUTPUT
   //
-  // memoryStore {op: 'add', path: 'planet/1', value: {__id: 1, name: 'Jupiter', classification: 'gas giant'}}
-  // localStore  {op: 'add', path: 'planet/1', value: {__id: 1, name: 'Jupiter', classification: 'gas giant'}}
-  // restStore   {op: 'add', path: 'planet/1', value: {__id: 1, id: 12345, name: 'Jupiter', classification: 'gas giant'}}
-  // memoryStore {op: 'add', path: 'planet/1/id', value: 12345}
-  // localStore  {op: 'add', path: 'planet/1/id', value: 12345}
+  // memorySource {op: 'add', path: 'planet/1', value: {__id: 1, name: 'Jupiter', classification: 'gas giant'}}
+  // localSource  {op: 'add', path: 'planet/1', value: {__id: 1, name: 'Jupiter', classification: 'gas giant'}}
+  // restSource   {op: 'add', path: 'planet/1', value: {__id: 1, id: 12345, name: 'Jupiter', classification: 'gas giant'}}
+  // memorySource {op: 'add', path: 'planet/1/id', value: 12345}
+  // localSource  {op: 'add', path: 'planet/1/id', value: 12345}
   // Planet added - Jupiter (id: 12345)
 ```
 
@@ -118,15 +118,15 @@ Note that we could also connect the stores with *non-blocking* connectors with
 the `blocking: false` option:
 
 ```javascript
-  // Connect MemoryStore -> LocalStore (non-blocking)
-  var memToLocalConnector = new Orbit.TransformConnector(memoryStore, localStore, {blocking: false});
+  // Connect MemorySource -> LocalStorageSource (non-blocking)
+  var memToLocalConnector = new Orbit.TransformConnector(memorySource, localSource, {blocking: false});
 
-  // Connect MemoryStore <-> RestStore (non-blocking)
-  var memToRestConnector = new Orbit.TransformConnector(memoryStore, restStore, {blocking: false});
-  var restToMemConnector = new Orbit.TransformConnector(restStore, memoryStore, {blocking: false});
+  // Connect MemorySource <-> JSONAPISource (non-blocking)
+  var memToRestConnector = new Orbit.TransformConnector(memorySource, restSource, {blocking: false});
+  var restToMemConnector = new Orbit.TransformConnector(restSource, memorySource, {blocking: false});
 ```
 
-In this case, the promise generated from `memoryStore.add` will be resolved
+In this case, the promise generated from `memorySource.add` will be resolved
 immediately, after which records will be asynchronously created in the REST
 store and local storage. Any differences, such as an `id` returned from the
 server, will be automatically patched back to the record in the memory store.
@@ -228,29 +228,29 @@ Let's take a look at how this could all work:
 ```javascript
 
 // Create some new sources - assume their prototypes are already `Requestable`
-var memoryStore = new Orbit.MemoryStore();
-var restStore = new Orbit.RestStore();
-var localStore = new Orbit.LocalStore();
+var memorySource = new Orbit.MemorySource();
+var restSource = new Orbit.JSONAPISource();
+var localSource = new Orbit.LocalStorageSource();
 
 ////// Connect the sources via events
 
 // Check local storage before making a remote call
-restStore.on('assistFind', localStore.find);
+restSource.on('assistFind', localSource.find);
 
 // If the in-memory store can't find the record, query our rest server
-memoryStore.on('rescueFind', restStore.find);
+memorySource.on('rescueFind', restSource.find);
 
 // Audit success / failure
-memoryStore.on('didFind', function(type, id, record) {
+memorySource.on('didFind', function(type, id, record) {
     audit('find', type, id, true);
 });
-memoryStore.on('didNotFind', function(type, id, error) {
+memorySource.on('didNotFind', function(type, id, error) {
     audit('find', type, id, false);
 });
 
 ////// Perform the action
 
-memoryStore.find('contact', 1).then(function(contact) {
+memorySource.find('contact', 1).then(function(contact) {
   // do something with the contact
 }, function(error) {
   // there was a problem

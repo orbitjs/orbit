@@ -1,13 +1,13 @@
 import Orbit from 'orbit/core';
-import RestStore from 'orbit/sources/rest_store';
+import JSONAPISource from 'orbit/sources/jsonapi_source';
 import RSVP from 'rsvp';
 
 var server,
-    store;
+    source;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Unit - RestStore", {
+module("Unit - JSONAPISource", {
   setup: function() {
     Orbit.Promise = RSVP.Promise;
     Orbit.ajax = window.jQuery.ajax;
@@ -39,18 +39,18 @@ module("Unit - RestStore", {
       }
     };
 
-    store = new RestStore(schema);
+    source = new JSONAPISource(schema);
   },
 
   teardown: function() {
-    store = null;
+    source = null;
 
     server.restore();
   }
 });
 
 test("it exists", function() {
-  ok(store);
+  ok(source);
 });
 
 test("#add - can insert records", function() {
@@ -64,7 +64,7 @@ test("#add - can insert records", function() {
   });
 
   stop();
-  store.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
     ok(planet.__id, 'orbit id should be defined');
     equal(planet.id, 12345, 'server id should be defined');
@@ -84,7 +84,7 @@ test("#update - can update records", function() {
   });
 
   stop();
-  store.update('planet', {id: 12345, name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  source.update('planet', {id: 12345, name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
     ok(planet.__id, 'orbit id should be defined');
     equal(planet.id, 12345, 'server id should be defined');
@@ -104,7 +104,7 @@ test("#patch - can patch records", function() {
   });
 
   stop();
-  store.patch('planet', {id: 12345}, 'classification', 'gas giant').then(function() {
+  source.patch('planet', {id: 12345}, 'classification', 'gas giant').then(function() {
     start();
     ok(true, 'record patched');
   });
@@ -121,7 +121,7 @@ test("#remove - can delete records", function() {
   });
 
   stop();
-  store.remove('planet', {id: 12345}).then(function() {
+  source.remove('planet', {id: 12345}).then(function() {
     start();
     ok(true, 'record deleted');
   });
@@ -147,7 +147,7 @@ test("#link - can patch records with inverse relationships", function() {
   });
 
   stop();
-  store.link('planet', {id: 12345}, 'moons', {id: 987}).then(function() {
+  source.link('planet', {id: 12345}, 'moons', {id: 987}).then(function() {
     start();
     ok(true, 'records linked');
   });
@@ -173,7 +173,7 @@ test("#unlink - can patch records with inverse relationships", function() {
   });
 
   stop();
-  store.unlink('planet', {id: 12345}, 'moons', {id: 987}).then(function() {
+  source.unlink('planet', {id: 12345}, 'moons', {id: 987}).then(function() {
     start();
     ok(true, 'records unlinked');
   });
@@ -197,8 +197,8 @@ test("#find - can find individual records by passing in a single id", function()
   });
 
   stop();
-  store.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    store.find('planet', planet.__id).then(function(planet) {
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    source.find('planet', planet.__id).then(function(planet) {
       start();
       ok(planet.__id, 'orbit id should be defined');
       equal(planet.id, 12345, 'server id should be defined');
@@ -226,8 +226,8 @@ test("#find - can find individual records by passing in a single remote id", fun
   });
 
   stop();
-  store.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    store.find('planet', {id: planet.id}).then(function(planet) {
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    source.find('planet', {id: planet.id}).then(function(planet) {
       start();
       ok(planet.__id, 'orbit id should be defined');
       equal(planet.id, 12345, 'server id should be defined');
@@ -254,7 +254,7 @@ test("#find - can find all records", function() {
   });
 
   stop();
-  store.find('planet').then(function(planets) {
+  source.find('planet').then(function(planets) {
     start();
 
     var planet, record;
@@ -288,7 +288,7 @@ test("#find - can filter records", function() {
   });
 
   stop();
-  store.find('planet', {classification: 'terrestrial'}).then(function(planets) {
+  source.find('planet', {classification: 'terrestrial'}).then(function(planets) {
     start();
 
     var planet, record;

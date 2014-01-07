@@ -1,9 +1,9 @@
 import Orbit from 'orbit/core';
-import MemoryStore from 'orbit/sources/memory_store';
+import MemorySource from 'orbit/sources/memory_source';
 import Transaction from 'orbit/transaction';
 import RSVP from 'rsvp';
 
-var store;
+var source;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -19,86 +19,86 @@ module("Unit - Transaction", {
       }
     };
 
-    store = new MemoryStore(schema);
+    source = new MemorySource(schema);
   },
 
   teardown: function() {
-    store = null;
+    source = null;
     Orbit.Promise = null;
   }
 });
 
-test("can track operations when records are added to an empty store", function() {
+test("can track operations when records are added to an empty source", function() {
   expect(4);
 
-  var transaction = new Transaction(store);
+  var transaction = new Transaction(source);
 
-  equal(store.length('planet'), 0, 'store should be empty');
+  equal(source.length('planet'), 0, 'source should be empty');
 
   stop();
   RSVP.all([
-    store.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
-    store.add('planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}),
-    store.add('planet', {name: 'Mercury', classification: 'terrestrial', atmosphere: false})
+    source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
+    source.add('planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}),
+    source.add('planet', {name: 'Mercury', classification: 'terrestrial', atmosphere: false})
   ]).then(function() {
     start();
-    equal(store.length('planet'), 3, 'store should contain 3 records');
+    equal(source.length('planet'), 3, 'source should contain 3 records');
     transaction.commit();
     equal(transaction.ops.length, 3, 'transaction should contain operations');
     equal(transaction.inverseOps.length, 3, 'transaction should contain inverse operations');
   });
 });
 
-test("can track and invert operations when records are added to an empty store", function() {
+test("can track and invert operations when records are added to an empty source", function() {
   expect(5);
 
-  var transaction = new Transaction(store);
+  var transaction = new Transaction(source);
 
-  equal(store.length('planet'), 0, 'store should be empty');
+  equal(source.length('planet'), 0, 'source should be empty');
 
   stop();
   RSVP.all([
-    store.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
-    store.add('planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}),
-    store.add('planet', {name: 'Mercury', classification: 'terrestrial', atmosphere: false})
+    source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
+    source.add('planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}),
+    source.add('planet', {name: 'Mercury', classification: 'terrestrial', atmosphere: false})
   ]).then(function() {
-    equal(store.length('planet'), 3, 'store should contain 3 records');
+    equal(source.length('planet'), 3, 'source should contain 3 records');
     equal(transaction.ops.length, 3, 'transaction should contain operations');
     equal(transaction.inverseOps.length, 3, 'transaction should contain inverse operations');
 
     transaction.rollback().then(function() {
       start();
-      equal(store.length('planet'), 0, 'store should be empty');
+      equal(source.length('planet'), 0, 'source should be empty');
     });
   });
 });
 
-test("can track and invert operations performed after records are already present in a store", function() {
+test("can track and invert operations performed after records are already present in a source", function() {
   expect(6);
 
-  equal(store.length('planet'), 0, 'store should be empty');
+  equal(source.length('planet'), 0, 'source should be empty');
 
   stop();
   RSVP.all([
-    store.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
-    store.add('planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}),
-    store.add('planet', {name: 'Mercury', classification: 'terrestrial', atmosphere: false})
+    source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
+    source.add('planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}),
+    source.add('planet', {name: 'Mercury', classification: 'terrestrial', atmosphere: false})
   ]).then(function() {
-    equal(store.length('planet'), 3, 'store should contain 3 records');
+    equal(source.length('planet'), 3, 'source should contain 3 records');
 
-    var transaction = new Transaction(store);
+    var transaction = new Transaction(source);
 
     RSVP.all([
-      store.add('planet', {name: 'Saturn', classification: 'gas giant', atmosphere: true}),
-      store.add('planet', {name: 'Mars', classification: 'terrestrial', atmosphere: false})
+      source.add('planet', {name: 'Saturn', classification: 'gas giant', atmosphere: true}),
+      source.add('planet', {name: 'Mars', classification: 'terrestrial', atmosphere: false})
     ]).then(function() {
-      equal(store.length('planet'), 5, 'store should contain records');
+      equal(source.length('planet'), 5, 'source should contain records');
       equal(transaction.ops.length, 2, 'transaction should contain operations');
       equal(transaction.inverseOps.length, 2, 'transaction should contain inverse operations');
 
       transaction.rollback().then(function() {
         start();
-        equal(store.length('planet'), 3, 'store should contain records added before transaction began');
+        equal(source.length('planet'), 3, 'source should contain records added before transaction began');
       });
     });
   });

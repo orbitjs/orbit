@@ -1,13 +1,13 @@
 import Orbit from 'orbit/core';
-import MemoryStore from 'orbit/sources/memory_store';
+import MemorySource from 'orbit/sources/memory_source';
 import RSVP from 'rsvp';
 
-var primaryStore,
-    backupStore;
+var primarySource,
+    backupSource;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Integration - MemoryStore Sync without Connector", {
+module("Integration - MemorySource Sync without Connector", {
   setup: function() {
     Orbit.Promise = RSVP.Promise;
 
@@ -19,42 +19,42 @@ module("Integration - MemoryStore Sync without Connector", {
       }
     };
 
-    primaryStore = new MemoryStore(schema);
-    backupStore = new MemoryStore(schema);
+    primarySource = new MemorySource(schema);
+    backupSource = new MemorySource(schema);
 
-    primaryStore.on('didTransform',  backupStore.transform);
+    primarySource.on('didTransform',  backupSource.transform);
   },
 
   teardown: function() {
-    primaryStore = backupStore = null;
+    primarySource = backupSource = null;
   }
 });
 
 test("both sources exist and are empty", function() {
-  ok(primaryStore);
-  ok(backupStore);
+  ok(primarySource);
+  ok(backupSource);
 
-  equal(primaryStore.length('planet'), 0, 'store should be empty');
-  equal(backupStore.length('planet'), 0, 'store should be empty');
+  equal(primarySource.length('planet'), 0, 'source should be empty');
+  equal(backupSource.length('planet'), 0, 'source should be empty');
 });
 
-test("records inserted into the primary store should be automatically copied to the backup store", function() {
+test("records inserted into the primary source should be automatically copied to the backup source", function() {
   expect(9);
 
   var originalPlanet;
 
   stop();
-  primaryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  primarySource.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     originalPlanet = planet;
 
-    equal(primaryStore.length('planet'), 1, 'primary store should contain one record');
-    equal(backupStore.length('planet'), 1, 'backup store should contain one record');
+    equal(primarySource.length('planet'), 1, 'primary source should contain one record');
+    equal(backupSource.length('planet'), 1, 'backup source should contain one record');
 
     ok(planet.__id, 'primary id should be defined');
     equal(planet.name, 'Jupiter', 'name should match');
     equal(planet.classification, 'gas giant', 'classification should match');
 
-    backupStore.find('planet', planet.__id).then(function(backupPlanet) {
+    backupSource.find('planet', planet.__id).then(function(backupPlanet) {
       start();
       notStrictEqual(backupPlanet, originalPlanet, 'not the same object as the one originally inserted');
       equal(backupPlanet.__id, planet.__id, 'backup record has the same primary id');
@@ -64,22 +64,22 @@ test("records inserted into the primary store should be automatically copied to 
   });
 });
 
-test("updates to records in the primary store should be automatically copied to the backup store", function() {
+test("updates to records in the primary source should be automatically copied to the backup source", function() {
   expect(7);
 
   var originalPlanet;
 
   stop();
-  primaryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  primarySource.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     originalPlanet = planet;
 
-    primaryStore.update('planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
+    primarySource.update('planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
       equal(updatedPlanet.__id, planet.__id, 'primary id remains the same');
       equal(updatedPlanet.name, 'Earth', 'name has been updated');
       equal(updatedPlanet.classification, 'terrestrial', 'classification has been updated');
 
     }).then(function() {
-      backupStore.find('planet', planet.__id).then(function(backupPlanet) {
+      backupSource.find('planet', planet.__id).then(function(backupPlanet) {
         start();
         notStrictEqual(backupPlanet, originalPlanet, 'not the same object as the one originally inserted');
         equal(backupPlanet.__id, planet.__id, 'backup record has the same primary id');
@@ -90,17 +90,17 @@ test("updates to records in the primary store should be automatically copied to 
   });
 });
 
-test("patches to records in the primary store should be automatically copied to the backup store", function() {
+test("patches to records in the primary source should be automatically copied to the backup source", function() {
   expect(4);
 
   var originalPlanet;
 
   stop();
-  primaryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  primarySource.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     originalPlanet = planet;
 
-    primaryStore.patch('planet', planet.__id, 'name', 'Earth').then(function() {
-      backupStore.find('planet', planet.__id).then(function(backupPlanet) {
+    primarySource.patch('planet', planet.__id, 'name', 'Earth').then(function() {
+      backupSource.find('planet', planet.__id).then(function(backupPlanet) {
         start();
         notStrictEqual(backupPlanet, originalPlanet, 'not the same object as the one originally inserted');
         equal(backupPlanet.__id, planet.__id, 'backup record has the same primary id');
@@ -111,21 +111,21 @@ test("patches to records in the primary store should be automatically copied to 
   });
 });
 
-test("records deleted in the primary store should be automatically deleted in the backup store", function() {
+test("records deleted in the primary source should be automatically deleted in the backup source", function() {
   expect(6);
 
-  equal(primaryStore.length('planet'), 0, 'primary store should be empty');
-  equal(backupStore.length('planet'), 0, 'backup store should be empty');
+  equal(primarySource.length('planet'), 0, 'primary source should be empty');
+  equal(backupSource.length('planet'), 0, 'backup source should be empty');
 
   stop();
-  primaryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    equal(primaryStore.length('planet'), 1, 'primary store should contain one record');
-    equal(backupStore.length('planet'), 1, 'backup store should contain one record');
+  primarySource.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    equal(primarySource.length('planet'), 1, 'primary source should contain one record');
+    equal(backupSource.length('planet'), 1, 'backup source should contain one record');
 
-    primaryStore.remove('planet', planet.__id).then(function() {
+    primarySource.remove('planet', planet.__id).then(function() {
       start();
-      equal(primaryStore.length('planet'), 0, 'primary store should be empty');
-      equal(backupStore.length('planet'), 0, 'backup store should be empty');
+      equal(primarySource.length('planet'), 0, 'primary source should be empty');
+      equal(backupSource.length('planet'), 0, 'backup source should be empty');
     });
   });
 });

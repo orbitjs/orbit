@@ -1,5 +1,5 @@
 import Orbit from 'orbit/core';
-import MemoryStore from 'orbit/sources/memory_store';
+import MemorySource from 'orbit/sources/memory_source';
 
 var supportsLocalStorage = function() {
   try {
@@ -9,17 +9,17 @@ var supportsLocalStorage = function() {
   }
 };
 
-var LocalStore = function() {
+var LocalStorageSource = function() {
   this.init.apply(this, arguments);
 };
 
-Orbit.extend(LocalStore.prototype, MemoryStore.prototype, {
-  constructor: LocalStore,
+Orbit.extend(LocalStorageSource.prototype, MemorySource.prototype, {
+  constructor: LocalStorageSource,
 
   init: function(schema, options) {
     Orbit.assert('Your browser does not support local storage!', supportsLocalStorage());
 
-    MemoryStore.prototype.init.apply(this, arguments);
+    MemorySource.prototype.init.apply(this, arguments);
 
     options = options || {};
     this.namespace = options['namespace'] || 'orbit'; // local storage key
@@ -69,4 +69,4 @@ Orbit.extend(LocalStore.prototype, MemoryStore.prototype, {
   }
 });
 
-export default LocalStore;
+export default LocalStorageSource;

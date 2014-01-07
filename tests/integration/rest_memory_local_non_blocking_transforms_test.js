@@ -1,14 +1,14 @@
 import Orbit from 'orbit/core';
-import MemoryStore from 'orbit/sources/memory_store';
-import RestStore from 'orbit/sources/rest_store';
-import LocalStore from 'orbit/sources/local_store';
+import MemorySource from 'orbit/sources/memory_source';
+import JSONAPISource from 'orbit/sources/jsonapi_source';
+import LocalStorageSource from 'orbit/sources/local_storage_source';
 import TransformConnector from 'orbit/connectors/transform_connector';
 import RSVP from 'rsvp';
 
 var server,
-    memoryStore,
-    restStore,
-    localStore,
+    memorySource,
+    restSource,
+    localSource,
     memToLocalConnector,
     memToRestConnector,
     restToMemConnector;
@@ -21,7 +21,7 @@ module("Integration - Rest / Memory / Local Transforms (Non-Blocking)", {
     // Fake xhr
     server = window.sinon.fakeServer.create();
 
-    // Create stores
+    // Create sources
     var schema = {
       idField: '__id',
       models: {
@@ -29,25 +29,25 @@ module("Integration - Rest / Memory / Local Transforms (Non-Blocking)", {
         }
       }
     };
-    memoryStore = new MemoryStore(schema);
-    restStore = new RestStore(schema);
-    localStore = new LocalStore(schema, {autoload: false});
+    memorySource = new MemorySource(schema);
+    restSource = new JSONAPISource(schema);
+    localSource = new LocalStorageSource(schema, {autoload: false});
 
-    memoryStore.id = 'memoryStore';
-    restStore.id = 'restStore';
-    localStore.id = 'localStore';
+    memorySource.id = 'memorySource';
+    restSource.id = 'restSource';
+    localSource.id = 'localSource';
 
-    // Connect MemoryStore -> LocalStore
-    memToLocalConnector = new TransformConnector(memoryStore, localStore, {blocking: false});
+    // Connect MemorySource -> LocalStorageSource
+    memToLocalConnector = new TransformConnector(memorySource, localSource, {blocking: false});
 
-    // Connect MemoryStore <-> RestStore
-    memToRestConnector = new TransformConnector(memoryStore, restStore, {blocking: false});
-    restToMemConnector = new TransformConnector(restStore, memoryStore, {blocking: false});
+    // Connect MemorySource <-> JSONAPISource
+    memToRestConnector = new TransformConnector(memorySource, restSource, {blocking: false});
+    restToMemConnector = new TransformConnector(restSource, memorySource, {blocking: false});
   },
 
   teardown: function() {
     memToLocalConnector = memToRestConnector = restToMemConnector = null;
-    memoryStore = restStore = localStore = null;
+    memorySource = restSource = localSource = null;
 
     // Restore xhr
     server.restore();
@@ -57,35 +57,35 @@ module("Integration - Rest / Memory / Local Transforms (Non-Blocking)", {
 test("records inserted into memory should be posted with rest", function() {
   expect(15);
 
-  var localStoreTransforms = 0,
-      restStoreTransforms = 0;
+  var localSourceTransforms = 0,
+      restSourceTransforms = 0;
 
-  localStore.on('didTransform', function(operation, inverse) {
-    localStoreTransforms++;
+  localSource.on('didTransform', function(operation, inverse) {
+    localSourceTransforms++;
 
-//TODO-log    console.log('LOCAL STORE - didTransform', localStoreTransforms, operation, inverse);
+//TODO-log    console.log('LOCAL STORE - didTransform', localSourceTransforms, operation, inverse);
 
-    if (localStoreTransforms === 1) {
-      equal(operation.op, 'add',                         'local store - initial object addition');
-      equal(operation.value.name, 'Jupiter',             'local store - inserted - name - Jupiter');
-      equal(operation.value.classification, 'gas giant', 'local store - inserted - classification should be original');
+    if (localSourceTransforms === 1) {
+      equal(operation.op, 'add',                         'local source - initial object addition');
+      equal(operation.value.name, 'Jupiter',             'local source - inserted - name - Jupiter');
+      equal(operation.value.classification, 'gas giant', 'local source - inserted - classification should be original');
 
-    } else if (localStoreTransforms === 2) {
+    } else if (localSourceTransforms === 2) {
       // `id` is added when the REST POST response returns
-      equal(operation.op, 'add',     'local store - id added');
-      equal(operation.value, 12345,  'local store - id');
+      equal(operation.op, 'add',     'local source - id added');
+      equal(operation.value, 12345,  'local source - id');
 
     } else {
       ok(false, 'too many transforms');
     }
   });
 
-  restStore.on('didTransform', function(operation, inverse) {
-    restStoreTransforms++;
+  restSource.on('didTransform', function(operation, inverse) {
+    restSourceTransforms++;
 
-//TODO-log    console.log('REST STORE - didTransform', restStoreTransforms, operation, inverse);
+//TODO-log    console.log('REST STORE - didTransform', restSourceTransforms, operation, inverse);
 
-    if (restStoreTransforms === 1) {
+    if (restSourceTransforms === 1) {
       start();
       ok(operation.value.__id,                           'orbit id should be defined');
       equal(operation.value.id, 12345,                   'server id should be defined now');
@@ -100,8 +100,8 @@ test("records inserted into memory should be posted with rest", function() {
   /////////////////////////////////////////////////////////////////////////////
 
   stop();
-  memoryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(record) {
-    equal(memoryStore.length('planet'), 1,    'memory store should contain one record');
+  memorySource.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(record) {
+    equal(memorySource.length('planet'), 1,    'memory source should contain one record');
     ok(record.__id,                           'orbit id should be defined');
     equal(record.id, undefined,               'server id should NOT be defined yet');
     equal(record.name, 'Jupiter',             'name should match');
@@ -120,64 +120,64 @@ test("records inserted into memory should be posted with rest", function() {
 test("records updated in memory should be updated with rest (via PATCH)", function() {
   expect(35);
 
-  var memoryStoreTransforms = 0,
-      localStoreTransforms = 0,
-      restStoreTransforms = 0;
+  var memorySourceTransforms = 0,
+      localSourceTransforms = 0,
+      restSourceTransforms = 0;
 
-  memoryStore.on('didTransform', function(operation, inverse) {
-    memoryStoreTransforms++;
+  memorySource.on('didTransform', function(operation, inverse) {
+    memorySourceTransforms++;
 
-//TODO-log    console.log('MEMORY STORE - didTransform', memoryStoreTransforms, operation, inverse);
+//TODO-log    console.log('MEMORY STORE - didTransform', memorySourceTransforms, operation, inverse);
 
-    if (memoryStoreTransforms === 1) {
-      equal(operation.op, 'add',                         'memory store - initial object addition');
-      equal(operation.value.name, 'Jupiter',             'memory store - inserted - name - Jupiter');
-      equal(operation.value.classification, 'gas giant', 'memory store - inserted - classification should be original');
+    if (memorySourceTransforms === 1) {
+      equal(operation.op, 'add',                         'memory source - initial object addition');
+      equal(operation.value.name, 'Jupiter',             'memory source - inserted - name - Jupiter');
+      equal(operation.value.classification, 'gas giant', 'memory source - inserted - classification should be original');
 
-    } else if (memoryStoreTransforms === 2) {
-      equal(operation.op, 'replace',  'memory store - planet replaced');
-      equal(operation.value.name, 'Earth', 'memory store - planet name - Earth');
+    } else if (memorySourceTransforms === 2) {
+      equal(operation.op, 'replace',  'memory source - planet replaced');
+      equal(operation.value.name, 'Earth', 'memory source - planet name - Earth');
 
-    } else if (memoryStoreTransforms === 3) {
+    } else if (memorySourceTransforms === 3) {
       // `id` is added when the REST POST response returns
-      equal(operation.op, 'add',     'memory store - id added');
-      equal(operation.value, 12345,  'memory store - id');
+      equal(operation.op, 'add',     'memory source - id added');
+      equal(operation.value, 12345,  'memory source - id');
 
-    } else if (memoryStoreTransforms === 4) {
-      equal(operation.op, 'replace',    'memory store - name replaced when the REST POST response returns');
-      equal(operation.value, 'Jupiter', 'memory store - name temporarily changed back to Jupiter');
+    } else if (memorySourceTransforms === 4) {
+      equal(operation.op, 'replace',    'memory source - name replaced when the REST POST response returns');
+      equal(operation.value, 'Jupiter', 'memory source - name temporarily changed back to Jupiter');
 
-    } else if (memoryStoreTransforms === 5) {
-      equal(operation.op, 'replace',  'memory store - name replaced when the REST PATCH response returns');
-      equal(operation.value, 'Earth', 'memory store - name changed back to Earth');
+    } else if (memorySourceTransforms === 5) {
+      equal(operation.op, 'replace',  'memory source - name replaced when the REST PATCH response returns');
+      equal(operation.value, 'Earth', 'memory source - name changed back to Earth');
 
     } else {
       ok(false, 'too many transforms');
     }
   });
 
-  localStore.on('didTransform', function(operation, inverse) {
-    localStoreTransforms++;
+  localSource.on('didTransform', function(operation, inverse) {
+    localSourceTransforms++;
 
-//TODO-log    console.log('LOCAL STORE - didTransform', localStoreTransforms, operation, inverse);
+//TODO-log    console.log('LOCAL STORE - didTransform', localSourceTransforms, operation, inverse);
 
-    if (localStoreTransforms === 1) {
-      equal(operation.op, 'add',                         'local store - initial object addition');
-      equal(operation.value.name, 'Jupiter',             'local store - inserted - name - Jupiter');
-      equal(operation.value.classification, 'gas giant', 'local store - inserted - classification should be original');
+    if (localSourceTransforms === 1) {
+      equal(operation.op, 'add',                         'local source - initial object addition');
+      equal(operation.value.name, 'Jupiter',             'local source - inserted - name - Jupiter');
+      equal(operation.value.classification, 'gas giant', 'local source - inserted - classification should be original');
 
-    } else if (localStoreTransforms === 2) {
-      equal(operation.op, 'replace',  'local store - name replaced');
-      equal(operation.value, 'Earth', 'local store - name - Earth');
+    } else if (localSourceTransforms === 2) {
+      equal(operation.op, 'replace',  'local source - name replaced');
+      equal(operation.value, 'Earth', 'local source - name - Earth');
 
-    } else if (localStoreTransforms === 3) {
+    } else if (localSourceTransforms === 3) {
       // `id` is added when the REST POST response returns
-      equal(operation.op, 'add',     'local store - id added');
-      equal(operation.value, 12345,  'local store - id');
+      equal(operation.op, 'add',     'local source - id added');
+      equal(operation.value, 12345,  'local source - id');
 
-    } else if (localStoreTransforms === 4) {
-      equal(operation.op, 'replace',    'local store - name replaced when the REST POST response returns');
-      equal(operation.value, 'Jupiter', 'local store - name temporarily changed back to Jupiter');
+    } else if (localSourceTransforms === 4) {
+      equal(operation.op, 'replace',    'local source - name replaced when the REST POST response returns');
+      equal(operation.value, 'Jupiter', 'local source - name temporarily changed back to Jupiter');
 
       server.respond('PATCH', '/planets/12345', function(xhr) {
         deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/name', value: 'Earth'}, 'PATCH request');
@@ -186,31 +186,31 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
                     JSON.stringify({}));
       });
 
-    } else if (localStoreTransforms === 5) {
-      equal(operation.op, 'replace',  'local store - name replaced when the REST PATCH response returns');
-      equal(operation.value, 'Earth', 'local store - name changed back to Earth');
+    } else if (localSourceTransforms === 5) {
+      equal(operation.op, 'replace',  'local source - name replaced when the REST PATCH response returns');
+      equal(operation.value, 'Earth', 'local source - name changed back to Earth');
 
     } else {
       ok(false, 'too many transforms');
     }
   });
 
-  restStore.on('didTransform', function(operation, inverse) {
-    restStoreTransforms++;
+  restSource.on('didTransform', function(operation, inverse) {
+    restSourceTransforms++;
 
-//TODO-log    console.log('REST STORE - didTransform', restStoreTransforms, operation, inverse);
+//TODO-log    console.log('REST STORE - didTransform', restSourceTransforms, operation, inverse);
 
-    if (restStoreTransforms === 1) {
-      equal(operation.op, 'add',                         'rest store - initial object addition');
-      equal(operation.value.id, 12345,                   'rest store - inserted - id');
-      equal(operation.value.name, 'Jupiter',             'rest store - inserted - name - Jupiter');
-      equal(operation.value.classification, 'gas giant', 'rest store - inserted - classification - gas giant');
+    if (restSourceTransforms === 1) {
+      equal(operation.op, 'add',                         'rest source - initial object addition');
+      equal(operation.value.id, 12345,                   'rest source - inserted - id');
+      equal(operation.value.name, 'Jupiter',             'rest source - inserted - name - Jupiter');
+      equal(operation.value.classification, 'gas giant', 'rest source - inserted - classification - gas giant');
 
-    } else if (restStoreTransforms === 2) {
+    } else if (restSourceTransforms === 2) {
       start();
 
-      equal(operation.op, 'replace',  'rest store - name replaced');
-      equal(operation.value, 'Earth', 'rest store - name - Earth');
+      equal(operation.op, 'replace',  'rest source - name replaced');
+      equal(operation.value, 'Earth', 'rest source - name - Earth');
 
     } else  {
       ok(false, 'too many transforms');
@@ -220,12 +220,12 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
   /////////////////////////////////////////////////////////////////////////////
 
   stop();
-  memoryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(record) {
-    equal(memoryStore.length('planet'), 1,    'memory store - inserted - should contain one record');
-    ok(record.__id,                           'memory store - inserted - orbit id should be defined');
-    equal(record.id, undefined,               'memory store - inserted - server id should NOT be defined yet');
-    equal(record.name, 'Jupiter',             'memory store - inserted - name - Jupiter');
-    equal(record.classification, 'gas giant', 'memory store - inserted - classification - gas giant');
+  memorySource.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(record) {
+    equal(memorySource.length('planet'), 1,    'memory source - inserted - should contain one record');
+    ok(record.__id,                           'memory source - inserted - orbit id should be defined');
+    equal(record.id, undefined,               'memory source - inserted - server id should NOT be defined yet');
+    equal(record.name, 'Jupiter',             'memory source - inserted - name - Jupiter');
+    equal(record.classification, 'gas giant', 'memory source - inserted - classification - gas giant');
 
     server.respond('POST', '/planets', function(xhr) {
       deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
@@ -235,7 +235,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
     });
 
     record.name = 'Earth';
-    return memoryStore.update('planet', record);
+    return memorySource.update('planet', record);
   });
 });
 
@@ -243,64 +243,64 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
 test("records patched in memory should be patched with rest", function() {
   expect(35);
 
-  var memoryStoreTransforms = 0,
-      localStoreTransforms = 0,
-      restStoreTransforms = 0;
+  var memorySourceTransforms = 0,
+      localSourceTransforms = 0,
+      restSourceTransforms = 0;
 
-  memoryStore.on('didTransform', function(operation, inverse) {
-    memoryStoreTransforms++;
+  memorySource.on('didTransform', function(operation, inverse) {
+    memorySourceTransforms++;
 
-//TODO-log    console.log('MEMORY STORE - didTransform', memoryStoreTransforms, operation, inverse);
+//TODO-log    console.log('MEMORY STORE - didTransform', memorySourceTransforms, operation, inverse);
 
-    if (memoryStoreTransforms === 1) {
-      equal(operation.op, 'add',                         'memory store - initial object addition');
-      equal(operation.value.name, 'Jupiter',             'memory store - inserted - name - Jupiter');
-      equal(operation.value.classification, 'gas giant', 'memory store - inserted - classification should be original');
+    if (memorySourceTransforms === 1) {
+      equal(operation.op, 'add',                         'memory source - initial object addition');
+      equal(operation.value.name, 'Jupiter',             'memory source - inserted - name - Jupiter');
+      equal(operation.value.classification, 'gas giant', 'memory source - inserted - classification should be original');
 
-    } else if (memoryStoreTransforms === 2) {
-      equal(operation.op, 'replace',  'memory store - name replaced');
-      equal(operation.value, 'Earth', 'memory store - name - Earth');
+    } else if (memorySourceTransforms === 2) {
+      equal(operation.op, 'replace',  'memory source - name replaced');
+      equal(operation.value, 'Earth', 'memory source - name - Earth');
 
-    } else if (memoryStoreTransforms === 3) {
+    } else if (memorySourceTransforms === 3) {
       // `id` is added when the REST POST response returns
-      equal(operation.op, 'add',     'memory store - id added');
-      equal(operation.value, 12345,  'memory store - id');
+      equal(operation.op, 'add',     'memory source - id added');
+      equal(operation.value, 12345,  'memory source - id');
 
-    } else if (memoryStoreTransforms === 4) {
-      equal(operation.op, 'replace',    'memory store - name replaced when the REST POST response returns');
-      equal(operation.value, 'Jupiter', 'memory store - name temporarily changed back to Jupiter');
+    } else if (memorySourceTransforms === 4) {
+      equal(operation.op, 'replace',    'memory source - name replaced when the REST POST response returns');
+      equal(operation.value, 'Jupiter', 'memory source - name temporarily changed back to Jupiter');
 
-    } else if (memoryStoreTransforms === 5) {
-      equal(operation.op, 'replace',  'memory store - name replaced when the REST PATCH response returns');
-      equal(operation.value, 'Earth', 'memory store - name changed back to Earth');
+    } else if (memorySourceTransforms === 5) {
+      equal(operation.op, 'replace',  'memory source - name replaced when the REST PATCH response returns');
+      equal(operation.value, 'Earth', 'memory source - name changed back to Earth');
 
     } else {
       ok(false, 'too many transforms');
     }
   });
 
-  localStore.on('didTransform', function(operation, inverse) {
-    localStoreTransforms++;
+  localSource.on('didTransform', function(operation, inverse) {
+    localSourceTransforms++;
 
-//TODO-log    console.log('LOCAL STORE - didTransform', localStoreTransforms, operation, inverse);
+//TODO-log    console.log('LOCAL STORE - didTransform', localSourceTransforms, operation, inverse);
 
-    if (localStoreTransforms === 1) {
-      equal(operation.op, 'add',                         'local store - initial object addition');
-      equal(operation.value.name, 'Jupiter',             'local store - inserted - name - Jupiter');
-      equal(operation.value.classification, 'gas giant', 'local store - inserted - classification should be original');
+    if (localSourceTransforms === 1) {
+      equal(operation.op, 'add',                         'local source - initial object addition');
+      equal(operation.value.name, 'Jupiter',             'local source - inserted - name - Jupiter');
+      equal(operation.value.classification, 'gas giant', 'local source - inserted - classification should be original');
 
-    } else if (localStoreTransforms === 2) {
-      equal(operation.op, 'replace',  'local store - name replaced');
-      equal(operation.value, 'Earth', 'local store - name - Earth');
+    } else if (localSourceTransforms === 2) {
+      equal(operation.op, 'replace',  'local source - name replaced');
+      equal(operation.value, 'Earth', 'local source - name - Earth');
 
-    } else if (localStoreTransforms === 3) {
+    } else if (localSourceTransforms === 3) {
       // `id` is added when the REST POST response returns
-      equal(operation.op, 'add',     'local store - id added');
-      equal(operation.value, 12345,  'local store - id');
+      equal(operation.op, 'add',     'local source - id added');
+      equal(operation.value, 12345,  'local source - id');
 
-    } else if (localStoreTransforms === 4) {
-      equal(operation.op, 'replace',    'local store - name replaced when the REST POST response returns');
-      equal(operation.value, 'Jupiter', 'local store - name temporarily changed back to Jupiter');
+    } else if (localSourceTransforms === 4) {
+      equal(operation.op, 'replace',    'local source - name replaced when the REST POST response returns');
+      equal(operation.value, 'Jupiter', 'local source - name temporarily changed back to Jupiter');
 
       server.respond('PATCH', '/planets/12345', function(xhr) {
         deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/name', value: 'Earth'}, 'PATCH request');
@@ -309,31 +309,31 @@ test("records patched in memory should be patched with rest", function() {
                     JSON.stringify({}));
       });
 
-    } else if (localStoreTransforms === 5) {
-      equal(operation.op, 'replace',  'local store - name replaced when the REST PATCH response returns');
-      equal(operation.value, 'Earth', 'local store - name changed back to Earth');
+    } else if (localSourceTransforms === 5) {
+      equal(operation.op, 'replace',  'local source - name replaced when the REST PATCH response returns');
+      equal(operation.value, 'Earth', 'local source - name changed back to Earth');
 
     } else {
       ok(false, 'too many transforms');
     }
   });
 
-  restStore.on('didTransform', function(operation, inverse) {
-    restStoreTransforms++;
+  restSource.on('didTransform', function(operation, inverse) {
+    restSourceTransforms++;
 
-//TODO-log    console.log('REST STORE - didTransform', restStoreTransforms, operation, inverse);
+//TODO-log    console.log('REST STORE - didTransform', restSourceTransforms, operation, inverse);
 
-    if (restStoreTransforms === 1) {
-      equal(operation.op, 'add',                         'rest store - initial object addition');
-      equal(operation.value.id, 12345,                   'rest store - inserted - id');
-      equal(operation.value.name, 'Jupiter',             'rest store - inserted - name - Jupiter');
-      equal(operation.value.classification, 'gas giant', 'rest store - inserted - classification - gas giant');
+    if (restSourceTransforms === 1) {
+      equal(operation.op, 'add',                         'rest source - initial object addition');
+      equal(operation.value.id, 12345,                   'rest source - inserted - id');
+      equal(operation.value.name, 'Jupiter',             'rest source - inserted - name - Jupiter');
+      equal(operation.value.classification, 'gas giant', 'rest source - inserted - classification - gas giant');
 
-    } else if (restStoreTransforms === 2) {
+    } else if (restSourceTransforms === 2) {
       start();
 
-      equal(operation.op, 'replace',  'rest store - name replaced');
-      equal(operation.value, 'Earth', 'rest store - name - Earth');
+      equal(operation.op, 'replace',  'rest source - name replaced');
+      equal(operation.value, 'Earth', 'rest source - name - Earth');
 
     } else  {
       ok(false, 'too many transforms');
@@ -343,12 +343,12 @@ test("records patched in memory should be patched with rest", function() {
   /////////////////////////////////////////////////////////////////////////////
 
   stop();
-  memoryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(record) {
-    equal(memoryStore.length('planet'), 1,    'memory store - inserted - should contain one record');
-    ok(record.__id,                           'memory store - inserted - orbit id should be defined');
-    equal(record.id, undefined,               'memory store - inserted - server id should NOT be defined yet');
-    equal(record.name, 'Jupiter',             'memory store - inserted - name - Jupiter');
-    equal(record.classification, 'gas giant', 'memory store - inserted - classification - gas giant');
+  memorySource.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(record) {
+    equal(memorySource.length('planet'), 1,    'memory source - inserted - should contain one record');
+    ok(record.__id,                           'memory source - inserted - orbit id should be defined');
+    equal(record.id, undefined,               'memory source - inserted - server id should NOT be defined yet');
+    equal(record.name, 'Jupiter',             'memory source - inserted - name - Jupiter');
+    equal(record.classification, 'gas giant', 'memory source - inserted - classification - gas giant');
 
     server.respond('POST', '/planets', function(xhr) {
       deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
@@ -357,7 +357,7 @@ test("records patched in memory should be patched with rest", function() {
                   JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
     });
 
-    return memoryStore.patch('planet', record.__id, 'name', 'Earth');
+    return memorySource.patch('planet', record.__id, 'name', 'Earth');
   });
 });
 
@@ -365,37 +365,37 @@ test("records patched in memory should be patched with rest", function() {
 test("records deleted in memory should be deleted with rest", function() {
   expect(9);
 
-  var localStoreTransforms = 0,
-      restStoreTransforms = 0;
+  var localSourceTransforms = 0,
+      restSourceTransforms = 0;
 
-  localStore.on('didTransform', function(operation, inverse) {
-    localStoreTransforms++;
+  localSource.on('didTransform', function(operation, inverse) {
+    localSourceTransforms++;
 
-//TODO-log    console.log('LOCAL STORE - didTransform', localStoreTransforms, operation, inverse);
+//TODO-log    console.log('LOCAL STORE - didTransform', localSourceTransforms, operation, inverse);
 
-    if (localStoreTransforms === 1) {
-      equal(operation.op, 'add',                'local store - initial object addition');
+    if (localSourceTransforms === 1) {
+      equal(operation.op, 'add',                'local source - initial object addition');
 
-    } else if (localStoreTransforms === 2) {
-      equal(operation.op, 'remove',              'local store - removed');
-      equal(localStore.length('planet'), 0,      'local store should be empty');
+    } else if (localSourceTransforms === 2) {
+      equal(operation.op, 'remove',              'local source - removed');
+      equal(localSource.length('planet'), 0,      'local source should be empty');
 
     } else {
       ok(false, 'too many transforms');
     }
   });
 
-  restStore.on('didTransform', function(operation, inverse) {
-    restStoreTransforms++;
+  restSource.on('didTransform', function(operation, inverse) {
+    restSourceTransforms++;
 
-//TODO-log    console.log('REST STORE - didTransform', restStoreTransforms, operation, inverse);
+//TODO-log    console.log('REST STORE - didTransform', restSourceTransforms, operation, inverse);
 
-    if (restStoreTransforms === 1) {
-      equal(operation.op, 'add',                'rest store - initial object addition');
+    if (restSourceTransforms === 1) {
+      equal(operation.op, 'add',                'rest source - initial object addition');
 
-    } else if (restStoreTransforms === 2) {
+    } else if (restSourceTransforms === 2) {
       start();
-      equal(operation.op, 'remove',             'rest store - removed');
+      equal(operation.op, 'remove',             'rest source - removed');
 
     } else  {
       ok(false, 'too many transforms');
@@ -405,8 +405,8 @@ test("records deleted in memory should be deleted with rest", function() {
   /////////////////////////////////////////////////////////////////////////////
 
   stop();
-  memoryStore.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    equal(memoryStore.length('planet'), 1, 'memory store - inserted - should contain one record');
+  memorySource.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    equal(memorySource.length('planet'), 1, 'memory source - inserted - should contain one record');
 
     server.respond('POST', '/planets', function(xhr) {
       deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
@@ -415,11 +415,11 @@ test("records deleted in memory should be deleted with rest", function() {
                   JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
     });
 
-    return memoryStore.remove('planet', planet.__id);
+    return memorySource.remove('planet', planet.__id);
 
   }).then(function() {
 
-    equal(memoryStore.length('planet'), 0, 'memory store should be empty');
+    equal(memorySource.length('planet'), 0, 'memory source should be empty');
 
     server.respond('DELETE', '/planets/12345', function(xhr) {
       deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
