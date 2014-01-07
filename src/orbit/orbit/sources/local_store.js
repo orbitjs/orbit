@@ -13,35 +13,22 @@ var LocalStore = function() {
   this.init.apply(this, arguments);
 };
 
-LocalStore.prototype = {
+Orbit.extend(LocalStore.prototype, MemoryStore.prototype, {
   constructor: LocalStore,
 
   init: function(schema, options) {
-    Orbit.assert('Store\'s `schema` must be specified', schema);
-    Orbit.assert('LocalStore requires Orbit.Promise be defined', Orbit.Promise);
     Orbit.assert('Your browser does not support local storage!', supportsLocalStorage());
+
+    MemoryStore.prototype.init.apply(this, arguments);
 
     options = options || {};
     this.namespace = options['namespace'] || 'orbit'; // local storage key
     this._autosave = options['autosave'] !== undefined ? options['autosave'] : true;
     var autoload = options['autoload'] !== undefined ? options['autoload'] : true;
 
-    this._store = new MemoryStore(schema);
     this._isDirty = false;
 
-    // Evented interface
-    Orbit.expose(this, this._store, 'on', 'off', 'emit', 'poll', 'listeners', 'resolve', 'settle');
-
-    // Transformable interface
-    Orbit.expose(this, this._store, 'transform', 'didTransform', 'transformQueue');
-
-    // Requestable interface
-    Orbit.expose(this, this._store, 'find', 'add', 'update', 'patch', 'remove');
-
-    // Cache interface
-    Orbit.expose(this, this._store, 'retrieve', 'length', 'isDeleted');
-
-    this._store.on('didTransform', function() {
+    this.on('didTransform', function() {
       this._saveData();
     }, this);
 
@@ -50,7 +37,7 @@ LocalStore.prototype = {
 
   load: function() {
     var storage = window.localStorage.getItem(this.namespace);
-    this._store.reset(storage ? JSON.parse(storage) : {});
+    this.reset(storage ? JSON.parse(storage) : {});
   },
 
   enableAutosave: function() {
@@ -75,9 +62,9 @@ LocalStore.prototype = {
       this._isDirty = true;
       return;
     }
-    window.localStorage.setItem(this.namespace, JSON.stringify(this._store.retrieve()));
+    window.localStorage.setItem(this.namespace, JSON.stringify(this.retrieve()));
     this._isDirty = false;
   }
-};
+});
 
 export default LocalStore;
