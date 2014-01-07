@@ -103,7 +103,7 @@ Source.prototype = {
       };
     };
 
-    var linkDef = this._cache.schema.models[type].links[property],
+    var linkDef = this.schema.models[type].links[property],
         ops,
         _this = this;
 
@@ -124,7 +124,7 @@ Source.prototype = {
 
     // Add inverse link if necessary
     if (linkDef.inverse) {
-      var inverseLinkDef = this._cache.schema.models[linkDef.model].links[linkDef.inverse];
+      var inverseLinkDef = this.schema.models[linkDef.model].links[linkDef.inverse];
       ops.push(linkOp(inverseLinkDef, linkDef.model, value, linkDef.inverse, id));
     }
 
@@ -143,7 +143,7 @@ Source.prototype = {
       };
     };
 
-    var linkDef = this._cache.schema.models[type].links[property],
+    var linkDef = this.schema.models[type].links[property],
         ops,
         record,
         relatedRecord,
@@ -173,7 +173,7 @@ Source.prototype = {
         value = record.links[property];
       }
 
-      var inverseLinkDef = this._cache.schema.models[linkDef.model].links[linkDef.inverse];
+      var inverseLinkDef = this.schema.models[linkDef.model].links[linkDef.inverse];
       ops.push(unlinkOp(inverseLinkDef, linkDef.model, value, linkDef.inverse, id));
     }
 
