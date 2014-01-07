@@ -16,6 +16,7 @@ Orbit.extend(RestStore.prototype, Store.prototype, {
     Store.prototype.init.apply(this, arguments);
 
     options = options || {};
+    this.schema = schema;
     this.remoteIdField = options['remoteIdField'] || 'id';
     this.namespace = options['namespace'];
     this.headers = options['headers'];
@@ -25,7 +26,7 @@ Orbit.extend(RestStore.prototype, Store.prototype, {
   },
 
   initRecord: function(type, record) {
-    var id = record[this.idField],
+    var id = record[this.schema.idField],
         remoteId = record[this.remoteIdField];
 
     if (remoteId && !id) {
@@ -34,7 +35,7 @@ Orbit.extend(RestStore.prototype, Store.prototype, {
 
     if (!id) {
       this._cache.initRecord(type, record);
-      id = record[this.idField];
+      id = record[this.schema.idField];
     }
 
     this._updateRemoteIdMap(type, id, remoteId);
@@ -103,7 +104,7 @@ Orbit.extend(RestStore.prototype, Store.prototype, {
         return this._ajax(this._buildURL(type), 'POST', {data: this._serialize(type, data)}).then(
           function(raw) {
             record = _this._deserialize(type, raw);
-            record[_this.idField] = id;
+            record[_this.schema.idField] = id;
             _this._addToCache(type, record);
           }
         );
@@ -116,7 +117,7 @@ Orbit.extend(RestStore.prototype, Store.prototype, {
           return this._ajax(this._buildURL(type, remoteId), 'PUT', {data: this._serialize(type, data)}).then(
             function(raw) {
               record = _this._deserialize(type, raw);
-              record[_this.idField] = id;
+              record[_this.schema.idField] = id;
               _this._addToCache(type, record);
             }
           );
@@ -156,7 +157,7 @@ Orbit.extend(RestStore.prototype, Store.prototype, {
     this.initRecord(type, record);
     this._transformCache({
       op: 'add',
-      path: [type, record[this.idField]],
+      path: [type, record[this.schema.idField]],
       value: record
     });
   },
@@ -310,7 +311,7 @@ Orbit.extend(RestStore.prototype, Store.prototype, {
 
   _serialize: function(type, data) {
     var serialized = clone(data);
-    delete serialized[this.idField];
+    delete serialized[this.schema.idField];
 
     if (serialized.links) {
       var links = {};

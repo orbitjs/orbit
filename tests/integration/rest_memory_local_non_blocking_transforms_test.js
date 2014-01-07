@@ -23,6 +23,7 @@ module("Integration - Rest / Memory / Local Transforms (Non-Blocking)", {
 
     // Create stores
     var schema = {
+      idField: '__id',
       models: {
         planet: {
         }

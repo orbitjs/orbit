@@ -8,10 +8,7 @@ var Cache = function() {
 Cache.prototype = {
   constructor: Cache,
 
-  init: function(schema, options) {
-    options = options || {};
-
-    this.idField = Orbit.idField;
+  init: function(schema) {
     this._doc = new Document(null, {arrayBasedPaths: true});
 
     // Expose methods from the Document interface
@@ -28,14 +25,14 @@ Cache.prototype = {
   },
 
   initRecord: function(type, data) {
-    if (data[this.idField] !== undefined) return;
+    if (data[this.schema.idField] !== undefined) return;
 
     var modelSchema = this.schema.models[type],
         attributes = modelSchema.attributes,
         links = modelSchema.links;
 
     // init id
-    data[this.idField] = this.generateId();
+    data[this.schema.idField] = this.generateId();
 
     // init default values
     if (attributes) {

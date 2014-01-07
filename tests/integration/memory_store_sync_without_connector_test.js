@@ -12,6 +12,7 @@ module("Integration - MemoryStore Sync without Connector", {
     Orbit.Promise = RSVP.Promise;
 
     var schema = {
+      idField: '__id',
       models: {
         planet: {
         }

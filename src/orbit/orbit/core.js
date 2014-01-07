@@ -19,8 +19,6 @@ if (!Array.prototype.forEach) {
  * Orbit
  */
 var Orbit = {
-  idField: '__id',
-
   generateId: function() {
     if (this._newId) {
       this._newId++;

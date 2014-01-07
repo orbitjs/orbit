@@ -9,10 +9,6 @@ test("it exists", function() {
   ok(Orbit);
 });
 
-test("#idField defines a default id field", function() {
-  equal(Orbit.idField, '__id', 'default internal id field');
-});
-
 test("#generateId generates unique ids", function() {
   notEqual(Orbit.generateId(), Orbit.generateId(), 'a weak test to ensure uniqueness');
 });

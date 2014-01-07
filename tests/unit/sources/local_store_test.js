@@ -11,6 +11,7 @@ module("Unit - LocalStore", {
     Orbit.Promise = RSVP.Promise;
 
     var schema = {
+      idField: '__id',
       models: {
         planet: {
         }

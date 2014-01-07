@@ -13,10 +13,11 @@ Store.prototype = {
 
   init: function(schema, options) {
     Orbit.assert('Store\'s `schema` must be specified', schema);
+    Orbit.assert('Store\'s `schema.idField` must be specified', schema.idField);
+
+    this.schema = schema;
 
     options = options || {};
-
-    this.idField = Orbit.idField;
 
     // Create an internal cache and expose some elements of its interface
     this._cache = new Cache(schema);
@@ -43,7 +44,7 @@ Store.prototype = {
   _add: function(type, data) {
     this.initRecord(type, data);
 
-    var id = data[this.idField],
+    var id = data[this.schema.idField],
         path = [type, id],
         _this = this;
 
@@ -55,7 +56,7 @@ Store.prototype = {
   _update: function(type, data) {
     this.initRecord(type, data);
 
-    var id = data[this.idField],
+    var id = data[this.schema.idField],
         path = [type, id],
         _this = this;
 
@@ -68,7 +69,7 @@ Store.prototype = {
     if (typeof id === 'object') {
       var record = id;
       this.initRecord(type, record);
-      id = record[this.idField];
+      id = record[this.schema.idField];
     }
 
     return this.transform({
@@ -82,7 +83,7 @@ Store.prototype = {
     if (typeof id === 'object') {
       var record = id;
       this.initRecord(type, record);
-      id = record[this.idField];
+      id = record[this.schema.idField];
     }
 
     return this.transform({op: 'remove', path: [type, id]});
@@ -110,12 +111,12 @@ Store.prototype = {
     if (typeof id === 'object') {
       var record = id;
       this.initRecord(type, record);
-      id = record[this.idField];
+      id = record[this.schema.idField];
     }
     if (typeof value === 'object') {
       var relatedRecord = value;
       this.initRecord(linkDef.model, relatedRecord);
-      value = relatedRecord[this.idField];
+      value = relatedRecord[this.schema.idField];
     }
 
     // Add link to primary resource
@@ -152,12 +153,12 @@ Store.prototype = {
     if (typeof id === 'object') {
       record = id;
       this.initRecord(type, record);
-      id = record[this.idField];
+      id = record[this.schema.idField];
     }
     if (typeof value === 'object') {
       relatedRecord = value;
       this.initRecord(linkDef.model, relatedRecord);
-      value = relatedRecord[this.idField];
+      value = relatedRecord[this.schema.idField];
     }
 
     // Remove link from primary resource

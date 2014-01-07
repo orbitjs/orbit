@@ -17,6 +17,7 @@ module("Unit - RestStore", {
     server.autoRespond = true;
 
     var schema = {
+      idField: '__id',
       models: {
         planet: {
           attributes: {
