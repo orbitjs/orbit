@@ -77,6 +77,8 @@ TransformConnector.prototype = {
             return this._resolveConflicts(operation.path, currentValue, operation.value);
           }
         }
+      } else if (operation.op === 'remove') {
+        return;
       }
     }
 
