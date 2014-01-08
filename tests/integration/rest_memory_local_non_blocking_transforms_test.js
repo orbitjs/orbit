@@ -63,7 +63,7 @@ test("records inserted into memory should be posted with rest", function() {
   localSource.on('didTransform', function(operation, inverse) {
     localSourceTransforms++;
 
-//TODO-log    console.log('LOCAL STORE - didTransform', localSourceTransforms, operation, inverse);
+//TODO-log    console.log('LOCAL SOURCE - didTransform', localSourceTransforms, operation, inverse);
 
     if (localSourceTransforms === 1) {
       equal(operation.op, 'add',                         'local source - initial object addition');
@@ -83,7 +83,7 @@ test("records inserted into memory should be posted with rest", function() {
   restSource.on('didTransform', function(operation, inverse) {
     restSourceTransforms++;
 
-//TODO-log    console.log('REST STORE - didTransform', restSourceTransforms, operation, inverse);
+//TODO-log    console.log('REST SOURCE - didTransform', restSourceTransforms, operation, inverse);
 
     if (restSourceTransforms === 1) {
       start();
@@ -127,7 +127,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
   memorySource.on('didTransform', function(operation, inverse) {
     memorySourceTransforms++;
 
-//TODO-log    console.log('MEMORY STORE - didTransform', memorySourceTransforms, operation, inverse);
+//TODO-log    console.log('MEMORY SOURCE - didTransform', memorySourceTransforms, operation, inverse);
 
     if (memorySourceTransforms === 1) {
       equal(operation.op, 'add',                         'memory source - initial object addition');
@@ -159,7 +159,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
   localSource.on('didTransform', function(operation, inverse) {
     localSourceTransforms++;
 
-//TODO-log    console.log('LOCAL STORE - didTransform', localSourceTransforms, operation, inverse);
+//TODO-log    console.log('LOCAL SOURCE - didTransform', localSourceTransforms, operation, inverse);
 
     if (localSourceTransforms === 1) {
       equal(operation.op, 'add',                         'local source - initial object addition');
@@ -198,7 +198,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
   restSource.on('didTransform', function(operation, inverse) {
     restSourceTransforms++;
 
-//TODO-log    console.log('REST STORE - didTransform', restSourceTransforms, operation, inverse);
+//TODO-log    console.log('REST SOURCE - didTransform', restSourceTransforms, operation, inverse);
 
     if (restSourceTransforms === 1) {
       equal(operation.op, 'add',                         'rest source - initial object addition');
@@ -250,7 +250,7 @@ test("records patched in memory should be patched with rest", function() {
   memorySource.on('didTransform', function(operation, inverse) {
     memorySourceTransforms++;
 
-//TODO-log    console.log('MEMORY STORE - didTransform', memorySourceTransforms, operation, inverse);
+//TODO-log    console.log('MEMORY SOURCE - didTransform', memorySourceTransforms, operation, inverse);
 
     if (memorySourceTransforms === 1) {
       equal(operation.op, 'add',                         'memory source - initial object addition');
@@ -282,7 +282,7 @@ test("records patched in memory should be patched with rest", function() {
   localSource.on('didTransform', function(operation, inverse) {
     localSourceTransforms++;
 
-//TODO-log    console.log('LOCAL STORE - didTransform', localSourceTransforms, operation, inverse);
+//TODO-log    console.log('LOCAL SOURCE - didTransform', localSourceTransforms, operation, inverse);
 
     if (localSourceTransforms === 1) {
       equal(operation.op, 'add',                         'local source - initial object addition');
@@ -321,7 +321,7 @@ test("records patched in memory should be patched with rest", function() {
   restSource.on('didTransform', function(operation, inverse) {
     restSourceTransforms++;
 
-//TODO-log    console.log('REST STORE - didTransform', restSourceTransforms, operation, inverse);
+//TODO-log    console.log('REST SOURCE - didTransform', restSourceTransforms, operation, inverse);
 
     if (restSourceTransforms === 1) {
       equal(operation.op, 'add',                         'rest source - initial object addition');
@@ -344,7 +344,7 @@ test("records patched in memory should be patched with rest", function() {
 
   stop();
   memorySource.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(record) {
-    equal(memorySource.length('planet'), 1,    'memory source - inserted - should contain one record');
+    equal(memorySource.length('planet'), 1,   'memory source - inserted - should contain one record');
     ok(record.__id,                           'memory source - inserted - orbit id should be defined');
     equal(record.id, undefined,               'memory source - inserted - server id should NOT be defined yet');
     equal(record.name, 'Jupiter',             'memory source - inserted - name - Jupiter');
@@ -363,22 +363,54 @@ test("records patched in memory should be patched with rest", function() {
 
 
 test("records deleted in memory should be deleted with rest", function() {
-  expect(9);
+  expect(17);
 
-  var localSourceTransforms = 0,
+  var memorySourceTransforms = 0,
+      localSourceTransforms = 0,
       restSourceTransforms = 0;
+
+  memorySource.on('didTransform', function(operation, inverse) {
+    memorySourceTransforms++;
+
+//TODO-log    console.log('MEMORY SOURCE - didTransform', memorySourceTransforms, operation, inverse);
+
+    if (memorySourceTransforms === 1) {
+      equal(operation.op, 'add',                 'memory source - initial object addition');
+
+    } else if (memorySourceTransforms === 2) {
+      equal(operation.op, 'remove',              'memory source - removed');
+      equal(memorySource.length('planet'), 0,    'memory source should be empty');
+
+    } else if (memorySourceTransforms === 3) {
+      equal(operation.op, 'add',                 'memory source - removed');
+
+    } else if (memorySourceTransforms === 4) {
+      equal(operation.op, 'remove',              'memory source - removed');
+      equal(memorySource.length('planet'), 0,    'memory source should be empty');
+
+    } else {
+      ok(false, 'too many transforms');
+    }
+  });
 
   localSource.on('didTransform', function(operation, inverse) {
     localSourceTransforms++;
 
-//TODO-log    console.log('LOCAL STORE - didTransform', localSourceTransforms, operation, inverse);
+//TODO-log    console.log('LOCAL SOURCE - didTransform', localSourceTransforms, operation, inverse);
 
     if (localSourceTransforms === 1) {
-      equal(operation.op, 'add',                'local source - initial object addition');
+      equal(operation.op, 'add',                 'local source - initial object addition');
 
     } else if (localSourceTransforms === 2) {
       equal(operation.op, 'remove',              'local source - removed');
-      equal(localSource.length('planet'), 0,      'local source should be empty');
+      equal(localSource.length('planet'), 0,     'local source should be empty');
+
+    } else if (localSourceTransforms === 3) {
+      equal(operation.op, 'add',                 'local source - removed');
+
+    } else if (localSourceTransforms === 4) {
+      equal(operation.op, 'remove',              'local source - removed');
+      equal(localSource.length('planet'), 0,     'local source should be empty');
 
     } else {
       ok(false, 'too many transforms');
@@ -388,14 +420,14 @@ test("records deleted in memory should be deleted with rest", function() {
   restSource.on('didTransform', function(operation, inverse) {
     restSourceTransforms++;
 
-//TODO-log    console.log('REST STORE - didTransform', restSourceTransforms, operation, inverse);
+//TODO-log    console.log('REST SOURCE - didTransform', restSourceTransforms, operation, inverse);
 
     if (restSourceTransforms === 1) {
-      equal(operation.op, 'add',                'rest source - initial object addition');
+      equal(operation.op, 'add',                 'rest source - initial object addition');
 
     } else if (restSourceTransforms === 2) {
       start();
-      equal(operation.op, 'remove',             'rest source - removed');
+      equal(operation.op, 'remove',              'rest source - removed');
 
     } else  {
       ok(false, 'too many transforms');
@@ -418,8 +450,6 @@ test("records deleted in memory should be deleted with rest", function() {
     return memorySource.remove('planet', planet.__id);
 
   }).then(function() {
-
-    equal(memorySource.length('planet'), 0, 'memory source should be empty');
 
     server.respond('DELETE', '/planets/12345', function(xhr) {
       deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');

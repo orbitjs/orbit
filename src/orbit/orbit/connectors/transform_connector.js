@@ -63,8 +63,6 @@ TransformConnector.prototype = {
   _transformTarget: function(operation) {
 //TODO-log    console.log('****', ' transform from ', this.source.id, ' to ', this.target.id, operation);
 
-    if (this.target.isDeleted && this.target.isDeleted(operation.path)) return;
-
     if (this.target.retrieve) {
       var currentValue = this.target.retrieve(operation.path);
 

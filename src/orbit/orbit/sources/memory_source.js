@@ -39,7 +39,7 @@ Orbit.extend(MemorySource.prototype, Source.prototype, {
         resolve(_this._filter.call(_this, type, id));
       } else {
         var record = _this.retrieve([type, id]);
-        if (record && !record.deleted) {
+        if (record) {
           resolve(record);
         } else {
           reject(new Orbit.NotFoundException(type, id));
@@ -78,9 +78,7 @@ Orbit.extend(MemorySource.prototype, Source.prototype, {
             }
           }
         }
-        if (match && !record.deleted) {
-          all.push(record);
-        }
+        if (match) all.push(record);
       }
     }
     return all;

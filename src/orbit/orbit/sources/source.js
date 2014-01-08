@@ -21,7 +21,7 @@ Source.prototype = {
 
     // Create an internal cache and expose some elements of its interface
     this._cache = new Cache(schema);
-    Orbit.expose(this, this._cache, 'isDeleted', 'length', 'reset', 'retrieve');
+    Orbit.expose(this, this._cache, 'length', 'reset', 'retrieve');
 
     Transformable.extend(this);
     Requestable.extend(this, ['find', 'add', 'update', 'patch', 'remove', 'link', 'unlink']);

@@ -12,14 +12,12 @@ Cache.prototype = {
     this._doc = new Document(null, {arrayBasedPaths: true});
 
     // Expose methods from the Document interface
-    Orbit.expose(this, this._doc, 'reset');
+    Orbit.expose(this, this._doc, 'reset', 'transform');
 
     this.schema = schema;
-    this._doc.add(['deleted'], {});
     for (var model in schema.models) {
       if (schema.models.hasOwnProperty(model)) {
         this._doc.add([model], {});
-        this._doc.add(['deleted', model], {});
       }
     }
   },
@@ -62,10 +60,6 @@ Cache.prototype = {
     return Orbit.generateId();
   },
 
-  isDeleted: function(path) {
-    return this.retrieve(['deleted'].concat(path));
-  },
-
   length: function(path) {
     return Object.keys(this.retrieve(path)).length;
   },
@@ -76,19 +70,6 @@ Cache.prototype = {
     } catch(e) {
       return null;
     }
-  },
-
-  transform: function(operation, invert) {
-    var inverse = this._doc.transform(operation, invert);
-
-    // Track deleted records
-    if (operation.op === 'remove' && operation.path.length === 2) {
-      this._doc.transform({op: 'add',
-                           path: ['deleted'].concat(operation.path),
-                           value: true});
-    }
-
-    return inverse;
   }
 };
 

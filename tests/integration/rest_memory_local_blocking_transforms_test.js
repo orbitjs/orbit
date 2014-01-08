@@ -240,7 +240,7 @@ test("records patched with rest should be patched in memory", function() {
 });
 
 test("records deleted in memory should be deleted with rest", function() {
-  expect(8);
+  expect(5);
 
   server.respondWith('POST', '/planets', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
@@ -263,16 +263,12 @@ test("records deleted in memory should be deleted with rest", function() {
       equal(memorySource.length('planet'), 0, 'memory source should be empty');
       equal(localSource.length('planet'), 0, 'local source should be empty');
       equal(restSource.length('planet'), 0, 'rest source cache should be empty');
-
-      equal(memorySource.isDeleted(['planet', planet.__id]), true, 'record should be marked deleted in memory source');
-      equal(localSource.isDeleted(['planet', planet.__id]), true, 'record should be marked deleted in local source');
-      equal(restSource.isDeleted(['planet', planet.__id]), true, 'record should be marked deleted in rest source');
     });
   });
 });
 
 test("records deleted with rest should be deleted in memory", function() {
-  expect(8);
+  expect(5);
 
   server.respondWith('POST', '/planets', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant'}, 'POST request');
@@ -295,10 +291,6 @@ test("records deleted with rest should be deleted in memory", function() {
       equal(memorySource.length('planet'), 0, 'memory source should be empty');
       equal(localSource.length('planet'), 0, 'local source should be empty');
       equal(restSource.length('planet'), 0, 'rest source cache should be empty');
-
-      equal(memorySource.isDeleted(['planet', planet.__id]), true, 'record should be marked deleted in memory source');
-      equal(localSource.isDeleted(['planet', planet.__id]), true, 'record should be marked deleted in local source');
-      equal(restSource.isDeleted(['planet', planet.__id]), true, 'record should be marked deleted in rest source');
     });
   });
 });
