@@ -61,7 +61,11 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
 
   // Create stores with a common schema
   var schema = {
-    models: ['planet']
+    idField: '__id',
+    models: {
+      planet: {
+      }
+    }
   };
   var memorySource = new Orbit.MemorySource(schema);
   var restSource = new Orbit.JSONAPISource(schema);
@@ -295,7 +299,7 @@ Orbit.Transformable.extend(source);
 ```
 
 This will ensure that your source is `Evented` (see below). It also adds a
-`tranform` method. In order to fulfill the `transform` method, your source
+`transform` method. In order to fulfill the `transform` method, your source
 should implement a `_transform` method that performs the transform and returns
 a promise if the transformation is asynchronous.
 
@@ -329,7 +333,7 @@ transform - asynchronous actions are performed afterward.
 `Document` is a complete implementation of the JSON PATCH spec detailed in
 [RFC 6902](http://tools.ietf.org/html/rfc6902).
 
-It can be manipulated via a `tranform` method that accepts an `operation`, or
+It can be manipulated via a `transform` method that accepts an `operation`, or
 with methods `add`, `remove`, `replace`, `move`, `copy` and `test`.
 
 Data at a particular path can be retrieved from a `Document` with `retrieve()`.
