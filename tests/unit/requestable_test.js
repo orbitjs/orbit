@@ -294,7 +294,7 @@ test("it defines `findRecord` as an action by default", function() {
   verifyActionExists(source, 'find');
 });
 
-test("it can define any number of custom actions", function() {
+test("#extend - can define any number of custom actions", function() {
   var requestable = {},
       customActions = ['find', 'add', 'update', 'remove'];
 
@@ -303,6 +303,18 @@ test("it can define any number of custom actions", function() {
   customActions.forEach(function(action) {
     verifyActionExists(requestable, action);
   });
+});
+
+test("#defineAction - can define one or more custom actions", function() {
+  var customActions = ['link', 'unlink'];
+  Requestable.defineAction(source, customActions);
+
+  customActions.forEach(function(action) {
+    verifyActionExists(source, action);
+  });
+
+  Requestable.defineAction(source, 'add');
+  verifyActionExists(source, 'add');
 });
 
 testRequestableAction('find');
