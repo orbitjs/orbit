@@ -60,6 +60,22 @@ test("records inserted into memory should be posted with rest", function() {
   var localSourceTransforms = 0,
       restSourceTransforms = 0;
 
+  restSource.on('didTransform', function(operation, inverse) {
+    restSourceTransforms++;
+
+//TODO-log    console.log('REST SOURCE - didTransform', restSourceTransforms, operation, inverse);
+
+    if (restSourceTransforms === 1) {
+      ok(operation.value.__id,                           'orbit id should be defined');
+      equal(operation.value.id, 12345,                   'server id should be defined now');
+      equal(operation.value.name, 'Jupiter',             'name should match');
+      equal(operation.value.classification, 'gas giant', 'classification should match');
+
+    } else {
+      ok(false, 'too many transforms');
+    }
+  });
+
   localSource.on('didTransform', function(operation, inverse) {
     localSourceTransforms++;
 
@@ -71,26 +87,11 @@ test("records inserted into memory should be posted with rest", function() {
       equal(operation.value.classification, 'gas giant', 'local source - inserted - classification should be original');
 
     } else if (localSourceTransforms === 2) {
+      start();
+
       // `id` is added when the REST POST response returns
       equal(operation.op, 'add',     'local source - id added');
       equal(operation.value, 12345,  'local source - id');
-
-    } else {
-      ok(false, 'too many transforms');
-    }
-  });
-
-  restSource.on('didTransform', function(operation, inverse) {
-    restSourceTransforms++;
-
-//TODO-log    console.log('REST SOURCE - didTransform', restSourceTransforms, operation, inverse);
-
-    if (restSourceTransforms === 1) {
-      start();
-      ok(operation.value.__id,                           'orbit id should be defined');
-      equal(operation.value.id, 12345,                   'server id should be defined now');
-      equal(operation.value.name, 'Jupiter',             'name should match');
-      equal(operation.value.classification, 'gas giant', 'classification should match');
 
     } else {
       ok(false, 'too many transforms');
@@ -156,6 +157,26 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
     }
   });
 
+  restSource.on('didTransform', function(operation, inverse) {
+    restSourceTransforms++;
+
+//TODO-log    console.log('REST SOURCE - didTransform', restSourceTransforms, operation, inverse);
+
+    if (restSourceTransforms === 1) {
+      equal(operation.op, 'add',                         'rest source - initial object addition');
+      equal(operation.value.id, 12345,                   'rest source - inserted - id');
+      equal(operation.value.name, 'Jupiter',             'rest source - inserted - name - Jupiter');
+      equal(operation.value.classification, 'gas giant', 'rest source - inserted - classification - gas giant');
+
+    } else if (restSourceTransforms === 2) {
+      equal(operation.op, 'replace',  'rest source - name replaced');
+      equal(operation.value, 'Earth', 'rest source - name - Earth');
+
+    } else  {
+      ok(false, 'too many transforms');
+    }
+  });
+
   localSource.on('didTransform', function(operation, inverse) {
     localSourceTransforms++;
 
@@ -187,32 +208,12 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
       });
 
     } else if (localSourceTransforms === 5) {
+      start();
+
       equal(operation.op, 'replace',  'local source - name replaced when the REST PATCH response returns');
       equal(operation.value, 'Earth', 'local source - name changed back to Earth');
 
     } else {
-      ok(false, 'too many transforms');
-    }
-  });
-
-  restSource.on('didTransform', function(operation, inverse) {
-    restSourceTransforms++;
-
-//TODO-log    console.log('REST SOURCE - didTransform', restSourceTransforms, operation, inverse);
-
-    if (restSourceTransforms === 1) {
-      equal(operation.op, 'add',                         'rest source - initial object addition');
-      equal(operation.value.id, 12345,                   'rest source - inserted - id');
-      equal(operation.value.name, 'Jupiter',             'rest source - inserted - name - Jupiter');
-      equal(operation.value.classification, 'gas giant', 'rest source - inserted - classification - gas giant');
-
-    } else if (restSourceTransforms === 2) {
-      start();
-
-      equal(operation.op, 'replace',  'rest source - name replaced');
-      equal(operation.value, 'Earth', 'rest source - name - Earth');
-
-    } else  {
       ok(false, 'too many transforms');
     }
   });
@@ -238,7 +239,6 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
     return memorySource.update('planet', record);
   });
 });
-
 
 test("records patched in memory should be patched with rest", function() {
   expect(35);
@@ -279,6 +279,26 @@ test("records patched in memory should be patched with rest", function() {
     }
   });
 
+  restSource.on('didTransform', function(operation, inverse) {
+    restSourceTransforms++;
+
+//TODO-log    console.log('REST SOURCE - didTransform', restSourceTransforms, operation, inverse);
+
+    if (restSourceTransforms === 1) {
+      equal(operation.op, 'add',                         'rest source - initial object addition');
+      equal(operation.value.id, 12345,                   'rest source - inserted - id');
+      equal(operation.value.name, 'Jupiter',             'rest source - inserted - name - Jupiter');
+      equal(operation.value.classification, 'gas giant', 'rest source - inserted - classification - gas giant');
+
+    } else if (restSourceTransforms === 2) {
+      equal(operation.op, 'replace',  'rest source - name replaced');
+      equal(operation.value, 'Earth', 'rest source - name - Earth');
+
+    } else  {
+      ok(false, 'too many transforms');
+    }
+  });
+
   localSource.on('didTransform', function(operation, inverse) {
     localSourceTransforms++;
 
@@ -310,32 +330,12 @@ test("records patched in memory should be patched with rest", function() {
       });
 
     } else if (localSourceTransforms === 5) {
+      start();
+
       equal(operation.op, 'replace',  'local source - name replaced when the REST PATCH response returns');
       equal(operation.value, 'Earth', 'local source - name changed back to Earth');
 
     } else {
-      ok(false, 'too many transforms');
-    }
-  });
-
-  restSource.on('didTransform', function(operation, inverse) {
-    restSourceTransforms++;
-
-//TODO-log    console.log('REST SOURCE - didTransform', restSourceTransforms, operation, inverse);
-
-    if (restSourceTransforms === 1) {
-      equal(operation.op, 'add',                         'rest source - initial object addition');
-      equal(operation.value.id, 12345,                   'rest source - inserted - id');
-      equal(operation.value.name, 'Jupiter',             'rest source - inserted - name - Jupiter');
-      equal(operation.value.classification, 'gas giant', 'rest source - inserted - classification - gas giant');
-
-    } else if (restSourceTransforms === 2) {
-      start();
-
-      equal(operation.op, 'replace',  'rest source - name replaced');
-      equal(operation.value, 'Earth', 'rest source - name - Earth');
-
-    } else  {
       ok(false, 'too many transforms');
     }
   });
@@ -360,7 +360,6 @@ test("records patched in memory should be patched with rest", function() {
     return memorySource.patch('planet', record.__id, 'name', 'Earth');
   });
 });
-
 
 test("records deleted in memory should be deleted with rest", function() {
   expect(17);
@@ -393,6 +392,22 @@ test("records deleted in memory should be deleted with rest", function() {
     }
   });
 
+  restSource.on('didTransform', function(operation, inverse) {
+    restSourceTransforms++;
+
+//TODO-log    console.log('REST SOURCE - didTransform', restSourceTransforms, operation, inverse);
+
+    if (restSourceTransforms === 1) {
+      equal(operation.op, 'add',                 'rest source - initial object addition');
+
+    } else if (restSourceTransforms === 2) {
+      equal(operation.op, 'remove',              'rest source - removed');
+
+    } else  {
+      ok(false, 'too many transforms');
+    }
+  });
+
   localSource.on('didTransform', function(operation, inverse) {
     localSourceTransforms++;
 
@@ -409,27 +424,12 @@ test("records deleted in memory should be deleted with rest", function() {
       equal(operation.op, 'add',                 'local source - removed');
 
     } else if (localSourceTransforms === 4) {
+      start();
+
       equal(operation.op, 'remove',              'local source - removed');
       equal(localSource.length('planet'), 0,     'local source should be empty');
 
     } else {
-      ok(false, 'too many transforms');
-    }
-  });
-
-  restSource.on('didTransform', function(operation, inverse) {
-    restSourceTransforms++;
-
-//TODO-log    console.log('REST SOURCE - didTransform', restSourceTransforms, operation, inverse);
-
-    if (restSourceTransforms === 1) {
-      equal(operation.op, 'add',                 'rest source - initial object addition');
-
-    } else if (restSourceTransforms === 2) {
-      start();
-      equal(operation.op, 'remove',              'rest source - removed');
-
-    } else  {
       ok(false, 'too many transforms');
     }
   });
