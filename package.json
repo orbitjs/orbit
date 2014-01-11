@@ -52,7 +52,7 @@
     "karma-coverage": "~0.0.3",
     "karma-chrome-launcher": "~0.1.0",
     "karma-phantomjs-launcher": "~0.0.2",
-    "matchdep": "~0.1.2",
+    "matchdep": "~0.3.0",
     "string": "~1.4.0"
   }
 }
