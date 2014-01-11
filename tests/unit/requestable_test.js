@@ -290,7 +290,7 @@ test("it should mixin Evented", function() {
   });
 });
 
-test("it defines `findRecord` as an action by default", function() {
+test("it defines `find` as an action by default", function() {
   verifyActionExists(source, 'find');
 });
 
