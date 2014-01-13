@@ -59,7 +59,7 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
 
 ```javascript
 
-  // Create stores with a common schema
+  // Create data sources with a common schema
   var schema = {
     idField: '__id',
     models: {
@@ -78,14 +78,14 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
   var memToRestConnector = new Orbit.TransformConnector(memorySource, restSource);
   var restToMemConnector = new Orbit.TransformConnector(restSource, memorySource);
 
-  // Add a record to the memory store
+  // Add a record to the memory source
   memorySource.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(
     function(planet) {
       console.log('Planet added - ', planet.name, '(id:', planet.id, ')');
     }
   );
 
-  // Log the transforms in all stores
+  // Log the transforms in all sources
   memorySource.on('didTransform', function(operation, inverse) {
     console.log('memorySource', operation);
   });
@@ -108,17 +108,17 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
   // Planet added - Jupiter (id: 12345)
 ```
 
-In this example, we've created three separate stores and connected them with
+In this example, we've created three separate sources and connected them with
 transform connectors that are *blocking*. In other words, the promise returned
 from an action won't be fulfilled until every event listener that engages with
 it (by returning a promise) has been fulfilled.
 
-In this case, we're adding a record to the memory store, which the connectors
-help duplicate in both the REST store and local storage. The REST store returns
-an `id` from the server, which is then propagated back to the memory store and
-then the local store.
+In this case, we're adding a record to the memory source, which the connectors
+help duplicate in both the REST source and local storage. The REST source returns
+an `id` from the server, which is then propagated back to the memory source and
+then the local storage source.
 
-Note that we could also connect the stores with *non-blocking* connectors with
+Note that we could also connect the sources with *non-blocking* connectors with
 the `blocking: false` option:
 
 ```javascript
@@ -132,8 +132,8 @@ the `blocking: false` option:
 
 In this case, the promise generated from `memorySource.add` will be resolved
 immediately, after which records will be asynchronously created in the REST
-store and local storage. Any differences, such as an `id` returned from the
-server, will be automatically patched back to the record in the memory store.
+source and local storage. Any differences, such as an `id` returned from the
+server, will be automatically patched back to the record in the memory source.
 
 ## Interfaces
 
@@ -241,7 +241,7 @@ var localSource = new Orbit.LocalStorageSource();
 // Check local storage before making a remote call
 restSource.on('assistFind', localSource.find);
 
-// If the in-memory store can't find the record, query our rest server
+// If the in-memory source can't find the record, query our rest server
 memorySource.on('rescueFind', restSource.find);
 
 // Audit success / failure
@@ -266,7 +266,8 @@ being called. You essentially want to hook up the wiring between sources and
 then restrict your application's direct access to most of them. This greatly
 simplifies your application code: instead of chaining together a large number
 of promises that include multiple sources in every call,
-you can interact with a single source of truth (typically an in-memory store).
+you can interact with a single source of truth (typically an in-memory data
+source).
 
 ### Transformable
 
