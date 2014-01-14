@@ -189,7 +189,7 @@ promise. Here's a simplistic example:
 source._find = function(type, id) {
   return new RSVP.Promise(function(resolve, reject){
     if (source._data[type] && source._data[type][id]) {
-      resolve(source._data[type][id];
+      resolve(source._data[type][id]);
     } else {
       reject(type + ' not found');
     }
