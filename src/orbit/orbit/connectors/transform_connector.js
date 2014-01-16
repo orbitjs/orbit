@@ -1,13 +1,13 @@
 import Orbit from 'orbit/core';
+import TransformQueue from 'orbit/transform_queue';
 import clone from 'orbit/lib/clone';
 import diffs from 'orbit/lib/diffs';
 import eq from 'orbit/lib/eq';
 
 var TransformConnector = function(source, target, options) {
-  var _this = this;
-
   this.source = source;
   this.target = target;
+  this.transformQueue = new TransformQueue(this, {autoProcess: false});
 
   options = options || {};
 // TODO - allow filtering of transforms
@@ -28,12 +28,14 @@ TransformConnector.prototype = {
     if (this._active) return;
 
     this.source.on('didTransform',  this._processTransform,  this);
+    this.target.transformQueue.on('didComplete', this.transformQueue.process, this.transformQueue);
 
     this._active = true;
   },
 
   deactivate: function() {
     this.source.off('didTransform',  this._processTransform,  this);
+    this.target.transformQueue.off('didComplete', this.transformQueue.process, this.transformQueue);
 
     this._active = false;
   },
@@ -53,14 +55,23 @@ TransformConnector.prototype = {
 
 //    console.log(this.target.id, 'processTransform', operation);
     if (this.blocking) {
-      return this._transformTarget(operation);
+      return this._transform(operation);
 
     } else {
-      this._transformTarget(operation);
+      this._transform(operation);
     }
   },
 
-  _transformTarget: function(operation) {
+  _transform: function(operation) {
+    // If the target's transformQueue is processing, then we should queue up the
+    // transform on the connector instead of on the target.
+    // This ensures that comparisons are made against the target's most up to
+    // date state. Note that this connector's queue processing is triggered
+    // by the `didComplete` event for the target's queue.
+    if (this.target.transformQueue.processing) {
+      return this.transformQueue.push(operation);
+    }
+
 //TODO-log    console.log('****', ' transform from ', this.source.id, ' to ', this.target.id, operation);
 
     if (this.target.retrieve) {
