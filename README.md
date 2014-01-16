@@ -452,4 +452,4 @@ source.poll('question', 'favorite food?'); // returns ['beer', 'wasabi almonds']
 
 ## License
 
-Copyright 2013 Cerebris Corporation. MIT License (see LICENSE for details).
+Copyright 2014 Cerebris Corporation. MIT License (see LICENSE for details).
