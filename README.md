@@ -329,6 +329,17 @@ will prevent the original transform from resolving until the promise itself has
 resolved. "Non-blocking" transforms do not block the resolution of the original
 transform - asynchronous actions are performed afterward.
 
+If the target of a connector is busy processing transformations, then the
+connector will queue operations until the target is free. This ensures that the
+target's state is as up to date as possible before transformations proceed.
+
+The connector's `transform` method actually applies transforms to its target.
+This method attempts to retrieve the current value at the path of the
+transformation and resolves any conflicts with the connector's
+`resolveConflicts` method. By default, a simple differential is applied to the
+target, although both `transform` and `resolveConflicts` can be overridden to
+apply an alternative differencing algorithm.
+
 ## Document
 
 `Document` is a complete implementation of the JSON PATCH spec detailed in
