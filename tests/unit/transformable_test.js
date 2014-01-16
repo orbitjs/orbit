@@ -22,7 +22,6 @@ module("Unit - Transformable", {
   setup: function() {
     Orbit.Promise = RSVP.Promise;
     source = {};
-    Transformable.extend(source);
   },
 
   teardown: function() {
@@ -32,20 +31,24 @@ module("Unit - Transformable", {
 });
 
 test("it exists", function() {
+  Transformable.extend(source);
   ok(source);
 });
 
 test("it should mixin Evented", function() {
+  Transformable.extend(source);
   ['on', 'off', 'emit', 'poll'].forEach(function(prop) {
     ok(source[prop], 'should have Evented properties');
   });
 });
 
 test("it defines `transform`", function() {
+  Transformable.extend(source);
   ok(source.transform, 'transform exists');
 });
 
 test("it should require the definition of _transform", function() {
+  Transformable.extend(source);
   throws(source._transform, "presence of _transform should be verified");
 });
 
@@ -59,6 +62,8 @@ test("it should resolve when _transform returns a promise", function() {
       resolve();
     });
   };
+
+  Transformable.extend(source);
 
   stop();
   source.transform({op: 'add', path: 'planet/1', value: 'data'}).then(function() {
@@ -74,6 +79,8 @@ test("it should resolve when _transform simply returns (without a promise)", fun
     ok(true, '_transform called');
     return;
   };
+
+  Transformable.extend(source);
 
   stop();
   source.transform({op: 'add', path: 'planet/1', value: 'data'}).then(function() {
@@ -95,6 +102,8 @@ test("it should trigger `didTransform` event after a successful transform", func
     this.didTransform(addOp, inverseOp);
     return successfulOperation();
   };
+
+  Transformable.extend(source);
 
   source.on('didTransform', function(operation, inverse) {
     equal(++order, 2, 'didTransform triggered after action performed successfully');

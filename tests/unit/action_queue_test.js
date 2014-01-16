@@ -1,10 +1,7 @@
 import Orbit from 'orbit/core';
-import TransformQueue from 'orbit/transform_queue';
+import ActionQueue from 'orbit/action_queue';
 import Evented from 'orbit/evented';
 import RSVP from 'rsvp';
-
-var queue,
-    target;
 
 var failedOperation = function() {
   return new RSVP.Promise(function(resolve, reject) {
@@ -14,27 +11,23 @@ var failedOperation = function() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Unit - TransformQueue", {
+module("Unit - ActionQueue", {
   setup: function() {
     Orbit.Promise = RSVP.Promise;
-    target = {
-      id: 'test'
-    };
-    queue = new TransformQueue(target);
   },
 
   teardown: function() {
-    target = null;
-    queue = null;
     Orbit.Promise = null;
   }
 });
 
 test("it exists", function() {
+  var queue = new ActionQueue(Orbit.K);
   ok(queue);
 });
 
 test("it is set to `autoProcess` by default", function() {
+  var queue = new ActionQueue(Orbit.K);
   equal(queue.autoProcess, true, 'autoProcess === true');
 });
 
@@ -45,7 +38,7 @@ test("will auto-process pushed functions sequentially by default", function() {
       op2 = {op: 'add', path: ['planets', '234'], value: 'Venus'},
       transformCount = 0;
 
-  target._transform = function(op) {
+  var _transform = function(op) {
     transformCount++;
     if (transformCount === 1) {
       deepEqual(op, op1, 'op1 passed as argument');
@@ -53,6 +46,8 @@ test("will auto-process pushed functions sequentially by default", function() {
       deepEqual(op, op2, 'op2 passed as argument');
     }
   };
+
+  var queue = new ActionQueue(_transform);
 
   queue.on('didComplete', function() {
     if (transformCount === 1) {
@@ -69,13 +64,11 @@ test("will auto-process pushed functions sequentially by default", function() {
 test("with `autoProcess` disabled, will process pushed functions sequentially when `process` is called", function() {
   expect(3);
 
-  queue.autoProcess = false;
-
   var op1 = {op: 'add', path: ['planets', '123'], value: 'Mercury'},
       op2 = {op: 'add', path: ['planets', '234'], value: 'Venus'},
       transformCount = 0;
 
-  target._transform = function(op) {
+  var _transform = function(op) {
     transformCount++;
     if (transformCount === 1) {
       deepEqual(op, op1, 'op1 passed as argument');
@@ -83,6 +76,8 @@ test("with `autoProcess` disabled, will process pushed functions sequentially wh
       deepEqual(op, op2, 'op2 passed as argument');
     }
   };
+
+  var queue = new ActionQueue(_transform, this, {autoProcess: false});
 
   queue.on('didComplete', function() {
     if (transformCount === 1) {
@@ -106,7 +101,7 @@ test("will auto-process pushed async functions sequentially by default", functio
   var trigger = {};
   Evented.extend(trigger);
 
-  target._transform = function(op) {
+  var _transform = function(op) {
     var promise;
     if (op === op1) {
       promise = new RSVP.Promise(function(resolve) {
@@ -124,6 +119,8 @@ test("will auto-process pushed async functions sequentially by default", functio
     }
     return promise;
   };
+
+  var queue = new ActionQueue(_transform);
 
   queue.on('didComplete', function() {
     start();

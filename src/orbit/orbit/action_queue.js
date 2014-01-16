@@ -1,49 +1,47 @@
 import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
 
-var TransformQueue = function() {
+var ActionQueue = function() {
   this.init.apply(this, arguments);
 };
 
-TransformQueue.prototype = {
-  constructor: TransformQueue,
+ActionQueue.prototype = {
+  constructor: ActionQueue,
 
-  init: function(target, options) {
-    Orbit.assert('TransformQueue requires Orbit.Promise to be defined', Orbit.Promise);
+  init: function(fn, context, options) {
+    Orbit.assert('ActionQueue requires Orbit.Promise to be defined', Orbit.Promise);
 
     Evented.extend(this);
+
+    this.fn = fn;
+    this.context = context || this;
 
     options = options || {};
     this.autoProcess = options.autoProcess !== undefined ? options.autoProcess : true;
 
-    this.target = target;
     this._queue = [];
     this.processing = false;
   },
 
-  push: function(operation) {
-    var _this = this;
-
-//TODO-log    console.log('>>>> TransformQueue', _this.target.id, operation);
+  push: function() {
+    var _this = this,
+        args = arguments;
 
     var response = new Orbit.Promise(function(resolve) {
-      var transform = {
-        resolver: function() {
-          var ret = _this.target._transform.call(_this.target, operation);
-          if (ret) {
-            return ret.then(
-              function() {
-                resolve();
-              }
-            );
-          } else {
-            resolve();
-          }
-        },
-        op: operation
+      var action = function() {
+        var ret = _this.fn.apply(_this.context, args);
+        if (ret) {
+          return ret.then(
+            function() {
+              resolve();
+            }
+          );
+        } else {
+          resolve();
+        }
       };
 
-      _this._queue.push(transform);
+      _this._queue.push(action);
     });
 
     if (this.autoProcess) this.process();
@@ -59,17 +57,13 @@ TransformQueue.prototype = {
 
       var settleEach = function() {
         if (_this._queue.length === 0) {
-
           _this.processing = false;
           _this.emit('didComplete');
-//TODO-log          console.log('---- TransformQueue', _this.target.id, 'EMPTY');
 
         } else {
-          var transform = _this._queue.shift();
+          var action = _this._queue.shift();
+          var ret = action.call(_this);
 
-//TODO-log          console.log('<<<< TransformQueue', _this.target.id, transform.op);
-
-          var ret = transform.resolver.call(_this);
           if (ret) {
             return ret.then(
               function(success) {
@@ -90,4 +84,4 @@ TransformQueue.prototype = {
   }
 };
 
-export default TransformQueue;
+export default ActionQueue;

@@ -1,5 +1,5 @@
 import Orbit from 'orbit/core';
-import TransformQueue from 'orbit/transform_queue';
+import ActionQueue from 'orbit/action_queue';
 import clone from 'orbit/lib/clone';
 import diffs from 'orbit/lib/diffs';
 import eq from 'orbit/lib/eq';
@@ -7,7 +7,7 @@ import eq from 'orbit/lib/eq';
 var TransformConnector = function(source, target, options) {
   this.source = source;
   this.target = target;
-  this.transformQueue = new TransformQueue(this, {autoProcess: false});
+  this.transformQueue = new ActionQueue(this._transform, this, {autoProcess: false});
 
   options = options || {};
 // TODO - allow filtering of transforms

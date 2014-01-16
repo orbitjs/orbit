@@ -1,6 +1,6 @@
 import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
-import TransformQueue from 'orbit/transform_queue';
+import ActionQueue from 'orbit/action_queue';
 
 var normalizeOperation = function(op) {
   if (typeof op.path === 'string') op.path = op.path.split('/');
@@ -91,7 +91,7 @@ var Transformable = {
   extend: function(object, actions) {
     if (object._transformable === undefined) {
       object._transformable = true;
-      object.transformQueue = new TransformQueue(object);
+      object.transformQueue = new ActionQueue(object._transform, object);
       object._completedTransforms = [];
 
       Evented.extend(object);
