@@ -7,7 +7,7 @@ import eq from 'orbit/lib/eq';
 var TransformConnector = function(source, target, options) {
   this.source = source;
   this.target = target;
-  this.transformQueue = new ActionQueue(this._transform, this, {autoProcess: false});
+  this.transformQueue = new ActionQueue(this.transform, this, {autoProcess: false});
 
   options = options || {};
 // TODO - allow filtering of transforms
@@ -44,7 +44,7 @@ TransformConnector.prototype = {
     return this._active;
   },
 
-  transformTarget: function(operation) {
+  transform: function(operation) {
     //TODO-log  console.log('****', ' transform from ', this.source.id, ' to ', this.target.id, operation);
 
     if (this.target.retrieve) {
@@ -86,14 +86,14 @@ TransformConnector.prototype = {
 
 //    console.log(this.target.id, 'processTransform', operation);
     if (this.blocking) {
-      return this._transform(operation);
+      return this._applyOrQueueTransform(operation);
 
     } else {
-      this._transform(operation);
+      this._applyOrQueueTransform(operation);
     }
   },
 
-  _transform: function(operation) {
+  _applyOrQueueTransform: function(operation) {
     // If the target's transformQueue is processing, then we should queue up the
     // transform on the connector instead of on the target.
     // This ensures that comparisons are made against the target's most up to
@@ -103,7 +103,7 @@ TransformConnector.prototype = {
       return this.transformQueue.push(operation);
     }
 
-    return this.transformTarget(operation);
+    return this.transform(operation);
   }
 };
 
