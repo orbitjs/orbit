@@ -67,7 +67,7 @@ TransformQueue.prototype = {
         } else {
           var transform = _this._queue.shift();
 
-//TODO-log          console.log('<<<< TransformQueue', _this.target.id, transform.operation);
+//TODO-log          console.log('<<<< TransformQueue', _this.target.id, transform.op);
 
           var ret = transform.resolver.call(_this);
           if (ret) {
