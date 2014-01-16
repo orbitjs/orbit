@@ -44,6 +44,37 @@ TransformConnector.prototype = {
     return this._active;
   },
 
+  transformTarget: function(operation) {
+    //TODO-log  console.log('****', ' transform from ', this.source.id, ' to ', this.target.id, operation);
+
+    if (this.target.retrieve) {
+      var currentValue = this.target.retrieve(operation.path);
+
+      if (currentValue) {
+        if (operation.op === 'add' || operation.op === 'replace') {
+          if (eq(currentValue, operation.value)) {
+            //TODO-log  console.log('==', ' transform from ', this.source.id, ' to ', this.target.id, operation);
+            return;
+          } else {
+            return this.resolveConflicts(operation.path, currentValue, operation.value);
+          }
+        }
+      } else if (operation.op === 'remove') {
+        return;
+      }
+    }
+
+    return this.target.transform(operation);
+  },
+
+  resolveConflicts: function(path, currentValue, updatedValue) {
+    var ops = diffs(currentValue, updatedValue, {basePath: path});
+
+    //TODO-log  console.log(this.target.id, 'resolveConflicts', path, currentValue, updatedValue, ops);
+
+    return this.target.transform(ops);
+  },
+
   /////////////////////////////////////////////////////////////////////////////
   // Internals
   /////////////////////////////////////////////////////////////////////////////
@@ -72,34 +103,7 @@ TransformConnector.prototype = {
       return this.transformQueue.push(operation);
     }
 
-//TODO-log    console.log('****', ' transform from ', this.source.id, ' to ', this.target.id, operation);
-
-    if (this.target.retrieve) {
-      var currentValue = this.target.retrieve(operation.path);
-
-      if (currentValue) {
-        if (operation.op === 'add' || operation.op === 'replace') {
-          if (eq(currentValue, operation.value)) {
-//TODO-log            console.log('==', ' transform from ', this.source.id, ' to ', this.target.id, operation);
-            return;
-          } else {
-            return this._resolveConflicts(operation.path, currentValue, operation.value);
-          }
-        }
-      } else if (operation.op === 'remove') {
-        return;
-      }
-    }
-
-    return this.target.transform(operation);
-  },
-
-  _resolveConflicts: function(path, currentValue, updatedValue) {
-    var ops = diffs(currentValue, updatedValue, {basePath: path});
-
-//TODO-log    console.log(this.target.id, 'resolveConflicts', path, currentValue, updatedValue, ops);
-
-    return this.target.transform(ops);
+    return this.transformTarget(operation);
   }
 };
 
