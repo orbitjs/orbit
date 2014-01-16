@@ -1,4 +1,5 @@
 import Orbit from 'orbit/core';
+import Evented from 'orbit/evented';
 
 var TransformQueue = function() {
   this.init.apply(this, arguments);
@@ -7,13 +8,17 @@ var TransformQueue = function() {
 TransformQueue.prototype = {
   constructor: TransformQueue,
 
-  init: function(target) {
+  init: function(target, options) {
     Orbit.assert('TransformQueue requires Orbit.Promise to be defined', Orbit.Promise);
+
+    Evented.extend(this);
+
+    options = options || {};
+    this.autoProcess = options.autoProcess !== undefined ? options.autoProcess : true;
 
     this.target = target;
     this._queue = [];
     this.processing = false;
-    this.autoProcess = true;
   },
 
   push: function(operation) {
@@ -56,6 +61,7 @@ TransformQueue.prototype = {
         if (_this._queue.length === 0) {
 
           _this.processing = false;
+          _this.emit('didComplete');
 //TODO-log          console.log('---- TransformQueue', _this.target.id, 'EMPTY');
 
         } else {
