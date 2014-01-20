@@ -3,6 +3,10 @@
 Orbit is a standalone library for coordinating access to data sources
 and keeping their contents synchronized.
 
+Orbit provides a foundation for building advanced features in client-side
+applications such as offline operation, maintenance and synchronization of local
+caches, undo / redo stacks and ad hoc editing contexts.
+
 Orbit relies heavily on promises, events and low-level transforms.
 
 ## Goals
