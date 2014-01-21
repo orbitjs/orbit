@@ -2,8 +2,12 @@ import eq from 'orbit/lib/eq';
 import clone from 'orbit/lib/clone';
 
 /**
- * Prototype extensions
- */
+  Orbit
+
+  @module orbit
+*/
+
+// Prototype extensions
 if (!Array.prototype.forEach) {
   Array.prototype.forEach = function (fn, scope) {
     var i, len;
@@ -16,9 +20,13 @@ if (!Array.prototype.forEach) {
 }
 
 /**
- * Orbit
- */
+  Namespace for all core Orbit methods and classes.
+
+  @class Orbit
+  @static
+*/
 var Orbit = {
+  // TODO - move to schema
   generateId: function() {
     if (this._newId) {
       this._newId++;

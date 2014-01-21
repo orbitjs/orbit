@@ -42,6 +42,8 @@ module.exports = function(grunt) {
                      ['build:debug', 'connect:server', 'watch:main']);
   grunt.registerTask('server:dist', "Build and preview production (minified) assets.",
                      ['build:dist', 'connect:dist:keepalive']);
+
+  grunt.registerTask('docs', ['yuidoc']);
 };
 
 // TODO: extract this out
