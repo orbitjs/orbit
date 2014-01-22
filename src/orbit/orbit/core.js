@@ -1,6 +1,3 @@
-import eq from 'orbit/lib/eq';
-import clone from 'orbit/lib/clone';
-
 /**
   Orbit
 
@@ -20,11 +17,11 @@ if (!Array.prototype.forEach) {
 }
 
 /**
-  Namespace for all core Orbit methods and classes.
-
-  @class Orbit
-  @static
-*/
+ * Namespace for core Orbit methods and classes.
+ *
+ * @class Orbit
+ * @static
+ */
 var Orbit = {
   // TODO - move to schema
   generateId: function() {
@@ -36,14 +33,66 @@ var Orbit = {
     return new Date().getTime() + '.' + this._newId;
   },
 
+  /**
+   * Converts an array of values to an object with those values as properties
+   * having a value of `true`.
+   *
+   * This is useful for converting an array of settings to a more efficiently
+   * accessible settings object.
+   *
+   * For example:
+   *
+   * ``` javascript
+   * Orbit.arrayToOptions(['a', 'b']); // returns {a: true, b: true}
+   * ```
+   *
+   * @method arrayToOptions
+   * @param arr
+   * @returns {Object}
+   */
+  arrayToOptions: function(arr) {
+    var options = {};
+    if (arr) {
+      for (var i in arr) {
+        if (arr.hasOwnProperty(i)) options[arr[i]] = true;
+      }
+    }
+    return options;
+  },
+
+  /**
+   * Throw an exception if `test` is not truthy.
+   *
+   * @mathod assert
+   * @param desc Description of the error thrown
+   * @param test
+   */
   assert: function(desc, test) {
     if (!test) throw new Error("Assertion failed: " + desc);
   },
 
+  /**
+   * Uppercase the first letter of a string. The remainder of the string won't
+   * be affected.
+   *
+   * @method capitalize
+   * @param {String} str
+   * @returns {String}
+   */
   capitalize: function(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
   },
 
+  /**
+   * Expose properties and methods from one object on another.
+   *
+   * Methods will be called on `source` and will maintain `source` as the
+   * context.
+   *
+   * @method expose
+   * @param destination
+   * @param source
+   */
   expose: function(destination, source) {
     var properties;
     if (arguments.length > 2) {
@@ -63,34 +112,44 @@ var Orbit = {
     });
   },
 
+  /**
+   * Extend an object with the properties of one or more other objects
+   *
+   * @method extend
+   * @param destination The object to merge into
+   * @param source One or more source objects
+   */
   extend: function(destination) {
     var sources = Array.prototype.slice.call(arguments, 1);
     sources.forEach(function(source) {
       for (var p in source) {
-        destination[p] = source[p];
+        if (source.hasOwnProperty(p)) {
+          destination[p] = source[p];
+        }
       }
     });
   },
 
-  K: function() { return this; },
-
-  arrayToOptions: function(arr) {
-    var options = {};
-    if (arr) {
-      for (var i in arr) {
-        if (arr.hasOwnProperty(i)) options[arr[i]] = true;
-      }
-    }
-    return options;
-  },
-
-  promisifyException: function(e) {
-    return new Orbit.Promise(function(resolve, reject) {
-      reject(e);
-    });
-  }
+  /**
+   * Empty method that returns the current context (i.e. `this`).
+   *
+   * Use as a placeholder for some static methods.
+   *
+   * @method K
+   * @returns {Object}
+   */
+  K: function() { return this; }
 };
 
+/**
+ * Exception thrown when a record can not be found.
+ *
+ * @class NotFoundException
+ * @namespace Orbit
+ * @param {String} type
+ * @param record
+ * @constructor
+ */
 Orbit.NotFoundException = function(type, record) {
   this.type = type;
   this.record = record;
@@ -99,6 +158,15 @@ Orbit.NotFoundException.prototype = {
   constructor: 'NotFoundException'
 };
 
+/**
+ * Exception thrown when a record already exists.
+ *
+ * @class AlreadyExistsException
+ * @namespace Orbit
+ * @param {String} type
+ * @param record
+ * @constructor
+ */
 Orbit.AlreadyExistsException = function(type, record) {
   this.type = type;
   this.record = record;
@@ -106,6 +174,5 @@ Orbit.AlreadyExistsException = function(type, record) {
 Orbit.AlreadyExistsException.prototype = {
   constructor: 'AlreadyExistsException'
 };
-
 
 export default Orbit;
