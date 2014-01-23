@@ -1,5 +1,5 @@
 {
-  "name": "orbit",
+  "name": "orbit.js",
   "namespace": "Orbit",
   "description": "A standalone library for data access and synchronization",
   "version": "0.0.1",
