@@ -15,10 +15,10 @@ module.exports = {
   },
   tests: {
     src: [
-      'tests/**/*.js',
-      '!tests/unit/lib/eq_test.js'
+      'test/tests/**/*.js',
+      '!test/tests/unit/lib/eq_test.js'
     ],
-    options: { jshintrc: 'tests/.jshintrc' }
+    options: { jshintrc: 'test/tests/.jshintrc' }
   },
   options: {
     jshintrc: '.jshintrc',

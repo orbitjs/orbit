@@ -5,7 +5,7 @@ module.exports = function(config) {
   config.set({
 
     // base path, that will be used to resolve files and exclude
-    basePath: 'tmp/public',
+    basePath: 'tmp/public/test',
 
     // list of files / patterns to load in the browser
     files: [
@@ -13,7 +13,7 @@ module.exports = function(config) {
       'vendor/sinon.js',
       'vendor/jquery.js',
       'vendor/rsvp.js',
-      'assets/orbit.js',
+      'lib/orbit.js',
       'tests/test_helper.js',
       'tests/tests.js',
       'tests/test_loader.js'
@@ -29,7 +29,7 @@ module.exports = function(config) {
     ],
 
     preprocessors: {
-      'assets/orbit.js': 'coverage'
+      'lib/orbit.js': 'coverage'
     },
 
     // list of files to exclude
