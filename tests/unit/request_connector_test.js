@@ -1,7 +1,7 @@
 import Orbit from 'orbit/core';
 import Requestable from 'orbit/requestable';
 import RequestConnector from 'orbit/connectors/request_connector';
-import RSVP from 'rsvp';
+import { Promise } from 'rsvp';
 
 var primarySource,
     secondarySource,
@@ -11,13 +11,13 @@ var testRescueMode = function(actionName) {
   var ActionName = actionName.charAt(0).toUpperCase() + actionName.slice(1);
 
   var successfulOperation = function() {
-    return new RSVP.Promise(function(resolve, reject) {
+    return new Promise(function(resolve, reject) {
       resolve(':)');
     });
   };
 
   var failedOperation = function() {
-    return new RSVP.Promise(function(resolve, reject) {
+    return new Promise(function(resolve, reject) {
       reject(':(');
     });
   };
@@ -256,7 +256,7 @@ var testRescueMode = function(actionName) {
 
 module("Unit - RequestConnector", {
   setup: function() {
-    Orbit.Promise = RSVP.Promise;
+    Orbit.Promise = Promise;
 
     primarySource = {};
     Requestable.extend(primarySource);

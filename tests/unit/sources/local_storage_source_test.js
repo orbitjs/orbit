@@ -1,6 +1,6 @@
 import Orbit from 'orbit/core';
 import LocalStorageSource from 'orbit/sources/local_storage_source';
-import RSVP from 'rsvp';
+import { all, Promise } from 'rsvp';
 
 var source;
 
@@ -8,7 +8,7 @@ var source;
 
 module("Unit - LocalStorageSource", {
   setup: function() {
-    Orbit.Promise = RSVP.Promise;
+    Orbit.Promise = Promise;
 
     var schema = {
       idField: '__id',
@@ -129,7 +129,7 @@ test("#find - can find all records", function() {
   equal(source.length('planet'), 0, 'source should be empty');
 
   stop();
-  RSVP.all([
+  all([
     source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
     source.add('planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}),
     source.add('planet', {name: 'Mercury', classification: 'terrestrial', atmosphere: false})

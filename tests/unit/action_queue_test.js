@@ -1,10 +1,10 @@
 import Orbit from 'orbit/core';
 import ActionQueue from 'orbit/action_queue';
 import Evented from 'orbit/evented';
-import RSVP from 'rsvp';
+import { Promise } from 'rsvp';
 
 var failedOperation = function() {
-  return new RSVP.Promise(function(resolve, reject) {
+  return new Promise(function(resolve, reject) {
     reject(':(');
   });
 };
@@ -13,7 +13,7 @@ var failedOperation = function() {
 
 module("Unit - ActionQueue", {
   setup: function() {
-    Orbit.Promise = RSVP.Promise;
+    Orbit.Promise = Promise;
   },
 
   teardown: function() {
@@ -104,7 +104,7 @@ test("will auto-process pushed async functions sequentially by default", functio
   var _transform = function(op) {
     var promise;
     if (op === op1) {
-      promise = new RSVP.Promise(function(resolve) {
+      promise = new Promise(function(resolve) {
         trigger.on('start1', function() {
           ok(true, '_transform with op1 resolved');
           resolve();
@@ -112,7 +112,7 @@ test("will auto-process pushed async functions sequentially by default", functio
       });
 
     } else if (op === op2) {
-      promise = new RSVP.Promise(function(resolve) {
+      promise = new Promise(function(resolve) {
         ok(true, '_transform with op2 resolved');
         resolve();
       });

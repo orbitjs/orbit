@@ -1,24 +1,24 @@
 import Orbit from 'orbit/core';
 import Evented from 'orbit/evented';
-import RSVP from 'rsvp';
+import { Promise } from 'rsvp';
 
 var evented;
 
 var successfulOperation = function() {
-  return new RSVP.Promise(function(resolve, reject) {
+  return new Promise(function(resolve, reject) {
     resolve(':)');
   });
 };
 
 var failedOperation = function() {
-  return new RSVP.Promise(function(resolve, reject) {
+  return new Promise(function(resolve, reject) {
     reject(':(');
   });
 };
 
 module("Unit - Evented", {
   setup: function() {
-    Orbit.Promise = RSVP.Promise;
+    Orbit.Promise = Promise;
 
     evented = {};
     Evented.extend(evented);

@@ -1,6 +1,6 @@
 import Orbit from 'orbit/core';
 import JSONAPISource from 'orbit/sources/jsonapi_source';
-import RSVP from 'rsvp';
+import { Promise } from 'rsvp';
 
 var server,
     source;
@@ -9,7 +9,7 @@ var server,
 
 module("Unit - JSONAPISource", {
   setup: function() {
-    Orbit.Promise = RSVP.Promise;
+    Orbit.Promise = Promise;
     Orbit.ajax = window.jQuery.ajax;
 
     // fake xhr

@@ -1,6 +1,6 @@
 import Orbit from 'orbit/core';
 import MemorySource from 'orbit/sources/memory_source';
-import RSVP from 'rsvp';
+import { all, Promise } from 'rsvp';
 
 var source;
 
@@ -8,7 +8,7 @@ var source;
 
 module("Unit - MemorySource", {
   setup: function() {
-    Orbit.Promise = RSVP.Promise;
+    Orbit.Promise = Promise;
 
     var schema = {
       idField: '__id',
@@ -172,7 +172,7 @@ test("#find - can find all records", function() {
   equal(source.length('planet'), 0, 'source should be empty');
 
   stop();
-  RSVP.all([
+  all([
     source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
     source.add('planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}),
     source.add('planet', {name: 'Mercury', classification: 'terrestrial', atmosphere: false})
@@ -192,7 +192,7 @@ test("#find - can find records by one or more filters", function() {
   equal(source.length('planet'), 0, 'source should be empty');
 
   stop();
-  RSVP.all([
+  all([
     source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
     source.add('planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}),
     source.add('planet', {name: 'Venus', classification: 'terrestrial', atmosphere: true}),
@@ -366,4 +366,3 @@ test("#link and #unlink- can link and unlink records in a many-to-one relationsh
     equal(Object.keys(jupiter.links.moons).length, 0, 'Jupiter has no moons after unlinking');
   });
 });
-

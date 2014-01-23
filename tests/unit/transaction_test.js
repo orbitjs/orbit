@@ -1,7 +1,7 @@
 import Orbit from 'orbit/core';
 import MemorySource from 'orbit/sources/memory_source';
 import Transaction from 'orbit/transaction';
-import RSVP from 'rsvp';
+import { Promise, all } from 'rsvp';
 
 var source;
 
@@ -9,7 +9,7 @@ var source;
 
 module("Unit - Transaction", {
   setup: function() {
-    Orbit.Promise = RSVP.Promise;
+    Orbit.Promise = Promise;
 
     var schema = {
       idField: '__id',
@@ -36,7 +36,7 @@ test("can track operations when records are added to an empty source", function(
   equal(source.length('planet'), 0, 'source should be empty');
 
   stop();
-  RSVP.all([
+  all([
     source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
     source.add('planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}),
     source.add('planet', {name: 'Mercury', classification: 'terrestrial', atmosphere: false})
@@ -57,7 +57,7 @@ test("can track and invert operations when records are added to an empty source"
   equal(source.length('planet'), 0, 'source should be empty');
 
   stop();
-  RSVP.all([
+  all([
     source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
     source.add('planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}),
     source.add('planet', {name: 'Mercury', classification: 'terrestrial', atmosphere: false})
@@ -79,7 +79,7 @@ test("can track and invert operations performed after records are already presen
   equal(source.length('planet'), 0, 'source should be empty');
 
   stop();
-  RSVP.all([
+  all([
     source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
     source.add('planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}),
     source.add('planet', {name: 'Mercury', classification: 'terrestrial', atmosphere: false})
@@ -88,7 +88,7 @@ test("can track and invert operations performed after records are already presen
 
     var transaction = new Transaction(source);
 
-    RSVP.all([
+    all([
       source.add('planet', {name: 'Saturn', classification: 'gas giant', atmosphere: true}),
       source.add('planet', {name: 'Mars', classification: 'terrestrial', atmosphere: false})
     ]).then(function() {

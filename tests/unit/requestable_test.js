@@ -1,6 +1,6 @@
 import Orbit from 'orbit/core';
 import Requestable from 'orbit/requestable';
-import RSVP from 'rsvp';
+import { Promise } from 'rsvp';
 
 var source;
 
@@ -8,13 +8,13 @@ var testRequestableAction = function(actionName) {
   var ActionName = actionName.charAt(0).toUpperCase() + actionName.slice(1);
 
   var successfulOperation = function() {
-    return new RSVP.Promise(function(resolve, reject) {
+    return new Promise(function(resolve, reject) {
       resolve(':)');
     });
   };
 
   var failedOperation = function() {
-    return new RSVP.Promise(function(resolve, reject) {
+    return new Promise(function(resolve, reject) {
       reject(':(');
     });
   };
@@ -269,7 +269,7 @@ var verifyActionExists = function(source, name) {
 
 module("Unit - Requestable", {
   setup: function() {
-    Orbit.Promise = RSVP.Promise;
+    Orbit.Promise = Promise;
     source = {};
     Requestable.extend(source);
   },

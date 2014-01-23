@@ -1,17 +1,17 @@
 import Orbit from 'orbit/core';
 import Transformable from 'orbit/transformable';
-import RSVP from 'rsvp';
+import { Promise } from 'rsvp';
 
 var source;
 
 var successfulOperation = function() {
-  return new RSVP.Promise(function(resolve, reject) {
+  return new Promise(function(resolve, reject) {
     resolve(':)');
   });
 };
 
 var failedOperation = function() {
-  return new RSVP.Promise(function(resolve, reject) {
+  return new Promise(function(resolve, reject) {
     reject(':(');
   });
 };
@@ -20,7 +20,7 @@ var failedOperation = function() {
 
 module("Unit - Transformable", {
   setup: function() {
-    Orbit.Promise = RSVP.Promise;
+    Orbit.Promise = Promise;
     source = {};
   },
 
@@ -57,7 +57,7 @@ test("it should resolve when _transform returns a promise", function() {
   expect(2);
 
   source._transform = function() {
-    return new RSVP.Promise(function(resolve, reject) {
+    return new Promise(function(resolve, reject) {
       ok(true, '_transform promise resolved');
       resolve();
     });
