@@ -5,7 +5,7 @@ module.exports = {
     version: '<%= pkg.version %>',
     url: '<%= pkg.homepage %>',
     options: {
-      paths: 'src',
+      paths: 'lib',
       outdir: 'docs'
     }
   }

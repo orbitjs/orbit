@@ -20,9 +20,9 @@ module.exports = {
     },
     files: [{
       expand: true,
-      cwd: 'tmp/javascript/src/',
+      cwd: 'tmp/javascript/lib/',
       src: '**/*.js',
-      dest: 'tmp/transpiled/src/'
+      dest: 'tmp/transpiled/lib/'
     }]
   }
 };

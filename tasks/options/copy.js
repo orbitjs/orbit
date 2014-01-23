@@ -6,9 +6,9 @@ module.exports = {
   "prepare": {
     files: [{
       expand: true,
-      cwd: 'src/',
+      cwd: 'lib/',
       src: '**/*.js',
-      dest: 'tmp/javascript/src'
+      dest: 'tmp/javascript/lib'
     },
     {
       expand: true,

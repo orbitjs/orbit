@@ -1,6 +1,6 @@
 module.exports = {
   orbit: {
-    src: ['tmp/transpiled/src/**/*.js'],
+    src: ['tmp/transpiled/lib/**/*.js'],
     dest: 'tmp/public/assets/orbit.js'
   },
 
