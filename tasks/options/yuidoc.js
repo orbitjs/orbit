@@ -5,7 +5,7 @@ module.exports = {
     version: '<%= pkg.version %>',
     url: '<%= pkg.homepage %>',
     options: {
-      paths: 'src/orbit',
+      paths: 'src',
       outdir: 'docs'
     }
   }

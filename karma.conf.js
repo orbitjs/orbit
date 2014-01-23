@@ -11,7 +11,8 @@ module.exports = function(config) {
     files: [
       'vendor/loader.js',
       'vendor/sinon.js',
-      'assets/vendor.js',
+      'vendor/jquery.js',
+      'vendor/rsvp.js',
       'assets/orbit.js',
       'tests/test_helper.js',
       'tests/tests.js',

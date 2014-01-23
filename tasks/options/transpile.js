@@ -20,9 +20,9 @@ module.exports = {
     },
     files: [{
       expand: true,
-      cwd: 'tmp/javascript/src/orbit/',
+      cwd: 'tmp/javascript/src/',
       src: '**/*.js',
-      dest: 'tmp/transpiled/src/orbit/'
+      dest: 'tmp/transpiled/src/'
     }]
   }
 };

@@ -1,8 +1,8 @@
 module.exports = {
   lib: {
     src: [
-      'src/orbit/**/*.js',
-      '!src/orbit/orbit/lib/eq.js',
+      'src/**/*.js',
+      '!src/orbit/lib/eq.js',
     ],
     options: { jshintrc: '.jshintrc' }
   },
