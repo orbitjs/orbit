@@ -13,7 +13,7 @@ module.exports = {
     {
       expand: true,
       cwd: 'test/tests/',
-      src: ['**/*.js', '!test_helper.js', '!test_loader.js', '!vendor/**/*.js'],
+      src: ['**/*.js', '!test_helper.js', '!test_loader.js'],
       dest: 'tmp/javascript/tests/'
     }]
   },
@@ -34,8 +34,8 @@ module.exports = {
   "dist": {
     files: [{
       expand: true,
-      cwd: 'tmp/public',
-      src: ['**', '!coverage'],
+      cwd: 'tmp/public/test/lib',
+      src: ['**/*.js'],
       dest: 'dist/'
     }]
   },
