@@ -1,12 +1,12 @@
-import Orbit from 'orbit/core';
-import LocalStorageSource from 'orbit/sources/local_storage_source';
+import Orbit from 'orbit/main';
+import LocalStorageSource from 'orbit_core_sources/local_storage_source';
 import { all, Promise } from 'rsvp';
 
 var source;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Unit - LocalStorageSource", {
+module("OrbitCoreSources - LocalStorageSource", {
   setup: function() {
     Orbit.Promise = Promise;
 

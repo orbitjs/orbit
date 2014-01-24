@@ -13,7 +13,7 @@ module.exports = function(config) {
       'vendor/sinon.js',
       'vendor/jquery.js',
       'vendor/rsvp.js',
-      'lib/orbit.js',
+      'lib/*.js',
       'tests/test_helper.js',
       'tests/tests.js',
       'tests/test_loader.js'
@@ -29,7 +29,7 @@ module.exports = function(config) {
     ],
 
     preprocessors: {
-      'lib/orbit.js': 'coverage'
+      'lib/*.js': 'coverage'
     },
 
     // list of files to exclude

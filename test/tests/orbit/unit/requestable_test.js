@@ -1,4 +1,4 @@
-import Orbit from 'orbit/core';
+import Orbit from 'orbit/main';
 import Requestable from 'orbit/requestable';
 import { Promise } from 'rsvp';
 
@@ -267,7 +267,7 @@ var verifyActionExists = function(source, name) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Unit - Requestable", {
+module("Orbit - Requestable", {
   setup: function() {
     Orbit.Promise = Promise;
     source = {};

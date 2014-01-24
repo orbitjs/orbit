@@ -1,5 +1,5 @@
-import Orbit from 'orbit/core';
-import MemorySource from 'orbit/sources/memory_source';
+import Orbit from 'orbit/main';
+import MemorySource from 'orbit_core_sources/memory_source';
 import { Promise } from 'rsvp';
 
 var primarySource,

@@ -1,5 +1,5 @@
-import Orbit from 'orbit/core';
-import JSONAPISource from 'orbit/sources/jsonapi_source';
+import Orbit from 'orbit/main';
+import JSONAPISource from 'orbit_core_sources/jsonapi_source';
 import { Promise } from 'rsvp';
 
 var server,
@@ -7,7 +7,7 @@ var server,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Unit - JSONAPISource", {
+module("OrbitCoreSources - JSONAPISource", {
   setup: function() {
     Orbit.Promise = Promise;
     Orbit.ajax = window.jQuery.ajax;

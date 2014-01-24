@@ -1,4 +1,4 @@
-import Orbit from 'orbit/core';
+import Orbit from 'orbit/main';
 import Evented from 'orbit/evented';
 import { Promise } from 'rsvp';
 
@@ -16,7 +16,7 @@ var failedOperation = function() {
   });
 };
 
-module("Unit - Evented", {
+module("Orbit - Evented", {
   setup: function() {
     Orbit.Promise = Promise;
 

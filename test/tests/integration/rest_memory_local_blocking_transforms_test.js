@@ -1,7 +1,7 @@
-import Orbit from 'orbit/core';
-import MemorySource from 'orbit/sources/memory_source';
-import JSONAPISource from 'orbit/sources/jsonapi_source';
-import LocalStorageSource from 'orbit/sources/local_storage_source';
+import Orbit from 'orbit/main';
+import MemorySource from 'orbit_core_sources/memory_source';
+import JSONAPISource from 'orbit_core_sources/jsonapi_source';
+import LocalStorageSource from 'orbit_core_sources/local_storage_source';
 import TransformConnector from 'orbit/connectors/transform_connector';
 import { Promise } from 'rsvp';
 

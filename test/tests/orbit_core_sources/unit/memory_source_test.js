@@ -1,12 +1,12 @@
-import Orbit from 'orbit/core';
-import MemorySource from 'orbit/sources/memory_source';
+import Orbit from 'orbit/main';
+import MemorySource from 'orbit_core_sources/memory_source';
 import { all, Promise } from 'rsvp';
 
 var source;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Unit - MemorySource", {
+module("OrbitCoreSources - MemorySource", {
   setup: function() {
     Orbit.Promise = Promise;
 

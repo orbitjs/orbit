@@ -1,4 +1,4 @@
-import Orbit from 'orbit/core';
+import Orbit from 'orbit/main';
 import Document from 'orbit/document';
 
 var doc;
@@ -11,7 +11,7 @@ var applyTransforms = function(doc, operations) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Unit - Document", {
+module("Orbit - Document", {
   setup: function() {
     doc = new Document();
   },

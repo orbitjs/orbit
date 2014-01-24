@@ -1,4 +1,4 @@
-import Orbit from 'orbit/core';
+import Orbit from 'orbit/main';
 import Requestable from 'orbit/requestable';
 import RequestConnector from 'orbit/connectors/request_connector';
 import { Promise } from 'rsvp';
@@ -254,7 +254,7 @@ var testRescueMode = function(actionName) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Unit - RequestConnector", {
+module("Orbit - RequestConnector", {
   setup: function() {
     Orbit.Promise = Promise;
 

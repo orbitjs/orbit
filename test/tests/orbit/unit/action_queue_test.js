@@ -1,4 +1,4 @@
-import Orbit from 'orbit/core';
+import Orbit from 'orbit/main';
 import ActionQueue from 'orbit/action_queue';
 import Evented from 'orbit/evented';
 import { Promise } from 'rsvp';
@@ -11,7 +11,7 @@ var failedOperation = function() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Unit - ActionQueue", {
+module("Orbit - ActionQueue", {
   setup: function() {
     Orbit.Promise = Promise;
   },

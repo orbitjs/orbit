@@ -1,5 +1,5 @@
-import Orbit from 'orbit/core';
-import MemorySource from 'orbit/sources/memory_source';
+import Orbit from 'orbit/main';
+import MemorySource from 'orbit_core_sources/memory_source';
 import Transaction from 'orbit/transaction';
 import { Promise, all } from 'rsvp';
 
@@ -7,7 +7,7 @@ var source;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Unit - Transaction", {
+module("Integration - Transaction", {
   setup: function() {
     Orbit.Promise = Promise;
 

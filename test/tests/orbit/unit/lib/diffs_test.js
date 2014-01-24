@@ -1,6 +1,6 @@
 import diffs from 'orbit/lib/diffs';
 
-module("Unit - diffs", {
+module("Orbit - diffs", {
 });
 
 test("#diffs return `undefined` for matching objects", function() {

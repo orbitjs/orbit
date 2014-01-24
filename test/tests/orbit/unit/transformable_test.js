@@ -1,4 +1,4 @@
-import Orbit from 'orbit/core';
+import Orbit from 'orbit/main';
 import Transformable from 'orbit/transformable';
 import { Promise } from 'rsvp';
 
@@ -18,7 +18,7 @@ var failedOperation = function() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Unit - Transformable", {
+module("Orbit - Transformable", {
   setup: function() {
     Orbit.Promise = Promise;
     source = {};

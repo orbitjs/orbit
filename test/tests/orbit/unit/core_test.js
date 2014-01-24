@@ -1,6 +1,6 @@
-import Orbit from 'orbit/core';
+import Orbit from 'orbit/main';
 
-module("Unit - Core", {
+module("Orbit - Core", {
   setup: function() {
   }
 });

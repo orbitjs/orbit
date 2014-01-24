@@ -2,7 +2,7 @@ import Notifier from 'orbit/notifier';
 
 var notifier;
 
-module("Unit - Notifier", {
+module("Orbit - Notifier", {
   setup: function() {
     notifier = new Notifier();
   },

@@ -16,7 +16,7 @@ module.exports = {
   tests: {
     src: [
       'test/tests/**/*.js',
-      '!test/tests/unit/lib/eq_test.js'
+      '!test/tests/orbit/unit/lib/eq_test.js'
     ],
     options: { jshintrc: 'test/tests/.jshintrc' }
   },
