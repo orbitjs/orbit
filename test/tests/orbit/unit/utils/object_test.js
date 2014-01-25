@@ -17,3 +17,5 @@ test("`clone` creates a deep clone of an object's own properties", function() {
   deepEqual(obj, copy, 'clone is deeply equal to original');
   notStrictEqual(obj, copy, 'clone is not strictly equal to original');
 });
+
+// TODO - expose, extend
