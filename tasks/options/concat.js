@@ -7,6 +7,7 @@ module.exports = {
   orbit_core_sources: {
     src: ['tmp/transpiled/lib/orbit_core_sources.js',
           'tmp/transpiled/lib/orbit_core_sources/main.js',
+          'tmp/transpiled/lib/orbit_core_sources/lib/**/*.js',
           'tmp/transpiled/lib/orbit_core_sources/source.js',
           'tmp/transpiled/lib/orbit_core_sources/memory_source.js'],
     dest: 'tmp/public/test/lib/orbit_core_sources.js'
