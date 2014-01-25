@@ -17,9 +17,3 @@ test("#capitalize capitalizes the first letter of a word", function() {
   equal(Orbit.capitalize('cauliflower'), 'Cauliflower', 'capitalize capitalizes the first letter of a word');
   equal(Orbit.capitalize('aSAP'), 'ASAP', 'capitalize doesn\'t touch the rest of the word');
 });
-
-test("#arrayToOptions converts an array to an options hash", function() {
-  deepEqual(Orbit.arrayToOptions(), {}, 'no args return empty hash');
-  deepEqual(Orbit.arrayToOptions([]), {}, 'empty array returns empty hash');
-  deepEqual(Orbit.arrayToOptions(['a', 'b']), {a: true, b: true}, 'items in array are converted to items in hash');
-});
