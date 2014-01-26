@@ -2,7 +2,7 @@ module.exports = {
   lib: {
     src: [
       'lib/**/*.js',
-      '!lib/orbit/utils/eq.js',
+      '!lib/orbit/lib/eq.js',
     ],
     options: { jshintrc: '.jshintrc' }
   },
@@ -16,7 +16,7 @@ module.exports = {
   tests: {
     src: [
       'test/tests/**/*.js',
-      '!test/tests/orbit/unit/utils/eq_test.js'
+      '!test/tests/orbit/unit/lib/eq_test.js'
     ],
     options: { jshintrc: 'test/tests/.jshintrc' }
   },

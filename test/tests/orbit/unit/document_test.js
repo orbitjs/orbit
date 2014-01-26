@@ -1,4 +1,4 @@
-import { Document } from 'orbit/document';
+import Document from 'orbit/document';
 
 var doc;
 

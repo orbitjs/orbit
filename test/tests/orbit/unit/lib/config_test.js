@@ -1,6 +1,6 @@
-import { arrayToOptions } from 'orbit/utils/config';
+import { arrayToOptions } from 'orbit/lib/config';
 
-module("Orbit - Utils - arrayToOptions", {
+module("Orbit - Lib - Config", {
 });
 
 test("`arrayToOptions` converts an array to an options hash", function() {

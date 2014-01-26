@@ -1,6 +1,6 @@
-import { clone } from 'orbit/utils/object';
+import { clone, expose, extend } from 'orbit/lib/objects';
 
-module("Orbit - Utils - Object", {
+module("Orbit - Lib - Object", {
 });
 
 test("`clone` creates a deep clone of an object's own properties", function() {

@@ -1,6 +1,6 @@
-import eq from 'orbit/utils/eq';
+import { eq } from 'orbit/lib/eq';
 
-module("Orbit - Utils - eq", {
+module("Orbit - Lib - eq", {
 });
 
 /**
