@@ -2,7 +2,7 @@ import Orbit from 'orbit/main';
 import MemorySource from 'orbit_common/memory_source';
 import JSONAPISource from 'orbit_common/jsonapi_source';
 import LocalStorageSource from 'orbit_common/local_storage_source';
-import TransformConnector from 'orbit/connectors/transform_connector';
+import TransformConnector from 'orbit/transform_connector';
 import { Promise } from 'rsvp';
 
 var server,

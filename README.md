@@ -352,6 +352,25 @@ transformation and resolves any conflicts with the connector's
 target, although both `transform` and `resolveConflicts` can be overridden to
 apply an alternative differencing algorithm.
 
+## RequestConnector
+
+A `RequestConnector` observes requests made to a primary source and allows a
+secondary source to either "assist" or "rescue" those requests.
+
+The `mode` of a `RequestConnector` can be either `"rescue"` or `"assist"`
+(`"rescue"` is the default).
+
+In `"rescue"` mode, the secondary source will only be called upon to fulfill
+a request if the primary source fails to do so.
+
+In `"assist"` mode, the secondary source will be called upon to fulfill a
+request before the primary source. Only if the secondary source fails to
+fulfill the request will the primary source be called upon to do so.
+
+Unlike a `TransformConnector`, a `RequestConnector` always operates in
+"blocking" mode. In other words, promises are always settled (either succeeding
+or failing) before the connector proceeds.
+
 ## Document
 
 `Document` is a complete implementation of the JSON PATCH spec detailed in
