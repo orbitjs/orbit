@@ -1,5 +1,5 @@
 import Orbit from 'orbit/main';
-import LocalStorageSource from 'orbit_core_sources/local_storage_source';
+import LocalStorageSource from 'orbit_common/local_storage_source';
 import { all, Promise } from 'rsvp';
 
 var source;

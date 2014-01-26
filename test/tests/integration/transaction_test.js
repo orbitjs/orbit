@@ -1,5 +1,5 @@
 import Orbit from 'orbit/main';
-import MemorySource from 'orbit_core_sources/memory_source';
+import MemorySource from 'orbit_common/memory_source';
 import Transaction from 'orbit/transaction';
 import { Promise, all } from 'rsvp';
 

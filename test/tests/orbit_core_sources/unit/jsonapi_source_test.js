@@ -1,5 +1,5 @@
 import Orbit from 'orbit/main';
-import JSONAPISource from 'orbit_core_sources/jsonapi_source';
+import JSONAPISource from 'orbit_common/jsonapi_source';
 import { Promise } from 'rsvp';
 
 var server,
