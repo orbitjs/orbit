@@ -35,10 +35,6 @@ Orbit relies heavily on promises, events and low-level transforms.
 Orbit requires that every data source support one or more common interfaces.
 These interfaces define how data can be both *accessed* and *transformed*.
 
-Orbit includes several data sources: an in-memory cache, a local storage source,
-and a source for accessing RESTful APIs via AJAX. You can define your own data
-sources that will work with Orbit as long as they support Orbit's interfaces.
-
 The methods for accessing and transforming data return promises. These promises
 might be fulfilled synchronously or asynchronously. Once fulfilled, events
 are triggered to indicate success or failure. Any event listeners can engage
@@ -51,6 +47,18 @@ calling corresponding actions on a target. These connectors can be blocking
 non-blocking (i.e. associated actions are resolved in the background without
 blocking the flow of the application). Connectors can be used to enable
 uni or bi-directional flow of data between sources.
+
+## Orbit Common Library
+
+The Orbit Common library (namespaced `OC` by default) contains a set of
+compatible data sources, currently including: an in-memory cache, a local
+storage source, and a source for accessing [JSON API](http://jsonapi.org/)
+compliant APIs with AJAX.
+
+You can define your own data sources that will work with Orbit as long as they
+support Orbit's interfaces. You can either make sources compliant with the
+Orbit Common library or use Orbit's base interfaces to create an independent
+collection of compatible sources.
 
 ## Dependencies
 
@@ -71,9 +79,9 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
       }
     }
   };
-  var memorySource = new Orbit.MemorySource(schema);
-  var restSource = new Orbit.JSONAPISource(schema);
-  var localSource = new Orbit.LocalStorageSource(schema);
+  var memorySource = new OC.MemorySource(schema);
+  var restSource = new OC.JSONAPISource(schema);
+  var localSource = new OC.LocalStorageSource(schema);
 
   // Connect MemorySource -> LocalStorageSource (using the default blocking strategy)
   var memToLocalConnector = new Orbit.TransformConnector(memorySource, localSource);
@@ -236,9 +244,9 @@ Let's take a look at how this could all work:
 ```javascript
 
 // Create some new sources - assume their prototypes are already `Requestable`
-var memorySource = new Orbit.MemorySource();
-var restSource = new Orbit.JSONAPISource();
-var localSource = new Orbit.LocalStorageSource();
+var memorySource = new OC.MemorySource();
+var restSource = new OC.JSONAPISource();
+var localSource = new OC.LocalStorageSource();
 
 ////// Connect the sources via events
 
