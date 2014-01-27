@@ -1,6 +1,7 @@
 import Orbit from 'orbit/main';
 import ActionQueue from 'orbit/action_queue';
 import Evented from 'orbit/evented';
+import { noop } from 'orbit/lib/stubs';
 import { Promise } from 'rsvp';
 
 var failedOperation = function() {
@@ -22,12 +23,12 @@ module("Orbit - ActionQueue", {
 });
 
 test("it exists", function() {
-  var queue = new ActionQueue(Orbit.K);
+  var queue = new ActionQueue(noop);
   ok(queue);
 });
 
 test("it is set to `autoProcess` by default", function() {
-  var queue = new ActionQueue(Orbit.K);
+  var queue = new ActionQueue(noop);
   equal(queue.autoProcess, true, 'autoProcess === true');
 });
 
