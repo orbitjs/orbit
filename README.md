@@ -72,13 +72,17 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
 ```javascript
 
   // Create data sources with a common schema
-  var schema = {
+  var schema = new OC.Schema({
     idField: '__id',
     models: {
       planet: {
+        attributes: {
+          name: {type: 'string'},
+          classification: {type: 'string'}
+        }
       }
     }
-  };
+  });
   var memorySource = new OC.MemorySource(schema);
   var restSource = new OC.JSONAPISource(schema);
   var localSource = new OC.LocalStorageSource(schema);
