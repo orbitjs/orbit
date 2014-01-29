@@ -418,7 +418,7 @@ dailyQuestion.addListener(function(question) {
   // in the poll
 });
 
-notifier.poll('favorite food?'); // returns ['beer', 'wasabi almonds']
+dailyQuestion.poll('favorite food?'); // returns ['beer', 'wasabi almonds']
 ```
 
 Calls to `emit` and `poll` will send along all of their arguments.
