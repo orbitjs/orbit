@@ -7,7 +7,7 @@ var server,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("OrbitCoreSources - JSONAPISource", {
+module("OC - JSONAPISource", {
   setup: function() {
     Orbit.Promise = Promise;
     Orbit.ajax = window.jQuery.ajax;

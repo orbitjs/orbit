@@ -6,7 +6,7 @@ var source;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("OrbitCoreSources - LocalStorageSource", {
+module("OC - LocalStorageSource", {
   setup: function() {
     Orbit.Promise = Promise;
 

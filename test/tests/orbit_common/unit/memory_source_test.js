@@ -6,7 +6,7 @@ var source;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("OrbitCoreSources - MemorySource", {
+module("OC - MemorySource", {
   setup: function() {
     Orbit.Promise = Promise;
 
