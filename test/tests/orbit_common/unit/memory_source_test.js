@@ -1,4 +1,5 @@
 import Orbit from 'orbit/main';
+import Schema from 'orbit_common/schema';
 import MemorySource from 'orbit_common/memory_source';
 import { all, Promise } from 'rsvp';
 
@@ -10,8 +11,7 @@ module("OC - MemorySource", {
   setup: function() {
     Orbit.Promise = Promise;
 
-    var schema = {
-      idField: '__id',
+    var schema = new Schema({
       models: {
         planet: {
           attributes: {
@@ -31,7 +31,7 @@ module("OC - MemorySource", {
           }
         }
       }
-    };
+    });
 
     source = new MemorySource(schema);
   },

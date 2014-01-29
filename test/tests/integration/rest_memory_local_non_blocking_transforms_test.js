@@ -1,4 +1,5 @@
 import Orbit from 'orbit/main';
+import Schema from 'orbit_common/schema';
 import MemorySource from 'orbit_common/memory_source';
 import JSONAPISource from 'orbit_common/jsonapi_source';
 import LocalStorageSource from 'orbit_common/local_storage_source';
@@ -21,14 +22,14 @@ module("Integration - Rest / Memory / Local Transforms (Non-Blocking)", {
     // Fake xhr
     server = window.sinon.fakeServer.create();
 
-    // Create sources
-    var schema = {
-      idField: '__id',
+    // Create schema
+    var schema = new Schema({
       models: {
-        planet: {
-        }
+        planet: {}
       }
-    };
+    });
+
+    // Create sources
     memorySource = new MemorySource(schema);
     restSource = new JSONAPISource(schema);
     localSource = new LocalStorageSource(schema, {autoload: false});

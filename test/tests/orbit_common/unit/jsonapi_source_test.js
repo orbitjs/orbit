@@ -1,4 +1,5 @@
 import Orbit from 'orbit/main';
+import Schema from 'orbit_common/schema';
 import JSONAPISource from 'orbit_common/jsonapi_source';
 import { Promise } from 'rsvp';
 
@@ -16,8 +17,7 @@ module("OC - JSONAPISource", {
     server = window.sinon.fakeServer.create();
     server.autoRespond = true;
 
-    var schema = {
-      idField: '__id',
+    var schema = new Schema({
       models: {
         planet: {
           attributes: {
@@ -37,7 +37,7 @@ module("OC - JSONAPISource", {
           }
         }
       }
-    };
+    });
 
     source = new JSONAPISource(schema);
   },

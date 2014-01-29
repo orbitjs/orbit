@@ -1,4 +1,5 @@
 import Orbit from 'orbit/main';
+import Schema from 'orbit_common/schema';
 import MemorySource from 'orbit_common/memory_source';
 import { Promise } from 'rsvp';
 
@@ -11,14 +12,14 @@ module("Integration - MemorySource Sync without Connector", {
   setup: function() {
     Orbit.Promise = Promise;
 
-    var schema = {
-      idField: '__id',
+    // Create schema
+    var schema = new Schema({
       models: {
-        planet: {
-        }
+        planet: {}
       }
-    };
+    });
 
+    // Create sources
     primarySource = new MemorySource(schema);
     backupSource = new MemorySource(schema);
 

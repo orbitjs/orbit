@@ -1,4 +1,5 @@
 import Orbit from 'orbit/main';
+import Schema from 'orbit_common/schema';
 import LocalStorageSource from 'orbit_common/local_storage_source';
 import { all, Promise } from 'rsvp';
 
@@ -10,13 +11,11 @@ module("OC - LocalStorageSource", {
   setup: function() {
     Orbit.Promise = Promise;
 
-    var schema = {
-      idField: '__id',
+    var schema = new Schema({
       models: {
-        planet: {
-        }
+        planet: {}
       }
-    };
+    });
 
     source = new LocalStorageSource(schema, {autoload: false});
   },
