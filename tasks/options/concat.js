@@ -5,11 +5,9 @@ module.exports = {
   },
 
   orbit_common: {
-    src: ['tmp/transpiled/lib/orbit_common.js',
-          'tmp/transpiled/lib/orbit_common/main.js',
-          'tmp/transpiled/lib/orbit_common/lib/**/*.js',
-          'tmp/transpiled/lib/orbit_common/source.js',
-          'tmp/transpiled/lib/orbit_common/memory_source.js'],
+    src: ['tmp/transpiled/lib/orbit_common.js', 'tmp/transpiled/lib/orbit_common/**/*.js',
+          '!tmp/transpiled/lib/orbit_common/local_storage_source.js',
+          '!tmp/transpiled/lib/orbit_common/jsonapi_source.js'],
     dest: 'tmp/public/test/lib/orbit-common.js'
   },
 
