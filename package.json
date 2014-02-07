@@ -29,8 +29,8 @@
   },
   "scripts": {
     "start": "grunt server",
-    "build": "grunt build:debug",
-    "test": "grunt build:debug && grunt test:ci"
+    "build": "grunt build:dist",
+    "test": "grunt test:ci"
   },
   "devDependencies": {
     "grunt": "~0.4.2",
@@ -43,17 +43,18 @@
     "grunt-contrib-jshint": "~0.8.0",
     "grunt-contrib-uglify": "~0.3.2",
     "grunt-contrib-watch": "~0.5.3",
+    "grunt-contrib-uglify": "~0.2.4",
     "grunt-contrib-yuidoc": "~0.5.0",
-    "grunt-es6-module-transpiler": "~0.6.0",
-    "grunt-rev": "~0.1.0",
+    "grunt-es6-module-transpiler": "~0.4.0",
     "grunt-usemin": "~2.0.2",
     "karma": "~0.10.9",
     "grunt-karma": "~0.6.2",
     "karma-qunit": "~0.1.1",
     "karma-coverage": "~0.1.4",
     "karma-chrome-launcher": "~0.1.2",
-    "karma-phantomjs-launcher": "~0.1.1",
-    "matchdep": "~0.3.0",
+    "karma-phantomjs-launcher": "~0.1.2",
+    "load-grunt-config": "~0.5.0",
+    "load-grunt-tasks": "~0.2.0",
     "string": "~1.8.0"
   }
 }

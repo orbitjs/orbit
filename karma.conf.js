@@ -15,7 +15,7 @@ module.exports = function(config) {
       'vendor/rsvp.js',
       'lib/*.js',
       'tests/test_helper.js',
-      'tests/tests.js',
+      'tests/tests.amd.js',
       'tests/test_loader.js'
     ],
 

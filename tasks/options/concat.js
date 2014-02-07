@@ -1,28 +1,43 @@
 module.exports = {
-  orbit: {
-    src: ['tmp/transpiled/lib/orbit.js', 'tmp/transpiled/lib/orbit/**/*.js'],
-    dest: 'tmp/public/test/lib/orbit.js'
+  amd: {
+    files: {
+      'tmp/built/orbit.amd.js': [
+          'tmp/transpiled/lib/orbit.amd.js',
+          'tmp/transpiled/lib/orbit/**/*.amd.js'],
+      'tmp/built/orbit-common.amd.js': [
+          'tmp/transpiled/lib/orbit_common.amd.js',
+          'tmp/transpiled/lib/orbit_common/**/*.amd.js',
+          '!tmp/transpiled/lib/orbit_common/local_storage_source.amd.js',
+          '!tmp/transpiled/lib/orbit_common/jsonapi_source.amd.js'],
+      'tmp/built/orbit-common-local-storage-source.amd.js': [
+          'tmp/transpiled/lib/orbit_common_local_storage_source.amd.js',
+          'tmp/transpiled/lib/orbit_common/local_storage_source.amd.js'],
+      'tmp/built/orbit-common-jsonapi-source.amd.js': [
+          'tmp/transpiled/lib/orbit_common_jsonapi_source.amd.js',
+          'tmp/transpiled/lib/orbit_common/jsonapi_source.amd.js']
+    }
   },
 
-  orbit_common: {
-    src: ['tmp/transpiled/lib/orbit_common.js', 'tmp/transpiled/lib/orbit_common/**/*.js',
-          '!tmp/transpiled/lib/orbit_common/local_storage_source.js',
-          '!tmp/transpiled/lib/orbit_common/jsonapi_source.js'],
-    dest: 'tmp/public/test/lib/orbit-common.js'
+  browser: {
+    files: {
+      'tmp/built/intermediate/orbit.browser.js': [
+          'vendor/loader.js',
+          'tmp/built/orbit.amd.js'],
+      'tmp/built/intermediate/orbit-common.browser.js': [
+          'vendor/loader.js',
+          'tmp/built/orbit-common.amd.js'],
+      'tmp/built/intermediate/orbit-common-local-storage-source.browser.js': [
+          'vendor/loader.js',
+          'tmp/built/orbit-common-local-storage-source.amd.js'],
+      'tmp/built/intermediate/orbit-common-jsonapi-source.browser.js': [
+          'vendor/loader.js',
+          'tmp/built/orbit-common-jsonapi-source.amd.js']
+    }
   },
 
-  orbit_local_storage_source: {
-    src: ['tmp/transpiled/lib/orbit_common_local_storage_source.js', 'tmp/transpiled/lib/orbit_common/local_storage_source.js'],
-    dest: 'tmp/public/test/lib/orbit-common-local-storage-source.js'
-  },
-
-  orbit_jsonapi_source: {
-    src: ['tmp/transpiled/lib/orbit_common_jsonapi_source.js', 'tmp/transpiled/lib/orbit_common/jsonapi_source.js'],
-    dest: 'tmp/public/test/lib/orbit-common-jsonapi-source.js'
-  },
-
-  test: {
-    src: 'tmp/transpiled/tests/**/*.js',
-    dest: 'tmp/public/test/tests/tests.js'
+  tests: {
+    files: {
+      'tmp/public/test/tests/tests.amd.js': ['tmp/transpiled/tests/**/*.amd.js']
+    }
   }
 };

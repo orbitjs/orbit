@@ -1,5 +1,5 @@
 module.exports = {
   "build": ['tmp'],
-  "release": ['dist'],
+  "dist": ['dist'],
   "docs": ['docs']
 };

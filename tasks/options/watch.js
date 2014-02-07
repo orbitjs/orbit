@@ -1,10 +1,10 @@
 module.exports = {
   main: {
     files: ['lib/**/*', 'public/**/*', 'vendor/**/*', 'test/**/*'],
-    tasks: ['build:debug']
+    tasks: ['build:tests']
   },
   test: {
     files: ['lib/**/*', 'public/**/*', 'vendor/**/*', 'test/**/*'],
-    tasks: ['build:debug', 'karma:server:run']
+    tasks: ['build:tests', 'karma:server:run']
   }
 };

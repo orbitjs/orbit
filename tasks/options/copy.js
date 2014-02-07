@@ -1,41 +1,27 @@
 module.exports = {
-  // These copy tasks happen before transpile or hinting. They
-  // prepare the build pipeline by moving JavaScript files to
-  // tmp/javascript.
-  //
-  "prepare": {
+  tests: {
     files: [{
       expand: true,
-      cwd: 'lib/',
-      src: '**/*.js',
-      dest: 'tmp/javascript/lib'
-    },
-    {
-      expand: true,
-      cwd: 'test/tests/',
-      src: ['**/*.js', '!test_helper.js', '!test_loader.js'],
-      dest: 'tmp/javascript/tests/'
-    }]
-  },
-  // Stage moves files to their final destinations after the rest
-  // of the build cycle has run.
-  "stage": {
-    files: [{
+      cwd: 'vendor/',
+      src: ['**/*.js'],
+      dest: 'tmp/public/test/vendor/'
+    }, {
       expand: true,
       cwd: 'test/',
       src: ['index.html', 'tests/test_helper.js', 'tests/test_loader.js', 'vendor/**/*'],
       dest: 'tmp/public/test/'
+    }, {
+      expand: true,
+      cwd: 'tmp/built/',
+      src: ['*.amd.js'],
+      dest: 'tmp/public/test/lib/'
     }]
   },
-  "vendor": {
-    src: ['vendor/**/*.js', 'vendor/**/*.css'],
-    dest: 'tmp/public/test/'
-  },
-  "dist": {
+  dist: {
     files: [{
       expand: true,
-      cwd: 'tmp/public/test/lib',
-      src: ['**/*.js'],
+      cwd: 'tmp/built/',
+      src: ['*.js'],
       dest: 'dist/'
     }]
   },
