@@ -9,6 +9,8 @@ module.exports = function(grunt) {
 
   grunt.registerTask('default', ['build:dist']);
 
+  grunt.registerTask('package', ['build:dist']);
+
   grunt.registerTask('build', [
                      'clean:build',
                      'transpile:amd',
@@ -23,7 +25,7 @@ module.exports = function(grunt) {
                      'copy:tests'
                      ]);
 
-  grunt.registerTask('build:dist', "Build a minified & production-ready version of this lib.", [
+  grunt.registerTask('build:dist', "Build distributable versions of this lib.", [
                      'build',
                      'clean:dist',
                      'concat:browser',
