@@ -14,10 +14,10 @@ module.exports = {
           case 'orbit-common':
             return 'OC';
 
-          case 'orbit-common-jsonapi-source':
+          case 'orbit-common-jsonapi':
             return 'OC.JSONAPISource';
 
-          case 'orbit-common-local-storage-source':
+          case 'orbit-common-local-storage':
             return 'OC.LocalStorage';
 
           default:
@@ -32,10 +32,10 @@ module.exports = {
           case 'orbit-common':
             return 'orbit_common';
 
-          case 'orbit-common-jsonapi-source':
+          case 'orbit-common-jsonapi':
             return 'orbit_common/jsonapi_source';
 
-          case 'orbit-common-local-storage-source':
+          case 'orbit-common-local-storage':
             return 'orbit_common/local_storage_source';
 
           default:
