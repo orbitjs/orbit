@@ -30,7 +30,42 @@ Orbit relies heavily on promises, events and low-level transforms.
 
 * Work with plain JavaScript objects.
 
-## How does it work?
+## Building and Testing Orbit
+
+The Orbit project is managed by [Grunt](http://gruntjs.com/). Once you've
+installed Grunt and its dependencies, you can install Orbit's dependencies
+from inside the project root with:
+
+```
+npm install
+```
+
+Distrbutable versions of Orbit can be built to the `/dist` directory by running:
+
+```
+grunt package
+```
+
+Orbit can be tested by running:
+
+```
+grunt test:ci
+```
+
+Or from within a browser
+(at [http://localhost:8000/test/](http://localhost:8000/test/)) by running:
+
+```
+grunt server
+```
+
+Orbit's docs can be generated to the `/docs` directory by running:
+
+```
+grunt docs
+```
+
+## How does Orbit work?
 
 Orbit requires that every data source support one or more common interfaces.
 These interfaces define how data can be both *accessed* and *transformed*.
