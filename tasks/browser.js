@@ -11,17 +11,31 @@ module.exports = function(grunt) {
       },
       module: function(name) {
         return "<%= pkg.name %>";
+      },
+      preDefine: function(name) {
+        return null;
+      },
+      postRequire: function(name) {
+        return null;
       }
     });
 
     this.files.forEach(function(f) {
       var output = ['(function(global) {'];
 
-      output.push.apply(output, f.src.map(grunt.file.read));
-
       f.src.forEach(function(file) {
         var name = options.name(file);
+
+        var preDefine = options.preDefine(name);
+        if (preDefine) output.push.apply(output, preDefine);
+
+        output.push(grunt.file.read(file));
+
         output.push("global." + options.namespace(name) + " = requireModule('" + options.module(name) + "');");
+
+        var postRequire = options.postRequire(name);
+        if (postRequire) output.push.apply(output, postRequire);
+
         output.push('}(window));');
       });
 

@@ -41,6 +41,22 @@ module.exports = {
           default:
             this.fail.warn('Unrecognized file: `' + name + '`.');
         }
+      },
+      preDefine: function(name) {
+        if (name !== 'orbit') {
+          return [
+            "var define = global.Orbit.__defineModule__;",
+            "var requireModule = global.Orbit.__requireModule__;"
+          ];
+        }
+      },
+      postRequire: function(name) {
+        if (name === 'orbit') {
+          return [
+            "global.Orbit.__defineModule__ = define;",
+            "global.Orbit.__requireModule__ = requireModule;"
+          ];
+        }
       }
     },
     files: [{

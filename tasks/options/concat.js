@@ -22,13 +22,10 @@ module.exports = {
           'vendor/loader.js',
           'tmp/built/orbit.amd.js'],
       'tmp/built/intermediate/orbit-common.browser.js': [
-          'vendor/loader.js',
           'tmp/built/orbit-common.amd.js'],
       'tmp/built/intermediate/orbit-common-local-storage.browser.js': [
-          'vendor/loader.js',
           'tmp/built/orbit-common-local-storage.amd.js'],
       'tmp/built/intermediate/orbit-common-jsonapi.browser.js': [
-          'vendor/loader.js',
           'tmp/built/orbit-common-jsonapi.amd.js']
     }
   },
