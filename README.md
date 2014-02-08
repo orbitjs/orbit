@@ -32,7 +32,7 @@ Orbit relies heavily on promises, events and low-level transforms.
 
 ## Dependencies
 
-Orbit.js has no specific external dependencies, but must be used with a
+Orbit.js has no specific external run-time dependencies, but must be used with a
 library that implements the
 [Promises/A+](http://promises-aplus.github.io/promises-spec/)
 spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
@@ -40,8 +40,8 @@ spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
 ## Building and Testing Orbit
 
 The Orbit project is managed by [Grunt](http://gruntjs.com/). Once you've
-installed Grunt and its dependencies, you can install Orbit's dependencies
-from inside the project root with:
+installed Grunt and its dependencies, you can install Orbit's development
+dependencies from inside the project root with:
 
 ```
 npm install
