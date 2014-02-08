@@ -21,7 +21,7 @@ module.exports = function(grunt) {
 
       f.src.forEach(function(file) {
         var name = options.name(file);
-        output.push("global." + options.namespace(name) + " = require('" + options.module(name) + "');");
+        output.push("global." + options.namespace(name) + " = requireModule('" + options.module(name) + "');");
         output.push('}(window));');
       });
 
