@@ -1,4 +1,4 @@
-# Orbit.js [![Build Status](https://secure.travis-ci.org/cerebris/orbit.js.png?branch=master)](http://travis-ci.org/cerebris/orbit.js)
+# Orbit.js [![Build Status](https://secure.travis-ci.org/orbitjs/orbit.js.png?branch=master)](http://travis-ci.org/orbitjs/orbit.js)
 
 Orbit is a standalone library for coordinating access to data sources
 and keeping their contents synchronized.
