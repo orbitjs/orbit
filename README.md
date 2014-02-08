@@ -47,7 +47,7 @@ from inside the project root with:
 npm install
 ```
 
-Distrbutable versions of Orbit can be built to the `/dist` directory by running:
+Distributable versions of Orbit can be built to the `/dist` directory by running:
 
 ```
 grunt package
