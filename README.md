@@ -37,6 +37,17 @@ library that implements the
 [Promises/A+](http://promises-aplus.github.io/promises-spec/)
 spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
 
+## Installation
+
+Orbit can be installed with [Bower](http://bower.io):
+
+```
+bower install orbit.js
+```
+
+[A separate shim repo](https://github.com/orbitjs/bower-orbit) is maintained for
+Bower releases.
+
 ## Building and Testing Orbit
 
 The Orbit project is managed by [Grunt](http://gruntjs.com/). Once you've
