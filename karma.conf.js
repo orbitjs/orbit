@@ -12,7 +12,7 @@ module.exports = function(config) {
       'vendor/loader.js',
       'vendor/sinon.js',
       'vendor/jquery.js',
-      'vendor/rsvp.js',
+      'vendor/rsvp.amd.js',
       'lib/*.js',
       'tests/test_helper.js',
       'tests/tests.amd.js',

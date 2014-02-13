@@ -7,8 +7,18 @@ module.exports = {
       dest: 'tmp/public/test/vendor/'
     }, {
       expand: true,
+      flatten: true,
+      filter: 'isFile',
+      cwd: 'bower_components/',
+      src: ['jquery/jquery.js',
+            'rsvp/rsvp.amd.js',
+            'qunit/qunit/qunit.js',
+            'qunit/qunit/qunit.css'],
+      dest: 'tmp/public/test/vendor/'
+    }, {
+      expand: true,
       cwd: 'test/',
-      src: ['index.html', 'tests/test_helper.js', 'tests/test_loader.js', 'vendor/**/*'],
+      src: ['index.html', 'tests/test_helper.js', 'tests/test_loader.js'],
       dest: 'tmp/public/test/'
     }, {
       expand: true,

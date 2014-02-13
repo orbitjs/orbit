@@ -33,6 +33,7 @@
     "test": "grunt test:ci"
   },
   "devDependencies": {
+    "bower": "~1.2.7",
     "grunt": "~0.4.2",
     "grunt-cli": "~0.1.12",
     "glob": "~3.2.8",
