@@ -18,7 +18,7 @@ module.exports = {
             return 'OC.JSONAPISource';
 
           case 'orbit-common-local-storage':
-            return 'OC.LocalStorage';
+            return 'OC.LocalStorageSource';
 
           default:
             this.fail.warn('Unrecognized file: `' + name + '`.');
