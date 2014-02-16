@@ -98,7 +98,7 @@ var testRequestableAction = function(actionName) {
     });
 
     stop();
-    source[actionName]('abc', 'def').then(null, function(result) {
+    source[actionName]('abc', 'def').then(undefined, function(result) {
       start();
       equal(++order, 3, 'promise resolved last');
       equal(result, ':(', 'failure');

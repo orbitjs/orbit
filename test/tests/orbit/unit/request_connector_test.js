@@ -241,7 +241,7 @@ var testRescueMode = function(actionName) {
 
     stop();
     primarySource[actionName]('moon').then(
-      null,
+      undefined,
       function(result) {
         start();
         equal(++order, 3, 'promise rejection resolved last');
