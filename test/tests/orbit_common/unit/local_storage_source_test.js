@@ -2,6 +2,7 @@ import Orbit from 'orbit/main';
 import Schema from 'orbit_common/schema';
 import LocalStorageSource from 'orbit_common/local_storage_source';
 import { all, Promise } from 'rsvp';
+import { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty } from 'test_helper';
 
 var source;
 

@@ -18,7 +18,7 @@ module.exports = {
     }, {
       expand: true,
       cwd: 'test/',
-      src: ['index.html', 'tests/test_helper.js', 'tests/test_loader.js'],
+      src: ['index.html', 'test_loader.js'],
       dest: 'tmp/public/test/'
     }, {
       expand: true,

@@ -14,9 +14,8 @@ module.exports = function(config) {
       'vendor/jquery.js',
       'vendor/rsvp.amd.js',
       'lib/*.js',
-      'tests/test_helper.js',
       'tests/tests.amd.js',
-      'tests/test_loader.js'
+      'test_loader.js'
     ],
 
     frameworks: ['qunit'],

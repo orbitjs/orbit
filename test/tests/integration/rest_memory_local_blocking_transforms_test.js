@@ -5,6 +5,7 @@ import JSONAPISource from 'orbit_common/jsonapi_source';
 import LocalStorageSource from 'orbit_common/local_storage_source';
 import TransformConnector from 'orbit/transform_connector';
 import { Promise } from 'rsvp';
+import { verifyLocalStorageContainsRecord } from 'test_helper';
 
 var server,
     memorySource,

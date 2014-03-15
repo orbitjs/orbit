@@ -31,9 +31,7 @@
     "fillIn",
     "click",
     "find",
-    "requireModule",
-    "verifyLocalStorageContainsRecord",
-    "verifyLocalStorageIsEmpty"
+    "requireModule"
   ],
   "node" : false,
   "browser" : false,

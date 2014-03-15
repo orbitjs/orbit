@@ -1,4 +1,4 @@
-function verifyLocalStorageContainsRecord(namespace, type, record, ignoreFields) {
+var verifyLocalStorageContainsRecord = function(namespace, type, record, ignoreFields) {
   var expected = {};
   expected[record.__id] = record;
 
@@ -15,16 +15,15 @@ function verifyLocalStorageContainsRecord(namespace, type, record, ignoreFields)
   deepEqual(actual,
             expected,
             'data in local storage matches expectations');
-}
+};
 
-function verifyLocalStorageIsEmpty(namespace) {
+var verifyLocalStorageIsEmpty = function(namespace) {
   var contents = JSON.parse(window.localStorage.getItem(namespace));
   if (contents === null) {
     equal(contents, null, 'local storage should still be empty');
   } else {
     deepEqual(contents, {}, 'local storage should still be empty');
   }
-}
+};
 
-window.verifyLocalStorageContainsRecord = verifyLocalStorageContainsRecord;
-window.verifyLocalStorageIsEmpty = verifyLocalStorageIsEmpty;
+export { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty };
