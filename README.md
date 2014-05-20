@@ -48,6 +48,25 @@ bower install orbit.js
 [A separate shim repo](https://github.com/orbitjs/bower-orbit) is maintained for
 Bower releases.
 
+## Configuration
+
+You'll need to configure Orbit to recognize any applicable dependencies.
+
+Configure your promise library's `Promise` constructor as follows:
+ 
+```javascript
+Orbit.Promise = RSVP.Promise;
+```
+
+If you're using an Orbit source that relies on an `ajax` method (such as
+`JSONAPISource`), configure it as follows:
+
+```javascript
+Orbit.ajax = jQuery.ajax;
+```
+
+Other sources may have other configuration requirements.
+
 ## Building and Testing Orbit
 
 The Orbit project is managed by [Grunt](http://gruntjs.com/). Once you've
