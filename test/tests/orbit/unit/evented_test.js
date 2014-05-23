@@ -49,6 +49,24 @@ test("it notifies listeners when emitting a simple message", function() {
   evented.emit('greeting', 'hello');
 });
 
+test("it notifies listeners registered with `one` only once each", function() {
+  expect(2);
+
+  var listener1 = function(message) {
+        equal(message, 'hello', 'notification message should match');
+      },
+      listener2 = function(message) {
+        equal(message, 'hello', 'notification message should match');
+      };
+
+  evented.one('greeting', listener1);
+  evented.one('greeting', listener2);
+
+  evented.emit('greeting', 'hello');
+  evented.emit('greeting', 'hello');
+  evented.emit('greeting', 'hello');
+});
+
 test("it can unregister individual listeners from an event", function() {
   expect(1);
 
