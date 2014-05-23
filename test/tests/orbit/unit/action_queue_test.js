@@ -135,3 +135,50 @@ test("will auto-process pushed async functions sequentially by default", functio
   trigger.emit('start1');
 });
 
+test("#then resolves when the queue finishes processing", function() {
+  expect(5);
+
+  var op1 = {op: 'add', path: ['planets', '123'], value: 'Mercury'},
+      op2 = {op: 'add', path: ['planets', '234'], value: 'Venus'};
+
+  var trigger = {};
+  Evented.extend(trigger);
+
+  var _transform = function(op) {
+    var promise;
+    if (op === op1) {
+      promise = new Promise(function(resolve) {
+        trigger.on('start1', function() {
+          ok(true, '_transform with op1 resolved');
+          resolve();
+        });
+      });
+
+    } else if (op === op2) {
+      promise = new Promise(function(resolve) {
+        ok(true, '_transform with op2 resolved');
+        resolve();
+      });
+    }
+    return promise;
+  };
+
+  var queue = new ActionQueue(_transform);
+
+  stop();
+
+  queue.then(function() {
+    ok(!queue.processing, 'queue is not processing, so it resolves immediately');
+
+    queue.push(op1);
+    queue.push(op2);
+    ok(queue.processing, 'queue is processing');
+
+    queue.then(function() {
+      start();
+      ok(!queue.processing, 'queue resolves when it is done processing');
+    });
+
+    trigger.emit('start1');
+  });
+});
