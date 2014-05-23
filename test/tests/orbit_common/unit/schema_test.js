@@ -54,6 +54,7 @@ test("#initRecord initializes a record's attributes with any defaults that are s
       planet: {
         attributes: {
           name: {type: 'string', defaultValue: 'Earth'},
+          shape: {type: 'string'},
           classification: {type: 'string', defaultValue: function() {
             return 'terrestrial';
           }}
@@ -65,8 +66,9 @@ test("#initRecord initializes a record's attributes with any defaults that are s
   var earth = {};
   schema.initRecord('planet', earth);
 
-  equal(earth.name, 'Earth', 'default has been set by value');
-  equal(earth.classification, 'terrestrial', 'default has been set by function');
+  strictEqual(earth.name, 'Earth', 'default has been set by value');
+  strictEqual(earth.shape, null, 'default has not been set - should be null');
+  strictEqual(earth.classification, 'terrestrial', 'default has been set by function');
 });
 
 test("#initRecord initializes a record's links", function() {
@@ -92,4 +94,5 @@ test("#initRecord initializes a record's links", function() {
   schema.initRecord('moon', moon);
 
   deepEqual(earth.links.moons, {}, 'hasMany relationship has been seeded with an empty object');
+  strictEqual(moon.links.planet, null, 'default has not been set - should be null');
 });
