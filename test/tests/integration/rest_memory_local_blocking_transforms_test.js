@@ -56,6 +56,43 @@ module("Integration - Rest / Memory / Local Transforms (Blocking)", {
   }
 });
 
+test("single records found with rest should be inserted into memory and local storage", function() {
+  expect(4);
+  server.respondWith('GET', '/planets/12345', function(xhr) {
+      ok(true, 'GET request');
+      xhr.respond(200,
+                  {'Content-Type': 'application/json'},
+                  JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
+  });
+  stop();
+  restSource.find('planet', {id: '12345'}).then(function(planets) {
+    start();
+    equal(memorySource.length('planet'), 1, 'memory source cache size should == 1');
+    equal(restSource.length('planet'), 1, 'rest source cache size should == 1');
+    equal(localSource.length('planet'), 1, 'local source cache size should == 1');
+  });
+});
+
+test("multiple records found with rest should be inserted into memory and local storage", function() {
+  expect(4);
+  server.respondWith('GET', '/planets', function(xhr) {
+      ok(true, 'GET request');
+      xhr.respond(200,
+                  {'Content-Type': 'application/json'},
+                  JSON.stringify([
+                    {id: 12345, name: 'Jupiter', classification: 'gas giant'},
+                    {id: 12346, name: 'Earth', classification: 'terrestrial'}
+                  ]));
+  });
+  stop();
+  restSource.find('planet').then(function(planets) {
+    start();
+    equal(memorySource.length('planet'), 2, 'memory source cache size should == 2');
+    equal(restSource.length('planet'), 2, 'rest source cache size should == 2');
+    equal(localSource.length('planet'), 2, 'local source cache size should == 2');
+  });
+});
+
 test("records inserted into memory should be posted with rest", function() {
   expect(8);
 
