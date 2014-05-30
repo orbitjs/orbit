@@ -21,7 +21,7 @@ Orbit relies heavily on promises, events and low-level transforms.
 
 * Coordinate transformations across sources. Handle merges automatically
   where possible but allow for complete custom control.
-i
+
 * Allow for blocking and non-blocking transformations.
 
 * Allow for synchronous and asynchronous requests.
