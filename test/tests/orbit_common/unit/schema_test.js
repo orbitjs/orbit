@@ -96,3 +96,62 @@ test("#initRecord initializes a record's links", function() {
   deepEqual(earth.links.moons, {}, 'hasMany relationship has been seeded with an empty object');
   strictEqual(moon.links.planet, null, 'default has not been set - should be null');
 });
+
+test("#initRecord will not overwrite data set as attributes", function() {
+  var schema = new Schema({
+    models: {
+      planet: {
+        attributes: {
+          name: {type: 'string', defaultValue: 'Jupiter'},
+          classification: {type: 'string', defaultValue: function() {
+            return 'gas giant';
+          }}
+        },
+        links: {
+          moons: {type: 'hasMany', model: 'moon', inverse: 'planet'}
+        }
+      },
+      moon: {
+        attributes: {
+          name: {type: 'string'}
+        },
+        links: {
+          planet: {type: 'hasOne', model: 'planet', inverse: 'moons'}
+        }
+      }
+    }
+  });
+
+  var earth,
+      moon,
+      jupiter,
+      io,
+      europa;
+
+  earth = {name: 'Earth', classification: 'terrestrial'};
+  schema.initRecord('planet', earth);
+
+  moon = {name: '*The Moon*', links: {planet: earth[schema.idField]}};
+  schema.initRecord('moon', moon);
+
+  strictEqual(earth.name, 'Earth', 'name has been specified');
+  strictEqual(earth.classification, 'terrestrial', 'classification has been specified');
+
+  deepEqual(earth.links.moons, {}, 'hasMany relationship has been seeded with an empty object');
+  strictEqual(moon.links.planet, earth[schema.idField], 'hasOne relationship was specified in data');
+
+  io = {};
+  schema.initRecord('moon', io);
+
+  europa = {};
+  schema.initRecord('moon', europa);
+
+  var jupitersMoons = {};
+  jupitersMoons[io[schema.idField]] = true;
+  jupitersMoons[europa[schema.idField]] = true;
+
+  jupiter = {name: 'Jupiter', links: {moons: jupitersMoons}};
+  schema.initRecord('planet', jupiter);
+
+  deepEqual(jupiter.links.moons, jupitersMoons, 'hasMany relationship was specified in data');
+});
