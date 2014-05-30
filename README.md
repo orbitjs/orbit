@@ -21,7 +21,7 @@ Orbit relies heavily on promises, events and low-level transforms.
 
 * Coordinate transformations across sources. Handle merges automatically
   where possible but allow for complete custom control.
-
+i
 * Allow for blocking and non-blocking transformations.
 
 * Allow for synchronous and asynchronous requests.
@@ -358,7 +358,7 @@ fulfilling a request, it's not sufficient to keep data sources synchronized.
 When one source fields a request, other sources may need to be notified of
 the precise data changes brought about in that source,
 so that they can all stay synchronized. That's where the `Transformable`
-interace comes in...
+interface comes in...
 
 The `Transformable` interface provides a single method, `transform`, which can
 be used to change the contents of a source. Transformations must follow the
