@@ -10,23 +10,26 @@ test("it exists", function() {
   ok(schema);
 });
 
-test("it has an `idField` and `generateId` set by default", function() {
+test("it has an `idField`, `remoteIdField` and `generateId` set by default", function() {
   var schema = new Schema();
   equal(schema.idField, '__id', 'idField has been set');
+  equal(schema.remoteIdField, 'id', 'remoteIdField has been set');
   ok(schema.generateId, 'generateId has been set');
 });
 
-test("`idField` and `generateId` can be overridden", function() {
+test("`idField`, `remoteIdField` and `generateId` can be overridden", function() {
   var customIdGenerator = function() {
     return Math.random().toString(); // don't do this ;)
   };
 
   var schema = new Schema({
     idField: 'id',
+    remoteIdField: '_id',
     generateId: customIdGenerator
   });
 
   equal(schema.idField, 'id', 'custom idField has been set');
+  equal(schema.remoteIdField, '_id', 'custom remoteIdField has been set');
   strictEqual(schema.generateId, customIdGenerator, 'custom generateId has been set');
 });
 
