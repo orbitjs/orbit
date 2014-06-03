@@ -247,6 +247,66 @@ test("#find - can find all records", function() {
   });
 });
 
+test("#find - can find an array of records by id", function() {
+  expect(4);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  var ids = [];
+
+  stop();
+
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    ids.push(planet.__id);
+    return source.add('planet', {name: 'Earth', classification: 'terrestrial'});
+
+  }).then(function(planet) {
+    ids.push(planet.__id);
+    return source.add('planet', {name: 'Mercury', classification: 'terrestrial'});
+
+  }).then(function(planet) {
+    return source.find('planet', ids);
+
+  }).then(function(planets) {
+    start();
+    equal(planets.length, 2, 'find() should return the requests records');
+    equal(planets[0].__id, ids[0], 'planet id matches');
+    equal(planets[1].__id, ids[1], 'planet id matches');
+  });
+});
+
+test("#find - returns RecordNotFoundException when any record in an array can't be found", function() {
+  expect(3);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  var ids = [];
+
+  stop();
+
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    ids.push(planet.__id);
+    return source.add('planet', {name: 'Earth', classification: 'terrestrial'});
+
+  }).then(function(planet) {
+    ids.push(planet.__id);
+    return source.add('planet', {name: 'Mercury', classification: 'terrestrial'});
+
+  }).then(function(planet) {
+    ids.push('fake');
+    ids.push('bogus');
+    return source.find('planet', ids);
+
+  }).then(function(planets) {
+    ok(false, 'no planet should be found');
+
+  }, function(e) {
+    start();
+    ok(e instanceof RecordNotFoundException, 'RecordNotFoundException thrown');
+    deepEqual(e.record, ['fake', 'bogus'], 'ids that could not be found should be returned');
+  });
+});
+
 test("#find - can find records by one or more filters", function() {
   expect(5);
 
