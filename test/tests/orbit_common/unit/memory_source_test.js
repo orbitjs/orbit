@@ -275,6 +275,30 @@ test("#find - can find an array of records by id", function() {
   });
 });
 
+test("#find - can find an array of records by remote id", function() {
+  expect(4);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  stop();
+
+  source.add('planet', {id: '1', name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    return source.add('planet', {id: '2', name: 'Earth', classification: 'terrestrial'});
+
+  }).then(function(planet) {
+    return source.add('planet', {id: '3', name: 'Mercury', classification: 'terrestrial'});
+
+  }).then(function(planet) {
+    return source.find('planet', [{id: '1'}, {id: '3'}]);
+
+  }).then(function(planets) {
+    start();
+    equal(planets.length, 2, 'find() should return the requests records');
+    equal(planets[0].name, 'Jupiter', 'planet name matches');
+    equal(planets[1].name, 'Mercury', 'planet name matches');
+  });
+});
+
 test("#find - returns RecordNotFoundException when any record in an array can't be found", function() {
   expect(3);
 
