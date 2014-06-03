@@ -2,6 +2,7 @@ import Orbit from 'orbit/main';
 import Schema from 'orbit_common/schema';
 import MemorySource from 'orbit_common/memory_source';
 import { all, Promise } from 'rsvp';
+import { RecordNotFoundException } from 'orbit_common/lib/exceptions';
 
 var source;
 
@@ -165,6 +166,66 @@ test("it exists", function() {
 //    });
 //  });
 //});
+
+test("#find - can find a record by id", function() {
+  expect(2);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  stop();
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    source.find('planet', planet.__id).then(function(foundPlanet) {
+      start();
+      strictEqual(foundPlanet, planet, 'found planet matches original');
+    });
+  });
+});
+
+test("#find - returns RecordNotFoundException when a record can't be found by id", function() {
+  expect(2);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  stop();
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    source.find('planet', 'bogus').then(function(foundPlanet) {
+      ok(false, 'no planet should be found');
+    }, function(e) {
+      start();
+      ok(e instanceof RecordNotFoundException, 'RecordNotFoundException thrown');
+    });
+  });
+});
+
+test("#find - can find a record by remote id", function() {
+  expect(2);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  stop();
+  source.add('planet', {id: '1', name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    source.find('planet', {id: '1'}).then(function(foundPlanet) {
+      start();
+      strictEqual(foundPlanet, planet, 'found planet matches original');
+    });
+  });
+});
+
+test("#find - returns RecordNotFoundException when a record can't be found by remote id", function() {
+  expect(2);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  stop();
+  source.add('planet', {id: '1', name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    source.find('planet', {id: 'bogus'}).then(function(foundPlanet) {
+      ok(false, 'no planet should be found');
+    }, function(e) {
+      start();
+      ok(e instanceof RecordNotFoundException, 'RecordNotFoundException thrown');
+    });
+  });
+});
 
 test("#find - can find all records", function() {
   expect(3);
