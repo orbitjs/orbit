@@ -208,6 +208,52 @@ test("#find - can find individual records by passing in a single id", function()
   });
 });
 
+test("#find - can find an array of records from an array of ids", function() {
+  expect(4);
+
+  var jupiter = {id: '1', name: 'Jupiter'},
+      earth =   {id: '2', name: 'Earth'};
+
+  source.initRecord('planet', jupiter);
+  source.initRecord('planet', earth);
+
+  server.respondWith('GET', '/planets/1,2', function(xhr) {
+    ok(true, 'GET request');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify([{id: '1', name: 'Jupiter'},
+                                {id: '2', name: 'Earth'}]));
+  });
+
+  stop();
+  source.find('planet', [jupiter.__id, earth.__id]).then(function(planets) {
+    start();
+    equal(planets.length, 2, 'two planets should be returned');
+    ok(planets[0].id, '1', 'server id should match');
+    ok(planets[1].id, '2', 'server id should match');
+  });
+});
+
+test("#find - can find an array of records from an array of remote ids", function() {
+  expect(4);
+
+  server.respondWith('GET', '/planets/1,2', function(xhr) {
+    ok(true, 'GET request');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify([{id: '1', name: 'Jupiter'},
+                                {id: '2', name: 'Earth'}]));
+  });
+
+  stop();
+  source.find('planet', [{id: '1'}, {id: '2'}]).then(function(planets) {
+    start();
+    equal(planets.length, 2, 'two planets should be returned');
+    ok(planets[0].id, '1', 'server id should match');
+    ok(planets[1].id, '2', 'server id should match');
+  });
+});
+
 test("#find - can find individual records by passing in a single remote id", function() {
   expect(6);
 
