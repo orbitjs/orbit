@@ -1,5 +1,7 @@
+import Orbit from 'orbit/main';
 import Cache from 'orbit_common/cache';
 import Schema from 'orbit_common/schema';
+import { Promise } from 'rsvp';
 
 var schema,
     cache;
@@ -8,6 +10,7 @@ var schema,
 
 module("OC - Cache", {
   setup: function() {
+    Orbit.Promise = Promise;
     schema = new Schema({
       models: {
         planet: {
