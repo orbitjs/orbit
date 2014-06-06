@@ -15,18 +15,17 @@ module("OC - Cache", {
       models: {
         planet: {
           links: {
-            moons: {type: 'hasMany', model: 'moon', inverse: 'planet'}
+            moons: {type: 'hasMany', model: 'moon'}
           }
         },
         moon: {
           links: {
-            planet: {type: 'hasOne', model: 'planet', inverse: 'moons'}
+            planet: {type: 'hasOne', model: 'planet'}
           }
         }
       }
     });
 
-    cache = new Cache(schema);
   },
 
   teardown: function() {
@@ -35,17 +34,23 @@ module("OC - Cache", {
 });
 
 test("it exists", function() {
+  cache = new Cache(schema);
+
   ok(cache);
 });
 
 test("#transform sets data and #retrieve retrieves it", function() {
-  var earth = {name: 'Earth'};
+  cache = new Cache(schema);
+
+  var earth = {id: '1', name: 'Earth'};
   cache.transform({op: 'add', path: 'planet/1', value: earth});
   deepEqual(cache.retrieve('planet/1'), earth, 'objects metch in value');
   notStrictEqual(cache.retrieve('planet/1'), earth, 'objects don\'t match by reference because a clone has been cached');
 });
 
 test("#length returns the size of data at a path", function() {
+  cache = new Cache(schema);
+
   equal(cache.length('planet'), 0, 'returns 0 when an object exists at a path but has no properties');
   equal(cache.length('notthere'), null, 'returns null when an object does not exist at a path');
 
@@ -60,15 +65,72 @@ test("#length returns the size of data at a path", function() {
 });
 
 test("#reset clears the cache by default", function() {
+  cache = new Cache(schema);
+
   cache.transform({op: 'add', path: 'planet/1', value: {name: 'Earth'}});
   cache.reset();
   deepEqual(cache.retrieve(), {});
 });
 
 test("#reset overrides the cache completely with the value specified", function() {
+  cache = new Cache(schema);
+
   cache.transform({op: 'add', path: 'planet/1', value: {name: 'Earth'}});
 
   var newData = {planet: {'2': {name: 'Mars'}}};
   cache.reset(newData);
   deepEqual(cache.retrieve(), newData);
+});
+
+test("#transform tracks refs by default, and clears them from hasOne relationships when a referenced record is removed", function() {
+  cache = new Cache(schema);
+
+  var jupiter = {id: 'p1', name: 'Jupiter', links: {moons: {}}};
+  var io = {id: 'm1', name: 'Io', links: {planet: 'p1'}};
+  var europa = {id: 'm2', name: 'Europa', links: {planet: 'p1'}};
+
+  cache.transform({op: 'add', path: 'planet/p1', value: jupiter});
+  cache.transform({op: 'add', path: 'moon/m1', value: io});
+  cache.transform({op: 'add', path: 'moon/m2', value: europa});
+
+  deepEqual(cache.retrieve('planet/p1/refs'),
+    {'/moon/m1/links/planet': true,
+     '/moon/m2/links/planet': true});
+
+  equal(cache.retrieve('/moon/m1/links/planet'), 'p1', 'Jupiter has been assigned to Io');
+  equal(cache.retrieve('/moon/m2/links/planet'), 'p1', 'Jupiter has been assigned to Europa');
+
+  cache.transform({op: 'remove', path: '/planet/p1'});
+
+  equal(cache.retrieve('/planet/p1'), null, 'Jupiter is GONE');
+
+  equal(cache.retrieve('/moon/m1/links/planet'), null, 'Jupiter has been cleared from Io');
+  equal(cache.retrieve('/moon/m2/links/planet'), null, 'Jupiter has been cleared from Europa');
+});
+
+test("#transform tracks refs by default, and clears them from hasMany relationships when a referenced record is removed", function() {
+  cache = new Cache(schema);
+
+  var io = {id: 'm1', name: 'Io', links: {planet: null}};
+  var europa = {id: 'm2', name: 'Europa', links: {planet: null}};
+  var jupiter = {id: 'p1', name: 'Jupiter', links: {moons: {'m1': true, 'm2': true}}};
+
+  cache.transform({op: 'add', path: 'moon/m1', value: io});
+  cache.transform({op: 'add', path: 'moon/m2', value: europa});
+  cache.transform({op: 'add', path: 'planet/p1', value: jupiter});
+
+  deepEqual(cache.retrieve('moon/m1/refs'),
+    {'/planet/p1/links/moons/m1': true});
+
+  equal(cache.retrieve('/planet/p1/links/moons/m1'), true, 'Jupiter has been assigned to Io');
+  equal(cache.retrieve('/planet/p1/links/moons/m2'), true, 'Jupiter has been assigned to Europa');
+
+  cache.transform({op: 'remove', path: '/moon/m1'});
+  equal(cache.retrieve('/moon/m1'), null, 'Io is GONE');
+
+  cache.transform({op: 'remove', path: '/moon/m2'});
+  equal(cache.retrieve('/moon/m2'), null, 'Europa is GONE');
+
+  equal(cache.retrieve('/planet/p1/links/moons/m1'), null, 'Io has been cleared from Jupiter');
+  equal(cache.retrieve('/planet/p1/links/moons/m2'), null, 'Europa has been cleared from Jupiter');
 });
