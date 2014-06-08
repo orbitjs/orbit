@@ -1,4 +1,4 @@
-import { clone, expose, extend, isArray } from 'orbit/lib/objects';
+import { clone, expose, extend, isArray, isNone } from 'orbit/lib/objects';
 
 module("Orbit - Lib - Object", {
 });
@@ -26,6 +26,12 @@ test("`isArray` checks whether an object is an array", function() {
   equal(isArray(obj), false, 'Fake array is not an array');
 
   equal(isArray(arr), true, 'Array can be identified');
+});
+
+test("`isNone` checks whether an object is `null` or `undefined`", function() {
+  equal(isNone({}), false, 'Object is not null or undefined');
+  equal(isNone(null), true, 'isNone identifies null');
+  equal(isNone(undefined), true, 'isNone identifies undefined');
 });
 
 // TODO - expose, extend
