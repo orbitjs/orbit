@@ -446,7 +446,7 @@ test("#remove - can destroy records", function() {
   });
 });
 
-test("#link and #unlink- can link and unlink records in a many-to-one relationship via the 'many' side", function() {
+test("#addLink and #removeLink- can link and unlink records in a many-to-one relationship via the 'many' side", function() {
   expect(6);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -463,14 +463,14 @@ test("#link and #unlink- can link and unlink records in a many-to-one relationsh
     io = moon;
 
   }).then(function() {
-    return source.link('planet', jupiter, 'moons', io);
+    return source.addLink('planet', jupiter, 'moons', io);
 
   }).then(function() {
     equal(Object.keys(jupiter.links.moons).length, 1, 'Jupiter has one moon after linking');
     ok(jupiter.links.moons[io.__id], 'Jupiter\'s moon is Io');
     equal(io.links.planet, jupiter.__id, 'Io\'s planet is Jupiter');
 
-    return source.unlink('planet', jupiter, 'moons', io);
+    return source.removeLink('planet', jupiter, 'moons', io);
 
   }).then(function() {
     start();
@@ -479,7 +479,7 @@ test("#link and #unlink- can link and unlink records in a many-to-one relationsh
   });
 });
 
-test("#link and #unlink- can link and unlink records in a many-to-one relationship via the 'one' side", function() {
+test("#addLink and #removeLink- can link and unlink records in a many-to-one relationship via the 'one' side", function() {
   expect(6);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -496,14 +496,14 @@ test("#link and #unlink- can link and unlink records in a many-to-one relationsh
     io = moon;
 
   }).then(function() {
-    return source.link('planet', jupiter, 'moons', io);
+    return source.addLink('planet', jupiter, 'moons', io);
 
   }).then(function() {
     equal(Object.keys(jupiter.links.moons).length, 1, 'Jupiter has one moon after linking');
     ok(jupiter.links.moons[io.__id], 'Jupiter\'s moon is Io');
     equal(io.links.planet, jupiter.__id, 'Io\'s planet is Jupiter');
 
-    return source.unlink('moon', io, 'planet');
+    return source.removeLink('moon', io, 'planet');
 
   }).then(function() {
     start();

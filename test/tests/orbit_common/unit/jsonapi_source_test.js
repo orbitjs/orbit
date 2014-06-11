@@ -127,7 +127,7 @@ test("#remove - can delete records", function() {
   });
 });
 
-test("#link - can patch records with inverse relationships", function() {
+test("#addLink - can patch records with inverse relationships", function() {
   expect(3);
 
   server.respondWith('PATCH', '/planets/12345', function(xhr) {
@@ -147,13 +147,13 @@ test("#link - can patch records with inverse relationships", function() {
   });
 
   stop();
-  source.link('planet', {id: 12345}, 'moons', {id: 987}).then(function() {
+  source.addLink('planet', {id: 12345}, 'moons', {id: 987}).then(function() {
     start();
     ok(true, 'records linked');
   });
 });
 
-test("#unlink - can patch records with inverse relationships", function() {
+test("#removeLink - can patch records with inverse relationships", function() {
   expect(3);
 
   server.respondWith('PATCH', '/planets/12345', function(xhr) {
@@ -173,7 +173,7 @@ test("#unlink - can patch records with inverse relationships", function() {
   });
 
   stop();
-  source.unlink('planet', {id: 12345}, 'moons', {id: 987}).then(function() {
+  source.removeLink('planet', {id: 12345}, 'moons', {id: 987}).then(function() {
     start();
     ok(true, 'records unlinked');
   });
