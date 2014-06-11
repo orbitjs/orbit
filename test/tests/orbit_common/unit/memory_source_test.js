@@ -550,12 +550,12 @@ test("#findLink - can find has-one linked values", function() {
 
   }).then(function(planet) {
     start();
-    equal(planet, jupiter.__id, 'Io is linked to Jupiter');
+    equal(planet.__id, jupiter.__id, 'Io is linked to Jupiter');
   });
 });
 
 test("#findLink - can find has-many linked values", function() {
-  expect(4);
+  expect(5);
 
   equal(source.length('planet'), 0, 'source should be empty');
 
@@ -580,7 +580,8 @@ test("#findLink - can find has-many linked values", function() {
 
   }).then(function(moons) {
     start();
-    equal(Object.keys(moons).length, 1, 'Jupiter has one moon');
+    equal(moons.length, 1, 'Jupiter has one moon');
+    equal(moons[0].name, 'Io', '... and Io is its name');
   });
 });
 
