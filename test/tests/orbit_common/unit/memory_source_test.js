@@ -2,7 +2,7 @@ import Orbit from 'orbit/main';
 import Schema from 'orbit_common/schema';
 import MemorySource from 'orbit_common/memory_source';
 import { all, Promise } from 'rsvp';
-import { RecordNotFoundException } from 'orbit_common/lib/exceptions';
+import { RecordNotFoundException, LinkNotFoundException } from 'orbit_common/lib/exceptions';
 
 var source;
 
@@ -476,7 +476,6 @@ test("#addLink and #removeLink- can link and unlink records in a many-to-one rel
   }).then(function(moon) {
     io = moon;
 
-  }).then(function() {
     return source.addLink('planet', jupiter, 'moons', io);
 
   }).then(function() {
@@ -509,8 +508,7 @@ test("#addLink and #removeLink- can link and unlink records in a many-to-one rel
   }).then(function(moon) {
     io = moon;
 
-  }).then(function() {
-    return source.addLink('planet', jupiter, 'moons', io);
+    return source.addLink('moon', io, 'planet', jupiter);
 
   }).then(function() {
     equal(Object.keys(jupiter.links.moons).length, 1, 'Jupiter has one moon after linking');
@@ -523,5 +521,86 @@ test("#addLink and #removeLink- can link and unlink records in a many-to-one rel
     start();
     equal(io.links.planet, undefined, 'Io is not associated with a planet after unlinking');
     equal(Object.keys(jupiter.links.moons).length, 0, 'Jupiter has no moons after unlinking');
+  });
+});
+
+test("#findLink - can find has-one linked values", function() {
+  expect(4);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  var jupiter,
+      io;
+
+  stop();
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
+    jupiter = planet;
+    return source.add('moon', {name: 'Io'});
+
+  }).then(function(moon) {
+    io = moon;
+
+    return source.addLink('moon', io, 'planet', jupiter);
+
+  }).then(function() {
+    equal(Object.keys(jupiter.links.moons).length, 1, 'Jupiter has one moon after linking');
+    equal(io.links.planet, jupiter.__id, 'Io\'s planet is Jupiter');
+
+    return source.findLink('moon', io, 'planet');
+
+  }).then(function(planet) {
+    start();
+    equal(planet, jupiter.__id, 'Io is linked to Jupiter');
+  });
+});
+
+test("#findLink - can find has-many linked values", function() {
+  expect(4);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  var jupiter,
+      io;
+
+  stop();
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
+    jupiter = planet;
+    return source.add('moon', {name: 'Io'});
+
+  }).then(function(moon) {
+    io = moon;
+
+    return source.addLink('planet', jupiter, 'moons', io);
+
+  }).then(function() {
+    equal(Object.keys(jupiter.links.moons).length, 1, 'Jupiter has one moon after linking');
+    equal(io.links.planet, jupiter.__id, 'Io\'s planet is Jupiter');
+
+    return source.findLink('planet', jupiter, 'moons');
+
+  }).then(function(moons) {
+    start();
+    equal(Object.keys(moons).length, 1, 'Jupiter has one moon');
+  });
+});
+
+test("#findLink - returns LinkNotFoundException for a link that doesn't exist", function() {
+  expect(2);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  var jupiter,
+      io;
+
+  stop();
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
+    jupiter = planet;
+
+    source.findLink('planet', jupiter, 'bogus').then(function(foundLink) {
+      ok(false, 'no link should be found');
+    }, function(e) {
+      start();
+      ok(e instanceof LinkNotFoundException, 'LinkNotFoundException thrown');
+    });
   });
 });
