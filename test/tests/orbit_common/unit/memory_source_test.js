@@ -605,3 +605,24 @@ test("#findLink - returns LinkNotFoundException for a link that doesn't exist", 
     });
   });
 });
+
+test("#findLink - returns RecordNotFoundException for a record that doesn't exist", function() {
+  expect(2);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  var jupiter,
+      io;
+
+  stop();
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
+    jupiter = planet;
+
+    source.findLink('planet', 'bogus', 'moons').then(function(foundLink) {
+      ok(false, 'no link should be found');
+    }, function(e) {
+      start();
+      ok(e instanceof RecordNotFoundException, 'RecordNotFoundException thrown');
+    });
+  });
+});
