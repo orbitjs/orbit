@@ -197,6 +197,20 @@ test("#find - returns RecordNotFoundException when a record can't be found by id
   });
 });
 
+test("#find - can find a record by object that contains an id", function() {
+  expect(2);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  stop();
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    source.find('planet', planet).then(function(foundPlanet) {
+      start();
+      strictEqual(foundPlanet, planet, 'found planet matches original');
+    });
+  });
+});
+
 test("#find - can find a record by remote id", function() {
   expect(2);
 
