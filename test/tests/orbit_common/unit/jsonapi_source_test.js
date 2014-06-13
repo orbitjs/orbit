@@ -211,11 +211,8 @@ test("#find - can find individual records by passing in a single id", function()
 test("#find - can find an array of records from an array of ids", function() {
   expect(4);
 
-  var jupiter = {id: '1', name: 'Jupiter'},
-      earth =   {id: '2', name: 'Earth'};
-
-  source.initRecord('planet', jupiter);
-  source.initRecord('planet', earth);
+  var jupiter = source.normalize('planet', {id: '1', name: 'Jupiter'});
+  var earth = source.normalize('planet', {id: '2', name: 'Earth'});
 
   server.respondWith('GET', '/planets/1,2', function(xhr) {
     ok(true, 'GET request');

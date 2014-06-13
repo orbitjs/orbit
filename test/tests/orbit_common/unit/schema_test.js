@@ -33,25 +33,22 @@ test("`idField`, `remoteIdField` and `generateId` can be overridden", function()
   strictEqual(schema.generateId, customIdGenerator, 'custom generateId has been set');
 });
 
-test("#initRecord initializes a record with a unique idField", function() {
+test("#normalize initializes a record with a unique idField", function() {
   var schema = new Schema({
     models: {
       planet: {}
     }
   });
 
-  var earth = {},
-      mars = {};
-
-  schema.initRecord('planet', earth);
-  schema.initRecord('planet', mars);
+  var earth = schema.normalize('planet', {});
+  var mars = schema.normalize('planet', {});
 
   ok(earth.__id, 'idField has been set');
   ok(mars.__id, 'idField has been set');
   notEqual(earth.__id, mars.__id, 'ids are unique');
 });
 
-test("#initRecord initializes a record's attributes with any defaults that are specified with a value or function", function() {
+test("#normalize initializes a record's attributes with any defaults that are specified with a value or function", function() {
   var schema = new Schema({
     models: {
       planet: {
@@ -66,15 +63,14 @@ test("#initRecord initializes a record's attributes with any defaults that are s
     }
   });
 
-  var earth = {};
-  schema.initRecord('planet', earth);
+  var earth = schema.normalize('planet', {});
 
   strictEqual(earth.name, 'Earth', 'default has been set by value');
   strictEqual(earth.shape, null, 'default has not been set - should be null');
   strictEqual(earth.classification, 'terrestrial', 'default has been set by function');
 });
 
-test("#initRecord initializes a record's links", function() {
+test("#normalize initializes a record's links", function() {
   var schema = new Schema({
     models: {
       planet: {
@@ -90,17 +86,14 @@ test("#initRecord initializes a record's links", function() {
     }
   });
 
-  var earth = {},
-      moon = {};
-
-  schema.initRecord('planet', earth);
-  schema.initRecord('moon', moon);
+  var earth = schema.normalize('planet', {});
+  var moon = schema.normalize('moon', {});
 
   deepEqual(earth.__rel.moons, {}, 'hasMany relationship has been seeded with an empty object');
   strictEqual(moon.__rel.planet, null, 'default has not been set - should be null');
 });
 
-test("#initRecord will not overwrite data set as attributes", function() {
+test("#normalize will not overwrite data set as attributes", function() {
   var schema = new Schema({
     models: {
       planet: {
@@ -125,17 +118,9 @@ test("#initRecord will not overwrite data set as attributes", function() {
     }
   });
 
-  var earth,
-      moon,
-      jupiter,
-      io,
-      europa;
+  var earth = schema.normalize('planet', {name: 'Earth', classification: 'terrestrial'});
 
-  earth = {name: 'Earth', classification: 'terrestrial'};
-  schema.initRecord('planet', earth);
-
-  moon = {name: '*The Moon*', __rel: {planet: earth[schema.idField]}};
-  schema.initRecord('moon', moon);
+  var moon = schema.normalize('moon', {name: '*The Moon*', __rel: {planet: earth[schema.idField]}});
 
   strictEqual(earth.name, 'Earth', 'name has been specified');
   strictEqual(earth.classification, 'terrestrial', 'classification has been specified');
@@ -143,18 +128,15 @@ test("#initRecord will not overwrite data set as attributes", function() {
   deepEqual(earth.__rel.moons, {}, 'hasMany relationship has been seeded with an empty object');
   strictEqual(moon.__rel.planet, earth[schema.idField], 'hasOne relationship was specified in data');
 
-  io = {};
-  schema.initRecord('moon', io);
+  var io = schema.normalize('moon', {});
 
-  europa = {};
-  schema.initRecord('moon', europa);
+  var europa = schema.normalize('moon', {});
 
   var jupitersMoons = {};
   jupitersMoons[io[schema.idField]] = true;
   jupitersMoons[europa[schema.idField]] = true;
 
-  jupiter = {name: 'Jupiter', __rel: {moons: jupitersMoons}};
-  schema.initRecord('planet', jupiter);
+  var jupiter = schema.normalize('planet', {name: 'Jupiter', __rel: {moons: jupitersMoons}});
 
   deepEqual(jupiter.__rel.moons, jupitersMoons, 'hasMany relationship was specified in data');
 });
