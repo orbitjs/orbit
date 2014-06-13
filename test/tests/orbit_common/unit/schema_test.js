@@ -96,8 +96,8 @@ test("#initRecord initializes a record's links", function() {
   schema.initRecord('planet', earth);
   schema.initRecord('moon', moon);
 
-  deepEqual(earth.links.moons, {}, 'hasMany relationship has been seeded with an empty object');
-  strictEqual(moon.links.planet, null, 'default has not been set - should be null');
+  deepEqual(earth.__rel.moons, {}, 'hasMany relationship has been seeded with an empty object');
+  strictEqual(moon.__rel.planet, null, 'default has not been set - should be null');
 });
 
 test("#initRecord will not overwrite data set as attributes", function() {
@@ -134,14 +134,14 @@ test("#initRecord will not overwrite data set as attributes", function() {
   earth = {name: 'Earth', classification: 'terrestrial'};
   schema.initRecord('planet', earth);
 
-  moon = {name: '*The Moon*', links: {planet: earth[schema.idField]}};
+  moon = {name: '*The Moon*', __rel: {planet: earth[schema.idField]}};
   schema.initRecord('moon', moon);
 
   strictEqual(earth.name, 'Earth', 'name has been specified');
   strictEqual(earth.classification, 'terrestrial', 'classification has been specified');
 
-  deepEqual(earth.links.moons, {}, 'hasMany relationship has been seeded with an empty object');
-  strictEqual(moon.links.planet, earth[schema.idField], 'hasOne relationship was specified in data');
+  deepEqual(earth.__rel.moons, {}, 'hasMany relationship has been seeded with an empty object');
+  strictEqual(moon.__rel.planet, earth[schema.idField], 'hasOne relationship was specified in data');
 
   io = {};
   schema.initRecord('moon', io);
@@ -153,8 +153,8 @@ test("#initRecord will not overwrite data set as attributes", function() {
   jupitersMoons[io[schema.idField]] = true;
   jupitersMoons[europa[schema.idField]] = true;
 
-  jupiter = {name: 'Jupiter', links: {moons: jupitersMoons}};
+  jupiter = {name: 'Jupiter', __rel: {moons: jupitersMoons}};
   schema.initRecord('planet', jupiter);
 
-  deepEqual(jupiter.links.moons, jupitersMoons, 'hasMany relationship was specified in data');
+  deepEqual(jupiter.__rel.moons, jupitersMoons, 'hasMany relationship was specified in data');
 });

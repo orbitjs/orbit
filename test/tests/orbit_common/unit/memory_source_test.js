@@ -479,16 +479,16 @@ test("#addLink and #removeLink- can link and unlink records in a many-to-one rel
     return source.addLink('planet', jupiter, 'moons', io);
 
   }).then(function() {
-    equal(Object.keys(jupiter.links.moons).length, 1, 'Jupiter has one moon after linking');
-    ok(jupiter.links.moons[io.__id], 'Jupiter\'s moon is Io');
-    equal(io.links.planet, jupiter.__id, 'Io\'s planet is Jupiter');
+    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
+    ok(jupiter.__rel.moons[io.__id], 'Jupiter\'s moon is Io');
+    equal(io.__rel.planet, jupiter.__id, 'Io\'s planet is Jupiter');
 
     return source.removeLink('planet', jupiter, 'moons', io);
 
   }).then(function() {
     start();
-    equal(io.links.planet, undefined, 'Io is not associated with a planet after unlinking');
-    equal(Object.keys(jupiter.links.moons).length, 0, 'Jupiter has no moons after unlinking');
+    equal(io.__rel.planet, undefined, 'Io is not associated with a planet after unlinking');
+    equal(Object.keys(jupiter.__rel.moons).length, 0, 'Jupiter has no moons after unlinking');
   });
 });
 
@@ -511,16 +511,16 @@ test("#addLink and #removeLink- can link and unlink records in a many-to-one rel
     return source.addLink('moon', io, 'planet', jupiter);
 
   }).then(function() {
-    equal(Object.keys(jupiter.links.moons).length, 1, 'Jupiter has one moon after linking');
-    ok(jupiter.links.moons[io.__id], 'Jupiter\'s moon is Io');
-    equal(io.links.planet, jupiter.__id, 'Io\'s planet is Jupiter');
+    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
+    ok(jupiter.__rel.moons[io.__id], 'Jupiter\'s moon is Io');
+    equal(io.__rel.planet, jupiter.__id, 'Io\'s planet is Jupiter');
 
     return source.removeLink('moon', io, 'planet');
 
   }).then(function() {
     start();
-    equal(io.links.planet, undefined, 'Io is not associated with a planet after unlinking');
-    equal(Object.keys(jupiter.links.moons).length, 0, 'Jupiter has no moons after unlinking');
+    equal(io.__rel.planet, undefined, 'Io is not associated with a planet after unlinking');
+    equal(Object.keys(jupiter.__rel.moons).length, 0, 'Jupiter has no moons after unlinking');
   });
 });
 
@@ -539,12 +539,11 @@ test("#findLink - can find has-one linked values", function() {
 
   }).then(function(moon) {
     io = moon;
-
     return source.addLink('moon', io, 'planet', jupiter);
 
   }).then(function() {
-    equal(Object.keys(jupiter.links.moons).length, 1, 'Jupiter has one moon after linking');
-    equal(io.links.planet, jupiter.__id, 'Io\'s planet is Jupiter');
+    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
+    equal(io.__rel.planet, jupiter.__id, 'Io\'s planet is Jupiter');
 
     return source.findLink('moon', io, 'planet');
 
@@ -573,8 +572,8 @@ test("#findLink - can find has-many linked values", function() {
     return source.addLink('planet', jupiter, 'moons', io);
 
   }).then(function() {
-    equal(Object.keys(jupiter.links.moons).length, 1, 'Jupiter has one moon after linking');
-    equal(io.links.planet, jupiter.__id, 'Io\'s planet is Jupiter');
+    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
+    equal(io.__rel.planet, jupiter.__id, 'Io\'s planet is Jupiter');
 
     return source.findLink('planet', jupiter, 'moons');
 
