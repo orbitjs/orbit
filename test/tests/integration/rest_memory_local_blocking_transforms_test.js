@@ -93,8 +93,8 @@ test("multiple records found with rest should be inserted into memory and local 
   });
 });
 
-test("if find is called mutiple times, the count of synced objects in the dbs should remain the same", function() {
-  expect(5);
+test("records will be matched with existing records if find is called mutiple times", function() {
+  expect(8);
   server.respondWith('GET', '/planets', function(xhr) {
       ok(true, 'GET request');
       xhr.respond(200,
@@ -106,14 +106,17 @@ test("if find is called mutiple times, the count of synced objects in the dbs sh
   });
   stop();
   restSource.find('planet').then(function(planets) {
+    equal(memorySource.length('planet'), 2, 'memory source cache size should == 2');
+    equal(restSource.length('planet'), 2, 'rest source cache size should == 2');
+    equal(localSource.length('planet'), 2, 'local source cache size should == 2');
+    return restSource.find('planet');
+
+  }).then(function(planets) {
     start();
-    equal(memorySource.length('planet'), 2, 'memory source cache size should == 2'); //fails because size == 4
-    equal(restSource.length('planet'), 2, 'rest source cache size should == 2'); //fails because size == 4
-    equal(localSource.length('planet'), 2, 'local source cache size should == 2'); //fails because size == 4
-  }).then(restSource.find('planet').then(function(planets) {
-    console.log(planets); // 2 planets returned
-    console.log(localSource.length('planet')); // size == 4
-  }));
+    equal(memorySource.length('planet'), 2, 'memory source cache size should remain == 2');
+    equal(restSource.length('planet'), 2, 'rest source cache size should remain == 2');
+    equal(localSource.length('planet'), 2, 'local source cache size should remain == 2');
+  });
 });
 
 test("records inserted into memory should be posted with rest", function() {
