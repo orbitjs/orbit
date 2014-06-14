@@ -1,8 +1,13 @@
+import Orbit from 'orbit/main';
 import Schema from 'orbit_common/schema';
+import { Promise } from 'rsvp';
 
 ///////////////////////////////////////////////////////////////////////////////
 
 module("OC - Schema", {
+  setup: function() {
+    Orbit.Promise = Promise;
+  }
 });
 
 test("it exists", function() {
