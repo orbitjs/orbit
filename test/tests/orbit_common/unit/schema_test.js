@@ -62,7 +62,8 @@ test("#normalize initializes a record's attributes with any defaults that are sp
           shape: {type: 'string'},
           classification: {type: 'string', defaultValue: function() {
             return 'terrestrial';
-          }}
+          }},
+          hasWater: {type: 'boolean', defaultValue: false}
         }
       }
     }
@@ -73,6 +74,7 @@ test("#normalize initializes a record's attributes with any defaults that are sp
   strictEqual(earth.name, 'Earth', 'default has been set by value');
   strictEqual(earth.shape, null, 'default has not been set - should be null');
   strictEqual(earth.classification, 'terrestrial', 'default has been set by function');
+  strictEqual(earth.hasWater, false, 'default has not been set - should be false');
 });
 
 test("#normalize initializes a record's links", function() {
