@@ -2,7 +2,7 @@ import Orbit from 'orbit/main';
 import Schema from 'orbit_common/schema';
 import LocalForageSource from 'orbit_common/local_forage_source';
 import { all, Promise } from 'rsvp';
-import { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty } from 'test_helper';
+import { verifyLocalForageContainsRecord, verifyLocalForageIsEmpty } from 'test_helper';
 
 var source;
 
@@ -20,7 +20,8 @@ module("OC - LocalForageSource", {
     var callback = function() {
       console.log("callback");
     };
-    source = new LocalForageSource(schema, {autoload: false, localforage: window.localforage, saveDataCallback: callback});
+    window.localforage.setDriver('localStorageWrapper');
+    source = new LocalForageSource(schema, {autoload: false, localforage: window.localforage});
   },
 
   teardown: function() {
@@ -35,12 +36,11 @@ test("it exists", function() {
 });
 
 test("#add - can insert records and assign ids", function() {
-  expect(6);
+  expect(7);
 
   equal(source.length('planet'), 0, 'source should be empty');
 
   stop();
-  console.log("start test");
   source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     equal(source.length('planet'), 1, 'source should contain one record');
     ok(planet.__id, 'id should be defined');
@@ -49,13 +49,14 @@ test("#add - can insert records and assign ids", function() {
     return planet;
 
   }).then(function(planet) {
+    verifyLocalForageContainsRecord(source.namespace, 'planet', planet);
     source.find('planet', planet.__id).then(function(foundPlanet) {
       start();
       equal(foundPlanet.id, planet.id, 'record can be looked up by id');
     });
   });
 });
-/*
+
 test("#update - can update records", function() {
   expect(8);
 
@@ -74,7 +75,7 @@ test("#update - can update records", function() {
     });
 
   }).then(function(planet) {
-    verifyLocalStorageContainsRecord(source.namespace, 'planet', planet);
+    verifyLocalForageContainsRecord(source.namespace, 'planet', planet);
     source.find('planet', planet.__id).then(function(foundPlanet) {
       start();
       equal(foundPlanet.__id, planet.__id, 'record can be looked up by __id');
@@ -97,7 +98,7 @@ test("#patch - can patch records", function() {
     original = planet;
 
     source.patch('planet', planet.__id, 'name', 'Earth').then(function() {
-      verifyLocalStorageContainsRecord(source.namespace, 'planet', planet);
+      verifyLocalForageContainsRecord(source.namespace, 'planet', planet);
       source.find('planet', planet.__id).then(function(foundPlanet) {
         start();
         strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
@@ -153,10 +154,10 @@ test("it can use a custom local storage namespace for storing data", function() 
   stop();
   source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
-    verifyLocalStorageContainsRecord(source.namespace, 'planet', planet);
+    verifyLocalForageContainsRecord(source.namespace, 'planet', planet);
   });
 });
-
+/*
 test("autosave can be disabled to delay writing to local storage", function() {
   expect(4);
 
@@ -168,11 +169,10 @@ test("autosave can be disabled to delay writing to local storage", function() {
   source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
     equal(source.length('planet'), 1, 'source should contain one record');
-    verifyLocalStorageIsEmpty(source.namespace);
+    verifyLocalForageIsEmpty(source.namespace);
 
     source.enableAutosave();
-    verifyLocalStorageContainsRecord(source.namespace, 'planet', planet);
+    verifyLocalForageContainsRecord(source.namespace, 'planet', planet);
   });
 });
-
 */
