@@ -4,6 +4,7 @@
   "dependencies": {
     "jquery": "~1.9.1",
     "qunit": "~1.12.0",
-    "rsvp": "~2.0.4"
+    "rsvp": "~2.0.4",
+    "localforage": "0.8.1"
   }
 }

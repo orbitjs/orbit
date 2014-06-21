@@ -9,6 +9,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+      'vendor/localforage.js',
       'vendor/loader.js',
       'vendor/sinon.js',
       'vendor/jquery.js',
