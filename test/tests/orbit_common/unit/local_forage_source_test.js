@@ -157,8 +157,8 @@ test("it can use a custom local storage namespace for storing data", function() 
     verifyLocalForageContainsRecord(source.namespace, 'planet', planet);
   });
 });
-/*
-test("autosave can be disabled to delay writing to local storage", function() {
+
+test("autosave can be disabled to delay writing to local forage", function() {
   expect(4);
 
   source.disableAutosave();
@@ -175,4 +175,3 @@ test("autosave can be disabled to delay writing to local storage", function() {
     verifyLocalForageContainsRecord(source.namespace, 'planet', planet);
   });
 });
-*/
