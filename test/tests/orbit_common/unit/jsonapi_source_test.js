@@ -53,6 +53,22 @@ test("it exists", function() {
   ok(source);
 });
 
+test("source saves options", function() {
+  expect(3);
+  var schema = new Schema({});
+  source = new JSONAPISource(schema, {host: "127.0.0.1:8888", namespace: "api", headers: {"User-Agent": "CERN-LineMode/2.15 libwww/2.17b3"}});
+  equal(source.namespace, "api", "Namespace should be defined");
+  equal(source.host, "127.0.0.1:8888", "Host should be defined");
+  equal(source.headers["User-Agent"], "CERN-LineMode/2.15 libwww/2.17b3", "Headers should be defined");
+});
+
+test("#buildURL - respects options to construct URLs", function () {
+  expect(1);
+  var schema = new Schema({});
+  source = new JSONAPISource(schema, {host: "127.0.0.1:8888", namespace: "api"});
+  equal(source.buildURL("planet", 1), '127.0.0.1:8888/api/planets/1', "buildURL method should use the options to construct URLs");
+});
+
 test("#add - can insert records", function() {
   expect(5);
 
