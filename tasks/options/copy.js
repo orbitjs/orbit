@@ -12,6 +12,7 @@ module.exports = {
       cwd: 'bower_components/',
       src: ['jquery/jquery.js',
             'rsvp/rsvp.amd.js',
+            'localforage/dist/localforage.js',
             'qunit/qunit/qunit.js',
             'qunit/qunit/qunit.css'],
       dest: 'tmp/public/test/vendor/'

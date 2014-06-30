@@ -20,6 +20,9 @@ module.exports = {
           case 'orbit-common-local-storage':
             return 'OC.LocalStorageSource';
 
+          case 'orbit-common-local-forage':
+            return 'OC.LocalForageSource';
+
           default:
             this.fail.warn('Unrecognized file: `' + name + '`.');
         }
@@ -37,6 +40,9 @@ module.exports = {
 
           case 'orbit-common-local-storage':
             return 'orbit_common/local_storage_source';
+
+          case 'orbit-common-local-forage':
+            return 'orbit_common/local_forage_source';
 
           default:
             this.fail.warn('Unrecognized file: `' + name + '`.');
