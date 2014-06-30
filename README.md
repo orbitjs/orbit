@@ -75,7 +75,6 @@ dependencies from inside the project root with:
 
 ```
 npm install
-bower install
 ```
 
 Distributable versions of Orbit can be built to the `/dist` directory by running:
