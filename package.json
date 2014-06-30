@@ -28,6 +28,7 @@
     "test": "test"
   },
   "scripts": {
+    "postinstall": "bower install",
     "start": "grunt server",
     "build": "grunt build:dist",
     "test": "grunt test:ci"
