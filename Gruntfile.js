@@ -38,10 +38,10 @@ module.exports = function(grunt) {
                      'build:tests', 'karma:test']);
 
   grunt.registerTask('test:ci', "Run your app's tests in PhantomJS. For use in continuous integration (i.e. Travis CI).", [
-                     'build:tests', 'karma:ci']);
+                     'build:tests', 'connect:server', 'qunit:local']);
 
-  grunt.registerTask('test:server', "Start a Karma test server. Automatically reruns your tests when files change and logs the results to the terminal.", [
-                     'build:tests', 'karma:server', 'connect', 'watch:test']);
+  grunt.registerTask('test:server', "Start a test server. Automatically reruns your tests when files change and logs the results to the terminal.", [
+                     'test:ci', 'watch:test']);
 
   grunt.registerTask('server', "Run your server in development mode, auto-rebuilding when files change.", [
                      'build:tests', 'connect:server', 'watch:main']);
