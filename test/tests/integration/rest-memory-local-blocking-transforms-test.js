@@ -1,11 +1,11 @@
 import Orbit from 'orbit/main';
-import Schema from 'orbit_common/schema';
-import MemorySource from 'orbit_common/memory_source';
-import JSONAPISource from 'orbit_common/jsonapi_source';
-import LocalStorageSource from 'orbit_common/local_storage_source';
-import TransformConnector from 'orbit/transform_connector';
+import Schema from 'orbit-common/schema';
+import MemorySource from 'orbit-common/memory-source';
+import JSONAPISource from 'orbit-common/jsonapi-source';
+import LocalStorageSource from 'orbit-common/local-storage-source';
+import TransformConnector from 'orbit/transform-connector';
 import { Promise } from 'rsvp';
-import { verifyLocalStorageContainsRecord } from 'test_helper';
+import { verifyLocalStorageContainsRecord } from 'test-helper';
 
 var server,
     memorySource,

@@ -1,6 +1,6 @@
 import Orbit from 'orbit/main';
 import Requestable from 'orbit/requestable';
-import RequestConnector from 'orbit/request_connector';
+import RequestConnector from 'orbit/request-connector';
 import { Promise } from 'rsvp';
 
 var primarySource,

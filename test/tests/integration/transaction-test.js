@@ -1,6 +1,6 @@
 import Orbit from 'orbit/main';
-import Schema from 'orbit_common/schema';
-import MemorySource from 'orbit_common/memory_source';
+import Schema from 'orbit-common/schema';
+import MemorySource from 'orbit-common/memory-source';
 import Transaction from 'orbit/transaction';
 import { Promise, all } from 'rsvp';
 

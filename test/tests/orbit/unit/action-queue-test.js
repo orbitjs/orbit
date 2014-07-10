@@ -1,5 +1,5 @@
 import Orbit from 'orbit/main';
-import ActionQueue from 'orbit/action_queue';
+import ActionQueue from 'orbit/action-queue';
 import Evented from 'orbit/evented';
 import { noop } from 'orbit/lib/stubs';
 import { Promise } from 'rsvp';

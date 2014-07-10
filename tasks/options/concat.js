@@ -5,14 +5,14 @@ module.exports = {
           'tmp/transpiled/lib/orbit.amd.js',
           'tmp/transpiled/lib/orbit/**/*.amd.js'],
       'tmp/built/orbit-common.amd.js': [
-          'tmp/transpiled/lib/orbit_common.amd.js',
-          'tmp/transpiled/lib/orbit_common/**/*.amd.js',
-          '!tmp/transpiled/lib/orbit_common/local_storage_source.amd.js',
-          '!tmp/transpiled/lib/orbit_common/jsonapi_source.amd.js'],
+          'tmp/transpiled/lib/orbit-common.amd.js',
+          'tmp/transpiled/lib/orbit-common/**/*.amd.js',
+          '!tmp/transpiled/lib/orbit-common/local-storage-source.amd.js',
+          '!tmp/transpiled/lib/orbit-common/jsonapi-source.amd.js'],
       'tmp/built/orbit-common-local-storage.amd.js': [
-          'tmp/transpiled/lib/orbit_common/local_storage_source.amd.js'],
+          'tmp/transpiled/lib/orbit-common/local-storage-source.amd.js'],
       'tmp/built/orbit-common-jsonapi.amd.js': [
-          'tmp/transpiled/lib/orbit_common/jsonapi_source.amd.js']
+          'tmp/transpiled/lib/orbit-common/jsonapi-source.amd.js']
     }
   },
 

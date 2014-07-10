@@ -30,13 +30,13 @@ module.exports = {
             return 'orbit';
 
           case 'orbit-common':
-            return 'orbit_common';
+            return 'orbit-common';
 
           case 'orbit-common-jsonapi':
-            return 'orbit_common/jsonapi_source';
+            return 'orbit-common/jsonapi-source';
 
           case 'orbit-common-local-storage':
-            return 'orbit_common/local_storage_source';
+            return 'orbit-common/local-storage-source';
 
           default:
             this.fail.warn('Unrecognized file: `' + name + '`.');

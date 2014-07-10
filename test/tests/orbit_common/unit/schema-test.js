@@ -1,5 +1,5 @@
 import Orbit from 'orbit/main';
-import Schema from 'orbit_common/schema';
+import Schema from 'orbit-common/schema';
 import { Promise } from 'rsvp';
 
 ///////////////////////////////////////////////////////////////////////////////

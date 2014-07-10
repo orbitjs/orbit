@@ -1,6 +1,6 @@
 import Orbit from 'orbit/main';
-import Cache from 'orbit_common/cache';
-import Schema from 'orbit_common/schema';
+import Cache from 'orbit-common/cache';
+import Schema from 'orbit-common/schema';
 import { Promise } from 'rsvp';
 
 var schema,
