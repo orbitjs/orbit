@@ -2,7 +2,7 @@
   "name": "orbit.js",
   "namespace": "Orbit",
   "description": "A standalone library for data access and synchronization",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "homepage": "https://github.com/orbitjs/orbit.js",
   "readmeFilename": "README.md",
   "author": {
