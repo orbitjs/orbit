@@ -1,5 +1,7 @@
 import Orbit from 'orbit/main';
 import Schema from 'orbit-common/schema';
+import Source from 'orbit-common/source';
+import MemorySource from 'orbit-common/memory-source';
 import LocalStorageSource from 'orbit-common/local-storage-source';
 import { all, Promise } from 'rsvp';
 import { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty } from 'test-helper';
@@ -30,6 +32,11 @@ module("OC - LocalStorageSource", {
 
 test("it exists", function() {
   ok(source);
+});
+
+test("its prototype chain is correct", function() {
+  ok(source instanceof Source,       'instanceof Source');
+  ok(source instanceof MemorySource, 'instanceof MemorySource');
 });
 
 test("#add - can insert records and assign ids", function() {

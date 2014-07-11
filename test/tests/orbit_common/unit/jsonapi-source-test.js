@@ -1,5 +1,6 @@
 import Orbit from 'orbit/main';
 import Schema from 'orbit-common/schema';
+import Source from 'orbit-common/source';
 import JSONAPISource from 'orbit-common/jsonapi-source';
 import { Promise } from 'rsvp';
 
@@ -51,6 +52,10 @@ module("OC - JSONAPISource", {
 
 test("it exists", function() {
   ok(source);
+});
+
+test("its prototype chain is correct", function() {
+  ok(source instanceof Source, 'instanceof Source');
 });
 
 test("source saves options", function() {

@@ -1,6 +1,7 @@
 import Orbit from 'orbit/main';
 import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
+import Source from 'orbit-common/source';
 import { all, Promise } from 'rsvp';
 import { RecordNotFoundException, LinkNotFoundException } from 'orbit-common/lib/exceptions';
 
@@ -45,6 +46,10 @@ module("OC - MemorySource", {
 
 test("it exists", function() {
   ok(source);
+});
+
+test("its prototype chain is correct", function() {
+  ok(source instanceof Source, 'instanceof Source');
 });
 
 // TODO - fixup transform tests
