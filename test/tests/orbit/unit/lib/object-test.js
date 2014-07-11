@@ -1,4 +1,4 @@
-import { clone, expose, extend, isArray, isNone } from 'orbit/lib/objects';
+import { Class, clone, defineClass, expose, extend, extendClass, isArray, isNone } from 'orbit/lib/objects';
 
 module("Orbit - Lib - Object", {
 });
@@ -88,7 +88,6 @@ test("`extend` can copy all the properties and methods from one object to anothe
   equal(blank.greeting(), 'hi from blank', 'functions are evaluated with the destination context');
 });
 
-
 test("`extend` can copy all the properties and methods from multiple objects to another", function() {
   var blank = {
     age: 0
@@ -105,7 +104,7 @@ test("`extend` can copy all the properties and methods from multiple objects to 
   var jupiter = {
     name: 'jupiter',
     age: 5
-  }
+  };
 
   extend(blank, earth, jupiter);
 
@@ -113,6 +112,128 @@ test("`extend` can copy all the properties and methods from multiple objects to 
   equal(blank.age, 5, 'age came from jupiter');
   equal(blank.hasPeople, true, 'hasPeople came from earth, and was not overridden');
   equal(blank.greeting(), 'hi from jupiter', 'greeting came from earth but was evaluated in destination context');
+});
+
+test("`defineClass` can create a new base class which can create objects", function() {
+  var Planet = defineClass();
+  ok(Planet);
+
+  var earth = new Planet();
+  ok(earth instanceof Object);
+  ok(earth instanceof Planet);
+});
+
+test("`defineClass` can create a subclass which can create objects", function() {
+  var CelestialObject = defineClass();
+  var Planet = defineClass(CelestialObject);
+  ok(Planet);
+
+  var earth = new Planet();
+  ok(earth instanceof Object);
+  ok(earth instanceof CelestialObject);
+  ok(earth instanceof Planet);
+});
+
+test("`defineClass` can create a new base class with properties and methods", function() {
+  var Planet = defineClass(null, {
+    name: 'TBD',
+    greeting: function() {
+      return 'hello from ' + this.name;
+    }
+  });
+
+  var earth = new Planet();
+  equal(earth.name, 'TBD', 'property comes from class prototype');
+  equal(earth.greeting(), 'hello from TBD', 'functions come from class prototype');
+
+  earth.name = 'earth';
+  equal(earth.greeting(), 'hello from earth', 'functions are evaluated in proper context');
+});
+
+test("`defineClass` can create a new subclass with properties and methods", function() {
+  var CelestialObject = defineClass(null, {
+    name: 'TBD',
+    greeting: function() {
+      return 'hello from ' + this.name;
+    }
+  });
+  var Planet = defineClass(CelestialObject, {
+    greeting: function() {
+      return this._super() + '!';
+    }
+  }, {
+    isPlanet: true
+  });
+
+  var earth = new Planet();
+  equal(earth.name, 'TBD', 'property comes from superclass');
+  equal(earth.greeting(), 'hello from TBD!', 'functions come from class prototype');
+  equal(earth.isPlanet, true, 'property comes from mixin');
+
+  earth.name = 'earth';
+  equal(earth.greeting(), 'hello from earth!', 'functions are evaluated in proper context');
+});
+
+test("`extendClass` makes _super accessible within overridden methods", function() {
+  var Planet = defineClass(null, {
+    name: 'TBD',
+    greeting: function() {
+      return 'hello from ' + this.name;
+    }
+  });
+  extendClass(Planet.prototype, {
+    greeting: function() {
+      return this._super() + '!';
+    }
+  }, {
+    isPlanet: true
+  });
+
+  var earth = new Planet();
+  equal(earth.name, 'TBD', 'property comes from superclass');
+  equal(earth.greeting(), 'hello from TBD!', 'functions can access _super');
+  equal(earth.isPlanet, true, 'property comes from mixin');
+
+  earth.name = 'earth';
+  equal(earth.greeting(), 'hello from earth!', 'functions are evaluated in proper context');
+});
+
+test("`Class` can be extended to easily define and subclass classes", function() {
+  var CelestialObject = Class.extend({
+    name: 'TBD',
+    init: function() {
+      this._super();
+      this.isCelestialObject = true;
+    },
+    greeting: function() {
+      return 'hello from ' + this.name;
+    }
+  });
+  var Planet = CelestialObject.extend({
+    init: function() {
+      this._super();
+      this.isPlanet = true;
+    }
+  }, {
+    greeting: function() {
+      return this._super() + '!';
+    },
+  });
+
+  var earth = new Planet();
+
+  ok(earth instanceof Object);
+  ok(earth instanceof Class);
+  ok(earth instanceof CelestialObject);
+  ok(earth instanceof Planet);
+
+  equal(earth.name, 'TBD', 'property comes from superclass');
+  equal(earth.greeting(), 'hello from TBD!', 'functions come from class prototype');
+  equal(earth.isCelestialObject, true, 'property comes from CelestialObject.init');
+  equal(earth.isPlanet, true, 'property comes from Planet.init');
+
+  earth.name = 'earth';
+  equal(earth.greeting(), 'hello from earth!', 'functions are evaluated in proper context');
 });
 
 test("`isArray` checks whether an object is an array", function() {
