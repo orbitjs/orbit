@@ -18,6 +18,53 @@ test("`clone` creates a deep clone of an object's own properties", function() {
   notStrictEqual(obj, copy, 'clone is not strictly equal to original');
 });
 
+test("`expose` can expose all the properties and methods from one object on another", function() {
+  var earth = {
+    name: 'earth',
+    age: 4.5,
+    greeting: function() {
+      return 'hi from ' + this.name;
+    }
+  };
+
+  var blank = {
+    age: 0
+  };
+
+  expose(blank, earth);
+
+  equal(blank.name, earth.name, 'name matches');
+  equal(blank.age, earth.age, 'age matches');
+  equal(blank.greeting(), earth.greeting(), 'greeting matches');
+
+  blank.name = 'blank';
+  equal(blank.greeting(), 'hi from earth', 'functions are evaluated with original context');
+});
+
+test("`expose` can expose specific properties and methods from one object on another", function() {
+  var earth = {
+    name: 'earth',
+    age: 4.5,
+    greeting: function() {
+      return 'hi from ' + this.name;
+    }
+  };
+
+  var blank = {
+    name: 'blank',
+    age: 0
+  };
+
+  expose(blank, earth, 'age', 'greeting');
+
+  equal(blank.name, 'blank', 'name has not changed');
+  equal(blank.age, earth.age, 'age matches');
+  equal(blank.greeting(), earth.greeting(), 'greeting matches');
+
+  blank.name = 'blank';
+  equal(blank.greeting(), 'hi from earth', 'functions are evaluated with original context');
+});
+
 test("`isArray` checks whether an object is an array", function() {
   var obj = {length: 1};
 
