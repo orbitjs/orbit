@@ -201,17 +201,18 @@ test("`extendClass` makes _super accessible within overridden methods", function
 test("`Class` can be extended to easily define and subclass classes", function() {
   var CelestialObject = Class.extend({
     name: 'TBD',
-    init: function() {
-      this._super();
+    init: function(name) {
+      this._super.apply(this, arguments);
+      this.name = name;
       this.isCelestialObject = true;
     },
     greeting: function() {
-      return 'hello from ' + this.name;
+      return 'Hello from ' + this.name;
     }
   });
   var Planet = CelestialObject.extend({
-    init: function() {
-      this._super();
+    init: function(name) {
+      this._super.apply(this, arguments);
       this.isPlanet = true;
     }
   }, {
@@ -220,20 +221,20 @@ test("`Class` can be extended to easily define and subclass classes", function()
     },
   });
 
-  var earth = new Planet();
+  var earth = new Planet('Earth');
 
   ok(earth instanceof Object);
   ok(earth instanceof Class);
   ok(earth instanceof CelestialObject);
   ok(earth instanceof Planet);
 
-  equal(earth.name, 'TBD', 'property comes from superclass');
-  equal(earth.greeting(), 'hello from TBD!', 'functions come from class prototype');
+  equal(earth.name, 'Earth', 'property set by constructor');
+  equal(earth.greeting(), 'Hello from Earth!', 'greeting function is composed from mixin and superclass');
   equal(earth.isCelestialObject, true, 'property comes from CelestialObject.init');
   equal(earth.isPlanet, true, 'property comes from Planet.init');
 
-  earth.name = 'earth';
-  equal(earth.greeting(), 'hello from earth!', 'functions are evaluated in proper context');
+  earth.name = 'Jupiter';
+  equal(earth.greeting(), 'Hello from Jupiter!', 'functions are evaluated in proper context');
 });
 
 test("`isArray` checks whether an object is an array", function() {
