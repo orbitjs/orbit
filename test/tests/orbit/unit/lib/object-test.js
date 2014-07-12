@@ -65,6 +65,56 @@ test("`expose` can expose specific properties and methods from one object on ano
   equal(blank.greeting(), 'hi from earth', 'functions are evaluated with original context');
 });
 
+test("`extend` can copy all the properties and methods from one object to another", function() {
+  var blank = {
+    age: 0
+  };
+
+  var earth = {
+    name: 'earth',
+    age: 4.5,
+    greeting: function() {
+      return 'hi from ' + this.name;
+    }
+  };
+
+  extend(blank, earth);
+
+  equal(blank.name, earth.name, 'name matches');
+  equal(blank.age, earth.age, 'age matches');
+  equal(blank.greeting(), earth.greeting(), 'greeting matches');
+
+  blank.name = 'blank';
+  equal(blank.greeting(), 'hi from blank', 'functions are evaluated with the destination context');
+});
+
+
+test("`extend` can copy all the properties and methods from multiple objects to another", function() {
+  var blank = {
+    age: 0
+  };
+
+  var earth = {
+    name: 'earth',
+    greeting: function() {
+      return 'hi from ' + this.name;
+    },
+    hasPeople: true
+  };
+
+  var jupiter = {
+    name: 'jupiter',
+    age: 5
+  }
+
+  extend(blank, earth, jupiter);
+
+  equal(blank.name, 'jupiter', 'name came from jupiter');
+  equal(blank.age, 5, 'age came from jupiter');
+  equal(blank.hasPeople, true, 'hasPeople came from earth, and was not overridden');
+  equal(blank.greeting(), 'hi from jupiter', 'greeting came from earth but was evaluated in destination context');
+});
+
 test("`isArray` checks whether an object is an array", function() {
   var obj = {length: 1};
 
@@ -80,5 +130,3 @@ test("`isNone` checks whether an object is `null` or `undefined`", function() {
   equal(isNone(null), true, 'isNone identifies null');
   equal(isNone(undefined), true, 'isNone identifies undefined');
 });
-
-// TODO - expose, extend
