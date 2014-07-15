@@ -7,7 +7,7 @@ var primarySource,
     secondarySource,
     requestConnector;
 
-var testRescueMode = function(actionName) {
+var testRequestConnector = function(actionName) {
   var ActionName = actionName.charAt(0).toUpperCase() + actionName.slice(1);
 
   var successfulOperation = function() {
@@ -274,4 +274,4 @@ module("Orbit - RequestConnector", {
   }
 });
 
-testRescueMode('find');
+testRequestConnector('find');
