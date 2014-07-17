@@ -78,10 +78,10 @@ test("#add - can insert records", function() {
   expect(5);
 
   server.respondWith('POST', '/planets', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant', links: {moons: []}}, 'POST request');
+    deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant', links: {moons: []}}}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
+                JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
   });
 
   stop();
@@ -98,10 +98,10 @@ test("#update - can update records", function() {
   expect(5);
 
   server.respondWith('PUT', '/planets/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {id: 12345, name: 'Jupiter', classification: 'gas giant', links: {moons: []}}, 'PUT request');
+    deepEqual(JSON.parse(xhr.requestBody), {planets: {id: 12345, name: 'Jupiter', classification: 'gas giant', links: {moons: []}}}, 'PUT request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
+                JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
   });
 
   stop();
@@ -204,17 +204,17 @@ test("#find - can find individual records by passing in a single id", function()
   expect(6);
 
   server.respondWith('POST', '/planets', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant', links: {moons: []}}, 'POST request');
+    deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant', links: {moons: []}}}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
+                JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
   });
 
   server.respondWith('GET', '/planets/12345', function(xhr) {
     ok(true, 'GET request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
+                JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
   });
 
   stop();
@@ -229,6 +229,36 @@ test("#find - can find individual records by passing in a single id", function()
   });
 });
 
+// TODO - verify compound documents
+//
+// test("#find - can return a compound document including related records", function() {
+//   expect(6);
+
+//   var payload = {
+//     planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'},
+//     linked: {
+//       moons: [{id: 5, name: 'Io', links: {planet: 12345}}]
+//     }
+//   };
+
+//   server.respondWith('GET', '/planets/12345', function(xhr) {
+//     ok(true, 'GET request');
+//     xhr.respond(200,
+//                 {'Content-Type': 'application/json'},
+//                 JSON.stringify(payload));
+//   });
+
+//   stop();
+//   source.find('planet', {id: 12345}).then(function(planet) {
+//     start();
+//     ok(planet.__id, 'orbit id should be defined');
+//     equal(planet.id, 12345, 'server id should be defined');
+//     equal(planet.name, 'Jupiter', 'name should match');
+//     equal(planet.classification, 'gas giant', 'classification should match');
+//     equal(Object.keys(planet.__rel.moons).length, 1, 'planet should have a single moon');
+//   });
+// });
+
 test("#find - can find an array of records from an array of ids", function() {
   expect(4);
 
@@ -239,8 +269,8 @@ test("#find - can find an array of records from an array of ids", function() {
     ok(true, 'GET request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify([{id: '1', name: 'Jupiter'},
-                                {id: '2', name: 'Earth'}]));
+                JSON.stringify({planets: [{id: '1', name: 'Jupiter'},
+                                          {id: '2', name: 'Earth'}]}));
   });
 
   stop();
@@ -259,8 +289,8 @@ test("#find - can find an array of records from an array of remote ids", functio
     ok(true, 'GET request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify([{id: '1', name: 'Jupiter'},
-                                {id: '2', name: 'Earth'}]));
+                JSON.stringify({planets: [{id: '1', name: 'Jupiter'},
+                                          {id: '2', name: 'Earth'}]}));
   });
 
   stop();
@@ -276,17 +306,17 @@ test("#find - can find individual records by passing in a single remote id", fun
   expect(6);
 
   server.respondWith('POST', '/planets', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {name: 'Jupiter', classification: 'gas giant', links: {moons: []}}, 'POST request');
+    deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant', links: {moons: []}}}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
+                JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
   });
 
   server.respondWith('GET', '/planets/12345', function(xhr) {
     ok(true, 'GET request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({id: 12345, name: 'Jupiter', classification: 'gas giant'}));
+                JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
   });
 
   stop();
@@ -314,7 +344,7 @@ test("#find - can find all records", function() {
     ok(true, 'GET request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify(records));
+                JSON.stringify({planets: records}));
   });
 
   stop();
@@ -348,7 +378,7 @@ test("#find - can filter records", function() {
     equal(xhr.url, '/planets?classification=terrestrial', 'request to correct URL');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify(records));
+                JSON.stringify({planets: records}));
   });
 
   stop();
