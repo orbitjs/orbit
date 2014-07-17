@@ -8,6 +8,7 @@ module.exports = {
           'tmp/transpiled/lib/orbit-common.amd.js',
           'tmp/transpiled/lib/orbit-common/**/*.amd.js',
           '!tmp/transpiled/lib/orbit-common/local-storage-source.amd.js',
+          '!tmp/transpiled/lib/orbit-common/jsonapi-serializer.amd.js',
           '!tmp/transpiled/lib/orbit-common/jsonapi-source.amd.js'],
       'tmp/built/orbit-common-local-storage.amd.js': [
           'tmp/transpiled/lib/orbit-common/local-storage-source.amd.js'],

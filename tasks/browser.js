@@ -31,7 +31,9 @@ module.exports = function(grunt) {
 
         output.push(grunt.file.read(file));
 
-        output.push("global." + options.namespace(name) + " = requireModule('" + options.module(name) + "');");
+        options.modules(name).forEach(function(module) {
+          output.push("global." + module.namespace + " = requireModule('" + module.name + "');");
+        });
 
         var postRequire = options.postRequire(name);
         if (postRequire) output.push.apply(output, postRequire);

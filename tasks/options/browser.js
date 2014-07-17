@@ -6,37 +6,34 @@ module.exports = {
         file = file.replace('.browser.js', '');
         return file;
       },
-      namespace: function(name) {
+      modules: function(name) {
         switch (name) {
           case 'orbit':
-            return 'Orbit';
+            return [{
+              namespace: 'Orbit',
+              name: 'orbit'
+            }];
 
           case 'orbit-common':
-            return 'OC';
+            return [{
+              namespace: 'OC',
+              name: 'orbit-common'
+            }];
 
           case 'orbit-common-jsonapi':
-            return 'OC.JSONAPISource';
+            return [{
+              namespace: 'OC.JSONAPISource',
+              name: 'orbit-common/jsonapi-source'
+            }, {
+              namespace: 'OC.JSONAPISerializer',
+              name: 'orbit-common/jsonapi-serializer'
+            }];
 
           case 'orbit-common-local-storage':
-            return 'OC.LocalStorageSource';
-
-          default:
-            this.fail.warn('Unrecognized file: `' + name + '`.');
-        }
-      },
-      module: function(name) {
-        switch (name) {
-          case 'orbit':
-            return 'orbit';
-
-          case 'orbit-common':
-            return 'orbit-common';
-
-          case 'orbit-common-jsonapi':
-            return 'orbit-common/jsonapi-source';
-
-          case 'orbit-common-local-storage':
-            return 'orbit-common/local-storage-source';
+            return [{
+              namespace: 'OC.LocalStorageSource',
+              name: 'orbit-common/local-storage-source'
+            }];          
 
           default:
             this.fail.warn('Unrecognized file: `' + name + '`.');
