@@ -229,35 +229,39 @@ test("#find - can find individual records by passing in a single id", function()
   });
 });
 
-// TODO - verify compound documents
-//
-// test("#find - can return a compound document including related records", function() {
-//   expect(6);
+test("#find - can return a compound document including related records", function() {
+  expect(7);
 
-//   var payload = {
-//     planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'},
-//     linked: {
-//       moons: [{id: 5, name: 'Io', links: {planet: 12345}}]
-//     }
-//   };
+  var payload = {
+    planets: {id: '12345', name: 'Jupiter', classification: 'gas giant', links: {moons: ['5']}},
+    linked: {
+      moons: [{id: '5', name: 'Io', links: {planet: '12345'}}]
+    }
+  };
 
-//   server.respondWith('GET', '/planets/12345', function(xhr) {
-//     ok(true, 'GET request');
-//     xhr.respond(200,
-//                 {'Content-Type': 'application/json'},
-//                 JSON.stringify(payload));
-//   });
+  server.respondWith('GET', '/planets/12345', function(xhr) {
+    ok(true, 'GET request');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify(payload));
+  });
 
-//   stop();
-//   source.find('planet', {id: 12345}).then(function(planet) {
-//     start();
-//     ok(planet.__id, 'orbit id should be defined');
-//     equal(planet.id, 12345, 'server id should be defined');
-//     equal(planet.name, 'Jupiter', 'name should match');
-//     equal(planet.classification, 'gas giant', 'classification should match');
-//     equal(Object.keys(planet.__rel.moons).length, 1, 'planet should have a single moon');
-//   });
-// });
+  stop();
+  source.find('planet', {id: '12345'}).then(function(planet) {
+    start();
+
+    ok(planet.__id, 'orbit id should be defined');
+    equal(planet.id, '12345', 'server id should be defined');
+    equal(planet.name, 'Jupiter', 'name should match');
+    equal(planet.classification, 'gas giant', 'classification should match');
+
+    var moons = Object.keys(planet.__rel.moons);
+    equal(moons.length, 1, 'planet should have a single moon');
+
+    var moon = source.retrieve(['moon', moons[0]]); 
+    equal(moon.__rel.planet, planet.__id, 'moon should be assigned to planet');
+  });
+});
 
 test("#find - can find an array of records from an array of ids", function() {
   expect(4);
