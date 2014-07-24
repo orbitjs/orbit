@@ -400,3 +400,69 @@ test("#find - can filter records", function() {
     }
   });
 });
+
+test("#findLink - can find has-many linked values", function() {
+  expect(5);
+
+  var planetRecord = {id: 1, name: 'Mercury', classification: 'terrestrial', moons:[1,3,6]};
+  var moonRecords = [
+    {id: 1, name: 'Moon 1', planet: 1},
+    {id: 3,  name: 'Moon 2', planet: 1},
+    {id: 6,  name: 'Moon 3', planet: 1}
+  ];
+  server.respondWith(function(xhr) {
+    equal(xhr.method, 'GET', 'GET request');
+    equal(xhr.url, '/planets/1', 'request to correct URL');
+    xhr.respond(200,{'Content-Type': 'application/json'},JSON.stringify({planets: planetRecord}));
+    server.respondWith(function(xhr) {
+      equal(xhr.method, 'GET', 'GET request');
+      equal(xhr.url, '/moons/1,3,6', 'request to correct URL');
+      xhr.respond(200,{'Content-Type': 'application/json'},JSON.stringify({moons: moonRecords}));
+    });
+  });
+
+  stop();
+  source.find('planet', 1).then(function(planet) {
+    planet.get('moon').find().then(function(moons){
+      start();
+      equal(moons.length, 3, 'there should be 3 moons');
+      var moon, record;
+      for (var i = 0; i < moons.length; i++) {
+        moon = moons[i];
+        record = moonRecords[i];
+        ok(moon.__id, 'orbit id should be defined');
+        equal(moon.id, record.id, 'server id should be defined');
+        equal(moon.name, record.name, 'name should match');
+      }
+    });
+  });
+});
+
+test("#findLink - can find has-one linked values", function() {
+  expect(4);
+
+  var planetRecord = {id: 1, name: 'Mercury', classification: 'gas giant', moons:[1,3,6]};
+  var moonRecord = {id: 1, name: 'Moon 1', planet: 1};
+  server.respondWith(function(xhr) {
+    equal(xhr.method, 'GET', 'GET request');
+    equal(xhr.url, '/moons/1', 'request to correct URL');
+    xhr.respond(200,{'Content-Type': 'application/json'},JSON.stringify({planets: planetRecord}));
+    server.respondWith(function(xhr) {
+      equal(xhr.method, 'GET', 'GET request');
+      equal(xhr.url, '/planets/1', 'request to correct URL');
+      xhr.respond(200,{'Content-Type': 'application/json'},JSON.stringify({moons: moonRecord}));
+    });
+  });
+
+  stop();
+
+  source.find('moon', 1).then(function(moon) {
+    moon.get('planet').find().then(function(planet){
+      start();
+      ok(planet.__id, 'orbit id should be defined');
+      equal(planet.id, 1, 'server id should be defined');
+      equal(planet.name, 'Mercury', 'name should match');
+      equal(planet.classification, 'gas giant', 'classification should match');
+    });
+  });
+});
