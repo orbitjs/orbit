@@ -6,11 +6,8 @@ module.exports = function(grunt) {
       name: function(file) {
         return file;
       },
-      namespace: function(name) {
-        return "<%= pkg.namespace %>";
-      },
-      module: function(name) {
-        return "<%= pkg.name %>";
+      modules: function(name) {
+        return [];
       },
       preDefine: function(name) {
         return null;
@@ -32,7 +29,7 @@ module.exports = function(grunt) {
         output.push(grunt.file.read(file));
 
         options.modules(name).forEach(function(module) {
-          output.push("global." + module.namespace + " = requireModule('" + module.name + "');");
+          output.push('global.' + module.namespace + ' = requireModule("' + module.name + '")["default"];');
         });
 
         var postRequire = options.postRequire(name);
