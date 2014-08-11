@@ -1,4 +1,5 @@
 import Orbit from 'orbit/main';
+import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
 import JSONAPISource from 'orbit-common/jsonapi-source';
@@ -24,8 +25,19 @@ module("Integration - Rest / Memory / Local Transforms (Non-Blocking)", {
 
     // Create schema
     var schema = new Schema({
+      modelDefaults: {
+        keys: {
+          '__id': {primaryKey: true, defaultValue: uuid},
+          'id': {}
+        }
+      },
       models: {
-        planet: {}
+        planet: {
+          attributes: {
+            name: {type: 'string'},
+            classification: {type: 'string'}
+          }
+        }
       }
     });
 
@@ -68,7 +80,7 @@ test("records inserted into memory should be posted with rest", function() {
 
     if (restSourceTransforms === 1) {
       ok(operation.value.__id,                           'orbit id should be defined');
-      equal(operation.value.id, 12345,                   'server id should be defined now');
+      equal(operation.value.id, '12345',                   'server id should be defined now');
       equal(operation.value.name, 'Jupiter',             'name should match');
       equal(operation.value.classification, 'gas giant', 'classification should match');
 
@@ -91,8 +103,8 @@ test("records inserted into memory should be posted with rest", function() {
       start();
 
       // `id` is added when the REST POST response returns
-      equal(operation.op, 'add',     'local source - id added');
-      equal(operation.value, 12345,  'local source - id');
+      equal(operation.op, 'replace',   'local source - id updated');
+      equal(operation.value, '12345',  'local source - id');
 
     } else {
       ok(false, 'too many transforms');
@@ -114,7 +126,7 @@ test("records inserted into memory should be posted with rest", function() {
       deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant'}}, 'POST request');
       xhr.respond(201,
                   {'Content-Type': 'application/json'},
-                  JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
+                  JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
     });
   });
 });
@@ -142,8 +154,8 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
 
     } else if (memorySourceTransforms === 3) {
       // `id` is added when the REST POST response returns
-      equal(operation.op, 'add',     'memory source - id added');
-      equal(operation.value, 12345,  'memory source - id');
+      equal(operation.op, 'replace',   'memory source - id updated');
+      equal(operation.value, '12345',  'memory source - id');
 
     } else if (memorySourceTransforms === 4) {
       equal(operation.op, 'replace',    'memory source - name replaced when the REST POST response returns');
@@ -165,7 +177,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
 
     if (restSourceTransforms === 1) {
       equal(operation.op, 'add',                         'rest source - initial object addition');
-      equal(operation.value.id, 12345,                   'rest source - inserted - id');
+      equal(operation.value.id, '12345',                   'rest source - inserted - id');
       equal(operation.value.name, 'Jupiter',             'rest source - inserted - name - Jupiter');
       equal(operation.value.classification, 'gas giant', 'rest source - inserted - classification - gas giant');
 
@@ -194,8 +206,8 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
 
     } else if (localSourceTransforms === 3) {
       // `id` is added when the REST POST response returns
-      equal(operation.op, 'add',     'local source - id added');
-      equal(operation.value, 12345,  'local source - id');
+      equal(operation.op, 'replace',   'local source - id updated');
+      equal(operation.value, '12345',  'local source - id');
 
     } else if (localSourceTransforms === 4) {
       equal(operation.op, 'replace',    'local source - name replaced when the REST POST response returns');
@@ -233,7 +245,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
       deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant'}}, 'POST request');
       xhr.respond(201,
                   {'Content-Type': 'application/json'},
-                  JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
+                  JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
     });
 
     record.name = 'Earth';
@@ -264,8 +276,8 @@ test("records patched in memory should be patched with rest", function() {
 
     } else if (memorySourceTransforms === 3) {
       // `id` is added when the REST POST response returns
-      equal(operation.op, 'add',     'memory source - id added');
-      equal(operation.value, 12345,  'memory source - id');
+      equal(operation.op, 'replace',   'memory source - id updated');
+      equal(operation.value, '12345',  'memory source - id');
 
     } else if (memorySourceTransforms === 4) {
       equal(operation.op, 'replace',    'memory source - name replaced when the REST POST response returns');
@@ -287,7 +299,7 @@ test("records patched in memory should be patched with rest", function() {
 
     if (restSourceTransforms === 1) {
       equal(operation.op, 'add',                         'rest source - initial object addition');
-      equal(operation.value.id, 12345,                   'rest source - inserted - id');
+      equal(operation.value.id, '12345',                   'rest source - inserted - id');
       equal(operation.value.name, 'Jupiter',             'rest source - inserted - name - Jupiter');
       equal(operation.value.classification, 'gas giant', 'rest source - inserted - classification - gas giant');
 
@@ -316,8 +328,8 @@ test("records patched in memory should be patched with rest", function() {
 
     } else if (localSourceTransforms === 3) {
       // `id` is added when the REST POST response returns
-      equal(operation.op, 'add',     'local source - id added');
-      equal(operation.value, 12345,  'local source - id');
+      equal(operation.op, 'replace',   'local source - id updated');
+      equal(operation.value, '12345',  'local source - id');
 
     } else if (localSourceTransforms === 4) {
       equal(operation.op, 'replace',    'local source - name replaced when the REST POST response returns');
@@ -355,7 +367,7 @@ test("records patched in memory should be patched with rest", function() {
       deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant'}}, 'POST request');
       xhr.respond(201,
                   {'Content-Type': 'application/json'},
-                  JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
+                  JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
     });
 
     return memorySource.patch('planet', record.__id, 'name', 'Earth');
@@ -445,7 +457,7 @@ test("records deleted in memory should be deleted with rest", function() {
       deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant'}}, 'POST request');
       xhr.respond(201,
                   {'Content-Type': 'application/json'},
-                  JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
+                  JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
     });
 
     return memorySource.remove('planet', planet.__id);

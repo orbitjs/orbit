@@ -1,4 +1,5 @@
 import Orbit from 'orbit/main';
+import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
 import JSONAPISource from 'orbit-common/jsonapi-source';
@@ -26,8 +27,19 @@ module("Integration - Rest / Memory / Local Transforms (Blocking)", {
 
     // Create schema
     var schema = new Schema({
+      modelDefaults: {
+        keys: {
+          '__id': {primaryKey: true, defaultValue: uuid},
+          'id': {}
+        }
+      },
       models: {
-        planet: {}
+        planet: {
+          attributes: {
+            name: {type: 'string'},
+            classification: {type: 'string'}
+          }
+        }
       }
     });
 
@@ -62,7 +74,7 @@ test("single records found with rest should be inserted into memory and local st
       ok(true, 'GET request');
       xhr.respond(200,
                   {'Content-Type': 'application/json'},
-                  JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
+                  JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
   });
   stop();
   restSource.find('planet', {id: '12345'}).then(function(planets) {
@@ -80,8 +92,8 @@ test("multiple records found with rest should be inserted into memory and local 
       xhr.respond(200,
                   {'Content-Type': 'application/json'},
                   JSON.stringify({planets: [
-                    {id: 12345, name: 'Jupiter', classification: 'gas giant'},
-                    {id: 12346, name: 'Earth', classification: 'terrestrial'}
+                    {id: '12345', name: 'Jupiter', classification: 'gas giant'},
+                    {id: '12346', name: 'Earth', classification: 'terrestrial'}
                   ]}));
   });
   stop();
@@ -100,8 +112,8 @@ test("records will be matched with existing records if find is called mutiple ti
       xhr.respond(200,
                   {'Content-Type': 'application/json'},
                   JSON.stringify({planets: [
-                    {id: 12345, name: 'Jupiter', classification: 'gas giant'},
-                    {id: 12346, name: 'Earth', classification: 'terrestrial'}
+                    {id: '12345', name: 'Jupiter', classification: 'gas giant'},
+                    {id: '12346', name: 'Earth', classification: 'terrestrial'}
                   ]}));
   });
   stop();
@@ -126,7 +138,7 @@ test("records inserted into memory should be posted with rest", function() {
     deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant'}}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
+                JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
   });
 
   stop();
@@ -134,12 +146,12 @@ test("records inserted into memory should be posted with rest", function() {
     start();
     equal(memorySource.length('planet'), 1, 'memory source should contain one record');
     ok(planet.__id, 'orbit id should be defined');
-    equal(planet.id, 12345, 'server id should be defined');
+    equal(planet.id, '12345', 'server id should be defined');
     equal(planet.name, 'Jupiter', 'name should match');
     equal(planet.classification, 'gas giant', 'classification should match');
 
     equal(localSource.length('planet'), 1, 'local source should contain one record');
-    verifyLocalStorageContainsRecord(localSource.namespace, 'planet', planet);
+    verifyLocalStorageContainsRecord(localSource.namespace, 'planet', planet.__id, planet);
   });
 });
 
@@ -150,7 +162,7 @@ test("records posted with rest should be inserted into memory", function() {
     deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant'}}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
+                JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
   });
 
   stop();
@@ -158,12 +170,12 @@ test("records posted with rest should be inserted into memory", function() {
     start();
     equal(memorySource.length('planet'), 1, 'memory source should contain one record');
     ok(planet.__id, 'orbit id should be defined');
-    equal(planet.id, 12345, 'server id should be defined');
+    equal(planet.id, '12345', 'server id should be defined');
     equal(planet.name, 'Jupiter', 'name should match');
     equal(planet.classification, 'gas giant', 'classification should match');
 
     equal(localSource.length('planet'), 1, 'local source should contain one record');
-    verifyLocalStorageContainsRecord(localSource.namespace, 'planet', planet);
+    verifyLocalStorageContainsRecord(localSource.namespace, 'planet', planet.__id, planet);
   });
 });
 
@@ -174,7 +186,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
     deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant'}}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
+                JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
   });
   server.respondWith('PATCH', '/planets/12345', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/name', value: 'Earth'}, 'PATCH request');
@@ -191,12 +203,12 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
         start();
         equal(memorySource.length('planet'), 1, 'memory source should contain one record');
         ok(planet.__id, 'orbit id should be defined');
-        equal(planet.id, 12345, 'server id should be defined');
+        equal(planet.id, '12345', 'server id should be defined');
         equal(planet.name, 'Earth', 'name should match');
         equal(planet.classification, 'gas giant', 'classification was not updated');
 
         equal(localSource.length('planet'), 1, 'local source should contain one record');
-        verifyLocalStorageContainsRecord(localSource.namespace, 'planet', planet);
+        verifyLocalStorageContainsRecord(localSource.namespace, 'planet', planet.__id, planet);
       }
     );
   });
@@ -209,13 +221,13 @@ test("records updated with rest should be updated in memory", function() {
     deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant'}}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
+                JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
   });
   server.respondWith('PUT', '/planets/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {planets: {id: 12345, name: 'Earth', classification: 'terrestrial'}}, 'PUT request');
+    deepEqual(JSON.parse(xhr.requestBody), {planets: {id: '12345', name: 'Earth', classification: 'terrestrial'}}, 'PUT request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({planets: {id: 12345, name: 'Earth', classification: 'terrestrial'}}));
+                JSON.stringify({planets: {id: '12345', name: 'Earth', classification: 'terrestrial'}}));
   });
 
   stop();
@@ -227,12 +239,12 @@ test("records updated with rest should be updated in memory", function() {
         start();
         equal(memorySource.length('planet'), 1, 'memory source should contain one record');
         ok(planet.__id, 'orbit id should be defined');
-        equal(planet.id, 12345, 'server id should be defined');
+        equal(planet.id, '12345', 'server id should be defined');
         equal(planet.name, 'Earth', 'name should match');
         equal(planet.classification, 'terrestrial', 'classification should match');
 
         equal(localSource.length('planet'), 1, 'local source should contain one record');
-        verifyLocalStorageContainsRecord(localSource.namespace, 'planet', planet);
+        verifyLocalStorageContainsRecord(localSource.namespace, 'planet', planet.__id, planet);
       }
     );
   });
@@ -245,7 +257,7 @@ test("records patched in memory should be patched with rest", function() {
     deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant'}}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
+                JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
   });
   server.respondWith('PATCH', '/planets/12345', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/classification', value: 'terrestrial'}, 'PATCH request');
@@ -261,7 +273,7 @@ test("records patched in memory should be patched with rest", function() {
         start();
         equal(memorySource.length('planet'), 1, 'memory source should contain one record');
         ok(planet.__id, 'orbit id should be defined');
-        equal(planet.id, 12345, 'server id should be defined');
+        equal(planet.id, '12345', 'server id should be defined');
         equal(planet.name, 'Jupiter', 'name should match');
         equal(planet.classification, 'terrestrial', 'classification should match');
       });
@@ -276,7 +288,7 @@ test("records patched with rest should be patched in memory", function() {
     deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant'}}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
+                JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
   });
   server.respondWith('PATCH', '/planets/12345', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/classification', value: 'terrestrial'}, 'PATCH request');
@@ -293,12 +305,12 @@ test("records patched with rest should be patched in memory", function() {
 
         equal(memorySource.length('planet'), 1, 'memory source should contain one record');
         ok(planet.__id, 'orbit id should be defined');
-        equal(planet.id, 12345, 'server id should be defined');
+        equal(planet.id, '12345', 'server id should be defined');
         equal(planet.name, 'Jupiter', 'name should match');
         equal(planet.classification, 'terrestrial', 'classification should match');
 
         equal(localSource.length('planet'), 1, 'local source should contain one record');
-        verifyLocalStorageContainsRecord(localSource.namespace, 'planet', planet);
+        verifyLocalStorageContainsRecord(localSource.namespace, 'planet', planet.__id, planet);
       });
     });
   });
@@ -311,7 +323,7 @@ test("records deleted in memory should be deleted with rest", function() {
     deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant'}}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
+                JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
   });
   server.respondWith('DELETE', '/planets/12345', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
@@ -339,7 +351,7 @@ test("records deleted with rest should be deleted in memory", function() {
     deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant'}}, 'POST request');
     xhr.respond(201,
                 {'Content-Type': 'application/json'},
-                JSON.stringify({planets: {id: 12345, name: 'Jupiter', classification: 'gas giant'}}));
+                JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
   });
   server.respondWith('DELETE', '/planets/12345', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');

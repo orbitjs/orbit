@@ -1,4 +1,5 @@
 import Orbit from 'orbit/main';
+import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
 import { Promise } from 'rsvp';
@@ -14,6 +15,12 @@ module("Integration - MemorySource Sync without Connector", {
 
     // Create schema
     var schema = new Schema({
+      modelDefaults: {
+        keys: {
+          '__id': {primaryKey: true, defaultValue: uuid},
+          'id': {}
+        }
+      },
       models: {
         planet: {}
       }

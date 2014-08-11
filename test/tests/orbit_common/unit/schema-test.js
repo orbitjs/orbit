@@ -22,26 +22,25 @@ test("it has a `modelDefaults` set by default", function() {
       planet: {}
     }
   });
+
   ok(schema.modelDefaults, 'modelDefaults has been set');
-  ok(schema.modelDefaults.attributes, 'modelDefaults.attributes has been set');
-  ok(schema.modelDefaults.attributes['__id'], 'modelDefaults.attributes[\'__id\'] has been set');
-  equal(schema.modelDefaults.attributes['__id'].type, 'id', 'modelDefaults.idDef.type is has been set');
-  equal(schema.modelDefaults.attributes['__id'].remote, 'id', 'modelDefaults.idDef.remote has been set');
-  strictEqual(schema.modelDefaults.attributes['__id'].generator, uuid, 'modelDefaults.idDef.generator has been set');
+  ok(schema.modelDefaults.keys, 'modelDefaults.keys has been set');
+  equal(Object.keys(schema.modelDefaults.keys).length, 1, 'modelDefaults.keys has one member');
+  ok(schema.modelDefaults.keys['id'], 'modelDefaults.keys[\'id\'] has been set');
+  equal(schema.modelDefaults.keys['id'].primaryKey, true, 'modelDefaults.keys[\'id\'].primaryKey is has been set');
+  strictEqual(schema.modelDefaults.keys['id'].defaultValue, uuid, 'modelDefaults.keys[\'id\'].defaultValue has been set');
 
   var model;
   ok(schema.models, 'schema.models has been set');
   ok((model = schema.models['planet']), 'model definition has been set');
-  ok(model.attributes, 'model.attributes has been set');
-  ok(model.attributes['__id'], 'model.attributes[\'__id\'] has been set');
-  equal(model.idField, '__id', 'modelDefaults.idField has been set');
-  ok(model.idDef, 'modelDefaults.idDef has been set');
-  deepEqual(model.localToRemoteId, {}, 'model.localToRemoteId is set');
-  deepEqual(model.remoteToLocalId, {}, 'model.remoteToLocalId is set');
-  strictEqual(model.idDef, model.attributes['__id'], 'model.idDef is consistent');
-  equal(model.idDef.type, 'id', 'model.idDef.type is has been set');
-  equal(model.idDef.remote, 'id', 'model.idDef.remote has been set');
-  strictEqual(model.idDef.generator, uuid, 'model.idDef.generator has been set');
+  ok(model.keys, 'model.keys has been set');
+  ok(model.keys['id'], 'model.keys[\'id\'] has been set');
+  ok(model.primaryKey, 'model.primaryKey has been set');
+  strictEqual(model.primaryKey, model.keys['id'], 'model.primaryKey matches definition in `keys`');
+  equal(model.primaryKey.name, 'id', 'model.primaryKey.name has been set');
+  equal(model.primaryKey.type, 'string', 'model.primaryKey.type is `string`');
+  equal(model.primaryKey.primaryKey, true, 'model.primaryKey.primaryKey is true');
+  strictEqual(model.primaryKey.defaultValue, uuid, 'model.primaryKey.defaultValue has been set');
 });
 
 test("`modelDefaults can be overridden", function() {
@@ -51,16 +50,18 @@ test("`modelDefaults can be overridden", function() {
 
   var schema = new Schema({
     modelDefaults: {
-      attributes: {
-        'id' : {
-          type: 'id',
-          remote: '_id',
-          generator: customIdGenerator
+      keys: {
+        'clientId': {
+          primaryKey: true,
+          defaultValue: customIdGenerator
         },
-        'someAttr' : {}
+        'remoteId': {}
+      },
+      attributes: {
+        'someAttr': {}
       },
       links: {
-        'someLink' : {}
+        'someLink': {}
       }
     },
     models: {
@@ -69,33 +70,33 @@ test("`modelDefaults can be overridden", function() {
   });
 
   ok(schema.modelDefaults, 'modelDefaults has been set');
+  ok(schema.modelDefaults.keys, 'modelDefaults.keys has been set');
+  equal(schema.modelDefaults.keys.hasOwnProperty('id'), false, '\'id\' attribute not present');
+  ok(schema.modelDefaults.keys['clientId'], 'custom id attribute has been set');
+  equal(schema.modelDefaults.keys['clientId'].primaryKey, true, 'custom id is primaryKey');
+  strictEqual(schema.modelDefaults.keys['clientId'].defaultValue, customIdGenerator, 'custom id generator has been set');
+  ok(schema.modelDefaults.keys['remoteId'], 'custom remoteId key has been set');
   ok(schema.modelDefaults.attributes, 'modelDefaults.attributes has been set');
-  equal(schema.modelDefaults.attributes.hasOwnProperty('_id'), false, '\'__id\' attribute not present');
-  ok(schema.modelDefaults.attributes['id'], 'custom id attribute has been set');
-  equal(schema.modelDefaults.attributes['id'].type, 'id', 'custom id type is has been set');
-  equal(schema.modelDefaults.attributes['id'].remote, '_id', 'custom id remote has been set');
-  strictEqual(schema.modelDefaults.attributes['id'].generator, customIdGenerator, 'custom id generator has been set');
   ok(schema.modelDefaults.attributes['someAttr'], 'default model schema attribute has been set');
   ok(schema.modelDefaults.links['someLink'], 'default model link schema has been set');
 
   var model;
   ok(schema.models, 'schema.models has been set');
   ok((model = schema.models['planet']), 'model definition has been set');
+  ok(model.keys, 'model.keys has been set');
   ok(model.attributes, 'model.attributes has been set');
-  ok(model.attributes['id'], 'model.attributes[\'id\'] has been set');
-  equal(model.idField, 'id', 'model.idField has been set');
-  ok(model.idDef, 'modelDefaults.idDef has been set');
-  strictEqual(model.idDef, model.attributes['id'], 'model.idDef is consistent');
-  deepEqual(model.localToRemoteId, {}, 'model.localToRemoteId is set');
-  deepEqual(model.remoteToLocalId, {}, 'model.remoteToLocalId is set');
-  equal(model.idDef.type, 'id', 'model.idDef.type is has been set');
-  equal(model.idDef.remote, '_id', 'model.idDef.remote has been set');
-  strictEqual(model.idDef.generator, customIdGenerator, 'model.idDef.generator has been set');
-  ok(model.attributes['someAttr'], 'model.attributes has been inherited');
-  ok(model.links['someLink'], 'model.links has been inherited');
+  ok(model.links, 'model.links has been set');    
+  ok(model.keys['clientId'], 'model.keys[\'clientId\'] has been set');
+  strictEqual(model.primaryKey, model.keys['clientId'], 'model.primaryKey is consistent');
+  equal(model.primaryKey.name, 'clientId', 'model.primaryKey.name has been set');
+  equal(model.primaryKey.type, 'string', 'model.primaryKey.type has been set');
+  equal(model.primaryKey.primaryKey, true, 'model.primaryKey.primaryKey has been set');
+  strictEqual(model.primaryKey.defaultValue, customIdGenerator, 'model.primaryKey.defaultValue has been set');
+  ok(model.attributes['someAttr'], 'model.attributes match defaults');
+  ok(model.links['someLink'], 'model.links match defaults');
 });
 
-test("#normalize initializes a record with a unique idField", function() {
+test("#normalize initializes a record with a unique primary key", function() {
   var schema = new Schema({
     models: {
       planet: {}
@@ -105,33 +106,40 @@ test("#normalize initializes a record with a unique idField", function() {
   var earth = schema.normalize('planet', {});
   var mars = schema.normalize('planet', {});
 
-  ok(earth.__id, 'idField has been set');
-  ok(mars.__id, 'idField has been set');
-  notEqual(earth.__id, mars.__id, 'ids are unique');
+  ok(earth.id, 'id has been set');
+  ok(mars.id, 'id has been set');
+  notEqual(earth.id, mars.id, 'ids are unique');
 });
 
 test("#normalize - local and remote ids can be mapped", function() {
   var schema = new Schema({
+    modelDefaults: {
+      keys: {
+        '__id': {
+          primaryKey: true,
+          defaultValue: uuid
+        },
+        'id': {}
+      }
+    },
     models: {
       planet: {},
       moon: {}
     }
   });
 
-  schema.normalize('planet', {'__id': 1, 'id': 'a'});
-  schema.normalize('planet', {'__id': 2, 'id': 'b'});
-  schema.normalize('moon', {'__id': 1, 'id': 'c'});
-  schema.normalize('moon', {'__id': 2, 'id': 'a'});
+  schema.normalize('planet', {'__id': '1', 'id': 'a'});
+  schema.normalize('planet', {'__id': '2', 'id': 'b'});
+  schema.normalize('moon', {'__id': '1', 'id': 'c'});
+  schema.normalize('moon', {'__id': '2', 'id': 'a'});
 
-  equal(schema.remoteToLocalId('moon', 'c'), '1');
-  equal(schema.remoteToLocalId('planet', 'a'), '1');
-  equal(schema.remoteToLocalId('bogus', 'a'), undefined);
-  equal(schema.remoteToLocalId('planet', 'bogus'), undefined);
+  equal(schema.secondaryToPrimaryKey('moon', 'id', 'c'), '1');
+  equal(schema.secondaryToPrimaryKey('planet', 'id', 'a'), '1');
+  equal(schema.secondaryToPrimaryKey('planet', 'id', 'bogus'), undefined);
 
-  equal(schema.localToRemoteId('planet', '2'), 'b');
-  equal(schema.localToRemoteId('moon', '2'), 'a');
-  equal(schema.localToRemoteId('bogus', '2'), undefined);
-  equal(schema.localToRemoteId('planet', 'bogus'), undefined);
+  equal(schema.primaryToSecondaryKey('planet', 'id', '2'), 'b');
+  equal(schema.primaryToSecondaryKey('moon', 'id', '2'), 'a');
+  equal(schema.primaryToSecondaryKey('planet', 'id', 'bogus'), undefined);
 });
 
 test("#normalize initializes a record's attributes with any defaults that are specified with a value or function", function() {
@@ -208,21 +216,21 @@ test("#normalize will not overwrite data set as attributes", function() {
 
   var earth = schema.normalize('planet', {name: 'Earth', classification: 'terrestrial'});
 
-  var moon = schema.normalize('moon', {name: '*The Moon*', __rel: {planet: earth[schema.models.planet.idField]}});
+  var moon = schema.normalize('moon', {name: '*The Moon*', __rel: {planet: earth.id}});
 
   strictEqual(earth.name, 'Earth', 'name has been specified');
   strictEqual(earth.classification, 'terrestrial', 'classification has been specified');
 
   deepEqual(earth.__rel.moons, {}, 'hasMany relationship has been seeded with an empty object');
-  strictEqual(moon.__rel.planet, earth[schema.models.planet.idField], 'hasOne relationship was specified in data');
+  strictEqual(moon.__rel.planet, earth.id, 'hasOne relationship was specified in data');
 
   var io = schema.normalize('moon', {});
 
   var europa = schema.normalize('moon', {});
 
   var jupitersMoons = {};
-  jupitersMoons[io[schema.models.moon.idField]] = true;
-  jupitersMoons[europa[schema.models.moon.idField]] = true;
+  jupitersMoons[io.id] = true;
+  jupitersMoons[europa.id] = true;
 
   var jupiter = schema.normalize('planet', {name: 'Jupiter', __rel: {moons: jupitersMoons}});
 

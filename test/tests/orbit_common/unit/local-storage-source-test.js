@@ -47,14 +47,14 @@ test("#add - can insert records and assign ids", function() {
   stop();
   source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     equal(source.length('planet'), 1, 'source should contain one record');
-    ok(planet.__id, 'id should be defined');
+    ok(planet.id, 'id should be defined');
     equal(planet.name, 'Jupiter', 'name should match');
     equal(planet.classification, 'gas giant', 'classification should match');
     return planet;
 
   }).then(function(planet) {
-    verifyLocalStorageContainsRecord(source.namespace, 'planet', planet);
-    source.find('planet', planet.__id).then(function(foundPlanet) {
+    verifyLocalStorageContainsRecord(source.namespace, 'planet', planet.id, planet);
+    source.find('planet', planet.id).then(function(foundPlanet) {
       start();
       equal(foundPlanet.id, planet.id, 'record can be looked up by id');
     });
@@ -71,18 +71,18 @@ test("#update - can update records", function() {
   stop();
   source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     original = planet;
-    return source.update('planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
-      equal(updatedPlanet.__id, planet.__id, '__id remains the same');
+    return source.update('planet', {id: planet.id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
+      equal(updatedPlanet.id, planet.id, 'id remains the same');
       equal(updatedPlanet.name, 'Earth', 'name has been updated');
       equal(updatedPlanet.classification, 'terrestrial', 'classification has been updated');
       return updatedPlanet;
     });
 
   }).then(function(planet) {
-    verifyLocalStorageContainsRecord(source.namespace, 'planet', planet);
-    source.find('planet', planet.__id).then(function(foundPlanet) {
+    verifyLocalStorageContainsRecord(source.namespace, 'planet', planet.id, planet);
+    source.find('planet', planet.id).then(function(foundPlanet) {
       start();
-      equal(foundPlanet.__id, planet.__id, 'record can be looked up by __id');
+      equal(foundPlanet.id, planet.id, 'record can be looked up by id');
       equal(foundPlanet.name, 'Earth', 'name has been updated');
       equal(foundPlanet.classification, 'terrestrial', 'classification has been updated');
       return planet;
@@ -101,12 +101,12 @@ test("#patch - can patch records", function() {
   source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     original = planet;
 
-    source.patch('planet', planet.__id, 'name', 'Earth').then(function() {
-      verifyLocalStorageContainsRecord(source.namespace, 'planet', planet);
-      source.find('planet', planet.__id).then(function(foundPlanet) {
+    source.patch('planet', planet.id, 'name', 'Earth').then(function() {
+      verifyLocalStorageContainsRecord(source.namespace, 'planet', planet.id, planet);
+      source.find('planet', planet.id).then(function(foundPlanet) {
         start();
         strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
-        equal(foundPlanet.__id, planet.__id, 'record can be looked up by __id');
+        equal(foundPlanet.id, planet.id, 'record can be looked up by id');
         equal(foundPlanet.name, 'Earth', 'name has been updated');
         equal(foundPlanet.classification, 'gas giant', 'classification has not been updated');
       });
@@ -123,7 +123,7 @@ test("#remove - can delete records", function() {
   source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     equal(source.length('planet'), 1, 'source should contain one record');
 
-    source.remove('planet', planet.__id).then(function() {
+    source.remove('planet', planet.id).then(function() {
       start();
       equal(source.length('planet'), 0, 'source should be empty');
     });
@@ -158,7 +158,7 @@ test("it can use a custom local storage namespace for storing data", function() 
   stop();
   source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
-    verifyLocalStorageContainsRecord(source.namespace, 'planet', planet);
+    verifyLocalStorageContainsRecord(source.namespace, 'planet', planet.id, planet);
   });
 });
 
@@ -176,7 +176,7 @@ test("autosave can be disabled to delay writing to local storage", function() {
     verifyLocalStorageIsEmpty(source.namespace);
 
     source.enableAutosave();
-    verifyLocalStorageContainsRecord(source.namespace, 'planet', planet);
+    verifyLocalStorageContainsRecord(source.namespace, 'planet', planet.id, planet);
   });
 });
 

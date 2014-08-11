@@ -62,15 +62,15 @@ test("its prototype chain is correct", function() {
 //  stop();
 //  source.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
 //    equal(source.length('planet'), 1, 'source should contain one record');
-//    ok(planet.__id, '__id should be defined');
+//    ok(planet.id, 'id should be defined');
 //    equal(planet.name, 'Jupiter', 'name should match');
 //    equal(planet.classification, 'gas giant', 'classification should match');
 //    return planet;
 //
 //  }).then(function(planet) {
-//    source.findRecord('planet', planet.__id).then(function(foundPlanet) {
+//    source.findRecord('planet', planet.id).then(function(foundPlanet) {
 //      start();
-//      equal(foundPlanet.__id, planet.__id, 'record can be looked up by __id');
+//      equal(foundPlanet.id, planet.id, 'record can be looked up by id');
 //      return planet;
 //    });
 //  });
@@ -84,11 +84,11 @@ test("its prototype chain is correct", function() {
 //  stop();
 //  source.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
 //    equal(source.length('planet'), 1, 'source should contain one record');
-//    ok(planet.__id, '__id should be defined');
+//    ok(planet.id, 'id should be defined');
 //    return planet;
 //
 //  }).then(function(planet) {
-//    source.transform('add', 'planet', {__id: planet.__id, name: 'Jupiter', classification: 'gas giant'}).then(null, function(e) {
+//    source.transform('add', 'planet', {id: planet.id, name: 'Jupiter', classification: 'gas giant'}).then(null, function(e) {
 //      start();
 //      equal(e.constructor, 'AlreadyExistsException', 'duplicate error');
 //    });
@@ -105,18 +105,18 @@ test("its prototype chain is correct", function() {
 //  stop();
 //  source.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
 //    original = planet;
-//    return source.transform('replace', 'planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
-//      equal(updatedPlanet.__id, planet.__id, '__id remains the same');
+//    return source.transform('replace', 'planet', {id: planet.id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
+//      equal(updatedPlanet.id, planet.id, 'id remains the same');
 //      equal(updatedPlanet.name, 'Earth', 'name has been updated');
 //      equal(updatedPlanet.classification, 'terrestrial', 'classification has been updated');
 //      return planet;
 //    });
 //
 //  }).then(function(planet) {
-//    source.findRecord('planet', planet.__id).then(function(foundPlanet) {
+//    source.findRecord('planet', planet.id).then(function(foundPlanet) {
 //      start();
 //      strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
-//      equal(foundPlanet.__id, planet.__id, 'record can be looked up by __id');
+//      equal(foundPlanet.id, planet.id, 'record can be looked up by id');
 //      equal(foundPlanet.name, 'Earth', 'name has been updated');
 //      equal(foundPlanet.classification, 'terrestrial', 'classification has been updated');
 //      return planet;
@@ -137,18 +137,18 @@ test("its prototype chain is correct", function() {
 //    return planet;
 //
 //  }).then(function(planet) {
-//    return source.transform('patch', 'planet', {__id: planet.__id, name: 'Earth'}).then(function(updatedPlanet) {
-//      equal(updatedPlanet.__id, planet.__id, '__id remains the same');
+//    return source.transform('patch', 'planet', {id: planet.id, name: 'Earth'}).then(function(updatedPlanet) {
+//      equal(updatedPlanet.id, planet.id, 'id remains the same');
 //      equal(updatedPlanet.name, 'Earth', 'name has been updated');
 //      equal(updatedPlanet.classification, 'gas giant', 'classification has not been updated');
 //      return planet;
 //    });
 //
 //  }).then(function(planet) {
-//    source.findRecord('planet', planet.__id).then(function(foundPlanet) {
+//    source.findRecord('planet', planet.id).then(function(foundPlanet) {
 //      start();
 //      strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
-//      equal(foundPlanet.__id, planet.__id, 'record can be looked up by __id');
+//      equal(foundPlanet.id, planet.id, 'record can be looked up by id');
 //      equal(foundPlanet.name, 'Earth', 'name has been updated');
 //      equal(foundPlanet.classification, 'gas giant', 'classification has not been updated');
 //      return planet;
@@ -165,7 +165,7 @@ test("its prototype chain is correct", function() {
 //  source.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
 //    equal(source.length('planet'), 1, 'source should contain one record');
 //
-//    source.transform('remove', 'planet', {__id: planet.__id}).then(function() {
+//    source.transform('remove', 'planet', {id: planet.id}).then(function() {
 //      start();
 //      equal(source.length('planet'), 0, 'source should be empty');
 //    });
@@ -179,7 +179,7 @@ test("#find - can find a record by id", function() {
 
   stop();
   source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    source.find('planet', planet.__id).then(function(foundPlanet) {
+    source.find('planet', planet.id).then(function(foundPlanet) {
       start();
       strictEqual(foundPlanet, planet, 'found planet matches original');
     });
@@ -210,20 +210,6 @@ test("#find - can find a record by object that contains an id", function() {
   stop();
   source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     source.find('planet', planet).then(function(foundPlanet) {
-      start();
-      strictEqual(foundPlanet, planet, 'found planet matches original');
-    });
-  });
-});
-
-test("#find - can find a record by remote id", function() {
-  expect(2);
-
-  equal(source.length('planet'), 0, 'source should be empty');
-
-  stop();
-  source.add('planet', {id: '1', name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    source.find('planet', {id: '1'}).then(function(foundPlanet) {
       start();
       strictEqual(foundPlanet, planet, 'found planet matches original');
     });
@@ -276,11 +262,11 @@ test("#find - can find an array of records by id", function() {
   stop();
 
   source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    ids.push(planet.__id);
+    ids.push(planet.id);
     return source.add('planet', {name: 'Earth', classification: 'terrestrial'});
 
   }).then(function(planet) {
-    ids.push(planet.__id);
+    ids.push(planet.id);
     return source.add('planet', {name: 'Mercury', classification: 'terrestrial'});
 
   }).then(function(planet) {
@@ -288,33 +274,9 @@ test("#find - can find an array of records by id", function() {
 
   }).then(function(planets) {
     start();
-    equal(planets.length, 2, 'find() should return the requests records');
-    equal(planets[0].__id, ids[0], 'planet id matches');
-    equal(planets[1].__id, ids[1], 'planet id matches');
-  });
-});
-
-test("#find - can find an array of records by remote id", function() {
-  expect(4);
-
-  equal(source.length('planet'), 0, 'source should be empty');
-
-  stop();
-
-  source.add('planet', {id: '1', name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    return source.add('planet', {id: '2', name: 'Earth', classification: 'terrestrial'});
-
-  }).then(function(planet) {
-    return source.add('planet', {id: '3', name: 'Mercury', classification: 'terrestrial'});
-
-  }).then(function(planet) {
-    return source.find('planet', [{id: '1'}, {id: '3'}]);
-
-  }).then(function(planets) {
-    start();
-    equal(planets.length, 2, 'find() should return the requests records');
-    equal(planets[0].name, 'Jupiter', 'planet name matches');
-    equal(planets[1].name, 'Mercury', 'planet name matches');
+    equal(planets.length, 2, 'find() should return the request\'s records');
+    equal(planets[0].id, ids[0], 'planet id matches');
+    equal(planets[1].id, ids[1], 'planet id matches');
   });
 });
 
@@ -328,11 +290,11 @@ test("#find - returns RecordNotFoundException when any record in an array can't 
   stop();
 
   source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    ids.push(planet.__id);
+    ids.push(planet.id);
     return source.add('planet', {name: 'Earth', classification: 'terrestrial'});
 
   }).then(function(planet) {
-    ids.push(planet.__id);
+    ids.push(planet.id);
     return source.add('planet', {name: 'Mercury', classification: 'terrestrial'});
 
   }).then(function(planet) {
@@ -385,15 +347,15 @@ test("#add - creates a record", function() {
   source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     original = planet;
     equal(source.length('planet'), 1, 'source should contain one record');
-    ok(planet.__id, '__id should be defined');
+    ok(planet.id, 'id should be defined');
     equal(planet.name, 'Jupiter', 'name should match');
     equal(planet.classification, 'gas giant', 'classification should match');
     return planet;
 
   }).then(function(planet) {
-    source.find('planet', planet.__id).then(function(foundPlanet) {
+    source.find('planet', planet.id).then(function(foundPlanet) {
       start();
-      equal(foundPlanet.__id, original.__id, 'record can be looked up by __id');
+      equal(foundPlanet.id, original.id, 'record can be looked up by id');
       return planet;
     });
   });
@@ -409,17 +371,17 @@ test("#update - can update records", function() {
   stop();
   source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     original = planet;
-    return source.update('planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
-      equal(updatedPlanet.__id, planet.__id, '__id remains the same');
+    return source.update('planet', {id: planet.id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
+      equal(updatedPlanet.id, planet.id, 'id remains the same');
       equal(updatedPlanet.name, 'Earth', 'name has been updated');
       equal(updatedPlanet.classification, 'terrestrial', 'classification has been updated');
       return planet;
     });
 
   }).then(function(planet) {
-    source.find('planet', planet.__id).then(function(foundPlanet) {
+    source.find('planet', planet.id).then(function(foundPlanet) {
       start();
-      equal(foundPlanet.__id, original.__id, 'record can be looked up by __id');
+      equal(foundPlanet.id, original.id, 'record can be looked up by id');
       equal(foundPlanet.name, 'Earth', 'name has been updated');
       equal(foundPlanet.classification, 'terrestrial', 'classification has been updated');
       return planet;
@@ -438,11 +400,11 @@ test("#patch - can patch records", function() {
   source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     original = planet;
 
-    source.patch('planet', planet.__id, 'name', 'Earth').then(function() {
-      source.find('planet', planet.__id).then(function(foundPlanet) {
+    source.patch('planet', planet.id, 'name', 'Earth').then(function() {
+      source.find('planet', planet.id).then(function(foundPlanet) {
         start();
         strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
-        equal(foundPlanet.__id, planet.__id, 'record can be looked up by __id');
+        equal(foundPlanet.id, planet.id, 'record can be looked up by id');
         equal(foundPlanet.name, 'Earth', 'name has been updated');
         equal(foundPlanet.classification, 'gas giant', 'classification has not been updated');
       });
@@ -458,7 +420,7 @@ test("#remove - can destroy records", function() {
   stop();
   source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     equal(source.length('planet'), 1, 'source should contain one record');
-    source.remove('planet', {__id: planet.__id}).then(function() {
+    source.remove('planet', {id: planet.id}).then(function() {
       start();
       equal(source.length('planet'), 0, 'source should be empty');
     });
@@ -485,8 +447,8 @@ test("#addLink and #removeLink- can link and unlink records in a many-to-one rel
 
   }).then(function() {
     equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
-    ok(jupiter.__rel.moons[io.__id], 'Jupiter\'s moon is Io');
-    equal(io.__rel.planet, jupiter.__id, 'Io\'s planet is Jupiter');
+    ok(jupiter.__rel.moons[io.id], 'Jupiter\'s moon is Io');
+    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
 
     return source.removeLink('planet', jupiter, 'moons', io);
 
@@ -517,8 +479,8 @@ test("#addLink and #removeLink- can link and unlink records in a many-to-one rel
 
   }).then(function() {
     equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
-    ok(jupiter.__rel.moons[io.__id], 'Jupiter\'s moon is Io');
-    equal(io.__rel.planet, jupiter.__id, 'Io\'s planet is Jupiter');
+    ok(jupiter.__rel.moons[io.id], 'Jupiter\'s moon is Io');
+    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
 
     return source.removeLink('moon', io, 'planet');
 
@@ -548,13 +510,13 @@ test("#findLink - can find has-one linked values", function() {
 
   }).then(function() {
     equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
-    equal(io.__rel.planet, jupiter.__id, 'Io\'s planet is Jupiter');
+    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
 
     return source.findLink('moon', io, 'planet');
 
   }).then(function(planet) {
     start();
-    equal(planet.__id, jupiter.__id, 'Io is linked to Jupiter');
+    equal(planet.id, jupiter.id, 'Io is linked to Jupiter');
   });
 });
 
@@ -578,7 +540,7 @@ test("#findLink - can find has-many linked values", function() {
 
   }).then(function() {
     equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
-    equal(io.__rel.planet, jupiter.__id, 'Io\'s planet is Jupiter');
+    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
 
     return source.findLink('planet', jupiter, 'moons');
 
