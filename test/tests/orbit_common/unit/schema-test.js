@@ -51,21 +51,32 @@ test("`modelDefaults can be overridden", function() {
   var schema = new Schema({
     modelDefaults: {
       keys: {
-        'clientId': {
+        clientId: {
           primaryKey: true,
           defaultValue: customIdGenerator
         },
-        'remoteId': {}
+        remoteId: {}
       },
       attributes: {
-        'someAttr': {}
+        someAttr: {}
       },
       links: {
-        'someLink': {}
+        someLink: {}
       }
     },
     models: {
-      planet: {}
+      planet: {},
+      moon: {
+        keys: {
+          remoteId: undefined
+        },
+        attributes: {
+          someAttr: undefined
+        },
+        links: {
+          someLink: undefined
+        }
+      }
     }
   });
 
@@ -94,6 +105,17 @@ test("`modelDefaults can be overridden", function() {
   strictEqual(model.primaryKey.defaultValue, customIdGenerator, 'model.primaryKey.defaultValue has been set');
   ok(model.attributes['someAttr'], 'model.attributes match defaults');
   ok(model.links['someLink'], 'model.links match defaults');
+
+  ok((model = schema.models['moon']), 'model definition has been set');
+  ok(model.keys, 'model.keys has been set');
+  ok(model.attributes, 'model.attributes has been set');
+  ok(model.links, 'model.links has been set');
+  ok(model.keys['clientId'], 'model.keys[\'clientId\'] has been set');
+  strictEqual(model.primaryKey, model.keys['clientId'], 'model.primaryKey is consistent');
+  equal(model.secondaryKeys, undefined, 'model has no secondaryKeys');
+  equal(Object.keys(model.keys).length, 1, 'model has one key');
+  equal(Object.keys(model.attributes).length, 0, 'model has no attributes');
+  equal(Object.keys(model.links).length, 0, 'model has no links');
 });
 
 test("#normalize initializes a record with a unique primary key", function() {
