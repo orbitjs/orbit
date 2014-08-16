@@ -66,12 +66,15 @@ test("its prototype chain is correct", function() {
 });
 
 test("source saves options", function() {
-  expect(3);
+  expect(6);
   var schema = new Schema({});
   source = new JSONAPISource(schema, {host: "127.0.0.1:8888", namespace: "api", headers: {"User-Agent": "CERN-LineMode/2.15 libwww/2.17b3"}});
-  equal(source.namespace, "api", "Namespace should be defined");
-  equal(source.host, "127.0.0.1:8888", "Host should be defined");
-  equal(source.headers["User-Agent"], "CERN-LineMode/2.15 libwww/2.17b3", "Headers should be defined");
+  equal(source.defaultNamespace, "api", "Namespace should be defined");
+  equal(source.defaultHost, "127.0.0.1:8888", "Host should be defined");
+  equal(source.defaultHeaders["User-Agent"], "CERN-LineMode/2.15 libwww/2.17b3", "Headers should be defined");
+  equal(source.resourceNamespace(), source.defaultNamespace, "Default namespace should be used by default");
+  equal(source.resourceHost(), source.defaultHost, "Default host should be used by default");
+  deepEqual(source.ajaxHeaders(), source.defaultHeaders, "Default headers should be used by default");
 });
 
 test("#resourceURL - respects options to construct URLs", function () {
