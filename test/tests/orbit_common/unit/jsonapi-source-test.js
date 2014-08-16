@@ -81,6 +81,11 @@ test("#resourceURL - respects options to construct URLs", function () {
   equal(source.resourceURL("planet", 1), '127.0.0.1:8888/api/planets/1', "resourceURL method should use the options to construct URLs");
 });
 
+test("#resourceLinkURL - constructs relationship URLs based upon base resourceURL", function () {
+  expect(1);
+  equal(source.resourceLinkURL('planet', 1, 'moons'), '/planets/1/links/moons', "resourceLinkURL appends /links/[relationship] to resourceURL");
+});
+
 test("#add - can insert records", function() {
   expect(5);
 
