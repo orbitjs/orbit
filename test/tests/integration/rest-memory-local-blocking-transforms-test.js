@@ -189,7 +189,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
                 JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
   });
   server.respondWith('PATCH', '/planets/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/name', value: 'Earth'}, 'PATCH request');
+    deepEqual(JSON.parse(xhr.requestBody), [{op: 'replace', path: '/name', value: 'Earth'}], 'PATCH request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
                 JSON.stringify({}));
@@ -260,7 +260,7 @@ test("records patched in memory should be patched with rest", function() {
                 JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
   });
   server.respondWith('PATCH', '/planets/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/classification', value: 'terrestrial'}, 'PATCH request');
+    deepEqual(JSON.parse(xhr.requestBody), [{op: 'replace', path: '/classification', value: 'terrestrial'}], 'PATCH request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
                 JSON.stringify({}));
@@ -291,7 +291,7 @@ test("records patched with rest should be patched in memory", function() {
                 JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
   });
   server.respondWith('PATCH', '/planets/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {op: 'replace', path: '/planets/12345/classification', value: 'terrestrial'}, 'PATCH request');
+    deepEqual(JSON.parse(xhr.requestBody), [{op: 'replace', path: '/classification', value: 'terrestrial'}], 'PATCH request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
                 JSON.stringify({}));

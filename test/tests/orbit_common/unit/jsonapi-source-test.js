@@ -6,6 +6,7 @@ import JSONAPISource from 'orbit-common/jsonapi-source';
 import { Promise } from 'rsvp';
 
 var server,
+    schema,
     source;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -19,7 +20,7 @@ module("OC - JSONAPISource", {
     server = window.sinon.fakeServer.create();
     server.autoRespond = true;
 
-    var schema = new Schema({
+    schema = new Schema({
       modelDefaults: {
         keys: {
           '__id': {primaryKey: true, defaultValue: uuid},
@@ -51,6 +52,7 @@ module("OC - JSONAPISource", {
   },
 
   teardown: function() {
+    schema = null;
     source = null;
 
     server.restore();
@@ -79,14 +81,17 @@ test("source saves options", function() {
 
 test("#resourceURL - respects options to construct URLs", function () {
   expect(1);
-  var schema = new Schema({});
   source = new JSONAPISource(schema, {host: "127.0.0.1:8888", namespace: "api"});
-  equal(source.resourceURL("planet", 1), '127.0.0.1:8888/api/planets/1', "resourceURL method should use the options to construct URLs");
+
+  var jupiter = source.normalize('planet', {id: '1', name: 'Jupiter'});
+  equal(source.resourceURL("planet", jupiter.__id), '127.0.0.1:8888/api/planets/1', "resourceURL method should use the options to construct URLs");
 });
 
 test("#resourceLinkURL - constructs relationship URLs based upon base resourceURL", function () {
   expect(1);
-  equal(source.resourceLinkURL('planet', 1, 'moons'), '/planets/1/links/moons', "resourceLinkURL appends /links/[relationship] to resourceURL");
+
+  var jupiter = source.normalize('planet', {id: '1', name: 'Jupiter'});
+  equal(source.resourceLinkURL('planet', jupiter.__id, 'moons'), '/planets/1/links/moons', "resourceLinkURL appends /links/[relationship] to resourceURL");
 });
 
 test("#add - can insert records", function() {
@@ -164,58 +169,57 @@ test("#remove - can delete records", function() {
   });
 });
 
-// TODO - update to use POST / DELETE
-//test("#addLink - can patch records with inverse relationships", function() {
-//  expect(3);
-//
-//  server.respondWith('PATCH', '/planets/12345', function(xhr) {
-//    deepEqual(JSON.parse(xhr.requestBody), {op: 'add', path: '/planets/12345/links/moons/-', value: 987},
-//              'PATCH request to add link to primary record');
-//    xhr.respond(200,
-//                {'Content-Type': 'application/json'},
-//                JSON.stringify({}));
-//  });
-//
-//  server.respondWith('PATCH', '/moons/987', function(xhr) {
-//    deepEqual(JSON.parse(xhr.requestBody), {op: 'add', path: '/moons/987/links/planet', value: 12345},
-//              'PATCH request to add link to related record');
-//    xhr.respond(200,
-//                {'Content-Type': 'application/json'},
-//                JSON.stringify({}));
-//  });
-//
-//  stop();
-//  source.addLink('planet', {id: 12345}, 'moons', {id: 987}).then(function() {
-//    start();
-//    ok(true, 'records linked');
-//  });
-//});
-//
-//test("#removeLink - can patch records with inverse relationships", function() {
-//  expect(3);
-//
-//  server.respondWith('PATCH', '/planets/12345', function(xhr) {
-//    deepEqual(JSON.parse(xhr.requestBody), {op: 'remove', path: '/planets/12345/links/moons/987'},
-//              'PATCH request to remove link from primary record');
-//    xhr.respond(200,
-//                {'Content-Type': 'application/json'},
-//                JSON.stringify({}));
-//  });
-//
-//  server.respondWith('PATCH', '/moons/987', function(xhr) {
-//    deepEqual(JSON.parse(xhr.requestBody), {op: 'remove', path: '/moons/987/links/planet'},
-//              'PATCH request to remove link from related record');
-//    xhr.respond(200,
-//                {'Content-Type': 'application/json'},
-//                JSON.stringify({}));
-//  });
-//
-//  stop();
-//  source.removeLink('planet', {id: 12345}, 'moons', {id: 987}).then(function() {
-//    start();
-//    ok(true, 'records unlinked');
-//  });
-//});
+test("#addLink - can patch records with inverse relationships", function() {
+  expect(3);
+
+  server.respondWith('PATCH', '/planets/12345/links/moons', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), [{op: 'add', path: '/-', value: '987'}],
+              'PATCH request to add link to primary record');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({}));
+  });
+
+  server.respondWith('PATCH', '/moons/987/links/planet', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), [{op: 'replace', path: '/', value: '12345'}],
+              'PATCH request to add link to related record');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({}));
+  });
+
+  stop();
+  source.addLink('planet', {id: '12345'}, 'moons', {id: '987'}).then(function() {
+    start();
+    ok(true, 'records linked');
+  });
+});
+
+test("#removeLink - can patch records with inverse relationships", function() {
+  expect(3);
+
+  server.respondWith('PATCH', '/planets/12345/links/moons', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), [{op: 'remove', path: '/987'}],
+              'PATCH request to remove link from primary record');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({}));
+  });
+
+  server.respondWith('PATCH', '/moons/987/links/planet', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), [{op: 'remove', path: '/'}],
+              'PATCH request to remove link from related record');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({}));
+  });
+
+  stop();
+  source.removeLink('planet', {id: 12345}, 'moons', {id: 987}).then(function() {
+    start();
+    ok(true, 'records unlinked');
+  });
+});
 
 test("#find - can find individual records by passing in a single id", function() {
   expect(6);
