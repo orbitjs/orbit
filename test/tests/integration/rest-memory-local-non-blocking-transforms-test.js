@@ -76,7 +76,7 @@ test("records inserted into memory should be posted with rest", function() {
   restSource.on('didTransform', function(operation, inverse) {
     restSourceTransforms++;
 
-//TODO-log    console.log('REST SOURCE - didTransform', restSourceTransforms, operation, inverse);
+    // console.log('REST SOURCE - didTransform', restSourceTransforms, operation, inverse);
 
     if (restSourceTransforms === 1) {
       ok(operation.value.__id,                           'orbit id should be defined');
@@ -92,7 +92,7 @@ test("records inserted into memory should be posted with rest", function() {
   localSource.on('didTransform', function(operation, inverse) {
     localSourceTransforms++;
 
-//TODO-log    console.log('LOCAL SOURCE - didTransform', localSourceTransforms, operation, inverse);
+    // console.log('LOCAL SOURCE - didTransform', localSourceTransforms, operation, inverse);
 
     if (localSourceTransforms === 1) {
       equal(operation.op, 'add',                         'local source - initial object addition');
@@ -131,7 +131,7 @@ test("records inserted into memory should be posted with rest", function() {
   });
 });
 
-test("records updated in memory should be updated with rest (via PATCH)", function() {
+test("records updated in memory should be updated with rest", function() {
   expect(35);
 
   var memorySourceTransforms = 0,
@@ -213,8 +213,8 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
       equal(operation.op, 'replace',    'local source - name replaced when the REST POST response returns');
       equal(operation.value, 'Jupiter', 'local source - name temporarily changed back to Jupiter');
 
-      server.respond('PATCH', '/planets/12345', function(xhr) {
-        deepEqual(JSON.parse(xhr.requestBody), [{op: 'replace', path: '/name', value: 'Earth'}], 'PATCH request');
+      server.respond('PUT', '/planets/12345', function(xhr) {
+        deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Earth'}}, 'PUT request');
         xhr.respond(200,
                     {'Content-Type': 'application/json'},
                     JSON.stringify({}));
@@ -223,7 +223,7 @@ test("records updated in memory should be updated with rest (via PATCH)", functi
     } else if (localSourceTransforms === 5) {
       start();
 
-      equal(operation.op, 'replace',  'local source - name replaced when the REST PATCH response returns');
+      equal(operation.op, 'replace',  'local source - name replaced when the REST PUT response returns');
       equal(operation.value, 'Earth', 'local source - name changed back to Earth');
 
     } else {
@@ -335,8 +335,8 @@ test("records patched in memory should be patched with rest", function() {
       equal(operation.op, 'replace',    'local source - name replaced when the REST POST response returns');
       equal(operation.value, 'Jupiter', 'local source - name temporarily changed back to Jupiter');
 
-      server.respond('PATCH', '/planets/12345', function(xhr) {
-        deepEqual(JSON.parse(xhr.requestBody), [{op: 'replace', path: '/name', value: 'Earth'}], 'PATCH request');
+      server.respond('PUT', '/planets/12345', function(xhr) {
+        deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Earth'}}, 'PUT request');
         xhr.respond(200,
                     {'Content-Type': 'application/json'},
                     JSON.stringify({}));
