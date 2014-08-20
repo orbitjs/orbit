@@ -491,7 +491,7 @@ test("#addLink and #removeLink- can link and unlink records in a many-to-one rel
   });
 });
 
-test("#findLink - can find has-one linked values", function() {
+test("#findLink - can find has-one linked ids", function() {
   expect(4);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -513,6 +513,35 @@ test("#findLink - can find has-one linked values", function() {
     equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
 
     return source.findLink('moon', io, 'planet');
+
+  }).then(function(planetId) {
+    start();
+    equal(planetId, jupiter.id, 'Io is linked to Jupiter');
+  });
+});
+
+test("#findLinked - can find has-one linked records", function() {
+  expect(4);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  var jupiter,
+      io;
+
+  stop();
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
+    jupiter = planet;
+    return source.add('moon', {name: 'Io'});
+
+  }).then(function(moon) {
+    io = moon;
+    return source.addLink('moon', io, 'planet', jupiter);
+
+  }).then(function() {
+    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
+    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
+
+    return source.findLinked('moon', io, 'planet');
 
   }).then(function(planet) {
     start();
@@ -543,6 +572,37 @@ test("#findLink - can find has-many linked values", function() {
     equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
 
     return source.findLink('planet', jupiter, 'moons');
+
+  }).then(function(moonIds) {
+    start();
+    equal(moonIds.length, 1, 'Jupiter has one moon');
+    equal(moonIds[0], io.id, '... and it\'s Io');
+  });
+});
+
+test("#findLinked - can find has-many linked values", function() {
+  expect(5);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  var jupiter,
+      io;
+
+  stop();
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
+    jupiter = planet;
+    return source.add('moon', {name: 'Io'});
+
+  }).then(function(moon) {
+    io = moon;
+
+    return source.addLink('planet', jupiter, 'moons', io);
+
+  }).then(function() {
+    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
+    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
+
+    return source.findLinked('planet', jupiter, 'moons');
 
   }).then(function(moons) {
     start();

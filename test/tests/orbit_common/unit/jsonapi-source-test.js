@@ -552,7 +552,54 @@ test("#find - can filter records", function() {
   });
 });
 
-test("#findLink - can find has-many linked values", function() {
+test("#findLink - can find has-many linked ids", function() {
+  expect(8);
+
+  var planetRecord = {
+    id: 1,
+    name: 'Mercury',
+    classification: 'terrestrial',
+    links: {
+      moons: [1, 3, 6]
+    }
+  };
+
+  var moonRecords = [1, 3, 6];
+
+  server.respondWith('GET', '/planets/1', function(xhr) {
+    equal(xhr.method, 'GET', 'GET request');
+    equal(xhr.url, '/planets/1', 'request to correct URL');
+    xhr.respond(200, {'Content-Type': 'application/json'}, JSON.stringify({planets: planetRecord}));
+  });
+
+  server.respondWith('GET', '/planets/1/links/moons', function(xhr) {
+    equal(xhr.method, 'GET', 'GET request');
+    equal(xhr.url, '/planets/1/links/moons', 'request to correct URL');
+    xhr.respond(200, {'Content-Type': 'application/json'}, JSON.stringify({moons: moonRecords}));
+  });
+
+  stop();
+  source.find('planet', {id:1}).then(function(planet) {
+    source.findLink('planet', planet, 'moons').then(function(moonIds) {
+      start();
+
+      equal(moonIds.length, 3, 'there should be 3 moons');
+      for (var i = 0; i < moonIds.length; i++) {
+        equal(moonIds[i], moonRecords[i], 'id should match');
+      }
+    }, function(err){
+      start();
+      console.log(err);
+      throws(err);
+    });
+  }, function(err) {
+    start();
+    console.log(err);
+    throws(err);
+  });
+});
+
+test("#findLinked - can find has-many linked values", function() {
   expect(14);
 
   var planetRecord = {
@@ -585,7 +632,7 @@ test("#findLink - can find has-many linked values", function() {
 
   stop();
   source.find('planet', {id:1}).then(function(planet) {
-    source.findLink('planet', planet, 'moons').then(function(moons) {
+    source.findLinked('planet', planet, 'moons').then(function(moons) {
       start();
       equal(moons.length, 3, 'there should be 3 moons');
       var moon, record;
@@ -609,22 +656,15 @@ test("#findLink - can find has-many linked values", function() {
 });
 
 test("#findLink - can find has-one linked values", function() {
-  expect(8);
+  expect(5);
 
-  var planetRecord =  {
-    id: 1,
-    name: 'Mercury',
-    classification: 'gas giant',
-    links: {
-      moons: [1, 3, 6]
-    }
-  };
+  var planetRecord = '1';
 
   var moonRecord = {
-    id: 1,
+    id: '1',
     name: 'Moon 1',
     links: {
-      planet: 1
+      planet: '1'
     }
   };
 
@@ -635,21 +675,17 @@ test("#findLink - can find has-one linked values", function() {
 
   });
 
-  server.respondWith('GET', '/planets/1', function(xhr) {
+  server.respondWith('GET', '/moons/1/links/planet', function(xhr) {
     equal(xhr.method, 'GET', 'GET request');
-    equal(xhr.url, '/planets/1', 'request to correct URL');
-    xhr.respond(200, {'Content-Type': 'application/json'}, JSON.stringify({planets: planetRecord }));
+    equal(xhr.url, '/moons/1/links/planet', 'request to correct URL');
+    xhr.respond(200, {'Content-Type': 'application/json'}, JSON.stringify({planets: planetRecord}));
   });
 
   stop();
   source.find('moon', {id:1}).then(function(moon) {
-    console.log(moon);
-    source.findLink('moon', moon, 'planet').then(function(planet) {
+    source.findLink('moon', moon, 'planet').then(function(planetId) {
       start();
-      ok(planet.__id, 'orbit id should be defined');
-      equal(planet.id, 1, 'server id should be defined');
-      equal(planet.name, 'Mercury', 'name should match');
-      equal(planet.classification, 'gas giant', 'classification should match');
+      equal(planetId, planetRecord, 'id should match');
     }, function(err){
       start();
       console.log(err);
