@@ -361,6 +361,21 @@ test("#add - creates a record", function() {
   });
 });
 
+test("#add - creates a record - data defaults to empty object", function() {
+  expect(3);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  stop();
+  source.add('planet').then(function(planet) {
+    start();
+    equal(source.length('planet'), 1, 'source should contain one record');
+    ok(planet.id, 'id should be defined');
+    return planet;
+  });
+});
+
+
 test("#update - can update records", function() {
   expect(7);
 
