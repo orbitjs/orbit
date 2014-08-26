@@ -77,6 +77,32 @@ var testRequestableAction = function(actionName) {
     });
   });
 
+  test("`did" + ActionName + "` event should receive results as the last argument, even if they are an array", function() {
+    expect(6);
+
+    var order = 0;
+
+    source['_' + actionName] = function() {
+      equal(++order, 1, 'action performed after will' + ActionName);
+      deepEqual(Array.prototype.slice.call(arguments, 0), ['abc', 'def'], '_handler args match original call args');
+      return new Promise(function(resolve, reject) {
+        resolve(['a', 'b', 'c']);
+      });
+    };
+
+    source.on('did' + ActionName, function() {
+      equal(++order, 2, 'did' + ActionName + ' triggered after action performed successfully');
+      deepEqual(Array.prototype.slice.call(arguments, 0), ['abc', 'def', ['a', 'b', 'c']], 'event handler args match original call args + return value');
+    });
+
+    stop();
+    source[actionName]('abc', 'def').then(function(result) {
+      start();
+      equal(++order, 3, 'promise resolved last');
+      deepEqual(result, ['a', 'b', 'c'], 'success!');
+    });
+  });
+
   test("it should trigger `didNot" + ActionName + "` event after an unsuccessful action", function() {
     expect(6);
 
@@ -102,6 +128,36 @@ var testRequestableAction = function(actionName) {
       start();
       equal(++order, 3, 'promise resolved last');
       equal(result, ':(', 'failure');
+    });
+  });
+
+  test("`didNot" + ActionName + "` event should receive errors as the last argument, even if they are an array", function() {
+    expect(6);
+
+    var order = 0;
+
+    source['_' + actionName] = function() {
+      equal(++order, 1, 'action performed after will' + ActionName);
+      deepEqual(Array.prototype.slice.call(arguments, 0), ['abc', 'def'], '_handler args match original call args');
+      return new Promise(function(resolve, reject) {
+        reject(['O_o', ':(']);
+      });
+    };
+
+    source.on('did' + ActionName, function() {
+      ok(false, 'did' + ActionName + ' should not be triggered');
+    });
+
+    source.on('didNot' + ActionName, function() {
+      equal(++order, 2, 'didNot' + ActionName + ' triggered after an unsuccessful action');
+      deepEqual(Array.prototype.slice.call(arguments, 0), ['abc', 'def', ['O_o', ':(']], 'event handler args match original call args + return value');
+    });
+
+    stop();
+    source[actionName]('abc', 'def').then(undefined, function(result) {
+      start();
+      equal(++order, 3, 'promise resolved last');
+      deepEqual(result, ['O_o', ':('], 'failure');
     });
   });
 
