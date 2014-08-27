@@ -179,11 +179,22 @@ test("`extendClass` makes _super accessible within overridden methods", function
     name: 'TBD',
     greeting: function() {
       return 'hello from ' + this.name;
+    },
+    abc: function() {
+      return 'a';
     }
   });
+
   extendClass(Planet.prototype, {
     greeting: function() {
       return this._super() + '!';
+    },
+    abc: function() {
+      if (this._super) {
+        return 'b';
+      } else {
+        return 'c';
+      }
     }
   }, {
     isPlanet: true
@@ -192,6 +203,8 @@ test("`extendClass` makes _super accessible within overridden methods", function
   var earth = new Planet();
   equal(earth.name, 'TBD', 'property comes from superclass');
   equal(earth.greeting(), 'hello from TBD!', 'functions can access _super');
+  equal(earth.abc(), 'b', 'functions are wrapped and have _super injected');
+  equal(earth.abc.wrappedFunction(), 'c', 'wrapped functions are still accessible');
   equal(earth.isPlanet, true, 'property comes from mixin');
 
   earth.name = 'earth';
