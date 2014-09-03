@@ -81,7 +81,8 @@ test("updates to records in the primary source should be automatically copied to
   primarySource.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     originalPlanet = planet;
 
-    primarySource.update('planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
+    primarySource.update('planet', {__id: planet.__id, name: 'Earth', classification: 'terrestrial'}).then(function() {
+      var updatedPlanet = primarySource.retrieve(['planet', planet.__id]);
       equal(updatedPlanet.__id, planet.__id, 'primary id remains the same');
       equal(updatedPlanet.name, 'Earth', 'name has been updated');
       equal(updatedPlanet.classification, 'terrestrial', 'classification has been updated');

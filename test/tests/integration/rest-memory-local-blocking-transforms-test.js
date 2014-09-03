@@ -198,19 +198,19 @@ test("records updated in memory should be updated with rest", function() {
   stop();
   memorySource.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     planet.name = 'Earth';
-    memorySource.update('planet', planet).then(
-      function(planet) {
-        start();
-        equal(memorySource.length('planet'), 1, 'memory source should contain one record');
-        ok(planet.__id, 'orbit id should be defined');
-        equal(planet.id, '12345', 'server id should be defined');
-        equal(planet.name, 'Earth', 'name should match');
-        equal(planet.classification, 'gas giant', 'classification was not updated');
+    memorySource.update('planet', planet).then(function() {
+      start();
 
-        equal(localSource.length('planet'), 1, 'local source should contain one record');
-        verifyLocalStorageContainsRecord(localSource.namespace, 'planet', planet.__id, planet);
-      }
-    );
+      var updatedPlanet = memorySource.retrieve(['planet', planet.__id]);
+      equal(memorySource.length('planet'), 1, 'memory source should contain one record');
+      equal(updatedPlanet.__id, planet.__id, 'orbit id should be defined');
+      equal(updatedPlanet.id, '12345', 'server id should be defined');
+      equal(updatedPlanet.name, 'Earth', 'name should match');
+      equal(updatedPlanet.classification, 'gas giant', 'classification was not updated');
+
+      equal(localSource.length('planet'), 1, 'local source should contain one record');
+      verifyLocalStorageContainsRecord(localSource.namespace, 'planet', updatedPlanet.__id, updatedPlanet);
+    });
   });
 });
 
@@ -234,19 +234,19 @@ test("records updated with rest should be updated in memory", function() {
   restSource.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     planet.name = 'Earth';
     planet.classification = 'terrestrial';
-    restSource.update('planet', planet).then(
-      function(planet) {
-        start();
-        equal(memorySource.length('planet'), 1, 'memory source should contain one record');
-        ok(planet.__id, 'orbit id should be defined');
-        equal(planet.id, '12345', 'server id should be defined');
-        equal(planet.name, 'Earth', 'name should match');
-        equal(planet.classification, 'terrestrial', 'classification should match');
+    restSource.update('planet', planet).then(function() {
+      start();
 
-        equal(localSource.length('planet'), 1, 'local source should contain one record');
-        verifyLocalStorageContainsRecord(localSource.namespace, 'planet', planet.__id, planet);
-      }
-    );
+      var updatedPlanet = memorySource.retrieve(['planet', planet.__id]);
+      equal(memorySource.length('planet'), 1, 'memory source should contain one record');
+      equal(updatedPlanet.__id, planet.__id, 'orbit id should be defined');
+      equal(updatedPlanet.id, '12345', 'server id should be defined');
+      equal(updatedPlanet.name, 'Earth', 'name should match');
+      equal(updatedPlanet.classification, 'terrestrial', 'classification should match');
+
+      equal(localSource.length('planet'), 1, 'local source should contain one record');
+      verifyLocalStorageContainsRecord(localSource.namespace, 'planet', updatedPlanet.__id, updatedPlanet);
+    });
   });
 });
 

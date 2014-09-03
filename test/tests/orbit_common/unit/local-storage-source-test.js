@@ -71,7 +71,8 @@ test("#update - can update records", function() {
   stop();
   source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     original = planet;
-    return source.update('planet', {id: planet.id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
+    return source.update('planet', {id: planet.id, name: 'Earth', classification: 'terrestrial'}).then(function() {
+      var updatedPlanet = source.retrieve(['planet', planet.id]);
       equal(updatedPlanet.id, planet.id, 'id remains the same');
       equal(updatedPlanet.name, 'Earth', 'name has been updated');
       equal(updatedPlanet.classification, 'terrestrial', 'classification has been updated');
@@ -179,4 +180,3 @@ test("autosave can be disabled to delay writing to local storage", function() {
     verifyLocalStorageContainsRecord(source.namespace, 'planet', planet.id, planet);
   });
 });
-

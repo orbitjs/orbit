@@ -146,9 +146,12 @@ test("#update - can update records", function() {
   });
 
   stop();
-  source.update('planet', {id: '12345', name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  var data = {id: '12345', name: 'Jupiter', classification: 'gas giant'};
+  source.update('planet', data).then(function() {
     start();
-    ok(planet.__id, 'orbit id should be defined');
+    var planetId = source.getId('planet', data);
+    var planet = source.retrieve(['planet', planetId]);
+    equal(planet.__id, planetId, 'orbit id should be defined');
     equal(planet.id, '12345', 'server id should be defined');
     equal(planet.name, 'Jupiter', 'name should match');
     equal(planet.classification, 'gas giant', 'classification should match');
@@ -167,9 +170,12 @@ test("#update (with PATCH) - can update records", function() {
 
   stop();
   source.usePatch = true;
-  source.update('planet', {id: '12345', name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  var data = {id: '12345', name: 'Jupiter', classification: 'gas giant'};
+  source.update('planet', data).then(function() {
     start();
-    ok(planet.__id, 'orbit id should be defined');
+    var planetId = source.getId('planet', data);
+    var planet = source.retrieve(['planet', planetId]);
+    equal(planet.__id, planetId, 'orbit id should be defined');
     equal(planet.id, '12345', 'server id should be defined');
     equal(planet.name, 'Jupiter', 'name should match');
     equal(planet.classification, 'gas giant', 'classification should match');
@@ -232,7 +238,7 @@ test("#remove (with PATCH) - can delete records", function() {
   expect(2);
 
   server.respondWith('PATCH', '/planets/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), [{op: 'remove', path: '/'}], 
+    deepEqual(JSON.parse(xhr.requestBody), [{op: 'remove', path: '/'}],
               'PATCH request to remove record');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
@@ -409,7 +415,7 @@ test("#find - can return a compound document including related records", functio
     var moons = Object.keys(planet.__rel.moons);
     equal(moons.length, 1, 'planet should have a single moon');
 
-    var moon = source.retrieve(['moon', moons[0]]); 
+    var moon = source.retrieve(['moon', moons[0]]);
     equal(moon.__rel.planet, planet.__id, 'moon should be assigned to planet');
   });
 });
