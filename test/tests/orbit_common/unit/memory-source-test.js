@@ -375,6 +375,67 @@ test("#add - creates a record - data defaults to empty object", function() {
   });
 });
 
+test("#add / #remove - can create and remove has-one links and their inverse links", function() {
+  expect(6);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  var jupiter,
+      io;
+
+  stop();
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
+    jupiter = planet;
+    return source.add('moon', {name: 'Io', __rel: {planet: jupiter.id}});
+
+  }).then(function(moon) {
+    io = moon;
+    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
+    ok(jupiter.__rel.moons[io.id], 'Jupiter\'s moon is Io');
+    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
+
+    return source.remove('moon', io.id);
+
+  }).then(function() {
+    start();
+
+    equal(source.length('moon'), 0, 'moon should be deleted');
+    equal(Object.keys(jupiter.__rel.moons).length, 0, 'Jupiter has no moons');
+  });
+});
+
+test("#add / #remove - can create and remove has-many links and their inverse links", function() {
+  expect(6);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  var jupiter,
+      io;
+
+  stop();
+  source.add('moon', {name: 'Io'}).then(function(moon) {
+    io = moon;
+
+    var moons = {};
+    moons[io.id] = true;
+
+    return source.add('planet', {name: 'Jupiter', __rel: {moons: moons}});
+
+  }).then(function(planet) {
+    jupiter = planet;
+    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
+    ok(jupiter.__rel.moons[io.id], 'Jupiter\'s moon is Io');
+    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
+
+    return source.remove('planet', jupiter.id);
+
+  }).then(function() {
+    start();
+
+    equal(source.length('planet'), 0, 'planet should be deleted');
+    equal(io.__rel.planet, null, 'Io has no planet');
+  });
+});
 
 test("#update - can update records", function() {
   expect(7);
