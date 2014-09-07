@@ -626,6 +626,33 @@ test("#findLinked - can find has-one linked records", function() {
   });
 });
 
+test("#findLinked - can find null for an empty has-one relationship", function() {
+  expect(4);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  var jupiter,
+      io;
+
+  stop();
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
+    jupiter = planet;
+    return source.add('moon', {name: 'Io'});
+
+  }).then(function(moon) {
+    io = moon;
+
+    equal(Object.keys(jupiter.__rel.moons).length, 0, 'Jupiter has no moons');
+    equal(io.__rel.planet, null, 'Io has no planet');
+
+    return source.findLinked('moon', io, 'planet');
+
+  }).then(function(planet) {
+    start();
+    equal(planet, null, 'Io has no planet: findLinked returned null');
+  });
+});
+
 test("#findLink - can find has-many linked values", function() {
   expect(5);
 
@@ -685,6 +712,33 @@ test("#findLinked - can find has-many linked values", function() {
     start();
     equal(moons.length, 1, 'Jupiter has one moon');
     equal(moons[0].name, 'Io', '... and Io is its name');
+  });
+});
+
+test("#findLinked - can find an empty set of has-many linked values", function() {
+  expect(4);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  var jupiter,
+      io;
+
+  stop();
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
+    jupiter = planet;
+    return source.add('moon', {name: 'Io'});
+
+  }).then(function(moon) {
+    io = moon;
+
+    equal(Object.keys(jupiter.__rel.moons).length, 0, 'Jupiter has no moons');
+    equal(io.__rel.planet, null, 'Io has no planet');
+
+    return source.findLinked('planet', jupiter, 'moons');
+
+  }).then(function(moons) {
+    start();
+    equal(moons.length, 0, 'Jupiter has no moons: findLinked returned []');
   });
 });
 
