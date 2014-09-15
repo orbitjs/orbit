@@ -253,7 +253,7 @@ test("#remove (with PATCH) - can delete records", function() {
   });
 });
 
-test("#addLink - can add a relationship with POST", function() {
+test("#addLink - can add a hasMany relationship with POST", function() {
   expect(2);
 
   server.respondWith('POST', '/planets/12345/links/moons', function(xhr) {
@@ -271,7 +271,25 @@ test("#addLink - can add a relationship with POST", function() {
   });
 });
 
-test("#addLink (with PATCH) - can add a relationship", function() {
+test("#addLink - can add a hasOne relationship with POST", function() {
+  expect(2);
+
+  server.respondWith('POST', '/moons/987/links/planet', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {planets: '12345'},
+              'POST request to add link to primary record');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({}));
+  });
+
+  stop();
+  source.addLink('moon', {id: '987'}, 'planet', {id: '12345'}).then(function() {
+    start();
+    ok(true, 'records linked');
+  });
+});
+
+test("#addLink (with PATCH) - can add a hasMany relationship", function() {
   expect(2);
 
   server.respondWith('PATCH', '/planets/12345/links/moons', function(xhr) {
