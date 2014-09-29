@@ -1,4 +1,4 @@
-import { Class, clone, defineClass, expose, extend, extendClass, isArray, isNone } from 'orbit/lib/objects';
+import { Class, clone, defineClass, expose, extend, extendClass, isArray, isObject, isNone } from 'orbit/lib/objects';
 
 module("Orbit - Lib - Object", {
 });
@@ -258,6 +258,13 @@ test("`isArray` checks whether an object is an array", function() {
   equal(isArray(obj), false, 'Fake array is not an array');
 
   equal(isArray(arr), true, 'Array can be identified');
+});
+
+test("`isObject` checks whether a value is a non-null object", function() {
+  equal(isObject(null), false, 'null is not an object');
+  equal(isObject(9), false, 'Number is not an object');
+  equal(isObject({}), true, 'Object is identified correctly');
+  equal(isObject([]), true, 'Array is an object');
 });
 
 test("`isNone` checks whether an object is `null` or `undefined`", function() {
