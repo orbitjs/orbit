@@ -568,6 +568,95 @@ test("#addLink and #removeLink- can link and unlink records in a many-to-one rel
   });
 });
 
+test("#updateLink - will fail when replacing records in a many-to-one relationship unless the linkDef is flagged as `actsAsSet`", function() {
+  expect(2);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  var jupiter,
+    io;
+
+  stop();
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
+    jupiter = planet;
+    return source.add('moon', {name: 'Io'});
+
+  }).then(function(moon) {
+    io = moon;
+    return source.updateLink('planet', jupiter, 'moons', [ io ]);
+
+  }).then(function() {
+    ok(false, 'should not be successful');
+
+  }, function(e) {
+    start();
+    equal(e.message, "Assertion failed: hasMany links can only be replaced when flagged as `actsAsSet`");
+  });
+});
+
+test("#updateLink - can link and unlink records in a many-to-one relationship via the 'many' side when it `actsAsSet`", function() {
+  expect(6);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  var jupiter,
+      io;
+
+  // Moons link must be flagged with `actsAsSet`
+  source.schema.models.planet.links.moons.actsAsSet = true;
+
+  stop();
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
+    jupiter = planet;
+    return source.add('moon', {name: 'Io'});
+
+  }).then(function(moon) {
+    io = moon;
+
+    return source.updateLink('planet', jupiter, 'moons', [ io ]);
+
+  }).then(function() {
+    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
+
+    ok(jupiter.__rel.moons[io.id], 'Jupiter\'s moon is Io');
+    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
+
+    return source.updateLink('planet', jupiter, 'moons', []);
+
+  }).then(function() {
+    start();
+    equal(io.__rel.planet, undefined, 'Io is not associated with a planet after unlinking');
+    equal(Object.keys(jupiter.__rel.moons).length, 0, 'Jupiter has no moons after unlinking');
+  });
+});
+
+test("#updateLink - can link and unlink records in a many-to-one relationship via the 'one' side", function() {
+  expect(4);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  var jupiter,
+      io;
+
+  stop();
+  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
+    jupiter = planet;
+    return source.add('moon', {name: 'Io'});
+
+  }).then(function(moon) {
+    io = moon;
+
+    return source.updateLink('moon', io, 'planet', jupiter);
+
+  }).then(function() {
+    start();
+    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
+    ok(jupiter.__rel.moons[io.id], 'Jupiter\'s moon is Io');
+    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
+
+  });
+});
+
 test("#findLink - can find has-one linked ids", function() {
   expect(4);
 
