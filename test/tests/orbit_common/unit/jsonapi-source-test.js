@@ -344,6 +344,86 @@ test("#removeLink (with PATCH) - can remove a relationship", function() {
   });
 });
 
+test("#updateLink - can replace a hasOne relationship with PUT", function() {
+  expect(2);
+
+  server.respondWith('PUT', '/moons/987/links/planet', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {planets: '12345'},
+              'PUT request to replace link');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({}));
+  });
+
+  stop();
+  source.updateLink('moon', {id: '987'}, 'planet', {id: '12345'}).then(function() {
+    start();
+    ok(true, 'records linked');
+  });
+});
+
+test("#updateLink - can replace a hasMany relationship (flagged as `actsAsSet`) with PUT", function() {
+  expect(2);
+
+  // Moons link must be flagged with `actsAsSet`
+  source.schema.models.planet.links.moons.actsAsSet = true;
+
+  server.respondWith('PUT', '/planets/12345/links/moons', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), {moons: ['987']},
+              'PUT request to replace link');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({}));
+  });
+
+  stop();
+  source.updateLink('planet', {id: '12345'}, 'moons', [{id: '987'}]).then(function() {
+    start();
+    ok(true, 'records linked');
+  });
+});
+
+test("#updateLink (with PATCH) - can replace a hasOne relationship", function() {
+  expect(2);
+
+  server.respondWith('PATCH', '/moons/987/links/planet', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), [{op: 'replace', path: '/', value: '12345'}],
+              'PATCH request to replace link');
+    xhr.respond(200,
+                {'Content-Type': 'application/json'},
+                JSON.stringify({}));
+  });
+
+  stop();
+  source.usePatch = true;
+  source.updateLink('moon', {id: '987'}, 'planet', {id: '12345'}).then(function() {
+    start();
+    ok(true, 'records linked');
+  });
+});
+
+test("#updateLink (with PATCH) - can replace a hasMany relationship (flagged as `actsAsSet`)", function() {
+  expect(2);
+
+  // Moons link must be flagged with `actsAsSet`
+  source.schema.models.planet.links.moons.actsAsSet = true;
+
+  server.respondWith('PATCH', '/planets/12345/links/moons', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody), [{op: 'replace', path: '/', value: ['987']}],
+      'PATCH request to replace link');
+    xhr.respond(200,
+      {'Content-Type': 'application/json'},
+      JSON.stringify({}));
+  });
+
+  stop();
+  source.usePatch = true;
+  source.updateLink('planet', {id: '12345'}, 'moons', [{id: '987'}]).then(function() {
+    start();
+    ok(true, 'records linked');
+  });
+});
+
 test("#find - can find individual records by passing in a single id", function() {
   expect(6);
 
