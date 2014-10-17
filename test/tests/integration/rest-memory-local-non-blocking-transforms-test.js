@@ -181,6 +181,15 @@ test("records updated in memory should be updated with rest", function() {
       equal(operation.value.name, 'Jupiter',             'rest source - inserted - name - Jupiter');
       equal(operation.value.classification, 'gas giant', 'rest source - inserted - classification - gas giant');
 
+      setTimeout(function() {
+        server.respond('PUT', '/planets/12345', function(xhr) {
+          deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Earth'}}, 'PUT request');
+          xhr.respond(200,
+            {'Content-Type': 'application/json'},
+            JSON.stringify({}));
+        });
+      }, 0);
+
     } else if (restSourceTransforms === 2) {
       equal(operation.op, 'replace',  'rest source - name replaced');
       equal(operation.value, 'Earth', 'rest source - name - Earth');
@@ -212,13 +221,6 @@ test("records updated in memory should be updated with rest", function() {
     } else if (localSourceTransforms === 4) {
       equal(operation.op, 'replace',    'local source - name replaced when the REST POST response returns');
       equal(operation.value, 'Jupiter', 'local source - name temporarily changed back to Jupiter');
-
-      server.respond('PUT', '/planets/12345', function(xhr) {
-        deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Earth'}}, 'PUT request');
-        xhr.respond(200,
-                    {'Content-Type': 'application/json'},
-                    JSON.stringify({}));
-      });
 
     } else if (localSourceTransforms === 5) {
       start();
@@ -303,6 +305,15 @@ test("records patched in memory should be patched with rest", function() {
       equal(operation.value.name, 'Jupiter',             'rest source - inserted - name - Jupiter');
       equal(operation.value.classification, 'gas giant', 'rest source - inserted - classification - gas giant');
 
+      setTimeout(function() {
+        server.respond('PUT', '/planets/12345', function(xhr) {
+          deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Earth'}}, 'PUT request');
+          xhr.respond(200,
+            {'Content-Type': 'application/json'},
+            JSON.stringify({}));
+        });
+      }, 0);
+
     } else if (restSourceTransforms === 2) {
       equal(operation.op, 'replace',  'rest source - name replaced');
       equal(operation.value, 'Earth', 'rest source - name - Earth');
@@ -334,13 +345,6 @@ test("records patched in memory should be patched with rest", function() {
     } else if (localSourceTransforms === 4) {
       equal(operation.op, 'replace',    'local source - name replaced when the REST POST response returns');
       equal(operation.value, 'Jupiter', 'local source - name temporarily changed back to Jupiter');
-
-      server.respond('PUT', '/planets/12345', function(xhr) {
-        deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Earth'}}, 'PUT request');
-        xhr.respond(200,
-                    {'Content-Type': 'application/json'},
-                    JSON.stringify({}));
-      });
 
     } else if (localSourceTransforms === 5) {
       start();
