@@ -257,7 +257,7 @@ test("#addLink - can add a hasMany relationship with POST", function() {
   expect(2);
 
   server.respondWith('POST', '/planets/12345/links/moons', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {moons: '987'},
+    deepEqual(JSON.parse(xhr.requestBody), {moons: ['987']},
               'POST request to add link to primary record');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
