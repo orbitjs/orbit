@@ -510,6 +510,26 @@ test("#find - can find an array of records from an array of ids", function() {
   });
 });
 
+test("#find - can find an array of records from an array containing a single id", function() {
+  expect(3);
+
+  var jupiter = source.normalize('planet', {id: '1', name: 'Jupiter'});
+
+  server.respondWith('GET', '/planets/1', function(xhr) {
+    ok(true, 'GET request');
+    xhr.respond(200,
+      {'Content-Type': 'application/json'},
+      JSON.stringify({planets: {id: '1', name: 'Jupiter'}}));
+  });
+
+  stop();
+  source.find('planet', [jupiter.__id]).then(function(planets) {
+    start();
+    equal(planets.length, 1, 'one planets should be returned in an array');
+    ok(planets[0].id, '1', 'server id should match');
+  });
+});
+
 test("#find - can find an array of records from an array of remote ids", function() {
   expect(4);
 
