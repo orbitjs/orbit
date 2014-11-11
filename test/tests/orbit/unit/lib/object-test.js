@@ -66,6 +66,7 @@ test("`expose` can expose specific properties and methods from one object on ano
 });
 
 test("`extend` can copy all the properties and methods from one object to another", function() {
+  expect(5);
   var blank = {
     age: 0
   };
@@ -78,8 +79,9 @@ test("`extend` can copy all the properties and methods from one object to anothe
     }
   };
 
-  extend(blank, earth);
+  var result = extend(blank, earth);
 
+  equal(result, blank, 'extend() returns the destination object');
   equal(blank.name, earth.name, 'name matches');
   equal(blank.age, earth.age, 'age matches');
   equal(blank.greeting(), earth.greeting(), 'greeting matches');
