@@ -106,3 +106,32 @@ test("an array of transforms can be applied to one source and should be automati
     });
   });
 });
+
+test("replacing value with null should not cause infinite update loop", function() {
+  expect(4);
+
+  stop();
+
+  source1.transform({
+    op: 'add',
+    path: ['planet', '123'],
+    value: source1.normalize('planet', {name: 'Jupiter'})
+  }).then(function() {
+    source1.transform({
+      op: 'replace',
+      path: ['planet', '123', 'name'],
+      value: null
+    }).then(function() {
+      source1.find('planet', '123').then(function(planet1) {
+        source2.find('planet', '123').then(function(planet2) {
+          start();
+          notStrictEqual(planet2, planet1, 'not the same object as the one originally inserted');
+          strictEqual(planet2.__id, planet1.__id, 'backup record has the same primary id');
+          strictEqual(planet2.name, planet1.name, 'backup record has the same name');
+          strictEqual(planet2.name, null, 'records have name == null');
+        });
+      });
+    });
+  });
+});
+
