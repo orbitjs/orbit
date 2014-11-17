@@ -250,6 +250,49 @@ var testRequestConnector = function(actionName) {
     );
   });
 
+  test("Extension: RequestConnector._handlerFor should be used to handle", function() {
+    expect(6);
+    var order = 0;
+
+    var Extended = RequestConnector.extend({
+      _handlerFor: function(action) {
+        equal(action, actionName);
+        return function() {
+          equal(++order, 2);
+          equal(this, secondarySource, 'called in context of secondary source');
+          return failedOperation();
+        };
+      }
+    });
+
+    requestConnector = new Extended(primarySource,
+                                            secondarySource,
+                                            {mode: 'rescue'});
+
+
+    primarySource['_' + actionName] = function() {
+      equal(++order, 1, '_' + actionName + ' triggered first for primary source');
+      return failedOperation();
+    };
+
+    secondarySource['_' + actionName] = function() {
+      ok(false, '_' + ActionName + ' should not be triggered for secondary source');
+    };
+
+    primarySource.on('did' + ActionName, function() {
+      ok(false, 'did' + ActionName + ' should not be triggered');
+    });
+
+    stop();
+    primarySource[actionName]('moon').then(
+      undefined,
+      function(result) {
+        start();
+        equal(++order, 3, 'promise rejection resolved last');
+        equal(result, ':(', 'failure!');
+      }
+    );
+  });
 };
 
 ///////////////////////////////////////////////////////////////////////////////
