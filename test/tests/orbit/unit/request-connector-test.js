@@ -266,6 +266,9 @@ module("Orbit - RequestConnector", {
   },
 
   teardown: function() {
+    if (requestConnector) {
+      requestConnector.deactivate();
+    }
     primarySource = null;
     secondarySource = null;
     requestConnector = null;
