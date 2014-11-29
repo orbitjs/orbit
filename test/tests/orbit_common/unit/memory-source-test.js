@@ -437,6 +437,21 @@ test("#add / #remove - can create and remove has-many links and their inverse li
   });
 });
 
+test("#transform - remove operation for missing link path should leave a working source", function() {
+  expect(3);
+  equal(source.length('planet'), 0, 'source should be empty');
+  equal(source.length('moon'), 0, 'source should be empty');
+
+  stop();
+  source.transform({
+    op: 'remove',
+    path: ['moon', 'not-there', '__rel', 'planet']
+  }).then(function() {
+    ok(true, 'transforms continue on');
+    start();
+  });
+});
+
 test("#update - can update records", function() {
   expect(7);
 
