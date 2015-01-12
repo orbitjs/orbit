@@ -79,12 +79,20 @@ test("source saves options", function() {
   deepEqual(source.ajaxHeaders(), source.headers, "Default headers should be used by default");
 });
 
-test("#resourceURL - respects options to construct URLs", function () {
+test("#resourcePath - returns resource's path without its host and namespace", function () {
   expect(1);
-  source = new JSONAPISource(schema, {host: "127.0.0.1:8888", namespace: "api"});
+  source = new JSONAPISource(schema, {host: "http://127.0.0.1:8888", namespace: "api"});
 
   var jupiter = source.normalize('planet', {id: '1', name: 'Jupiter'});
-  equal(source.resourceURL("planet", jupiter.__id), '127.0.0.1:8888/api/planets/1', "resourceURL method should use the options to construct URLs");
+  equal(source.resourcePath("planet", jupiter.__id), 'planets/1', "resourcePath returns the path to the resource relative to the host and namespace");
+});
+
+test("#resourceURL - respects options to construct URLs", function () {
+  expect(1);
+  source = new JSONAPISource(schema, {host: "http://127.0.0.1:8888", namespace: "api"});
+
+  var jupiter = source.normalize('planet', {id: '1', name: 'Jupiter'});
+  equal(source.resourceURL("planet", jupiter.__id), 'http://127.0.0.1:8888/api/planets/1', "resourceURL method should use the options to construct URLs");
 });
 
 test("#resourceLinkURL - constructs relationship URLs based upon base resourceURL", function () {
