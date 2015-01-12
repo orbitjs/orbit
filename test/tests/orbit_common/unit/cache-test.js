@@ -48,6 +48,18 @@ test("#transform sets data and #retrieve retrieves it", function() {
   notStrictEqual(cache.retrieve('planet/1'), earth, 'objects don\'t match by reference because a clone has been cached');
 });
 
+test("#exists indicates whether a path exists", function() {
+  cache = new Cache(schema);
+
+  var earth = {id: '1', name: 'Earth'};
+  cache.transform({op: 'add', path: 'planet/1', value: earth});
+  equal(cache.exists('planet'), true, 'path exists');
+  equal(cache.exists('planet/1'), true, 'path exists');
+  equal(cache.exists('planet/1/id'), true, 'path exists');
+  equal(cache.exists('planet/1/id/bogus'), false, 'path does not exist');
+  equal(cache.exists('this/path/is/bogus'), false, 'path does not exist');
+});
+
 test("#length returns the size of data at a path", function() {
   cache = new Cache(schema);
 
