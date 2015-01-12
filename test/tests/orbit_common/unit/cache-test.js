@@ -94,6 +94,32 @@ test("#reset overrides the cache completely with the value specified", function(
   deepEqual(cache.retrieve(), newData);
 });
 
+test("removal of a non-existent path succeeds when the allowNoOps option is true", function() {
+  cache = new Cache(schema, {allowNoOps: true});
+
+  cache.transform({op: 'add', path: 'planet/1', value: {name: 'Earth'}});
+
+  try {
+    cache.transform({op: 'remove', path: 'planet/2'});
+    ok(true, 'remove should be successful');
+  } catch(e) {
+    ok(false, 'remove should not fail');
+  }
+});
+
+test("removal of a non-existent path fails when the allowNoOps option is false", function() {
+  cache = new Cache(schema, {allowNoOps: false});
+
+  cache.transform({op: 'add', path: 'planet/1', value: {name: 'Earth'}});
+
+  try {
+    cache.transform({op: 'remove', path: 'planet/2'});
+    ok(false, 'remove should not be successful');
+  } catch(e) {
+    ok(true, 'remove should fail');
+  }
+});
+
 test("#transform tracks refs by default, and clears them from hasOne relationships when a referenced record is removed", function() {
   cache = new Cache(schema);
 
