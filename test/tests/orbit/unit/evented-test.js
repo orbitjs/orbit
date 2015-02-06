@@ -371,3 +371,24 @@ test("it can fulfill all promises returned by listeners to an event, in order, u
     }
   );
 });
+
+test('it handles thrown errors in handlers', function() {
+  expect(1);
+
+  var error = new Error();
+
+  function throwError() {
+    throw error;
+  }
+
+  evented.on('greeting', throwError);
+  stop();
+  return evented.settle('greeting', 'hello')
+    .then(function(result) {
+      start();
+      equal(result, undefined, 'Completed');
+    }, function() {
+      ok(false, 'error handler should not be reached');
+    });
+
+});
