@@ -138,7 +138,9 @@ collection of compatible sources.
 
   // Create data sources with a common schema
   var schema = new OC.Schema({
-    idField: '__id',
+    keys: {
+      __id: { primaryKey: true, defaultValue: Orbit.uuid }
+    },
     models: {
       planet: {
         attributes: {
