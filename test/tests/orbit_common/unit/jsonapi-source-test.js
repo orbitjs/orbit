@@ -17,7 +17,7 @@ module("OC - JSONAPISource", {
     Orbit.ajax = window.jQuery.ajax;
 
     // fake xhr
-    server = window.sinon.fakeServer.create();
+    server = sinon.fakeServer.create();
     server.autoRespond = true;
 
     schema = new Schema({

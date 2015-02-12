@@ -22,7 +22,7 @@ module("Integration - Rest / Memory / Local Transforms (Blocking)", {
     Orbit.ajax = window.jQuery.ajax;
 
     // fake xhr
-    server = window.sinon.fakeServer.create();
+    server = sinon.fakeServer.create();
     server.autoRespond = true;
 
     // Create schema

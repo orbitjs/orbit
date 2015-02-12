@@ -17,7 +17,7 @@ module("Integration - Rest / Memory (Non-Blocking) rollbackTransformsOnFailure=t
     Orbit.ajax = window.jQuery.ajax;
 
     // Fake xhr
-    server = window.sinon.fakeServer.create();
+    server = sinon.fakeServer.create();
 
     // Create schema
     var schema = new Schema({
@@ -151,7 +151,7 @@ module("Integration - Rest / Memory (Non-Blocking) rollbackTransformsOnFailure=f
     Orbit.ajax = window.jQuery.ajax;
 
     // Fake xhr
-    server = window.sinon.fakeServer.create();
+    server = sinon.fakeServer.create();
 
     // Create schema
     var schema = new Schema({

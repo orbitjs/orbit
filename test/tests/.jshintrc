@@ -31,7 +31,8 @@
     "fillIn",
     "click",
     "find",
-    "requireModule"
+    "requireModule",
+    "sinon"
   ],
   "node" : false,
   "browser" : false,
