@@ -6,6 +6,7 @@ import JSONAPISource from 'orbit-common/jsonapi-source';
 import LocalStorageSource from 'orbit-common/local-storage-source';
 import TransformConnector from 'orbit/transform-connector';
 import { Promise } from 'rsvp';
+import jQuery from 'jquery';
 
 var server,
     memorySource,
@@ -18,7 +19,7 @@ var server,
 module("Integration - Rest / Memory / Local Transforms (Non-Blocking)", {
   setup: function() {
     Orbit.Promise = Promise;
-    Orbit.ajax = window.jQuery.ajax;
+    Orbit.ajax = jQuery.ajax;
 
     // Fake xhr
     server = sinon.fakeServer.create();

@@ -1,0 +1,11 @@
+{
+  "name": "Orbit.js",
+  "description": "A standalone library for data access and synchronization",
+  "url": "http://orbitjs.com/",
+  "options": {
+    "paths": [
+      "lib"
+    ],
+    "outdir": "docs"
+  }
+}

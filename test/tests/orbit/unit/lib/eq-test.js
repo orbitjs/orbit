@@ -15,6 +15,8 @@ module("Orbit - Lib - eq", {
  */
 
 test("#eq compares two objects", function() {
+  /* jshint ignore:start */
+
 //  function First() {
 //    this.value = 1;
 //  }
@@ -244,4 +246,6 @@ test("#eq compares two objects", function() {
 //
 //  // Objects from another frame.
 //  ok(eq({}, iObject));
+
+/* jshint ignore:end */
 });
