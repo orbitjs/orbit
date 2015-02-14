@@ -53,7 +53,7 @@ Bower releases.
 You'll need to configure Orbit to recognize any applicable dependencies.
 
 Configure your promise library's `Promise` constructor as follows:
- 
+
 ```javascript
 Orbit.Promise = RSVP.Promise;
 ```
@@ -67,39 +67,73 @@ Orbit.ajax = jQuery.ajax;
 
 Other sources may have other configuration requirements.
 
-## Building and Testing Orbit
+## Installing, Building, and Testing Orbit
 
-The Orbit project is managed by [Grunt](http://gruntjs.com/). Once you've
-installed Grunt and its dependencies, you can install Orbit's development
-dependencies from inside the project root with:
+### Installing Orbit
+
+Install the CLI for [Broccoli](https://github.com/broccolijs/broccoli) globally:
+
+```
+npm install -g broccoli-cli
+```
+
+Install the rest of Orbit's dependencies:
 
 ```
 npm install
 ```
 
+### Building Orbit
+
 Distributable versions of Orbit can be built to the `/dist` directory by running:
 
 ```
-grunt package
+npm build
 ```
 
-Orbit can be tested by running:
+### Testing Orbit
+
+#### CI Testing
+
+Orbit can be tested in CI mode by running:
 
 ```
-grunt test:ci
+npm test
 ```
 
-Or from within a browser
-(at [http://localhost:8000/test/](http://localhost:8000/test/)) by running:
+Or directly with testem (useful for configuring options):
 
 ```
-grunt server
+testem ci
 ```
 
-Orbit's docs can be generated to the `/docs` directory by running:
+#### Browser Testing
+
+Orbit can be tested within a browser
+(at [http://localhost:4200/tests/](http://localhost:4200/tests/)) by running:
 
 ```
-grunt docs
+npm start
+```
+
+Or directly with `broccoli` (useful for configuring the port, etc.):
+
+```
+broccoli serve
+```
+
+### Generating Documentation
+
+Install [yuidoc](http://yui.github.io/yuidoc/) globally:
+
+```
+npm install -g yuidocjs
+```
+
+Generate docs in the `/docs` directory:
+
+```
+yuidoc .
 ```
 
 ## How does Orbit work?
