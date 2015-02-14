@@ -151,4 +151,6 @@ var testIndex = new Funnel('test', {
   destDir: '/tests'
 });
 
-module.exports = mergeTrees([loader, globalizedLoader, allMain, allGlobalized, mainWithTests, vendor, qunit, testSupport, testIndex, generatedBowerConfig, buildExtras]);
+module.exports = mergeTrees([loader, globalizedLoader, allMain,
+  allGlobalized, mainWithTests, vendor, qunit, testSupport, testIndex,
+  generatedBowerConfig, buildExtras]);
