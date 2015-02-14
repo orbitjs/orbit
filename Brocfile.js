@@ -6,6 +6,10 @@ var jshintTree = require('broccoli-jshint');
 var replace    = require('broccoli-string-replace');
 var gitVersion = require('git-repo-version');
 
+// extract version from git
+// note: remove leading `v` (since by default our tags use a `v` prefix)
+var version = gitVersion().replace(/^v/, '');
+
 var packages = [
   {
     name: 'orbit',
@@ -54,8 +58,7 @@ generatedBowerConfig = replace(generatedBowerConfig, {
   pattern: {
     match: /VERSION_PLACEHOLDER/,
     replacement: function() {
-      // remove leading `v` (since by default our tags use a `v` prefix)
-      return gitVersion().replace(/^v/, '');
+      return version;
     }
   }
 });
