@@ -4,6 +4,7 @@ import Schema from 'orbit-common/schema';
 import Source from 'orbit-common/source';
 import JSONAPISource from 'orbit-common/jsonapi-source';
 import { Promise } from 'rsvp';
+import jQuery from 'jquery';
 
 var server,
     schema,
@@ -14,7 +15,7 @@ var server,
 module("OC - JSONAPISource", {
   setup: function() {
     Orbit.Promise = Promise;
-    Orbit.ajax = window.jQuery.ajax;
+    Orbit.ajax = jQuery.ajax;
 
     // fake xhr
     server = sinon.fakeServer.create();

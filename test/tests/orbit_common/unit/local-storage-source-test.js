@@ -4,7 +4,7 @@ import Source from 'orbit-common/source';
 import MemorySource from 'orbit-common/memory-source';
 import LocalStorageSource from 'orbit-common/local-storage-source';
 import { all, Promise } from 'rsvp';
-import { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty } from 'test-helper';
+import { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty } from 'tests/test-helper';
 
 var source;
 

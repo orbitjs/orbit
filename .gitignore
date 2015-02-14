@@ -3,5 +3,6 @@ components
 node_modules
 *.log
 tmp
+build
 dist
 docs

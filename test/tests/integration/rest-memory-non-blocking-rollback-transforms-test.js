@@ -5,6 +5,7 @@ import MemorySource from 'orbit-common/memory-source';
 import JSONAPISource from 'orbit-common/jsonapi-source';
 import TransformConnector from 'orbit/transform-connector';
 import { Promise } from 'rsvp';
+import jQuery from 'jquery';
 
 var server,
     memorySource,
@@ -14,7 +15,7 @@ var server,
 module("Integration - Rest / Memory (Non-Blocking) rollbackTransformsOnFailure=true", {
   setup: function() {
     Orbit.Promise = Promise;
-    Orbit.ajax = window.jQuery.ajax;
+    Orbit.ajax = jQuery.ajax;
 
     // Fake xhr
     server = sinon.fakeServer.create();
@@ -148,7 +149,7 @@ test("records deleted in memory should be inserted when rest fails", function() 
 module("Integration - Rest / Memory (Non-Blocking) rollbackTransformsOnFailure=false", {
   setup: function() {
     Orbit.Promise = Promise;
-    Orbit.ajax = window.jQuery.ajax;
+    Orbit.ajax = jQuery.ajax;
 
     // Fake xhr
     server = sinon.fakeServer.create();
