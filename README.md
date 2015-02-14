@@ -67,75 +67,6 @@ Orbit.ajax = jQuery.ajax;
 
 Other sources may have other configuration requirements.
 
-## Installing, Building, and Testing Orbit
-
-### Installing Orbit
-
-Install the CLI for [Broccoli](https://github.com/broccolijs/broccoli) globally:
-
-```
-npm install -g broccoli-cli
-```
-
-Install the rest of Orbit's dependencies:
-
-```
-npm install
-```
-
-### Building Orbit
-
-Distributable versions of Orbit can be built to the `/dist` directory by running:
-
-```
-npm build
-```
-
-### Testing Orbit
-
-#### CI Testing
-
-Orbit can be tested in CI mode by running:
-
-```
-npm test
-```
-
-Or directly with testem (useful for configuring options):
-
-```
-testem ci
-```
-
-#### Browser Testing
-
-Orbit can be tested within a browser
-(at [http://localhost:4200/tests/](http://localhost:4200/tests/)) by running:
-
-```
-npm start
-```
-
-Or directly with `broccoli` (useful for configuring the port, etc.):
-
-```
-broccoli serve
-```
-
-### Generating Documentation
-
-Install [yuidoc](http://yui.github.io/yuidoc/) globally:
-
-```
-npm install -g yuidocjs
-```
-
-Generate docs in the `/docs` directory:
-
-```
-yuidoc .
-```
-
 ## How does Orbit work?
 
 Orbit requires that every data source support one or more common interfaces.
@@ -595,6 +526,75 @@ source.on('question', function(question) {
 });
 
 source.poll('question', 'favorite food?'); // returns ['beer', 'wasabi almonds']
+```
+
+## Contributing
+
+### Installing Orbit
+
+Install the CLI for [Broccoli](https://github.com/broccolijs/broccoli) globally:
+
+```
+npm install -g broccoli-cli
+```
+
+Install the rest of Orbit's dependencies:
+
+```
+npm install
+```
+
+### Building Orbit
+
+Distributable versions of Orbit can be built to the `/dist` directory by running:
+
+```
+npm build
+```
+
+### Testing Orbit
+
+#### CI Testing
+
+Orbit can be tested in CI mode by running:
+
+```
+npm test
+```
+
+Or directly with testem (useful for configuring options):
+
+```
+testem ci
+```
+
+#### Browser Testing
+
+Orbit can be tested within a browser
+(at [http://localhost:4200/tests/](http://localhost:4200/tests/)) by running:
+
+```
+npm start
+```
+
+Or directly with `broccoli` (useful for configuring the port, etc.):
+
+```
+broccoli serve
+```
+
+### Generating Documentation
+
+Install [yuidoc](http://yui.github.io/yuidoc/) globally:
+
+```
+npm install -g yuidocjs
+```
+
+Generate docs in the `/docs` directory:
+
+```
+yuidoc .
 ```
 
 ## License
