@@ -32,17 +32,13 @@ test("it can be assigned an optional id and data", function() {
 });
 
 test("it can be assigned a synchronous function to process", function() {
-  expect(3);
+  expect(2);
 
   var action = new Action({
     process: function() {
       ok(true, 'process invoked');
       return;
     }
-  });
-
-  action.on('complete', function() {
-    ok(true, 'action complete event triggered');
   });
 
   stop();
@@ -53,7 +49,7 @@ test("it can be assigned a synchronous function to process", function() {
 });
 
 test("it can be assigned an asynchronous function to process", function() {
-  expect(3);
+  expect(2);
 
   var action = new Action({
     process: function() {
@@ -64,13 +60,51 @@ test("it can be assigned an asynchronous function to process", function() {
     }
   });
 
-  action.on('complete', function() {
-    ok(true, 'action complete event triggered');
-  });
-
   stop();
   action.process().then(function() {
     start();
     ok(true, 'process resolved');
+  });
+});
+
+test("it can be assigned a synchronous function that throws an exception", function() {
+  expect(2);
+
+  var action = new Action({
+    process: function() {
+      ok(true, 'process invoked');
+      throw new Error(':(');
+    }
+  });
+
+  stop();
+  action.process().then(function() {
+    ok(false, 'action should not be successful');
+
+  }, function(e) {
+    start();
+    equal(e.message, ':(', 'process resolved');
+  });
+});
+
+test("it can be assigned an asynchronous function that rejects", function() {
+  expect(2);
+
+  var action = new Action({
+    process: function() {
+      ok(true, 'process invoked');
+      return new Promise(function(resolve, reject) {
+        setTimeout(reject(':('), 1);
+      });
+    }
+  });
+
+  stop();
+  action.process().then(function() {
+    ok(false, 'action should not be successful');
+
+  }, function(e) {
+    start();
+    equal(e, ':(', 'process resolved');
   });
 });
