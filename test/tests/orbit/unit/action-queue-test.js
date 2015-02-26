@@ -43,7 +43,7 @@ test("will auto-process pushed actions sequentially by default", function() {
       op2 = {op: 'add', path: ['planets', '234'], value: 'Venus'},
       transformCount = 0;
 
-  queue.on('actionComplete', function(action) {
+  queue.on('didProcessAction', function(action) {
     if (transformCount === 1) {
       deepEqual(action.data, op1, 'op1 processed');
     } else if (transformCount === 2) {
@@ -51,7 +51,7 @@ test("will auto-process pushed actions sequentially by default", function() {
     }
   });
 
-  queue.on('queueComplete', function() {
+  queue.on('didProcess', function() {
     start();
     ok(true, 'queue completed');
   });
@@ -92,7 +92,7 @@ test("with `autoProcess` disabled, will process pushed functions sequentially wh
       op2 = {op: 'add', path: ['planets', '234'], value: 'Venus'},
       transformCount = 0;
 
-  queue.on('actionComplete', function(action) {
+  queue.on('didProcessAction', function(action) {
     if (transformCount === 1) {
       deepEqual(action.data, op1, 'op1 processed');
     } else if (transformCount === 2) {
@@ -100,7 +100,7 @@ test("with `autoProcess` disabled, will process pushed functions sequentially wh
     }
   });
 
-  queue.on('queueComplete', function() {
+  queue.on('didProcess', function() {
     start();
     ok(true, 'queue completed');
   });
@@ -143,7 +143,7 @@ test("will auto-process pushed async functions sequentially by default", functio
       op2 = {op: 'add', path: ['planets', '234'], value: 'Venus'},
       order = 0;
 
-  queue.on('actionComplete', function(action) {
+  queue.on('didProcessAction', function(action) {
     if (action.data === op1) {
       equal(++order, 3, 'op1 completed');
 
@@ -152,7 +152,7 @@ test("will auto-process pushed async functions sequentially by default", functio
     }
   });
 
-  queue.on('queueComplete', function() {
+  queue.on('didProcess', function() {
     equal(++order, 7, 'queue completed');
   });
 
