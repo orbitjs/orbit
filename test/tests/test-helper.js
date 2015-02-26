@@ -26,4 +26,10 @@ var verifyLocalStorageIsEmpty = function(namespace) {
   }
 };
 
-export { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty };
+var equalOps = function(result, expected, msg) {
+  deepEqual(result && result.serialize ? result.serialize() : result,
+            expected && expected.serialize ? expected.serialize() : expected,
+            msg);
+};
+
+export { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty, equalOps };
