@@ -203,3 +203,69 @@ test("will auto-process pushed async functions sequentially by default", functio
 
   trigger.emit('start1');
 });
+
+test("will stop processing when an action errors", function() {
+  expect(8);
+  stop();
+
+  var queue = new ActionQueue({autoProcess: false});
+
+  var op1 = {op: 'add', path: ['planets', '123'], value: 'Mercury'},
+      op2 = {op: 'add', path: ['planets', '234'], value: 'Venus'},
+      transformCount = 0;
+
+  queue.on('didProcessAction', function(action) {
+    if (transformCount === 1) {
+      deepEqual(action.data, op1, 'didProcessAction - op1 processed');
+    } else if (transformCount === 2) {
+      ok(false, 'op2 could not be processed');
+    }
+  });
+
+  queue.on('didNotProcessAction', function(action, err) {
+    deepEqual(action.data, op2, 'didNotProcessAction - op2 failed processing');
+    equal(err.message, ':(', 'didNotProcessAction - error matches expectation');
+  });
+
+  queue.on('didProcess', function() {
+    ok(false, 'queue should not complete');
+  });
+
+  queue.on('didNotProcess', function(errData, err) {
+    ok(true, 'didNotProcess - queue could not process');
+    deepEqual(errData.action.data, op2, 'didNotProcess - op2 failed processing');
+    equal(err.message, ':(', 'didNotProcess - error matches expectation');
+  });
+
+  var _transform = function(op) {
+    transformCount++;
+    if (transformCount === 1) {
+      deepEqual(op, op1, 'op1 passed as argument');
+    } else if (transformCount === 2) {
+      deepEqual(op, op2, 'op2 passed as argument');
+    }
+  };
+
+  queue.push({
+    id: 1,
+    process: function() {
+      _transform.call(this, this.data);
+    },
+    data: op1
+  });
+
+  queue.push({
+    id: 2,
+    process: function() {
+      throw new Error(':(');
+    },
+    data: op2
+  });
+
+  queue.process().then(function() {
+    ok(false, 'process should not resolve successfully');
+  }, function(err) {
+    start();
+    equal(err.message, ':(', 'process rejection - error matches expectation');
+  });
+});
