@@ -10,8 +10,6 @@ var source1,
     source1to2Connector,
     source2to1Connector;
 
-var counter = 0;
-
 module("Integration - Memory Source Sync (Blocking)", {
   setup: function() {
     Orbit.Promise = Promise;
