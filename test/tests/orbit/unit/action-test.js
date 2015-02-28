@@ -108,3 +108,24 @@ test("it can be assigned an asynchronous function that rejects", function() {
     equal(e, ':(', 'process resolved');
   });
 });
+
+test("it created a promise immediately that won't be resolved until process is called", function() {
+  expect(2);
+
+  var action = new Action({
+    process: function() {
+      ok(true, 'process invoked');
+      return;
+    }
+  });
+
+  stop();
+  action.complete.then(function() {
+    start();
+    ok(true, 'process resolved');
+  });
+
+  action.process();
+});
+
+
