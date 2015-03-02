@@ -1,4 +1,5 @@
 import Orbit from 'orbit/main';
+import Operation from 'orbit/operation';
 import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
@@ -15,7 +16,7 @@ var source1,
 
 var counter = 0;
 
-module("Integration - Three Memory Source Sync (Blocking)", {
+module("Integration - Three Memory Source Sync (Blocking / Non-blocking)", {
   setup: function() {
     Orbit.Promise = Promise;
 
@@ -46,10 +47,10 @@ module("Integration - Three Memory Source Sync (Blocking)", {
     source2.id = 'source2';
     source3.id = 'source3';
 
-    // Create connectors
-    source1to2Connector = new TransformConnector(source1, source2);
+    // Create blocking & non-blocking connectors
+    source1to2Connector = new TransformConnector(source1, source2, {blocking: false});
     source2to1Connector = new TransformConnector(source2, source1);
-    source1to3Connector = new TransformConnector(source1, source3);
+    source1to3Connector = new TransformConnector(source1, source3, {blocking: false});
     source3to1Connector = new TransformConnector(source3, source1);
   },
 
@@ -61,7 +62,7 @@ module("Integration - Three Memory Source Sync (Blocking)", {
 });
 
 test('Spontaneous information from sources', function() {
-  expect(2);
+  expect(4);
   stop();
 
   // For the use-case in this test - source2 and source3 are a socket connection
@@ -70,6 +71,7 @@ test('Spontaneous information from sources', function() {
   // This code is meant to represent how a socket server would broadcast a new
   // discovery from the socket data.
   function discover(source, planetName) {
+    // console.log('planet', planetName);
     var id = uuid();
     var data = source.normalize("planet", {
       id: id,
@@ -80,6 +82,7 @@ test('Spontaneous information from sources', function() {
       path: ["planet", id],
       value: data
     });
+
     return source.settleTransforms();
   }
 
@@ -89,6 +92,7 @@ test('Spontaneous information from sources', function() {
       setTimeout(resolve, 10);
     });
   });
+
   // and the source 2 and 3 connections happen after it
   source1to2Connector.deactivate();
   source1to2Connector.activate();
@@ -113,8 +117,18 @@ test('Spontaneous information from sources', function() {
       return source1.find('planet');
     })
     .then(function(planets) {
-      equal(planets.length, 5, "successfully added planets");
+      equal(planets.length, 5, "source1 - successfully added planets");
       deepEqual(planets.map(function(p) { return p.name; }), ['earth', 'mars', 'mercury', 'jupiter', 'saturn'], 'planets are in the expected order');
+
+      return source2.find('planet');
+    })
+    .then(function(planets) {
+      equal(planets.length, 5, "source2 - successfully added planets");
+
+      return source3.find('planet');
+    })
+    .then(function(planets) {
       start();
+      equal(planets.length, 5, "source3 - successfully added planets");
     });
 });
