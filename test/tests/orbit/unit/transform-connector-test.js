@@ -1,7 +1,9 @@
 import Orbit from 'orbit/main';
+import Operation from 'orbit/operation';
 import Transformable from 'orbit/transformable';
 import TransformConnector from 'orbit/transform-connector';
 import { Promise } from 'rsvp';
+import { equalOps } from 'tests/test-helper';
 
 var primarySource,
     secondarySource,
@@ -56,10 +58,10 @@ test("it watches `didTransform` events on the source and applies them to the tar
 
   var order = 0;
 
-  var op = {
+  var op = new Operation({
     op: 'add',
     path: ['planet', '1', {id: 1, name: 'Earth'}]
-  };
+  });
 
   secondarySource.retrieve = function() {
     equal(++order, 1, 'target.retrieve triggered');
@@ -84,11 +86,11 @@ test("it watches `didTransform` events on the source and applies them to the tar
 
   var order = 0;
 
-  var op = {
+  var op = new Operation({
     op: 'add',
     path: ['planet', '1'],
     value: {id: 1, name: 'Earth'}
-  };
+  });
 
   secondarySource.retrieve = function() {
     equal(++order, 1, 'target.retrieve triggered');
@@ -109,15 +111,15 @@ test("it watches `didTransform` events on the source and applies them to the tar
 });
 
 test("for `add` operations, it applies a differential if the target path exists", function() {
-  expect(3);
+  expect(5);
 
   var order = 0;
 
-  var op = {
+  var op = new Operation({
     op: 'add',
     path: ['planet', '1'],
     value: {id: 1, name: 'Earth', hasRings: false}
-  };
+  });
 
   secondarySource.retrieve = function() {
     equal(++order, 1, 'target.retrieve triggered');
@@ -131,10 +133,9 @@ test("for `add` operations, it applies a differential if the target path exists"
   secondarySource.transform = function(operation) {
     start();
     equal(++order, 2, 'target.transform triggered');
-    deepEqual(operation,
-              [{op: 'replace', path: 'planet/1/name', value: 'Earth'},
-               {op: 'replace', path: 'planet/1/hasRings', value: false}],
-              'target operation matches source operation');
+    equal(operation.length, 2, 'target operation count matches');
+    equalOps(operation[0], {op: 'replace', path: 'planet/1/name', value: 'Earth'}, 'first target op matches');
+    equalOps(operation[1], {op: 'replace', path: 'planet/1/hasRings', value: false}, 'second target op matches');
     return successfulOperation();
   };
 
@@ -145,15 +146,15 @@ test("for `add` operations, it applies a differential if the target path exists"
 });
 
 test("for `replace` operations, it applies a differential if the target path exists", function() {
-  expect(3);
+  expect(4);
 
   var order = 0;
 
-  var op = {
+  var op = new Operation({
     op: 'replace',
     path: ['planet', '1', 'hasRings'],
     value: true
-  };
+  });
 
   secondarySource.retrieve = function() {
     equal(++order, 1, 'target.retrieve triggered');
@@ -163,9 +164,8 @@ test("for `replace` operations, it applies a differential if the target path exi
   secondarySource.transform = function(operation) {
     start();
     equal(++order, 2, 'target.transform triggered');
-    deepEqual(operation,
-              [{op: 'replace', path: 'planet/1/hasRings', value: true}],
-              'target operation matches source operation');
+    equal(operation.length, 1, 'target operation count matches');
+    equalOps(operation[0], {op: 'replace', path: 'planet/1/hasRings', value: true}, 'first target op matches');
     return successfulOperation();
   };
 
@@ -182,4 +182,4 @@ test("for `replace` operations, it applies a differential if the target path exi
  - activate / deactivate
  - queueing
  - blocking vs. non-blocking
-  */
+*/

@@ -5,12 +5,27 @@ import MemorySource from 'orbit-common/memory-source';
 import TransformConnector from 'orbit/transform-connector';
 import { Promise } from 'rsvp';
 
+/**
+ This test suite connects three memory sources with synchronous blocking
+ bi-directional transform connectors.
+
+ This configuration should not be used when more than one source can
+ spontaneously mutate, out of the context of responding to another source's
+ mutations. For example, socket sources receive data spontaneously. Having
+ more than one in this configuration could create a deadlock in a central
+ source that is receiving data from both and sending it on to the other.
+ In such a scenario, it would be preferable to use non-blocking connectors to
+ prevent deadlocks.
+ */
 var source1,
     source2,
+    source3,
     source1to2Connector,
-    source2to1Connector;
+    source2to1Connector,
+    source1to3Connector,
+    source3to1Connector;
 
-module("Integration - Memory Source Sync (Blocking)", {
+module("Integration - Three Memory Source Sync (Blocking)", {
   setup: function() {
     Orbit.Promise = Promise;
 
@@ -35,13 +50,17 @@ module("Integration - Memory Source Sync (Blocking)", {
     // Create sources
     source1 = new MemorySource(schema);
     source2 = new MemorySource(schema);
+    source3 = new MemorySource(schema);
 
     source1.id = 'source1';
     source2.id = 'source2';
+    source3.id = 'source3';
 
     // Create connectors
     source1to2Connector = new TransformConnector(source1, source2);
     source2to1Connector = new TransformConnector(source2, source1);
+    source1to3Connector = new TransformConnector(source1, source3);
+    source3to1Connector = new TransformConnector(source3, source1);
   },
 
   teardown: function() {
@@ -132,4 +151,3 @@ test("replacing value with null should not cause infinite update loop", function
     });
   });
 });
-
