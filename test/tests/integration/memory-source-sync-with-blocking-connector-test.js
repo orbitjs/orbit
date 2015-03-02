@@ -35,13 +35,17 @@ module("Integration - Memory Source Sync (Blocking)", {
     // Create sources
     source1 = new MemorySource(schema);
     source2 = new MemorySource(schema);
+    source3 = new MemorySource(schema);
 
     source1.id = 'source1';
     source2.id = 'source2';
+    source3.id = 'source3';
 
     // Create connectors
     source1to2Connector = new TransformConnector(source1, source2);
     source2to1Connector = new TransformConnector(source2, source1);
+    source1to3Connector = new TransformConnector(source1, source3);
+    source3to1Connector = new TransformConnector(source3, source1);
   },
 
   teardown: function() {
