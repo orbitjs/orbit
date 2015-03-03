@@ -63,3 +63,16 @@ test("can be serialized", function() {
   deepEqual(operation.serialize(), {op: 'add', path: 'planet/1', value: 'earth'}, 'serialization is correct');
 });
 
+test("can be created from with all attributes specified as options", function() {
+  var operationDetails = {id: 'abc123', op: 'add', path: ['planet','1'], value: 'earth', log: ['abc1','abc2','abc3']};
+
+  var operation = new Operation(operationDetails);
+
+  equal(operation.id, operationDetails.id, 'id was populated');
+  equal(operation.op, operationDetails.op, 'op was populated');
+  equal(operation.path, operationDetails.path, 'path was populated');
+  equal(operation.value, operationDetails.value, 'value was populated');
+  equal(operation.log, operationDetails.log, 'log was populated');
+  
+});
+
