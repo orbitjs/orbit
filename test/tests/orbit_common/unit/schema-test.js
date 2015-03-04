@@ -96,7 +96,7 @@ test("`modelDefaults can be overridden", function() {
   ok((model = schema.models['planet']), 'model definition has been set');
   ok(model.keys, 'model.keys has been set');
   ok(model.attributes, 'model.attributes has been set');
-  ok(model.links, 'model.links has been set');    
+  ok(model.links, 'model.links has been set');
   ok(model.keys['clientId'], 'model.keys[\'clientId\'] has been set');
   strictEqual(model.primaryKey, model.keys['clientId'], 'model.primaryKey is consistent');
   equal(model.primaryKey.name, 'clientId', 'model.primaryKey.name has been set');
