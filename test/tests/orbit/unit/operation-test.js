@@ -73,6 +73,6 @@ test("can be created from with all attributes specified as options", function() 
   equal(operation.path, operationDetails.path, 'path was populated');
   equal(operation.value, operationDetails.value, 'value was populated');
   equal(operation.log, operationDetails.log, 'log was populated');
-  
+
 });
 
