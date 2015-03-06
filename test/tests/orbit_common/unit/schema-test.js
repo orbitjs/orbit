@@ -118,6 +118,68 @@ test("`modelDefaults can be overridden", function() {
   equal(Object.keys(model.links).length, 0, 'model has no links');
 });
 
+test("#registerModel can register models after initialization", function() {
+  var customIdGenerator = function() {
+    return Math.random().toString(); // don't do this ;)
+  };
+
+  var schema = new Schema({
+    modelDefaults: {
+      keys: {
+        clientId: {
+          primaryKey: true,
+          defaultValue: customIdGenerator
+        },
+        remoteId: {}
+      },
+      attributes: {
+        someAttr: {}
+      },
+      links: {
+        someLink: {}
+      }
+    },
+    models: {
+      planet: {}
+    }
+  });
+
+  ok(schema.models, 'schema.models has been set');
+  ok(schema.models['planet'], 'model definition has been set');
+  equal(schema.models['moon'], undefined, 'moon\'s definition has NOT been set');
+
+  schema.on('modelRegistered', function(name) {
+    if (name = 'moon') {
+      start();
+
+      var model;
+      ok(model = schema.models['moon'], 'model definition has been set');
+      ok(model.keys, 'model.keys has been set');
+      ok(model.attributes, 'model.attributes has been set');
+      ok(model.links, 'model.links has been set');
+      ok(model.keys['clientId'], 'model.keys[\'clientId\'] has been set');
+      strictEqual(model.primaryKey, model.keys['clientId'], 'model.primaryKey is consistent');
+      equal(model.secondaryKeys, undefined, 'model has no secondaryKeys');
+      equal(Object.keys(model.keys).length, 1, 'model has one key');
+      equal(Object.keys(model.attributes).length, 0, 'model has no attributes');
+      equal(Object.keys(model.links).length, 0, 'model has no links');
+    }
+  });
+
+  stop();
+  schema.registerModel('moon', {
+    keys: {
+      remoteId: undefined
+    },
+    attributes: {
+      someAttr: undefined
+    },
+    links: {
+      someLink: undefined
+    }
+  });
+});
+
 test("#normalize initializes a record with a unique primary key", function() {
   var schema = new Schema({
     models: {
