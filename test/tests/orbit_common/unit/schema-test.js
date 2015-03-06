@@ -260,3 +260,14 @@ test("#normalize will not overwrite data set as attributes", function() {
 
   deepEqual(jupiter.__rel.moons, jupitersMoons, 'hasMany relationship was specified in data');
 });
+
+test("#pluralize simply adds an `s` to the end of words", function() {
+  var schema = new Schema();
+  equal(schema.pluralize('cow'), 'cows', "no kine here");
+});
+
+test("#singularize simply removes a trailing `s` if present at the end of words", function() {
+  var schema = new Schema();
+  equal(schema.singularize('cows'), 'cow', "no kine here");
+  equal(schema.singularize('data'), 'data', "no Latin knowledge here");
+});
