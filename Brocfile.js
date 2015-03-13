@@ -124,7 +124,7 @@ var jshintTest = jshintTree(tests);
 var mainWithTests = mergeTrees([allLib, tests, jshintLib, jshintTest]);
 mainWithTests = concat(new compileES6(mainWithTests), {
   inputFiles: ['**/*.js'],
-  outputFile: '/assets/orbit-tests.amd.js'
+  outputFile: '/assets/tests.amd.js'
 });
 
 var vendor = concat('bower_components', {
