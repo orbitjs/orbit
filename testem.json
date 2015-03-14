@@ -2,8 +2,8 @@
   "framework": "qunit",
   "cwd": "build/",
   "serve_files": [
-    "assets/vendor.js",
     "assets/loader.js",
+    "assets/vendor.js",
     "assets/tests.amd.js",
     "assets/test-support.js"
   ],
