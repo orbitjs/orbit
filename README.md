@@ -45,8 +45,8 @@ Orbit can be installed with [Bower](http://bower.io):
 bower install orbit.js
 ```
 
-[A separate shim repo](https://github.com/orbitjs/bower-orbit) is maintained for
-Bower releases.
+[A separate shim repo](https://github.com/orbitjs/orbit-builds) is
+maintained for builds.
 
 ## Configuration
 
