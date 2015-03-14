@@ -546,10 +546,11 @@ npm install
 
 ### Building Orbit
 
-Distributable versions of Orbit can be built to the `/dist` directory by running:
+Distributable versions of Orbit can be built to the `/build` directory by
+running:
 
 ```
-npm build
+npm run build
 ```
 
 ### Testing Orbit
