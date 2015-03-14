@@ -4,7 +4,7 @@
   "serve_files": [
     "assets/vendor.js",
     "assets/loader.js",
-    "assets/orbit-tests.amd.js",
+    "assets/tests.amd.js",
     "assets/test-support.js"
   ],
   "launch_in_ci": ["PhantomJS"],
