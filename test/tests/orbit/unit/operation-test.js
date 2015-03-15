@@ -24,42 +24,56 @@ test("it is assigned an `id`", function() {
   ok(operation.id, 'operation has an id');
 });
 
-test("can track ancestors in a log", function() {
-  expect(7);
 test("it can be created with no attributes", function() {
   var operation = new Operation();
   ok(operation.id, 'operation has an id');
 });
 
-  var grandparent = new Operation({op: 'add', path: '/planet/1', value: 'earth'});
-  var parent = new Operation({op: 'replace', path: '/planet/1', value: 'venus', parent: grandparent});
-  var child = new Operation({op: 'replace', path: '/planet/1', value: 'mercury', parent: parent});
+test("can track ancestors in a log", function() {
+  expect(3);
 
-  deepEqual(grandparent.log, [], "grandparent's log is correct");
-  deepEqual(parent.log, [grandparent.id], "parent's log is correct");
-  deepEqual(child.log, [grandparent.id, parent.id], "child's log is correct");
+  var grandfather = new Operation({op: 'add', path: '/planet/1', value: 'earth'});
+  var father = new Operation({op: 'replace', path: '/planet/1', value: 'venus', parent: grandfather});
+  var son = new Operation({op: 'replace', path: '/planet/1', value: 'mercury', parent: father});
 
-  equal(grandparent.spawnedFrom(parent), false, "grandparent didn't come from parent");
-  equal(parent.spawnedFrom(grandparent), true, "parent came from grandparent");
-  equal(child.spawnedFrom(grandparent), true, "child came from grandparent");
-  equal(child.spawnedFrom(parent), true, "child came from parent");
+  deepEqual(grandfather.log, [], "grandfather's log is correct");
+  deepEqual(father.log, [grandfather.id], "father's log is correct");
+  deepEqual(son.log, [grandfather.id, father.id], "son's log is correct");
 });
 
-test("can spawn descendents", function() {
-  expect(7);
+test("can spawn descendents amd determine ancestry", function() {
+  expect(17);
 
-  var grandparent = new Operation({op: 'add', path: '/planet/1', value: 'earth'});
-  var parent = grandparent.spawn({op: 'replace', path: '/planet/1', value: 'venus', parent: grandparent});
-  var child = parent.spawn({op: 'replace', path: '/planet/1', value: 'mercury', parent: parent});
+  var grandfather = new Operation({op: 'add', path: '/planet/1', value: 'earth'});
+  var father = grandfather.spawn({op: 'replace', path: '/planet/1', value: 'venus'});
+  var uncle = grandfather.spawn({op: 'replace', path: '/planet/1', value: 'mars'});
+  var son = father.spawn({op: 'replace', path: '/planet/1', value: 'mercury'});
+  var nephew = uncle.spawn({op: 'replace', path: '/planet/1', value: 'saturn'});
 
-  deepEqual(grandparent.log, [], "grandparent's log is correct");
-  deepEqual(parent.log, [grandparent.id], "parent's log is correct");
-  deepEqual(child.log, [grandparent.id, parent.id], "child's log is correct");
+  var stranger = new Operation();
+  var strangersSon = stranger.spawn({});
 
-  equal(grandparent.spawnedFrom(parent), false, "grandparent didn't come from parent");
-  equal(parent.spawnedFrom(grandparent), true, "parent came from grandparent");
-  equal(child.spawnedFrom(grandparent), true, "child came from grandparent");
-  equal(child.spawnedFrom(parent), true, "child came from parent");
+  equal(grandfather.descendedFrom(father), false, "grandfather didn't come from father");
+  equal(father.descendedFrom(grandfather), true, "father came from grandfather");
+  equal(son.descendedFrom(grandfather), true, "son came from grandfather");
+  equal(son.descendedFrom(father), true, "son came from father");
+  equal(son.descendedFrom(uncle), false, "son not descended from uncle");
+  equal(nephew.descendedFrom(uncle), true, "nephew descended from uncle");
+
+  equal(strangersSon.descendedFrom(stranger), true, "stranger's son descended from stranger");
+
+  equal(grandfather.relatedTo(father), true, "grandfather related to father");
+  equal(father.relatedTo(grandfather), true, "father related to grandfather");
+  equal(son.relatedTo(grandfather), true, "son related to grandfather");
+  equal(son.relatedTo(father), true, "son related to father");
+  equal(son.relatedTo(uncle), true, "son related to uncle");
+  equal(nephew.relatedTo(uncle), true, "nephew related to uncle");
+
+  equal(strangersSon.relatedTo(stranger), true, "stranger's son related to stranger");
+  equal(son.relatedTo(stranger), false, "son not related to stranger");
+
+  equal(grandfather.relatedTo(grandfather), true, "grandfather related to himself");
+  equal(son.relatedTo(son), true, "son related to himself");
 });
 
 test("can be serialized", function() {
