@@ -26,6 +26,10 @@ test("it is assigned an `id`", function() {
 
 test("can track ancestors in a log", function() {
   expect(7);
+test("it can be created with no attributes", function() {
+  var operation = new Operation();
+  ok(operation.id, 'operation has an id');
+});
 
   var grandparent = new Operation({op: 'add', path: '/planet/1', value: 'earth'});
   var parent = new Operation({op: 'replace', path: '/planet/1', value: 'venus', parent: grandparent});
