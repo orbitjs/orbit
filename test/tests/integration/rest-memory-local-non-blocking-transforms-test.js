@@ -133,7 +133,7 @@ test("records inserted into memory should be posted with rest", function() {
 });
 
 test("records updated in memory should be updated with rest", function() {
-  expect(35);
+  expect(31);
 
   var memorySourceTransforms = 0,
       localSourceTransforms = 0,
@@ -192,6 +192,7 @@ test("records updated in memory should be updated with rest", function() {
       }, 0);
 
     } else if (restSourceTransforms === 2) {
+      start();
       equal(operation.op, 'replace',  'rest source - name replaced');
       equal(operation.value, 'Earth', 'rest source - name - Earth');
 
@@ -218,16 +219,6 @@ test("records updated in memory should be updated with rest", function() {
       // `id` is added when the REST POST response returns
       equal(operation.op, 'replace',   'local source - id updated');
       equal(operation.value, '12345',  'local source - id');
-
-    } else if (localSourceTransforms === 4) {
-      equal(operation.op, 'replace',    'local source - name replaced when the REST POST response returns');
-      equal(operation.value, 'Jupiter', 'local source - name temporarily changed back to Jupiter');
-
-    } else if (localSourceTransforms === 5) {
-      start();
-
-      equal(operation.op, 'replace',  'local source - name replaced when the REST PUT response returns');
-      equal(operation.value, 'Earth', 'local source - name changed back to Earth');
 
     } else {
       ok(false, 'too many transforms');
@@ -257,7 +248,7 @@ test("records updated in memory should be updated with rest", function() {
 });
 
 test("records patched in memory should be patched with rest", function() {
-  expect(35);
+  expect(31);
 
   var memorySourceTransforms = 0,
       localSourceTransforms = 0,
@@ -316,6 +307,7 @@ test("records patched in memory should be patched with rest", function() {
       }, 0);
 
     } else if (restSourceTransforms === 2) {
+      start();
       equal(operation.op, 'replace',  'rest source - name replaced');
       equal(operation.value, 'Earth', 'rest source - name - Earth');
 
@@ -342,16 +334,6 @@ test("records patched in memory should be patched with rest", function() {
       // `id` is added when the REST POST response returns
       equal(operation.op, 'replace',   'local source - id updated');
       equal(operation.value, '12345',  'local source - id');
-
-    } else if (localSourceTransforms === 4) {
-      equal(operation.op, 'replace',    'local source - name replaced when the REST POST response returns');
-      equal(operation.value, 'Jupiter', 'local source - name temporarily changed back to Jupiter');
-
-    } else if (localSourceTransforms === 5) {
-      start();
-
-      equal(operation.op, 'replace',  'local source - name replaced when the REST PATCH response returns');
-      equal(operation.value, 'Earth', 'local source - name changed back to Earth');
 
     } else {
       ok(false, 'too many transforms');
