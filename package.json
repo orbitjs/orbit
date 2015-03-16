@@ -1,7 +1,7 @@
 {
   "name": "orbit.js",
   "private": true,
-  "version": "0.6.0",
+  "version": "0.6.1",
   "namespace": "Orbit",
   "description": "A standalone library for data access and synchronization",
   "homepage": "https://github.com/orbitjs/orbit.js",
