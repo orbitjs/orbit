@@ -1,4 +1,4 @@
-import { Class, clone, defineClass, expose, extend, extendClass, isArray, isObject, isNone } from 'orbit/lib/objects';
+import { Class, clone, defineClass, expose, extend, extendClass, isArray, isObject, isNone, merge } from 'orbit/lib/objects';
 
 module("Orbit - Lib - Object", {
 });
@@ -273,4 +273,15 @@ test("`isNone` checks whether an object is `null` or `undefined`", function() {
   equal(isNone({}), false, 'Object is not null or undefined');
   equal(isNone(null), true, 'isNone identifies null');
   equal(isNone(undefined), true, 'isNone identifies undefined');
+});
+
+test("`merge` combines two objects", function() {
+  var a = { firstNames: 'Bob', underling: false },
+      b = { lastName: 'Dobbs', 'title': 'Mr.', underlings: null },
+      expected = { title: 'Mr.', firstNames: 'Bob',
+                   lastName: 'Dobbs', underling: false, underlings: null };
+
+  deepEqual(merge(a, b), expected, 'Object values are not merged');
+  deepEqual(a, { firstNames: 'Bob', underling: false },
+            'Original object mutated');
 });
