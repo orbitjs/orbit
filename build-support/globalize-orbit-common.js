@@ -1,1 +1,1 @@
-window.OC = requireModule("orbit-common");
+window.OC = requireModule("orbit-common")["default"];

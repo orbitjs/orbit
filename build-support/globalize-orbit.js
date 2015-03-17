@@ -1,4 +1,4 @@
-var Orbit = requireModule("orbit");
+var Orbit = requireModule("orbit")["default"];
 
 // Globalize loader properties for use by other Orbit packages
 Orbit.__define__ = define;

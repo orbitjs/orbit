@@ -1,1 +1,1 @@
-window.OC.LocalStorageSource = requireModule("orbit-common/local-storage-source");
+window.OC.LocalStorageSource = requireModule("orbit-common/local-storage-source")["default"];
