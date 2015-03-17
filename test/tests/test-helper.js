@@ -1,3 +1,5 @@
+import Operation from 'orbit/operation';
+
 var verifyLocalStorageContainsRecord = function(namespace, type, id, record, ignoreFields) {
   var expected = {};
   expected[id] = record;
@@ -32,4 +34,10 @@ var equalOps = function(result, expected, msg) {
             msg);
 };
 
-export { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty, equalOps };
+function op(opType, path, value){
+  var operation = new Operation({op: opType, path: path});
+  if(value) operation.value = value;
+  return operation;
+}
+
+export { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty, equalOps, op };
