@@ -1,7 +1,7 @@
 import Orbit from 'orbit/main';
 import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
-import { Promise } from 'rsvp';
+import { Promise, on } from 'rsvp';
 
 var schema,
     cache;
@@ -31,6 +31,10 @@ module("OC - Cache", {
   teardown: function() {
     schema = null;
   }
+});
+
+on('error', function(reason){
+  console.error(reason.message, reason.stack);
 });
 
 test("it exists", function() {
@@ -171,4 +175,80 @@ test("#transform tracks refs by default, and clears them from hasMany relationsh
 
   equal(cache.retrieve('/planet/p1/__rel/moons/m1'), null, 'Io has been cleared from Jupiter');
   equal(cache.retrieve('/planet/p1/__rel/moons/m2'), null, 'Europa has been cleared from Jupiter');
+});
+
+test("does not add link to hasMany if record doesn't exist", function(){
+  cache = new Cache(schema);
+  var operation = {op: 'add', path: ['planet', 'p1', '__rel', 'moons', 'moon1'], value: true};
+
+  var appliedTransform = cache.transform(operation);
+  ok(!appliedTransform, "didn't apply transform");
+});
+
+test("does not remove link from hasMany if record doesn't exist", function(){
+  cache = new Cache(schema);
+  var operation = {op: 'remove', path: ['planet', 'p1', '__rel', 'moons', 'moon1'], value: true};
+
+  var appliedTransform = cache.transform(operation);
+  ok(!appliedTransform, "didn't apply transform");
+});
+
+test("does not replace hasOne if record doesn't exist", function(){
+  cache = new Cache(schema);
+  var operation = {op: 'replace', path: ['moon', 'moon1', '__rel', 'planet'], value: "p1"};
+
+  var appliedTransform = cache.transform(operation);
+  ok(!appliedTransform, "didn't apply transform");
+});
+
+test("does not remove hasOne link if record doesn't exist", function(){
+  cache = new Cache(schema);
+  var operation = {op: 'remove', path: ['moon', 'moon1', '__rel', 'planet'], value: "p1"};
+
+  var appliedTransform = cache.transform(operation);
+  ok(!appliedTransform, "didn't apply transform");
+});
+
+test("does not add link to hasMany if link already exists", function(){
+  cache = new Cache(schema);
+  var jupiter = { id: 'p1', name: "Jupiter", __rel: { moons: { 'm1': true } } };
+  cache.transform({op: 'add', path: ['planet', jupiter.id], value: jupiter } );
+
+  var operation = {op: 'replace', path: ['planet', jupiter.id, '__rel', 'moons', 'm1'], value: true};
+
+  var appliedTransform = cache.transform(operation);
+  ok(!appliedTransform, "didn't apply transform");
+});
+
+test("test does not remove link from hasMany if link doesn't exist", function(){
+  cache = new Cache(schema);
+  var jupiter = { id: 'p1', name: "Jupiter", __rel: { moons: {} } };
+  cache.transform({op: 'add', path: ['planet', jupiter.id], value: jupiter } );
+
+  var operation = {op: 'remove', path: ['planet', jupiter.id, '__rel', 'moons', 'm1']};
+
+  var appliedTransform = cache.transform(operation);
+  ok(!appliedTransform, "didn't apply transform");
+});
+
+test("does not replace hasOne if link already exists", function(){
+  cache = new Cache(schema);
+  var europa = { id: 'm1', name: "Europe", __rel: { planet: 'p1' } };
+  cache.transform({op: 'add', path: ['moon', europa.id], value: europa } );
+
+  var operation = {op: 'replace', path: ['moon', europa.id, '__rel', 'planet'], value: 'p1'};
+
+  var appliedTransform = cache.transform(operation);
+  ok(!appliedTransform, "didn't apply transform");
+});
+
+test("does not remove hasOne if link doesn't exist", function(){
+  cache = new Cache(schema);
+  var europa = { id: 'm1', name: "Europe" };
+  cache.transform({op: 'add', path: ['moon', europa.id], value: europa } );
+
+  var operation = {op: 'remove', path: ['moon', europa.id, '__rel', 'planet']};
+
+  var appliedTransform = cache.transform(operation);
+  ok(!appliedTransform, "didn't apply transform");
 });
