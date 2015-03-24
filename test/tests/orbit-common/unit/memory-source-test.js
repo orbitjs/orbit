@@ -2,8 +2,25 @@ import Orbit from 'orbit/main';
 import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
 import Source from 'orbit-common/source';
-import { all, Promise } from 'rsvp';
+import { all, hash, Promise, on } from 'rsvp';
 import { RecordNotFoundException, LinkNotFoundException } from 'orbit-common/lib/exceptions';
+import jQuery from 'jquery';
+
+var map = jQuery.map;
+function mapBy(array, property){
+  return map(array, function(object){
+    return object[property];
+  });
+}
+
+on('error', function(reason){
+  console.log(reason);
+  console.error(reason.message, reason.stack);
+});
+
+function arrayCompare(a, b){
+  return jQuery(a).not(b).get().length === 0 && jQuery(b).not(a).get().length === 0;
+}
 
 var source;
 
@@ -15,12 +32,18 @@ module("OC - MemorySource", {
 
     var schema = new Schema({
       models: {
+        sun: {
+          links: {
+            planets: {type: 'hasMany', model: 'planet', inverse: 'sun', actsAsOrderedSet: true}
+          }
+        },
         planet: {
           attributes: {
             name: {type: 'string'},
             classification: {type: 'string'}
           },
           links: {
+            sun: {type: 'hasOne', model: 'sun', inverse: 'planets'},
             moons: {type: 'hasMany', model: 'moon', inverse: 'planet'}
           }
         },
@@ -452,6 +475,98 @@ test("#transform - remove operation for missing link path should leave a working
   });
 });
 
+test("can insert into a specific position of a hasMany that actsAsOrderedSet", function(){
+  expect(2);
+  stop();
+
+  source.add('sun', {name: "some_sun"}).then(function(sun){
+    all([
+      source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(jupiter){
+        source.addLink('sun', sun.id, 'planets', jupiter.id);
+      }),
+      source.add('planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}).then(function(earth){
+        source.addLink('sun', sun.id, 'planets', earth.id);
+      }),
+      source.add('planet', {name: 'Venus', classification: 'terrestrial', atmosphere: false}).then(function(venus){
+        source.addLink('sun', sun.id, 'planets', venus.id);
+      }),
+    ]).then(function() {  
+      source.add('planet', {name: 'Mercury', classification: 'terrestrial'}).then(function(mercury){
+        var position = 1;
+        source.addLink('sun', sun, 'planets', mercury, position).then(function(){
+          start();
+          equal(sun.__rel.planets[position], mercury.id, "Mercury is the first planet around the sun");
+          equal(mercury.__rel.sun, sun.id, "Mercury has a sun after linking");
+        });
+      });
+
+    });
+
+  });
+});
+
+test("duplicates are not added to a hasMany that actsAsOrderedSet", function(){
+  expect(1);
+  stop();
+
+  var jupiter;
+
+  source.add('sun', {name: "some_sun"}).then(function(sun){
+    source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true})
+    .then(function(addedJupiter){
+      jupiter = addedJupiter;
+
+    })
+    .then(function() {  
+      return source.addLink('sun', sun.id, 'planets', jupiter.id);
+
+    })
+    .then(function() {  
+      return source.addLink('sun', sun.id, 'planets', jupiter.id);
+
+    })
+    .then(function(){
+        start();
+        equal(sun.__rel.planets.length, 1, "Jupiter has only been added once");
+
+    });
+  });
+});
+
+test("can remove object from a hasMany that actsAsOrderedSet", function(){
+  expect(4);
+  stop();
+  var position = 0;
+
+  hash({
+    sun: source.add('sun', {name: "some_sun"}),
+    planet: source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true})
+
+  }).then(function(objects){
+    return source.addLink('sun', objects.sun, 'planets', objects.planet, position).then(function(){
+      return objects;
+    });
+
+  }).then(function(objects){
+    start();
+    equal(Object.keys(objects.sun.__rel.planets).length, 1);
+    equal(objects.planet.__rel.sun, objects.sun.id);
+    stop();
+    return objects;
+
+  }).then(function(objects){
+    return source.removeLink('sun', objects.sun.id, 'planets', objects.planet.id, position).then(function(){
+      return objects;
+    });
+
+  }).then(function(objects){
+    start();
+    equal(Object.keys(objects.sun.__rel.planets).length, 0, "Link has been removed");
+    ok(!objects.planet.__rel.sun, "Inverse link has been removed");
+
+  });
+});
+
 test("#update - can update records", function() {
   expect(7);
 
@@ -605,7 +720,7 @@ test("#updateLink - will fail when replacing records in a many-to-one relationsh
 
   }, function(e) {
     start();
-    equal(e.message, "Assertion failed: hasMany links can only be replaced when flagged as `actsAsSet`");
+    equal(e.message, "Assertion failed: hasMany links can only be replaced when flagged as `actsAsSet` or `actsAsOrderedSet`");
   });
 });
 
@@ -669,6 +784,38 @@ test("#updateLink - can link and unlink records in a many-to-one relationship vi
     ok(jupiter.__rel.moons[io.id], 'Jupiter\'s moon is Io');
     equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
 
+  });
+});
+
+test("#updateLink - can link and unlink records in a many-to-one relationship via the 'many' side when it `actsAsOrderedSet`", function(){
+  expect(5);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  var jupiter,
+      io;
+
+  stop();
+
+  source.add('sun', {}).then(function(sol) {
+    return all([
+      source.add('planet', {name: 'Mercury'}),
+      source.add('planet', {name: 'Venus'}),
+      source.add('planet', {name: 'Earth'}),
+    ]).then(function(planets) {
+      var planetIds = map(planets, function(planet){ return planet.id; });
+      return source.updateLink('sun', sol.id, 'planets', planetIds).then(function() {
+        start();
+
+        ok(arrayCompare(sol.__rel.planets, planetIds), "Sun has planets in order after updating link");
+        equal(planets[0].__rel.sun, sol.id);
+        equal(planets[1].__rel.sun, sol.id);
+        equal(planets[2].__rel.sun, sol.id);
+
+      }).catch(function(error){
+        throw error;
+      }); 
+    });
   });
 });
 
@@ -843,6 +990,61 @@ test("#findLinked - can find an empty set of has-many linked values", function()
   }).then(function(moons) {
     start();
     equal(moons.length, 0, 'Jupiter has no moons: findLinked returned []');
+  });
+});
+
+test("#findLinked - can find linked values for hasMany that actsAsOrderedSet", function() {
+  expect(1);
+
+  stop();
+  hash({
+    sun: source.add('sun'),
+    planets: all([
+      source.add('planet', {name: 'Mercury'}),
+      source.add('planet', {name: 'Venus'}),
+      source.add('planet', {name: 'Earth'})
+    ])
+
+  }).then(function(objects){
+    var planetIds = map(objects.planets, function(planet){ return planet.id; });
+    return source.updateLink('sun', objects.sun.id, 'planets', planetIds).then(function(){
+      return objects;
+    });
+
+  }).then(function(objects){
+    return source.findLinked('sun', objects.sun.id, 'planets').then(function(planets){
+      start();
+      ok(arrayCompare(planets, objects.planets), "The sun has planets after linking");
+    });
+
+  });
+});
+
+test("#findLink - can find link ids for hasMany that actsAsOrderedSet", function() {
+  expect(1);
+
+  stop();
+  hash({
+    sun: source.add('sun'),
+    planets: all([
+      source.add('planet', {name: 'Mercury'}),
+      source.add('planet', {name: 'Venus'}),
+      source.add('planet', {name: 'Earth'})
+    ])
+
+  }).then(function(objects){
+    var planetIds = map(objects.planets, function(planet){ return planet.id; });
+    return source.updateLink('sun', objects.sun.id, 'planets', planetIds).then(function(){
+      return objects;
+    });
+
+  }).then(function(objects){
+    return source.findLink('sun', objects.sun.id, 'planets').then(function(actualPlanetIds){
+      var expectedPlanetIds = map(objects.planets, function(planet){ return planet.id; });
+      start();
+      ok(arrayCompare(actualPlanetIds, expectedPlanetIds), "The sun has planets after linking");
+    });
+
   });
 });
 
