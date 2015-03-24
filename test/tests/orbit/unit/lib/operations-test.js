@@ -182,7 +182,7 @@ test("can coalesce remove operation into record operation", function(){
       op('remove', ['contact', '1234', '__rel', 'address'])
     ],
     [
-      op('add', ['contact', '1234'], { id: '1234', __rel: { address: null } })
+      op('add', ['contact', '1234'], { id: '1234', __rel: { address: undefined } })
     ]
   );
 });
