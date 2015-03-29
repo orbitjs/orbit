@@ -252,3 +252,74 @@ test("does not remove hasOne if link doesn't exist", function(){
   var appliedTransform = cache.transform(operation);
   ok(!appliedTransform, "didn't apply transform");
 });
+
+test("#transform allowDependentOps:true removes dependent records", function() {
+  // By making this schema recursively dependent remove we check that recursive
+  // works as well.
+  var dependentSchema = new Schema({
+    models: {
+      planet: {
+        links: {
+          moons: {type: 'hasMany', model: 'moon', dependent: 'remove'}
+        }
+      },
+      moon: {
+        links: {
+          planet: {type: 'hasOne', model: 'planet', dependent: 'remove'}
+        }
+      }
+    }
+  });
+  cache = new Cache(dependentSchema);
+
+  var jupiter = {id: 'p1', name: 'Jupiter', __rel: {moons: {}}};
+  var io = {id: 'm1', name: 'Io', __rel: {planet: 'p1'}};
+  var europa = {id: 'm2', name: 'Europa', __rel: {planet: 'p1'}};
+
+  cache.transform({op: 'add', path: 'planet/p1', value: jupiter});
+  cache.transform({op: 'add', path: 'moon/m1', value: io});
+  cache.transform({op: 'add', path: 'moon/m2', value: europa});
+  cache.transform({op: 'add', path: 'planet/p1/__rel/moons/m1', value: true });
+  cache.transform({op: 'add', path: 'planet/p1/__rel/moons/m2', value: true });
+
+  // Removing the moon should remove the planet should remove the other moon
+  cache.transform({op: 'remove', path: 'moon/m1'});
+  equal(cache.length('moon'), 0, 'No moons left in store');
+  equal(cache.length('planet'), 0, 'No planets left in store');
+
+});
+
+test("#transform allowDependentOps:false does not remove dependent records", function() {
+  var dependentSchema = new Schema({
+    models: {
+      planet: {
+        links: {
+          moons: {type: 'hasMany', model: 'moon', dependent: 'remove'}
+        }
+      },
+      moon: {
+        links: {
+          planet: {type: 'hasOne', model: 'planet', dependent: 'remove'}
+        }
+      }
+    }
+  });
+  cache = new Cache(dependentSchema, { allowDependentOps: false });
+
+  var jupiter = {id: 'p1', name: 'Jupiter', __rel: {moons: {}}};
+  var io = {id: 'm1', name: 'Io', __rel: {planet: 'p1'}};
+  var europa = {id: 'm2', name: 'Europa', __rel: {planet: 'p1'}};
+
+  cache.transform({op: 'add', path: 'planet/p1', value: jupiter});
+  cache.transform({op: 'add', path: 'moon/m1', value: io});
+  cache.transform({op: 'add', path: 'moon/m2', value: europa});
+  cache.transform({op: 'add', path: 'planet/p1/__rel/moons/m1', value: true });
+  cache.transform({op: 'add', path: 'planet/p1/__rel/moons/m2', value: true });
+
+  // Removing the moon should remove the planet should remove the other moon
+  // but allowDependentOps is false, so it wont do any of that.
+  cache.transform({op: 'remove', path: 'moon/m1'});
+  equal(cache.length('moon'), 1, 'One moon left in store');
+  equal(cache.length('planet'), 1, 'One planet left in store');
+
+});
