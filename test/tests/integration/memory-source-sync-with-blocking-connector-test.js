@@ -28,6 +28,18 @@ module("Integration - Memory Source Sync (Blocking)", {
           attributes: {
             name: {type: 'string'},
             classification: {type: 'string'}
+          },
+          links: {
+            moons: {type: 'hasMany', model: 'moon', inverse: 'planet'}
+          }
+        },
+        moon: {
+          attributes: {
+            name: {type: 'string'}
+          },
+          links: {
+            planet: {type: 'hasOne', model: 'planet', inverse: 'moons'},
+            mountains: {type: 'hasMany', model: 'mountain', inverse: 'moon'}
           }
         }
       }
@@ -43,6 +55,8 @@ module("Integration - Memory Source Sync (Blocking)", {
     // Create connectors
     source1to2Connector = new TransformConnector(source1, source2);
     source2to1Connector = new TransformConnector(source2, source1);
+
+    source1.on('rescueFind', source2.find);
   },
 
   teardown: function() {
