@@ -253,7 +253,7 @@ test("does not remove hasOne if link doesn't exist", function(){
   ok(!appliedTransform, "didn't apply transform");
 });
 
-test("#transform allowDependentOps:true removes dependent records", function() {
+test("#transform maintainDependencies:true removes dependent records", function() {
   // By making this schema recursively dependent remove we check that recursive
   // works as well.
   var dependentSchema = new Schema({
@@ -289,7 +289,7 @@ test("#transform allowDependentOps:true removes dependent records", function() {
 
 });
 
-test("#transform allowDependentOps:false does not remove dependent records", function() {
+test("#transform maintainDependencies:false does not remove dependent records", function() {
   var dependentSchema = new Schema({
     models: {
       planet: {
@@ -304,7 +304,7 @@ test("#transform allowDependentOps:false does not remove dependent records", fun
       }
     }
   });
-  cache = new Cache(dependentSchema, { allowDependentOps: false });
+  cache = new Cache(dependentSchema, { maintainDependencies: false });
 
   var jupiter = {id: 'p1', name: 'Jupiter', __rel: {moons: {}}};
   var io = {id: 'm1', name: 'Io', __rel: {planet: 'p1'}};
@@ -317,7 +317,7 @@ test("#transform allowDependentOps:false does not remove dependent records", fun
   cache.transform({op: 'add', path: 'planet/p1/__rel/moons/m2', value: true });
 
   // Removing the moon should remove the planet should remove the other moon
-  // but allowDependentOps is false, so it wont do any of that.
+  // but maintainDependencies is false, so it won't do any of that.
   cache.transform({op: 'remove', path: 'moon/m1'});
   equal(cache.length('moon'), 1, 'One moon left in store');
   equal(cache.length('planet'), 1, 'One planet left in store');
