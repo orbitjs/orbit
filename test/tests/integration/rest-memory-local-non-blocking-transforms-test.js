@@ -1,5 +1,6 @@
 import Orbit from 'orbit/main';
 import { uuid } from 'orbit/lib/uuid';
+import { clone } from 'orbit/lib/objects';
 import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
 import JSONAPISource from 'orbit-common/jsonapi-source';
@@ -242,6 +243,7 @@ test("records updated in memory should be updated with rest", function() {
                   JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
     });
 
+    record = clone(record);
     record.name = 'Earth';
     return memorySource.update('planet', record);
   });

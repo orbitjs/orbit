@@ -1,5 +1,6 @@
 import Orbit from 'orbit/main';
 import { uuid } from 'orbit/lib/uuid';
+import { clone } from 'orbit/lib/objects';
 import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
 import JSONAPISource from 'orbit-common/jsonapi-source';
@@ -198,6 +199,7 @@ test("records updated in memory should be updated with rest", function() {
 
   stop();
   memorySource.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    planet = clone(planet);
     planet.name = 'Earth';
     memorySource.update('planet', planet).then(function() {
       start();
@@ -233,6 +235,7 @@ test("records updated with rest should be updated in memory", function() {
 
   stop();
   restSource.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+    planet = clone(planet);
     planet.name = 'Earth';
     planet.classification = 'terrestrial';
     restSource.update('planet', planet).then(function() {
