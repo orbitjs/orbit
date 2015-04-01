@@ -4,6 +4,7 @@ import MemorySource from 'orbit-common/memory-source';
 import Source from 'orbit-common/source';
 import { all, Promise } from 'rsvp';
 import { RecordNotFoundException, LinkNotFoundException } from 'orbit-common/lib/exceptions';
+import { spread } from 'orbit/lib/objects';
 
 var source;
 
@@ -402,6 +403,39 @@ test("#add / #remove - can create and remove has-one links and their inverse lin
     equal(source.length('moon'), 0, 'moon should be deleted');
     equal(Object.keys(jupiter.__rel.moons).length, 0, 'Jupiter has no moons');
   });
+});
+
+test("replace hasOne removes record from previous hasMany", function(){
+  expect(2);
+  stop();
+
+  all([
+    source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
+    source.add('planet', {name: 'Saturn', classification: 'gas giant', atmosphere: true}),
+    source.add('moon', {name: 'Io'})
+
+  ]).then(spread(function(jupiter, saturn, io){
+    source.addLink('moon', io.id, 'planet', jupiter)
+    .then(function(){
+      return source.findLink('planet', jupiter.id, 'moons').then(function(moons){
+        start();
+        equal(moons[0], io.id);
+        stop();
+      });
+
+    }).then(function(){
+      return source.addLink('moon', io.id, 'planet', saturn);
+
+    }).then(function(){
+      return source.findLink('planet', jupiter.id, 'moons').then(function(moons){
+        start();
+        equal(moons.length, 0);
+      });
+
+    });
+
+  }));
+  
 });
 
 test("#add / #remove - can create and remove has-many links and their inverse links", function() {
