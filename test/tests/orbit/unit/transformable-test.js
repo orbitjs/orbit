@@ -94,8 +94,8 @@ test("it should trigger `didTransform` event BEFORE a transform resolves if the 
   expect(6);
 
   var order = 0,
-      addOp = {op: 'add', path: '/planet/1', value: 'data'},
-      inverseOp = {op: 'remove', path: '/planet/1'};
+      addOp = {op: 'add', path: 'planet/1', value: 'data'},
+      inverseOp = {op: 'remove', path: 'planet/1'};
 
   source._transform = function(operation) {
     equal(++order, 1, '_transform performed first');

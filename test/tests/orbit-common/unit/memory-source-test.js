@@ -4,6 +4,7 @@ import MemorySource from 'orbit-common/memory-source';
 import Source from 'orbit-common/source';
 import { all, Promise } from 'rsvp';
 import { RecordNotFoundException, LinkNotFoundException } from 'orbit-common/lib/exceptions';
+import { spread } from 'orbit/lib/functions';
 
 var source;
 
@@ -582,6 +583,35 @@ test("#addLink and #removeLink- can link and unlink records in a many-to-one rel
     equal(Object.keys(jupiter.__rel.moons).length, 0, 'Jupiter has no moons after unlinking');
   });
 });
+
+test("#addLink - replacing hasOne relationship removes record from previous hasMany relationship", function(){
+  expect(2);
+  stop();
+
+  all([
+    source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
+    source.add('planet', {name: 'Saturn', classification: 'gas giant', atmosphere: true}),
+    source.add('moon', {name: 'Io'})
+
+  ]).then(spread(function(jupiter, saturn, io) {
+
+    source.addLink('moon', io.id, 'planet', jupiter).then(function() {
+      return source.findLink('planet', jupiter.id, 'moons').then(function(moons) {
+        equal(moons[0], io.id);
+      });
+
+    }).then(function() {
+      return source.addLink('moon', io.id, 'planet', saturn);
+
+    }).then(function() {
+      return source.findLink('planet', jupiter.id, 'moons').then(function(moons) {
+        start();
+        equal(moons.length, 0);
+      });
+    });
+  }));
+});
+
 
 test("#updateLink - will fail when replacing records in a many-to-one relationship unless the linkDef is flagged as `actsAsSet`", function() {
   expect(2);

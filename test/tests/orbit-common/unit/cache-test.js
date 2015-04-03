@@ -98,30 +98,12 @@ test("#reset overrides the cache completely with the value specified", function(
   deepEqual(cache.retrieve(), newData);
 });
 
-test("removal of a non-existent path succeeds when the allowNoOps option is true", function() {
+test("#transform returns false when an operation is not necessary", function() {
   cache = new Cache(schema, {allowNoOps: true});
 
-  cache.transform({op: 'add', path: 'planet/1', value: {name: 'Earth'}});
+  equal(cache.transform({op: 'add', path: 'planet/1', value: {name: 'Earth'}}), true, 'add was successful');
 
-  try {
-    cache.transform({op: 'remove', path: 'planet/2'});
-    ok(true, 'remove should be successful');
-  } catch(e) {
-    ok(false, 'remove should not fail');
-  }
-});
-
-test("removal of a non-existent path fails when the allowNoOps option is false", function() {
-  cache = new Cache(schema, {allowNoOps: false});
-
-  cache.transform({op: 'add', path: 'planet/1', value: {name: 'Earth'}});
-
-  try {
-    cache.transform({op: 'remove', path: 'planet/2'});
-    ok(false, 'remove should not be successful');
-  } catch(e) {
-    ok(true, 'remove should fail');
-  }
+  equal(cache.transform({op: 'remove', path: 'planet/2'}), false, 'remove was not successful');
 });
 
 test("#transform tracks refs by default, and clears them from hasOne relationships when a referenced record is removed", function() {
@@ -136,18 +118,18 @@ test("#transform tracks refs by default, and clears them from hasOne relationshi
   cache.transform({op: 'add', path: 'moon/m2', value: europa});
 
   deepEqual(cache.retrieve('planet/p1/__rev'),
-    {'/moon/m1/__rel/planet': true,
-     '/moon/m2/__rel/planet': true});
+    {'moon/m1/__rel/planet': true,
+     'moon/m2/__rel/planet': true});
 
-  equal(cache.retrieve('/moon/m1/__rel/planet'), 'p1', 'Jupiter has been assigned to Io');
-  equal(cache.retrieve('/moon/m2/__rel/planet'), 'p1', 'Jupiter has been assigned to Europa');
+  equal(cache.retrieve('moon/m1/__rel/planet'), 'p1', 'Jupiter has been assigned to Io');
+  equal(cache.retrieve('moon/m2/__rel/planet'), 'p1', 'Jupiter has been assigned to Europa');
 
-  cache.transform({op: 'remove', path: '/planet/p1'});
+  cache.transform({op: 'remove', path: 'planet/p1'});
 
-  equal(cache.retrieve('/planet/p1'), null, 'Jupiter is GONE');
+  equal(cache.retrieve('planet/p1'), undefined, 'Jupiter is GONE');
 
-  equal(cache.retrieve('/moon/m1/__rel/planet'), null, 'Jupiter has been cleared from Io');
-  equal(cache.retrieve('/moon/m2/__rel/planet'), null, 'Jupiter has been cleared from Europa');
+  equal(cache.retrieve('moon/m1/__rel/planet'), undefined, 'Jupiter has been cleared from Io');
+  equal(cache.retrieve('moon/m2/__rel/planet'), undefined, 'Jupiter has been cleared from Europa');
 });
 
 test("#transform tracks refs by default, and clears them from hasMany relationships when a referenced record is removed", function() {
@@ -162,7 +144,7 @@ test("#transform tracks refs by default, and clears them from hasMany relationsh
   cache.transform({op: 'add', path: 'planet/p1', value: jupiter});
 
   deepEqual(cache.retrieve('moon/m1/__rev'),
-    {'/planet/p1/__rel/moons/m1': true});
+    {'planet/p1/__rel/moons/m1': true});
 
   equal(cache.retrieve('/planet/p1/__rel/moons/m1'), true, 'Jupiter has been assigned to Io');
   equal(cache.retrieve('/planet/p1/__rel/moons/m2'), true, 'Jupiter has been assigned to Europa');
