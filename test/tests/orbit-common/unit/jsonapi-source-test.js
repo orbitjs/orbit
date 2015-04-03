@@ -280,12 +280,12 @@ test("#addLink - can add a hasMany relationship with POST", function() {
   });
 });
 
-test("#addLink - can add a hasOne relationship with POST", function() {
+test("#addLink - can update a hasOne relationship with PUT", function() {
   expect(2);
 
-  server.respondWith('POST', '/moons/987/links/planet', function(xhr) {
+  server.respondWith('PUT', '/moons/987/links/planet', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody), {planets: '12345'},
-              'POST request to add link to primary record');
+              'PUT request to add link to primary record');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
                 JSON.stringify({}));
