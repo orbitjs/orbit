@@ -1,6 +1,6 @@
 {
   "name": "orbit.js",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "private": true,
   "devDependencies": {
     "jquery": "~1.11.1",
