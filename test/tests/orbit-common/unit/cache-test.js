@@ -235,6 +235,43 @@ test("does not remove hasOne if link doesn't exist", function(){
   ok(!appliedTransform, "didn't apply transform");
 });
 
+test("#transform removing model with a bi-directional hasOne", function() {
+  expect(5);
+
+  var hasOneSchema = new Schema({
+    models: {
+      one: {
+        links: {
+          two: { type: 'hasOne', model: 'two', inverse: 'one' }
+        }
+      },
+      two: {
+        links: {
+          one: { type: 'hasOne', model: 'one', inverse: 'two' }
+        }
+      },
+    }
+  });
+  cache = new Cache(hasOneSchema);
+  cache.transform({ op: 'add', path: 'one/one', value: {
+    id: 'one',
+    __rel: { two: null },
+  }});
+  cache.transform({ op: 'add', path: 'two/two', value: {
+    id: 'two',
+    __rel: { one: 'one' },
+  }});
+  var one = cache.retrieve(['one', 'one']);
+  var two = cache.retrieve(['two', 'two']);
+  ok(one, 'one exists');
+  ok(two, 'two exists');
+  equal(one.__rel.two, 'two', 'one links to two');
+  equal(two.__rel.one, 'one', 'two links to one');
+
+  cache.transform({ op: 'remove', path: 'two/two' });
+  strictEqual(one.__rel.two, null, 'ones link to two got removed');
+});
+
 test("#transform maintainDependencies:true removes dependent records", function() {
   // By making this schema recursively dependent remove we check that recursive
   // works as well.
