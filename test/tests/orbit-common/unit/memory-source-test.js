@@ -377,11 +377,11 @@ test("#add - creates a record - data defaults to empty object", function() {
 });
 
 test("#add / #remove - can create and remove has-one links and their inverse links", function() {
-  expect(6);
+  expect(10);
 
   equal(source.length('planet'), 0, 'source should be empty');
 
-  var jupiter,
+  var jupiter, earth,
       io;
 
   stop();
@@ -395,8 +395,22 @@ test("#add / #remove - can create and remove has-one links and their inverse lin
     ok(jupiter.__rel.moons[io.id], 'Jupiter\'s moon is Io');
     equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
 
-    return source.remove('moon', io.id);
+    return source.add('planet', { name: 'Earth' });
+  }).then(function(planet) {
+    earth = planet;
+    // Change the "inverse" link on the moon by linking it to our new planet
+    return source.addLink('planet', earth.id, 'moons', io.id);
+  }).then(function() {
+    equal(Object.keys(earth.__rel.moons).length, 1, 'Earth has one moon after changing link');
+    equal(Object.keys(jupiter.__rel.moons).length, 0, 'Jupiter has no moons after changing link');
 
+    return source.remove('planet', earth.id);
+  }).then(function() {
+    strictEqual(io.__rel.planet, null, 'Removing earth set io\'s planet to null');
+    return source.addLink('moon', io.id, 'planet', jupiter.id);
+  }).then(function() {
+    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
+    return source.remove('moon', io.id);
   }).then(function() {
     start();
 
