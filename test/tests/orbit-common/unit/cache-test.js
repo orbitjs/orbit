@@ -117,7 +117,7 @@ test("#transform tracks refs by default, and clears them from hasOne relationshi
   cache.transform({op: 'add', path: 'moon/m1', value: io});
   cache.transform({op: 'add', path: 'moon/m2', value: europa});
 
-  deepEqual(cache.retrieve('planet/p1/__rev'),
+  deepEqual(cache._rev['planet']['p1'],
     {'moon/m1/__rel/planet': true,
      'moon/m2/__rel/planet': true});
 
@@ -143,7 +143,7 @@ test("#transform tracks refs by default, and clears them from hasMany relationsh
   cache.transform({op: 'add', path: 'moon/m2', value: europa});
   cache.transform({op: 'add', path: 'planet/p1', value: jupiter});
 
-  deepEqual(cache.retrieve('moon/m1/__rev'),
+  deepEqual(cache._rev['moon']['m1'],
     {'planet/p1/__rel/moons/m1': true});
 
   equal(cache.retrieve('/planet/p1/__rel/moons/m1'), true, 'Jupiter has been assigned to Io');
