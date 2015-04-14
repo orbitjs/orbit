@@ -5,7 +5,8 @@ import MemorySource from 'orbit-common/memory-source';
 import TransformConnector from 'orbit/transform-connector';
 import { Promise } from 'rsvp';
 
-var source1,
+var schema,
+    source1,
     source2,
     source1to2Connector,
     source2to1Connector;
@@ -15,7 +16,7 @@ module("Integration - Memory Source Sync (Blocking)", {
     Orbit.Promise = Promise;
 
     // Create schema
-    var schema = new Schema({
+    schema = new Schema({
       modelDefaults: {
         keys: {
           '__id': {primaryKey: true, defaultValue: uuid},
@@ -131,5 +132,67 @@ test("replacing value with null should not cause infinite update loop", function
       });
     });
   });
+});
+
+test("replacing link should not cause infinite update loop", function() {
+  expect(12);
+
+  schema.registerModel('friend', {
+    keys: {
+      __id: {},
+      id: { primaryKey: true, defaultValue: uuid }
+    },
+    links: {
+      group: { model: 'group', type: 'hasOne', inverse: 'members' }
+    }
+  });
+
+  schema.registerModel('group', {
+    keys: {
+      __id: {},
+      id: { primaryKey: true, defaultValue: uuid }
+    },
+    links: {
+      members: { model: 'friend', type: 'hasMany', inverse: 'group' }
+    }
+  });
+
+  stop();
+
+  Orbit.Promise
+    .all([
+      source1.add('friend', {
+        id: 'gnarf',
+      }),
+      source1.add('group', {
+        id: 'initial',
+      }),
+      source1.add('group', {
+        id: 'new'
+      })
+    ])
+    .then(function() {
+      return source1.addLink('friend', 'gnarf', 'group', 'initial');
+    })
+    .then(function() {
+      equal(source1.retrieveLink('friend', 'gnarf', 'group'), 'initial', 'initial group check');
+      equal(source2.retrieveLink('friend', 'gnarf', 'group'), 'initial', 'initial group check');
+      equal(source1.retrieveLink('group', 'initial', 'members').length, 1, 'initial group check');
+      equal(source2.retrieveLink('group', 'initial', 'members').length, 1, 'initial group check');
+      equal(source1.retrieveLink('group', 'new', 'members').length, 0, 'initial group check');
+      equal(source2.retrieveLink('group', 'new', 'members').length, 0, 'initial group check');
+
+      // replace the link
+      return source1.addLink('friend', 'gnarf', 'group', 'new');
+    })
+    .then(function() {
+      start();
+      equal(source1.retrieveLink('friend', 'gnarf', 'group'), 'new', 'new group check');
+      equal(source2.retrieveLink('friend', 'gnarf', 'group'), 'new', 'new group check');
+      equal(source1.retrieveLink('group', 'initial', 'members').length, 0, 'new group check');
+      equal(source2.retrieveLink('group', 'initial', 'members').length, 0, 'new group check');
+      equal(source1.retrieveLink('group', 'new', 'members').length, 1, 'new group check');
+      equal(source2.retrieveLink('group', 'new', 'members').length, 1, 'new group check');
+    });
 });
 
