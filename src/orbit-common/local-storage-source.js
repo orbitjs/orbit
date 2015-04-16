@@ -34,7 +34,8 @@ export default class LocalStorageSource extends Source {
 
     this.schema    = options.schema;
     this.name      = options.name || 'localStorage';
-    this.namespace = options.namespace || 'orbit'; // local storage key
+    this.namespace = options['namespace'] || 'orbit'; // local storage namespace
+    this.delimiter = options['delimiter'] || '/'; // local storage key
     this._autosave = options.autosave !== undefined ? options.autosave : true;
     let autoload   = options.autoload !== undefined ? options.autoload : true;
 
@@ -48,6 +49,16 @@ export default class LocalStorageSource extends Source {
 
     if (autoload) { this.load(); }
   }
+
+  // load: function() {
+  //   for (var key in window.localStorage) {
+  //     if (key.indexOf(this.namespace) === 0) {
+  //       var path = key.split(this.delimiter);
+  //       var item = JSON.parse(window.localStorage.getItem(key));
+  //       this._cache._doc._data[path[1]][path[2]] = item;
+  //     }
+  //   }
+  // },
 
   load() {
     var storage = window.localStorage.getItem(this.namespace);
@@ -68,6 +79,10 @@ export default class LocalStorageSource extends Source {
       this._autosave = false;
     }
   }
+
+  // getKey: function(path) {
+  //   return [this.namespace, path[0], path[1]].join(this.delimiter);
+  // },
 
   /////////////////////////////////////////////////////////////////////////////
   // Transformable interface implementation
@@ -90,4 +105,20 @@ export default class LocalStorageSource extends Source {
     window.localStorage.setItem(this.namespace, JSON.stringify(this.cache.get()));
     this._isDirty = false;
   }
+
+  // _saveData: function(operation) {
+  //   if (!this._autosave && !operation) {
+  //     this._isDirty = true;
+  //     return;
+  //   }
+  //   var obj = this.retrieve([operation.path[0], operation.path[1]]);
+  //
+  //   if (operation.op === 'add' || operation.op === 'replace') {
+  //     window.localStorage.setItem(this.getKey(operation.path), JSON.stringify(obj));
+  //   }
+  //   if (operation.op === 'remove') {
+  //     window.localStorage.removeItem(this.getKey(operation.path));
+  //   }
+  //   this._isDirty = false;
+  // }
 }

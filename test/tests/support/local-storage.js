@@ -1,12 +1,10 @@
 function verifyLocalStorageContainsRecord(namespace, type, id, record, ignoreFields) {
-  var expected = {};
-  expected[id] = record;
+  let recordKey = [namespace, type, id].join('/');
 
-  var actual = JSON.parse(window.localStorage.getItem(namespace));
-  if (type) { actual = actual[type]; }
+  let actual = JSON.parse(window.localStorage.getItem(recordKey));
 
   if (ignoreFields) {
-    for (var i = 0, l = ignoreFields.length, field; i < l; i++) {
+    for (let i = 0, l = ignoreFields.length, field; i < l; i++) {
       field = ignoreFields[i];
       actual[id][field] = record[field];
     }
