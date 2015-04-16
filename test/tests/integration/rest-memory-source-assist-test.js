@@ -1,4 +1,5 @@
 import Orbit from 'orbit/main';
+import { clone } from 'orbit/lib/objects';
 import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
@@ -216,5 +217,63 @@ test("a single find request that returns a compound document", function() {
     start();
 
     equal(planets.length, 1, 'found one planet');
+  });
+});
+
+test("update record with an inverse relation", function() {
+  expect(4);
+  var planets = {
+    "linked": {
+      "moons": [
+        {
+          "id": "2",
+          "name": "Io",
+          "links": {
+            "planet": "1"
+          }
+        }
+      ]
+    },
+    "planets": [
+      {
+        "id": "1",
+        "name": "Jupiter",
+        "links": {
+          "moons": ["2"]
+        }
+      }
+    ]
+  };
+
+  server.respondWith(function(request) {
+    if (request.method === 'GET' && request.url === '/planets') {
+      ok(true, 'GET /planets request');
+      request.respond(200,
+                      {'Content-Type': 'application/json'},
+                      JSON.stringify(planets));
+    } else if (request.method === 'PUT' && request.url === '/planets/1') {
+      ok(true, 'PUT /planets/1 request');
+      request.respond(204, {}, "");
+    } else {
+      ok(false, request.method + ' ' + request.url + ' unexpected request');
+    }
+  });
+
+  memorySource.on('assistFind', function(type, id) {
+    return restSource.find.apply(restSource, arguments);
+  });
+
+  stop(2);
+  memorySource.find("planet").then(function(planets) {
+    equal(planets.length, 1, 'found one planet');
+    start();
+
+    var planet = clone(planets[0]);
+    planet.classification = 'Gas giant';
+
+    memorySource.update("planet", planet).then(function() {
+      ok(true, 'planet updated');
+      start();
+    });
   });
 });
