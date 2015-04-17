@@ -130,3 +130,21 @@ test("#diffs ignores specified items with `ignore` option", function() {
             [{op: 'replace', path: 'planets/1/name', value: 'Saturn'}],
             'specified items are ignored in delta');
 });
+
+test("#diffs generates `replace` patch when comparing two dates", function() {
+  var a = new Date(1428555600000),
+      b = new Date(1428555601000);
+
+  deepEqual(diffs(a,b, {basePath: 'planets/1/birthDate'}),
+            [{op: 'replace', path: 'planets/1/birthDate', value: b}],
+            'dates are replaced');
+});
+
+test("#diffs generates undefined patch when comparing two equal dates", function() {
+  var a = new Date(1428555600000),
+      b = new Date(1428555600000);
+
+  deepEqual(diffs(a,b, {basePath: 'planets/1/birthDate'}),
+            undefined,
+            'dates are the same');
+});
