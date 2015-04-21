@@ -148,3 +148,21 @@ test("#diffs generates undefined patch when comparing two equal dates", function
             undefined,
             'dates are the same');
 });
+
+test("#diffs generates `replace` patch when string is replaced by a date", function() {
+  var a = "string",
+      b = new Date(1428555600000);
+
+  deepEqual(diffs(a,b, {basePath: 'planets/1/birthDate'}),
+            [{op: 'replace', path: 'planets/1/birthDate', value: b}],
+            'string was replaced by date');
+});
+
+test("#diffs generates `replace` patch when date is replaced by a string", function() {
+  var a = new Date(1428555600000),
+      b = "string";
+
+  deepEqual(diffs(a,b, {basePath: 'planets/1/birthDate'}),
+            [{op: 'replace', path: 'planets/1/birthDate', value: b}],
+            'date was replaced by string');
+});
