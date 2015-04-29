@@ -2,6 +2,7 @@ import Orbit from 'orbit/main';
 import Schema from 'orbit-common/schema';
 import { Promise } from 'rsvp';
 import { uuid } from 'orbit/lib/uuid';
+import { ModelNotRegisteredException } from 'orbit-common/lib/exceptions';
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -193,6 +194,20 @@ test("#normalize initializes a record with a unique primary key", function() {
   ok(earth.id, 'id has been set');
   ok(mars.id, 'id has been set');
   notEqual(earth.id, mars.id, 'ids are unique');
+});
+
+test("#normalize throws a ModelNotRegisteredException error for missing models", function() {
+  var schema = new Schema({
+    models: {
+      planet: {}
+    }
+  });
+
+  expect(1);
+
+  throws(function() {
+    var earth = schema.normalize('not-planet', {});
+  }, ModelNotRegisteredException, 'threw a OC.ModelNotRegisteredException');
 });
 
 test("#normalize - local and remote ids can be mapped", function() {
