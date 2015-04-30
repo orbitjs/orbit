@@ -1,3 +1,4 @@
+import 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
@@ -31,10 +32,6 @@ module("OC - Cache", {
   teardown: function() {
     schema = null;
   }
-});
-
-on('error', function(reason){
-  console.error(reason.message, reason.stack);
 });
 
 test("it exists", function() {
