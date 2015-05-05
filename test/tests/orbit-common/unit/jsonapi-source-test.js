@@ -123,27 +123,6 @@ test("#add - can insert records", function() {
   });
 });
 
-test("#add (with PATCH) - can insert records", function() {
-  expect(5);
-
-  server.respondWith('PATCH', '/planets', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), [{op: 'add', path: '/-', value: {name: 'Jupiter', classification: 'gas giant', links: {moons: []}}}], 'PATCH request');
-    xhr.respond(201,
-                {'Content-Type': 'application/json'},
-                JSON.stringify([{planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}]));
-  });
-
-  stop();
-  source.usePatch = true;
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    start();
-    ok(planet.__id, 'orbit id should be defined');
-    equal(planet.id, 12345, 'server id should be defined');
-    equal(planet.name, 'Jupiter', 'name should match');
-    equal(planet.classification, 'gas giant', 'classification should match');
-  });
-});
-
 test("#update - can update records", function() {
   expect(5);
 
@@ -155,30 +134,6 @@ test("#update - can update records", function() {
   });
 
   stop();
-  var data = {id: '12345', name: 'Jupiter', classification: 'gas giant'};
-  source.update('planet', data).then(function() {
-    start();
-    var planetId = source.getId('planet', data);
-    var planet = source.retrieve(['planet', planetId]);
-    equal(planet.__id, planetId, 'orbit id should be defined');
-    equal(planet.id, '12345', 'server id should be defined');
-    equal(planet.name, 'Jupiter', 'name should match');
-    equal(planet.classification, 'gas giant', 'classification should match');
-  });
-});
-
-test("#update (with PATCH) - can update records", function() {
-  expect(5);
-
-  server.respondWith('PATCH', '/planets/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), [{op: 'replace', path: '/', value: {id: '12345', name: 'Jupiter', classification: 'gas giant', links: {moons: []}}}], 'PATCH request');
-    xhr.respond(200,
-                {'Content-Type': 'application/json'},
-                JSON.stringify({}));
-  });
-
-  stop();
-  source.usePatch = true;
   var data = {id: '12345', name: 'Jupiter', classification: 'gas giant'};
   source.update('planet', data).then(function() {
     start();
@@ -208,24 +163,6 @@ test("#patch - can patch records", function() {
   });
 });
 
-test("#patch (with PATCH) - can patch records", function() {
-  expect(2);
-
-  server.respondWith('PATCH', '/planets/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), [{op: 'replace', path: '/classification', value: 'gas giant'}], 'PATCH request');
-    xhr.respond(200,
-                {'Content-Type': 'application/json'},
-                JSON.stringify({}));
-  });
-
-  stop();
-  source.usePatch = true;
-  source.patch('planet', {id: 12345}, 'classification', 'gas giant').then(function() {
-    start();
-    ok(true, 'record patched');
-  });
-});
-
 test("#remove - can delete records", function() {
   expect(2);
 
@@ -237,25 +174,6 @@ test("#remove - can delete records", function() {
   });
 
   stop();
-  source.remove('planet', {id: '12345'}).then(function() {
-    start();
-    ok(true, 'record deleted');
-  });
-});
-
-test("#remove (with PATCH) - can delete records", function() {
-  expect(2);
-
-  server.respondWith('PATCH', '/planets/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), [{op: 'remove', path: '/'}],
-              'PATCH request to remove record');
-    xhr.respond(200,
-                {'Content-Type': 'application/json'},
-                JSON.stringify({}));
-  });
-
-  stop();
-  source.usePatch = true;
   source.remove('planet', {id: '12345'}).then(function() {
     start();
     ok(true, 'record deleted');
@@ -298,25 +216,6 @@ test("#addLink - can update a hasOne relationship with PUT", function() {
   });
 });
 
-test("#addLink (with PATCH) - can add a hasMany relationship", function() {
-  expect(2);
-
-  server.respondWith('PATCH', '/planets/12345/links/moons', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), [{op: 'add', path: '/-', value: '987'}],
-              'PATCH request to add link to primary record');
-    xhr.respond(200,
-                {'Content-Type': 'application/json'},
-                JSON.stringify({}));
-  });
-
-  stop();
-  source.usePatch = true;
-  source.addLink('planet', {id: '12345'}, 'moons', {id: '987'}).then(function() {
-    start();
-    ok(true, 'records linked');
-  });
-});
-
 test("#removeLink - can remove a relationship with DELETE", function() {
   expect(2);
 
@@ -328,25 +227,6 @@ test("#removeLink - can remove a relationship with DELETE", function() {
   });
 
   stop();
-  source.removeLink('planet', {id: 12345}, 'moons', {id: 987}).then(function() {
-    start();
-    ok(true, 'records unlinked');
-  });
-});
-
-test("#removeLink (with PATCH) - can remove a relationship", function() {
-  expect(2);
-
-  server.respondWith('PATCH', '/planets/12345/links/moons', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), [{op: 'remove', path: '/987'}],
-              'PATCH request to remove link from primary record');
-    xhr.respond(200,
-                {'Content-Type': 'application/json'},
-                JSON.stringify({}));
-  });
-
-  stop();
-  source.usePatch = true;
   source.removeLink('planet', {id: 12345}, 'moons', {id: 987}).then(function() {
     start();
     ok(true, 'records unlinked');
@@ -386,47 +266,6 @@ test("#updateLink - can replace a hasMany relationship (flagged as `actsAsSet`) 
   });
 
   stop();
-  source.updateLink('planet', {id: '12345'}, 'moons', [{id: '987'}]).then(function() {
-    start();
-    ok(true, 'records linked');
-  });
-});
-
-test("#updateLink (with PATCH) - can replace a hasOne relationship", function() {
-  expect(2);
-
-  server.respondWith('PATCH', '/moons/987/links/planet', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), [{op: 'replace', path: '/', value: '12345'}],
-              'PATCH request to replace link');
-    xhr.respond(200,
-                {'Content-Type': 'application/json'},
-                JSON.stringify({}));
-  });
-
-  stop();
-  source.usePatch = true;
-  source.updateLink('moon', {id: '987'}, 'planet', {id: '12345'}).then(function() {
-    start();
-    ok(true, 'records linked');
-  });
-});
-
-test("#updateLink (with PATCH) - can replace a hasMany relationship (flagged as `actsAsSet`)", function() {
-  expect(2);
-
-  // Moons link must be flagged with `actsAsSet`
-  source.schema.models.planet.links.moons.actsAsSet = true;
-
-  server.respondWith('PATCH', '/planets/12345/links/moons', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), [{op: 'replace', path: '/', value: ['987']}],
-      'PATCH request to replace link');
-    xhr.respond(200,
-      {'Content-Type': 'application/json'},
-      JSON.stringify({}));
-  });
-
-  stop();
-  source.usePatch = true;
   source.updateLink('planet', {id: '12345'}, 'moons', [{id: '987'}]).then(function() {
     start();
     ok(true, 'records linked');
