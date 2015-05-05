@@ -29,7 +29,8 @@
     "build": "rm -rf build && BROCCOLI_ENV=test broccoli build build",
     "prepublish": "bower install",
     "test": "testem ci",
-    "start": "BROCCOLI_ENV=test broccoli serve"
+    "start": "BROCCOLI_ENV=test broccoli serve",
+    "release": "./scripts/release"
   },
   "devDependencies": {
     "bower": "^1.3.12",

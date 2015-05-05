@@ -1,0 +1,28 @@
+#!/bin/bash
+set -e
+
+if [[ ! -d releases ]]; then
+  echo -n "---> Which git repo do you want to use for releases? "
+  read GIT_REPO
+  git clone $GIT_REPO releases
+fi
+
+echo -n "---> Name for release tag? "
+read RELEASE_VERSION
+npm run build
+rm -f releases/*
+find build -maxdepth 1 -type f -exec cp {} releases \;
+cd releases
+
+if [ -n "$(git status --porcelain)" ]; then
+  git add .
+  git commit -m "Release $RELEASE_VERSION"
+  git push origin -f
+else
+  git commit --amend -m "Release $RELEASE_VERSION"
+fi
+
+git tag $RELEASE_VERSION
+git push --tags
+
+echo "---> Released $RELEASE_VERSION"
