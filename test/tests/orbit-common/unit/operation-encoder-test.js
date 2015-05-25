@@ -116,16 +116,16 @@ test("identifies removeFromHasMany", function(){
   identifies(op('remove', 'planet/planet1/__rel/moons/moon1'), 'removeFromHasMany');
 });
 
-test("identifies addHasOne as invalid", function(){
-  identifiesAsInvalid(op('add', 'moon/moon1/__rel/planet', 'planet1'));
+test("identifies addHasOne", function(){
+  identifies(op('add', 'moon/moon1/__rel/planet', 'planet1'), 'addHasOne');
 });
 
 test("identifies replaceHasOne", function(){
   identifies(op('replace', 'moon/moon1/__rel/planet', 'planet1'), 'replaceHasOne');
 });
 
-test("identifies removeHasOne as invalid", function(){
-  identifiesAsInvalid(op('remove', 'moon/moon1/__rel/planet'));
+test("identifies removeHasOne", function(){
+  identifies(op('remove', 'moon/moon1/__rel/planet'), 'removeHasOne');
 });
 
 test("identifies addAttribute", function(){

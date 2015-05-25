@@ -1,4 +1,10 @@
 import Operation from 'orbit/operation';
+import { on } from 'rsvp';
+
+on('error', function(reason){
+  console.log(reason);
+  console.error(reason.message, reason.stack);
+});
 
 var verifyLocalStorageContainsRecord = function(namespace, type, id, record, ignoreFields) {
   var expected = {};
