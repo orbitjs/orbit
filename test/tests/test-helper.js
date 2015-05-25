@@ -36,7 +36,7 @@ var equalOps = function(result, expected, msg) {
 
 function op(opType, path, value){
   var operation = new Operation({op: opType, path: path});
-  if(value) operation.value = value;
+  if(value !== undefined) operation.value = value;
   return operation;
 }
 

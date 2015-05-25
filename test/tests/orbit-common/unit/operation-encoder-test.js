@@ -140,30 +140,69 @@ test("identifies removeAttribute", function(){
   identifies(op('remove', 'planet/planet1/name'), 'removeAttribute');
 });
 
-test("generates addToHasMany", function(){
+test("encodes addRecord", function(){
+  var record = {id: 'planet1', name: "Europa"};
+
+  deepEqual(
+    operationEncoder.addRecordOp('planet', 'planet1', record).serialize(),
+    op('add', 'planet/planet1', record).serialize()
+  );
+});
+
+test("encodes replaceRecord", function(){
+  var record = {id: 'planet1', name: "Europa"};
+
+  deepEqual(
+    operationEncoder.replaceRecordOp('planet', 'planet1', record).serialize(),
+    op('replace', 'planet/planet1', record).serialize()
+  );
+});
+
+test("encodes removeRecord", function(){
+  deepEqual(
+    operationEncoder.removeRecordOp('planet', 'planet1').serialize(),
+    op('remove', 'planet/planet1').serialize()
+  );
+});
+
+test("encodes addToHasMany", function(){
   deepEqual(
     operationEncoder.addLinkOp('planet', 'planet1', 'moons', 'moon1').serialize(),
     op('add', 'planet/planet1/__rel/moons/moon1', true).serialize()
   );
 });
 
-test("generates replaceHasOne (via addLinkOp)", function(){
+test("encodes replaceHasOne (via addLinkOp)", function(){
   deepEqual(
     operationEncoder.addLinkOp('moon', 'moon1', 'planet', 'planet1').serialize(),
     op('replace', 'moon/moon1/__rel/planet', 'planet1').serialize()
   );
 });
 
-test("generates replaceHasOne (via updateLinkOp)", function(){
+test("encodes replaceHasOne (via updateLinkOp)", function(){
   deepEqual(
     operationEncoder.updateLinkOp('moon', 'moon1', 'planet', 'planet1').serialize(),
     op('replace', 'moon/moon1/__rel/planet', 'planet1').serialize()
   );
 });
 
-test("generates replaceHasMany", function(){
+test("encodes replaceHasOne (via removeLinkOp)", function(){
+  deepEqual(
+    operationEncoder.removeLinkOp('moon', 'moon1', 'planet', 'planet1').serialize(),
+    op('replace', 'moon/moon1/__rel/planet', null).serialize()
+  );
+});
+
+test("encodes replaceHasMany", function(){
   deepEqual(
     operationEncoder.updateLinkOp('planet', 'planet1', 'moons', ['moon1', 'moon2']).serialize(),
     op('replace', 'planet/planet1/__rel/moons', {'moon1': true, 'moon2': true}).serialize()
+  );
+});
+
+test("encodes removeFromHasMany", function(){
+  deepEqual(
+    operationEncoder.removeLinkOp('planet', 'planet1', 'moons', 'moon1').serialize(),
+    op('remove', 'planet/planet1/__rel/moons/moon1').serialize()
   );
 });
