@@ -179,9 +179,9 @@ test("encodes replaceHasOne (via addLinkOp)", function(){
   );
 });
 
-test("encodes replaceHasOne (via updateLinkOp)", function(){
+test("encodes replaceHasOne (via replaceLinkOp)", function(){
   deepEqual(
-    operationEncoder.updateLinkOp('moon', 'moon1', 'planet', 'planet1').serialize(),
+    operationEncoder.replaceLinkOp('moon', 'moon1', 'planet', 'planet1').serialize(),
     op('replace', 'moon/moon1/__rel/planet', 'planet1').serialize()
   );
 });
@@ -195,7 +195,7 @@ test("encodes replaceHasOne (via removeLinkOp)", function(){
 
 test("encodes replaceHasMany", function(){
   deepEqual(
-    operationEncoder.updateLinkOp('planet', 'planet1', 'moons', ['moon1', 'moon2']).serialize(),
+    operationEncoder.replaceLinkOp('planet', 'planet1', 'moons', ['moon1', 'moon2']).serialize(),
     op('replace', 'planet/planet1/__rel/moons', {'moon1': true, 'moon2': true}).serialize()
   );
 });

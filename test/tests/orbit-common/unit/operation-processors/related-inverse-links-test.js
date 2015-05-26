@@ -66,6 +66,7 @@ module('OC - OperationProcessors - RelatedInverseLinks', {
 });
 
 function operationsShouldMatch(actualOperations, expectedOperations){
+  console.log("actual", actualOperations);
   equal(actualOperations.length, expectedOperations.length, 'Same number of operations');
 
   for(var i = 0; i < actualOperations.length; i++){
@@ -90,6 +91,28 @@ test('add to hasOne => hasMany', function(){
   operationsShouldMatch(
     processor.process(
       op('add', ['moon', europa.id, '__rel', 'planet'], saturn.id)
+    ),
+    [
+      // op('remove', ['planet', jupiter.id, '__rel', 'moons', europa.id]),
+      op('add', ['planet', saturn.id, '__rel', 'moons', europa.id], true)
+    ]
+  );
+});
+
+test('replace hasOne => hasMany', function(){
+  var saturn = { id: 'saturn', name: "Saturn", __rel: { moons: { 'titan': true } } };
+  var jupiter = { id: 'jupiter', name: "Jupiter", __rel: { moons: { 'europa': true } } };
+  var titan = { id: 'titan', name: "Titan", __rel: { planet: 'saturn' } };
+  var europa = { id: 'europa', name: "Europa", __rel: { planet: 'jupiter' } };
+
+  cache.reset({
+    planet: { saturn: saturn, jupiter: jupiter },
+    moon: { titan: titan, europa: europa }
+  });
+
+  operationsShouldMatch(
+    processor.process(
+      op('replace', ['moon', europa.id, '__rel', 'planet'], saturn.id)
     ),
     [
       // op('remove', ['planet', jupiter.id, '__rel', 'moons', europa.id]),
@@ -151,7 +174,7 @@ test('replace hasMany => hasOne with populated array', function(){
       op('replace', ['planet', jupiter.id, '__rel', 'moons'], {titan: true})
     ),
     [
-      // op('add', ['moon', titan.id, '__rel', 'planet'], jupiter.id),
+      op('replace', ['moon', titan.id, '__rel', 'planet'], jupiter.id),
       // op('remove', ['planet', saturn.id, '__rel', 'moons', titan.id])
     ]
   );
@@ -250,27 +273,7 @@ test('replace hasOne => hasOne with existing value', function(){
       op('replace', ['planet', earth.id, '__rel', 'next'], jupiter.id)
     ),
     [
-      // op('add', ['planet', jupiter.id, '__rel', 'previous'], earth.id),
-      // op('remove', ['planet', saturn.id, '__rel', 'next'])
-    ]
-  );
-});
-
-test('replace hasOne => hasOne with existing value', function(){
-  var saturn = { id: 'saturn', name: "Saturn", __rel: { moons: {}, next: 'jupiter' } };
-  var jupiter = { id: 'jupiter', name: "Jupiter", __rel: { moons: {}, previous: 'saturn' } };
-  var earth = { id: 'earth', name: "Earth", __rel: { moons: {} } };
-
-  cache.reset({
-    planet: { saturn: saturn, jupiter: jupiter, earth: earth }
-  });
-
-  operationsShouldMatch(
-    processor.process(
-      op('replace', ['planet', earth.id, '__rel', 'next'], jupiter.id)
-    ),
-    [
-      // op('add', ['planet', jupiter.id, '__rel', 'previous'], earth.id),
+      op('replace', ['planet', jupiter.id, '__rel', 'previous'], earth.id),
       // op('remove', ['planet', saturn.id, '__rel', 'next'])
     ]
   );
