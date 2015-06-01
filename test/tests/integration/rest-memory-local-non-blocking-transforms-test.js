@@ -117,7 +117,7 @@ test("records inserted into memory should be posted with rest", function() {
 
   stop();
   memorySource.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(record) {
-    equal(memorySource.length('planet'), 1,    'memory source should contain one record');
+    equal(memorySource.length('planet'), 1,   'memory source should contain one record');
     ok(record.__id,                           'orbit id should be defined');
     equal(record.id, undefined,               'server id should NOT be defined yet');
     equal(record.name, 'Jupiter',             'name should match');
@@ -125,10 +125,10 @@ test("records inserted into memory should be posted with rest", function() {
 
   }).then(function() {
     server.respond('POST', '/planets', function(xhr) {
-      deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant'}}, 'POST request');
+      deepEqual(JSON.parse(xhr.requestBody), {data: {type: 'planets', attributes: {name: 'Jupiter', classification: 'gas giant'}}}, 'POST request');
       xhr.respond(201,
                   {'Content-Type': 'application/json'},
-                  JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
+                  JSON.stringify({data: {type: 'planets', id: '12345', attributes: {name: 'Jupiter', classification: 'gas giant'}}}));
     });
   });
 });
@@ -184,8 +184,8 @@ test("records updated in memory should be updated with rest", function() {
       equal(operation.value.classification, 'gas giant', 'rest source - inserted - classification - gas giant');
 
       setTimeout(function() {
-        server.respond('PUT', '/planets/12345', function(xhr) {
-          deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Earth'}}, 'PUT request');
+        server.respond('PATCH', '/planets/12345', function(xhr) {
+          deepEqual(JSON.parse(xhr.requestBody), {data: {type: 'planets', id: '12345', attributes: {name: 'Earth'}}}, 'PUT request');
           xhr.respond(200,
             {'Content-Type': 'application/json'},
             JSON.stringify({}));
@@ -237,10 +237,10 @@ test("records updated in memory should be updated with rest", function() {
     equal(record.classification, 'gas giant', 'memory source - inserted - classification - gas giant');
 
     server.respond('POST', '/planets', function(xhr) {
-      deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant'}}, 'POST request');
+      deepEqual(JSON.parse(xhr.requestBody), {data: {type: 'planets', attributes: {name: 'Jupiter', classification: 'gas giant'}}}, 'POST request');
       xhr.respond(201,
                   {'Content-Type': 'application/json'},
-                  JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
+                  JSON.stringify({data: {type: 'planets', id: '12345', attributes: {name: 'Jupiter', classification: 'gas giant'}}}));
     });
 
     record = clone(record);
@@ -300,8 +300,8 @@ test("records patched in memory should be patched with rest", function() {
       equal(operation.value.classification, 'gas giant', 'rest source - inserted - classification - gas giant');
 
       setTimeout(function() {
-        server.respond('PUT', '/planets/12345', function(xhr) {
-          deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Earth'}}, 'PUT request');
+        server.respond('PATCH', '/planets/12345', function(xhr) {
+          deepEqual(JSON.parse(xhr.requestBody), {data: {type: 'planets', id: '12345', attributes: {name: 'Earth'}}}, 'PUT request');
           xhr.respond(200,
             {'Content-Type': 'application/json'},
             JSON.stringify({}));
@@ -353,10 +353,10 @@ test("records patched in memory should be patched with rest", function() {
     equal(record.classification, 'gas giant', 'memory source - inserted - classification - gas giant');
 
     server.respond('POST', '/planets', function(xhr) {
-      deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant'}}, 'POST request');
+      deepEqual(JSON.parse(xhr.requestBody), {data: {type: 'planets', attributes: {name: 'Jupiter', classification: 'gas giant'}}}, 'POST request');
       xhr.respond(201,
                   {'Content-Type': 'application/json'},
-                  JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
+                  JSON.stringify({data: {type: 'planets', id: '12345', attributes: {name: 'Jupiter', classification: 'gas giant'}}}));
     });
 
     return memorySource.patch('planet', record.__id, 'name', 'Earth');
@@ -443,10 +443,10 @@ test("records deleted in memory should be deleted with rest", function() {
     equal(memorySource.length('planet'), 1, 'memory source - inserted - should contain one record');
 
     server.respond('POST', '/planets', function(xhr) {
-      deepEqual(JSON.parse(xhr.requestBody), {planets: {name: 'Jupiter', classification: 'gas giant'}}, 'POST request');
+      deepEqual(JSON.parse(xhr.requestBody), {data: {type: 'planets', attributes: {name: 'Jupiter', classification: 'gas giant'}}}, 'POST request');
       xhr.respond(201,
                   {'Content-Type': 'application/json'},
-                  JSON.stringify({planets: {id: '12345', name: 'Jupiter', classification: 'gas giant'}}));
+                  JSON.stringify({data: {type: 'planets', id: '12345', attributes: {name: 'Jupiter', classification: 'gas giant'}}}));
     });
 
     return memorySource.remove('planet', planet.__id);
