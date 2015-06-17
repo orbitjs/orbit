@@ -95,12 +95,12 @@ test("#reset overrides the cache completely with the value specified", function(
   deepEqual(cache.retrieve(), newData);
 });
 
-test("#transform returns false when an operation is not necessary", function() {
+test("#transform returns undefined when an operation is a noop", function() {
   cache = new Cache(schema, {allowNoOps: true});
 
-  equal(cache.transform({op: 'add', path: 'planet/1', value: {name: 'Earth'}}), true, 'add was successful');
+  cache.transform({op: 'add', path: 'planet/1', value: {name: 'Earth'}});
 
-  equal(cache.transform({op: 'remove', path: 'planet/2'}), false, 'remove was not successful');
+  equal(cache.transform({op: 'remove', path: 'planet/2'}), undefined, 'operation was a noop');
 });
 
 test("#transform tracks refs by default, and clears them from hasOne relationships when a referenced record is removed", function() {
