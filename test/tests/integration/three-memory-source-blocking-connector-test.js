@@ -77,7 +77,7 @@ test('Spontaneous information from sources', function() {
       id: id,
       name: planetName
     });
-    source._cache.transform({
+    source._transform({
       op: "add",
       path: ["planet", id],
       value: data
