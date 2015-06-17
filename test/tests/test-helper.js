@@ -1,4 +1,10 @@
 import Operation from 'orbit/operation';
+import { on } from 'rsvp';
+
+on('error', function(reason){
+  console.log(reason);
+  console.error(reason.message, reason.stack);
+});
 
 var verifyLocalStorageContainsRecord = function(namespace, type, id, record, ignoreFields) {
   var expected = {};
@@ -36,7 +42,7 @@ var equalOps = function(result, expected, msg) {
 
 function op(opType, path, value){
   var operation = new Operation({op: opType, path: path});
-  if(value) operation.value = value;
+  if(value !== undefined) operation.value = value;
   return operation;
 }
 

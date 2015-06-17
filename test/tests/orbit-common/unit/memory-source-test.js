@@ -5,6 +5,7 @@ import Source from 'orbit-common/source';
 import { all, Promise } from 'rsvp';
 import { RecordNotFoundException, LinkNotFoundException } from 'orbit-common/lib/exceptions';
 import { spread } from 'orbit/lib/functions';
+import 'tests/test-helper';
 
 var source;
 
