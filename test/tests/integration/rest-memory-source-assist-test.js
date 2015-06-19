@@ -87,12 +87,17 @@ test("multiple subsequent find requests", function() {
   expect(6);
 
   var planets = {
-    "planets": [
+    "data": [
       {
+        "type": "planets",
         "id": "1",
-        "name": "Jupiter",
-        "links": {
-          "moons": ["2"]
+        "attributes": {
+          "name": "Jupiter"
+        },
+        "relationships": {
+          "moons": {
+            "data": [{"type": "moons", "id": "2"}]
+          }
         }
       }
     ]
@@ -105,13 +110,20 @@ test("multiple subsequent find requests", function() {
   });
 
   var moons = {
-    "moons": [
+    "data": [
       {
+        "type": "moons",
         "id": "2",
-        "name": "Io",
-        "links": {
-          "mountains": ["3"],
-          "planet": "1"
+        "attributes": {
+          "name": "Io"
+        },
+        "relationships": {
+          "mountains": {
+            "data": [{"type": "mountains", "id": "3"}]
+          },
+          "planet": {
+            "data": {"type": "planets", "id": "1"}
+          }
         }
       }
     ]
@@ -124,12 +136,17 @@ test("multiple subsequent find requests", function() {
   });
 
   var mountains = {
-    "mountains": [
+    "data": [
       {
+        "type": "mountains",
         "id": "3",
-        "name": "Danube Planum",
-        "links": {
-          "moon": "2"
+        "attributes": {
+          "name": "Danube Planum"
+        },
+        "relationships": {
+          "moon": {
+            "data": {"type": "moons", "id": "2"}
+          }
         }
       }
     ]
@@ -170,33 +187,43 @@ test("multiple subsequent find requests", function() {
 test("a single find request that returns a compound document", function() {
   expect(2);
 
-  var planets = {
-    "linked": {
-      "mountains": [
-        {
-          "id": "3",
-          "name": "Danube Planum",
-          "links": {
-            "moon": "2"
-          }
-        }
-      ],
-      "moons": [
-        {
-          "id": "2",
-          "name": "Io",
-          "links": {
-            "mountains": ["3"]
-          }
-        }
-      ]
-    },
-    "planets": [
+  var data = {
+    "included": [
       {
+        "type": "mountains",
+        "id": "3",
+        "attributes": {
+          "name": "Danube Planum"
+        },
+        "relationships": {
+          "moon": {
+            "data": {"type": "moons", "id": "2"}
+          }
+        }
+      }, {
+        "type": "moons",
+        "id": "2",
+        "attributes": {
+          "name": "Io"
+        },
+        "relationships": {
+          "mountains": {
+            "data": [{"type": "mountains", "id": "3"}]
+          }
+        }
+      }
+    ],
+    "data": [
+      {
+        "type": "planets",
         "id": "1",
-        "name": "Jupiter",
-        "links": {
-          "moons": ["2"]
+        "attributes": {
+          "name": "Jupiter"
+        },
+        "relationships": {
+          "moons": {
+            "data": [{"type": "moons", "id": "2"}]
+          }
         }
       }
     ]
@@ -205,7 +232,7 @@ test("a single find request that returns a compound document", function() {
       ok(true, 'GET /planets request');
       xhr.respond(200,
                   {'Content-Type': 'application/json'},
-                  JSON.stringify(planets));
+                  JSON.stringify(data));
   });
 
   memorySource.on('assistFind', function(type, id) {
@@ -222,24 +249,32 @@ test("a single find request that returns a compound document", function() {
 
 test("update record with an inverse relation", function() {
   expect(4);
-  var planets = {
-    "linked": {
-      "moons": [
-        {
-          "id": "2",
-          "name": "Io",
-          "links": {
-            "planet": "1"
+  var data = {
+    "included": [
+      {
+        "type": "moons",
+        "id": "2",
+        "attributes": {
+          "name": "Io"
+        },
+        "relationships": {
+          "planet": {
+            "data": {"type": "planets", "id": "1"}
           }
         }
-      ]
-    },
-    "planets": [
+      }
+    ],
+    "data": [
       {
+        "type": "planets",
         "id": "1",
-        "name": "Jupiter",
-        "links": {
-          "moons": ["2"]
+        "attributes": {
+          "name": "Jupiter"
+        },
+        "relationships": {
+          "moons": {
+            "data": [{"type": "moons", "id": "2"}]
+          }
         }
       }
     ]
@@ -250,9 +285,9 @@ test("update record with an inverse relation", function() {
       ok(true, 'GET /planets request');
       request.respond(200,
                       {'Content-Type': 'application/json'},
-                      JSON.stringify(planets));
-    } else if (request.method === 'PUT' && request.url === '/planets/1') {
-      ok(true, 'PUT /planets/1 request');
+                      JSON.stringify(data));
+    } else if (request.method === 'PATCH' && request.url === '/planets/1') {
+      ok(true, 'PATCH /planets/1 request');
       request.respond(204, {}, "");
     } else {
       ok(false, request.method + ' ' + request.url + ' unexpected request');
