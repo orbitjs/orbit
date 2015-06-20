@@ -75,6 +75,21 @@ test("#retrieve - can retrieve a value with an array in the path", function() {
   deepEqual(doc.retrieve('/c/1/e'), 'f');
 });
 
+test("#retrieve - throws an exception for a path that doesn't exist", function() {
+  doc.reset({a: 'b'});
+  throws(
+    function() {
+      doc.retrieve('/b');
+    },
+    Document.PathNotFoundException
+  );
+});
+
+test("#retrieve - returns `undefined` for a path that doesn't exist when `quiet=true`", function() {
+  doc.reset({a: 'b'});
+  strictEqual(doc.retrieve('/b', true), undefined);
+});
+
 /*
   `test`
  */
@@ -122,6 +137,11 @@ test("#test - throws an exception for a path that doesn't exist", function() {
     },
     Document.PathNotFoundException
   );
+});
+
+test("#test - uses `undefined` for the value of a path that doesn't exist when `quiet=true`", function() {
+  doc.reset({a: 'b'});
+  strictEqual(doc.test('/b', undefined, true), true);
 });
 
 /*
