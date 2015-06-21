@@ -103,7 +103,7 @@ test("#transform returns undefined when an operation is a noop", function() {
   equal(cache.transform({op: 'remove', path: 'planet/2'}), undefined, 'operation was a noop');
 });
 
-test("#transform tracks refs by default, and clears them from hasOne relationships when a referenced record is removed", function() {
+test("#transform tracks refs and clears them from hasOne relationships when a referenced record is removed", function() {
   cache = new Cache(schema);
 
   var jupiter = {id: 'p1', name: 'Jupiter', __rel: {moons: {}}};
@@ -113,10 +113,6 @@ test("#transform tracks refs by default, and clears them from hasOne relationshi
   cache.transform({op: 'add', path: 'planet/p1', value: jupiter});
   cache.transform({op: 'add', path: 'moon/m1', value: io});
   cache.transform({op: 'add', path: 'moon/m2', value: europa});
-
-  deepEqual(cache._rev['planet']['p1'],
-    {'moon/m1/__rel/planet': true,
-     'moon/m2/__rel/planet': true});
 
   equal(cache.retrieve('moon/m1/__rel/planet'), 'p1', 'Jupiter has been assigned to Io');
   equal(cache.retrieve('moon/m2/__rel/planet'), 'p1', 'Jupiter has been assigned to Europa');
@@ -129,7 +125,7 @@ test("#transform tracks refs by default, and clears them from hasOne relationshi
   equal(cache.retrieve('moon/m2/__rel/planet'), undefined, 'Jupiter has been cleared from Europa');
 });
 
-test("#transform tracks refs by default, and clears them from hasMany relationships when a referenced record is removed", function() {
+test("#transform tracks refs and clears them from hasMany relationships when a referenced record is removed", function() {
   cache = new Cache(schema);
 
   var io = {id: 'm1', name: 'Io', __rel: {planet: null}};
@@ -139,9 +135,6 @@ test("#transform tracks refs by default, and clears them from hasMany relationsh
   cache.transform({op: 'add', path: 'moon/m1', value: io});
   cache.transform({op: 'add', path: 'moon/m2', value: europa});
   cache.transform({op: 'add', path: 'planet/p1', value: jupiter});
-
-  deepEqual(cache._rev['moon']['m1'],
-    {'planet/p1/__rel/moons/m1': true});
 
   equal(cache.retrieve('/planet/p1/__rel/moons/m1'), true, 'Jupiter has been assigned to Io');
   equal(cache.retrieve('/planet/p1/__rel/moons/m2'), true, 'Jupiter has been assigned to Europa');
@@ -269,7 +262,7 @@ test("#transform removing model with a bi-directional hasOne", function() {
   strictEqual(one.__rel.two, null, 'ones link to two got removed');
 });
 
-test("#transform maintainDependencies:true removes dependent records", function() {
+test("#transform removes dependent records", function() {
   // By making this schema recursively dependent remove we check that recursive
   // works as well.
   var dependentSchema = new Schema({
@@ -302,25 +295,24 @@ test("#transform maintainDependencies:true removes dependent records", function(
   cache.transform({op: 'remove', path: 'moon/m1'});
   equal(cache.length('moon'), 0, 'No moons left in store');
   equal(cache.length('planet'), 0, 'No planets left in store');
-
 });
 
-test("#transform maintainDependencies:false does not remove dependent records", function() {
+test("#transform does not remove non-dependent records", function() {
   var dependentSchema = new Schema({
     models: {
       planet: {
         links: {
-          moons: {type: 'hasMany', model: 'moon', dependent: 'remove'}
+          moons: {type: 'hasMany', model: 'moon'}
         }
       },
       moon: {
         links: {
-          planet: {type: 'hasOne', model: 'planet', dependent: 'remove'}
+          planet: {type: 'hasOne', model: 'planet'}
         }
       }
     }
   });
-  cache = new Cache(dependentSchema, { maintainDependencies: false });
+  cache = new Cache(dependentSchema);
 
   var jupiter = {id: 'p1', name: 'Jupiter', __rel: {moons: {}}};
   var io = {id: 'm1', name: 'Io', __rel: {planet: 'p1'}};
@@ -337,5 +329,4 @@ test("#transform maintainDependencies:false does not remove dependent records", 
   cache.transform({op: 'remove', path: 'moon/m1'});
   equal(cache.length('moon'), 1, 'One moon left in store');
   equal(cache.length('planet'), 1, 'One planet left in store');
-
 });
