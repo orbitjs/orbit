@@ -1,0 +1,26 @@
+{
+  "name": "orbit.js",
+  "version": "VERSION_PLACEHOLDER",
+  "namespace": "Orbit",
+  "description": "A standalone library for data access and synchronization",
+  "homepage": "https://github.com/orbitjs/orbit.js",
+  "readmeFilename": "README.md",
+  "author": {
+    "name": "Cerebris Corporation",
+    "url": "http://cerebris.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/orbitjs/orbit.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/orbitjs/orbit.js/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/orbitjs/orbit.js/blob/master/LICENSE"
+    }
+  ],
+  "main": "orbit.js"
+}
