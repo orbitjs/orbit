@@ -5,6 +5,7 @@ import Source from 'orbit-common/source';
 import { all, Promise } from 'rsvp';
 import { RecordNotFoundException, LinkNotFoundException } from 'orbit-common/lib/exceptions';
 import { spread } from 'orbit/lib/functions';
+import { uuid } from 'orbit/lib/uuid';
 import 'tests/test-helper';
 
 var source;
@@ -24,6 +25,10 @@ module("OC - MemorySource", {
           },
           links: {
             moons: {type: 'hasMany', model: 'moon', inverse: 'planet'}
+          },
+          keys: {
+            id: { primaryKey: true, defaultValue: uuid },
+            secondaryId: { defaultValue: uuid },
           }
         },
         moon: {
@@ -336,6 +341,41 @@ test("#find - can find records by one or more filters", function() {
       return allPlanets;
     });
   });
+});
+
+test("#find - secondary key searches always return single records", function() {
+  expect(2);
+  stop();
+  var jupiter;
+
+  source
+    .add('planet', {
+      name: 'Jupiter',
+      classification:
+      'gas giant',
+      atmosphere: true,
+      id: 'omg-123',
+      secondaryId: 'secondary-123'
+    })
+    .then(function rememberJupiter(planet) {
+      jupiter = planet;
+    })
+    .then(function findMissingPlanet() {
+      return source.find('planet', { secondaryId: 'missing' });
+    })
+    .then(function foundMissing(missing) {
+      ok( false, 'missing should not resolve');
+    }, function didNotFindMissing(error) {
+      ok( error, 'missing rejected');
+    })
+    .then(function findPlanet(planet) {
+      return source.find('planet', { secondaryId: 'secondary-123' });
+    })
+    .then(function foundPlanet(planet) {
+      equal(planet, jupiter, 'found jupiter');
+    })
+    .then(start, start);
+
 });
 
 test("#add - creates a record", function() {
