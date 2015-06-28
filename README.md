@@ -32,10 +32,9 @@ Orbit relies heavily on promises, events and low-level transforms.
 
 ## Dependencies
 
-Orbit.js has no specific external run-time dependencies, but must be used with a
-library that implements the
-[Promises/A+](http://promises-aplus.github.io/promises-spec/)
-spec, such as [RSVP](https://github.com/tildeio/rsvp.js).
+Orbit.js has no specific external run-time dependencies, but it must be used in an
+environment that includes an implementation of the [Promises/A+](http://promises-aplus.github.io/promises-spec/). If you wish to support legacy browsers, you will need to include a library
+such as [RSVP](https://github.com/tildeio/rsvp.js).
 
 ## Installation
 
@@ -52,7 +51,9 @@ maintained for builds.
 
 You'll need to configure Orbit to recognize any applicable dependencies.
 
-Configure your promise library's `Promise` constructor as follows:
+Orbit defaults to using the global `Promise` constructor, if it exists. If your environment
+does not implement Promises, or if you wish to use another Promise implementation, configure
+your promise library's `Promise` constructor as follows:
 
 ```javascript
 Orbit.Promise = RSVP.Promise;
