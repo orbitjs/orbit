@@ -55,7 +55,7 @@ module('OC - OperationProcessors - SchemaConsistencyProcessor', {
 
     schema = new Schema(schemaDefinition);
     cache = new Cache(schema, {processors: [SchemaConsistencyProcessor]});
-    processor = cache._cacheTransformer._processors[0];
+    processor = cache._documentTransformer._processors[0];
   },
 
   teardown: function(){
