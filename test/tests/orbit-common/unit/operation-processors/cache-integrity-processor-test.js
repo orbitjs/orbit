@@ -55,7 +55,7 @@ module('OC - OperationProcessors - CacheIntegrityProcessor', {
 
     schema = new Schema(schemaDefinition);
     cache = new Cache(schema, {processors: [CacheIntegrityProcessor]});
-    processor = cache._processors[0];
+    processor = cache._cacheTransformer._processors[0];
   },
 
   teardown: function(){
