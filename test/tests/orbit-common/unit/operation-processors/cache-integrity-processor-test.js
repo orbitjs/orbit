@@ -1,6 +1,7 @@
 import Schema from 'orbit-common/schema';
 import CacheIntegrityProcessor from 'orbit-common/operation-processors/cache-integrity-processor';
 import { uuid } from 'orbit/lib/uuid';
+import Document from 'orbit/document';
 import Operation from 'orbit/operation';
 import { op } from 'tests/test-helper';
 import Cache from 'orbit-common/cache';
@@ -47,6 +48,7 @@ var schemaDefinition = {
 
 var schema,
     cache,
+    document,
     processor;
 
 module('OC - OperationProcessors - CacheIntegrityProcessor', {
@@ -54,13 +56,14 @@ module('OC - OperationProcessors - CacheIntegrityProcessor', {
     Orbit.Promise = Promise;
 
     schema = new Schema(schemaDefinition);
-    cache = new Cache(schema, {processors: [CacheIntegrityProcessor]});
-    processor = cache._documentTransformer._processors[0];
+    document = new Document({});
+    processor = new CacheIntegrityProcessor(schema, document);
   },
 
   teardown: function(){
     schema = null;
     cache = null;
+    document = null;
     processor = null;
   }
 });
@@ -79,7 +82,7 @@ function operationsShouldMatch(actualOperations, expectedOperations){
 }
 
 test('add record to empty cache', function() {
-  cache.reset({});
+  document.reset({});
 
   var addPlanetOp = op('add', ['planet', 'saturn'], { id: 'saturn' });
 
@@ -109,7 +112,7 @@ test('reset empty cache', function() {
   var titan = { id: 'titan', name: "Titan", __rel: { planet: 'saturn' } };
   var europa = { id: 'europa', name: "Europa", __rel: { planet: 'jupiter' } };
 
-  cache.reset({
+  document.reset({
     planet: { saturn: saturn, jupiter: jupiter },
     moon: { titan: titan, europa: europa }
   });
@@ -141,7 +144,7 @@ test('add to hasOne => hasMany', function(){
   var titan = { id: 'titan', name: "Titan", __rel: { planet: 'saturn' } };
   var europa = { id: 'europa', name: "Europa", __rel: { planet: 'jupiter' } };
 
-  cache.reset({
+  document.reset({
     planet: { saturn: saturn, jupiter: jupiter },
     moon: { titan: titan, europa: europa }
   });
@@ -209,7 +212,7 @@ test('replace hasOne => hasMany', function(){
   var titan = { id: 'titan', name: "Titan", __rel: { planet: 'saturn' } };
   var europa = { id: 'europa', name: "Europa", __rel: { planet: 'jupiter' } };
 
-  cache.reset({
+  document.reset({
     planet: { saturn: saturn, jupiter: jupiter },
     moon: { titan: titan, europa: europa }
   });
@@ -276,7 +279,7 @@ test('replace hasMany => hasOne with empty array', function(){
   var saturn = { id: 'saturn', name: "Saturn", __rel: { moons: { 'titan': true } } };
   var titan = { id: 'titan', name: "Titan", __rel: { planet: 'saturn' } };
 
-  cache.reset({
+  document.reset({
     planet: { saturn: saturn },
     moon: { titan: titan }
   });
@@ -329,7 +332,7 @@ test('replace hasMany => hasOne with populated array', function(){
   var titan = { id: 'titan', name: "Titan", __rel: { planet: 'saturn' } };
   var jupiter = { id: 'jupiter', name: "Jupiter", __rel: { moons: {} } };
 
-  cache.reset({
+  document.reset({
     planet: { saturn: saturn, jupiter: jupiter },
     moon: { titan: titan }
   });
@@ -385,7 +388,7 @@ test('replace hasMany => hasOne with populated array, when already populated', f
   var europa = { id: 'europa', name: "Europa", __rel: { planet: 'jupiter' } };
   var jupiter = { id: 'jupiter', name: "Jupiter", __rel: { moons: { 'europa': true } } };
 
-  cache.reset({
+  document.reset({
     planet: { saturn: saturn, jupiter: jupiter },
     moon: { titan: titan, europa: europa }
   });
@@ -449,7 +452,7 @@ test('replace hasMany => hasMany', function(){
   var human = { id: 'human', __rel: { planets: { earth: true } }};
   var earth = { id: 'earth', __rel: { races: { human: true}  }};
 
-  cache.reset({
+  document.reset({
     race: { human: human },
     planet: { earth: earth }
   });
@@ -498,7 +501,7 @@ test('remove hasOne => hasMany', function(){
   var titan = { id: 'titan', name: "Titan", __rel: { planet: 'saturn' } };
   var europa = { id: 'europa', name: "Europa", __rel: { planet: 'jupiter' } };
 
-  cache.reset({
+  document.reset({
     planet: { saturn: saturn, jupiter: jupiter },
     moon: { titan: titan, europa: europa }
   });
@@ -563,7 +566,7 @@ test('add to hasOne => hasOne', function(){
   var jupiter = { id: 'jupiter', name: "Jupiter", __rel: { moons: {}, previous: 'saturn' } };
   var earth = { id: 'earth', name: "Earth", __rel: { moons: {} } };
 
-  cache.reset({
+  document.reset({
     planet: { saturn: saturn, jupiter: jupiter, earth: earth }
   });
 
@@ -613,7 +616,7 @@ test('add to hasOne => hasOne with existing value', function(){
   var jupiter = { id: 'jupiter', name: "Jupiter", __rel: { moons: {}, previous: 'saturn' } };
   var earth = { id: 'earth', name: "Earth", __rel: { moons: {} } };
 
-  cache.reset({
+  document.reset({
     planet: { saturn: saturn, jupiter: jupiter, earth: earth }
   });
 
@@ -663,7 +666,7 @@ test('replace hasOne => hasOne with existing value', function(){
   var jupiter = { id: 'jupiter', name: "Jupiter", __rel: { moons: {}, previous: 'saturn' } };
   var earth = { id: 'earth', name: "Earth", __rel: { moons: {} } };
 
-  cache.reset({
+  document.reset({
     planet: { saturn: saturn, jupiter: jupiter, earth: earth }
   });
 
@@ -712,7 +715,7 @@ test('add to hasMany => hasMany', function(){
   var earth = { id: 'earth' };
   var human = { id: 'human' };
 
-  cache.reset({
+  document.reset({
     planet: { earth: earth },
     race: { human: human}
   });
@@ -749,7 +752,7 @@ test('remove from hasMany => hasMany', function(){
   var earth = { id: 'earth', __rel: { races: { human: true } } };
   var human = { id: 'human', __rel: { planets: { earth: true} } };
 
-  cache.reset({
+  document.reset({
     planet: { earth: earth },
     race: { human: human }
   });
@@ -801,7 +804,7 @@ test('remove record with hasMany relationships', function(){
   var earth = { id: 'earth', __rel: { races: { human: true } } };
   var human = { id: 'human', __rel: { planets: { earth: true} } };
 
-  cache.reset({
+  document.reset({
     planet: { earth: earth },
     race: { human: human }
   });
