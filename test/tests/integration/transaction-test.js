@@ -46,7 +46,7 @@ test("can track operations when records are added to an empty source", function(
     equal(source.length('planet'), 3, 'source should contain 3 records');
     transaction.commit();
     equal(transaction.ops.length, 3, 'transaction should contain operations');
-    equal(transaction.inverseOps.length, 3, 'transaction should contain inverse operations');
+    equal(transaction.inverseOperations.length, 3, 'transaction should contain inverse operations');
   });
 });
 
@@ -65,7 +65,7 @@ test("can track and invert operations when records are added to an empty source"
   ]).then(function() {
     equal(source.length('planet'), 3, 'source should contain 3 records');
     equal(transaction.ops.length, 3, 'transaction should contain operations');
-    equal(transaction.inverseOps.length, 3, 'transaction should contain inverse operations');
+    equal(transaction.inverseOperations.length, 3, 'transaction should contain inverse operations');
 
     transaction.rollback().then(function() {
       start();
@@ -95,7 +95,7 @@ test("can track and invert operations performed after records are already presen
     ]).then(function() {
       equal(source.length('planet'), 5, 'source should contain records');
       equal(transaction.ops.length, 2, 'transaction should contain operations');
-      equal(transaction.inverseOps.length, 2, 'transaction should contain inverse operations');
+      equal(transaction.inverseOperations.length, 2, 'transaction should contain inverse operations');
 
       transaction.rollback().then(function() {
         start();
