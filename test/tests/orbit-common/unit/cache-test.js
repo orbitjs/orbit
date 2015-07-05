@@ -44,7 +44,7 @@ test("#transform sets data and #retrieve retrieves it", function() {
   cache = new Cache(schema);
 
   var earth = {id: '1', name: 'Earth'};
-  cache.transform({op: 'add', path: 'planet/1', value: earth});
+  cache.transform([{op: 'add', path: 'planet/1', value: earth}]);
   deepEqual(cache.retrieve('planet/1'), earth, 'objects metch in value');
   notStrictEqual(cache.retrieve('planet/1'), earth, 'objects don\'t match by reference because a clone has been cached');
 });
@@ -53,7 +53,7 @@ test("#exists indicates whether a path exists", function() {
   cache = new Cache(schema);
 
   var earth = {id: '1', name: 'Earth'};
-  cache.transform({op: 'add', path: 'planet/1', value: earth});
+  cache.transform([{op: 'add', path: 'planet/1', value: earth}]);
   equal(cache.exists('planet'), true, 'path exists');
   equal(cache.exists('planet/1'), true, 'path exists');
   equal(cache.exists('planet/1/id'), true, 'path exists');
@@ -67,12 +67,12 @@ test("#length returns the size of data at a path", function() {
   equal(cache.length('planet'), 0, 'returns 0 when an object exists at a path but has no properties');
   equal(cache.length('notthere'), null, 'returns null when an object does not exist at a path');
 
-  cache.transform({op: 'add', path: 'planet/1', value: {name: 'Earth'}});
-  cache.transform({op: 'add', path: 'planet/2', value: {name: 'Mars'}});
+  cache.transform([{op: 'add', path: 'planet/1', value: {name: 'Earth'}},
+                   {op: 'add', path: 'planet/2', value: {name: 'Mars'}}]);
 
   equal(cache.length('planet'), 2, 'returns count of objects at a path');
 
-  cache.transform({op: 'add', path: 'planet/1/stuff', value: ['a', 'b', 'c']});
+  cache.transform([{op: 'add', path: 'planet/1/stuff', value: ['a', 'b', 'c']}]);
 
   equal(cache.length('planet/1/stuff'), 3, 'returns size of an array at a path');
 });
@@ -80,7 +80,7 @@ test("#length returns the size of data at a path", function() {
 test("#reset clears the cache by default", function() {
   cache = new Cache(schema);
 
-  cache.transform({op: 'add', path: 'planet/1', value: {name: 'Earth'}});
+  cache.transform([{op: 'add', path: 'planet/1', value: {name: 'Earth'}}]);
   cache.reset();
   deepEqual(cache.retrieve(), {});
 });
@@ -88,19 +88,19 @@ test("#reset clears the cache by default", function() {
 test("#reset overrides the cache completely with the value specified", function() {
   cache = new Cache(schema);
 
-  cache.transform({op: 'add', path: 'planet/1', value: {name: 'Earth'}});
+  cache.transform([{op: 'add', path: 'planet/1', value: {name: 'Earth'}}]);
 
   var newData = {planet: {'2': {name: 'Mars'}}};
   cache.reset(newData);
   deepEqual(cache.retrieve(), newData);
 });
 
-test("#transform returns undefined when an operation is a noop", function() {
-  cache = new Cache(schema, {allowNoOps: true});
+test("#transform returns an empty array of `completedOperations` when an operation is a noop", function() {
+  cache = new Cache(schema);
 
-  cache.transform({op: 'add', path: 'planet/1', value: {name: 'Earth'}});
+  cache.transform([{op: 'add', path: 'planet/1', value: {name: 'Earth'}}]);
 
-  deepEqual(cache.transform({op: 'remove', path: 'planet/2'}).completedOperations, [], 'operation was a noop');
+  deepEqual(cache.transform([{op: 'remove', path: 'planet/2'}]).completedOperations, [], 'operation was a noop');
 });
 
 test("#transform tracks refs and clears them from hasOne relationships when a referenced record is removed", function() {
@@ -110,14 +110,14 @@ test("#transform tracks refs and clears them from hasOne relationships when a re
   var io = {id: 'm1', name: 'Io', __rel: {planet: 'p1'}};
   var europa = {id: 'm2', name: 'Europa', __rel: {planet: 'p1'}};
 
-  cache.transform({op: 'add', path: 'planet/p1', value: jupiter});
-  cache.transform({op: 'add', path: 'moon/m1', value: io});
-  cache.transform({op: 'add', path: 'moon/m2', value: europa});
+  cache.transform([{op: 'add', path: 'planet/p1', value: jupiter},
+                   {op: 'add', path: 'moon/m1', value: io},
+                   {op: 'add', path: 'moon/m2', value: europa}]);
 
   equal(cache.retrieve('moon/m1/__rel/planet'), 'p1', 'Jupiter has been assigned to Io');
   equal(cache.retrieve('moon/m2/__rel/planet'), 'p1', 'Jupiter has been assigned to Europa');
 
-  cache.transform({op: 'remove', path: 'planet/p1'});
+  cache.transform([{op: 'remove', path: 'planet/p1'}]);
 
   equal(cache.retrieve('planet/p1'), undefined, 'Jupiter is GONE');
 
@@ -132,17 +132,17 @@ test("#transform tracks refs and clears them from hasMany relationships when a r
   var europa = {id: 'm2', name: 'Europa', __rel: {planet: null}};
   var jupiter = {id: 'p1', name: 'Jupiter', __rel: {moons: {'m1': true, 'm2': true}}};
 
-  cache.transform({op: 'add', path: 'moon/m1', value: io});
-  cache.transform({op: 'add', path: 'moon/m2', value: europa});
-  cache.transform({op: 'add', path: 'planet/p1', value: jupiter});
+  cache.transform([{op: 'add', path: 'moon/m1', value: io},
+                   {op: 'add', path: 'moon/m2', value: europa},
+                   {op: 'add', path: 'planet/p1', value: jupiter}]);
 
   equal(cache.retrieve('/planet/p1/__rel/moons/m1'), true, 'Jupiter has been assigned to Io');
   equal(cache.retrieve('/planet/p1/__rel/moons/m2'), true, 'Jupiter has been assigned to Europa');
 
-  cache.transform({op: 'remove', path: '/moon/m1'});
+  cache.transform([{op: 'remove', path: '/moon/m1'}]);
   equal(cache.retrieve('/moon/m1'), null, 'Io is GONE');
 
-  cache.transform({op: 'remove', path: '/moon/m2'});
+  cache.transform([{op: 'remove', path: '/moon/m2'}]);
   equal(cache.retrieve('/moon/m2'), null, 'Europa is GONE');
 
   equal(cache.retrieve('/planet/p1/__rel/moons/m1'), null, 'Io has been cleared from Jupiter');
@@ -153,76 +153,76 @@ test("does not add link to hasMany if record doesn't exist", function(){
   cache = new Cache(schema);
   var operation = {op: 'add', path: ['planet', 'p1', '__rel', 'moons', 'moon1'], value: true};
 
-  var appliedTransform = cache.transform(operation);
-  deepEqual(appliedTransform.completedOperations, [], "didn't apply transform");
+  var result = cache.transform([operation]);
+  deepEqual(result.completedOperations, [], "didn't apply transform");
 });
 
 test("does not remove link from hasMany if record doesn't exist", function(){
   cache = new Cache(schema);
   var operation = {op: 'remove', path: ['planet', 'p1', '__rel', 'moons', 'moon1'], value: true};
 
-  var appliedTransform = cache.transform(operation);
-  deepEqual(appliedTransform.completedOperations, [], "didn't apply transform");
+  var result = cache.transform([operation]);
+  deepEqual(result.completedOperations, [], "didn't apply transform");
 });
 
 test("does not replace hasOne if record doesn't exist", function(){
   cache = new Cache(schema);
   var operation = {op: 'replace', path: ['moon', 'moon1', '__rel', 'planet'], value: "p1"};
 
-  var appliedTransform = cache.transform(operation);
-  deepEqual(appliedTransform.completedOperations, [], "didn't apply transform");
+  var result = cache.transform([operation]);
+  deepEqual(result.completedOperations, [], "didn't apply transform");
 });
 
 test("does not remove hasOne link if record doesn't exist", function(){
   cache = new Cache(schema);
   var operation = {op: 'remove', path: ['moon', 'moon1', '__rel', 'planet'], value: "p1"};
 
-  var appliedTransform = cache.transform(operation);
-  deepEqual(appliedTransform.completedOperations, [], "didn't apply transform");
+  var result = cache.transform([operation]);
+  deepEqual(result.completedOperations, [], "didn't apply transform");
 });
 
 test("does not add link to hasMany if link already exists", function(){
   cache = new Cache(schema);
   var jupiter = { id: 'p1', name: "Jupiter", __rel: { moons: { 'm1': true } } };
-  cache.transform({op: 'add', path: ['planet', jupiter.id], value: jupiter } );
+  cache.transform([{op: 'add', path: ['planet', jupiter.id], value: jupiter }]);
 
   var operation = {op: 'replace', path: ['planet', jupiter.id, '__rel', 'moons', 'm1'], value: true};
 
-  var appliedTransform = cache.transform(operation);
-  deepEqual(appliedTransform.completedOperations, [], "didn't apply transform");
+  var result = cache.transform([operation]);
+  deepEqual(result.completedOperations, [], "didn't apply transform");
 });
 
 test("test does not remove link from hasMany if link doesn't exist", function(){
   cache = new Cache(schema);
   var jupiter = { id: 'p1', name: "Jupiter", __rel: { moons: {} } };
-  cache.transform({op: 'add', path: ['planet', jupiter.id], value: jupiter } );
+  cache.transform([{op: 'add', path: ['planet', jupiter.id], value: jupiter }]);
 
   var operation = {op: 'remove', path: ['planet', jupiter.id, '__rel', 'moons', 'm1']};
 
-  var appliedTransform = cache.transform(operation);
-  deepEqual(appliedTransform.completedOperations, [], "didn't apply transform");
+  var result = cache.transform([operation]);
+  deepEqual(result.completedOperations, [], "didn't apply transform");
 });
 
 test("does not replace hasOne if link already exists", function(){
   cache = new Cache(schema);
   var europa = { id: 'm1', name: "Europe", __rel: { planet: 'p1' } };
-  cache.transform({op: 'add', path: ['moon', europa.id], value: europa } );
+  cache.transform([{op: 'add', path: ['moon', europa.id], value: europa }]);
 
   var operation = {op: 'replace', path: ['moon', europa.id, '__rel', 'planet'], value: 'p1'};
 
-  var appliedTransform = cache.transform(operation);
-  deepEqual(appliedTransform.completedOperations, [], "didn't apply transform");
+  var result = cache.transform([operation]);
+  deepEqual(result.completedOperations, [], "didn't apply transform");
 });
 
 test("does not remove hasOne if link doesn't exist", function(){
   cache = new Cache(schema);
   var europa = { id: 'm1', name: "Europe" };
-  cache.transform({op: 'add', path: ['moon', europa.id], value: europa } );
+  cache.transform([{op: 'add', path: ['moon', europa.id], value: europa }]);
 
   var operation = {op: 'remove', path: ['moon', europa.id, '__rel', 'planet']};
 
-  var appliedTransform = cache.transform(operation);
-  deepEqual(appliedTransform.completedOperations, [], "didn't apply transform");
+  var result = cache.transform([operation]);
+  deepEqual(result.completedOperations, [], "didn't apply transform");
 });
 
 test("#transform removing model with a bi-directional hasOne", function() {
@@ -243,14 +243,22 @@ test("#transform removing model with a bi-directional hasOne", function() {
     }
   });
   cache = new Cache(hasOneSchema);
-  cache.transform({ op: 'add', path: 'one/one', value: {
-    id: 'one',
-    __rel: { two: null },
-  }});
-  cache.transform({ op: 'add', path: 'two/two', value: {
-    id: 'two',
-    __rel: { one: 'one' },
-  }});
+  cache.transform([
+    {
+      op: 'add', path: 'one/one',
+      value: {
+        id: 'one',
+        __rel: { two: null },
+      }
+    },
+    {
+      op: 'add', path: 'two/two',
+      value: {
+        id: 'two',
+        __rel: { one: 'one' },
+      }
+    }
+  ]);
   var one = cache.retrieve(['one', 'one']);
   var two = cache.retrieve(['two', 'two']);
   ok(one, 'one exists');
@@ -258,7 +266,7 @@ test("#transform removing model with a bi-directional hasOne", function() {
   equal(one.__rel.two, 'two', 'one links to two');
   equal(two.__rel.one, 'one', 'two links to one');
 
-  var result = cache.transform({ op: 'remove', path: 'two/two' });
+  var result = cache.transform([{ op: 'remove', path: 'two/two' }]);
   strictEqual(one.__rel.two, null, 'ones link to two got removed');
 
   deepEqual(
@@ -307,14 +315,16 @@ test("#transform removes dependent records", function() {
   var io = {id: 'm1', name: 'Io', __rel: {planet: 'p1'}};
   var europa = {id: 'm2', name: 'Europa', __rel: {planet: 'p1'}};
 
-  cache.transform({op: 'add', path: 'planet/p1', value: jupiter});
-  cache.transform({op: 'add', path: 'moon/m1', value: io});
-  cache.transform({op: 'add', path: 'moon/m2', value: europa});
-  cache.transform({op: 'add', path: 'planet/p1/__rel/moons/m1', value: true });
-  cache.transform({op: 'add', path: 'planet/p1/__rel/moons/m2', value: true });
+  cache.transform([
+    {op: 'add', path: 'planet/p1', value: jupiter},
+    {op: 'add', path: 'moon/m1', value: io},
+    {op: 'add', path: 'moon/m2', value: europa},
+    {op: 'add', path: 'planet/p1/__rel/moons/m1', value: true },
+    {op: 'add', path: 'planet/p1/__rel/moons/m2', value: true }
+  ]);
 
   // Removing the moon should remove the planet should remove the other moon
-  var result = cache.transform({op: 'remove', path: 'moon/m1'});
+  var result = cache.transform([{op: 'remove', path: 'moon/m1'}]);
 
   equal(cache.length('moon'), 0, 'No moons left in store');
   equal(cache.length('planet'), 0, 'No planets left in store');
@@ -384,15 +394,17 @@ test("#transform does not remove non-dependent records", function() {
   var io = {id: 'm1', name: 'Io', __rel: {planet: 'p1'}};
   var europa = {id: 'm2', name: 'Europa', __rel: {planet: 'p1'}};
 
-  cache.transform({op: 'add', path: 'planet/p1', value: jupiter});
-  cache.transform({op: 'add', path: 'moon/m1', value: io});
-  cache.transform({op: 'add', path: 'moon/m2', value: europa});
-  cache.transform({op: 'add', path: 'planet/p1/__rel/moons/m1', value: true });
-  cache.transform({op: 'add', path: 'planet/p1/__rel/moons/m2', value: true });
+  cache.transform([
+    {op: 'add', path: 'planet/p1', value: jupiter},
+    {op: 'add', path: 'moon/m1', value: io},
+    {op: 'add', path: 'moon/m2', value: europa},
+    {op: 'add', path: 'planet/p1/__rel/moons/m1', value: true },
+    {op: 'add', path: 'planet/p1/__rel/moons/m2', value: true }
+  ]);
 
   // Since there are no dependent relationships, no other records will be
   // removed
-  var result = cache.transform({op: 'remove', path: 'moon/m1'});
+  var result = cache.transform([{op: 'remove', path: 'moon/m1'}]);
   equal(cache.length('moon'), 1, 'One moon left in store');
   equal(cache.length('planet'), 1, 'One planet left in store');
 
