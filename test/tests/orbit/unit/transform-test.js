@@ -73,14 +73,12 @@ test("can spawn descendents amd determine ancestry", function() {
 
 test("can be created from with all attributes specified as options", function() {
   var operations = [];
-  var options = {id: 'abc123', completedOperations: [], inverseOperations: [], log: ['abc1','abc2','abc3']};
+  var options = {id: 'abc123', log: ['abc1','abc2','abc3']};
 
   var transform = new Transform(operations, options);
 
   strictEqual(transform.id, options.id, 'id was populated');
   strictEqual(transform.operations, operations, 'operations was populated');
-  strictEqual(transform.completedOperations, options.completedOperations, 'completedOperations was populated');
-  strictEqual(transform.inverseOperations, options.inverseOperations, 'inverseOperations was populated');
   strictEqual(transform.log, options.log, 'log was populated');
 });
 
