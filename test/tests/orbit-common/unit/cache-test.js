@@ -45,7 +45,7 @@ test("#transform sets data and #retrieve retrieves it", function() {
 
   var earth = {id: '1', name: 'Earth'};
   cache.transform([{op: 'add', path: 'planet/1', value: earth}]);
-  deepEqual(cache.retrieve('planet/1'), earth, 'objects metch in value');
+  deepEqual(cache.retrieve('planet/1'), earth, 'objects match in value');
   notStrictEqual(cache.retrieve('planet/1'), earth, 'objects don\'t match by reference because a clone has been cached');
 });
 
