@@ -263,6 +263,38 @@ test("#serialize - can serialize a resource with attributes and has-many relatio
   );
 });
 
+test("#serialize - can serialize a resource with attributes and a null has-one relationship", function() {
+  setupWithLocalIds();
+
+  schema.normalize('planet', {'__id': 'p1', 'id': 'p1-id'});
+  schema.normalize('moon', {'__id': 'm1', 'id': 'm1-id'});
+
+  deepEqual(
+    serializer.serialize(
+      'moon',
+      {
+        __id: 'm1',
+        name: 'Io',
+        __rel: {
+          planet: null
+        }
+      }
+    ),
+    {
+      data: {
+        type: 'moons',
+        id: 'm1-id',
+        attributes: {
+          name: 'Io'
+        },
+        relationships: {
+          planet: { data: null }
+        }
+      }
+    },
+    'deserialized document matches'
+  );
+});
 
 test("#serialize - can serialize a resource with attributes and a has-one relationships", function() {
   setupWithLocalIds();
