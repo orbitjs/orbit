@@ -598,7 +598,7 @@ npm install -g yuidocjs
 Generate docs in the `/docs` directory:
 
 ```
-yuidoc .
+yuidoc ./lib
 ```
 
 ## License
