@@ -45,8 +45,8 @@ module("OC - JSONAPISource", {
           links: {
             planet: {type: 'hasOne', model: 'planet', inverse: 'moons'}
           }
-        }
-      }
+        },
+      },
     });
 
     source = new JSONAPISource(schema);
@@ -103,7 +103,7 @@ test("#resourceLinkURL - constructs relationship URLs based upon base resourceUR
   equal(source.resourceLinkURL('planet', jupiter.__id, 'moons'), '/planets/1/relationships/moons', "resourceLinkURL appends /relationships/[relationship] to resourceURL");
 });
 
-test("#add - can insert records", function() {
+test("#add - can insert records with 201 response", function() {
   expect(5);
 
   server.respondWith('POST', '/planets', function(xhr) {
@@ -112,7 +112,7 @@ test("#add - can insert records", function() {
         data: {
           type: 'planets',
           attributes: {
-            name: 'Jupiter',
+            name: 'jupiter',
             classification: 'gas giant'
           },
           relationships: {
@@ -127,7 +127,41 @@ test("#add - can insert records", function() {
   });
 
   stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  source.add('planet', {name: 'jupiter', classification: 'gas giant'}).then(function(planet) {
+    start();
+    console.log('got planet', planet);
+    ok(planet.__id, 'orbit id should be defined');
+    equal(planet.id, 12345, 'server id should be defined');
+    equal(planet.name, 'Jupiter', 'name should have been uppercased by server side');
+    equal(planet.classification, 'gas giant', 'classification should match');
+  });
+});
+
+test("#add - can insert records with 204 response", function() {
+  expect(5);
+
+  server.respondWith('POST', '/planets', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody),
+      {
+        data: {
+          id: '12345',
+          type: 'planets',
+          attributes: {
+            name: 'Jupiter',
+            classification: 'gas giant'
+          },
+          relationships: {
+            moons: { data: [] }
+          }
+        }
+      },
+      'POST request');
+    xhr.respond(204,
+                {'Content-Type': 'application/json'});
+  });
+
+  stop();
+  source.add('planet', {id: '12345', name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
     start();
     ok(planet.__id, 'orbit id should be defined');
     equal(planet.id, 12345, 'server id should be defined');
@@ -136,7 +170,7 @@ test("#add - can insert records", function() {
   });
 });
 
-test("#update - can update records", function() {
+test("#update - can update records with 200 response", function() {
   expect(5);
 
   server.respondWith('PATCH', '/planets/12345', function(xhr) {
@@ -146,7 +180,7 @@ test("#update - can update records", function() {
           type: 'planets',
           id: '12345',
           attributes: {
-            name: 'Jupiter',
+            name: 'jupiter',
             classification: 'gas giant'
           },
           relationships: {
@@ -161,14 +195,50 @@ test("#update - can update records", function() {
   });
 
   stop();
-  var data = {id: '12345', name: 'Jupiter', classification: 'gas giant'};
+  var data = {id: '12345', name: 'jupiter', classification: 'gas giant'};
   source.update('planet', data).then(function() {
     start();
     var planetId = source.getId('planet', data);
     var planet = source.retrieve(['planet', planetId]);
     equal(planet.__id, planetId, 'orbit id should be defined');
     equal(planet.id, '12345', 'server id should be defined');
-    equal(planet.name, 'Jupiter', 'name should match');
+    equal(planet.name, 'Jupiter', 'name should match server side');
+    equal(planet.classification, 'gas giant', 'classification should match');
+  });
+});
+
+test("#update - can update records with 204 response", function() {
+  expect(5);
+
+  server.respondWith('PATCH', '/planets/12345', function(xhr) {
+    deepEqual(JSON.parse(xhr.requestBody),
+      {
+        data: {
+          type: 'planets',
+          id: '12345',
+          attributes: {
+            name: 'jupiter',
+            classification: 'gas giant'
+          },
+          relationships: {
+            moons: { data: [] }
+          }
+        }
+      },
+      'PATCH request');
+    xhr.respond(204,
+                {'Content-Type': 'application/json'});
+  });
+
+  stop();
+  var data = {id: '12345', name: 'jupiter', classification: 'gas giant'};
+  source.update('planet', data).then(function() {
+    start();
+    var planetId = source.getId('planet', data);
+    var planet = source.retrieve(['planet', planetId]);
+    equal(planet.__id, planetId, 'orbit id should be defined');
+    equal(planet.id, '12345', 'server id should be defined');
+    equal(planet.name, 'jupiter', 'name should match server side');
     equal(planet.classification, 'gas giant', 'classification should match');
   });
 });
