@@ -589,16 +589,10 @@ broccoli serve
 
 ### Generating Documentation
 
-Install [yuidoc](http://yui.github.io/yuidoc/) globally:
-
-```
-npm install -g yuidocjs
-```
-
 Generate docs in the `/docs` directory:
 
 ```
-yuidoc .
+npm run docs
 ```
 
 ## License
