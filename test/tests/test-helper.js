@@ -1,4 +1,5 @@
 import Operation from 'orbit/operation';
+import { isArray } from 'orbit/lib/objects';
 import { on } from 'rsvp';
 
 on('error', function(reason){
@@ -35,8 +36,27 @@ var verifyLocalStorageIsEmpty = function(namespace) {
 };
 
 var equalOps = function(result, expected, msg) {
-  deepEqual(result && result.serialize ? result.serialize() : result,
-            expected && expected.serialize ? expected.serialize() : expected,
+  var serializedResult;
+  var serializedExpected;
+
+  if (isArray(result)) {
+    serializedResult = result.map(function(r) {
+      return r.serialize ? r.serialize() : r;
+    });
+  } else {
+    serializedResult = result && result.serialize ? result.serialize() : result;
+  }
+
+  if (isArray(expected)) {
+    serializedExpected = expected.map(function(e) {
+      return e.serialize ? e.serialize() : e;
+    });
+  } else {
+    serializedExpected = expected && expected.serialize ? expected.serialize() : expected;
+  }
+
+  deepEqual(serializedResult,
+            serializedExpected,
             msg);
 };
 
