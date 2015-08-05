@@ -41,24 +41,36 @@ var equalOps = function(result, expected, msg) {
 
   if (isArray(result)) {
     serializedResult = result.map(function(r) {
-      return r.serialize ? r.serialize() : r;
+      return serializeOp(r);
     });
   } else {
-    serializedResult = result && result.serialize ? result.serialize() : result;
+    serializedResult = serializeOp(result);
   }
 
   if (isArray(expected)) {
     serializedExpected = expected.map(function(e) {
-      return e.serialize ? e.serialize() : e;
+      return serializeOp(e);
     });
   } else {
-    serializedExpected = expected && expected.serialize ? expected.serialize() : expected;
+    serializedExpected = serializeOp(expected);
   }
 
   deepEqual(serializedResult,
             serializedExpected,
             msg);
 };
+
+function serializeOp(o) {
+  var operation;
+
+  if (o instanceof Operation) {
+    operation = o;
+  } else {
+    operation = op(o.op, o.path, o.value);
+  }
+
+  return operation.serialize();
+}
 
 function op(opType, path, value){
   var operation = new Operation({op: opType, path: path});
