@@ -543,13 +543,12 @@ test("#find - can find all records", function() {
 });
 
 test("#find - can filter records", function() {
-  expect(18);
+  expect(14);
 
   var records = [
     {type: 'planets', id: '1', attributes: {name: 'Mercury', classification: 'terrestrial'}},
     {type: 'planets', id: '2', attributes: {name: 'Venus', classification: 'terrestrial'}},
-    {type: 'planets', id: '3', attributes: {name: 'Earth', classification: 'terrestrial'}},
-    {type: 'planets', id: '4', attributes: {name: 'Mars', classification: 'terrestrial'}}
+    {type: 'planets', id: '3', attributes: {name: 'Earth', classification: 'terrestrial'}}
   ];
 
   server.respondWith(function(xhr) {
