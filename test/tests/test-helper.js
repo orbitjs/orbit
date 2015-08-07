@@ -2,9 +2,8 @@ import Operation from 'orbit/operation';
 import { isArray } from 'orbit/lib/objects';
 import { on } from 'rsvp';
 
-on('error', function(reason){
-  console.log(reason);
-  console.error(reason.message, reason.stack);
+on('error', function(reason) {
+  console.error('rsvp error', reason);
 });
 
 var verifyLocalStorageContainsRecord = function(namespace, type, id, record, ignoreFields) {
