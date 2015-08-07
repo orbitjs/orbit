@@ -77,4 +77,16 @@ function op(opType, path, value){
   return operation;
 }
 
-export { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty, equalOps, op };
+var successfulOperation = function(response) {
+  return new Promise(function(resolve, reject) {
+    resolve(response || ':)');
+  });
+};
+
+var failedOperation = function(response) {
+  return new Promise(function(resolve, reject) {
+    reject(response || ':(');
+  });
+};
+
+export { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty, equalOps, op, successfulOperation, failedOperation };

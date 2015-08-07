@@ -3,23 +3,11 @@ import Operation from 'orbit/operation';
 import Transformable from 'orbit/transformable';
 import TransformConnector from 'orbit/transform-connector';
 import { Promise } from 'rsvp';
-import { equalOps } from 'tests/test-helper';
+import { equalOps, successfulOperation, failedOperation } from 'tests/test-helper';
 
 var primarySource,
     secondarySource,
     transformConnector;
-
-var successfulOperation = function() {
-  return new Promise(function(resolve, reject) {
-    resolve(':)');
-  });
-};
-
-var failedOperation = function() {
-  return new Promise(function(resolve, reject) {
-    reject(':(');
-  });
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 

@@ -1,21 +1,9 @@
 import Orbit from 'orbit/main';
 import Transformable from 'orbit/transformable';
 import { Promise } from 'rsvp';
-import { equalOps } from 'tests/test-helper';
+import { equalOps, successfulOperation, failedOperation } from 'tests/test-helper';
 
 var source;
-
-var successfulOperation = function() {
-  return new Promise(function(resolve, reject) {
-    resolve(':)');
-  });
-};
-
-var failedOperation = function() {
-  return new Promise(function(resolve, reject) {
-    reject(':(');
-  });
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 
