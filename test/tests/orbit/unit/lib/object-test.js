@@ -1,4 +1,4 @@
-import { Class, clone, defineClass, expose, extend, extendClass, isArray, isObject, isNone, merge } from 'orbit/lib/objects';
+import { Class, clone, defineClass, expose, extend, extendClass, isArray, toArray, isObject, isNone, merge } from 'orbit/lib/objects';
 
 module("Orbit - Lib - Object", {
 });
@@ -260,6 +260,19 @@ test("`isArray` checks whether an object is an array", function() {
   equal(isArray(obj), false, 'Fake array is not an array');
 
   equal(isArray(arr), true, 'Array can be identified');
+});
+
+test("`toArray` converts an argument into an array", function() {
+  var arr = ['a', 'b', 'c'];
+  strictEqual(toArray(arr), arr, 'Returns an array argument as the same array');
+
+  deepEqual(toArray('a'), ['a'], 'Returns a string argument in a new array');
+
+  var obj = {prop: true};
+  strictEqual(toArray(obj)[0], obj, 'Returns an object argument in a new array');
+
+  deepEqual(toArray(null), [], 'Returns a null argument as an empty array');
+  deepEqual(toArray(), [], 'Returns an undefined argument as an empty array');
 });
 
 test("`isObject` checks whether a value is a non-null object", function() {
