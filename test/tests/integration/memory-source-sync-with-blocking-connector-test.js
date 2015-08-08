@@ -209,4 +209,3 @@ test("replacing link should not cause infinite update loop", function() {
       equal(source2.retrieveLink('group', 'new', 'members').length, 1, 'new group check');
     });
 });
-
