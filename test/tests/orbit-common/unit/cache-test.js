@@ -95,12 +95,12 @@ test("#reset overrides the cache completely with the value specified", function(
   deepEqual(cache.retrieve(), newData);
 });
 
-test("#transform returns an empty array of `completedOperations` when an operation is a noop", function() {
+test("#transform returns an empty array of `operations` when an operation is a noop", function() {
   cache = new Cache(schema);
 
   cache.transform([{op: 'add', path: 'planet/1', value: {name: 'Earth'}}]);
 
-  deepEqual(cache.transform([{op: 'remove', path: 'planet/2'}]).completedOperations, [], 'operation was a noop');
+  deepEqual(cache.transform([{op: 'remove', path: 'planet/2'}]).operations, [], 'operation was a noop');
 });
 
 test("#transform tracks refs and clears them from hasOne relationships when a referenced record is removed", function() {
@@ -154,7 +154,7 @@ test("does not add link to hasMany if record doesn't exist", function(){
   var operation = {op: 'add', path: ['planet', 'p1', '__rel', 'moons', 'moon1'], value: true};
 
   var result = cache.transform([operation]);
-  deepEqual(result.completedOperations, [], "didn't apply transform");
+  deepEqual(result.operations, [], "didn't apply transform");
 });
 
 test("does not remove link from hasMany if record doesn't exist", function(){
@@ -162,7 +162,7 @@ test("does not remove link from hasMany if record doesn't exist", function(){
   var operation = {op: 'remove', path: ['planet', 'p1', '__rel', 'moons', 'moon1'], value: true};
 
   var result = cache.transform([operation]);
-  deepEqual(result.completedOperations, [], "didn't apply transform");
+  deepEqual(result.operations, [], "didn't apply transform");
 });
 
 test("does not replace hasOne if record doesn't exist", function(){
@@ -170,7 +170,7 @@ test("does not replace hasOne if record doesn't exist", function(){
   var operation = {op: 'replace', path: ['moon', 'moon1', '__rel', 'planet'], value: "p1"};
 
   var result = cache.transform([operation]);
-  deepEqual(result.completedOperations, [], "didn't apply transform");
+  deepEqual(result.operations, [], "didn't apply transform");
 });
 
 test("does not remove hasOne link if record doesn't exist", function(){
@@ -178,7 +178,7 @@ test("does not remove hasOne link if record doesn't exist", function(){
   var operation = {op: 'remove', path: ['moon', 'moon1', '__rel', 'planet'], value: "p1"};
 
   var result = cache.transform([operation]);
-  deepEqual(result.completedOperations, [], "didn't apply transform");
+  deepEqual(result.operations, [], "didn't apply transform");
 });
 
 test("does not add link to hasMany if link already exists", function(){
@@ -189,7 +189,7 @@ test("does not add link to hasMany if link already exists", function(){
   var operation = {op: 'replace', path: ['planet', jupiter.id, '__rel', 'moons', 'm1'], value: true};
 
   var result = cache.transform([operation]);
-  deepEqual(result.completedOperations, [], "didn't apply transform");
+  deepEqual(result.operations, [], "didn't apply transform");
 });
 
 test("test does not remove link from hasMany if link doesn't exist", function(){
@@ -200,7 +200,7 @@ test("test does not remove link from hasMany if link doesn't exist", function(){
   var operation = {op: 'remove', path: ['planet', jupiter.id, '__rel', 'moons', 'm1']};
 
   var result = cache.transform([operation]);
-  deepEqual(result.completedOperations, [], "didn't apply transform");
+  deepEqual(result.operations, [], "didn't apply transform");
 });
 
 test("does not replace hasOne if link already exists", function(){
@@ -211,7 +211,7 @@ test("does not replace hasOne if link already exists", function(){
   var operation = {op: 'replace', path: ['moon', europa.id, '__rel', 'planet'], value: 'p1'};
 
   var result = cache.transform([operation]);
-  deepEqual(result.completedOperations, [], "didn't apply transform");
+  deepEqual(result.operations, [], "didn't apply transform");
 });
 
 test("does not remove hasOne if link doesn't exist", function(){
@@ -222,7 +222,7 @@ test("does not remove hasOne if link doesn't exist", function(){
   var operation = {op: 'remove', path: ['moon', europa.id, '__rel', 'planet']};
 
   var result = cache.transform([operation]);
-  deepEqual(result.completedOperations, [], "didn't apply transform");
+  deepEqual(result.operations, [], "didn't apply transform");
 });
 
 test("#transform removing model with a bi-directional hasOne", function() {
