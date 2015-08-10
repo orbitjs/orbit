@@ -2,41 +2,46 @@ import Orbit from 'orbit/main';
 import Schema from 'orbit-common/schema';
 import Source from 'orbit-common/source';
 import { all, Promise } from 'rsvp';
+import CacheIntegrityProcessor from 'orbit-common/operation-processors/cache-integrity-processor';
+import SchemaConsistencyProcessor from 'orbit-common/operation-processors/schema-consistency-processor';
 
-var source;
+var schema;
 
 module("OC - Source", {
   setup: function() {
     Orbit.Promise = Promise;
 
-    var schema = new Schema({
+    schema = new Schema({
       models: {
         planet: {}
       }
     });
-
-    source = new Source(schema, {autoload: false});
   },
 
   teardown: function() {
-    source = null;
+    schema = null;
     Orbit.Promise = null;
   }
 });
 
-test("Source.created", function() {
+test("calls Source.created when a source has been created", function() {
   expect(1);
-
-  var schema = new Schema({
-    models: {
-      planet: {}
-    }
-  });
 
   var created = sinon.spy(Source, 'created');
 
-  var newSource = new Source(schema);
-  ok(created.calledWith(newSource), 'Called Source.created with source');
+  var source = new Source(schema);
+  ok(created.calledWith(source), 'Called Source.created with source');
 
   created.restore();
+});
+
+test("will be created without a cache by default", function() {
+  var source = new Source(schema);
+  equal(source._cache, null);
+});
+
+test("can be created with a cache with `useCache`, and options can be specified with `cacheOptions`", function() {
+  var source = new Source(schema, {useCache: true, cacheOptions: {processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor]}});
+  ok(source._cache, 'cache exists');
+  equal(source._cache._processors.length, 2, 'cache has 2 processors');
 });
