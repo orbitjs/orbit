@@ -61,6 +61,16 @@ test("#exists indicates whether a path exists", function() {
   equal(cache.exists('this/path/is/bogus'), false, 'path does not exist');
 });
 
+test("#hasDeleted by default just returns the inverse of #exists", function() {
+  cache = new Cache(schema);
+
+  var earth = {id: '1', name: 'Earth'};
+  cache.transform([{op: 'add', path: 'planet/1', value: earth}]);
+  equal(cache.hasDeleted('planet'), !cache.exists('planet'), 'path exists');
+  equal(cache.hasDeleted('planet/1'), !cache.exists('planet/1'), 'path exists');
+  equal(cache.hasDeleted('planet/1/id/bogus'), !cache.exists('planet/1/id/bogus'), false, 'path does not exist');
+});
+
 test("#length returns the size of data at a path", function() {
   cache = new Cache(schema);
 
