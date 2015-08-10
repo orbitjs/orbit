@@ -77,7 +77,7 @@ test('Spontaneous information from sources', function() {
       id: id,
       name: planetName
     });
-    source._transform({
+    source.transform({
       op: "add",
       path: ["planet", id],
       value: data

@@ -30,8 +30,8 @@ module("Integration - MemorySource Sync without Connector", {
     primarySource = new MemorySource(schema);
     backupSource = new MemorySource(schema);
 
-    primarySource.on('didTransform', function(operation, inverses) {
-      backupSource.transform(operation);
+    primarySource.on('didTransform', function(transformation) {
+      backupSource.applyTransformation(transformation.spawn(transformation.result.operations));
     });
   },
 

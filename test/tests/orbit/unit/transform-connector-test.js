@@ -1,5 +1,7 @@
 import Orbit from 'orbit/main';
 import Operation from 'orbit/operation';
+import Transformation from 'orbit/transformation';
+import TransformResult from 'orbit/transform-result';
 import Transformable from 'orbit/transformable';
 import TransformConnector from 'orbit/transform-connector';
 import { Promise } from 'rsvp';
@@ -42,132 +44,31 @@ test("it is active by default exists", function() {
 });
 
 test("it watches `didTransform` events on the source and applies them to the target", function() {
-  expect(3);
+  expect(1);
 
-  var order = 0;
-
-  var op = new Operation({
-    op: 'add',
-    path: ['planet', '1', {id: 1, name: 'Earth'}]
-  });
-
-  secondarySource.retrieve = function() {
-    equal(++order, 1, 'target.retrieve triggered');
-    return null;
-  };
-
-  secondarySource.transform = function(operation) {
-    start();
-    equal(++order, 2, 'target.transform triggered');
-    deepEqual(operation, op, 'target operation matches source operation');
-    return successfulOperation();
-  };
-
-  transformConnector = new TransformConnector(primarySource, secondarySource);
-
-  stop();
-  primarySource.emit('didTransform', op);
-});
-
-test("it watches `didTransform` events on the source and applies them to the target", function() {
-  expect(3);
-
-  var order = 0;
-
-  var op = new Operation({
+  var appliedOps = [{
     op: 'add',
     path: ['planet', '1'],
     value: {id: 1, name: 'Earth'}
-  });
+  }];
 
-  secondarySource.retrieve = function() {
-    equal(++order, 1, 'target.retrieve triggered');
-    return null;
-  };
-
-  secondarySource.transform = function(operation) {
+  secondarySource._transform = function(ops) {
     start();
-    equal(++order, 2, 'target.transform triggered');
-    deepEqual(operation, op, 'target operation matches source operation');
-    return successfulOperation();
+    equalOps(ops, appliedOps, 'target operation matches source operation');
+    return successfulOperation(new TransformResult(ops));
   };
 
   transformConnector = new TransformConnector(primarySource, secondarySource);
 
   stop();
-  primarySource.emit('didTransform', op);
+  primarySource.transformed(new TransformResult(appliedOps));
 });
 
-test("for `add` operations, it applies a differential if the target path exists", function() {
-  expect(5);
-
-  var order = 0;
-
-  var op = new Operation({
-    op: 'add',
-    path: ['planet', '1'],
-    value: {id: 1, name: 'Earth', hasRings: false}
-  });
-
-  secondarySource.retrieve = function() {
-    equal(++order, 1, 'target.retrieve triggered');
-    return {
-      id: 1,
-      name: 'Saturn',
-      hasRings: true
-    };
-  };
-
-  secondarySource.transform = function(operation) {
-    start();
-    equal(++order, 2, 'target.transform triggered');
-    equal(operation.length, 2, 'target operation count matches');
-    equalOps(operation[0], {op: 'replace', path: 'planet/1/name', value: 'Earth'}, 'first target op matches');
-    equalOps(operation[1], {op: 'replace', path: 'planet/1/hasRings', value: false}, 'second target op matches');
-    return successfulOperation();
-  };
-
-  transformConnector = new TransformConnector(primarySource, secondarySource);
-
-  stop();
-  primarySource.emit('didTransform', op);
-});
-
-test("for `replace` operations, it applies a differential if the target path exists", function() {
-  expect(4);
-
-  var order = 0;
-
-  var op = new Operation({
-    op: 'replace',
-    path: ['planet', '1', 'hasRings'],
-    value: true
-  });
-
-  secondarySource.retrieve = function() {
-    equal(++order, 1, 'target.retrieve triggered');
-    return false;
-  };
-
-  secondarySource.transform = function(operation) {
-    start();
-    equal(++order, 2, 'target.transform triggered');
-    equal(operation.length, 1, 'target operation count matches');
-    equalOps(operation[0], {op: 'replace', path: 'planet/1/hasRings', value: true}, 'first target op matches');
-    return successfulOperation();
-  };
-
-  transformConnector = new TransformConnector(primarySource, secondarySource);
-
-  stop();
-  primarySource.emit('didTransform', op);
-});
 
 /*
  TODO - tests needed
 
- - filterFunction
+ - shouldApplyTransformation
  - activate / deactivate
- - queueing
  - blocking vs. non-blocking
 */
