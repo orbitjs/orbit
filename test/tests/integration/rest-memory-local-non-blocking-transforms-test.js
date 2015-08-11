@@ -75,11 +75,11 @@ test("records inserted into memory should be posted with rest", function() {
   var localSourceTransforms = 0,
       restSourceTransforms = 0;
 
-  restSource.on('didTransform', function(transformation) {
+  restSource.on('didTransform', function(transformation, result) {
     restSourceTransforms++;
 
-    var operation = transformation.result.operations[0];
-    equal(transformation.result.operations.length, 1, 'rest source - one operation');
+    var operation = result.operations[0];
+    equal(result.operations.length, 1, 'rest source - one operation');
 
     // console.log('REST SOURCE - didTransform', restSourceTransforms, operation, inverse);
 
@@ -94,11 +94,11 @@ test("records inserted into memory should be posted with rest", function() {
     }
   });
 
-  localSource.on('didTransform', function(transformation) {
+  localSource.on('didTransform', function(transformation, result) {
     localSourceTransforms++;
 
-    var operation = transformation.result.operations[0];
-    equal(transformation.result.operations.length, 1, 'local source - one operation');
+    var operation = result.operations[0];
+    equal(result.operations.length, 1, 'local source - one operation');
 
     // console.log('LOCAL SOURCE - didTransform', localSourceTransforms, operation, inverse);
 
@@ -146,10 +146,10 @@ test("records updated in memory should be updated with rest", function() {
       localSourceTransforms = 0,
       restSourceTransforms = 0;
 
-  memorySource.on('didTransform', function(transformation) {
+  memorySource.on('didTransform', function(transformation, result) {
     memorySourceTransforms++;
 
-    var operations = transformation.result.operations;
+    var operations = result.operations;
 
     // console.log('MEMORY SOURCE - didTransform', memorySourceTransforms, transformation);
 
@@ -182,10 +182,10 @@ test("records updated in memory should be updated with rest", function() {
     }
   });
 
-  restSource.on('didTransform', function(transformation) {
+  restSource.on('didTransform', function(transformation, result) {
     restSourceTransforms++;
 
-    var operations = transformation.result.operations;
+    var operations = result.operations;
 
     // console.log('REST SOURCE - didTransform', restSourceTransforms, operation, inverse);
 
@@ -216,10 +216,10 @@ test("records updated in memory should be updated with rest", function() {
     }
   });
 
-  localSource.on('didTransform', function(transformation) {
+  localSource.on('didTransform', function(transformation, result) {
     localSourceTransforms++;
 
-    var operations = transformation.result.operations;
+    var operations = result.operations;
 
     // console.log('LOCAL SOURCE - didTransform', localSourceTransforms, operation, inverse);
 
@@ -282,12 +282,12 @@ test("records patched in memory should be patched with rest", function() {
       localSourceTransforms = 0,
       restSourceTransforms = 0;
 
-  memorySource.on('didTransform', function(transformation) {
+  memorySource.on('didTransform', function(transformation, result) {
     memorySourceTransforms++;
 
     // console.log('MEMORY SOURCE - didTransform', memorySourceTransforms, transformation);
 
-    var operations = transformation.result.operations;
+    var operations = result.operations;
 
     if (memorySourceTransforms === 1) {
       equal(operations.length, 1,                            'memory source - one operation');
@@ -321,12 +321,12 @@ test("records patched in memory should be patched with rest", function() {
     }
   });
 
-  restSource.on('didTransform', function(transformation) {
+  restSource.on('didTransform', function(transformation, result) {
     restSourceTransforms++;
 
     // console.log('REST SOURCE - didTransform', restSourceTransforms, transformation);
 
-    var operations = transformation.result.operations;
+    var operations = result.operations;
 
     if (restSourceTransforms === 1) {
       equal(operations.length, 1,                            'rest source - one operation');
@@ -355,12 +355,12 @@ test("records patched in memory should be patched with rest", function() {
     }
   });
 
-  localSource.on('didTransform', function(transformation) {
+  localSource.on('didTransform', function(transformation, result) {
     localSourceTransforms++;
 
     // console.log('LOCAL SOURCE - didTransform', localSourceTransforms, operation, inverse);
 
-    var operations = transformation.result.operations;
+    var operations = result.operations;
 
     if (localSourceTransforms === 1) {
       equal(operations.length, 1,                            'local source - one operation');
@@ -419,12 +419,12 @@ test("records deleted in memory should be deleted with rest", function() {
       localSourceTransforms = 0,
       restSourceTransforms = 0;
 
-  memorySource.on('didTransform', function(transformation) {
+  memorySource.on('didTransform', function(transformation, result) {
     memorySourceTransforms++;
 
     // console.log('MEMORY SOURCE - didTransform', memorySourceTransforms, operation, inverse);
 
-    var operations = transformation.result.operations;
+    var operations = result.operations;
 
     if (memorySourceTransforms === 1) {
       equal(operations.length, 1,                'memory source - one operation');
@@ -449,12 +449,12 @@ test("records deleted in memory should be deleted with rest", function() {
     }
   });
 
-  restSource.on('didTransform', function(transformation) {
+  restSource.on('didTransform', function(transformation, result) {
     restSourceTransforms++;
 
     // console.log('REST SOURCE - didTransform', restSourceTransforms, operation, inverse);
 
-    var operations = transformation.result.operations;
+    var operations = result.operations;
 
     if (restSourceTransforms === 1) {
       equal(operations.length, 1,                'rest source - one operation');
@@ -469,12 +469,12 @@ test("records deleted in memory should be deleted with rest", function() {
     }
   });
 
-  localSource.on('didTransform', function(transformation) {
+  localSource.on('didTransform', function(transformation, result) {
     localSourceTransforms++;
 
     // console.log('LOCAL SOURCE - didTransform', localSourceTransforms, operation, inverse);
 
-    var operations = transformation.result.operations;
+    var operations = result.operations;
 
     if (localSourceTransforms === 1) {
       equal(operations.length, 1,                'local source - one operation');

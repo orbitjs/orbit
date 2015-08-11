@@ -94,11 +94,11 @@ test("it should trigger `didTransform` event BEFORE a transform resolves", funct
 
   Transformable.extend(source);
 
-  source.on('didTransform', function(transformation) {
+  source.on('didTransform', function(transformation, result) {
     equal(++order, 2, 'didTransform triggered after action performed successfully');
     equalOps(transformation.operations, addOps, 'applied ops match');
-    equalOps(transformation.result.operations, addOps, 'completed ops match');
-    equalOps(transformation.result.inverseOperations, inverseOps, 'inverse ops match');
+    equalOps(result.operations, addOps, 'completed ops match');
+    equalOps(result.inverseOperations, inverseOps, 'inverse ops match');
   });
 
   stop();
@@ -163,18 +163,18 @@ test("it should wait for the current settle loop before starting another", funct
 
   Transformable.extend(source);
 
-  source.on('didTransform', function(transformation) {
+  source.on('didTransform', function(transformation, result) {
     if (transformation.operations[0].op === 'add') {
       equal(++order, 2, 'didTransform triggered after `add` transform');
       equalOps(transformation.operations, addOps, '`add` operation matches');
-      equalOps(transformation.result.operations, addOps, 'completed ops match');
-      equalOps(transformation.result.inverseOperations, inverseOps, 'inverse ops match');
+      equalOps(result.operations, addOps, 'completed ops match');
+      equalOps(result.inverseOperations, inverseOps, 'inverse ops match');
     }
     if (transformation.operations[0].op === 'remove') {
       equal(++order, 4, 'didTransform triggered after `remove` transform');
       equalOps(transformation.operations, inverseOps, '`remove` operation matches');
-      equalOps(transformation.result.operations, inverseOps, 'completed ops match');
-      equalOps(transformation.result.inverseOperations, addOps, 'inverse ops match');
+      equalOps(result.operations, inverseOps, 'completed ops match');
+      equalOps(result.inverseOperations, addOps, 'inverse ops match');
     }
   });
 

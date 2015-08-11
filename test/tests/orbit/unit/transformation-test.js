@@ -52,8 +52,8 @@ test("can track ancestors in a log", function() {
   expect(3);
 
   var grandfather = new Transformation();
-  var father = new Transformation([], null, {parent: grandfather});
-  var son = new Transformation([], null, {parent: father});
+  var father = new Transformation([], {parent: grandfather});
+  var son = new Transformation([], {parent: father});
 
   deepEqual(grandfather.log, [], "grandfather's log is correct");
   deepEqual(father.log, [grandfather.id], "father's log is correct");
@@ -99,7 +99,7 @@ test("can be created from with all attributes specified as options", function() 
   var operations = [];
   var options = {id: 'abc123', log: ['abc1','abc2','abc3']};
 
-  var transformation = new Transformation(operations, null, options);
+  var transformation = new Transformation(operations, options);
 
   strictEqual(transformation.id, options.id, 'id was populated');
   equalOps(transformation.operations, operations, 'operations was populated');
