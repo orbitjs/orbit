@@ -68,7 +68,7 @@ test("it watches `didTransform` events on the source and applies them to the tar
 /*
  TODO - tests needed
 
- - shouldApplyTransform
+ - shouldTransform
  - activate / deactivate
  - blocking vs. non-blocking
 */
