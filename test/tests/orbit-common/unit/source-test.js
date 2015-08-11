@@ -48,7 +48,7 @@ test("can be created with a cache with `useCache`, and options can be specified 
   equal(source._cache._processors.length, 2, 'cache has 2 processors');
 });
 
-test("#_prepareTransformOperations - for `add` operations, applies a differential if the target path exists", function() {
+test("#prepareTransformOperations - for `add` operations, applies a differential if the target path exists", function() {
   expect(1);
 
   var source = new Source(schema, {useCache: true, cacheOptions: {processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor]}});
@@ -67,12 +67,12 @@ test("#_prepareTransformOperations - for `add` operations, applies a differentia
     };
   };
 
-  var result = source._prepareTransformOperations([op]);
+  var result = source.prepareTransformOperations([op]);
   equalOps(result, [{op: 'replace', path: 'planet/1/name', value: 'Earth'},
                     {op: 'replace', path: 'planet/1/hasRings', value: false}]);
 });
 
-test("#_prepareTransformOperations - for `replace` operations, applies a differential if the target path exists", function() {
+test("#prepareTransformOperations - for `replace` operations, applies a differential if the target path exists", function() {
   expect(1);
 
   var source = new Source(schema, {useCache: true, cacheOptions: {processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor]}});
@@ -87,6 +87,6 @@ test("#_prepareTransformOperations - for `replace` operations, applies a differe
     return false;
   };
 
-  var result = source._prepareTransformOperations([op]);
+  var result = source.prepareTransformOperations([op]);
   equalOps(result, [{op: 'replace', path: 'planet/1/hasRings', value: true}]);
 });
