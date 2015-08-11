@@ -1,6 +1,6 @@
 import Orbit from 'orbit/main';
 import Operation from 'orbit/operation';
-import Transformation from 'orbit/transformation';
+import Transform from 'orbit/transform';
 import TransformResult from 'orbit/transform-result';
 import Transformable from 'orbit/transformable';
 import TransformConnector from 'orbit/transform-connector';
@@ -68,7 +68,7 @@ test("it watches `didTransform` events on the source and applies them to the tar
 /*
  TODO - tests needed
 
- - shouldApplyTransformation
+ - shouldApplyTransform
  - activate / deactivate
  - blocking vs. non-blocking
 */

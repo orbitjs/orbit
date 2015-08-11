@@ -1,59 +1,59 @@
 import Orbit from 'orbit/main';
-import Transformation from 'orbit/transformation';
+import Transform from 'orbit/transform';
 import Operation from 'orbit/operation';
 import { equalOps } from 'tests/test-helper';
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Orbit - Transformation", {
+module("Orbit - Transform", {
 });
 
 test("it exists", function() {
-  var transformation = new Transformation();
-  ok(transformation);
+  var transform = new Transform();
+  ok(transform);
 });
 
 test("it normalizes its operations", function() {
   expect(3);
 
-  var transformation = new Transformation([
+  var transform = new Transform([
     {op: 'add', path: 'planet/1', value: {id: '1'}}
   ]);
 
-  transformation.push([
+  transform.push([
     {op: 'add', path: 'planet/2', value: {id: '2'}}
   ]);
 
-  equal(transformation.operations.length, 2);
-  ok(transformation.operations[0] instanceof Operation);
-  ok(transformation.operations[1] instanceof Operation);
+  equal(transform.operations.length, 2);
+  ok(transform.operations[0] instanceof Operation);
+  ok(transform.operations[1] instanceof Operation);
 });
 
 test("#isEmpty returns true if no operations have been added", function() {
   expect(2);
 
-  var transformation = new Transformation();
+  var transform = new Transform();
 
-  equal(transformation.isEmpty(), true);
+  equal(transform.isEmpty(), true);
 
-  transformation.push([
+  transform.push([
     {op: 'add', path: 'planet/2', value: {id: '2'}}
   ]);
 
-  equal(transformation.isEmpty(), false);
+  equal(transform.isEmpty(), false);
 });
 
 test("it is assigned an `id`", function() {
-  var transformation = new Transformation();
-  ok(transformation.id, 'transformation has an id');
+  var transform = new Transform();
+  ok(transform.id, 'transform has an id');
 });
 
 test("can track ancestors in a log", function() {
   expect(3);
 
-  var grandfather = new Transformation();
-  var father = new Transformation([], {parent: grandfather});
-  var son = new Transformation([], {parent: father});
+  var grandfather = new Transform();
+  var father = new Transform([], {parent: grandfather});
+  var son = new Transform([], {parent: father});
 
   deepEqual(grandfather.log, [], "grandfather's log is correct");
   deepEqual(father.log, [grandfather.id], "father's log is correct");
@@ -63,13 +63,13 @@ test("can track ancestors in a log", function() {
 test("can spawn descendents amd determine ancestry", function() {
   expect(17);
 
-  var grandfather = new Transformation();
+  var grandfather = new Transform();
   var father = grandfather.spawn();
   var uncle = grandfather.spawn();
   var son = father.spawn();
   var nephew = uncle.spawn();
 
-  var stranger = new Transformation();
+  var stranger = new Transform();
   var strangersSon = stranger.spawn({});
 
   equal(grandfather.descendedFrom(father), false, "grandfather didn't come from father");
@@ -99,9 +99,9 @@ test("can be created from with all attributes specified as options", function() 
   var operations = [];
   var options = {id: 'abc123', log: ['abc1','abc2','abc3']};
 
-  var transformation = new Transformation(operations, options);
+  var transform = new Transform(operations, options);
 
-  strictEqual(transformation.id, options.id, 'id was populated');
-  equalOps(transformation.operations, operations, 'operations was populated');
-  strictEqual(transformation.log, options.log, 'log was populated');
+  strictEqual(transform.id, options.id, 'id was populated');
+  equalOps(transform.operations, operations, 'operations was populated');
+  strictEqual(transform.log, options.log, 'log was populated');
 });
