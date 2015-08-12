@@ -55,7 +55,7 @@ test("it watches `didTransform` events on the source and applies them to the tar
   secondarySource._transform = function(ops) {
     start();
     equalOps(ops, appliedOps, 'target operation matches source operation');
-    return successfulOperation(new TransformResult(ops));
+    return successfulOperation();
   };
 
   transformConnector = new TransformConnector(primarySource, secondarySource);
