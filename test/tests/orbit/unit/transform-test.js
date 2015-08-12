@@ -17,10 +17,7 @@ test("it normalizes its operations", function() {
   expect(3);
 
   var transform = new Transform([
-    {op: 'add', path: 'planet/1', value: {id: '1'}}
-  ]);
-
-  transform.push([
+    {op: 'add', path: 'planet/1', value: {id: '1'}},
     {op: 'add', path: 'planet/2', value: {id: '2'}}
   ]);
 
@@ -32,15 +29,13 @@ test("it normalizes its operations", function() {
 test("#isEmpty returns true if no operations have been added", function() {
   expect(2);
 
-  var transform = new Transform();
+  var emptyTransform = new Transform();
+  equal(emptyTransform.isEmpty(), true);
 
-  equal(transform.isEmpty(), true);
-
-  transform.push([
+  var fullTransform = new Transform([
     {op: 'add', path: 'planet/2', value: {id: '2'}}
   ]);
-
-  equal(transform.isEmpty(), false);
+  equal(fullTransform.isEmpty(), false);
 });
 
 test("it is assigned an `id`", function() {
