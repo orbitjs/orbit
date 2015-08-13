@@ -1,9 +1,9 @@
 import Operation from 'orbit/operation';
+import { isArray } from 'orbit/lib/objects';
 import { on } from 'rsvp';
 
-on('error', function(reason){
-  console.log(reason);
-  console.error(reason.message, reason.stack);
+on('error', function(reason) {
+  console.error('rsvp error', reason);
 });
 
 var verifyLocalStorageContainsRecord = function(namespace, type, id, record, ignoreFields) {
@@ -35,10 +35,41 @@ var verifyLocalStorageIsEmpty = function(namespace) {
 };
 
 var equalOps = function(result, expected, msg) {
-  deepEqual(result && result.serialize ? result.serialize() : result,
-            expected && expected.serialize ? expected.serialize() : expected,
+  var serializedResult;
+  var serializedExpected;
+
+  if (isArray(result)) {
+    serializedResult = result.map(function(r) {
+      return serializeOp(r);
+    });
+  } else {
+    serializedResult = serializeOp(result);
+  }
+
+  if (isArray(expected)) {
+    serializedExpected = expected.map(function(e) {
+      return serializeOp(e);
+    });
+  } else {
+    serializedExpected = serializeOp(expected);
+  }
+
+  deepEqual(serializedResult,
+            serializedExpected,
             msg);
 };
+
+function serializeOp(o) {
+  var operation;
+
+  if (o instanceof Operation) {
+    operation = o;
+  } else {
+    operation = op(o.op, o.path, o.value);
+  }
+
+  return operation.serialize();
+}
 
 function op(opType, path, value){
   var operation = new Operation({op: opType, path: path});
@@ -46,4 +77,16 @@ function op(opType, path, value){
   return operation;
 }
 
-export { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty, equalOps, op };
+var successfulOperation = function(response) {
+  return new Promise(function(resolve, reject) {
+    resolve(response || ':)');
+  });
+};
+
+var failedOperation = function(response) {
+  return new Promise(function(resolve, reject) {
+    reject(response || ':(');
+  });
+};
+
+export { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty, equalOps, op, successfulOperation, failedOperation };

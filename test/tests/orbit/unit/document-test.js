@@ -407,11 +407,17 @@ test("#transform - `replace` - can replace an object at a target object path", f
   deepEqual(doc.retrieve(), {a: 'boo'});
 });
 
-test("#transform - `replace` - verifies that a target object path exists", function() {
-  doc.reset({foo: 'bar'});
+test("#transform - `replace` - can add an object to the root object", function() {
+  doc.reset();
+  doc.transform({op: 'replace', path: '/foo', value: 'boo'});
+  deepEqual(doc.retrieve(), {foo: 'boo'});
+});
+
+test("#transform - `replace` - verifies that the parent of the target object path is present", function() {
+  doc.reset();
   throws(
     function() {
-      doc.transform({op: 'replace', path: '/a', value: 'boo'});
+      doc.transform({op: 'replace', path: '/a/b', value: 'boo'});
     },
     Document.PathNotFoundException
   );
@@ -429,14 +435,10 @@ test("#transform - `replace` - can replace a deeply nested object at a target ob
   deepEqual(doc.retrieve(), {a: {b: {c: 'e'}}});
 });
 
-test("#transform - `replace` - verifies that a nested object path exists", function() {
+test("#transform - `replace` - can add an object to a path that doesn't exist as long as the parent path exists", function() {
   doc.reset({foo: {bar: 'baz'}});
-  throws(
-    function() {
-      doc.transform({op: 'replace', path: '/foo/baz', value: 'boo'});
-    },
-    Document.PathNotFoundException
-  );
+  doc.transform({op: 'replace', path: '/foo/baz', value: 'boo'});
+  deepEqual(doc.retrieve(), {foo: {bar: 'baz', baz: 'boo'}});
 });
 
 test("#transform - `replace` - can replace an object from the end of a targeted array", function() {

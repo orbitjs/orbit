@@ -227,7 +227,7 @@ test("records updated with rest should be updated in memory", function() {
                 JSON.stringify({data: {type: 'planets', id: '12345', attributes: {name: 'Jupiter', classification: 'gas giant'}}}));
   });
   server.respondWith('PATCH', '/planets/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), {data: {type: 'planets', id: '12345', attributes: {name: 'Earth', classification: 'terrestrial'}}}, 'PUT request');
+    deepEqual(JSON.parse(xhr.requestBody), {data: {type: 'planets', id: '12345', attributes: {name: 'Earth', classification: 'terrestrial'}}}, 'PATCH request');
     xhr.respond(200,
                 {'Content-Type': 'application/json'},
                 JSON.stringify({data: {type: 'planets', id: '12345', attributes: {name: 'Earth', classification: 'terrestrial'}}}));
