@@ -181,6 +181,55 @@ test("#registerModel can register models after initialization", function() {
   });
 });
 
+test("#modelDefinition returns a registered model definition", function() {
+  var planetDefinition = {
+    attributes: {
+      name: {type: 'string', defaultValue: 'Earth'}
+    }
+  };
+
+  var schema = new Schema({
+    models: {
+      planet: planetDefinition
+    }
+  });
+
+  deepEqual(schema.modelDefinition('planet').attributes, planetDefinition.attributes);
+});
+
+test("#modelDefinition throws an exception if a model is not registered", function() {
+  var schema = new Schema({
+    models: {
+    }
+  });
+
+  throws(function() {
+    schema.modelDefinition('planet');
+  }, ModelNotRegisteredException, 'threw a OC.ModelNotRegisteredException');
+});
+
+test("#modelNotDefined can provide lazy registrations of models", function(assert) {
+  assert.expect(2);
+
+  var schema = new Schema({
+    models: {
+    }
+  });
+
+  var planetDefinition = {
+    attributes: {
+      name: {type: 'string', defaultValue: 'Earth'}
+    }
+  };
+
+  schema.modelNotDefined = function(type) {
+    assert.equal(type, 'planet', 'modelNotDefined called as expected');
+    schema.registerModel('planet', planetDefinition);
+  };
+
+  assert.deepEqual(schema.modelDefinition('planet').attributes, planetDefinition.attributes);
+});
+
 test("#normalize initializes a record with a unique primary key", function() {
   var schema = new Schema({
     models: {
