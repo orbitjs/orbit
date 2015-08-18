@@ -30,7 +30,7 @@ module("Integration - Transaction", {
 });
 
 test("can track operations when records are added to an empty source", function() {
-  expect(3);
+  expect(4);
 
   var transaction = new Transaction(source);
 
@@ -45,12 +45,13 @@ test("can track operations when records are added to an empty source", function(
     start();
     equal(source.length('planet'), 3, 'source should contain 3 records');
     transaction.commit();
+    equal(transaction.operations.length, 3, 'transaction should contain operations');
     equal(transaction.inverseOperations.length, 3, 'transaction should contain inverse operations');
   });
 });
 
 test("can track and invert operations when records are added to an empty source", function() {
-  expect(4);
+  expect(5);
 
   var transaction = new Transaction(source);
 
@@ -63,6 +64,7 @@ test("can track and invert operations when records are added to an empty source"
     source.add('planet', {name: 'Mercury', classification: 'terrestrial', atmosphere: false})
   ]).then(function() {
     equal(source.length('planet'), 3, 'source should contain 3 records');
+    equal(transaction.operations.length, 3, 'transaction should contain operations');
     equal(transaction.inverseOperations.length, 3, 'transaction should contain inverse operations');
 
     transaction.rollback().then(function() {
@@ -73,7 +75,7 @@ test("can track and invert operations when records are added to an empty source"
 });
 
 test("can track and invert operations performed after records are already present in a source", function() {
-  expect(5);
+  expect(6);
 
   equal(source.length('planet'), 0, 'source should be empty');
 
@@ -92,6 +94,7 @@ test("can track and invert operations performed after records are already presen
       source.add('planet', {name: 'Mars', classification: 'terrestrial', atmosphere: false})
     ]).then(function() {
       equal(source.length('planet'), 5, 'source should contain records');
+      equal(transaction.operations.length, 2, 'transaction should contain operations');
       equal(transaction.inverseOperations.length, 2, 'transaction should contain inverse operations');
 
       transaction.rollback().then(function() {
