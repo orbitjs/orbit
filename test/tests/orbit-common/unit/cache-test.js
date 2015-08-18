@@ -40,6 +40,20 @@ test("it exists", function() {
   ok(cache);
 });
 
+test("is sparse by default", function(assert) {
+  cache = new Cache(schema);
+
+  assert.equal(cache.sparse, true, 'sparse is true');
+  assert.equal(cache.retrieve('planet'), undefined, 'no data is initialized');
+});
+
+test("non-sparse caches will initialize data for all models in a schema", function(assert) {
+  cache = new Cache(schema, {sparse: false});
+
+  assert.equal(cache.sparse, false, 'sparse is false');
+  assert.deepEqual(cache.retrieve('planet'), {}, 'data is initialized');
+});
+
 test("#transform sets data and #retrieve retrieves it", function() {
   cache = new Cache(schema);
 
@@ -74,8 +88,7 @@ test("#hasDeleted by default just returns the inverse of #exists", function() {
 test("#length returns the size of data at a path", function() {
   cache = new Cache(schema);
 
-  equal(cache.length('planet'), 0, 'returns 0 when an object exists at a path but has no properties');
-  equal(cache.length('notthere'), null, 'returns null when an object does not exist at a path');
+  equal(cache.length('notthere'), 0, 'returns 0 when an object does not exist at a path');
 
   cache.transform([{op: 'add', path: 'planet/1', value: {name: 'Earth'}},
                    {op: 'add', path: 'planet/2', value: {name: 'Mars'}}]);
