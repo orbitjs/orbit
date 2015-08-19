@@ -8,7 +8,7 @@ import { spread } from 'orbit/lib/functions';
 import { uuid } from 'orbit/lib/uuid';
 import 'tests/test-helper';
 
-var source;
+var schema, source;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -16,7 +16,7 @@ module("OC - MemorySource", {
   setup: function() {
     Orbit.Promise = Promise;
 
-    var schema = new Schema({
+    schema = new Schema({
       models: {
         planet: {
           attributes: {
@@ -46,6 +46,7 @@ module("OC - MemorySource", {
   },
 
   teardown: function() {
+    schema = null;
     source = null;
     Orbit.Promise = null;
   }
@@ -256,6 +257,36 @@ test("#find - can find all records", function() {
       equal(allPlanets.length, 3, 'find() should return all records');
       return allPlanets;
     });
+  });
+});
+
+test("#find - returns RecordNotFoundException when no records of a type have been added (using a default sparse cache)", function() {
+  expect(2);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  stop();
+  source.find('planet').then(function() {
+    ok(false, 'no planet should be found');
+  }, function(e) {
+    start();
+    ok(e instanceof RecordNotFoundException, 'RecordNotFoundException thrown');
+  });
+});
+
+test("#find - returns an empty array of records when none have been added (using a non-sparse cache)", function() {
+  expect(2);
+
+  source = new MemorySource(schema, {cacheOptions: {sparse: false}});
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  stop();
+  source.find('planet').then(function(planets) {
+    start();
+    equal(planets.length, 0, 'an empty array of planets should be found');
+  }, function(e) {
+    ok(false, 'RecordNotFoundException should not be thrown');
   });
 });
 
