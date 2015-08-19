@@ -542,7 +542,7 @@ test("#find - can find all records", function() {
   });
 });
 
-test("#find - can filter records", function() {
+test("#query - can filter records", function() {
   expect(14);
 
   var records = [
@@ -560,7 +560,7 @@ test("#find - can filter records", function() {
   });
 
   stop();
-  source.find('planet', {classification: 'terrestrial'}).then(function(planets) {
+  source.query('planet', {classification: 'terrestrial'}).then(function(planets) {
     start();
 
     var planet, record;

@@ -319,7 +319,7 @@ test("#find - returns RecordNotFoundException when any record in an array can't 
   });
 });
 
-test("#find - can find records by one or more filters", function() {
+test("#query - can find records by one or more filters", function() {
   expect(5);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -333,9 +333,9 @@ test("#find - can find records by one or more filters", function() {
   ]).then(function() {
     equal(source.length('planet'), 4, 'source should contain 4 records');
 
-    source.find('planet', {classification: 'terrestrial', atmosphere: true}).then(function(allPlanets) {
+    source.query('planet', {classification: 'terrestrial', atmosphere: true}).then(function(allPlanets) {
       start();
-      equal(allPlanets.length, 2, 'findRecord() should return all records');
+      equal(allPlanets.length, 2, 'query() should return all matching records');
       equal(allPlanets[0].name, 'Earth', 'first matching planet');
       equal(allPlanets[1].name, 'Venus', 'second matching planet');
       return allPlanets;
@@ -375,7 +375,6 @@ test("#find - secondary key searches always return single records", function() {
       equal(planet, jupiter, 'found jupiter');
     })
     .then(start, start);
-
 });
 
 test("#add - creates a record", function() {
