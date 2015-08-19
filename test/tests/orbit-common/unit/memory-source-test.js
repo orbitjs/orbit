@@ -8,7 +8,7 @@ import { spread } from 'orbit/lib/functions';
 import { uuid } from 'orbit/lib/uuid';
 import 'tests/test-helper';
 
-var source;
+var schema, source;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -16,7 +16,7 @@ module("OC - MemorySource", {
   setup: function() {
     Orbit.Promise = Promise;
 
-    var schema = new Schema({
+    schema = new Schema({
       models: {
         planet: {
           attributes: {
@@ -46,6 +46,7 @@ module("OC - MemorySource", {
   },
 
   teardown: function() {
+    schema = null;
     source = null;
     Orbit.Promise = null;
   }
@@ -259,6 +260,36 @@ test("#find - can find all records", function() {
   });
 });
 
+test("#find - returns RecordNotFoundException when no records of a type have been added (using a default sparse cache)", function() {
+  expect(2);
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  stop();
+  source.find('planet').then(function() {
+    ok(false, 'no planet should be found');
+  }, function(e) {
+    start();
+    ok(e instanceof RecordNotFoundException, 'RecordNotFoundException thrown');
+  });
+});
+
+test("#find - returns an empty array of records when none have been added (using a non-sparse cache)", function() {
+  expect(2);
+
+  source = new MemorySource(schema, {cacheOptions: {sparse: false}});
+
+  equal(source.length('planet'), 0, 'source should be empty');
+
+  stop();
+  source.find('planet').then(function(planets) {
+    start();
+    equal(planets.length, 0, 'an empty array of planets should be found');
+  }, function(e) {
+    ok(false, 'RecordNotFoundException should not be thrown');
+  });
+});
+
 test("#find - can find an array of records by id", function() {
   expect(4);
 
@@ -319,7 +350,7 @@ test("#find - returns RecordNotFoundException when any record in an array can't 
   });
 });
 
-test("#find - can find records by one or more filters", function() {
+test("#query - can find records by one or more filters", function() {
   expect(5);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -333,9 +364,9 @@ test("#find - can find records by one or more filters", function() {
   ]).then(function() {
     equal(source.length('planet'), 4, 'source should contain 4 records');
 
-    source.find('planet', {classification: 'terrestrial', atmosphere: true}).then(function(allPlanets) {
+    source.query('planet', {classification: 'terrestrial', atmosphere: true}).then(function(allPlanets) {
       start();
-      equal(allPlanets.length, 2, 'findRecord() should return all records');
+      equal(allPlanets.length, 2, 'query() should return all matching records');
       equal(allPlanets[0].name, 'Earth', 'first matching planet');
       equal(allPlanets[1].name, 'Venus', 'second matching planet');
       return allPlanets;
@@ -375,7 +406,6 @@ test("#find - secondary key searches always return single records", function() {
       equal(planet, jupiter, 'found jupiter');
     })
     .then(start, start);
-
 });
 
 test("#add - creates a record", function() {
