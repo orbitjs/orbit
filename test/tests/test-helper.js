@@ -7,11 +7,9 @@ on('error', function(reason) {
 });
 
 var verifyLocalStorageContainsRecord = function(namespace, type, id, record, ignoreFields) {
-  var expected = {};
-  expected[id] = record;
+  var recordKey = [namespace, type, id].join('/');
 
-  var actual = JSON.parse(window.localStorage.getItem(namespace));
-  if (type) actual = actual[type];
+  var actual = JSON.parse(window.localStorage.getItem(recordKey));
 
   if (ignoreFields) {
     for (var i = 0, l = ignoreFields.length, field; i < l; i++) {
@@ -21,7 +19,7 @@ var verifyLocalStorageContainsRecord = function(namespace, type, id, record, ign
   }
 
   deepEqual(actual,
-            expected,
+            record,
             'data in local storage matches expectations');
 };
 
