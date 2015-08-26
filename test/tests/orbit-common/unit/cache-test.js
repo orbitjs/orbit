@@ -1,7 +1,7 @@
-import 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
+import { equalOps } from 'tests/test-helper';
 import { Promise, on } from 'rsvp';
 
 var schema,
@@ -172,8 +172,16 @@ test("#transform tracks refs and clears them from hasMany relationships when a r
   equal(cache.retrieve('/planet/p1/__rel/moons/m2'), null, 'Europa has been cleared from Jupiter');
 });
 
-test("does not add link to hasMany if record doesn't exist", function(){
+test("for a sparse cache, adds link to hasMany if record doesn't exist", function(){
   cache = new Cache(schema);
+  var operation = {op: 'add', path: ['planet', 'p1', '__rel', 'moons', 'moon1'], value: true};
+
+  var result = cache.transform([operation]);
+  equalOps(result.operations, [operation], "didn't apply transform");
+});
+
+test("for a non-sparse cache, does not add link to hasMany if record doesn't exist", function(){
+  cache = new Cache(schema, {sparse: false});
   var operation = {op: 'add', path: ['planet', 'p1', '__rel', 'moons', 'moon1'], value: true};
 
   var result = cache.transform([operation]);
@@ -188,8 +196,16 @@ test("does not remove link from hasMany if record doesn't exist", function(){
   deepEqual(result.operations, [], "didn't apply transform");
 });
 
-test("does not replace hasOne if record doesn't exist", function(){
+test("for a sparse cache, adds (instead of replaces) hasOne if record doesn't exist", function(){
   cache = new Cache(schema);
+  var operation = {op: 'replace', path: ['moon', 'moon1', '__rel', 'planet'], value: "p1"};
+
+  var result = cache.transform([operation]);
+  equalOps(result.operations, [operation], "didn't apply transform");
+});
+
+test("for a non-sparse cache, does not replace hasOne if record doesn't exist", function(){
+  cache = new Cache(schema, {sparse: false});
   var operation = {op: 'replace', path: ['moon', 'moon1', '__rel', 'planet'], value: "p1"};
 
   var result = cache.transform([operation]);
