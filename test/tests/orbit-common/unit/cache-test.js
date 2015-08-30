@@ -177,7 +177,7 @@ test("for a sparse cache, adds link to hasMany if record doesn't exist", functio
   var operation = {op: 'add', path: ['planet', 'p1', '__rel', 'moons', 'moon1'], value: true};
 
   var result = cache.transform([operation]);
-  equalOps(result.operations, [operation], "didn't apply transform");
+  equalOps(result.operations, [operation], "applied transform");
 });
 
 test("for a non-sparse cache, does not add link to hasMany if record doesn't exist", function(){
@@ -201,7 +201,7 @@ test("for a sparse cache, adds (instead of replaces) hasOne if record doesn't ex
   var operation = {op: 'replace', path: ['moon', 'moon1', '__rel', 'planet'], value: "p1"};
 
   var result = cache.transform([operation]);
-  equalOps(result.operations, [operation], "didn't apply transform");
+  equalOps(result.operations, [operation], "applied transform");
 });
 
 test("for a non-sparse cache, does not replace hasOne if record doesn't exist", function(){
