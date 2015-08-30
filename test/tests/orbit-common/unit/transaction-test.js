@@ -82,15 +82,16 @@ test("once begun, tracks operations performed and inverse operations", function(
   assert.equal(transaction.operations.length, 0, 'transaction has no operations');
   assert.equal(transaction.inverseOperations.length, 0, 'transaction has no inverse operations');
 
-  return transaction.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    equalOps(transaction.operations,
-      [{op: 'add', path: 'planet/' + planet.id, value: planet}],
-      'transaction tracked `add` operation');
+  return transaction.add('planet', {name: 'Jupiter', classification: 'gas giant'})
+    .then(function(planet) {
+      equalOps(transaction.operations,
+        [{op: 'add', path: 'planet/' + planet.id, value: planet}],
+        'transaction tracked `add` operation');
 
-    equalOps(transaction.inverseOperations,
-      [{op: 'remove', path: 'planet/' + planet.id}],
-      'transaction tracked inverse operations');
-  });
+      equalOps(transaction.inverseOperations,
+        [{op: 'remove', path: 'planet/' + planet.id}],
+        'transaction tracked inverse operations');
+    });
 });
 
 test("`commit` applies operations to `baseSource`", function(assert) {
@@ -100,12 +101,18 @@ test("`commit` applies operations to `baseSource`", function(assert) {
 
   assert.equal(source.length('planet'), 0, 'base source has no planets');
 
-  return transaction.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    return transaction.commit().then(function() {
+  var jupiter;
+
+  return transaction.add('planet', {name: 'Jupiter', classification: 'gas giant'})
+    .then(function(planet) {
+      jupiter = planet;
+
+      return transaction.commit();
+    })
+    .then(function() {
       assert.equal(source.length('planet'), 1, 'base source has a planet');
-      assert.deepEqual(source.retrieve(['planet', planet.id]), planet, 'planet matches');
+      assert.deepEqual(source.retrieve(['planet', jupiter.id]), jupiter, 'planet matches');
     });
-  });
 });
 
 test("an unisolated transaction will retrieve missing data from its `baseSource`", function(assert) {
@@ -115,10 +122,11 @@ test("an unisolated transaction will retrieve missing data from its `baseSource`
 
   assert.equal(transaction.isolated, false, 'transactions are not isolated by default');
 
-  return source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    assert.equal(transaction.length('planet'), 1, 'transaction can retrieve planet from base source');
-    assert.deepEqual(transaction.retrieve(['planet', planet.id]), planet, 'planet matches');
-  });
+  return source.add('planet', {name: 'Jupiter', classification: 'gas giant'})
+    .then(function(planet) {
+      assert.equal(transaction.length('planet'), 1, 'transaction can retrieve planet from base source');
+      assert.deepEqual(transaction.retrieve(['planet', planet.id]), planet, 'planet matches');
+    });
 });
 
 test("an isolated transaction won't retrieve any data from its `baseSource`", function(assert) {
@@ -128,7 +136,8 @@ test("an isolated transaction won't retrieve any data from its `baseSource`", fu
 
   assert.equal(transaction.isolated, true, 'transaction is isolated');
 
-  return source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    assert.equal(transaction.length('planet'), 0, 'transaction has no planets defined');
-  });
+  return source.add('planet', {name: 'Jupiter', classification: 'gas giant'})
+    .then(function(planet) {
+      assert.equal(transaction.length('planet'), 0, 'transaction has no planets defined');
+    });
 });
