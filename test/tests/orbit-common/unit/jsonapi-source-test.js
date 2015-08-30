@@ -49,7 +49,7 @@ module("OC - JSONAPISource", {
       }
     });
 
-    source = new JSONAPISource(schema);
+    source = new JSONAPISource({schema: schema});
   },
 
   teardown: function() {
@@ -71,7 +71,7 @@ test("its prototype chain is correct", function() {
 test("source saves options", function() {
   expect(6);
   var schema = new Schema({});
-  source = new JSONAPISource(schema, {host: "127.0.0.1:8888", namespace: "api", headers: {"User-Agent": "CERN-LineMode/2.15 libwww/2.17b3"}});
+  source = new JSONAPISource({schema: schema, host: "127.0.0.1:8888", namespace: "api", headers: {"User-Agent": "CERN-LineMode/2.15 libwww/2.17b3"}});
   equal(source.namespace, "api", "Namespace should be defined");
   equal(source.host, "127.0.0.1:8888", "Host should be defined");
   equal(source.headers["User-Agent"], "CERN-LineMode/2.15 libwww/2.17b3", "Headers should be defined");
@@ -82,7 +82,7 @@ test("source saves options", function() {
 
 test("#resourcePath - returns resource's path without its host and namespace", function () {
   expect(1);
-  source = new JSONAPISource(schema, {host: "http://127.0.0.1:8888", namespace: "api"});
+  source = new JSONAPISource({schema: schema, host: "http://127.0.0.1:8888", namespace: "api"});
 
   var jupiter = source.normalize('planet', {id: '1', name: 'Jupiter'});
   equal(source.resourcePath("planet", jupiter.__id), 'planets/1', "resourcePath returns the path to the resource relative to the host and namespace");
@@ -90,7 +90,7 @@ test("#resourcePath - returns resource's path without its host and namespace", f
 
 test("#resourceURL - respects options to construct URLs", function () {
   expect(1);
-  source = new JSONAPISource(schema, {host: "http://127.0.0.1:8888", namespace: "api"});
+  source = new JSONAPISource({schema: schema, host: "http://127.0.0.1:8888", namespace: "api"});
 
   var jupiter = source.normalize('planet', {id: '1', name: 'Jupiter'});
   equal(source.resourceURL("planet", jupiter.__id), 'http://127.0.0.1:8888/api/planets/1', "resourceURL method should use the options to construct URLs");

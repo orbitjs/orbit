@@ -48,9 +48,9 @@ module("Integration - Three Memory Source Sync (Blocking)", {
     });
 
     // Create sources
-    source1 = new MemorySource(schema);
-    source2 = new MemorySource(schema);
-    source3 = new MemorySource(schema);
+    source1 = new MemorySource({schema: schema});
+    source2 = new MemorySource({schema: schema});
+    source3 = new MemorySource({schema: schema});
 
     source1.id = 'source1';
     source2.id = 'source2';
