@@ -20,7 +20,7 @@ module("OC - LocalStorageSource", {
       }
     });
 
-    source = new LocalStorageSource(schema, {autoload: false});
+    source = new LocalStorageSource({schema: schema, autoload: false});
   },
 
   teardown: function() {

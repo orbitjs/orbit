@@ -64,8 +64,8 @@ module("Integration - Rest / Memory Source Assist", {
     });
 
     // Create sources
-    memorySource = new MemorySource(schema);
-    restSource = new JSONAPISource(schema);
+    memorySource = new MemorySource({schema: schema});
+    restSource = new JSONAPISource({schema: schema});
 
     memorySource.id = 'memory';
     restSource.id = 'rest';

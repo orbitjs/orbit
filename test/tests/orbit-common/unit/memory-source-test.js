@@ -42,7 +42,7 @@ module("OC - MemorySource", {
       }
     });
 
-    source = new MemorySource(schema);
+    source = new MemorySource({schema: schema});
   },
 
   teardown: function() {
@@ -277,7 +277,7 @@ test("#find - returns RecordNotFoundException when no records of a type have bee
 test("#find - returns an empty array of records when none have been added (using a non-sparse cache)", function() {
   expect(2);
 
-  source = new MemorySource(schema, {cacheOptions: {sparse: false}});
+  source = new MemorySource({schema: schema, cacheOptions: {sparse: false}});
 
   equal(source.length('planet'), 0, 'source should be empty');
 

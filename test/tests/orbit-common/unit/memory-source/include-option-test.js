@@ -51,7 +51,7 @@ module("Integration - Memory Source - include option", {
       }
     });
 
-    memorySource = new MemorySource(schema);
+    memorySource = new MemorySource({schema: schema});
   },
 
   teardown: function() {
