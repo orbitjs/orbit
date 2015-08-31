@@ -526,4 +526,3 @@ test("#deserialize - can deserialize a compound document - using UUIDs", functio
     'deserialized document matches'
   );
 });
-
