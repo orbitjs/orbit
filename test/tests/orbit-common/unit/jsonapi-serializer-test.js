@@ -95,40 +95,40 @@ test("#resourceKey returns 'id' by default", function() {
   equal(serializer.resourceKey('planet'), 'id');
 });
 
-test("#resourceType returns the pluralized type by default", function() {
+test("#resourceType returns the pluralized, dasherized type by default", function() {
   setupWithLocalIds();
 
-  equal(serializer.resourceType('planet'), 'planets');
+  equal(serializer.resourceType('planetaryObject'), 'planetary-objects');
 });
 
-test("#resourceLink returns the link by default", function() {
+test("#resourceLink returns the dasherized link by default", function() {
   setupWithLocalIds();
 
-  equal(serializer.resourceLink('planet', 'moons'), 'moons');
+  equal(serializer.resourceLink('planet', 'surfaceElements'), 'surface-elements');
 });
 
-test("#resourceAttr returns the attribute by default", function() {
+test("#resourceAttr returns the dasherized attribute by default", function() {
   setupWithLocalIds();
 
-  equal(serializer.resourceLink('planet', 'name'), 'name');
+  equal(serializer.resourceLink('planet', 'fullName'), 'full-name');
 });
 
-test("#typeFromResourceType returns the singularized type by default", function() {
+test("#typeFromResourceType returns the singularized, camelized type by default", function() {
   setupWithLocalIds();
 
-  equal(serializer.typeFromResourceType('planets'), 'planet');
+  equal(serializer.typeFromResourceType('planetary-objects'), 'planetaryObject');
 });
 
-test("#attrFromResourceAttr returns the attribute by default", function() {
+test("#attrFromResourceAttr returns the camelized attribute by default", function() {
   setupWithLocalIds();
 
-  equal(serializer.attrFromResourceAttr('planet', 'name'), 'name');
+  equal(serializer.attrFromResourceAttr('planet', 'full-name'), 'fullName');
 });
 
-test("#linkFromResourceLink returns the link by default", function() {
+test("#linkFromResourceLink returns the camelized link by default", function() {
   setupWithLocalIds();
 
-  equal(serializer.linkFromResourceLink('planet', 'moons'), 'moons');
+  equal(serializer.linkFromResourceLink('planet', 'surface-elements'), 'surfaceElements');
 });
 
 test("#resourceId returns a matching resource id given an orbit id (or array of ids) - using local IDs", function() {
@@ -526,4 +526,3 @@ test("#deserialize - can deserialize a compound document - using UUIDs", functio
     'deserialized document matches'
   );
 });
-
