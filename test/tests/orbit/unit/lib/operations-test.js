@@ -220,3 +220,22 @@ test("coalesceOperations - record link takes precedence over remove operation", 
     ]
   );
 });
+
+test("coalesceOperations - coalesces operations, but doesn't allow reordering of ops that affect relationships", function() {
+  shouldCoalesceOperations(
+    [
+      op('add', ['address', 'def789'], { id: 'def789' }),
+      op('replace', ['address', 'def789', 'street'], 'a'),
+      op('add', ['contact', '1234', '__rel', 'address', 'def789'], true),
+      op('add', ['address', 'def789', '__rel', 'contact'], '1234'),
+      op('replace', ['address', 'def789', 'street'], 'ab'),
+      op('replace', ['address', 'def789', 'street'], 'abc'),
+      op('replace', ['address', 'def789', 'street'], 'abcd')
+    ],
+    [
+      op('add', ['address', 'def789'], { id: 'def789', street: 'abcd' }),
+      op('add', ['contact', '1234', '__rel', 'address', 'def789'], true),
+      op('add', ['address', 'def789', '__rel', 'contact'], '1234')
+    ]
+  );
+});

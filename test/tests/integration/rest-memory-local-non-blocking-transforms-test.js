@@ -44,9 +44,9 @@ module("Integration - Rest / Memory / Local Transforms (Non-Blocking)", {
     });
 
     // Create sources
-    memorySource = new MemorySource(schema);
-    restSource = new JSONAPISource(schema);
-    localSource = new LocalStorageSource(schema, {autoload: false});
+    memorySource = new MemorySource({schema: schema});
+    restSource = new JSONAPISource({schema: schema});
+    localSource = new LocalStorageSource({schema: schema, autoload: false});
 
     memorySource.id = 'memorySource';
     restSource.id = 'restSource';

@@ -31,19 +31,19 @@ test("calls Source.created when a source has been created", function() {
 
   var created = sinon.spy(Source, 'created');
 
-  var source = new Source(schema);
+  var source = new Source({schema: schema});
   ok(created.calledWith(source), 'Called Source.created with source');
 
   created.restore();
 });
 
 test("will be created without a cache by default", function() {
-  var source = new Source(schema);
+  var source = new Source({schema: schema});
   equal(source._cache, null);
 });
 
 test("can be created with a cache with `useCache`, and options can be specified with `cacheOptions`", function() {
-  var source = new Source(schema, {useCache: true, cacheOptions: {processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor]}});
+  var source = new Source({schema: schema, useCache: true, cacheOptions: {processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor]}});
   ok(source._cache, 'cache exists');
   equal(source._cache._processors.length, 2, 'cache has 2 processors');
 });
@@ -51,7 +51,7 @@ test("can be created with a cache with `useCache`, and options can be specified 
 test("#prepareTransformOperations - for `add` operations, applies a differential if the target path exists", function() {
   expect(1);
 
-  var source = new Source(schema, {useCache: true, cacheOptions: {processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor]}});
+  var source = new Source({schema: schema, useCache: true, cacheOptions: {processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor]}});
 
   var op = new Operation({
     op: 'add',
@@ -75,7 +75,7 @@ test("#prepareTransformOperations - for `add` operations, applies a differential
 test("#prepareTransformOperations - for `replace` operations, applies a differential if the target path exists", function() {
   expect(1);
 
-  var source = new Source(schema, {useCache: true, cacheOptions: {processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor]}});
+  var source = new Source({schema: schema, useCache: true, cacheOptions: {processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor]}});
 
   var op = new Operation({
     op: 'replace',

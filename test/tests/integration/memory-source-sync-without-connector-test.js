@@ -27,8 +27,8 @@ module("Integration - MemorySource Sync without Connector", {
     });
 
     // Create sources
-    primarySource = new MemorySource(schema);
-    backupSource = new MemorySource(schema);
+    primarySource = new MemorySource({schema: schema});
+    backupSource = new MemorySource({schema: schema});
 
     primarySource.on('didTransform', function(transform) {
       backupSource.transform(transform);
