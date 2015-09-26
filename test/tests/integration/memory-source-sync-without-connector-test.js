@@ -1,16 +1,9 @@
 import Orbit from 'orbit/main';
-import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
 import { Promise } from 'rsvp';
 
 const schemaDefinition = {
-  modelDefaults: {
-    keys: {
-      '__id': {primaryKey: true, defaultValue: uuid},
-      'id': {}
-    }
-  },
   models: {
     planet: {}
   }

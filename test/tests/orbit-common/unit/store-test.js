@@ -27,9 +27,6 @@ let schemaDefinition = {
       }
     },
     planet: {
-      modelDefaults: {
-        defaultValue: 'planetId1'
-      },
       attributes: {
         name: {type: 'string'},
         classification: {type: 'string'}

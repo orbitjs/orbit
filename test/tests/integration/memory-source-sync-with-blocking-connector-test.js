@@ -1,5 +1,4 @@
 import Orbit from 'orbit/main';
-import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
 import Store from 'orbit-common/store';
@@ -7,12 +6,6 @@ import TransformConnector from 'orbit/transform-connector';
 import { Promise, all } from 'rsvp';
 
 const schemaDefinition = {
-  modelDefaults: {
-    keys: {
-      '__id': {primaryKey: true, defaultValue: uuid},
-      'id': {}
-    }
-  },
   models: {
     planet: {
       attributes: {
@@ -33,19 +26,11 @@ const schemaDefinition = {
       }
     },
     friend: {
-      keys: {
-        __id: {},
-        id: { primaryKey: true, defaultValue: uuid }
-      },
       relationships: {
         group: { model: 'group', type: 'hasOne', inverse: 'members' }
       }
     },
     group: {
-      keys: {
-        __id: {},
-        id: { primaryKey: true, defaultValue: uuid }
-      },
       relationships: {
         members: { model: 'friend', type: 'hasMany', inverse: 'group' }
       }
@@ -93,7 +78,7 @@ test("consecutive transforms can be applied to one source and should be automati
   expect(4);
 
   store.addRecord({id: '123', type: 'planet', attributes: { name: 'Jupiter' }})
-    .then(function(jupiter){
+    .then(function(jupiter) {
       return store.replaceAttribute(jupiter, 'name', 'Earth');
     })
     .then(function() {
@@ -101,7 +86,7 @@ test("consecutive transforms can be applied to one source and should be automati
       const sourceVersion = source.retrieve(['planet', '123']);
 
       notStrictEqual(sourceVersion, storeVersion, 'not the same object as the one originally inserted');
-      equal(sourceVersion.__id, storeVersion.__id, 'backup record has the same primary id');
+      equal(sourceVersion.id, storeVersion.id, 'backup record has the same primary id');
       equal(sourceVersion.attributes.name, storeVersion.attributes.name, 'backup record has the same name');
       equal(sourceVersion.attributes.name, 'Earth', 'records have the updated name');
 
@@ -114,7 +99,7 @@ test("replacing value with null should not cause infinite update loop", function
   expect(4);
 
   store.addRecord({type: 'planet', id: '123', attributes: {name: 'Jupiter'}})
-    .then(function(jupiter){
+    .then(function(jupiter) {
       return store.replaceAttribute(jupiter, 'name', null);
     })
     .then(function() {
@@ -122,7 +107,7 @@ test("replacing value with null should not cause infinite update loop", function
       const sourceVersion = source.retrieve(['planet', '123']);
 
       notStrictEqual(sourceVersion, storeVersion, 'not the same object as the one originally inserted');
-      strictEqual(sourceVersion.__id, storeVersion.__id, 'backup record has the same primary id');
+      strictEqual(sourceVersion.id, storeVersion.id, 'backup record has the same primary id');
       strictEqual(sourceVersion.attributes.name, storeVersion.attributes.name, 'backup record has the same name');
       strictEqual(sourceVersion.attributes.name, null, 'records have name == null');
 
@@ -149,7 +134,7 @@ test("replacing relationship should not cause infinite update loop", function({a
     const sourceNewGroup = source.retrieve(['group', 'new']);
 
     store.addToRelationship(storeGnarf, 'group', storeInitialGroup)
-      .then(function(){
+      .then(function() {
         equal(storeGnarf.relationships.group.data, 'group:initial', 'initial group check');
         equal(sourceGnarf.relationships.group.data, 'group:initial', 'initial group check');
 
@@ -159,10 +144,10 @@ test("replacing relationship should not cause infinite update loop", function({a
         equal(retrieveHasMany(storeNewGroup, 'members').length, 0, 'new group check');
         equal(retrieveHasMany(sourceNewGroup, 'members').length, 0, 'new group check');
       })
-      .then(function(){
+      .then(function() {
         return store.replaceRelationship(storeGnarf, 'group', storeNewGroup);
       })
-      .then(function(){
+      .then(function() {
         equal(storeGnarf.relationships.group.data, 'group:new', 'new group check');
         equal(sourceGnarf.relationships.group.data, 'group:new', 'new group check');
 
@@ -172,7 +157,7 @@ test("replacing relationship should not cause infinite update loop", function({a
         equal(retrieveHasMany(storeNewGroup, 'members').length, 1, 'new group check');
         equal(retrieveHasMany(sourceNewGroup, 'members').length, 1, 'new group check');
       })
-      .then(function(){
+      .then(function() {
         done();
       });
   });
