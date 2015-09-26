@@ -258,3 +258,16 @@ test('#replaceRelationship - hasOne', function({async}) {
       done();
     });
 });
+
+test('#retrieveRelationship', function() {
+  const earth = schema.normalize({id: 'earth', type: 'planet', relationships: { moons: { data: { 'moon:io': true } } }});
+  const io = schema.normalize({id: 'io', type: 'moon', relationships: { planet: {data: 'planet:earth'} }});
+
+  store.reset({
+    planet: { earth },
+    moon: { io }
+  });
+
+  deepEqual(store.retrieveRelationship(earth, 'moons'), ['moon:io']);
+  deepEqual(store.retrieveRelationship(io, 'planet'), 'planet:earth');
+});
