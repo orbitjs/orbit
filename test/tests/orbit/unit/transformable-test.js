@@ -44,39 +44,43 @@ test("it should require the definition of _transform", function() {
 
 
 test("it should resolve when _transform returns a promise", function() {
-  expect(2);
+  expect(3);
 
   source._transform = function(o) {
     return new Promise(function(resolve, reject) {
       ok(true, '_transform promise resolved');
-      resolve();
+      resolve(':)');
     });
   };
 
   Transformable.extend(source);
 
   stop();
-  source.transform({op: 'add', path: 'planet/1', value: 'data'}).then(function(response) {
-    start();
-    ok(true, 'transform promise resolved');
-  });
+  source.transform({op: 'add', path: 'planet/1', value: 'data'})
+    .then(function(response) {
+      start();
+      ok(true, 'transform promise resolved');
+      equal(response, ':)', 'response is returned');
+    });
 });
 
 test("it should resolve when _transform simply returns (without a promise)", function() {
-  expect(2);
+  expect(3);
 
   source._transform = function() {
     ok(true, '_transform called');
-    return;
+    return ':)';
   };
 
   Transformable.extend(source);
 
   stop();
-  source.transform({op: 'add', path: 'planet/1', value: 'data'}).then(function() {
-    start();
-    ok(true, 'transform promise returned');
-  });
+  source.transform({op: 'add', path: 'planet/1', value: 'data'})
+    .then(function(response) {
+      start();
+      ok(true, 'transform promise returned');
+      equal(response, ':)', 'response is returned');
+    });
 });
 
 test("it should trigger `didTransform` event BEFORE a transform resolves", function() {

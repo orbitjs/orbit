@@ -6,6 +6,7 @@ import { all, Promise } from 'rsvp';
 import { RecordNotFoundException, LinkNotFoundException } from 'orbit-common/lib/exceptions';
 import { spread } from 'orbit/lib/functions';
 import { uuid } from 'orbit/lib/uuid';
+import { toIdentifier } from 'orbit-common/lib/identifiers';
 import 'tests/test-helper';
 
 var schema, source;
@@ -23,19 +24,15 @@ module("OC - MemorySource", {
             name: {type: 'string'},
             classification: {type: 'string'}
           },
-          links: {
+          relationships: {
             moons: {type: 'hasMany', model: 'moon', inverse: 'planet'}
-          },
-          keys: {
-            id: { primaryKey: true, defaultValue: uuid },
-            secondaryId: { defaultValue: uuid },
           }
         },
         moon: {
           attributes: {
             name: {type: 'string'}
           },
-          links: {
+          relationships: {
             planet: {type: 'hasOne', model: 'planet', inverse: 'moons'}
           }
         }
@@ -60,133 +57,13 @@ test("its prototype chain is correct", function() {
   ok(source instanceof Source, 'instanceof Source');
 });
 
-// TODO - fixup transform tests
-//
-//test("#transform - can insert records and assign ids", function() {
-//  expect(6);
-//
-//  equal(source.length('planet'), 0, 'source should be empty');
-//
-//  stop();
-//  source.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-//    equal(source.length('planet'), 1, 'source should contain one record');
-//    ok(planet.id, 'id should be defined');
-//    equal(planet.name, 'Jupiter', 'name should match');
-//    equal(planet.classification, 'gas giant', 'classification should match');
-//    return planet;
-//
-//  }).then(function(planet) {
-//    source.findRecord('planet', planet.id).then(function(foundPlanet) {
-//      start();
-//      equal(foundPlanet.id, planet.id, 'record can be looked up by id');
-//      return planet;
-//    });
-//  });
-//});
-//
-//test("#transform - throws an error when a record with a duplicate id is inserted", function() {
-//  expect(4);
-//
-//  equal(source.length('planet'), 0, 'source should be empty');
-//
-//  stop();
-//  source.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-//    equal(source.length('planet'), 1, 'source should contain one record');
-//    ok(planet.id, 'id should be defined');
-//    return planet;
-//
-//  }).then(function(planet) {
-//    source.transform('add', 'planet', {id: planet.id, name: 'Jupiter', classification: 'gas giant'}).then(null, function(e) {
-//      start();
-//      equal(e.constructor, 'AlreadyExistsException', 'duplicate error');
-//    });
-//  });
-//});
-//
-//test("#transform - can update records", function() {
-//  expect(8);
-//
-//  equal(source.length('planet'), 0, 'source should be empty');
-//
-//  var original;
-//
-//  stop();
-//  source.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-//    original = planet;
-//    return source.transform('replace', 'planet', {id: planet.id, name: 'Earth', classification: 'terrestrial'}).then(function(updatedPlanet) {
-//      equal(updatedPlanet.id, planet.id, 'id remains the same');
-//      equal(updatedPlanet.name, 'Earth', 'name has been updated');
-//      equal(updatedPlanet.classification, 'terrestrial', 'classification has been updated');
-//      return planet;
-//    });
-//
-//  }).then(function(planet) {
-//    source.findRecord('planet', planet.id).then(function(foundPlanet) {
-//      start();
-//      strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
-//      equal(foundPlanet.id, planet.id, 'record can be looked up by id');
-//      equal(foundPlanet.name, 'Earth', 'name has been updated');
-//      equal(foundPlanet.classification, 'terrestrial', 'classification has been updated');
-//      return planet;
-//    });
-//  });
-//});
-//
-//test("#transform - can patch records", function() {
-//  expect(8);
-//
-//  equal(source.length('planet'), 0, 'source should be empty');
-//
-//  var original;
-//
-//  stop();
-//  source.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-//    original = planet;
-//    return planet;
-//
-//  }).then(function(planet) {
-//    return source.transform('patch', 'planet', {id: planet.id, name: 'Earth'}).then(function(updatedPlanet) {
-//      equal(updatedPlanet.id, planet.id, 'id remains the same');
-//      equal(updatedPlanet.name, 'Earth', 'name has been updated');
-//      equal(updatedPlanet.classification, 'gas giant', 'classification has not been updated');
-//      return planet;
-//    });
-//
-//  }).then(function(planet) {
-//    source.findRecord('planet', planet.id).then(function(foundPlanet) {
-//      start();
-//      strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
-//      equal(foundPlanet.id, planet.id, 'record can be looked up by id');
-//      equal(foundPlanet.name, 'Earth', 'name has been updated');
-//      equal(foundPlanet.classification, 'gas giant', 'classification has not been updated');
-//      return planet;
-//    });
-//  });
-//});
-//
-//test("#transform - can delete records", function() {
-//  expect(3);
-//
-//  equal(source.length('planet'), 0, 'source should be empty');
-//
-//  stop();
-//  source.transform('add', 'planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-//    equal(source.length('planet'), 1, 'source should contain one record');
-//
-//    source.transform('remove', 'planet', {id: planet.id}).then(function() {
-//      start();
-//      equal(source.length('planet'), 0, 'source should be empty');
-//    });
-//  });
-//});
-
 test("#find - can find a record by id", function() {
   expect(2);
 
   equal(source.length('planet'), 0, 'source should be empty');
 
   stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant'}}).then(function(planet) {
     source.find('planet', planet.id).then(function(foundPlanet) {
       start();
       strictEqual(foundPlanet, planet, 'found planet matches original');
@@ -200,38 +77,8 @@ test("#find - returns RecordNotFoundException when a record can't be found by id
   equal(source.length('planet'), 0, 'source should be empty');
 
   stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant'}}).then(function(planet) {
     source.find('planet', 'bogus').then(function(foundPlanet) {
-      ok(false, 'no planet should be found');
-    }, function(e) {
-      start();
-      ok(e instanceof RecordNotFoundException, 'RecordNotFoundException thrown');
-    });
-  });
-});
-
-test("#find - can find a record by object that contains an id", function() {
-  expect(2);
-
-  equal(source.length('planet'), 0, 'source should be empty');
-
-  stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    source.find('planet', planet).then(function(foundPlanet) {
-      start();
-      strictEqual(foundPlanet, planet, 'found planet matches original');
-    });
-  });
-});
-
-test("#find - returns RecordNotFoundException when a record can't be found by remote id", function() {
-  expect(2);
-
-  equal(source.length('planet'), 0, 'source should be empty');
-
-  stop();
-  source.add('planet', {id: '1', name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    source.find('planet', {id: 'bogus'}).then(function(foundPlanet) {
       ok(false, 'no planet should be found');
     }, function(e) {
       start();
@@ -247,9 +94,9 @@ test("#find - can find all records", function() {
 
   stop();
   all([
-    source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
-    source.add('planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}),
-    source.add('planet', {name: 'Mercury', classification: 'terrestrial', atmosphere: false})
+    source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}}),
+    source.addRecord({type: 'planet', attributes: {name: 'Earth', classification: 'terrestrial', atmosphere: true}}),
+    source.addRecord({type: 'planet', attributes: {name: 'Mercury', classification: 'terrestrial', atmosphere: false}})
   ]).then(function() {
     equal(source.length('planet'), 3, 'source should contain 3 records');
     source.find('planet').then(function(allPlanets) {
@@ -290,66 +137,6 @@ test("#find - returns an empty array of records when none have been added (using
   });
 });
 
-test("#find - can find an array of records by id", function() {
-  expect(4);
-
-  equal(source.length('planet'), 0, 'source should be empty');
-
-  var ids = [];
-
-  stop();
-
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    ids.push(planet.id);
-    return source.add('planet', {name: 'Earth', classification: 'terrestrial'});
-
-  }).then(function(planet) {
-    ids.push(planet.id);
-    return source.add('planet', {name: 'Mercury', classification: 'terrestrial'});
-
-  }).then(function(planet) {
-    return source.find('planet', ids);
-
-  }).then(function(planets) {
-    start();
-    equal(planets.length, 2, 'find() should return the request\'s records');
-    equal(planets[0].id, ids[0], 'planet id matches');
-    equal(planets[1].id, ids[1], 'planet id matches');
-  });
-});
-
-test("#find - returns RecordNotFoundException when any record in an array can't be found", function() {
-  expect(3);
-
-  equal(source.length('planet'), 0, 'source should be empty');
-
-  var ids = [];
-
-  stop();
-
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    ids.push(planet.id);
-    return source.add('planet', {name: 'Earth', classification: 'terrestrial'});
-
-  }).then(function(planet) {
-    ids.push(planet.id);
-    return source.add('planet', {name: 'Mercury', classification: 'terrestrial'});
-
-  }).then(function(planet) {
-    ids.push('fake');
-    ids.push('bogus');
-    return source.find('planet', ids);
-
-  }).then(function(planets) {
-    ok(false, 'no planet should be found');
-
-  }, function(e) {
-    start();
-    ok(e instanceof RecordNotFoundException, 'RecordNotFoundException thrown');
-    deepEqual(e.record, ['fake', 'bogus'], 'ids that could not be found should be returned');
-  });
-});
-
 test("#query - can find records by one or more filters", function() {
   expect(5);
 
@@ -357,58 +144,24 @@ test("#query - can find records by one or more filters", function() {
 
   stop();
   all([
-    source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
-    source.add('planet', {name: 'Earth', classification: 'terrestrial', atmosphere: true}),
-    source.add('planet', {name: 'Venus', classification: 'terrestrial', atmosphere: true}),
-    source.add('planet', {name: 'Mercury', classification: 'terrestrial', atmosphere: false})
+    source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}}),
+    source.addRecord({type: 'planet', attributes: {name: 'Earth', classification: 'terrestrial', atmosphere: true}}),
+    source.addRecord({type: 'planet', attributes: {name: 'Venus', classification: 'terrestrial', atmosphere: true}}),
+    source.addRecord({type: 'planet', attributes: {name: 'Mercury', classification: 'terrestrial', atmosphere: false}})
   ]).then(function() {
     equal(source.length('planet'), 4, 'source should contain 4 records');
 
-    source.query('planet', {classification: 'terrestrial', atmosphere: true}).then(function(allPlanets) {
+    source.query('planet', {attributes: {classification: 'terrestrial', atmosphere: true}}).then(function(allPlanets) {
       start();
       equal(allPlanets.length, 2, 'query() should return all matching records');
-      equal(allPlanets[0].name, 'Earth', 'first matching planet');
-      equal(allPlanets[1].name, 'Venus', 'second matching planet');
+      equal(allPlanets[0].attributes.name, 'Earth', 'first matching planet');
+      equal(allPlanets[1].attributes.name, 'Venus', 'second matching planet');
       return allPlanets;
     });
   });
 });
 
-test("#find - secondary key searches always return single records", function() {
-  expect(2);
-  stop();
-  var jupiter;
-
-  source
-    .add('planet', {
-      name: 'Jupiter',
-      classification:
-      'gas giant',
-      atmosphere: true,
-      id: 'omg-123',
-      secondaryId: 'secondary-123'
-    })
-    .then(function rememberJupiter(planet) {
-      jupiter = planet;
-    })
-    .then(function findMissingPlanet() {
-      return source.find('planet', { secondaryId: 'missing' });
-    })
-    .then(function foundMissing(missing) {
-      ok( false, 'missing should not resolve');
-    }, function didNotFindMissing(error) {
-      ok( error, 'missing rejected');
-    })
-    .then(function findPlanet(planet) {
-      return source.find('planet', { secondaryId: 'secondary-123' });
-    })
-    .then(function foundPlanet(planet) {
-      equal(planet, jupiter, 'found jupiter');
-    })
-    .then(start, start);
-});
-
-test("#add - creates a record", function() {
+test("#addRecord - creates a record", function() {
   expect(6);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -416,12 +169,12 @@ test("#add - creates a record", function() {
   var original;
 
   stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
+  source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant'}}).then(function(planet) {
     original = planet;
     equal(source.length('planet'), 1, 'source should contain one record');
     ok(planet.id, 'id should be defined');
-    equal(planet.name, 'Jupiter', 'name should match');
-    equal(planet.classification, 'gas giant', 'classification should match');
+    equal(planet.attributes.name, 'Jupiter', 'name should match');
+    equal(planet.attributes.classification, 'gas giant', 'classification should match');
     return planet;
 
   }).then(function(planet) {
@@ -433,13 +186,13 @@ test("#add - creates a record", function() {
   });
 });
 
-test("#add - creates a record - data defaults to empty object", function() {
+test("#addRecord - creates a record - data defaults to empty object", function() {
   expect(3);
 
   equal(source.length('planet'), 0, 'source should be empty');
 
   stop();
-  source.add('planet').then(function(planet) {
+  source.addRecord({type: 'planet'}).then(function(planet) {
     start();
     equal(source.length('planet'), 1, 'source should contain one record');
     ok(planet.id, 'id should be defined');
@@ -447,7 +200,7 @@ test("#add - creates a record - data defaults to empty object", function() {
   });
 });
 
-test("#add / #remove - can create and remove has-one links and their inverse links", function() {
+test("#addRecord / #removeRecord - can create and remove has-one links and their inverse links", function() {
   expect(10);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -456,41 +209,47 @@ test("#add / #remove - can create and remove has-one links and their inverse lin
       io;
 
   stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
-    jupiter = planet;
-    return source.add('moon', {name: 'Io', __rel: {planet: jupiter.id}});
+  source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}})
+    .then(function(planet) {
+      jupiter = planet;
+      return source.addRecord({type: 'moon', attributes: {name: 'Io'}, relationships: {planet: {data: toIdentifier('planet', jupiter.id)}}});
+    })
+    .then(function(moon) {
+      io = moon;
+      equal(Object.keys(jupiter.relationships.moons).length, 1, 'Jupiter has one moon after linking');
+      ok(jupiter.relationships.moons.data[toIdentifier('moon', io.id)], 'Jupiter\'s moon is Io');
+      equal(io.relationships.planet.data, toIdentifier('planet', jupiter.id), 'Io\'s planet is Jupiter');
 
-  }).then(function(moon) {
-    io = moon;
-    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
-    ok(jupiter.__rel.moons[io.id], 'Jupiter\'s moon is Io');
-    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
+      return source.addRecord({type: 'planet', attributes: { name: 'Earth' }});
+    })
+    .then(function(planet) {
+      earth = planet;
+      // Change the "inverse" link on the moon by linking it to our new planet
+      return source.addToRelationship(earth, 'moons', io);
+    })
+    .then(function() {
+      equal(Object.keys(earth.relationships.moons.data).length, 1, 'Earth has one moon after changing link');
+      equal(Object.keys(jupiter.relationships.moons.data).length, 0, 'Jupiter has no moons after changing link');
 
-    return source.add('planet', { name: 'Earth' });
-  }).then(function(planet) {
-    earth = planet;
-    // Change the "inverse" link on the moon by linking it to our new planet
-    return source.addLink('planet', earth.id, 'moons', io.id);
-  }).then(function() {
-    equal(Object.keys(earth.__rel.moons).length, 1, 'Earth has one moon after changing link');
-    equal(Object.keys(jupiter.__rel.moons).length, 0, 'Jupiter has no moons after changing link');
+      return source.removeRecord(earth);
+    })
+    .then(function() {
+      strictEqual(io.relationships.planet.data, undefined, 'Removing earth set io\'s planet to undefined');
+      return source.replaceRelationship(io, 'planet', jupiter);
+    })
+    .then(function() {
+      equal(Object.keys(jupiter.relationships.moons.data).length, 1, 'Jupiter has one moon after linking');
+      return source.removeRecord(io);
+    })
+    .then(function() {
+      start();
 
-    return source.remove('planet', earth.id);
-  }).then(function() {
-    strictEqual(io.__rel.planet, null, 'Removing earth set io\'s planet to null');
-    return source.addLink('moon', io.id, 'planet', jupiter.id);
-  }).then(function() {
-    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
-    return source.remove('moon', io.id);
-  }).then(function() {
-    start();
-
-    equal(source.length('moon'), 0, 'moon should be deleted');
-    equal(Object.keys(jupiter.__rel.moons).length, 0, 'Jupiter has no moons');
-  });
+      equal(source.length('moon'), 0, 'moon should be deleted');
+      equal(Object.keys(jupiter.relationships.moons.data).length, 0, 'Jupiter has no moons');
+    });
 });
 
-test("#add / #remove - can create and remove has-many links and their inverse links", function() {
+test("#addRecord / #removeRecord - can create and remove has-many links and their inverse links", function() {
   expect(6);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -499,28 +258,29 @@ test("#add / #remove - can create and remove has-many links and their inverse li
       io;
 
   stop();
-  source.add('moon', {name: 'Io'}).then(function(moon) {
-    io = moon;
+  source.addRecord({type: 'moon', attributes: {name: 'Io'}})
+    .then(function(moon) {
+      io = moon;
 
-    var moons = {};
-    moons[io.id] = true;
+      var moons = {};
+      moons[toIdentifier('moon', io.id)] = true;
 
-    return source.add('planet', {name: 'Jupiter', __rel: {moons: moons}});
+      return source.addRecord({type: 'planet', attributes: {name: 'Jupiter'}, relationships: {moons: {data: moons}}});
+    })
+    .then(function(planet) {
+      jupiter = planet;
+      equal(Object.keys(jupiter.relationships.moons.data).length, 1, 'Jupiter has one moon after linking');
+      ok(jupiter.relationships.moons.data[toIdentifier('moon', io.id)], 'Jupiter\'s moon is Io');
+      equal(io.relationships.planet.data, toIdentifier('planet', jupiter.id), 'Io\'s planet is Jupiter');
 
-  }).then(function(planet) {
-    jupiter = planet;
-    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
-    ok(jupiter.__rel.moons[io.id], 'Jupiter\'s moon is Io');
-    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
+      return source.removeRecord(jupiter);
+    })
+    .then(function() {
+      start();
 
-    return source.remove('planet', jupiter.id);
-
-  }).then(function() {
-    start();
-
-    equal(source.length('planet'), 0, 'planet should be deleted');
-    equal(io.__rel.planet, null, 'Io has no planet');
-  });
+      equal(source.length('planet'), 0, 'planet should be deleted');
+      equal(io.relationships.planet.data, undefined, 'Io has no planet');
+    });
 });
 
 test("#transform - remove operation for missing link path should leave a working source", function() {
@@ -531,14 +291,14 @@ test("#transform - remove operation for missing link path should leave a working
   stop();
   source.transform({
     op: 'remove',
-    path: ['moon', 'not-there', '__rel', 'planet']
+    path: ['moon', 'not-there', 'relationships', 'planet', 'data']
   }).then(function() {
     ok(true, 'transforms continue on');
     start();
   });
 });
 
-test("#update - can update records", function() {
+test("#replaceRecord - can replace whole records", function() {
   expect(7);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -546,28 +306,28 @@ test("#update - can update records", function() {
   var original;
 
   stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    original = planet;
-    return source.update('planet', {id: planet.id, name: 'Earth', classification: 'terrestrial'}).then(function() {
-      var updatedPlanet = source.retrieve(['planet', planet.id]);
-      equal(updatedPlanet.id, planet.id, 'id remains the same');
-      equal(updatedPlanet.name, 'Earth', 'name has been updated');
-      equal(updatedPlanet.classification, 'terrestrial', 'classification has been updated');
-      return planet;
-    });
+  source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant'}})
+    .then(function(planet) {
+      original = planet;
+      return source.replaceRecord({type: 'planet', id: planet.id, attributes: {name: 'Earth', classification: 'terrestrial'}});
+    })
+    .then(function() {
+      var updatedPlanet = source.retrieve(['planet', original.id]);
+      equal(updatedPlanet.id, original.id, 'id remains the same');
+      equal(updatedPlanet.attributes.name, 'Earth', 'name has been updated');
+      equal(updatedPlanet.attributes.classification, 'terrestrial', 'classification has been updated');
 
-  }).then(function(planet) {
-    source.find('planet', planet.id).then(function(foundPlanet) {
+      return source.find('planet', original.id);
+    })
+    .then(function(foundPlanet) {
       start();
       equal(foundPlanet.id, original.id, 'record can be looked up by id');
-      equal(foundPlanet.name, 'Earth', 'name has been updated');
-      equal(foundPlanet.classification, 'terrestrial', 'classification has been updated');
-      return planet;
+      equal(foundPlanet.attributes.name, 'Earth', 'name has been updated');
+      equal(foundPlanet.attributes.classification, 'terrestrial', 'classification has been updated');
     });
-  });
 });
 
-test("#patch - can patch records", function() {
+test("#replaceAttribute - can update attributes", function() {
   expect(5);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -575,37 +335,41 @@ test("#patch - can patch records", function() {
   var original;
 
   stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    original = planet;
-
-    source.patch('planet', planet.id, 'name', 'Earth').then(function() {
-      source.find('planet', planet.id).then(function(foundPlanet) {
-        start();
-        strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
-        equal(foundPlanet.id, planet.id, 'record can be looked up by id');
-        equal(foundPlanet.name, 'Earth', 'name has been updated');
-        equal(foundPlanet.classification, 'gas giant', 'classification has not been updated');
-      });
+  source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant'}})
+    .then(function(planet) {
+      original = planet;
+      return source.replaceAttribute(planet, 'name', 'Earth');
+    })
+    .then(function() {
+      return source.find('planet', original.id);
+    })
+    .then(function(foundPlanet) {
+      start();
+      strictEqual(foundPlanet, original, 'still the same object as the one originally inserted');
+      equal(foundPlanet.id, original.id, 'record can be looked up by id');
+      equal(foundPlanet.attributes.name, 'Earth', 'name has been updated');
+      equal(foundPlanet.attributes.classification, 'gas giant', 'classification has not been updated');
     });
-  });
 });
 
-test("#remove - can destroy records", function() {
+test("#removeRecord - can delete records", function() {
   expect(3);
 
   equal(source.length('planet'), 0, 'source should be empty');
 
   stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant'}).then(function(planet) {
-    equal(source.length('planet'), 1, 'source should contain one record');
-    source.remove('planet', {id: planet.id}).then(function() {
+  source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant'}})
+    .then(function(planet) {
+      equal(source.length('planet'), 1, 'source should contain one record');
+      return source.removeRecord(planet);
+    })
+    .then(function() {
       start();
       equal(source.length('planet'), 0, 'source should be empty');
     });
-  });
 });
 
-test("#addLink and #removeLink- can link and unlink records in a many-to-one relationship via the 'many' side", function() {
+test("#addToRelationship and #removeFromRelationship - can link and unlink records in a many-to-one relationship via the 'many' side", function() {
   expect(6);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -614,30 +378,29 @@ test("#addLink and #removeLink- can link and unlink records in a many-to-one rel
       io;
 
   stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
-    jupiter = planet;
-    return source.add('moon', {name: 'Io'});
-
-  }).then(function(moon) {
-    io = moon;
-
-    return source.addLink('planet', jupiter, 'moons', io);
-
-  }).then(function() {
-    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
-    ok(jupiter.__rel.moons[io.id], 'Jupiter\'s moon is Io');
-    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
-
-    return source.removeLink('planet', jupiter, 'moons', io);
-
-  }).then(function() {
-    start();
-    equal(io.__rel.planet, undefined, 'Io is not associated with a planet after unlinking');
-    equal(Object.keys(jupiter.__rel.moons).length, 0, 'Jupiter has no moons after unlinking');
-  });
+  source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}})
+    .then(function(planet) {
+      jupiter = planet;
+      return source.addRecord({type: 'moon', attributes: {name: 'Io'}});
+    })
+    .then(function(moon) {
+      io = moon;
+      return source.addToRelationship(jupiter, 'moons', io);
+    })
+    .then(function() {
+      equal(Object.keys(jupiter.relationships.moons.data).length, 1, 'Jupiter has one moon after linking');
+      equal(jupiter.relationships.moons.data[toIdentifier('moon', io.id)], true, 'Jupiter\'s moon is Io');
+      equal(io.relationships.planet.data, toIdentifier('planet', jupiter.id), 'Io\'s planet is Jupiter');
+      return source.removeFromRelationship(jupiter, 'moons', io);
+    })
+    .then(function() {
+      start();
+      equal(io.relationships.planet.data, undefined, 'Io is not associated with a planet after unlinking');
+      equal(Object.keys(jupiter.relationships.moons.data).length, 0, 'Jupiter has no moons after unlinking');
+    });
 });
 
-test("#addLink and #removeLink- can link and unlink records in a many-to-one relationship via the 'one' side", function() {
+test("#addToRelationship and #removeFromRelationship - can link and unlink records in a many-to-one relationship via the 'one' side", function() {
   expect(6);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -646,85 +409,90 @@ test("#addLink and #removeLink- can link and unlink records in a many-to-one rel
       io;
 
   stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
-    jupiter = planet;
-    return source.add('moon', {name: 'Io'});
-
-  }).then(function(moon) {
-    io = moon;
-
-    return source.addLink('moon', io, 'planet', jupiter);
-
-  }).then(function() {
-    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
-    ok(jupiter.__rel.moons[io.id], 'Jupiter\'s moon is Io');
-    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
-
-    return source.removeLink('moon', io, 'planet');
-
-  }).then(function() {
-    start();
-    equal(io.__rel.planet, undefined, 'Io is not associated with a planet after unlinking');
-    equal(Object.keys(jupiter.__rel.moons).length, 0, 'Jupiter has no moons after unlinking');
-  });
+  source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}})
+    .then(function(planet) {
+      jupiter = planet;
+      return source.addRecord({type: 'moon', attributes: {name: 'Io'}});
+    })
+    .then(function(moon) {
+      io = moon;
+      return source.addToRelationship(io, 'planet', jupiter);
+    })
+    .then(function() {
+      equal(Object.keys(jupiter.relationships.moons.data).length, 1, 'Jupiter has one moon after linking');
+      ok(jupiter.relationships.moons.data[toIdentifier('moon', io.id)], 'Jupiter\'s moon is Io');
+      equal(io.relationships.planet.data, toIdentifier('planet', jupiter.id), 'Io\'s planet is Jupiter');
+      return source.replaceRelationship(io, 'planet', undefined);
+    })
+    .then(function() {
+      start();
+      equal(io.relationships.planet.data, undefined, 'Io is not associated with a planet after unlinking');
+      equal(Object.keys(jupiter.relationships.moons.data).length, 0, 'Jupiter has no moons after unlinking');
+    });
 });
 
-test("#addLink - replacing hasOne relationship removes record from previous hasMany relationship", function(){
+test("#addToRelationship - replacing hasOne relationship removes record from previous hasMany relationship", function(){
   expect(2);
   stop();
+
+  var jupiter, saturn, io;
 
   all([
-    source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}),
-    source.add('planet', {name: 'Saturn', classification: 'gas giant', atmosphere: true}),
-    source.add('moon', {name: 'Io'})
-
-  ]).then(spread(function(jupiter, saturn, io) {
-
-    source.addLink('moon', io.id, 'planet', jupiter).then(function() {
-      return source.findLink('planet', jupiter.id, 'moons').then(function(moons) {
-        equal(moons[0], io.id);
-      });
-
-    }).then(function() {
-      return source.addLink('moon', io.id, 'planet', saturn);
-
-    }).then(function() {
-      return source.findLink('planet', jupiter.id, 'moons').then(function(moons) {
-        start();
-        equal(moons.length, 0);
-      });
+    source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}}),
+    source.addRecord({type: 'planet', attributes: {name: 'Saturn', classification: 'gas giant', atmosphere: true}}),
+    source.addRecord({type: 'moon', attributes: {name: 'Io'}})
+  ])
+    .then(spread(function(a, b, c) {
+      jupiter = a;
+      saturn = b;
+      io = c;
+      return source.replaceRelationship(io, 'planet', jupiter);
+    }))
+    .then(function() {
+      return source.findRelationship(jupiter, 'moons');
+    })
+    .then(function(moons) {
+      deepEqual(moons[0], {type: 'moon', id: io.id});
+      return source.replaceRelationship(io, 'planet', saturn);
+    })
+    .then(function() {
+      return source.findRelationship(jupiter, 'moons');
+    })
+    .then(function(moons) {
+      start();
+      equal(moons.length, 0);
     });
-  }));
 });
 
+// TODO - evaluate necessity of `actsAsSet`
+//
+// test("#replaceRelationship - will fail when replacing records in a many-to-one relationship unless the linkDef is flagged as `actsAsSet`", function() {
+//   expect(2);
+//
+//   equal(source.length('planet'), 0, 'source should be empty');
+//
+//   var jupiter,
+//     io;
+//
+//   stop();
+//   source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}})
+//     .then(function(planet) {
+//       jupiter = planet;
+//       return source.addRecord({type: 'moon', attributes: {name: 'Io'}});
+//     })
+//     .then(function(moon) {
+//       io = moon;
+//       return source.replaceRelationship(jupiter, 'moons', [ io ]);
+//     })
+//     .then(function() {
+//       ok(false, 'should not be successful');
+//     }, function(e) {
+//       start();
+//       equal(e.message, "Assertion failed: hasMany links can only be replaced when flagged as `actsAsSet`");
+//     });
+// });
 
-test("#updateLink - will fail when replacing records in a many-to-one relationship unless the linkDef is flagged as `actsAsSet`", function() {
-  expect(2);
-
-  equal(source.length('planet'), 0, 'source should be empty');
-
-  var jupiter,
-    io;
-
-  stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
-    jupiter = planet;
-    return source.add('moon', {name: 'Io'});
-
-  }).then(function(moon) {
-    io = moon;
-    return source.updateLink('planet', jupiter, 'moons', [ io ]);
-
-  }).then(function() {
-    ok(false, 'should not be successful');
-
-  }, function(e) {
-    start();
-    equal(e.message, "Assertion failed: hasMany links can only be replaced when flagged as `actsAsSet`");
-  });
-});
-
-test("#updateLink - can link and unlink records in a many-to-one relationship via the 'many' side when it `actsAsSet`", function() {
+test("#replaceRelationship - can link and unlink records in a many-to-one relationship via the 'many' side when it `actsAsSet`", function() {
   expect(6);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -733,34 +501,34 @@ test("#updateLink - can link and unlink records in a many-to-one relationship vi
       io;
 
   // Moons link must be flagged with `actsAsSet`
-  source.schema.models.planet.links.moons.actsAsSet = true;
+  source.schema.models.planet.relationships.moons.actsAsSet = true;
 
   stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
-    jupiter = planet;
-    return source.add('moon', {name: 'Io'});
+  source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}})
+    .then(function(planet) {
+      jupiter = planet;
+      return source.addRecord({type: 'moon', attributes: {name: 'Io'}});
+    })
+    .then(function(moon) {
+      io = moon;
+      return source.replaceRelationship(jupiter, 'moons', [ io ]);
+    })
+    .then(function() {
+      equal(Object.keys(jupiter.relationships.moons.data).length, 1, 'Jupiter has one moon after linking');
 
-  }).then(function(moon) {
-    io = moon;
+      equal(jupiter.relationships.moons.data[toIdentifier('moon', io.id)], true, 'Jupiter\'s moon is Io');
+      equal(io.relationships.planet.data, toIdentifier('planet', jupiter.id), 'Io\'s planet is Jupiter');
 
-    return source.updateLink('planet', jupiter, 'moons', [ io ]);
-
-  }).then(function() {
-    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
-
-    ok(jupiter.__rel.moons[io.id], 'Jupiter\'s moon is Io');
-    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
-
-    return source.updateLink('planet', jupiter, 'moons', []);
-
-  }).then(function() {
-    start();
-    equal(io.__rel.planet, undefined, 'Io is not associated with a planet after unlinking');
-    equal(Object.keys(jupiter.__rel.moons).length, 0, 'Jupiter has no moons after unlinking');
-  });
+      return source.replaceRelationship(jupiter, 'moons', []);
+    })
+    .then(function() {
+      start();
+      equal(io.relationships.planet.data, undefined, 'Io is not associated with a planet after unlinking');
+      equal(Object.keys(jupiter.relationships.moons.data).length, 0, 'Jupiter has no moons after unlinking');
+    });
 });
 
-test("#updateLink - can link and unlink records in a many-to-one relationship via the 'one' side", function() {
+test("#replaceRelationship - can link and unlink records in a many-to-one relationship via the 'one' side", function() {
   expect(4);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -769,25 +537,24 @@ test("#updateLink - can link and unlink records in a many-to-one relationship vi
       io;
 
   stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
-    jupiter = planet;
-    return source.add('moon', {name: 'Io'});
-
-  }).then(function(moon) {
-    io = moon;
-
-    return source.updateLink('moon', io, 'planet', jupiter);
-
-  }).then(function() {
-    start();
-    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
-    ok(jupiter.__rel.moons[io.id], 'Jupiter\'s moon is Io');
-    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
-
-  });
+  source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}})
+    .then(function(planet) {
+      jupiter = planet;
+      return source.addRecord({type: 'moon', attributes: {name: 'Io'}});
+    })
+    .then(function(moon) {
+      io = moon;
+      return source.replaceRelationship(io, 'planet', jupiter);
+    })
+    .then(function() {
+      start();
+      equal(Object.keys(jupiter.relationships.moons.data).length, 1, 'Jupiter has one moon after linking');
+      equal(jupiter.relationships.moons.data[toIdentifier('moon', io.id)], true, 'Jupiter\'s moon is Io');
+      equal(io.relationships.planet.data, toIdentifier('planet', jupiter.id), 'Io\'s planet is Jupiter');
+    });
 });
 
-test("#findLink - can find has-one linked ids", function() {
+test("#findRelationship - can find has-one linked ids", function() {
   expect(4);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -796,27 +563,27 @@ test("#findLink - can find has-one linked ids", function() {
       io;
 
   stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
-    jupiter = planet;
-    return source.add('moon', {name: 'Io'});
-
-  }).then(function(moon) {
-    io = moon;
-    return source.addLink('moon', io, 'planet', jupiter);
-
-  }).then(function() {
-    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
-    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
-
-    return source.findLink('moon', io, 'planet');
-
-  }).then(function(planetId) {
-    start();
-    equal(planetId, jupiter.id, 'Io is linked to Jupiter');
-  });
+  source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}})
+    .then(function(planet) {
+      jupiter = planet;
+      return source.addRecord({type: 'moon', attributes: {name: 'Io'}});
+    })
+    .then(function(moon) {
+      io = moon;
+      return source.replaceRelationship(io, 'planet', jupiter);
+    })
+    .then(function() {
+      equal(Object.keys(jupiter.relationships.moons.data).length, 1, 'Jupiter has one moon after linking');
+      equal(io.relationships.planet.data, toIdentifier('planet', jupiter.id), 'Io\'s planet is Jupiter');
+      return source.findRelationship(io, 'planet');
+    })
+    .then(function(planetId) {
+      start();
+      deepEqual(planetId, {type: 'planet', id: jupiter.id}, 'Io is linked to Jupiter');
+    });
 });
 
-test("#findLinked - can find has-one linked records", function() {
+test("#findRelated - can find has-one linked records", function() {
   expect(4);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -825,27 +592,27 @@ test("#findLinked - can find has-one linked records", function() {
       io;
 
   stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
-    jupiter = planet;
-    return source.add('moon', {name: 'Io'});
-
-  }).then(function(moon) {
-    io = moon;
-    return source.addLink('moon', io, 'planet', jupiter);
-
-  }).then(function() {
-    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
-    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
-
-    return source.findLinked('moon', io, 'planet');
-
-  }).then(function(planet) {
-    start();
-    equal(planet.id, jupiter.id, 'Io is linked to Jupiter');
-  });
+  source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}})
+    .then(function(planet) {
+      jupiter = planet;
+      return source.addRecord({type: 'moon', attributes: {name: 'Io'}});
+    })
+    .then(function(moon) {
+      io = moon;
+      return source.replaceRelationship(io, 'planet', jupiter);
+    })
+    .then(function() {
+      equal(Object.keys(jupiter.relationships.moons.data).length, 1, 'Jupiter has one moon after linking');
+      equal(io.relationships.planet.data, toIdentifier('planet', jupiter.id), 'Io\'s planet is Jupiter');
+      return source.findRelated(io, 'planet');
+    })
+    .then(function(planet) {
+      start();
+      equal(planet.id, jupiter.id, 'Io is linked to Jupiter');
+    });
 });
 
-test("#findLinked - can find null for an empty has-one relationship", function() {
+test("#findRelated - can find null for an empty has-one relationship", function() {
   expect(4);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -854,25 +621,26 @@ test("#findLinked - can find null for an empty has-one relationship", function()
       io;
 
   stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
-    jupiter = planet;
-    return source.add('moon', {name: 'Io'});
+  source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}})
+    .then(function(planet) {
+      jupiter = planet;
+      return source.addRecord({type: 'moon', attributes: {name: 'Io'}});
+    })
+    .then(function(moon) {
+      io = moon;
 
-  }).then(function(moon) {
-    io = moon;
+      equal(jupiter.relationships.moons.data, undefined, 'Jupiter has no moons');
+      equal(io.relationships.planet.data, undefined, 'Io has no planet');
 
-    equal(Object.keys(jupiter.__rel.moons).length, 0, 'Jupiter has no moons');
-    equal(io.__rel.planet, null, 'Io has no planet');
-
-    return source.findLinked('moon', io, 'planet');
-
-  }).then(function(planet) {
-    start();
-    equal(planet, null, 'Io has no planet: findLinked returned null');
-  });
+      return source.findRelated(io, 'planet');
+    })
+    .then(function(planet) {
+      start();
+      equal(planet, undefined, 'Io has no planet: findRelated returned undefined');
+    });
 });
 
-test("#findLink - can find has-many linked values", function() {
+test("#findRelationship - can find has-many linked values", function() {
   expect(5);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -881,29 +649,29 @@ test("#findLink - can find has-many linked values", function() {
       io;
 
   stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
-    jupiter = planet;
-    return source.add('moon', {name: 'Io'});
+  source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}})
+    .then(function(planet) {
+      jupiter = planet;
+      return source.addRecord({type: 'moon', attributes: {name: 'Io'}});
+    })
+    .then(function(moon) {
+      io = moon;
+      return source.addToRelationship(jupiter, 'moons', io);
+    })
+    .then(function() {
+      equal(Object.keys(jupiter.relationships.moons.data).length, 1, 'Jupiter has one moon after linking');
+      equal(io.relationships.planet.data, toIdentifier('planet', jupiter.id), 'Io\'s planet is Jupiter');
 
-  }).then(function(moon) {
-    io = moon;
-
-    return source.addLink('planet', jupiter, 'moons', io);
-
-  }).then(function() {
-    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
-    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
-
-    return source.findLink('planet', jupiter, 'moons');
-
-  }).then(function(moonIds) {
-    start();
-    equal(moonIds.length, 1, 'Jupiter has one moon');
-    equal(moonIds[0], io.id, '... and it\'s Io');
-  });
+      return source.findRelationship(jupiter, 'moons');
+    })
+    .then(function(moonIds) {
+      start();
+      equal(moonIds.length, 1, 'Jupiter has one moon');
+      equal(moonIds[0].id, io.id, '... and it\'s Io');
+    });
 });
 
-test("#findLinked - can find has-many linked values", function() {
+test("#findRelated - can find has-many linked values", function() {
   expect(5);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -912,29 +680,28 @@ test("#findLinked - can find has-many linked values", function() {
       io;
 
   stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
-    jupiter = planet;
-    return source.add('moon', {name: 'Io'});
-
-  }).then(function(moon) {
-    io = moon;
-
-    return source.addLink('planet', jupiter, 'moons', io);
-
-  }).then(function() {
-    equal(Object.keys(jupiter.__rel.moons).length, 1, 'Jupiter has one moon after linking');
-    equal(io.__rel.planet, jupiter.id, 'Io\'s planet is Jupiter');
-
-    return source.findLinked('planet', jupiter, 'moons');
-
-  }).then(function(moons) {
-    start();
-    equal(moons.length, 1, 'Jupiter has one moon');
-    equal(moons[0].name, 'Io', '... and Io is its name');
-  });
+  source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}})
+    .then(function(planet) {
+      jupiter = planet;
+      return source.addRecord({type: 'moon', attributes: {name: 'Io'}});
+    })
+    .then(function(moon) {
+      io = moon;
+      return source.addToRelationship(jupiter, 'moons', io);
+    })
+    .then(function() {
+      equal(Object.keys(jupiter.relationships.moons.data).length, 1, 'Jupiter has one moon after linking');
+      equal(io.relationships.planet.data, toIdentifier('planet', jupiter.id), 'Io\'s planet is Jupiter');
+      return source.findRelated(jupiter, 'moons');
+    })
+    .then(function(moons) {
+      start();
+      equal(moons.length, 1, 'Jupiter has one moon');
+      equal(moons[0].attributes.name, 'Io', '... and Io is its name');
+    });
 });
 
-test("#findLinked - can find an empty set of has-many linked values", function() {
+test("#findRelated - can find an empty set of has-many linked values", function() {
   expect(4);
 
   equal(source.length('planet'), 0, 'source should be empty');
@@ -943,62 +710,65 @@ test("#findLinked - can find an empty set of has-many linked values", function()
       io;
 
   stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
-    jupiter = planet;
-    return source.add('moon', {name: 'Io'});
+  source.addRecord({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}})
+    .then(function(planet) {
+      jupiter = planet;
+      return source.addRecord({type: 'moon', attributes: {name: 'Io'}});
+    })
+    .then(function(moon) {
+      io = moon;
 
-  }).then(function(moon) {
-    io = moon;
+      equal(jupiter.relationships.moons.data, undefined, 'Jupiter has no moons');
+      equal(io.relationships.planet.data, undefined, 'Io has no planet');
 
-    equal(Object.keys(jupiter.__rel.moons).length, 0, 'Jupiter has no moons');
-    equal(io.__rel.planet, null, 'Io has no planet');
-
-    return source.findLinked('planet', jupiter, 'moons');
-
-  }).then(function(moons) {
-    start();
-    equal(moons.length, 0, 'Jupiter has no moons: findLinked returned []');
-  });
-});
-
-test("#findLink - returns LinkNotFoundException for a link that doesn't exist", function() {
-  expect(2);
-
-  equal(source.length('planet'), 0, 'source should be empty');
-
-  var jupiter,
-      io;
-
-  stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
-    jupiter = planet;
-
-    source.findLink('planet', jupiter, 'bogus').then(function(foundLink) {
-      ok(false, 'no link should be found');
-    }, function(e) {
+      return source.findRelated(jupiter, 'moons');
+    })
+    .then(function(moons) {
       start();
-      ok(e instanceof LinkNotFoundException, 'LinkNotFoundException thrown');
+      equal(moons, undefined, 'Jupiter has no moons: findRelated returned undefined');
     });
-  });
 });
 
-test("#findLink - returns RecordNotFoundException for a record that doesn't exist", function() {
-  expect(2);
-
-  equal(source.length('planet'), 0, 'source should be empty');
-
-  var jupiter,
-      io;
-
-  stop();
-  source.add('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
-    jupiter = planet;
-
-    source.findLink('planet', 'bogus', 'moons').then(function(foundLink) {
-      ok(false, 'no link should be found');
-    }, function(e) {
-      start();
-      ok(e instanceof RecordNotFoundException, 'RecordNotFoundException thrown');
-    });
-  });
-});
+// TODO: consider re-adding link exceptions
+//
+// test("#findLink - returns LinkNotFoundException for a link that doesn't exist", function() {
+//   expect(2);
+//
+//   equal(source.length('planet'), 0, 'source should be empty');
+//
+//   var jupiter,
+//       io;
+//
+//   stop();
+//   source.addRecord('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
+//     jupiter = planet;
+//
+//     source.findLink('planet', jupiter, 'bogus').then(function(foundLink) {
+//       ok(false, 'no link should be found');
+//     }, function(e) {
+//       start();
+//       ok(e instanceof LinkNotFoundException, 'LinkNotFoundException thrown');
+//     });
+//   });
+// });
+//
+// test("#findLink - returns RecordNotFoundException for a record that doesn't exist", function() {
+//   expect(2);
+//
+//   equal(source.length('planet'), 0, 'source should be empty');
+//
+//   var jupiter,
+//       io;
+//
+//   stop();
+//   source.addRecord('planet', {name: 'Jupiter', classification: 'gas giant', atmosphere: true}).then(function(planet) {
+//     jupiter = planet;
+//
+//     source.findLink('planet', 'bogus', 'moons').then(function(foundLink) {
+//       ok(false, 'no link should be found');
+//     }, function(e) {
+//       start();
+//       ok(e instanceof RecordNotFoundException, 'RecordNotFoundException thrown');
+//     });
+//   });
+// });
