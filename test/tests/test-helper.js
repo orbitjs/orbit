@@ -22,6 +22,7 @@ import {
   verifyLocalStorageContainsRecord
 } from './support/local-storage';
 
+import './support/rsvp';
 
 export {
   serializeOps,
