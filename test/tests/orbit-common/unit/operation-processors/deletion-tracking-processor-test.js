@@ -2,24 +2,22 @@ import Schema from 'orbit-common/schema';
 import DeletionTrackingProcessor from 'orbit-common/operation-processors/deletion-tracking-processor';
 import { uuid } from 'orbit/lib/uuid';
 import Operation from 'orbit/operation';
-import { op } from 'tests/test-helper';
 import Cache from 'orbit-common/cache';
 import Orbit from 'orbit/main';
 import { Promise } from 'rsvp';
 
+var schema,
+    cache,
+    processor;
+
 var schemaDefinition = {
-  modelDefaults: {
-    keys: {
-      '__id': {primaryKey: true, defaultValue: uuid}
-    }
-  },
   models: {
     planet: {
       attributes: {
         name: {type: 'string'},
         classification: {type: 'string'}
       },
-      links: {
+      relationships: {
         moons: {type: 'hasMany', model: 'moon', inverse: 'planet', actsAsSet: true},
         races: {type: 'hasMany', model: 'race', inverse: 'planets'},
         next: {type: 'hasOne', model: 'planet', inverse: 'previous'},
@@ -30,7 +28,7 @@ var schemaDefinition = {
       attributes: {
         name: {type: 'string'}
       },
-      links: {
+      relationships: {
         planet: {type: 'hasOne', model: 'planet', inverse: 'moons'}
       }
     },
@@ -38,16 +36,12 @@ var schemaDefinition = {
       attributes: {
         name: {type: 'string'},
       },
-      links: {
+      relationships: {
         planets: {type: 'hasMany', model: 'planet', inverse: 'races'}
       }
     }
   }
 };
-
-var schema,
-    cache,
-    processor;
 
 module('OC - OperationProcessors - DeletionTrackingProcessor', {
   setup: function(){
@@ -66,8 +60,8 @@ module('OC - OperationProcessors - DeletionTrackingProcessor', {
 });
 
 test('tracks deletions and makes them queryable through `hasDeleted`', function() {
-  var saturn = { id: 'saturn', name: "Saturn", __rel: { moons: { 'titan': true } } };
-  var jupiter = { id: 'jupiter', name: "Jupiter", __rel: { moons: { 'europa': true } } };
+  var saturn = { id: 'saturn', name: "Saturn", relationships: { moons: { 'titan': true } } };
+  var jupiter = { id: 'jupiter', name: "Jupiter", relationships: { moons: { 'europa': true } } };
 
   ok(typeof cache.hasDeleted === 'function', 'adds `hasDeleted` method to cache');
 

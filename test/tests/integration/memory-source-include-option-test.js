@@ -62,7 +62,7 @@ module("Integration - Memory Source - include option", {
 test("find can specify included relationships", function(){
   stop();
 
-  var jupiter = { id: 'planet1', name: 'Jupiter', __rel: { moons: {'moon1': true} } };
+  var jupiter = { id: 'planet1', name: 'Jupiter', relationships: { moons: {'moon1': true} } };
 
   memorySource.reset({
     planet: {
@@ -84,9 +84,9 @@ test("find can specify included relationships", function(){
 test("find can specify nested, included relationships", function(){
   stop();
 
-  var sun = { id: 'star1', name: "Sun", __rel: { planets: { planet1: true } } };
-  var jupiter = { id: 'planet1', name: 'Jupiter', __rel: { moons: {'moon1': true} } };
-  var europa = { id: 'moon1', name: 'Europa', __rel: { planet: 'planet1' } };
+  var sun = { id: 'star1', name: "Sun", relationships: { planets: { planet1: true } } };
+  var jupiter = { id: 'planet1', name: 'Jupiter', relationships: { moons: {'moon1': true} } };
+  var europa = { id: 'moon1', name: 'Europa', relationships: { planet: 'planet1' } };
 
   memorySource.reset({
     star: {
@@ -112,9 +112,9 @@ test("find can specify nested, included relationships", function(){
 test("findLinked can specify included relationships", function(){
   stop();
 
-  var sun = { id: 'star1', name: "Sun", __rel: { planets: { planet1: true } } };
-  var jupiter = { id: 'planet1', name: 'Jupiter', __rel: { moons: {'moon1': true} } };
-  var europa = { id: 'moon1', name: 'Europa', __rel: { planet: 'planet1' } };
+  var sun = { id: 'star1', name: "Sun", relationships: { planets: { planet1: true } } };
+  var jupiter = { id: 'planet1', name: 'Jupiter', relationships: { moons: {'moon1': true} } };
+  var europa = { id: 'moon1', name: 'Europa', relationships: { planet: 'planet1' } };
 
   memorySource.reset({
     star: {

@@ -89,4 +89,4 @@ var failedOperation = function(response) {
   });
 };
 
-export { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty, equalOps, op, successfulOperation, failedOperation };
+export { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty, equalOps, successfulOperation, failedOperation };
