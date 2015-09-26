@@ -271,3 +271,13 @@ test('#retrieveRelationship', function() {
   deepEqual(store.retrieveRelationship(earth, 'moons'), ['moon:io']);
   deepEqual(store.retrieveRelationship(io, 'planet'), 'planet:earth');
 });
+
+test('#retrieveRecord', function() {
+  const earth = schema.normalize({id: 'earth', type: 'planet'});
+
+  store.reset({
+    planet: { earth }
+  });
+
+  deepEqual(store.retrieveRecord('planet', earth.id), earth);
+});
