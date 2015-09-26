@@ -13,6 +13,10 @@ import {
 } from './support/operations';
 
 import {
+  transformMatching
+} from './support/matchers';
+
+import {
   verifyLocalStorageIsEmpty,
   verifyLocalStorageContainsRecord
 } from './support/local-storage';
@@ -24,6 +28,7 @@ export {
   op,
   successfulOperation,
   failedOperation,
+  transformMatching,
   verifyLocalStorageIsEmpty,
   verifyLocalStorageContainsRecord
 }
