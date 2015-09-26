@@ -44,6 +44,7 @@
     "broccoli-string-replace": "0.0.2",
     "git-repo-version": "^0.1.1",
     "testem": "^0.7.6",
-    "yuidocjs": "^0.8.1"
+    "yuidocjs": "^0.8.1",
+    "broccoli-babel-transpiler": "^5.4.5"
   }
 }
