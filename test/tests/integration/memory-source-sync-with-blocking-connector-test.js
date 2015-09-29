@@ -1,211 +1,164 @@
 import Orbit from 'orbit/main';
-import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
+import Store from 'orbit-common/store';
 import TransformConnector from 'orbit/transform-connector';
-import { Promise } from 'rsvp';
+import { Promise, all } from 'rsvp';
+
+const schemaDefinition = {
+  models: {
+    planet: {
+      attributes: {
+        name: {type: 'string'},
+        classification: {type: 'string'}
+      },
+      relationships: {
+        moons: {type: 'hasMany', model: 'moon', inverse: 'planet'}
+      }
+    },
+    moon: {
+      attributes: {
+        name: {type: 'string'}
+      },
+      relationships: {
+        planet: {type: 'hasOne', model: 'planet', inverse: 'moons'},
+        mountains: {type: 'hasMany', model: 'mountain', inverse: 'moon'}
+      }
+    },
+    friend: {
+      relationships: {
+        group: { model: 'group', type: 'hasOne', inverse: 'members' }
+      }
+    },
+    group: {
+      relationships: {
+        members: { model: 'friend', type: 'hasMany', inverse: 'group' }
+      }
+    }
+  }
+};
 
 var schema,
-    source1,
-    source2,
-    source1to2Connector,
-    source2to1Connector;
+    store,
+    source,
+    storeToSourceConnector,
+    sourceToStoreConnector;
 
 module("Integration - Memory Source Sync (Blocking)", {
   setup: function() {
     Orbit.Promise = Promise;
 
     // Create schema
-    schema = new Schema({
-      modelDefaults: {
-        keys: {
-          '__id': {primaryKey: true, defaultValue: uuid},
-          'id': {}
-        }
-      },
-      models: {
-        planet: {
-          attributes: {
-            name: {type: 'string'},
-            classification: {type: 'string'}
-          },
-          links: {
-            moons: {type: 'hasMany', model: 'moon', inverse: 'planet'}
-          }
-        },
-        moon: {
-          attributes: {
-            name: {type: 'string'}
-          },
-          links: {
-            planet: {type: 'hasOne', model: 'planet', inverse: 'moons'},
-            mountains: {type: 'hasMany', model: 'mountain', inverse: 'moon'}
-          }
-        }
-      }
-    });
+    schema = new Schema(schemaDefinition);
 
     // Create sources
-    source1 = new MemorySource({schema: schema});
-    source2 = new MemorySource({schema: schema});
+    store = new Store({schema: schema});
+    source = new MemorySource({schema: schema});
 
-    source1.id = 'source1';
-    source2.id = 'source2';
+    store.id = 'store';
+    source.id = 'source';
 
     // Create connectors
-    source1to2Connector = new TransformConnector(source1, source2);
-    source2to1Connector = new TransformConnector(source2, source1);
+    storeToSourceConnector = new TransformConnector(store, source);
+    sourceToStoreConnector = new TransformConnector(source, store);
 
-    source1.on('rescueFind', source2.find);
+    store.on('rescueFind', source.find);
   },
 
   teardown: function() {
-    source1to2Connector = source2to1Connector = null;
-    source1 = source2 = null;
+    storeToSourceConnector = null;
+    sourceToStoreConnector = null;
+    store = null;
+    source = null;
   }
 });
 
-test("consecutive transforms can be applied to one source and should be automatically applied to the other source", function() {
+test("consecutive transforms can be applied to one source and should be automatically applied to the other source", function({async}) {
+  const done = async();
   expect(4);
 
-  stop();
+  store.addRecord({id: '123', type: 'planet', attributes: { name: 'Jupiter' }})
+    .then(function(jupiter) {
+      return store.replaceAttribute(jupiter, 'name', 'Earth');
+    })
+    .then(function() {
+      const storeVersion = store.retrieve(['planet', '123']);
+      const sourceVersion = source.retrieve(['planet', '123']);
 
-  source1.transform({
-    op: 'add',
-    path: ['planet', '123'],
-    value: source1.normalize('planet', {name: 'Jupiter'})
-  });
+      notStrictEqual(sourceVersion, storeVersion, 'not the same object as the one originally inserted');
+      equal(sourceVersion.id, storeVersion.id, 'backup record has the same primary id');
+      equal(sourceVersion.attributes.name, storeVersion.attributes.name, 'backup record has the same name');
+      equal(sourceVersion.attributes.name, 'Earth', 'records have the updated name');
 
-  source1.transform({
-    op: 'replace',
-    path: ['planet', '123', 'name'],
-    value: 'Earth'
-
-  }).then(function() {
-    source1.find('planet', '123').then(function(planet1) {
-      source2.find('planet', '123').then(function(planet2) {
-        start();
-        notStrictEqual(planet2, planet1, 'not the same object as the one originally inserted');
-        equal(planet2.__id, planet1.__id, 'backup record has the same primary id');
-        equal(planet2.name, planet1.name, 'backup record has the same name');
-        equal(planet2.name, 'Earth', 'records have the updated name');
-      });
+      done();
     });
-  });
 });
 
-test("an array of transforms can be applied to one source and should be automatically applied to the other source", function() {
+test("replacing value with null should not cause infinite update loop", function({async}) {
+  const done = async();
   expect(4);
 
-  stop();
+  store.addRecord({type: 'planet', id: '123', attributes: {name: 'Jupiter'}})
+    .then(function(jupiter) {
+      return store.replaceAttribute(jupiter, 'name', null);
+    })
+    .then(function() {
+      const storeVersion = store.retrieve(['planet', '123']);
+      const sourceVersion = source.retrieve(['planet', '123']);
 
-  source1.transform([{
-    op: 'add',
-    path: ['planet', '123'],
-    value: source1.normalize('planet', {name: 'Jupiter'})
-  }, {
-    op: 'replace',
-    path: ['planet', '123', 'name'],
-    value: 'Earth'
-  }]).then(function() {
-    source1.find('planet', '123').then(function(planet1) {
-      source2.find('planet', '123').then(function(planet2) {
-        start();
-        notStrictEqual(planet2, planet1, 'not the same object as the one originally inserted');
-        equal(planet2.__id, planet1.__id, 'backup record has the same primary id');
-        equal(planet2.name, planet1.name, 'backup record has the same name');
-        equal(planet2.name, 'Earth', 'records have the updated name');
-      });
+      notStrictEqual(sourceVersion, storeVersion, 'not the same object as the one originally inserted');
+      strictEqual(sourceVersion.id, storeVersion.id, 'backup record has the same primary id');
+      strictEqual(sourceVersion.attributes.name, storeVersion.attributes.name, 'backup record has the same name');
+      strictEqual(sourceVersion.attributes.name, null, 'records have name == null');
+
+      done();
     });
-  });
 });
 
-test("replacing value with null should not cause infinite update loop", function() {
-  expect(4);
-
-  stop();
-
-  source1.transform({
-    op: 'add',
-    path: ['planet', '123'],
-    value: source1.normalize('planet', {name: 'Jupiter'})
-  }).then(function() {
-    source1.transform({
-      op: 'replace',
-      path: ['planet', '123', 'name'],
-      value: null
-    }).then(function() {
-      source1.find('planet', '123').then(function(planet1) {
-        source2.find('planet', '123').then(function(planet2) {
-          start();
-          notStrictEqual(planet2, planet1, 'not the same object as the one originally inserted');
-          strictEqual(planet2.__id, planet1.__id, 'backup record has the same primary id');
-          strictEqual(planet2.name, planet1.name, 'backup record has the same name');
-          strictEqual(planet2.name, null, 'records have name == null');
-        });
-      });
-    });
-  });
-});
-
-test("replacing link should not cause infinite update loop", function() {
+test("replacing relationship should not cause infinite update loop", function({async}) {
+  const done = async();
   expect(12);
 
-  schema.registerModel('friend', {
-    keys: {
-      __id: {},
-      id: { primaryKey: true, defaultValue: uuid }
-    },
-    links: {
-      group: { model: 'group', type: 'hasOne', inverse: 'members' }
-    }
-  });
+  function retrieveHasMany(record, relationship) {
+    return Object.keys(record.relationships[relationship].data || {});
+  }
 
-  schema.registerModel('group', {
-    keys: {
-      __id: {},
-      id: { primaryKey: true, defaultValue: uuid }
-    },
-    links: {
-      members: { model: 'friend', type: 'hasMany', inverse: 'group' }
-    }
-  });
+  all([
+    store.addRecord({type: 'friend', id: 'gnarf'}),
+    store.addRecord({type: 'group', id: 'initial'}),
+    store.addRecord({type: 'group', id: 'new' })
+  ])
+  .spread(function(storeGnarf, storeInitialGroup, storeNewGroup) {
+    const sourceGnarf = source.retrieve(['friend', 'gnarf']);
+    const sourceInitialGroup = source.retrieve(['group', 'initial']);
+    const sourceNewGroup = source.retrieve(['group', 'new']);
 
-  stop();
+    store.addToRelationship(storeGnarf, 'group', storeInitialGroup)
+      .then(function() {
+        equal(storeGnarf.relationships.group.data, 'group:initial', 'initial group check');
+        equal(sourceGnarf.relationships.group.data, 'group:initial', 'initial group check');
 
-  Orbit.Promise
-    .all([
-      source1.add('friend', {
-        id: 'gnarf',
-      }),
-      source1.add('group', {
-        id: 'initial',
-      }),
-      source1.add('group', {
-        id: 'new'
+        equal(retrieveHasMany(storeInitialGroup, 'members').length, 1, 'initial group check');
+        equal(retrieveHasMany(sourceInitialGroup, 'members').length, 1, 'initial group check');
+
+        equal(retrieveHasMany(storeNewGroup, 'members').length, 0, 'new group check');
+        equal(retrieveHasMany(sourceNewGroup, 'members').length, 0, 'new group check');
       })
-    ])
-    .then(function() {
-      return source1.addLink('friend', 'gnarf', 'group', 'initial');
-    })
-    .then(function() {
-      equal(source1.retrieveLink('friend', 'gnarf', 'group'), 'initial', 'initial group check');
-      equal(source2.retrieveLink('friend', 'gnarf', 'group'), 'initial', 'initial group check');
-      equal(source1.retrieveLink('group', 'initial', 'members').length, 1, 'initial group check');
-      equal(source2.retrieveLink('group', 'initial', 'members').length, 1, 'initial group check');
-      equal(source1.retrieveLink('group', 'new', 'members').length, 0, 'initial group check');
-      equal(source2.retrieveLink('group', 'new', 'members').length, 0, 'initial group check');
+      .then(function() {
+        return store.replaceRelationship(storeGnarf, 'group', storeNewGroup);
+      })
+      .then(function() {
+        equal(storeGnarf.relationships.group.data, 'group:new', 'new group check');
+        equal(sourceGnarf.relationships.group.data, 'group:new', 'new group check');
 
-      // replace the link
-      return source1.addLink('friend', 'gnarf', 'group', 'new');
-    })
-    .then(function() {
-      start();
-      equal(source1.retrieveLink('friend', 'gnarf', 'group'), 'new', 'new group check');
-      equal(source2.retrieveLink('friend', 'gnarf', 'group'), 'new', 'new group check');
-      equal(source1.retrieveLink('group', 'initial', 'members').length, 0, 'new group check');
-      equal(source2.retrieveLink('group', 'initial', 'members').length, 0, 'new group check');
-      equal(source1.retrieveLink('group', 'new', 'members').length, 1, 'new group check');
-      equal(source2.retrieveLink('group', 'new', 'members').length, 1, 'new group check');
-    });
+        equal(retrieveHasMany(storeInitialGroup, 'members').length, 0, 'initial group check');
+        equal(retrieveHasMany(sourceInitialGroup, 'members').length, 0, 'initial group check');
+
+        equal(retrieveHasMany(storeNewGroup, 'members').length, 1, 'new group check');
+        equal(retrieveHasMany(sourceNewGroup, 'members').length, 1, 'new group check');
+      })
+      .then(function() {
+        done();
+      });
+  });
 });

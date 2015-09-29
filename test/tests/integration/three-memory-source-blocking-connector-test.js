@@ -5,6 +5,9 @@ import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
 import TransformConnector from 'orbit/transform-connector';
 import { Promise } from 'rsvp';
+import {
+  addRecordOperation
+} from 'orbit-common/lib/operations';
 
 var source1,
     source2,
@@ -61,9 +64,11 @@ module("Integration - Three Memory Source Sync (Blocking / Non-blocking)", {
   }
 });
 
-test('Spontaneous information from sources', function() {
-  expect(4);
-  stop();
+test('Spontaneous information from sources', function({async}) {
+  const done = async();
+  expect(15);
+
+  const planetIds = [];
 
   // For the use-case in this test - source2 and source3 are a socket connection
   // to an observatory discovering planets!
@@ -71,17 +76,12 @@ test('Spontaneous information from sources', function() {
   // This code is meant to represent how a socket server would broadcast a new
   // discovery from the socket data.
   function discover(source, planetName) {
-    // console.log('planet', planetName);
-    var id = uuid();
-    var data = source.normalize("planet", {
-      id: id,
-      name: planetName
-    });
-    source.transform({
-      op: "add",
-      path: ["planet", id],
-      value: data
-    });
+    source.transform(addRecordOperation({
+      id: planetName,
+      type: 'planet',
+      attributes: {name: planetName}
+    }));
+    planetIds.push(planetName);
 
     return source.settleTransforms();
   }
@@ -99,36 +99,21 @@ test('Spontaneous information from sources', function() {
   source1to3Connector.deactivate();
   source1to3Connector.activate();
 
-  var asyncDiscover = new Promise(function(resolve) {
-    resolve();
-  }).then(function() {
-    return discover(source2, "saturn");
-  });
-
   Promise
     .all([
       discover(source3, "earth"),
       discover(source2, "mars"),
       discover(source3, "mercury"),
       discover(source2, "jupiter"),
-      asyncDiscover
+      discover(source2, "saturn")
     ])
     .then(function() {
-      return source1.find('planet');
-    })
-    .then(function(planets) {
-      equal(planets.length, 5, "source1 - successfully added planets");
-      deepEqual(planets.map(function(p) { return p.name; }), ['earth', 'mars', 'mercury', 'jupiter', 'saturn'], 'planets are in the expected order');
+      [source1, source2, source3].forEach((source) => {
+        planetIds.forEach((planetId) => {
+          ok(source1.retrieve(['planet', planetId]), `${source.id} - added ${planetId}`);
+        });
+      });
 
-      return source2.find('planet');
-    })
-    .then(function(planets) {
-      equal(planets.length, 5, "source2 - successfully added planets");
-
-      return source3.find('planet');
-    })
-    .then(function(planets) {
-      start();
-      equal(planets.length, 5, "source3 - successfully added planets");
+      done();
     });
 });
