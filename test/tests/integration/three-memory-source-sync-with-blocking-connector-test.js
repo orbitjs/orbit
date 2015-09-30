@@ -3,7 +3,13 @@ import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
 import TransformConnector from 'orbit/transform-connector';
+import Transform from 'orbit/transform';
 import { Promise } from 'rsvp';
+import {
+  addRecordOperation,
+  replaceAttributeOperation
+} from 'orbit-common/lib/operations';
+import 'tests/test-helper';
 
 /**
  This test suite connects three memory sources with synchronous blocking
@@ -31,12 +37,6 @@ module("Integration - Three Memory Source Sync (Blocking)", {
 
     // Create schema
     var schema = new Schema({
-      modelDefaults: {
-        keys: {
-          '__id': {primaryKey: true, defaultValue: uuid},
-          'id': {}
-        }
-      },
       models: {
         planet: {
           attributes: {
@@ -65,89 +65,77 @@ module("Integration - Three Memory Source Sync (Blocking)", {
 
   teardown: function() {
     source1to2Connector = source2to1Connector = null;
-    source1 = source2 = null;
+    source1 = source2 = source3 = null;
   }
 });
 
-test("consecutive transforms can be applied to one source and should be automatically applied to the other source", function() {
+test("consecutive transforms can be applied to one source and should be automatically applied to the other source", function({async}) {
+  const done = async();
   expect(4);
 
-  stop();
+  source1.transform(addRecordOperation({type: 'planet', id: 'jupiter', attributes: {name: 'Jupiter'}}))
+    .then(() => {
+      const record = source1.retrieve(['planet', 'jupiter']);
+      return source1.transform(replaceAttributeOperation(record, 'name', 'Earth'));
+    })
+    .then(() => {
+      const store1Planet = source1.retrieve(['planet', 'jupiter']);
+      const store2Planet = source2.retrieve(['planet', 'jupiter']);
 
-  source1.transform({
-    op: 'add',
-    path: ['planet', '123'],
-    value: source1.normalize('planet', {name: 'Jupiter'})
-  });
+      notStrictEqual(store2Planet, store1Planet, 'not the same object as the one originally inserted');
+      equal(store2Planet.id, store1Planet.id, 'backup record has the same primary id');
+      equal(store2Planet.attributes.name, store1Planet.attributes.name, 'backup record has the same name');
+      equal(store2Planet.attributes.name, 'Earth', 'records have the updated name');
 
-  source1.transform({
-    op: 'replace',
-    path: ['planet', '123', 'name'],
-    value: 'Earth'
-
-  }).then(function() {
-    source1.find('planet', '123').then(function(planet1) {
-      source2.find('planet', '123').then(function(planet2) {
-        start();
-        notStrictEqual(planet2, planet1, 'not the same object as the one originally inserted');
-        equal(planet2.__id, planet1.__id, 'backup record has the same primary id');
-        equal(planet2.name, planet1.name, 'backup record has the same name');
-        equal(planet2.name, 'Earth', 'records have the updated name');
-      });
+      done();
     });
+});
+
+test("an array of transforms can be applied to one source and should be automatically applied to the other source", function({async}) {
+  const done = async();
+  expect(6);
+
+  source1.transform(new Transform([
+    addRecordOperation({type: 'planet', id: '123', attributes: {name: 'Jupiter'}}),
+    addRecordOperation({type: 'planet', id: '456', attributes: {name: 'Pluto'}}),
+  ]))
+  .then(() => {
+    const primaryJupiter = source1.retrieve(['planet', '123']);
+    const primaryPluto = source1.retrieve(['planet', '456']);
+
+    const backupJupiter = source2.retrieve(['planet', '123']);
+    const backupPluto = source2.retrieve(['planet', '456']);
+
+    notStrictEqual(primaryJupiter, backupJupiter, 'each source has it\'s own copy of Jupiter');
+    notStrictEqual(primaryPluto, backupPluto, 'each source has it\'s own copy of Pluto');
+
+    equal(backupJupiter.id, primaryJupiter.id, 'backup Jupiter has the same primary id');
+    equal(backupJupiter.attributes.name, primaryJupiter.attributes.name, 'backup Jupiter has the same primary name');
+
+    equal(backupPluto.id, primaryPluto.id, 'backup Pluto has the same primary id');
+    equal(backupPluto.attributes.name, primaryPluto.attributes.name, 'backup Pluto has the same primary name');
+
+    done();
   });
 });
 
-test("an array of transforms can be applied to one source and should be automatically applied to the other source", function() {
+test("replacing value with null should not cause infinite update loop", function({async}) {
+  const done = async();
   expect(4);
 
-  stop();
+  source1.transform(addRecordOperation({type: 'planet', id: '123', attributes: {name: 'Jupiter'}}))
+    .then(() => {
+      return source1.transform(replaceAttributeOperation({type: 'planet', id: '123'}, 'name', null));
+    })
+    .then(function() {
+      const source1Planet = source1.retrieve(['planet', '123']);
+      const source2Planet = source2.retrieve(['planet', '123']);
 
-  source1.transform([{
-    op: 'add',
-    path: ['planet', '123'],
-    value: source1.normalize('planet', {name: 'Jupiter'})
-  }, {
-    op: 'replace',
-    path: ['planet', '123', 'name'],
-    value: 'Earth'
-  }]).then(function() {
-    source1.find('planet', '123').then(function(planet1) {
-      source2.find('planet', '123').then(function(planet2) {
-        start();
-        notStrictEqual(planet2, planet1, 'not the same object as the one originally inserted');
-        equal(planet2.__id, planet1.__id, 'backup record has the same primary id');
-        equal(planet2.name, planet1.name, 'backup record has the same name');
-        equal(planet2.name, 'Earth', 'records have the updated name');
-      });
+      notStrictEqual(source2Planet, source1Planet, 'not the same object as the one originally inserted');
+      strictEqual(source2Planet.id, source1Planet.id, 'backup record has the same primary id');
+      strictEqual(source2Planet.attributes.name, source1Planet.attributes.name, 'backup record has the same name');
+      strictEqual(source2Planet.attributes.name, null, 'records have name == null');
+
+      done();
     });
-  });
-});
-
-test("replacing value with null should not cause infinite update loop", function() {
-  expect(4);
-
-  stop();
-
-  source1.transform({
-    op: 'add',
-    path: ['planet', '123'],
-    value: source1.normalize('planet', {name: 'Jupiter'})
-  }).then(function() {
-    source1.transform({
-      op: 'replace',
-      path: ['planet', '123', 'name'],
-      value: null
-    }).then(function() {
-      source1.find('planet', '123').then(function(planet1) {
-        source2.find('planet', '123').then(function(planet2) {
-          start();
-          notStrictEqual(planet2, planet1, 'not the same object as the one originally inserted');
-          strictEqual(planet2.__id, planet1.__id, 'backup record has the same primary id');
-          strictEqual(planet2.name, planet1.name, 'backup record has the same name');
-          strictEqual(planet2.name, null, 'records have name == null');
-        });
-      });
-    });
-  });
 });
