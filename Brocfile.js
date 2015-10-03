@@ -78,6 +78,7 @@ var buildExtras = new Funnel('build-support', {
 
 var lib = {};
 var main = {};
+var commonJs = {};
 var globalized = {};
 
 packages.forEach(function(package) {
@@ -89,12 +90,36 @@ packages.forEach(function(package) {
   });
 
   main[package.name] = mergeTrees([ lib[package.name] ]);
+
+  // Generate npm
+  var npm = new compileES6Modules(main[package.name], {
+    format: 'cjs'
+  });
+  npm = new transpileES6(npm);
+  npm = replace(npm, {
+    files: ['**/*.js'],
+    pattern: {
+      match: /require\('orbit/g,
+      replacement: function() {
+        return "require('orbit.js/orbit";
+      }
+    }
+  });
+  npm = new Funnel(npm, {
+    srcDir: '/',
+    destDir: '/npm/'
+  });
+
+  // Generate AMD
   main[package.name] = new compileES6Modules(main[package.name]);
   main[package.name] = new transpileES6(main[package.name]);
   main[package.name] = concat(main[package.name], {
     inputFiles: ['**/*.js'],
     outputFile: '/' + package.name + '.amd.js'
   });
+
+  // Merge in npm-tree
+  main[package.name] = mergeTrees([main[package.name], npm]);
 
   var support = new Funnel('build-support', {
     srcDir: '/',
