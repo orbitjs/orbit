@@ -39,13 +39,13 @@ test("calls Source.created when a source has been created", function() {
 
 test("will be created without a cache by default", function() {
   var source = new Source({schema: schema});
-  equal(source._cache, null);
+  equal(source.cache, null);
 });
 
 test("can be created with a cache with `useCache`, and options can be specified with `cacheOptions`", function() {
   var source = new Source({schema: schema, useCache: true, cacheOptions: {processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor]}});
-  ok(source._cache, 'cache exists');
-  equal(source._cache._processors.length, 2, 'cache has 2 processors');
+  ok(source.cache, 'cache exists');
+  equal(source.cache._processors.length, 2, 'cache has 2 processors');
 });
 
 test("#prepareTransformOperations - for `add` operations, applies a differential if the target path exists", function() {
