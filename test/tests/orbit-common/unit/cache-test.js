@@ -476,3 +476,15 @@ test("#transform does not remove non-dependent records", function() {
     'inverse ops match'
   );
 });
+
+test("#retrieve will retrieve missing data from a `fallback` cache if one has been set", function(assert) {
+  assert.expect(1);
+
+  var fallbackCache = new Cache(schema);
+  var mars = {name: 'Mars'};
+  fallbackCache.reset({planet: {'2': mars}});
+
+  cache = new Cache(schema, {fallback: fallbackCache});
+
+  assert.deepEqual(cache.retrieve('planet/2'), mars, 'data retrieved from fallback');
+});
