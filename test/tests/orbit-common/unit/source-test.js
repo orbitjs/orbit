@@ -59,7 +59,7 @@ test("#prepareTransformOperations - for `add` operations, applies a differential
     value: {id: 1, name: 'Earth', hasRings: false}
   });
 
-  source.retrieve = function() {
+  source.cache.retrieve = function() {
     return {
       id: 1,
       name: 'Saturn',
@@ -83,7 +83,7 @@ test("#prepareTransformOperations - for `replace` operations, applies a differen
     value: true
   });
 
-  source.retrieve = function() {
+  source.cache.retrieve = function() {
     return false;
   };
 
