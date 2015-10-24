@@ -1,3 +1,4 @@
+import 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Evented from 'orbit/evented';
 import { Promise } from 'rsvp';
