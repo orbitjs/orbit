@@ -1,8 +1,11 @@
 import Orbit from 'orbit/main';
 import Transformable from 'orbit/transformable';
+import Transform from 'orbit/transform';
 import TransformResult from 'orbit/transform-result';
-import { Promise } from 'rsvp';
+import { Promise, defer, resolve } from 'rsvp';
 import { equalOps, successfulOperation, failedOperation } from 'tests/test-helper';
+import { Class } from 'orbit/lib/objects';
+import Evented from 'orbit/evented';
 
 var source;
 
@@ -198,4 +201,80 @@ test("#clearTransformLog can clear the log of any applied transforms", function(
     equal(Object.keys(source._transformLog).length, 0, 'log has been cleared');
   });
 
+});
+
+
+const StreamingSource = Class.extend({
+  init(rethinkdb) {
+    Transformable.extend(this);
+    this._queue = resolve();
+    this._rethinkdb = rethinkdb;
+  },
+
+  _processTransform(transform) {
+    this._blockedTransform = {
+      transform: transform,
+      time: new Date().getTime(),
+      deferred: defer()
+    };
+
+    this._rethinkdb.emit('receivedTransform', transform);
+
+    return this._blockedTransform.deferred.promise;
+  },
+
+  _receiveFromRethinkdb(update) {
+    return update.state === 'synced' ? this._processRethinkdbStateDocument(update)
+                                     : this._processRethinkdbTransform(update);
+  },
+
+  _processRethinkdbTransform(transform) {
+    this._queue = this._queue.then(() => {
+      return this.settle('didTransform', transform);
+    });
+  },
+
+  _processRethinkdbStateDocument(stateDocument) {
+    // e.g. stateDocument = {state: 'synced', writeTimestamp: 1234567}
+
+    const changefeedIncludesBlockedTransform = this._blockedTransform.time < stateDocument.writeTimestamp;
+
+    if(changefeedIncludesBlockedTransform) {
+      this._queue.then(() => {
+        this._blockedTransform.deferred.resolve();
+      });
+    }
+  }
+});
+
+const RethinkdbStub = Class.extend({
+  init() {
+    Evented.extend(this);
+  }
+});
+
+test('can emit streaming results while blocking a transform', function({async}){
+  const done = async();
+  expect(1);
+
+  const transformA = new Transform();
+  const transformASquashedWithTransformB = new Transform();
+
+  const rethinkdb = new RethinkdbStub();
+  const streamingSource = new StreamingSource(rethinkdb);
+
+  rethinkdb.on('receivedTransform', () => {
+    streamingSource._receiveFromRethinkdb(transformASquashedWithTransformB);
+    streamingSource._receiveFromRethinkdb({state: 'synced', writeTimestamp: new Date().getTime()});
+  });
+
+  const didTransform = sinon.spy();
+  streamingSource.on('didTransform', didTransform);
+
+  streamingSource
+    .transform(transformA)
+    .then(() => {
+      ok(didTransform.calledWith(transformASquashedWithTransformB), 'squashed transform emitted');
+    })
+    .then(done);
 });
