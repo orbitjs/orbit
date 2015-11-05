@@ -30,64 +30,64 @@ test("it exists", function() {
 
 test("#reset - will clear the document by default", function() {
   doc.reset();
-  deepEqual(doc.retrieve(), {});
+  deepEqual(doc.get(), {});
 });
 
 test("#reset - will reset the full document to the value specified", function() {
   var data = {a: 'b', c: ['d', 'e']};
   doc.reset(data);
-  deepEqual(doc.retrieve(), data);
+  deepEqual(doc.get(), data);
 });
 
 /*
-  `retrieve`
+  `get`
  */
 
-test("#retrieve - will retrieve the full document by default", function() {
-  deepEqual(doc.retrieve(), {});
+test("#get - will get the full document by default", function() {
+  deepEqual(doc.get(), {});
 
   doc.reset({a: 'b', c: ['d', 'e']});
-  deepEqual(doc.retrieve(), {a: 'b', c: ['d', 'e']});
+  deepEqual(doc.get(), {a: 'b', c: ['d', 'e']});
 });
 
-test("#retrieve - can retrieve a value from a simple object path", function() {
+test("#get - can get a value from a simple object path", function() {
   doc.reset({a: 'b', c: ['d', 'e']});
-  deepEqual(doc.retrieve(['a']), 'b');
+  deepEqual(doc.get(['a']), 'b');
 });
 
-test("#retrieve - can retrieve an array value from a simple object path", function() {
+test("#get - can get an array value from a simple object path", function() {
   doc.reset({a: 'b', c: ['d', 'e']});
-  deepEqual(doc.retrieve(['c']), ['d', 'e']);
+  deepEqual(doc.get(['c']), ['d', 'e']);
 });
 
-test("#retrieve - can retrieve a value at the end of an array", function() {
+test("#get - can get a value at the end of an array", function() {
   doc.reset({a: 'b', c: ['d', 'e', 'f']});
-  deepEqual(doc.retrieve(['c', '-']), 'f');
+  deepEqual(doc.get(['c', '-']), 'f');
 });
 
-test("#retrieve - can retrieve a value at a specific position in an array", function() {
+test("#get - can get a value at a specific position in an array", function() {
   doc.reset({a: 'b', c: ['d', 'e', 'f']});
-  deepEqual(doc.retrieve(['c', '1']), 'e');
+  deepEqual(doc.get(['c', '1']), 'e');
 });
 
-test("#retrieve - can retrieve a value with an array in the path", function() {
+test("#get - can get a value with an array in the path", function() {
   doc.reset({a: 'b', c: ['d', {e: 'f'}]});
-  deepEqual(doc.retrieve(['c', '1', 'e']), 'f');
+  deepEqual(doc.get(['c', '1', 'e']), 'f');
 });
 
-test("#retrieve - throws an exception for a path that doesn't exist", function() {
+test("#get - throws an exception for a path that doesn't exist", function() {
   doc.reset({a: 'b'});
   throws(
     function() {
-      doc.retrieve(['b']);
+      doc.get(['b']);
     },
     Document.PathNotFoundException
   );
 });
 
-test("#retrieve - returns `undefined` for a path that doesn't exist when `quiet=true`", function() {
+test("#get - returns `undefined` for a path that doesn't exist when `quiet=true`", function() {
   doc.reset({a: 'b'});
-  strictEqual(doc.retrieve(['b'], true), undefined);
+  strictEqual(doc.get(['b'], true), undefined);
 });
 
 /*
@@ -151,13 +151,13 @@ test("#test - uses `undefined` for the value of a path that doesn't exist when `
 test("#transform - `add` - can add a value to the root object", function() {
   doc.reset({foo: 'bar'});
   doc.transform({op: 'add', path: [], value: {baz: 'boo'}});
-  deepEqual(doc.retrieve(), {baz: 'boo'});
+  deepEqual(doc.get(), {baz: 'boo'});
 });
 
 test("#transform - `add` - can add a value to a parent object path that doesn't exist", function() {
   doc.reset({foo: 'bar'});
   doc.transform({op: 'add', path: ['baz'], value: 'boo'});
-  deepEqual(doc.retrieve(), {foo: 'bar', baz: 'boo'});
+  deepEqual(doc.get(), {foo: 'bar', baz: 'boo'});
 });
 
 test("#transform - `add` - can NOT add data to a grandparent object path that doesn't exist", function() {
@@ -173,28 +173,28 @@ test("#transform - `add` - can NOT add data to a grandparent object path that do
 test("#transform - `add` - can replace an object at a target object path", function() {
   doc.reset({a: 'bar'});
   doc.transform({op: 'add', path: ['a'], value: 'baz'});
-  deepEqual(doc.retrieve(), {a: 'baz'});
+  deepEqual(doc.get(), {a: 'baz'});
 });
 
 test("#transform - `add` - can replace an object at a deep target object path", function() {
   doc.reset({a: {b: {c: 'd'}}});
   doc.transform({op: 'add', path: ['a', 'b', 'c'], value: 'e'});
-  deepEqual(doc.retrieve(), {a: {b: {c: 'e'}}});
+  deepEqual(doc.get(), {a: {b: {c: 'e'}}});
 });
 
 test("#transform - `add` - can append a value to the end of a targeted array", function() {
   doc.reset({foo: ['bar', 'baz']});
   doc.transform({op: 'add', path: ['foo', '-'], value: 'boo'});
-  deepEqual(doc.retrieve(), {foo: ['bar', 'baz', 'boo']});
+  deepEqual(doc.get(), {foo: ['bar', 'baz', 'boo']});
 });
 
 test("#transform - `add` - can insert a value in a specific position in a targeted array", function() {
   doc.reset({foo: ['a', 'c']});
   doc.transform({op: 'add', path: ['foo', '1'], value: 'b'});
-  deepEqual(doc.retrieve(), {foo: ['a', 'b', 'c']});
+  deepEqual(doc.get(), {foo: ['a', 'b', 'c']});
 
   doc.transform({op: 'add', path: ['foo', '3'], value: 'd'});
-  deepEqual(doc.retrieve(), {foo: ['a', 'b', 'c', 'd']});
+  deepEqual(doc.get(), {foo: ['a', 'b', 'c', 'd']});
 });
 
 test("#transform - `add` - can NOT insert a value in a position beyond the end of an targeted array", function() {
@@ -216,7 +216,7 @@ test("#transform - `add` - can invert the addition of a value to the root object
   var inverse = doc.transform({op: 'add', path: [], value: {baz: 'boo'}}, true);
   deepEqual(inverse, [{op: 'replace', path: [], value: {foo: 'bar'}}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {foo: 'bar'});
+  deepEqual(doc.get(), {foo: 'bar'});
 });
 
 test("#transform - `add` - can invert the addition of a value to a parent object path that doesn't exist", function() {
@@ -224,7 +224,7 @@ test("#transform - `add` - can invert the addition of a value to a parent object
   var inverse = doc.transform({op: 'add', path: ['baz'], value: 'boo'}, true);
   deepEqual(inverse, [{op: 'remove', path: ['baz']}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {foo: 'bar'});
+  deepEqual(doc.get(), {foo: 'bar'});
 });
 
 test("#transform - `add` - can invert the replacement of an object at a target object path", function() {
@@ -232,7 +232,7 @@ test("#transform - `add` - can invert the replacement of an object at a target o
   var inverse = doc.transform({op: 'add', path: ['a'], value: 'baz'}, true);
   deepEqual(inverse, [{op: 'replace', path: ['a'], value: 'bar'}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {a: 'bar'});
+  deepEqual(doc.get(), {a: 'bar'});
 });
 
 test("#transform - `add` - can invert the replacement of an object at a deep target object path", function() {
@@ -240,7 +240,7 @@ test("#transform - `add` - can invert the replacement of an object at a deep tar
   var inverse = doc.transform({op: 'add', path: ['a', 'b', 'c'], value: 'e'}, true);
   deepEqual(inverse, [{op: 'replace', path: ['a', 'b', 'c'], value: 'd'}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {a: {b: {c: 'd'}}});
+  deepEqual(doc.get(), {a: {b: {c: 'd'}}});
 });
 
 test("#transform - `add` - can invert the appending of a value to the end of a targeted array", function() {
@@ -248,7 +248,7 @@ test("#transform - `add` - can invert the appending of a value to the end of a t
   var inverse = doc.transform({op: 'add', path: ['foo', '-'], value: 'boo'}, true);
   deepEqual(inverse, [{op: 'remove', path: ['foo', '-']}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {foo: ['bar', 'baz']});
+  deepEqual(doc.get(), {foo: ['bar', 'baz']});
 });
 
 test("#transform - `add` - can invert the insertion of a value in a specific position in a targeted array", function() {
@@ -256,7 +256,7 @@ test("#transform - `add` - can invert the insertion of a value in a specific pos
   var inverse = doc.transform({op: 'add', path: ['foo', '1'], value: 'b'}, true);
   deepEqual(inverse, [{op: 'remove', path: ['foo', '1']}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {foo: ['a', 'c']});
+  deepEqual(doc.get(), {foo: ['a', 'c']});
 });
 
 /*
@@ -266,13 +266,13 @@ test("#transform - `add` - can invert the insertion of a value in a specific pos
 test("#transform - `remove` - can clear the root object", function() {
   doc.reset({a: 'bar'});
   doc.transform({op: 'remove', path: []});
-  deepEqual(doc.retrieve(), {});
+  deepEqual(doc.get(), {});
 });
 
 test("#transform - `remove` - can remove an object at a target object path", function() {
   doc.reset({a: 'bar'});
   doc.transform({op: 'remove', path: ['a']});
-  deepEqual(doc.retrieve(), {});
+  deepEqual(doc.get(), {});
 });
 
 test("#transform - `remove` - verifies that a target object path exists", function() {
@@ -288,13 +288,13 @@ test("#transform - `remove` - verifies that a target object path exists", functi
 test("#transform - `remove` - can remove a nested object at a target object path", function() {
   doc.reset({a: {b: 'c'}});
   doc.transform({op: 'remove', path: ['a', 'b']});
-  deepEqual(doc.retrieve(), {a: {}});
+  deepEqual(doc.get(), {a: {}});
 });
 
 test("#transform - `remove` - can remove a deeply nested object at a target object path", function() {
   doc.reset({a: {b: {c: 'd'}}});
   doc.transform({op: 'remove', path: ['a', 'b', 'c']});
-  deepEqual(doc.retrieve(), {a: {b: {}}});
+  deepEqual(doc.get(), {a: {b: {}}});
 });
 
 test("#transform - `remove` - verifies that a nested object path exists", function() {
@@ -310,7 +310,7 @@ test("#transform - `remove` - verifies that a nested object path exists", functi
 test("#transform - `remove` - can remove an object from the end of a targeted array", function() {
   doc.reset({foo: ['bar', 'baz', 'boo']});
   doc.transform({op: 'remove', path: ['foo', '-']});
-  deepEqual(doc.retrieve(), {foo: ['bar', 'baz']});
+  deepEqual(doc.get(), {foo: ['bar', 'baz']});
 });
 
 test("#transform - `remove` - can NOT remove the last value in an empty array", function() {
@@ -326,7 +326,7 @@ test("#transform - `remove` - can NOT remove the last value in an empty array", 
 test("#transform - `remove` - can remove an object from a specific position in a targeted array", function() {
   doc.reset({foo: ['bar', 'baz', 'boo']});
   doc.transform({op: 'remove', path: ['foo', '1']});
-  deepEqual(doc.retrieve(), {foo: ['bar', 'boo']});
+  deepEqual(doc.get(), {foo: ['bar', 'boo']});
 });
 
 test("#transform - `remove` - can NOT an object from a position not present in a targeted array", function() {
@@ -348,7 +348,7 @@ test("#transform - `remove` - can invert removal of the root object", function()
   var inverse = doc.transform({op: 'remove', path: []}, true);
   deepEqual(inverse, [{op: 'add', path: [], value: {a: 'bar'}}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {a: 'bar'});
+  deepEqual(doc.get(), {a: 'bar'});
 });
 
 test("#transform - `remove` - can invert removal of an object at a target object path", function() {
@@ -356,7 +356,7 @@ test("#transform - `remove` - can invert removal of an object at a target object
   var inverse = doc.transform({op: 'remove', path: ['a']}, true);
   deepEqual(inverse, [{op: 'add', path: ['a'], value: 'bar'}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {a: 'bar'});
+  deepEqual(doc.get(), {a: 'bar'});
 });
 
 test("#transform - `remove` - can invert removal of a nested object at a target object path", function() {
@@ -364,7 +364,7 @@ test("#transform - `remove` - can invert removal of a nested object at a target 
   var inverse = doc.transform({op: 'remove', path: ['a', 'b']}, true);
   deepEqual(inverse, [{op: 'add', path: ['a', 'b'], value: 'c'}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {a: {b: 'c'}});
+  deepEqual(doc.get(), {a: {b: 'c'}});
 });
 
 test("#transform - `remove` - can invert removal of a deeply nested object at a target object path", function() {
@@ -372,7 +372,7 @@ test("#transform - `remove` - can invert removal of a deeply nested object at a 
   var inverse = doc.transform({op: 'remove', path: ['a', 'b', 'c']}, true);
   deepEqual(inverse, [{op: 'add', path: ['a', 'b', 'c'], value: 'd'}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {a: {b: {c: 'd'}}});
+  deepEqual(doc.get(), {a: {b: {c: 'd'}}});
 });
 
 test("#transform - `remove` - can invert removal of an object from the end of a targeted array", function() {
@@ -380,7 +380,7 @@ test("#transform - `remove` - can invert removal of an object from the end of a 
   var inverse = doc.transform({op: 'remove', path: ['foo', '-']}, true);
   deepEqual(inverse, [{op: 'add', path: ['foo', '-'], value: 'boo'}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {foo: ['bar', 'baz', 'boo']});
+  deepEqual(doc.get(), {foo: ['bar', 'baz', 'boo']});
 });
 
 test("#transform - `remove` - can invert removal of an object from a specific position in a targeted array", function() {
@@ -388,7 +388,7 @@ test("#transform - `remove` - can invert removal of an object from a specific po
   var inverse = doc.transform({op: 'remove', path: ['foo', '1']}, true);
   deepEqual(inverse, [{op: 'add', path: ['foo', '1'], value: 'baz'}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {foo: ['bar', 'baz', 'boo']});
+  deepEqual(doc.get(), {foo: ['bar', 'baz', 'boo']});
 });
 
 /*
@@ -398,19 +398,19 @@ test("#transform - `remove` - can invert removal of an object from a specific po
 test("#transform - `replace` - can replace the root object", function() {
   doc.reset({a: 'bar'});
   doc.transform({op: 'replace', path: [], value: {baz: 'boo'}});
-  deepEqual(doc.retrieve(), {baz: 'boo'});
+  deepEqual(doc.get(), {baz: 'boo'});
 });
 
 test("#transform - `replace` - can replace an object at a target object path", function() {
   doc.reset({a: 'bar'});
   doc.transform({op: 'replace', path: ['a'], value: 'boo'});
-  deepEqual(doc.retrieve(), {a: 'boo'});
+  deepEqual(doc.get(), {a: 'boo'});
 });
 
 test("#transform - `replace` - can add an object to the root object", function() {
   doc.reset();
   doc.transform({op: 'replace', path: ['foo'], value: 'boo'});
-  deepEqual(doc.retrieve(), {foo: 'boo'});
+  deepEqual(doc.get(), {foo: 'boo'});
 });
 
 test("#transform - `replace` - verifies that the parent of the target object path is present", function() {
@@ -426,25 +426,25 @@ test("#transform - `replace` - verifies that the parent of the target object pat
 test("#transform - `replace` - can replace a nested object at a target object path", function() {
   doc.reset({a: {b: 'c'}});
   doc.transform({op: 'replace', path: ['a', 'b'], value: 'd'});
-  deepEqual(doc.retrieve(), {a: {b: 'd'}});
+  deepEqual(doc.get(), {a: {b: 'd'}});
 });
 
 test("#transform - `replace` - can replace a deeply nested object at a target object path", function() {
   doc.reset({a: {b: {c: 'd'}}});
   doc.transform({op: 'replace', path: ['a', 'b', 'c'], value: 'e'});
-  deepEqual(doc.retrieve(), {a: {b: {c: 'e'}}});
+  deepEqual(doc.get(), {a: {b: {c: 'e'}}});
 });
 
 test("#transform - `replace` - can add an object to a path that doesn't exist as long as the parent path exists", function() {
   doc.reset({foo: {bar: 'baz'}});
   doc.transform({op: 'replace', path: ['foo', 'baz'], value: 'boo'});
-  deepEqual(doc.retrieve(), {foo: {bar: 'baz', baz: 'boo'}});
+  deepEqual(doc.get(), {foo: {bar: 'baz', baz: 'boo'}});
 });
 
 test("#transform - `replace` - can replace an object from the end of a targeted array", function() {
   doc.reset({foo: ['bar', 'baz', 'boo']});
   doc.transform({op: 'replace', path: ['foo', '-'], value: 'fuz'});
-  deepEqual(doc.retrieve(), {foo: ['bar', 'baz', 'fuz']});
+  deepEqual(doc.get(), {foo: ['bar', 'baz', 'fuz']});
 });
 
 test("#transform - `replace` - can NOT replace the last value in an empty array", function() {
@@ -460,7 +460,7 @@ test("#transform - `replace` - can NOT replace the last value in an empty array"
 test("#transform - `replace` - can replace an object from a specific position in a targeted array", function() {
   doc.reset({foo: ['bar', 'baz', 'boo']});
   doc.transform({op: 'replace', path: ['foo', '1'], value: 'fuz'});
-  deepEqual(doc.retrieve(), {foo: ['bar', 'fuz', 'boo']});
+  deepEqual(doc.get(), {foo: ['bar', 'fuz', 'boo']});
 });
 
 test("#transform - `replace` - can NOT an object from a position not present in a targeted array", function() {
@@ -482,7 +482,7 @@ test("#transform - `replace` - can invert replacement of the root object", funct
   var inverse = doc.transform({op: 'replace', path: [], value: {baz: 'boo'}}, true);
   deepEqual(inverse, [{op: 'replace', path: [], value: {a: 'bar'}}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {a: 'bar'});
+  deepEqual(doc.get(), {a: 'bar'});
 });
 
 test("#transform - `replace` - can invert replacement of an object at a target object path", function() {
@@ -490,7 +490,7 @@ test("#transform - `replace` - can invert replacement of an object at a target o
   var inverse = doc.transform({op: 'replace', path: ['a'], value: 'boo'}, true);
   deepEqual(inverse, [{op: 'replace', path: ['a'], value: 'bar'}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {a: 'bar'});
+  deepEqual(doc.get(), {a: 'bar'});
 });
 
 test("#transform - `replace` - can invert replacement of a nested object at a target object path", function() {
@@ -498,7 +498,7 @@ test("#transform - `replace` - can invert replacement of a nested object at a ta
   var inverse = doc.transform({op: 'replace', path: ['a', 'b'], value: 'd'}, true);
   deepEqual(inverse, [{op: 'replace', path: ['a', 'b'], value: 'c'}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {a: {b: 'c'}});
+  deepEqual(doc.get(), {a: {b: 'c'}});
 });
 
 test("#transform - `replace` - can invert replacement of a deeply nested object at a target object path", function() {
@@ -506,7 +506,7 @@ test("#transform - `replace` - can invert replacement of a deeply nested object 
   var inverse = doc.transform({op: 'replace', path: ['a', 'b', 'c'], value: 'e'}, true);
   deepEqual(inverse, [{op: 'replace', path: ['a', 'b', 'c'], value: 'd'}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {a: {b: {c: 'd'}}});
+  deepEqual(doc.get(), {a: {b: {c: 'd'}}});
 });
 
 test("#transform - `replace` - can invert replacement of an object from the end of a targeted array", function() {
@@ -514,7 +514,7 @@ test("#transform - `replace` - can invert replacement of an object from the end 
   var inverse = doc.transform({op: 'replace', path: ['foo', '-'], value: 'fuz'}, true);
   deepEqual(inverse, [{op: 'replace', path: ['foo', '-'], value: 'boo'}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {foo: ['bar', 'baz', 'boo']});
+  deepEqual(doc.get(), {foo: ['bar', 'baz', 'boo']});
 });
 
 test("#transform - `replace` - can invert replacement of an object from a specific position in a targeted array", function() {
@@ -522,7 +522,7 @@ test("#transform - `replace` - can invert replacement of an object from a specif
   var inverse = doc.transform({op: 'replace', path: ['foo', '1'], value: 'fuz'}, true);
   deepEqual(inverse, [{op: 'replace', path: ['foo', '1'], value: 'baz'}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {foo: ['bar', 'baz', 'boo']});
+  deepEqual(doc.get(), {foo: ['bar', 'baz', 'boo']});
 });
 
 /*
@@ -532,13 +532,13 @@ test("#transform - `replace` - can invert replacement of an object from a specif
 test("#transform - `move` - can replace the root object with itself (yes, this is silly)", function() {
   doc.reset({a: 'bar'});
   doc.transform({op: 'move', from: [], path: []});
-  deepEqual(doc.retrieve(), {a: 'bar'});
+  deepEqual(doc.get(), {a: 'bar'});
 });
 
 test("#transform - `move` - can move an object at a target object path", function() {
   doc.reset({a: 'bar'});
   doc.transform({op: 'move', from: ['a'], path: ['b']});
-  deepEqual(doc.retrieve(), {b: 'bar'});
+  deepEqual(doc.get(), {b: 'bar'});
 });
 
 test("#transform - `move` - verifies that a target object path exists", function() {
@@ -554,7 +554,7 @@ test("#transform - `move` - verifies that a target object path exists", function
 test("#transform - `move` - can move a nested object at a target object path", function() {
   doc.reset({a: {b: 'c'}});
   doc.transform({op: 'move', from: ['a', 'b'], path: ['d']});
-  deepEqual(doc.retrieve(), {a: {}, d: 'c'});
+  deepEqual(doc.get(), {a: {}, d: 'c'});
 });
 
 test("#transform - `move` - verifies that a nested object path exists", function() {
@@ -570,7 +570,7 @@ test("#transform - `move` - verifies that a nested object path exists", function
 test("#transform - `move` - can move an object from the end of a targeted array", function() {
   doc.reset({foo: ['bar', 'baz', 'boo']});
   doc.transform({op: 'move', from: ['foo', '-'], path: ['fuz']});
-  deepEqual(doc.retrieve(), {foo: ['bar', 'baz'], fuz: 'boo'});
+  deepEqual(doc.get(), {foo: ['bar', 'baz'], fuz: 'boo'});
 });
 
 test("#transform - `move` - can NOT move the last value in an empty array", function() {
@@ -586,7 +586,7 @@ test("#transform - `move` - can NOT move the last value in an empty array", func
 test("#transform - `move` - can move an object from a specific position in a targeted array", function() {
   doc.reset({foo: ['a', 'b', 'c']});
   doc.transform({op: 'move', from: ['foo', '0'], path: ['foo', '2']});
-  deepEqual(doc.retrieve(), {foo: ['b', 'c', 'a']});
+  deepEqual(doc.get(), {foo: ['b', 'c', 'a']});
 });
 
 test("#transform - `move` - can NOT an object from a position not present in a targeted array", function() {
@@ -607,7 +607,7 @@ test("#transform - `move` - can invert replacing the root object with itself (ye
   doc.reset({a: 'bar'});
   var inverse = doc.transform({op: 'move', from: [], path: []}, true);
   deepEqual(inverse, []);
-  deepEqual(doc.retrieve(), {a: 'bar'});
+  deepEqual(doc.get(), {a: 'bar'});
 });
 
 test("#transform - `move` - can invert moving an object at a target object path", function() {
@@ -616,7 +616,7 @@ test("#transform - `move` - can invert moving an object at a target object path"
   deepEqual(inverse, [{op: 'remove', path: ['b']},
                       {op: 'add', path: ['a'], value: 'bar'}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {a: 'bar'});
+  deepEqual(doc.get(), {a: 'bar'});
 });
 
 test("#transform - `move` - can invert moving a nested object at a target object path", function() {
@@ -625,7 +625,7 @@ test("#transform - `move` - can invert moving a nested object at a target object
   deepEqual(inverse, [{op: 'remove', path: ['d']},
                       {op: 'add', path: ['a', 'b'], value: 'c'}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {a: {b: 'c'}});
+  deepEqual(doc.get(), {a: {b: 'c'}});
 });
 
 test("#transform - `move` - can invert moving an object from the end of a targeted array", function() {
@@ -634,7 +634,7 @@ test("#transform - `move` - can invert moving an object from the end of a target
   deepEqual(inverse, [{op: 'remove', path: ['fuz']},
                       {op: 'add', path: ['foo', '-'], value: 'boo'}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {foo: ['bar', 'baz', 'boo']});
+  deepEqual(doc.get(), {foo: ['bar', 'baz', 'boo']});
 });
 
 test("#transform - `move` - can invert moving an object from a specific position in a targeted array", function() {
@@ -645,14 +645,14 @@ test("#transform - `move` - can invert moving an object from a specific position
   deepEqual(inverse, [{op: 'remove', path: ['foo', '2']},
                       {op: 'add', path: ['foo', '0'], value: 'a'}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {foo: ['a', 'b', 'c']});
+  deepEqual(doc.get(), {foo: ['a', 'b', 'c']});
 
   doc.reset({foo: ['a', 'b', 'c']});
   inverse = doc.transform({op: 'move', from: ['foo', '2'], path: ['foo', '0']}, true);
   deepEqual(inverse, [{op: 'remove', path: ['foo', '0']},
                       {op: 'add', path: ['foo', '2'], value: 'c'}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {foo: ['a', 'b', 'c']});
+  deepEqual(doc.get(), {foo: ['a', 'b', 'c']});
 });
 
 /*
@@ -662,13 +662,13 @@ test("#transform - `move` - can invert moving an object from a specific position
 test("#transform - `copy` - can replace the root object with itself (yes, this is silly)", function() {
   doc.reset({a: 'bar'});
   doc.transform({op: 'copy', from: [], path: []});
-  deepEqual(doc.retrieve(), {a: 'bar'});
+  deepEqual(doc.get(), {a: 'bar'});
 });
 
 test("#transform - `copy` - can copy an object at a target object path", function() {
   doc.reset({a: 'bar'});
   doc.transform({op: 'copy', from: ['a'], path: ['b']});
-  deepEqual(doc.retrieve(), {a: 'bar', b: 'bar'});
+  deepEqual(doc.get(), {a: 'bar', b: 'bar'});
 });
 
 test("#transform - `copy` - verifies that a target object path exists", function() {
@@ -684,7 +684,7 @@ test("#transform - `copy` - verifies that a target object path exists", function
 test("#transform - `copy` - can copy a nested object at a target object path", function() {
   doc.reset({a: {b: {c: 'd'}}});
   doc.transform({op: 'copy', from: ['a', 'b'], path: ['e']});
-  deepEqual(doc.retrieve(), {a: {b: {c: 'd'}}, e: {c: 'd'}});
+  deepEqual(doc.get(), {a: {b: {c: 'd'}}, e: {c: 'd'}});
 });
 
 test("#transform - `copy` - verifies that a nested object path exists", function() {
@@ -700,7 +700,7 @@ test("#transform - `copy` - verifies that a nested object path exists", function
 test("#transform - `copy` - can copy an object from the end of a targeted array", function() {
   doc.reset({foo: ['bar', 'baz', 'boo']});
   doc.transform({op: 'copy', from: ['foo', '-'], path: ['fuz']});
-  deepEqual(doc.retrieve(), {foo: ['bar', 'baz', 'boo'], fuz: 'boo'});
+  deepEqual(doc.get(), {foo: ['bar', 'baz', 'boo'], fuz: 'boo'});
 });
 
 test("#transform - `copy` - can NOT copy the last value in an empty array", function() {
@@ -716,7 +716,7 @@ test("#transform - `copy` - can NOT copy the last value in an empty array", func
 test("#transform - `copy` - can copy an object from a specific position in a targeted array", function() {
   doc.reset({foo: ['a', 'b', 'c']});
   doc.transform({op: 'copy', from: ['foo', '0'], path: ['foo', '3']});
-  deepEqual(doc.retrieve(), {foo: ['a', 'b', 'c', 'a']});
+  deepEqual(doc.get(), {foo: ['a', 'b', 'c', 'a']});
 });
 
 test("#transform - `copy` - can NOT an object from a position not present in a targeted array", function() {
@@ -737,7 +737,7 @@ test("#transform - `copy` - can invert replacing the root object with itself (ye
   doc.reset({a: 'bar'});
   var inverse = doc.transform({op: 'copy', from: [], path: []}, true);
   deepEqual(inverse, []);
-  deepEqual(doc.retrieve(), {a: 'bar'});
+  deepEqual(doc.get(), {a: 'bar'});
 });
 
 test("#transform - `copy` - can invert copying an object at a target object path", function() {
@@ -745,7 +745,7 @@ test("#transform - `copy` - can invert copying an object at a target object path
   var inverse = doc.transform({op: 'copy', from: ['a'], path: ['b']}, true);
   deepEqual(inverse, [{op: 'remove', path: ['b']}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {a: 'bar'});
+  deepEqual(doc.get(), {a: 'bar'});
 });
 
 test("#transform - `copy` - can invert copying a nested object at a target object path", function() {
@@ -753,7 +753,7 @@ test("#transform - `copy` - can invert copying a nested object at a target objec
   var inverse = doc.transform({op: 'copy', from: ['a', 'b'], path: ['e']}, true);
   deepEqual(inverse, [{op: 'remove', path: ['e']}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {a: {b: {c: 'd'}}});
+  deepEqual(doc.get(), {a: {b: {c: 'd'}}});
 });
 
 test("#transform - `copy` - can invert copying an object from the end of a targeted array", function() {
@@ -761,7 +761,7 @@ test("#transform - `copy` - can invert copying an object from the end of a targe
   var inverse = doc.transform({op: 'copy', from: ['foo', '-'], path: ['fuz']}, true);
   deepEqual(inverse, [{op: 'remove', path: ['fuz']}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {foo: ['bar', 'baz', 'boo']});
+  deepEqual(doc.get(), {foo: ['bar', 'baz', 'boo']});
 });
 
 test("#transform - `copy` - can invert copying an object from a specific position in a targeted array", function() {
@@ -769,5 +769,5 @@ test("#transform - `copy` - can invert copying an object from a specific positio
   var inverse = doc.transform({op: 'copy', from: ['foo', '0'], path: ['foo', '3']}, true);
   deepEqual(inverse, [{op: 'remove', path: ['foo', '3']}]);
   applyTransforms(doc, inverse);
-  deepEqual(doc.retrieve(), {foo: ['a', 'b', 'c']});
+  deepEqual(doc.get(), {foo: ['a', 'b', 'c']});
 });
