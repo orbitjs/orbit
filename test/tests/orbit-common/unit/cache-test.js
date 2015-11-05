@@ -44,23 +44,23 @@ test("is sparse by default", function(assert) {
   cache = new Cache(schema);
 
   assert.equal(cache.sparse, true, 'sparse is true');
-  assert.equal(cache.retrieve('planet'), undefined, 'no data is initialized');
+  assert.equal(cache.get('planet'), undefined, 'no data is initialized');
 });
 
 test("non-sparse caches will initialize data for all models in a schema", function(assert) {
   cache = new Cache(schema, {sparse: false});
 
   assert.equal(cache.sparse, false, 'sparse is false');
-  assert.deepEqual(cache.retrieve('planet'), {}, 'data is initialized');
+  assert.deepEqual(cache.get('planet'), {}, 'data is initialized');
 });
 
-test("#transform sets data and #retrieve retrieves it", function() {
+test("#transform sets data and #get retrieves it", function() {
   cache = new Cache(schema);
 
   var earth = {type: 'planet', id: '1', attributes: {name: 'Earth'}};
   cache.transform([{op: 'add', path: 'planet/1', value: earth}]);
-  deepEqual(cache.retrieve('planet/1'), earth, 'objects match in value');
-  notStrictEqual(cache.retrieve('planet/1'), earth, 'objects don\'t match by reference because a clone has been cached');
+  deepEqual(cache.get('planet/1'), earth, 'objects match in value');
+  notStrictEqual(cache.get('planet/1'), earth, 'objects don\'t match by reference because a clone has been cached');
 });
 
 test("#exists indicates whether a path exists", function() {
@@ -105,7 +105,7 @@ test("#reset clears the cache by default", function() {
 
   cache.transform([{op: 'add', path: 'planet/1', value: {type: 'planet', id: '1', attributes: {name: 'Earth'}}}]);
   cache.reset();
-  deepEqual(cache.retrieve(), {});
+  deepEqual(cache.get(), {});
 });
 
 test("#reset overrides the cache completely with the value specified", function() {
@@ -115,7 +115,7 @@ test("#reset overrides the cache completely with the value specified", function(
 
   var newData = {planet: {'2': {name: 'Mars'}}};
   cache.reset(newData);
-  deepEqual(cache.retrieve(), newData);
+  deepEqual(cache.get(), newData);
 });
 
 test("#transform returns an empty array of `operations` when an operation is a noop", function() {
@@ -137,15 +137,15 @@ test("#transform tracks refs and clears them from hasOne relationships when a re
                    {op: 'add', path: 'moon/m1', value: io},
                    {op: 'add', path: 'moon/m2', value: europa}]);
 
-  equal(cache.retrieve('moon/m1/relationships/planet/data'), 'planet:p1', 'Jupiter has been assigned to Io');
-  equal(cache.retrieve('moon/m2/relationships/planet/data'), 'planet:p1', 'Jupiter has been assigned to Europa');
+  equal(cache.get('moon/m1/relationships/planet/data'), 'planet:p1', 'Jupiter has been assigned to Io');
+  equal(cache.get('moon/m2/relationships/planet/data'), 'planet:p1', 'Jupiter has been assigned to Europa');
 
   cache.transform([{op: 'remove', path: 'planet/p1'}]);
 
-  equal(cache.retrieve('planet/p1'), undefined, 'Jupiter is GONE');
+  equal(cache.get('planet/p1'), undefined, 'Jupiter is GONE');
 
-  equal(cache.retrieve('moon/m1/relationships/planet/data'), undefined, 'Jupiter has been cleared from Io');
-  equal(cache.retrieve('moon/m2/relationships/planet/data'), undefined, 'Jupiter has been cleared from Europa');
+  equal(cache.get('moon/m1/relationships/planet/data'), undefined, 'Jupiter has been cleared from Io');
+  equal(cache.get('moon/m2/relationships/planet/data'), undefined, 'Jupiter has been cleared from Europa');
 });
 
 test("#transform tracks refs and clears them from hasMany relationships when a referenced record is removed", function() {
@@ -159,17 +159,17 @@ test("#transform tracks refs and clears them from hasMany relationships when a r
                    {op: 'add', path: 'moon/m2', value: europa},
                    {op: 'add', path: 'planet/p1', value: jupiter}]);
 
-  equal(cache.retrieve('planet/p1/relationships/moons/data/moon:m1'), true, 'Jupiter has been assigned to Io');
-  equal(cache.retrieve('planet/p1/relationships/moons/data/moon:m2'), true, 'Jupiter has been assigned to Europa');
+  equal(cache.get('planet/p1/relationships/moons/data/moon:m1'), true, 'Jupiter has been assigned to Io');
+  equal(cache.get('planet/p1/relationships/moons/data/moon:m2'), true, 'Jupiter has been assigned to Europa');
 
   cache.transform([{op: 'remove', path: 'moon/m1'}]);
-  equal(cache.retrieve('moon/m1'), null, 'Io is GONE');
+  equal(cache.get('moon/m1'), null, 'Io is GONE');
 
   cache.transform([{op: 'remove', path: 'moon/m2'}]);
-  equal(cache.retrieve('moon/m2'), null, 'Europa is GONE');
+  equal(cache.get('moon/m2'), null, 'Europa is GONE');
 
-  equal(cache.retrieve('planet/p1/relationships/moons/data/moon:m1'), null, 'Io has been cleared from Jupiter');
-  equal(cache.retrieve('planet/p1/relationships/moons/data/moon:m2'), null, 'Europa has been cleared from Jupiter');
+  equal(cache.get('planet/p1/relationships/moons/data/moon:m1'), null, 'Io has been cleared from Jupiter');
+  equal(cache.get('planet/p1/relationships/moons/data/moon:m2'), null, 'Europa has been cleared from Jupiter');
 });
 
 test("for a sparse cache, adds link to hasMany if record doesn't exist", function(){
@@ -304,8 +304,8 @@ test("#transform removing model with a bi-directional hasOne", function() {
       }
     }
   ]);
-  var one = cache.retrieve(['one', '1']);
-  var two = cache.retrieve(['two', '2']);
+  var one = cache.get(['one', '1']);
+  var two = cache.get(['two', '2']);
   ok(one, 'one exists');
   ok(two, 'two exists');
   equal(one.relationships.two.data, 'two:2', 'one links to two');
@@ -477,7 +477,7 @@ test("#transform does not remove non-dependent records", function() {
   );
 });
 
-test("#retrieve will retrieve missing data from a `fallback` cache if one has been set", function(assert) {
+test("#get will get missing data from a `fallback` cache if one has been set", function(assert) {
   assert.expect(1);
 
   var fallbackCache = new Cache(schema);
@@ -486,5 +486,5 @@ test("#retrieve will retrieve missing data from a `fallback` cache if one has be
 
   cache = new Cache(schema, {fallback: fallbackCache});
 
-  assert.deepEqual(cache.retrieve('planet/2'), mars, 'data retrieved from fallback');
+  assert.deepEqual(cache.get('planet/2'), mars, 'data retrieved from fallback');
 });
