@@ -1,44 +1,42 @@
 import Orbit from 'orbit/main';
 import Transformable from 'orbit/transformable';
 import TransformResult from 'orbit/transform-result';
+import { Class } from 'orbit/lib/objects';
 import { Promise } from 'rsvp';
 import { equalOps, successfulOperation, failedOperation } from 'tests/test-helper';
 
-var source;
+let Source, source;
 
 ///////////////////////////////////////////////////////////////////////////////
 
 module("Orbit - Transformable", {
   setup: function() {
     Orbit.Promise = Promise;
-    source = {};
+    Source = Class.extend(Transformable);
+    source = new Source();
   },
 
   teardown: function() {
-    source = null;
+    Source = source = null;
     Orbit.Promise = null;
   }
 });
 
 test("it exists", function() {
-  Transformable.extend(source);
   ok(source);
 });
 
 test("it should mixin Evented", function() {
-  Transformable.extend(source);
   ['on', 'off', 'emit', 'poll'].forEach(function(prop) {
     ok(source[prop], 'should have Evented properties');
   });
 });
 
 test("it defines `transform`", function() {
-  Transformable.extend(source);
   ok(source.transform, 'transform exists');
 });
 
 test("it should require the definition of _transform", function() {
-  Transformable.extend(source);
   throws(source._transform, "presence of _transform should be verified");
 });
 
@@ -52,8 +50,6 @@ test("it should resolve when _transform returns a promise", function() {
       resolve(':)');
     });
   };
-
-  Transformable.extend(source);
 
   stop();
   source.transform({op: 'add', path: 'planet/1', value: 'data'})
@@ -71,8 +67,6 @@ test("it should resolve when _transform simply returns (without a promise)", fun
     ok(true, '_transform called');
     return ':)';
   };
-
-  Transformable.extend(source);
 
   stop();
   source.transform({op: 'add', path: 'planet/1', value: 'data'})
@@ -94,8 +88,6 @@ test("it should trigger `didTransform` event BEFORE a transform resolves", funct
     equal(++order, 1, '_transform performed first');
     equalOps(ops, addOps, '_handler args match original call args');
   };
-
-  Transformable.extend(source);
 
   source.on('didTransform', function(transform) {
     equal(++order, 2, 'didTransform triggered after action performed successfully');
@@ -125,8 +117,6 @@ test("it should perform transforms in the order they are pushed", function() {
     equalOps(ops, [addOp, inverseOp]);
     equal(++order, 1, '_transform called first');
   };
-
-  Transformable.extend(source);
 
   stop();
   source.transform([addOp, inverseOp]).then(function() {
@@ -159,8 +149,6 @@ test("it should wait for the current settle loop before starting another", funct
     }
   };
 
-  Transformable.extend(source);
-
   source.on('didTransform', function(transform) {
     if (transform.operations[0].op === 'add') {
       equal(++order, 2, 'didTransform triggered after `add` transform');
@@ -186,8 +174,6 @@ test("#clearTransformLog can clear the log of any applied transforms", function(
   source._transform = function() {
     return new TransformResult();
   };
-
-  Transformable.extend(source);
 
   stop();
   source.transform({op: 'add', path: 'planet/1', value: 'data'}).then(function() {
