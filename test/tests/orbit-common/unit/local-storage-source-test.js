@@ -83,7 +83,7 @@ test("#replaceRecord - can replace whole records", function() {
 
       verifyLocalStorageContainsRecord(source.namespace, 'planet', original.id, updatedPlanet);
 
-      return source.find('planet', original.id)
+      return source.find('planet', original.id);
     })
     .then(function(foundPlanet) {
       start();
