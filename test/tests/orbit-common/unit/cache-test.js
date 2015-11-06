@@ -3,6 +3,9 @@ import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
 import { equalOps } from 'tests/test-helper';
 import { Promise, on } from 'rsvp';
+import {
+  queryExpression as oqe
+} from 'orbit-common/oql/expressions';
 
 var schema,
     cache;
@@ -487,4 +490,91 @@ test("#get will get missing data from a `fallback` cache if one has been set", f
   cache = new Cache(schema, {fallback: fallbackCache});
 
   assert.deepEqual(cache.get('planet/2'), mars, 'data retrieved from fallback');
+});
+
+test("#query can `get`", function(assert) {
+  cache = new Cache(schema);
+
+  let jupiter = {type: 'planet', id: 'jupiter', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}};
+  cache.reset({planet: {jupiter}});
+
+  assert.deepEqual(
+    cache.query({oql: oqe('get', 'planet/jupiter')}),
+    jupiter
+  );
+});
+
+test("#query can perform a simple matching filter", function(assert) {
+  cache = new Cache(schema);
+
+  let jupiter = {type: 'planet', id: 'jupiter', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}};
+  let earth = {type: 'planet', id: 'earth', attributes: {name: 'Earth', classification: 'terrestrial', atmosphere: true}};
+  let venus = {type: 'planet', id: 'venus', attributes: {name: 'Venus', classification: 'terrestrial', atmosphere: true}};
+  let mercury = {type: 'planet', id: 'mercury', attributes: {name: 'Mercury', classification: 'terrestrial', atmosphere: false}};
+
+  cache.reset({planet: {jupiter, earth, venus, mercury}});
+
+  assert.deepEqual(
+    cache.query({
+      oql: oqe('filter',
+               'planet',
+               oqe('equal', oqe('get', 'attributes/name'), 'Jupiter'))
+    }),
+    {
+      jupiter
+    }
+  );
+});
+
+test("#query can perform a complex conditional `and` filter", function(assert) {
+  cache = new Cache(schema);
+
+  let jupiter = {type: 'planet', id: 'jupiter', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}};
+  let earth = {type: 'planet', id: 'earth', attributes: {name: 'Earth', classification: 'terrestrial', atmosphere: true}};
+  let venus = {type: 'planet', id: 'venus', attributes: {name: 'Venus', classification: 'terrestrial', atmosphere: true}};
+  let mercury = {type: 'planet', id: 'mercury', attributes: {name: 'Mercury', classification: 'terrestrial', atmosphere: false}};
+
+  cache.reset({planet: {jupiter, earth, venus, mercury}});
+
+  assert.deepEqual(
+    cache.query({
+      oql: oqe('filter',
+               'planet',
+               oqe('and',
+                   oqe('equal', oqe('get', 'attributes/classification'), 'terrestrial'),
+                   oqe('equal', oqe('get', 'attributes/atmosphere'), true)
+               ))
+    }),
+    {
+      earth,
+      venus
+    }
+  );
+});
+
+test("#query can perform a complex conditional `or` filter", function(assert) {
+  cache = new Cache(schema);
+
+  let jupiter = {type: 'planet', id: 'jupiter', attributes: {name: 'Jupiter', classification: 'gas giant', atmosphere: true}};
+  let earth = {type: 'planet', id: 'earth', attributes: {name: 'Earth', classification: 'terrestrial', atmosphere: true}};
+  let venus = {type: 'planet', id: 'venus', attributes: {name: 'Venus', classification: 'terrestrial', atmosphere: true}};
+  let mercury = {type: 'planet', id: 'mercury', attributes: {name: 'Mercury', classification: 'terrestrial', atmosphere: false}};
+
+  cache.reset({planet: {jupiter, earth, venus, mercury}});
+
+  assert.deepEqual(
+    cache.query({
+      oql: oqe('filter',
+               'planet',
+               oqe('or',
+                   oqe('equal', oqe('get', 'attributes/classification'), 'gas giant'),
+                   oqe('equal', oqe('get', 'attributes/atmosphere'), true)
+               ))
+    }),
+    {
+      jupiter,
+      earth,
+      venus
+    }
+  );
 });
