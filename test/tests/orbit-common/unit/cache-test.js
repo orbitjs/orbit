@@ -66,26 +66,26 @@ test("#transform sets data and #get retrieves it", function() {
   notStrictEqual(cache.get('planet/1'), earth, 'objects don\'t match by reference because a clone has been cached');
 });
 
-test("#exists indicates whether a path exists", function() {
+test("#has indicates whether a path exists", function() {
   cache = new Cache(schema);
 
   var earth = {type: 'planet', id: '1', attributes: {name: 'Earth'}};
   cache.transform([{op: 'add', path: 'planet/1', value: earth}]);
-  equal(cache.exists('planet'), true, 'path exists');
-  equal(cache.exists('planet/1'), true, 'path exists');
-  equal(cache.exists('planet/1/id'), true, 'path exists');
-  equal(cache.exists('planet/1/id/bogus'), false, 'path does not exist');
-  equal(cache.exists('this/path/is/bogus'), false, 'path does not exist');
+  equal(cache.has('planet'), true, 'path exists');
+  equal(cache.has('planet/1'), true, 'path exists');
+  equal(cache.has('planet/1/id'), true, 'path exists');
+  equal(cache.has('planet/1/id/bogus'), false, 'path does not exist');
+  equal(cache.has('this/path/is/bogus'), false, 'path does not exist');
 });
 
-test("#hasDeleted by default just returns the inverse of #exists", function() {
+test("#hasDeleted by default just returns the inverse of #has", function() {
   cache = new Cache(schema);
 
   var earth = {type: 'planet', id: '1', attributes: {name: 'Earth'}};
   cache.transform([{op: 'add', path: 'planet/1', value: earth}]);
-  equal(cache.hasDeleted('planet'), !cache.exists('planet'), 'path exists');
-  equal(cache.hasDeleted('planet/1'), !cache.exists('planet/1'), 'path exists');
-  equal(cache.hasDeleted('planet/1/id/bogus'), !cache.exists('planet/1/id/bogus'), false, 'path does not exist');
+  equal(cache.hasDeleted('planet'), !cache.has('planet'), 'path exists');
+  equal(cache.hasDeleted('planet/1'), !cache.has('planet/1'), 'path exists');
+  equal(cache.hasDeleted('planet/1/id/bogus'), !cache.has('planet/1/id/bogus'), false, 'path does not exist');
 });
 
 test("#length returns the size of data at a path", function() {
