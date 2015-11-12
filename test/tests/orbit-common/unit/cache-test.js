@@ -88,6 +88,43 @@ test("#hasDeleted by default just returns the inverse of #has", function() {
   equal(cache.hasDeleted('planet/1/id/bogus'), !cache.has('planet/1/id/bogus'), false, 'path does not exist');
 });
 
+test("#prepareOperations - for `add` operations, applies a differential if the target path exists", function() {
+  expect(1);
+
+  var planet = {type: 'planet', id: '1', attributes: {name: 'Saturn'}};
+
+  cache = new Cache(schema);
+  cache.reset({planet: {'1': planet}});
+
+  var op = {
+    op: 'add',
+    path: ['planet', '1'],
+    value: {type: 'planet', id: '1', attributes: {name: 'Earth', hasRings: false}}
+  };
+
+  var result = cache.prepareOperations([op]);
+  equalOps(result, [{op: 'replace', path: 'planet/1/attributes/name', value: 'Earth'},
+                    {op: 'add', path: 'planet/1/attributes/hasRings', value: false}]);
+});
+
+test("#prepareOperations - for `replace` operations, applies a differential if the target path exists", function() {
+  expect(1);
+
+  var planet = {type: 'planet', id: '1', attributes: {name: 'Saturn', hasRings: false}};
+
+  cache = new Cache(schema);
+  cache.reset({planet: {'1': planet}});
+
+  var op = {
+    op: 'replace',
+    path: ['planet', '1', 'hasRings'],
+    value: true
+  };
+
+  var result = cache.prepareOperations([op]);
+  equalOps(result, [{op: 'replace', path: 'planet/1/hasRings', value: true}]);
+});
+
 test("#length returns the size of data at a path", function() {
   cache = new Cache(schema);
 

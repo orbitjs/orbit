@@ -48,45 +48,12 @@ test("can be created with a cache with `useCache`, and options can be specified 
   equal(source.cache._processors.length, 2, 'cache has 2 processors');
 });
 
-test("#prepareTransformOperations - for `add` operations, applies a differential if the target path exists", function() {
-  expect(1);
-
-  var source = new Source({schema: schema, useCache: true, cacheOptions: {processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor]}});
-
-  var op = new Operation({
-    op: 'add',
-    path: ['planet', '1'],
-    value: {id: 1, name: 'Earth', hasRings: false}
-  });
-
-  source.cache.retrieve = function() {
-    return {
-      id: 1,
-      name: 'Saturn',
-      hasRings: true
-    };
-  };
-
-  var result = source.prepareTransformOperations([op]);
-  equalOps(result, [{op: 'replace', path: 'planet/1/name', value: 'Earth'},
-                    {op: 'replace', path: 'planet/1/hasRings', value: false}]);
+test("implements Transformable", function() {
+  var source = new Source({schema: schema});
+  ok(typeof source.transform === 'function', 'implements `transform`');
 });
 
-test("#prepareTransformOperations - for `replace` operations, applies a differential if the target path exists", function() {
-  expect(1);
-
-  var source = new Source({schema: schema, useCache: true, cacheOptions: {processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor]}});
-
-  var op = new Operation({
-    op: 'replace',
-    path: ['planet', '1', 'hasRings'],
-    value: true
-  });
-
-  source.cache.retrieve = function() {
-    return false;
-  };
-
-  var result = source.prepareTransformOperations([op]);
-  equalOps(result, [{op: 'replace', path: 'planet/1/hasRings', value: true}]);
+test("implements Queryable", function() {
+  var source = new Source({schema: schema});
+  ok(typeof source.query === 'function', 'implements `query`');
 });
