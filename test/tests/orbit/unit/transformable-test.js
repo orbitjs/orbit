@@ -84,9 +84,9 @@ test("it should trigger `didTransform` event BEFORE a transform resolves", funct
       addOps = [{op: 'add', path: 'planet/1', value: 'data'}],
       inverseOps = [{op: 'remove', path: 'planet/1'}];
 
-  source._transform = function(ops) {
+  source._transform = function(transform) {
     equal(++order, 1, '_transform performed first');
-    equalOps(ops, addOps, '_handler args match original call args');
+    equalOps(transform.operations, addOps, '_handler args match original call args');
   };
 
   source.on('didTransform', function(transform) {
@@ -108,13 +108,13 @@ test("it should perform transforms in the order they are pushed", function() {
       addOp = {op: 'add', path: 'planet/1', value: 'data'},
       inverseOp = {op: 'remove', path: 'planet/1'};
 
-  source._transform = function(ops) {
+  source._transform = function(transform) {
     source.settleTransforms().then(function() {
       start();
       equal(++order, 3, 'settleTransforms finishes after all other transforms');
     });
 
-    equalOps(ops, [addOp, inverseOp]);
+    equalOps(transform.operations, [addOp, inverseOp]);
     equal(++order, 1, '_transform called first');
   };
 
@@ -133,9 +133,9 @@ test("it should wait for the current settle loop before starting another", funct
 
   // though this is definitely an awkward use case, it ensures execution order
   // is what we want it to be
-  source._transform = function(operations) {
+  source._transform = function(transform) {
     // console.log('_transform', operation.serialize());
-    if (operations[0].op === 'add') {
+    if (transform.operations[0].op === 'add') {
       source.settleTransforms().then(function() {
         start();
         equal(++order, 6, 'settleTransforms finishes after all other transforms');
@@ -144,7 +144,7 @@ test("it should wait for the current settle loop before starting another", funct
       equal(++order, 1, '_transform `add` performed first');
     }
 
-    if (operations[0].op === 'remove') {
+    if (transform.operations[0].op === 'remove') {
       equal(++order, 3, '_transform `remove` performed second');
     }
   };
