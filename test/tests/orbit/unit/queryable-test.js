@@ -51,7 +51,7 @@ test("it should resolve as a failure when _query fails", function() {
   );
 });
 
-test("it should trigger `querySucceeded` event after a successful action", function() {
+test("it should trigger `querySucceeded` event after a successful action in which `_query` resolves successfully", function() {
   expect(6);
 
   var order = 0;
@@ -73,6 +73,31 @@ test("it should trigger `querySucceeded` event after a successful action", funct
       start();
       equal(++order, 3, 'promise resolved last');
       equal(result, ':)', 'success!');
+    });
+});
+
+test("it should trigger `querySucceeded` event after a successful action in which `_query` just returns (not a promise)", function() {
+  expect(6);
+
+  var order = 0;
+
+  source._query = function(query) {
+    equal(++order, 1, 'action performed after willQuery');
+    deepEqual(query, {fetch: ['abc', 'def']}, 'query object matches');
+    return undefined;
+  };
+
+  source.on('querySucceeded', function() {
+    equal(++order, 2, 'querySucceeded triggered after action performed successfully');
+    deepEqual(Array.prototype.slice.call(arguments, 0), [{fetch: ['abc', 'def']}, undefined], 'event handler args match original call args + return value');
+  });
+
+  stop();
+  source.query({fetch: ['abc', 'def']})
+    .then(function(result) {
+      start();
+      equal(++order, 3, 'promise resolved last');
+      equal(result, undefined, 'undefined was returned');
     });
 });
 
@@ -164,7 +189,7 @@ test("`queryFailed` event should receive errors as the last argument, even if th
 });
 
 test("it should queue actions returned from `assistQuery` and try them in order until one succeeds", function() {
-  expect(5);
+  expect(6);
 
   var order = 0;
 
@@ -174,7 +199,12 @@ test("it should queue actions returned from `assistQuery` and try them in order 
   });
 
   source.on('assistQuery', function() {
-    equal(++order, 2, 'assistQuery triggered next');
+    equal(++order, 2, 'assistQuery triggered second');
+    return undefined;
+  });
+
+  source.on('assistQuery', function() {
+    equal(++order, 3, 'assistQuery triggered third');
     return successfulOperation();
   });
 
@@ -187,14 +217,14 @@ test("it should queue actions returned from `assistQuery` and try them in order 
   };
 
   source.on('querySucceeded', function() {
-    equal(++order, 3, 'querySucceeded triggered after action performed successfully');
+    equal(++order, 4, 'querySucceeded triggered after action performed successfully');
   });
 
   stop();
   source.query({fetch: ''})
     .then(function(result) {
       start();
-      equal(++order, 4, 'promise resolved last');
+      equal(++order, 5, 'promise resolved last');
       equal(result, ':)', 'success!');
     });
 });
