@@ -4,6 +4,7 @@ import Transform from 'orbit/transform';
 import TransformResult from 'orbit/transform-result';
 import Transformable from 'orbit/transformable';
 import TransformConnector from 'orbit/transform-connector';
+import { Class } from 'orbit/lib/objects';
 import { Promise } from 'rsvp';
 import { equalOps, successfulOperation, failedOperation } from 'tests/test-helper';
 
@@ -16,12 +17,10 @@ var primarySource,
 module("Orbit - TransformConnector", {
   setup: function() {
     Orbit.Promise = Promise;
+    let Source = Class.extend(Transformable);
 
-    primarySource = {};
-    Transformable.extend(primarySource);
-
-    secondarySource = {};
-    Transformable.extend(secondarySource);
+    primarySource = new Source();
+    secondarySource = new Source();
   },
 
   teardown: function() {
@@ -46,22 +45,24 @@ test("it is active by default exists", function() {
 test("it watches `didTransform` events on the source and applies them to the target", function() {
   expect(1);
 
-  var appliedOps = [{
+  let addPlanet = new Transform([{
     op: 'add',
     path: ['planet', '1'],
     value: {id: 1, name: 'Earth'}
-  }];
+  }]);
 
-  secondarySource._transform = function(ops) {
+  secondarySource._transform = function(transform) {
     start();
-    equalOps(ops, appliedOps, 'target operation matches source operation');
+
+    equalOps(transform.operations, addPlanet.operations, 'target operation matches source operation');
+    
     return successfulOperation();
   };
 
   transformConnector = new TransformConnector(primarySource, secondarySource);
 
   stop();
-  primarySource.transformed(new TransformResult(appliedOps));
+  primarySource.transformed(new TransformResult(addPlanet.operations));
 });
 
 
