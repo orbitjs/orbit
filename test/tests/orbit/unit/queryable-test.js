@@ -51,7 +51,7 @@ test("it should resolve as a failure when _query fails", function() {
   );
 });
 
-test("it should trigger `querySucceeded` event after a successful action in which `_query` resolves successfully", function() {
+test("it should trigger `query` event after a successful action in which `_query` resolves successfully", function() {
   expect(6);
 
   var order = 0;
@@ -62,8 +62,8 @@ test("it should trigger `querySucceeded` event after a successful action in whic
     return successfulOperation();
   };
 
-  source.on('querySucceeded', function() {
-    equal(++order, 2, 'querySucceeded triggered after action performed successfully');
+  source.on('query', function() {
+    equal(++order, 2, 'query triggered after action performed successfully');
     deepEqual(Array.prototype.slice.call(arguments, 0), [{fetch: ['abc', 'def']}, ':)'], 'event handler args match original call args + return value');
   });
 
@@ -76,7 +76,7 @@ test("it should trigger `querySucceeded` event after a successful action in whic
     });
 });
 
-test("it should trigger `querySucceeded` event after a successful action in which `_query` just returns (not a promise)", function() {
+test("it should trigger `query` event after a successful action in which `_query` just returns (not a promise)", function() {
   expect(6);
 
   var order = 0;
@@ -87,8 +87,8 @@ test("it should trigger `querySucceeded` event after a successful action in whic
     return undefined;
   };
 
-  source.on('querySucceeded', function() {
-    equal(++order, 2, 'querySucceeded triggered after action performed successfully');
+  source.on('query', function() {
+    equal(++order, 2, 'query triggered after action performed successfully');
     deepEqual(Array.prototype.slice.call(arguments, 0), [{fetch: ['abc', 'def']}, undefined], 'event handler args match original call args + return value');
   });
 
@@ -101,7 +101,7 @@ test("it should trigger `querySucceeded` event after a successful action in whic
     });
 });
 
-test("`querySucceeded` event should receive results as the last argument, even if they are an array", function() {
+test("`query` event should receive results as the last argument, even if they are an array", function() {
   expect(6);
 
   var order = 0;
@@ -114,8 +114,8 @@ test("`querySucceeded` event should receive results as the last argument, even i
     });
   };
 
-  source.on('querySucceeded', function() {
-    equal(++order, 2, 'querySucceeded triggered after action performed successfully');
+  source.on('query', function() {
+    equal(++order, 2, 'query triggered after action performed successfully');
     deepEqual(Array.prototype.slice.call(arguments, 0), [{fetch: ['abc', 'def']}, ['a', 'b', 'c']], 'event handler args match original call args + return value');
   });
 
@@ -128,7 +128,7 @@ test("`querySucceeded` event should receive results as the last argument, even i
     });
 });
 
-test("it should trigger `queryFailed` event after an unsuccessful query", function() {
+test("it should trigger `queryFail` event after an unsuccessful query", function() {
   expect(6);
 
   var order = 0;
@@ -139,12 +139,12 @@ test("it should trigger `queryFailed` event after an unsuccessful query", functi
     return failedOperation();
   };
 
-  source.on('querySucceeded', function() {
-    ok(false, 'querySucceeded should not be triggered');
+  source.on('query', function() {
+    ok(false, 'query should not be triggered');
   });
 
-  source.on('queryFailed', function() {
-    equal(++order, 2, 'queryFailed triggered after an unsuccessful query');
+  source.on('queryFail', function() {
+    equal(++order, 2, 'queryFail triggered after an unsuccessful query');
     deepEqual(Array.prototype.slice.call(arguments, 0), [{fetch: ['abc', 'def']}, ':('], 'event handler args match original call args + return value');
   });
 
@@ -157,7 +157,7 @@ test("it should trigger `queryFailed` event after an unsuccessful query", functi
     });
 });
 
-test("`queryFailed` event should receive errors as the last argument, even if they are an array", function() {
+test("`queryFail` event should receive errors as the last argument, even if they are an array", function() {
   expect(6);
 
   var order = 0;
@@ -170,12 +170,12 @@ test("`queryFailed` event should receive errors as the last argument, even if th
     });
   };
 
-  source.on('querySucceeded', function() {
-    ok(false, 'querySucceeded should not be triggered');
+  source.on('query', function() {
+    ok(false, 'query should not be triggered');
   });
 
-  source.on('queryFailed', function() {
-    equal(++order, 2, 'queryFailed triggered after an unsuccessful query');
+  source.on('queryFail', function() {
+    equal(++order, 2, 'queryFail triggered after an unsuccessful query');
     deepEqual(Array.prototype.slice.call(arguments, 0), [{fetch: ['abc', 'def']}, ['O_o', ':(']], 'event handler args match original call args + return value');
   });
 
@@ -188,73 +188,69 @@ test("`queryFailed` event should receive errors as the last argument, even if th
     });
 });
 
-test("it should queue actions returned from `assistQuery` and try them in order until one succeeds", function() {
-  expect(6);
+test("it should resolve all promises returned from `beforeQuery` before calling `_query`", function() {
+  expect(7);
 
-  var order = 0;
+  let order = 0;
 
-  source.on('assistQuery', function() {
-    equal(++order, 1, 'assistQuery triggered first');
-    return failedOperation();
+  source.on('beforeQuery', function() {
+    equal(++order, 1, 'beforeQuery triggered first');
+    return successfulOperation();
   });
 
-  source.on('assistQuery', function() {
-    equal(++order, 2, 'assistQuery triggered second');
+  source.on('beforeQuery', function() {
+    equal(++order, 2, 'beforeQuery triggered second');
     return undefined;
   });
 
-  source.on('assistQuery', function() {
-    equal(++order, 3, 'assistQuery triggered third');
+  source.on('beforeQuery', function() {
+    equal(++order, 3, 'beforeQuery triggered third');
     return successfulOperation();
   });
 
-  source.on('assistQuery', function() {
-    ok(false, 'assistQuery handler should not be called after success');
-  });
-
   source._query = function(query) {
-    ok(false, 'default action should not be reached');
+    equal(++order, 4, '_query invoked after all `beforeQuery` handlers');
+    return successfulOperation();
   };
 
-  source.on('querySucceeded', function() {
-    equal(++order, 4, 'querySucceeded triggered after action performed successfully');
+  source.on('query', function() {
+    equal(++order, 5, 'query triggered after action performed successfully');
   });
 
   stop();
   source.query({fetch: ''})
     .then(function(result) {
       start();
-      equal(++order, 5, 'promise resolved last');
+      equal(++order, 6, 'promise resolved last');
       equal(result, ':)', 'success!');
     });
 });
 
-test("it should queue actions returned from `assistQuery` and fail if they all fail", function() {
-  expect(6);
+test("it should resolve all promises returned from `beforeQuery` and fail if any fail", function() {
+  expect(5);
 
-  var order = 0;
+  let order = 0;
 
-  source.on('assistQuery', function() {
-    equal(++order, 1, 'assistQuery triggered first');
-    return failedOperation();
+  source.on('beforeQuery', function() {
+    equal(++order, 1, 'beforeQuery triggered first');
+    return successfulOperation();
   });
 
-  source.on('assistQuery', function() {
-    equal(++order, 2, 'assistQuery triggered again');
+  source.on('beforeQuery', function() {
+    equal(++order, 2, 'beforeQuery triggered again');
     return failedOperation();
   });
 
   source._query = function(query) {
-    equal(++order, 3, 'default action performed after second failed action');
-    return failedOperation();
+    ok(false, '_query should not be invoked');
   };
 
-  source.on('querySucceeded', function() {
-    ok(false, 'querySucceeded should not be triggered');
+  source.on('query', function() {
+    ok(false, 'query should not be triggered');
   });
 
-  source.on('queryFailed', function() {
-    equal(++order, 4, 'queryFailed triggered after action failed');
+  source.on('queryFail', function() {
+    equal(++order, 3, 'queryFail triggered after action failed');
   });
 
   stop();
@@ -266,87 +262,7 @@ test("it should queue actions returned from `assistQuery` and fail if they all f
       },
       function(result) {
         start();
-        equal(++order, 5, 'promise failed because no actions succeeded');
-        equal(result, ':(', 'failure');
-      }
-    );
-});
-
-test("after an unsuccessful action, it should queue actions returned from `rescueQuery` and try them in order until one succeeds", function() {
-  expect(6);
-
-  var order = 0;
-
-  source._query = function(query) {
-    equal(++order, 1, '_query triggered first');
-    return failedOperation();
-  };
-
-  source.on('rescueQuery', function() {
-    equal(++order, 2, 'rescueQuery listener triggered after failed action');
-    return failedOperation();
-  });
-
-  source.on('rescueQuery', function() {
-    equal(++order, 3, 'rescueQuery listener triggered after second failed action');
-    return successfulOperation();
-  });
-
-  source.on('querySucceeded', function() {
-    equal(++order, 4, 'querySucceeded triggered after action performed successfully');
-  });
-
-  source.on('queryFailed', function() {
-    ok(false, 'queryFailed should not be triggered');
-  });
-
-  stop();
-  source.query({fetch: ''})
-    .then(function(result) {
-      start();
-      equal(++order, 5, 'promise resolved last');
-      equal(result, ':)', 'success!');
-    });
-});
-
-test("after an unsuccessful action, it should queue actions returned from `rescueQuery` and fail if they all fail", function() {
-  expect(6);
-
-  var order = 0;
-
-  source._query = function(query) {
-    equal(++order, 1, '_query triggered first');
-    return failedOperation();
-  };
-
-  source.on('rescueQuery', function() {
-    equal(++order, 2, 'rescueQuery listener triggered after failed action');
-    return failedOperation();
-  });
-
-  source.on('rescueQuery', function() {
-    equal(++order, 3, 'rescueQuery listener triggered after second failed action');
-    return failedOperation();
-  });
-
-  source.on('querySucceeded', function() {
-    ok(false, 'querySucceeded should not be triggered');
-  });
-
-  source.on('queryFailed', function() {
-    equal(++order, 4, 'queryFailed triggered because action failed');
-  });
-
-  stop();
-  source.query({fetch: ''})
-    .then(
-      function() {
-        start();
-        ok(false, 'promise should not succeed');
-      },
-      function(result) {
-        start();
-        equal(++order, 5, 'promise failed because no actions succeeded');
+        equal(++order, 4, 'promise failed because no actions succeeded');
         equal(result, ':(', 'failure');
       }
     );
