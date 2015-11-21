@@ -24,7 +24,7 @@ module('Orbit - TransformLog', function() {
 
     test('#head', function(assert) {
       assert.equal(log.head(), null, 'is null');
-    })
+    });
   });
 
   module('containing several transformIds', function(assert) {
@@ -69,6 +69,6 @@ module('Orbit - TransformLog', function() {
 
     test('#head', function(assert) {
       assert.equal(log.head(), transformCId, 'is last transformId');
-    })
+    });
   });
 });
