@@ -1,6 +1,5 @@
 import Orbit from 'orbit/main';
 import Transformable from 'orbit/transformable';
-import TransformResult from 'orbit/transform-result';
 import { Class } from 'orbit/lib/objects';
 import { Promise } from 'rsvp';
 import { equalOps, successfulOperation, failedOperation } from 'tests/test-helper';
@@ -42,7 +41,7 @@ test("it should require the definition of _transform", function() {
 
 
 test("it should resolve when _transform returns a promise", function() {
-  expect(3);
+  expect(2);
 
   source._transform = function(o) {
     return new Promise(function(resolve, reject) {
@@ -53,15 +52,14 @@ test("it should resolve when _transform returns a promise", function() {
 
   stop();
   source.transform({op: 'add', path: 'planet/1', value: 'data'})
-    .then(function(response) {
+    .then(() => {
       start();
       ok(true, 'transform promise resolved');
-      equal(response, ':)', 'response is returned');
     });
 });
 
 test("it should resolve when _transform simply returns (without a promise)", function() {
-  expect(3);
+  expect(2);
 
   source._transform = function() {
     ok(true, '_transform called');
@@ -70,17 +68,16 @@ test("it should resolve when _transform simply returns (without a promise)", fun
 
   stop();
   source.transform({op: 'add', path: 'planet/1', value: 'data'})
-    .then(function(response) {
+    .then(() => {
       start();
       ok(true, 'transform promise returned');
-      equal(response, ':)', 'response is returned');
     });
 });
 
-test("it should trigger `didTransform` event BEFORE a transform resolves", function() {
+test("it should trigger `transform` event BEFORE a transform resolves", function() {
   expect(5);
 
-  var order = 0,
+  let order = 0,
       addOps = [{op: 'add', path: 'planet/1', value: 'data'}],
       inverseOps = [{op: 'remove', path: 'planet/1'}];
 
@@ -89,22 +86,23 @@ test("it should trigger `didTransform` event BEFORE a transform resolves", funct
     equalOps(transform.operations, addOps, '_handler args match original call args');
   };
 
-  source.on('didTransform', function(transform) {
-    equal(++order, 2, 'didTransform triggered after action performed successfully');
+  source.on('transform', function(transform) {
+    equal(++order, 2, 'transform triggered after action performed successfully');
     equalOps(transform.operations, addOps, 'applied ops match');
   });
 
   stop();
-  source.transform(addOps).then(function() {
-    start();
-    equal(++order, 3, 'promise resolved last');
-  });
+  source.transform(addOps)
+    .then(() => {
+      start();
+      equal(++order, 3, 'promise resolved last');
+    });
 });
 
 test("it should perform transforms in the order they are pushed", function() {
   expect(4);
 
-  var order = 0,
+  let order = 0,
       addOp = {op: 'add', path: 'planet/1', value: 'data'},
       inverseOp = {op: 'remove', path: 'planet/1'};
 
@@ -119,15 +117,16 @@ test("it should perform transforms in the order they are pushed", function() {
   };
 
   stop();
-  source.transform([addOp, inverseOp]).then(function() {
-    equal(++order, 2, 'promise resolved last');
-  });
+  source.transform([addOp, inverseOp])
+    .then(() => {
+      equal(++order, 2, 'promise resolved last');
+    });
 });
 
 test("it should wait for the current settle loop before starting another", function() {
   expect(8);
 
-  var order = 0,
+  let order = 0,
       addOps = [{op: 'add', path: 'planet/1', value: 'data'}],
       inverseOps = [{op: 'remove', path: 'planet/1'}];
 
@@ -149,7 +148,7 @@ test("it should wait for the current settle loop before starting another", funct
     }
   };
 
-  source.on('didTransform', function(transform) {
+  source.on('transform', function(transform) {
     if (transform.operations[0].op === 'add') {
       equal(++order, 2, 'didTransform triggered after `add` transform');
       equalOps(transform.operations, addOps, '`add` operation matches');
@@ -163,25 +162,26 @@ test("it should wait for the current settle loop before starting another", funct
   stop();
 
   source.transform(addOps);
-  source.transform(inverseOps).then(function() {
-    equal(++order, 5, 'promise resolved last');
-  });
+  source.transform(inverseOps)
+    .then(() => {
+      equal(++order, 5, 'promise resolved last');
+    });
 });
 
 test("#clearTransformLog can clear the log of any applied transforms", function() {
   expect(2);
 
   source._transform = function() {
-    return new TransformResult();
+    return Promise.resolve();
   };
 
   stop();
-  source.transform({op: 'add', path: 'planet/1', value: 'data'}).then(function() {
-    start();
-    equal(Object.keys(source._transformLog).length, 1, 'log has an entry');
+  source.transform({op: 'add', path: 'planet/1', value: 'data'})
+    .then(() => {
+      start();
+      equal(Object.keys(source._transformLog).length, 1, 'log has an entry');
 
-    source.clearTransformLog();
-    equal(Object.keys(source._transformLog).length, 0, 'log has been cleared');
-  });
-
+      source.clearTransformLog();
+      equal(Object.keys(source._transformLog).length, 0, 'log has been cleared');
+    });
 });
