@@ -61,7 +61,7 @@ test("it watches `transform` events on the source and applies them to the target
   transformConnector = new TransformConnector(primarySource, secondarySource);
 
   stop();
-  primarySource.transformed(new TransformResult(addPlanet.operations));
+  primarySource.transformed(addPlanet);
 });
 
 
