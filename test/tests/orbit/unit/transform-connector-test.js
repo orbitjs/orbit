@@ -1,7 +1,6 @@
 import Orbit from 'orbit/main';
 import Operation from 'orbit/operation';
 import Transform from 'orbit/transform';
-import TransformResult from 'orbit/transform-result';
 import Transformable from 'orbit/transformable';
 import TransformConnector from 'orbit/transform-connector';
 import { Class } from 'orbit/lib/objects';
@@ -42,7 +41,7 @@ test("it is active by default exists", function() {
   equal(transformConnector.isActive(), true);
 });
 
-test("it watches `didTransform` events on the source and applies them to the target", function() {
+test("it watches `transform` events on the source and applies them to the target", function() {
   expect(1);
 
   let addPlanet = new Transform([{
@@ -55,7 +54,7 @@ test("it watches `didTransform` events on the source and applies them to the tar
     start();
 
     equalOps(transform.operations, addPlanet.operations, 'target operation matches source operation');
-    
+
     return successfulOperation();
   };
 
