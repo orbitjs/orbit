@@ -1,11 +1,15 @@
 import Orbit from 'orbit/main';
 import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
-import { equalOps } from 'tests/test-helper';
+import { equalOps, op } from 'tests/test-helper';
 import { Promise, on } from 'rsvp';
 import {
   queryExpression as oqe
 } from 'orbit-common/oql/expressions';
+import {
+  addRecordOperation
+} from 'orbit-common/lib/operations';
+import Transform from 'orbit/transform';
 
 var schema,
     cache;
@@ -687,4 +691,48 @@ test("#query can perform a complex conditional `or` filter", function(assert) {
       venus
     }
   );
+});
+
+test('#rollback', function(assert) {
+  const addRecordAOp = addRecordOperation({id: 'jupiter', type: 'planet', attributes: {name: 'Jupiter'}});
+  const addRecordBOp = addRecordOperation({id: 'saturn', type: 'planet', attributes: {name: 'Saturn'}});
+  const addRecordCOp = addRecordOperation({id: 'pluto', type: 'planet', attributes: {name: 'Pluto'}});
+  const addRecordDOp = addRecordOperation({id: 'neptune', type: 'planet', attributes: {name: 'Neptune'}});
+  const addRecordEOp = addRecordOperation({id: 'uranus', type: 'planet', attributes: {name: 'Uranus'}});
+
+  const addRecordATransform = new Transform([addRecordAOp]);
+  const addRecordBTransform = new Transform([addRecordBOp]);
+  const addRecordCTransform = new Transform([addRecordCOp]);
+  const addRecordsDETransform = new Transform([addRecordDOp, addRecordEOp]);
+
+  const removeRecordAOp = op('remove', 'planet/jupiter');
+  const removeRecordBOp = op('remove', 'planet/saturn');
+  const removeRecordCOp = op('remove', 'planet/pluto');
+  const removeRecordDOp = op('remove', 'planet/neptune');
+  const removeRecordEOp = op('remove', 'planet/uranus');
+
+  cache = new Cache(schema);
+
+  cache.transform(addRecordATransform);
+  cache.transform(addRecordBTransform);
+  cache.transform(addRecordCTransform);
+  cache.transform(addRecordsDETransform);
+
+  const rollbackOperations = [];
+  cache.on('patch', (operation) => rollbackOperations.push(operation));
+
+  cache.rollback(addRecordATransform.id);
+
+  equalOps(
+    rollbackOperations,
+    [
+      removeRecordEOp,
+      removeRecordDOp,
+      removeRecordCOp,
+      removeRecordBOp
+    ],
+    'emits inverse operations in correct order'
+  );
+
+  equal(cache._transformLog.head(), addRecordATransform.id, 'rolls back transform log');
 });
