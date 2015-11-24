@@ -38,7 +38,7 @@ const schemaDefinition = {
   }
 };
 
-var schema,
+let schema,
     store,
     source,
     storeToSourceConnector,
@@ -61,8 +61,6 @@ module("Integration - Memory Source Sync (Blocking)", {
     // Create connectors
     storeToSourceConnector = new TransformConnector(store, source);
     sourceToStoreConnector = new TransformConnector(source, store);
-
-    store.on('rescueFind', source.find);
   },
 
   teardown: function() {
@@ -74,7 +72,7 @@ module("Integration - Memory Source Sync (Blocking)", {
 });
 
 test("consecutive transforms can be applied to one source and should be automatically applied to the other source", function({async}) {
-  const done = async();
+  let done = async();
   expect(4);
 
   store.addRecord({id: '123', type: 'planet', attributes: { name: 'Jupiter' }})
@@ -82,8 +80,8 @@ test("consecutive transforms can be applied to one source and should be automati
       return store.replaceAttribute(jupiter, 'name', 'Earth');
     })
     .then(function() {
-      const storeVersion = store.retrieve(['planet', '123']);
-      const sourceVersion = source.retrieve(['planet', '123']);
+      let storeVersion = store.cache.get(['planet', '123']);
+      let sourceVersion = source.cache.get(['planet', '123']);
 
       notStrictEqual(sourceVersion, storeVersion, 'not the same object as the one originally inserted');
       equal(sourceVersion.id, storeVersion.id, 'backup record has the same primary id');
@@ -95,7 +93,7 @@ test("consecutive transforms can be applied to one source and should be automati
 });
 
 test("replacing value with null should not cause infinite update loop", function({async}) {
-  const done = async();
+  let done = async();
   expect(4);
 
   store.addRecord({type: 'planet', id: '123', attributes: {name: 'Jupiter'}})
@@ -103,8 +101,8 @@ test("replacing value with null should not cause infinite update loop", function
       return store.replaceAttribute(jupiter, 'name', null);
     })
     .then(function() {
-      const storeVersion = store.retrieve(['planet', '123']);
-      const sourceVersion = source.retrieve(['planet', '123']);
+      let storeVersion = store.cache.get(['planet', '123']);
+      let sourceVersion = source.cache.get(['planet', '123']);
 
       notStrictEqual(sourceVersion, storeVersion, 'not the same object as the one originally inserted');
       strictEqual(sourceVersion.id, storeVersion.id, 'backup record has the same primary id');
@@ -116,7 +114,7 @@ test("replacing value with null should not cause infinite update loop", function
 });
 
 test("replacing relationship should not cause infinite update loop", function({async}) {
-  const done = async();
+  let done = async();
   expect(12);
 
   function retrieveHasMany(record, relationship) {
@@ -129,9 +127,9 @@ test("replacing relationship should not cause infinite update loop", function({a
     store.addRecord({type: 'group', id: 'new' })
   ])
   .spread(function(storeGnarf, storeInitialGroup, storeNewGroup) {
-    const sourceGnarf = source.retrieve(['friend', 'gnarf']);
-    const sourceInitialGroup = source.retrieve(['group', 'initial']);
-    const sourceNewGroup = source.retrieve(['group', 'new']);
+    let sourceGnarf = source.cache.get(['friend', 'gnarf']);
+    let sourceInitialGroup = source.cache.get(['group', 'initial']);
+    let sourceNewGroup = source.cache.get(['group', 'new']);
 
     store.addToRelationship(storeGnarf, 'group', storeInitialGroup)
       .then(function() {
