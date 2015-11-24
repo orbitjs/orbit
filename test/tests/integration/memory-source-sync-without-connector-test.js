@@ -10,7 +10,7 @@ const schemaDefinition = {
   }
 };
 
-var store,
+let store,
     source;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -20,13 +20,13 @@ module('Integration - MemorySource Sync without Connector', {
     Orbit.Promise = Promise;
 
     // Create schema
-    var schema = new Schema(schemaDefinition);
+    let schema = new Schema(schemaDefinition);
 
     // Create sources
     store = new Store({schema: schema});
     source = new MemorySource({schema: schema});
 
-    store.on('didTransform', transform => source.transform(transform));
+    store.on('transform', transform => source.transform(transform));
   },
 
   teardown: function() {
@@ -35,13 +35,13 @@ module('Integration - MemorySource Sync without Connector', {
 });
 
 test('records inserted into the store should be automatically copied to the backup source', function({async}) {
-  const done = async();
+  let done = async();
   expect(6);
 
   store.addRecord({id: 'jupiter', type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant'}})
     .then((originalRecord) => {
-      const primaryPlanet = store.retrieve(['planet', 'jupiter']);
-      const backupPlanet = source.retrieve(['planet', 'jupiter']);
+      let primaryPlanet = store.cache.get(['planet', 'jupiter']);
+      let backupPlanet = source.cache.get(['planet', 'jupiter']);
 
       ok(primaryPlanet, 'store should contain the record');
       ok(backupPlanet, 'backup source should contain the record');
@@ -56,7 +56,7 @@ test('records inserted into the store should be automatically copied to the back
 });
 
 test('replaced records in the store should be automatically copied to the backup source', function({async}) {
-  const done = async();
+  let done = async();
   expect(7);
 
   store.addRecord({id: 'jupiter', type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant'}})
@@ -64,12 +64,12 @@ test('replaced records in the store should be automatically copied to the backup
       store.replaceRecord({id: 'jupiter', type: 'planet', attributes: {name: 'Earth', classification: 'terrestrial'}})
         .then(() => {
 
-          const updatedPlanet = store.retrieve(['planet', 'jupiter']);
+          let updatedPlanet = store.cache.get(['planet', 'jupiter']);
           equal(updatedPlanet.id, originalPlanet.id, 'primary id remains the same');
           equal(updatedPlanet.attributes.name, 'Earth', 'name has been updated');
           equal(updatedPlanet.attributes.classification, 'terrestrial', 'classification has been updated');
 
-          const backupPlanet = source.retrieve(['planet', 'jupiter']);
+          let backupPlanet = source.cache.get(['planet', 'jupiter']);
           notStrictEqual(backupPlanet, originalPlanet, 'not the same object as the one originally inserted');
           equal(backupPlanet.id, originalPlanet.id, 'backup record has the same primary id');
           equal(backupPlanet.attributes.name, 'Earth', 'backup record has updated name');
@@ -81,7 +81,7 @@ test('replaced records in the store should be automatically copied to the backup
 });
 
 test('updates to record attributes in the store should be automatically copied to the backup source', function({async}) {
-  const done = async();
+  let done = async();
   expect(5);
 
   store.addRecord({id: 'jupiter', type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant'}})
@@ -89,11 +89,11 @@ test('updates to record attributes in the store should be automatically copied t
       store.replaceAttribute(originalPlanet, 'classification', 'terrestrial')
         .then(() => {
 
-          const updatedPlanet = store.retrieve(['planet', 'jupiter']);
+          let updatedPlanet = store.cache.get(['planet', 'jupiter']);
           equal(updatedPlanet.id, originalPlanet.id, 'primary id remains the same');
           equal(updatedPlanet.attributes.classification, 'terrestrial', 'classification has been updated');
 
-          const backupPlanet = source.retrieve(['planet', 'jupiter']);
+          let backupPlanet = source.cache.get(['planet', 'jupiter']);
           notStrictEqual(backupPlanet, originalPlanet, 'not the same object as the one originally inserted');
           equal(backupPlanet.id, originalPlanet.id, 'backup record has the same primary id');
           equal(backupPlanet.attributes.classification, 'terrestrial', 'backup record has updated classification');
@@ -104,7 +104,7 @@ test('updates to record attributes in the store should be automatically copied t
 });
 
 test('records deleted in the store should be automatically deleted in the backup source', function({async}) {
-  const done = async();
+  let done = async();
   expect(2);
 
   store.addRecord({id: 'jupiter', type:'planet'})
@@ -113,8 +113,8 @@ test('records deleted in the store should be automatically deleted in the backup
     })
     .then(() => {
 
-      ok(!store.retrieve(['planet', 'jupiter'], 'record has been deleted from store'));
-      ok(!source.retrieve(['planet', 'jupiter'], 'record has been deleted from backup source'));
+      ok(!store.cache.get(['planet', 'jupiter'], 'record has been deleted from store'));
+      ok(!source.cache.get(['planet', 'jupiter'], 'record has been deleted from backup source'));
 
       done();
     });
