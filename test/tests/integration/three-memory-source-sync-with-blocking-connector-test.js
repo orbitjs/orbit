@@ -23,7 +23,7 @@ import 'tests/test-helper';
  In such a scenario, it would be preferable to use non-blocking connectors to
  prevent deadlocks.
  */
-var source1,
+let source1,
     source2,
     source3,
     source1to2Connector,
@@ -36,7 +36,7 @@ module("Integration - Three Memory Source Sync (Blocking)", {
     Orbit.Promise = Promise;
 
     // Create schema
-    var schema = new Schema({
+    let schema = new Schema({
       models: {
         planet: {
           attributes: {
@@ -70,17 +70,17 @@ module("Integration - Three Memory Source Sync (Blocking)", {
 });
 
 test("consecutive transforms can be applied to one source and should be automatically applied to the other source", function({async}) {
-  const done = async();
+  let done = async();
   expect(4);
 
   source1.transform(addRecordOperation({type: 'planet', id: 'jupiter', attributes: {name: 'Jupiter'}}))
     .then(() => {
-      const record = source1.retrieve(['planet', 'jupiter']);
+      let record = source1.cache.get(['planet', 'jupiter']);
       return source1.transform(replaceAttributeOperation(record, 'name', 'Earth'));
     })
     .then(() => {
-      const store1Planet = source1.retrieve(['planet', 'jupiter']);
-      const store2Planet = source2.retrieve(['planet', 'jupiter']);
+      let store1Planet = source1.cache.get(['planet', 'jupiter']);
+      let store2Planet = source2.cache.get(['planet', 'jupiter']);
 
       notStrictEqual(store2Planet, store1Planet, 'not the same object as the one originally inserted');
       equal(store2Planet.id, store1Planet.id, 'backup record has the same primary id');
@@ -92,7 +92,7 @@ test("consecutive transforms can be applied to one source and should be automati
 });
 
 test("an array of transforms can be applied to one source and should be automatically applied to the other source", function({async}) {
-  const done = async();
+  let done = async();
   expect(6);
 
   source1.transform(new Transform([
@@ -100,11 +100,11 @@ test("an array of transforms can be applied to one source and should be automati
     addRecordOperation({type: 'planet', id: '456', attributes: {name: 'Pluto'}}),
   ]))
   .then(() => {
-    const primaryJupiter = source1.retrieve(['planet', '123']);
-    const primaryPluto = source1.retrieve(['planet', '456']);
+    let primaryJupiter = source1.cache.get(['planet', '123']);
+    let primaryPluto = source1.cache.get(['planet', '456']);
 
-    const backupJupiter = source2.retrieve(['planet', '123']);
-    const backupPluto = source2.retrieve(['planet', '456']);
+    let backupJupiter = source2.cache.get(['planet', '123']);
+    let backupPluto = source2.cache.get(['planet', '456']);
 
     notStrictEqual(primaryJupiter, backupJupiter, 'each source has it\'s own copy of Jupiter');
     notStrictEqual(primaryPluto, backupPluto, 'each source has it\'s own copy of Pluto');
@@ -120,7 +120,7 @@ test("an array of transforms can be applied to one source and should be automati
 });
 
 test("replacing value with null should not cause infinite update loop", function({async}) {
-  const done = async();
+  let done = async();
   expect(4);
 
   source1.transform(addRecordOperation({type: 'planet', id: '123', attributes: {name: 'Jupiter'}}))
@@ -128,8 +128,8 @@ test("replacing value with null should not cause infinite update loop", function
       return source1.transform(replaceAttributeOperation({type: 'planet', id: '123'}, 'name', null));
     })
     .then(function() {
-      const source1Planet = source1.retrieve(['planet', '123']);
-      const source2Planet = source2.retrieve(['planet', '123']);
+      let source1Planet = source1.cache.get(['planet', '123']);
+      let source2Planet = source2.cache.get(['planet', '123']);
 
       notStrictEqual(source2Planet, source1Planet, 'not the same object as the one originally inserted');
       strictEqual(source2Planet.id, source1Planet.id, 'backup record has the same primary id');

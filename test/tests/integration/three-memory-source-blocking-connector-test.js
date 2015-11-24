@@ -9,7 +9,7 @@ import {
   addRecordOperation
 } from 'orbit-common/lib/operations';
 
-var source1,
+let source1,
     source2,
     source3,
     source1to2Connector,
@@ -17,14 +17,14 @@ var source1,
     source1to3Connector,
     source3to1Connector;
 
-var counter = 0;
+let counter = 0;
 
 module("Integration - Three Memory Source Sync (Blocking / Non-blocking)", {
   setup: function() {
     Orbit.Promise = Promise;
 
     // Create schema
-    var schema = new Schema({
+    let schema = new Schema({
       modelDefaults: {
         keys: {
           '__id': {primaryKey: true, defaultValue: uuid},
@@ -65,10 +65,10 @@ module("Integration - Three Memory Source Sync (Blocking / Non-blocking)", {
 });
 
 test('Spontaneous information from sources', function({async}) {
-  const done = async();
+  let done = async();
   expect(15);
 
-  const planetIds = [];
+  let planetIds = [];
 
   // For the use-case in this test - source2 and source3 are a socket connection
   // to an observatory discovering planets!
@@ -110,7 +110,7 @@ test('Spontaneous information from sources', function({async}) {
     .then(function() {
       [source1, source2, source3].forEach((source) => {
         planetIds.forEach((planetId) => {
-          ok(source1.retrieve(['planet', planetId]), `${source.id} - added ${planetId}`);
+          ok(source1.cache.get(['planet', planetId]), `${source.id} - added ${planetId}`);
         });
       });
 
