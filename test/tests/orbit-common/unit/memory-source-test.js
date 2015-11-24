@@ -7,6 +7,8 @@ import { RecordNotFoundException, LinkNotFoundException } from 'orbit-common/lib
 import { spread } from 'orbit/lib/functions';
 import { uuid } from 'orbit/lib/uuid';
 import { toIdentifier } from 'orbit-common/lib/identifiers';
+import CacheIntegrityProcessor from 'orbit-common/operation-processors/cache-integrity-processor';
+import SchemaConsistencyProcessor from 'orbit-common/operation-processors/schema-consistency-processor';
 import 'tests/test-helper';
 import {
   queryExpression as oqe
@@ -57,6 +59,12 @@ module("OC - MemorySource", function(hooks) {
 
   test("its prototype chain is correct", function(assert) {
     assert.ok(source instanceof Source, 'instanceof Source');
+  });
+
+  test("internal cache's options can be specified with `cacheOptions`", function() {
+    var source = new MemorySource({schema: schema, cacheOptions: {processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor]}});
+    ok(source.cache, 'cache exists');
+    equal(source.cache._processors.length, 2, 'cache has 2 processors');
   });
 
   test("#transform - transforms the source's cache", function(assert) {
@@ -110,5 +118,3 @@ module("OC - MemorySource", function(hooks) {
       });
   });
 });
-
-

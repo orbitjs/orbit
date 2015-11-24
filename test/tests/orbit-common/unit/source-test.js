@@ -3,8 +3,6 @@ import Schema from 'orbit-common/schema';
 import Source from 'orbit-common/source';
 import Operation from 'orbit/operation';
 import { all, Promise } from 'rsvp';
-import CacheIntegrityProcessor from 'orbit-common/operation-processors/cache-integrity-processor';
-import SchemaConsistencyProcessor from 'orbit-common/operation-processors/schema-consistency-processor';
 import { equalOps } from 'tests/test-helper';
 
 var schema;
@@ -40,12 +38,6 @@ test("calls Source.created when a source has been created", function() {
 test("will be created without a cache by default", function() {
   var source = new Source({schema: schema});
   equal(source.cache, null);
-});
-
-test("can be created with a cache with `useCache`, and options can be specified with `cacheOptions`", function() {
-  var source = new Source({schema: schema, useCache: true, cacheOptions: {processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor]}});
-  ok(source.cache, 'cache exists');
-  equal(source.cache._processors.length, 2, 'cache has 2 processors');
 });
 
 test("implements Transformable", function() {
