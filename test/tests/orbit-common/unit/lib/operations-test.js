@@ -187,7 +187,7 @@ module('OC - Lib - Operations', function() {
           toOperation('add', ['contact', '1234', 'relationships', 'address'], 'abc123')
         ],
         [
-          toOperation('add', ['contact', '1234'], { id: '1234', relationships: { address: 'abc123' } } )
+          toOperation('add', ['contact', '1234'], { id: '1234', relationships: { address: 'abc123' } })
         ]
         );
     });
@@ -223,7 +223,7 @@ module('OC - Lib - Operations', function() {
           toOperation('add', ['contact', '1234'], { id: '1234' })
         ],
         [
-          toOperation('add', ['contact', '1234'], { id: '1234', relationships: { address: 'abc123' } } )
+          toOperation('add', ['contact', '1234'], { id: '1234', relationships: { address: 'abc123' } })
         ]
         );
     });
@@ -235,7 +235,7 @@ module('OC - Lib - Operations', function() {
           toOperation('add', ['contact', '1234'], { id: '1234', relationships: { address: 'def789' } })
         ],
         [
-          toOperation('add', ['contact', '1234'], { id: '1234', relationships: { address: 'def789' } } )
+          toOperation('add', ['contact', '1234'], { id: '1234', relationships: { address: 'def789' } })
         ]
         );
     });

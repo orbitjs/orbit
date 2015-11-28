@@ -77,19 +77,19 @@ test('add record to empty cache', function() {
   var addPlanetOp = addRecordOperation({ type: 'planet', id: 'saturn' });
 
   equalOps(
-    processor.before( addPlanetOp ),
+    processor.before(addPlanetOp),
     [
       toOperation('add', ['planet'], {})
     ]
   );
 
   equalOps(
-    processor.after( addPlanetOp ),
+    processor.after(addPlanetOp),
     []
   );
 
   equalOps(
-    processor.finally( addPlanetOp ),
+    processor.finally(addPlanetOp),
     []
   );
 
@@ -185,17 +185,17 @@ test('add to hasOne => hasMany', function() {
     { type: 'planet', id: saturn.id });
 
   equalOps(
-    processor.before( addPlanetOp ),
+    processor.before(addPlanetOp),
     []
   );
 
   equalOps(
-    processor.after( addPlanetOp ),
+    processor.after(addPlanetOp),
     []
   );
 
   equalOps(
-    processor.finally( addPlanetOp ),
+    processor.finally(addPlanetOp),
     []
   );
 
@@ -264,12 +264,12 @@ test('replace hasOne => hasMany', function() {
   var replacePlanetOp = replaceHasOneOperation(europa, 'planet', saturn);
 
   equalOps(
-    processor.before( replacePlanetOp ),
+    processor.before(replacePlanetOp),
     []
   );
 
   equalOps(
-    processor.after( replacePlanetOp ),
+    processor.after(replacePlanetOp),
     []
   );
 
@@ -330,17 +330,17 @@ test('replace hasMany => hasOne with empty array', function() {
   var clearMoonsOp = replaceHasManyOperation(saturn, 'moons', []);
 
   equalOps(
-    processor.before( clearMoonsOp ),
+    processor.before(clearMoonsOp),
     []
   );
 
   equalOps(
-    processor.after( clearMoonsOp ),
+    processor.after(clearMoonsOp),
     []
   );
 
   equalOps(
-    processor.finally( clearMoonsOp ),
+    processor.finally(clearMoonsOp),
     []
   );
 
@@ -391,17 +391,17 @@ test('replace hasMany => hasOne with populated array', function() {
   var replaceMoonsOp = replaceHasManyOperation(saturn, 'moons', [{ type: 'moon', id: 'titan' }]);
 
   equalOps(
-    processor.before( replaceMoonsOp ),
+    processor.before(replaceMoonsOp),
     []
   );
 
   equalOps(
-    processor.after( replaceMoonsOp ),
+    processor.after(replaceMoonsOp),
     []
   );
 
   equalOps(
-    processor.finally( replaceMoonsOp ),
+    processor.finally(replaceMoonsOp),
     []
   );
 
@@ -463,17 +463,17 @@ test('replace hasMany => hasOne with populated array, when already populated', f
   var replaceMoonsOp = replaceHasManyOperation(saturn, 'moons', [{ type: 'moon', id: 'europa' }]);
 
   equalOps(
-    processor.before( replaceMoonsOp ),
+    processor.before(replaceMoonsOp),
     []
   );
 
   equalOps(
-    processor.after( replaceMoonsOp ),
+    processor.after(replaceMoonsOp),
     []
   );
 
   equalOps(
-    processor.finally( replaceMoonsOp ),
+    processor.finally(replaceMoonsOp),
     []
   );
 
@@ -521,12 +521,12 @@ test('replace hasMany => hasMany', function() {
   var clearRacesOp = replaceHasManyOperation(earth, 'races', []);
 
   equalOps(
-    processor.after( clearRacesOp ),
+    processor.after(clearRacesOp),
     []
   );
 
   equalOps(
-    processor.finally( clearRacesOp ),
+    processor.finally(clearRacesOp),
     []
   );
 
@@ -587,17 +587,17 @@ test('remove hasOne => hasMany', function() {
   var removePlanetOp = replaceHasOneOperation(europa, 'planet', null);
 
   equalOps(
-    processor.before( removePlanetOp ),
+    processor.before(removePlanetOp),
     []
   );
 
   equalOps(
-    processor.after( removePlanetOp ),
+    processor.after(removePlanetOp),
     []
   );
 
   equalOps(
-    processor.finally( removePlanetOp ),
+    processor.finally(removePlanetOp),
     []
   );
 
@@ -651,17 +651,17 @@ test('add to hasOne => hasOne', function() {
   var changePlanetOp = replaceHasOneOperation(earth, 'next', saturn);
 
   equalOps(
-    processor.before( changePlanetOp ),
+    processor.before(changePlanetOp),
     []
   );
 
   equalOps(
-    processor.after( changePlanetOp ),
+    processor.after(changePlanetOp),
     []
   );
 
   equalOps(
-    processor.finally( changePlanetOp ),
+    processor.finally(changePlanetOp),
     []
   );
 
@@ -708,17 +708,17 @@ test('add to hasOne => hasOne with existing value', function() {
   var changePlanetOp = replaceHasOneOperation(earth, 'next', jupiter);
 
   equalOps(
-    processor.before( changePlanetOp ),
+    processor.before(changePlanetOp),
     []
   );
 
   equalOps(
-    processor.after( changePlanetOp ),
+    processor.after(changePlanetOp),
     []
   );
 
   equalOps(
-    processor.finally( changePlanetOp ),
+    processor.finally(changePlanetOp),
     []
   );
 
@@ -765,17 +765,17 @@ test('replace hasOne => hasOne with existing value', function() {
   var changePlanetOp = replaceHasOneOperation(earth, 'next', jupiter);
 
   equalOps(
-    processor.before( changePlanetOp ),
+    processor.before(changePlanetOp),
     []
   );
 
   equalOps(
-    processor.after( changePlanetOp ),
+    processor.after(changePlanetOp),
     []
   );
 
   equalOps(
-    processor.finally( changePlanetOp ),
+    processor.finally(changePlanetOp),
     []
   );
 
@@ -806,17 +806,17 @@ test('add to hasMany => hasMany', function() {
   var addPlanetOp = addToHasManyOperation(human, 'planets', earth);
 
   equalOps(
-    processor.before( addPlanetOp ),
+    processor.before(addPlanetOp),
     []
   );
 
   equalOps(
-    processor.after( addPlanetOp ),
+    processor.after(addPlanetOp),
     []
   );
 
   equalOps(
-    processor.finally( addPlanetOp ),
+    processor.finally(addPlanetOp),
     []
   );
 
@@ -854,17 +854,17 @@ test('remove from hasMany => hasMany', function() {
   var removePlanetOp = removeFromHasManyOperation(human, 'planets', earth);
 
   equalOps(
-    processor.before( removePlanetOp ),
+    processor.before(removePlanetOp),
     []
   );
 
   equalOps(
-    processor.after( removePlanetOp ),
+    processor.after(removePlanetOp),
     []
   );
 
   equalOps(
-    processor.finally( removePlanetOp ),
+    processor.finally(removePlanetOp),
     []
   );
 
@@ -906,19 +906,19 @@ test('remove record with hasMany relationships', function() {
   var removeRaceOp = removeRecordOperation(human);
 
   equalOps(
-    processor.before( removeRaceOp ),
+    processor.before(removeRaceOp),
     []
   );
 
   equalOps(
-    processor.after( removeRaceOp ),
+    processor.after(removeRaceOp),
     [
       removeFromHasManyOperation(earth, 'races', human)
     ]
   );
 
   equalOps(
-    processor.finally( removeRaceOp ),
+    processor.finally(removeRaceOp),
     []
   );
 

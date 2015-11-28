@@ -2,7 +2,7 @@ import { isArray } from 'orbit/lib/objects';
 import Operation from 'orbit/operation';
 
 function serializeOps(o) {
-  return isArray(o) ? o.map( r => serializeOp(r) ) : serializeOp(o);
+  return isArray(o) ? o.map(r => serializeOp(r)) : serializeOp(o);
 }
 
 function serializeOp(o) {

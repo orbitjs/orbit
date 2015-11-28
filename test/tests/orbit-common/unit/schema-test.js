@@ -28,9 +28,9 @@ test('it has a `modelDefaults` set by default', function() {
   ok(schema.modelDefaults.id, 'modelDefaults.id has been set');
   strictEqual(schema.modelDefaults.id.defaultValue, uuid, 'modelDefaults.id.defaultValue has been set');
 
-  var model;
   ok(schema.models, 'schema.models has been set');
-  ok((model = schema.models.planet), 'model definition has been set');
+  const model = schema.models.planet;
+  ok(model, 'model definition has been set');
   ok(model.id, 'model.id has been set');
   strictEqual(model.id.defaultValue, uuid, 'model.id.defaultValue has been set');
 });
@@ -78,9 +78,10 @@ test('`modelDefaults` can be overridden', function() {
   ok(schema.modelDefaults.attributes.someAttr, 'default model schema attribute has been set');
   ok(schema.modelDefaults.relationships.someLink, 'default model link schema has been set');
 
-  var model;
+  let model;
   ok(schema.models, 'schema.models has been set');
-  ok((model = schema.models.planet), 'model definition has been set');
+  model = schema.models.planet;
+  ok(model, 'model definition has been set');
   ok(model.id, 'model.id has been set');
   ok(model.keys, 'model.keys has been set');
   ok(model.attributes, 'model.attributes has been set');
@@ -89,7 +90,8 @@ test('`modelDefaults` can be overridden', function() {
   ok(model.attributes['someAttr'], 'model.attributes match defaults');
   ok(model.relationships['someLink'], 'model.relationships match defaults');
 
-  ok((model = schema.models.moon), 'model definition has been set');
+  model = schema.models.moon;
+  ok(model, 'model definition has been set');
   ok(model.id, 'model.id has been set');
   ok(model.keys, 'model.keys has been set');
   ok(model.attributes, 'model.attributes has been set');
