@@ -16,7 +16,7 @@ var failedOperation = function() {
   });
 };
 
-module("Orbit - Evented", {
+module('Orbit - Evented', {
   setup: function() {
     Orbit.Promise = Promise;
 
@@ -29,11 +29,11 @@ module("Orbit - Evented", {
   }
 });
 
-test("it exists", function() {
+test('it exists', function() {
   ok(evented);
 });
 
-test("#emit - notifies listeners when emitting a simple message", function() {
+test('#emit - notifies listeners when emitting a simple message', function() {
   expect(2);
 
   var listener1 = function(message) {
@@ -49,7 +49,7 @@ test("#emit - notifies listeners when emitting a simple message", function() {
   evented.emit('greeting', 'hello');
 });
 
-test("#emit - notifies listeners registered with `one` only once each", function() {
+test('#emit - notifies listeners registered with `one` only once each', function() {
   expect(2);
 
   var listener1 = function(message) {
@@ -67,7 +67,7 @@ test("#emit - notifies listeners registered with `one` only once each", function
   evented.emit('greeting', 'hello');
 });
 
-test("#off can unregister individual listeners from an event", function() {
+test('#off can unregister individual listeners from an event', function() {
   expect(1);
 
   var listener1 = function(message) {
@@ -84,7 +84,7 @@ test("#off can unregister individual listeners from an event", function() {
   evented.emit('greeting', 'hello');
 });
 
-test("#off - can unregister all listeners from an event", function() {
+test('#off - can unregister all listeners from an event', function() {
   expect(6);
 
   var listener1 = function() {},
@@ -107,7 +107,7 @@ test("#off - can unregister all listeners from an event", function() {
   equal(evented.listeners('salutation').length, 0);
 });
 
-test("#off - can unregister all listeners from multiple events", function() {
+test('#off - can unregister all listeners from multiple events', function() {
   expect(4);
 
   var listener1 = function() {},
@@ -125,7 +125,7 @@ test("#off - can unregister all listeners from multiple events", function() {
   equal(evented.listeners('salutation').length, 0);
 });
 
-test("#emit - allows listeners to be registered for multiple events", function() {
+test('#emit - allows listeners to be registered for multiple events', function() {
   expect(3);
 
   var listener1 = function(message) {
@@ -142,7 +142,7 @@ test("#emit - allows listeners to be registered for multiple events", function()
   evented.emit('salutation', 'hello');
 });
 
-test("#emit - notifies listeners using custom bindings, if specified", function() {
+test('#emit - notifies listeners using custom bindings, if specified', function() {
   expect(4);
 
   var binding1 = {},
@@ -162,7 +162,7 @@ test("#emit - notifies listeners using custom bindings, if specified", function(
   evented.emit('greeting', 'hello');
 });
 
-test("#emit - notifies listeners when emitting events with any number of arguments", function() {
+test('#emit - notifies listeners when emitting events with any number of arguments', function() {
   expect(4);
 
   var listener1 = function() {
@@ -180,7 +180,7 @@ test("#emit - notifies listeners when emitting events with any number of argumen
   evented.emit('greeting', 'hello', 'world');
 });
 
-test("#emit - can emit multiple events with the same arguments sequentially", function() {
+test('#emit - can emit multiple events with the same arguments sequentially', function() {
   expect(3);
 
   var listener1 = function(message) {
@@ -196,7 +196,7 @@ test("#emit - can emit multiple events with the same arguments sequentially", fu
   evented.emit('greeting salutation', 'hello');
 });
 
-test("#poll - can poll listeners with an event and return all the responses in an array", function() {
+test('#poll - can poll listeners with an event and return all the responses in an array', function() {
   expect(4);
 
   var listener1 = function(message) {
@@ -219,7 +219,7 @@ test("#poll - can poll listeners with an event and return all the responses in a
   deepEqual(evented.poll('greeting', 'hello'), ['bonjour', 'sup'], 'poll response should include the responses of all listeners');
 });
 
-test("#poll - can poll listeners with multiple events and return all the responses in a single array", function() {
+test('#poll - can poll listeners with multiple events and return all the responses in a single array', function() {
   expect(2);
 
   var greeting1 = function() {
@@ -244,7 +244,7 @@ test("#poll - can poll listeners with multiple events and return all the respons
   deepEqual(evented.poll('parting greeting'), ['Goodbye', 'Au revoir', 'Hello', 'Bon jour'], 'poll response should include the responses of all listeners in order');
 });
 
-test("#listeners - can return all the listeners (and bindings) for an event", function() {
+test('#listeners - can return all the listeners (and bindings) for an event', function() {
   expect(1);
 
   var binding1 = {},
@@ -262,7 +262,7 @@ test("#listeners - can return all the listeners (and bindings) for an event", fu
   deepEqual(evented.listeners('greeting'), [[greeting1, binding1], [greeting2, binding2]], 'listeners include nested arrays of functions and bindings');
 });
 
-test("#listeners - can return all the listeners (and bindings) for multiple events", function() {
+test('#listeners - can return all the listeners (and bindings) for multiple events', function() {
   expect(1);
 
   var binding1 = {},
@@ -288,7 +288,7 @@ test("#listeners - can return all the listeners (and bindings) for multiple even
   deepEqual(evented.listeners('greeting parting'), [[greeting1, binding1], [greeting2, binding2], [parting1, binding1], [parting2, binding2]], 'listeners include nested arrays of functions and bindings');
 });
 
-test("#resolve - can fulfill promises returned by listeners to an event, in order, until one resolves", function() {
+test('#resolve - can fulfill promises returned by listeners to an event, in order, until one resolves', function() {
   expect(8);
 
   var order = 0,
@@ -308,7 +308,7 @@ test("#resolve - can fulfill promises returned by listeners to an event, in orde
         return successfulOperation();
       },
       listener4 = function(message) {
-        ok(false, "listener should not be reached");
+        ok(false, 'listener should not be reached');
       };
 
   evented.on('greeting', listener1, this);
@@ -324,12 +324,12 @@ test("#resolve - can fulfill promises returned by listeners to an event, in orde
       equal(++order, 4, 'promise resolved last');
     },
     function(error) {
-      ok(false, "error handler should not be reached");
+      ok(false, 'error handler should not be reached');
     }
   );
 });
 
-test("#settle - can fulfill all promises returned by listeners to an event, in order, until all are settled", function() {
+test('#settle - can fulfill all promises returned by listeners to an event, in order, until all are settled', function() {
   expect(10);
 
   var order = 0,
@@ -367,7 +367,7 @@ test("#settle - can fulfill all promises returned by listeners to an event, in o
       equal(++order, 5, 'promise resolved last');
     },
     function(error) {
-      ok(false, "error handler should not be reached");
+      ok(false, 'error handler should not be reached');
     }
   );
 });
@@ -390,10 +390,9 @@ test('#settle - resolves regardless of errors thrown in handlers', function() {
     }, function() {
       ok(false, 'error handler should not be reached');
     });
-
 });
 
-test("#series - it can fulfill all promises returned by listeners to an event, in order, until all are settled", function() {
+test('#series - it can fulfill all promises returned by listeners to an event, in order, until all are settled', function() {
   expect(6);
 
   var order = 0,
@@ -419,12 +418,12 @@ test("#series - it can fulfill all promises returned by listeners to an event, i
       equal(++order, 3, 'promise resolved last');
     },
     function(error) {
-      ok(false, "error handler should not be reached");
+      ok(false, 'error handler should not be reached');
     }
   );
 });
 
-test("#series - it will fail when any listener fails and return the error", function() {
+test('#series - it will fail when any listener fails and return the error', function() {
   expect(8);
 
   var order = 0,
@@ -455,7 +454,7 @@ test("#series - it will fail when any listener fails and return the error", func
   stop();
   evented.series('greeting', 'hello').then(
     function(result) {
-      ok(false, "success handler should not be reached");
+      ok(false, 'success handler should not be reached');
     },
     function(error) {
       start();

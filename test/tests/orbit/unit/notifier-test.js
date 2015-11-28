@@ -2,7 +2,7 @@ import Notifier from 'orbit/notifier';
 
 var notifier;
 
-module("Orbit - Notifier", {
+module('Orbit - Notifier', {
   setup: function() {
     notifier = new Notifier();
   },
@@ -12,11 +12,11 @@ module("Orbit - Notifier", {
   }
 });
 
-test("it exists", function() {
+test('it exists', function() {
   ok(notifier);
 });
 
-test("it maintains a list of listeners", function() {
+test('it maintains a list of listeners', function() {
   var listener1 = function() {},
       listener2 = function() {};
 
@@ -33,7 +33,7 @@ test("it maintains a list of listeners", function() {
   equal(notifier.listeners.length, 0);
 });
 
-test("it notifies listeners when emitting a simple message", function() {
+test('it notifies listeners when emitting a simple message', function() {
   expect(2);
 
   var listener1 = function(message) {
@@ -49,7 +49,7 @@ test("it notifies listeners when emitting a simple message", function() {
   notifier.emit('hello');
 });
 
-test("it notifies listeners using custom bindings, if specified", function() {
+test('it notifies listeners using custom bindings, if specified', function() {
   expect(4);
 
   var binding1 = {},
@@ -69,7 +69,7 @@ test("it notifies listeners using custom bindings, if specified", function() {
   notifier.emit('hello');
 });
 
-test("it notifies listeners when publishing any number of arguments", function() {
+test('it notifies listeners when publishing any number of arguments', function() {
   expect(4);
 
   var listener1 = function() {
@@ -87,7 +87,7 @@ test("it notifies listeners when publishing any number of arguments", function()
   notifier.emit('hello', 'world');
 });
 
-test("it notifies listeners when polling with a simple message and returns any responses", function() {
+test('it notifies listeners when polling with a simple message and returns any responses', function() {
   expect(4);
 
   var listener1 = function(message) {

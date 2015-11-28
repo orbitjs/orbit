@@ -23,8 +23,8 @@ module('Integration - MemorySource Sync without Connector', {
     let schema = new Schema(schemaDefinition);
 
     // Create sources
-    store = new Store({schema: schema});
-    source = new MemorySource({schema: schema});
+    store = new Store({ schema: schema });
+    source = new MemorySource({ schema: schema });
 
     store.on('transform', transform => source.transform(transform));
   },
@@ -34,11 +34,11 @@ module('Integration - MemorySource Sync without Connector', {
   }
 });
 
-test('records inserted into the store should be automatically copied to the backup source', function({async}) {
+test('records inserted into the store should be automatically copied to the backup source', function({ async }) {
   let done = async();
   expect(6);
 
-  store.addRecord({id: 'jupiter', type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant'}})
+  store.addRecord({ id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } })
     .then((originalRecord) => {
       let primaryPlanet = store.cache.get(['planet', 'jupiter']);
       let backupPlanet = source.cache.get(['planet', 'jupiter']);
@@ -55,15 +55,14 @@ test('records inserted into the store should be automatically copied to the back
     });
 });
 
-test('replaced records in the store should be automatically copied to the backup source', function({async}) {
+test('replaced records in the store should be automatically copied to the backup source', function({ async }) {
   let done = async();
   expect(7);
 
-  store.addRecord({id: 'jupiter', type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant'}})
+  store.addRecord({ id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } })
     .then((originalPlanet) => {
-      store.replaceRecord({id: 'jupiter', type: 'planet', attributes: {name: 'Earth', classification: 'terrestrial'}})
+      store.replaceRecord({ id: 'jupiter', type: 'planet', attributes: { name: 'Earth', classification: 'terrestrial' } })
         .then(() => {
-
           let updatedPlanet = store.cache.get(['planet', 'jupiter']);
           equal(updatedPlanet.id, originalPlanet.id, 'primary id remains the same');
           equal(updatedPlanet.attributes.name, 'Earth', 'name has been updated');
@@ -80,15 +79,14 @@ test('replaced records in the store should be automatically copied to the backup
     });
 });
 
-test('updates to record attributes in the store should be automatically copied to the backup source', function({async}) {
+test('updates to record attributes in the store should be automatically copied to the backup source', function({ async }) {
   let done = async();
   expect(5);
 
-  store.addRecord({id: 'jupiter', type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant'}})
+  store.addRecord({ id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } })
     .then((originalPlanet) => {
       store.replaceAttribute(originalPlanet, 'classification', 'terrestrial')
         .then(() => {
-
           let updatedPlanet = store.cache.get(['planet', 'jupiter']);
           equal(updatedPlanet.id, originalPlanet.id, 'primary id remains the same');
           equal(updatedPlanet.attributes.classification, 'terrestrial', 'classification has been updated');
@@ -103,16 +101,15 @@ test('updates to record attributes in the store should be automatically copied t
     });
 });
 
-test('records deleted in the store should be automatically deleted in the backup source', function({async}) {
+test('records deleted in the store should be automatically deleted in the backup source', function({ async }) {
   let done = async();
   expect(2);
 
-  store.addRecord({id: 'jupiter', type:'planet'})
+  store.addRecord({ id: 'jupiter', type: 'planet' })
     .then((planet) => {
       return store.removeRecord(planet);
     })
     .then(() => {
-
       ok(!store.cache.get(['planet', 'jupiter'], 'record has been deleted from store'));
       ok(!source.cache.get(['planet', 'jupiter'], 'record has been deleted from backup source'));
 

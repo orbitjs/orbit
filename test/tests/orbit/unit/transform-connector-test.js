@@ -13,7 +13,7 @@ var primarySource,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Orbit - TransformConnector", {
+module('Orbit - TransformConnector', {
   setup: function() {
     Orbit.Promise = Promise;
     let Source = Class.extend(Transformable);
@@ -31,23 +31,23 @@ module("Orbit - TransformConnector", {
   }
 });
 
-test("it exists", function() {
+test('it exists', function() {
   transformConnector = new TransformConnector(primarySource, secondarySource);
   ok(transformConnector);
 });
 
-test("it is active by default exists", function() {
+test('it is active by default exists', function() {
   transformConnector = new TransformConnector(primarySource, secondarySource);
   equal(transformConnector.isActive(), true);
 });
 
-test("it watches `transform` events on the source and applies them to the target", function() {
+test('it watches `transform` events on the source and applies them to the target', function() {
   expect(1);
 
   let addPlanet = new Transform([{
     op: 'add',
     path: ['planet', '1'],
-    value: {id: 1, name: 'Earth'}
+    value: { id: 1, name: 'Earth' }
   }]);
 
   secondarySource._transform = function(transform) {

@@ -19,7 +19,7 @@ let source1,
 
 let counter = 0;
 
-module("Integration - Three Memory Source Sync (Blocking / Non-blocking)", {
+module('Integration - Three Memory Source Sync (Blocking / Non-blocking)', {
   setup: function() {
     Orbit.Promise = Promise;
 
@@ -27,33 +27,33 @@ module("Integration - Three Memory Source Sync (Blocking / Non-blocking)", {
     let schema = new Schema({
       modelDefaults: {
         keys: {
-          '__id': {primaryKey: true, defaultValue: uuid},
+          '__id': { primaryKey: true, defaultValue: uuid },
           'id': {}
         }
       },
       models: {
         planet: {
           attributes: {
-            name: {type: 'string'},
-            classification: {type: 'string'}
+            name: { type: 'string' },
+            classification: { type: 'string' }
           }
         }
       }
     });
 
     // Create sources
-    source1 = new MemorySource({schema: schema});
-    source2 = new MemorySource({schema: schema});
-    source3 = new MemorySource({schema: schema});
+    source1 = new MemorySource({ schema: schema });
+    source2 = new MemorySource({ schema: schema });
+    source3 = new MemorySource({ schema: schema });
 
     source1.id = 'source1';
     source2.id = 'source2';
     source3.id = 'source3';
 
     // Create blocking & non-blocking connectors
-    source1to2Connector = new TransformConnector(source1, source2, {blocking: false});
+    source1to2Connector = new TransformConnector(source1, source2, { blocking: false });
     source2to1Connector = new TransformConnector(source2, source1);
-    source1to3Connector = new TransformConnector(source1, source3, {blocking: false});
+    source1to3Connector = new TransformConnector(source1, source3, { blocking: false });
     source3to1Connector = new TransformConnector(source3, source1);
   },
 
@@ -64,7 +64,7 @@ module("Integration - Three Memory Source Sync (Blocking / Non-blocking)", {
   }
 });
 
-test('Spontaneous information from sources', function({async}) {
+test('Spontaneous information from sources', function({ async }) {
   let done = async();
   expect(15);
 
@@ -79,7 +79,7 @@ test('Spontaneous information from sources', function({async}) {
     source.transform(addRecordOperation({
       id: planetName,
       type: 'planet',
-      attributes: {name: planetName}
+      attributes: { name: planetName }
     }));
     planetIds.push(planetName);
 
@@ -101,11 +101,11 @@ test('Spontaneous information from sources', function({async}) {
 
   Promise
     .all([
-      discover(source3, "earth"),
-      discover(source2, "mars"),
-      discover(source3, "mercury"),
-      discover(source2, "jupiter"),
-      discover(source2, "saturn")
+      discover(source3, 'earth'),
+      discover(source2, 'mars'),
+      discover(source3, 'mercury'),
+      discover(source2, 'jupiter'),
+      discover(source2, 'saturn')
     ])
     .then(function() {
       [source1, source2, source3].forEach((source) => {

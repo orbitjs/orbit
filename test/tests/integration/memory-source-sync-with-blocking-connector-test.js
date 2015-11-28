@@ -9,20 +9,20 @@ const schemaDefinition = {
   models: {
     planet: {
       attributes: {
-        name: {type: 'string'},
-        classification: {type: 'string'}
+        name: { type: 'string' },
+        classification: { type: 'string' }
       },
       relationships: {
-        moons: {type: 'hasMany', model: 'moon', inverse: 'planet'}
+        moons: { type: 'hasMany', model: 'moon', inverse: 'planet' }
       }
     },
     moon: {
       attributes: {
-        name: {type: 'string'}
+        name: { type: 'string' }
       },
       relationships: {
-        planet: {type: 'hasOne', model: 'planet', inverse: 'moons'},
-        mountains: {type: 'hasMany', model: 'mountain', inverse: 'moon'}
+        planet: { type: 'hasOne', model: 'planet', inverse: 'moons' },
+        mountains: { type: 'hasMany', model: 'mountain', inverse: 'moon' }
       }
     },
     friend: {
@@ -44,7 +44,7 @@ let schema,
     storeToSourceConnector,
     sourceToStoreConnector;
 
-module("Integration - Memory Source Sync (Blocking)", {
+module('Integration - Memory Source Sync (Blocking)', {
   setup: function() {
     Orbit.Promise = Promise;
 
@@ -52,8 +52,8 @@ module("Integration - Memory Source Sync (Blocking)", {
     schema = new Schema(schemaDefinition);
 
     // Create sources
-    store = new Store({schema: schema});
-    source = new MemorySource({schema: schema});
+    store = new Store({ schema: schema });
+    source = new MemorySource({ schema: schema });
 
     store.id = 'store';
     source.id = 'source';
@@ -71,11 +71,11 @@ module("Integration - Memory Source Sync (Blocking)", {
   }
 });
 
-test("consecutive transforms can be applied to one source and should be automatically applied to the other source", function({async}) {
+test('consecutive transforms can be applied to one source and should be automatically applied to the other source', function({ async }) {
   let done = async();
   expect(4);
 
-  store.addRecord({id: '123', type: 'planet', attributes: { name: 'Jupiter' }})
+  store.addRecord({ id: '123', type: 'planet', attributes: { name: 'Jupiter' } })
     .then(function(jupiter) {
       return store.replaceAttribute(jupiter, 'name', 'Earth');
     })
@@ -92,11 +92,11 @@ test("consecutive transforms can be applied to one source and should be automati
     });
 });
 
-test("replacing value with null should not cause infinite update loop", function({async}) {
+test('replacing value with null should not cause infinite update loop', function({ async }) {
   let done = async();
   expect(4);
 
-  store.addRecord({type: 'planet', id: '123', attributes: {name: 'Jupiter'}})
+  store.addRecord({ type: 'planet', id: '123', attributes: { name: 'Jupiter' } })
     .then(function(jupiter) {
       return store.replaceAttribute(jupiter, 'name', null);
     })
@@ -113,7 +113,7 @@ test("replacing value with null should not cause infinite update loop", function
     });
 });
 
-test("replacing relationship should not cause infinite update loop", function({async}) {
+test('replacing relationship should not cause infinite update loop', function({ async }) {
   let done = async();
   expect(12);
 
@@ -122,9 +122,9 @@ test("replacing relationship should not cause infinite update loop", function({a
   }
 
   all([
-    store.addRecord({type: 'friend', id: 'gnarf'}),
-    store.addRecord({type: 'group', id: 'initial'}),
-    store.addRecord({type: 'group', id: 'new' })
+    store.addRecord({ type: 'friend', id: 'gnarf' }),
+    store.addRecord({ type: 'group', id: 'initial' }),
+    store.addRecord({ type: 'group', id: 'new' })
   ])
   .spread(function(storeGnarf, storeInitialGroup, storeNewGroup) {
     let sourceGnarf = source.cache.get(['friend', 'gnarf']);

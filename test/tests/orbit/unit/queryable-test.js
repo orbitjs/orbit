@@ -7,7 +7,7 @@ import { successfulOperation, failedOperation } from 'tests/test-helper';
 
 var Source, source;
 
-module("Orbit - Queryable", {
+module('Orbit - Queryable', {
   setup: function() {
     Orbit.Promise = Promise;
     Source = Class.extend(Queryable);
@@ -20,17 +20,17 @@ module("Orbit - Queryable", {
   }
 });
 
-test("it exists", function(assert) {
+test('it exists', function(assert) {
   assert.ok(source);
 });
 
-test("it should mixin Evented", function(assert) {
+test('it should mixin Evented', function(assert) {
   ['on', 'off', 'emit', 'poll'].forEach(function(prop) {
     assert.ok(source[prop], 'should have Evented properties');
   });
 });
 
-test("it should resolve as a failure when _query fails", function() {
+test('it should resolve as a failure when _query fails', function() {
   expect(2);
 
   source._query = function(query) {
@@ -38,7 +38,7 @@ test("it should resolve as a failure when _query fails", function() {
   };
 
   stop();
-  source.query({fetch: ''}).then(
+  source.query({ fetch: '' }).then(
     function() {
       start();
       ok(false, 'query should not be resolved successfully');
@@ -51,24 +51,24 @@ test("it should resolve as a failure when _query fails", function() {
   );
 });
 
-test("it should trigger `query` event after a successful action in which `_query` resolves successfully", function() {
+test('it should trigger `query` event after a successful action in which `_query` resolves successfully', function() {
   expect(6);
 
   var order = 0;
 
   source._query = function(query) {
     equal(++order, 1, 'action performed after willQuery');
-    deepEqual(query, {fetch: ['abc', 'def']}, 'query object matches');
+    deepEqual(query, { fetch: ['abc', 'def'] }, 'query object matches');
     return successfulOperation();
   };
 
   source.on('query', function() {
     equal(++order, 2, 'query triggered after action performed successfully');
-    deepEqual(Array.prototype.slice.call(arguments, 0), [{fetch: ['abc', 'def']}, ':)'], 'event handler args match original call args + return value');
+    deepEqual(Array.prototype.slice.call(arguments, 0), [{ fetch: ['abc', 'def'] }, ':)'], 'event handler args match original call args + return value');
   });
 
   stop();
-  source.query({fetch: ['abc', 'def']})
+  source.query({ fetch: ['abc', 'def'] })
     .then(function(result) {
       start();
       equal(++order, 3, 'promise resolved last');
@@ -76,24 +76,24 @@ test("it should trigger `query` event after a successful action in which `_query
     });
 });
 
-test("it should trigger `query` event after a successful action in which `_query` just returns (not a promise)", function() {
+test('it should trigger `query` event after a successful action in which `_query` just returns (not a promise)', function() {
   expect(6);
 
   var order = 0;
 
   source._query = function(query) {
     equal(++order, 1, 'action performed after willQuery');
-    deepEqual(query, {fetch: ['abc', 'def']}, 'query object matches');
+    deepEqual(query, { fetch: ['abc', 'def'] }, 'query object matches');
     return undefined;
   };
 
   source.on('query', function() {
     equal(++order, 2, 'query triggered after action performed successfully');
-    deepEqual(Array.prototype.slice.call(arguments, 0), [{fetch: ['abc', 'def']}, undefined], 'event handler args match original call args + return value');
+    deepEqual(Array.prototype.slice.call(arguments, 0), [{ fetch: ['abc', 'def'] }, undefined], 'event handler args match original call args + return value');
   });
 
   stop();
-  source.query({fetch: ['abc', 'def']})
+  source.query({ fetch: ['abc', 'def'] })
     .then(function(result) {
       start();
       equal(++order, 3, 'promise resolved last');
@@ -101,14 +101,14 @@ test("it should trigger `query` event after a successful action in which `_query
     });
 });
 
-test("`query` event should receive results as the last argument, even if they are an array", function() {
+test('`query` event should receive results as the last argument, even if they are an array', function() {
   expect(6);
 
   var order = 0;
 
   source._query = function(query) {
     equal(++order, 1, 'action performed after willQuery');
-    deepEqual(query, {fetch: ['abc', 'def']}, 'query object matches');
+    deepEqual(query, { fetch: ['abc', 'def'] }, 'query object matches');
     return new Promise(function(resolve, reject) {
       resolve(['a', 'b', 'c']);
     });
@@ -116,11 +116,11 @@ test("`query` event should receive results as the last argument, even if they ar
 
   source.on('query', function() {
     equal(++order, 2, 'query triggered after action performed successfully');
-    deepEqual(Array.prototype.slice.call(arguments, 0), [{fetch: ['abc', 'def']}, ['a', 'b', 'c']], 'event handler args match original call args + return value');
+    deepEqual(Array.prototype.slice.call(arguments, 0), [{ fetch: ['abc', 'def'] }, ['a', 'b', 'c']], 'event handler args match original call args + return value');
   });
 
   stop();
-  source.query({fetch: ['abc', 'def']})
+  source.query({ fetch: ['abc', 'def'] })
     .then(function(result) {
       start();
       equal(++order, 3, 'promise resolved last');
@@ -128,14 +128,14 @@ test("`query` event should receive results as the last argument, even if they ar
     });
 });
 
-test("it should trigger `queryFail` event after an unsuccessful query", function() {
+test('it should trigger `queryFail` event after an unsuccessful query', function() {
   expect(6);
 
   var order = 0;
 
   source._query = function(query) {
     equal(++order, 1, 'action performed after willQuery');
-    deepEqual(query, {fetch: ['abc', 'def']}, 'query object matches');
+    deepEqual(query, { fetch: ['abc', 'def'] }, 'query object matches');
     return failedOperation();
   };
 
@@ -145,11 +145,11 @@ test("it should trigger `queryFail` event after an unsuccessful query", function
 
   source.on('queryFail', function() {
     equal(++order, 2, 'queryFail triggered after an unsuccessful query');
-    deepEqual(Array.prototype.slice.call(arguments, 0), [{fetch: ['abc', 'def']}, ':('], 'event handler args match original call args + return value');
+    deepEqual(Array.prototype.slice.call(arguments, 0), [{ fetch: ['abc', 'def'] }, ':('], 'event handler args match original call args + return value');
   });
 
   stop();
-  source.query({fetch: ['abc', 'def']})
+  source.query({ fetch: ['abc', 'def'] })
     .then(undefined, function(result) {
       start();
       equal(++order, 3, 'promise resolved last');
@@ -157,14 +157,14 @@ test("it should trigger `queryFail` event after an unsuccessful query", function
     });
 });
 
-test("`queryFail` event should receive errors as the last argument, even if they are an array", function() {
+test('`queryFail` event should receive errors as the last argument, even if they are an array', function() {
   expect(6);
 
   var order = 0;
 
   source._query = function(query) {
     equal(++order, 1, 'action performed after willQuery');
-    deepEqual(query, {fetch: ['abc', 'def']}, 'query object matches');
+    deepEqual(query, { fetch: ['abc', 'def'] }, 'query object matches');
     return new Promise(function(resolve, reject) {
       reject(['O_o', ':(']);
     });
@@ -176,11 +176,11 @@ test("`queryFail` event should receive errors as the last argument, even if they
 
   source.on('queryFail', function() {
     equal(++order, 2, 'queryFail triggered after an unsuccessful query');
-    deepEqual(Array.prototype.slice.call(arguments, 0), [{fetch: ['abc', 'def']}, ['O_o', ':(']], 'event handler args match original call args + return value');
+    deepEqual(Array.prototype.slice.call(arguments, 0), [{ fetch: ['abc', 'def'] }, ['O_o', ':(']], 'event handler args match original call args + return value');
   });
 
   stop();
-  source.query({fetch: ['abc', 'def']})
+  source.query({ fetch: ['abc', 'def'] })
     .then(undefined, function(result) {
       start();
       equal(++order, 3, 'promise resolved last');
@@ -188,7 +188,7 @@ test("`queryFail` event should receive errors as the last argument, even if they
     });
 });
 
-test("it should resolve all promises returned from `beforeQuery` before calling `_query`", function() {
+test('it should resolve all promises returned from `beforeQuery` before calling `_query`', function() {
   expect(7);
 
   let order = 0;
@@ -218,7 +218,7 @@ test("it should resolve all promises returned from `beforeQuery` before calling 
   });
 
   stop();
-  source.query({fetch: ''})
+  source.query({ fetch: '' })
     .then(function(result) {
       start();
       equal(++order, 6, 'promise resolved last');
@@ -226,7 +226,7 @@ test("it should resolve all promises returned from `beforeQuery` before calling 
     });
 });
 
-test("it should resolve all promises returned from `beforeQuery` and fail if any fail", function() {
+test('it should resolve all promises returned from `beforeQuery` and fail if any fail', function() {
   expect(5);
 
   let order = 0;
@@ -254,7 +254,7 @@ test("it should resolve all promises returned from `beforeQuery` and fail if any
   });
 
   stop();
-  source.query({fetch: ''})
+  source.query({ fetch: '' })
     .then(
       function() {
         start();

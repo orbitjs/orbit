@@ -14,45 +14,45 @@ var schemaDefinition = {
   models: {
     planet: {
       attributes: {
-        name: {type: 'string'},
-        classification: {type: 'string'}
+        name: { type: 'string' },
+        classification: { type: 'string' }
       },
       relationships: {
-        moons: {type: 'hasMany', model: 'moon', inverse: 'planet', actsAsSet: true},
-        races: {type: 'hasMany', model: 'race', inverse: 'planets'},
-        next: {type: 'hasOne', model: 'planet', inverse: 'previous'},
-        previous: {type: 'hasOne', model: 'planet', inverse: 'next'}
+        moons: { type: 'hasMany', model: 'moon', inverse: 'planet', actsAsSet: true },
+        races: { type: 'hasMany', model: 'race', inverse: 'planets' },
+        next: { type: 'hasOne', model: 'planet', inverse: 'previous' },
+        previous: { type: 'hasOne', model: 'planet', inverse: 'next' }
       }
     },
     moon: {
       attributes: {
-        name: {type: 'string'}
+        name: { type: 'string' }
       },
       relationships: {
-        planet: {type: 'hasOne', model: 'planet', inverse: 'moons'}
+        planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
       }
     },
     race: {
       attributes: {
-        name: {type: 'string'},
+        name: { type: 'string' }
       },
       relationships: {
-        planets: {type: 'hasMany', model: 'planet', inverse: 'races'}
+        planets: { type: 'hasMany', model: 'planet', inverse: 'races' }
       }
     }
   }
 };
 
 module('OC - OperationProcessors - DeletionTrackingProcessor', {
-  setup: function(){
+  setup: function() {
     Orbit.Promise = Promise;
 
     schema = new Schema(schemaDefinition);
-    cache = new Cache(schema, {processors: [DeletionTrackingProcessor]});
+    cache = new Cache(schema, { processors: [DeletionTrackingProcessor] });
     processor = cache._processors[0];
   },
 
-  teardown: function(){
+  teardown: function() {
     schema = null;
     cache = null;
     processor = null;
@@ -60,8 +60,8 @@ module('OC - OperationProcessors - DeletionTrackingProcessor', {
 });
 
 test('tracks deletions and makes them queryable through `hasDeleted`', function() {
-  var saturn = { id: 'saturn', name: "Saturn", relationships: { moons: { 'titan': true } } };
-  var jupiter = { id: 'jupiter', name: "Jupiter", relationships: { moons: { 'europa': true } } };
+  var saturn = { id: 'saturn', name: 'Saturn', relationships: { moons: { 'titan': true } } };
+  var jupiter = { id: 'jupiter', name: 'Jupiter', relationships: { moons: { 'europa': true } } };
 
   ok(typeof cache.hasDeleted === 'function', 'adds `hasDeleted` method to cache');
 
@@ -71,7 +71,7 @@ test('tracks deletions and makes them queryable through `hasDeleted`', function(
 
   equal(cache.hasDeleted('planet/saturn'), false, 'Saturn has not been deleted yet');
 
-  cache.transform([{op: 'remove', path: 'planet/saturn'}]);
+  cache.transform([{ op: 'remove', path: 'planet/saturn' }]);
 
   equal(cache.hasDeleted('planet/saturn'), true, 'Saturn has been deleted');
   equal(cache.hasDeleted('planet/jupiter'), false, 'Jupiter has not been deleted');

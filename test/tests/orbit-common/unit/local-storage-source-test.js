@@ -13,7 +13,7 @@ let schema, source;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("OC - LocalStorageSource", {
+module('OC - LocalStorageSource', {
   setup: function() {
     Orbit.Promise = Promise;
 
@@ -23,7 +23,7 @@ module("OC - LocalStorageSource", {
       }
     });
 
-    source = new LocalStorageSource({schema: schema, autoload: false});
+    source = new LocalStorageSource({ schema: schema, autoload: false });
   },
 
   teardown: function() {
@@ -33,19 +33,19 @@ module("OC - LocalStorageSource", {
   }
 });
 
-test("it exists", function() {
+test('it exists', function() {
   ok(source);
 });
 
-test("its prototype chain is correct", function() {
+test('its prototype chain is correct', function() {
   ok(source instanceof Source,       'instanceof Source');
   ok(source instanceof MemorySource, 'instanceof MemorySource');
 });
 
-test("#transform - can update the cache AND local storage", function() {
+test('#transform - can update the cache AND local storage', function() {
   expect(4);
 
-  let planet = schema.normalize({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant'}});
+  let planet = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
 
   equal(source.cache.length('planet'), 0, 'source should be empty');
 
@@ -59,10 +59,10 @@ test("#transform - can update the cache AND local storage", function() {
     });
 });
 
-test("it can use a custom local storage namespace for storing data", function() {
+test('it can use a custom local storage namespace for storing data', function() {
   expect(1);
 
-  let planet = schema.normalize({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant'}});
+  let planet = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
 
   source.namespace = 'planets';
 
@@ -74,10 +74,10 @@ test("it can use a custom local storage namespace for storing data", function() 
     });
 });
 
-test("autosave can be disabled to delay writing to local storage", function() {
+test('autosave can be disabled to delay writing to local storage', function() {
   expect(4);
 
-  let planet = schema.normalize({type: 'planet', attributes: {name: 'Jupiter', classification: 'gas giant'}});
+  let planet = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
 
   source.disableAutosave();
 

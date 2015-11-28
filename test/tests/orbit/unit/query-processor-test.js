@@ -5,7 +5,7 @@ import { successfulOperation, failedOperation } from 'tests/test-helper';
 
 let Source, source;
 
-module("Orbit - QueryProcessor", {
+module('Orbit - QueryProcessor', {
   setup: function() {
     Source = Class.extend(QueryProcessor);
     source = new Source();
@@ -16,11 +16,11 @@ module("Orbit - QueryProcessor", {
   }
 });
 
-test("it exists", function(assert) {
+test('it exists', function(assert) {
   assert.ok(source);
 });
 
-test("it allows query processors to be registered and unregistered", function(assert) {
+test('it allows query processors to be registered and unregistered', function(assert) {
   assert.expect(3);
 
   assert.equal(source.queryProcessors.length, 0, 'no query processors are registered by default');
@@ -36,20 +36,20 @@ test("it allows query processors to be registered and unregistered", function(as
   assert.equal(source.queryProcessors.length, 0, 'query processors have been unregistered');
 });
 
-test("#processQuery throws a QueryProcessorNotFoundException if no query processor is registered", function(assert) {
+test('#processQuery throws a QueryProcessorNotFoundException if no query processor is registered', function(assert) {
   assert.expect(1);
 
   source.registerQueryProcessor('fetch', (query) => {});
 
   assert.throws(
     function() {
-      source.processQuery({bogus: ''});
+      source.processQuery({ bogus: '' });
     },
     'bogus query type'
   );
 });
 
-test("#processQuery should resolve successfully with the result returned by a query processor success", function() {
+test('#processQuery should resolve successfully with the result returned by a query processor success', function() {
   expect(2);
 
   source.registerQueryProcessor('fetch', (query) => {
@@ -57,7 +57,7 @@ test("#processQuery should resolve successfully with the result returned by a qu
   });
 
   stop();
-  source.processQuery({fetch: ''})
+  source.processQuery({ fetch: '' })
     .then(function(result) {
       start();
       ok(true, 'query processor promise resolved');
@@ -65,7 +65,7 @@ test("#processQuery should resolve successfully with the result returned by a qu
     });
 });
 
-test("#processQuery should resolve as a failure with the error returned by a query processor failure", function() {
+test('#processQuery should resolve as a failure with the error returned by a query processor failure', function() {
   expect(2);
 
   source.registerQueryProcessor('fetch', (query) => {
@@ -73,7 +73,7 @@ test("#processQuery should resolve as a failure with the error returned by a que
   });
 
   stop();
-  source.processQuery({fetch: ''})
+  source.processQuery({ fetch: '' })
     .then(
       function() {
         start();

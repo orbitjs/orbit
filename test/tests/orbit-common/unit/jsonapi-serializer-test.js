@@ -11,7 +11,7 @@ var schema,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("OC - JSONAPISerializer", {
+module('OC - JSONAPISerializer', {
   setup: function() {
     Orbit.Promise = Promise;
   },
@@ -25,19 +25,19 @@ module("OC - JSONAPISerializer", {
 var modelsInSchema = {
   planet: {
     attributes: {
-      name: {type: 'string'},
-      classification: {type: 'string'}
+      name: { type: 'string' },
+      classification: { type: 'string' }
     },
     relationships: {
-      moons: {type: 'hasMany', model: 'moon', inverse: 'planet'}
+      moons: { type: 'hasMany', model: 'moon', inverse: 'planet' }
     }
   },
   moon: {
     attributes: {
-      name: {type: 'string'}
+      name: { type: 'string' }
     },
     relationships: {
-      planet: {type: 'hasOne', model: 'planet', inverse: 'moons'}
+      planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
     }
   }
 };
@@ -62,105 +62,105 @@ function setupWithUUIDs() {
   serializer = new JSONAPISerializer(schema);
 }
 
-test("it exists", function() {
+test('it exists', function() {
   setupWithLocalIds();
 
   ok(serializer);
 });
 
-test("its prototype chain is correct", function() {
+test('its prototype chain is correct', function() {
   setupWithLocalIds();
 
   ok(serializer instanceof Serializer, 'instanceof Serializer');
 });
 
-test("#resourceKey returns 'id' by default", function() {
+test('#resourceKey returns \'id\' by default', function() {
   setupWithUUIDs();
 
   equal(serializer.resourceKey('planet'), 'id');
 });
 
-test("#resourceType returns the pluralized, dasherized type by default", function() {
+test('#resourceType returns the pluralized, dasherized type by default', function() {
   setupWithLocalIds();
 
   equal(serializer.resourceType('planetaryObject'), 'planetary-objects');
 });
 
-test("#resourceRelationship returns the dasherized relationship by default", function() {
+test('#resourceRelationship returns the dasherized relationship by default', function() {
   setupWithLocalIds();
 
   equal(serializer.resourceRelationship('planet', 'surfaceElements'), 'surface-elements');
 });
 
-test("#resourceAttr returns the dasherized attribute by default", function() {
+test('#resourceAttr returns the dasherized attribute by default', function() {
   setupWithLocalIds();
 
   equal(serializer.resourceRelationship('planet', 'fullName'), 'full-name');
 });
 
-test("#typeFromResourceType returns the singularized, camelized type by default", function() {
+test('#typeFromResourceType returns the singularized, camelized type by default', function() {
   setupWithLocalIds();
 
   equal(serializer.typeFromResourceType('planetary-objects'), 'planetaryObject');
 });
 
-test("#attrFromResourceAttr returns the camelized attribute by default", function() {
+test('#attrFromResourceAttr returns the camelized attribute by default', function() {
   setupWithLocalIds();
 
   equal(serializer.attrFromResourceAttr('planet', 'full-name'), 'fullName');
 });
 
-test("#relationshipFromResourceRelationship returns the camelized relationship by default", function() {
+test('#relationshipFromResourceRelationship returns the camelized relationship by default', function() {
   setupWithLocalIds();
 
   equal(serializer.relationshipFromResourceRelationship('planet', 'surface-elements'), 'surfaceElements');
 });
 
-test("#resourceId returns a matching resource id given an orbit id (or array of ids) - using local IDs", function() {
+test('#resourceId returns a matching resource id given an orbit id (or array of ids) - using local IDs', function() {
   setupWithLocalIds();
 
-  schema.normalize({type: 'planet', id: '1', keys: {remoteId: 'a'}});
-  schema.normalize({type: 'planet', id: '2', keys: {remoteId: 'b'}});
+  schema.normalize({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
+  schema.normalize({ type: 'planet', id: '2', keys: { remoteId: 'b' } });
 
   equal(serializer.resourceId('planet', '1'), 'a');
   equal(serializer.resourceId('planet', '2'), 'b');
 
-  deepEqual(serializer.resourceId('planet', ['1', '2']), ['a', 'b'], "works for arrays too");
+  deepEqual(serializer.resourceId('planet', ['1', '2']), ['a', 'b'], 'works for arrays too');
 });
 
-test("#resourceId returns a matching resource id given an orbit id (or array of ids) - using UUIDs", function() {
+test('#resourceId returns a matching resource id given an orbit id (or array of ids) - using UUIDs', function() {
   setupWithUUIDs();
 
-  schema.normalize({type: 'planet', id: 'a'});
-  schema.normalize({type: 'planet', id: 'b'});
+  schema.normalize({ type: 'planet', id: 'a' });
+  schema.normalize({ type: 'planet', id: 'b' });
 
   equal(serializer.resourceId('planet', 'a'), 'a');
   equal(serializer.resourceId('planet', 'b'), 'b');
 
-  deepEqual(serializer.resourceId('planet', ['a', 'b']), ['a', 'b'], "works for arrays too");
+  deepEqual(serializer.resourceId('planet', ['a', 'b']), ['a', 'b'], 'works for arrays too');
 });
 
-test("#idFromResourceId returns a matching orbit id given a resource id - using local IDs", function() {
+test('#idFromResourceId returns a matching orbit id given a resource id - using local IDs', function() {
   setupWithLocalIds();
 
-  schema.normalize({type: 'planet', id: '1', keys:{remoteId: 'a'}});
-  schema.normalize({type: 'planet', id: '2', keys:{remoteId: 'b'}});
+  schema.normalize({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
+  schema.normalize({ type: 'planet', id: '2', keys: { remoteId: 'b' } });
 
   equal(serializer.idFromResourceId('planet', 'a'), '1');
   equal(serializer.idFromResourceId('planet', 'b'), '2');
 });
 
-test("#idFromResourceId returns a matching orbit id given a resource id - using UUIDs", function() {
+test('#idFromResourceId returns a matching orbit id given a resource id - using UUIDs', function() {
   setupWithUUIDs();
 
-  schema.normalize({type: 'planet', id: 'a'});
-  schema.normalize({type: 'planet', id: 'b'});
+  schema.normalize({ type: 'planet', id: 'a' });
+  schema.normalize({ type: 'planet', id: 'b' });
 
   equal(serializer.idFromResourceId('planet', 'a'), 'a');
   equal(serializer.idFromResourceId('planet', 'b'), 'b');
 });
 
-test("#serialize - can serialize a simple resource with only type and id", function() {
+test('#serialize - can serialize a simple resource with only type and id', function() {
   setupWithUUIDs();
 
   deepEqual(
@@ -180,7 +180,7 @@ test("#serialize - can serialize a simple resource with only type and id", funct
   );
 });
 
-test("#serialize - can serialize a simple resource with only attributes", function() {
+test('#serialize - can serialize a simple resource with only attributes', function() {
   setupWithLocalIds();
 
   deepEqual(
@@ -206,12 +206,12 @@ test("#serialize - can serialize a simple resource with only attributes", functi
   );
 });
 
-test("#serialize - can serialize a resource with attributes and has-many relationships", function() {
+test('#serialize - can serialize a resource with attributes and has-many relationships', function() {
   setupWithLocalIds();
 
-  schema.normalize({type: 'planet', id: 'p1', keys: {remoteId: 'p1-id'}});
-  schema.normalize({type: 'moon', id: 'm1', keys: {remoteId: 'm1-id'}});
-  schema.normalize({type: 'moon', id: 'm2', keys: {remoteId: 'm2-id'}});
+  schema.normalize({ type: 'planet', id: 'p1', keys: { remoteId: 'p1-id' } });
+  schema.normalize({ type: 'moon', id: 'm1', keys: { remoteId: 'm1-id' } });
+  schema.normalize({ type: 'moon', id: 'm2', keys: { remoteId: 'm2-id' } });
 
   deepEqual(
     serializer.serialize(
@@ -254,11 +254,11 @@ test("#serialize - can serialize a resource with attributes and has-many relatio
   );
 });
 
-test("#serialize - can serialize a resource with attributes and a null has-one relationship", function() {
+test('#serialize - can serialize a resource with attributes and a null has-one relationship', function() {
   setupWithLocalIds();
 
-  schema.normalize({type: 'planet', id: 'p1', keys: {remoteId: 'p1-id'}});
-  schema.normalize({type: 'moon', id: 'm1', keys: {remoteId: 'm1-id'}});
+  schema.normalize({ type: 'planet', id: 'p1', keys: { remoteId: 'p1-id' } });
+  schema.normalize({ type: 'moon', id: 'm1', keys: { remoteId: 'm1-id' } });
 
   deepEqual(
     serializer.serialize(
@@ -266,7 +266,7 @@ test("#serialize - can serialize a resource with attributes and a null has-one r
         type: 'moon',
         id: 'm1',
         attributes: {
-          name: 'Io',
+          name: 'Io'
         },
         relationships: {
           planet: {
@@ -291,11 +291,11 @@ test("#serialize - can serialize a resource with attributes and a null has-one r
   );
 });
 
-test("#serialize - can serialize a resource with attributes and a has-one relationships", function() {
+test('#serialize - can serialize a resource with attributes and a has-one relationships', function() {
   setupWithLocalIds();
 
-  schema.normalize({type: 'planet', id: 'p1', keys: {remoteId: 'p1-id'}});
-  schema.normalize({type: 'moon', id: 'm1', keys: {remoteId: 'm1-id'}});
+  schema.normalize({ type: 'planet', id: 'p1', keys: { remoteId: 'p1-id' } });
+  schema.normalize({ type: 'moon', id: 'm1', keys: { remoteId: 'm1-id' } });
 
   deepEqual(
     serializer.serialize(
@@ -303,7 +303,7 @@ test("#serialize - can serialize a resource with attributes and a has-one relati
         type: 'moon',
         id: 'm1',
         attributes: {
-          name: 'Io',
+          name: 'Io'
         },
         relationships: {
           planet: {
@@ -330,7 +330,7 @@ test("#serialize - can serialize a resource with attributes and a has-one relati
   );
 });
 
-test("#deserialize - can deserialize a simple resource with only type and id - using local IDs", function() {
+test('#deserialize - can deserialize a simple resource with only type and id - using local IDs', function() {
   setupWithLocalIds();
 
   var result = serializer.deserialize(
@@ -366,7 +366,7 @@ test("#deserialize - can deserialize a simple resource with only type and id - u
   );
 });
 
-test("#deserialize - can deserialize a simple resource with only type and id - using UUIDs", function() {
+test('#deserialize - can deserialize a simple resource with only type and id - using UUIDs', function() {
   setupWithUUIDs();
 
   var result = serializer.deserialize(
@@ -399,7 +399,7 @@ test("#deserialize - can deserialize a simple resource with only type and id - u
   );
 });
 
-test("#deserialize - can deserialize a compound document - using local IDs", function() {
+test('#deserialize - can deserialize a compound document - using local IDs', function() {
   setupWithLocalIds();
 
   var result = serializer.deserialize(
@@ -412,7 +412,7 @@ test("#deserialize - can deserialize a compound document - using local IDs", fun
           classification: 'gas giant'
         },
         relationships: {
-          moons: {data: [{type: 'moons', id: '5'}]}
+          moons: { data: [{ type: 'moons', id: '5' }] }
         }
       },
       included: [{
@@ -422,7 +422,7 @@ test("#deserialize - can deserialize a compound document - using local IDs", fun
           name: 'Io'
         },
         relationships: {
-          planet: {data: {type: 'planets', id: '12345'}}
+          planet: { data: { type: 'planets', id: '12345' } }
         }
       }]
     }
@@ -441,11 +441,11 @@ test("#deserialize - can deserialize a compound document - using local IDs", fun
         type: 'planet',
         id: planet.id,
         keys: {
-          remoteId: '12345',
+          remoteId: '12345'
         },
         attributes: {
           classification: 'gas giant',
-          name: 'Jupiter',
+          name: 'Jupiter'
         },
         relationships: {
           moons: {
@@ -462,7 +462,7 @@ test("#deserialize - can deserialize a compound document - using local IDs", fun
             remoteId: '5'
           },
           attributes: {
-            name: 'Io',
+            name: 'Io'
           },
           relationships: {
             planet: {
@@ -470,13 +470,13 @@ test("#deserialize - can deserialize a compound document - using local IDs", fun
             }
           }
         }
-      ],
+      ]
     },
     'deserialized document matches'
   );
 });
 
-test("#deserialize - can deserialize a compound document - using UUIDs", function() {
+test('#deserialize - can deserialize a compound document - using UUIDs', function() {
   setupWithUUIDs();
 
   var result = serializer.deserialize(
@@ -489,7 +489,7 @@ test("#deserialize - can deserialize a compound document - using UUIDs", functio
           classification: 'gas giant'
         },
         relationships: {
-          moons: {data: [{type: 'moons', id: '5'}]}
+          moons: { data: [{ type: 'moons', id: '5' }] }
         }
       },
       included: [{
@@ -499,7 +499,7 @@ test("#deserialize - can deserialize a compound document - using UUIDs", functio
           name: 'Io'
         },
         relationships: {
-          planet: {data: {type: 'planets', id: '12345'}}
+          planet: { data: { type: 'planets', id: '12345' } }
         }
       }]
     }
@@ -538,7 +538,7 @@ test("#deserialize - can deserialize a compound document - using UUIDs", functio
             }
           }
         }
-      ],
+      ]
     },
     'deserialized document matches'
   );

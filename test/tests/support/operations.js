@@ -17,9 +17,9 @@ function serializeOp(o) {
   return operation.serialize();
 }
 
-function op(opType, path, value){
-  var operation = new Operation({op: opType, path: path});
-  if (value !== undefined) operation.value = value;
+function op(opType, path, value) {
+  var operation = new Operation({ op: opType, path: path });
+  if (value !== undefined) { operation.value = value; }
   return operation;
 }
 

@@ -7,7 +7,7 @@ import { equalOps } from 'tests/test-helper';
 
 var schema;
 
-module("OC - Source", {
+module('OC - Source', {
   setup: function() {
     Orbit.Promise = Promise;
 
@@ -24,28 +24,28 @@ module("OC - Source", {
   }
 });
 
-test("calls Source.created when a source has been created", function() {
+test('calls Source.created when a source has been created', function() {
   expect(1);
 
   var created = sinon.spy(Source, 'created');
 
-  var source = new Source({schema: schema});
+  var source = new Source({ schema: schema });
   ok(created.calledWith(source), 'Called Source.created with source');
 
   created.restore();
 });
 
-test("will be created without a cache by default", function() {
-  var source = new Source({schema: schema});
+test('will be created without a cache by default', function() {
+  var source = new Source({ schema: schema });
   equal(source.cache, null);
 });
 
-test("implements Transformable", function() {
-  var source = new Source({schema: schema});
+test('implements Transformable', function() {
+  var source = new Source({ schema: schema });
   ok(typeof source.transform === 'function', 'implements `transform`');
 });
 
-test("implements Queryable", function() {
-  var source = new Source({schema: schema});
+test('implements Queryable', function() {
+  var source = new Source({ schema: schema });
   ok(typeof source.query === 'function', 'implements `query`');
 });

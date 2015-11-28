@@ -3,8 +3,8 @@ import {
   serializeOps
 } from './operations';
 
-function transformMatching({operations: expectedOps}) {
-  return sinon.match(function({operations: actualOps}){
+function transformMatching({ operations: expectedOps }) {
+  return sinon.match(function({ operations: actualOps }) {
     return eq(serializeOps(expectedOps), serializeOps(actualOps));
   });
 }

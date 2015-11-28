@@ -16,7 +16,7 @@ import {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("OC - MemorySource", function(hooks) {
+module('OC - MemorySource', function(hooks) {
   let schema, source;
 
   hooks.beforeEach(function() {
@@ -26,25 +26,25 @@ module("OC - MemorySource", function(hooks) {
       models: {
         planet: {
           attributes: {
-            name: {type: 'string'},
-            classification: {type: 'string'}
+            name: { type: 'string' },
+            classification: { type: 'string' }
           },
           relationships: {
-            moons: {type: 'hasMany', model: 'moon', inverse: 'planet'}
+            moons: { type: 'hasMany', model: 'moon', inverse: 'planet' }
           }
         },
         moon: {
           attributes: {
-            name: {type: 'string'}
+            name: { type: 'string' }
           },
           relationships: {
-            planet: {type: 'hasOne', model: 'planet', inverse: 'moons'}
+            planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
           }
         }
       }
     });
 
-    source = new MemorySource({schema: schema});
+    source = new MemorySource({ schema: schema });
   });
 
   hooks.afterEach(function() {
@@ -53,21 +53,21 @@ module("OC - MemorySource", function(hooks) {
     Orbit.Promise = null;
   });
 
-  test("it exists", function(assert) {
+  test('it exists', function(assert) {
     assert.ok(source);
   });
 
-  test("its prototype chain is correct", function(assert) {
+  test('its prototype chain is correct', function(assert) {
     assert.ok(source instanceof Source, 'instanceof Source');
   });
 
-  test("internal cache's options can be specified with `cacheOptions`", function() {
-    var source = new MemorySource({schema: schema, cacheOptions: {processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor]}});
+  test('internal cache\'s options can be specified with `cacheOptions`', function() {
+    var source = new MemorySource({ schema: schema, cacheOptions: { processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor] } });
     ok(source.cache, 'cache exists');
     equal(source.cache._processors.length, 2, 'cache has 2 processors');
   });
 
-  test("#transform - transforms the source's cache", function(assert) {
+  test('#transform - transforms the source\'s cache', function(assert) {
     const done = assert.async();
     expect(3);
 
@@ -93,7 +93,7 @@ module("OC - MemorySource", function(hooks) {
       });
   });
 
-  test("#query - queries the source's cache", function(assert) {
+  test('#query - queries the source\'s cache', function(assert) {
     const done = assert.async();
     expect(2);
 

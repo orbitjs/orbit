@@ -21,7 +21,7 @@ var source;
 var schema;
 var transaction;
 
-module("OC - Transaction", {
+module('OC - Transaction', {
   setup: function() {
     Orbit.Promise = Promise;
 
@@ -29,11 +29,11 @@ module("OC - Transaction", {
       models: {
         planet: {
           attributes: {
-            name: {type: 'string'},
-            classification: {type: 'string'}
+            name: { type: 'string' },
+            classification: { type: 'string' }
           },
           relationships: {
-            moons: {type: 'hasMany', model: 'moon', inverse: 'planet'}
+            moons: { type: 'hasMany', model: 'moon', inverse: 'planet' }
           },
           keys: {
             id: { primaryKey: true, defaultValue: uuid }
@@ -41,16 +41,16 @@ module("OC - Transaction", {
         },
         moon: {
           attributes: {
-            name: {type: 'string'}
+            name: { type: 'string' }
           },
           relationships: {
-            planet: {type: 'hasOne', model: 'planet', inverse: 'moons'}
+            planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
           }
         }
       }
     });
 
-    source = new MemorySource({schema: schema});
+    source = new MemorySource({ schema: schema });
   },
 
   teardown: function() {
@@ -60,27 +60,27 @@ module("OC - Transaction", {
   }
 });
 
-test("it exists", function(assert) {
-  var transaction = new Transaction({baseSource: source});
+test('it exists', function(assert) {
+  var transaction = new Transaction({ baseSource: source });
   assert.ok(transaction);
 });
 
-test("requires the `baseSource` option", function(assert) {
+test('requires the `baseSource` option', function(assert) {
   assert.throws(
     function() {
       var transaction = new Transaction({});
     },
-    new Error("Assertion failed: `baseSource` must be supplied as an option when constructing a Transaction.")
+    new Error('Assertion failed: `baseSource` must be supplied as an option when constructing a Transaction.')
   );
 });
 
-test("automatically begins by default", function(assert) {
-  var transaction = new Transaction({baseSource: source});
+test('automatically begins by default', function(assert) {
+  var transaction = new Transaction({ baseSource: source });
   assert.equal(transaction.active, true);
 });
 
-test("does not auto-begin if the `active` option = false", function(assert) {
-  var transaction = new Transaction({baseSource: source, active: false});
+test('does not auto-begin if the `active` option = false', function(assert) {
+  var transaction = new Transaction({ baseSource: source, active: false });
   assert.equal(transaction.active, false);
 });
 

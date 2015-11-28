@@ -26,59 +26,59 @@ var schemaDefinition = {
   models: {
     planet: {
       attributes: {
-        name: {type: 'string'},
-        classification: {type: 'string'}
+        name: { type: 'string' },
+        classification: { type: 'string' }
       },
       relationships: {
-        moons: {type: 'hasMany', model: 'moon', inverse: 'planet', actsAsSet: true},
-        races: {type: 'hasMany', model: 'race', inverse: 'planets'},
-        next: {type: 'hasOne', model: 'planet', inverse: 'previous'},
-        previous: {type: 'hasOne', model: 'planet', inverse: 'next'}
+        moons: { type: 'hasMany', model: 'moon', inverse: 'planet', actsAsSet: true },
+        races: { type: 'hasMany', model: 'race', inverse: 'planets' },
+        next: { type: 'hasOne', model: 'planet', inverse: 'previous' },
+        previous: { type: 'hasOne', model: 'planet', inverse: 'next' }
       }
     },
     moon: {
       attributes: {
-        name: {type: 'string'}
+        name: { type: 'string' }
       },
       relationships: {
-        planet: {type: 'hasOne', model: 'planet', inverse: 'moons'}
+        planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
       }
     },
     race: {
       attributes: {
-        name: {type: 'string'},
+        name: { type: 'string' }
       },
       relationships: {
-        planets: {type: 'hasMany', model: 'planet', inverse: 'races'}
+        planets: { type: 'hasMany', model: 'planet', inverse: 'races' }
       }
     }
   }
 };
 
 module('OC - OperationProcessors - SchemaConsistencyProcessor', {
-  setup: function(){
+  setup: function() {
     Orbit.Promise = Promise;
 
     schema = new Schema(schemaDefinition);
-    cache = new Cache(schema, {processors: [SchemaConsistencyProcessor]});
+    cache = new Cache(schema, { processors: [SchemaConsistencyProcessor] });
     processor = cache._processors[0];
   },
 
-  teardown: function(){
+  teardown: function() {
     schema = null;
     cache = null;
     processor = null;
   }
 });
 
-test('add to hasOne => hasMany', function(){
+test('add to hasOne => hasMany', function() {
   var saturn = { type: 'planet', id: 'saturn',
                  attributes: { name: 'Saturn' },
-                 relationships: { moons: { data: {'moon:titan': true } } } };
+                 relationships: { moons: { data: { 'moon:titan': true } } } };
 
   var jupiter = { type: 'planet', id: 'jupiter',
                   attributes: { name: 'Jupiter' },
-                  relationships: { moons: { data: {'moon:europa': true } } } };
+                  relationships: { moons: { data: { 'moon:europa': true } } } };
 
   var titan = { type: 'moon', id: 'titan',
                 attributes: { name: 'Titan' },
@@ -113,14 +113,14 @@ test('add to hasOne => hasMany', function(){
   );
 });
 
-test('replace hasOne => hasMany', function(){
+test('replace hasOne => hasMany', function() {
   var saturn = { type: 'planet', id: 'saturn',
                  attributes: { name: 'Saturn' },
-                 relationships: { moons: { data: {'moon:titan': true } } } };
+                 relationships: { moons: { data: { 'moon:titan': true } } } };
 
   var jupiter = { type: 'planet', id: 'jupiter',
                   attributes: { name: 'Jupiter' },
-                  relationships: { moons: { data: {'moon:europa': true } } } };
+                  relationships: { moons: { data: { 'moon:europa': true } } } };
 
   var titan = { type: 'moon', id: 'titan',
                 attributes: { name: 'Titan' },
@@ -159,10 +159,10 @@ test('replace hasOne => hasMany', function(){
   );
 });
 
-test('replace hasMany => hasOne with empty array', function(){
+test('replace hasMany => hasOne with empty array', function() {
   var saturn = { type: 'planet', id: 'saturn',
                  attributes: { name: 'Saturn' },
-                 relationships: { moons: { data: {'moon:titan': true } } } };
+                 relationships: { moons: { data: { 'moon:titan': true } } } };
 
   var titan = { type: 'moon', id: 'titan',
                 attributes: { name: 'Titan' },
@@ -191,13 +191,12 @@ test('replace hasMany => hasOne with empty array', function(){
     processor.finally( clearMoonsOp ),
     []
   );
-
 });
 
-test('replace hasMany => hasOne with populated array', function(){
+test('replace hasMany => hasOne with populated array', function() {
   var saturn = { type: 'planet', id: 'saturn',
                  attributes: { name: 'Saturn' },
-                 relationships: { moons: { data: {'moon:titan': true } } } };
+                 relationships: { moons: { data: { 'moon:titan': true } } } };
 
   var titan = { type: 'moon', id: 'titan',
                 attributes: { name: 'Titan' },
@@ -235,14 +234,14 @@ test('replace hasMany => hasOne with populated array', function(){
   );
 });
 
-test('replace hasMany => hasOne with populated array, when already populated', function(){
+test('replace hasMany => hasOne with populated array, when already populated', function() {
   var saturn = { type: 'planet', id: 'saturn',
                  attributes: { name: 'Saturn' },
-                 relationships: { moons: { data: {'moon:titan': true } } } };
+                 relationships: { moons: { data: { 'moon:titan': true } } } };
 
   var jupiter = { type: 'planet', id: 'jupiter',
                   attributes: { name: 'Jupiter' },
-                  relationships: { moons: { data: {'moon:europa': true } } } };
+                  relationships: { moons: { data: { 'moon:europa': true } } } };
 
   var titan = { type: 'moon', id: 'titan',
                 attributes: { name: 'Titan' },
@@ -281,9 +280,9 @@ test('replace hasMany => hasOne with populated array, when already populated', f
   );
 });
 
-test('replace hasMany => hasMany', function(){
-  var human = { type: 'race', id: 'human', relationships: { planets: { data: { 'planet:earth': true } }}};
-  var earth = { type: 'planet', id: 'earth', relationships: { races: { data: { 'race:human': true } }}};
+test('replace hasMany => hasMany', function() {
+  var human = { type: 'race', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
+  var earth = { type: 'planet', id: 'earth', relationships: { races: { data: { 'race:human': true } } } };
 
   cache.reset({
     race: { human: human },
@@ -305,14 +304,14 @@ test('replace hasMany => hasMany', function(){
   );
 });
 
-test('remove hasOne => hasMany', function(){
+test('remove hasOne => hasMany', function() {
   var saturn = { type: 'planet', id: 'saturn',
                  attributes: { name: 'Saturn' },
-                 relationships: { moons: { data: {'moon:titan': true } } } };
+                 relationships: { moons: { data: { 'moon:titan': true } } } };
 
   var jupiter = { type: 'planet', id: 'jupiter',
                   attributes: { name: 'Jupiter' },
-                  relationships: { moons: { data: {'moon:europa': true } } } };
+                  relationships: { moons: { data: { 'moon:europa': true } } } };
 
   var titan = { type: 'moon', id: 'titan',
                 attributes: { name: 'Titan' },
@@ -347,7 +346,7 @@ test('remove hasOne => hasMany', function(){
   );
 });
 
-test('add to hasOne => hasOne', function(){
+test('add to hasOne => hasOne', function() {
   var saturn = { type: 'planet', id: 'saturn',
                  attributes: { name: 'Saturn' },
                  relationships: { next: { data: 'planet:jupiter' } } };
@@ -383,7 +382,7 @@ test('add to hasOne => hasOne', function(){
   );
 });
 
-test('add to hasOne => hasOne with existing value', function(){
+test('add to hasOne => hasOne with existing value', function() {
   var saturn = { type: 'planet', id: 'saturn',
                  attributes: { name: 'Saturn' },
                  relationships: { next: { data: 'planet:jupiter' } } };
@@ -421,7 +420,7 @@ test('add to hasOne => hasOne with existing value', function(){
   );
 });
 
-test('replace hasOne => hasOne with existing value', function(){
+test('replace hasOne => hasOne with existing value', function() {
   var saturn = { type: 'planet', id: 'saturn',
                  attributes: { name: 'Saturn' },
                  relationships: { next: { data: 'planet:jupiter' } } };
@@ -460,13 +459,13 @@ test('replace hasOne => hasOne with existing value', function(){
   );
 });
 
-test('add to hasMany => hasMany', function(){
+test('add to hasMany => hasMany', function() {
   var earth = { type: 'planet', id: 'earth' };
   var human = { type: 'race', id: 'human' };
 
   cache.reset({
     planet: { earth: earth },
-    race: { human: human}
+    race: { human: human }
   });
 
   var addPlanetOp = addToHasManyOperation(human, 'planets', earth);
@@ -489,9 +488,9 @@ test('add to hasMany => hasMany', function(){
   );
 });
 
-test('remove from hasMany => hasMany', function(){
-  var earth = { type: 'planet', id: 'earth', relationships: { races: { data: {'race:human': true } } } };
-  var human = { type: 'race', id: 'human', relationships: { planets: { data: {'planet:earth': true} } } };
+test('remove from hasMany => hasMany', function() {
+  var earth = { type: 'planet', id: 'earth', relationships: { races: { data: { 'race:human': true } } } };
+  var human = { type: 'race', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
 
   cache.reset({
     planet: { earth: earth },

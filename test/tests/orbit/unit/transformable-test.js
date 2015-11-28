@@ -8,7 +8,7 @@ let Source, source;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Orbit - Transformable", {
+module('Orbit - Transformable', {
   setup: function() {
     Orbit.Promise = Promise;
     Source = Class.extend(Transformable);
@@ -21,26 +21,26 @@ module("Orbit - Transformable", {
   }
 });
 
-test("it exists", function() {
+test('it exists', function() {
   ok(source);
 });
 
-test("it should mixin Evented", function() {
+test('it should mixin Evented', function() {
   ['on', 'off', 'emit', 'poll'].forEach(function(prop) {
     ok(source[prop], 'should have Evented properties');
   });
 });
 
-test("it defines `transform`", function() {
+test('it defines `transform`', function() {
   ok(source.transform, 'transform exists');
 });
 
-test("it should require the definition of _transform", function() {
-  throws(source._transform, "presence of _transform should be verified");
+test('it should require the definition of _transform', function() {
+  throws(source._transform, 'presence of _transform should be verified');
 });
 
 
-test("it should resolve when _transform returns a promise", function() {
+test('it should resolve when _transform returns a promise', function() {
   expect(2);
 
   source._transform = function(o) {
@@ -51,14 +51,14 @@ test("it should resolve when _transform returns a promise", function() {
   };
 
   stop();
-  source.transform({op: 'add', path: 'planet/1', value: 'data'})
+  source.transform({ op: 'add', path: 'planet/1', value: 'data' })
     .then(() => {
       start();
       ok(true, 'transform promise resolved');
     });
 });
 
-test("it should resolve when _transform simply returns (without a promise)", function() {
+test('it should resolve when _transform simply returns (without a promise)', function() {
   expect(2);
 
   source._transform = function() {
@@ -67,19 +67,19 @@ test("it should resolve when _transform simply returns (without a promise)", fun
   };
 
   stop();
-  source.transform({op: 'add', path: 'planet/1', value: 'data'})
+  source.transform({ op: 'add', path: 'planet/1', value: 'data' })
     .then(() => {
       start();
       ok(true, 'transform promise returned');
     });
 });
 
-test("it should trigger `transform` event BEFORE a transform resolves", function() {
+test('it should trigger `transform` event BEFORE a transform resolves', function() {
   expect(5);
 
   let order = 0,
-      addOps = [{op: 'add', path: 'planet/1', value: 'data'}],
-      inverseOps = [{op: 'remove', path: 'planet/1'}];
+      addOps = [{ op: 'add', path: 'planet/1', value: 'data' }],
+      inverseOps = [{ op: 'remove', path: 'planet/1' }];
 
   source._transform = function(transform) {
     equal(++order, 1, '_transform performed first');
@@ -99,12 +99,12 @@ test("it should trigger `transform` event BEFORE a transform resolves", function
     });
 });
 
-test("it should perform transforms in the order they are pushed", function() {
+test('it should perform transforms in the order they are pushed', function() {
   expect(4);
 
   let order = 0,
-      addOp = {op: 'add', path: 'planet/1', value: 'data'},
-      inverseOp = {op: 'remove', path: 'planet/1'};
+      addOp = { op: 'add', path: 'planet/1', value: 'data' },
+      inverseOp = { op: 'remove', path: 'planet/1' };
 
   source._transform = function(transform) {
     source.settleTransforms().then(function() {
@@ -123,12 +123,12 @@ test("it should perform transforms in the order they are pushed", function() {
     });
 });
 
-test("it should wait for the current settle loop before starting another", function() {
+test('it should wait for the current settle loop before starting another', function() {
   expect(8);
 
   let order = 0,
-      addOps = [{op: 'add', path: 'planet/1', value: 'data'}],
-      inverseOps = [{op: 'remove', path: 'planet/1'}];
+      addOps = [{ op: 'add', path: 'planet/1', value: 'data' }],
+      inverseOps = [{ op: 'remove', path: 'planet/1' }];
 
   // though this is definitely an awkward use case, it ensures execution order
   // is what we want it to be
@@ -168,7 +168,7 @@ test("it should wait for the current settle loop before starting another", funct
     });
 });
 
-test("#clearTransformLog can clear the log of any applied transforms", function() {
+test('#clearTransformLog can clear the log of any applied transforms', function() {
   expect(2);
 
   source._transform = function() {
@@ -176,7 +176,7 @@ test("#clearTransformLog can clear the log of any applied transforms", function(
   };
 
   stop();
-  source.transform({op: 'add', path: 'planet/1', value: 'data'})
+  source.transform({ op: 'add', path: 'planet/1', value: 'data' })
     .then(() => {
       start();
       equal(Object.keys(source._transformLog).length, 1, 'log has an entry');

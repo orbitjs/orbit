@@ -31,7 +31,7 @@ let source1,
     source1to3Connector,
     source3to1Connector;
 
-module("Integration - Three Memory Source Sync (Blocking)", {
+module('Integration - Three Memory Source Sync (Blocking)', {
   setup: function() {
     Orbit.Promise = Promise;
 
@@ -40,17 +40,17 @@ module("Integration - Three Memory Source Sync (Blocking)", {
       models: {
         planet: {
           attributes: {
-            name: {type: 'string'},
-            classification: {type: 'string'}
+            name: { type: 'string' },
+            classification: { type: 'string' }
           }
         }
       }
     });
 
     // Create sources
-    source1 = new MemorySource({schema: schema});
-    source2 = new MemorySource({schema: schema});
-    source3 = new MemorySource({schema: schema});
+    source1 = new MemorySource({ schema: schema });
+    source2 = new MemorySource({ schema: schema });
+    source3 = new MemorySource({ schema: schema });
 
     source1.id = 'source1';
     source2.id = 'source2';
@@ -69,11 +69,11 @@ module("Integration - Three Memory Source Sync (Blocking)", {
   }
 });
 
-test("consecutive transforms can be applied to one source and should be automatically applied to the other source", function({async}) {
+test('consecutive transforms can be applied to one source and should be automatically applied to the other source', function({ async }) {
   let done = async();
   expect(4);
 
-  source1.transform(addRecordOperation({type: 'planet', id: 'jupiter', attributes: {name: 'Jupiter'}}))
+  source1.transform(addRecordOperation({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } }))
     .then(() => {
       let record = source1.cache.get(['planet', 'jupiter']);
       return source1.transform(replaceAttributeOperation(record, 'name', 'Earth'));
@@ -91,13 +91,13 @@ test("consecutive transforms can be applied to one source and should be automati
     });
 });
 
-test("an array of transforms can be applied to one source and should be automatically applied to the other source", function({async}) {
+test('an array of transforms can be applied to one source and should be automatically applied to the other source', function({ async }) {
   let done = async();
   expect(6);
 
   source1.transform(new Transform([
-    addRecordOperation({type: 'planet', id: '123', attributes: {name: 'Jupiter'}}),
-    addRecordOperation({type: 'planet', id: '456', attributes: {name: 'Pluto'}}),
+    addRecordOperation({ type: 'planet', id: '123', attributes: { name: 'Jupiter' } }),
+    addRecordOperation({ type: 'planet', id: '456', attributes: { name: 'Pluto' } })
   ]))
   .then(() => {
     let primaryJupiter = source1.cache.get(['planet', '123']);
@@ -119,13 +119,13 @@ test("an array of transforms can be applied to one source and should be automati
   });
 });
 
-test("replacing value with null should not cause infinite update loop", function({async}) {
+test('replacing value with null should not cause infinite update loop', function({ async }) {
   let done = async();
   expect(4);
 
-  source1.transform(addRecordOperation({type: 'planet', id: '123', attributes: {name: 'Jupiter'}}))
+  source1.transform(addRecordOperation({ type: 'planet', id: '123', attributes: { name: 'Jupiter' } }))
     .then(() => {
-      return source1.transform(replaceAttributeOperation({type: 'planet', id: '123'}, 'name', null));
+      return source1.transform(replaceAttributeOperation({ type: 'planet', id: '123' }, 'name', null));
     })
     .then(function() {
       let source1Planet = source1.cache.get(['planet', '123']);

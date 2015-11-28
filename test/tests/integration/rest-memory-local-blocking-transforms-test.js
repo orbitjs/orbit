@@ -18,7 +18,7 @@ var server,
     memToRestConnector,
     restToMemConnector;
 
-module("Integration - Rest / Memory / Local Transforms (Blocking)", {
+module('Integration - Rest / Memory / Local Transforms (Blocking)', {
   setup: function() {
     Orbit.Promise = Promise;
     Orbit.ajax = jQuery.ajax;
@@ -31,24 +31,24 @@ module("Integration - Rest / Memory / Local Transforms (Blocking)", {
     var schema = new Schema({
       modelDefaults: {
         keys: {
-          '__id': {primaryKey: true, defaultValue: uuid},
+          '__id': { primaryKey: true, defaultValue: uuid },
           'id': {}
         }
       },
       models: {
         planet: {
           attributes: {
-            name: {type: 'string'},
-            classification: {type: 'string'}
+            name: { type: 'string' },
+            classification: { type: 'string' }
           }
         }
       }
     });
 
     // Create sources
-    memorySource = new MemorySource({schema: schema});
-    restSource = new JSONAPISource({schema: schema});
-    localSource = new LocalStorageSource({schema: schema, autoload: false});
+    memorySource = new MemorySource({ schema: schema });
+    restSource = new JSONAPISource({ schema: schema });
+    localSource = new LocalStorageSource({ schema: schema, autoload: false });
 
     memorySource.id = 'memorySource';
     restSource.id = 'restSource';

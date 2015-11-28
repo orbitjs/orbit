@@ -13,7 +13,7 @@ var failedOperation = function() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Orbit - ActionQueue", {
+module('Orbit - ActionQueue', {
   setup: function() {
     Orbit.Promise = Promise;
   },
@@ -23,24 +23,24 @@ module("Orbit - ActionQueue", {
   }
 });
 
-test("it exists", function() {
+test('it exists', function() {
   var queue = new ActionQueue(noop);
   ok(queue);
 });
 
-test("it is set to `autoProcess` by default", function() {
+test('it is set to `autoProcess` by default', function() {
   var queue = new ActionQueue(noop);
   equal(queue.autoProcess, true, 'autoProcess === true');
 });
 
-test("will auto-process pushed actions sequentially by default", function() {
+test('will auto-process pushed actions sequentially by default', function() {
   expect(5);
   stop();
 
   var queue = new ActionQueue();
 
-  var op1 = {op: 'add', path: ['planets', '123'], value: 'Mercury'},
-      op2 = {op: 'add', path: ['planets', '234'], value: 'Venus'},
+  var op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' },
+      op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' },
       transformCount = 0;
 
   queue.on('didProcessAction', function(action) {
@@ -82,14 +82,14 @@ test("will auto-process pushed actions sequentially by default", function() {
   });
 });
 
-test("with `autoProcess` disabled, will process pushed functions sequentially when `process` is called", function() {
+test('with `autoProcess` disabled, will process pushed functions sequentially when `process` is called', function() {
   expect(5);
   stop();
 
   var queue = new ActionQueue();
 
-  var op1 = {op: 'add', path: ['planets', '123'], value: 'Mercury'},
-      op2 = {op: 'add', path: ['planets', '234'], value: 'Venus'},
+  var op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' },
+      op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' },
       transformCount = 0;
 
   queue.on('didProcessAction', function(action) {
@@ -133,20 +133,19 @@ test("with `autoProcess` disabled, will process pushed functions sequentially wh
   queue.process();
 });
 
-test("will auto-process pushed async functions sequentially by default", function() {
+test('will auto-process pushed async functions sequentially by default', function() {
   expect(8);
   stop();
 
   var queue = new ActionQueue();
 
-  var op1 = {op: 'add', path: ['planets', '123'], value: 'Mercury'},
-      op2 = {op: 'add', path: ['planets', '234'], value: 'Venus'},
+  var op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' },
+      op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' },
       order = 0;
 
   queue.on('didProcessAction', function(action) {
     if (action.data === op1) {
       equal(++order, 3, 'op1 completed');
-
     } else if (action.data === op2) {
       equal(++order, 6, 'op2 completed');
     }
@@ -169,7 +168,6 @@ test("will auto-process pushed async functions sequentially by default", functio
           resolve();
         });
       });
-
     } else if (op === op2) {
       equal(++order, 4, '_transform with op1');
       promise = new Promise(function(resolve) {
@@ -204,14 +202,14 @@ test("will auto-process pushed async functions sequentially by default", functio
   trigger.emit('start1');
 });
 
-test("will stop processing when an action errors", function() {
+test('will stop processing when an action errors', function() {
   expect(8);
   stop();
 
-  var queue = new ActionQueue({autoProcess: false});
+  var queue = new ActionQueue({ autoProcess: false });
 
-  var op1 = {op: 'add', path: ['planets', '123'], value: 'Mercury'},
-      op2 = {op: 'add', path: ['planets', '234'], value: 'Venus'},
+  var op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' },
+      op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' },
       transformCount = 0;
 
   queue.on('didProcessAction', function(action) {
