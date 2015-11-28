@@ -131,7 +131,7 @@ test("replacing relationship should not cause infinite update loop", function({a
     let sourceInitialGroup = source.cache.get(['group', 'initial']);
     let sourceNewGroup = source.cache.get(['group', 'new']);
 
-    store.addToRelationship(storeGnarf, 'group', storeInitialGroup)
+    store.addToHasMany(storeGnarf, 'group', storeInitialGroup)
       .then(function() {
         equal(storeGnarf.relationships.group.data, 'group:initial', 'initial group check');
         equal(sourceGnarf.relationships.group.data, 'group:initial', 'initial group check');
@@ -143,7 +143,7 @@ test("replacing relationship should not cause infinite update loop", function({a
         equal(retrieveHasMany(sourceNewGroup, 'members').length, 0, 'new group check');
       })
       .then(function() {
-        return store.replaceRelationship(storeGnarf, 'group', storeNewGroup);
+        return store.replaceHasOne(storeGnarf, 'group', storeNewGroup);
       })
       .then(function() {
         equal(storeGnarf.relationships.group.data, 'group:new', 'new group check');

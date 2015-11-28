@@ -10,7 +10,7 @@ import {
   replaceRecordOperation,
   removeRecordOperation,
   replaceAttributeOperation,
-  addToRelationshipOperation,
+  addToHasManyOperation,
   removeFromRelationshipOperation,
   replaceRelationshipOperation
 } from 'orbit-common/lib/operations';
@@ -84,7 +84,7 @@ test("does not auto-begin if the `active` option = false", function(assert) {
   assert.equal(transaction.active, false);
 });
 
-// TODO - Restore tests once Transaction inherits from Store 
+// TODO - Restore tests once Transaction inherits from Store
 //
 // test("once begun, tracks operations performed and inverse operations", function(assert) {
 //   assert.expect(4);

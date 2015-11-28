@@ -11,9 +11,10 @@ import {
   replaceRecordOperation,
   removeRecordOperation,
   replaceAttributeOperation,
-  addToRelationshipOperation,
-  removeFromRelationshipOperation,
-  replaceRelationshipOperation
+  addToHasManyOperation,
+  removeFromHasManyOperation,
+  replaceHasOneOperation,
+  replaceHasManyOperation
 } from 'orbit-common/lib/operations';
 import { equalOps } from 'tests/test-helper';
 
@@ -178,7 +179,7 @@ test('add to hasOne => hasMany', function(){
     }
   }, 'rev links match');
 
-  var addPlanetOp = addToRelationshipOperation(
+  var addPlanetOp = addToHasManyOperation(
     {type: 'moon', id: europa.id},
     'planet',
     {type: 'planet', id: saturn.id});
@@ -260,7 +261,7 @@ test('replace hasOne => hasMany', function(){
     }
   }, 'rev links match');
 
-  var replacePlanetOp = replaceRelationshipOperation(europa, 'planet', saturn);
+  var replacePlanetOp = replaceHasOneOperation(europa, 'planet', saturn);
 
   equalOps(
     processor.before( replacePlanetOp ),
@@ -326,7 +327,7 @@ test('replace hasMany => hasOne with empty array', function(){
     }
   }, 'rev links match');
 
-  var clearMoonsOp = replaceRelationshipOperation(saturn, 'moons', []);
+  var clearMoonsOp = replaceHasManyOperation(saturn, 'moons', []);
 
   equalOps(
     processor.before( clearMoonsOp ),
@@ -387,7 +388,7 @@ test('replace hasMany => hasOne with populated array', function(){
     }
   }, 'rev links match');
 
-  var replaceMoonsOp = replaceRelationshipOperation(saturn, 'moons', [ {type: 'moon', id: 'titan'} ]);
+  var replaceMoonsOp = replaceHasManyOperation(saturn, 'moons', [ {type: 'moon', id: 'titan'} ]);
 
   equalOps(
     processor.before( replaceMoonsOp ),
@@ -459,20 +460,20 @@ test('replace hasMany => hasOne with populated array, when already populated', f
     }
   }, 'rev links match');
 
-  var replaceMoonOp = replaceRelationshipOperation(saturn, 'moons', [ {type: 'moon', id: 'europa'} ]);
+  var replaceMoonsOp = replaceHasManyOperation(saturn, 'moons', [ {type: 'moon', id: 'europa'} ]);
 
   equalOps(
-    processor.before( replaceMoonOp ),
+    processor.before( replaceMoonsOp ),
     []
   );
 
   equalOps(
-    processor.after( replaceMoonOp ),
+    processor.after( replaceMoonsOp ),
     []
   );
 
   equalOps(
-    processor.finally( replaceMoonOp ),
+    processor.finally( replaceMoonsOp ),
     []
   );
 
@@ -517,7 +518,7 @@ test('replace hasMany => hasMany', function(){
     }
   }, 'rev links match');
 
-  var clearRacesOp = replaceRelationshipOperation(earth, 'races', []);
+  var clearRacesOp = replaceHasManyOperation(earth, 'races', []);
 
   equalOps(
     processor.after( clearRacesOp ),
@@ -583,7 +584,7 @@ test('remove hasOne => hasMany', function(){
     }
   }, 'rev links match');
 
-  var removePlanetOp = replaceRelationshipOperation(europa, 'planet', null);
+  var removePlanetOp = replaceHasOneOperation(europa, 'planet', null);
 
   equalOps(
     processor.before( removePlanetOp ),
@@ -647,7 +648,7 @@ test('add to hasOne => hasOne', function(){
   }, 'rev links match');
 
 
-  var changePlanetOp = replaceRelationshipOperation(earth, 'next', saturn);
+  var changePlanetOp = replaceHasOneOperation(earth, 'next', saturn);
 
   equalOps(
     processor.before( changePlanetOp ),
@@ -704,7 +705,7 @@ test('add to hasOne => hasOne with existing value', function(){
     }
   }, 'rev links match');
 
-  var changePlanetOp = replaceRelationshipOperation(earth, 'next', jupiter);
+  var changePlanetOp = replaceHasOneOperation(earth, 'next', jupiter);
 
   equalOps(
     processor.before( changePlanetOp ),
@@ -761,7 +762,7 @@ test('replace hasOne => hasOne with existing value', function(){
     }
   }, 'rev links match');
 
-  var changePlanetOp = replaceRelationshipOperation(earth, 'next', jupiter);
+  var changePlanetOp = replaceHasOneOperation(earth, 'next', jupiter);
 
   equalOps(
     processor.before( changePlanetOp ),
@@ -802,7 +803,7 @@ test('add to hasMany => hasMany', function(){
 
   deepEqual(processor._rev, {}, 'empty rev links');
 
-  var addPlanetOp = addToRelationshipOperation(human, 'planets', earth);
+  var addPlanetOp = addToHasManyOperation(human, 'planets', earth);
 
   equalOps(
     processor.before( addPlanetOp ),
@@ -850,7 +851,7 @@ test('remove from hasMany => hasMany', function(){
     }
   }, 'rev links match');
 
-  var removePlanetOp = removeFromRelationshipOperation(human, 'planets', earth);
+  var removePlanetOp = removeFromHasManyOperation(human, 'planets', earth);
 
   equalOps(
     processor.before( removePlanetOp ),
@@ -912,7 +913,7 @@ test('remove record with hasMany relationships', function(){
   equalOps(
     processor.after( removeRaceOp ),
     [
-      removeFromRelationshipOperation(earth, 'races', human)
+      removeFromHasManyOperation(earth, 'races', human)
     ]
   );
 

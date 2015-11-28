@@ -11,9 +11,10 @@ import {
   replaceRecordOperation,
   removeRecordOperation,
   replaceAttributeOperation,
-  addToRelationshipOperation,
-  removeFromRelationshipOperation,
-  replaceRelationshipOperation
+  addToHasManyOperation,
+  removeFromHasManyOperation,
+  replaceHasOneOperation,
+  replaceHasManyOperation
 } from 'orbit-common/lib/operations';
 import { equalOps } from 'tests/test-helper';
 
@@ -92,7 +93,7 @@ test('add to hasOne => hasMany', function(){
     moon: { titan: titan, europa: europa }
   });
 
-  var addPlanetOp = addToRelationshipOperation(europa, 'planet', saturn);
+  var addPlanetOp = addToHasManyOperation(europa, 'planet', saturn);
 
   equalOps(
     processor.before( addPlanetOp ),
@@ -107,7 +108,7 @@ test('add to hasOne => hasMany', function(){
   equalOps(
     processor.finally( addPlanetOp ),
     [
-      addToRelationshipOperation(saturn, 'moons', europa)
+      addToHasManyOperation(saturn, 'moons', europa)
     ]
   );
 });
@@ -134,7 +135,7 @@ test('replace hasOne => hasMany', function(){
     moon: { titan: titan, europa: europa }
   });
 
-  var replacePlanetOp = replaceRelationshipOperation(europa, 'planet', saturn);
+  var replacePlanetOp = replaceHasOneOperation(europa, 'planet', saturn);
 
   equalOps(
     processor.before( replacePlanetOp ),
@@ -144,7 +145,7 @@ test('replace hasOne => hasMany', function(){
   equalOps(
     processor.after( replacePlanetOp ),
     [
-      removeFromRelationshipOperation(jupiter, 'moons', europa)
+      removeFromHasManyOperation(jupiter, 'moons', europa)
     ]
   );
 
@@ -153,7 +154,7 @@ test('replace hasOne => hasMany', function(){
       replacePlanetOp
     ),
     [
-      addToRelationshipOperation(saturn, 'moons', europa)
+      addToHasManyOperation(saturn, 'moons', europa)
     ]
   );
 });
@@ -172,7 +173,7 @@ test('replace hasMany => hasOne with empty array', function(){
     moon: { titan: titan }
   });
 
-  var clearMoonsOp = replaceRelationshipOperation(saturn, 'moons', []);
+  var clearMoonsOp = replaceHasManyOperation(saturn, 'moons', []);
 
   equalOps(
     processor.before( clearMoonsOp ),
@@ -182,7 +183,7 @@ test('replace hasMany => hasOne with empty array', function(){
   equalOps(
     processor.after( clearMoonsOp ),
     [
-      replaceRelationshipOperation(titan, 'planet', null)
+      replaceHasOneOperation(titan, 'planet', null)
     ]
   );
 
@@ -211,7 +212,7 @@ test('replace hasMany => hasOne with populated array', function(){
     moon: { titan: titan }
   });
 
-  var replaceMoonsOp = replaceRelationshipOperation(jupiter, 'moons', [titan]);
+  var replaceMoonsOp = replaceHasManyOperation(jupiter, 'moons', [titan]);
 
   equalOps(
     processor.before( replaceMoonsOp ),
@@ -229,7 +230,7 @@ test('replace hasMany => hasOne with populated array', function(){
   equalOps(
     processor.finally( replaceMoonsOp ),
     [
-      replaceRelationshipOperation(titan, 'planet', jupiter)
+      replaceHasOneOperation(titan, 'planet', jupiter)
     ]
   );
 });
@@ -256,26 +257,26 @@ test('replace hasMany => hasOne with populated array, when already populated', f
     moon: { titan: titan, europa: europa }
   });
 
-  var replaceMoonOp = replaceRelationshipOperation(saturn, 'moons', [europa]);
+  var replaceMoonsOp = replaceHasManyOperation(saturn, 'moons', [europa]);
 
   equalOps(
-    processor.before( replaceMoonOp ),
+    processor.before( replaceMoonsOp ),
     []
   );
 
   equalOps(
-    processor.after( replaceMoonOp ),
+    processor.after( replaceMoonsOp ),
     [
-      replaceRelationshipOperation(titan, 'planet', null)
+      replaceHasOneOperation(titan, 'planet', null)
       // op('replace', ['moon', europa.id, 'relationships', 'planet'], null),
       // op('remove', ['planet', jupiter.id, 'relationships', 'moons', europa.id])
     ]
   );
 
   equalOps(
-    processor.finally( replaceMoonOp ),
+    processor.finally( replaceMoonsOp ),
     [
-      replaceRelationshipOperation(europa, 'planet', saturn)
+      replaceHasOneOperation(europa, 'planet', saturn)
     ]
   );
 });
@@ -289,12 +290,12 @@ test('replace hasMany => hasMany', function(){
     planet: { earth: earth }
   });
 
-  var clearRacesOp = replaceRelationshipOperation(earth, 'races', []);
+  var clearRacesOp = replaceHasManyOperation(earth, 'races', []);
 
   equalOps(
     processor.after( clearRacesOp ),
     [
-      removeFromRelationshipOperation(human, 'planets', earth)
+      removeFromHasManyOperation(human, 'planets', earth)
     ]
   );
 
@@ -326,7 +327,7 @@ test('remove hasOne => hasMany', function(){
     moon: { titan: titan, europa: europa }
   });
 
-  var removePlanetOp = replaceRelationshipOperation(europa, 'planet', null);
+  var removePlanetOp = replaceHasOneOperation(europa, 'planet', null);
 
   equalOps(
     processor.before( removePlanetOp ),
@@ -336,7 +337,7 @@ test('remove hasOne => hasMany', function(){
   equalOps(
     processor.after( removePlanetOp ),
     [
-      removeFromRelationshipOperation(jupiter, 'moons', europa)
+      removeFromHasManyOperation(jupiter, 'moons', europa)
     ]
   );
 
@@ -362,7 +363,7 @@ test('add to hasOne => hasOne', function(){
     planet: { saturn: saturn, jupiter: jupiter, earth: earth }
   });
 
-  var changePlanetOp = replaceRelationshipOperation(earth, 'next', saturn);
+  var changePlanetOp = replaceHasOneOperation(earth, 'next', saturn);
 
   equalOps(
     processor.before( changePlanetOp ),
@@ -377,7 +378,7 @@ test('add to hasOne => hasOne', function(){
   equalOps(
     processor.finally( changePlanetOp ),
     [
-      replaceRelationshipOperation(saturn, 'previous', earth)
+      replaceHasOneOperation(saturn, 'previous', earth)
     ]
   );
 });
@@ -398,7 +399,7 @@ test('add to hasOne => hasOne with existing value', function(){
     planet: { saturn: saturn, jupiter: jupiter, earth: earth }
   });
 
-  var changePlanetOp = replaceRelationshipOperation(earth, 'next', jupiter);
+  var changePlanetOp = replaceHasOneOperation(earth, 'next', jupiter);
 
   equalOps(
     processor.before( changePlanetOp ),
@@ -415,7 +416,7 @@ test('add to hasOne => hasOne with existing value', function(){
   equalOps(
     processor.finally( changePlanetOp ),
     [
-      replaceRelationshipOperation(jupiter, 'previous', earth)
+      replaceHasOneOperation(jupiter, 'previous', earth)
     ]
   );
 });
@@ -436,7 +437,7 @@ test('replace hasOne => hasOne with existing value', function(){
     planet: { saturn: saturn, jupiter: jupiter, earth: earth }
   });
 
-  var changePlanetOp = replaceRelationshipOperation(earth, 'next', jupiter);
+  var changePlanetOp = replaceHasOneOperation(earth, 'next', jupiter);
 
   equalOps(
     processor.before( changePlanetOp ),
@@ -454,7 +455,7 @@ test('replace hasOne => hasOne with existing value', function(){
   equalOps(
     processor.finally( changePlanetOp ),
     [
-      replaceRelationshipOperation(jupiter, 'previous', earth)
+      replaceHasOneOperation(jupiter, 'previous', earth)
     ]
   );
 });
@@ -468,7 +469,7 @@ test('add to hasMany => hasMany', function(){
     race: { human: human}
   });
 
-  var addPlanetOp = addToRelationshipOperation(human, 'planets', earth);
+  var addPlanetOp = addToHasManyOperation(human, 'planets', earth);
 
   equalOps(
     processor.before( addPlanetOp ),
@@ -483,7 +484,7 @@ test('add to hasMany => hasMany', function(){
   equalOps(
     processor.finally( addPlanetOp ),
     [
-      addToRelationshipOperation(earth, 'races', human)
+      addToHasManyOperation(earth, 'races', human)
     ]
   );
 });
@@ -497,7 +498,7 @@ test('remove from hasMany => hasMany', function(){
     race: { human: human }
   });
 
-  var removePlanetOp = removeFromRelationshipOperation(human, 'planets', earth);
+  var removePlanetOp = removeFromHasManyOperation(human, 'planets', earth);
 
   equalOps(
     processor.before( removePlanetOp ),
@@ -507,7 +508,7 @@ test('remove from hasMany => hasMany', function(){
   equalOps(
     processor.after( removePlanetOp ),
     [
-      removeFromRelationshipOperation(earth, 'races', human)
+      removeFromHasManyOperation(earth, 'races', human)
     ]
   );
 

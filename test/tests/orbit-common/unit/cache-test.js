@@ -428,7 +428,7 @@ test("#transform removing model with a bi-directional hasOne", function() {
   equal(two.relationships.one.data, 'one:1', 'two links to one');
 
   cache.transform([{ op: 'remove', path: 'two/2' }]);
-  strictEqual(one.relationships.two.data, undefined, 'ones link to two got removed');
+  strictEqual(one.relationships.two.data, null, 'ones link to two got removed');
 
   // TODO
   // deepEqual(
@@ -543,12 +543,12 @@ test("#transform does not remove non-dependent records", function() {
   var dependentSchema = new Schema({
     models: {
       planet: {
-        links: {
+        relationships: {
           moons: {type: 'hasMany', model: 'moon'}
         }
       },
       moon: {
-        links: {
+        relationships: {
           planet: {type: 'hasOne', model: 'planet'}
         }
       }
@@ -556,16 +556,16 @@ test("#transform does not remove non-dependent records", function() {
   });
   cache = new Cache(dependentSchema);
 
-  var jupiter = {id: 'p1', name: 'Jupiter', relationships: {moons: {}}};
+  var jupiter = {id: 'p1', name: 'Jupiter', relationships: {moons: {data: {}}}};
   var io = {id: 'm1', name: 'Io', relationships: {planet: 'p1'}};
-  var europa = {id: 'm2', name: 'Europa', relationships: {planet: 'p1'}};
+  var europa = {id: 'm2', name: 'Europa', relationships: {planet: {data: 'p1'}}};
 
   cache.transform([
     {op: 'add', path: 'planet/p1', value: jupiter},
     {op: 'add', path: 'moon/m1', value: io},
     {op: 'add', path: 'moon/m2', value: europa},
-    {op: 'add', path: 'planet/p1/relationships/moons/m1', value: true },
-    {op: 'add', path: 'planet/p1/relationships/moons/m2', value: true }
+    {op: 'add', path: 'planet/p1/relationships/moons/data/m1', value: true },
+    {op: 'add', path: 'planet/p1/relationships/moons/data/m2', value: true }
   ]);
 
   // Since there are no dependent relationships, no other records will be

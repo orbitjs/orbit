@@ -12,9 +12,10 @@ import {
   replaceRecordOperation,
   removeRecordOperation,
   replaceAttributeOperation,
-  addToRelationshipOperation,
-  removeFromRelationshipOperation,
-  replaceRelationshipOperation
+  addToHasManyOperation,
+  removeFromHasManyOperation,
+  replaceHasOneOperation,
+  replaceHasManyOperation
 } from 'orbit-common/lib/operations';
 import { equalOps } from 'tests/test-helper';
 
@@ -326,7 +327,7 @@ test("#transform - can add a hasMany relationship with POST", function() {
   });
 
   stop();
-  source.transform(addToRelationshipOperation(planet, 'moons', moon))
+  source.transform(addToHasManyOperation(planet, 'moons', moon))
     .then(function() {
       start();
       ok(true, 'records linked');
@@ -348,7 +349,7 @@ test("#transform - can remove a relationship with DELETE", function() {
   });
 
   stop();
-  source.transform(removeFromRelationshipOperation(planet, 'moons', moon))
+  source.transform(removeFromHasManyOperation(planet, 'moons', moon))
     .then(function() {
       start();
       ok(true, 'records unlinked');
@@ -370,7 +371,7 @@ test("#transform - can update a hasOne relationship with PATCH", function() {
   });
 
   stop();
-  source.transform(replaceRelationshipOperation(moon, 'planet', planet))
+  source.transform(replaceHasOneOperation(moon, 'planet', planet))
     .then(function() {
       start();
       ok(true, 'relationship replaced');
@@ -391,7 +392,7 @@ test("#transform - can clear a hasOne relationship with PATCH", function() {
   });
 
   stop();
-  source.transform(replaceRelationshipOperation(moon, 'planet', null))
+  source.transform(replaceHasOneOperation(moon, 'planet', null))
     .then(function() {
       start();
       ok(true, 'relationship replaced');
@@ -418,7 +419,7 @@ test("#transform - can replace a hasMany relationship (flagged as `actsAsSet`) w
   });
 
   stop();
-  source.transform(replaceRelationshipOperation(planet, 'moons', [moon]))
+  source.transform(replaceHasManyOperation(planet, 'moons', [moon]))
     .then(function() {
       start();
       ok(true, 'relationship replaced');
