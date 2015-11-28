@@ -6,6 +6,7 @@ var transpileES6 = require('broccoli-babel-transpiler');
 var jshintTree = require('broccoli-jshint');
 var replace    = require('broccoli-string-replace');
 var gitVersion = require('git-repo-version');
+var jscs = require('broccoli-jscs');
 
 // extract version from git
 // note: remove leading `v` (since by default our tags use a `v` prefix)
@@ -89,6 +90,10 @@ packages.forEach(function(package) {
   });
 
   main[package.name] = mergeTrees([ lib[package.name] ]);
+  main[package.name] = jscs(main[package.name], {
+    esnext: true,
+    enabled: true
+  });
   main[package.name] = new compileES6Modules(main[package.name]);
   main[package.name] = new transpileES6(main[package.name]);
   main[package.name] = concat(main[package.name], {
@@ -123,9 +128,10 @@ var allGlobalized = mergeTrees(Object.keys(globalized).map(function(package) {
 
 var jshintLib = jshintTree(allLib);
 var jshintTest = jshintTree(tests);
+var jscsLib = jscs(allLib, {esnext: true, enabled: true});
+var jscsTest = jscs(tests, {esnext: true, enabled: true});
 
-
-var mainWithTests = mergeTrees([allLib, tests, jshintLib, jshintTest]);
+var mainWithTests = mergeTrees([allLib, tests, jshintLib, jshintTest, jscsLib, jscsTest]);
 
 mainWithTests = new compileES6Modules(mainWithTests);
 mainWithTests = new transpileES6(mainWithTests);

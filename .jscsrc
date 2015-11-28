@@ -1,0 +1,7 @@
+{
+  "preset": "airbnb",
+  "requireDotNotation": {
+    "allExcept": [ "snake_case" ]
+  },
+  "excludeFiles": [ "test/test-support" ]
+}
