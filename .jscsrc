@@ -1,16 +1,13 @@
 {
   "esnext": true,
-  "excludeFiles": ["ember-runtime/ext/rsvp.js"],
+  "excludeFiles": ["ember-runtime/ext/rsvp.js", "lib/jscs-rules/*"],
   "additionalRules": [ "lib/jscs-rules/*.js" ],
-  "disallowConstOutsideModuleScope": true,
   "disallowSpacesInsideArrayBrackets": "all",
-  "disallowMultipleVarDeclWithAssignment": true,
   "disallowPaddingNewlinesInBlocks": true,
   "requireSpaceBeforeObjectValues": true,
   "requireCommaBeforeLineBreak": true,
   "requireBlocksOnNewline": 1,
   "disallowKeywordsOnNewLine": ["else"],
-  "disallowSpacesBeforeSemicolons": true,
   "disallowNewlineBeforeBlockStatements": true,
   "requireSpacesInConditionalExpression": {
     "afterTest": true,
@@ -19,7 +16,6 @@
     "beforeAlternate": true
   },
   "disallowSpacesInCallExpression": true,
-  "disallowSpacesInsideRoundBracesInCallExpression": true,
   "disallowEmptyBlocks": true,
   "requireSpacesInsideObjectBrackets": "all",
   "requireCurlyBraces": [
@@ -82,10 +78,5 @@
     "!=",
     "!=="
   ],
-  "requireSpaceBetweenArguments": true,
-  "requireSpacesAfterClosingParenthesisInFunctionDeclaration": {
-    "beforeOpeningRoundBrace": false,
-    "beforeOpeningCurlyBrace": true
-  },
-  "requireCommentsToIncludeAccess": true
+  "requireSpaceBetweenArguments": true
 }
