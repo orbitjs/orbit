@@ -46,11 +46,6 @@ module("OC - Lib - Operations", function() {
       identifiesOperationType(toOperation('add', 'planet/planet1/relationships/moons/data/moon:moon1', true), 'addToHasMany');
     });
 
-    // todo - should this be removed?
-    test("identifies operation type addHasOne", function() {
-      identifiesOperationType(toOperation('add', 'moon/moon1/relationships/planet/data', 'planet:planet1'), 'addHasOne');
-    });
-
     test("identifies operation type replaceHasMany", function() {
       identifiesOperationType(toOperation('replace', 'planet/planet1/relationships/moons/data', {'moon:moon1': true, 'moon:moon2': true}), 'replaceHasMany');
     });
@@ -65,11 +60,6 @@ module("OC - Lib - Operations", function() {
 
     test("identifies operation type removeFromHasMany", function() {
       identifiesOperationType(toOperation('remove', 'planet/planet1/relationships/moons/data/moon:moon1'), 'removeFromHasMany');
-    });
-
-    // todo - should this be removed?
-    test("identifies operation type removeHasOne", function() {
-      identifiesOperationType(toOperation('remove', 'moon/moon1/relationships/planet/data'), 'removeHasOne');
     });
 
     test("identifies operation type replaceAttribute", function() {

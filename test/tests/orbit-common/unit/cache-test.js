@@ -428,7 +428,7 @@ test("#transform removing model with a bi-directional hasOne", function() {
   equal(two.relationships.one.data, 'one:1', 'two links to one');
 
   cache.transform([{ op: 'remove', path: 'two/2' }]);
-  strictEqual(one.relationships.two.data, undefined, 'ones link to two got removed');
+  strictEqual(one.relationships.two.data, null, 'ones link to two got removed');
 
   // TODO
   // deepEqual(
