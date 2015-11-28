@@ -81,6 +81,7 @@
     "!=",
     "!=="
   ],
+  "requireSpaceBetweenArguments": true,
   "requireSpacesAfterClosingParenthesisInFunctionDeclaration": {
     "beforeOpeningRoundBrace": false,
     "beforeOpeningCurlyBrace": true
