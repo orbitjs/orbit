@@ -543,12 +543,12 @@ test("#transform does not remove non-dependent records", function() {
   var dependentSchema = new Schema({
     models: {
       planet: {
-        links: {
+        relationships: {
           moons: {type: 'hasMany', model: 'moon'}
         }
       },
       moon: {
-        links: {
+        relationships: {
           planet: {type: 'hasOne', model: 'planet'}
         }
       }
@@ -556,16 +556,16 @@ test("#transform does not remove non-dependent records", function() {
   });
   cache = new Cache(dependentSchema);
 
-  var jupiter = {id: 'p1', name: 'Jupiter', relationships: {moons: {}}};
+  var jupiter = {id: 'p1', name: 'Jupiter', relationships: {moons: {data: {}}}};
   var io = {id: 'm1', name: 'Io', relationships: {planet: 'p1'}};
-  var europa = {id: 'm2', name: 'Europa', relationships: {planet: 'p1'}};
+  var europa = {id: 'm2', name: 'Europa', relationships: {planet: {data: 'p1'}}};
 
   cache.transform([
     {op: 'add', path: 'planet/p1', value: jupiter},
     {op: 'add', path: 'moon/m1', value: io},
     {op: 'add', path: 'moon/m2', value: europa},
-    {op: 'add', path: 'planet/p1/relationships/moons/m1', value: true },
-    {op: 'add', path: 'planet/p1/relationships/moons/m2', value: true }
+    {op: 'add', path: 'planet/p1/relationships/moons/data/m1', value: true },
+    {op: 'add', path: 'planet/p1/relationships/moons/data/m2', value: true }
   ]);
 
   // Since there are no dependent relationships, no other records will be

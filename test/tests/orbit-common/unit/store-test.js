@@ -8,9 +8,10 @@ import {
   replaceRecordOperation,
   removeRecordOperation,
   replaceAttributeOperation,
-  addToRelationshipOperation,
-  removeFromRelationshipOperation,
-  replaceRelationshipOperation
+  addToHasManyOperation,
+  replaceHasManyOperation,
+  replaceHasOneOperation,
+  removeFromHasManyOperation,
 } from 'orbit-common/lib/operations';
 import { asyncTest, transformMatching } from 'tests/test-helper';
 
@@ -210,63 +211,42 @@ test('#replaceAttribute', function({async}){
     });
 });
 
-test('#addToRelationship - hasMany', function({async}) {
+test('#addToHasMany', function({async}) {
   let done = async();
   let earth = schema.normalize({id: 'earth', type: 'planet'});
   let io = schema.normalize({id: 'io', type: 'moon'});
-  let addToRelationshipTransform = new Transform([ addToRelationshipOperation(earth, 'moons', io) ]);
+  let addToHasManyTransform = new Transform([ addToHasManyOperation(earth, 'moons', io) ]);
 
   store.cache.reset({
     planet: { earth },
     moon: { io }
   });
 
-  store.addToRelationship(earth, 'moons', io)
+  store.addToHasMany(earth, 'moons', io)
     .then(function(){
 
-      ok(didTransform.calledWith(transformMatching(addToRelationshipTransform)), 'operation has been emitted as a transform');
+      ok(didTransform.calledWith(transformMatching(addToHasManyTransform)), 'operation has been emitted as a transform');
       deepEqual(earth.relationships.moons.data, {'moon:io': true}, 'added to hasMany');
 
       done();
     });
 });
 
-test('#addToRelationship - hasOne', function({async}) {
-  let done = async();
-  let earth = schema.normalize({id: 'earth', type: 'planet'});
-  let io = schema.normalize({id: 'io', type: 'moon'});
-  let addToRelationshipTransform = new Transform([ addToRelationshipOperation(io, 'planet', earth) ]);
-
-  store.cache.reset({
-    planet: { earth },
-    moon: { io }
-  });
-
-  store.addToRelationship(io, 'planet', earth)
-    .then(function(){
-
-      ok(didTransform.calledWith(transformMatching(addToRelationshipTransform)), 'operation has been emitted as a transform');
-      deepEqual(io.relationships.planet.data, 'planet:earth', 'added to hasOne');
-
-      done();
-    });
-});
-
-test('#removeFromRelationship - hasMany', function({async}) {
+test('#removeFromHasMany', function({async}) {
   let done = async();
   let earth = schema.normalize({id: 'earth', type: 'planet', relationships: { moons: { data: { 'moon:io': true } } }});
   let io = schema.normalize({id: 'io', type: 'moon', relationships: { planet: {data: 'planet:earth'} }});
-  let removeFromRelationshipTransform = new Transform([ removeFromRelationshipOperation(earth, 'moons', io) ]);
+  let removeFromHasManyTransform = new Transform([ removeFromHasManyOperation(earth, 'moons', io) ]);
 
   store.cache.reset({
     planet: { earth },
     moon: { io }
   });
 
-  store.removeFromRelationship(earth, 'moons', io)
+  store.removeFromHasMany(earth, 'moons', io)
     .then(function(){
 
-      ok(didTransform.calledWith(transformMatching(removeFromRelationshipTransform)), 'operation has been emitted as a transform');
+      ok(didTransform.calledWith(transformMatching(removeFromHasManyTransform)), 'operation has been emitted as a transform');
       deepEqual(earth.relationships.moons.data, {}, 'removed from hasMany');
       deepEqual(io.relationships.planet.data, null, 'removed from inverse');
 
@@ -274,22 +254,22 @@ test('#removeFromRelationship - hasMany', function({async}) {
     });
 });
 
-test('#replaceRelationship - hasMany', function({async}) {
+test('#replaceHasMany', function({async}) {
   let done = async();
   let earth = schema.normalize({id: 'earth', type: 'planet', relationships: { moons: { data: { 'moon:io': true } } }});
   let io = schema.normalize({id: 'io', type: 'moon', relationships: { planet: {data: 'planet:earth'} }});
   let titan = schema.normalize({id: 'titan', type: 'moon'});
-  let replaceRelationshipTransform = new Transform([ replaceRelationshipOperation(earth, 'moons', [titan]) ]);
+  let replaceHasManyTransform = new Transform([ replaceHasManyOperation(earth, 'moons', [titan]) ]);
 
   store.cache.reset({
     planet: { earth },
     moon: { io, titan }
   });
 
-  store.replaceRelationship(earth, 'moons', [titan])
+  store.replaceHasMany(earth, 'moons', [titan])
     .then(function(){
 
-      ok(didTransform.calledWith(transformMatching(replaceRelationshipTransform)), 'operation has been emitted as a transform');
+      ok(didTransform.calledWith(transformMatching(replaceHasManyTransform)), 'operation has been emitted as a transform');
       deepEqual(earth.relationships.moons.data, {'moon:titan': true}, 'replaced hasMany');
       deepEqual(io.relationships.planet.data, null, 'updated inverse on removed records');
       deepEqual(titan.relationships.planet.data, 'planet:earth', 'updated inverse on added records');
@@ -298,22 +278,22 @@ test('#replaceRelationship - hasMany', function({async}) {
     });
 });
 
-test('#replaceRelationship - hasOne', function({async}) {
+test('#replaceHasOne', function({async}) {
   let done = async();
   let earth = schema.normalize({id: 'earth', type: 'planet', relationships: { moons: { data: {'moon:io': true} } }});
   let jupiter = schema.normalize({id: 'jupiter', type: 'planet'});
   let io = schema.normalize({id: 'io', type: 'moon', relationships: { planet: {data: 'planet:earth'} }});
-  let replaceRelationshipTransform = new Transform([ replaceRelationshipOperation(io, 'planet', jupiter) ]);
+  let replaceHasOneTransform = new Transform([ replaceHasOneOperation(io, 'planet', jupiter) ]);
 
   store.cache.reset({
     planet: { earth, jupiter },
     moon: { io }
   });
 
-  store.replaceRelationship(io, 'planet', jupiter)
+  store.replaceHasOne(io, 'planet', jupiter)
     .then(function(){
 
-      ok(didTransform.calledWith(transformMatching(replaceRelationshipTransform)), 'operation has been emitted as a transform');
+      ok(didTransform.calledWith(transformMatching(replaceHasOneTransform)), 'operation has been emitted as a transform');
       deepEqual(io.relationships.planet.data, 'planet:jupiter', 'updated hasOne');
       deepEqual(earth.relationships.moons.data, {}, 'updated inverse on removed records');
       deepEqual(jupiter.relationships.moons.data, {'moon:io': true}, 'updated inverse on added records');
