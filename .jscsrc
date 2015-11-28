@@ -8,6 +8,7 @@
   "requireCommaBeforeLineBreak": true,
   "requireBlocksOnNewline": 1,
   "disallowKeywordsOnNewLine": ["else"],
+  "disallowMultipleVarDeclWithAssignment": true,
   "disallowNewlineBeforeBlockStatements": true,
   "requireSpacesInConditionalExpression": {
     "afterTest": true,

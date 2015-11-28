@@ -39,9 +39,9 @@ test('will auto-process pushed actions sequentially by default', function() {
 
   var queue = new ActionQueue();
 
-  var op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' },
-      op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' },
-      transformCount = 0;
+  let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
+  let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+  let transformCount = 0;
 
   queue.on('didProcessAction', function(action) {
     if (transformCount === 1) {
@@ -88,9 +88,9 @@ test('with `autoProcess` disabled, will process pushed functions sequentially wh
 
   var queue = new ActionQueue();
 
-  var op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' },
-      op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' },
-      transformCount = 0;
+  let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
+  let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+  let transformCount = 0;
 
   queue.on('didProcessAction', function(action) {
     if (transformCount === 1) {
@@ -139,9 +139,9 @@ test('will auto-process pushed async functions sequentially by default', functio
 
   var queue = new ActionQueue();
 
-  var op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' },
-      op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' },
-      order = 0;
+  let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
+  let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+  let order = 0;
 
   queue.on('didProcessAction', function(action) {
     if (action.data === op1) {
@@ -208,9 +208,9 @@ test('will stop processing when an action errors', function() {
 
   var queue = new ActionQueue({ autoProcess: false });
 
-  var op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' },
-      op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' },
-      transformCount = 0;
+  let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
+  let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+  let transformCount = 0;
 
   queue.on('didProcessAction', function(action) {
     if (transformCount === 1) {

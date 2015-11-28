@@ -36,12 +36,12 @@ test('it exists', function() {
 test('#emit - notifies listeners when emitting a simple message', function() {
   expect(2);
 
-  var listener1 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-      },
-      listener2 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-      };
+  let listener1 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+  };
+  let listener2 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+  };
 
   evented.on('greeting', listener1);
   evented.on('greeting', listener2);
@@ -52,12 +52,12 @@ test('#emit - notifies listeners when emitting a simple message', function() {
 test('#emit - notifies listeners registered with `one` only once each', function() {
   expect(2);
 
-  var listener1 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-      },
-      listener2 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-      };
+  let listener1 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+  };
+  let listener2 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+  };
 
   evented.one('greeting', listener1);
   evented.one('greeting', listener2);
@@ -70,12 +70,12 @@ test('#emit - notifies listeners registered with `one` only once each', function
 test('#off can unregister individual listeners from an event', function() {
   expect(1);
 
-  var listener1 = function(message) {
-        ok(false, 'this listener should not be triggered');
-      },
-      listener2 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-      };
+  let listener1 = function(message) {
+    ok(false, 'this listener should not be triggered');
+  };
+  let listener2 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+  };
 
   evented.on('greeting', listener1);
   evented.on('greeting', listener2);
@@ -87,8 +87,8 @@ test('#off can unregister individual listeners from an event', function() {
 test('#off - can unregister all listeners from an event', function() {
   expect(6);
 
-  var listener1 = function() {},
-      listener2 = function() {};
+  let listener1 = function() {};
+  let listener2 = function() {};
 
   evented.on('greeting salutation', listener1);
   evented.on('salutation', listener2);
@@ -110,8 +110,8 @@ test('#off - can unregister all listeners from an event', function() {
 test('#off - can unregister all listeners from multiple events', function() {
   expect(4);
 
-  var listener1 = function() {},
-      listener2 = function() {};
+  let listener1 = function() {};
+  let listener2 = function() {};
 
   evented.on('greeting salutation', listener1);
   evented.on('salutation', listener2);
@@ -128,12 +128,12 @@ test('#off - can unregister all listeners from multiple events', function() {
 test('#emit - allows listeners to be registered for multiple events', function() {
   expect(3);
 
-  var listener1 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-      },
-      listener2 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-      };
+  let listener1 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+  };
+  let listener2 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+  };
 
   evented.on('greeting salutation', listener1);
   evented.on('salutation', listener2);
@@ -145,16 +145,16 @@ test('#emit - allows listeners to be registered for multiple events', function()
 test('#emit - notifies listeners using custom bindings, if specified', function() {
   expect(4);
 
-  var binding1 = {},
-      binding2 = {},
-      listener1 = function(message) {
-        equal(this, binding1, 'custom binding should match');
-        equal(message, 'hello', 'notification message should match');
-      },
-      listener2 = function(message) {
-        equal(this, binding2, 'custom binding should match');
-        equal(message, 'hello', 'notification message should match');
-      };
+  let binding1 = {};
+  let binding2 = {};
+  let listener1 = function(message) {
+    equal(this, binding1, 'custom binding should match');
+    equal(message, 'hello', 'notification message should match');
+  };
+  let listener2 = function(message) {
+    equal(this, binding2, 'custom binding should match');
+    equal(message, 'hello', 'notification message should match');
+  };
 
   evented.on('greeting', listener1, binding1);
   evented.on('greeting', listener2, binding2);
@@ -165,14 +165,14 @@ test('#emit - notifies listeners using custom bindings, if specified', function(
 test('#emit - notifies listeners when emitting events with any number of arguments', function() {
   expect(4);
 
-  var listener1 = function() {
-        equal(arguments[0], 'hello', 'notification message should match');
-        equal(arguments[1], 'world', 'notification message should match');
-      },
-      listener2 = function() {
-        equal(arguments[0], 'hello', 'notification message should match');
-        equal(arguments[1], 'world', 'notification message should match');
-      };
+  let listener1 = function() {
+    equal(arguments[0], 'hello', 'notification message should match');
+    equal(arguments[1], 'world', 'notification message should match');
+  };
+  let listener2 = function() {
+    equal(arguments[0], 'hello', 'notification message should match');
+    equal(arguments[1], 'world', 'notification message should match');
+  };
 
   evented.on('greeting', listener1);
   evented.on('greeting', listener2);
@@ -183,12 +183,12 @@ test('#emit - notifies listeners when emitting events with any number of argumen
 test('#emit - can emit multiple events with the same arguments sequentially', function() {
   expect(3);
 
-  var listener1 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-      },
-      listener2 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-      };
+  let listener1 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+  };
+  let listener2 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+  };
 
   evented.on('greeting salutation', listener1);
   evented.on('salutation', listener2);
@@ -199,18 +199,18 @@ test('#emit - can emit multiple events with the same arguments sequentially', fu
 test('#poll - can poll listeners with an event and return all the responses in an array', function() {
   expect(4);
 
-  var listener1 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-        // note: no return value
-      },
-      listener2 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-        return 'bonjour';
-      },
-      listener3 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-        return 'sup';
-      };
+  let listener1 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+    // note: no return value
+  };
+  let listener2 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+    return 'bonjour';
+  };
+  let listener3 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+    return 'sup';
+  };
 
   evented.on('greeting', listener1);
   evented.on('greeting', listener2);
@@ -222,18 +222,18 @@ test('#poll - can poll listeners with an event and return all the responses in a
 test('#poll - can poll listeners with multiple events and return all the responses in a single array', function() {
   expect(2);
 
-  var greeting1 = function() {
-        return 'Hello';
-      },
-      greeting2 = function() {
-        return 'Bon jour';
-      },
-      parting1 = function() {
-        return 'Goodbye';
-      },
-      parting2 = function() {
-        return 'Au revoir';
-      };
+  let greeting1 = function() {
+    return 'Hello';
+  };
+  let greeting2 = function() {
+    return 'Bon jour';
+  };
+  let parting1 = function() {
+    return 'Goodbye';
+  };
+  let parting2 = function() {
+    return 'Au revoir';
+  };
 
   evented.on('greeting', greeting1);
   evented.on('greeting', greeting2);
@@ -247,14 +247,14 @@ test('#poll - can poll listeners with multiple events and return all the respons
 test('#listeners - can return all the listeners (and bindings) for an event', function() {
   expect(1);
 
-  var binding1 = {},
-      binding2 = {},
-      greeting1 = function() {
-        return 'Hello';
-      },
-      greeting2 = function() {
-        return 'Bon jour';
-      };
+  let binding1 = {};
+  let binding2 = {};
+  let greeting1 = function() {
+    return 'Hello';
+  };
+  let greeting2 = function() {
+    return 'Bon jour';
+  };
 
   evented.on('greeting', greeting1, binding1);
   evented.on('greeting', greeting2, binding2);
@@ -265,20 +265,20 @@ test('#listeners - can return all the listeners (and bindings) for an event', fu
 test('#listeners - can return all the listeners (and bindings) for multiple events', function() {
   expect(1);
 
-  var binding1 = {},
-      binding2 = {},
-      greeting1 = function() {
-        return 'Hello';
-      },
-      greeting2 = function() {
-        return 'Bon jour';
-      },
-      parting1 = function() {
-        return 'Goodbye';
-      },
-      parting2 = function() {
-        return 'Au revoir';
-      };
+  let binding1 = {};
+  let binding2 = {};
+  let greeting1 = function() {
+    return 'Hello';
+  };
+  let greeting2 = function() {
+    return 'Bon jour';
+  };
+  let parting1 = function() {
+    return 'Goodbye';
+  };
+  let parting2 = function() {
+    return 'Au revoir';
+  };
 
   evented.on('greeting', greeting1, binding1);
   evented.on('greeting', greeting2, binding2);
@@ -291,25 +291,25 @@ test('#listeners - can return all the listeners (and bindings) for multiple even
 test('#resolve - can fulfill promises returned by listeners to an event, in order, until one resolves', function() {
   expect(8);
 
-  var order = 0,
-      listener1 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-        equal(++order, 1, 'listener1 triggered first');
-        // doesn't return anything
-      },
-      listener2 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-        equal(++order, 2, 'listener2 triggered second');
-        return failedOperation();
-      },
-      listener3 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-        equal(++order, 3, 'listener3 triggered third');
-        return successfulOperation();
-      },
-      listener4 = function(message) {
-        ok(false, 'listener should not be reached');
-      };
+  let order = 0;
+  let listener1 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+    equal(++order, 1, 'listener1 triggered first');
+    // doesn't return anything
+  };
+  let listener2 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+    equal(++order, 2, 'listener2 triggered second');
+    return failedOperation();
+  };
+  let listener3 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+    equal(++order, 3, 'listener3 triggered third');
+    return successfulOperation();
+  };
+  let listener4 = function(message) {
+    ok(false, 'listener should not be reached');
+  };
 
   evented.on('greeting', listener1, this);
   evented.on('greeting', listener2, this);
@@ -332,27 +332,27 @@ test('#resolve - can fulfill promises returned by listeners to an event, in orde
 test('#settle - can fulfill all promises returned by listeners to an event, in order, until all are settled', function() {
   expect(10);
 
-  var order = 0,
-      listener1 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-        equal(++order, 1, 'listener1 triggered first');
-        // doesn't return anything
-      },
-      listener2 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-        equal(++order, 2, 'listener2 triggered second');
-        return failedOperation();
-      },
-      listener3 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-        equal(++order, 3, 'listener3 triggered third');
-        return successfulOperation();
-      },
-      listener4 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-        equal(++order, 4, 'listener4 triggered fourth');
-        return failedOperation();
-      };
+  let order = 0;
+  let listener1 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+    equal(++order, 1, 'listener1 triggered first');
+    // doesn't return anything
+  };
+  let listener2 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+    equal(++order, 2, 'listener2 triggered second');
+    return failedOperation();
+  };
+  let listener3 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+    equal(++order, 3, 'listener3 triggered third');
+    return successfulOperation();
+  };
+  let listener4 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+    equal(++order, 4, 'listener4 triggered fourth');
+    return failedOperation();
+  };
 
   evented.on('greeting', listener1, this);
   evented.on('greeting', listener2, this);
@@ -395,17 +395,17 @@ test('#settle - resolves regardless of errors thrown in handlers', function() {
 test('#series - it can fulfill all promises returned by listeners to an event, in order, until all are settled', function() {
   expect(6);
 
-  var order = 0,
-      listener1 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-        equal(++order, 1, 'listener1 triggered first');
-        // doesn't return anything
-      },
-      listener2 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-        equal(++order, 2, 'listener2 triggered third');
-        return successfulOperation();
-      };
+  let order = 0;
+  let listener1 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+    equal(++order, 1, 'listener1 triggered first');
+    // doesn't return anything
+  };
+  let listener2 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+    equal(++order, 2, 'listener2 triggered third');
+    return successfulOperation();
+  };
 
   evented.on('greeting', listener1, this);
   evented.on('greeting', listener2, this);
@@ -426,25 +426,25 @@ test('#series - it can fulfill all promises returned by listeners to an event, i
 test('#series - it will fail when any listener fails and return the error', function() {
   expect(8);
 
-  var order = 0,
-      listener1 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-        equal(++order, 1, 'listener1 triggered first');
-        // doesn't return anything
-      },
-      listener2 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-        equal(++order, 2, 'listener2 triggered third');
-        return successfulOperation();
-      },
-      listener3 = function(message) {
-        equal(message, 'hello', 'notification message should match');
-        equal(++order, 3, 'listener3 triggered second');
-        return failedOperation();
-      },
-      listener4 = function(message) {
-        ok(false, 'listener4 should not be triggered');
-      };
+  let order = 0;
+  let listener1 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+    equal(++order, 1, 'listener1 triggered first');
+    // doesn't return anything
+  };
+  let listener2 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+    equal(++order, 2, 'listener2 triggered third');
+    return successfulOperation();
+  };
+  let listener3 = function(message) {
+    equal(message, 'hello', 'notification message should match');
+    equal(++order, 3, 'listener3 triggered second');
+    return failedOperation();
+  };
+  let listener4 = function(message) {
+    ok(false, 'listener4 should not be triggered');
+  };
 
   evented.on('greeting', listener1, this);
   evented.on('greeting', listener2, this);

@@ -131,8 +131,8 @@ test('#diffs ignores specified items with `ignore` option', function() {
 });
 
 test('#diffs generates `replace` patch when comparing two dates', function() {
-  var a = new Date(1428555600000),
-      b = new Date(1428555601000);
+  let a = new Date(1428555600000);
+  let b = new Date(1428555601000);
 
   deepEqual(diffs(a, b, { basePath: 'planets/1/birthDate' }),
             [{ op: 'replace', path: 'planets/1/birthDate', value: b }],
@@ -140,8 +140,8 @@ test('#diffs generates `replace` patch when comparing two dates', function() {
 });
 
 test('#diffs generates undefined patch when comparing two equal dates', function() {
-  var a = new Date(1428555600000),
-      b = new Date(1428555600000);
+  let a = new Date(1428555600000);
+  let b = new Date(1428555600000);
 
   deepEqual(diffs(a, b, { basePath: 'planets/1/birthDate' }),
             undefined,
@@ -149,8 +149,8 @@ test('#diffs generates undefined patch when comparing two equal dates', function
 });
 
 test('#diffs generates `replace` patch when string is replaced by a date', function() {
-  var a = 'string',
-      b = new Date(1428555600000);
+  let a = 'string';
+  let b = new Date(1428555600000);
 
   deepEqual(diffs(a, b, { basePath: 'planets/1/birthDate' }),
             [{ op: 'replace', path: 'planets/1/birthDate', value: b }],
@@ -158,8 +158,8 @@ test('#diffs generates `replace` patch when string is replaced by a date', funct
 });
 
 test('#diffs generates `replace` patch when date is replaced by a string', function() {
-  var a = new Date(1428555600000),
-      b = 'string';
+  let a = new Date(1428555600000);
+  let b = 'string';
 
   deepEqual(diffs(a, b, { basePath: 'planets/1/birthDate' }),
             [{ op: 'replace', path: 'planets/1/birthDate', value: b }],

@@ -77,9 +77,9 @@ test('it should resolve when _transform simply returns (without a promise)', fun
 test('it should trigger `transform` event BEFORE a transform resolves', function() {
   expect(5);
 
-  let order = 0,
-      addOps = [{ op: 'add', path: 'planet/1', value: 'data' }],
-      inverseOps = [{ op: 'remove', path: 'planet/1' }];
+  let order = 0;
+  let addOps = [{ op: 'add', path: 'planet/1', value: 'data' }];
+  let inverseOps = [{ op: 'remove', path: 'planet/1' }];
 
   source._transform = function(transform) {
     equal(++order, 1, '_transform performed first');
@@ -102,9 +102,9 @@ test('it should trigger `transform` event BEFORE a transform resolves', function
 test('it should perform transforms in the order they are pushed', function() {
   expect(4);
 
-  let order = 0,
-      addOp = { op: 'add', path: 'planet/1', value: 'data' },
-      inverseOp = { op: 'remove', path: 'planet/1' };
+  let order = 0;
+  let addOp = { op: 'add', path: 'planet/1', value: 'data' };
+  let inverseOp = { op: 'remove', path: 'planet/1' };
 
   source._transform = function(transform) {
     source.settleTransforms().then(function() {
@@ -126,9 +126,9 @@ test('it should perform transforms in the order they are pushed', function() {
 test('it should wait for the current settle loop before starting another', function() {
   expect(8);
 
-  let order = 0,
-      addOps = [{ op: 'add', path: 'planet/1', value: 'data' }],
-      inverseOps = [{ op: 'remove', path: 'planet/1' }];
+  let order = 0;
+  let addOps = [{ op: 'add', path: 'planet/1', value: 'data' }];
+  let inverseOps = [{ op: 'remove', path: 'planet/1' }];
 
   // though this is definitely an awkward use case, it ensures execution order
   // is what we want it to be

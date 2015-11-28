@@ -289,9 +289,9 @@ test('`isNone` checks whether an object is `null` or `undefined`', function() {
 });
 
 test('`merge` combines two objects', function() {
-  var a = { firstNames: 'Bob', underling: false },
-      b = { lastName: 'Dobbs', 'title': 'Mr.', underlings: null },
-      expected = { title: 'Mr.', firstNames: 'Bob',
+  let a = { firstNames: 'Bob', underling: false };
+  let b = { lastName: 'Dobbs', 'title': 'Mr.', underlings: null };
+  let expected = { title: 'Mr.', firstNames: 'Bob',
                    lastName: 'Dobbs', underling: false, underlings: null };
 
   deepEqual(merge(a, b), expected, 'Object values are not merged');
