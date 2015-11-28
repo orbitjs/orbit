@@ -1,25 +1,35 @@
 import Schema from 'orbit-common/schema';
 import SchemaConsistencyProcessor from 'orbit-common/operation-processors/schema-consistency-processor';
 import { uuid } from 'orbit/lib/uuid';
+import { toOperation } from 'orbit/lib/operations';
 import Operation from 'orbit/operation';
-import { op } from 'tests/test-helper';
 import Cache from 'orbit-common/cache';
 import Orbit from 'orbit/main';
 import { Promise } from 'rsvp';
+import {
+  addRecordOperation,
+  replaceRecordOperation,
+  removeRecordOperation,
+  replaceAttributeOperation,
+  addToHasManyOperation,
+  removeFromHasManyOperation,
+  replaceHasOneOperation,
+  replaceHasManyOperation
+} from 'orbit-common/lib/operations';
+import { equalOps } from 'tests/test-helper';
+
+var schema,
+    cache,
+    processor;
 
 var schemaDefinition = {
-  modelDefaults: {
-    keys: {
-      '__id': {primaryKey: true, defaultValue: uuid}
-    }
-  },
   models: {
     planet: {
       attributes: {
         name: {type: 'string'},
         classification: {type: 'string'}
       },
-      links: {
+      relationships: {
         moons: {type: 'hasMany', model: 'moon', inverse: 'planet', actsAsSet: true},
         races: {type: 'hasMany', model: 'race', inverse: 'planets'},
         next: {type: 'hasOne', model: 'planet', inverse: 'previous'},
@@ -30,7 +40,7 @@ var schemaDefinition = {
       attributes: {
         name: {type: 'string'}
       },
-      links: {
+      relationships: {
         planet: {type: 'hasOne', model: 'planet', inverse: 'moons'}
       }
     },
@@ -38,16 +48,12 @@ var schemaDefinition = {
       attributes: {
         name: {type: 'string'},
       },
-      links: {
+      relationships: {
         planets: {type: 'hasMany', model: 'planet', inverse: 'races'}
       }
     }
   }
 };
-
-var schema,
-    cache,
-    processor;
 
 module('OC - OperationProcessors - SchemaConsistencyProcessor', {
   setup: function(){
@@ -65,110 +71,123 @@ module('OC - OperationProcessors - SchemaConsistencyProcessor', {
   }
 });
 
-function operationsShouldMatch(actualOperations, expectedOperations){
-  // console.log("actual", actualOperations);
-  equal(actualOperations.length, expectedOperations.length, 'Same number of operations');
-
-  if (actualOperations.length === expectedOperations.length) {
-    for(var i = 0; i < actualOperations.length; i++){
-      var actual = actualOperations[i];
-      var expected = expectedOperations[i];
-      deepEqual(actual.serialize(), expected.serialize(), "Operation " + i + " matches");
-    }
-  }
-}
-
-
 test('add to hasOne => hasMany', function(){
-  var saturn = { id: 'saturn', name: "Saturn", __rel: { moons: { 'titan': true } } };
-  var jupiter = { id: 'jupiter', name: "Jupiter", __rel: { moons: { 'europa': true } } };
-  var titan = { id: 'titan', name: "Titan", __rel: { planet: 'saturn' } };
-  var europa = { id: 'europa', name: "Europa", __rel: { planet: 'jupiter' } };
+  var saturn = { type: 'planet', id: 'saturn',
+                 attributes: { name: 'Saturn' },
+                 relationships: { moons: { data: {'moon:titan': true } } } };
+
+  var jupiter = { type: 'planet', id: 'jupiter',
+                  attributes: { name: 'Jupiter' },
+                  relationships: { moons: { data: {'moon:europa': true } } } };
+
+  var titan = { type: 'moon', id: 'titan',
+                attributes: { name: 'Titan' },
+                relationships: { planet: { data: 'planet:saturn' } } };
+
+  var europa = { type: 'moon', id: 'europa',
+                 attributes: { name: 'Europa' },
+                 relationships: { planet: { data: 'planet:jupiter' } } };
 
   cache.reset({
     planet: { saturn: saturn, jupiter: jupiter },
     moon: { titan: titan, europa: europa }
   });
 
-  var addPlanetOp = op('add', ['moon', europa.id, '__rel', 'planet'], saturn.id);
+  var addPlanetOp = addToHasManyOperation(europa, 'planet', saturn);
 
-  operationsShouldMatch(
+  equalOps(
     processor.before( addPlanetOp ),
     []
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.after( addPlanetOp ),
     []
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.finally( addPlanetOp ),
     [
-      op('add', ['planet', saturn.id, '__rel', 'moons', europa.id], true)
+      addToHasManyOperation(saturn, 'moons', europa)
     ]
   );
 });
 
 test('replace hasOne => hasMany', function(){
-  var saturn = { id: 'saturn', name: "Saturn", __rel: { moons: { 'titan': true } } };
-  var jupiter = { id: 'jupiter', name: "Jupiter", __rel: { moons: { 'europa': true } } };
-  var titan = { id: 'titan', name: "Titan", __rel: { planet: 'saturn' } };
-  var europa = { id: 'europa', name: "Europa", __rel: { planet: 'jupiter' } };
+  var saturn = { type: 'planet', id: 'saturn',
+                 attributes: { name: 'Saturn' },
+                 relationships: { moons: { data: {'moon:titan': true } } } };
+
+  var jupiter = { type: 'planet', id: 'jupiter',
+                  attributes: { name: 'Jupiter' },
+                  relationships: { moons: { data: {'moon:europa': true } } } };
+
+  var titan = { type: 'moon', id: 'titan',
+                attributes: { name: 'Titan' },
+                relationships: { planet: { data: 'planet:saturn' } } };
+
+  var europa = { type: 'moon', id: 'europa',
+                 attributes: { name: 'Europa' },
+                 relationships: { planet: { data: 'planet:jupiter' } } };
 
   cache.reset({
     planet: { saturn: saturn, jupiter: jupiter },
     moon: { titan: titan, europa: europa }
   });
 
-  var replacePlanetOp = op('replace', ['moon', europa.id, '__rel', 'planet'], saturn.id);
+  var replacePlanetOp = replaceHasOneOperation(europa, 'planet', saturn);
 
-  operationsShouldMatch(
+  equalOps(
     processor.before( replacePlanetOp ),
     []
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.after( replacePlanetOp ),
     [
-      op('remove', ['planet', jupiter.id, '__rel', 'moons', europa.id])
+      removeFromHasManyOperation(jupiter, 'moons', europa)
     ]
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.finally(
       replacePlanetOp
     ),
     [
-      op('add', ['planet', saturn.id, '__rel', 'moons', europa.id], true)
+      addToHasManyOperation(saturn, 'moons', europa)
     ]
   );
 });
 
 test('replace hasMany => hasOne with empty array', function(){
-  var saturn = { id: 'saturn', name: "Saturn", __rel: { moons: { 'titan': true } } };
-  var titan = { id: 'titan', name: "Titan", __rel: { planet: 'saturn' } };
+  var saturn = { type: 'planet', id: 'saturn',
+                 attributes: { name: 'Saturn' },
+                 relationships: { moons: { data: {'moon:titan': true } } } };
+
+  var titan = { type: 'moon', id: 'titan',
+                attributes: { name: 'Titan' },
+                relationships: { planet: { data: 'planet:saturn' } } };
 
   cache.reset({
     planet: { saturn: saturn },
     moon: { titan: titan }
   });
 
-  var clearMoonsOp = op('replace', ['planet', saturn.id, '__rel', 'moons'], {});
+  var clearMoonsOp = replaceHasManyOperation(saturn, 'moons', []);
 
-  operationsShouldMatch(
+  equalOps(
     processor.before( clearMoonsOp ),
     []
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.after( clearMoonsOp ),
     [
-      op('replace', ['moon', titan.id, '__rel', 'planet'], null)
+      replaceHasOneOperation(titan, 'planet', null)
     ]
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.finally( clearMoonsOp ),
     []
   );
@@ -176,275 +195,325 @@ test('replace hasMany => hasOne with empty array', function(){
 });
 
 test('replace hasMany => hasOne with populated array', function(){
-  var saturn = { id: 'saturn', name: "Saturn", __rel: { moons: { 'titan': true } } };
-  var titan = { id: 'titan', name: "Titan", __rel: { planet: 'saturn' } };
-  var jupiter = { id: 'jupiter', name: "Jupiter", __rel: { moons: {} } };
+  var saturn = { type: 'planet', id: 'saturn',
+                 attributes: { name: 'Saturn' },
+                 relationships: { moons: { data: {'moon:titan': true } } } };
+
+  var titan = { type: 'moon', id: 'titan',
+                attributes: { name: 'Titan' },
+                relationships: { planet: { data: 'planet:saturn' } } };
+
+  var jupiter = { type: 'planet', id: 'jupiter',
+                  attributes: { name: 'Jupiter' },
+                  relationships: { moons: {} } };
 
   cache.reset({
     planet: { saturn: saturn, jupiter: jupiter },
     moon: { titan: titan }
   });
 
-  var replaceMoonsOp = op('replace', ['planet', jupiter.id, '__rel', 'moons'], {titan: true});
+  var replaceMoonsOp = replaceHasManyOperation(jupiter, 'moons', [titan]);
 
-  operationsShouldMatch(
+  equalOps(
     processor.before( replaceMoonsOp ),
     []
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.after( replaceMoonsOp ),
     [
-      // op('replace', ['moon', titan.id, '__rel', 'planet'], null),
-      // op('remove', ['planet', saturn.id, '__rel', 'moons', titan.id])
+      // op('replace', ['moon', titan.id, 'relationships', 'planet'], null),
+      // op('remove', ['planet', saturn.id, 'relationships', 'moons', titan.id])
     ]
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.finally( replaceMoonsOp ),
     [
-      op('replace', ['moon', titan.id, '__rel', 'planet'], jupiter.id),
+      replaceHasOneOperation(titan, 'planet', jupiter)
     ]
   );
 });
 
 test('replace hasMany => hasOne with populated array, when already populated', function(){
-  var saturn = { id: 'saturn', name: "Saturn", __rel: { moons: { 'titan': true } } };
-  var titan = { id: 'titan', name: "Titan", __rel: { planet: 'saturn' } };
-  var europa = { id: 'europa', name: "Europa", __rel: { planet: 'jupiter' } };
-  var jupiter = { id: 'jupiter', name: "Jupiter", __rel: { moons: { 'europa': true } } };
+  var saturn = { type: 'planet', id: 'saturn',
+                 attributes: { name: 'Saturn' },
+                 relationships: { moons: { data: {'moon:titan': true } } } };
+
+  var jupiter = { type: 'planet', id: 'jupiter',
+                  attributes: { name: 'Jupiter' },
+                  relationships: { moons: { data: {'moon:europa': true } } } };
+
+  var titan = { type: 'moon', id: 'titan',
+                attributes: { name: 'Titan' },
+                relationships: { planet: { data: 'planet:saturn' } } };
+
+  var europa = { type: 'moon', id: 'europa',
+                 attributes: { name: 'Europa' },
+                 relationships: { planet: { data: 'planet:jupiter' } } };
 
   cache.reset({
     planet: { saturn: saturn, jupiter: jupiter },
     moon: { titan: titan, europa: europa }
   });
 
-  var replaceMoonOp = op('replace', ['planet', saturn.id, '__rel', 'moons'], {europa: true});
+  var replaceMoonsOp = replaceHasManyOperation(saturn, 'moons', [europa]);
 
-  operationsShouldMatch(
-    processor.before( replaceMoonOp ),
+  equalOps(
+    processor.before( replaceMoonsOp ),
     []
   );
 
-  operationsShouldMatch(
-    processor.after( replaceMoonOp ),
+  equalOps(
+    processor.after( replaceMoonsOp ),
     [
-      op('replace', ['moon', titan.id, '__rel', 'planet'], null)
-      // op('replace', ['moon', europa.id, '__rel', 'planet'], null),
-      // op('remove', ['planet', jupiter.id, '__rel', 'moons', europa.id])
+      replaceHasOneOperation(titan, 'planet', null)
+      // op('replace', ['moon', europa.id, 'relationships', 'planet'], null),
+      // op('remove', ['planet', jupiter.id, 'relationships', 'moons', europa.id])
     ]
   );
 
-  operationsShouldMatch(
-    processor.finally( replaceMoonOp ),
+  equalOps(
+    processor.finally( replaceMoonsOp ),
     [
-      op('replace', ['moon', europa.id, '__rel', 'planet'], saturn.id)
+      replaceHasOneOperation(europa, 'planet', saturn)
     ]
   );
 });
 
 test('replace hasMany => hasMany', function(){
-  var human = { id: 'human', __rel: { planets: { earth: true } }};
-  var earth = { id: 'earth', __rel: { races: { human: true}  }};
+  var human = { type: 'race', id: 'human', relationships: { planets: { data: { 'planet:earth': true } }}};
+  var earth = { type: 'planet', id: 'earth', relationships: { races: { data: { 'race:human': true } }}};
 
   cache.reset({
     race: { human: human },
     planet: { earth: earth }
   });
 
-  var clearRacesOp = op('replace', ['planet', earth.id, '__rel', 'races'], {});
+  var clearRacesOp = replaceHasManyOperation(earth, 'races', []);
 
-  operationsShouldMatch(
+  equalOps(
     processor.after( clearRacesOp ),
     [
-      op('remove', ['race', human.id, '__rel', 'planets', earth.id])
+      removeFromHasManyOperation(human, 'planets', earth)
     ]
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.finally( clearRacesOp ),
     []
   );
 });
 
 test('remove hasOne => hasMany', function(){
-  var saturn = { id: 'saturn', name: "Saturn", __rel: { moons: { 'titan': true } } };
-  var jupiter = { id: 'jupiter', name: "Jupiter", __rel: { moons: { 'europa': true } } };
-  var titan = { id: 'titan', name: "Titan", __rel: { planet: 'saturn' } };
-  var europa = { id: 'europa', name: "Europa", __rel: { planet: 'jupiter' } };
+  var saturn = { type: 'planet', id: 'saturn',
+                 attributes: { name: 'Saturn' },
+                 relationships: { moons: { data: {'moon:titan': true } } } };
+
+  var jupiter = { type: 'planet', id: 'jupiter',
+                  attributes: { name: 'Jupiter' },
+                  relationships: { moons: { data: {'moon:europa': true } } } };
+
+  var titan = { type: 'moon', id: 'titan',
+                attributes: { name: 'Titan' },
+                relationships: { planet: { data: 'planet:saturn' } } };
+
+  var europa = { type: 'moon', id: 'europa',
+                 attributes: { name: 'Europa' },
+                 relationships: { planet: { data: 'planet:jupiter' } } };
 
   cache.reset({
     planet: { saturn: saturn, jupiter: jupiter },
     moon: { titan: titan, europa: europa }
   });
 
-  var removePlanetOp = op('remove', ['moon', europa.id, '__rel', 'planet']);
+  var removePlanetOp = replaceHasOneOperation(europa, 'planet', null);
 
-  operationsShouldMatch(
+  equalOps(
     processor.before( removePlanetOp ),
     []
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.after( removePlanetOp ),
     [
-      op('remove', ['planet', jupiter.id, '__rel', 'moons', europa.id])
+      removeFromHasManyOperation(jupiter, 'moons', europa)
     ]
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.finally( removePlanetOp ),
     []
   );
 });
 
 test('add to hasOne => hasOne', function(){
-  var saturn = { id: 'saturn', name: "Saturn", __rel: { moons: {}, next: 'jupiter' } };
-  var jupiter = { id: 'jupiter', name: "Jupiter", __rel: { moons: {}, previous: 'saturn' } };
-  var earth = { id: 'earth', name: "Earth", __rel: { moons: {} } };
+  var saturn = { type: 'planet', id: 'saturn',
+                 attributes: { name: 'Saturn' },
+                 relationships: { next: { data: 'planet:jupiter' } } };
+
+  var jupiter = { type: 'planet', id: 'jupiter',
+                  attributes: { name: 'Jupiter' },
+                  relationships: { previous: { data: 'planet:saturn' } } };
+
+  var earth = { type: 'planet', id: 'earth',
+                attributes: { name: 'Earth' } };
 
   cache.reset({
     planet: { saturn: saturn, jupiter: jupiter, earth: earth }
   });
 
-  var changePlanetOp = op('add', ['planet', earth.id, '__rel', 'next'], saturn.id);
+  var changePlanetOp = replaceHasOneOperation(earth, 'next', saturn);
 
-  operationsShouldMatch(
+  equalOps(
     processor.before( changePlanetOp ),
     []
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.after( changePlanetOp ),
     []
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.finally( changePlanetOp ),
     [
-      op('replace', ['planet', saturn.id, '__rel', 'previous'], earth.id)
+      replaceHasOneOperation(saturn, 'previous', earth)
     ]
   );
 });
 
 test('add to hasOne => hasOne with existing value', function(){
-  var saturn = { id: 'saturn', name: "Saturn", __rel: { moons: {}, next: 'jupiter' } };
-  var jupiter = { id: 'jupiter', name: "Jupiter", __rel: { moons: {}, previous: 'saturn' } };
-  var earth = { id: 'earth', name: "Earth", __rel: { moons: {} } };
+  var saturn = { type: 'planet', id: 'saturn',
+                 attributes: { name: 'Saturn' },
+                 relationships: { next: { data: 'planet:jupiter' } } };
+
+  var jupiter = { type: 'planet', id: 'jupiter',
+                  attributes: { name: 'Jupiter' },
+                  relationships: { previous: { data: 'planet:saturn' } } };
+
+  var earth = { type: 'planet', id: 'earth',
+                attributes: { name: 'Earth' } };
 
   cache.reset({
     planet: { saturn: saturn, jupiter: jupiter, earth: earth }
   });
 
-  var changePlanetOp = op('add', ['planet', earth.id, '__rel', 'next'], jupiter.id);
+  var changePlanetOp = replaceHasOneOperation(earth, 'next', jupiter);
 
-  operationsShouldMatch(
+  equalOps(
     processor.before( changePlanetOp ),
     []
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.after( changePlanetOp ),
     [
-      // op('remove', ['planet', saturn.id, '__rel', 'next'])
+      // op('remove', ['planet', saturn.id, 'relationships', 'next'])
     ]
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.finally( changePlanetOp ),
     [
-      op('replace', ['planet', jupiter.id, '__rel', 'previous'], earth.id),
+      replaceHasOneOperation(jupiter, 'previous', earth)
     ]
   );
 });
 
 test('replace hasOne => hasOne with existing value', function(){
-  var saturn = { id: 'saturn', name: "Saturn", __rel: { moons: {}, next: 'jupiter' } };
-  var jupiter = { id: 'jupiter', name: "Jupiter", __rel: { moons: {}, previous: 'saturn' } };
-  var earth = { id: 'earth', name: "Earth", __rel: { moons: {} } };
+  var saturn = { type: 'planet', id: 'saturn',
+                 attributes: { name: 'Saturn' },
+                 relationships: { next: { data: 'planet:jupiter' } } };
+
+  var jupiter = { type: 'planet', id: 'jupiter',
+                  attributes: { name: 'Jupiter' },
+                  relationships: { previous: { data: 'planet:saturn' } } };
+
+  var earth = { type: 'planet', id: 'earth',
+                attributes: { name: 'Earth' } };
 
   cache.reset({
     planet: { saturn: saturn, jupiter: jupiter, earth: earth }
   });
 
-  var changePlanetOp = op('replace', ['planet', earth.id, '__rel', 'next'], jupiter.id);
+  var changePlanetOp = replaceHasOneOperation(earth, 'next', jupiter);
 
-  operationsShouldMatch(
+  equalOps(
     processor.before( changePlanetOp ),
     []
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.after( changePlanetOp ),
     [
-      // op('replace', ['planet', jupiter.id, '__rel', 'previous'], null),
-      // op('replace', ['planet', saturn.id, '__rel', 'next'], null)
+      // op('replace', ['planet', jupiter.id, 'relationships', 'previous'], null),
+      // op('replace', ['planet', saturn.id, 'relationships', 'next'], null)
     ]
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.finally( changePlanetOp ),
     [
-      op('replace', ['planet', jupiter.id, '__rel', 'previous'], earth.id)
+      replaceHasOneOperation(jupiter, 'previous', earth)
     ]
   );
 });
 
 test('add to hasMany => hasMany', function(){
-  var earth = { id: 'earth' };
-  var human = { id: 'human' };
+  var earth = { type: 'planet', id: 'earth' };
+  var human = { type: 'race', id: 'human' };
 
   cache.reset({
     planet: { earth: earth },
     race: { human: human}
   });
 
-  var addPlanetOp = op('add', ['race', human.id, '__rel', 'planets', earth.id], true);
+  var addPlanetOp = addToHasManyOperation(human, 'planets', earth);
 
-  operationsShouldMatch(
+  equalOps(
     processor.before( addPlanetOp ),
     []
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.after( addPlanetOp ),
     []
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.finally( addPlanetOp ),
     [
-      op('add', ['planet', earth.id, '__rel','races', human.id], true)
+      addToHasManyOperation(earth, 'races', human)
     ]
   );
 });
 
 test('remove from hasMany => hasMany', function(){
-  var earth = { id: 'earth', __rel: { races: { human: true } } };
-  var human = { id: 'human', __rel: { planets: { earth: true} } };
+  var earth = { type: 'planet', id: 'earth', relationships: { races: { data: {'race:human': true } } } };
+  var human = { type: 'race', id: 'human', relationships: { planets: { data: {'planet:earth': true} } } };
 
   cache.reset({
     planet: { earth: earth },
     race: { human: human }
   });
 
-  var removePlanetOp = op('remove', ['race', human.id, '__rel', 'planets', earth.id]);
+  var removePlanetOp = removeFromHasManyOperation(human, 'planets', earth);
 
-  operationsShouldMatch(
+  equalOps(
     processor.before( removePlanetOp ),
     []
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.after( removePlanetOp ),
     [
-      op('remove', ['planet', earth.id, '__rel','races', human.id])
+      removeFromHasManyOperation(earth, 'races', human)
     ]
   );
 
-  operationsShouldMatch(
+  equalOps(
     processor.finally( removePlanetOp ),
     []
   );
 });
-
