@@ -194,7 +194,7 @@ test('#removeRecord - deleted record', function({ async }) {
     planet: { pluto }
   });
 
-  store.removeRecord(pluto)
+  store.removeRecord('planet:pluto')
     .then(function() {
       ok(didTransform.calledWith(transformMatching(removeRecordTransform)), 'operation has been emitted as a transform');
       ok(didRemoveRecord.calledWith('planet:pluto'));
@@ -217,7 +217,7 @@ test('#replaceAttribute', function({ async }) {
     planet: { pluto }
   });
 
-  store.replaceAttribute(pluto, 'name', 'pluto returns')
+  store.replaceAttribute('planet:pluto', 'name', 'pluto returns')
     .then(function() {
       ok(didTransform.calledWith(transformMatching(replaceAttributeTransform)), 'operation has been emitted as a transform');
       ok(didReplaceAttribute.calledWith('name', 'pluto returns'));
@@ -240,7 +240,7 @@ test('#addToHasMany', function({ async }) {
     moon: { io }
   });
 
-  store.addToHasMany(earth, 'moons', io)
+  store.addToHasMany('planet:earth', 'moons', 'moon:io')
     .then(function() {
       ok(didTransform.calledWith(transformMatching(addToHasManyTransform)), 'operation has been emitted as a transform');
       ok(didAddToHasMany.calledWith('planet:earth', 'moons', 'moon:io'));
@@ -267,7 +267,7 @@ test('#removeFromHasMany', function({ async }) {
     moon: { io }
   });
 
-  store.removeFromHasMany(earth, 'moons', io)
+  store.removeFromHasMany('planet:earth', 'moons', 'moon:io')
     .then(function() {
       ok(didTransform.calledWith(transformMatching(removeFromHasManyTransform)), 'operation has been emitted as a transform');
       ok(didRemoveFromHasMany.calledWith('planet:earth', 'moons', 'moon:io'), 'removed from hasMany');
@@ -299,7 +299,7 @@ test('#replaceHasMany', function({ async }) {
     moon: { io, titan }
   });
 
-  store.replaceHasMany(earth, 'moons', [titan])
+  store.replaceHasMany('planet:earth', 'moons', ['moon:titan'])
     .then(function() {
       ok(didTransform.calledWith(transformMatching(replaceHasManyTransform)), 'operation has been emitted as a transform');
 
@@ -335,7 +335,7 @@ test('#replaceHasOne', function({ async }) {
     moon: { io }
   });
 
-  store.replaceHasOne(io, 'planet', jupiter)
+  store.replaceHasOne('moon:io', 'planet', 'planet:jupiter')
     .then(function() {
       ok(didTransform.calledWith(transformMatching(replaceHasOneTransform)), 'operation has been emitted as a transform');
 
