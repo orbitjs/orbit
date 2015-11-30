@@ -90,10 +90,6 @@ packages.forEach(function(package) {
   });
 
   main[package.name] = mergeTrees([ lib[package.name] ]);
-  main[package.name] = jscs(main[package.name], {
-    esnext: true,
-    enabled: true
-  });
   main[package.name] = new compileES6Modules(main[package.name]);
   main[package.name] = new transpileES6(main[package.name]);
   main[package.name] = concat(main[package.name], {
