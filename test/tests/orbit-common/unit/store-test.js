@@ -144,8 +144,8 @@ test('#addRecord - added record', function({ async }) {
     .then(function(addedRecord) {
       ok(addedRecord.id, 'has an id assigned');
       deepEqual(addedRecord.attributes, newRecord.attributes, 'has attributes assigned');
-      deepEqual(addedRecord.relationships.moons, { data: undefined }, 'has initialized hasMany relationships');
-      deepEqual(addedRecord.relationships.star, { data: undefined }, 'has initialized hasOne relationships');
+      deepEqual(addedRecord.relationships.moons, { data: {} }, 'has initialized hasMany relationships');
+      deepEqual(addedRecord.relationships.star, { data: null }, 'has initialized hasOne relationships');
       deepEqual(store.cache.get(['planet', addedRecord.id]), addedRecord, 'is available for retrieval from the cache');
       ok(didTransform.calledWith(transformMatching(expectedTransform)), 'operation has been emitted as a transform');
 

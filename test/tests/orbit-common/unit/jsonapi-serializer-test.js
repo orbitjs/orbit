@@ -358,7 +358,7 @@ test('#deserialize - can deserialize a simple resource with only type and id - u
       },
       relationships: {
         moons: {
-          data: undefined
+          data: {}
         }
       }
     },
@@ -391,7 +391,7 @@ test('#deserialize - can deserialize a simple resource with only type and id - u
       },
       relationships: {
         moons: {
-          data: undefined
+          data: {}
         }
       }
     },

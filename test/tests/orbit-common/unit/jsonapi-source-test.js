@@ -142,7 +142,7 @@ test('#transform - can add records', function() {
     },
     relationships: {
       moons: {
-        data: undefined
+        data: {}
       }
     }
   });
@@ -157,6 +157,11 @@ test('#transform - can add records', function() {
           attributes: {
             name: 'Jupiter',
             classification: 'gas giant'
+          },
+          relationships: {
+            moons: {
+              data: []
+            }
           }
         }
       },
@@ -214,7 +219,7 @@ test('#transform - can update records', function() {
     },
     relationships: {
       moons: {
-        data: undefined
+        data: {}
       }
     }
   });
@@ -228,6 +233,11 @@ test('#transform - can update records', function() {
           attributes: {
             name: 'Jupiter',
             classification: 'gas giant'
+          },
+          relationships: {
+            moons: {
+              data: []
+            }
           }
         }
       },
