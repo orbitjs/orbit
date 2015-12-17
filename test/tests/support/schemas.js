@@ -1,6 +1,6 @@
 import Schema from 'orbit-common/schema';
 
-const planetsSchema = new Schema({
+var planetsSchema = new Schema({
   models: {
     planet: {
       relationships: {
