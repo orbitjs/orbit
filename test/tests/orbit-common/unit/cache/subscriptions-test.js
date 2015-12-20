@@ -161,5 +161,28 @@ module('OC - Cache - subscriptions', function(hooks) {
     cache.transform(new Transform(removePluto));
     cache.patches.onCompleted();
   });
+
+  test('record - responds to record added/removed', function(assert) {
+    const done = assert.async();
+    const addPluto = addRecordOperation({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
+    const removePluto = removeRecordOperation({ type: 'planet', id: 'pluto' });
+
+    const query = { oql: oqe('record', 'planet', 'pluto') };
+
+    const eventRecorder = new EventRecorder('recordAdded', 'recordRemoved');
+    const subscription = cache.subscribe(query, { listeners: eventRecorder });
+
+    eventRecorder.take(2).then(events => {
+      deepEqual(events, [
+        { type: 'recordAdded', value: 'pluto' },
+        { type: 'recordRemoved', value: 'pluto' }
+      ]);
+
+      done();
+    });
+
+    cache.transform(new Transform(addPluto));
+    cache.transform(new Transform(removePluto));
+  });
 });
 
