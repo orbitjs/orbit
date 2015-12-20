@@ -4,7 +4,9 @@ import {
   addRecordOperation,
   removeRecordOperation,
   replaceAttributeOperation,
-  replaceHasOneOperation
+  replaceHasOneOperation,
+  addToHasManyOperation,
+  removeFromHasManyOperation
 } from 'orbit-common/lib/operations';
 import Cache from 'orbit-common/cache';
 import {
@@ -212,6 +214,33 @@ module('OC - Cache - subscriptions', function(hooks) {
     cache.transform(new Transform(addCallisto));
     cache.transform(new Transform(addJupiterToCallisto));
     cache.transform(new Transform(removeJupiterFromCallisto));
+  });
+
+  test('relatedRecords - responds to add record', function(assert) {
+    const done = assert.async();
+    const addJupiter = addRecordOperation({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
+    const addCallisto = addRecordOperation({ type: 'planet', id: 'callisto', attributes: { name: 'Callisto' } });
+    const addCallistoToJupiter = addToHasManyOperation({ type: 'planet', id: 'jupiter' }, 'moons', { type: 'moon', id: 'callisto' });
+    const removeCallistoFromJupiter = removeFromHasManyOperation({ type: 'planet', id: 'jupiter' }, 'moons', { type: 'moon', id: 'callisto' });
+
+    const query = { oql: oqe('relatedRecords', 'planet', 'jupiter', 'moons') };
+
+    const eventRecorder = new EventRecorder('recordAdded', 'recordRemoved');
+    const subscription = cache.subscribe(query, { listeners: eventRecorder });
+
+    eventRecorder.take(2).then(events => {
+      deepEqual(events, [
+        { type: 'recordAdded', value: 'callisto' },
+        { type: 'recordRemoved', value: 'callisto' }
+      ]);
+
+      done();
+    });
+
+    cache.transform(new Transform(addJupiter));
+    cache.transform(new Transform(addCallisto));
+    cache.transform(new Transform(addCallistoToJupiter));
+    cache.transform(new Transform(removeCallistoFromJupiter));
   });
 });
 
