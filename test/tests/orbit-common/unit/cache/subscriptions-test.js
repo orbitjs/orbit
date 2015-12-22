@@ -170,22 +170,16 @@ module('OC - Cache - subscriptions', function(hooks) {
     const addPluto = addRecordOperation({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
     const removePluto = removeRecordOperation({ type: 'planet', id: 'pluto' });
 
-    const query = { oql: oqe('record', 'planet', 'pluto') };
+    const subscription = cache.subscribe({ oql: oqe('record', 'planet', 'pluto') });
 
-    const eventRecorder = new EventRecorder('recordAdded', 'recordRemoved');
-    const subscription = cache.subscribe(query, { listeners: eventRecorder });
-
-    eventRecorder.take(2).then(events => {
-      deepEqual(events, [
-        { type: 'recordAdded', value: 'pluto' },
-        { type: 'recordRemoved', value: 'pluto' }
-      ]);
-
+    subscription.toArray().subscribe(operations => {
+      equalOps(operations, [addPluto, removePluto]);
       done();
     });
 
     cache.transform(new Transform(addPluto));
     cache.transform(new Transform(removePluto));
+    cache.patches.onCompleted();
   });
 
   test('relatedRecord - responds to replace hasOne', function(assert) {
