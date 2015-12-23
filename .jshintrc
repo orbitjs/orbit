@@ -18,7 +18,8 @@
     "start",
     "stop",
     "QUnit",
-    "sinon"
+    "sinon",
+    "Rx"
   ],
   "node" : false,
   "browser" : false,

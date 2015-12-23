@@ -1,3 +1,4 @@
+import './support/orbit-setup';
 import { on } from 'rsvp';
 
 on('error', function(reason) {
@@ -22,7 +23,10 @@ import {
   verifyLocalStorageContainsRecord
 } from './support/local-storage';
 
+import { planetsSchema } from './support/schemas';
+
 import './support/rsvp';
+
 
 export {
   serializeOps,
@@ -33,5 +37,6 @@ export {
   equalOps,
   transformMatching,
   verifyLocalStorageIsEmpty,
-  verifyLocalStorageContainsRecord
+  verifyLocalStorageContainsRecord,
+  planetsSchema
 };
