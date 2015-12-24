@@ -692,6 +692,52 @@ test('#query can perform a complex conditional `or` filter', function(assert) {
   );
 });
 
+test('#query - relatedRecords', function(assert) {
+  cache = new Cache(schema);
+
+  const jupiter = {
+    id: 'jupiter', type: 'planet',
+    attributes: { name: 'Jupiter' },
+    relationships: { moons: { data: { 'moon:callisto': true } } } };
+
+  const callisto = {
+    id: 'callisto', type: 'moon',
+    attributes: { name: 'Callisto' },
+    relationships: { planet: { data: 'planet:jupiter' } } };
+
+  cache.reset({ planet: { jupiter }, moon: { callisto } });
+
+  assert.deepEqual(
+    cache.query({ oql: oqe('relatedRecords', 'planet', 'jupiter', 'moons') }),
+    {
+      callisto
+    }
+  );
+});
+
+test('#query - relatedRecord', function(assert) {
+  cache = new Cache(schema);
+
+  const jupiter = {
+    id: 'jupiter', type: 'planet',
+    attributes: { name: 'Jupiter' },
+    relationships: { moons: { data: { 'moon:callisto': true } } } };
+
+  const callisto = {
+    id: 'callisto', type: 'moon',
+    attributes: { name: 'Callisto' },
+    relationships: { planet: { data: 'planet:jupiter' } } };
+
+  cache.reset({ planet: { jupiter }, moon: { callisto } });
+
+  assert.deepEqual(
+    cache.query({ oql: oqe('relatedRecord', 'moon', 'callisto', 'planet') }),
+    {
+      jupiter
+    }
+  );
+});
+
 test('#rollback', function(assert) {
   const addRecordAOp = addRecordOperation({ id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } });
   const addRecordBOp = addRecordOperation({ id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } });
