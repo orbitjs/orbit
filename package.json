@@ -45,7 +45,7 @@
     "broccoli-sourcemap-concat": "^0.4.3",
     "broccoli-string-replace": "0.0.2",
     "git-repo-version": "^0.1.1",
-    "testem": "^0.7.6",
+    "testem": "^1.0.0-rc.1",
     "yuidocjs": "^0.8.1"
   }
 }
