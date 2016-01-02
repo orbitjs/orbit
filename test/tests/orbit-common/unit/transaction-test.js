@@ -60,11 +60,6 @@ module('OC - Transaction', {
   }
 });
 
-test('it exists', function(assert) {
-  let transaction = new Transaction({ baseStore: store });
-  assert.ok(transaction);
-});
-
 test('requires the `baseStore` option', function(assert) {
   assert.throws(
     function() {
@@ -75,18 +70,18 @@ test('requires the `baseStore` option', function(assert) {
 });
 
 test('automatically begins by default', function(assert) {
-  let transaction = new Transaction({ baseStore: store });
+  let transaction = store.createTransaction();
   assert.equal(transaction.active, true);
 });
 
 test('does not auto-begin if the `active` option = false', function(assert) {
-  let transaction = new Transaction({ baseStore: store, active: false });
+  let transaction = store.createTransaction({ active: false });
   assert.equal(transaction.active, false);
 });
 
 test('once begun, tracks operations performed and inverse operations', function(assert) {
   assert.expect(3);
-  const transaction = new Transaction({ baseStore: store });
+  const transaction = store.createTransaction();
 
   assert.equal(transaction.operations.length, 0, 'transaction has no operations');
   assert.equal(transaction.inverseOperations.length, 0, 'transaction has no inverse operations');
@@ -102,7 +97,7 @@ test('once begun, tracks operations performed and inverse operations', function(
 
 test('`commit` applies operations to `baseStore`', function(assert) {
   assert.expect(1);
-  const transaction = new Transaction({ baseStore: store });
+  const transaction = store.createTransaction();
 
   return transaction
     .addRecord({ type: 'planet', name: 'Jupiter', classification: 'gas giant' })
@@ -115,7 +110,7 @@ test('`commit` applies operations to `baseStore`', function(assert) {
 test('an unisolated transaction will retrieve missing data from its `baseStore`', function(assert) {
   assert.expect(2);
 
-  const transaction = new Transaction({ baseStore: store });
+  const transaction = store.createTransaction();
   assert.equal(transaction.isolated, false, 'transactions are not isolated by default');
 
   return store.addRecord({ type: 'planet', name: 'Jupiter', classification: 'gas giant' })
@@ -127,7 +122,7 @@ test('an unisolated transaction will retrieve missing data from its `baseStore`'
 test('an isolated transaction won\'t retrieve any data from its `baseStore`', function(assert) {
   assert.expect(2);
 
-  var transaction = new Transaction({ baseStore: store, isolated: true });
+  var transaction = store.createTransaction({ isolated: true });
 
   assert.equal(transaction.isolated, true, 'transaction is isolated');
 
