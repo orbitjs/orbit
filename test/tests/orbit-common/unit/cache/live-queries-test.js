@@ -335,6 +335,26 @@ module('OC - Cache - liveQuery', function(hooks) {
       cache.patches.onCompleted();
     });
 
+    test('emits updates for relationships which are included in an addRecord operation', function(assert) {
+      const done = assert.async();
+
+      const liveQuery = cache.liveQuery({
+        oql:
+          oqe('relatedRecords', 'planet', 'jupiter', 'moons') });
+
+      liveQuery.toArray().subscribe(operations => {
+        equalOps(operations, [
+          addRecordOperation({ type: 'moon', id: 'callisto' })
+        ]);
+
+        done();
+      });
+
+      cache.transform(new Transform(addRecordOperation({ type: 'moon', id: 'callisto' })));
+      cache.transform(new Transform(addRecordOperation({ type: 'planet', id: 'jupiter', relationships: { moons: { data: { 'moon:callisto': true } } } })));
+      cache.patches.onCompleted();
+    });
+
     test('emits updates to records included in liveQuery with initial values', function(assert) {
       const done = assert.async();
 
