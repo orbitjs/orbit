@@ -303,8 +303,8 @@ test('#normalize initializes a record\'s relationships', function() {
   var earth = schema.normalize({ type: 'planet' });
   var moon = schema.normalize({ type: 'moon' });
 
-  deepEqual(earth.relationships.moons.data, undefined, 'default has not been set - should be undefined');
-  strictEqual(moon.relationships.planet.data, undefined, 'default has not been set - should be undefined');
+  deepEqual(earth.relationships.moons.data, {}, 'default has not been set - should be undefined');
+  strictEqual(moon.relationships.planet.data, null, 'default has not been set - should be undefined');
 });
 
 test('#normalize will not overwrite data set as attributes', function() {
@@ -339,7 +339,7 @@ test('#normalize will not overwrite data set as attributes', function() {
   strictEqual(earth.attributes.name, 'Earth', 'name has been specified');
   strictEqual(earth.attributes.classification, 'terrestrial', 'classification has been specified');
 
-  deepEqual(earth.relationships.moons.data, undefined, 'hasMany relationship was not initialized');
+  deepEqual(earth.relationships.moons.data, {}, 'hasMany relationship was not initialized');
   strictEqual(moon.relationships.planet.data, 'planet:' + earth.id, 'hasOne relationship was specified in data');
 
   var io = schema.normalize({ type: 'moon' });
