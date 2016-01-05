@@ -12,6 +12,7 @@ import {
   replaceHasManyOperation,
   replaceHasOneOperation,
   removeFromHasManyOperation,
+  replaceKeyOperation
 } from 'orbit-common/lib/operations';
 import { asyncTest, transformMatching } from 'tests/test-helper';
 
@@ -185,6 +186,23 @@ test('#removeRecord - deleted record', function({ async }) {
     .then(function() {
       ok(didTransform.calledWith(transformMatching(removeRecordTransform)), 'operation has been emitted as a transform');
       ok(!store.cache.get(['planet', 'pluto']), 'has been removed from store');
+
+      done();
+    });
+});
+
+test('#replaceKey', function({ async }) {
+  let done = async();
+  let pluto = schema.normalize({ id: 'pluto', type: 'planet', keys: { galaxyAlias: 'planet:pluto' } });
+  let replaceKeyTransform = new Transform([replaceKeyOperation(pluto, 'galaxyAlias', 'planet:plooto')]);
+
+  store.cache.reset({
+    planet: { pluto }
+  });
+
+  store.replaceKey(pluto, 'galaxyAlias', 'planet:plooto')
+    .then(function() {
+      ok(didTransform.calledWith(transformMatching(replaceKeyTransform)), 'operation has been emitted as a transform');
 
       done();
     });
