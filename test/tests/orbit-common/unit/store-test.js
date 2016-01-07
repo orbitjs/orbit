@@ -61,7 +61,7 @@ module('OC - Store', {
     store = new Store({ schema });
 
     didTransform = stub().returns(resolve());
-    store.on('transform', didTransform);
+    store.coordinator.on('transform', didTransform);
   },
 
   teardown() {
