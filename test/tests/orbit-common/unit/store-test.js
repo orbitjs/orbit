@@ -1,3 +1,4 @@
+import { equalOps, asyncTest, transformMatching } from 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Schema from 'orbit-common/schema';
 import Store from 'orbit-common/store';
@@ -12,9 +13,12 @@ import {
   replaceHasManyOperation,
   replaceHasOneOperation,
   removeFromHasManyOperation,
-  replaceKeyOperation
+  replaceKeyOperation,
+  addRecordToSetOperation
 } from 'orbit-common/lib/operations';
-import { asyncTest, transformMatching } from 'tests/test-helper';
+import {
+  queryExpression as oqe
+} from 'orbit/query/expression';
 
 const stub = sinon.stub;
 
@@ -133,6 +137,29 @@ test('#findRecordsByType - returns an empty array when there\'s no data', functi
       start();
       deepEqual(planets, [], 'no planets have been found');
     });
+});
+
+test('#liveQuery', function(assert) {
+  const done = assert.async();
+
+  const jupiter = schema.normalize({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
+  const pluto = schema.normalize({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
+
+  Promise.all([
+    store.addRecord(pluto),
+    store.addRecord(jupiter)
+  ])
+  .then(([pluto, jupiter]) => {
+    const liveQuery = store.liveQuery(oqe('recordsOfType', 'planet'));
+    liveQuery.take(2).toArray().subscribe((operations) => {
+      equalOps(operations, [
+        addRecordToSetOperation(pluto),
+        addRecordToSetOperation(jupiter)
+      ]);
+
+      done();
+    });
+  });
 });
 
 test('#addRecord - added record', function({ async }) {
