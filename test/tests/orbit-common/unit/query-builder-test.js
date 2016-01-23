@@ -10,7 +10,7 @@ function assertEqualQuery(actual, expected) {
   }
 
   deepEqual(actual.toString(), expected.toString());
-};
+}
 
 module('OC - QueryBuilder', function(hooks) {
   let qb;
@@ -20,9 +20,11 @@ module('OC - QueryBuilder', function(hooks) {
   });
 
   test('recordsOfType', function(assert) {
-    const query = new QueryBuilder().recordsOfType('planet').build();
+    assertEqualQuery(
+      qb.recordsOfType('planet').build(),
 
-    assert.deepEqual(query, oqe('recordsOfType', 'planet'));
+      oqe('recordsOfType', 'planet')
+    );
   });
 
   test('recordsOfType/filter/equal/get', function(assert) {
@@ -110,6 +112,31 @@ module('OC - QueryBuilder', function(hooks) {
           oqe('and',
             oqe('equal', oqe('get', 'attributes/name'), 'Jupiter'),
             oqe('equal', oqe('get', 'attributes/age'), '23000000')))
+    );
+  });
+
+  test('recordsOfType with scopes', function(assert) {
+    const planetScopes = {
+      namedPluto() {
+        return this.filterAttributes({ name: 'Pluto' });
+      }
+    };
+
+    const qb = new QueryBuilder({
+      terms: {
+        recordsOfType: { planet: planetScopes }
+      }
+    });
+
+    assertEqualQuery(
+      qb
+        .recordsOfType('planet')
+        .namedPluto()
+        .build(),
+
+      oqe('filter',
+        oqe('recordsOfType', 'planet'),
+        oqe('equal', oqe('get', 'attributes/name'), 'Pluto'))
     );
   });
 });
