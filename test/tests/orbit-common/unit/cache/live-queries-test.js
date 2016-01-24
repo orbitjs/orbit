@@ -178,6 +178,27 @@ module('OC - Cache - liveQuery', function(hooks) {
     cache.patches.onCompleted();
   });
 
+  test('filter - nested', function(assert) {
+    const done = assert.async();
+
+    cache.transform(new Transform(addRecordOperation(pluto)));
+    cache.transform(new Transform(addRecordOperation(jupiter)));
+    cache.patches.onCompleted();
+
+    const liveQuery = cache.liveQuery({
+      oql:
+        oqe('filter',
+          oqe('filter',
+            oqe('recordsOfType', 'planet'),
+            oqe('equal', oqe('get', 'attributes/name'), 'Pluto')),
+          oqe('equal', oqe('get', 'attributes/name'), 'Pluto')) });
+
+    liveQuery.toArray().subscribe((operations) => {
+      equalOps(operations, [addRecordOperation(pluto)]);
+      done();
+    });
+  });
+
   test('record - responds to record added/removed', function(assert) {
     const done = assert.async();
 
