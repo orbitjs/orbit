@@ -6,7 +6,9 @@ import {
   replaceAttributeOperation,
   replaceHasOneOperation,
   addToHasManyOperation,
-  removeFromHasManyOperation
+  removeFromHasManyOperation,
+  addRecordToSetOperation,
+  removeRecordFromSetOperation
 } from 'orbit-common/lib/operations';
 import Cache from 'orbit-common/cache';
 import {
@@ -53,8 +55,8 @@ module('OC - Cache - liveQuery', function(hooks) {
 
     liveQuery.toArray().subscribe((operations) => {
       equalOps(operations, [
-        addRecordOperation(pluto),
-        addRecordOperation(jupiter)
+        addRecordToSetOperation(pluto),
+        addRecordToSetOperation(jupiter)
       ]);
 
       done();
@@ -75,7 +77,7 @@ module('OC - Cache - liveQuery', function(hooks) {
           oqe('equal', oqe('get', 'attributes/name'), 'Pluto')) });
 
     liveQuery.toArray().subscribe((operations) => {
-      equalOps(operations, [addRecordOperation(pluto)]);
+      equalOps(operations, [addRecordToSetOperation(pluto)]);
       done();
     });
   });
@@ -91,8 +93,8 @@ module('OC - Cache - liveQuery', function(hooks) {
 
     liveQuery.toArray().subscribe(operations => {
       equalOps(operations, [
-        addRecordOperation(pluto),
-        removeRecordOperation(pluto)
+        addRecordToSetOperation(pluto),
+        removeRecordFromSetOperation(pluto)
       ]);
       done();
     });
@@ -116,7 +118,7 @@ module('OC - Cache - liveQuery', function(hooks) {
     cache.patches.onCompleted();
 
     liveQuery.take(2).toArray().subscribe((operations) => {
-      equalOps(operations, [addRecordOperation(pluto)]);
+      equalOps(operations, [addRecordToSetOperation(pluto)]);
       done();
     });
   });
@@ -131,7 +133,7 @@ module('OC - Cache - liveQuery', function(hooks) {
           oqe('equal', oqe('get', 'attributes/name'), 'Pluto')) });
 
     liveQuery.take(2).toArray().subscribe(operations => {
-      equalOps(operations[1], removeRecordOperation({ type: 'planet', id: 'pluto' }));
+      equalOps(operations[1], removeRecordFromSetOperation({ type: 'planet', id: 'pluto' }));
       done();
     });
 
@@ -150,7 +152,7 @@ module('OC - Cache - liveQuery', function(hooks) {
           oqe('equal', oqe('get', 'attributes/name'), 'Uranus2')) });
 
     liveQuery.subscribe(operation => {
-      equalOps(operation, addRecordOperation({ type: 'planet', id: 'uranus', attributes: { name: 'Uranus2' } }));
+      equalOps(operation, addRecordToSetOperation({ type: 'planet', id: 'uranus', attributes: { name: 'Uranus2' } }));
       done();
     });
 
@@ -178,6 +180,27 @@ module('OC - Cache - liveQuery', function(hooks) {
     cache.patches.onCompleted();
   });
 
+  test('filter - nested', function(assert) {
+    const done = assert.async();
+
+    cache.transform(new Transform(addRecordOperation(pluto)));
+    cache.transform(new Transform(addRecordOperation(jupiter)));
+    cache.patches.onCompleted();
+
+    const liveQuery = cache.liveQuery({
+      oql:
+        oqe('filter',
+          oqe('filter',
+            oqe('recordsOfType', 'planet'),
+            oqe('equal', oqe('get', 'attributes/name'), 'Pluto')),
+          oqe('equal', oqe('get', 'attributes/name'), 'Pluto')) });
+
+    liveQuery.toArray().subscribe((operations) => {
+      equalOps(operations, [addRecordToSetOperation(pluto)]);
+      done();
+    });
+  });
+
   test('record - responds to record added/removed', function(assert) {
     const done = assert.async();
 
@@ -185,8 +208,8 @@ module('OC - Cache - liveQuery', function(hooks) {
 
     liveQuery.toArray().subscribe(operations => {
       equalOps(operations, [
-        addRecordOperation(pluto),
-        removeRecordOperation(pluto)
+        addRecordToSetOperation(pluto),
+        removeRecordFromSetOperation(pluto)
       ]);
 
       done();
@@ -209,8 +232,8 @@ module('OC - Cache - liveQuery', function(hooks) {
 
       liveQuery.toArray().subscribe(operations => {
         equalOps(operations, [
-          addRecordOperation(jupiter),
-          removeRecordOperation(jupiter)
+          addRecordToSetOperation(jupiter),
+          removeRecordFromSetOperation(jupiter)
         ]);
 
         done();
@@ -218,72 +241,6 @@ module('OC - Cache - liveQuery', function(hooks) {
 
       cache.transform(new Transform(replaceHasOneOperation(callisto, 'planet', jupiter)));
       cache.transform(new Transform(replaceHasOneOperation(callisto, 'planet', null)));
-      cache.patches.onCompleted();
-    });
-
-    test('emits updates for record after it\'s added to liveQuery', function(assert) {
-      const done = assert.async();
-
-      cache.reset({ planet: { jupiter }, moon: { callisto } });
-
-      const liveQuery = cache.liveQuery({
-        oql:
-          oqe('relatedRecord', 'moon', 'callisto', 'planet') });
-
-      liveQuery.toArray().subscribe(operations => {
-        equalOps(operations, [
-          addRecordOperation(jupiter),
-          replaceAttributeOperation(jupiter, 'name', 'Jupiter2')
-        ]);
-
-        done();
-      });
-
-      cache.transform(new Transform(replaceHasOneOperation(callisto, 'planet', jupiter)));
-      cache.transform(new Transform(replaceAttributeOperation(jupiter, 'name', 'Jupiter2')));
-      cache.patches.onCompleted();
-    });
-
-    test('emits updates for initial record', function(assert) {
-      const done = assert.async();
-
-      cache.reset({ planet: { saturn }, moon: { titan } });
-
-      const liveQuery = cache.liveQuery({
-        oql:
-          oqe('relatedRecord', 'moon', 'titan', 'planet') });
-
-      liveQuery.toArray().subscribe(operations => {
-        equalOps(operations, [
-          replaceAttributeOperation(saturn, 'name', 'Saturn2')
-        ]);
-
-        done();
-      });
-
-      cache.transform(new Transform(replaceAttributeOperation(saturn, 'name', 'Saturn2')));
-      cache.patches.onCompleted();
-    });
-
-    test('stops emitting updates for related record once it\'s been removed', function(assert) {
-      const done = assert.async();
-
-      cache.reset({ planet: { saturn }, moon: { titan } });
-
-      const liveQuery = cache.liveQuery({
-        oql:
-          oqe('relatedRecord', 'moon', 'titan', 'planet') });
-
-      liveQuery.toArray().subscribe(operations => {
-        equalOps(operations, [
-          removeRecordOperation(saturn)
-        ]);
-
-        done();
-      });
-
-      cache.transform(new Transform(replaceHasOneOperation(titan, 'planet', null)));
-      cache.transform(new Transform(replaceAttributeOperation(saturn, 'name', 'Saturn2')));
       cache.patches.onCompleted();
     });
   });
@@ -300,8 +257,8 @@ module('OC - Cache - liveQuery', function(hooks) {
 
       liveQuery.toArray().subscribe(operations => {
         equalOps(operations, [
-          addRecordOperation(callisto),
-          removeRecordOperation(callisto)
+          addRecordToSetOperation(callisto),
+          removeRecordFromSetOperation(callisto)
         ]);
 
         done();
@@ -309,72 +266,6 @@ module('OC - Cache - liveQuery', function(hooks) {
 
       cache.transform(new Transform(addToHasManyOperation(jupiter, 'moons', callisto)));
       cache.transform(new Transform(removeFromHasManyOperation(jupiter, 'moons', callisto)));
-      cache.patches.onCompleted();
-    });
-
-    test('emits updates to records included in liveQuery', function(assert) {
-      const done = assert.async();
-
-      cache.reset({ planet: { jupiter }, moon: { callisto } });
-
-      const liveQuery = cache.liveQuery({
-        oql:
-          oqe('relatedRecords', 'planet', 'jupiter', 'moons') });
-
-      liveQuery.toArray().subscribe(operations => {
-        equalOps(operations, [
-          addRecordOperation(callisto),
-          replaceAttributeOperation(callisto, 'name', 'Callisto2')
-        ]);
-
-        done();
-      });
-
-      cache.transform(new Transform(addToHasManyOperation(jupiter, 'moons', callisto)));
-      cache.transform(new Transform(replaceAttributeOperation(callisto, 'name', 'Callisto2')));
-      cache.patches.onCompleted();
-    });
-
-    test('emits updates to records included in liveQuery with initial values', function(assert) {
-      const done = assert.async();
-
-      cache.reset({ planet: { saturn }, moon: { titan } });
-
-      const liveQuery = cache.liveQuery({
-        oql:
-          oqe('relatedRecords', 'planet', 'saturn', 'moons') });
-
-      liveQuery.toArray().subscribe(operations => {
-        equalOps(operations, [
-          replaceAttributeOperation(titan, 'name', 'Titan2')
-        ]);
-
-        done();
-      });
-
-      cache.transform(new Transform(replaceAttributeOperation(titan, 'name', 'Titan2')));
-      cache.patches.onCompleted();
-    });
-
-    test('stops emitting updates to records that have been removed from liveQuery', function(assert) {
-      const done = assert.async();
-
-      cache.reset({ planet: { saturn }, moon: { titan } });
-
-      const liveQuery = cache.liveQuery({
-        oql:
-          oqe('relatedRecords', 'planet', 'saturn', 'moons') });
-
-      liveQuery.toArray().subscribe(operations => {
-        equalOps(operations, [
-          removeRecordOperation(titan)
-        ]);
-
-        done();
-      });
-
-      cache.transform(new Transform(removeFromHasManyOperation(saturn, 'moons', titan)));
-      cache.transform(new Transform(replaceAttributeOperation(titan, 'name', 'Titan2')));
       cache.patches.onCompleted();
     });
   });
