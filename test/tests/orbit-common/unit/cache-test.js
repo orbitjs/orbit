@@ -5,7 +5,7 @@ import { equalOps, op } from 'tests/test-helper';
 import { Promise, on } from 'rsvp';
 import {
   queryExpression as oqe
-} from 'orbit-common/oql/expressions';
+} from 'orbit/query/expression';
 import {
   addRecordOperation
 } from 'orbit-common/lib/operations';

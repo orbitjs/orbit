@@ -13,7 +13,7 @@ import {
 import Cache from 'orbit-common/cache';
 import {
   queryExpression as oqe
-} from 'orbit-common/oql/expressions';
+} from 'orbit/query/expression';
 
 const { skip } = QUnit;
 
@@ -270,4 +270,3 @@ module('OC - Cache - liveQuery', function(hooks) {
     });
   });
 });
-

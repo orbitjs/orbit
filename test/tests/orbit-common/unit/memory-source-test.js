@@ -12,7 +12,7 @@ import SchemaConsistencyProcessor from 'orbit-common/operation-processors/schema
 import 'tests/test-helper';
 import {
   queryExpression as oqe
-} from 'orbit-common/oql/expressions';
+} from 'orbit/query/expression';
 
 ///////////////////////////////////////////////////////////////////////////////
 

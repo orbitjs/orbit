@@ -1,5 +1,5 @@
 import { Class } from 'orbit/lib/objects';
-import QueryProcessor from 'orbit/query-processor';
+import QueryProcessor from 'orbit/query/processor';
 import { QueryProcessorNotFoundException } from 'orbit/lib/exceptions';
 import { successfulOperation, failedOperation } from 'tests/test-helper';
 
