@@ -1,6 +1,6 @@
 import 'tests/test-helper';
-import { queryExpression as oqe } from 'orbit-common/oql/expressions';
-import QueryBuilder from 'orbit-common/query-builder';
+import { queryExpression as oqe } from 'orbit/query/expression';
+import QueryBuilder from 'orbit-common/query/builder';
 
 function assertEqualQuery(actual, expected) {
   function jsonify(query) {
