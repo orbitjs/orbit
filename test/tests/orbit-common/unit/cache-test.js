@@ -612,7 +612,7 @@ test('#query can `get`', function(assert) {
   cache.reset({ planet: { jupiter } });
 
   assert.deepEqual(
-    cache.query({ oql: oqe('get', 'planet/jupiter') }),
+    cache.query(oqe('get', 'planet/jupiter')),
     jupiter
   );
 });
@@ -628,11 +628,11 @@ test('#query can perform a simple matching filter', function(assert) {
   cache.reset({ planet: { jupiter, earth, venus, mercury } });
 
   assert.deepEqual(
-    cache.query({
-      oql: oqe('filter',
-               'planet',
-               oqe('equal', oqe('get', 'attributes/name'), 'Jupiter'))
-    }),
+    cache.query(
+      oqe('filter',
+          'planet',
+          oqe('equal', oqe('get', 'attributes/name'), 'Jupiter'))
+    ),
     {
       jupiter
     }
@@ -650,14 +650,14 @@ test('#query can perform a complex conditional `and` filter', function(assert) {
   cache.reset({ planet: { jupiter, earth, venus, mercury } });
 
   assert.deepEqual(
-    cache.query({
-      oql: oqe('filter',
-               'planet',
-               oqe('and',
-                   oqe('equal', oqe('get', 'attributes/classification'), 'terrestrial'),
-                   oqe('equal', oqe('get', 'attributes/atmosphere'), true)
-               ))
-    }),
+    cache.query(
+      oqe('filter',
+          'planet',
+          oqe('and',
+            oqe('equal', oqe('get', 'attributes/classification'), 'terrestrial'),
+            oqe('equal', oqe('get', 'attributes/atmosphere'), true)
+          ))
+    ),
     {
       earth,
       venus
@@ -676,14 +676,14 @@ test('#query can perform a complex conditional `or` filter', function(assert) {
   cache.reset({ planet: { jupiter, earth, venus, mercury } });
 
   assert.deepEqual(
-    cache.query({
-      oql: oqe('filter',
-               'planet',
-               oqe('or',
-                   oqe('equal', oqe('get', 'attributes/classification'), 'gas giant'),
-                   oqe('equal', oqe('get', 'attributes/atmosphere'), true)
-               ))
-    }),
+    cache.query(
+      oqe('filter',
+          'planet',
+          oqe('or',
+              oqe('equal', oqe('get', 'attributes/classification'), 'gas giant'),
+              oqe('equal', oqe('get', 'attributes/atmosphere'), true)
+         ))
+    ),
     {
       jupiter,
       earth,
@@ -708,7 +708,7 @@ test('#query - relatedRecords', function(assert) {
   cache.reset({ planet: { jupiter }, moon: { callisto } });
 
   assert.deepEqual(
-    cache.query({ oql: oqe('relatedRecords', 'planet', 'jupiter', 'moons') }),
+    cache.query(oqe('relatedRecords', 'planet', 'jupiter', 'moons')),
     {
       callisto
     }
@@ -731,7 +731,7 @@ test('#query - relatedRecord', function(assert) {
   cache.reset({ planet: { jupiter }, moon: { callisto } });
 
   assert.deepEqual(
-    cache.query({ oql: oqe('relatedRecord', 'moon', 'callisto', 'planet') }),
+    cache.query(oqe('relatedRecord', 'moon', 'callisto', 'planet')),
     {
       jupiter
     }

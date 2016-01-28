@@ -51,7 +51,7 @@ module('OC - Cache - liveQuery', function(hooks) {
     cache.transform(new Transform(addRecordOperation(jupiter)));
     cache.patches.onCompleted();
 
-    const liveQuery = cache.liveQuery({ oql: oqe('recordsOfType', 'planet') });
+    const liveQuery = cache.liveQuery(oqe('recordsOfType', 'planet'));
 
     liveQuery.toArray().subscribe((operations) => {
       equalOps(operations, [
@@ -70,11 +70,11 @@ module('OC - Cache - liveQuery', function(hooks) {
     cache.transform(new Transform(addRecordOperation(jupiter)));
     cache.patches.onCompleted();
 
-    const liveQuery = cache.liveQuery({
-      oql:
-        oqe('filter',
+    const liveQuery = cache.liveQuery(
+      oqe('filter',
           oqe('recordsOfType', 'planet'),
-          oqe('equal', oqe('get', 'attributes/name'), 'Pluto')) });
+          oqe('equal', oqe('get', 'attributes/name'), 'Pluto'))
+    );
 
     liveQuery.toArray().subscribe((operations) => {
       equalOps(operations, [addRecordToSetOperation(pluto)]);
@@ -85,11 +85,11 @@ module('OC - Cache - liveQuery', function(hooks) {
   test('filter - remove match', function(assert) {
     const done = assert.async();
 
-    const liveQuery = cache.liveQuery({
-      oql:
-        oqe('filter',
+    const liveQuery = cache.liveQuery(
+      oqe('filter',
           oqe('recordsOfType', 'planet'),
-          oqe('equal', oqe('get', 'attributes/name'), 'Pluto')) });
+          oqe('equal', oqe('get', 'attributes/name'), 'Pluto'))
+    );
 
     liveQuery.toArray().subscribe(operations => {
       equalOps(operations, [
@@ -107,11 +107,11 @@ module('OC - Cache - liveQuery', function(hooks) {
   test('filter - remove then add match', function(assert) {
     const done = assert.async();
 
-    const liveQuery = cache.liveQuery({
-      oql:
-        oqe('filter',
+    const liveQuery = cache.liveQuery(
+      oqe('filter',
           oqe('recordsOfType', 'planet'),
-          oqe('equal', oqe('get', 'attributes/name'), 'Pluto')) });
+          oqe('equal', oqe('get', 'attributes/name'), 'Pluto'))
+    );
 
     cache.transform(new Transform(removeRecordOperation(pluto)));
     cache.transform(new Transform(addRecordOperation(pluto)));
@@ -126,11 +126,11 @@ module('OC - Cache - liveQuery', function(hooks) {
   test('filter - change attribute that causes removal from matches', function(assert) {
     const done = assert.async();
 
-    const liveQuery = cache.liveQuery({
-      oql:
-        oqe('filter',
+    const liveQuery = cache.liveQuery(
+      oqe('filter',
           oqe('recordsOfType', 'planet'),
-          oqe('equal', oqe('get', 'attributes/name'), 'Pluto')) });
+          oqe('equal', oqe('get', 'attributes/name'), 'Pluto'))
+    );
 
     liveQuery.take(2).toArray().subscribe(operations => {
       equalOps(operations[1], removeRecordFromSetOperation({ type: 'planet', id: 'pluto' }));
@@ -145,11 +145,11 @@ module('OC - Cache - liveQuery', function(hooks) {
   test('filter - change attribute that causes add to matches', function(assert) {
     const done = assert.async();
 
-    const liveQuery = cache.liveQuery({
-      oql:
-        oqe('filter',
+    const liveQuery = cache.liveQuery(
+      oqe('filter',
           oqe('recordsOfType', 'planet'),
-          oqe('equal', oqe('get', 'attributes/name'), 'Uranus2')) });
+          oqe('equal', oqe('get', 'attributes/name'), 'Uranus2'))
+    );
 
     liveQuery.subscribe(operation => {
       equalOps(operation, addRecordToSetOperation({ type: 'planet', id: 'uranus', attributes: { name: 'Uranus2' } }));
@@ -164,11 +164,11 @@ module('OC - Cache - liveQuery', function(hooks) {
   test('filter - ignores remove record that isn\'t included in matches', function(assert) {
     const done = assert.async();
 
-    const liveQuery = cache.liveQuery({
-      oql:
-        oqe('filter',
+    const liveQuery = cache.liveQuery(
+      oqe('filter',
           oqe('recordsOfType', 'planet'),
-          oqe('equal', oqe('get', 'attributes/name'), 'Jupiter')) });
+          oqe('equal', oqe('get', 'attributes/name'), 'Jupiter'))
+    );
 
     liveQuery.toArray().subscribe(operations => {
       equal(operations.length, 0);
@@ -187,13 +187,13 @@ module('OC - Cache - liveQuery', function(hooks) {
     cache.transform(new Transform(addRecordOperation(jupiter)));
     cache.patches.onCompleted();
 
-    const liveQuery = cache.liveQuery({
-      oql:
+    const liveQuery = cache.liveQuery(
+      oqe('filter',
         oqe('filter',
-          oqe('filter',
-            oqe('recordsOfType', 'planet'),
-            oqe('equal', oqe('get', 'attributes/name'), 'Pluto')),
-          oqe('equal', oqe('get', 'attributes/name'), 'Pluto')) });
+          oqe('recordsOfType', 'planet'),
+          oqe('equal', oqe('get', 'attributes/name'), 'Pluto')),
+        oqe('equal', oqe('get', 'attributes/name'), 'Pluto'))
+    );
 
     liveQuery.toArray().subscribe((operations) => {
       equalOps(operations, [addRecordToSetOperation(pluto)]);
@@ -204,7 +204,7 @@ module('OC - Cache - liveQuery', function(hooks) {
   test('record - responds to record added/removed', function(assert) {
     const done = assert.async();
 
-    const liveQuery = cache.liveQuery({ oql: oqe('record', 'planet', 'pluto') });
+    const liveQuery = cache.liveQuery(oqe('record', 'planet', 'pluto'));
 
     liveQuery.toArray().subscribe(operations => {
       equalOps(operations, [
@@ -226,9 +226,9 @@ module('OC - Cache - liveQuery', function(hooks) {
 
       cache.reset({ planet: { jupiter }, moon: { callisto } });
 
-      const liveQuery = cache.liveQuery({
-        oql:
-          oqe('relatedRecord', 'moon', 'callisto', 'planet') });
+      const liveQuery = cache.liveQuery(
+        oqe('relatedRecord', 'moon', 'callisto', 'planet')
+      );
 
       liveQuery.toArray().subscribe(operations => {
         equalOps(operations, [
@@ -251,9 +251,9 @@ module('OC - Cache - liveQuery', function(hooks) {
 
       cache.reset({ planet: { jupiter }, moon: { callisto } });
 
-      const liveQuery = cache.liveQuery({
-        oql:
-          oqe('relatedRecords', 'planet', 'jupiter', 'moons') });
+      const liveQuery = cache.liveQuery(
+        oqe('relatedRecords', 'planet', 'jupiter', 'moons')
+      );
 
       liveQuery.toArray().subscribe(operations => {
         equalOps(operations, [
