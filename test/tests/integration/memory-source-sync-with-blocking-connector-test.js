@@ -59,8 +59,8 @@ module('Integration - Memory Source Sync (Blocking)', {
     source.id = 'source';
 
     // Create connectors
-    storeToSourceConnector = new TransformConnector(store, source);
-    sourceToStoreConnector = new TransformConnector(source, store);
+    storeToSourceConnector = new TransformConnector(store.coordinator, source);
+    sourceToStoreConnector = new TransformConnector(source, store.coordinator);
   },
 
   teardown: function() {

@@ -26,7 +26,7 @@ module('Integration - MemorySource Sync without Connector', {
     store = new Store({ schema: schema });
     source = new MemorySource({ schema: schema });
 
-    store.on('transform', transform => source.transform(transform));
+    store.coordinator.on('transform', transform => source.transform(transform));
   },
 
   teardown: function() {
