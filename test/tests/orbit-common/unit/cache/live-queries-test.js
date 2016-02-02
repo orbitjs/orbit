@@ -48,6 +48,7 @@ module('OC - Cache - liveQuery', function(hooks) {
     const done = assert.async();
 
     cache.transform(new Transform(addRecordOperation(pluto)));
+    cache.transform(new Transform(replaceAttributeOperation(pluto, 'name', 'Pluto2')));
     cache.transform(new Transform(addRecordOperation(jupiter)));
     cache.patches.onCompleted();
 
