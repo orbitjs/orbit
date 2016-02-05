@@ -10,6 +10,9 @@ import {
   addRecordOperation
 } from 'orbit-common/lib/operations';
 import Transform from 'orbit/transform';
+import {
+  RecordNotFoundException
+} from 'orbit-common/lib/exceptions';
 
 var schema,
     cache;
@@ -170,3 +173,45 @@ test('relatedRecord', function(assert) {
     }
   );
 });
+
+test('record', function(assert) {
+  cache = new Cache(schema);
+
+  const jupiter = {
+    id: 'jupiter', type: 'planet',
+    attributes: { name: 'Jupiter' },
+    relationships: { moons: { data: { 'moon:callisto': true } } } };
+
+  cache.reset({ planet: { jupiter } });
+
+  assert.deepEqual(
+    cache.query(oqe('record', 'planet', 'jupiter')),
+    jupiter
+  );
+});
+
+test('record - finds record', function(assert) {
+  cache = new Cache(schema);
+
+  const jupiter = {
+    id: 'jupiter', type: 'planet',
+    attributes: { name: 'Jupiter' },
+    relationships: { moons: { data: { 'moon:callisto': true } } } };
+
+  cache.reset({ planet: { jupiter } });
+
+  assert.deepEqual(
+    cache.query(oqe('record', 'planet', 'jupiter')),
+    jupiter
+  );
+});
+
+test('record - throws RecordNotFoundException if record doesn\'t exist', function(assert) {
+  cache = new Cache(schema);
+
+  assert.throws(
+    () => cache.query(oqe('record', 'planet', 'jupiter')),
+    new RecordNotFoundException('Record not found planet:jupiter')
+  );
+});
+
