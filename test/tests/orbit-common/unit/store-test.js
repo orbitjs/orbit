@@ -19,6 +19,7 @@ import {
 import {
   queryExpression as oqe
 } from 'orbit/query/expression';
+import MemorySource from 'orbit-common/memory-source';
 
 const stub = sinon.stub;
 
@@ -329,6 +330,24 @@ module('OC - Store', function(hooks) {
           deepEqual(jupiter.relationships.moons.data, { 'moon:io': true }, 'updated inverse on added records');
           done();
         });
+    });
+  });
+
+  module('with custom coordinator', function() {
+    let store;
+    let didTransform;
+    let coordinator;
+
+    hooks.beforeEach(function() {
+      coordinator = new MemorySource({ schema });
+      store = new Store({ schema, coordinator });
+
+      didTransform = stub().returns(resolve());
+      store.coordinator.on('transform', didTransform);
+    });
+
+    test('coordinator is set as specified', function(assert) {
+      assert.equal(store.coordinator, coordinator);
     });
   });
 });
