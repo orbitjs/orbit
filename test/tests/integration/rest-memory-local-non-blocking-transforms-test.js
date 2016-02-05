@@ -19,9 +19,6 @@
 //
 // module("Integration - Rest / Memory / Local Transforms (Non-Blocking)", {
 //   setup: function() {
-//     Orbit.Promise = Promise;
-//     Orbit.ajax = jQuery.ajax;
-//
 //     // Fake xhr
 //     server = sinon.fakeServer.create();
 //

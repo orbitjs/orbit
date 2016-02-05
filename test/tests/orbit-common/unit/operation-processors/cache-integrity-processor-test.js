@@ -1,3 +1,4 @@
+import { equalOps } from 'tests/test-helper';
 import Schema from 'orbit-common/schema';
 import CacheIntegrityProcessor from 'orbit-common/operation-processors/cache-integrity-processor';
 import { uuid } from 'orbit/lib/uuid';
@@ -16,7 +17,6 @@ import {
   replaceHasOneOperation,
   replaceHasManyOperation
 } from 'orbit-common/lib/operations';
-import { equalOps } from 'tests/test-helper';
 
 var schema,
     cache,
@@ -57,8 +57,6 @@ var schemaDefinition = {
 
 module('OC - OperationProcessors - CacheIntegrityProcessor', {
   setup: function() {
-    Orbit.Promise = Promise;
-
     schema = new Schema(schemaDefinition);
     cache = new Cache(schema, { processors: [CacheIntegrityProcessor] });
     processor = cache._processors[0];

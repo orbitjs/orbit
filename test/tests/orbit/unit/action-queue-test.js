@@ -1,3 +1,4 @@
+import 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Action from 'orbit/action';
 import ActionQueue from 'orbit/action-queue';
@@ -13,15 +14,7 @@ var failedOperation = function() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module('Orbit - ActionQueue', {
-  setup: function() {
-    Orbit.Promise = Promise;
-  },
-
-  teardown: function() {
-    Orbit.Promise = null;
-  }
-});
+module('Orbit - ActionQueue', {});
 
 test('it exists', function() {
   var queue = new ActionQueue(noop);

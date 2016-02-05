@@ -1,16 +1,14 @@
+import { equalOps } from 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Schema from 'orbit-common/schema';
 import Source from 'orbit-common/source';
 import Operation from 'orbit/operation';
 import { all, Promise } from 'rsvp';
-import { equalOps } from 'tests/test-helper';
 
 var schema;
 
 module('OC - Source', {
   setup: function() {
-    Orbit.Promise = Promise;
-
     schema = new Schema({
       models: {
         planet: {}
@@ -20,7 +18,6 @@ module('OC - Source', {
 
   teardown: function() {
     schema = null;
-    Orbit.Promise = null;
   }
 });
 

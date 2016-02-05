@@ -1,10 +1,10 @@
+import { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty } from 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Schema from 'orbit-common/schema';
 import Source from 'orbit-common/source';
 import MemorySource from 'orbit-common/memory-source';
 import LocalStorageSource from 'orbit-common/local-storage-source';
 import { all, Promise } from 'rsvp';
-import { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty } from 'tests/test-helper';
 import {
   addRecordOperation
 } from 'orbit-common/lib/operations';
@@ -15,8 +15,6 @@ let schema, source;
 
 module('OC - LocalStorageSource', {
   setup: function() {
-    Orbit.Promise = Promise;
-
     schema = new Schema({
       models: {
         planet: {}
@@ -29,7 +27,6 @@ module('OC - LocalStorageSource', {
   teardown: function() {
     window.localStorage.removeItem(source.namespace);
     schema = source = null;
-    Orbit.Promise = null;
   }
 });
 

@@ -1,3 +1,4 @@
+import { equalOps, successfulOperation, failedOperation } from 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Operation from 'orbit/operation';
 import Transform from 'orbit/transform';
@@ -5,7 +6,6 @@ import Transformable from 'orbit/transformable';
 import TransformConnector from 'orbit/transform-connector';
 import { Class } from 'orbit/lib/objects';
 import { Promise } from 'rsvp';
-import { equalOps, successfulOperation, failedOperation } from 'tests/test-helper';
 
 var primarySource,
     secondarySource,
@@ -15,7 +15,6 @@ var primarySource,
 
 module('Orbit - TransformConnector', {
   setup: function() {
-    Orbit.Promise = Promise;
     let Source = Class.extend(Transformable);
 
     primarySource = new Source();
@@ -26,8 +25,6 @@ module('Orbit - TransformConnector', {
     primarySource = null;
     secondarySource = null;
     transformConnector = null;
-
-    Orbit.Promise = null;
   }
 });
 

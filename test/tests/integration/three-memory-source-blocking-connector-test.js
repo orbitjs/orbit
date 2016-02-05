@@ -1,3 +1,4 @@
+import 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Operation from 'orbit/operation';
 import { uuid } from 'orbit/lib/uuid';
@@ -21,8 +22,6 @@ let counter = 0;
 
 module('Integration - Three Memory Source Sync (Blocking / Non-blocking)', {
   setup: function() {
-    Orbit.Promise = Promise;
-
     // Create schema
     let schema = new Schema({
       modelDefaults: {

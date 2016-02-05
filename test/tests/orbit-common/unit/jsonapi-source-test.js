@@ -1,3 +1,4 @@
+import { equalOps } from 'tests/test-helper';
 import Orbit from 'orbit/main';
 import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
@@ -17,7 +18,6 @@ import {
   replaceHasOneOperation,
   replaceHasManyOperation
 } from 'orbit-common/lib/operations';
-import { equalOps } from 'tests/test-helper';
 
 let server,
     schema,
@@ -27,9 +27,6 @@ let server,
 
 module('OC - JSONAPISource', {
   setup() {
-    Orbit.Promise = Promise;
-    Orbit.ajax = jQuery.ajax;
-
     // fake xhr
     server = sinon.fakeServer.create();
     server.autoRespond = true;

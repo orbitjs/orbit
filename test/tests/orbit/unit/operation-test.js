@@ -1,18 +1,11 @@
+import 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Operation from 'orbit/operation';
 import { Promise } from 'rsvp';
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module('Orbit - Operation', {
-  setup: function() {
-    Orbit.Promise = Promise;
-  },
-
-  teardown: function() {
-    Orbit.Promise = null;
-  }
-});
+module('Orbit - Operation', {});
 
 test('it exists', function() {
   var operation = new Operation({ op: 'add', path: '/planet/1', value: 'earth' });

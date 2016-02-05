@@ -1,10 +1,10 @@
+import { equalOps } from 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Schema from 'orbit-common/schema';
 import Store from 'orbit-common/store';
 import Transaction from 'orbit-common/transaction';
 import { uuid } from 'orbit/lib/uuid';
 import { Promise, all } from 'rsvp';
-import { equalOps } from 'tests/test-helper';
 import {
   addRecordOperation,
   replaceRecordOperation,
@@ -23,8 +23,6 @@ let transaction;
 
 module('OC - Transaction', {
   setup: function() {
-    Orbit.Promise = Promise;
-
     schema = new Schema({
       models: {
         planet: {
@@ -56,7 +54,6 @@ module('OC - Transaction', {
   teardown: function() {
     schema = null;
     store = null;
-    Orbit.Promise = null;
   }
 });
 

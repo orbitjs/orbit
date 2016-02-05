@@ -56,10 +56,6 @@ const schemaDefinition = {
 const schema = new Schema(schemaDefinition);
 
 module('OC - Store', function(hooks) {
-  hooks.beforeEach(function() {
-    Orbit.Promise = Promise;
-  });
-
   module('with default coordinator', function(hooks) {
     let store;
     let didTransform;
@@ -69,10 +65,6 @@ module('OC - Store', function(hooks) {
 
       didTransform = stub().returns(resolve());
       store.coordinator.on('transform', didTransform);
-    });
-
-    hooks.afterEach(function() {
-      Orbit.Promise = null;
     });
 
     test('#findRecord - returns a record found by type and id', function() {

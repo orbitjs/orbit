@@ -1,3 +1,4 @@
+import 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Evented from 'orbit/evented';
 import { Promise } from 'rsvp';
@@ -18,8 +19,6 @@ var failedOperation = function() {
 
 module('Orbit - Evented', {
   setup: function() {
-    Orbit.Promise = Promise;
-
     evented = {};
     Evented.extend(evented);
   },
