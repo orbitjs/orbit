@@ -53,290 +53,295 @@ const schemaDefinition = {
   }
 };
 
-let store,
-    schema,
-    didTransform;
+const schema = new Schema(schemaDefinition);
 
-module('OC - Store', {
-  setup() {
+module('OC - Store', function(hooks) {
+  hooks.beforeEach(function() {
     Orbit.Promise = Promise;
-
-    schema = new Schema(schemaDefinition);
-    store = new Store({ schema });
-
-    didTransform = stub().returns(resolve());
-    store.coordinator.on('transform', didTransform);
-  },
-
-  teardown() {
-    schema = null;
-    Orbit.Promise = null;
-  }
-});
-
-test('#findRecord - returns a record found by type and id', function() {
-  expect(1);
-
-  let earth = schema.normalize({ id: 'earth', type: 'planet', relationships: { moons: { data: { 'moon:io': true } } } });
-
-  store.cache.reset({
-    planet: { earth }
   });
 
-  stop();
-  store.findRecord('planet', 'earth')
-    .then(function(foundPlanet) {
-      start();
-      strictEqual(foundPlanet, earth, 'correct planet has been found');
+  module('with default coordinator', function(hooks) {
+    let store;
+    let didTransform;
+
+    hooks.beforeEach(function() {
+      store = new Store({ schema });
+
+      didTransform = stub().returns(resolve());
+      store.coordinator.on('transform', didTransform);
     });
-});
 
-test('#findRecord - returns undefined when a record can\'t be found', function() {
-  expect(1);
+    hooks.afterEach(function() {
+      Orbit.Promise = null;
+    });
 
-  store.cache.reset({
+    test('#findRecord - returns a record found by type and id', function() {
+      expect(1);
+
+      let earth = schema.normalize({ id: 'earth', type: 'planet', relationships: { moons: { data: { 'moon:io': true } } } });
+
+      store.cache.reset({
+        planet: { earth }
+      });
+
+      stop();
+      store.findRecord('planet', 'earth')
+        .then(function(foundPlanet) {
+          start();
+          strictEqual(foundPlanet, earth, 'correct planet has been found');
+        });
+    });
+
+    test('#findRecord - returns undefined when a record can\'t be found', function() {
+      expect(1);
+
+      store.cache.reset({
+      });
+
+      stop();
+      store.findRecord('planet', 'earth')
+        .then(function(foundPlanet) {
+          start();
+          strictEqual(foundPlanet, undefined, 'planet could not be found');
+        });
+    });
+
+    test('#findRecordsByType - returns all records of a particular type', function() {
+      expect(1);
+
+      let earth = schema.normalize({ id: 'earth', type: 'planet', relationships: { moons: { data: { 'moon:io': true } } } });
+      let jupiter = schema.normalize({ id: 'jupiter', type: 'planet' });
+      let io = schema.normalize({ id: 'io', type: 'moon', relationships: { planet: { data: 'planet:earth' } } });
+
+      store.cache.reset({
+        planet: { earth, jupiter },
+        moon: { io }
+      });
+
+      stop();
+      store.findRecordsByType('planet')
+        .then(function(planets) {
+          start();
+          deepEqual(planets, [earth, jupiter], 'planets have been found');
+        });
+    });
+
+    test('#findRecordsByType - returns an empty array when there\'s no data', function() {
+      expect(1);
+
+      store.cache.reset({
+      });
+
+      stop();
+      store.findRecordsByType('planet')
+        .then(function(planets) {
+          start();
+          deepEqual(planets, [], 'no planets have been found');
+        });
+    });
+
+    test('#liveQuery', function(assert) {
+      const done = assert.async();
+
+      const jupiter = schema.normalize({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
+      const pluto = schema.normalize({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
+
+      Promise.all([
+        store.addRecord(pluto),
+        store.addRecord(jupiter)
+      ])
+      .then(([pluto, jupiter]) => {
+        const liveQuery = store.liveQuery(oqe('recordsOfType', 'planet'));
+        liveQuery.take(2).toArray().subscribe((operations) => {
+          equalOps(operations, [
+            addRecordToSetOperation(pluto),
+            addRecordToSetOperation(jupiter)
+          ]);
+
+          done();
+        });
+      });
+    });
+
+    test('#addRecord - added record', function({ async }) {
+      let done = async();
+      let newRecord = { type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+      let normalizedRecord = schema.normalize(newRecord);
+      let expectedTransform = new Transform([addRecordOperation(normalizedRecord)]);
+
+      store.addRecord(newRecord)
+        .then(function(addedRecord) {
+          ok(addedRecord.id, 'has an id assigned');
+          deepEqual(addedRecord.attributes, newRecord.attributes, 'has attributes assigned');
+          deepEqual(addedRecord.relationships.moons, { data: {} }, 'has initialized hasMany relationships');
+          deepEqual(addedRecord.relationships.star, { data: null }, 'has initialized hasOne relationships');
+          deepEqual(store.cache.get(['planet', addedRecord.id]), addedRecord, 'is available for retrieval from the cache');
+          ok(didTransform.calledWith(transformMatching(expectedTransform)), 'operation has been emitted as a transform');
+
+          done();
+        });
+    });
+
+    test('#replaceRecord - replaced record', function({ async }) {
+      let done = async();
+      let pluto = schema.normalize({ id: 'pluto', type: 'planet', attributes: { name: 'pluto' } });
+      let plutoReplacement = schema.normalize({ id: 'pluto', type: 'planet', attributes: { name: 'pluto returns' } });
+      let replaceRecordTransform = new Transform([replaceRecordOperation(plutoReplacement)]);
+
+      store.cache.reset({
+        planet: { pluto }
+      });
+
+      store.replaceRecord(plutoReplacement)
+        .then(function() {
+          ok(didTransform.calledWith(transformMatching(replaceRecordTransform)), 'operation has been emitted as a transform');
+          deepEqual(store.cache.get(['planet', 'pluto']), plutoReplacement);
+
+          done();
+        });
+    });
+
+    test('#removeRecord - deleted record', function({ async }) {
+      let done = async();
+      let pluto = schema.normalize({ id: 'pluto', type: 'planet', attributes: { name: 'pluto' } });
+      let removeRecordTransform = new Transform([removeRecordOperation(pluto)]);
+
+      store.cache.reset({
+        planet: { pluto }
+      });
+
+      store.removeRecord(pluto)
+        .then(function() {
+          ok(didTransform.calledWith(transformMatching(removeRecordTransform)), 'operation has been emitted as a transform');
+          ok(!store.cache.get(['planet', 'pluto']), 'has been removed from store');
+
+          done();
+        });
+    });
+
+    test('#replaceKey', function({ async }) {
+      let done = async();
+      let pluto = schema.normalize({ id: 'pluto', type: 'planet', keys: { galaxyAlias: 'planet:pluto' } });
+      let replaceKeyTransform = new Transform([replaceKeyOperation(pluto, 'galaxyAlias', 'planet:plooto')]);
+
+      store.cache.reset({
+        planet: { pluto }
+      });
+
+      store.replaceKey(pluto, 'galaxyAlias', 'planet:plooto')
+        .then(function() {
+          ok(didTransform.calledWith(transformMatching(replaceKeyTransform)), 'operation has been emitted as a transform');
+
+          done();
+        });
+    });
+
+    test('#replaceAttribute', function({ async }) {
+      let done = async();
+      let pluto = schema.normalize({ id: 'pluto', type: 'planet', attributes: { name: 'pluto' } });
+      let replaceAttributeTransform = new Transform([replaceAttributeOperation(pluto, 'name', 'pluto returns')]);
+
+      store.cache.reset({
+        planet: { pluto }
+      });
+
+      store.replaceAttribute(pluto, 'name', 'pluto returns')
+        .then(function() {
+          ok(didTransform.calledWith(transformMatching(replaceAttributeTransform)), 'operation has been emitted as a transform');
+
+          done();
+        });
+    });
+
+    test('#addToHasMany', function({ async }) {
+      let done = async();
+      let earth = schema.normalize({ id: 'earth', type: 'planet' });
+      let io = schema.normalize({ id: 'io', type: 'moon' });
+      let addToHasManyTransform = new Transform([addToHasManyOperation(earth, 'moons', io)]);
+
+      store.cache.reset({
+        planet: { earth },
+        moon: { io }
+      });
+
+      store.addToHasMany(earth, 'moons', io)
+        .then(function() {
+          ok(didTransform.calledWith(transformMatching(addToHasManyTransform)), 'operation has been emitted as a transform');
+          deepEqual(earth.relationships.moons.data, { 'moon:io': true }, 'added to hasMany');
+
+          done();
+        });
+    });
+
+    test('#removeFromHasMany', function({ async }) {
+      let done = async();
+      let earth = schema.normalize({ id: 'earth', type: 'planet', relationships: { moons: { data: { 'moon:io': true } } } });
+      let io = schema.normalize({ id: 'io', type: 'moon', relationships: { planet: { data: 'planet:earth' } } });
+      let removeFromHasManyTransform = new Transform([removeFromHasManyOperation(earth, 'moons', io)]);
+
+      store.cache.reset({
+        planet: { earth },
+        moon: { io }
+      });
+
+      store.removeFromHasMany(earth, 'moons', io)
+        .then(function() {
+          ok(didTransform.calledWith(transformMatching(removeFromHasManyTransform)), 'operation has been emitted as a transform');
+          deepEqual(earth.relationships.moons.data, {}, 'removed from hasMany');
+          deepEqual(io.relationships.planet.data, null, 'removed from inverse');
+
+          done();
+        });
+    });
+
+    test('#replaceHasMany', function({ async }) {
+      let done = async();
+      let earth = schema.normalize({ id: 'earth', type: 'planet', relationships: { moons: { data: { 'moon:io': true } } } });
+      let io = schema.normalize({ id: 'io', type: 'moon', relationships: { planet: { data: 'planet:earth' } } });
+      let titan = schema.normalize({ id: 'titan', type: 'moon' });
+      let replaceHasManyTransform = new Transform([replaceHasManyOperation(earth, 'moons', [titan])]);
+
+      store.cache.reset({
+        planet: { earth },
+        moon: { io, titan }
+      });
+
+      store.replaceHasMany(earth, 'moons', [titan])
+        .then(function() {
+          ok(didTransform.calledWith(transformMatching(replaceHasManyTransform)), 'operation has been emitted as a transform');
+          deepEqual(earth.relationships.moons.data, { 'moon:titan': true }, 'replaced hasMany');
+          deepEqual(io.relationships.planet.data, null, 'updated inverse on removed records');
+          deepEqual(titan.relationships.planet.data, 'planet:earth', 'updated inverse on added records');
+
+          done();
+        });
+    });
+
+    test('#replaceHasOne', function({ async }) {
+      let done = async();
+      let earth = schema.normalize({ id: 'earth', type: 'planet', relationships: { moons: { data: { 'moon:io': true } } } });
+      let jupiter = schema.normalize({ id: 'jupiter', type: 'planet' });
+      let io = schema.normalize({ id: 'io', type: 'moon', relationships: { planet: { data: 'planet:earth' } } });
+      let replaceHasOneTransform = new Transform([replaceHasOneOperation(io, 'planet', jupiter)]);
+
+      store.cache.reset({
+        planet: { earth, jupiter },
+        moon: { io }
+      });
+
+      store.replaceHasOne(io, 'planet', jupiter)
+        .then(function() {
+          ok(didTransform.calledWith(transformMatching(replaceHasOneTransform)), 'operation has been emitted as a transform');
+          deepEqual(io.relationships.planet.data, 'planet:jupiter', 'updated hasOne');
+          deepEqual(earth.relationships.moons.data, {}, 'updated inverse on removed records');
+          deepEqual(jupiter.relationships.moons.data, { 'moon:io': true }, 'updated inverse on added records');
+          done();
+        });
+    });
   });
-
-  stop();
-  store.findRecord('planet', 'earth')
-    .then(function(foundPlanet) {
-      start();
-      strictEqual(foundPlanet, undefined, 'planet could not be found');
-    });
 });
 
-test('#findRecordsByType - returns all records of a particular type', function() {
-  expect(1);
 
-  let earth = schema.normalize({ id: 'earth', type: 'planet', relationships: { moons: { data: { 'moon:io': true } } } });
-  let jupiter = schema.normalize({ id: 'jupiter', type: 'planet' });
-  let io = schema.normalize({ id: 'io', type: 'moon', relationships: { planet: { data: 'planet:earth' } } });
-
-  store.cache.reset({
-    planet: { earth, jupiter },
-    moon: { io }
-  });
-
-  stop();
-  store.findRecordsByType('planet')
-    .then(function(planets) {
-      start();
-      deepEqual(planets, [earth, jupiter], 'planets have been found');
-    });
-});
-
-test('#findRecordsByType - returns an empty array when there\'s no data', function() {
-  expect(1);
-
-  store.cache.reset({
-  });
-
-  stop();
-  store.findRecordsByType('planet')
-    .then(function(planets) {
-      start();
-      deepEqual(planets, [], 'no planets have been found');
-    });
-});
-
-test('#liveQuery', function(assert) {
-  const done = assert.async();
-
-  const jupiter = schema.normalize({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
-  const pluto = schema.normalize({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
-
-  Promise.all([
-    store.addRecord(pluto),
-    store.addRecord(jupiter)
-  ])
-  .then(([pluto, jupiter]) => {
-    const liveQuery = store.liveQuery(oqe('recordsOfType', 'planet'));
-    liveQuery.take(2).toArray().subscribe((operations) => {
-      equalOps(operations, [
-        addRecordToSetOperation(pluto),
-        addRecordToSetOperation(jupiter)
-      ]);
-
-      done();
-    });
-  });
-});
-
-test('#addRecord - added record', function({ async }) {
-  let done = async();
-  let newRecord = { type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } };
-  let normalizedRecord = schema.normalize(newRecord);
-  let expectedTransform = new Transform([addRecordOperation(normalizedRecord)]);
-
-  store.addRecord(newRecord)
-    .then(function(addedRecord) {
-      ok(addedRecord.id, 'has an id assigned');
-      deepEqual(addedRecord.attributes, newRecord.attributes, 'has attributes assigned');
-      deepEqual(addedRecord.relationships.moons, { data: {} }, 'has initialized hasMany relationships');
-      deepEqual(addedRecord.relationships.star, { data: null }, 'has initialized hasOne relationships');
-      deepEqual(store.cache.get(['planet', addedRecord.id]), addedRecord, 'is available for retrieval from the cache');
-      ok(didTransform.calledWith(transformMatching(expectedTransform)), 'operation has been emitted as a transform');
-
-      done();
-    });
-});
-
-test('#replaceRecord - replaced record', function({ async }) {
-  let done = async();
-  let pluto = schema.normalize({ id: 'pluto', type: 'planet', attributes: { name: 'pluto' } });
-  let plutoReplacement = schema.normalize({ id: 'pluto', type: 'planet', attributes: { name: 'pluto returns' } });
-  let replaceRecordTransform = new Transform([replaceRecordOperation(plutoReplacement)]);
-
-  store.cache.reset({
-    planet: { pluto }
-  });
-
-  store.replaceRecord(plutoReplacement)
-    .then(function() {
-      ok(didTransform.calledWith(transformMatching(replaceRecordTransform)), 'operation has been emitted as a transform');
-      deepEqual(store.cache.get(['planet', 'pluto']), plutoReplacement);
-
-      done();
-    });
-});
-
-test('#removeRecord - deleted record', function({ async }) {
-  let done = async();
-  let pluto = schema.normalize({ id: 'pluto', type: 'planet', attributes: { name: 'pluto' } });
-  let removeRecordTransform = new Transform([removeRecordOperation(pluto)]);
-
-  store.cache.reset({
-    planet: { pluto }
-  });
-
-  store.removeRecord(pluto)
-    .then(function() {
-      ok(didTransform.calledWith(transformMatching(removeRecordTransform)), 'operation has been emitted as a transform');
-      ok(!store.cache.get(['planet', 'pluto']), 'has been removed from store');
-
-      done();
-    });
-});
-
-test('#replaceKey', function({ async }) {
-  let done = async();
-  let pluto = schema.normalize({ id: 'pluto', type: 'planet', keys: { galaxyAlias: 'planet:pluto' } });
-  let replaceKeyTransform = new Transform([replaceKeyOperation(pluto, 'galaxyAlias', 'planet:plooto')]);
-
-  store.cache.reset({
-    planet: { pluto }
-  });
-
-  store.replaceKey(pluto, 'galaxyAlias', 'planet:plooto')
-    .then(function() {
-      ok(didTransform.calledWith(transformMatching(replaceKeyTransform)), 'operation has been emitted as a transform');
-
-      done();
-    });
-});
-
-test('#replaceAttribute', function({ async }) {
-  let done = async();
-  let pluto = schema.normalize({ id: 'pluto', type: 'planet', attributes: { name: 'pluto' } });
-  let replaceAttributeTransform = new Transform([replaceAttributeOperation(pluto, 'name', 'pluto returns')]);
-
-  store.cache.reset({
-    planet: { pluto }
-  });
-
-  store.replaceAttribute(pluto, 'name', 'pluto returns')
-    .then(function() {
-      ok(didTransform.calledWith(transformMatching(replaceAttributeTransform)), 'operation has been emitted as a transform');
-
-      done();
-    });
-});
-
-test('#addToHasMany', function({ async }) {
-  let done = async();
-  let earth = schema.normalize({ id: 'earth', type: 'planet' });
-  let io = schema.normalize({ id: 'io', type: 'moon' });
-  let addToHasManyTransform = new Transform([addToHasManyOperation(earth, 'moons', io)]);
-
-  store.cache.reset({
-    planet: { earth },
-    moon: { io }
-  });
-
-  store.addToHasMany(earth, 'moons', io)
-    .then(function() {
-      ok(didTransform.calledWith(transformMatching(addToHasManyTransform)), 'operation has been emitted as a transform');
-      deepEqual(earth.relationships.moons.data, { 'moon:io': true }, 'added to hasMany');
-
-      done();
-    });
-});
-
-test('#removeFromHasMany', function({ async }) {
-  let done = async();
-  let earth = schema.normalize({ id: 'earth', type: 'planet', relationships: { moons: { data: { 'moon:io': true } } } });
-  let io = schema.normalize({ id: 'io', type: 'moon', relationships: { planet: { data: 'planet:earth' } } });
-  let removeFromHasManyTransform = new Transform([removeFromHasManyOperation(earth, 'moons', io)]);
-
-  store.cache.reset({
-    planet: { earth },
-    moon: { io }
-  });
-
-  store.removeFromHasMany(earth, 'moons', io)
-    .then(function() {
-      ok(didTransform.calledWith(transformMatching(removeFromHasManyTransform)), 'operation has been emitted as a transform');
-      deepEqual(earth.relationships.moons.data, {}, 'removed from hasMany');
-      deepEqual(io.relationships.planet.data, null, 'removed from inverse');
-
-      done();
-    });
-});
-
-test('#replaceHasMany', function({ async }) {
-  let done = async();
-  let earth = schema.normalize({ id: 'earth', type: 'planet', relationships: { moons: { data: { 'moon:io': true } } } });
-  let io = schema.normalize({ id: 'io', type: 'moon', relationships: { planet: { data: 'planet:earth' } } });
-  let titan = schema.normalize({ id: 'titan', type: 'moon' });
-  let replaceHasManyTransform = new Transform([replaceHasManyOperation(earth, 'moons', [titan])]);
-
-  store.cache.reset({
-    planet: { earth },
-    moon: { io, titan }
-  });
-
-  store.replaceHasMany(earth, 'moons', [titan])
-    .then(function() {
-      ok(didTransform.calledWith(transformMatching(replaceHasManyTransform)), 'operation has been emitted as a transform');
-      deepEqual(earth.relationships.moons.data, { 'moon:titan': true }, 'replaced hasMany');
-      deepEqual(io.relationships.planet.data, null, 'updated inverse on removed records');
-      deepEqual(titan.relationships.planet.data, 'planet:earth', 'updated inverse on added records');
-
-      done();
-    });
-});
-
-test('#replaceHasOne', function({ async }) {
-  let done = async();
-  let earth = schema.normalize({ id: 'earth', type: 'planet', relationships: { moons: { data: { 'moon:io': true } } } });
-  let jupiter = schema.normalize({ id: 'jupiter', type: 'planet' });
-  let io = schema.normalize({ id: 'io', type: 'moon', relationships: { planet: { data: 'planet:earth' } } });
-  let replaceHasOneTransform = new Transform([replaceHasOneOperation(io, 'planet', jupiter)]);
-
-  store.cache.reset({
-    planet: { earth, jupiter },
-    moon: { io }
-  });
-
-  store.replaceHasOne(io, 'planet', jupiter)
-    .then(function() {
-      ok(didTransform.calledWith(transformMatching(replaceHasOneTransform)), 'operation has been emitted as a transform');
-      deepEqual(io.relationships.planet.data, 'planet:jupiter', 'updated hasOne');
-      deepEqual(earth.relationships.moons.data, {}, 'updated inverse on removed records');
-      deepEqual(jupiter.relationships.moons.data, { 'moon:io': true }, 'updated inverse on added records');
-      done();
-    });
-});
 
 // TODO - adapt tests previously from MemorySource
 //
