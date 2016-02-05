@@ -11,6 +11,7 @@ import {
 } from 'orbit-common/lib/operations';
 import Transform from 'orbit/transform';
 import {
+  ModelNotRegisteredException,
   RecordNotFoundException
 } from 'orbit-common/lib/exceptions';
 
@@ -215,3 +216,32 @@ test('record - throws RecordNotFoundException if record doesn\'t exist', functio
   );
 });
 
+test('recordsOfType - finds matching records', function(assert) {
+  cache = new Cache(schema);
+
+  const jupiter = {
+    id: 'jupiter', type: 'planet',
+    attributes: { name: 'Jupiter' },
+    relationships: { moons: { data: { 'moon:callisto': true } } } };
+
+  const callisto = {
+    id: 'callisto', type: 'moon',
+    attributes: { name: 'Callisto' },
+    relationships: { planet: { data: 'planet:jupiter' } } };
+
+  cache.reset({ planet: { jupiter }, moon: { callisto } });
+
+  assert.deepEqual(
+    cache.query(oqe('recordsOfType', 'planet')),
+    { jupiter }
+  );
+});
+
+test('recordsOfType - throws ModelNotRegisteredException when model isn\'t registered in schema', function(assert) {
+  cache = new Cache(schema);
+
+  assert.throws(
+    () => cache.query(oqe('recordsOfType', 'black-hole')),
+    new ModelNotRegisteredException('No model registered for black-hole')
+  );
+});
