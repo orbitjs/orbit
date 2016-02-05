@@ -157,6 +157,24 @@ module('OC - Store', function(hooks) {
       });
     });
 
+    test('#query', function(assert) {
+      const done = assert.async();
+
+      const jupiter = schema.normalize({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
+      const pluto = schema.normalize({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
+
+      Promise.all([
+        store.addRecord(pluto),
+        store.addRecord(jupiter)
+      ])
+      .then(([pluto, jupiter]) => {
+        return store.query(oqe('recordsOfType', 'planet')).then(result => {
+          assert.deepEqual(result, { pluto, jupiter });
+        });
+      })
+      .finally(done);
+    });
+
     test('#addRecord - added record', function({ async }) {
       let done = async();
       let newRecord = { type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } };
@@ -171,7 +189,6 @@ module('OC - Store', function(hooks) {
           deepEqual(addedRecord.relationships.star, { data: null }, 'has initialized hasOne relationships');
           deepEqual(store.cache.get(['planet', addedRecord.id]), addedRecord, 'is available for retrieval from the cache');
           ok(didTransform.calledWith(transformMatching(expectedTransform)), 'operation has been emitted as a transform');
-
           done();
         });
     });
