@@ -144,14 +144,15 @@ module('OC - Store', function(hooks) {
         store.addRecord(jupiter)
       ])
       .then(([pluto, jupiter]) => {
-        const liveQuery = store.liveQuery(oqe('recordsOfType', 'planet'));
-        liveQuery.take(2).toArray().subscribe((operations) => {
-          equalOps(operations, [
-            addRecordToSetOperation(pluto),
-            addRecordToSetOperation(jupiter)
-          ]);
+        store.liveQuery(oqe('recordsOfType', 'planet')).then(liveQuery => {
+          liveQuery.take(2).toArray().subscribe((operations) => {
+            equalOps(operations, [
+              addRecordToSetOperation(pluto),
+              addRecordToSetOperation(jupiter)
+            ]);
 
-          done();
+            done();
+          });
         });
       });
     });
