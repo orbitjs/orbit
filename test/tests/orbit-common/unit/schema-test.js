@@ -403,3 +403,9 @@ test('#singularize simply removes a trailing `s` if present at the end of words'
   equal(schema.singularize('cows'), 'cow', 'no kine here');
   equal(schema.singularize('data'), 'data', 'no Latin knowledge here');
 });
+
+test('#containsModel', function(assert) {
+  var schema = new Schema({ models: { moon: {} } });
+  assert.ok(schema.containsModel('moon'), 'identifies when schema contains model');
+  assert.ok(!schema.containsModel('black-hole'), 'identifies when scheam does not contain model');
+});
