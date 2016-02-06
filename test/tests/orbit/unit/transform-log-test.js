@@ -70,5 +70,9 @@ module('Orbit - TransformLog', function() {
     test('#head', function(assert) {
       assert.equal(log.head(), transformCId, 'is last transformId');
     });
+
+    test('#contains', function(assert) {
+      assert.ok(log.contains(transformAId), 'identifies when log contains a transform');
+    });
   });
 });
