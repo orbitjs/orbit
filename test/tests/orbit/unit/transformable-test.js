@@ -1,8 +1,8 @@
+import { equalOps, successfulOperation, failedOperation } from 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Transformable from 'orbit/transformable';
 import { Class } from 'orbit/lib/objects';
 import { Promise } from 'rsvp';
-import { equalOps, successfulOperation, failedOperation } from 'tests/test-helper';
 
 let Source, source;
 
@@ -10,14 +10,12 @@ let Source, source;
 
 module('Orbit - Transformable', {
   setup: function() {
-    Orbit.Promise = Promise;
     Source = Class.extend(Transformable);
     source = new Source();
   },
 
   teardown: function() {
     Source = source = null;
-    Orbit.Promise = null;
   }
 });
 

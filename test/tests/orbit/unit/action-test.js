@@ -1,3 +1,4 @@
+import 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Action from 'orbit/action';
 import { Promise } from 'rsvp';
@@ -10,15 +11,7 @@ var failedOperation = function() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module('Orbit - Action', {
-  setup: function() {
-    Orbit.Promise = Promise;
-  },
-
-  teardown: function() {
-    Orbit.Promise = null;
-  }
-});
+module('Orbit - Action', {});
 
 test('it exists', function() {
   var action = new Action({});

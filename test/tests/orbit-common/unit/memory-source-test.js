@@ -1,3 +1,4 @@
+import 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
@@ -9,7 +10,6 @@ import { uuid } from 'orbit/lib/uuid';
 import { toIdentifier } from 'orbit-common/lib/identifiers';
 import CacheIntegrityProcessor from 'orbit-common/operation-processors/cache-integrity-processor';
 import SchemaConsistencyProcessor from 'orbit-common/operation-processors/schema-consistency-processor';
-import 'tests/test-helper';
 import {
   queryExpression as oqe
 } from 'orbit/query/expression';
@@ -20,8 +20,6 @@ module('OC - MemorySource', function(hooks) {
   let schema, source;
 
   hooks.beforeEach(function() {
-    Orbit.Promise = Promise;
-
     schema = new Schema({
       models: {
         planet: {
@@ -50,7 +48,6 @@ module('OC - MemorySource', function(hooks) {
   hooks.afterEach(function() {
     schema = null;
     source = null;
-    Orbit.Promise = null;
   });
 
   test('it exists', function(assert) {

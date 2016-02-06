@@ -1,3 +1,4 @@
+import 'tests/test-helper';
 import Orbit from 'orbit/main';
 import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
@@ -12,10 +13,6 @@ var schema,
 ///////////////////////////////////////////////////////////////////////////////
 
 module('OC - JSONAPISerializer', {
-  setup: function() {
-    Orbit.Promise = Promise;
-  },
-
   teardown: function() {
     schema = null;
     serializer = null;

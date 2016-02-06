@@ -1,3 +1,4 @@
+import { equalOps } from 'tests/test-helper';
 import Schema from 'orbit-common/schema';
 import SchemaConsistencyProcessor from 'orbit-common/operation-processors/schema-consistency-processor';
 import { uuid } from 'orbit/lib/uuid';
@@ -16,7 +17,6 @@ import {
   replaceHasOneOperation,
   replaceHasManyOperation
 } from 'orbit-common/lib/operations';
-import { equalOps } from 'tests/test-helper';
 
 var schema,
     cache,
@@ -57,8 +57,6 @@ var schemaDefinition = {
 
 module('OC - OperationProcessors - SchemaConsistencyProcessor', {
   setup: function() {
-    Orbit.Promise = Promise;
-
     schema = new Schema(schemaDefinition);
     cache = new Cache(schema, { processors: [SchemaConsistencyProcessor] });
     processor = cache._processors[0];

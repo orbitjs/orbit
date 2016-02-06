@@ -1,22 +1,20 @@
+import { successfulOperation, failedOperation } from 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Queryable from 'orbit/queryable';
 import { Class } from 'orbit/lib/objects';
 import { QueryProcessorNotFoundException } from 'orbit/lib/exceptions';
 import { Promise } from 'rsvp';
-import { successfulOperation, failedOperation } from 'tests/test-helper';
 
 var Source, source;
 
 module('Orbit - Queryable', {
   setup: function() {
-    Orbit.Promise = Promise;
     Source = Class.extend(Queryable);
     source = new Source();
   },
 
   teardown: function() {
     Source = source = null;
-    Orbit.Promise = null;
   }
 });
 

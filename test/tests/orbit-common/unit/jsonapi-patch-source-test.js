@@ -15,9 +15,6 @@
 //
 // module("OC - JSONAPIPatchSource", {
 //   setup: function() {
-//     Orbit.Promise = Promise;
-//     Orbit.ajax = jQuery.ajax;
-//
 //     // fake xhr
 //     server = sinon.fakeServer.create();
 //     server.autoRespond = true;

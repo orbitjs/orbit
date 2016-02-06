@@ -6,11 +6,7 @@ import { ModelNotRegisteredException } from 'orbit-common/lib/exceptions';
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module('OC - Schema', {
-  setup: function() {
-    Orbit.Promise = Promise;
-  }
-});
+module('OC - Schema');
 
 test('it exists', function() {
   var schema = new Schema();

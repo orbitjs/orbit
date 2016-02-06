@@ -1,7 +1,7 @@
+import { equalOps, op } from 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
-import { equalOps, op } from 'tests/test-helper';
 import { Promise, on } from 'rsvp';
 import {
   queryExpression as oqe
@@ -18,7 +18,6 @@ var schema,
 
 module('OC - Cache', {
   setup: function() {
-    Orbit.Promise = Promise;
     schema = new Schema({
       models: {
         planet: {

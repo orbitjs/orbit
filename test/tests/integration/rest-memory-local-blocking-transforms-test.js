@@ -1,3 +1,4 @@
+import 'tests/test-helper';
 import Orbit from 'orbit/main';
 import { uuid } from 'orbit/lib/uuid';
 import { clone } from 'orbit/lib/objects';
@@ -20,9 +21,6 @@ var server,
 
 module('Integration - Rest / Memory / Local Transforms (Blocking)', {
   setup: function() {
-    Orbit.Promise = Promise;
-    Orbit.ajax = jQuery.ajax;
-
     // fake xhr
     server = sinon.fakeServer.create();
     server.autoRespond = true;

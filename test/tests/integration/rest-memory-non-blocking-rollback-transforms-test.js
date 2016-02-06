@@ -14,9 +14,6 @@
 //
 // module("Integration - Rest / Memory (Non-Blocking) rollbackTransformsOnFailure=true", {
 //   setup: function() {
-//     Orbit.Promise = Promise;
-//     Orbit.ajax = jQuery.ajax;
-//
 //     // Fake xhr
 //     server = sinon.fakeServer.create();
 //

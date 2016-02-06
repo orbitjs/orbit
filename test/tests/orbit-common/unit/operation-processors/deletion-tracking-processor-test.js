@@ -1,3 +1,4 @@
+import 'tests/test-helper';
 import Schema from 'orbit-common/schema';
 import DeletionTrackingProcessor from 'orbit-common/operation-processors/deletion-tracking-processor';
 import { uuid } from 'orbit/lib/uuid';
@@ -45,8 +46,6 @@ var schemaDefinition = {
 
 module('OC - OperationProcessors - DeletionTrackingProcessor', {
   setup: function() {
-    Orbit.Promise = Promise;
-
     schema = new Schema(schemaDefinition);
     cache = new Cache(schema, { processors: [DeletionTrackingProcessor] });
     processor = cache._processors[0];

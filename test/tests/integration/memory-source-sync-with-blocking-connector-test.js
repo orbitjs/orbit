@@ -1,3 +1,4 @@
+import 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
@@ -46,8 +47,6 @@ let schema,
 
 module('Integration - Memory Source Sync (Blocking)', {
   setup: function() {
-    Orbit.Promise = Promise;
-
     // Create schema
     schema = new Schema(schemaDefinition);
 
