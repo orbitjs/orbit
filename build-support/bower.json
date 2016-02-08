@@ -1,6 +1,7 @@
 {
   "name": "orbit.js",
   "version": "VERSION_PLACEHOLDER",
+  "main": ["orbit.js"],
   "author": {
     "name": "Cerebris Corporation",
     "url": "http://cerebris.com"
