@@ -8,8 +8,8 @@ import { RecordNotFoundException, LinkNotFoundException } from 'orbit-common/lib
 import { spread } from 'orbit/lib/functions';
 import { uuid } from 'orbit/lib/uuid';
 import { toIdentifier } from 'orbit-common/lib/identifiers';
-import CacheIntegrityProcessor from 'orbit-common/operation-processors/cache-integrity-processor';
-import SchemaConsistencyProcessor from 'orbit-common/operation-processors/schema-consistency-processor';
+import CacheIntegrityProcessor from 'orbit-common/cache/operation-processors/cache-integrity-processor';
+import SchemaConsistencyProcessor from 'orbit-common/cache/operation-processors/schema-consistency-processor';
 import {
   queryExpression as oqe
 } from 'orbit/query/expression';
