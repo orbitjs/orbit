@@ -6,6 +6,10 @@ import { Promise, on } from 'rsvp';
 import { queryExpression as oqe } from 'orbit/query/expression';
 import { addRecordOperation } from 'orbit-common/lib/operations';
 import Transform from 'orbit/transform';
+import {
+  RecordNotFoundException,
+  ModelNotRegisteredException
+} from 'orbit-common/lib/exceptions';
 
 var schema,
     cache;
@@ -684,6 +688,77 @@ test('#query can perform a complex conditional `or` filter', function(assert) {
       earth,
       venus
     }
+  );
+});
+
+test('#query - record', function(assert) {
+  cache = new Cache(schema);
+
+  const jupiter = {
+    id: 'jupiter', type: 'planet',
+    attributes: { name: 'Jupiter' },
+    relationships: { moons: { data: { 'moon:callisto': true } } } };
+
+  cache.reset({ planet: { jupiter } });
+
+  assert.deepEqual(
+    cache.query(oqe('record', 'planet', 'jupiter')),
+    jupiter
+  );
+});
+
+test('#query - record - finds record', function(assert) {
+  cache = new Cache(schema);
+
+  const jupiter = {
+    id: 'jupiter', type: 'planet',
+    attributes: { name: 'Jupiter' },
+    relationships: { moons: { data: { 'moon:callisto': true } } } };
+
+  cache.reset({ planet: { jupiter } });
+
+  assert.deepEqual(
+    cache.query(oqe('record', 'planet', 'jupiter')),
+    jupiter
+  );
+});
+
+test('#query - record - throws RecordNotFoundException if record doesn\'t exist', function(assert) {
+  cache = new Cache(schema);
+
+  assert.throws(
+    () => cache.query(oqe('record', 'planet', 'jupiter')),
+    new RecordNotFoundException('Record not found planet:jupiter')
+  );
+});
+
+test('#query - recordsOfType - finds matching records', function(assert) {
+  cache = new Cache(schema);
+
+  const jupiter = {
+    id: 'jupiter', type: 'planet',
+    attributes: { name: 'Jupiter' },
+    relationships: { moons: { data: { 'moon:callisto': true } } } };
+
+  const callisto = {
+    id: 'callisto', type: 'moon',
+    attributes: { name: 'Callisto' },
+    relationships: { planet: { data: 'planet:jupiter' } } };
+
+  cache.reset({ planet: { jupiter }, moon: { callisto } });
+
+  assert.deepEqual(
+    cache.query(oqe('recordsOfType', 'planet')),
+    { jupiter }
+  );
+});
+
+test('#query - recordsOfType - throws ModelNotRegisteredException when model isn\'t registered in schema', function(assert) {
+  cache = new Cache(schema);
+
+  assert.throws(
+    () => cache.query(oqe('recordsOfType', 'black-hole')),
+    new ModelNotRegisteredException('No model registered for black-hole')
   );
 });
 
