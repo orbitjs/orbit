@@ -1,6 +1,6 @@
 import 'tests/test-helper';
 import Schema from 'orbit-common/schema';
-import DeletionTrackingProcessor from 'orbit-common/operation-processors/deletion-tracking-processor';
+import DeletionTrackingProcessor from 'orbit-common/cache/operation-processors/deletion-tracking-processor';
 import { uuid } from 'orbit/lib/uuid';
 import Operation from 'orbit/operation';
 import Cache from 'orbit-common/cache';
