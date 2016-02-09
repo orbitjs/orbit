@@ -82,6 +82,7 @@ test('it should trigger `transform` event BEFORE a transform resolves', function
   source._transform = function(transform) {
     equal(++order, 1, '_transform performed first');
     equalOps(transform.operations, addOps, '_handler args match original call args');
+    this.transformed(transform);
   };
 
   source.on('transform', function(transform) {
@@ -144,6 +145,8 @@ test('it should wait for the current settle loop before starting another', funct
     if (transform.operations[0].op === 'remove') {
       equal(++order, 3, '_transform `remove` performed second');
     }
+
+    this.transformed(transform);
   };
 
   source.on('transform', function(transform) {
@@ -169,8 +172,8 @@ test('it should wait for the current settle loop before starting another', funct
 test('#clearTransformLog can clear the log of any applied transforms', function() {
   expect(2);
 
-  source._transform = function() {
-    return Promise.resolve();
+  source._transform = function(transform) {
+    return this.transformed(transform);
   };
 
   stop();
