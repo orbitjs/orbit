@@ -3,12 +3,8 @@ import Orbit from 'orbit/main';
 import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
 import { Promise, on } from 'rsvp';
-import {
-  queryExpression as oqe
-} from 'orbit/query/expression';
-import {
-  addRecordOperation
-} from 'orbit-common/lib/operations';
+import { queryExpression as oqe } from 'orbit/query/expression';
+import { addRecordOperation } from 'orbit-common/lib/operations';
 import Transform from 'orbit/transform';
 
 var schema,
@@ -604,7 +600,7 @@ test('#get will get missing data from a `fallback` cache if one has been set', f
   assert.deepEqual(cache.get('planet/2'), mars, 'data retrieved from fallback');
 });
 
-test('#query can `get`', function(assert) {
+test('#query - can `get` an individual record', function(assert) {
   cache = new Cache(schema);
 
   let jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', classification: 'gas giant', atmosphere: true } };

@@ -8,6 +8,7 @@ import { Promise } from 'rsvp';
 import jQuery from 'jquery';
 import { toOperation } from 'orbit/lib/operations';
 import { toIdentifier, parseIdentifier } from 'orbit-common/lib/identifiers';
+import { queryExpression as oqe } from 'orbit/query/expression';
 import {
   addRecordOperation,
   replaceRecordOperation,
@@ -430,7 +431,7 @@ test('#transform - can replace a hasMany relationship (flagged as `actsAsSet`) w
     });
 });
 
-// test('#query - `findRecord` can find an individual record by passing in a single id', function() {
+// test('#query - can `get` an individual record', function() {
 //   expect(5);
 //
 //   let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
@@ -443,10 +444,7 @@ test('#transform - can replace a hasMany relationship (flagged as `actsAsSet`) w
 //   });
 //
 //   stop();
-//   source.query({ findRecord: {
-//     type: 'planet',
-//     id: planet.id
-//   } })
+//   source.query(oqe('get', `planet/${planet.id}`))
 //     .then(function(foundPlanet) {
 //       start();
 //       equal(foundPlanet.id, planet.id, 'orbit id should match');
@@ -455,7 +453,7 @@ test('#transform - can replace a hasMany relationship (flagged as `actsAsSet`) w
 //       equal(foundPlanet.attributes.classification, 'gas giant', 'classification should match');
 //     });
 // });
-//
+
 // test('#query - `findRecord` can return a compound document including related records', function() {
 //   expect(6);
 //
