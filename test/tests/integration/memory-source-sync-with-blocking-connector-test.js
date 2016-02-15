@@ -54,7 +54,7 @@ module('Integration - Memory Source Sync (Blocking)', {
     store = new Store({ schema: schema });
     source = new MemorySource({ schema: schema });
 
-    store.id = 'store';
+    store.coordinator.id = 'store';
     source.id = 'source';
 
     // Create connectors
