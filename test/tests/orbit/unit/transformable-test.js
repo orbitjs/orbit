@@ -2,6 +2,7 @@ import { successfulOperation, failedOperation } from 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Transformable from 'orbit/transformable';
 import Transform from 'orbit/transform';
+import TransformBuilder from 'orbit-common/transform/builder';
 import { TransformBuilderNotRegisteredException } from 'orbit/lib/exceptions';
 import { Class } from 'orbit/lib/objects';
 import { Promise } from 'rsvp';
@@ -230,9 +231,27 @@ test('#clearTransformLog can clear the log of any applied transforms', function(
 
   return source.transform({ op: 'add', path: 'planet/1', value: 'data' })
     .then(() => {
-      assert.equal(Object.keys(source._transformLog).length, 1, 'log has an entry');
+      assert.equal(source._transformLog.length(), 1, 'log has an entry');
 
       source.clearTransformLog();
-      assert.equal(Object.keys(source._transformLog).length, 0, 'log has been cleared');
+      assert.equal(source._transformLog.length(), 0, 'log has been cleared');
     });
+});
+
+test('#contains can determine if a Transform has been applied to a Transformable', function(assert) {
+  const done = assert.async();
+  expect(2);
+
+  source._transform = function(transform) {
+    return this.transformed(transform);
+  };
+
+  const transform = new TransformBuilder().build(t => t.addRecord({ type: 'planet', id: 'pluto' }));
+
+  ok(!source.contains(transform));
+
+  source
+    .transform(transform)
+    .then(() => ok(source.contains(transform)))
+    .finally(done);
 });
