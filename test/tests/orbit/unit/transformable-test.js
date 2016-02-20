@@ -180,9 +180,9 @@ test('#clearTransformLog can clear the log of any applied transforms', function(
   source.transform({ op: 'add', path: 'planet/1', value: 'data' })
     .then(() => {
       start();
-      equal(Object.keys(source._transformLog).length, 1, 'log has an entry');
+      ok(!source._transformLog.isEmpty(), 'log has an entry');
 
       source.clearTransformLog();
-      equal(Object.keys(source._transformLog).length, 0, 'log has been cleared');
+      ok(source._transformLog.isEmpty(), 'log has been cleared');
     });
 });
