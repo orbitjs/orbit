@@ -100,76 +100,76 @@ test('it should trigger `transform` event BEFORE a transform resolves', function
     });
 });
 
-test('it should perform transforms in the order they are pushed', function() {
-  expect(4);
+// test('it should perform transforms in the order they are pushed', function() {
+//   expect(4);
 
-  let order = 0;
-  let addOp = { op: 'add', path: 'planet/1', value: 'data' };
-  let inverseOp = { op: 'remove', path: 'planet/1' };
+//   let order = 0;
+//   let addOp = { op: 'add', path: 'planet/1', value: 'data' };
+//   let inverseOp = { op: 'remove', path: 'planet/1' };
 
-  source._transform = function(transform) {
-    source.settleTransforms().then(function() {
-      start();
-      equal(++order, 3, 'settleTransforms finishes after all other transforms');
-    });
+//   source._transform = function(transform) {
+//     source.settleTransforms().then(function() {
+//       start();
+//       equal(++order, 3, 'settleTransforms finishes after all other transforms');
+//     });
 
-    equalOps(transform.operations, [addOp, inverseOp]);
-    equal(++order, 1, '_transform called first');
-  };
+//     equalOps(transform.operations, [addOp, inverseOp]);
+//     equal(++order, 1, '_transform called first');
+//   };
 
-  stop();
-  source.transform([addOp, inverseOp])
-    .then(() => {
-      equal(++order, 2, 'promise resolved last');
-    });
-});
+//   stop();
+//   source.transform([addOp, inverseOp])
+//     .then(() => {
+//       equal(++order, 2, 'promise resolved last');
+//     });
+// });
 
-test('it should wait for the current settle loop before starting another', function() {
-  expect(8);
+// test('it should wait for the current settle loop before starting another', function() {
+//   expect(8);
 
-  let order = 0;
-  let addOps = [{ op: 'add', path: 'planet/1', value: 'data' }];
-  let inverseOps = [{ op: 'remove', path: 'planet/1' }];
+//   let order = 0;
+//   let addOps = [{ op: 'add', path: 'planet/1', value: 'data' }];
+//   let inverseOps = [{ op: 'remove', path: 'planet/1' }];
 
-  // though this is definitely an awkward use case, it ensures execution order
-  // is what we want it to be
-  source._transform = function(transform) {
-    // console.log('_transform', operation.serialize());
-    if (transform.operations[0].op === 'add') {
-      source.settleTransforms().then(function() {
-        start();
-        equal(++order, 6, 'settleTransforms finishes after all other transforms');
-      });
+//   // though this is definitely an awkward use case, it ensures execution order
+//   // is what we want it to be
+//   source._transform = function(transform) {
+//     // console.log('_transform', operation.serialize());
+//     if (transform.operations[0].op === 'add') {
+//       source.settleTransforms().then(function() {
+//         start();
+//         equal(++order, 6, 'settleTransforms finishes after all other transforms');
+//       });
 
-      equal(++order, 1, '_transform `add` performed first');
-    }
+//       equal(++order, 1, '_transform `add` performed first');
+//     }
 
-    if (transform.operations[0].op === 'remove') {
-      equal(++order, 3, '_transform `remove` performed second');
-    }
+//     if (transform.operations[0].op === 'remove') {
+//       equal(++order, 3, '_transform `remove` performed second');
+//     }
 
-    this.transformed(transform);
-  };
+//     this.transformed(transform);
+//   };
 
-  source.on('transform', function(transform) {
-    if (transform.operations[0].op === 'add') {
-      equal(++order, 2, 'didTransform triggered after `add` transform');
-      equalOps(transform.operations, addOps, '`add` operation matches');
-    }
-    if (transform.operations[0].op === 'remove') {
-      equal(++order, 4, 'didTransform triggered after `remove` transform');
-      equalOps(transform.operations, inverseOps, '`remove` operation matches');
-    }
-  });
+//   source.on('transform', function(transform) {
+//     if (transform.operations[0].op === 'add') {
+//       equal(++order, 2, 'didTransform triggered after `add` transform');
+//       equalOps(transform.operations, addOps, '`add` operation matches');
+//     }
+//     if (transform.operations[0].op === 'remove') {
+//       equal(++order, 4, 'didTransform triggered after `remove` transform');
+//       equalOps(transform.operations, inverseOps, '`remove` operation matches');
+//     }
+//   });
 
-  stop();
+//   stop();
 
-  source.transform(addOps);
-  source.transform(inverseOps)
-    .then(() => {
-      equal(++order, 5, 'promise resolved last');
-    });
-});
+//   source.transform(addOps);
+//   source.transform(inverseOps)
+//     .then(() => {
+//       equal(++order, 5, 'promise resolved last');
+//     });
+// });
 
 test('#clearTransformLog can clear the log of any applied transforms', function() {
   expect(2);
