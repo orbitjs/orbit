@@ -4,6 +4,7 @@ import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
 import Store from 'orbit-common/store';
 import { Promise } from 'rsvp';
+import BlockingTransformableProxy from 'orbit/blocking-transformable-proxy';
 
 const schemaDefinition = {
   models: {
@@ -22,8 +23,10 @@ module('Integration - MemorySource Sync without Connector', {
     let schema = new Schema(schemaDefinition);
 
     // Create sources
-    store = new Store({ schema: schema });
-    source = new MemorySource({ schema: schema });
+    source = new BlockingTransformableProxy(new MemorySource({ schema: schema }));
+    const coordinator = new BlockingTransformableProxy(new MemorySource({ schema }));
+
+    store = new Store({ schema: schema, coordinator });
 
     store.coordinator.on('transform', transform => source.transform(transform));
   },
