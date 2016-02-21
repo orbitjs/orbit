@@ -4,6 +4,7 @@ import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
 import Store from 'orbit-common/store';
 import TransformConnector from 'orbit/transform-connector';
+import BlockingTransformableProxy from 'orbit/blocking-transformable-proxy';
 import { Promise, all } from 'rsvp';
 
 const schemaDefinition = {
@@ -51,11 +52,18 @@ module('Integration - Memory Source Sync (Blocking)', {
     schema = new Schema(schemaDefinition);
 
     // Create sources
-    store = new Store({ schema: schema });
+    let coordinator = new MemorySource({ schema });
     source = new MemorySource({ schema: schema });
 
-    store.coordinator.id = 'store';
+    coordinator.id = 'coordinator';
     source.id = 'source';
+
+    // Proxy sources
+    coordinator = new BlockingTransformableProxy(coordinator);
+    source = new BlockingTransformableProxy(source);
+
+    // Create Store
+    store = new Store({ schema, coordinator });
 
     // Create connectors
     storeToSourceConnector = new TransformConnector(store.coordinator, source);
@@ -73,6 +81,7 @@ module('Integration - Memory Source Sync (Blocking)', {
 test('consecutive transforms can be applied to one source and should be automatically applied to the other source', function({ async }) {
   let done = async();
   expect(4);
+  console.log('starting');
 
   store.addRecord({ id: '123', type: 'planet', attributes: { name: 'Jupiter' } })
     .then(function(jupiter) {
