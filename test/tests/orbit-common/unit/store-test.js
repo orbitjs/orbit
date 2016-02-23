@@ -144,16 +144,35 @@ module('OC - Store', function(hooks) {
         store.addRecord(jupiter)
       ])
       .then(([pluto, jupiter]) => {
-        const liveQuery = store.liveQuery(oqe('recordsOfType', 'planet'));
-        liveQuery.take(2).toArray().subscribe((operations) => {
-          equalOps(operations, [
-            addRecordToSetOperation(pluto),
-            addRecordToSetOperation(jupiter)
-          ]);
+        store.liveQuery(oqe('recordsOfType', 'planet')).then(liveQuery => {
+          liveQuery.take(2).toArray().subscribe((operations) => {
+            equalOps(operations, [
+              addRecordToSetOperation(pluto),
+              addRecordToSetOperation(jupiter)
+            ]);
 
-          done();
+            done();
+          });
         });
       });
+    });
+
+    test('#query', function(assert) {
+      const done = assert.async();
+
+      const jupiter = schema.normalize({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
+      const pluto = schema.normalize({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
+
+      Promise.all([
+        store.addRecord(pluto),
+        store.addRecord(jupiter)
+      ])
+      .then(([pluto, jupiter]) => {
+        return store.query(oqe('recordsOfType', 'planet')).then(result => {
+          assert.deepEqual(result, { pluto, jupiter });
+        });
+      })
+      .finally(done);
     });
 
     test('#addRecord - added record', function({ async }) {
@@ -170,7 +189,6 @@ module('OC - Store', function(hooks) {
           deepEqual(addedRecord.relationships.star, { data: null }, 'has initialized hasOne relationships');
           deepEqual(store.cache.get(['planet', addedRecord.id]), addedRecord, 'is available for retrieval from the cache');
           ok(didTransform.calledWith(transformMatching(expectedTransform)), 'operation has been emitted as a transform');
-
           done();
         });
     });
