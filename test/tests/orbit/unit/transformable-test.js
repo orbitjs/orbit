@@ -1,6 +1,8 @@
 import { equalOps, successfulOperation, failedOperation } from 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Transformable from 'orbit/transformable';
+import Transform from 'orbit/transform';
+import { TransformBuilderNotRegisteredException } from 'orbit/lib/exceptions';
 import { Class } from 'orbit/lib/objects';
 import { Promise } from 'rsvp';
 
@@ -37,8 +39,7 @@ test('it should require the definition of _transform', function(assert) {
   assert.throws(source._transform, 'presence of _transform should be verified');
 });
 
-
-test('it should resolve when _transform returns a promise', function(assert) {
+test('#transform should resolve when _transform returns a promise', function(assert) {
   assert.expect(2);
 
   source._transform = function(o) {
@@ -54,7 +55,7 @@ test('it should resolve when _transform returns a promise', function(assert) {
     });
 });
 
-test('it should resolve when _transform simply returns (without a promise)', function(assert) {
+test('#transform should resolve when _transform simply returns (without a promise)', function(assert) {
   assert.expect(2);
 
   source._transform = function() {
@@ -68,7 +69,7 @@ test('it should resolve when _transform simply returns (without a promise)', fun
     });
 });
 
-test('it should trigger `transform` event BEFORE a transform resolves', function(assert) {
+test('#transform should trigger `transform` event BEFORE a transform resolves', function(assert) {
   assert.expect(5);
 
   let order = 0;
@@ -92,7 +93,7 @@ test('it should trigger `transform` event BEFORE a transform resolves', function
     });
 });
 
-test('it should perform transforms in the order they are pushed', function(assert) {
+test('#transform should perform transforms in the order they are pushed', function(assert) {
   assert.expect(4);
 
   let order = 0;
@@ -114,7 +115,7 @@ test('it should perform transforms in the order they are pushed', function(asser
     });
 });
 
-test('it should wait for the current settle loop before starting another', function(assert) {
+test('#transform should wait for the current settle loop before starting another', function(assert) {
   assert.expect(8);
 
   let order = 0;
@@ -156,6 +157,66 @@ test('it should wait for the current settle loop before starting another', funct
     .then(() => {
       equal(++order, 5, 'promise resolved last');
     });
+});
+
+test('#transform should convert non-Transforms into Transforms', function(assert) {
+  assert.expect(2);
+
+  source._transform = function(t) {
+    assert.ok(t instanceof Transform, '_transform arg is a Transform');
+    return ':)';
+  };
+
+  return source.transform({ op: 'add', path: 'planet/1', value: 'data' })
+    .then(() => {
+      assert.ok(true, 'transform promise returned');
+    });
+});
+
+test('#transform should pass any transform functions to source._transformBuilder, if one is registered', function(assert) {
+  assert.expect(5);
+
+  let planet = { type: 'planet', id: '1' };
+
+  source._transformBuilder = function(b) {
+    let operations = [];
+
+    let context = {
+      addRecord(record) {
+        assert.strictEqual(record, planet, 'builder.addRecord called');
+        operations.push({ op: 'addRecord', record: record });
+      }
+    };
+
+    assert.ok(b, '_transformBuilder called');
+
+    b(context);
+
+    return new Transform(operations);
+  };
+
+  source._transform = function(t) {
+    assert.ok(t instanceof Transform, '_transform arg is a Transform');
+    assert.equal(t.operations.length, 1, 'one operation has been passed');
+    return ':)';
+  };
+
+  return source.transform(
+    (b) => {
+      b.addRecord(planet);
+    })
+    .then(() => {
+      assert.ok(true, 'transform promise returned');
+    });
+});
+
+test('#transform should throw an exception if source._transformBuilder is not registered', function(assert) {
+  assert.throws(
+    function() {
+      source.transform((b) => {});
+    },
+    TransformBuilderNotRegisteredException
+  );
 });
 
 test('#clearTransformLog can clear the log of any applied transforms', function(assert) {
