@@ -5,6 +5,8 @@ import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
 import MemorySource from 'orbit-common/memory-source';
 import TransformConnector from 'orbit/transform-connector';
+import BlockingTransformableProxy from 'orbit/blocking-transformable-proxy';
+
 import { Promise } from 'rsvp';
 import {
   addRecordOperation
@@ -41,9 +43,9 @@ module('Integration - Three Memory Source Sync (Blocking / Non-blocking)', {
     });
 
     // Create sources
-    source1 = new MemorySource({ schema: schema });
-    source2 = new MemorySource({ schema: schema });
-    source3 = new MemorySource({ schema: schema });
+    source1 = new BlockingTransformableProxy(new MemorySource({ schema: schema }));
+    source2 = new BlockingTransformableProxy(new MemorySource({ schema: schema }));
+    source3 = new BlockingTransformableProxy(new MemorySource({ schema: schema }));
 
     source1.id = 'source1';
     source2.id = 'source2';
