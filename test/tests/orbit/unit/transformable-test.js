@@ -173,26 +173,28 @@ test('#transform should convert non-Transforms into Transforms', function(assert
     });
 });
 
-test('#transform should pass any transform functions to source._transformBuilder, if one is registered', function(assert) {
+test('#transform should pass any transform functions to source.transformBuilder, if one is registered', function(assert) {
   assert.expect(5);
 
   let planet = { type: 'planet', id: '1' };
 
-  source._transformBuilder = function(b) {
-    let operations = [];
+  source.transformBuilder = {
+    build(b) {
+      let operations = [];
 
-    let context = {
-      addRecord(record) {
-        assert.strictEqual(record, planet, 'builder.addRecord called');
-        operations.push({ op: 'addRecord', record: record });
-      }
-    };
+      let context = {
+        addRecord(record) {
+          assert.strictEqual(record, planet, 'builder.addRecord called');
+          operations.push({ op: 'addRecord', record: record });
+        }
+      };
 
-    assert.ok(b, '_transformBuilder called');
+      assert.ok(b, 'transformBuilder called');
 
-    b(context);
+      b(context);
 
-    return new Transform(operations);
+      return new Transform(operations);
+    }
   };
 
   source._transform = function(t) {
@@ -210,7 +212,7 @@ test('#transform should pass any transform functions to source._transformBuilder
     });
 });
 
-test('#transform should throw an exception if source._transformBuilder is not registered', function(assert) {
+test('#transform should throw an exception if source.transformBuilder is not registered', function(assert) {
   assert.throws(
     function() {
       source.transform((b) => {});
