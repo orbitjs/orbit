@@ -57,6 +57,8 @@ module('Integration - JSONAPI', function(hooks) {
     store.on('transform', t => queue.add(t));
     queue.on('transform', t => jsonApiSource.transform(t).catch(e => store.deny(t, e)));
     jsonApiSource.on('transform', t => store.confirm(t));
+
+    store.on('query', expression => jsonApiSource.query(expression));
   });
 
   hooks.afterEach(function() {

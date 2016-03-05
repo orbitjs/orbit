@@ -57,15 +57,18 @@ const schemaDefinition = {
 const schema = new Schema(schemaDefinition);
 
 module('OC - Store', function(hooks) {
-  module('with default coordinator', function(hooks) {
+  module('with confirmation', function(hooks) {
     let store;
-    let didTransform;
+    let didQuery;
 
     hooks.beforeEach(function() {
       store = new Store({ schema });
 
-      didTransform = stub().returns(resolve());
-      store.coordinator.on('transform', didTransform);
+      sinon.spy(store, 'confirm');
+      didQuery = sinon.stub().returns(Orbit.Promise.resolve());
+
+      store.on('transform', t => store.confirm(t));
+      store.on('query', expression => didQuery(expression));
     });
 
     test('#findRecord - returns a record found by type and id', function() {
@@ -169,7 +172,7 @@ module('OC - Store', function(hooks) {
           deepEqual(addedRecord.relationships.moons, { data: {} }, 'has initialized hasMany relationships');
           deepEqual(addedRecord.relationships.star, { data: null }, 'has initialized hasOne relationships');
           deepEqual(store.cache.get(['planet', addedRecord.id]), addedRecord, 'is available for retrieval from the cache');
-          ok(didTransform.calledWith(transformMatching(expectedTransform)), 'operation has been emitted as a transform');
+          ok(store.confirm.calledWith(transformMatching(expectedTransform)), 'operation has been emitted as a transform');
 
           done();
         });
@@ -330,24 +333,6 @@ module('OC - Store', function(hooks) {
           deepEqual(jupiter.relationships.moons.data, { 'moon:io': true }, 'updated inverse on added records');
           done();
         });
-    });
-  });
-
-  module('with custom coordinator', function() {
-    let store;
-    let didTransform;
-    let coordinator;
-
-    hooks.beforeEach(function() {
-      coordinator = new MemorySource({ schema });
-      store = new Store({ schema, coordinator });
-
-      didTransform = stub().returns(resolve());
-      store.coordinator.on('transform', didTransform);
-    });
-
-    test('coordinator is set as specified', function(assert) {
-      assert.equal(store.coordinator, coordinator);
     });
   });
 });
