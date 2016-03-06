@@ -81,6 +81,11 @@ test('its prototype chain is correct', function(assert) {
   assert.ok(source instanceof Source, 'instanceof Source');
 });
 
+test('implements Fetchable', function(assert) {
+  assert.ok(source._fetchable, 'implements Fetchable');
+  assert.ok(typeof source.fetch === 'function', 'has `fetch` method');
+});
+
 test('source saves options', function(assert) {
   assert.expect(6);
   let schema = new Schema({});
