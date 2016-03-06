@@ -58,6 +58,11 @@ module('OC - MemorySource', function(hooks) {
     assert.ok(source instanceof Source, 'instanceof Source');
   });
 
+  test('implements Queryable', function(assert) {
+    assert.ok(source._queryable, 'implements Queryable');
+    assert.ok(typeof source.query === 'function', 'has `query` method');
+  });
+
   test('internal cache\'s options can be specified with `cacheOptions`', function() {
     var source = new MemorySource({ schema: schema, cacheOptions: { processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor] } });
     ok(source.cache, 'cache exists');

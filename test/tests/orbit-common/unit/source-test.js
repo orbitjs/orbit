@@ -39,8 +39,3 @@ test('implements Transformable', function() {
   var source = new Source({ schema: schema });
   ok(typeof source.transform === 'function', 'implements `transform`');
 });
-
-test('implements Queryable', function() {
-  var source = new Source({ schema: schema });
-  ok(typeof source.query === 'function', 'implements `query`');
-});
