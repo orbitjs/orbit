@@ -5,9 +5,6 @@ import Source from 'orbit-common/source';
 import MemorySource from 'orbit-common/memory-source';
 import LocalStorageSource from 'orbit-common/local-storage-source';
 import { all, Promise } from 'rsvp';
-import {
-  addRecordOperation
-} from 'orbit-common/lib/operations';
 
 let schema, source;
 
@@ -47,7 +44,7 @@ test('#transform - can update the cache AND local storage', function() {
   equal(source.cache.length('planet'), 0, 'source should be empty');
 
   stop();
-  source.transform(addRecordOperation(planet))
+  source.transform(t => t.addRecord(planet))
     .then(function() {
       start();
       equal(source.cache.length('planet'), 1, 'source should be empty');
@@ -64,7 +61,7 @@ test('it can use a custom local storage namespace for storing data', function() 
   source.namespace = 'planets';
 
   stop();
-  source.transform(addRecordOperation(planet))
+  source.transform(t => t.addRecord(planet))
     .then(function() {
       start();
       verifyLocalStorageContainsRecord(source.namespace, 'planet', planet.id, planet);
@@ -81,7 +78,7 @@ test('autosave can be disabled to delay writing to local storage', function() {
   equal(source.cache.length('planet'), 0, 'source should be empty');
 
   stop();
-  source.transform(addRecordOperation(planet))
+  source.transform(t => t.addRecord(planet))
     .then(function() {
       start();
       equal(source.cache.length('planet'), 1, 'source should contain one record');

@@ -2,16 +2,15 @@ import 'tests/test-helper';
 import Schema from 'orbit-common/schema';
 import DeletionTrackingProcessor from 'orbit-common/cache/operation-processors/deletion-tracking-processor';
 import { uuid } from 'orbit/lib/uuid';
-import Operation from 'orbit/operation';
 import Cache from 'orbit-common/cache';
 import Orbit from 'orbit/main';
 import { Promise } from 'rsvp';
 
-var schema,
+let schema,
     cache,
     processor;
 
-var schemaDefinition = {
+const schemaDefinition = {
   models: {
     planet: {
       attributes: {
@@ -45,37 +44,37 @@ var schemaDefinition = {
 };
 
 module('OC - OperationProcessors - DeletionTrackingProcessor', {
-  setup: function() {
+  setup() {
     schema = new Schema(schemaDefinition);
     cache = new Cache(schema, { processors: [DeletionTrackingProcessor] });
     processor = cache._processors[0];
   },
 
-  teardown: function() {
+  teardown() {
     schema = null;
     cache = null;
     processor = null;
   }
 });
 
-test('tracks deletions and makes them queryable through `hasDeleted`', function() {
-  var saturn = { id: 'saturn', name: 'Saturn', relationships: { moons: { 'titan': true } } };
-  var jupiter = { id: 'jupiter', name: 'Jupiter', relationships: { moons: { 'europa': true } } };
+test('tracks deletions and makes them queryable through `hasDeleted`', function(assert) {
+  const saturn = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' }, relationships: { moons: { 'titan': true } } };
+  const jupiter = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' }, relationships: { moons: { 'europa': true } } };
 
-  ok(typeof cache.hasDeleted === 'function', 'adds `hasDeleted` method to cache');
+  assert.ok(typeof cache.hasDeleted === 'function', 'adds `hasDeleted` method to cache');
 
   cache.reset({
     planet: { saturn: saturn, jupiter: jupiter }
   });
 
-  equal(cache.hasDeleted('planet/saturn'), false, 'Saturn has not been deleted yet');
+  assert.equal(cache.hasDeleted('planet/saturn'), false, 'Saturn has not been deleted yet');
 
-  cache.transform([{ op: 'remove', path: 'planet/saturn' }]);
+  cache.transform((t) => t.removeRecord(saturn));
 
-  equal(cache.hasDeleted('planet/saturn'), true, 'Saturn has been deleted');
-  equal(cache.hasDeleted('planet/jupiter'), false, 'Jupiter has not been deleted');
+  assert.equal(cache.hasDeleted('planet/saturn'), true, 'Saturn has been deleted');
+  assert.equal(cache.hasDeleted('planet/jupiter'), false, 'Jupiter has not been deleted');
 
   cache.reset();
 
-  equal(cache.hasDeleted('planet/saturn'), false, 'Resets deletion tracking when cache is reset');
+  assert.equal(cache.hasDeleted('planet/saturn'), false, 'Resets deletion tracking when cache is reset');
 });

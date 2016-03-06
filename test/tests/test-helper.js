@@ -10,8 +10,7 @@ import {
   serializeOp,
   op,
   successfulOperation,
-  failedOperation,
-  equalOps
+  failedOperation
 } from './support/operations';
 
 import {
@@ -34,7 +33,6 @@ export {
   op,
   successfulOperation,
   failedOperation,
-  equalOps,
   transformMatching,
   verifyLocalStorageIsEmpty,
   verifyLocalStorageContainsRecord,

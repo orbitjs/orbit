@@ -1,4 +1,4 @@
-import { equalOps, successfulOperation, failedOperation } from 'tests/test-helper';
+import { successfulOperation, failedOperation } from 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Transformable from 'orbit/transformable';
 import Transform from 'orbit/transform';
@@ -78,13 +78,13 @@ test('#transform should trigger `transform` event BEFORE a transform resolves', 
 
   source._transform = function(transform) {
     assert.equal(++order, 1, '_transform performed first');
-    equalOps(transform.operations, addOps, '_handler args match original call args');
+    deepEqual(transform.operations, addOps, '_handler args match original call args');
     this.transformed(transform);
   };
 
   source.on('transform', function(transform) {
     assert.equal(++order, 2, 'transform triggered after action performed successfully');
-    equalOps(transform.operations, addOps, 'applied ops match');
+    deepEqual(transform.operations, addOps, 'applied ops match');
   });
 
   return source.transform(addOps)
@@ -105,7 +105,7 @@ test('#transform should perform transforms in the order they are pushed', functi
       assert.equal(++order, 3, 'settleTransforms finishes after all other transforms');
     });
 
-    equalOps(transform.operations, [addOp, inverseOp]);
+    deepEqual(transform.operations, [addOp, inverseOp]);
     assert.equal(++order, 1, '_transform called first');
   };
 
@@ -144,11 +144,11 @@ test('#transform should wait for the current settle loop before starting another
   source.on('transform', function(transform) {
     if (transform.operations[0].op === 'add') {
       assert.equal(++order, 2, 'didTransform triggered after `add` transform');
-      equalOps(transform.operations, addOps, '`add` operation matches');
+      deepEqual(transform.operations, addOps, '`add` operation matches');
     }
     if (transform.operations[0].op === 'remove') {
       assert.equal(++order, 4, 'didTransform triggered after `remove` transform');
-      equalOps(transform.operations, inverseOps, '`remove` operation matches');
+      deepEqual(transform.operations, inverseOps, '`remove` operation matches');
     }
   });
 

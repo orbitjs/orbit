@@ -1,6 +1,5 @@
-import { equalOps, successfulOperation, failedOperation } from 'tests/test-helper';
+import { successfulOperation, failedOperation } from 'tests/test-helper';
 import Orbit from 'orbit/main';
-import Operation from 'orbit/operation';
 import Transform from 'orbit/transform';
 import Transformable from 'orbit/transformable';
 import TransformConnector from 'orbit/transform-connector';
@@ -50,7 +49,7 @@ test('it watches `transform` events on the source and applies them to the target
   secondarySource._transform = function(transform) {
     start();
 
-    equalOps(transform.operations, addPlanet.operations, 'target operation matches source operation');
+    deepEqual(transform.operations, addPlanet.operations, 'target operation matches source operation');
 
     return successfulOperation();
   };

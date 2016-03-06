@@ -66,23 +66,17 @@ module('OC - MemorySource', function(hooks) {
 
   test('#transform - transforms the source\'s cache', function(assert) {
     const done = assert.async();
-    expect(3);
+    assert.expect(3);
 
-    let jupiter = {
+    const jupiter = {
       id: '1',
       type: 'planet',
       attributes: { name: 'Jupiter', classification: 'gas giant' }
     };
 
-    let op = {
-      op: 'add',
-      path: 'planet/1',
-      value: jupiter
-    };
-
     assert.equal(source.cache.length('planet'), 0, 'cache should start empty');
 
-    source.transform(op)
+    source.transform(t => t.addRecord(jupiter))
       .then(function(result) {
         assert.equal(source.cache.length('planet'), 1, 'cache should contain one planet');
         assert.deepEqual(source.cache.get('planet/1'), jupiter, 'planet should be jupiter');
@@ -92,7 +86,7 @@ module('OC - MemorySource', function(hooks) {
 
   test('#query - queries the source\'s cache', function(assert) {
     const done = assert.async();
-    expect(2);
+    assert.expect(2);
 
     let jupiter = {
       id: '1',
