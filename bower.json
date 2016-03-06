@@ -7,8 +7,5 @@
     "qunit": "~1.20.0",
     "rsvp": "~3.0.16",
     "loader": "stefanpenner/loader.js#1.0.1"
-  },
-  "dependencies": {
-    "rxjs": "~4.0.7"
   }
 }
