@@ -75,17 +75,7 @@ test('#get - can get a value with an array in the path', function() {
   deepEqual(doc.get(['c', '1', 'e']), 'f');
 });
 
-test('#get - throws an exception for a path that doesn\'t exist', function() {
-  doc.reset({ a: 'b' });
-  throws(
-    function() {
-      doc.get(['b']);
-    },
-    Document.PathNotFoundException
-  );
-});
-
-test('#get - returns `undefined` for a path that doesn\'t exist when `quiet=true`', function() {
+test('#get - returns `undefined` for a path that doesn\'t exist', function() {
   doc.reset({ a: 'b' });
   strictEqual(doc.get(['b'], true), undefined);
 });
@@ -129,19 +119,9 @@ test('#test - returns false for a mismatch', function() {
   equal(doc.test(['a'], 'c'), false);
 });
 
-test('#test - throws an exception for a path that doesn\'t exist', function() {
+test('#test - uses `undefined` for the value of a path that doesn\'t exist', function() {
   doc.reset({ a: 'b' });
-  throws(
-    function() {
-      doc.test(['b'], 'c');
-    },
-    Document.PathNotFoundException
-  );
-});
-
-test('#test - uses `undefined` for the value of a path that doesn\'t exist when `quiet=true`', function() {
-  doc.reset({ a: 'b' });
-  strictEqual(doc.test(['b'], undefined, true), true);
+  strictEqual(doc.test(['b'], undefined), true);
 });
 
 /*
