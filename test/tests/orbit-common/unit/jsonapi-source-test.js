@@ -1,4 +1,3 @@
-import { equalOps } from 'tests/test-helper';
 import Orbit from 'orbit/main';
 import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
@@ -6,7 +5,6 @@ import Source from 'orbit-common/source';
 import JSONAPISource from 'orbit-common/jsonapi-source';
 import { Promise } from 'rsvp';
 import jQuery from 'jquery';
-import { toOperation } from 'orbit/lib/operations';
 import { toIdentifier, parseIdentifier } from 'orbit-common/lib/identifiers';
 import { queryExpression as oqe } from 'orbit/query/expression';
 import {
@@ -75,362 +73,374 @@ module('OC - JSONAPISource', {
   }
 });
 
-test('it exists', function() {
-  ok(source);
+test('it exists', function(assert) {
+  assert.ok(source);
 });
 
-test('its prototype chain is correct', function() {
-  ok(source instanceof Source, 'instanceof Source');
+test('its prototype chain is correct', function(assert) {
+  assert.ok(source instanceof Source, 'instanceof Source');
 });
 
-test('source saves options', function() {
-  expect(6);
+test('source saves options', function(assert) {
+  assert.expect(6);
   let schema = new Schema({});
   source = new JSONAPISource({ schema: schema, host: '127.0.0.1:8888', namespace: 'api', headers: { 'User-Agent': 'CERN-LineMode/2.15 libwww/2.17b3' } });
-  equal(source.namespace, 'api', 'Namespace should be defined');
-  equal(source.host, '127.0.0.1:8888', 'Host should be defined');
-  equal(source.headers['User-Agent'], 'CERN-LineMode/2.15 libwww/2.17b3', 'Headers should be defined');
-  equal(source.resourceNamespace(), source.namespace, 'Default namespace should be used by default');
-  equal(source.resourceHost(), source.host, 'Default host should be used by default');
-  deepEqual(source.ajaxHeaders(), source.headers, 'Default headers should be used by default');
+  assert.equal(source.namespace, 'api', 'Namespace should be defined');
+  assert.equal(source.host, '127.0.0.1:8888', 'Host should be defined');
+  assert.equal(source.headers['User-Agent'], 'CERN-LineMode/2.15 libwww/2.17b3', 'Headers should be defined');
+  assert.equal(source.resourceNamespace(), source.namespace, 'Default namespace should be used by default');
+  assert.equal(source.resourceHost(), source.host, 'Default host should be used by default');
+  assert.deepEqual(source.ajaxHeaders(), source.headers, 'Default headers should be used by default');
 });
 
-test('#resourcePath - returns resource\'s path without its host and namespace', function() {
-  expect(1);
+test('#resourcePath - returns resource\'s path without its host and namespace', function(assert) {
+  assert.expect(1);
   source.host = 'http://127.0.0.1:8888';
   source.namespace = 'api';
   let jupiter = schema.normalize({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
 
-  equal(source.resourcePath('planet', '1'), 'planets/a', 'resourcePath returns the path to the resource relative to the host and namespace');
+  assert.equal(source.resourcePath('planet', '1'), 'planets/a', 'resourcePath returns the path to the resource relative to the host and namespace');
 });
 
-test('#resourceURL - respects options to construct URLs', function() {
-  expect(1);
+test('#resourceURL - respects options to construct URLs', function(assert) {
+  assert.expect(1);
   source.host = 'http://127.0.0.1:8888';
   source.namespace = 'api';
   let jupiter = schema.normalize({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
 
-  equal(source.resourceURL('planet', '1'), 'http://127.0.0.1:8888/api/planets/a', 'resourceURL method should use the options to construct URLs');
+  assert.equal(source.resourceURL('planet', '1'), 'http://127.0.0.1:8888/api/planets/a', 'resourceURL method should use the options to construct URLs');
 });
 
-test('#resourceRelationshipURL - constructs relationship URLs based upon base resourceURL', function() {
-  expect(1);
+test('#resourceRelationshipURL - constructs relationship URLs based upon base resourceURL', function(assert) {
+  assert.expect(1);
   let jupiter = schema.normalize({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
 
-  equal(source.resourceRelationshipURL('planet', '1', 'moons'), '/planets/a/relationships/moons', 'resourceRelationshipURL appends /relationships/[relationship] to resourceURL');
+  assert.equal(source.resourceRelationshipURL('planet', '1', 'moons'), '/planets/a/relationships/moons', 'resourceRelationshipURL appends /relationships/[relationship] to resourceURL');
 });
 
-test('#transform - can add records', function() {
-  expect(4);
-
-  let transformCount = 0;
-
-  let planet = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
-
-  let addPlanetOp = toOperation('add', ['planet', planet.id], {
-    __normalized: true,
-    type: 'planet',
-    id: planet.id,
-    attributes: {
-      name: 'Jupiter',
-      classification: 'gas giant'
-    },
-    keys: {
-      remoteId: undefined
-    },
-    relationships: {
-      moons: {
-        data: {}
-      }
-    }
-  });
-
-  let addPlanetRemoteIdOp = toOperation('add', ['planet', planet.id, 'keys', 'remoteId'], '12345');
-
-  server.respondWith('POST', '/planets', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody),
-      {
-        data: {
-          type: 'planets',
-          attributes: {
-            name: 'Jupiter',
-            classification: 'gas giant'
-          },
-          relationships: {
-            moons: {
-              data: []
-            }
-          }
-        }
-      },
-      'POST request');
-    xhr.respond(201,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({ data: { id: '12345', type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } } }));
-  });
-
-  source.on('transform', function(transform) {
-    transformCount++;
-
-    if (transformCount === 1) {
-      equalOps(
-        transform.operations,
-        [addPlanetOp],
-        'transform event initially returns add-record op'
-      );
-    } else if (transformCount === 2) {
-      // Remote ID is added as a separate operation
-      equalOps(
-        transform.operations,
-        [addPlanetRemoteIdOp],
-        'transform event then returns add-remote-id op'
-      );
-    }
-  });
-
-  stop();
-
-  source.transform(addRecordOperation(planet))
-    .then(function() {
-      start();
-      ok(true, 'transform resolves successfully');
-    });
-});
-
-test('#transform - can update records', function() {
-  expect(3);
-
-  let transformCount = 0;
-
-  let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' }, attributes: { name: 'Jupiter', classification: 'gas giant' } });
-
-  let replacePlanetOp = toOperation('replace', ['planet', planet.id], {
-    __normalized: true,
-    type: 'planet',
-    id: planet.id,
-    attributes: {
-      name: 'Jupiter',
-      classification: 'gas giant'
-    },
-    keys: {
-      remoteId: '12345'
-    },
-    relationships: {
-      moons: {
-        data: {}
-      }
-    }
-  });
-
-  server.respondWith('PATCH', '/planets/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody),
-      {
-        data: {
-          type: 'planets',
-          id: '12345',
-          attributes: {
-            name: 'Jupiter',
-            classification: 'gas giant'
-          },
-          relationships: {
-            moons: {
-              data: []
-            }
-          }
-        }
-      },
-      'PATCH request');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({ data: { id: '12345', type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } } }));
-  });
-
-  source.on('transform', function(transform) {
-    transformCount++;
-
-    if (transformCount === 1) {
-      equalOps(
-        transform.operations,
-        [replacePlanetOp],
-        'transform event initially returns replace-record op'
-      );
-    }
-  });
-
-  stop();
-
-  source.transform(replaceRecordOperation(planet))
-    .then(() => {
-      start();
-      ok(true, 'transform resolves successfully');
-    });
-});
-
-test('#transform - can replace attributes', function() {
-  expect(2);
-
-  let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' }, attributes: { name: 'Jupiter', classification: 'gas giant' } });
-
-  server.respondWith('PATCH', '/planets/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody),
-      {
-        data: {
-          type: 'planets',
-          id: '12345',
-          attributes: {
-            classification: 'terrestrial'
-          }
-        }
-      },
-      'PATCH request');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({}));
-  });
-
-  stop();
-
-  source.transform(replaceAttributeOperation(planet, 'classification', 'terrestrial'))
-    .then(function() {
-      start();
-      ok(true, 'record patched');
-    });
-});
-
-test('#transform - can delete records', function() {
-  expect(2);
-
-  let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
-
-  server.respondWith('DELETE', '/planets/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({}));
-  });
-
-  stop();
-  source.transform(removeRecordOperation(planet))
-    .then(function() {
-      start();
-      ok(true, 'record deleted');
-    });
-});
-
-test('#transform - can add a hasMany relationship with POST', function() {
-  expect(2);
-
-  let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
-  let moon = schema.normalize({ type: 'moon', keys: { remoteId: '987' } });
-
-  server.respondWith('POST', '/planets/12345/relationships/moons', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), { data: [{ type: 'moons', id: '987' }] },
-              'POST request to add relationship to primary record');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({}));
-  });
-
-  stop();
-  source.transform(addToHasManyOperation(planet, 'moons', moon))
-    .then(function() {
-      start();
-      ok(true, 'records linked');
-    });
-});
-
-test('#transform - can remove a relationship with DELETE', function() {
-  expect(2);
-
-  let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
-  let moon = schema.normalize({ type: 'moon', keys: { remoteId: '987' } });
-
-  server.respondWith('DELETE', '/planets/12345/relationships/moons', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), { data: [{ type: 'moons', id: '987' }] },
-              'DELETE request to remove relationship from primary record');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({}));
-  });
-
-  stop();
-  source.transform(removeFromHasManyOperation(planet, 'moons', moon))
-    .then(function() {
-      start();
-      ok(true, 'records unlinked');
-    });
-});
-
-test('#transform - can update a hasOne relationship with PATCH', function() {
-  expect(2);
-
-  let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
-  let moon = schema.normalize({ type: 'moon', keys: { remoteId: '987' } });
-
-  server.respondWith('PATCH', '/moons/987/relationships/planet', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), { data: { type: 'planets', id: '12345' } },
-              'PATCH request to add relationship to primary record');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({}));
-  });
-
-  stop();
-  source.transform(replaceHasOneOperation(moon, 'planet', planet))
-    .then(function() {
-      start();
-      ok(true, 'relationship replaced');
-    });
-});
-
-test('#transform - can clear a hasOne relationship with PATCH', function() {
-  expect(2);
-
-  let moon = schema.normalize({ type: 'moon', keys: { remoteId: '987' } });
-
-  server.respondWith('PATCH', '/moons/987/relationships/planet', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), { data: null },
-              'PATCH request to replace relationship');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({}));
-  });
-
-  stop();
-  source.transform(replaceHasOneOperation(moon, 'planet', null))
-    .then(function() {
-      start();
-      ok(true, 'relationship replaced');
-    });
-});
-
-test('#transform - can replace a hasMany relationship (flagged as `actsAsSet`) with PATCH', function() {
-  expect(2);
-
-  let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
-  let moon = schema.normalize({ type: 'moon', keys: { remoteId: '987' } });
-
-  // TODO - evaluate necessity of `actsAsSet`
-  //
-  // Moons link must be flagged with `actsAsSet`
-  source.schema.models.planet.relationships.moons.actsAsSet = true;
-
-  server.respondWith('PATCH', '/planets/12345/relationships/moons', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody), { data: [{ type: 'moons', id: '987' }] },
-              'PATCH request to replace relationship');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({}));
-  });
-
-  stop();
-  source.transform(replaceHasManyOperation(planet, 'moons', [moon]))
-    .then(function() {
-      start();
-      ok(true, 'relationship replaced');
-    });
-});
-
+// test('#transform - can add records', function(assert) {
+//   assert.expect(4);
+//
+//   let transformCount = 0;
+//
+//   let planet = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
+//
+//   let addPlanetOp = {
+//     op: 'add',
+//     path: ['planet', planet.id],
+//     value: {
+//       __normalized: true,
+//       type: 'planet',
+//       id: planet.id,
+//       attributes: {
+//         name: 'Jupiter',
+//         classification: 'gas giant'
+//       },
+//       keys: {
+//         remoteId: undefined
+//       },
+//       relationships: {
+//         moons: {
+//           data: {}
+//         }
+//       }
+//     }
+//   };
+//
+//   let addPlanetRemoteIdOp = {
+//     op: 'add',
+//     path: ['planet', planet.id, 'keys', 'remoteId'],
+//     value: '12345'
+//   };
+//
+//   server.respondWith('POST', '/planets', function(xhr) {
+//     deepEqual(JSON.parse(xhr.requestBody),
+//       {
+//         data: {
+//           type: 'planets',
+//           attributes: {
+//             name: 'Jupiter',
+//             classification: 'gas giant'
+//           },
+//           relationships: {
+//             moons: {
+//               data: []
+//             }
+//           }
+//         }
+//       },
+//       'POST request');
+//     xhr.respond(201,
+//                 { 'Content-Type': 'application/json' },
+//                 JSON.stringify({ data: { id: '12345', type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } } }));
+//   });
+//
+//   source.on('transform', function(transform) {
+//     transformCount++;
+//
+//     if (transformCount === 1) {
+//       assert.deepEqual(
+//         transform.operations,
+//         [addPlanetOp],
+//         'transform event initially returns add-record op'
+//       );
+//     } else if (transformCount === 2) {
+//       // Remote ID is added as a separate operation
+//       assert.deepEqual(
+//         transform.operations,
+//         [addPlanetRemoteIdOp],
+//         'transform event then returns add-remote-id op'
+//       );
+//     }
+//   });
+//
+//   stop();
+//
+//   source.transform(t => t.addRecord(planet))
+//     .then(function() {
+//       start();
+//       assert.ok(true, 'transform resolves successfully');
+//     });
+// });
+//
+// test('#transform - can update records', function() {
+//   expect(3);
+//
+//   let transformCount = 0;
+//
+//   let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' }, attributes: { name: 'Jupiter', classification: 'gas giant' } });
+//
+//   let replacePlanetOp = {
+//     op: 'replace',
+//     path: ['planet', planet.id],
+//     value: {
+//       __normalized: true,
+//       type: 'planet',
+//       id: planet.id,
+//       attributes: {
+//         name: 'Jupiter',
+//         classification: 'gas giant'
+//       },
+//       keys: {
+//         remoteId: '12345'
+//       },
+//       relationships: {
+//         moons: {
+//           data: {}
+//         }
+//       }
+//     }
+//   };
+//
+//   server.respondWith('PATCH', '/planets/12345', function(xhr) {
+//     deepEqual(JSON.parse(xhr.requestBody),
+//       {
+//         data: {
+//           type: 'planets',
+//           id: '12345',
+//           attributes: {
+//             name: 'Jupiter',
+//             classification: 'gas giant'
+//           },
+//           relationships: {
+//             moons: {
+//               data: []
+//             }
+//           }
+//         }
+//       },
+//       'PATCH request');
+//     xhr.respond(200,
+//                 { 'Content-Type': 'application/json' },
+//                 JSON.stringify({ data: { id: '12345', type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } } }));
+//   });
+//
+//   source.on('transform', function(transform) {
+//     transformCount++;
+//
+//     if (transformCount === 1) {
+//       deepEqual(
+//         transform.operations,
+//         [replacePlanetOp],
+//         'transform event initially returns replace-record op'
+//       );
+//     }
+//   });
+//
+//   stop();
+//
+//   source.transform(replaceRecordOperation(planet))
+//     .then(() => {
+//       start();
+//       ok(true, 'transform resolves successfully');
+//     });
+// });
+//
+// test('#transform - can replace attributes', function() {
+//   expect(2);
+//
+//   let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' }, attributes: { name: 'Jupiter', classification: 'gas giant' } });
+//
+//   server.respondWith('PATCH', '/planets/12345', function(xhr) {
+//     deepEqual(JSON.parse(xhr.requestBody),
+//       {
+//         data: {
+//           type: 'planets',
+//           id: '12345',
+//           attributes: {
+//             classification: 'terrestrial'
+//           }
+//         }
+//       },
+//       'PATCH request');
+//     xhr.respond(200,
+//                 { 'Content-Type': 'application/json' },
+//                 JSON.stringify({}));
+//   });
+//
+//   stop();
+//
+//   source.transform(replaceAttributeOperation(planet, 'classification', 'terrestrial'))
+//     .then(function() {
+//       start();
+//       ok(true, 'record patched');
+//     });
+// });
+//
+// test('#transform - can delete records', function() {
+//   expect(2);
+//
+//   let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
+//
+//   server.respondWith('DELETE', '/planets/12345', function(xhr) {
+//     deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
+//     xhr.respond(200,
+//                 { 'Content-Type': 'application/json' },
+//                 JSON.stringify({}));
+//   });
+//
+//   stop();
+//   source.transform(removeRecordOperation(planet))
+//     .then(function() {
+//       start();
+//       ok(true, 'record deleted');
+//     });
+// });
+//
+// test('#transform - can add a hasMany relationship with POST', function() {
+//   expect(2);
+//
+//   let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
+//   let moon = schema.normalize({ type: 'moon', keys: { remoteId: '987' } });
+//
+//   server.respondWith('POST', '/planets/12345/relationships/moons', function(xhr) {
+//     deepEqual(JSON.parse(xhr.requestBody), { data: [{ type: 'moons', id: '987' }] },
+//               'POST request to add relationship to primary record');
+//     xhr.respond(200,
+//                 { 'Content-Type': 'application/json' },
+//                 JSON.stringify({}));
+//   });
+//
+//   stop();
+//   source.transform(addToHasManyOperation(planet, 'moons', moon))
+//     .then(function() {
+//       start();
+//       ok(true, 'records linked');
+//     });
+// });
+//
+// test('#transform - can remove a relationship with DELETE', function() {
+//   expect(2);
+//
+//   let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
+//   let moon = schema.normalize({ type: 'moon', keys: { remoteId: '987' } });
+//
+//   server.respondWith('DELETE', '/planets/12345/relationships/moons', function(xhr) {
+//     deepEqual(JSON.parse(xhr.requestBody), { data: [{ type: 'moons', id: '987' }] },
+//               'DELETE request to remove relationship from primary record');
+//     xhr.respond(200,
+//                 { 'Content-Type': 'application/json' },
+//                 JSON.stringify({}));
+//   });
+//
+//   stop();
+//   source.transform(removeFromHasManyOperation(planet, 'moons', moon))
+//     .then(function() {
+//       start();
+//       ok(true, 'records unlinked');
+//     });
+// });
+//
+// test('#transform - can update a hasOne relationship with PATCH', function() {
+//   expect(2);
+//
+//   let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
+//   let moon = schema.normalize({ type: 'moon', keys: { remoteId: '987' } });
+//
+//   server.respondWith('PATCH', '/moons/987/relationships/planet', function(xhr) {
+//     deepEqual(JSON.parse(xhr.requestBody), { data: { type: 'planets', id: '12345' } },
+//               'PATCH request to add relationship to primary record');
+//     xhr.respond(200,
+//                 { 'Content-Type': 'application/json' },
+//                 JSON.stringify({}));
+//   });
+//
+//   stop();
+//   source.transform(replaceHasOneOperation(moon, 'planet', planet))
+//     .then(function() {
+//       start();
+//       ok(true, 'relationship replaced');
+//     });
+// });
+//
+// test('#transform - can clear a hasOne relationship with PATCH', function() {
+//   expect(2);
+//
+//   let moon = schema.normalize({ type: 'moon', keys: { remoteId: '987' } });
+//
+//   server.respondWith('PATCH', '/moons/987/relationships/planet', function(xhr) {
+//     deepEqual(JSON.parse(xhr.requestBody), { data: null },
+//               'PATCH request to replace relationship');
+//     xhr.respond(200,
+//                 { 'Content-Type': 'application/json' },
+//                 JSON.stringify({}));
+//   });
+//
+//   stop();
+//   source.transform(replaceHasOneOperation(moon, 'planet', null))
+//     .then(function() {
+//       start();
+//       ok(true, 'relationship replaced');
+//     });
+// });
+//
+// test('#transform - can replace a hasMany relationship (flagged as `actsAsSet`) with PATCH', function() {
+//   expect(2);
+//
+//   let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
+//   let moon = schema.normalize({ type: 'moon', keys: { remoteId: '987' } });
+//
+//   // TODO - evaluate necessity of `actsAsSet`
+//   //
+//   // Moons link must be flagged with `actsAsSet`
+//   source.schema.models.planet.relationships.moons.actsAsSet = true;
+//
+//   server.respondWith('PATCH', '/planets/12345/relationships/moons', function(xhr) {
+//     deepEqual(JSON.parse(xhr.requestBody), { data: [{ type: 'moons', id: '987' }] },
+//               'PATCH request to replace relationship');
+//     xhr.respond(200,
+//                 { 'Content-Type': 'application/json' },
+//                 JSON.stringify({}));
+//   });
+//
+//   stop();
+//   source.transform(replaceHasManyOperation(planet, 'moons', [moon]))
+//     .then(function() {
+//       start();
+//       ok(true, 'relationship replaced');
+//     });
+// });
+//
 // test('#query - can `get` an individual record', function() {
 //   expect(5);
 //
