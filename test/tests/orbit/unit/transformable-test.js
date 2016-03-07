@@ -7,18 +7,18 @@ import { TransformBuilderNotRegisteredException } from 'orbit/lib/exceptions';
 import { Class } from 'orbit/lib/objects';
 import { Promise } from 'rsvp';
 
-let Source, source;
+let source;
 
 ///////////////////////////////////////////////////////////////////////////////
 
 module('Orbit - Transformable', {
   setup() {
-    Source = Class.extend(Transformable);
-    source = new Source();
+    source = {};
+    Transformable.extend(source);
   },
 
   teardown() {
-    Source = source = null;
+    source = null;
   }
 });
 
@@ -79,84 +79,18 @@ test('#transform should trigger `transform` event BEFORE a transform resolves', 
 
   source._transform = function(transform) {
     assert.equal(++order, 1, '_transform performed first');
-    deepEqual(transform.operations, addOps, '_handler args match original call args');
+    assert.deepEqual(transform.operations, addOps, '_handler args match original call args');
     this.transformed(transform);
   };
 
   source.on('transform', function(transform) {
     assert.equal(++order, 2, 'transform triggered after action performed successfully');
-    deepEqual(transform.operations, addOps, 'applied ops match');
+    assert.deepEqual(transform.operations, addOps, 'applied ops match');
   });
 
   return source.transform(addOps)
     .then(() => {
       assert.equal(++order, 3, 'promise resolved last');
-    });
-});
-
-test('#transform should perform transforms in the order they are pushed', function(assert) {
-  assert.expect(4);
-
-  let order = 0;
-  let addOp = { op: 'add', path: 'planet/1', value: 'data' };
-  let inverseOp = { op: 'remove', path: 'planet/1' };
-
-  source._transform = function(transform) {
-    source.settleTransforms().then(function() {
-      assert.equal(++order, 3, 'settleTransforms finishes after all other transforms');
-    });
-
-    deepEqual(transform.operations, [addOp, inverseOp]);
-    assert.equal(++order, 1, '_transform called first');
-  };
-
-  return source.transform([addOp, inverseOp])
-    .then(() => {
-      assert.equal(++order, 2, 'promise resolved last');
-    });
-});
-
-test('#transform should wait for the current settle loop before starting another', function(assert) {
-  assert.expect(8);
-
-  let order = 0;
-  let addOps = [{ op: 'add', path: 'planet/1', value: 'data' }];
-  let inverseOps = [{ op: 'remove', path: 'planet/1' }];
-
-  // though this is definitely an awkward use case, it ensures execution order
-  // is what we want it to be
-  source._transform = function(transform) {
-    // console.log('_transform', operation.serialize());
-    if (transform.operations[0].op === 'add') {
-      source.settleTransforms().then(function() {
-        assert.equal(++order, 6, 'settleTransforms finishes after all other transforms');
-      });
-
-      assert.equal(++order, 1, '_transform `add` performed first');
-    }
-
-    if (transform.operations[0].op === 'remove') {
-      assert.equal(++order, 3, '_transform `remove` performed second');
-    }
-
-    this.transformed(transform);
-  };
-
-  source.on('transform', function(transform) {
-    if (transform.operations[0].op === 'add') {
-      assert.equal(++order, 2, 'didTransform triggered after `add` transform');
-      deepEqual(transform.operations, addOps, '`add` operation matches');
-    }
-    if (transform.operations[0].op === 'remove') {
-      assert.equal(++order, 4, 'didTransform triggered after `remove` transform');
-      deepEqual(transform.operations, inverseOps, '`remove` operation matches');
-    }
-  });
-
-  source.transform(addOps);
-  return source.transform(inverseOps)
-    .then(() => {
-      equal(++order, 5, 'promise resolved last');
     });
 });
 
