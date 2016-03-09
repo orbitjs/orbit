@@ -758,5 +758,5 @@ test('#rollback', function(assert) {
     'emits inverse operations in correct order'
   );
 
-  equal(cache._transformLog.head(), addRecordATransform.id, 'rolls back transform log');
+  equal(cache.transformLog.head(), addRecordATransform.id, 'rolls back transform log');
 });
