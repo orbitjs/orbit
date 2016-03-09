@@ -63,6 +63,11 @@ module('OC - MemorySource', function(hooks) {
     assert.ok(typeof source.query === 'function', 'has `query` method');
   });
 
+  test('implements Updatable', function(assert) {
+    assert.ok(source._updatable, 'implements Updatable');
+    assert.ok(typeof source.update === 'function', 'has `update` method');
+  });
+
   test('internal cache\'s options can be specified with `cacheOptions`', function() {
     var source = new MemorySource({ schema: schema, cacheOptions: { processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor] } });
     ok(source.cache, 'cache exists');
@@ -70,7 +75,6 @@ module('OC - MemorySource', function(hooks) {
   });
 
   test('#transform - transforms the source\'s cache', function(assert) {
-    const done = assert.async();
     assert.expect(3);
 
     const jupiter = {
@@ -81,11 +85,10 @@ module('OC - MemorySource', function(hooks) {
 
     assert.equal(source.cache.length('planet'), 0, 'cache should start empty');
 
-    source.transform(t => t.addRecord(jupiter))
+    return source.update(t => t.addRecord(jupiter))
       .then(function(result) {
         assert.equal(source.cache.length('planet'), 1, 'cache should contain one planet');
         assert.deepEqual(source.cache.get('planet/1'), jupiter, 'planet should be jupiter');
-        done();
       });
   });
 
