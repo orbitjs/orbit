@@ -27,61 +27,55 @@ module('OC - LocalStorageSource', {
   }
 });
 
-test('it exists', function() {
-  ok(source);
+test('it exists', function(assert) {
+  assert.ok(source);
 });
 
-test('its prototype chain is correct', function() {
-  ok(source instanceof Source,       'instanceof Source');
-  ok(source instanceof MemorySource, 'instanceof MemorySource');
+test('its prototype chain is correct', function(assert) {
+  assert.ok(source instanceof Source,       'instanceof Source');
+  assert.ok(source instanceof MemorySource, 'instanceof MemorySource');
 });
 
-test('#transform - can update the cache AND local storage', function() {
-  expect(4);
+test('#update - can update the cache AND local storage', function(assert) {
+  assert.expect(4);
 
   let planet = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
 
-  equal(source.cache.length('planet'), 0, 'source should be empty');
+  assert.equal(source.cache.length('planet'), 0, 'source should be empty');
 
-  stop();
-  source.transform(t => t.addRecord(planet))
+  return source.update(t => t.addRecord(planet))
     .then(function() {
-      start();
-      equal(source.cache.length('planet'), 1, 'source should be empty');
-      deepEqual(source.cache.get(['planet', planet.id]), planet, 'planet matches');
+      assert.equal(source.cache.length('planet'), 1, 'source should be empty');
+      assert.deepEqual(source.cache.get(['planet', planet.id]), planet, 'planet matches');
       verifyLocalStorageContainsRecord(source.namespace, 'planet', planet.id, planet);
     });
 });
 
-test('it can use a custom local storage namespace for storing data', function() {
-  expect(1);
+test('it can use a custom local storage namespace for storing data', function(assert) {
+  assert.expect(1);
 
   let planet = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
 
   source.namespace = 'planets';
 
-  stop();
-  source.transform(t => t.addRecord(planet))
+  return source.update(t => t.addRecord(planet))
     .then(function() {
-      start();
       verifyLocalStorageContainsRecord(source.namespace, 'planet', planet.id, planet);
     });
 });
 
-test('autosave can be disabled to delay writing to local storage', function() {
-  expect(4);
+test('autosave can be disabled to delay writing to local storage', function(assert) {
+  assert.expect(4);
 
   let planet = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
 
   source.disableAutosave();
 
-  equal(source.cache.length('planet'), 0, 'source should be empty');
+  assert.equal(source.cache.length('planet'), 0, 'source should be empty');
 
-  stop();
-  source.transform(t => t.addRecord(planet))
+  return source.update(t => t.addRecord(planet))
     .then(function() {
-      start();
-      equal(source.cache.length('planet'), 1, 'source should contain one record');
+      assert.equal(source.cache.length('planet'), 1, 'source should contain one record');
       verifyLocalStorageIsEmpty(source.namespace);
 
       source.enableAutosave();
