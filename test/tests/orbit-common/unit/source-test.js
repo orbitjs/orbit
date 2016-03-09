@@ -19,23 +19,7 @@ module('OC - Source', {
   }
 });
 
-test('calls Source.created when a source has been created', function() {
-  expect(1);
-
-  var created = sinon.spy(Source, 'created');
-
-  var source = new Source({ schema: schema });
-  ok(created.calledWith(source), 'Called Source.created with source');
-
-  created.restore();
-});
-
-test('will be created without a cache by default', function() {
-  var source = new Source({ schema: schema });
-  equal(source.cache, null);
-});
-
-test('implements Transformable', function() {
-  var source = new Source({ schema: schema });
-  ok(typeof source.transform === 'function', 'implements `transform`');
+test('can be created with a schema', function(assert) {
+  const source = new Source({ schema: schema });
+  assert.ok(source, 'source exists');
 });
