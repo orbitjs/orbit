@@ -32,84 +32,46 @@ test('it should mixin Evented', function(assert) {
   });
 });
 
-test('it defines `transform`', function(assert) {
-  assert.ok(source.transform, 'transform exists');
+test('it defines `transformed`', function(assert) {
+  assert.equal(typeof source.transformed, 'function', 'transformed exists');
 });
 
 test('it should require the definition of _transform', function(assert) {
   assert.throws(source._transform, 'presence of _transform should be verified');
 });
 
-test('#transform should resolve when _transform returns a promise', function(assert) {
-  assert.expect(2);
-
-  source._transform = function(o) {
-    return new Promise(function(resolve, reject) {
-      assert.ok(true, '_transform promise resolved');
-      resolve(':)');
-    });
-  };
-
-  return source.transform({ op: 'add', path: 'planet/1', value: 'data' })
-    .then(() => {
-      assert.ok(true, 'transform promise resolved');
-    });
-});
-
-test('#transform should resolve when _transform simply returns (without a promise)', function(assert) {
-  assert.expect(2);
-
-  source._transform = function() {
-    assert.ok(true, '_transform called');
-    return ':)';
-  };
-
-  return source.transform({ op: 'add', path: 'planet/1', value: 'data' })
-    .then(() => {
-      assert.ok(true, 'transform promise returned');
-    });
-});
-
-test('#transform should trigger `transform` event BEFORE a transform resolves', function(assert) {
-  assert.expect(5);
+test('#transformed should trigger `transform` event BEFORE resolving', function(assert) {
+  assert.expect(3);
 
   let order = 0;
   let addOps = [{ op: 'add', path: 'planet/1', value: 'data' }];
-  let inverseOps = [{ op: 'remove', path: 'planet/1' }];
-
-  source._transform = function(transform) {
-    assert.equal(++order, 1, '_transform performed first');
-    assert.deepEqual(transform.operations, addOps, '_handler args match original call args');
-    this.transformed(transform);
-  };
 
   source.on('transform', function(transform) {
-    assert.equal(++order, 2, 'transform triggered after action performed successfully');
+    assert.equal(++order, 1, 'transform triggered after action performed successfully');
     assert.deepEqual(transform.operations, addOps, 'applied ops match');
   });
 
-  return source.transform(addOps)
+  return source.transformed(addOps)
     .then(() => {
-      assert.equal(++order, 3, 'promise resolved last');
+      assert.equal(++order, 2, 'transformed promise resolved last');
     });
 });
 
-test('#transform should convert non-Transforms into Transforms', function(assert) {
+test('#transformed should convert non-Transforms into Transforms', function(assert) {
   assert.expect(2);
 
-  source._transform = function(t) {
-    assert.ok(t instanceof Transform, '_transform arg is a Transform');
-    return ':)';
-  };
+  source.on('transform', function(transform) {
+    assert.ok(transform instanceof Transform, 'emitted transform is a Transform');
+  });
 
-  return source.transform({ op: 'add', path: 'planet/1', value: 'data' })
+  return source.transformed({ op: 'add', path: 'planet/1', value: 'data' })
     .then(() => {
-      assert.ok(true, 'transform promise returned');
+      assert.ok(true, 'transformed promise resolved');
     });
 });
 
-test('#transform should pass any transform functions to source.transformBuilder, if one is registered', function(assert) {
-  assert.expect(5);
+test('#transformed should pass any transform functions to source.transformBuilder, if one is registered', function(assert) {
+  assert.expect(4);
 
   let planet = { type: 'planet', id: '1' };
 
@@ -132,13 +94,11 @@ test('#transform should pass any transform functions to source.transformBuilder,
     }
   };
 
-  source._transform = function(t) {
-    assert.ok(t instanceof Transform, '_transform arg is a Transform');
-    assert.equal(t.operations.length, 1, 'one operation has been passed');
-    return ':)';
-  };
+  source.on('transform', function(transform) {
+    assert.ok(transform instanceof Transform, 'emitted transform is a Transform');
+  });
 
-  return source.transform(
+  return source.transformed(
     (b) => {
       b.addRecord(planet);
     })
@@ -150,42 +110,20 @@ test('#transform should pass any transform functions to source.transformBuilder,
 test('#transform should throw an exception if source.transformBuilder is not registered', function(assert) {
   assert.throws(
     function() {
-      source.transform((b) => {});
+      source.transformed((b) => {});
     },
     TransformBuilderNotRegisteredException
   );
 });
 
-test('#clearTransformLog can clear the log of any applied transforms', function(assert) {
+test('#transformLog contains transforms applied to a Transformable', function(assert) {
   assert.expect(2);
-
-  source._transform = function(transform) {
-    return this.transformed(transform);
-  };
-
-  return source.transform({ op: 'add', path: 'planet/1', value: 'data' })
-    .then(() => {
-      assert.equal(source._transformLog.length(), 1, 'log has an entry');
-
-      source.clearTransformLog();
-      assert.equal(source._transformLog.length(), 0, 'log has been cleared');
-    });
-});
-
-test('#contains can determine if a Transform has been applied to a Transformable', function(assert) {
-  const done = assert.async();
-  expect(2);
-
-  source._transform = function(transform) {
-    return this.transformed(transform);
-  };
 
   const transform = new TransformBuilder().build(t => t.addRecord({ type: 'planet', id: 'pluto' }));
 
-  ok(!source.contains(transform));
+  assert.ok(!source.transformLog.contains(transform.id));
 
-  source
-    .transform(transform)
-    .then(() => ok(source.contains(transform)))
-    .finally(done);
+  return source
+    .transformed(transform)
+    .then(() => assert.ok(source.transformLog.contains(transform.id)));
 });
