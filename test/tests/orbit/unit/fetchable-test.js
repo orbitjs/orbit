@@ -31,19 +31,11 @@ test('it should resolve as a failure when _fetch fails', function(assert) {
     return failedOperation();
   };
 
-  stop();
-  source.fetch({ fetch: '' })
-    .then(
-      () => {
-        start();
-        assert.ok(false, 'fetch should not be resolved successfully');
-      },
-      (result) => {
-        start();
-        assert.ok(true, 'fetch promise resolved as a failure');
-        assert.equal(result, ':(', 'failure');
-      }
-    );
+  return source.fetch({ fetch: '' })
+    .catch((error) => {
+      assert.ok(true, 'fetch promise resolved as a failure');
+      assert.equal(error, ':(', 'failure');
+    });
 });
 
 test('it should trigger `fetch` event after a successful action in which `_fetch` returns an array of transforms', function(assert) {
@@ -74,10 +66,8 @@ test('it should trigger `fetch` event after a successful action in which `_fetch
     assert.strictEqual(result, resultingTransforms, 'result matches');
   });
 
-  stop();
-  source.fetch({ fetch: ['abc', 'def'] })
+  return source.fetch({ fetch: ['abc', 'def'] })
     .then((result) => {
-      start();
       assert.equal(++order, 3, 'promise resolved last');
       assert.strictEqual(result, resultingTransforms, 'success!');
     });
@@ -104,10 +94,8 @@ test('it should trigger `fetchFail` event after an unsuccessful fetch', function
     assert.equal(error, ':(', 'error matches');
   });
 
-  stop();
-  source.fetch({ fetch: ['abc', 'def'] })
-    .then(undefined, (error) => {
-      start();
+  return source.fetch({ fetch: ['abc', 'def'] })
+    .catch((error) => {
       assert.equal(++order, 3, 'promise resolved last');
       assert.equal(error, ':(', 'failure');
     });
@@ -144,10 +132,8 @@ test('it should resolve all promises returned from `beforeFetch` before calling 
     assert.equal(++order, 5, 'fetch triggered after action performed successfully');
   });
 
-  stop();
-  source.fetch({ fetch: '' })
+  return source.fetch({ fetch: '' })
     .then((result) => {
-      start();
       assert.equal(++order, 6, 'promise resolved last');
       assert.strictEqual(result, resultingTransforms, 'success!');
     });
@@ -180,17 +166,9 @@ test('it should resolve all promises returned from `beforeFetch` and fail if any
     assert.equal(++order, 3, 'fetchFail triggered after action failed');
   });
 
-  stop();
-  source.fetch({ fetch: '' })
-    .then(
-      () => {
-        start();
-        assert.ok(false, 'promise should not succeed');
-      },
-      function(result) {
-        start();
-        assert.equal(++order, 4, 'promise failed because no actions succeeded');
-        assert.equal(result, ':(', 'failure');
-      }
-    );
+  return source.fetch({ fetch: '' })
+    .catch((error) => {
+      assert.equal(++order, 4, 'promise failed because no actions succeeded');
+      assert.equal(error, ':(', 'failure');
+    });
 });

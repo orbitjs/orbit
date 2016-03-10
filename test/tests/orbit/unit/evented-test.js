@@ -287,27 +287,27 @@ test('#listeners - can return all the listeners (and bindings) for multiple even
   deepEqual(evented.listeners('greeting parting'), [[greeting1, binding1], [greeting2, binding2], [parting1, binding1], [parting2, binding2]], 'listeners include nested arrays of functions and bindings');
 });
 
-test('#resolve - can fulfill promises returned by listeners to an event, in order, until one resolves', function() {
-  expect(8);
+test('#resolve - can fulfill promises returned by listeners to an event, in order, until one resolves', function(assert) {
+  assert.expect(8);
 
   let order = 0;
   let listener1 = function(message) {
-    equal(message, 'hello', 'notification message should match');
-    equal(++order, 1, 'listener1 triggered first');
+    assert.equal(message, 'hello', 'notification message should match');
+    assert.equal(++order, 1, 'listener1 triggered first');
     // doesn't return anything
   };
   let listener2 = function(message) {
-    equal(message, 'hello', 'notification message should match');
-    equal(++order, 2, 'listener2 triggered second');
+    assert.equal(message, 'hello', 'notification message should match');
+    assert.equal(++order, 2, 'listener2 triggered second');
     return failedOperation();
   };
   let listener3 = function(message) {
-    equal(message, 'hello', 'notification message should match');
-    equal(++order, 3, 'listener3 triggered third');
+    assert.equal(message, 'hello', 'notification message should match');
+    assert.equal(++order, 3, 'listener3 triggered third');
     return successfulOperation();
   };
   let listener4 = function(message) {
-    ok(false, 'listener should not be reached');
+    assert.ok(false, 'listener should not be reached');
   };
 
   evented.on('greeting', listener1, this);
@@ -315,134 +315,36 @@ test('#resolve - can fulfill promises returned by listeners to an event, in orde
   evented.on('greeting', listener3, this);
   evented.on('greeting', listener4, this);
 
-  stop();
-  evented.resolve('greeting', 'hello').then(
-    function(result) {
-      start();
-      equal(result, ':)', 'success!');
-      equal(++order, 4, 'promise resolved last');
-    },
-    function(error) {
-      ok(false, 'error handler should not be reached');
-    }
-  );
-});
-
-test('#settle - can fulfill all promises returned by listeners to an event, in order, until all are settled', function() {
-  expect(10);
-
-  let order = 0;
-  let listener1 = function(message) {
-    equal(message, 'hello', 'notification message should match');
-    equal(++order, 1, 'listener1 triggered first');
-    // doesn't return anything
-  };
-  let listener2 = function(message) {
-    equal(message, 'hello', 'notification message should match');
-    equal(++order, 2, 'listener2 triggered second');
-    return failedOperation();
-  };
-  let listener3 = function(message) {
-    equal(message, 'hello', 'notification message should match');
-    equal(++order, 3, 'listener3 triggered third');
-    return successfulOperation();
-  };
-  let listener4 = function(message) {
-    equal(message, 'hello', 'notification message should match');
-    equal(++order, 4, 'listener4 triggered fourth');
-    return failedOperation();
-  };
-
-  evented.on('greeting', listener1, this);
-  evented.on('greeting', listener2, this);
-  evented.on('greeting', listener3, this);
-  evented.on('greeting', listener4, this);
-
-  stop();
-  evented.settle('greeting', 'hello').then(
-    function(result) {
-      start();
-      equal(result, undefined, 'no result returned');
-      equal(++order, 5, 'promise resolved last');
-    },
-    function(error) {
-      ok(false, 'error handler should not be reached');
-    }
-  );
-});
-
-test('#settle - resolves regardless of errors thrown in handlers', function() {
-  expect(1);
-
-  var error = new Error();
-
-  function throwError() {
-    throw error;
-  }
-
-  evented.on('greeting', throwError);
-  stop();
-  return evented.settle('greeting', 'hello')
-    .then(function(result) {
-      start();
-      equal(result, undefined, 'Completed');
-    }, function() {
-      ok(false, 'error handler should not be reached');
+  return evented.resolve('greeting', 'hello')
+    .then(result => {
+      assert.equal(result, ':)', 'success!');
+      assert.equal(++order, 4, 'promise resolved last');
     });
 });
 
-test('#series - it can fulfill all promises returned by listeners to an event, in order, until all are settled', function() {
-  expect(6);
+test('#settle - can fulfill all promises returned by listeners to an event, in order, until all are settled', function(assert) {
+  assert.expect(10);
 
   let order = 0;
   let listener1 = function(message) {
-    equal(message, 'hello', 'notification message should match');
-    equal(++order, 1, 'listener1 triggered first');
+    assert.equal(message, 'hello', 'notification message should match');
+    assert.equal(++order, 1, 'listener1 triggered first');
     // doesn't return anything
   };
   let listener2 = function(message) {
-    equal(message, 'hello', 'notification message should match');
-    equal(++order, 2, 'listener2 triggered third');
-    return successfulOperation();
-  };
-
-  evented.on('greeting', listener1, this);
-  evented.on('greeting', listener2, this);
-
-  stop();
-  evented.series('greeting', 'hello').then(
-    function(result) {
-      start();
-      equal(result, undefined, 'no result returned');
-      equal(++order, 3, 'promise resolved last');
-    },
-    function(error) {
-      ok(false, 'error handler should not be reached');
-    }
-  );
-});
-
-test('#series - it will fail when any listener fails and return the error', function() {
-  expect(8);
-
-  let order = 0;
-  let listener1 = function(message) {
-    equal(message, 'hello', 'notification message should match');
-    equal(++order, 1, 'listener1 triggered first');
-    // doesn't return anything
-  };
-  let listener2 = function(message) {
-    equal(message, 'hello', 'notification message should match');
-    equal(++order, 2, 'listener2 triggered third');
-    return successfulOperation();
-  };
-  let listener3 = function(message) {
-    equal(message, 'hello', 'notification message should match');
-    equal(++order, 3, 'listener3 triggered second');
+    assert.equal(message, 'hello', 'notification message should match');
+    assert.equal(++order, 2, 'listener2 triggered second');
     return failedOperation();
   };
+  let listener3 = function(message) {
+    assert.equal(message, 'hello', 'notification message should match');
+    assert.equal(++order, 3, 'listener3 triggered third');
+    return successfulOperation();
+  };
   let listener4 = function(message) {
-    ok(false, 'listener4 should not be triggered');
+    assert.equal(message, 'hello', 'notification message should match');
+    assert.equal(++order, 4, 'listener4 triggered fourth');
+    return failedOperation();
   };
 
   evented.on('greeting', listener1, this);
@@ -450,15 +352,87 @@ test('#series - it will fail when any listener fails and return the error', func
   evented.on('greeting', listener3, this);
   evented.on('greeting', listener4, this);
 
-  stop();
-  evented.series('greeting', 'hello').then(
+  return evented.settle('greeting', 'hello')
+    .then(result => {
+      equal(result, undefined, 'no result returned');
+      equal(++order, 5, 'promise resolved last');
+    });
+});
+
+test('#settle - resolves regardless of errors thrown in handlers', function(assert) {
+  assert.expect(1);
+
+  evented.on('greeting', () => { throw new Error(); });
+
+  return evented.settle('greeting', 'hello')
+    .then(function(result) {
+      assert.equal(result, undefined, 'Completed');
+    })
+    .catch(() => {
+      assert.ok(false, 'error handler should not be reached');
+    });
+});
+
+test('#series - it can fulfill all promises returned by listeners to an event, in order, until all are settled', function(assert) {
+  assert.expect(6);
+
+  let order = 0;
+  let listener1 = function(message) {
+    assert.equal(message, 'hello', 'notification message should match');
+    assert.equal(++order, 1, 'listener1 triggered first');
+    // doesn't return anything
+  };
+  let listener2 = function(message) {
+    assert.equal(message, 'hello', 'notification message should match');
+    assert.equal(++order, 2, 'listener2 triggered third');
+    return successfulOperation();
+  };
+
+  evented.on('greeting', listener1, this);
+  evented.on('greeting', listener2, this);
+
+  return evented.series('greeting', 'hello').then(
     function(result) {
-      ok(false, 'success handler should not be reached');
-    },
-    function(error) {
-      start();
-      equal(++order, 4, 'error handler triggered last');
-      equal(error, ':(', 'error result returned');
+      assert.equal(result, undefined, 'no result returned');
+      assert.equal(++order, 3, 'promise resolved last');
+    });
+});
+
+test('#series - it will fail when any listener fails and return the error', function(assert) {
+  assert.expect(8);
+
+  let order = 0;
+  let listener1 = function(message) {
+    assert.equal(message, 'hello', 'notification message should match');
+    assert.equal(++order, 1, 'listener1 triggered first');
+    // doesn't return anything
+  };
+  let listener2 = function(message) {
+    assert.equal(message, 'hello', 'notification message should match');
+    assert.equal(++order, 2, 'listener2 triggered third');
+    return successfulOperation();
+  };
+  let listener3 = function(message) {
+    assert.equal(message, 'hello', 'notification message should match');
+    assert.equal(++order, 3, 'listener3 triggered second');
+    return failedOperation();
+  };
+  let listener4 = function(message) {
+    assert.ok(false, 'listener4 should not be triggered');
+  };
+
+  evented.on('greeting', listener1, this);
+  evented.on('greeting', listener2, this);
+  evented.on('greeting', listener3, this);
+  evented.on('greeting', listener4, this);
+
+  return evented.series('greeting', 'hello')
+    .then(result => {
+      assert.ok(false, 'success handler should not be reached');
+    })
+    .catch(error => {
+      assert.equal(++order, 4, 'error handler triggered last');
+      assert.equal(error, ':(', 'error result returned');
     }
   );
 });
