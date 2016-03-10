@@ -6,7 +6,7 @@ import Evented from 'orbit/evented';
 import { noop } from 'orbit/lib/stubs';
 import { Promise } from 'rsvp';
 
-var failedOperation = function() {
+const failedOperation = function() {
   return new Promise(function(resolve, reject) {
     reject(':(');
   });
@@ -17,20 +17,20 @@ var failedOperation = function() {
 module('Orbit - ActionQueue', {});
 
 test('it exists', function() {
-  var queue = new ActionQueue(noop);
+  const queue = new ActionQueue(noop);
   ok(queue);
 });
 
 test('it is set to `autoProcess` by default', function() {
-  var queue = new ActionQueue(noop);
+  const queue = new ActionQueue(noop);
   equal(queue.autoProcess, true, 'autoProcess === true');
 });
 
-test('will auto-process pushed actions sequentially by default', function() {
-  expect(5);
-  stop();
+test('will auto-process pushed actions sequentially by default', function(assert) {
+  assert.expect(5);
+  const done = assert.async();
 
-  var queue = new ActionQueue();
+  const queue = new ActionQueue();
 
   let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
   let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -38,23 +38,23 @@ test('will auto-process pushed actions sequentially by default', function() {
 
   queue.on('didProcessAction', function(action) {
     if (transformCount === 1) {
-      deepEqual(action.data, op1, 'op1 processed');
+      assert.deepEqual(action.data, op1, 'op1 processed');
     } else if (transformCount === 2) {
-      deepEqual(action.data, op2, 'op2 processed');
+      assert.deepEqual(action.data, op2, 'op2 processed');
     }
   });
 
   queue.on('didProcess', function() {
-    start();
-    ok(true, 'queue completed');
+    assert.ok(true, 'queue completed');
+    done();
   });
 
-  var _transform = function(op) {
+  const _transform = function(op) {
     transformCount++;
     if (transformCount === 1) {
-      deepEqual(op, op1, 'op1 passed as argument');
+      assert.deepEqual(op, op1, 'op1 passed as argument');
     } else if (transformCount === 2) {
-      deepEqual(op, op2, 'op2 passed as argument');
+      assert.deepEqual(op, op2, 'op2 passed as argument');
     }
   };
 
@@ -75,11 +75,11 @@ test('will auto-process pushed actions sequentially by default', function() {
   });
 });
 
-test('with `autoProcess` disabled, will process pushed functions sequentially when `process` is called', function() {
-  expect(5);
-  stop();
+test('with `autoProcess` disabled, will process pushed functions sequentially when `process` is called', function(assert) {
+  assert.expect(5);
+  const done = assert.async();
 
-  var queue = new ActionQueue();
+  const queue = new ActionQueue();
 
   let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
   let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -87,23 +87,23 @@ test('with `autoProcess` disabled, will process pushed functions sequentially wh
 
   queue.on('didProcessAction', function(action) {
     if (transformCount === 1) {
-      deepEqual(action.data, op1, 'op1 processed');
+      assert.deepEqual(action.data, op1, 'op1 processed');
     } else if (transformCount === 2) {
-      deepEqual(action.data, op2, 'op2 processed');
+      assert.deepEqual(action.data, op2, 'op2 processed');
     }
   });
 
   queue.on('didProcess', function() {
-    start();
-    ok(true, 'queue completed');
+    assert.ok(true, 'queue completed');
+    done();
   });
 
-  var _transform = function(op) {
+  const _transform = function(op) {
     transformCount++;
     if (transformCount === 1) {
-      deepEqual(op, op1, 'op1 passed as argument');
+      assert.deepEqual(op, op1, 'op1 passed as argument');
     } else if (transformCount === 2) {
-      deepEqual(op, op2, 'op2 passed as argument');
+      assert.deepEqual(op, op2, 'op2 passed as argument');
     }
   };
 
@@ -126,11 +126,11 @@ test('with `autoProcess` disabled, will process pushed functions sequentially wh
   queue.process();
 });
 
-test('will auto-process pushed async functions sequentially by default', function() {
+test('will auto-process pushed async functions sequentially by default', function(assert) {
   expect(8);
-  stop();
+  const done = assert.async();
 
-  var queue = new ActionQueue();
+  const queue = new ActionQueue();
 
   let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
   let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -148,11 +148,11 @@ test('will auto-process pushed async functions sequentially by default', functio
     equal(++order, 7, 'queue completed');
   });
 
-  var trigger = {};
+  const trigger = {};
   Evented.extend(trigger);
 
-  var _transform = function(op) {
-    var promise;
+  const _transform = function(op) {
+    let promise;
     if (op === op1) {
       equal(++order, 1, '_transform with op1');
       promise = new Promise(function(resolve) {
@@ -187,19 +187,19 @@ test('will auto-process pushed async functions sequentially by default', functio
     data: op2
   });
 
-  queue.process().then(function() {
-    start();
-    equal(++order, 8, 'queue resolves last');
-  });
+  queue.process()
+    .then(function() {
+      equal(++order, 8, 'queue resolves last');
+      done();
+    });
 
   trigger.emit('start1');
 });
 
-test('will stop processing when an action errors', function() {
-  expect(8);
-  stop();
+test('will stop processing when an action errors', function(assert) {
+  assert.expect(8);
 
-  var queue = new ActionQueue({ autoProcess: false });
+  const queue = new ActionQueue({ autoProcess: false });
 
   let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
   let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -207,33 +207,33 @@ test('will stop processing when an action errors', function() {
 
   queue.on('didProcessAction', function(action) {
     if (transformCount === 1) {
-      deepEqual(action.data, op1, 'didProcessAction - op1 processed');
+      assert.deepEqual(action.data, op1, 'didProcessAction - op1 processed');
     } else if (transformCount === 2) {
-      ok(false, 'op2 could not be processed');
+      assert.ok(false, 'op2 could not be processed');
     }
   });
 
   queue.on('didNotProcessAction', function(action, err) {
-    deepEqual(action.data, op2, 'didNotProcessAction - op2 failed processing');
-    equal(err.message, ':(', 'didNotProcessAction - error matches expectation');
+    assert.deepEqual(action.data, op2, 'didNotProcessAction - op2 failed processing');
+    assert.equal(err.message, ':(', 'didNotProcessAction - error matches expectation');
   });
 
   queue.on('didProcess', function() {
-    ok(false, 'queue should not complete');
+    assert.ok(false, 'queue should not complete');
   });
 
   queue.on('didNotProcess', function(errData, err) {
-    ok(true, 'didNotProcess - queue could not process');
-    deepEqual(errData.action.data, op2, 'didNotProcess - op2 failed processing');
-    equal(err.message, ':(', 'didNotProcess - error matches expectation');
+    assert.ok(true, 'didNotProcess - queue could not process');
+    assert.deepEqual(errData.action.data, op2, 'didNotProcess - op2 failed processing');
+    assert.equal(err.message, ':(', 'didNotProcess - error matches expectation');
   });
 
-  var _transform = function(op) {
+  const _transform = function(op) {
     transformCount++;
     if (transformCount === 1) {
-      deepEqual(op, op1, 'op1 passed as argument');
+      assert.deepEqual(op, op1, 'op1 passed as argument');
     } else if (transformCount === 2) {
-      deepEqual(op, op2, 'op2 passed as argument');
+      assert.deepEqual(op, op2, 'op2 passed as argument');
     }
   };
 
@@ -253,10 +253,8 @@ test('will stop processing when an action errors', function() {
     data: op2
   });
 
-  queue.process().then(function() {
-    ok(false, 'process should not resolve successfully');
-  }, function(err) {
-    start();
-    equal(err.message, ':(', 'process rejection - error matches expectation');
-  });
+  return queue.process()
+    .catch(err => {
+      assert.equal(err.message, ':(', 'process rejection - error matches expectation');
+    });
 });

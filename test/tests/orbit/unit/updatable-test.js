@@ -31,19 +31,11 @@ test('it should resolve as a failure when _update fails', function(assert) {
     return failedOperation();
   };
 
-  stop();
-  source.update({ addRecord: {} })
-    .then(
-      () => {
-        start();
-        assert.ok(false, 'update should not be resolved successfully');
-      },
-      (result) => {
-        start();
-        assert.ok(true, 'update promise resolved as a failure');
-        assert.equal(result, ':(', 'failure');
-      }
-    );
+  return source.update({ addRecord: {} })
+    .catch((error) => {
+      assert.ok(true, 'update promise resolved as a failure');
+      assert.equal(error, ':(', 'failure');
+    });
 });
 
 test('it should trigger `update` event after a successful action in which `_update` returns an array of transforms', function(assert) {
@@ -77,10 +69,8 @@ test('it should trigger `update` event after a successful action in which `_upda
     assert.strictEqual(result, resultingTransforms, 'result matches');
   });
 
-  stop();
-  source.update(addRecordTransform)
+  return source.update(addRecordTransform)
     .then((result) => {
-      start();
       assert.equal(++order, 3, 'promise resolved last');
       assert.strictEqual(result, resultingTransforms, 'success!');
     });
@@ -115,10 +105,8 @@ test('it should trigger `updateFail` event after an unsuccessful update', functi
     assert.equal(error, ':(', 'error matches');
   });
 
-  stop();
-  source.update(addRecordTransform)
-    .then(undefined, (error) => {
-      start();
+  return source.update(addRecordTransform)
+    .catch((error) => {
       assert.equal(++order, 3, 'promise resolved last');
       assert.equal(error, ':(', 'failure');
     });
@@ -161,10 +149,8 @@ test('it should resolve all promises returned from `beforeUpdate` before calling
     assert.equal(++order, 5, 'update triggered after action performed successfully');
   });
 
-  stop();
-  source.update(addRecordTransform)
+  return source.update(addRecordTransform)
     .then((result) => {
-      start();
       assert.equal(++order, 6, 'promise resolved last');
       assert.strictEqual(result, resultingTransforms, 'success!');
     });
@@ -205,17 +191,9 @@ test('it should resolve all promises returned from `beforeUpdate` and fail if an
     assert.equal(++order, 3, 'updateFail triggered after action failed');
   });
 
-  stop();
-  source.update(addRecordTransform)
-    .then(
-      () => {
-        start();
-        assert.ok(false, 'promise should not succeed');
-      },
-      function(result) {
-        start();
-        assert.equal(++order, 4, 'promise failed because no actions succeeded');
-        assert.equal(result, ':(', 'failure');
-      }
-    );
+  return source.update(addRecordTransform)
+    .catch((error) => {
+      assert.equal(++order, 4, 'promise failed because no actions succeeded');
+      assert.equal(error, ':(', 'failure');
+    });
 });
