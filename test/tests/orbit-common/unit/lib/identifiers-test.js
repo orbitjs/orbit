@@ -3,8 +3,10 @@ import { toIdentifier, parseIdentifier, identity } from 'orbit-common/lib/identi
 module('OC - Lib - Identifiers', {
 });
 
-test('`toIdentifier` converts a `type` and `id` to an identifier string', function(assert) {
-  assert.equal(toIdentifier('planet', '1'), 'planet:1');
+test('`toIdentifier` converts inputs to an identifier', function(assert) {
+  assert.equal(toIdentifier('planet', '1'), 'planet:1', 'works with `type` and `id` args');
+  assert.equal(toIdentifier(null), null, 'works with null');
+  assert.equal(toIdentifier({ type: 'planet', id: '1' }), 'planet:1', 'works with an identity object');
 });
 
 test('`parseIdentifier` converts an identifier string to an object with a `type` and `id`', function(assert) {
