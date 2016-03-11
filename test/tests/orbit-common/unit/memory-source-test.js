@@ -10,9 +10,6 @@ import { uuid } from 'orbit/lib/uuid';
 import { toIdentifier } from 'orbit-common/lib/identifiers';
 import CacheIntegrityProcessor from 'orbit-common/cache/operation-processors/cache-integrity-processor';
 import SchemaConsistencyProcessor from 'orbit-common/cache/operation-processors/schema-consistency-processor';
-import {
-  queryExpression as oqe
-} from 'orbit/query/expression';
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -110,7 +107,7 @@ module('OC - MemorySource', function(hooks) {
 
     assert.equal(source.cache.length('planet'), 1, 'cache should contain one planet');
 
-    source.query(oqe('get', 'planet/1'))
+    source.query(q => q.get('planet/1'))
       .then(function(foundPlanet) {
         strictEqual(foundPlanet, jupiter, 'found planet matches original');
         done();

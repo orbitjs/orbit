@@ -46,13 +46,13 @@ test('it should trigger `query` event after a successful action in which `_query
 
   source._query = function(query) {
     assert.equal(++order, 1, 'action performed after willQuery');
-    assert.deepEqual(query, { fetch: ['abc', 'def'] }, 'query object matches');
+    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query object matches');
     return successfulOperation();
   };
 
   source.on('query', (query, result) => {
     assert.equal(++order, 2, 'query triggered after action performed successfully');
-    assert.deepEqual(query, { fetch: ['abc', 'def'] }, 'query matches');
+    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query matches');
     assert.equal(result, ':)', 'result matches');
   });
 
@@ -70,13 +70,13 @@ test('it should trigger `query` event after a successful action in which `_query
 
   source._query = function(query) {
     assert.equal(++order, 1, 'action performed after willQuery');
-    assert.deepEqual(query, { fetch: ['abc', 'def'] }, 'query object matches');
+    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query object matches');
     return;
   };
 
   source.on('query', (query, result) => {
     equal(++order, 2, 'query triggered after action performed successfully');
-    assert.deepEqual(query, { fetch: ['abc', 'def'] }, 'query matches');
+    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query matches');
     assert.equal(result, undefined, 'result matches');
   });
 
@@ -94,7 +94,7 @@ test('`query` event should receive results as the last argument, even if they ar
 
   source._query = function(query) {
     assert.equal(++order, 1, 'action performed after willQuery');
-    assert.deepEqual(query, { fetch: ['abc', 'def'] }, 'query object matches');
+    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query object matches');
     return new Promise(function(resolve, reject) {
       resolve(['a', 'b', 'c']);
     });
@@ -102,7 +102,7 @@ test('`query` event should receive results as the last argument, even if they ar
 
   source.on('query', (query, result) => {
     equal(++order, 2, 'query triggered after action performed successfully');
-    assert.deepEqual(query, { fetch: ['abc', 'def'] }, 'query matches');
+    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query matches');
     assert.deepEqual(result, ['a', 'b', 'c'], 'result matches');
   });
 
@@ -120,7 +120,7 @@ test('it should trigger `queryFail` event after an unsuccessful query', function
 
   source._query = function(query) {
     assert.equal(++order, 1, 'action performed after willQuery');
-    assert.deepEqual(query, { fetch: ['abc', 'def'] }, 'query object matches');
+    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query object matches');
     return failedOperation();
   };
 
@@ -130,7 +130,7 @@ test('it should trigger `queryFail` event after an unsuccessful query', function
 
   source.on('queryFail', (query, error) => {
     assert.equal(++order, 2, 'queryFail triggered after an unsuccessful query');
-    assert.deepEqual(query, { fetch: ['abc', 'def'] }, 'query matches');
+    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query matches');
     assert.equal(error, ':(', 'error matches');
   });
 
