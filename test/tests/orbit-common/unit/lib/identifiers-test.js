@@ -1,4 +1,4 @@
-import { toIdentifier, parseIdentifier, identity } from 'orbit-common/lib/identifiers';
+import { toIdentifier, parseIdentifier, identity, eqIdentity } from 'orbit-common/lib/identifiers';
 
 module('OC - Lib - Identifiers', {
 });
@@ -15,4 +15,12 @@ test('`parseIdentifier` converts an identifier string to an object with a `type`
 
 test('`identity` returns a simple { type, id } identity object from any object with a `type` and `id`', function(assert) {
   assert.deepEqual(identity({ type: 'planet', id: '1', attributes: { }, relationships: { } }), { type: 'planet', id: '1' });
+});
+
+test('`eqIdentity` compares the type/id identity of two objects', function(assert) {
+  assert.ok(eqIdentity({ type: 'planet', id: '1' }, { type: 'planet', id: '1' }), 'identities match');
+  assert.ok(eqIdentity(null, null), 'identities match');
+  assert.ok(!eqIdentity({ type: 'planet', id: '1' }, { type: 'moon', id: '1' }), 'identities do not match');
+  assert.ok(!eqIdentity({ type: 'planet', id: '1' }, null), 'identities do not match');
+  assert.ok(!eqIdentity(null, { type: 'planet', id: '1' }), 'identities do not match');
 });
