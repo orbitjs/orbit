@@ -1,3 +1,4 @@
+import 'tests/test-helper';
 import Orbit from 'orbit/main';
 import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
@@ -7,7 +8,9 @@ import { Promise } from 'rsvp';
 import jQuery from 'jquery';
 import { toIdentifier, parseIdentifier } from 'orbit-common/lib/identifiers';
 import { queryExpression as oqe } from 'orbit/query/expression';
+import QueryBuilder from 'orbit-common/query/builder';
 
+let q = new QueryBuilder();
 let server,
     schema,
     source;
@@ -420,6 +423,52 @@ test('#update - can replace a hasMany relationship with PATCH', function(assert)
     .then(function() {
       assert.ok(true, 'relationship replaced');
     });
+});
+
+test('#fetch - recordsOfType', function(assert) {
+  const done = assert.async();
+
+  let records = [
+    { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } },
+    { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial' } },
+    { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant' } }
+  ];
+
+  server.respondWith('GET', '/planets', function(xhr) {
+    ok(true, 'GET request');
+    xhr.respond(200,
+                { 'Content-Type': 'application/json' },
+                JSON.stringify({ data: records }));
+  });
+
+  source
+    .fetch(q.recordsOfType('planet').build())
+    .then(records => {
+      assert.deepEqual(records.map(r => r.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
+    })
+    .finally(done);
+});
+
+test('#fetch - recordsOfType with filter', function(assert) {
+  const done = assert.async();
+
+  let records = [
+    { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
+  ];
+
+  server.respondWith('GET', '/planets?filter[name]=Jupiter', function(xhr) {
+    ok(true, 'GET request');
+    xhr.respond(200,
+                { 'Content-Type': 'application/json' },
+                JSON.stringify({ data: records }));
+  });
+
+  source
+    .fetch(q.recordsOfType('planet').filterAttributes({ name: 'Jupiter' }).build())
+    .then(records => {
+      assert.deepEqual(records.map(r => r.attributes.name), ['Jupiter']);
+    })
+    .finally(done);
 });
 
 // test('#query - can `get` an individual record', function() {
