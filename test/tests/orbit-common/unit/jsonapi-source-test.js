@@ -6,7 +6,6 @@ import JSONAPISource from 'orbit-common/jsonapi-source';
 import { Promise } from 'rsvp';
 import jQuery from 'jquery';
 import { toIdentifier, parseIdentifier } from 'orbit-common/lib/identifiers';
-import { queryExpression as oqe } from 'orbit/query/expression';
 
 let server,
     schema,
@@ -435,7 +434,7 @@ test('#update - can replace a hasMany relationship with PATCH', function(assert)
 //   });
 //
 //   stop();
-//   source.query(oqe('get', `planet/${planet.id}`))
+//   source.query(q => q.get(`planet/${planet.id}`))
 //     .then(function(foundPlanet) {
 //       start();
 //       equal(foundPlanet.id, planet.id, 'orbit id should match');
