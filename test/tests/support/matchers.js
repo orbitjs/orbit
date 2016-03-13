@@ -1,11 +1,14 @@
 import { eq } from 'orbit/lib/eq';
-import {
-  serializeOps
-} from './operations';
+import TransformBuilder from 'orbit-common/transform/builder';
 
-function transformMatching({ operations: expectedOps }) {
+const transformBuilder = new TransformBuilder();
+
+function transformMatching(transformCallback) {
+  const transform = transformBuilder.build(transformCallback);
+  const expectedOps = transform.operations;
+
   return sinon.match(function({ operations: actualOps }) {
-    return eq(serializeOps(expectedOps), serializeOps(actualOps));
+    return eq(expectedOps, actualOps);
   });
 }
 
