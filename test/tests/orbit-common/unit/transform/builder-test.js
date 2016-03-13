@@ -134,10 +134,8 @@ test('can add multiple operations', function(assert) {
 
   let europa = { type: 'moon', id: 'Europa' };
 
-  let transform = builder.build((b) => {
-    b.addToHasMany(record, 'moons', io);
-    b.addToHasMany(record, 'moons', europa);
-  });
+  let transform = builder.build(b => b.addToHasMany(record, 'moons', io)
+                                      .addToHasMany(record, 'moons', europa));
 
   assert.deepEqual(transform.operations, [
     { op: 'addToHasMany', record, relationship: 'moons', relatedRecord: io },
