@@ -1,4 +1,4 @@
-import TransformLog from 'orbit/transform-log';
+import TransformLog from 'orbit/transform/log';
 import { TransformNotLoggedException } from 'orbit/lib/exceptions';
 
 module('Orbit - TransformLog', function() {
