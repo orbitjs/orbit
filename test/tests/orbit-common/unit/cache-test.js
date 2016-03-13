@@ -50,9 +50,7 @@ test('#transform sets data and #get retrieves it', function(assert) {
 
   const earth = { type: 'planet', id: '1', attributes: { name: 'Earth' } };
 
-  cache.transform(t => {
-    t.addRecord(earth);
-  });
+  cache.transform(t => t.addRecord(earth));
 
   assert.deepEqual(cache.get('planet/1'), earth, 'objects match in value');
   assert.notStrictEqual(cache.get('planet/1'), earth, 'objects don\'t match by reference because a clone has been cached');
@@ -63,9 +61,7 @@ test('#has indicates whether a path exists', function(assert) {
 
   const earth = { type: 'planet', id: '1', attributes: { name: 'Earth' } };
 
-  cache.transform(t => {
-    t.addRecord(earth);
-  });
+  cache.transform(t => t.addRecord(earth));
 
   assert.equal(cache.has('planet'), true, 'path exists');
   assert.equal(cache.has('planet/1'), true, 'path exists');
@@ -79,9 +75,7 @@ test('#hasDeleted by default just returns the inverse of #has', function(assert)
 
   const earth = { type: 'planet', id: '1', attributes: { name: 'Earth' } };
 
-  cache.transform(t => {
-    t.addRecord(earth);
-  });
+  cache.transform(t => t.addRecord(earth));
 
   assert.equal(cache.hasDeleted('planet'), !cache.has('planet'), 'path exists');
   assert.equal(cache.hasDeleted('planet/1'), !cache.has('planet/1'), 'path exists');
@@ -138,9 +132,7 @@ test('#length returns the size of data at a path', function(assert) {
 
   assert.equal(cache.length('planet'), 2, 'returns count of objects at a path');
 
-  cache.transform(t => {
-    t.replaceAttribute({ type: 'planet', id: '1' }, 'stuff', ['a', 'b', 'c']);
-  });
+  cache.transform(t => t.replaceAttribute({ type: 'planet', id: '1' }, 'stuff', ['a', 'b', 'c']));
 
   assert.equal(cache.length('planet/1/attributes/stuff'), 3, 'returns size of an array at a path');
 });
@@ -148,9 +140,7 @@ test('#length returns the size of data at a path', function(assert) {
 test('#reset clears the cache by default', function(assert) {
   cache = new Cache(schema);
 
-  cache.transform(t => {
-    t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } });
-  });
+  cache.transform(t => t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } }));
 
   cache.reset();
 
@@ -160,9 +150,7 @@ test('#reset clears the cache by default', function(assert) {
 test('#reset overrides the cache completely with the value specified', function(assert) {
   cache = new Cache(schema);
 
-  cache.transform(t => {
-    t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } });
-  });
+  cache.transform(t => t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } }));
 
   const newData = { planet: { '2': { type: 'planet', id: '2', attributes: { name: 'Mars' } } } };
 
@@ -189,11 +177,9 @@ test('#transform tracks refs and clears them from hasOne relationships when a re
   const io = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: 'planet:p1' } } };
   const europa = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: 'planet:p1' } } };
 
-  cache.transform(t => {
-    t.addRecord(jupiter);
-    t.addRecord(io);
-    t.addRecord(europa);
-  });
+  cache.transform(t => t.addRecord(jupiter)
+                        .addRecord(io)
+                        .addRecord(europa));
 
   assert.equal(cache.get('moon/m1/relationships/planet/data'), 'planet:p1', 'Jupiter has been assigned to Io');
   assert.equal(cache.get('moon/m2/relationships/planet/data'), 'planet:p1', 'Jupiter has been assigned to Europa');
@@ -215,24 +201,18 @@ test('#transform tracks refs and clears them from hasMany relationships when a r
   var europa = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: null } } };
   var jupiter = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: { data: { 'moon:m1': true, 'moon:m2': true } } } };
 
-  cache.transform(t => {
-    t.addRecord(io);
-    t.addRecord(europa);
-    t.addRecord(jupiter);
-  });
+  cache.transform(t => t.addRecord(io)
+                        .addRecord(europa)
+                        .addRecord(jupiter));
 
   assert.equal(cache.get('planet/p1/relationships/moons/data/moon:m1'), true, 'Jupiter has been assigned to Io');
   assert.equal(cache.get('planet/p1/relationships/moons/data/moon:m2'), true, 'Jupiter has been assigned to Europa');
 
-  cache.transform(t => {
-    t.removeRecord(io);
-  });
+  cache.transform(t => t.removeRecord(io));
 
   assert.equal(cache.get('moon/m1'), null, 'Io is GONE');
 
-  cache.transform(t => {
-    t.removeRecord(europa);
-  });
+  cache.transform(t => t.removeRecord(europa));
 
   assert.equal(cache.get('moon/m2'), null, 'Europa is GONE');
 
@@ -243,9 +223,7 @@ test('#transform tracks refs and clears them from hasMany relationships when a r
 test('#transform adds link to hasMany if record doesn\'t exist', function(assert) {
   cache = new Cache(schema);
 
-  cache.transform(t => {
-    t.addToHasMany({ type: 'planet', id: 'p1' }, 'moons', { type: 'moon', id: 'moon1' });
-  });
+  cache.transform(t => t.addToHasMany({ type: 'planet', id: 'p1' }, 'moons', { type: 'moon', id: 'moon1' }));
 
   assert.equal(cache.get('planet/p1/relationships/moons/data/moon:moon1'), true, 'relationship was added');
 });
@@ -259,9 +237,7 @@ test('#transform does not remove link from hasMany if record doesn\'t exist', fu
     ok(false, 'no operations were applied');
   });
 
-  cache.transform(t => {
-    t.removeFromHasMany({ type: 'planet', id: 'p1' }, 'moons', { type: 'moon', id: 'moon1' });
-  });
+  cache.transform(t => t.removeFromHasMany({ type: 'planet', id: 'p1' }, 'moons', { type: 'moon', id: 'moon1' }));
 
   assert.equal(cache.get('planet/p1'), undefined, 'planet does not exist');
 });
@@ -311,17 +287,13 @@ test('#transform does not add link to hasMany if link already exists', function(
 
   const jupiter = { id: 'p1', type: 'planet', attributes: { name: 'Jupiter' }, relationships: { moons: { data: { 'moon:m1': true } } } };
 
-  cache.transform(t => {
-    t.addRecord(jupiter);
-  });
+  cache.transform(t => t.addRecord(jupiter));
 
   cache.on('patch', (op) => {
     assert.ok(false, 'no operations were applied');
   });
 
-  cache.transform(t => {
-    t.addToHasMany(jupiter, 'moons', { type: 'moon', id: 'm1' });
-  });
+  cache.transform(t => t.addToHasMany(jupiter, 'moons', { type: 'moon', id: 'm1' }));
 
   assert.ok(true, 'transform completed');
 });
@@ -333,17 +305,13 @@ test('#transform does not remove relationship from hasMany if relationship doesn
 
   const jupiter = { id: 'p1', type: 'planet', attributes: { name: 'Jupiter' }, relationships: { moons: {} } };
 
-  cache.transform(t => {
-    t.addRecord(jupiter);
-  });
+  cache.transform(t => t.addRecord(jupiter));
 
   cache.on('patch', (op) => {
     ok(false, 'no operations were applied');
   });
 
-  cache.transform(t => {
-    t.removeFromHasMany(jupiter, 'moons', { type: 'moon', id: 'm1' });
-  });
+  cache.transform(t => t.removeFromHasMany(jupiter, 'moons', { type: 'moon', id: 'm1' }));
 
   assert.ok(true, 'transform completed');
 });
@@ -355,17 +323,13 @@ test('does not replace hasOne if relationship already exists', function(assert) 
 
   const europa = { id: 'm1', type: 'moon', attributes: { name: 'Europa' }, relationships: { planet: { data: 'planet:p1' } } };
 
-  cache.transform(t => {
-    t.addRecord(europa);
-  });
+  cache.transform(t => t.addRecord(europa));
 
   cache.on('patch', (op) => {
     assert.ok(false, 'no operations were applied');
   });
 
-  cache.transform(t => {
-    t.replaceHasOne(europa, 'planet', { type: 'planet', id: 'p1' });
-  });
+  cache.transform(t => t.replaceHasOne(europa, 'planet', { type: 'planet', id: 'p1' }));
 
   assert.ok(true, 'transform completed');
 });
@@ -377,17 +341,13 @@ test('does not remove hasOne if relationship doesn\'t exist', function(assert) {
 
   const europa = { type: 'moon', id: 'm1', attributes: { name: 'Europa' }, relationships: { planet: { data: null } } };
 
-  cache.transform(t => {
-    t.addRecord(europa);
-  });
+  cache.transform(t => t.addRecord(europa));
 
   cache.on('patch', (op) => {
     assert.ok(false, 'no operations were applied');
   });
 
-  cache.transform(t => {
-    t.replaceHasOne(europa, 'planet', null);
-  });
+  cache.transform(t => t.replaceHasOne(europa, 'planet', null));
 
   assert.ok(true, 'transform completed');
 });
@@ -417,8 +377,7 @@ test('#transform removing model with a bi-directional hasOne', function(assert) 
       relationships: {
         two: { data: null }
       }
-    });
-    t.addRecord({
+    }).addRecord({
       id: '2',
       type: 'two',
       relationships: {
@@ -434,9 +393,7 @@ test('#transform removing model with a bi-directional hasOne', function(assert) 
   assert.equal(one.relationships.two.data, 'two:2', 'one links to two');
   assert.equal(two.relationships.one.data, 'one:1', 'two links to one');
 
-  cache.transform(t => {
-    t.removeRecord(two);
-  });
+  cache.transform(t => t.removeRecord(two));
 
   assert.strictEqual(one.relationships.two.data, null, 'ones link to two got removed');
 });
@@ -473,9 +430,7 @@ test('#transform removes dependent records', function(assert) {
   });
 
   // Removing the moon should remove the planet should remove the other moon
-  cache.transform(t => {
-    t.removeRecord(io);
-  });
+  cache.transform(t => t.removeRecord(io));
 
   // TODO-investigate why there's still a moon left
   // assert.equal(cache.length('moon'), 0, 'No moons left in store');
@@ -504,18 +459,16 @@ test('#transform does not remove non-dependent records', function() {
   const europa = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: 'planet:p1' } } };
 
   cache.transform(t => {
-    t.addRecord(jupiter);
-    t.addRecord(io);
-    t.addRecord(europa);
-    t.addToHasMany(jupiter, 'moons', io);
-    t.addToHasMany(jupiter, 'moons', europa);
+    t.addRecord(jupiter)
+     .addRecord(io)
+     .addRecord(europa)
+     .addToHasMany(jupiter, 'moons', io)
+     .addToHasMany(jupiter, 'moons', europa);
   });
 
   // Since there are no dependent relationships, no other records will be
   // removed
-  cache.transform(t => {
-    t.removeRecord(io);
-  });
+  cache.transform(t => t.removeRecord(io));
 
   equal(cache.length('moon'), 1, 'One moon left in store');
   equal(cache.length('planet'), 1, 'One planet left in store');

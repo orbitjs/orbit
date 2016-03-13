@@ -24,12 +24,12 @@ module('Orbit', function() {
       test('#build - takes a function and returns a Transform instance (empty by default)', function(assert) {
         assert.expect(3);
 
-        let t = builder.build((b) => {
-          assert.ok(b.transform instanceof Transform);
+        let transform = builder.build(t => {
+          assert.deepEqual(t.operations, [], 'transform builder has no operations');
         });
 
-        assert.ok(t instanceof Transform);
-        assert.deepEqual(t.operations, [], 'has no operations by default');
+        assert.ok(transform instanceof Transform, 'a Transform instance is returned');
+        assert.deepEqual(transform.operations, [], 'built transform has no operations');
       });
     });
   });

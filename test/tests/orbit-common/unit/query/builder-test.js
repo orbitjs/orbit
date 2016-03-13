@@ -109,7 +109,7 @@ module('OC - QueryBuilder', function(hooks) {
     };
 
     const qb = new QueryBuilder({
-      terms: {
+      operators: {
         recordsOfType: { planet: planetScopes }
       }
     });
