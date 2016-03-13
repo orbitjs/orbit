@@ -1,6 +1,7 @@
 import 'tests/test-helper';
 import { queryExpression as oqe } from 'orbit/query/expression';
 import QueryBuilder from 'orbit-common/query/builder';
+import { Records } from 'orbit-common/query/terms';
 
 module('OC - QueryBuilder', function(hooks) {
   let qb;
@@ -102,16 +103,14 @@ module('OC - QueryBuilder', function(hooks) {
   });
 
   test('recordsOfType with scopes', function(assert) {
-    const planetScopes = {
+    class PlanetRecords extends Records {
       namedPluto() {
         return this.filterAttributes({ name: 'Pluto' });
       }
-    };
+    }
 
     const qb = new QueryBuilder({
-      operators: {
-        recordsOfType: { planet: planetScopes }
-      }
+      terms: { PlanetRecords }
     });
 
     assert.deepEqual(
