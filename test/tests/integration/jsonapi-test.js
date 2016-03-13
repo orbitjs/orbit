@@ -48,7 +48,6 @@ function onAddPlutoRequest(response) {
 }
 
 function wasRequested(method, url, json) {
-  console.log('requests', server.requests);
   const result = server.requests.find(request => {
     const methodMatches = request.method === method;
     const urlMatches = request.url === url;
@@ -85,10 +84,10 @@ module('Integration - JSONAPI', function(hooks) {
     jsonApiSource.on('transform', t => store.confirm(t));
     jsonApiSource.on('updateFail', (t, e) => store.deny(t, e));
 
-    store.on('transform', t => console.log('store.onTransform', t.id));
-    queue.on('transform', t => console.log('queue.onTransform', t.id));
-    jsonApiSource.on('transform', t => console.log('jsonApiSource', t.id));
-    jsonApiSource.on('updateFail', (t, e) => console.log('updateFail', t, e));
+    // store.on('transform', t => console.log('store.onTransform', t.id));
+    // queue.on('transform', t => console.log('queue.onTransform', t.id));
+    // jsonApiSource.on('transform', t => console.log('jsonApiSource', t.id));
+    // jsonApiSource.on('updateFail', (t, e) => console.log('updateFail', t, e));
 
     store.on('query', expression => jsonApiSource.fetch(expression));
     window.store = store;
