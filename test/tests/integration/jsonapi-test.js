@@ -1,7 +1,7 @@
 import { planetsSchema as schema } from 'tests/test-helper';
 import Store from 'orbit-common/store';
 import JsonApiSource from 'orbit-common/jsonapi-source';
-import TransformQueue from 'orbit/transform-queue';
+import TransformQueue from 'orbit/transform/queue';
 import { eq } from 'orbit/lib/eq';
 
 let server;
