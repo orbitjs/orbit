@@ -512,7 +512,7 @@ test('#query can perform a simple matching filter', function(assert) {
     cache.query(
       oqe('filter',
           'planet',
-          oqe('equal', oqe('get', 'attributes/name'), 'Jupiter'))
+          oqe('equal', oqe('attribute', 'name'), 'Jupiter'))
     ),
     {
       jupiter
@@ -535,8 +535,8 @@ test('#query can perform a complex conditional `and` filter', function(assert) {
       oqe('filter',
           'planet',
           oqe('and',
-            oqe('equal', oqe('get', 'attributes/classification'), 'terrestrial'),
-            oqe('equal', oqe('get', 'attributes/atmosphere'), true)
+            oqe('equal', oqe('attribute', 'classification'), 'terrestrial'),
+            oqe('equal', oqe('attribute', 'atmosphere'), true)
           ))
     ),
     {
@@ -561,8 +561,8 @@ test('#query can perform a complex conditional `or` filter', function(assert) {
       oqe('filter',
           'planet',
           oqe('or',
-              oqe('equal', oqe('get', 'attributes/classification'), 'gas giant'),
-              oqe('equal', oqe('get', 'attributes/atmosphere'), true)
+              oqe('equal', oqe('attribute', 'classification'), 'gas giant'),
+              oqe('equal', oqe('attribute', 'atmosphere'), true)
          ))
     ),
     {
