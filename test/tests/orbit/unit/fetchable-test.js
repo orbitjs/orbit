@@ -50,7 +50,7 @@ test('it should trigger `fetch` event after a successful action in which `_fetch
 
   source._fetch = function(query) {
     assert.equal(++order, 1, 'action performed after willFetch');
-    assert.deepEqual(query, { fetch: ['abc', 'def'] }, 'query object matches');
+    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query object matches');
     return Promise.resolve(resultingTransforms);
   };
 
@@ -62,7 +62,7 @@ test('it should trigger `fetch` event after a successful action in which `_fetch
 
   source.on('fetch', (query, result) => {
     assert.equal(++order, 2, 'fetch triggered after action performed successfully');
-    assert.deepEqual(query, { fetch: ['abc', 'def'] }, 'query matches');
+    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query matches');
     assert.strictEqual(result, resultingTransforms, 'result matches');
   });
 
@@ -80,7 +80,7 @@ test('it should trigger `fetchFail` event after an unsuccessful fetch', function
 
   source._fetch = function(query) {
     assert.equal(++order, 1, 'action performed after willFetch');
-    assert.deepEqual(query, { fetch: ['abc', 'def'] }, 'query object matches');
+    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query object matches');
     return failedOperation();
   };
 
@@ -90,7 +90,7 @@ test('it should trigger `fetchFail` event after an unsuccessful fetch', function
 
   source.on('fetchFail', (query, error) => {
     assert.equal(++order, 2, 'fetchFail triggered after an unsuccessful fetch');
-    assert.deepEqual(query, { fetch: ['abc', 'def'] }, 'query matches');
+    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query matches');
     assert.equal(error, ':(', 'error matches');
   });
 
