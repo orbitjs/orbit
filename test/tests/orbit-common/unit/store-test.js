@@ -99,7 +99,7 @@ module('OC - Store', function(hooks) {
       .finally(done);
   });
 
-  test('#findRecordsByType - returns all records of a particular type', function(assert) {
+  test('#findRecordsOfType - returns all records of a particular type', function(assert) {
     const done = assert.async();
 
     let earth = schema.normalize({ id: 'earth', type: 'planet' });
@@ -112,7 +112,7 @@ module('OC - Store', function(hooks) {
       t.addRecord(io);
     });
 
-    const runQuery = store.findRecordsByType('planet');
+    const runQuery = store.findRecordsOfType('planet');
     onFetch.resolve([addPlanetsTransform]);
     store.confirm(addPlanetsTransform);
 
@@ -123,10 +123,10 @@ module('OC - Store', function(hooks) {
       .finally(done);
   });
 
-  test('#findRecordsByType - returns an empty array when there\'s no data', function(assert) {
+  test('#findRecordsOfType - returns an empty array when there\'s no data', function(assert) {
     const done = assert.async();
 
-    const runQuery = store.findRecordsByType('planet');
+    const runQuery = store.findRecordsOfType('planet');
     onFetch.resolve([]);
 
     runQuery
@@ -320,4 +320,3 @@ module('OC - Store', function(hooks) {
       .finally(done);
   });
 });
-
