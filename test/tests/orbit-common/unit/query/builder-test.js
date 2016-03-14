@@ -30,12 +30,12 @@ module('OC - QueryBuilder', function(hooks) {
     assert.deepEqual(
       qb.build(q => {
         return q.recordsOfType('planet')
-                .filter(record => record.get('attributes/name').equal('Pluto'));
+                .filter(record => record.attribute('name').equal('Pluto'));
       }).expression,
 
       oqe('filter',
         oqe('recordsOfType', 'planet'),
-        oqe('equal', oqe('get', 'attributes/name'), 'Pluto'))
+        oqe('equal', oqe('attribute', 'name'), 'Pluto'))
     );
   });
 
