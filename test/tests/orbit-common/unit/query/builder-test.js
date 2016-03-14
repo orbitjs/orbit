@@ -10,6 +10,14 @@ module('OC - QueryBuilder', function(hooks) {
     qb = new QueryBuilder();
   });
 
+  test('record', function(assert) {
+    assert.deepEqual(
+      qb.build(q => q.record('planet', '123')).expression,
+
+      oqe('record', 'planet', '123')
+    );
+  });
+
   test('recordsOfType', function(assert) {
     assert.deepEqual(
       qb.build(q => q.recordsOfType('planet')).expression,
@@ -36,8 +44,8 @@ module('OC - QueryBuilder', function(hooks) {
       qb.build(q => q.recordsOfType('planet')
                      .filter(record =>
                        q.or(
-                         record.get('attributes/name').equal('Jupiter'),
-                         record.get('attributes/name').equal('Pluto')
+                         record.attribute('name').equal('Jupiter'),
+                         record.attribute('name').equal('Pluto')
                        )
                      )
       ).expression,
@@ -45,8 +53,8 @@ module('OC - QueryBuilder', function(hooks) {
       oqe('filter',
         oqe('recordsOfType', 'planet'),
           oqe('or',
-            oqe('equal', oqe('get', 'attributes/name'), 'Jupiter'),
-            oqe('equal', oqe('get', 'attributes/name'), 'Pluto')))
+            oqe('equal', oqe('attribute', 'name'), 'Jupiter'),
+            oqe('equal', oqe('attribute', 'name'), 'Pluto')))
     );
   });
 
@@ -55,8 +63,8 @@ module('OC - QueryBuilder', function(hooks) {
       qb.build(q => q.recordsOfType('planet')
                      .filter(record =>
                        q.and(
-                         record.get('attributes/name').equal('Jupiter'),
-                         record.get('attributes/name').equal('Pluto')
+                         record.attribute('name').equal('Jupiter'),
+                         record.attribute('name').equal('Pluto')
                        )
                      )
       ).expression,
@@ -64,8 +72,8 @@ module('OC - QueryBuilder', function(hooks) {
       oqe('filter',
         oqe('recordsOfType', 'planet'),
           oqe('and',
-            oqe('equal', oqe('get', 'attributes/name'), 'Jupiter'),
-            oqe('equal', oqe('get', 'attributes/name'), 'Pluto')))
+            oqe('equal', oqe('attribute', 'name'), 'Jupiter'),
+            oqe('equal', oqe('attribute', 'name'), 'Pluto')))
     );
   });
 
@@ -83,8 +91,8 @@ module('OC - QueryBuilder', function(hooks) {
       oqe('filter',
         oqe('recordsOfType', 'planet'),
           oqe('and',
-            oqe('equal', oqe('get', 'attributes/name'), 'Jupiter'),
-            oqe('equal', oqe('get', 'attributes/name'), 'Pluto')))
+            oqe('equal', oqe('attribute', 'name'), 'Jupiter'),
+            oqe('equal', oqe('attribute', 'name'), 'Pluto')))
     );
   });
 
@@ -97,8 +105,8 @@ module('OC - QueryBuilder', function(hooks) {
       oqe('filter',
         oqe('recordsOfType', 'planet'),
           oqe('and',
-            oqe('equal', oqe('get', 'attributes/name'), 'Jupiter'),
-            oqe('equal', oqe('get', 'attributes/age'), '23000000')))
+            oqe('equal', oqe('attribute', 'name'), 'Jupiter'),
+            oqe('equal', oqe('attribute', 'age'), '23000000')))
     );
   });
 
@@ -120,7 +128,7 @@ module('OC - QueryBuilder', function(hooks) {
 
       oqe('filter',
         oqe('recordsOfType', 'planet'),
-        oqe('equal', oqe('get', 'attributes/name'), 'Pluto'))
+        oqe('equal', oqe('attribute', 'name'), 'Pluto'))
     );
   });
 });
