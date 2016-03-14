@@ -401,7 +401,7 @@ test('#update - can clear a hasOne relationship with PATCH', function(assert) {
 });
 
 test('#update - can replace a hasMany relationship with PATCH', function(assert) {
-  expect(2);
+  assert.expect(2);
 
   let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
   let moon = schema.normalize({ type: 'moon', keys: { remoteId: '987' } });
@@ -421,48 +421,67 @@ test('#update - can replace a hasMany relationship with PATCH', function(assert)
     });
 });
 
-QUnit.skip('#fetch - recordsOfType', function(assert) {
-  const done = assert.async();
+test('#fetch - record', function(assert) {
+  const data = { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } };
 
-  let records = [
+  server.respondWith('GET', '/planets', function(xhr) {
+    assert.ok(true, 'GET request');
+    xhr.respond(200,
+                { 'Content-Type': 'application/json' },
+                JSON.stringify({ data }));
+  });
+
+  return source.fetch(q => q.record('planet', 'jupiter'))
+    .then(transforms => {
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
+      assert.deepEqual(transforms[0].operations.map(o => o.record.attributes.name), ['Jupiter']);
+    });
+});
+
+test('#fetch - recordsOfType', function(assert) {
+  assert.expect(4);
+
+  const data = [
     { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } },
     { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial' } },
     { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant' } }
   ];
 
   server.respondWith('GET', '/planets', function(xhr) {
-    ok(true, 'GET request');
+    assert.ok(true, 'GET request');
     xhr.respond(200,
                 { 'Content-Type': 'application/json' },
-                JSON.stringify({ data: records }));
+                JSON.stringify({ data }));
   });
 
-  source
-    .fetch(q => q.recordsOfType('planet').build())
-    .then(records => {
-      assert.deepEqual(records.map(r => r.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
-    })
-    .finally(done);
+  return source.fetch(q => q.recordsOfType('planet'))
+    .then(transforms => {
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
+      assert.deepEqual(transforms[0].operations.map(o => o.record.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
+    });
 });
 
-QUnit.skip('#fetch - recordsOfType with filter', function(assert) {
-  const done = assert.async();
+test('#fetch - recordsOfType with filter', function(assert) {
+  assert.expect(4);
 
-  let records = [
+  const data = [
     { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
   ];
 
-  server.respondWith('GET', '/planets?filter[name]=Jupiter', function(xhr) {
-    ok(true, 'GET request');
+  server.respondWith('GET', `/planets?${encodeURIComponent('filter[name]')}=Jupiter`, function(xhr) {
+    assert.ok(true, 'GET request');
     xhr.respond(200,
                 { 'Content-Type': 'application/json' },
-                JSON.stringify({ data: records }));
+                JSON.stringify({ data }));
   });
 
-  source
-    .fetch(q => q.recordsOfType('planet').filterAttributes({ name: 'Jupiter' }).build())
-    .then(records => {
-      assert.deepEqual(records.map(r => r.attributes.name), ['Jupiter']);
-    })
-    .finally(done);
+  return source.fetch(q => q.recordsOfType('planet')
+                            .filterAttributes({ name: 'Jupiter' }))
+    .then(transforms => {
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
+      assert.deepEqual(transforms[0].operations.map(o => o.record.attributes.name), ['Jupiter']);
+    });
 });
