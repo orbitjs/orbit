@@ -474,14 +474,14 @@ test('#transform does not remove non-dependent records', function() {
   equal(cache.length('planet'), 1, 'One planet left in store');
 });
 
-test('#query - can `get` an individual record', function(assert) {
+test('#query can retrieve an individual record with `record`', function(assert) {
   cache = new Cache(schema);
 
   let jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', classification: 'gas giant', atmosphere: true } };
   cache.reset({ planet: { jupiter } });
 
   assert.deepEqual(
-    cache.query(oqe('get', 'planet/jupiter')),
+    cache.query(oqe('record', 'planet', 'jupiter')),
     jupiter
   );
 });
@@ -499,8 +499,8 @@ test('#query can perform a simple matching filter', function(assert) {
   assert.deepEqual(
     cache.query(
       oqe('filter',
-          'planet',
-          oqe('equal', oqe('get', 'attributes/name'), 'Jupiter'))
+          oqe('recordsOfType', 'planet'),
+          oqe('equal', oqe('attribute', 'name'), 'Jupiter'))
     ),
     {
       jupiter
@@ -521,10 +521,10 @@ test('#query can perform a complex conditional `and` filter', function(assert) {
   assert.deepEqual(
     cache.query(
       oqe('filter',
-          'planet',
+          oqe('recordsOfType', 'planet'),
           oqe('and',
-            oqe('equal', oqe('get', 'attributes/classification'), 'terrestrial'),
-            oqe('equal', oqe('get', 'attributes/atmosphere'), true)
+            oqe('equal', oqe('attribute', 'classification'), 'terrestrial'),
+            oqe('equal', oqe('attribute', 'atmosphere'), true)
           ))
     ),
     {
@@ -547,10 +547,10 @@ test('#query can perform a complex conditional `or` filter', function(assert) {
   assert.deepEqual(
     cache.query(
       oqe('filter',
-          'planet',
+          oqe('recordsOfType', 'planet'),
           oqe('or',
-              oqe('equal', oqe('get', 'attributes/classification'), 'gas giant'),
-              oqe('equal', oqe('get', 'attributes/atmosphere'), true)
+              oqe('equal', oqe('attribute', 'classification'), 'gas giant'),
+              oqe('equal', oqe('attribute', 'atmosphere'), true)
          ))
     ),
     {

@@ -89,7 +89,7 @@ module('Integration - JSONAPI', function(hooks) {
     // jsonApiSource.on('transform', t => console.log('jsonApiSource', t.id));
     // jsonApiSource.on('updateFail', (t, e) => console.log('updateFail', t, e));
 
-    store.on('query', expression => jsonApiSource.fetch(expression));
+    store.on('fetch', expression => jsonApiSource.fetch(expression));
     window.store = store;
   });
 
@@ -266,21 +266,52 @@ module('Integration - JSONAPI', function(hooks) {
       .finally(done);
   });
 
-  QUnit.skip('find records of a particular type', function(assert) {
-    const done = assert.async();
+  test('find records of a particular type', function(assert) {
+    assert.expect(1);
 
-    let records = [
+    const data = [
       { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
     ];
 
-    server.respondWith('GET', '/planets', jsonResponse(200, { data: records }));
+    server.respondWith('GET', '/planets', jsonResponse(200, { data }));
 
-    store
+    return store
       .query(q => q.recordsOfType('planet'))
-      .then(planets => assert.deepEqual(planets, records))
-      .finally(done);
+      .then(planets => {
+        assert.deepEqual(Object.keys(planets).map(k => planets[k].attributes.name), ['Jupiter']);
+      });
   });
 
-  QUnit.skip('find an individual record');
-  QUnit.skip('query for records of a particular type using a filter');
+  test('find an individual record', function(assert) {
+    assert.expect(3);
+
+    const data = { type: 'planets', id: '12345', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+
+    server.respondWith('GET', '/planets/12345', jsonResponse(200, { data }));
+
+    return store
+      .query(q => q.record('planet', '12345'))
+      .then(record => {
+        assert.equal(record.type, 'planet');
+        assert.equal(record.id, '12345');
+        assert.equal(record.attributes.name, 'Jupiter');
+      });
+  });
+
+  test('find records of a particular type using a filter', function(assert) {
+    assert.expect(1);
+
+    const data = [
+      { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
+    ];
+
+    server.respondWith('GET', `/planets?${encodeURIComponent('filter[name]')}=Jupiter`, jsonResponse(200, { data }));
+
+    return store
+      .query(q => q.recordsOfType('planet')
+                   .filterAttributes({ name: 'Jupiter' }))
+      .then(planets => {
+        assert.deepEqual(Object.keys(planets).map(k => planets[k].attributes.name), ['Jupiter']);
+      });
+  });
 });

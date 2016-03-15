@@ -1,6 +1,7 @@
 import Orbit from 'orbit/main';
 import Query from 'orbit/query';
 import Builder from 'orbit/query/builder';
+import { Value } from 'orbit/query/terms';
 import { queryExpression as oqe } from 'orbit/query/expression';
 import { QueryBuilderNotRegisteredException } from 'orbit/lib/exceptions';
 
@@ -41,7 +42,21 @@ module('Orbit', function() {
     test('.from should pass any query functions to queryBuilder, if one is passed', function(assert) {
       assert.expect(2);
 
-      const queryBuilder = new Builder();
+      const operators = {
+        get(path) {
+          return new Value(oqe('get', path));
+        },
+
+        or(a, b) {
+          return oqe('or', a, b);
+        },
+
+        and(a, b) {
+          return oqe('and', a, b);
+        }
+      };
+
+      const queryBuilder = new Builder({ operators });
 
       let query = Query.from(
         (q) => q.get('foo'),
