@@ -89,7 +89,7 @@ module('Integration - JSONAPI', function(hooks) {
     // jsonApiSource.on('transform', t => console.log('jsonApiSource', t.id));
     // jsonApiSource.on('updateFail', (t, e) => console.log('updateFail', t, e));
 
-    store.on('query', expression => jsonApiSource.fetch(expression));
+    store.on('fetch', expression => jsonApiSource.fetch(expression));
     window.store = store;
   });
 
@@ -266,19 +266,18 @@ module('Integration - JSONAPI', function(hooks) {
       .finally(done);
   });
 
-  QUnit.skip('find records of a particular type', function(assert) {
-    const done = assert.async();
-
-    let records = [
+  test('find records of a particular type', function(assert) {
+    const data = [
       { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
     ];
 
-    server.respondWith('GET', '/planets', jsonResponse(200, { data: records }));
+    server.respondWith('GET', '/planets', jsonResponse(200, { data }));
 
-    store
+    return store
       .query(q => q.recordsOfType('planet'))
-      .then(planets => assert.deepEqual(planets, records))
-      .finally(done);
+      .then(planets => {
+        assert.deepEqual(Object.keys(planets).map(k => planets[k].attributes.name), ['Jupiter']);
+      });
   });
 
   QUnit.skip('find an individual record');
