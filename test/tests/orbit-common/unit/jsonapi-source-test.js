@@ -422,16 +422,20 @@ test('#update - can replace a hasMany relationship with PATCH', function(assert)
 });
 
 test('#fetch - record', function(assert) {
-  const data = { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+  assert.expect(4);
 
-  server.respondWith('GET', '/planets', function(xhr) {
+  const data = { type: 'planets', id: '12345', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+
+  const planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
+
+  server.respondWith('GET', '/planets/12345', function(xhr) {
     assert.ok(true, 'GET request');
     xhr.respond(200,
                 { 'Content-Type': 'application/json' },
                 JSON.stringify({ data }));
   });
 
-  return source.fetch(q => q.record('planet', 'jupiter'))
+  return source.fetch(q => q.record('planet', planet.id))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
