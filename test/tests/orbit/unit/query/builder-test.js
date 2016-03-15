@@ -1,23 +1,30 @@
 import 'tests/test-helper';
 import Builder from 'orbit/query/builder';
 import Query from 'orbit/query';
+import { Value } from 'orbit/query/terms';
 import { queryExpression as oqe } from 'orbit/query/expression';
 
 ///////////////////////////////////////////////////////////////////////////////
 
-let builder;
-
 module('Orbit', function() {
   module('Query', function() {
-    module('Builder', {
-      setup() {
-        builder = new Builder();
-      },
+    module('Builder', function(hooks) {
+      let builder;
 
-      teardown() {
+      hooks.beforeEach(() => {
+        builder = new Builder({
+          operators: {
+            get(path) {
+              return new Value(oqe('get', path));
+            }
+          }
+        });
+      });
+
+      hooks.afterEach(() => {
         builder = null;
-      }
-    }, function() {
+      });
+
       test('exists', function(assert) {
         assert.ok(builder, 'it exists');
       });
