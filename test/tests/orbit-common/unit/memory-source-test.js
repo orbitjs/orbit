@@ -107,7 +107,7 @@ module('OC - MemorySource', function(hooks) {
 
     assert.equal(source.cache.length('planet'), 1, 'cache should contain one planet');
 
-    source.query(q => q.get('planet/1'))
+    source.query(q => q.record('planet', '1'))
       .then(function(foundPlanet) {
         strictEqual(foundPlanet, jupiter, 'found planet matches original');
         done();

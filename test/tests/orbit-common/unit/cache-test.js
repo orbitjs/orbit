@@ -474,18 +474,6 @@ test('#transform does not remove non-dependent records', function() {
   equal(cache.length('planet'), 1, 'One planet left in store');
 });
 
-test('#query can retrieve an individual record with `get`', function(assert) {
-  cache = new Cache(schema);
-
-  let jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', classification: 'gas giant', atmosphere: true } };
-  cache.reset({ planet: { jupiter } });
-
-  assert.deepEqual(
-    cache.query(oqe('get', 'planet/jupiter')),
-    jupiter
-  );
-});
-
 test('#query can retrieve an individual record with `record`', function(assert) {
   cache = new Cache(schema);
 
@@ -511,7 +499,7 @@ test('#query can perform a simple matching filter', function(assert) {
   assert.deepEqual(
     cache.query(
       oqe('filter',
-          'planet',
+          oqe('recordsOfType', 'planet'),
           oqe('equal', oqe('attribute', 'name'), 'Jupiter'))
     ),
     {
@@ -533,7 +521,7 @@ test('#query can perform a complex conditional `and` filter', function(assert) {
   assert.deepEqual(
     cache.query(
       oqe('filter',
-          'planet',
+          oqe('recordsOfType', 'planet'),
           oqe('and',
             oqe('equal', oqe('attribute', 'classification'), 'terrestrial'),
             oqe('equal', oqe('attribute', 'atmosphere'), true)
@@ -559,7 +547,7 @@ test('#query can perform a complex conditional `or` filter', function(assert) {
   assert.deepEqual(
     cache.query(
       oqe('filter',
-          'planet',
+          oqe('recordsOfType', 'planet'),
           oqe('or',
               oqe('equal', oqe('attribute', 'classification'), 'gas giant'),
               oqe('equal', oqe('attribute', 'atmosphere'), true)

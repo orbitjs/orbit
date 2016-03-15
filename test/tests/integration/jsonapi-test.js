@@ -267,6 +267,8 @@ module('Integration - JSONAPI', function(hooks) {
   });
 
   test('find records of a particular type', function(assert) {
+    assert.expect(1);
+
     const data = [
       { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
     ];
@@ -280,6 +282,36 @@ module('Integration - JSONAPI', function(hooks) {
       });
   });
 
-  QUnit.skip('find an individual record');
-  QUnit.skip('query for records of a particular type using a filter');
+  test('find an individual record', function(assert) {
+    assert.expect(3);
+
+    const data = { type: 'planets', id: '12345', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+
+    server.respondWith('GET', '/planets/12345', jsonResponse(200, { data }));
+
+    return store
+      .query(q => q.record('planet', '12345'))
+      .then(record => {
+        assert.equal(record.type, 'planet');
+        assert.equal(record.id, '12345');
+        assert.equal(record.attributes.name, 'Jupiter');
+      });
+  });
+
+  test('find records of a particular type using a filter', function(assert) {
+    assert.expect(1);
+
+    const data = [
+      { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
+    ];
+
+    server.respondWith('GET', `/planets?${encodeURIComponent('filter[name]')}=Jupiter`, jsonResponse(200, { data }));
+
+    return store
+      .query(q => q.recordsOfType('planet')
+                   .filterAttributes({ name: 'Jupiter' }))
+      .then(planets => {
+        assert.deepEqual(Object.keys(planets).map(k => planets[k].attributes.name), ['Jupiter']);
+      });
+  });
 });
