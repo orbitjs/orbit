@@ -69,7 +69,7 @@ function jsonResponse(status, json) {
 module('Integration - JSONAPI', function(hooks) {
   let store;
   let jsonApiSource;
-  let queue;
+  let updateQueue;
 
   hooks.beforeEach(function() {
     server = sinon.fakeServer.create();
@@ -77,52 +77,61 @@ module('Integration - JSONAPI', function(hooks) {
 
     jsonApiSource = new JsonApiSource({ schema: schema });
     store = new Store({ schema: schema });
-    queue = new TransformQueue();
 
-    store.on('transform', t => queue.add(t));
-    queue.on('transform', t => jsonApiSource.update(t));
-    jsonApiSource.on('transform', t => store.confirm(t));
-    jsonApiSource.on('updateFail', (t, e) => store.deny(t, e));
+    updateQueue = new TransformQueue();
+
+    store.on('updateRequest', t => updateQueue.add(t));
+    updateQueue.on('transform', t => jsonApiSource.update(t));
+    jsonApiSource.on('update', t => store.confirmUpdate(t));
+    jsonApiSource.on('updateFail', (t, e) => store.denyUpdate(t, e));
+
+    store.on('fetchRequest', t => jsonApiSource.fetch(t));
+    jsonApiSource.on('fetch', (q, t) => store.confirmFetch(q, t));
+    jsonApiSource.on('fetchFail', (q, e) => store.denyFetch(q, e));
 
     // store.on('transform', t => console.log('store.onTransform', t.id));
     // queue.on('transform', t => console.log('queue.onTransform', t.id));
     // jsonApiSource.on('transform', t => console.log('jsonApiSource', t.id));
     // jsonApiSource.on('updateFail', (t, e) => console.log('updateFail', t, e));
 
-    store.on('fetch', expression => jsonApiSource.fetch(expression));
-    window.store = store;
+    // store.on('fetch', expression => jsonApiSource.fetch(expression));
+    // window.store = store;
   });
 
   hooks.afterEach(function() {
     server.restore();
   });
 
-  test('add record', function(assert) {
-    const done = assert.async();
+  test('#update - addRecord', function(assert) {
+    assert.expect(3);
+
+    let record = schema.normalize({ type: 'planet', attributes: { name: 'Pluto' } });
 
     onAddPlutoRequest(stubbedResponses.planetAdded);
 
-    store.addRecord({ type: 'planet', attributes: { name: 'Pluto' } })
-      .then(pluto => {
-        assert.equal(pluto.attributes.name, 'Pluto', 'Attribute stored with record');
-      })
-      .finally(done);
+    return store.update(t => t.addRecord(record))
+      .then(transforms => {
+        assert.equal(transforms.length, 1);
+        assert.deepEqual(transforms[0].operations.map(o => o.op), ['addRecord']);
+        assert.equal(store.cache.get(['planet', record.id, 'attributes', 'name']), 'Pluto', 'record matches');
+      });
   });
 
-  test('add record error', function(assert) {
-    const done = assert.async();
+  test('#update - addRecord - error', function(assert) {
+    assert.expect(1);
+
+    let record = schema.normalize({ type: 'planet', attributes: { name: 'Pluto' } });
 
     onAddPlutoRequest(stubbedResponses.planetAddFailed);
 
-    store.addRecord({ type: 'planet', attributes: { name: 'Pluto' } })
+    return store.update(t => t.addRecord(record))
       .catch(error => {
         assert.equal(error.responseJSON.errors[0].detail, 'Pluto isn\'t really a planet!');
-      })
-      .finally(done);
+      });
   });
 
-  test('replace record', function(assert) {
-    const done = assert.async();
+  test('#update - replaceRecord', function(assert) {
+    assert.expect(3);
 
     store.cache.transform(t => {
       t.addRecord({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto', classification: 'superior' } });
@@ -132,46 +141,33 @@ module('Integration - JSONAPI', function(hooks) {
 
     const requestBody = { 'data': { 'id': 'pluto', 'type': 'planets', 'attributes': { 'name': 'Pluto2', 'classification': 'gas giant' }, 'relationships': { 'moons': { 'data': [] } } } };
 
-    store
-      .replaceRecord({ type: 'planet', id: 'pluto', keys: { id: 'pluto' }, attributes: { name: 'Pluto2', classification: 'gas giant' } })
-      .then(pluto => {
-        assert.deepEqual(pluto.attributes, { name: 'Pluto2', classification: 'gas giant' }, 'replaced record');
-        assert.ok(wasRequested('PATCH', '/planets/pluto', requestBody), 'server updated');
-      })
-      .finally(done);
+    return store.update(t => t.replaceRecord({ type: 'planet', id: 'pluto', keys: { id: 'pluto' }, attributes: { name: 'Pluto2', classification: 'gas giant' } }))
+      .then(transforms => {
+        assert.equal(transforms.length, 1);
+        assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
+        assert.equal(store.cache.get(['planet', 'pluto', 'attributes', 'name']), 'Pluto2', 'record matches');
+      });
   });
 
-  test('remove record', function(assert) {
-    const done = assert.async();
+  test('#update - removeRecord', function(assert) {
+    assert.expect(2);
+
     const pluto = { type: 'planet', id: 'pluto' };
 
     server.respondWith('DELETE', '/planets/pluto', stubbedResponses.deletePlanet);
 
     store.cache.transform(t => t.addRecord(pluto));
 
-    store
-      .removeRecord(pluto)
+    return store.update(t => t.removeRecord(pluto))
       .then(() => {
         assert.notOk(store.cache.has(['planet', 'pluto']), 'cache updated');
         assert.ok(wasRequested('DELETE', '/planets/pluto'), 'server updated');
-      })
-      .finally(done);
-  });
-
-  QUnit.skip('replaceKey', function(assert) {
-    const done = assert.async();
-
-    store
-      .replaceKey({ type: 'planet', id: 'pluto' }, 'remoteId', 'abc1234')
-      .then(() => {
-        const record = store.cache.get(['planet', 'pluto']);
-        assert.equal(record.remoteId, 'abc1234', 'key updated on record');
-        assert.ok(wasRequested(''));
       });
   });
 
-  test('add record to hasMany', function(assert) {
-    const done = assert.async();
+  test('#update - addToHasMany', function(assert) {
+    assert.expect(2);
+
     const jupiter = { type: 'planet', id: 'jupiter' };
     const io = { type: 'moon', id: 'io' };
 
@@ -182,18 +178,17 @@ module('Integration - JSONAPI', function(hooks) {
 
     server.respondWith('POST', '/planets/jupiter/relationships/moons', jsonResponse(200, {}));
 
-    store
-      .addToHasMany(jupiter, 'moons', io)
+    return store.update(t => t.addToHasMany(jupiter, 'moons', io))
       .then(() => {
         const cacheJupiter = store.cache.get(['planet', 'jupiter']);
         assert.deepEqual(cacheJupiter.relationships.moons.data, { 'moon:io': true }, 'cache updated');
         assert.ok(wasRequested('POST', '/planets/jupiter/relationships/moons'), 'server updated');
-      })
-      .finally(done);
+      });
   });
 
-  test('remove record from hasMany', function(assert) {
-    const done = assert.async();
+  test('#update - removeFromHasMany', function(assert) {
+    assert.expect(2);
+
     const jupiter = { type: 'planet', id: 'jupiter' };
     const io = { type: 'moon', id: 'io' };
 
@@ -205,18 +200,17 @@ module('Integration - JSONAPI', function(hooks) {
 
     server.respondWith('DELETE', '/planets/jupiter/relationships/moons', jsonResponse(200, {}));
 
-    store
-      .removeFromHasMany(jupiter, 'moons', io)
+    return store.update(t => t.removeFromHasMany(jupiter, 'moons', io))
       .then(() => {
         const cacheJupiter = store.cache.get(['planet', 'jupiter']);
         assert.deepEqual(cacheJupiter.relationships.moons.data, {}, 'cache updated');
         assert.ok(wasRequested('DELETE', '/planets/jupiter/relationships/moons', { data: [{ type: 'moons', id: 'io' }] }), 'server updated');
-      })
-      .finally(done);
+      });
   });
 
-  test('replace hasOne', function(assert) {
-    const done = assert.async();
+  test('#update - replaceHasOne', function(assert) {
+    assert.expect(2);
+
     const earth = { type: 'planet', id: 'earth' };
     const jupiter = { type: 'planet', id: 'jupiter' };
     const io = { type: 'moon', id: 'io' };
@@ -231,18 +225,17 @@ module('Integration - JSONAPI', function(hooks) {
 
     server.respondWith('PATCH', '/moons/io', jsonResponse(200, {}));
 
-    store
-      .replaceHasOne(io, 'planet', earth)
+    return store.update(t => t.replaceHasOne(io, 'planet', earth))
       .then(() => {
         const cacheIo = store.cache.get(['moon', 'io']);
         assert.deepEqual(cacheIo.relationships.planet.data, 'planet:earth', 'updated cache');
         assert.ok(wasRequested('PATCH', '/moons/io', requestBody), 'server updated');
-      })
-      .finally(done);
+      });
   });
 
-  test('replace hasMany', function(assert) {
-    const done = assert.async();
+  test('#update - replaceHasMany', function(assert) {
+    assert.expect(2);
+
     const jupiter = { type: 'planet', id: 'jupiter' };
     const io = { type: 'moon', id: 'io' };
     const europa = { type: 'moon', id: 'europa' };
@@ -256,14 +249,21 @@ module('Integration - JSONAPI', function(hooks) {
 
     server.respondWith('PATCH', '/planets/jupiter', jsonResponse(200, {}));
 
-    store
-      .replaceHasMany(jupiter, 'moons', [io, europa])
+    return store.update(t => t.replaceHasMany(jupiter, 'moons', [io, europa]))
       .then(() => {
         const cacheJupiter = store.cache.get(['planet', 'jupiter']);
         assert.deepEqual(cacheJupiter.relationships.moons.data, { 'moon:io': true, 'moon:europa': true });
         assert.ok(wasRequested('PATCH', '/planets/jupiter', expectedRequestBody), 'server updated');
-      })
-      .finally(done);
+      });
+  });
+
+  QUnit.skip('replaceKey', function(assert) {
+    return store.replaceKey({ type: 'planet', id: 'pluto' }, 'remoteId', 'abc1234')
+      .then(() => {
+        const record = store.cache.get(['planet', 'pluto']);
+        assert.equal(record.remoteId, 'abc1234', 'key updated on record');
+        assert.ok(wasRequested(''));
+      });
   });
 
   test('find records of a particular type', function(assert) {
@@ -275,8 +275,7 @@ module('Integration - JSONAPI', function(hooks) {
 
     server.respondWith('GET', '/planets', jsonResponse(200, { data }));
 
-    return store
-      .query(q => q.recordsOfType('planet'))
+    return store.query(q => q.recordsOfType('planet'))
       .then(planets => {
         assert.deepEqual(Object.keys(planets).map(k => planets[k].attributes.name), ['Jupiter']);
       });
