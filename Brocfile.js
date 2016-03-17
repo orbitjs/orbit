@@ -140,7 +140,8 @@ mainWithTests = concat(mainWithTests, {
 var vendor = concat('bower_components', {
   inputFiles: [
     'jquery/dist/jquery.js',
-    'rsvp/rsvp.js'],
+    'rsvp/rsvp.js',
+    'rxjs/dist/rx.all.js'],
   outputFile: '/assets/vendor.js'
 });
 
