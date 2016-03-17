@@ -1,23 +1,9 @@
 import { equalOps } from 'tests/test-helper';
 import Transform from 'orbit/transform';
-import {
-  addRecordOperation,
-  removeRecordOperation,
-  replaceAttributeOperation,
-  replaceHasOneOperation,
-  addToHasManyOperation,
-  removeFromHasManyOperation,
-  addRecordToSetOperation,
-  removeRecordFromSetOperation
-} from 'orbit-common/lib/operations';
 import Cache from 'orbit-common/cache';
-import {
-  queryExpression as oqe
-} from 'orbit/query/expression';
 import Schema from 'orbit-common/schema';
 
 const { skip } = QUnit;
-
 
 const planetsSchema = new Schema({
   models: {
@@ -259,9 +245,7 @@ module('OC - Cache - liveQuery', function(hooks) {
 
       cache.patches.subscribe(operation => console.log('patch', operation));
 
-      const liveQuery = cache.liveQuery(
-        oqe('relatedRecord', 'moon', 'callisto', 'planet')
-      );
+      const liveQuery = cache.liveQuery(q => q.relatedRecord('moon', 'callisto', 'planet'));
 
       liveQuery.toArray().subscribe(operations => {
         assert.deepEqual(operations, [
@@ -285,9 +269,7 @@ module('OC - Cache - liveQuery', function(hooks) {
 
       cache.reset({ planet: { jupiter }, moon: { callisto } });
 
-      const liveQuery = cache.liveQuery(
-        oqe('relatedRecords', 'planet', 'jupiter', 'moons')
-      );
+      const liveQuery = cache.liveQuery(q => q.relatedRecords('planet', 'jupiter', 'moons'));
 
       liveQuery.toArray().subscribe(operations => {
         assert.deepEqual(operations, [
