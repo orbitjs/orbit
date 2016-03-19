@@ -7,6 +7,7 @@ var jshintTree = require('broccoli-jshint');
 var replace    = require('broccoli-string-replace');
 var gitVersion = require('git-repo-version');
 var jscs = require('broccoli-jscs');
+var instrument = require('broccoli-debug').instrument;
 
 // extract version from git
 // note: remove leading `v` (since by default our tags use a `v` prefix)

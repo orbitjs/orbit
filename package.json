@@ -37,6 +37,7 @@
     "broccoli": "^0.13.0",
     "broccoli-babel-transpiler": "^5.4.5",
     "broccoli-cli": "0.0.1",
+    "broccoli-debug": "^0.1.1",
     "broccoli-es6modules": "^0.4.0",
     "broccoli-funnel": "^0.1.6",
     "broccoli-jscs": "^1.4.0",
