@@ -32,6 +32,9 @@
     "start": "BROCCOLI_ENV=test broccoli serve",
     "docs": "yuidoc ./lib"
   },
+  "dependencies": {
+    "rxjs-es": "^5.0.0-beta.2"
+  },
   "devDependencies": {
     "bower": "^1.3.12",
     "broccoli": "^0.13.0",
