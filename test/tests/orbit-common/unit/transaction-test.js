@@ -4,15 +4,6 @@ import Store from 'orbit-common/store';
 import Transaction from 'orbit-common/transaction';
 import { uuid } from 'orbit/lib/uuid';
 import { Promise, all } from 'rsvp';
-import {
-  addRecordOperation,
-  replaceRecordOperation,
-  removeRecordOperation,
-  replaceAttributeOperation,
-  addToHasManyOperation,
-  removeFromRelationshipOperation,
-  replaceRelationshipOperation
-} from 'orbit-common/lib/operations';
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -75,34 +66,46 @@ test('does not auto-begin if the `active` option = false', function(assert) {
   assert.equal(transaction.active, false);
 });
 
-// test('once begun, tracks operations performed and inverse operations', function(assert) {
-//   assert.expect(3);
-//   const transaction = store.createTransaction();
-//
-//   assert.equal(transaction.operations.length, 0, 'transaction has no operations');
-//   assert.equal(transaction.inverseOperations.length, 0, 'transaction has no inverse operations');
-//
-//   return transaction
-//     .addRecord({ type: 'planet', name: 'Jupiter', attributes: { classification: 'gas giant' } })
-//     .then(planet => {
-//       deepEqual(transaction.operations,
-//         [{ op: 'add', path: 'planet/' + planet.id, value: planet }],
-//         'transaction tracked `add` operation');
-//     });
-// });
-//
-// test('`commit` applies operations to `baseStore`', function(assert) {
-//   assert.expect(1);
-//   const transaction = store.createTransaction();
-//
-//   return transaction
-//     .addRecord({ type: 'planet', name: 'Jupiter', classification: 'gas giant' })
-//     .tap(() => transaction.commit())
-//     .then(jupiter => {
-//       assert.equal(store.cache.get(['planet', jupiter.id]).id, jupiter.id, 'base store has added planet');
-//     });
-// });
-//
+test('once begun, tracks operations performed', function(assert) {
+  assert.expect(3);
+
+  const jupiter = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
+  const transaction = store.createTransaction();
+
+  assert.equal(transaction.operations.length, 0, 'transaction has no operations');
+
+  transaction.on('updateRequest', transform => transaction.confirmUpdate(transform));
+
+  return transaction.update(t => t.addRecord(jupiter))
+    .then(transforms => {
+      const operations = transforms.map(t => t.operations).reduce((a, b) => a.concat(b));
+
+      assert.equal(transaction.operations.length, 1, 'transaction has one operation');
+      assert.deepEqual(transaction.operations,
+        operations,
+        'transaction tracked `add` operation');
+    });
+});
+
+test('#commit applies coalesced operations to `baseStore`', function(assert) {
+  assert.expect(2);
+
+  const jupiter = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
+
+  const transaction = store.createTransaction();
+
+  store.on('updateRequest', transform => store.confirmUpdate(transform));
+  transaction.on('updateRequest', transform => transaction.confirmUpdate(transform));
+
+  return transaction.update(t => t.addRecord(jupiter)
+                                  .replaceAttribute(jupiter, 'classification', 'terrestrial'))
+    .then(() => transaction.commit())
+    .then(() => {
+      assert.equal(transaction.operations.length, 1, 'operations have been coalesced');
+      assert.equal(store.cache.get(['planet', jupiter.id]).id, jupiter.id, 'base store has added planet');
+    });
+});
+
 // test('an unisolated transaction will retrieve missing data from its `baseStore`', function(assert) {
 //   assert.expect(2);
 //
