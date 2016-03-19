@@ -85,6 +85,43 @@ module('OC - Lib - Operations', function() {
       );
     });
 
+    test('can coalesce addRecord + replaceAttribute for a couple records', function(assert) {
+      assert.deepEqual(
+        coalesceOperations([
+          {
+            op: 'addRecord',
+            record: { type: 'contact', id: '1234', attributes: { name: 'Joe' } }
+          },
+          {
+            op: 'addRecord',
+            record: { type: 'contact', id: '5678', attributes: { name: 'Jim' } }
+          },
+          {
+            op: 'replaceAttribute',
+            record: { type: 'contact', id: '1234' },
+            attribute: 'name',
+            value: 'Joseph'
+          },
+          {
+            op: 'replaceAttribute',
+            record: { type: 'contact', id: '5678' },
+            attribute: 'name',
+            value: 'James'
+          }
+        ]),
+        [
+          {
+            op: 'addRecord',
+            record: { type: 'contact', id: '1234', attributes: { name: 'Joseph' } }
+          },
+          {
+            op: 'addRecord',
+            record: { type: 'contact', id: '5678', attributes: { name: 'James' } }
+          }
+        ]
+      );
+    });
+
     test('can coalesce addRecord + replaceHasMany for the same record', function(assert) {
       assert.deepEqual(
         coalesceOperations([
