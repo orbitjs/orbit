@@ -93,7 +93,6 @@ packages.forEach(function(package) {
   main[package.name] = mergeTrees([ lib[package.name] ]);
   main[package.name] = new compileES6Modules(main[package.name]);
   main[package.name] = new transpileES6(main[package.name]);
-  main[package.name] = instrument.print(main[package.name]);
   main[package.name] = concat(main[package.name], {
     inputFiles: ['**/*.js'],
     outputFile: '/' + package.name + '.amd.js'
@@ -122,6 +121,8 @@ var rxjs = new Funnel('node_modules', {
 var allLib = mergeTrees(Object.keys(lib).map(function(package) {
   return lib[package];
 }));
+var jshintLib = jshintTree(allLib);
+var jscsLib = jscs(allLib, {esnext: true, enabled: true});
 allLib = mergeTrees([allLib, rxjs]);
 
 var allMain = mergeTrees(Object.keys(main).map(function(package) {
@@ -131,15 +132,15 @@ var allGlobalized = mergeTrees(Object.keys(globalized).map(function(package) {
   return globalized[package];
 }));
 
-var jshintLib = jshintTree(allLib);
 var jshintTest = jshintTree(tests);
-var jscsLib = jscs(allLib, {esnext: true, enabled: true});
 var jscsTest = jscs(tests, {esnext: true, enabled: true});
 
 var mainWithTests = mergeTrees([rxjs, allLib, tests, jshintLib, jshintTest, jscsLib, jscsTest], {overwrite: true});
 
 mainWithTests = new compileES6Modules(mainWithTests);
 mainWithTests = new transpileES6(mainWithTests);
+
+mainWithTests = instrument.print(mainWithTests);
 
 mainWithTests = concat(mainWithTests, {
   inputFiles: ['**/*.js'],
