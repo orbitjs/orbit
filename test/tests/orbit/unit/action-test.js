@@ -1,3 +1,4 @@
+import 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Action from 'orbit/action';
 import { Promise } from 'rsvp';
@@ -10,87 +11,78 @@ var failedOperation = function() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module("Orbit - Action", {
-  setup: function() {
-    Orbit.Promise = Promise;
-  },
+module('Orbit - Action', {});
 
-  teardown: function() {
-    Orbit.Promise = null;
-  }
-});
-
-test("it exists", function() {
+test('it exists', function(assert) {
   var action = new Action({});
-  ok(action);
+  assert.ok(action);
 });
 
-test("it can be assigned an optional id and data", function() {
-  var action = new Action({id: 'abc', data: '123'});
-  equal(action.id, 'abc', 'id has been set');
-  equal(action.data, '123', 'data has been set');
+test('it can be assigned an optional id and data', function(assert) {
+  const action = new Action({ id: 'abc', data: '123' });
+  assert.equal(action.id, 'abc', 'id has been set');
+  assert.equal(action.data, '123', 'data has been set');
 });
 
-test("it can be assigned a synchronous function to process", function() {
-  expect(2);
+test('it can be assigned a synchronous function to process', function(assert) {
+  assert.expect(3);
 
-  var action = new Action({
+  const action = new Action({
     process: function() {
-      ok(true, 'process invoked');
-      return;
+      assert.ok(true, 'process invoked');
+      return ':)';
     }
   });
 
-  stop();
-  action.process().then(function() {
-    start();
-    ok(true, 'process resolved');
-  });
+  return action.process()
+    .then(function(response) {
+      assert.ok(true, 'process resolved');
+      assert.equal(response, ':)', 'response is returned');
+    });
 });
 
-test("it can be assigned an asynchronous function to process", function() {
-  expect(2);
+test('it can be assigned an asynchronous function to process', function(assert) {
+  assert.expect(3);
 
-  var action = new Action({
+  const action = new Action({
     process: function() {
-      ok(true, 'process invoked');
+      assert.ok(true, 'process invoked');
       return new Promise(function(resolve) {
-        setTimeout(resolve, 1);
+        function respond() {
+          resolve(':)');
+        }
+        setTimeout(respond, 1);
       });
     }
   });
 
-  stop();
-  action.process().then(function() {
-    start();
-    ok(true, 'process resolved');
-  });
+  return action.process()
+    .then(function(response) {
+      assert.ok(true, 'process resolved');
+      assert.equal(response, ':)', 'response is returned');
+    });
 });
 
-test("it can be assigned a synchronous function that throws an exception", function() {
-  expect(2);
+test('it can be assigned a synchronous function that throws an exception', function(assert) {
+  assert.expect(2);
 
-  var action = new Action({
+  const action = new Action({
     process: function() {
-      ok(true, 'process invoked');
+      assert.ok(true, 'process invoked');
       throw new Error(':(');
     }
   });
 
-  stop();
-  action.process().then(function() {
-    ok(false, 'action should not be successful');
-
-  }, function(e) {
-    start();
-    equal(e.message, ':(', 'process resolved');
-  });
+  return action.process()
+    .catch((e) => {
+      assert.equal(e.message, ':(', 'process resolved');
+    });
 });
 
-test("it can be assigned an asynchronous function that rejects", function() {
-  expect(2);
+test('it can be assigned an asynchronous function that rejects', function(assert) {
+  assert.expect(2);
 
-  var action = new Action({
+  const action = new Action({
     process: function() {
       ok(true, 'process invoked');
       return new Promise(function(resolve, reject) {
@@ -99,33 +91,26 @@ test("it can be assigned an asynchronous function that rejects", function() {
     }
   });
 
-  stop();
-  action.process().then(function() {
-    ok(false, 'action should not be successful');
-
-  }, function(e) {
-    start();
-    equal(e, ':(', 'process resolved');
-  });
+  return action.process()
+    .catch((e) => {
+      equal(e, ':(', 'process resolved');
+    });
 });
 
-test("it created a promise immediately that won't be resolved until process is called", function() {
-  expect(2);
+test('it created a promise immediately that won\'t be resolved until process is called', function(assert) {
+  assert.expect(2);
 
   var action = new Action({
-    process: function() {
-      ok(true, 'process invoked');
+    process() {
+      assert.ok(true, 'process invoked');
       return;
     }
   });
 
-  stop();
-  action.complete.then(function() {
-    start();
-    ok(true, 'process resolved');
-  });
+  action.complete
+    .then(function() {
+      assert.ok(true, 'process resolved');
+    });
 
-  action.process();
+  return action.process();
 });
-
-

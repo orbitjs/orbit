@@ -6,6 +6,8 @@ var transpileES6 = require('broccoli-babel-transpiler');
 var jshintTree = require('broccoli-jshint');
 var replace    = require('broccoli-string-replace');
 var gitVersion = require('git-repo-version');
+var jscs = require('broccoli-jscs');
+var instrument = require('broccoli-debug').instrument;
 
 // extract version from git
 // note: remove leading `v` (since by default our tags use a `v` prefix)
@@ -22,7 +24,7 @@ var packages = [
     include: [/orbit-common.js/,
               /(orbit\-common\/.+.js)/],
     exclude: [/orbit-common\/local-storage-source.js/,
-              /orbit-common\/jsonapi-serializer.js/,
+              /orbit-common\/jsonapi\/serializer.js/,
               /orbit-common\/jsonapi-source.js/]
   },
   {
@@ -31,7 +33,7 @@ var packages = [
   },
   {
     name: 'orbit-common-jsonapi',
-    include: [/orbit-common\/jsonapi-serializer.js/,
+    include: [/orbit-common\/jsonapi\/serializer.js/,
               /orbit-common\/jsonapi-source.js/]
   }
 ];
@@ -111,9 +113,18 @@ packages.forEach(function(package) {
   });
 });
 
+var rxjs = new Funnel('node_modules', {
+  srcDir: 'rxjs-es',
+  include: ['**/*.js'],
+  destDir: 'rxjs'
+});
 var allLib = mergeTrees(Object.keys(lib).map(function(package) {
   return lib[package];
 }));
+var jshintLib = jshintTree(allLib);
+var jscsLib = jscs(allLib, {esnext: true, enabled: true});
+allLib = mergeTrees([allLib, rxjs]);
+
 var allMain = mergeTrees(Object.keys(main).map(function(package) {
   return main[package];
 }));
@@ -121,14 +132,15 @@ var allGlobalized = mergeTrees(Object.keys(globalized).map(function(package) {
   return globalized[package];
 }));
 
-var jshintLib = jshintTree(allLib);
 var jshintTest = jshintTree(tests);
+var jscsTest = jscs(tests, {esnext: true, enabled: true});
 
-
-var mainWithTests = mergeTrees([allLib, tests, jshintLib, jshintTest]);
+var mainWithTests = mergeTrees([rxjs, allLib, tests, jshintLib, jshintTest, jscsLib, jscsTest], {overwrite: true});
 
 mainWithTests = new compileES6Modules(mainWithTests);
 mainWithTests = new transpileES6(mainWithTests);
+
+mainWithTests = instrument.print(mainWithTests);
 
 mainWithTests = concat(mainWithTests, {
   inputFiles: ['**/*.js'],
@@ -138,7 +150,8 @@ mainWithTests = concat(mainWithTests, {
 var vendor = concat('bower_components', {
   inputFiles: [
     'jquery/dist/jquery.js',
-    'rsvp/rsvp.js'],
+    'rsvp/rsvp.js',
+    'rxjs/dist/rx.all.js'],
   outputFile: '/assets/vendor.js'
 });
 

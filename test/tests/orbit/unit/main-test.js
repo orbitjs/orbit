@@ -1,10 +1,10 @@
 import Orbit from 'orbit/main';
 
-module("Orbit - Core", {
+module('Orbit - Core', {
   setup: function() {
   }
 });
 
-test("it exists", function() {
+test('it exists', function() {
   ok(Orbit);
 });
