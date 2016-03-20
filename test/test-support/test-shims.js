@@ -1,15 +1,15 @@
 (function() {
-/* global define, RSVP, jQuery, sinon */
+  /* global define, RSVP, jQuery, sinon */
 
-define('rsvp', [], function() {
-  "use strict";
+  define('rsvp', [], function() {
+  'use strict';
 
   return RSVP;
 });
 })();
 
 define('jquery', [], function() {
-  "use strict";
+  'use strict';
 
   return {
     'default': jQuery
@@ -17,7 +17,7 @@ define('jquery', [], function() {
 });
 
 define('sinon', [], function() {
-  "use strict";
+  'use strict';
 
   return sinon;
 });
