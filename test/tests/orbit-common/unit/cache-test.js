@@ -481,7 +481,7 @@ test('#query can retrieve an individual record with `record`', function(assert) 
   cache.reset({ planet: { jupiter } });
 
   assert.deepEqual(
-    cache.query(oqe('record', 'planet', 'jupiter')),
+    cache.query(oqe('record', { type: 'planet', id: 'jupiter' })),
     jupiter
   );
 });
@@ -572,7 +572,7 @@ test('#query - record', function(assert) {
   cache.reset({ planet: { jupiter } });
 
   assert.deepEqual(
-    cache.query(oqe('record', 'planet', 'jupiter')),
+    cache.query(oqe('record', { type: 'planet', id: 'jupiter' })),
     jupiter
   );
 });
@@ -588,7 +588,7 @@ test('#query - record - finds record', function(assert) {
   cache.reset({ planet: { jupiter } });
 
   assert.deepEqual(
-    cache.query(oqe('record', 'planet', 'jupiter')),
+    cache.query(oqe('record', { type: 'planet', id: 'jupiter' })),
     jupiter
   );
 });
@@ -597,7 +597,7 @@ test('#query - record - throws RecordNotFoundException if record doesn\'t exist'
   cache = new Cache(schema);
 
   assert.throws(
-    () => cache.query(oqe('record', 'planet', 'jupiter')),
+    () => cache.query(oqe('record', { type: 'planet', id: 'jupiter' })),
     new RecordNotFoundException('Record not found planet:jupiter')
   );
 });
@@ -648,7 +648,7 @@ test('#query - relatedRecords', function(assert) {
   cache.reset({ planet: { jupiter }, moon: { callisto } });
 
   assert.deepEqual(
-    cache.query(oqe('relatedRecords', 'planet', 'jupiter', 'moons')),
+    cache.query(oqe('relatedRecords', { type: 'planet', id: 'jupiter' }, 'moons')),
     {
       callisto
     }
@@ -671,7 +671,7 @@ test('#query - relatedRecord', function(assert) {
   cache.reset({ planet: { jupiter }, moon: { callisto } });
 
   assert.deepEqual(
-    cache.query(oqe('relatedRecord', 'moon', 'callisto', 'planet')),
+    cache.query(oqe('relatedRecord', { type: 'moon', id: 'callisto' }, 'planet')),
     {
       jupiter
     }

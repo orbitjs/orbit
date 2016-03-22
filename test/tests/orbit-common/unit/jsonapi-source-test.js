@@ -435,7 +435,7 @@ test('#fetch - record', function(assert) {
                 JSON.stringify({ data }));
   });
 
-  return source.fetch(q => q.record('planet', planet.id))
+  return source.fetch(q => q.record({ type: 'planet', id: planet.id }))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);

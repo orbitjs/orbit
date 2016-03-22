@@ -12,9 +12,9 @@ module('OC - QueryBuilder', function(hooks) {
 
   test('record', function(assert) {
     assert.deepEqual(
-      qb.build(q => q.record('planet', '123')).expression,
+      qb.build(q => q.record({ type: 'planet', id: '123' })).expression,
 
-      oqe('record', 'planet', '123')
+      oqe('record', { type: 'planet', id: '123' })
     );
   });
 

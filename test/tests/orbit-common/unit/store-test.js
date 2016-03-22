@@ -51,7 +51,7 @@ module('OC - Store', function(hooks) {
 
     store.on('fetchRequest', query => store.confirmFetch(query, [addRecordTransform]));
 
-    return store.query(q => q.record('planet', 'earth'))
+    return store.query(q => q.record({ type: 'planet', id: 'earth' }))
       .then(foundPlanet => assert.deepEqual(foundPlanet, earth, 'correct planet has been found'));
   });
 
@@ -60,7 +60,7 @@ module('OC - Store', function(hooks) {
 
     store.on('fetchRequest', query => store.confirmFetch(query, []));
 
-    return store.query(q => q.record('planet', 'earth'))
+    return store.query(q => q.record({ type: 'planet', id: 'earth' }))
       .catch(e => assert.ok(e instanceof RecordNotFoundException));
   });
 
