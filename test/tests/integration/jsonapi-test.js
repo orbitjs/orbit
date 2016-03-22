@@ -289,7 +289,7 @@ module('Integration - JSONAPI', function(hooks) {
     server.respondWith('GET', '/planets/12345', jsonResponse(200, { data }));
 
     return store
-      .query(q => q.record('planet', '12345'))
+      .query(q => q.record({ type: 'planet', id: '12345' }))
       .then(record => {
         assert.equal(record.type, 'planet');
         assert.equal(record.id, '12345');
