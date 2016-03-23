@@ -1,5 +1,6 @@
 import './support/orbit-setup';
 import { on } from 'rsvp';
+import './support/qunit-matchers';
 
 on('error', function(reason) {
   console.error('rsvp error', reason);

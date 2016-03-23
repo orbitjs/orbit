@@ -2,6 +2,7 @@ import { equalOps } from 'tests/test-helper';
 import Transform from 'orbit/transform';
 import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
+import { identity } from 'orbit-common/lib/identifiers';
 
 const { skip } = QUnit;
 
@@ -49,18 +50,9 @@ module('OC - Cache - liveQuery', function(hooks) {
 
   test('recordsOfType', function(assert) {
     const done = assert.async();
-
-    cache.transform(t =>
-      t.addRecord(pluto)
-       .replaceAttribute(pluto, 'name', 'Pluto2')
-       .addRecord(jupiter)
-    );
-
-    cache.patches.onCompleted();
-
     const liveQuery = cache.liveQuery(q => q.recordsOfType('planet'));
 
-    liveQuery.toArray().subscribe((operations) => {
+    liveQuery.take(2).toArray().subscribe((operations) => {
       assert.deepEqual(operations, [
         { op: 'addRecord', record: pluto },
         { op: 'addRecord', record: jupiter }
@@ -68,26 +60,30 @@ module('OC - Cache - liveQuery', function(hooks) {
 
       done();
     });
+
+    cache.transform(t =>
+      t.addRecord(pluto)
+       .replaceAttribute(pluto, 'name', 'Pluto2')
+       .addRecord(jupiter)
+    );
   });
 
   test('filter - add new match', function(assert) {
     const done = assert.async();
 
-    cache.transform(t =>
-      t.addRecord(pluto)
-       .addRecord(jupiter)
-    );
-
-    cache.patches.onCompleted();
-
     const liveQuery = cache.liveQuery(q =>
       q.recordsOfType('planet').filterAttributes({ name: 'Pluto' })
     );
 
-    liveQuery.toArray().subscribe((operations) => {
+    liveQuery.take(1).toArray().subscribe((operations) => {
       assert.deepEqual(operations, [{ op: 'addRecord', record: pluto }]);
       done();
     });
+
+    cache.transform(t =>
+      t.addRecord(pluto)
+       .addRecord(jupiter)
+    );
   });
 
   test('filter - remove match', function(assert) {
@@ -97,7 +93,7 @@ module('OC - Cache - liveQuery', function(hooks) {
       q.recordsOfType('planet').filterAttributes({ name: 'Pluto' })
     );
 
-    liveQuery.toArray().subscribe(operations => {
+    liveQuery.take(2).toArray().subscribe(operations => {
       assert.deepEqual(operations, [
         { op: 'addRecord', record: pluto },
         { op: 'removeRecord', record: pluto }
@@ -109,8 +105,6 @@ module('OC - Cache - liveQuery', function(hooks) {
       t.addRecord(pluto)
        .removeRecord(pluto)
     );
-
-    cache.patches.onCompleted();
   });
 
   test('filter - remove then add match', function(assert) {
@@ -120,41 +114,36 @@ module('OC - Cache - liveQuery', function(hooks) {
       q.recordsOfType('planet').filterAttributes({ name: 'Pluto' })
     );
 
+    liveQuery.subscribe(operation => {
+      assert.deepEqual(operation, { op: 'addRecord', record: pluto });
+
+      done();
+    });
+
     cache.transform(t =>
       t.removeRecord(pluto)
        .addRecord(pluto)
     );
-
-    cache.patches.onCompleted();
-
-    liveQuery.take(2).toArray().subscribe((operations) => {
-      assert.deepEqual(operations, [{ op: 'addRecord', record: pluto }]);
-      done();
-    });
   });
 
   test('filter - change attribute that causes removal from matches', function(assert) {
     const done = assert.async();
 
+    cache.transform(t => t.addRecord(pluto));
+
     const liveQuery = cache.liveQuery(q =>
-      q.recordsOfType('planet').filterAttributes({ name: 'Pluto' })
+      q.recordsOfType('planet')
+       .filterAttributes({ name: 'Pluto' })
     );
 
     liveQuery.take(2).toArray().subscribe(operations => {
-      const { op, record } = operations[1];
-
-      assert.equal(op, 'removeRecord');
-      assert.equal(record.id, 'pluto');
+      assert.matchesPattern(operations[0], { op: 'addRecord', record: { id: 'pluto' } });
+      assert.matchesPattern(operations[1], { op: 'removeRecord', record: { id: 'pluto' } });
 
       done();
     });
 
-    cache.transform(t =>
-      t.addRecord(pluto)
-       .replaceAttribute({ type: 'planet', id: 'pluto' }, 'name', 'Jupiter')
-    );
-
-    cache.patches.onCompleted();
+    cache.transform(t => t.replaceAttribute({ type: 'planet', id: 'pluto' }, 'name', 'Jupiter'));
   });
 
   test('filter - change attribute that causes add to matches', function(assert) {
@@ -173,37 +162,24 @@ module('OC - Cache - liveQuery', function(hooks) {
       t.addRecord({ type: 'planet', id: 'uranus', attributes: { name: 'Uranus' } })
        .replaceAttribute({ type: 'planet', id: 'uranus' }, 'name', 'Uranus2')
     );
-
-    cache.patches.onCompleted();
   });
 
   test('filter - ignores remove record that isn\'t included in matches', function(assert) {
-    const done = assert.async();
-
     const liveQuery = cache.liveQuery(q =>
       q.recordsOfType('planet').filterAttributes({ name: 'Jupiter' })
     );
 
-    liveQuery.toArray().subscribe(operations => {
-      equal(operations.length, 0);
-      done();
-    });
+    const onOperation = sinon.stub();
+    liveQuery.subscribe(onOperation);
 
     cache.transform(t => t.addRecord(pluto)
                           .removeRecord(pluto));
 
-    cache.patches.onCompleted();
+    assert.equal(onOperation.getCalls().length, 0);
   });
 
   test('filter - chained', function(assert) {
     const done = assert.async();
-
-    cache.transform(t => {
-      t.addRecord(pluto);
-      t.addRecord(jupiter);
-    });
-
-    cache.patches.onCompleted();
 
     const liveQuery = cache.liveQuery(q =>
       q.recordsOfType('planet')
@@ -211,18 +187,38 @@ module('OC - Cache - liveQuery', function(hooks) {
        .filterAttributes({ name: 'Pluto' })
     );
 
-    liveQuery.toArray().subscribe((operations) => {
-      assert.deepEqual(operations, [{ op: 'addRecord', record: pluto }]);
+    liveQuery.subscribe(operation => {
+      assert.deepEqual(operation, { op: 'addRecord', record: pluto });
+      done();
+    });
+
+    cache.transform(t => {
+      t.addRecord(pluto);
+      t.addRecord(jupiter);
+    });
+  });
+
+  test('filter - recordsOfType with existing match in cache', function(assert) {
+    const done = assert.async();
+
+    cache.transform(t => t.addRecord(pluto));
+
+    const liveQuery = cache.liveQuery(q => q.recordsOfType('planet'));
+
+    liveQuery.subscribe(operation => {
+      assert.deepEqual(operation, { op: 'addRecord', record: pluto });
       done();
     });
   });
 
-  test('record - responds to record added/removed', function(assert) {
+  test('record - existing record with removal', function(assert) {
     const done = assert.async();
 
-    const liveQuery = cache.liveQuery(q => q.record({ type: 'planet', id: 'pluto' }));
+    cache.transform(t => t.addRecord(pluto));
+    const liveQuery = cache.liveQuery(q => q.record(identity(pluto)));
+    liveQuery.subscribe(op => console.log('op', op));
 
-    liveQuery.toArray().subscribe(operations => {
+    liveQuery.take(2).toArray().subscribe(operations => {
       assert.deepEqual(operations, [
         { op: 'addRecord', record: pluto },
         { op: 'removeRecord', record: pluto }
@@ -231,10 +227,7 @@ module('OC - Cache - liveQuery', function(hooks) {
       done();
     });
 
-    cache.transform(t => t.addRecord(pluto)
-                          .removeRecord(pluto));
-
-    cache.patches.onCompleted();
+    cache.transform(t => t.removeRecord(pluto));
   });
 
   module('relatedRecord', function() {
@@ -245,9 +238,9 @@ module('OC - Cache - liveQuery', function(hooks) {
 
       cache.patches.subscribe(operation => console.log('patch', operation));
 
-      const liveQuery = cache.liveQuery(q => q.relatedRecord({ type: 'moon', id: 'callisto' }, 'planet'));
+      const liveQuery = cache.liveQuery(q => q.relatedRecord(callisto, 'planet'));
 
-      liveQuery.toArray().subscribe(operations => {
+      liveQuery.take(2).toArray().subscribe(operations => {
         assert.deepEqual(operations, [
           { op: 'addRecord', record: jupiter },
           { op: 'removeRecord', record: jupiter }
@@ -258,8 +251,6 @@ module('OC - Cache - liveQuery', function(hooks) {
 
       cache.transform(t => t.replaceHasOne(callisto, 'planet', jupiter)
                             .replaceHasOne(callisto, 'planet', null));
-
-      cache.patches.onCompleted();
     });
   });
 
@@ -269,9 +260,9 @@ module('OC - Cache - liveQuery', function(hooks) {
 
       cache.reset({ planet: { jupiter }, moon: { callisto } });
 
-      const liveQuery = cache.liveQuery(q => q.relatedRecords({ type: 'planet', id: 'jupiter' }, 'moons'));
+      const liveQuery = cache.liveQuery(q => q.relatedRecords(jupiter, 'moons'));
 
-      liveQuery.toArray().subscribe(operations => {
+      liveQuery.take(2).toArray().subscribe(operations => {
         assert.deepEqual(operations, [
           { op: 'addRecord', record: callisto },
           { op: 'removeRecord', record: callisto }
@@ -282,8 +273,6 @@ module('OC - Cache - liveQuery', function(hooks) {
 
       cache.transform(t => t.addToHasMany(jupiter, 'moons', callisto)
                             .removeFromHasMany(jupiter, 'moons', callisto));
-
-      cache.patches.onCompleted();
     });
   });
 });
