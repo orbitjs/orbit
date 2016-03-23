@@ -112,9 +112,18 @@ packages.forEach(function(package) {
   });
 });
 
+var rxjs = new Funnel('node_modules', {
+  srcDir: 'rxjs-es',
+  include: ['**/*.js'],
+  destDir: 'rxjs'
+});
 var allLib = mergeTrees(Object.keys(lib).map(function(package) {
   return lib[package];
 }));
+var jshintLib = jshintTree(allLib);
+var jscsLib = jscs(allLib, {esnext: true, enabled: true});
+allLib = mergeTrees([allLib, rxjs]);
+
 var allMain = mergeTrees(Object.keys(main).map(function(package) {
   return main[package];
 }));
@@ -122,12 +131,10 @@ var allGlobalized = mergeTrees(Object.keys(globalized).map(function(package) {
   return globalized[package];
 }));
 
-var jshintLib = jshintTree(allLib);
 var jshintTest = jshintTree(tests);
-var jscsLib = jscs(allLib, {esnext: true, enabled: true});
 var jscsTest = jscs(tests, {esnext: true, enabled: true});
 
-var mainWithTests = mergeTrees([allLib, tests, jshintLib, jshintTest, jscsLib, jscsTest]);
+var mainWithTests = mergeTrees([rxjs, allLib, tests, jshintLib, jshintTest, jscsLib, jscsTest], {overwrite: true});
 
 mainWithTests = new compileES6Modules(mainWithTests);
 mainWithTests = new transpileES6(mainWithTests);
@@ -140,8 +147,7 @@ mainWithTests = concat(mainWithTests, {
 var vendor = concat('bower_components', {
   inputFiles: [
     'jquery/dist/jquery.js',
-    'rsvp/rsvp.js',
-    'rxjs/dist/rx.all.js'],
+    'rsvp/rsvp.js'],
   outputFile: '/assets/vendor.js'
 });
 

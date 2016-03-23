@@ -102,18 +102,18 @@ module('OC - Store', function(hooks) {
     const jupiter = schema.normalize({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
     const pluto = schema.normalize({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
 
-    Promise.all([
-      store.addRecord(pluto),
-      store.addRecord(jupiter)
-    ])
-    .then(([pluto, jupiter]) => {
+    store.on('updateRequest', transform => store.confirmUpdate(transform));
+
+    const setupStore = store.update(t => t.addRecord(pluto)
+                                          .addRecord(jupiter));
+
+    setupStore.then(() => {
       const liveQuery = store.liveQuery(q => q.recordsOfType('planet'));
-      liveQuery.take(2).toArray().subscribe((operations) => {
-        // TODO
-        // assert.deepEqual(operations, [
-        //   addRecordToSetOperation(pluto),
-        //   addRecordToSetOperation(jupiter)
-        // ]);
+      liveQuery.subscribe(op => console.log(op));
+
+      liveQuery.take(2).toArray().subscribe(operations => {
+        assert.patternMatches(operations[0], { op: 'add', record: { id: 'pluto' } });
+        assert.patternMatches(operations[0], { op: 'add', record: { id: 'jupiter' } });
 
         done();
       });
