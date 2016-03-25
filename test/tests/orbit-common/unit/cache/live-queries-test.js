@@ -216,7 +216,7 @@ module('OC - Cache - liveQuery', function(hooks) {
 
     cache.transform(t => t.addRecord(pluto));
     const liveQuery = cache.liveQuery(q => q.record(identity(pluto)));
-    liveQuery.subscribe(op => console.log('op', op));
+    // liveQuery.subscribe(op => console.log('op', op));
 
     liveQuery.take(2).toArray().subscribe(operations => {
       assert.deepEqual(operations, [
@@ -236,7 +236,7 @@ module('OC - Cache - liveQuery', function(hooks) {
 
       cache.reset({ planet: { jupiter }, moon: { callisto } });
 
-      cache.patches.subscribe(operation => console.log('patch', operation));
+      // cache.patches.subscribe(operation => console.log('patch', operation));
 
       const liveQuery = cache.liveQuery(q => q.relatedRecord(callisto, 'planet'));
 
