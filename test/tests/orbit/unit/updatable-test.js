@@ -1,18 +1,19 @@
-import { successfulOperation, failedOperation } from 'tests/test-helper';
+import Source from 'orbit/source';
 import Updatable from 'orbit/updatable';
 import Transform from 'orbit/transform';
 import { Promise } from 'rsvp';
+import { successfulOperation, failedOperation } from 'tests/test-helper';
 
-var Source, source;
+var source;
 
 module('Orbit - Updatable', {
   setup: function() {
-    source = {};
+    source = new Source();
     Updatable.extend(source);
   },
 
   teardown: function() {
-    Source = source = null;
+    source = null;
   }
 });
 
@@ -39,7 +40,7 @@ test('it should resolve as a failure when _update fails', function(assert) {
 });
 
 test('it should trigger `update` event after a successful action in which `_update` returns an array of transforms', function(assert) {
-  assert.expect(9);
+  assert.expect(13);
 
   let order = 0;
 
@@ -51,27 +52,33 @@ test('it should trigger `update` event after a successful action in which `_upda
     replaceAttributeTransform
   ];
 
+  source.on('beforeUpdate', (transform) => {
+    assert.equal(++order, 1, 'beforeUpdate triggered first');
+    assert.strictEqual(transform, addRecordTransform, 'transform matches');
+  });
+
   source._update = function(transform) {
-    assert.equal(++order, 1, 'action performed after willUpdate');
+    assert.equal(++order, 2, 'action performed after beforeUpdate');
     assert.strictEqual(transform, addRecordTransform, 'transform object matches');
     return Promise.resolve(resultingTransforms);
   };
 
   let transformCount = 0;
   source.on('transform', (transform) => {
+    assert.equal(++order, 3 + transformCount, 'transform triggered after action performed successfully');
     assert.strictEqual(transform, resultingTransforms[transformCount++], 'transform matches');
     return Promise.resolve();
   });
 
   source.on('update', (transform, result) => {
-    assert.equal(++order, 2, 'update triggered after action performed successfully');
+    assert.equal(++order, 5, 'update triggered after action performed successfully');
     assert.strictEqual(transform, addRecordTransform, 'transform matches');
     assert.strictEqual(result, resultingTransforms, 'result matches');
   });
 
   return source.update(addRecordTransform)
     .then((result) => {
-      assert.equal(++order, 3, 'promise resolved last');
+      assert.equal(++order, 6, 'promise resolved last');
       assert.strictEqual(result, resultingTransforms, 'success!');
     });
 });

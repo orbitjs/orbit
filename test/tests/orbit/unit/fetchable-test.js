@@ -1,27 +1,24 @@
-import { successfulOperation, failedOperation } from 'tests/test-helper';
+import Source from 'orbit/source';
 import Fetchable from 'orbit/fetchable';
 import Transform from 'orbit/transform';
 import { Promise } from 'rsvp';
+import { successfulOperation, failedOperation } from 'tests/test-helper';
 
-var Source, source;
+var source;
 
 module('Orbit - Fetchable', {
   setup: function() {
-    source = {};
+    source = new Source();
     Fetchable.extend(source);
   },
 
   teardown: function() {
-    Source = source = null;
+    source = null;
   }
 });
 
 test('it exists', function(assert) {
   assert.ok(source);
-});
-
-test('it should mixin Tranformable', function(assert) {
-  assert.ok(source._transformable, 'should have `_transformable` flag');
 });
 
 test('it should resolve as a failure when _fetch fails', function(assert) {
