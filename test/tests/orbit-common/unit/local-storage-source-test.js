@@ -1,8 +1,7 @@
 import { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty } from 'tests/test-helper';
 import Orbit from 'orbit/main';
+import Source from 'orbit/source';
 import Schema from 'orbit-common/schema';
-import Source from 'orbit-common/source';
-import MemorySource from 'orbit-common/memory-source';
 import LocalStorageSource from 'orbit-common/local-storage-source';
 import { all, Promise } from 'rsvp';
 
@@ -32,18 +31,17 @@ test('it exists', function(assert) {
 });
 
 test('its prototype chain is correct', function(assert) {
-  assert.ok(source instanceof Source,       'instanceof Source');
-  assert.ok(source instanceof MemorySource, 'instanceof MemorySource');
+  assert.ok(source instanceof Source, 'instanceof Source');
 });
 
-test('#update - can update the cache AND local storage', function(assert) {
+test('#transform - can update the cache AND local storage', function(assert) {
   assert.expect(4);
 
   let planet = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
 
   assert.equal(source.cache.length('planet'), 0, 'source should be empty');
 
-  return source.update(t => t.addRecord(planet))
+  return source.transform(t => t.addRecord(planet))
     .then(function() {
       assert.equal(source.cache.length('planet'), 1, 'source should be empty');
       assert.deepEqual(source.cache.get(['planet', planet.id]), planet, 'planet matches');
@@ -58,7 +56,7 @@ test('it can use a custom local storage namespace for storing data', function(as
 
   source.namespace = 'planets';
 
-  return source.update(t => t.addRecord(planet))
+  return source.transform(t => t.addRecord(planet))
     .then(function() {
       verifyLocalStorageContainsRecord(source.namespace, 'planet', planet.id, planet);
     });
@@ -73,7 +71,7 @@ test('autosave can be disabled to delay writing to local storage', function(asse
 
   assert.equal(source.cache.length('planet'), 0, 'source should be empty');
 
-  return source.update(t => t.addRecord(planet))
+  return source.transform(t => t.addRecord(planet))
     .then(function() {
       assert.equal(source.cache.length('planet'), 1, 'source should contain one record');
       verifyLocalStorageIsEmpty(source.namespace);
