@@ -74,8 +74,6 @@ test('once begun, tracks operations performed', function(assert) {
 
   assert.equal(transaction.operations.length, 0, 'transaction has no operations');
 
-  transaction.on('updateRequest', transform => transaction.confirmUpdate(transform));
-
   return transaction.update(t => t.addRecord(jupiter))
     .then(transforms => {
       const operations = transforms.map(t => t.operations).reduce((a, b) => a.concat(b));
@@ -93,9 +91,6 @@ test('#commit applies coalesced operations to `baseStore`', function(assert) {
   const jupiter = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
 
   const transaction = store.createTransaction();
-
-  store.on('updateRequest', transform => store.confirmUpdate(transform));
-  transaction.on('updateRequest', transform => transaction.confirmUpdate(transform));
 
   return transaction.update(t => t.addRecord(jupiter)
                                   .replaceAttribute(jupiter, 'classification', 'terrestrial'))
