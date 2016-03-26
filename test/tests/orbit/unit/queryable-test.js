@@ -1,28 +1,23 @@
-import { successfulOperation, failedOperation } from 'tests/test-helper';
+import Source from 'orbit/source';
 import Queryable from 'orbit/queryable';
 import { Promise } from 'rsvp';
+import { successfulOperation, failedOperation } from 'tests/test-helper';
 
-var Source, source;
+var source;
 
 module('Orbit - Queryable', {
   setup: function() {
-    source = {};
+    source = new Source();
     Queryable.extend(source);
   },
 
   teardown: function() {
-    Source = source = null;
+    source = null;
   }
 });
 
 test('it exists', function(assert) {
   assert.ok(source);
-});
-
-test('it should mixin Evented', function(assert) {
-  ['on', 'off', 'emit', 'poll'].forEach((prop) => {
-    assert.ok(source[prop], 'should have Evented properties');
-  });
 });
 
 test('it should resolve as a failure when _query fails', function(assert) {

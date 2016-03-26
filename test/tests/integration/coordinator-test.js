@@ -1,7 +1,8 @@
-import { planetsSchema as schema } from 'tests/test-helper';
+import { planetsSchema } from 'tests/test-helper';
+import Coordinator from 'orbit-common/coordinator';
 import Store from 'orbit-common/store';
 import JsonApiSource from 'orbit-common/jsonapi-source';
-import TransformQueue from 'orbit/transform/queue';
+import LocalStorageSource from 'orbit-common/local-storage-source';
 import { eq } from 'orbit/lib/eq';
 
 let server;
@@ -66,36 +67,62 @@ function jsonResponse(status, json) {
   ];
 }
 
-module('Integration - JSONAPI', function(hooks) {
+module('Integration - Coordinator', function(hooks) {
+  let schema;
   let store;
+  let localStorage;
   let jsonApiSource;
+  let coordinator;
   let updateQueue;
 
   hooks.beforeEach(function() {
     server = sinon.fakeServer.create();
     server.autoRespond = true;
 
-    jsonApiSource = new JsonApiSource({ schema: schema });
-    store = new Store({ schema: schema });
+    schema = planetsSchema;
+    coordinator = new Coordinator();
+    jsonApiSource = new JsonApiSource({ schema });
+    store = new Store({ schema });
+    localStorage = new LocalStorageSource({ schema });
 
-    updateQueue = new TransformQueue();
+    let master = coordinator.addNode('master', {
+      sources: [store]
+    });
 
-    store.on('updateRequest', t => updateQueue.add(t));
-    updateQueue.on('transform', t => jsonApiSource.update(t));
-    jsonApiSource.on('update', t => store.confirmUpdate(t));
-    jsonApiSource.on('updateFail', (t, e) => store.denyUpdate(t, e));
+    let backup = coordinator.addNode('backup', {
+      sources: [localStorage]
+    });
 
-    store.on('fetchRequest', t => jsonApiSource.fetch(t));
-    jsonApiSource.on('fetch', (q, t) => store.confirmFetch(q, t));
-    jsonApiSource.on('fetchFail', (q, e) => store.denyFetch(q, e));
+    let upstream = coordinator.addNode('upstream', {
+      sources: [jsonApiSource]
+    });
 
-    // store.on('transform', t => console.log('store.onTransform', t.id));
-    // queue.on('transform', t => console.log('queue.onTransform', t.id));
-    // jsonApiSource.on('transform', t => console.log('jsonApiSource', t.id));
-    // jsonApiSource.on('updateFail', (t, e) => console.log('updateFail', t, e));
+    coordinator.defineStrategy({
+      type: 'request',
+      sourceNode: 'master',
+      targetNode: 'upstream',
+      sourceEvent: 'beforeUpdate',
+      targetRequest: 'update',
+      blocking: true,
+      mergeTransforms: true
+    });
 
-    // store.on('fetch', expression => jsonApiSource.fetch(expression));
-    // window.store = store;
+    coordinator.defineStrategy({
+      type: 'request',
+      sourceNode: 'master',
+      targetNode: 'upstream',
+      sourceEvent: 'beforeQuery',
+      targetRequest: 'fetch',
+      blocking: true,
+      mergeTransforms: true
+    });
+
+    coordinator.defineStrategy({
+      type: 'transform',
+      sourceNode: 'master',
+      targetNode: 'backup',
+      blocking: false
+    });
   });
 
   hooks.afterEach(function() {

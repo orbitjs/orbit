@@ -1,7 +1,7 @@
 import Orbit from 'orbit/main';
+import Source from 'orbit/source';
 import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
-import Source from 'orbit-common/source';
 import JSONAPISource from 'orbit-common/jsonapi-source';
 import { Promise } from 'rsvp';
 import jQuery from 'jquery';
@@ -73,11 +73,6 @@ test('its prototype chain is correct', function(assert) {
 test('implements Fetchable', function(assert) {
   assert.ok(source._fetchable, 'implements Fetchable');
   assert.ok(typeof source.fetch === 'function', 'has `fetch` method');
-});
-
-test('implements Transformable', function(assert) {
-  assert.ok(source._transformable, 'implements Transformable');
-  assert.ok(typeof source.transformed === 'function', 'has `transformed` method');
 });
 
 test('implements Updatable', function(assert) {
