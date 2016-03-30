@@ -151,3 +151,34 @@ test("replacing value with null should not cause infinite update loop", function
     });
   });
 });
+
+
+test("all sources should be able to discover planets at the same time", function() {
+  stop();
+  expect(1);
+  Orbit.Promise
+    .all([
+      source1.transform({
+        op: 'add',
+        path: ['planet', '1'],
+        value: source2.normalize('planet', {name: 'Earth'})
+      }),
+      source2.transform({
+        op: 'add',
+        path: ['planet', '2'],
+        value: source2.normalize('planet', {name: 'Jupiter'})
+      }),
+      source3.transform({
+        op: 'add',
+        path: ['planet', '3'],
+        value: source2.normalize('planet', {name: 'Mars'})
+      })
+    ])
+    .then(function() {
+      return source1.find('planet');
+    })
+    .then(function(planets) {
+      start();
+      equal(planets.length, 3, 'All planets were found');
+    });
+});
