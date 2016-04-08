@@ -102,7 +102,7 @@ module('Integration - Coordinator', function(hooks) {
       sourceNode: 'master',
       targetNode: 'upstream',
       sourceEvent: 'beforeUpdate',
-      targetRequest: 'update',
+      targetRequest: 'transform',
       blocking: true,
       mergeTransforms: true
     });

@@ -75,9 +75,9 @@ test('implements Fetchable', function(assert) {
   assert.ok(typeof source.fetch === 'function', 'has `fetch` method');
 });
 
-test('implements Updatable', function(assert) {
-  assert.ok(source._updatable, 'implements Updatable');
-  assert.ok(typeof source.update === 'function', 'has `update` method');
+test('implements Transformable', function(assert) {
+  assert.ok(source._transformable, 'implements Transformable');
+  assert.ok(typeof source.transform === 'function', 'has `transform` method');
 });
 
 test('source saves options', function(assert) {
@@ -117,7 +117,7 @@ test('#resourceRelationshipURL - constructs relationship URLs based upon base re
   assert.equal(source.resourceRelationshipURL('planet', '1', 'moons'), '/planets/a/relationships/moons', 'resourceRelationshipURL appends /relationships/[relationship] to resourceURL');
 });
 
-test('#update - can add records', function(assert) {
+test('#transform - can add records', function(assert) {
   assert.expect(4);
 
   let transformCount = 0;
@@ -193,13 +193,13 @@ test('#update - can add records', function(assert) {
     }
   });
 
-  return source.update(t => t.addRecord(planet))
+  return source.transform(t => t.addRecord(planet))
     .then(function() {
-      assert.ok(true, 'update resolves successfully');
+      assert.ok(true, 'transform resolves successfully');
     });
 });
 
-test('#update - can update records', function(assert) {
+test('#transform - can transform records', function(assert) {
   expect(3);
 
   let transformCount = 0;
@@ -262,13 +262,13 @@ test('#update - can update records', function(assert) {
     }
   });
 
-  return source.update(t => t.replaceRecord(planet))
+  return source.transform(t => t.replaceRecord(planet))
     .then(() => {
       assert.ok(true, 'transform resolves successfully');
     });
 });
 
-test('#update - can replace a single attribute', function(assert) {
+test('#transform - can replace a single attribute', function(assert) {
   assert.expect(2);
 
   let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' }, attributes: { name: 'Jupiter', classification: 'gas giant' } });
@@ -290,13 +290,13 @@ test('#update - can replace a single attribute', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.update(t => { t.replaceAttribute(planet, 'classification', 'terrestrial'); })
+  return source.transform(t => { t.replaceAttribute(planet, 'classification', 'terrestrial'); })
     .then(() => {
       assert.ok(true, 'record patched');
     });
 });
 
-test('#update - can delete records', function(assert) {
+test('#transform - can delete records', function(assert) {
   assert.expect(2);
 
   let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
@@ -308,13 +308,13 @@ test('#update - can delete records', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.update(t => t.removeRecord(planet))
+  return source.transform(t => t.removeRecord(planet))
     .then(() => {
       assert.ok(true, 'record deleted');
     });
 });
 
-test('#update - can add a hasMany relationship with POST', function(assert) {
+test('#transform - can add a hasMany relationship with POST', function(assert) {
   assert.expect(2);
 
   let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
@@ -328,13 +328,13 @@ test('#update - can add a hasMany relationship with POST', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.update(t => { t.addToHasMany(planet, 'moons', moon); })
+  return source.transform(t => { t.addToHasMany(planet, 'moons', moon); })
     .then(() => {
       assert.ok(true, 'records linked');
     });
 });
 
-test('#update - can remove a relationship with DELETE', function(assert) {
+test('#transform - can remove a relationship with DELETE', function(assert) {
   expect(2);
 
   let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
@@ -348,13 +348,13 @@ test('#update - can remove a relationship with DELETE', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.update(t => { t.removeFromHasMany(planet, 'moons', moon); })
+  return source.transform(t => { t.removeFromHasMany(planet, 'moons', moon); })
     .then(function() {
       assert.ok(true, 'records unlinked');
     });
 });
 
-test('#update - can update a hasOne relationship with PATCH', function(assert) {
+test('#transform - can update a hasOne relationship with PATCH', function(assert) {
   assert.expect(2);
 
   let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
@@ -369,13 +369,13 @@ test('#update - can update a hasOne relationship with PATCH', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.update(t => { t.replaceHasOne(moon, 'planet', planet); })
+  return source.transform(t => { t.replaceHasOne(moon, 'planet', planet); })
     .then(function() {
       assert.ok(true, 'relationship replaced');
     });
 });
 
-test('#update - can clear a hasOne relationship with PATCH', function(assert) {
+test('#transform - can clear a hasOne relationship with PATCH', function(assert) {
   assert.expect(2);
 
   let moon = schema.normalize({ type: 'moon', keys: { remoteId: '987' } });
@@ -389,13 +389,13 @@ test('#update - can clear a hasOne relationship with PATCH', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.update(t => { t.replaceHasOne(moon, 'planet', null); })
+  return source.transform(t => { t.replaceHasOne(moon, 'planet', null); })
     .then(function() {
       assert.ok(true, 'relationship replaced');
     });
 });
 
-test('#update - can replace a hasMany relationship with PATCH', function(assert) {
+test('#transform - can replace a hasMany relationship with PATCH', function(assert) {
   assert.expect(2);
 
   let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
@@ -410,7 +410,7 @@ test('#update - can replace a hasMany relationship with PATCH', function(assert)
                 JSON.stringify({}));
   });
 
-  return source.update(t => { t.replaceHasMany(planet, 'moons', [moon]); })
+  return source.transform(t => { t.replaceHasMany(planet, 'moons', [moon]); })
     .then(function() {
       assert.ok(true, 'relationship replaced');
     });

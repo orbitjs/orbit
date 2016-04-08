@@ -1,8 +1,8 @@
 import Transform from 'orbit/transform';
-import { UpdateRequestProcessors, getUpdateRequests } from 'orbit-common/jsonapi/update-requests';
+import { TransformRequestProcessors, getTransformRequests } from 'orbit-common/jsonapi/transform-requests';
 
-module('OC - JSONAPI - UpdateRequests', function() {
-  module('getUpdateRequests', function() {
+module('OC - JSONAPI - TransformRequests', function() {
+  module('getTransformRequests', function() {
     test('addRecord', function(assert) {
       const jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } };
 
@@ -11,7 +11,7 @@ module('OC - JSONAPI - UpdateRequests', function() {
         record: jupiter
       });
 
-      assert.deepEqual(getUpdateRequests(t), [{
+      assert.deepEqual(getTransformRequests(t), [{
         op: 'addRecord',
         record: jupiter
       }]);
@@ -25,7 +25,7 @@ module('OC - JSONAPI - UpdateRequests', function() {
         record: jupiter
       });
 
-      assert.deepEqual(getUpdateRequests(t), [{
+      assert.deepEqual(getTransformRequests(t), [{
         op: 'removeRecord',
         record: { type: 'planet', id: 'jupiter' }
       }]);
@@ -41,7 +41,7 @@ module('OC - JSONAPI - UpdateRequests', function() {
         value: 'Earth'
       });
 
-      assert.deepEqual(getUpdateRequests(t), [{
+      assert.deepEqual(getTransformRequests(t), [{
         op: 'replaceRecord',
         record: { type: 'planet', id: 'jupiter', attributes: { name: 'Earth' } }
       }]);
@@ -55,7 +55,7 @@ module('OC - JSONAPI - UpdateRequests', function() {
         record: jupiter
       });
 
-      assert.deepEqual(getUpdateRequests(t), [{
+      assert.deepEqual(getTransformRequests(t), [{
         op: 'replaceRecord',
         record: jupiter
       }]);
@@ -72,7 +72,7 @@ module('OC - JSONAPI - UpdateRequests', function() {
         relatedRecord: io
       });
 
-      assert.deepEqual(getUpdateRequests(t), [{
+      assert.deepEqual(getTransformRequests(t), [{
         op: 'addToHasMany',
         record: jupiter,
         relationship: 'moons',
@@ -91,7 +91,7 @@ module('OC - JSONAPI - UpdateRequests', function() {
         relatedRecord: io
       });
 
-      assert.deepEqual(getUpdateRequests(t), [{
+      assert.deepEqual(getTransformRequests(t), [{
         op: 'removeFromHasMany',
         record: jupiter,
         relationship: 'moons',
@@ -110,7 +110,7 @@ module('OC - JSONAPI - UpdateRequests', function() {
         relatedRecord: jupiter
       });
 
-      assert.deepEqual(getUpdateRequests(t), [{
+      assert.deepEqual(getTransformRequests(t), [{
         op: 'replaceRecord',
         record: {
           type: 'moon',
@@ -134,7 +134,7 @@ module('OC - JSONAPI - UpdateRequests', function() {
         relatedRecord: null
       });
 
-      assert.deepEqual(getUpdateRequests(t), [{
+      assert.deepEqual(getTransformRequests(t), [{
         op: 'replaceRecord',
         record: {
           type: 'moon',
@@ -160,7 +160,7 @@ module('OC - JSONAPI - UpdateRequests', function() {
         relatedRecords: [io, europa]
       });
 
-      assert.deepEqual(getUpdateRequests(t), [{
+      assert.deepEqual(getTransformRequests(t), [{
         op: 'replaceRecord',
         record: {
           type: 'planet',
@@ -188,7 +188,7 @@ module('OC - JSONAPI - UpdateRequests', function() {
         record: { type: 'planet', id: 'jupiter' }
       }]);
 
-      assert.deepEqual(getUpdateRequests(t), []);
+      assert.deepEqual(getTransformRequests(t), []);
     });
 
     test('removeRecord + removeRecord => [removeRecord]', function(assert) {
@@ -202,7 +202,7 @@ module('OC - JSONAPI - UpdateRequests', function() {
         record: { type: 'planet', id: 'jupiter' }
       }]);
 
-      assert.deepEqual(getUpdateRequests(t), [{
+      assert.deepEqual(getTransformRequests(t), [{
         op: 'removeRecord',
         record: { type: 'planet', id: 'jupiter' }
       }]);
@@ -221,7 +221,7 @@ module('OC - JSONAPI - UpdateRequests', function() {
         value: 'gaseous'
       }]);
 
-      assert.deepEqual(getUpdateRequests(t), [{
+      assert.deepEqual(getTransformRequests(t), [{
         op: 'addRecord',
         record: { type: 'planet', id: 'jupiter', attributes: { name: 'Earth', atmosphere: 'gaseous' } }
       }]);
@@ -242,7 +242,7 @@ module('OC - JSONAPI - UpdateRequests', function() {
         value: 'gaseous'
       }]);
 
-      assert.deepEqual(getUpdateRequests(t), [{
+      assert.deepEqual(getTransformRequests(t), [{
         op: 'replaceRecord',
         record: { type: 'planet', id: 'jupiter', attributes: { name: 'Earth', atmosphere: 'gaseous' } }
       }]);
@@ -265,7 +265,7 @@ module('OC - JSONAPI - UpdateRequests', function() {
         relatedRecord: europa
       }]);
 
-      assert.deepEqual(getUpdateRequests(t), [{
+      assert.deepEqual(getTransformRequests(t), [{
         op: 'addToHasMany',
         record: jupiter,
         relationship: 'moons',
