@@ -132,9 +132,9 @@ test('#length returns the size of data at a path', function(assert) {
 
   assert.equal(cache.length('planet'), 2, 'returns count of objects at a path');
 
-  cache.transform(t => t.replaceAttribute({ type: 'planet', id: '1' }, 'stuff', ['a', 'b', 'c']));
+  cache.transform(t => t.replaceAttribute({ type: 'planet', id: '1' }, 'stuff', { a: true, b: true, c: true }));
 
-  assert.equal(cache.length('planet/1/attributes/stuff'), 3, 'returns size of an array at a path');
+  assert.equal(cache.length('planet/1/attributes/stuff'), 3, 'returns size of an object at a path');
 });
 
 test('#reset clears the cache by default', function(assert) {
@@ -395,7 +395,7 @@ test('#transform removing model with a bi-directional hasOne', function(assert) 
 
   cache.transform(t => t.removeRecord(two));
 
-  assert.strictEqual(one.relationships.two.data, null, 'ones link to two got removed');
+  assert.equal(cache.get(['one', '1', 'relationships', 'two', 'data']), null, 'ones link to two got removed');
 });
 
 test('#transform removes dependent records', function(assert) {

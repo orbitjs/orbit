@@ -70,7 +70,7 @@ function jsonResponse(status, json) {
 module('Integration - Coordinator', function(hooks) {
   let schema;
   let store;
-  let localStorage;
+  // let localStorage;
   let jsonApiSource;
   let coordinator;
   let updateQueue;
@@ -83,15 +83,15 @@ module('Integration - Coordinator', function(hooks) {
     coordinator = new Coordinator();
     jsonApiSource = new JsonApiSource({ schema });
     store = new Store({ schema });
-    localStorage = new LocalStorageSource({ schema });
+    // localStorage = new LocalStorageSource({ schema });
 
     let master = coordinator.addNode('master', {
       sources: [store]
     });
 
-    let backup = coordinator.addNode('backup', {
-      sources: [localStorage]
-    });
+    // let backup = coordinator.addNode('backup', {
+    //   sources: [localStorage]
+    // });
 
     let upstream = coordinator.addNode('upstream', {
       sources: [jsonApiSource]
@@ -117,12 +117,12 @@ module('Integration - Coordinator', function(hooks) {
       mergeTransforms: true
     });
 
-    coordinator.defineStrategy({
-      type: 'transform',
-      sourceNode: 'master',
-      targetNode: 'backup',
-      blocking: false
-    });
+    // coordinator.defineStrategy({
+    //   type: 'transform',
+    //   sourceNode: 'master',
+    //   targetNode: 'backup',
+    //   blocking: false
+    // });
   });
 
   hooks.afterEach(function() {
