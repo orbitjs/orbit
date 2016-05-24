@@ -1,7 +1,7 @@
 # Orbit.js [![Build Status](https://secure.travis-ci.org/orbitjs/orbit.js.png?branch=master)](http://travis-ci.org/orbitjs/orbit.js) [![Join the chat at https://gitter.im/orbitjs/orbit.js](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/orbitjs/orbit.js?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Orbit is a standalone library for coordinating access to data sources
-and keeping their contents synchronized.
+Orbit is a library for coordinating access to data sources and keeping their
+contents synchronized.
 
 Orbit provides a foundation for building advanced features in client-side
 applications such as offline operation, maintenance and synchronization of local
@@ -11,7 +11,7 @@ Orbit relies heavily on promises, events and low-level transforms.
 
 ## Status
 
-**Please note** - Orbit is currently undergoing a major refactor in 
+**Please note** - Orbit is currently undergoing a major refactor in
 the [rethink](https://github.com/orbitjs/orbit.js/tree/rethink)
 branch. This work will include significant breaking changes.
 

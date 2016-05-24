@@ -77,19 +77,19 @@ var buildExtras = new Funnel('build-support', {
   files: ['README.md', 'LICENSE']
 });
 
-var lib = {};
+var src = {};
 var main = {};
 var globalized = {};
 
 packages.forEach(function(package) {
-  lib[package.name] = new Funnel('lib', {
+  src[package.name] = new Funnel('src', {
     srcDir: '/',
     include: package.include,
     exclude: package.exclude || [],
     destDir: '/'
   });
 
-  main[package.name] = mergeTrees([ lib[package.name] ]);
+  main[package.name] = mergeTrees([ src[package.name] ]);
   main[package.name] = new compileES6Modules(main[package.name]);
   main[package.name] = new transpileES6(main[package.name]);
   main[package.name] = concat(main[package.name], {
@@ -117,12 +117,12 @@ var rxjs = new Funnel('node_modules', {
   include: ['**/*.js'],
   destDir: 'rxjs'
 });
-var allLib = mergeTrees(Object.keys(lib).map(function(package) {
-  return lib[package];
+var allSrc = mergeTrees(Object.keys(src).map(function(package) {
+  return src[package];
 }));
-var jshintLib = jshintTree(allLib);
-var jscsLib = jscs(allLib, {esnext: true, enabled: true});
-allLib = mergeTrees([allLib, rxjs]);
+var jshintSrc = jshintTree(allSrc);
+var jscsSrc = jscs(allSrc, {esnext: true, enabled: true});
+allSrc = mergeTrees([allSrc, rxjs]);
 
 var allMain = mergeTrees(Object.keys(main).map(function(package) {
   return main[package];
@@ -134,7 +134,7 @@ var allGlobalized = mergeTrees(Object.keys(globalized).map(function(package) {
 var jshintTest = jshintTree(tests);
 var jscsTest = jscs(tests, {esnext: true, enabled: true});
 
-var mainWithTests = mergeTrees([rxjs, allLib, tests, jshintLib, jshintTest, jscsLib, jscsTest], {overwrite: true});
+var mainWithTests = mergeTrees([rxjs, allSrc, tests, jshintSrc, jshintTest, jscsSrc, jscsTest], { overwrite: true });
 
 mainWithTests = new compileES6Modules(mainWithTests);
 mainWithTests = new transpileES6(mainWithTests);
