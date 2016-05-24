@@ -9,12 +9,6 @@ caches, undo / redo stacks and ad hoc editing contexts.
 
 Orbit relies heavily on promises, events and low-level transforms.
 
-## Status
-
-**Please note** - Orbit is currently undergoing a major refactor in 
-the [rethink](https://github.com/orbitjs/orbit.js/tree/rethink)
-branch. This work will include significant breaking changes.
-
 ## Goals
 
 * Support any number of different data sources in an application and
@@ -162,4 +156,4 @@ npm run docs
 
 ## License
 
-Copyright 2014 Cerebris Corporation. MIT License (see LICENSE for details).
+Copyright 2016 Cerebris Corporation. MIT License (see LICENSE for details).
