@@ -106,7 +106,7 @@ module('OC - Store', function(hooks) {
 
     return store.query(q => q.record({ type: 'planet', id: '1' }))
       .then(function(foundPlanet) {
-        assert.strictEqual(foundPlanet, jupiter, 'found planet matches original');
+        assert.deepEqual(foundPlanet, jupiter, 'found planet matches original');
       });
   });
 

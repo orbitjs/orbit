@@ -61,6 +61,19 @@ test('automatically begins by default', function(assert) {
   assert.equal(transaction.active, true);
 });
 
+test('starts with the same cache contents as the base store', function(assert) {
+  const jupiter = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
+
+  return store.update(t => t.addRecord(jupiter))
+    .then(transforms => {
+      assert.deepEqual(store.cache.get(['planet', jupiter.id]), jupiter, 'planet should be jupiter');
+
+      let transaction = store.createTransaction();
+
+      assert.deepEqual(transaction.cache.get(['planet', jupiter.id]), jupiter, 'planet should be jupiter');
+    });
+});
+
 test('does not auto-begin if the `active` option = false', function(assert) {
   let transaction = store.createTransaction({ active: false });
   assert.equal(transaction.active, false);

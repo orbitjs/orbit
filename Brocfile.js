@@ -144,10 +144,11 @@ mainWithTests = concat(mainWithTests, {
   outputFile: '/assets/tests.amd.js'
 });
 
-var vendor = concat('bower_components', {
+var vendor = concat('', {
   inputFiles: [
-    'jquery/dist/jquery.js',
-    'rsvp/rsvp.js'],
+    'node_modules/immutable/dist/immutable.js',
+    'bower_components/jquery/dist/jquery.js',
+    'bower_components/rsvp/rsvp.js'],
   outputFile: '/assets/vendor.js'
 });
 

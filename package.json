@@ -49,6 +49,7 @@
     "yuidocjs": "^0.8.1"
   },
   "dependencies": {
+    "immutable": "^3.7.6",
     "rxjs-es": "git://github.com/opsb/rxjs-es#40bf9a8"
   }
 }
