@@ -1,7 +1,7 @@
 {
   "framework": "qunit",
   "before_tests": "npm run build",
-  "src_files": ["lib/**/*.js", "test/**/*.js"],
+  "src_files": ["src/**/*.js", "test/**/*.js"],
   "serve_files": [
     "build/assets/loader.js",
     "build/assets/vendor.js",

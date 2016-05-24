@@ -3,7 +3,7 @@
 var moduleName, shouldLoad;
 
 QUnit.config.autostart = false;
-QUnit.config.urlConfig.push({ id: 'nojshint', label: 'Disable JSHint'});
+QUnit.config.urlConfig.push({ id: 'nojshint', label: 'Disable JSHint' });
 
 // TODO: load based on params
 setTimeout(function() {

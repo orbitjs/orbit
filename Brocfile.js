@@ -6,6 +6,7 @@ var transpileES6 = require('broccoli-babel-transpiler');
 var jshintTree = require('broccoli-jshint');
 var replace    = require('broccoli-string-replace');
 var gitVersion = require('git-repo-version');
+var jscs = require('broccoli-jscs');
 
 // extract version from git
 // note: remove leading `v` (since by default our tags use a `v` prefix)
@@ -22,7 +23,7 @@ var packages = [
     include: [/orbit-common.js/,
               /(orbit\-common\/.+.js)/],
     exclude: [/orbit-common\/local-storage-source.js/,
-              /orbit-common\/jsonapi-serializer.js/,
+              /orbit-common\/jsonapi\/serializer.js/,
               /orbit-common\/jsonapi-source.js/]
   },
   {
@@ -31,7 +32,7 @@ var packages = [
   },
   {
     name: 'orbit-common-jsonapi',
-    include: [/orbit-common\/jsonapi-serializer.js/,
+    include: [/orbit-common\/jsonapi\/serializer.js/,
               /orbit-common\/jsonapi-source.js/]
   }
 ];
@@ -76,19 +77,19 @@ var buildExtras = new Funnel('build-support', {
   files: ['README.md', 'LICENSE']
 });
 
-var lib = {};
+var src = {};
 var main = {};
 var globalized = {};
 
 packages.forEach(function(package) {
-  lib[package.name] = new Funnel('lib', {
+  src[package.name] = new Funnel('src', {
     srcDir: '/',
     include: package.include,
     exclude: package.exclude || [],
     destDir: '/'
   });
 
-  main[package.name] = mergeTrees([ lib[package.name] ]);
+  main[package.name] = mergeTrees([ src[package.name] ]);
   main[package.name] = new compileES6Modules(main[package.name]);
   main[package.name] = new transpileES6(main[package.name]);
   main[package.name] = concat(main[package.name], {
@@ -111,9 +112,18 @@ packages.forEach(function(package) {
   });
 });
 
-var allLib = mergeTrees(Object.keys(lib).map(function(package) {
-  return lib[package];
+var rxjs = new Funnel('node_modules', {
+  srcDir: 'rxjs-es',
+  include: ['**/*.js'],
+  destDir: 'rxjs'
+});
+var allSrc = mergeTrees(Object.keys(src).map(function(package) {
+  return src[package];
 }));
+var jshintSrc = jshintTree(allSrc);
+var jscsSrc = jscs(allSrc, {esnext: true, enabled: true});
+allSrc = mergeTrees([allSrc, rxjs]);
+
 var allMain = mergeTrees(Object.keys(main).map(function(package) {
   return main[package];
 }));
@@ -121,11 +131,10 @@ var allGlobalized = mergeTrees(Object.keys(globalized).map(function(package) {
   return globalized[package];
 }));
 
-var jshintLib = jshintTree(allLib);
 var jshintTest = jshintTree(tests);
+var jscsTest = jscs(tests, {esnext: true, enabled: true});
 
-
-var mainWithTests = mergeTrees([allLib, tests, jshintLib, jshintTest]);
+var mainWithTests = mergeTrees([rxjs, allSrc, tests, jshintSrc, jshintTest, jscsSrc, jscsTest], { overwrite: true });
 
 mainWithTests = new compileES6Modules(mainWithTests);
 mainWithTests = new transpileES6(mainWithTests);
@@ -135,10 +144,11 @@ mainWithTests = concat(mainWithTests, {
   outputFile: '/assets/tests.amd.js'
 });
 
-var vendor = concat('bower_components', {
+var vendor = concat('', {
   inputFiles: [
-    'jquery/dist/jquery.js',
-    'rsvp/rsvp.js'],
+    'node_modules/immutable/dist/immutable.js',
+    'bower_components/jquery/dist/jquery.js',
+    'bower_components/rsvp/rsvp.js'],
   outputFile: '/assets/vendor.js'
 });
 
