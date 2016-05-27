@@ -68,7 +68,7 @@ export default class HasOneObservable extends Observable {
   }
 
   static fromObservable(observable, cache, record, relationship) {
-    const patches = observable.matching({ op: 'replaceHasOne', relationship });
+    const patches = observable.matching({ record: { type: record.type, id: record.id }, op: 'replaceHasOne', relationship });
     const subscribe = patches.subscribe.bind(patches);
 
     return new HasOneObservable(subscribe, cache, record, relationship);

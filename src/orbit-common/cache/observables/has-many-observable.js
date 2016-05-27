@@ -53,7 +53,7 @@ export default class HasManyObservable extends Observable {
   }
 
   static fromObservable(observable, cache, record, relationship) {
-    const patches = observable.matching({ op: ['addToHasMany', 'removeFromHasMany'], relationship });
+    const patches = observable.matching({ record: { type: record.type, id: record.id }, op: ['addToHasMany', 'removeFromHasMany'], relationship });
     const subscribe = patches.subscribe.bind(patches);
 
     return new HasManyObservable(subscribe, cache, record, relationship);

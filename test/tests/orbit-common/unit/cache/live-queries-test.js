@@ -28,6 +28,7 @@ module('OC - Cache - liveQuery', function(hooks) {
   let callisto;
   let saturn;
   let titan;
+  let io;
 
   hooks.beforeEach(function() {
     pluto = planetsSchema.normalize({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
@@ -44,6 +45,8 @@ module('OC - Cache - liveQuery', function(hooks) {
       type: 'moon', id: 'titan',
       attributes: { name: 'Titan' },
       relationships: { planet: { data: 'planet:saturn' } } });
+
+    io = planetsSchema.normalize({ type: 'moon', id: 'io', attributes: { name: 'Io' } });
 
     cache = new Cache(planetsSchema);
   });
@@ -234,9 +237,7 @@ module('OC - Cache - liveQuery', function(hooks) {
     test('adds and removes record from liveQuery', function(assert) {
       const done = assert.async();
 
-      cache.reset({ planet: { jupiter }, moon: { callisto } });
-
-      // cache.patches.subscribe(operation => console.log('patch', operation));
+      cache.reset({ planet: { jupiter, pluto }, moon: { callisto, io } });
 
       const liveQuery = cache.liveQuery(q => q.relatedRecord(callisto, 'planet'));
 
@@ -249,8 +250,13 @@ module('OC - Cache - liveQuery', function(hooks) {
         done();
       });
 
-      cache.transform(t => t.replaceHasOne(callisto, 'planet', jupiter)
-                            .replaceHasOne(callisto, 'planet', null));
+      cache.transform(t => {
+        // this first transform should not match the liveQuery's filter
+        t.replaceHasOne(io, 'planet', pluto);
+        // subsequent transforms should match the liveQuery's filter
+        t.replaceHasOne(callisto, 'planet', jupiter);
+        t.replaceHasOne(callisto, 'planet', null);
+      });
     });
   });
 
@@ -258,7 +264,7 @@ module('OC - Cache - liveQuery', function(hooks) {
     test('adds and removes records from liveQuery', function(assert) {
       const done = assert.async();
 
-      cache.reset({ planet: { jupiter }, moon: { callisto } });
+      cache.reset({ planet: { jupiter, pluto }, moon: { callisto, io } });
 
       const liveQuery = cache.liveQuery(q => q.relatedRecords(jupiter, 'moons'));
 
@@ -271,8 +277,13 @@ module('OC - Cache - liveQuery', function(hooks) {
         done();
       });
 
-      cache.transform(t => t.addToHasMany(jupiter, 'moons', callisto)
-                            .removeFromHasMany(jupiter, 'moons', callisto));
+      cache.transform(t => {
+        // this first transform should not match the liveQuery's filter
+        t.addToHasMany(pluto, 'moons', io);
+        // subsequent transforms should match the liveQuery's filter
+        t.addToHasMany(jupiter, 'moons', callisto);
+        t.removeFromHasMany(jupiter, 'moons', callisto);
+      });
     });
   });
 });
