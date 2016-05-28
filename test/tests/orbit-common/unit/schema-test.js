@@ -177,7 +177,7 @@ test('#modelDefinition throws an exception if a model is not registered', functi
 });
 
 test('#modelNotDefined can provide lazy registrations of models', function(assert) {
-  assert.expect(2);
+  assert.expect(4);
 
   const schema = new Schema({
     models: {
@@ -190,10 +190,14 @@ test('#modelNotDefined can provide lazy registrations of models', function(asser
     }
   };
 
+  assert.equal(schema.containsModel('planet'), false, 'model not registered');
+
   schema.modelNotDefined = function(type) {
     assert.equal(type, 'planet', 'modelNotDefined called as expected');
     schema.registerModel('planet', planetDefinition);
   };
+
+  assert.equal(schema.containsModel('planet'), true, 'model registered via modelNotDefined hook');
 
   assert.deepEqual(schema.modelDefinition('planet').attributes, planetDefinition.attributes);
 });

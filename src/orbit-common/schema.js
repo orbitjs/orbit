@@ -376,15 +376,11 @@ export default class Schema {
    @return {Object} model definition
    */
   modelDefinition(name) {
-    var modelDefinition = this.models[name];
-    if (!modelDefinition && this.modelNotDefined) {
-      this.modelNotDefined(name);
-      modelDefinition = this.models[name];
-    }
-    if (!modelDefinition) {
+    if (this.containsModel(name)) {
+      return this.models[name];
+    } else {
       throw new ModelNotRegisteredException(name);
     }
-    return modelDefinition;
   }
 
   initDefaults(record) {
@@ -585,8 +581,15 @@ export default class Schema {
     return relDef;
   }
 
-  containsModel(model) {
-    return !!this.models[model];
+  containsModel(name) {
+    if (!!this.models[name]) {
+      return true;
+    }
+    if (this.modelNotDefined) {
+      this.modelNotDefined(name);
+      return !!this.models[name];
+    }
+    return false;
   }
 
   _mapKeys(modelSchema, record) {
