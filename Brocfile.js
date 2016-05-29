@@ -4,7 +4,7 @@ var mergeTrees = require('broccoli-merge-trees');
 var compileES6Modules = require('broccoli-es6modules');
 var transpileES6 = require('broccoli-babel-transpiler');
 var jshintTree = require('broccoli-jshint');
-var replace    = require('broccoli-string-replace');
+var replace = require('broccoli-replace');
 var gitVersion = require('git-repo-version');
 var jscs = require('broccoli-jscs');
 
@@ -112,17 +112,41 @@ packages.forEach(function(package) {
   });
 });
 
-var rxjs = new Funnel('node_modules', {
-  srcDir: 'rxjs-es',
-  include: ['**/*.js'],
-  destDir: 'rxjs'
+var rxjs = (function() {
+  var original = new Funnel('node_modules', {
+    srcDir: 'rxjs-es',
+    include: ['**/*.js'],
+    destDir: 'rxjs'
+  });
+
+  var withAsyncFix = replace(original, {
+    files: [
+      'rxjs/Rx.DOM.js',
+      'rxjs/Rx.js'
+    ],
+    patterns: [
+      { match: /async,/, replace: 'async: async,' }
+    ]
+  });
+
+  return withAsyncFix;
+})();
+
+var symbolObservable = new Funnel('node_modules', {
+  srcDir: 'symbol-observable',
+  include: ['ponyfill.js'],
+  destDir: '.',
+  getDestinationPath: function() {
+    return 'symbol-observable.js';
+  }
 });
+
 var allSrc = mergeTrees(Object.keys(src).map(function(package) {
   return src[package];
 }));
 var jshintSrc = jshintTree(allSrc);
 var jscsSrc = jscs(allSrc, {esnext: true, enabled: true});
-allSrc = mergeTrees([allSrc, rxjs]);
+allSrc = mergeTrees([allSrc, rxjs, symbolObservable]);
 
 var allMain = mergeTrees(Object.keys(main).map(function(package) {
   return main[package];
@@ -134,10 +158,11 @@ var allGlobalized = mergeTrees(Object.keys(globalized).map(function(package) {
 var jshintTest = jshintTree(tests);
 var jscsTest = jscs(tests, {esnext: true, enabled: true});
 
-var mainWithTests = mergeTrees([rxjs, allSrc, tests, jshintSrc, jshintTest, jscsSrc, jscsTest], { overwrite: true });
+var mainWithTests = mergeTrees([allSrc, tests, jshintSrc, jshintTest, jscsSrc, jscsTest], { overwrite: true });
 
 mainWithTests = new compileES6Modules(mainWithTests);
 mainWithTests = new transpileES6(mainWithTests);
+
 
 mainWithTests = concat(mainWithTests, {
   inputFiles: ['**/*.js'],

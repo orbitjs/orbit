@@ -4,7 +4,7 @@ import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
 import CacheObservable from 'orbit-common/cache/observables/cache-observable';
 import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/observable/fromArray';
+import 'rxjs/add/observable/from';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/take';
 import 'rxjs/add/operator/toArray';
@@ -64,7 +64,7 @@ module('OC - Cache - CacheObservable', function(hooks) {
   test('matching value', function(assert) {
     const addPluto = { op: 'addRecord', record: { id: 'pluto', attributes: { name: 'Pluto' } } };
     const addJupiter = { op: 'addRecord', record: { id: 'jupiter' } };
-    const patches = Observable.fromArray([addPluto, addJupiter]);
+    const patches = Observable.from([addPluto, addJupiter]);
 
     const cacheObservable = CacheObservable.fromObservable(patches, cache).matching({ op: 'addRecord', record: { id: 'pluto', attributes: { name: 'Pluto' } } });
     cacheObservable.subscribe(op => {
@@ -75,7 +75,7 @@ module('OC - Cache - CacheObservable', function(hooks) {
 
   test('matching values', function(assert) {
     const addPluto = { op: 'addRecord', record: { id: 'pluto', attributes: { name: 'Pluto' } } };
-    const patches = Observable.fromArray([addPluto]);
+    const patches = Observable.from([addPluto]);
 
     const cacheObservable = CacheObservable.fromObservable(patches, cache).matching({ op: 'addRecord', record: { id: ['pluto', 'jupiter'] } });
     cacheObservable.subscribe(op => {
@@ -92,7 +92,7 @@ module('OC - Cache - CacheObservable', function(hooks) {
     const addGanymede = { op: 'addRecord', record: ganymede };
     const addGanymedeToJupiter = { op: 'addToHasMany', record: jupiter, relationship: 'moons', relatedRecord: ganymede };
 
-    const patches = Observable.fromArray([addJupiter, addGanymede, addGanymedeToJupiter]);
+    const patches = Observable.from([addJupiter, addGanymede, addGanymedeToJupiter]);
     const cacheObservable = CacheObservable.fromObservable(patches, cache);
 
     cacheObservable.forHasMany(jupiter, 'moons').subscribe(operation => {
@@ -109,7 +109,7 @@ module('OC - Cache - CacheObservable', function(hooks) {
     const addGanymedeToJupiter = { op: 'addToHasMany', record: jupiter, relationship: 'moons', relatedRecord: ganymede };
     const removeGanymedeFromJupiter = { op: 'removeFromHasMany', record: jupiter, relationship: 'moons', relatedRecord: ganymede };
 
-    const patches = Observable.fromArray([addJupiter, addGanymede, addGanymedeToJupiter, removeGanymedeFromJupiter]);
+    const patches = Observable.from([addJupiter, addGanymede, addGanymedeToJupiter, removeGanymedeFromJupiter]);
     const cacheObservable = CacheObservable.fromObservable(patches, cache);
 
     cacheObservable
@@ -186,7 +186,7 @@ module('OC - Cache - CacheObservable', function(hooks) {
     const addGanymede = { op: 'addRecord', record: ganymede };
     const replaceGanymedesPlanet = { op: 'replaceHasOne', record: ganymede, relationship: 'planet', relatedRecord: jupiter };
 
-    const patches = Observable.fromArray([addJupiter, addGanymede, replaceGanymedesPlanet]);
+    const patches = Observable.from([addJupiter, addGanymede, replaceGanymedesPlanet]);
     const cacheObservable = CacheObservable.fromObservable(patches, cache);
 
     cacheObservable.forHasOne(ganymede, 'planet').subscribe(operation => {
