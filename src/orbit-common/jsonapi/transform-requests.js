@@ -13,7 +13,7 @@ export const TransformRequestProcessors = {
     return source.ajax(source.resourceURL(record.type), 'POST', { data: json })
       .then((raw) => {
         let resourceKey = serializer.resourceKey(record.type);
-        if (resourceKey) {
+        if (resourceKey && resourceKey !== 'id') {
           schema.registerKeyMapping(record.type, record.id, resourceKey, raw.data.id);
         }
 
