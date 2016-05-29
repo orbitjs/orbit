@@ -13,7 +13,7 @@ let server,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module('OC - JSONAPISource', {
+module('OC - JSONAPISource - with a secondary key', {
   setup() {
     // fake xhr
     server = sinon.fakeServer.create();
@@ -482,5 +482,115 @@ test('#fetch - recordsOfType with filter', function(assert) {
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
       assert.deepEqual(transforms[0].operations.map(o => o.record.attributes.name), ['Jupiter']);
+    });
+});
+
+module('OC - JSONAPISource - with no secondary keys', {
+  setup() {
+    // fake xhr
+    server = sinon.fakeServer.create();
+    server.autoRespond = true;
+
+    schema = new Schema({
+      modelDefaults: {
+        id: {
+          defaultValue: uuid
+        }
+      },
+      models: {
+        planet: {
+          attributes: {
+            name: { type: 'string' },
+            classification: { type: 'string' }
+          },
+          relationships: {
+            moons: { type: 'hasMany', model: 'moon', inverse: 'planet' }
+          }
+        },
+        moon: {
+          attributes: {
+            name: { type: 'string' }
+          },
+          relationships: {
+            planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
+          }
+        }
+      }
+    });
+
+    source = new JSONAPISource({ schema: schema });
+  },
+
+  teardown() {
+    schema = null;
+    source = null;
+
+    server.restore();
+  }
+});
+
+test('#transform - can add records', function(assert) {
+  assert.expect(3);
+
+  let transformCount = 0;
+
+  let planet = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
+
+  let addPlanetOp = {
+    op: 'addRecord',
+    record: {
+      __normalized: true,
+      type: 'planet',
+      id: planet.id,
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant'
+      },
+      relationships: {
+        moons: {
+          data: {}
+        }
+      }
+    }
+  };
+
+  server.respondWith('POST', '/planets', function(xhr) {
+    assert.deepEqual(JSON.parse(xhr.requestBody),
+      {
+        data: {
+          type: 'planets',
+          id: planet.id,
+          attributes: {
+            name: 'Jupiter',
+            classification: 'gas giant'
+          },
+          relationships: {
+            moons: {
+              data: []
+            }
+          }
+        }
+      },
+      'POST request');
+    xhr.respond(201,
+                { 'Content-Type': 'application/json' },
+                JSON.stringify({ data: { id: planet.id, type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } } }));
+  });
+
+  source.on('transform', function(transform) {
+    transformCount++;
+
+    if (transformCount === 1) {
+      assert.deepEqual(
+        transform.operations,
+        [addPlanetOp],
+        'transform event initially returns add-record op'
+      );
+    }
+  });
+
+  return source.transform(t => t.addRecord(planet))
+    .then(function() {
+      assert.ok(true, 'transform resolves successfully');
     });
 });
