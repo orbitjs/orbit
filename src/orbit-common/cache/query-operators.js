@@ -5,38 +5,30 @@ import {
   RecordNotFoundException,
   ModelNotRegisteredException
 } from '../lib/exceptions';
+import { every, some } from 'orbit/lib/arrays';
+
+const EMPTY = () => {};
 
 export default {
   and(context, ...expressions) {
-    for (let expression of expressions) {
-      if (!this.evaluate(expression, context)) {
-        return false;
-      }
-    }
-    return true;
+    return every(expressions, (exp) => this.evaluate(exp, context));
   },
 
   or(context, ...expressions) {
-    for (let expression of expressions) {
-      if (!!this.evaluate(expression, context)) { return true; }
-    }
-    return false;
+    return some(expressions, (exp) => this.evaluate(exp, context));
   },
 
   equal(context, ...expressions) {
-    let value;
-    let valueSet = false;
+    let value = EMPTY;
 
-    for (let expression of expressions) {
-      if (!valueSet) {
+    return every(expressions, (expression) => {
+      if (value === EMPTY) {
         value = this.evaluate(expression, context);
-        valueSet = true;
-      } else if (value !== this.evaluate(expression, context)) {
-        return false;
+        return true;
       }
-    }
 
-    return true;
+      return value === this.evaluate(expression, context);
+    });
   },
 
   filter(context, select, where) {
@@ -45,7 +37,7 @@ export default {
     let eachContext;
     let matches = {};
 
-    for (let value of Object.keys(values)) {
+    Object.keys(values).forEach(value => {
       eachContext = merge(context, {
         basePath: basePath.concat(value)
       });
@@ -53,7 +45,7 @@ export default {
       if (this.evaluate(where, eachContext)) {
         matches[value] = values[value];
       }
-    }
+    });
 
     return matches;
   },
