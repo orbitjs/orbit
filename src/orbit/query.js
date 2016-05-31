@@ -24,7 +24,9 @@ export default class Query {
 }
 
 Query.from = function(queryOrExpression, queryBuilder) {
-  if (queryOrExpression instanceof Query) {
+  if (queryOrExpression.toQueryExpression) {
+    return new Query(queryOrExpression.toQueryExpression());
+  } else if (queryOrExpression instanceof Query) {
     return queryOrExpression;
   } else if (typeof queryOrExpression === 'function') {
     if (queryBuilder) {
