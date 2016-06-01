@@ -75,5 +75,17 @@ module('Orbit', function() {
         QueryBuilderNotRegisteredException
       );
     });
+
+    test('.from should call toOQE() if available', function(assert) {
+      const expression = oqe('recordsOfType', 'planet');
+      const queryFactory = {
+        toQueryExpression() {
+          return expression;
+        }
+      };
+
+      const query = Query.from(queryFactory);
+      assert.deepEqual(query.expression, expression, 'expression was populated');
+    });
   });
 });
