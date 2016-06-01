@@ -11,6 +11,10 @@ class QueryExpression {
     const formattedArgs = this.args.map(arg => '' + arg).join(', ');
     return `${this.op}(${formattedArgs})`;
   }
+
+  toQueryExpression() {
+    return this;
+  }
 }
 
 export function queryExpression(op, ...args) {
