@@ -4,9 +4,7 @@ import { Records, Record, RelatedRecord, RelatedRecords } from 'orbit-common/que
 
 export default {
   recordsOfType(type) {
-    const TypeTerm = this._terms[`${ capitalize(type) }Records`] || Records;
-
-    return new TypeTerm(oqe('recordsOfType', type));
+    return new Records(oqe('recordsOfType', type));
   },
 
   record(recordIdentity) {

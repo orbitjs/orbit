@@ -109,26 +109,4 @@ module('OC - QueryBuilder', function(hooks) {
             oqe('equal', oqe('attribute', 'age'), '23000000')))
     );
   });
-
-  test('recordsOfType with scopes', function(assert) {
-    class PlanetRecords extends Records {
-      namedPluto() {
-        return this.filterAttributes({ name: 'Pluto' });
-      }
-    }
-
-    const qb = new QueryBuilder({
-      terms: { PlanetRecords }
-    });
-
-    assert.deepEqual(
-      qb.build(q => q.recordsOfType('planet')
-                     .namedPluto()
-      ).expression,
-
-      oqe('filter',
-        oqe('recordsOfType', 'planet'),
-        oqe('equal', oqe('attribute', 'name'), 'Pluto'))
-    );
-  });
 });
