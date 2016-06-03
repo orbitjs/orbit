@@ -12,6 +12,7 @@ import 'orbit-common/rxjs/add/operator/matching';
 import PatternMatcher from 'orbit/lib/pattern-matcher';
 import RecordsObservable from './records-observable';
 import RecordObservable from './record-observable';
+import qb from 'orbit-common/query/builder';
 
 function extractRecordFromHasOneResult(value) {
   if (!value) { return null; }
@@ -53,7 +54,7 @@ export default class HasOneObservable extends Observable {
   }
 
   _fetchCurrentRelatedRecord() {
-    const result = this.cache.query(q => q.relatedRecord(this.record, this.relationship));
+    const result = this.cache.query(qb.relatedRecord(this.record, this.relationship));
     return extractRecordFromHasOneResult(result);
   }
 

@@ -1,12 +1,28 @@
-import { merge } from 'orbit/lib/objects';
-import OrbitQueryBuilder from 'orbit/query/builder';
-import Operators from './operators';
+import { Records, Record, RelatedRecord, RelatedRecords } from 'orbit-common/query/terms';
+import { queryExpression as oqe } from 'orbit/query/expression';
 
-export default class QueryBuilder extends OrbitQueryBuilder {
-  constructor(options = {}) {
-    super(options);
+export default {
+  recordsOfType(type) {
+    return new Records(oqe('recordsOfType', type));
+  },
 
-    this.operators = merge(this.operators, Operators);
-    this.operators._terms = merge(this.operators._terms || {}, options.terms || {});
+  record(recordIdentity) {
+    return new Record(recordIdentity);
+  },
+
+  relatedRecord(record, relationship) {
+    return new RelatedRecord(record, relationship);
+  },
+
+  relatedRecords(record, relationship) {
+    return new RelatedRecords(record, relationship);
+  },
+
+  or(a, b) {
+    return oqe('or', a, b);
+  },
+
+  and(a, b) {
+    return oqe('and', a, b);
   }
-}
+};

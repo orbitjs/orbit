@@ -23,17 +23,11 @@ export default class Query {
   }
 }
 
-Query.from = function(queryOrExpression, queryBuilder) {
+Query.from = function(queryOrExpression) {
   if (queryOrExpression.toQueryExpression) {
     return new Query(queryOrExpression.toQueryExpression());
   } else if (queryOrExpression instanceof Query) {
     return queryOrExpression;
-  } else if (typeof queryOrExpression === 'function') {
-    if (queryBuilder) {
-      return queryBuilder.build(queryOrExpression);
-    } else {
-      throw new QueryBuilderNotRegisteredException();
-    }
   } else {
     return new Query(queryOrExpression);
   }

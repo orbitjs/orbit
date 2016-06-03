@@ -1,18 +1,20 @@
 import 'tests/test-helper';
 import { queryExpression as oqe } from 'orbit/query/expression';
-import QueryBuilder from 'orbit-common/query/builder';
+import qb from 'orbit-common/query/builder';
 import { Records } from 'orbit-common/query/terms';
 
 module('OC - QueryBuilder', function(hooks) {
-  let qb;
+  test('record', function(assert) {
+    assert.deepEqual(
+      qb.record({ type: 'planet', id: '123' }).toQueryExpression(),
 
-  hooks.beforeEach(function() {
-    qb = new QueryBuilder();
+      oqe('record', { type: 'planet', id: '123' })
+    );
   });
 
   test('record', function(assert) {
     assert.deepEqual(
-      qb.build(q => q.record({ type: 'planet', id: '123' })).expression,
+      qb.record({ type: 'planet', id: '123' }).toQueryExpression(),
 
       oqe('record', { type: 'planet', id: '123' })
     );
@@ -20,7 +22,7 @@ module('OC - QueryBuilder', function(hooks) {
 
   test('recordsOfType', function(assert) {
     assert.deepEqual(
-      qb.build(q => q.recordsOfType('planet')).expression,
+      qb.recordsOfType('planet').toQueryExpression(),
 
       oqe('recordsOfType', 'planet')
     );
@@ -28,10 +30,9 @@ module('OC - QueryBuilder', function(hooks) {
 
   test('recordsOfType/filter/equal/get', function(assert) {
     assert.deepEqual(
-      qb.build(q => {
-        return q.recordsOfType('planet')
-                .filter(record => record.attribute('name').equal('Pluto'));
-      }).expression,
+      qb.recordsOfType('planet')
+        .filter(record => record.attribute('name').equal('Pluto'))
+        .toQueryExpression(),
 
       oqe('filter',
         oqe('recordsOfType', 'planet'),
@@ -41,14 +42,14 @@ module('OC - QueryBuilder', function(hooks) {
 
   test('recordsOfType/filter/equal/get/or', function(assert) {
     assert.deepEqual(
-      qb.build(q => q.recordsOfType('planet')
-                     .filter(record =>
-                       q.or(
-                         record.attribute('name').equal('Jupiter'),
-                         record.attribute('name').equal('Pluto')
-                       )
-                     )
-      ).expression,
+      qb.recordsOfType('planet')
+        .filter(record =>
+          qb.or(
+            record.attribute('name').equal('Jupiter'),
+            record.attribute('name').equal('Pluto')
+          )
+        )
+        .toQueryExpression(),
 
       oqe('filter',
         oqe('recordsOfType', 'planet'),
@@ -60,14 +61,14 @@ module('OC - QueryBuilder', function(hooks) {
 
   test('recordsOfType/filter/equal/get/and', function(assert) {
     assert.deepEqual(
-      qb.build(q => q.recordsOfType('planet')
-                     .filter(record =>
-                       q.and(
-                         record.attribute('name').equal('Jupiter'),
-                         record.attribute('name').equal('Pluto')
-                       )
-                     )
-      ).expression,
+      qb.recordsOfType('planet')
+        .filter(record =>
+          qb.and(
+            record.attribute('name').equal('Jupiter'),
+            record.attribute('name').equal('Pluto')
+          )
+        )
+        .toQueryExpression(),
 
       oqe('filter',
         oqe('recordsOfType', 'planet'),
@@ -79,14 +80,14 @@ module('OC - QueryBuilder', function(hooks) {
 
   test('recordsOfType/filter/equal/attribute/and', function(assert) {
     assert.deepEqual(
-      qb.build(q => q.recordsOfType('planet')
-                     .filter(record =>
-                       q.and(
-                         record.attribute('name').equal('Jupiter'),
-                         record.attribute('name').equal('Pluto')
-                       )
-                     )
-      ).expression,
+      qb.recordsOfType('planet')
+        .filter(record =>
+          qb.and(
+            record.attribute('name').equal('Jupiter'),
+            record.attribute('name').equal('Pluto')
+          )
+        )
+        .toQueryExpression(),
 
       oqe('filter',
         oqe('recordsOfType', 'planet'),
@@ -98,37 +99,15 @@ module('OC - QueryBuilder', function(hooks) {
 
   test('recordsOfType/filterAttributes', function(assert) {
     assert.deepEqual(
-      qb.build(q => q.recordsOfType('planet')
-                     .filterAttributes({ 'name': 'Jupiter', 'age': '23000000' })
-      ).expression,
+      qb.recordsOfType('planet')
+        .filterAttributes({ 'name': 'Jupiter', 'age': '23000000' })
+        .toQueryExpression(),
 
       oqe('filter',
         oqe('recordsOfType', 'planet'),
           oqe('and',
             oqe('equal', oqe('attribute', 'name'), 'Jupiter'),
             oqe('equal', oqe('attribute', 'age'), '23000000')))
-    );
-  });
-
-  test('recordsOfType with scopes', function(assert) {
-    class PlanetRecords extends Records {
-      namedPluto() {
-        return this.filterAttributes({ name: 'Pluto' });
-      }
-    }
-
-    const qb = new QueryBuilder({
-      terms: { PlanetRecords }
-    });
-
-    assert.deepEqual(
-      qb.build(q => q.recordsOfType('planet')
-                     .namedPluto()
-      ).expression,
-
-      oqe('filter',
-        oqe('recordsOfType', 'planet'),
-        oqe('equal', oqe('attribute', 'name'), 'Pluto'))
     );
   });
 });

@@ -6,6 +6,7 @@ import JSONAPISource from 'orbit-common/jsonapi-source';
 import { Promise } from 'rsvp';
 import jQuery from 'jquery';
 import { toIdentifier, parseIdentifier } from 'orbit-common/lib/identifiers';
+import qb from 'orbit-common/query/builder';
 
 let server,
     schema,
@@ -430,7 +431,7 @@ test('#fetch - record', function(assert) {
                 JSON.stringify({ data }));
   });
 
-  return source.fetch(q => q.record({ type: 'planet', id: planet.id }))
+  return source.fetch(qb.record({ type: 'planet', id: planet.id }))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
@@ -454,7 +455,7 @@ test('#fetch - recordsOfType', function(assert) {
                 JSON.stringify({ data }));
   });
 
-  return source.fetch(q => q.recordsOfType('planet'))
+  return source.fetch(qb.recordsOfType('planet'))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
@@ -476,7 +477,7 @@ test('#fetch - recordsOfType with filter', function(assert) {
                 JSON.stringify({ data }));
   });
 
-  return source.fetch(q => q.recordsOfType('planet')
+  return source.fetch(qb.recordsOfType('planet')
                             .filterAttributes({ name: 'Jupiter' }))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
