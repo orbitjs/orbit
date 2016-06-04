@@ -1,3 +1,5 @@
+/* eslint-disable valid-jsdoc */
+
 /**
  Uppercase the first letter of a string, but don't change the remainder.
 

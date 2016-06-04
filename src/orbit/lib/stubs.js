@@ -1,3 +1,5 @@
+/* eslint-disable valid-jsdoc */
+
 /**
  Empty method that does nothing.
 

@@ -130,7 +130,7 @@ test('#registerModel can register models after initialization', function(assert)
   assert.equal(schema.models['moon'], undefined, 'moon\'s definition has NOT been set');
 
   schema.on('modelRegistered', function(name) {
-    if (name = 'moon') {
+    if (name === 'moon') {
       let model;
       assert.ok(model = schema.models['moon'], 'model definition has been set');
       assert.strictEqual(model.id.defaultValue, customIdGenerator, 'model.id.defaultValue has been set');

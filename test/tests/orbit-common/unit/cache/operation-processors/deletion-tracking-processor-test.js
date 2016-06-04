@@ -6,9 +6,7 @@ import Cache from 'orbit-common/cache';
 import Orbit from 'orbit/main';
 import { Promise } from 'rsvp';
 
-let schema,
-    cache,
-    processor;
+let schema, cache, processor;
 
 const schemaDefinition = {
   models: {

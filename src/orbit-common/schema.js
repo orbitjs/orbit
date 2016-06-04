@@ -1,3 +1,4 @@
+/* eslint-disable valid-jsdoc */
 import { Class, clone, extend, isNone } from 'orbit/lib/objects';
 import { uuid } from 'orbit/lib/uuid';
 import { OperationNotAllowed, ModelNotRegisteredException, KeyNotRegisteredException, RelationshipNotRegisteredException } from './lib/exceptions';
@@ -406,7 +407,7 @@ export default class Schema {
         var keyValue;
         var id;
 
-        for (var i = 0, l = keyNames.length; i < l ; i++) {
+        for (var i = 0, l = keyNames.length; i < l; i++) {
           eachKey = modelSchema.keys[keyNames[i]];
           keyValue = record.keys[eachKey.name];
           if (!isNone(keyValue)) {

@@ -43,7 +43,7 @@ export default {
   },
 
   record(context, recordIdentity) {
-    return this.target.patches.matching({ record : recordIdentity });
+    return this.target.patches.matching({ record: recordIdentity });
   },
 
   filter(context, operationsExpression, filterExpression) {

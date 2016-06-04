@@ -1,3 +1,5 @@
+/* eslint-disable valid-jsdoc */
+
 /**
  Converts an array of values to an object with those values as properties
  having a value of `true`.

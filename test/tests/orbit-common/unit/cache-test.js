@@ -11,8 +11,7 @@ import {
 } from 'orbit-common/lib/exceptions';
 import { identity } from 'orbit-common/lib/identifiers';
 
-let schema,
-    cache;
+let schema, cache;
 
 ///////////////////////////////////////////////////////////////////////////////
 

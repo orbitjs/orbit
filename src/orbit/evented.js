@@ -133,9 +133,8 @@ export default {
     },
 
     one(eventName, callback, _binding) {
-      let callOnce,
-          notifier;
-
+      let callOnce;
+      let notifier;
       let binding = _binding || this;
 
       notifier = notifierForEvent(this, eventName, true);

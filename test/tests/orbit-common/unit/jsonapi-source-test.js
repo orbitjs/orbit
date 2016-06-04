@@ -8,9 +8,7 @@ import jQuery from 'jquery';
 import { toIdentifier, parseIdentifier } from 'orbit-common/lib/identifiers';
 import qb from 'orbit-common/query/builder';
 
-let server,
-    schema,
-    source;
+let server, schema, source;
 
 ///////////////////////////////////////////////////////////////////////////////
 

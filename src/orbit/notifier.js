@@ -1,3 +1,5 @@
+/* eslint-disable valid-jsdoc */
+
 /**
  The `Notifier` class can emit messages to an array of subscribed listeners.
  Here's a simple example:

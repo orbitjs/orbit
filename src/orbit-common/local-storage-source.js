@@ -1,3 +1,4 @@
+/* eslint-disable valid-jsdoc */
 import Orbit from 'orbit/main';
 import { assert } from 'orbit/lib/assert';
 import Source from 'orbit/source';
@@ -8,7 +9,7 @@ import TransformBuilder from './transform/builder';
 var supportsLocalStorage = function() {
   try {
     return 'localStorage' in window && window['localStorage'] !== null;
-  } catch(e) {
+  } catch (e) {
     return false;
   }
 };

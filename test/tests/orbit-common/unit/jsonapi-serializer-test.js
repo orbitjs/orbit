@@ -7,8 +7,7 @@ import JSONAPISerializer from 'orbit-common/jsonapi/serializer';
 import { parseIdentifier, toIdentifier } from 'orbit-common/lib/identifiers';
 import { Promise } from 'rsvp';
 
-var schema,
-    serializer;
+var schema, serializer;
 
 ///////////////////////////////////////////////////////////////////////////////
 

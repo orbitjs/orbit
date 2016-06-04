@@ -1,3 +1,5 @@
+/* eslint-disable valid-jsdoc */
+
 /**
  Throw an exception if `test` is not truthy.
 

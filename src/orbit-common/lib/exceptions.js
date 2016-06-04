@@ -1,3 +1,5 @@
+/* eslint-disable valid-jsdoc */
+
 import { Exception } from 'orbit/lib/exceptions';
 
 /**
@@ -112,10 +114,10 @@ class _RecordException extends Exception {
  @constructor
  */
 export class RecordNotFoundException extends _RecordException {
- constructor(type, record) {
-   super(type, record);
-   this.name = 'OC.RecordNotFoundException';
- }
+  constructor(type, record) {
+    super(type, record);
+    this.name = 'OC.RecordNotFoundException';
+  }
 }
 
 /**
@@ -128,10 +130,10 @@ export class RecordNotFoundException extends _RecordException {
  @constructor
  */
 export class RelationshipNotFoundException extends _RecordException {
- constructor(type, record, key) {
-   super(type, record, key);
-   this.name = 'OC.RelationshipNotFoundException';
- }
+  constructor(type, record, key) {
+    super(type, record, key);
+    this.name = 'OC.RelationshipNotFoundException';
+  }
 }
 
 /**
@@ -144,8 +146,8 @@ export class RelationshipNotFoundException extends _RecordException {
  @constructor
  */
 export class RecordAlreadyExistsException extends _RecordException {
- constructor(type, record) {
-   super(type, record);
-   this.name = 'OC.RecordAlreadyExistsException';
- }
+  constructor(type, record) {
+    super(type, record);
+    this.name = 'OC.RecordAlreadyExistsException';
+  }
 }

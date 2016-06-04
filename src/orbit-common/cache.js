@@ -1,4 +1,5 @@
 /* globals Immutable */
+/* eslint-disable valid-jsdoc */
 
 import Evented from 'orbit/evented';
 import { clone, expose, isArray, isObject, isNone } from 'orbit/lib/objects';

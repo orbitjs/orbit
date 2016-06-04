@@ -1,3 +1,5 @@
+/* eslint-disable valid-jsdoc */
+
 /**
  Operation processors are used to identify operations that should be performed
  together to ensure that a `Cache` or other container of data remains

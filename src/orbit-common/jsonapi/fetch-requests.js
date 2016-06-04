@@ -115,9 +115,9 @@ function buildFilters(expression) {
 
 function parseFilter(expression, filters) {
   if (expression.op === 'equal') {
-    const [ filterExp, filterValue ] = expression.args;
+    const [filterExp, filterValue] = expression.args;
     if (filterExp.op === 'attribute') {
-      const [ attribute ] = filterExp.args;
+      const [attribute] = filterExp.args;
       filters[attribute] = filterValue;
     }
   }

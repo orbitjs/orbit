@@ -1,3 +1,4 @@
+/* eslint-disable valid-jsdoc */
 import { uuid } from './lib/uuid';
 import { QueryBuilderNotRegisteredException } from './lib/exceptions';
 

@@ -1,3 +1,4 @@
+/* eslint-disable valid-jsdoc */
 import { eq } from './eq';
 
 /**

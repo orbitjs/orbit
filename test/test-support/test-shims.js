@@ -2,10 +2,10 @@
   /* global define, RSVP, jQuery, sinon */
 
   define('rsvp', [], function() {
-  'use strict';
+    'use strict';
 
-  return RSVP;
-});
+    return RSVP;
+  });
 })();
 
 define('jquery', [], function() {

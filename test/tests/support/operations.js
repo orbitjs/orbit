@@ -1,3 +1,4 @@
+/* globals Promise */
 import { isArray } from 'orbit/lib/objects';
 
 function serializeOps(o) {

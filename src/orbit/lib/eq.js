@@ -1,4 +1,4 @@
-/* jshint eqeqeq: false, -W041: false */
+/* eslint-disable eqeqeq, no-eq-null, valid-jsdoc */
 
 /**
  `eq` checks the equality of two objects.

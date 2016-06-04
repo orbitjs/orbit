@@ -1,3 +1,4 @@
+/* eslint-disable valid-jsdoc */
 import { eq } from 'orbit/lib/eq';
 import { identity, eqIdentity, toIdentifier } from './identifiers';
 

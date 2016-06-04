@@ -1,0 +1,6 @@
+node_modules/*
+boser_components/*
+build/*
+tmp/*
+build-support/*
+test/test-support/sinon.js

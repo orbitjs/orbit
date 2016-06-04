@@ -1,3 +1,4 @@
+/* eslint-disable valid-jsdoc */
 import { eq } from './eq';
 import { clone, isArray } from './objects';
 import { arrayToOptions } from './config';
@@ -44,8 +45,7 @@ var diffs = function(a, b, options) {
     var type = Object.prototype.toString.call(a);
     if (type === Object.prototype.toString.call(b)) {
       if (a !== null && typeof a === 'object') {
-        var i,
-            d;
+        var i, d;
 
         if (isArray(a)) {
           let aLength = a.length;

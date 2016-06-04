@@ -13,7 +13,7 @@ function toIdentifier(type, id) {
 }
 
 function parseIdentifier(identifier) {
-  const [ type, id ] = identifier.split(':');
+  const [type, id] = identifier.split(':');
   return { type, id };
 }
 

@@ -1,3 +1,4 @@
+/* eslint-disable valid-jsdoc */
 import Orbit from './main';
 import Evented from './evented';
 import TransformLog from './transform/log';
