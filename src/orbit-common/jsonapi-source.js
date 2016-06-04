@@ -6,7 +6,6 @@ import { diffs } from 'orbit/lib/diffs';
 import ActionQueue from 'orbit/action-queue';
 import Fetchable from 'orbit/fetchable';
 import Transformable from 'orbit/transformable';
-import QueryBuilder from './query/builder';
 import TransformBuilder from './transform/builder';
 import Source from 'orbit/source';
 import Serializer from './serializer';
@@ -39,7 +38,6 @@ export default class JSONAPISource extends Source {
     Fetchable.extend(this);
     Transformable.extend(this);
 
-    this.queryBuilder     = new QueryBuilder();
     this.transformBuilder = new TransformBuilder();
 
     this.schema           = options.schema;

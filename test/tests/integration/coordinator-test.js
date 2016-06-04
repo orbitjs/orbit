@@ -4,6 +4,7 @@ import Store from 'orbit-common/store';
 import JsonApiSource from 'orbit-common/jsonapi-source';
 import LocalStorageSource from 'orbit-common/local-storage-source';
 import { eq } from 'orbit/lib/eq';
+import qb from 'orbit-common/query/builder';
 
 let server;
 
@@ -302,7 +303,7 @@ module('Integration - Coordinator', function(hooks) {
 
     server.respondWith('GET', '/planets', jsonResponse(200, { data }));
 
-    return store.query(q => q.recordsOfType('planet'))
+    return store.query(qb.recordsOfType('planet'))
       .then(planets => {
         assert.deepEqual(Object.keys(planets).map(k => planets[k].attributes.name), ['Jupiter']);
       });
@@ -316,7 +317,7 @@ module('Integration - Coordinator', function(hooks) {
     server.respondWith('GET', '/planets/12345', jsonResponse(200, { data }));
 
     return store
-      .query(q => q.record({ type: 'planet', id: '12345' }))
+      .query(qb.record({ type: 'planet', id: '12345' }))
       .then(record => {
         assert.equal(record.type, 'planet');
         assert.equal(record.id, '12345');
@@ -334,8 +335,8 @@ module('Integration - Coordinator', function(hooks) {
     server.respondWith('GET', `/planets?${encodeURIComponent('filter[name]')}=Jupiter`, jsonResponse(200, { data }));
 
     return store
-      .query(q => q.recordsOfType('planet')
-                   .filterAttributes({ name: 'Jupiter' }))
+      .query(qb.recordsOfType('planet')
+               .filterAttributes({ name: 'Jupiter' }))
       .then(planets => {
         assert.deepEqual(Object.keys(planets).map(k => planets[k].attributes.name), ['Jupiter']);
       });

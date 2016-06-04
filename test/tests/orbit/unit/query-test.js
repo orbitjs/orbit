@@ -3,7 +3,6 @@ import Query from 'orbit/query';
 import Builder from 'orbit/query/builder';
 import { Value } from 'orbit/query/terms';
 import { queryExpression as oqe } from 'orbit/query/expression';
-import { QueryBuilderNotRegisteredException } from 'orbit/lib/exceptions';
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -39,44 +38,7 @@ module('Orbit', function() {
       assert.ok(query instanceof Query);
     });
 
-    test('.from should pass any query functions to queryBuilder, if one is passed', function(assert) {
-      assert.expect(2);
-
-      const operators = {
-        get(path) {
-          return new Value(oqe('get', path));
-        },
-
-        or(a, b) {
-          return oqe('or', a, b);
-        },
-
-        and(a, b) {
-          return oqe('and', a, b);
-        }
-      };
-
-      const queryBuilder = new Builder({ operators });
-
-      let query = Query.from(
-        (q) => q.get('foo'),
-        queryBuilder
-      );
-
-      assert.ok(query instanceof Query, 'built a Query');
-      assert.deepEqual(query.expression, oqe('get', 'foo'), 'query contains expression returned from builder');
-    });
-
-    test('.from should throw an exception if a function is passed but a queryBuilder is not', function(assert) {
-      assert.throws(
-        () => {
-          Query.from((b) => {});
-        },
-        QueryBuilderNotRegisteredException
-      );
-    });
-
-    test('.from should call toOQE() if available', function(assert) {
+    test('.from should call toQueryExpression() if available', function(assert) {
       const expression = oqe('recordsOfType', 'planet');
       const queryFactory = {
         toQueryExpression() {

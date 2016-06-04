@@ -4,6 +4,7 @@ import Schema from 'orbit-common/schema';
 import Store from 'orbit-common/store';
 import { Promise } from 'rsvp';
 import TransformBuilder from 'orbit-common/transform/builder';
+import qb from 'orbit-common/query/builder';
 import { RecordNotFoundException } from 'orbit-common/lib/exceptions';
 import CacheIntegrityProcessor from 'orbit-common/cache/operation-processors/cache-integrity-processor';
 import SchemaConsistencyProcessor from 'orbit-common/cache/operation-processors/schema-consistency-processor';
@@ -104,7 +105,7 @@ module('OC - Store', function(hooks) {
 
     assert.equal(store.cache.length('planet'), 1, 'cache should contain one planet');
 
-    return store.query(q => q.record({ type: 'planet', id: '1' }))
+    return store.query(qb.record({ type: 'planet', id: '1' }))
       .then(function(foundPlanet) {
         assert.deepEqual(foundPlanet, jupiter, 'found planet matches original');
       });
@@ -120,7 +121,7 @@ module('OC - Store', function(hooks) {
                                           .addRecord(jupiter));
 
     setupStore.then(() => {
-      const liveQuery = store.liveQuery(q => q.recordsOfType('planet'));
+      const liveQuery = store.liveQuery(qb.recordsOfType('planet'));
       liveQuery.subscribe(op => console.log(op));
 
       liveQuery.take(2).toArray().subscribe(operations => {

@@ -10,7 +10,6 @@ import TransformLog from 'orbit/transform/log';
 import Query from 'orbit/query';
 import QueryEvaluator from 'orbit/query/evaluator';
 import QueryOperators from './cache/query-operators';
-import QueryBuilder from './query/builder';
 import TransformBuilder from './transform/builder';
 import PatchTransforms from './cache/patch-transforms';
 import InverseTransforms from './cache/inverse-transforms';
@@ -54,7 +53,6 @@ export default class Cache {
     this.transformBuilder = new TransformBuilder();
 
     this.queryEvaluator = new QueryEvaluator(this, QueryOperators);
-    this.queryBuilder = new QueryBuilder();
 
     const processors = options.processors ? options.processors : [SchemaConsistencyProcessor, CacheIntegrityProcessor];
     this._processors = processors.map(Processor => new Processor(this));
@@ -70,7 +68,7 @@ export default class Cache {
    @example
    ``` javascript
    // using a query builder callback
-   cache.query(q => q.record('planet', 'idabc123')).then(results => {});
+   cache.query(qb.record('planet', 'idabc123')).then(results => {});
    ```
 
    @example
@@ -80,11 +78,11 @@ export default class Cache {
    ```
 
    @method query
-   @param {Expression or Function(QueryBuilder)} query
+   @param {Expression} query
    @return {Object} result of query (type depends on query)
    */
   query(_query, context) {
-    const query = Query.from(_query, this.queryBuilder);
+    const query = Query.from(_query);
     return this.queryEvaluator.evaluate(query.expression, context);
   }
 
@@ -94,7 +92,7 @@ export default class Cache {
    @example
    ``` javascript
    // using a query builder callback
-   cache.liveQuery(q => q.record('planet', 'idabc123')).then(operationsObservable => {});
+   cache.liveQuery(qb.record('planet', 'idabc123')).then(operationsObservable => {});
    ```
 
    @example
@@ -104,11 +102,11 @@ export default class Cache {
    ```
 
    @method liveQuery
-   @param {Expression or Function(QueryBuilder)} query
+   @param {Expression} query
    @return {Observable} stream of operations for the results to a query
    */
   liveQuery(_query, context) {
-    const query = Query.from(_query, this.queryBuilder);
+    const query = Query.from(_query);
     const results = this._initialLiveQueryResults(query, context);
     const liveResults = this.liveQueryEvaluator.evaluate(query.expression, context)
                             .matching({ op: ['addRecord', 'removeRecord'] });

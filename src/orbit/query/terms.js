@@ -5,6 +5,10 @@ export class TermBase {
   constructor(expression) {
     this.expression = expression;
   }
+
+  toQueryExpression() {
+    return this.expression;
+  }
 }
 
 export class Cursor extends TermBase {

@@ -6,7 +6,6 @@ import Updatable from 'orbit/updatable';
 import Transformable from 'orbit/transformable';
 import Cache from './cache';
 import TransformBuilder from './transform/builder';
-import QueryBuilder from './query/builder';
 
 export default class Store extends Source {
   constructor(options = {}) {
@@ -21,7 +20,6 @@ export default class Store extends Source {
     this.schema = options.schema;
     this.name = options.name || 'store';
 
-    this.queryBuilder = new QueryBuilder();
     this.transformBuilder = new TransformBuilder();
     this.cache = new Cache(options.schema, options.cacheOptions);
   }

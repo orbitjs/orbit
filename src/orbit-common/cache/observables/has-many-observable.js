@@ -5,6 +5,7 @@ import 'rxjs/add/observable/concat';
 import 'orbit-common/rxjs/add/operator/matching';
 import PatternMatcher from 'orbit/lib/pattern-matcher';
 import RecordsObservable from './records-observable';
+import qb from 'orbit-common/query/builder';
 
 export default class HasManyObservable extends Observable {
   constructor(subscribe, cache, record, relationship) {
@@ -47,7 +48,7 @@ export default class HasManyObservable extends Observable {
   }
 
   _fetchRelatedRecords() {
-    const resultSet = this.cache.query(q => q.relatedRecords(this.record, this.relationship));
+    const resultSet = this.cache.query(qb.relatedRecords(this.record, this.relationship));
     const resultArray = Object.keys(resultSet).map(id => resultSet[id]);
     return resultArray;
   }

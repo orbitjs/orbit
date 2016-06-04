@@ -22,7 +22,7 @@ export default {
     _queryable: true,
 
     query(queryOrExpression) {
-      const query = Query.from(queryOrExpression, this.queryBuilder);
+      const query = Query.from(queryOrExpression);
 
       return this.series('beforeQuery', query)
         .then(() => {
