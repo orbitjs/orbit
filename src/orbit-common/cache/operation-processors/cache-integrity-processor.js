@@ -1,4 +1,4 @@
-import { Class, isArray, isObject, isNone } from 'orbit/lib/objects';
+import { isArray, isObject, isNone } from 'orbit/lib/objects';
 import OperationProcessor from './operation-processor';
 import { toIdentifier, parseIdentifier } from './../../lib/identifiers';
 

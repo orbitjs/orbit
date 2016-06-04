@@ -1,10 +1,10 @@
 import Serializer from '../serializer';
-import { clone, isArray, isObject } from 'orbit/lib/objects';
+import { isArray, isObject } from 'orbit/lib/objects';
 import { dasherize, camelize } from 'orbit/lib/strings';
 import { parseIdentifier, toIdentifier } from '../lib/identifiers';
 
 export default class JSONAPISerializer extends Serializer {
-  resourceKey(type) {
+  resourceKey(/* type */) {
     return 'id';
   }
 

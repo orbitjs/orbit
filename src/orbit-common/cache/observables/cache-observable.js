@@ -1,6 +1,5 @@
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/filter';
-import PatternMatcher from 'orbit/lib/pattern-matcher';
 import HasOneObservable from './has-one-observable';
 import HasManyObservable from './has-many-observable';
 import 'orbit-common/rxjs/add/operator/matching';

@@ -56,7 +56,7 @@ var eq = function(a, b) {
     if (a.length !== b.length) { return false; }
   }
 
-  var d, i;
+  var i;
   for (i in b) {
     if (b.hasOwnProperty(i)) {
       if (!eq(a[i], b[i])) { return false; }

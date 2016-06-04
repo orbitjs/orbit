@@ -2,7 +2,7 @@ import Source from 'orbit/source';
 import Fetchable from 'orbit/fetchable';
 import Transform from 'orbit/transform';
 import { Promise } from 'rsvp';
-import { successfulOperation, failedOperation } from 'tests/test-helper';
+import { failedOperation } from 'tests/test-helper';
 
 var source;
 
@@ -24,7 +24,7 @@ test('it exists', function(assert) {
 test('it should resolve as a failure when _fetch fails', function(assert) {
   assert.expect(2);
 
-  source._fetch = function(query) {
+  source._fetch = function() {
     return failedOperation();
   };
 

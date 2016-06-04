@@ -30,7 +30,7 @@ function op(opType, _path, value) {
 }
 
 var successfulOperation = function(response) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function(resolve) {
     resolve(response || ':)');
   });
 };

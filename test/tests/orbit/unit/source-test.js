@@ -1,4 +1,3 @@
-import Orbit from 'orbit/main';
 import Source from 'orbit/source';
 import Transform from 'orbit/transform';
 

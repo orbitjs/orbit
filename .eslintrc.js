@@ -30,6 +30,7 @@ module.exports = {
     "no-trailing-spaces": 2,
     "no-undef": 2,
     "no-unused-expressions": 2,
+    "no-unused-vars": 2,
     "one-var": [2, { initialized: "never" }],
     "padded-blocks": [2, "never"],
     "quotes": [2, "single"],

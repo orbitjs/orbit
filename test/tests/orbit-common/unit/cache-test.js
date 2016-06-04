@@ -1,10 +1,6 @@
-import Orbit from 'orbit/main';
 import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
-import { Promise, on } from 'rsvp';
 import { queryExpression as oqe } from 'orbit/query/expression';
-import { addRecordOperation } from 'orbit-common/lib/operations';
-import Transform from 'orbit/transform';
 import {
   RecordNotFoundException,
   ModelNotRegisteredException
@@ -232,7 +228,7 @@ test('#transform does not remove link from hasMany if record doesn\'t exist', fu
 
   cache = new Cache(schema);
 
-  cache.on('patch', (op) => {
+  cache.on('patch', () => {
     ok(false, 'no operations were applied');
   });
 
@@ -288,7 +284,7 @@ test('#transform does not add link to hasMany if link already exists', function(
 
   cache.transform(t => t.addRecord(jupiter));
 
-  cache.on('patch', (op) => {
+  cache.on('patch', () => {
     assert.ok(false, 'no operations were applied');
   });
 
@@ -306,7 +302,7 @@ test('#transform does not remove relationship from hasMany if relationship doesn
 
   cache.transform(t => t.addRecord(jupiter));
 
-  cache.on('patch', (op) => {
+  cache.on('patch', () => {
     ok(false, 'no operations were applied');
   });
 
@@ -324,7 +320,7 @@ test('does not replace hasOne if relationship already exists', function(assert) 
 
   cache.transform(t => t.addRecord(europa));
 
-  cache.on('patch', (op) => {
+  cache.on('patch', () => {
     assert.ok(false, 'no operations were applied');
   });
 
@@ -342,7 +338,7 @@ test('does not remove hasOne if relationship doesn\'t exist', function(assert) {
 
   cache.transform(t => t.addRecord(europa));
 
-  cache.on('patch', (op) => {
+  cache.on('patch', () => {
     assert.ok(false, 'no operations were applied');
   });
 
@@ -687,9 +683,9 @@ test('#rollback', function(assert) {
   const recordE = { id: 'uranus', type: 'planet', attributes: { name: 'Uranus' } };
 
   const addRecordATransform = cache.transform(t => t.addRecord(recordA));
-  const addRecordBTransform = cache.transform(t => t.addRecord(recordB));
-  const addRecordCTransform = cache.transform(t => t.addRecord(recordC));
-  const addRecordsDETransform = cache.transform(t => {
+  cache.transform(t => t.addRecord(recordB));
+  cache.transform(t => t.addRecord(recordC));
+  cache.transform(t => {
     t.addRecord(recordD);
     t.addRecord(recordE);
   });

@@ -1,6 +1,4 @@
-import Orbit from 'orbit/main';
 import Schema from 'orbit-common/schema';
-import { Promise } from 'rsvp';
 import { uuid } from 'orbit/lib/uuid';
 import { ModelNotRegisteredException } from 'orbit-common/lib/exceptions';
 
@@ -227,7 +225,7 @@ test('#normalize throws a ModelNotRegisteredException error for missing models',
   expect(1);
 
   throws(function() {
-    const earth = schema.normalize({ type: 'not-planet' });
+    schema.normalize({ type: 'not-planet' });
   }, ModelNotRegisteredException, 'threw a OC.ModelNotRegisteredException');
 });
 

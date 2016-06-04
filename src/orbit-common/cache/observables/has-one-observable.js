@@ -9,8 +9,6 @@ import 'rxjs/add/operator/concatAll';
 import 'rxjs/add/observable/concat';
 import 'rxjs/add/observable/empty';
 import 'orbit-common/rxjs/add/operator/matching';
-import PatternMatcher from 'orbit/lib/pattern-matcher';
-import RecordsObservable from './records-observable';
 import RecordObservable from './record-observable';
 import qb from 'orbit-common/query/builder';
 

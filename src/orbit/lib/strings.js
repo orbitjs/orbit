@@ -25,7 +25,7 @@ var camelize = function(str) {
     .replace(/(\-|\_|\.|\s)+(.)?/g, function(match, separator, chr) {
       return chr ? chr.toUpperCase() : '';
     })
-    .replace(/(^|\/)([A-Z])/g, function(match, separator, chr) {
+    .replace(/(^|\/)([A-Z])/g, function(match) {
       return match.toLowerCase();
     });
 };

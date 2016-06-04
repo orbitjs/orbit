@@ -2,7 +2,6 @@
 import Orbit from './main';
 import Evented from './evented';
 import TransformLog from './transform/log';
-import { assert } from './lib/assert';
 
 /**
  `Source` is an abstract base class to be extended by other sources.
@@ -13,7 +12,7 @@ import { assert } from './lib/assert';
  @constructor
 */
 export default class Source {
-  constructor(options) {
+  constructor() {
     Evented.extend(this);
 
     this.transformLog = new TransformLog();

@@ -1,9 +1,7 @@
 import { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty } from 'tests/test-helper';
-import Orbit from 'orbit/main';
 import Source from 'orbit/source';
 import Schema from 'orbit-common/schema';
 import LocalStorageSource from 'orbit-common/local-storage-source';
-import { all, Promise } from 'rsvp';
 
 let schema, source;
 

@@ -1,12 +1,11 @@
 import 'tests/test-helper';
-import Orbit from 'orbit/main';
 import Evented from 'orbit/evented';
 import { Promise } from 'rsvp';
 
 var evented;
 
 var successfulOperation = function() {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function(resolve) {
     resolve(':)');
   });
 };
@@ -69,7 +68,7 @@ test('#emit - notifies listeners registered with `one` only once each', function
 test('#off can unregister individual listeners from an event', function() {
   expect(1);
 
-  let listener1 = function(message) {
+  let listener1 = function() {
     ok(false, 'this listener should not be triggered');
   };
   let listener2 = function(message) {
@@ -306,7 +305,7 @@ test('#resolve - can fulfill promises returned by listeners to an event, in orde
     assert.equal(++order, 3, 'listener3 triggered third');
     return successfulOperation();
   };
-  let listener4 = function(message) {
+  let listener4 = function() {
     assert.ok(false, 'listener should not be reached');
   };
 
@@ -417,7 +416,7 @@ test('#series - it will fail when any listener fails and return the error', func
     assert.equal(++order, 3, 'listener3 triggered second');
     return failedOperation();
   };
-  let listener4 = function(message) {
+  let listener4 = function() {
     assert.ok(false, 'listener4 should not be triggered');
   };
 
@@ -427,7 +426,7 @@ test('#series - it will fail when any listener fails and return the error', func
   evented.on('greeting', listener4, this);
 
   return evented.series('greeting', 'hello')
-    .then(result => {
+    .then(() => {
       assert.ok(false, 'success handler should not be reached');
     })
     .catch(error => {

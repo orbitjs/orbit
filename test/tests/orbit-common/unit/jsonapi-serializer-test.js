@@ -1,11 +1,8 @@
 import 'tests/test-helper';
-import Orbit from 'orbit/main';
-import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
 import Serializer from 'orbit-common/serializer';
 import JSONAPISerializer from 'orbit-common/jsonapi/serializer';
-import { parseIdentifier, toIdentifier } from 'orbit-common/lib/identifiers';
-import { Promise } from 'rsvp';
+import { toIdentifier } from 'orbit-common/lib/identifiers';
 
 var schema, serializer;
 

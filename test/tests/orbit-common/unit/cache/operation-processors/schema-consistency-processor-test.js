@@ -1,9 +1,6 @@
 import Schema from 'orbit-common/schema';
 import SchemaConsistencyProcessor from 'orbit-common/cache/operation-processors/schema-consistency-processor';
-import { uuid } from 'orbit/lib/uuid';
 import Cache from 'orbit-common/cache';
-import Orbit from 'orbit/main';
-import { Promise } from 'rsvp';
 import { identity } from 'orbit-common/lib/identifiers';
 
 let schema, cache, processor;

@@ -1,5 +1,4 @@
 /* eslint-disable valid-jsdoc */
-import Orbit from 'orbit/main';
 import Store from './store';
 import { assert } from 'orbit/lib/assert';
 import { coalesceOperations } from 'orbit-common/lib/operations';

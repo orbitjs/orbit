@@ -1,11 +1,7 @@
-import Orbit from 'orbit/main';
 import Source from 'orbit/source';
 import Schema from 'orbit-common/schema';
 import Store from 'orbit-common/store';
-import { Promise } from 'rsvp';
-import TransformBuilder from 'orbit-common/transform/builder';
 import qb from 'orbit-common/query/builder';
-import { RecordNotFoundException } from 'orbit-common/lib/exceptions';
 import CacheIntegrityProcessor from 'orbit-common/cache/operation-processors/cache-integrity-processor';
 import SchemaConsistencyProcessor from 'orbit-common/cache/operation-processors/schema-consistency-processor';
 
@@ -41,7 +37,6 @@ const schemaDefinition = {
 };
 
 const schema = new Schema(schemaDefinition);
-const transformBuilder = new TransformBuilder();
 
 module('OC - Store', function(hooks) {
   let store;
@@ -82,7 +77,7 @@ module('OC - Store', function(hooks) {
     assert.equal(store.cache.length('planet'), 0, 'cache should start empty');
 
     return store.update(t => t.addRecord(jupiter))
-      .then(function(result) {
+      .then(function() {
         assert.equal(store.cache.length('planet'), 1, 'cache should contain one planet');
         assert.deepEqual(store.cache.get('planet/1'), jupiter, 'planet should be jupiter');
       });

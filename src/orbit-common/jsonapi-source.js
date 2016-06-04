@@ -1,10 +1,6 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from 'orbit/main';
 import { assert } from 'orbit/lib/assert';
-import { Exception } from 'orbit/lib/exceptions';
-import { isArray, toArray, isObject, isNone, merge } from 'orbit/lib/objects';
-import { diffs } from 'orbit/lib/diffs';
-import ActionQueue from 'orbit/action-queue';
 import Fetchable from 'orbit/fetchable';
 import Transformable from 'orbit/transformable';
 import TransformBuilder from './transform/builder';
@@ -13,10 +9,7 @@ import Serializer from './serializer';
 import JSONAPISerializer from './jsonapi/serializer';
 import { getFetchRequests, FetchRequestProcessors } from './jsonapi/fetch-requests';
 import { getTransformRequests, TransformRequestProcessors } from './jsonapi/transform-requests';
-import { OperationNotAllowed, FetchNotAllowed, TransformNotAllowed, RecordNotFoundException, RecordAlreadyExistsException } from './lib/exceptions';
-import CacheIntegrityProcessor from 'orbit-common/cache/operation-processors/cache-integrity-processor';
-import DeletionTrackingProcessor from 'orbit-common/cache/operation-processors/deletion-tracking-processor';
-import SchemaConsistencyProcessor from 'orbit-common/cache/operation-processors/schema-consistency-processor';
+import { FetchNotAllowed, TransformNotAllowed } from './lib/exceptions';
 
 /**
  Source for accessing a JSON API compliant RESTful API with AJAX
@@ -138,7 +131,7 @@ export default class JSONAPISource extends Source {
         resolve(json);
       };
 
-      hash.error = function(jqXHR, textStatus, errorThrown) {
+      hash.error = function(jqXHR) {
         if (jqXHR) {
           jqXHR.then = null;
         }
@@ -150,7 +143,7 @@ export default class JSONAPISource extends Source {
     });
   }
 
-  ajaxContentType(url, method) {
+  ajaxContentType(/* url, method */) {
     return 'application/vnd.api+json; charset=utf-8';
   }
 
@@ -158,11 +151,11 @@ export default class JSONAPISource extends Source {
     return this.headers;
   }
 
-  resourceNamespace(type) {
+  resourceNamespace(/* type */) {
     return this.namespace;
   }
 
-  resourceHost(type) {
+  resourceHost(/* type */) {
     return this.host;
   }
 

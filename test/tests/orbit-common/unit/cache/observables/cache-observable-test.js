@@ -1,5 +1,3 @@
-import { equalOps } from 'tests/test-helper';
-import Transform from 'orbit/transform';
 import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
 import CacheObservable from 'orbit-common/cache/observables/cache-observable';
@@ -8,8 +6,6 @@ import 'rxjs/add/observable/from';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/take';
 import 'rxjs/add/operator/toArray';
-
-const { skip } = QUnit;
 
 const planetsSchema = new Schema({
   models: {
@@ -36,24 +32,19 @@ const planetsSchema = new Schema({
 
 module('OC - Cache - CacheObservable', function(hooks) {
   let cache;
-  let pluto;
-  let jupiter;
-  let callisto;
-  let saturn;
-  let titan;
 
   hooks.beforeEach(function() {
-    pluto = planetsSchema.normalize({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
+    planetsSchema.normalize({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
 
-    jupiter = planetsSchema.normalize({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
-    callisto = planetsSchema.normalize({ type: 'moon', id: 'callisto', attributes: { name: 'Callisto' } });
+    planetsSchema.normalize({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
+    planetsSchema.normalize({ type: 'moon', id: 'callisto', attributes: { name: 'Callisto' } });
 
-    saturn = planetsSchema.normalize({
+    planetsSchema.normalize({
       type: 'planet', id: 'saturn',
       attributes: { name: 'Saturn' },
       relationships: { moons: { data: { 'moon:titan': true } } } });
 
-    titan = planetsSchema.normalize({
+    planetsSchema.normalize({
       type: 'moon', id: 'titan',
       attributes: { name: 'Titan' },
       relationships: { planet: { data: 'planet:saturn' } } });

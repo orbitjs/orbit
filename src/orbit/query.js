@@ -1,6 +1,5 @@
 /* eslint-disable valid-jsdoc */
 import { uuid } from './lib/uuid';
-import { QueryBuilderNotRegisteredException } from './lib/exceptions';
 
 /**
  Queries are used to extract data from a source.

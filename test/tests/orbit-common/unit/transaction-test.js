@@ -1,15 +1,12 @@
-import Orbit from 'orbit/main';
 import Schema from 'orbit-common/schema';
 import Store from 'orbit-common/store';
 import Transaction from 'orbit-common/transaction';
 import { uuid } from 'orbit/lib/uuid';
-import { Promise, all } from 'rsvp';
 
 ///////////////////////////////////////////////////////////////////////////////
 
 let store;
 let schema;
-let transaction;
 
 module('OC - Transaction', {
   setup: function() {
@@ -50,7 +47,8 @@ module('OC - Transaction', {
 test('requires the `baseStore` option', function(assert) {
   assert.throws(
     function() {
-      let transaction = new Transaction({});
+      // eslint-disable-next-line no-new
+      new Transaction({});
     },
     new Error('Assertion failed: `baseStore` must be supplied as an option when constructing a Transaction.')
   );
@@ -65,7 +63,7 @@ test('starts with the same cache contents as the base store', function(assert) {
   const jupiter = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
 
   return store.update(t => t.addRecord(jupiter))
-    .then(transforms => {
+    .then(() => {
       assert.deepEqual(store.cache.get(['planet', jupiter.id]), jupiter, 'planet should be jupiter');
 
       let transaction = store.createTransaction();

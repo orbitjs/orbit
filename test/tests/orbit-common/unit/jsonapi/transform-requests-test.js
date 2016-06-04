@@ -1,5 +1,5 @@
 import Transform from 'orbit/transform';
-import { TransformRequestProcessors, getTransformRequests } from 'orbit-common/jsonapi/transform-requests';
+import { getTransformRequests } from 'orbit-common/jsonapi/transform-requests';
 
 module('OC - JSONAPI - TransformRequests', function() {
   module('getTransformRequests', function() {
@@ -32,8 +32,6 @@ module('OC - JSONAPI - TransformRequests', function() {
     });
 
     test('replaceAttribute => replaceRecord', function(assert) {
-      const jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } };
-
       const t = Transform.from({
         op: 'replaceAttribute',
         record: { type: 'planet', id: 'jupiter' },
@@ -178,8 +176,6 @@ module('OC - JSONAPI - TransformRequests', function() {
     });
 
     test('addRecord + removeRecord => []', function(assert) {
-      const jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } };
-
       const t = Transform.from([{
         op: 'addRecord',
         record: { type: 'planet', id: 'jupiter', attributes: { name: 'Earth' } }
@@ -192,8 +188,6 @@ module('OC - JSONAPI - TransformRequests', function() {
     });
 
     test('removeRecord + removeRecord => [removeRecord]', function(assert) {
-      const jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } };
-
       const t = Transform.from([{
         op: 'removeRecord',
         record: { type: 'planet', id: 'jupiter' }
@@ -209,8 +203,6 @@ module('OC - JSONAPI - TransformRequests', function() {
     });
 
     test('addRecord + replaceAttribute => [addRecord]', function(assert) {
-      const jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } };
-
       const t = Transform.from([{
         op: 'addRecord',
         record: { type: 'planet', id: 'jupiter', attributes: { name: 'Earth' } }
@@ -228,8 +220,6 @@ module('OC - JSONAPI - TransformRequests', function() {
     });
 
     test('replaceAttribute + replaceAttribute => [replaceRecord]', function(assert) {
-      const jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } };
-
       const t = Transform.from([{
         op: 'replaceAttribute',
         record: { type: 'planet', id: 'jupiter' },

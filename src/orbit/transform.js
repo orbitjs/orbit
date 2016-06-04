@@ -1,5 +1,5 @@
 /* eslint-disable valid-jsdoc */
-import { toArray, Class } from './lib/objects';
+import { toArray } from './lib/objects';
 import { uuid } from './lib/uuid';
 import { TransformBuilderNotRegisteredException } from './lib/exceptions';
 

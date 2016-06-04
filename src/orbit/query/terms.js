@@ -1,5 +1,4 @@
 import { queryExpression as oqe } from './expression';
-import Query from 'orbit/query';
 
 export class TermBase {
   constructor(expression) {

@@ -1,9 +1,8 @@
 import 'tests/test-helper';
 import { queryExpression as oqe } from 'orbit/query/expression';
 import qb from 'orbit-common/query/builder';
-import { Records } from 'orbit-common/query/terms';
 
-module('OC - QueryBuilder', function(hooks) {
+module('OC - QueryBuilder', function() {
   test('record', function(assert) {
     assert.deepEqual(
       qb.record({ type: 'planet', id: '123' }).toQueryExpression(),

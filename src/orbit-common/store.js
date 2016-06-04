@@ -53,7 +53,7 @@ export default class Store extends Source {
   // LiveQuery interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  liveQuery(expression) {
+  liveQuery(/* expression */) {
     throw new Error('coming soon');
   }
 }

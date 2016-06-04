@@ -23,7 +23,7 @@ test('it exists', function(assert) {
 test('it should resolve as a failure when _query fails', function(assert) {
   assert.expect(2);
 
-  source._query = function(query) {
+  source._query = function() {
     return failedOperation();
   };
 
@@ -90,7 +90,7 @@ test('`query` event should receive results as the last argument, even if they ar
   source._query = function(query) {
     assert.equal(++order, 1, 'action performed after willQuery');
     assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query object matches');
-    return new Promise(function(resolve, reject) {
+    return new Promise(function(resolve) {
       resolve(['a', 'b', 'c']);
     });
   };
@@ -156,7 +156,7 @@ test('it should resolve all promises returned from `beforeQuery` before calling 
     return successfulOperation();
   });
 
-  source._query = function(query) {
+  source._query = function() {
     assert.equal(++order, 4, '_query invoked after all `beforeQuery` handlers');
     return successfulOperation();
   };
@@ -187,7 +187,7 @@ test('it should resolve all promises returned from `beforeQuery` and fail if any
     return failedOperation();
   });
 
-  source._query = function(query) {
+  source._query = function() {
     assert.ok(false, '_query should not be invoked');
   };
 

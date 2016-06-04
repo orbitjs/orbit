@@ -1,16 +1,8 @@
 import 'tests/test-helper';
-import Orbit from 'orbit/main';
-import Action from 'orbit/action';
 import ActionQueue from 'orbit/action-queue';
 import Evented from 'orbit/evented';
 import { noop } from 'orbit/lib/stubs';
 import { Promise } from 'rsvp';
-
-const failedOperation = function() {
-  return new Promise(function(resolve, reject) {
-    reject(':(');
-  });
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 

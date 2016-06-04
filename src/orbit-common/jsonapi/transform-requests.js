@@ -1,4 +1,3 @@
-import Orbit from 'orbit/main';
 import Transform from 'orbit/transform';
 import { clone } from 'orbit/lib/objects';
 import { toIdentifier, identity, eqIdentity } from '../lib/identifiers';

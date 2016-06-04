@@ -1,5 +1,5 @@
 /* eslint-disable valid-jsdoc */
-import { Class, clone, extend, isNone } from 'orbit/lib/objects';
+import { clone, isNone } from 'orbit/lib/objects';
 import { uuid } from 'orbit/lib/uuid';
 import { OperationNotAllowed, ModelNotRegisteredException, KeyNotRegisteredException, RelationshipNotRegisteredException } from './lib/exceptions';
 import Evented from 'orbit/evented';
