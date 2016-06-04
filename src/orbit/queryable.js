@@ -1,5 +1,4 @@
 import Orbit from './main';
-import Evented from './evented';
 import { extend } from './lib/objects';
 import Query from './query';
 
