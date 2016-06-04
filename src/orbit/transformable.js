@@ -1,5 +1,4 @@
 import Orbit from './main';
-import Evented from './evented';
 import { extend } from './lib/objects';
 import Transform from './transform';
 import TransformLog from './transform/log';
