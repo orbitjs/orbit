@@ -21,7 +21,7 @@ function deserialize(source, data) {
 }
 
 export const FetchRequestProcessors = {
-  recordsOfType(source, request) {
+  records(source, request) {
     const { type } = request;
     const hash = {};
 
@@ -75,12 +75,12 @@ function buildFetchRequest(expression, request = {}) {
 }
 
 const ExpressionToRequestMap = {
-  recordsOfType(expression, request) {
+  records(expression, request) {
     if (request.op) {
       throw new QueryExpressionParseError('Query request `op` can not be redefined.', expression);
     }
 
-    request.op = 'recordsOfType';
+    request.op = 'records';
     request.type = expression.args[0];
   },
 

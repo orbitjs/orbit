@@ -2,8 +2,8 @@ import { Records, Record, RelatedRecord, RelatedRecords } from 'orbit-common/que
 import { queryExpression as oqe } from 'orbit/query/expression';
 
 export default {
-  recordsOfType(type) {
-    return new Records(oqe('recordsOfType', type));
+  records(type) {
+    return new Records(oqe('records', type));
   },
 
   record(recordIdentity) {

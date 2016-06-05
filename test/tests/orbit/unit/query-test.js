@@ -36,7 +36,7 @@ module('Orbit', function() {
     });
 
     test('.from should call toQueryExpression() if available', function(assert) {
-      const expression = oqe('recordsOfType', 'planet');
+      const expression = oqe('records', 'planet');
       const queryFactory = {
         toQueryExpression() {
           return expression;

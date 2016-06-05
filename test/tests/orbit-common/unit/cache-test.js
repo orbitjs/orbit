@@ -494,7 +494,7 @@ test('#query can perform a simple matching filter', function(assert) {
   assert.deepEqual(
     cache.query(
       oqe('filter',
-          oqe('recordsOfType', 'planet'),
+          oqe('records', 'planet'),
           oqe('equal', oqe('attribute', 'name'), 'Jupiter'))
     ),
     {
@@ -516,7 +516,7 @@ test('#query can perform a complex conditional `and` filter', function(assert) {
   assert.deepEqual(
     cache.query(
       oqe('filter',
-          oqe('recordsOfType', 'planet'),
+          oqe('records', 'planet'),
           oqe('and',
             oqe('equal', oqe('attribute', 'classification'), 'terrestrial'),
             oqe('equal', oqe('attribute', 'atmosphere'), true)
@@ -542,7 +542,7 @@ test('#query can perform a complex conditional `or` filter', function(assert) {
   assert.deepEqual(
     cache.query(
       oqe('filter',
-          oqe('recordsOfType', 'planet'),
+          oqe('records', 'planet'),
           oqe('or',
               oqe('equal', oqe('attribute', 'classification'), 'gas giant'),
               oqe('equal', oqe('attribute', 'atmosphere'), true)
@@ -597,7 +597,7 @@ test('#query - record - throws RecordNotFoundException if record doesn\'t exist'
   );
 });
 
-test('#query - recordsOfType - finds matching records', function(assert) {
+test('#query - records - finds matching records', function(assert) {
   cache = new Cache(schema);
 
   const jupiter = {
@@ -613,16 +613,16 @@ test('#query - recordsOfType - finds matching records', function(assert) {
   cache.reset({ planet: { jupiter }, moon: { callisto } });
 
   assert.deepEqual(
-    cache.query(oqe('recordsOfType', 'planet')),
+    cache.query(oqe('records', 'planet')),
     { jupiter }
   );
 });
 
-test('#query - recordsOfType - throws ModelNotRegisteredException when model isn\'t registered in schema', function(assert) {
+test('#query - records - throws ModelNotRegisteredException when model isn\'t registered in schema', function(assert) {
   cache = new Cache(schema);
 
   assert.throws(
-    () => cache.query(oqe('recordsOfType', 'black-hole')),
+    () => cache.query(oqe('records', 'black-hole')),
     new ModelNotRegisteredException('No model registered for black-hole')
   );
 });
