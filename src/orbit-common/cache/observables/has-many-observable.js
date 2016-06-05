@@ -3,7 +3,6 @@ import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/observable/concat';
 import 'orbit-common/rxjs/add/operator/matching';
-import PatternMatcher from 'orbit/lib/pattern-matcher';
 import RecordsObservable from './records-observable';
 import qb from 'orbit-common/query/builder';
 
@@ -38,7 +37,7 @@ export default class HasManyObservable extends Observable {
   }
 
   relatedRecords({ initial = false } = {}) {
-    let relatedRecords = this.map(operation => this._fetchRelatedRecords());
+    let relatedRecords = this.map(() => this._fetchRelatedRecords());
 
     if (initial) {
       relatedRecords = relatedRecords.startWith(this._fetchRelatedRecords());

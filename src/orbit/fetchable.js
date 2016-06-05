@@ -1,4 +1,3 @@
-import Orbit from './main';
 import Query from './query';
 import { extend } from './lib/objects';
 

@@ -1,6 +1,4 @@
 import { merge } from 'orbit/lib/objects';
-import { queryExpression as oqe } from 'orbit/query/expression';
-import { splitPath } from 'orbit/lib/paths';
 import {
   RecordNotFoundException,
   ModelNotRegisteredException

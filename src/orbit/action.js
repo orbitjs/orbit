@@ -1,3 +1,4 @@
+/* eslint-disable valid-jsdoc */
 import Orbit from './main';
 import Evented from './evented';
 
@@ -66,7 +67,7 @@ export default class Action {
         } else {
           this.didProcess();
         }
-      } catch(e) {
+      } catch (e) {
         this.didNotProcess(e);
       }
     }

@@ -1,13 +1,6 @@
 import 'tests/test-helper';
-import Orbit from 'orbit/main';
 import Action from 'orbit/action';
 import { Promise } from 'rsvp';
-
-var failedOperation = function() {
-  return new Promise(function(resolve, reject) {
-    reject(':(');
-  });
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 

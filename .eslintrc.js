@@ -1,0 +1,43 @@
+module.exports = {
+  parser: "babel-eslint",
+  env: {},
+  globals: {
+    setTimeout: true,
+    window: true,
+    console: true
+  },
+  rules: {
+    "array-bracket-spacing": [2, "never"],
+    "brace-style": [2, "1tbs", { allowSingleLine: true }],
+    "comma-dangle": [2, "never"],
+    "comma-style": [2, "last"],
+    "curly": [2, "all"],
+    "eol-last": 2,
+    "eqeqeq": 2,
+    "indent": [2, 2, { "SwitchCase": 1 }],
+    "key-spacing": [2, { "afterColon": true }],
+    "keyword-spacing": [2],
+    "linebreak-style": 2,
+    "new-cap": 2,
+    "no-caller": 2,
+    "no-cond-assign": [2, "except-parens"],
+    "no-debugger": 2,
+    "no-empty": 2,
+    "no-eq-null": 2,
+    "no-eval": 2,
+    "no-new": 2,
+    "no-spaced-func": 2,
+    "no-trailing-spaces": 2,
+    "no-undef": 2,
+    "no-unused-expressions": 2,
+    "no-unused-vars": 2,
+    "one-var": [2, { initialized: "never" }],
+    "padded-blocks": [2, "never"],
+    "quotes": [2, "single"],
+    "semi": 2,
+    "semi-spacing": 2,
+    "space-before-blocks": [2, "always"],
+    "space-infix-ops": 2,
+    "valid-jsdoc": 2
+  }
+}

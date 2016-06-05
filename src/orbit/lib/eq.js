@@ -1,4 +1,4 @@
-/* jshint eqeqeq: false, -W041: false */
+/* eslint-disable eqeqeq, no-eq-null, valid-jsdoc */
 
 /**
  `eq` checks the equality of two objects.
@@ -56,7 +56,7 @@ var eq = function(a, b) {
     if (a.length !== b.length) { return false; }
   }
 
-  var d, i;
+  var i;
   for (i in b) {
     if (b.hasOwnProperty(i)) {
       if (!eq(a[i], b[i])) { return false; }

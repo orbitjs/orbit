@@ -1,4 +1,4 @@
-import { Class, isArray, expose } from 'orbit/lib/objects';
+import { isArray, expose } from 'orbit/lib/objects';
 import OperationProcessor from './operation-processor';
 
 /**
@@ -28,7 +28,7 @@ export default class DeletionTrackingProcessor extends OperationProcessor {
     return !!this._del[path];
   }
 
-  reset(data) {
+  reset() {
     this._del = {};
   }
 

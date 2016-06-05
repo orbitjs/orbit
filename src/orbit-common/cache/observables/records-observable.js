@@ -3,7 +3,6 @@ import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/concatAll';
-import PatternMatcher from 'orbit/lib/pattern-matcher';
 import 'orbit-common/rxjs/add/operator/matching';
 
 

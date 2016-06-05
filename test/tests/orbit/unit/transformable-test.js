@@ -1,12 +1,8 @@
-import { successfulOperation, failedOperation } from 'tests/test-helper';
 import Orbit from 'orbit/main';
 import Source from 'orbit/source';
 import Transformable from 'orbit/transformable';
 import Transform from 'orbit/transform';
-import TransformBuilder from 'orbit-common/transform/builder';
 import { TransformBuilderNotRegisteredException } from 'orbit/lib/exceptions';
-import { Class } from 'orbit/lib/objects';
-import { Promise } from 'rsvp';
 
 let source;
 
@@ -52,7 +48,7 @@ test('#transform should convert non-Transforms into Transforms', function(assert
 test('#transform should throw an exception if source.transformBuilder is not registered', function(assert) {
   assert.throws(
     function() {
-      source.transform((b) => {});
+      source.transform(() => {});
     },
     TransformBuilderNotRegisteredException
   );

@@ -1,11 +1,7 @@
-import { equalOps } from 'tests/test-helper';
-import Transform from 'orbit/transform';
 import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
 import { identity } from 'orbit-common/lib/identifiers';
 import qb from 'orbit-common/query/builder';
-
-const { skip } = QUnit;
 
 const planetsSchema = new Schema({
   models: {
@@ -27,8 +23,6 @@ module('OC - Cache - liveQuery', function(hooks) {
   let pluto;
   let jupiter;
   let callisto;
-  let saturn;
-  let titan;
   let io;
 
   hooks.beforeEach(function() {
@@ -37,12 +31,12 @@ module('OC - Cache - liveQuery', function(hooks) {
     jupiter = planetsSchema.normalize({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
     callisto = planetsSchema.normalize({ type: 'moon', id: 'callisto', attributes: { name: 'Callisto' } });
 
-    saturn = planetsSchema.normalize({
+    planetsSchema.normalize({
       type: 'planet', id: 'saturn',
       attributes: { name: 'Saturn' },
       relationships: { moons: { data: { 'moon:titan': true } } } });
 
-    titan = planetsSchema.normalize({
+    planetsSchema.normalize({
       type: 'moon', id: 'titan',
       attributes: { name: 'Titan' },
       relationships: { planet: { data: 'planet:saturn' } } });

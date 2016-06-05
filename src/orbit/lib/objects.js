@@ -1,4 +1,4 @@
-import { eq } from './eq';
+/* eslint-disable valid-jsdoc */
 
 /**
  Creates a deeply nested clone of an object.

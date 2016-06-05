@@ -1,3 +1,5 @@
+/* eslint-disable valid-jsdoc */
+
 /**
  Wraps a function that expects parameters with another that can accept the parameters as an array
 

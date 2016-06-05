@@ -1,7 +1,8 @@
 /* globals Immutable */
+/* eslint-disable valid-jsdoc */
 
 import Evented from 'orbit/evented';
-import { clone, expose, isArray, isObject, isNone } from 'orbit/lib/objects';
+import { isArray, isObject } from 'orbit/lib/objects';
 import { eq } from 'orbit/lib/eq';
 import CacheIntegrityProcessor from './cache/operation-processors/cache-integrity-processor';
 import SchemaConsistencyProcessor from './cache/operation-processors/schema-consistency-processor';
@@ -14,7 +15,6 @@ import TransformBuilder from './transform/builder';
 import PatchTransforms from './cache/patch-transforms';
 import InverseTransforms from './cache/inverse-transforms';
 import LiveQueryOperators from './cache/live-query-operators';
-import { toIdentifier } from './lib/identifiers';
 import { Observable } from 'rxjs/Observable';
 import CacheObservable from 'orbit-common/cache/observables/cache-observable';
 import 'orbit-common/rxjs/add/observable/from-orbit-event';

@@ -2,7 +2,6 @@ import { planetsSchema } from 'tests/test-helper';
 import Coordinator from 'orbit-common/coordinator';
 import Store from 'orbit-common/store';
 import JsonApiSource from 'orbit-common/jsonapi-source';
-import LocalStorageSource from 'orbit-common/local-storage-source';
 import { eq } from 'orbit/lib/eq';
 import qb from 'orbit-common/query/builder';
 
@@ -74,7 +73,6 @@ module('Integration - Coordinator', function(hooks) {
   // let localStorage;
   let jsonApiSource;
   let coordinator;
-  let updateQueue;
 
   hooks.beforeEach(function() {
     server = sinon.fakeServer.create();
@@ -86,7 +84,7 @@ module('Integration - Coordinator', function(hooks) {
     store = new Store({ schema });
     // localStorage = new LocalStorageSource({ schema });
 
-    let master = coordinator.addNode('master', {
+    coordinator.addNode('master', {
       sources: [store]
     });
 
@@ -94,7 +92,7 @@ module('Integration - Coordinator', function(hooks) {
     //   sources: [localStorage]
     // });
 
-    let upstream = coordinator.addNode('upstream', {
+    coordinator.addNode('upstream', {
       sources: [jsonApiSource]
     });
 
@@ -166,8 +164,6 @@ module('Integration - Coordinator', function(hooks) {
     });
 
     server.respondWith('PATCH', '/planets/pluto', jsonResponse(200, {}));
-
-    const requestBody = { 'data': { 'id': 'pluto', 'type': 'planets', 'attributes': { 'name': 'Pluto2', 'classification': 'gas giant' }, 'relationships': { 'moons': { 'data': [] } } } };
 
     return store.update(t => t.replaceRecord({ type: 'planet', id: 'pluto', keys: { id: 'pluto' }, attributes: { name: 'Pluto2', classification: 'gas giant' } }))
       .then(transforms => {

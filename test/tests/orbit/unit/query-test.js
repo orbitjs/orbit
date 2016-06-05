@@ -1,7 +1,4 @@
-import Orbit from 'orbit/main';
 import Query from 'orbit/query';
-import Builder from 'orbit/query/builder';
-import { Value } from 'orbit/query/terms';
 import { queryExpression as oqe } from 'orbit/query/expression';
 
 ///////////////////////////////////////////////////////////////////////////////

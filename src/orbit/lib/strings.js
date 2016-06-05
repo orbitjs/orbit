@@ -1,3 +1,5 @@
+/* eslint-disable valid-jsdoc */
+
 /**
  Uppercase the first letter of a string, but don't change the remainder.
 
@@ -23,7 +25,7 @@ var camelize = function(str) {
     .replace(/(\-|\_|\.|\s)+(.)?/g, function(match, separator, chr) {
       return chr ? chr.toUpperCase() : '';
     })
-    .replace(/(^|\/)([A-Z])/g, function(match, separator, chr) {
+    .replace(/(^|\/)([A-Z])/g, function(match) {
       return match.toLowerCase();
     });
 };

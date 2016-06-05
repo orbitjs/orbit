@@ -133,9 +133,8 @@ export default {
     },
 
     one(eventName, callback, _binding) {
-      let callOnce,
-          notifier;
-
+      let callOnce;
+      let notifier;
       let binding = _binding || this;
 
       notifier = notifierForEvent(this, eventName, true);
@@ -198,7 +197,7 @@ export default {
             if (response) {
               response
                 .then(success => resolve(success))
-                .catch(error => resolveEach());
+                .catch(() => resolveEach());
             } else {
               resolveEach();
             }
@@ -230,8 +229,8 @@ export default {
 
             if (response) {
               return response
-                .then(success => settleEach())
-                .catch(error => settleEach());
+                .then(() => settleEach())
+                .catch(() => settleEach());
             } else {
               settleEach();
             }
@@ -256,7 +255,7 @@ export default {
 
             if (response) {
               return response
-                .then(success => settleEach())
+                .then(() => settleEach())
                 .catch(error => reject(error));
             } else {
               settleEach();

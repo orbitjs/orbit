@@ -28,7 +28,7 @@ test('it should mixin Updatable', function(assert) {
 test('it should resolve as a failure when _update fails', function(assert) {
   assert.expect(2);
 
-  source._update = function(query) {
+  source._update = function() {
     return failedOperation();
   };
 
@@ -87,12 +87,6 @@ test('it should trigger `updateFail` event after an unsuccessful update', functi
   assert.expect(7);
 
   const addRecordTransform = Transform.from({ op: 'addRecord' });
-  const replaceAttributeTransform = Transform.from({ op: 'replaceRecordAttribute' });
-
-  const resultingTransforms = [
-    addRecordTransform,
-    replaceAttributeTransform
-  ];
 
   let order = 0;
 
@@ -147,7 +141,7 @@ test('it should resolve all promises returned from `beforeUpdate` before calling
     return successfulOperation();
   });
 
-  source._update = function(transform) {
+  source._update = function() {
     assert.equal(++order, 4, '_update invoked after all `beforeUpdate` handlers');
     return Promise.resolve(resultingTransforms);
   };
@@ -169,12 +163,6 @@ test('it should resolve all promises returned from `beforeUpdate` and fail if an
   let order = 0;
 
   const addRecordTransform = Transform.from({ op: 'addRecord' });
-  const replaceAttributeTransform = Transform.from({ op: 'replaceRecordAttribute' });
-
-  const resultingTransforms = [
-    addRecordTransform,
-    replaceAttributeTransform
-  ];
 
   source.on('beforeUpdate', () => {
     assert.equal(++order, 1, 'beforeUpdate triggered first');
@@ -186,7 +174,7 @@ test('it should resolve all promises returned from `beforeUpdate` and fail if an
     return failedOperation();
   });
 
-  source._update = function(transform) {
+  source._update = function() {
     assert.ok(false, '_update should not be invoked');
   };
 

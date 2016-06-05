@@ -1,12 +1,13 @@
+/* eslint-env node */
 var concat     = require('broccoli-sourcemap-concat');
 var Funnel     = require('broccoli-funnel');
 var mergeTrees = require('broccoli-merge-trees');
-var compileES6Modules = require('broccoli-es6modules');
-var transpileES6 = require('broccoli-babel-transpiler');
-var jshintTree = require('broccoli-jshint');
+var CompileES6Modules = require('broccoli-es6modules');
+var TranspileES6 = require('broccoli-babel-transpiler');
 var replace = require('broccoli-replace');
 var gitVersion = require('git-repo-version');
-var jscs = require('broccoli-jscs');
+var eslint = require('broccoli-lint-eslint');
+var testGenerator = require('./build-support/test-generator');
 
 // extract version from git
 // note: remove leading `v` (since by default our tags use a `v` prefix)
@@ -81,34 +82,34 @@ var src = {};
 var main = {};
 var globalized = {};
 
-packages.forEach(function(package) {
-  src[package.name] = new Funnel('src', {
+packages.forEach(function(pkg) {
+  src[pkg.name] = new Funnel('src', {
     srcDir: '/',
-    include: package.include,
-    exclude: package.exclude || [],
+    include: pkg.include,
+    exclude: pkg.exclude || [],
     destDir: '/'
   });
 
-  main[package.name] = mergeTrees([ src[package.name] ]);
-  main[package.name] = new compileES6Modules(main[package.name]);
-  main[package.name] = new transpileES6(main[package.name]);
-  main[package.name] = concat(main[package.name], {
+  main[pkg.name] = mergeTrees([src[pkg.name]]);
+  main[pkg.name] = new CompileES6Modules(main[pkg.name]);
+  main[pkg.name] = new TranspileES6(main[pkg.name]);
+  main[pkg.name] = concat(main[pkg.name], {
     inputFiles: ['**/*.js'],
-    outputFile: '/' + package.name + '.amd.js'
+    outputFile: '/' + pkg.name + '.amd.js'
   });
 
   var support = new Funnel('build-support', {
     srcDir: '/',
-    files: ['iife-start.js', 'globalize-' + package.name + '.js', 'iife-stop.js'],
+    files: ['iife-start.js', 'globalize-' + pkg.name + '.js', 'iife-stop.js'],
     destDir: '/'
   });
 
-  var loaderTree = (package.name === 'orbit' ? loader : globalizedLoader);
-  var loaderFile = (package.name === 'orbit' ? 'loader.js' : 'globalized-loader.js');
+  var loaderTree = (pkg.name === 'orbit' ? loader : globalizedLoader);
+  var loaderFile = (pkg.name === 'orbit' ? 'loader.js' : 'globalized-loader.js');
 
-  globalized[package.name] = concat(mergeTrees([loaderTree, main[package.name], support]), {
-    inputFiles: ['iife-start.js', 'assets/' + loaderFile, package.name + '.amd.js', 'globalize-' + package.name + '.js', 'iife-stop.js'],
-    outputFile: '/' + package.name + '.js'
+  globalized[pkg.name] = concat(mergeTrees([loaderTree, main[pkg.name], support]), {
+    inputFiles: ['iife-start.js', 'assets/' + loaderFile, pkg.name + '.amd.js', 'globalize-' + pkg.name + '.js', 'iife-stop.js'],
+    outputFile: '/' + pkg.name + '.js'
   });
 });
 
@@ -141,27 +142,30 @@ var symbolObservable = new Funnel('node_modules', {
   }
 });
 
-var allSrc = mergeTrees(Object.keys(src).map(function(package) {
-  return src[package];
+var allSrc = mergeTrees(Object.keys(src).map(function(pkg) {
+  return src[pkg];
 }));
-var jshintSrc = jshintTree(allSrc);
-var jscsSrc = jscs(allSrc, {esnext: true, enabled: true});
+
+var eslintSrc = mergeTrees(Object.keys(src).map(function(pkg) {
+  return eslint(src[pkg], { testGenerator: testGenerator });
+}));
+
 allSrc = mergeTrees([allSrc, rxjs, symbolObservable]);
 
-var allMain = mergeTrees(Object.keys(main).map(function(package) {
-  return main[package];
-}));
-var allGlobalized = mergeTrees(Object.keys(globalized).map(function(package) {
-  return globalized[package];
+var allMain = mergeTrees(Object.keys(main).map(function(pkg) {
+  return main[pkg];
 }));
 
-var jshintTest = jshintTree(tests);
-var jscsTest = jscs(tests, {esnext: true, enabled: true});
+var allGlobalized = mergeTrees(Object.keys(globalized).map(function(pkg) {
+  return globalized[pkg];
+}));
 
-var mainWithTests = mergeTrees([allSrc, tests, jshintSrc, jshintTest, jscsSrc, jscsTest], { overwrite: true });
+var eslintTests = eslint(tests, { testGenerator: testGenerator });
 
-mainWithTests = new compileES6Modules(mainWithTests);
-mainWithTests = new transpileES6(mainWithTests);
+var mainWithTests = mergeTrees([allSrc, tests, eslintSrc, eslintTests], { overwrite: true });
+
+mainWithTests = new CompileES6Modules(mainWithTests);
+mainWithTests = new TranspileES6(mainWithTests);
 
 
 mainWithTests = concat(mainWithTests, {

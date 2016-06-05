@@ -1,3 +1,5 @@
+/* eslint-disable valid-jsdoc */
+
 /**
  Display a deprecation warning with the provided message.
 

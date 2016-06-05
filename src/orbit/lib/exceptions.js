@@ -1,3 +1,5 @@
+/* eslint-disable valid-jsdoc */
+
 /**
  Base Exception
 

@@ -1,17 +1,7 @@
-import { eq } from 'orbit/lib/eq';
-import { parseIdentifier } from 'orbit-common/lib/identifiers';
 import { queryExpression as oqe } from 'orbit/query/expression';
-import { toIdentifier, eqIdentity } from 'orbit-common/lib/identifiers';
 import Query from 'orbit/query';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/concat';
-
-function extractRecordFromHasOne(value) {
-  if (!value) { return null; }
-
-  const id = Object.keys(value)[0];
-  return value[id];
-}
 
 function addRecordOperation(record) {
   return { op: 'addRecord', record };
@@ -43,7 +33,7 @@ export default {
   },
 
   record(context, recordIdentity) {
-    return this.target.patches.matching({ record : recordIdentity });
+    return this.target.patches.matching({ record: recordIdentity });
   },
 
   filter(context, operationsExpression, filterExpression) {

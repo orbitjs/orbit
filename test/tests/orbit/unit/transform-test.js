@@ -1,4 +1,3 @@
-import Orbit from 'orbit/main';
 import Transform from 'orbit/transform';
 import { TransformBuilderNotRegisteredException } from 'orbit/lib/exceptions';
 
@@ -88,7 +87,7 @@ module('Orbit', function() {
     test('.from should throw an exception if a function is passed but a transformBuilder is not', function(assert) {
       assert.throws(
         () => {
-          Transform.from((b) => {});
+          Transform.from(() => {});
         },
         TransformBuilderNotRegisteredException
       );

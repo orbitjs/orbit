@@ -1,3 +1,5 @@
+/* eslint-disable valid-jsdoc */
+
 /**
  Operation processors are used to identify operations that should be performed
  together to ensure that a `Cache` or other container of data remains
@@ -23,7 +25,7 @@ export default class OperationProcessor {
 
    @param  {Object} [data] a complete replacement set of data
    */
-  reset(data) {}
+  reset(/* data */) {}
 
   /**
    Called before an `operation` has been applied.
@@ -34,7 +36,7 @@ export default class OperationProcessor {
    @param  {Object} [operation]
    @return {Array} an array of operations
    */
-  before(operation) {
+  before(/* operation */) {
     return [];
   }
 
@@ -47,7 +49,7 @@ export default class OperationProcessor {
    @param  {Object} [operation]
    @return {Array} an array of operations
    */
-  after(operation) {
+  after(/* operation */) {
     return [];
   }
 
@@ -61,7 +63,7 @@ export default class OperationProcessor {
    @param  {Object} [operation]
    @return {Array} an array of operations
    */
-  finally(operation) {
+  finally(/* operation */) {
     return [];
   }
 }
