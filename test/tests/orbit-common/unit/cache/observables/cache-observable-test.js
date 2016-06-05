@@ -1,6 +1,7 @@
 import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
 import CacheObservable from 'orbit-common/cache/observables/cache-observable';
+import Network from 'orbit-common/network';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/from';
 import 'rxjs/add/operator/map';
@@ -41,26 +42,33 @@ const planetsSchema = new Schema({
   }
 });
 
+const planetsNetwork = new Network(planetsSchema);
+
 module('OC - Cache - CacheObservable', function(hooks) {
   let cache;
 
   hooks.beforeEach(function() {
-    planetsSchema.normalize({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
+    let keyMap = planetsNetwork.keyMap;
 
-    planetsSchema.normalize({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
-    planetsSchema.normalize({ type: 'moon', id: 'callisto', attributes: { name: 'Callisto' } });
+    keyMap.push({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
 
-    planetsSchema.normalize({
-      type: 'planet', id: 'saturn',
+    keyMap.push({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
+    keyMap.push({ type: 'moon', id: 'callisto', attributes: { name: 'Callisto' } });
+
+    // TODO: determine if this has any effect
+    keyMap.push({
+      type: 'planet',
+      id: 'saturn',
       attributes: { name: 'Saturn' },
       relationships: { moons: { data: { 'moon:titan': true } } } });
 
     planetsSchema.normalize({
-      type: 'moon', id: 'titan',
+      type: 'moon',
+      id: 'titan',
       attributes: { name: 'Titan' },
       relationships: { planet: { data: 'planet:saturn' } } });
 
-    cache = new Cache(planetsSchema);
+    cache = new Cache(planetsNetwork);
   });
 
   test('matching value', function(assert) {

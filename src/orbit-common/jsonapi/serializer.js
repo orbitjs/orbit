@@ -9,7 +9,7 @@ export default class JSONAPISerializer extends Serializer {
   }
 
   resourceType(type) {
-    return dasherize(this.schema.pluralize(type));
+    return dasherize(this.network.schema.pluralize(type));
   }
 
   resourceRelationship(type, relationship) {
@@ -21,7 +21,7 @@ export default class JSONAPISerializer extends Serializer {
   }
 
   typeFromResourceType(resourceType) {
-    return camelize(this.schema.singularize(resourceType));
+    return camelize(this.network.schema.singularize(resourceType));
   }
 
   attrFromResourceAttr(type, resourceAttr) {
@@ -54,7 +54,7 @@ export default class JSONAPISerializer extends Serializer {
     if (resourceKey === 'id') {
       return id;
     } else {
-      return this.schema.idToKey(type, resourceKey, id);
+      return this.network.keyMap.idToKey(type, resourceKey, id);
     }
   }
 
@@ -73,7 +73,7 @@ export default class JSONAPISerializer extends Serializer {
     if (resourceKey === 'id') {
       id = resourceId;
     } else {
-      id = this.schema.keyToId(type, resourceKey, resourceId, true);
+      id = this.network.initializeId(type, resourceKey, resourceId);
     }
 
     return id;
@@ -190,7 +190,7 @@ export default class JSONAPISerializer extends Serializer {
     this.deserializeAttributes(record, data);
     this.deserializeRelationships(record, data);
 
-    return this.schema.normalize(record);
+    return this.network.initializeRecord(record);
   }
 
   deserializeKey(record, data) {

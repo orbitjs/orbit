@@ -1,5 +1,5 @@
 /* eslint-disable valid-jsdoc */
-import { clone, isNone } from 'orbit/lib/objects';
+import { clone } from 'orbit/lib/objects';
 import { uuid } from 'orbit/lib/uuid';
 import { OperationNotAllowed, ModelNotRegisteredException, KeyNotRegisteredException, RelationshipNotRegisteredException } from './lib/exceptions';
 import Evented from 'orbit/evented';
@@ -305,28 +305,7 @@ export default class Schema {
   registerModel(name, definition) {
     var modelSchema = this._mergeModelSchemas({}, this.modelDefaults, definition);
 
-    // process key definitions
-    var keys = modelSchema.keys;
-
-    if (keys) {
-      var key;
-
-      for (var keyName in modelSchema.keys) {
-        key = modelSchema.keys[keyName];
-        key.name = keyName;
-
-        key.keyToIdMap = {};
-        key.idToKeyMap = {};
-
-        key.type = key.type || 'string';
-        if (key.type !== 'string') {
-          throw new OperationNotAllowed('Model keys must be of type `"string"`');
-        }
-      }
-    }
-
     this.models[name] = modelSchema;
-
     this.emit('modelRegistered', name);
   }
 
@@ -399,30 +378,9 @@ export default class Schema {
 
     var modelSchema = this.modelDefinition(record.type);
 
-    // init id from keys (if possible)
+    // init default id value
     if (record.id === undefined) {
-      if (modelSchema.keys && record.keys) {
-        var keyNames = Object.keys(modelSchema.keys);
-        var eachKey;
-        var keyValue;
-        var id;
-
-        for (var i = 0, l = keyNames.length; i < l; i++) {
-          eachKey = modelSchema.keys[keyNames[i]];
-          keyValue = record.keys[eachKey.name];
-          if (!isNone(keyValue)) {
-            id = eachKey.keyToIdMap[keyValue];
-            if (id) {
-              record.id = id;
-              break;
-            }
-          }
-        }
-      }
-
-      if (record.id === undefined) {
-        record.id = defaultValue(record, modelSchema.id.defaultValue);
-      }
+      record.id = defaultValue(record, modelSchema.id.defaultValue);
     }
 
     // init default key values
@@ -462,76 +420,16 @@ export default class Schema {
         }
       }
     }
-
-    this._mapKeys(modelSchema, record);
   }
 
-  idToKey(model, keyName, idValue, autoGenerate) {
-    var modelSchema = this.modelDefinition(model);
-    var keyDef = modelSchema.keys[keyName];
+  defaultId(type) {
+    let value = this.modelDefinition(type).id.defaultValue;
 
-    var keyValue = keyDef.idToKeyMap[idValue];
-
-    // auto-generate secondary key if necessary, requested, and possible
-    if (keyValue === undefined && autoGenerate && keyDef.defaultValue) {
-      keyValue = keyDef.defaultValue();
-      this._registerKeyMapping(keyDef, idValue, keyValue);
+    if (typeof value === 'function') {
+      return value();
+    } else {
+      return value;
     }
-
-    return keyValue;
-  }
-
-  keyToId(model, keyName, keyValue, autoGenerate) {
-    var modelSchema = this.modelDefinition(model);
-    var keyDef = modelSchema.keys[keyName];
-
-    var idValue = keyDef.keyToIdMap[keyValue];
-
-    // auto-generate primary key if necessary, requested, and possible
-    if (idValue === undefined && autoGenerate && modelSchema.id.defaultValue) {
-      idValue = modelSchema.id.defaultValue();
-      this._registerKeyMapping(keyDef, idValue, keyValue);
-    }
-
-    return idValue;
-  }
-
-  /**
-   Given a data object structured according to this schema, register all of its
-   key mappings. This data object may contain any number of records and types.
-
-   @param {Object} data - data structured according to this schema
-   */
-  registerAllKeys(data) {
-    if (data) {
-      Object.keys(data).forEach(type => {
-        var modelSchema = this.modelDefinition(type);
-
-        if (modelSchema && modelSchema.keys) {
-          var records = data[type];
-
-          Object.keys(records).forEach(id => {
-            let record = records[id];
-
-            if (record.keys) {
-              Object.keys(modelSchema.keys).forEach(keyName => {
-                let keyValue = record.keys[keyName];
-
-                if (!isNone(keyValue)) {
-                  let keyDef = modelSchema.keys[keyName];
-                  this._registerKeyMapping(keyDef, record.id, keyValue);
-                }
-              });
-            }
-          });
-        }
-      });
-    }
-  }
-
-  registerKeyMapping(type, id, key, value) {
-    var keyDef = this.keyDefinition(type, key);
-    this._registerKeyMapping(keyDef, id, value);
   }
 
   /**
@@ -591,26 +489,6 @@ export default class Schema {
       return !!this.models[name];
     }
     return false;
-  }
-
-  _mapKeys(modelSchema, record) {
-    var id = record.id;
-
-    if (modelSchema.keys) {
-      Object.keys(modelSchema.keys).forEach(keyName => {
-        var value = record.keys[keyName];
-        if (value) {
-          var key = modelSchema.keys[keyName];
-          this._registerKeyMapping(key, id, value);
-        }
-      });
-    }
-  }
-
-  _registerKeyMapping(keyDef, idValue, keyValue) {
-    // console.log('registerKeyMapping', keyDef, idValue, keyValue);
-    keyDef.idToKeyMap[idValue] = keyValue;
-    keyDef.keyToIdMap[keyValue] = idValue;
   }
 
   _mergeModelSchemas(base) {

@@ -5,17 +5,12 @@ import { recordDiffs } from '../lib/operations';
 
 export const TransformRequestProcessors = {
   addRecord(source, request) {
-    const { serializer, schema } = source;
-    const record = schema.normalize(request.record);
+    const { serializer, network } = source;
+    const record = network.initializeRecord(request.record);
     const json = serializer.serialize(record);
 
     return source.ajax(source.resourceURL(record.type), 'POST', { data: json })
       .then((raw) => {
-        let resourceKey = serializer.resourceKey(record.type);
-        if (resourceKey && resourceKey !== 'id') {
-          schema.registerKeyMapping(record.type, record.id, resourceKey, raw.data.id);
-        }
-
         let data = serializer.deserialize(raw);
         let updatedRecord = data.primary;
 

@@ -1,5 +1,6 @@
 import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
+import Network from 'orbit-common/network';
 import { identity } from 'orbit-common/lib/identifiers';
 import qb from 'orbit-common/query/builder';
 import {
@@ -29,6 +30,8 @@ const planetsSchema = new Schema({
   }
 });
 
+const planetsNetwork = new Network(planetsSchema);
+
 module('OC - Cache - liveQuery', function(hooks) {
   let cache;
   let pluto;
@@ -36,25 +39,30 @@ module('OC - Cache - liveQuery', function(hooks) {
   let callisto;
   let io;
 
+  let keyMap = planetsNetwork.keyMap;
+
   hooks.beforeEach(function() {
-    pluto = planetsSchema.normalize({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
+    pluto = { type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } };
+    jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } };
+    callisto = { type: 'moon', id: 'callisto', attributes: { name: 'Callisto' } };
 
-    jupiter = planetsSchema.normalize({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
-    callisto = planetsSchema.normalize({ type: 'moon', id: 'callisto', attributes: { name: 'Callisto' } });
-
-    planetsSchema.normalize({
+    // TODO: Is passing the realationships supposed to do something? Check to see if this has
+    // any effect.
+    keyMap.push({
       type: 'planet', id: 'saturn',
       attributes: { name: 'Saturn' },
       relationships: { moons: { data: { 'moon:titan': true } } } });
 
-    planetsSchema.normalize({
+    keyMap.push({
       type: 'moon', id: 'titan',
       attributes: { name: 'Titan' },
       relationships: { planet: { data: 'planet:saturn' } } });
 
-    io = planetsSchema.normalize({ type: 'moon', id: 'io', attributes: { name: 'Io' } });
+    io = { type: 'moon', id: 'io', attributes: { name: 'Io' } };
 
-    cache = new Cache(planetsSchema);
+    [pluto, jupiter, callisto, io].forEach((p) => keyMap.push(p));
+
+    cache = new Cache(planetsNetwork);
   });
 
   test('records', function(assert) {

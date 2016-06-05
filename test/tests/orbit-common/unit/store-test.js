@@ -1,5 +1,6 @@
 import Source from 'orbit/source';
 import Schema from 'orbit-common/schema';
+import Network from 'orbit-common/network';
 import Store from 'orbit-common/store';
 import qb from 'orbit-common/query/builder';
 import CacheIntegrityProcessor from 'orbit-common/cache/operation-processors/cache-integrity-processor';
@@ -40,12 +41,13 @@ const schemaDefinition = {
 };
 
 const schema = new Schema(schemaDefinition);
+const network = new Network(schema);
 
 module('OC - Store', function(hooks) {
   let store;
 
   hooks.beforeEach(function() {
-    store = new Store({ schema });
+    store = new Store({ network });
   });
 
   test('its prototype chain is correct', function(assert) {
@@ -63,7 +65,7 @@ module('OC - Store', function(hooks) {
   });
 
   test('internal cache\'s options can be specified with `cacheOptions`', function() {
-    var store = new Store({ schema: schema, cacheOptions: { processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor] } });
+    var store = new Store({ network, cacheOptions: { processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor] } });
     ok(store.cache, 'cache exists');
     equal(store.cache._processors.length, 2, 'cache has 2 processors');
   });
@@ -112,8 +114,8 @@ module('OC - Store', function(hooks) {
   QUnit.skip('#liveQuery', function(assert) {
     const done = assert.async();
 
-    const jupiter = schema.normalize({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
-    const pluto = schema.normalize({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
+    const jupiter = network.initializeRecord({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
+    const pluto = network.initializeRecord({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
 
     const setupStore = store.update([
       addRecord(pluto),

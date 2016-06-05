@@ -4,6 +4,7 @@ import Store from 'orbit-common/store';
 import JsonApiSource from 'orbit-common/jsonapi-source';
 import { eq } from 'orbit/lib/eq';
 import qb from 'orbit-common/query/builder';
+import Network from 'orbit-common/network';
 import {
   addRecord,
   replaceRecord,
@@ -79,8 +80,8 @@ function jsonResponse(status, json) {
 }
 
 module('Integration - Coordinator', function(hooks) {
-  let schema;
   let store;
+  let network;
   // let localStorage;
   let jsonApiSource;
   let coordinator;
@@ -89,10 +90,10 @@ module('Integration - Coordinator', function(hooks) {
     server = sinon.fakeServer.create();
     server.autoRespond = true;
 
-    schema = planetsSchema;
+    network = new Network(planetsSchema);
     coordinator = new Coordinator();
-    jsonApiSource = new JsonApiSource({ schema });
-    store = new Store({ schema });
+    jsonApiSource = new JsonApiSource({ network });
+    store = new Store({ network });
     // localStorage = new LocalStorageSource({ schema });
 
     coordinator.addNode('master', {
@@ -142,7 +143,7 @@ module('Integration - Coordinator', function(hooks) {
   test('#update - addRecord', function(assert) {
     assert.expect(3);
 
-    let record = schema.normalize({ type: 'planet', attributes: { name: 'Pluto' } });
+    let record = network.initializeRecord({ type: 'planet', attributes: { name: 'Pluto' } });
 
     onAddPlutoRequest(stubbedResponses.planetAdded);
 
@@ -157,7 +158,7 @@ module('Integration - Coordinator', function(hooks) {
   test('#update - addRecord - error', function(assert) {
     assert.expect(1);
 
-    let record = schema.normalize({ type: 'planet', attributes: { name: 'Pluto' } });
+    let record = network.initializeRecord({ type: 'planet', attributes: { name: 'Pluto' } });
 
     onAddPlutoRequest(stubbedResponses.planetAddFailed);
 

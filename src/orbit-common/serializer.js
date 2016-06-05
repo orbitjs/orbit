@@ -1,5 +1,5 @@
 export default class Serializer {
-  constructor(schema) {
-    this.schema = schema;
+  constructor(network) {
+    this.network = network;
   }
 }

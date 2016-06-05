@@ -24,4 +24,16 @@ function some(array, predicate) {
   return false;
 }
 
-export { every, some };
+function firstResult(array, valueFn) {
+  let index = -1;
+  let length = array.length;
+
+  while (++index < length) {
+    let result = valueFn(array[index], index);
+    if (result) {
+      return result;
+    }
+  }
+}
+
+export { every, some, firstResult };

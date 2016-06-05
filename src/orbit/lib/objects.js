@@ -168,4 +168,18 @@ var merge =  function(base, source) {
   return merged;
 };
 
-export { clone, expose, extend, isArray, toArray, isObject, isNone, merge };
+function get(obj, ...args) {
+  let index = -1;
+  let result = obj;
+
+  while (++index < args.length) {
+    result = result[args[index]];
+    if (!result) {
+      return result;
+    }
+  }
+
+  return result;
+}
+
+export { clone, expose, extend, isArray, toArray, isObject, isNone, merge, get };

@@ -8,7 +8,7 @@ import Cache from './cache';
 
 export default class Store extends Source {
   constructor(options = {}) {
-    assert('Store\'s `schema` must be specified in `options.schema` constructor argument', options.schema);
+    assert('Store\'s `network` must be specified in `options.network` constructor argument', options.network);
 
     super(options);
 
@@ -16,10 +16,10 @@ export default class Store extends Source {
     Updatable.extend(this);
     Transformable.extend(this);
 
-    this.schema = options.schema;
+    this.network = options.network;
     this.name = options.name || 'store';
 
-    this.cache = new Cache(options.schema, options.cacheOptions);
+    this.cache = new Cache(this.network, options.cacheOptions);
   }
 
   /////////////////////////////////////////////////////////////////////////////

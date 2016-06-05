@@ -2,16 +2,17 @@ import 'tests/test-helper';
 import Schema from 'orbit-common/schema';
 import Serializer from 'orbit-common/serializer';
 import JSONAPISerializer from 'orbit-common/jsonapi/serializer';
+import Network from 'orbit-common/network';
 import { toIdentifier } from 'orbit-common/lib/identifiers';
 import { uuid } from 'orbit/lib/uuid';
 
-var schema, serializer;
+var network, serializer;
 
 ///////////////////////////////////////////////////////////////////////////////
 
 module('OC - JSONAPISerializer', {
   teardown: function() {
-    schema = null;
+    network = null;
     serializer = null;
   }
 });
@@ -46,7 +47,7 @@ var modelsInSchema = {
 };
 
 function setupWithLocalIds() {
-  schema = new Schema({
+  let schema = new Schema({
     modelDefaults: {
       id: {
         defaultValue: uuid
@@ -57,15 +58,15 @@ function setupWithLocalIds() {
     },
     models: modelsInSchema
   });
-  serializer = new JSONAPISerializer(schema);
+  network = new Network(schema);
+  serializer = new JSONAPISerializer(network);
   serializer.resourceKey = function() { return 'remoteId'; };
 }
 
 function setupWithUUIDs() {
-  schema = new Schema({
-    models: modelsInSchema
-  });
-  serializer = new JSONAPISerializer(schema);
+  let schema = new Schema({ models: modelsInSchema });
+  network = new Network(schema);
+  serializer = new JSONAPISerializer(network);
 }
 
 test('it exists', function() {
@@ -125,8 +126,8 @@ test('#relationshipFromResourceRelationship returns the camelized relationship b
 test('#resourceId returns a matching resource id given an orbit id (or array of ids) - using local IDs', function() {
   setupWithLocalIds();
 
-  schema.normalize({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
-  schema.normalize({ type: 'planet', id: '2', keys: { remoteId: 'b' } });
+  network.keyMap.push({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
+  network.keyMap.push({ type: 'planet', id: '2', keys: { remoteId: 'b' } });
 
   equal(serializer.resourceId('planet', '1'), 'a');
   equal(serializer.resourceId('planet', '2'), 'b');
@@ -137,8 +138,8 @@ test('#resourceId returns a matching resource id given an orbit id (or array of 
 test('#resourceId returns a matching resource id given an orbit id (or array of ids) - using UUIDs', function() {
   setupWithUUIDs();
 
-  schema.normalize({ type: 'planet', id: 'a' });
-  schema.normalize({ type: 'planet', id: 'b' });
+  network.initializeRecord({ type: 'planet', id: 'a' });
+  network.initializeRecord({ type: 'planet', id: 'b' });
 
   equal(serializer.resourceId('planet', 'a'), 'a');
   equal(serializer.resourceId('planet', 'b'), 'b');
@@ -149,8 +150,8 @@ test('#resourceId returns a matching resource id given an orbit id (or array of 
 test('#idFromResourceId returns a matching orbit id given a resource id - using local IDs', function() {
   setupWithLocalIds();
 
-  schema.normalize({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
-  schema.normalize({ type: 'planet', id: '2', keys: { remoteId: 'b' } });
+  network.keyMap.push({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
+  network.keyMap.push({ type: 'planet', id: '2', keys: { remoteId: 'b' } });
 
   equal(serializer.idFromResourceId('planet', 'a'), '1');
   equal(serializer.idFromResourceId('planet', 'b'), '2');
@@ -159,8 +160,8 @@ test('#idFromResourceId returns a matching orbit id given a resource id - using 
 test('#idFromResourceId returns a matching orbit id given a resource id - using UUIDs', function() {
   setupWithUUIDs();
 
-  schema.normalize({ type: 'planet', id: 'a' });
-  schema.normalize({ type: 'planet', id: 'b' });
+  network.initializeRecord({ type: 'planet', id: 'a' });
+  network.initializeRecord({ type: 'planet', id: 'b' });
 
   equal(serializer.idFromResourceId('planet', 'a'), 'a');
   equal(serializer.idFromResourceId('planet', 'b'), 'b');
@@ -215,9 +216,9 @@ test('#serialize - can serialize a simple resource with only attributes', functi
 test('#serialize - can serialize a resource with attributes and has-many relationships', function() {
   setupWithLocalIds();
 
-  schema.normalize({ type: 'planet', id: 'p1', keys: { remoteId: 'p1-id' } });
-  schema.normalize({ type: 'moon', id: 'm1', keys: { remoteId: 'm1-id' } });
-  schema.normalize({ type: 'moon', id: 'm2', keys: { remoteId: 'm2-id' } });
+  network.keyMap.push({ type: 'planet', id: 'p1', keys: { remoteId: 'p1-id' } });
+  network.keyMap.push({ type: 'moon', id: 'm1', keys: { remoteId: 'm1-id' } });
+  network.keyMap.push({ type: 'moon', id: 'm2', keys: { remoteId: 'm2-id' } });
 
   deepEqual(
     serializer.serialize(
@@ -263,8 +264,8 @@ test('#serialize - can serialize a resource with attributes and has-many relatio
 test('#serialize - can serialize a resource with attributes and a null has-one relationship', function() {
   setupWithLocalIds();
 
-  schema.normalize({ type: 'planet', id: 'p1', keys: { remoteId: 'p1-id' } });
-  schema.normalize({ type: 'moon', id: 'm1', keys: { remoteId: 'm1-id' } });
+  network.keyMap.push({ type: 'planet', id: 'p0', keys: { remoteId: 'p1-id' } });
+  network.keyMap.push({ type: 'moon', id: 'm1', keys: { remoteId: 'm1-id' } });
 
   deepEqual(
     serializer.serialize(
@@ -300,8 +301,8 @@ test('#serialize - can serialize a resource with attributes and a null has-one r
 test('#serialize - can serialize a resource with attributes and a has-one relationships', function() {
   setupWithLocalIds();
 
-  schema.normalize({ type: 'planet', id: 'p1', keys: { remoteId: 'p1-id' } });
-  schema.normalize({ type: 'solarSystem', id: 'ss1', keys: { remoteId: 'ss1-id' } });
+  network.keyMap.push({ type: 'planet', id: 'p1', keys: { remoteId: 'p1-id' } });
+  network.keyMap.push({ type: 'solarSystem', id: 'ss1', keys: { remoteId: 'ss1-id' } });
 
   deepEqual(
     serializer.serialize(
@@ -353,7 +354,7 @@ test('#deserialize - can deserialize a simple resource with only type and id - u
     record,
     {
       __normalized: true,
-      id: record.id,
+      id: undefined,
       type: 'planet',
       keys: {
         remoteId: '123'
