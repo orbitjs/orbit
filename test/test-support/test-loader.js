@@ -1,19 +1,17 @@
 /* globals requirejs, require */
 
-var moduleName, shouldLoad;
-
 QUnit.config.autostart = false;
-QUnit.config.urlConfig.push({ id: 'nojshint', label: 'Disable JSHint' });
+QUnit.config.urlConfig.push({ id: 'nolint', label: 'Disable Linting' });
 
 // TODO: load based on params
 setTimeout(function() {
-  for (moduleName in requirejs.entries) {
-    shouldLoad = false;
+  for (var moduleName in requirejs.entries) {
+    var isTest = moduleName.match(/[-_]test$/);
+    var isSkippedLintTest = QUnit.urlParams.nolint && moduleName.match(/\.lint-test$/);
 
-    if (moduleName.match(/[-_]test$/)) { shouldLoad = true; }
-    if (!QUnit.urlParams.nojshint && moduleName.match(/\.jshint$/)) { shouldLoad = true; }
-
-    if (shouldLoad) { require(moduleName); }
+    if (isTest && !isSkippedLintTest) {
+      require(moduleName);
+    }
   }
   QUnit.start();
 }, 250);
