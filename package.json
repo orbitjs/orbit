@@ -10,6 +10,9 @@
     "name": "Cerebris Corporation",
     "url": "http://cerebris.com"
   },
+  "engines": {
+    "node": ">= 4.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/orbitjs/orbit.js.git"
@@ -30,7 +33,8 @@
     "prepublish": "bower install",
     "test": "testem ci",
     "start": "BROCCOLI_ENV=test broccoli serve",
-    "docs": "yuidoc ./src"
+    "docs": "yuidoc ./src",
+    "build_docs": "./node_modules/.bin/esdoc -c esdoc.json"
   },
   "devDependencies": {
     "babel-eslint": "^6.0.4",
@@ -47,7 +51,9 @@
     "git-repo-version": "^0.1.1",
     "js-string-escape": "^1.0.1",
     "testem": "^1.0.0-rc.1",
-    "yuidocjs": "^0.8.1"
+    "yuidocjs": "^0.8.1",
+    "broccoli-replace": "~0.12.0",
+    "esdoc": "~0.4.7"
   },
   "dependencies": {
     "immutable": "^3.7.6",
