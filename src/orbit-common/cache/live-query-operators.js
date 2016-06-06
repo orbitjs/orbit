@@ -12,7 +12,7 @@ function removeRecordOperation(record) {
 }
 
 export default {
-  recordsOfType(context, type) {
+  records(context, type) {
     return this.target.patches.matching({ record: { type } });
   },
 

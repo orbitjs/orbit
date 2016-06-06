@@ -59,7 +59,7 @@ export default {
     return record;
   },
 
-  recordsOfType(context, type) {
+  records(context, type) {
     const cache = this.target;
     const schema = cache.schema;
 

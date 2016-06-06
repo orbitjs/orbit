@@ -116,7 +116,7 @@ module('OC - Store', function(hooks) {
                                           .addRecord(jupiter));
 
     setupStore.then(() => {
-      const liveQuery = store.liveQuery(qb.recordsOfType('planet'));
+      const liveQuery = store.liveQuery(qb.records('planet'));
       liveQuery.subscribe(op => console.log(op));
 
       liveQuery.take(2).toArray().subscribe(operations => {

@@ -46,9 +46,9 @@ module('OC - Cache - liveQuery', function(hooks) {
     cache = new Cache(planetsSchema);
   });
 
-  test('recordsOfType', function(assert) {
+  test('records', function(assert) {
     const done = assert.async();
-    const liveQuery = cache.liveQuery(qb.recordsOfType('planet'));
+    const liveQuery = cache.liveQuery(qb.records('planet'));
 
     liveQuery.take(2).toArray().subscribe((operations) => {
       assert.deepEqual(operations, [
@@ -70,7 +70,7 @@ module('OC - Cache - liveQuery', function(hooks) {
     const done = assert.async();
 
     const liveQuery = cache.liveQuery(
-      qb.recordsOfType('planet').filterAttributes({ name: 'Pluto' })
+      qb.records('planet').filterAttributes({ name: 'Pluto' })
     );
 
     liveQuery.take(1).toArray().subscribe((operations) => {
@@ -88,7 +88,7 @@ module('OC - Cache - liveQuery', function(hooks) {
     const done = assert.async();
 
     const liveQuery = cache.liveQuery(
-      qb.recordsOfType('planet').filterAttributes({ name: 'Pluto' })
+      qb.records('planet').filterAttributes({ name: 'Pluto' })
     );
 
     liveQuery.take(2).toArray().subscribe(operations => {
@@ -109,7 +109,7 @@ module('OC - Cache - liveQuery', function(hooks) {
     const done = assert.async();
 
     const liveQuery = cache.liveQuery(
-      qb.recordsOfType('planet').filterAttributes({ name: 'Pluto' })
+      qb.records('planet').filterAttributes({ name: 'Pluto' })
     );
 
     liveQuery.subscribe(operation => {
@@ -130,7 +130,7 @@ module('OC - Cache - liveQuery', function(hooks) {
     cache.transform(t => t.addRecord(pluto));
 
     const liveQuery = cache.liveQuery(
-      qb.recordsOfType('planet')
+      qb.records('planet')
        .filterAttributes({ name: 'Pluto' })
     );
 
@@ -148,7 +148,7 @@ module('OC - Cache - liveQuery', function(hooks) {
     const done = assert.async();
 
     const liveQuery = cache.liveQuery(
-      qb.recordsOfType('planet').filterAttributes({ name: 'Uranus2' })
+      qb.records('planet').filterAttributes({ name: 'Uranus2' })
     );
 
     liveQuery.subscribe(operation => {
@@ -164,7 +164,7 @@ module('OC - Cache - liveQuery', function(hooks) {
 
   test('filter - ignores remove record that isn\'t included in matches', function(assert) {
     const liveQuery = cache.liveQuery(
-      qb.recordsOfType('planet').filterAttributes({ name: 'Jupiter' })
+      qb.records('planet').filterAttributes({ name: 'Jupiter' })
     );
 
     const onOperation = sinon.stub();
@@ -180,7 +180,7 @@ module('OC - Cache - liveQuery', function(hooks) {
     const done = assert.async();
 
     const liveQuery = cache.liveQuery(
-      qb.recordsOfType('planet')
+      qb.records('planet')
        .filterAttributes({ name: 'Pluto' })
        .filterAttributes({ name: 'Pluto' })
     );
@@ -196,12 +196,12 @@ module('OC - Cache - liveQuery', function(hooks) {
     });
   });
 
-  test('filter - recordsOfType with existing match in cache', function(assert) {
+  test('filter - records with existing match in cache', function(assert) {
     const done = assert.async();
 
     cache.transform(t => t.addRecord(pluto));
 
-    const liveQuery = cache.liveQuery(qb.recordsOfType('planet'));
+    const liveQuery = cache.liveQuery(qb.records('planet'));
 
     liveQuery.subscribe(operation => {
       assert.deepEqual(operation, { op: 'addRecord', record: pluto });

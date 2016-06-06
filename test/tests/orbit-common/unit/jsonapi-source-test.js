@@ -433,7 +433,7 @@ test('#fetch - record', function(assert) {
     });
 });
 
-test('#fetch - recordsOfType', function(assert) {
+test('#fetch - records', function(assert) {
   assert.expect(4);
 
   const data = [
@@ -449,7 +449,7 @@ test('#fetch - recordsOfType', function(assert) {
                 JSON.stringify({ data }));
   });
 
-  return source.fetch(qb.recordsOfType('planet'))
+  return source.fetch(qb.records('planet'))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
@@ -457,7 +457,7 @@ test('#fetch - recordsOfType', function(assert) {
     });
 });
 
-test('#fetch - recordsOfType with filter', function(assert) {
+test('#fetch - records with filter', function(assert) {
   assert.expect(4);
 
   const data = [
@@ -471,7 +471,7 @@ test('#fetch - recordsOfType with filter', function(assert) {
                 JSON.stringify({ data }));
   });
 
-  return source.fetch(qb.recordsOfType('planet')
+  return source.fetch(qb.records('planet')
                             .filterAttributes({ name: 'Jupiter' }))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');

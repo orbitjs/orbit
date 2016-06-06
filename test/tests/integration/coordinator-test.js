@@ -299,7 +299,7 @@ module('Integration - Coordinator', function(hooks) {
 
     server.respondWith('GET', '/planets', jsonResponse(200, { data }));
 
-    return store.query(qb.recordsOfType('planet'))
+    return store.query(qb.records('planet'))
       .then(planets => {
         assert.deepEqual(Object.keys(planets).map(k => planets[k].attributes.name), ['Jupiter']);
       });
@@ -331,7 +331,7 @@ module('Integration - Coordinator', function(hooks) {
     server.respondWith('GET', `/planets?${encodeURIComponent('filter[name]')}=Jupiter`, jsonResponse(200, { data }));
 
     return store
-      .query(qb.recordsOfType('planet')
+      .query(qb.records('planet')
                .filterAttributes({ name: 'Jupiter' }))
       .then(planets => {
         assert.deepEqual(Object.keys(planets).map(k => planets[k].attributes.name), ['Jupiter']);
