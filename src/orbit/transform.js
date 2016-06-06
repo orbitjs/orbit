@@ -1,7 +1,6 @@
 /* eslint-disable valid-jsdoc */
 import { toArray } from './lib/objects';
 import { uuid } from './lib/uuid';
-import { TransformBuilderNotRegisteredException } from './lib/exceptions';
 
 /**
  Transforms represent a set of operations that are applied to mutate a
@@ -30,15 +29,9 @@ export default class Transform {
   }
 }
 
-Transform.from = function(transformOrOperations, transformBuilder) {
+Transform.from = function(transformOrOperations) {
   if (transformOrOperations instanceof Transform) {
     return transformOrOperations;
-  } else if (typeof transformOrOperations === 'function') {
-    if (transformBuilder) {
-      return transformBuilder.build(transformOrOperations);
-    } else {
-      throw new TransformBuilderNotRegisteredException();
-    }
   } else {
     return new Transform(transformOrOperations);
   }

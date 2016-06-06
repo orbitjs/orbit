@@ -4,6 +4,17 @@ import Store from 'orbit-common/store';
 import JsonApiSource from 'orbit-common/jsonapi-source';
 import { eq } from 'orbit/lib/eq';
 import qb from 'orbit-common/query/builder';
+import {
+  addRecord,
+  replaceRecord,
+  removeRecord,
+  // replaceKey,
+  // replaceAttribute,
+  addToHasMany,
+  removeFromHasMany,
+  replaceHasMany,
+  replaceHasOne
+} from 'orbit-common/transform/operators';
 
 let server;
 
@@ -135,7 +146,7 @@ module('Integration - Coordinator', function(hooks) {
 
     onAddPlutoRequest(stubbedResponses.planetAdded);
 
-    return store.update(t => t.addRecord(record))
+    return store.update(addRecord(record))
       .then(transforms => {
         assert.equal(transforms.length, 1);
         assert.deepEqual(transforms[0].operations.map(o => o.op), ['addRecord']);
@@ -150,7 +161,7 @@ module('Integration - Coordinator', function(hooks) {
 
     onAddPlutoRequest(stubbedResponses.planetAddFailed);
 
-    return store.update(t => t.addRecord(record))
+    return store.update(addRecord(record))
       .catch(error => {
         assert.equal(error.responseJSON.errors[0].detail, 'Pluto isn\'t really a planet!');
       });
@@ -159,13 +170,13 @@ module('Integration - Coordinator', function(hooks) {
   test('#update - replaceRecord', function(assert) {
     assert.expect(3);
 
-    store.cache.transform(t => {
-      t.addRecord({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto', classification: 'superior' } });
-    });
+    store.cache.transform(
+      addRecord({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto', classification: 'superior' } })
+    );
 
     server.respondWith('PATCH', '/planets/pluto', jsonResponse(200, {}));
 
-    return store.update(t => t.replaceRecord({ type: 'planet', id: 'pluto', keys: { id: 'pluto' }, attributes: { name: 'Pluto2', classification: 'gas giant' } }))
+    return store.update(replaceRecord({ type: 'planet', id: 'pluto', keys: { id: 'pluto' }, attributes: { name: 'Pluto2', classification: 'gas giant' } }))
       .then(transforms => {
         assert.equal(transforms.length, 1);
         assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
@@ -180,9 +191,9 @@ module('Integration - Coordinator', function(hooks) {
 
     server.respondWith('DELETE', '/planets/pluto', stubbedResponses.deletePlanet);
 
-    store.cache.transform(t => t.addRecord(pluto));
+    store.cache.transform(addRecord(pluto));
 
-    return store.update(t => t.removeRecord(pluto))
+    return store.update(removeRecord(pluto))
       .then(() => {
         assert.notOk(store.cache.has(['planet', 'pluto']), 'cache updated');
         assert.ok(wasRequested('DELETE', '/planets/pluto'), 'server updated');
@@ -195,14 +206,14 @@ module('Integration - Coordinator', function(hooks) {
     const jupiter = { type: 'planet', id: 'jupiter' };
     const io = { type: 'moon', id: 'io' };
 
-    store.cache.transform(t => {
-      t.addRecord(jupiter);
-      t.addRecord(io);
-    });
+    store.cache.transform([
+      addRecord(jupiter),
+      addRecord(io)
+    ]);
 
     server.respondWith('POST', '/planets/jupiter/relationships/moons', jsonResponse(200, {}));
 
-    return store.update(t => t.addToHasMany(jupiter, 'moons', io))
+    return store.update(addToHasMany(jupiter, 'moons', io))
       .then(() => {
         const cacheJupiter = store.cache.get(['planet', 'jupiter']);
         assert.deepEqual(cacheJupiter.relationships.moons.data, { 'moon:io': true }, 'cache updated');
@@ -216,15 +227,15 @@ module('Integration - Coordinator', function(hooks) {
     const jupiter = { type: 'planet', id: 'jupiter' };
     const io = { type: 'moon', id: 'io' };
 
-    store.cache.transform(t => {
-      t.addRecord(jupiter);
-      t.addRecord(io);
-      t.addToHasMany(jupiter, 'moons', io);
-    });
+    store.cache.transform([
+      addRecord(jupiter),
+      addRecord(io),
+      addToHasMany(jupiter, 'moons', io)
+    ]);
 
     server.respondWith('DELETE', '/planets/jupiter/relationships/moons', jsonResponse(200, {}));
 
-    return store.update(t => t.removeFromHasMany(jupiter, 'moons', io))
+    return store.update(removeFromHasMany(jupiter, 'moons', io))
       .then(() => {
         const cacheJupiter = store.cache.get(['planet', 'jupiter']);
         assert.deepEqual(cacheJupiter.relationships.moons.data, {}, 'cache updated');
@@ -240,16 +251,16 @@ module('Integration - Coordinator', function(hooks) {
     const io = { type: 'moon', id: 'io' };
     const requestBody = { data: { id: 'io', type: 'moons', relationships: { planet: { data: { type: 'planets', id: 'earth' } } } } };
 
-    store.cache.transform(t => {
-      t.addRecord(earth);
-      t.addRecord(jupiter);
-      t.addRecord(io);
-      t.replaceHasOne(io, 'planet', jupiter);
-    });
+    store.cache.transform([
+      addRecord(earth),
+      addRecord(jupiter),
+      addRecord(io),
+      replaceHasOne(io, 'planet', jupiter)
+    ]);
 
     server.respondWith('PATCH', '/moons/io', jsonResponse(200, {}));
 
-    return store.update(t => t.replaceHasOne(io, 'planet', earth))
+    return store.update(replaceHasOne(io, 'planet', earth))
       .then(() => {
         const cacheIo = store.cache.get(['moon', 'io']);
         assert.deepEqual(cacheIo.relationships.planet.data, 'planet:earth', 'updated cache');
@@ -265,15 +276,15 @@ module('Integration - Coordinator', function(hooks) {
     const europa = { type: 'moon', id: 'europa' };
     const expectedRequestBody = { data: { id: 'jupiter', type: 'planets', relationships: { moons: { data: [{ type: 'moons', id: 'io' }, { type: 'moons', id: 'europa' }] } } } };
 
-    store.cache.transform(t => {
-      t.addRecord(jupiter);
-      t.addRecord(io);
-      t.addRecord(europa);
-    });
+    store.cache.transform([
+      addRecord(jupiter),
+      addRecord(io),
+      addRecord(europa)
+    ]);
 
     server.respondWith('PATCH', '/planets/jupiter', jsonResponse(200, {}));
 
-    return store.update(t => t.replaceHasMany(jupiter, 'moons', [io, europa]))
+    return store.update(replaceHasMany(jupiter, 'moons', [io, europa]))
       .then(() => {
         const cacheJupiter = store.cache.get(['planet', 'jupiter']);
         assert.deepEqual(cacheJupiter.relationships.moons.data, { 'moon:io': true, 'moon:europa': true });

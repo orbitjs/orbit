@@ -2,6 +2,17 @@ import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
 import { identity } from 'orbit-common/lib/identifiers';
 import qb from 'orbit-common/query/builder';
+import {
+  addRecord,
+  // replaceRecord,
+  removeRecord,
+  // replaceKey,
+  replaceAttribute,
+  addToHasMany,
+  removeFromHasMany,
+  // replaceHasMany,
+  replaceHasOne
+} from 'orbit-common/transform/operators';
 
 const planetsSchema = new Schema({
   models: {
@@ -59,11 +70,11 @@ module('OC - Cache - liveQuery', function(hooks) {
       done();
     });
 
-    cache.transform(t =>
-      t.addRecord(pluto)
-       .replaceAttribute(pluto, 'name', 'Pluto2')
-       .addRecord(jupiter)
-    );
+    cache.transform([
+      addRecord(pluto),
+      replaceAttribute(pluto, 'name', 'Pluto2'),
+      addRecord(jupiter)
+    ]);
   });
 
   test('filter - add new match', function(assert) {
@@ -78,10 +89,10 @@ module('OC - Cache - liveQuery', function(hooks) {
       done();
     });
 
-    cache.transform(t =>
-      t.addRecord(pluto)
-       .addRecord(jupiter)
-    );
+    cache.transform([
+      addRecord(pluto),
+      addRecord(jupiter)
+    ]);
   });
 
   test('filter - remove match', function(assert) {
@@ -99,10 +110,10 @@ module('OC - Cache - liveQuery', function(hooks) {
       done();
     });
 
-    cache.transform(t =>
-      t.addRecord(pluto)
-       .removeRecord(pluto)
-    );
+    cache.transform([
+      addRecord(pluto),
+      removeRecord(pluto)
+    ]);
   });
 
   test('filter - remove then add match', function(assert) {
@@ -118,16 +129,16 @@ module('OC - Cache - liveQuery', function(hooks) {
       done();
     });
 
-    cache.transform(t =>
-      t.removeRecord(pluto)
-       .addRecord(pluto)
-    );
+    cache.transform([
+      removeRecord(pluto),
+      addRecord(pluto)
+    ]);
   });
 
   test('filter - change attribute that causes removal from matches', function(assert) {
     const done = assert.async();
 
-    cache.transform(t => t.addRecord(pluto));
+    cache.transform(addRecord(pluto));
 
     const liveQuery = cache.liveQuery(
       qb.records('planet')
@@ -141,7 +152,7 @@ module('OC - Cache - liveQuery', function(hooks) {
       done();
     });
 
-    cache.transform(t => t.replaceAttribute({ type: 'planet', id: 'pluto' }, 'name', 'Jupiter'));
+    cache.transform(replaceAttribute({ type: 'planet', id: 'pluto' }, 'name', 'Jupiter'));
   });
 
   test('filter - change attribute that causes add to matches', function(assert) {
@@ -156,10 +167,10 @@ module('OC - Cache - liveQuery', function(hooks) {
       done();
     });
 
-    cache.transform(t =>
-      t.addRecord({ type: 'planet', id: 'uranus', attributes: { name: 'Uranus' } })
-       .replaceAttribute({ type: 'planet', id: 'uranus' }, 'name', 'Uranus2')
-    );
+    cache.transform([
+      addRecord({ type: 'planet', id: 'uranus', attributes: { name: 'Uranus' } }),
+      replaceAttribute({ type: 'planet', id: 'uranus' }, 'name', 'Uranus2')
+    ]);
   });
 
   test('filter - ignores remove record that isn\'t included in matches', function(assert) {
@@ -170,8 +181,10 @@ module('OC - Cache - liveQuery', function(hooks) {
     const onOperation = sinon.stub();
     liveQuery.subscribe(onOperation);
 
-    cache.transform(t => t.addRecord(pluto)
-                          .removeRecord(pluto));
+    cache.transform([
+      addRecord(pluto),
+      removeRecord(pluto)
+    ]);
 
     assert.equal(onOperation.getCalls().length, 0);
   });
@@ -181,8 +194,8 @@ module('OC - Cache - liveQuery', function(hooks) {
 
     const liveQuery = cache.liveQuery(
       qb.records('planet')
-       .filterAttributes({ name: 'Pluto' })
-       .filterAttributes({ name: 'Pluto' })
+        .filterAttributes({ name: 'Pluto' })
+        .filterAttributes({ name: 'Pluto' })
     );
 
     liveQuery.subscribe(operation => {
@@ -190,16 +203,16 @@ module('OC - Cache - liveQuery', function(hooks) {
       done();
     });
 
-    cache.transform(t => {
-      t.addRecord(pluto);
-      t.addRecord(jupiter);
-    });
+    cache.transform([
+      addRecord(pluto),
+      addRecord(jupiter)
+    ]);
   });
 
   test('filter - records with existing match in cache', function(assert) {
     const done = assert.async();
 
-    cache.transform(t => t.addRecord(pluto));
+    cache.transform(addRecord(pluto));
 
     const liveQuery = cache.liveQuery(qb.records('planet'));
 
@@ -212,7 +225,7 @@ module('OC - Cache - liveQuery', function(hooks) {
   test('record - existing record with removal', function(assert) {
     const done = assert.async();
 
-    cache.transform(t => t.addRecord(pluto));
+    cache.transform(addRecord(pluto));
     const liveQuery = cache.liveQuery(qb.record(identity(pluto)));
     // liveQuery.subscribe(op => console.log('op', op));
 
@@ -225,7 +238,7 @@ module('OC - Cache - liveQuery', function(hooks) {
       done();
     });
 
-    cache.transform(t => t.removeRecord(pluto));
+    cache.transform(removeRecord(pluto));
   });
 
   module('relatedRecord', function() {
@@ -245,13 +258,13 @@ module('OC - Cache - liveQuery', function(hooks) {
         done();
       });
 
-      cache.transform(t => {
+      cache.transform([
         // this first transform should not match the liveQuery's filter
-        t.replaceHasOne(io, 'planet', pluto);
+        replaceHasOne(io, 'planet', pluto),
         // subsequent transforms should match the liveQuery's filter
-        t.replaceHasOne(callisto, 'planet', jupiter);
-        t.replaceHasOne(callisto, 'planet', null);
-      });
+        replaceHasOne(callisto, 'planet', jupiter),
+        replaceHasOne(callisto, 'planet', null)
+      ]);
     });
   });
 
@@ -272,13 +285,13 @@ module('OC - Cache - liveQuery', function(hooks) {
         done();
       });
 
-      cache.transform(t => {
+      cache.transform([
         // this first transform should not match the liveQuery's filter
-        t.addToHasMany(pluto, 'moons', io);
+        addToHasMany(pluto, 'moons', io),
         // subsequent transforms should match the liveQuery's filter
-        t.addToHasMany(jupiter, 'moons', callisto);
-        t.removeFromHasMany(jupiter, 'moons', callisto);
-      });
+        addToHasMany(jupiter, 'moons', callisto),
+        removeFromHasMany(jupiter, 'moons', callisto)
+      ]);
     });
   });
 });

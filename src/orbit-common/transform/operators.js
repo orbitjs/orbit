@@ -1,46 +1,35 @@
-export default {
-  addRecord(record) {
-    this.operations.push({ op: 'addRecord', record });
-    return this;
-  },
+export function addRecord(record) {
+  return { op: 'addRecord', record };
+}
 
-  replaceRecord(record) {
-    this.operations.push({ op: 'replaceRecord', record });
-    return this;
-  },
+export function replaceRecord(record) {
+  return { op: 'replaceRecord', record };
+}
 
-  removeRecord(record) {
-    this.operations.push({ op: 'removeRecord', record });
-    return this;
-  },
+export function removeRecord(record) {
+  return { op: 'removeRecord', record };
+}
 
-  replaceKey(record, key, value) {
-    this.operations.push({ op: 'replaceKey', record, key, value });
-    return this;
-  },
+export function replaceKey(record, key, value) {
+  return { op: 'replaceKey', record, key, value };
+}
 
-  replaceAttribute(record, attribute, value) {
-    this.operations.push({ op: 'replaceAttribute', record, attribute, value });
-    return this;
-  },
+export function replaceAttribute(record, attribute, value) {
+  return { op: 'replaceAttribute', record, attribute, value };
+}
 
-  addToHasMany(record, relationship, relatedRecord) {
-    this.operations.push({ op: 'addToHasMany', record, relationship, relatedRecord });
-    return this;
-  },
+export function addToHasMany(record, relationship, relatedRecord) {
+  return { op: 'addToHasMany', record, relationship, relatedRecord };
+}
 
-  removeFromHasMany(record, relationship, relatedRecord) {
-    this.operations.push({ op: 'removeFromHasMany', record, relationship, relatedRecord });
-    return this;
-  },
+export function removeFromHasMany(record, relationship, relatedRecord) {
+  return { op: 'removeFromHasMany', record, relationship, relatedRecord };
+}
 
-  replaceHasMany(record, relationship, relatedRecords) {
-    this.operations.push({ op: 'replaceHasMany', record, relationship, relatedRecords });
-    return this;
-  },
+export function replaceHasMany(record, relationship, relatedRecords) {
+  return { op: 'replaceHasMany', record, relationship, relatedRecords };
+}
 
-  replaceHasOne(record, relationship, relatedRecord) {
-    this.operations.push({ op: 'replaceHasOne', record, relationship, relatedRecord });
-    return this;
-  }
-};
+export function replaceHasOne(record, relationship, relatedRecord) {
+  return { op: 'replaceHasOne', record, relationship, relatedRecord };
+}

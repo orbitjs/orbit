@@ -44,14 +44,6 @@ export class TransformNotLoggedException extends Exception {
   }
 }
 
-export class TransformBuilderNotRegisteredException extends Exception {
-  constructor(transformBuilder) {
-    super(`TransformBuilder not registered: ${transformBuilder}`);
-    this.transformBuilder = transformBuilder;
-    this.name = 'Orbit.TransformBuilderNotRegisteredException';
-  }
-}
-
 export class QueryBuilderNotRegisteredException extends Exception {
   constructor(queryBuilder) {
     super(`QueryBuilder not registered: ${queryBuilder}`);
