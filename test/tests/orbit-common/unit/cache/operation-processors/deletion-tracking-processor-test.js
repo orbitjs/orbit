@@ -2,6 +2,9 @@ import 'tests/test-helper';
 import Schema from 'orbit-common/schema';
 import DeletionTrackingProcessor from 'orbit-common/cache/operation-processors/deletion-tracking-processor';
 import Cache from 'orbit-common/cache';
+import {
+  removeRecord
+} from 'orbit-common/transform/operators';
 
 let schema, cache;
 
@@ -62,7 +65,7 @@ test('tracks deletions and makes them queryable through `hasDeleted`', function(
 
   assert.equal(cache.hasDeleted('planet/saturn'), false, 'Saturn has not been deleted yet');
 
-  cache.transform(t => t.removeRecord(saturn));
+  cache.transform(removeRecord(saturn));
 
   assert.equal(cache.hasDeleted('planet/saturn'), true, 'Saturn has been deleted');
   assert.equal(cache.hasDeleted('planet/jupiter'), false, 'Jupiter has not been deleted');

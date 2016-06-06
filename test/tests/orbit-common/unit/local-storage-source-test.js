@@ -2,6 +2,9 @@ import { verifyLocalStorageContainsRecord, verifyLocalStorageIsEmpty } from 'tes
 import Source from 'orbit/source';
 import Schema from 'orbit-common/schema';
 import LocalStorageSource from 'orbit-common/local-storage-source';
+import {
+  addRecord
+} from 'orbit-common/transform/operators';
 
 let schema, source;
 
@@ -39,7 +42,7 @@ test('#transform - can update the cache AND local storage', function(assert) {
 
   assert.equal(source.cache.length('planet'), 0, 'source should be empty');
 
-  return source.transform(t => t.addRecord(planet))
+  return source.transform(addRecord(planet))
     .then(function() {
       assert.equal(source.cache.length('planet'), 1, 'source should be empty');
       assert.deepEqual(source.cache.get(['planet', planet.id]), planet, 'planet matches');
@@ -54,7 +57,7 @@ test('it can use a custom local storage namespace for storing data', function(as
 
   source.namespace = 'planets';
 
-  return source.transform(t => t.addRecord(planet))
+  return source.transform(addRecord(planet))
     .then(function() {
       verifyLocalStorageContainsRecord(source.namespace, 'planet', planet.id, planet);
     });
@@ -69,7 +72,7 @@ test('autosave can be disabled to delay writing to local storage', function(asse
 
   assert.equal(source.cache.length('planet'), 0, 'source should be empty');
 
-  return source.transform(t => t.addRecord(planet))
+  return source.transform(addRecord(planet))
     .then(function() {
       assert.equal(source.cache.length('planet'), 1, 'source should contain one record');
       verifyLocalStorageIsEmpty(source.namespace);

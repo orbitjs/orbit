@@ -3,6 +3,17 @@ import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
 import JSONAPISource from 'orbit-common/jsonapi-source';
 import qb from 'orbit-common/query/builder';
+import {
+  addRecord,
+  replaceRecord,
+  removeRecord,
+  // replaceKey,
+  replaceAttribute,
+  addToHasMany,
+  removeFromHasMany,
+  replaceHasMany,
+  replaceHasOne
+} from 'orbit-common/transform/operators';
 
 let server, schema, source;
 
@@ -188,7 +199,7 @@ test('#transform - can add records', function(assert) {
     }
   });
 
-  return source.transform(t => t.addRecord(planet))
+  return source.transform(addRecord(planet))
     .then(function() {
       assert.ok(true, 'transform resolves successfully');
     });
@@ -257,7 +268,7 @@ test('#transform - can transform records', function(assert) {
     }
   });
 
-  return source.transform(t => t.replaceRecord(planet))
+  return source.transform(replaceRecord(planet))
     .then(() => {
       assert.ok(true, 'transform resolves successfully');
     });
@@ -285,7 +296,7 @@ test('#transform - can replace a single attribute', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.transform(t => { t.replaceAttribute(planet, 'classification', 'terrestrial'); })
+  return source.transform(replaceAttribute(planet, 'classification', 'terrestrial'))
     .then(() => {
       assert.ok(true, 'record patched');
     });
@@ -303,7 +314,7 @@ test('#transform - can delete records', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.transform(t => t.removeRecord(planet))
+  return source.transform(removeRecord(planet))
     .then(() => {
       assert.ok(true, 'record deleted');
     });
@@ -323,7 +334,7 @@ test('#transform - can add a hasMany relationship with POST', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.transform(t => { t.addToHasMany(planet, 'moons', moon); })
+  return source.transform(addToHasMany(planet, 'moons', moon))
     .then(() => {
       assert.ok(true, 'records linked');
     });
@@ -343,7 +354,7 @@ test('#transform - can remove a relationship with DELETE', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.transform(t => { t.removeFromHasMany(planet, 'moons', moon); })
+  return source.transform(removeFromHasMany(planet, 'moons', moon))
     .then(function() {
       assert.ok(true, 'records unlinked');
     });
@@ -364,7 +375,7 @@ test('#transform - can update a hasOne relationship with PATCH', function(assert
                 JSON.stringify({}));
   });
 
-  return source.transform(t => { t.replaceHasOne(moon, 'planet', planet); })
+  return source.transform(replaceHasOne(moon, 'planet', planet))
     .then(function() {
       assert.ok(true, 'relationship replaced');
     });
@@ -384,7 +395,7 @@ test('#transform - can clear a hasOne relationship with PATCH', function(assert)
                 JSON.stringify({}));
   });
 
-  return source.transform(t => { t.replaceHasOne(moon, 'planet', null); })
+  return source.transform(replaceHasOne(moon, 'planet', null))
     .then(function() {
       assert.ok(true, 'relationship replaced');
     });
@@ -405,7 +416,7 @@ test('#transform - can replace a hasMany relationship with PATCH', function(asse
                 JSON.stringify({}));
   });
 
-  return source.transform(t => { t.replaceHasMany(planet, 'moons', [moon]); })
+  return source.transform(replaceHasMany(planet, 'moons', [moon]))
     .then(function() {
       assert.ok(true, 'relationship replaced');
     });
@@ -472,7 +483,7 @@ test('#fetch - records with filter', function(assert) {
   });
 
   return source.fetch(qb.records('planet')
-                            .filterAttributes({ name: 'Jupiter' }))
+                        .filterAttributes({ name: 'Jupiter' }))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
@@ -584,7 +595,7 @@ test('#transform - can add records', function(assert) {
     }
   });
 
-  return source.transform(t => t.addRecord(planet))
+  return source.transform(addRecord(planet))
     .then(function() {
       assert.ok(true, 'transform resolves successfully');
     });

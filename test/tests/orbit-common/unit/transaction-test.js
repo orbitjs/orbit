@@ -2,6 +2,10 @@ import Schema from 'orbit-common/schema';
 import Store from 'orbit-common/store';
 import Transaction from 'orbit-common/transaction';
 import { uuid } from 'orbit/lib/uuid';
+import {
+  addRecord,
+  replaceAttribute
+} from 'orbit-common/transform/operators';
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -62,7 +66,7 @@ test('automatically begins by default', function(assert) {
 test('starts with the same cache contents as the base store', function(assert) {
   const jupiter = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
 
-  return store.update(t => t.addRecord(jupiter))
+  return store.update(addRecord(jupiter))
     .then(() => {
       assert.deepEqual(store.cache.get(['planet', jupiter.id]), jupiter, 'planet should be jupiter');
 
@@ -85,7 +89,7 @@ test('once begun, tracks operations performed', function(assert) {
 
   assert.equal(transaction.operations.length, 0, 'transaction has no operations');
 
-  return transaction.update(t => t.addRecord(jupiter))
+  return transaction.update(addRecord(jupiter))
     .then(transforms => {
       const operations = transforms.map(t => t.operations).reduce((a, b) => a.concat(b));
 
@@ -103,8 +107,10 @@ test('#commit applies coalesced operations to `baseStore`', function(assert) {
 
   const transaction = store.createTransaction();
 
-  return transaction.update(t => t.addRecord(jupiter)
-                                  .replaceAttribute(jupiter, 'classification', 'terrestrial'))
+  return transaction.update([
+    addRecord(jupiter),
+    replaceAttribute(jupiter, 'classification', 'terrestrial')
+  ])
     .then(() => transaction.commit())
     .then(() => {
       assert.equal(transaction.operations.length, 1, 'operations have been coalesced');

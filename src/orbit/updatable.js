@@ -21,7 +21,7 @@ export default {
     _updatable: true,
 
     update(transformOrOperations) {
-      const transform = Transform.from(transformOrOperations, this.transformBuilder);
+      const transform = Transform.from(transformOrOperations);
 
       if (this.transformLog.contains(transform.id)) {
         return Orbit.Promise.resolve([]);

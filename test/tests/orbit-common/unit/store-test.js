@@ -4,6 +4,9 @@ import Store from 'orbit-common/store';
 import qb from 'orbit-common/query/builder';
 import CacheIntegrityProcessor from 'orbit-common/cache/operation-processors/cache-integrity-processor';
 import SchemaConsistencyProcessor from 'orbit-common/cache/operation-processors/schema-consistency-processor';
+import {
+  addRecord
+} from 'orbit-common/transform/operators';
 
 const schemaDefinition = {
   models: {
@@ -76,7 +79,7 @@ module('OC - Store', function(hooks) {
 
     assert.equal(store.cache.length('planet'), 0, 'cache should start empty');
 
-    return store.update(t => t.addRecord(jupiter))
+    return store.update(addRecord(jupiter))
       .then(function() {
         assert.equal(store.cache.length('planet'), 1, 'cache should contain one planet');
         assert.deepEqual(store.cache.get('planet/1'), jupiter, 'planet should be jupiter');
@@ -112,8 +115,10 @@ module('OC - Store', function(hooks) {
     const jupiter = schema.normalize({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
     const pluto = schema.normalize({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
 
-    const setupStore = store.update(t => t.addRecord(pluto)
-                                          .addRecord(jupiter));
+    const setupStore = store.update([
+      addRecord(pluto),
+      addRecord(jupiter)
+    ]);
 
     setupStore.then(() => {
       const liveQuery = store.liveQuery(qb.records('planet'));

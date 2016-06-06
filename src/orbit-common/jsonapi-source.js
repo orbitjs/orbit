@@ -3,7 +3,6 @@ import Orbit from 'orbit/main';
 import { assert } from 'orbit/lib/assert';
 import Fetchable from 'orbit/fetchable';
 import Transformable from 'orbit/transformable';
-import TransformBuilder from './transform/builder';
 import Source from 'orbit/source';
 import Serializer from './serializer';
 import JSONAPISerializer from './jsonapi/serializer';
@@ -31,8 +30,6 @@ export default class JSONAPISource extends Source {
 
     Fetchable.extend(this);
     Transformable.extend(this);
-
-    this.transformBuilder = new TransformBuilder();
 
     this.schema           = options.schema;
     this.name             = options.name || 'jsonapi';

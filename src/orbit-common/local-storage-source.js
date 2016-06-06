@@ -4,7 +4,6 @@ import { assert } from 'orbit/lib/assert';
 import Source from 'orbit/source';
 import Cache from './cache';
 import Transformable from 'orbit/transformable';
-import TransformBuilder from './transform/builder';
 
 var supportsLocalStorage = function() {
   try {
@@ -40,8 +39,6 @@ export default class LocalStorageSource extends Source {
     let autoload   = options.autoload !== undefined ? options.autoload : true;
 
     this._isDirty = false;
-
-    this.transformBuilder = new TransformBuilder();
 
     // TODO - move away from using a cache in favor of direct reads/writes to
     //        local storage.

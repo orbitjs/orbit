@@ -11,7 +11,6 @@ import TransformLog from 'orbit/transform/log';
 import Query from 'orbit/query';
 import QueryEvaluator from 'orbit/query/evaluator';
 import QueryOperators from './cache/query-operators';
-import TransformBuilder from './transform/builder';
 import PatchTransforms from './cache/patch-transforms';
 import InverseTransforms from './cache/inverse-transforms';
 import LiveQueryOperators from './cache/live-query-operators';
@@ -50,7 +49,6 @@ export default class Cache {
 
     this.transformLog = new TransformLog();
     this._transformInverses = {};
-    this.transformBuilder = new TransformBuilder();
 
     this.queryEvaluator = new QueryEvaluator(this, QueryOperators);
 
@@ -226,7 +224,7 @@ export default class Cache {
    @param {Transform} transform The transform to apply.
    */
   transform(_transform) {
-    let transform = Transform.from(_transform, this.transformBuilder);
+    let transform = Transform.from(_transform);
 
     // let ops = this.prepareOperations(transform.operations);
     let ops = transform.operations;
