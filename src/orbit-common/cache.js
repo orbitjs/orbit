@@ -107,7 +107,7 @@ export default class Cache {
     const query = Query.from(_query);
     const results = this._initialLiveQueryResults(query, context);
     const liveResults = this.liveQueryEvaluator.evaluate(query.expression, context)
-                            .matching({ op: ['addRecord', 'removeRecord'] });
+                            .matching({ op: ['addRecord', 'removeRecord', 'replaceRecord'] });
 
     return liveResults.startWith(...results);
   }
@@ -313,7 +313,7 @@ export default class Cache {
     const patchTransform = PatchTransforms[ op.op ];
     const patchOp = patchTransform(op);
 
-    // console.log('_transformDoc', patchOp.op, patchOp.path, patchOp.value);
+    // console.debug('Cache#_transformDoc', patchOp.op, patchOp.path, patchOp.value);
 
     if (patchOp.op === 'remove') {
       if (this.hasDeleted(patchOp.path)) {
@@ -337,6 +337,8 @@ export default class Cache {
         }
       }
     }
+
+    // console.debug('Cache#patch', op);
 
     this.emit('patch', op);
   }
