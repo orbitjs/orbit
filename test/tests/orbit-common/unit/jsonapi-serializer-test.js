@@ -3,6 +3,7 @@ import Schema from 'orbit-common/schema';
 import Serializer from 'orbit-common/serializer';
 import JSONAPISerializer from 'orbit-common/jsonapi/serializer';
 import { toIdentifier } from 'orbit-common/lib/identifiers';
+import { uuid } from 'orbit/lib/uuid';
 
 var schema, serializer;
 
@@ -22,7 +23,8 @@ var modelsInSchema = {
       classification: { type: 'string' }
     },
     relationships: {
-      moons: { type: 'hasMany', model: 'moon', inverse: 'planet' }
+      moons: { type: 'hasMany', model: 'moon', inverse: 'planet' },
+      solarSystem: { type: 'hasOne', model: 'solarSystem', inverse: 'planets' }
     }
   },
   moon: {
@@ -32,12 +34,23 @@ var modelsInSchema = {
     relationships: {
       planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
     }
+  },
+  solarSystem: {
+    attributes: {
+      name: { type: 'string' }
+    },
+    relationships: {
+      planets: { type: 'hasMany', model: 'planet', inverse: 'solarSystem' }
+    }
   }
 };
 
 function setupWithLocalIds() {
   schema = new Schema({
     modelDefaults: {
+      id: {
+        defaultValue: uuid
+      },
       keys: {
         'remoteId': {}
       }
@@ -288,33 +301,33 @@ test('#serialize - can serialize a resource with attributes and a has-one relati
   setupWithLocalIds();
 
   schema.normalize({ type: 'planet', id: 'p1', keys: { remoteId: 'p1-id' } });
-  schema.normalize({ type: 'moon', id: 'm1', keys: { remoteId: 'm1-id' } });
+  schema.normalize({ type: 'solarSystem', id: 'ss1', keys: { remoteId: 'ss1-id' } });
 
   deepEqual(
     serializer.serialize(
       {
-        type: 'moon',
-        id: 'm1',
+        type: 'planet',
+        id: 'p1',
         attributes: {
-          name: 'Io'
+          name: 'Jupiter'
         },
         relationships: {
-          planet: {
-            data: 'planet:p1'
+          solarSystem: {
+            data: 'solarSystem:ss1'
           }
         }
       }
     ),
     {
       data: {
-        type: 'moons',
-        id: 'm1-id',
+        type: 'planets',
+        id: 'p1-id',
         attributes: {
-          name: 'Io'
+          name: 'Jupiter'
         },
         relationships: {
-          planet: {
-            data: { type: 'planets', id: 'p1-id' }
+          'solar-system': {
+            data: { type: 'solar-systems', id: 'ss1-id' }
           }
         }
       }
@@ -352,6 +365,9 @@ test('#deserialize - can deserialize a simple resource with only type and id - u
       relationships: {
         moons: {
           data: {}
+        },
+        solarSystem: {
+          data: null
         }
       }
     },
@@ -385,6 +401,9 @@ test('#deserialize - can deserialize a simple resource with only type and id - u
       relationships: {
         moons: {
           data: {}
+        },
+        solarSystem: {
+          data: null
         }
       }
     },
@@ -405,7 +424,8 @@ test('#deserialize - can deserialize a compound document - using local IDs', fun
           classification: 'gas giant'
         },
         relationships: {
-          moons: { data: [{ type: 'moons', id: '5' }] }
+          moons: { data: [{ type: 'moons', id: '5' }] },
+          'solar-system': { data: { type: 'solar-systems', id: '6' } }
         }
       },
       included: [{
@@ -417,14 +437,26 @@ test('#deserialize - can deserialize a compound document - using local IDs', fun
         relationships: {
           planet: { data: { type: 'planets', id: '12345' } }
         }
+      }, {
+        id: '6',
+        type: 'solar-systems',
+        attributes: {
+          name: 'The Solar System'
+        },
+        relationships: {
+          planets: { data: [{ type: 'planets', id: '12345' }] }
+        }
       }]
     }
   );
 
   var planet = result.primary;
   var moon = result.included[0];
+  var solarSystem = result.included[1];
   var planetsMoons = {};
   planetsMoons[toIdentifier('moon', moon.id)] = true;
+  var ssPlanets = {};
+  ssPlanets[toIdentifier('planet', planet.id)] = true;
 
   deepEqual(
     result,
@@ -443,6 +475,9 @@ test('#deserialize - can deserialize a compound document - using local IDs', fun
         relationships: {
           moons: {
             data: planetsMoons
+          },
+          solarSystem: {
+            data: toIdentifier('solarSystem', solarSystem.id)
           }
         }
       },
@@ -460,6 +495,22 @@ test('#deserialize - can deserialize a compound document - using local IDs', fun
           relationships: {
             planet: {
               data: toIdentifier('planet', planet.id)
+            }
+          }
+        },
+        {
+          __normalized: true,
+          type: 'solarSystem',
+          id: solarSystem.id,
+          keys: {
+            remoteId: '6'
+          },
+          attributes: {
+            name: 'The Solar System'
+          },
+          relationships: {
+            planets: {
+              data: ssPlanets
             }
           }
         }
@@ -514,6 +565,9 @@ test('#deserialize - can deserialize a compound document - using UUIDs', functio
             data: {
               'moon:5': true
             }
+          },
+          solarSystem: {
+            data: null
           }
         }
       },

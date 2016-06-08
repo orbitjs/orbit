@@ -150,7 +150,9 @@ export default class JSONAPISerializer extends Serializer {
         value = this.serializeIdentifier(parseIdentifier(value));
       }
 
-      json.relationships[relationship] = {
+      const resourceRelationship = this.resourceRelationship(record.type, relationship);
+
+      json.relationships[resourceRelationship] = {
         data: value
       };
     }
