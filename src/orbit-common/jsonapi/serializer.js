@@ -235,21 +235,19 @@ export default class JSONAPISerializer extends Serializer {
   }
 
   deserializeRelationship(record, relationship, value) {
-    var relationshipData;
+    let data;
 
     if (isArray(value)) {
-      relationshipData = {};
+      data = {};
       value.forEach(each => {
-        relationshipData[this.deserializeIdentifier(each)] = true;
+        data[this.deserializeIdentifier(each)] = true;
       });
     } else if (isObject(value)) {
-      relationshipData = this.deserializeIdentifier(value);
+      data = this.deserializeIdentifier(value);
     }
 
     record.relationships = record.relationships || {};
-    record.relationships[relationship] = {
-      data: relationshipData
-    };
+    record.relationships[relationship] = { data };
   }
 
   deserializeIdentifier(resourceIdentifier) {
