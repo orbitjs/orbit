@@ -123,6 +123,10 @@ test('#resourceRelationshipURL - constructs relationship URLs based upon base re
   assert.equal(source.resourceRelationshipURL('planet', '1', 'moons'), '/planets/a/relationships/moons', 'resourceRelationshipURL appends /relationships/[relationship] to resourceURL');
 });
 
+test('#ajaxHeaders - include JSONAPI Accept header by default', function(assert) {
+  assert.deepEqual(source.ajaxHeaders(), { Accept: 'application/vnd.api+json' }, 'Default headers should include JSONAPI Accept header');
+});
+
 test('#transform - can add records', function(assert) {
   assert.expect(4);
 

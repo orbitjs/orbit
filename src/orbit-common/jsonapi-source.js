@@ -33,9 +33,9 @@ export default class JSONAPISource extends Source {
 
     this.schema           = options.schema;
     this.name             = options.name || 'jsonapi';
-    this.namespace        = options.namespace || this.namespace;
-    this.host             = options.host || this.host;
-    this.headers          = options.headers || this.headers;
+    this.namespace        = options.namespace;
+    this.host             = options.host;
+    this.headers          = options.headers || { Accept: 'application/vnd.api+json' };
 
     const SerializerClass = options.SerializerClass || JSONAPISerializer;
     this.serializer       = new SerializerClass(this.schema);
