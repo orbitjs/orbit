@@ -33,9 +33,9 @@ export default class JSONAPISource extends Source {
 
     this.schema           = options.schema;
     this.name             = options.name || 'jsonapi';
-    this.namespace        = options.namespace || this.namespace;
-    this.host             = options.host || this.host;
-    this.headers          = options.headers || this.headers;
+    this.namespace        = options.namespace;
+    this.host             = options.host;
+    this.headers          = options.headers || { Accept: 'application/vnd.api+json' };
 
     const SerializerClass = options.SerializerClass || JSONAPISerializer;
     this.serializer       = new SerializerClass(this.schema);
@@ -95,56 +95,44 @@ export default class JSONAPISource extends Source {
   // Publicly accessible methods particular to JSONAPISource
   /////////////////////////////////////////////////////////////////////////////
 
-  ajax(url, method, hash) {
+  ajax(url, method, settings = {}) {
     return new Orbit.Promise((resolve, reject) => {
-      hash = hash || {};
-      hash.url = url;
-      hash.type = method;
-      hash.dataType = 'json';
-      hash.context = this;
+      settings.url = url;
+      settings.type = method;
+      settings.dataType = 'json';
+      settings.context = this;
 
-      // console.log('ajax start', method, url);
-
-      if (hash.data && method !== 'GET') {
-        if (!hash.contentType) {
-          hash.contentType = this.ajaxContentType(hash);
+      if (settings.data && method !== 'GET') {
+        if (!settings.contentType) {
+          settings.contentType = this.ajaxContentType(settings);
         }
-        hash.data = JSON.stringify(hash.data);
+        settings.data = JSON.stringify(settings.data);
       }
 
-      if (this.ajaxHeaders) {
-        let headers = this.ajaxHeaders();
-        hash.beforeSend = function (xhr) {
-          for (let key in headers) {
-            if (headers.hasOwnProperty(key)) {
-              xhr.setRequestHeader(key, headers[key]);
-            }
-          }
-        };
+      if (!settings.headers) {
+        settings.headers = this.ajaxHeaders(settings);
       }
 
-      hash.success = function(json) {
-        // console.log('ajax success', method, json);
+      settings.success = function(json) {
         resolve(json);
       };
 
-      hash.error = function(jqXHR) {
+      settings.error = function(jqXHR) {
         if (jqXHR) {
           jqXHR.then = null;
         }
-        // console.log('ajax error', method, jqXHR);
         reject(jqXHR);
       };
 
-      Orbit.ajax(hash);
+      Orbit.ajax(settings);
     });
   }
 
-  ajaxContentType(/* url, method */) {
+  ajaxContentType(/* settings */) {
     return 'application/vnd.api+json; charset=utf-8';
   }
 
-  ajaxHeaders() {
+  ajaxHeaders(/* settings */) {
     return this.headers;
   }
 
