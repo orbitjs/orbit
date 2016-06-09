@@ -3,6 +3,7 @@ import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
 import JSONAPISource from 'orbit-common/jsonapi-source';
 import qb from 'orbit-common/query/builder';
+import { TransformNotAllowed } from 'orbit-common/lib/exceptions';
 import {
   addRecord,
   replaceRecord,
@@ -423,6 +424,52 @@ test('#transform - can replace a hasMany relationship with PATCH', function(asse
   return source.transform(replaceHasMany(planet, 'moons', [moon]))
     .then(function() {
       assert.ok(true, 'relationship replaced');
+    });
+});
+
+test('#transform - a single transform can result in multiple requests', function(assert) {
+  assert.expect(3);
+
+  let planet1 = schema.normalize({ type: 'planet', keys: { remoteId: '1' } });
+  let planet2 = schema.normalize({ type: 'planet', keys: { remoteId: '2' } });
+
+  server.respondWith('DELETE', '/planets/1', function(xhr) {
+    assert.deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
+    xhr.respond(200,
+                { 'Content-Type': 'application/json' },
+                JSON.stringify({}));
+  });
+
+  server.respondWith('DELETE', '/planets/2', function(xhr) {
+    assert.deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
+    xhr.respond(200,
+                { 'Content-Type': 'application/json' },
+                JSON.stringify({}));
+  });
+
+  return source.transform([
+    removeRecord(planet1),
+    removeRecord(planet2)
+  ])
+    .then(() => {
+      assert.ok(true, 'record deleted');
+    });
+});
+
+test('#transform - source can limit the number of allowed requests per transform with `maxRequestsPerTransform`', function(assert) {
+  assert.expect(1);
+
+  let planet1 = schema.normalize({ type: 'planet', keys: { remoteId: '1' } });
+  let planet2 = schema.normalize({ type: 'planet', keys: { remoteId: '2' } });
+
+  source.maxRequestsPerTransform = 1;
+
+  return source.transform([
+    removeRecord(planet1),
+    removeRecord(planet2)
+  ])
+    .catch(e => {
+      assert.ok(e instanceof TransformNotAllowed, 'TransformNotAllowed thrown');
     });
 });
 
