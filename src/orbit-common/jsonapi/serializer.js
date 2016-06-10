@@ -68,15 +68,17 @@ export default class JSONAPISerializer extends Serializer {
       resourceId = resourceId[resourceKey];
     }
 
-    let id;
-
     if (resourceKey === 'id') {
-      id = resourceId;
-    } else {
-      id = this.network.initializeId(type, resourceKey, resourceId);
+      return resourceId;
     }
 
-    return id;
+    let existingId = this.keyMap.keyToId(type, resourceKey, resourceId);
+
+    if (existingId) {
+      return existingId;
+    }
+
+    return this.generateNewId(type, resourceKey, resourceId);
   }
 
   serialize(records) {
@@ -254,5 +256,19 @@ export default class JSONAPISerializer extends Serializer {
     var type = this.typeFromResourceType(resourceIdentifier.type);
     var id = this.idFromResourceId(type, resourceIdentifier.id);
     return toIdentifier(type, id);
+  }
+
+  generateNewId(type, keyName, keyValue) {
+    let newId = this.schema.generateDefaultId(type, keyName);
+
+    this.keyMap.pushRecord({
+      type,
+      id: newId,
+      keys: {
+        [keyName]: keyValue
+      }
+    });
+
+    return newId;
   }
 }

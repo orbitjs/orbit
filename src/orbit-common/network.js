@@ -10,7 +10,10 @@ export default class Network {
   }
 
   initializeRecord(data) {
-    data.id = data.id || this.keyMap.findIdForRecord(data);
+    if (!data.id) {
+      data.id = this.keyMap.findIdForRecord(data);
+    }
+
     this.schema.normalize(data);
 
     if (data.id) {
@@ -18,29 +21,5 @@ export default class Network {
     }
 
     return data;
-  }
-
-  initializeId(type, keyName, keyValue) {
-    let existingId = this.keyMap.keyToId(type, keyName, keyValue);
-
-    if (existingId) {
-      return existingId;
-    }
-
-    let generatedId = this.schema.generateDefaultId(type, keyName);
-
-    if (!generatedId) {
-      return generatedId;
-    }
-
-    this.keyMap.pushRecord({
-      type,
-      id: generatedId,
-      keys: {
-        [keyName]: keyValue
-      }
-    });
-
-    return generatedId;
   }
 }
