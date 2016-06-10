@@ -192,7 +192,21 @@ export default class JSONAPISerializer extends Serializer {
     this.deserializeAttributes(record, data);
     this.deserializeRelationships(record, data);
 
-    return this.network.initializeRecord(record);
+    return this.initializeRecord(record);
+  }
+
+  initializeRecord(record) {
+    if (!record.id) {
+      record.id = this.keyMap.findIdForRecord(record);
+    }
+
+    this.schema.normalize(record);
+
+    if (record.id) {
+      this.keyMap.pushRecord(record);
+    }
+
+    return record;
   }
 
   deserializeKey(record, data) {

@@ -8,18 +8,4 @@ export default class Network {
     this.schema = schema;
     this.keyMap = new KeyMap(schema);
   }
-
-  initializeRecord(data) {
-    if (!data.id) {
-      data.id = this.keyMap.findIdForRecord(data);
-    }
-
-    this.schema.normalize(data);
-
-    if (data.id) {
-      this.keyMap.pushRecord(data);
-    }
-
-    return data;
-  }
 }

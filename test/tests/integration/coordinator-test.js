@@ -143,7 +143,7 @@ module('Integration - Coordinator', function(hooks) {
   test('#update - addRecord', function(assert) {
     assert.expect(3);
 
-    let record = network.initializeRecord({ type: 'planet', attributes: { name: 'Pluto' } });
+    let record = { type: 'planet', attributes: { name: 'Pluto' } };
 
     onAddPlutoRequest(stubbedResponses.planetAdded);
 
@@ -158,7 +158,7 @@ module('Integration - Coordinator', function(hooks) {
   test('#update - addRecord - error', function(assert) {
     assert.expect(1);
 
-    let record = network.initializeRecord({ type: 'planet', attributes: { name: 'Pluto' } });
+    let record = { type: 'planet', attributes: { name: 'Pluto' } };
 
     onAddPlutoRequest(stubbedResponses.planetAddFailed);
 

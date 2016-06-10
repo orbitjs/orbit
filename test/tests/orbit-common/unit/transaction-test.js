@@ -66,15 +66,15 @@ test('automatically begins by default', function(assert) {
 });
 
 test('starts with the same cache contents as the base store', function(assert) {
-  const jupiter = network.initializeRecord({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
+  const jupiter = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
 
   return store.update(addRecord(jupiter))
     .then(() => {
-      assert.deepEqual(store.cache.get(['planet', jupiter.id]), jupiter, 'planet should be jupiter');
+      assert.deepEqual(store.cache.get(['planet', 'jupiter-id']), jupiter, 'planet should be jupiter');
 
       let transaction = store.createTransaction();
 
-      assert.deepEqual(transaction.cache.get(['planet', jupiter.id]), jupiter, 'planet should be jupiter');
+      assert.deepEqual(transaction.cache.get(['planet', 'jupiter-id']), jupiter, 'planet should be jupiter');
     });
 });
 
@@ -86,7 +86,7 @@ test('does not auto-begin if the `active` option = false', function(assert) {
 test('once begun, tracks operations performed', function(assert) {
   assert.expect(3);
 
-  const jupiter = network.initializeRecord({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
+  const jupiter = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
   const transaction = store.createTransaction();
 
   assert.equal(transaction.operations.length, 0, 'transaction has no operations');
@@ -105,7 +105,7 @@ test('once begun, tracks operations performed', function(assert) {
 test('#commit applies coalesced operations to `baseStore`', function(assert) {
   assert.expect(2);
 
-  const jupiter = network.initializeRecord({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
+  const jupiter = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
 
   const transaction = store.createTransaction();
 

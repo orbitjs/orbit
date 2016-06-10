@@ -138,8 +138,8 @@ test('#resourceId returns a matching resource id given an orbit id (or array of 
 test('#resourceId returns a matching resource id given an orbit id (or array of ids) - using UUIDs', function() {
   setupWithUUIDs();
 
-  network.initializeRecord({ type: 'planet', id: 'a' });
-  network.initializeRecord({ type: 'planet', id: 'b' });
+  serializer.deserialize({ data: { type: 'planet', id: 'a' } });
+  serializer.deserialize({ data: { type: 'planet', id: 'b' } });
 
   equal(serializer.resourceId('planet', 'a'), 'a');
   equal(serializer.resourceId('planet', 'b'), 'b');
@@ -160,8 +160,8 @@ test('#idFromResourceId returns a matching orbit id given a resource id - using 
 test('#idFromResourceId returns a matching orbit id given a resource id - using UUIDs', function() {
   setupWithUUIDs();
 
-  network.initializeRecord({ type: 'planet', id: 'a' });
-  network.initializeRecord({ type: 'planet', id: 'b' });
+  serializer.deserialize({ data: { type: 'planet', id: 'a' } });
+  serializer.deserialize({ data: { type: 'planet', id: 'b' } });
 
   equal(serializer.idFromResourceId('planet', 'a'), 'a');
   equal(serializer.idFromResourceId('planet', 'b'), 'b');

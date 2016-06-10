@@ -5,8 +5,8 @@ import { recordDiffs } from '../lib/operations';
 
 export const TransformRequestProcessors = {
   addRecord(source, request) {
-    const { serializer, network } = source;
-    const record = network.initializeRecord(request.record);
+    const { serializer } = source;
+    const record = serializer.initializeRecord(request.record);
     const json = serializer.serialize(record);
 
     return source.ajax(source.resourceURL(record.type), 'POST', { data: json })
