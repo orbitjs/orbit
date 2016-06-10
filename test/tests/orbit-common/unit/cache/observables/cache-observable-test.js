@@ -50,13 +50,13 @@ module('OC - Cache - CacheObservable', function(hooks) {
   hooks.beforeEach(function() {
     let keyMap = planetsNetwork.keyMap;
 
-    keyMap.push({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
+    keyMap.pushRecord({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
 
-    keyMap.push({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
-    keyMap.push({ type: 'moon', id: 'callisto', attributes: { name: 'Callisto' } });
+    keyMap.pushRecord({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
+    keyMap.pushRecord({ type: 'moon', id: 'callisto', attributes: { name: 'Callisto' } });
 
     // TODO: determine if this has any effect
-    keyMap.push({
+    keyMap.pushRecord({
       type: 'planet',
       id: 'saturn',
       attributes: { name: 'Saturn' },

@@ -422,7 +422,7 @@ export default class Schema {
     }
   }
 
-  defaultId(type) {
+  generateDefaultId(type) {
     let value = this.modelDefinition(type).id.defaultValue;
 
     if (typeof value === 'function') {

@@ -126,8 +126,8 @@ test('#relationshipFromResourceRelationship returns the camelized relationship b
 test('#resourceId returns a matching resource id given an orbit id (or array of ids) - using local IDs', function() {
   setupWithLocalIds();
 
-  network.keyMap.push({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
-  network.keyMap.push({ type: 'planet', id: '2', keys: { remoteId: 'b' } });
+  network.keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
+  network.keyMap.pushRecord({ type: 'planet', id: '2', keys: { remoteId: 'b' } });
 
   equal(serializer.resourceId('planet', '1'), 'a');
   equal(serializer.resourceId('planet', '2'), 'b');
@@ -150,8 +150,8 @@ test('#resourceId returns a matching resource id given an orbit id (or array of 
 test('#idFromResourceId returns a matching orbit id given a resource id - using local IDs', function() {
   setupWithLocalIds();
 
-  network.keyMap.push({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
-  network.keyMap.push({ type: 'planet', id: '2', keys: { remoteId: 'b' } });
+  network.keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
+  network.keyMap.pushRecord({ type: 'planet', id: '2', keys: { remoteId: 'b' } });
 
   equal(serializer.idFromResourceId('planet', 'a'), '1');
   equal(serializer.idFromResourceId('planet', 'b'), '2');
@@ -216,9 +216,9 @@ test('#serialize - can serialize a simple resource with only attributes', functi
 test('#serialize - can serialize a resource with attributes and has-many relationships', function() {
   setupWithLocalIds();
 
-  network.keyMap.push({ type: 'planet', id: 'p1', keys: { remoteId: 'p1-id' } });
-  network.keyMap.push({ type: 'moon', id: 'm1', keys: { remoteId: 'm1-id' } });
-  network.keyMap.push({ type: 'moon', id: 'm2', keys: { remoteId: 'm2-id' } });
+  network.keyMap.pushRecord({ type: 'planet', id: 'p1', keys: { remoteId: 'p1-id' } });
+  network.keyMap.pushRecord({ type: 'moon', id: 'm1', keys: { remoteId: 'm1-id' } });
+  network.keyMap.pushRecord({ type: 'moon', id: 'm2', keys: { remoteId: 'm2-id' } });
 
   deepEqual(
     serializer.serialize(
@@ -264,8 +264,8 @@ test('#serialize - can serialize a resource with attributes and has-many relatio
 test('#serialize - can serialize a resource with attributes and a null has-one relationship', function() {
   setupWithLocalIds();
 
-  network.keyMap.push({ type: 'planet', id: 'p0', keys: { remoteId: 'p1-id' } });
-  network.keyMap.push({ type: 'moon', id: 'm1', keys: { remoteId: 'm1-id' } });
+  network.keyMap.pushRecord({ type: 'planet', id: 'p0', keys: { remoteId: 'p1-id' } });
+  network.keyMap.pushRecord({ type: 'moon', id: 'm1', keys: { remoteId: 'm1-id' } });
 
   deepEqual(
     serializer.serialize(
@@ -301,8 +301,8 @@ test('#serialize - can serialize a resource with attributes and a null has-one r
 test('#serialize - can serialize a resource with attributes and a has-one relationships', function() {
   setupWithLocalIds();
 
-  network.keyMap.push({ type: 'planet', id: 'p1', keys: { remoteId: 'p1-id' } });
-  network.keyMap.push({ type: 'solarSystem', id: 'ss1', keys: { remoteId: 'ss1-id' } });
+  network.keyMap.pushRecord({ type: 'planet', id: 'p1', keys: { remoteId: 'p1-id' } });
+  network.keyMap.pushRecord({ type: 'solarSystem', id: 'ss1', keys: { remoteId: 'ss1-id' } });
 
   deepEqual(
     serializer.serialize(

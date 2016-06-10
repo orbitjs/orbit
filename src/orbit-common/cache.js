@@ -133,7 +133,7 @@ export default class Cache {
     this.transformLog.clear();
     this._transformInverses = {};
 
-    this.network.keyMap.registerDocument(data);
+    this.network.keyMap.pushDocument(data);
 
     this._processors.forEach(processor => processor.reset(data));
   }

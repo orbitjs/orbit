@@ -106,7 +106,7 @@ test('#resourcePath - returns resource\'s path without its host and namespace', 
   assert.expect(1);
   source.host = 'http://127.0.0.1:8888';
   source.namespace = 'api';
-  network.keyMap.push({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
+  network.keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
 
   assert.equal(source.resourcePath('planet', '1'), 'planets/a', 'resourcePath returns the path to the resource relative to the host and namespace');
 });
@@ -115,14 +115,14 @@ test('#resourceURL - respects options to construct URLs', function(assert) {
   assert.expect(1);
   source.host = 'http://127.0.0.1:8888';
   source.namespace = 'api';
-  network.keyMap.push({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
+  network.keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
 
   assert.equal(source.resourceURL('planet', '1'), 'http://127.0.0.1:8888/api/planets/a', 'resourceURL method should use the options to construct URLs');
 });
 
 test('#resourceRelationshipURL - constructs relationship URLs based upon base resourceURL', function(assert) {
   assert.expect(1);
-  network.keyMap.push({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
+  network.keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
 
   assert.equal(source.resourceRelationshipURL('planet', '1', 'moons'), '/planets/a/relationships/moons', 'resourceRelationshipURL appends /relationships/[relationship] to resourceURL');
 });

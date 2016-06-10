@@ -24,10 +24,10 @@ module('OC - KeyMap', {
 test('#push', function() {
   let keyMap = new KeyMap(schema);
 
-  keyMap.push({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
-  keyMap.push({ type: 'planet', id: '2', keys: { remoteId: 'b' } });
-  keyMap.push({ type: 'moon', id: '1', keys: { remoteId: 'c' } });
-  keyMap.push({ type: 'moon', id: '2', keys: { remoteId: 'a' } });
+  keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
+  keyMap.pushRecord({ type: 'planet', id: '2', keys: { remoteId: 'b' } });
+  keyMap.pushRecord({ type: 'moon', id: '1', keys: { remoteId: 'c' } });
+  keyMap.pushRecord({ type: 'moon', id: '2', keys: { remoteId: 'a' } });
 
   equal(keyMap.keyToId('moon', 'remoteId', 'c'), '1');
   equal(keyMap.keyToId('planet', 'remoteId', 'a'), '1');
@@ -41,7 +41,7 @@ test('#push', function() {
 test('#findIdForRecord', function(assert) {
   let keyMap = new KeyMap(schema);
 
-  keyMap.push({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
+  keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
 
   let foundId = keyMap.findIdForRecord({ type: 'planet', id: undefined, keys: { remoteId: 'a' } });
   assert.equal(foundId, '1', 'Found previously pushed id');
@@ -50,12 +50,12 @@ test('#findIdForRecord', function(assert) {
   assert.equal(missingId, undefined, 'returns undefined when id cannot be found');
 });
 
-test('#registerDocument', function(assert) {
+test('#pushDocument', function(assert) {
   let keyMap = new KeyMap(schema);
 
-  keyMap.push({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
+  keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
 
-  keyMap.registerDocument({
+  keyMap.pushDocument({
     planet: {
       '2': { id: '2', keys: { remoteId: 'b' } }
     },

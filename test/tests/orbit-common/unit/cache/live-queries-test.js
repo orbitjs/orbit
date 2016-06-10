@@ -48,19 +48,19 @@ module('OC - Cache - liveQuery', function(hooks) {
 
     // TODO: Is passing the realationships supposed to do something? Check to see if this has
     // any effect.
-    keyMap.push({
+    keyMap.pushRecord({
       type: 'planet', id: 'saturn',
       attributes: { name: 'Saturn' },
       relationships: { moons: { data: { 'moon:titan': true } } } });
 
-    keyMap.push({
+    keyMap.pushRecord({
       type: 'moon', id: 'titan',
       attributes: { name: 'Titan' },
       relationships: { planet: { data: 'planet:saturn' } } });
 
     io = { type: 'moon', id: 'io', attributes: { name: 'Io' } };
 
-    [pluto, jupiter, callisto, io].forEach((p) => keyMap.push(p));
+    [pluto, jupiter, callisto, io].forEach((p) => keyMap.pushRecord(p));
 
     cache = new Cache(planetsNetwork);
   });

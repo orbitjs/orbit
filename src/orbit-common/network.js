@@ -14,7 +14,7 @@ export default class Network {
     this.schema.normalize(data);
 
     if (data.id) {
-      this.keyMap.push(data);
+      this.keyMap.pushRecord(data);
     }
 
     return data;
@@ -27,13 +27,13 @@ export default class Network {
       return existingId;
     }
 
-    let generatedId = this.schema.defaultId(type, keyName);
+    let generatedId = this.schema.generateDefaultId(type, keyName);
 
     if (!generatedId) {
       return generatedId;
     }
 
-    this.keyMap.push({
+    this.keyMap.pushRecord({
       type,
       id: generatedId,
       keys: {

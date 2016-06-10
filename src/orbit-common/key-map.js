@@ -26,7 +26,7 @@ export default class KeyMap {
    @param {Object} data - data structured according to this schema
    @returns {undefined}
    */
-  registerDocument(data) {
+  pushDocument(data) {
     if (!data) {
       return;
     }
@@ -35,7 +35,7 @@ export default class KeyMap {
       let idRecordMap = data[type];
       Object.keys(idRecordMap).forEach(id => {
         let record = idRecordMap[id];
-        this.push({
+        this.pushRecord({
           type,
           id: record.id,
           keys: record.keys
@@ -45,7 +45,7 @@ export default class KeyMap {
   }
 
   // TODO: use _.set pattern to clean this up and accept one key at a time per record
-  push({ type, id, keys }) {
+  pushRecord({ type, id, keys }) {
     assert(`You pushed a ${type} record into the KeyMap that does not have an ID. Make sure you provide an Orbit ID to this record before pushing.`, id);
 
     if (!keys) {
