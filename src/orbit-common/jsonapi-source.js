@@ -11,13 +11,22 @@ import { getTransformRequests, TransformRequestProcessors } from './jsonapi/tran
 import { FetchNotAllowed, TransformNotAllowed } from './lib/exceptions';
 
 /**
- Source for accessing a JSON API compliant RESTful API with AJAX
+ Source for accessing a JSON API compliant RESTful API with AJAX.
+
+ If a single transform or fetch operation requires more than one ajax request,
+ requests will be performed sequentially and resolved together. From the
+ perspective of Orbit, these operations will all succeed or fail together. The
+ `maxRequestsPerTransform` and `maxRequestsPerFetch` options allow limits to be
+ set on this behavior. These options should be set to `1` if your client/server
+ configuration is unable to resolve partially successful transforms / fetches.
 
  @class JSONAPISource
  @extends Source
  @namespace OC
  @param {Object}    [options]
  @param {OC.Schema} [options.schema] Schema for source (required)
+ @param {Number}    [options.maxRequestsPerFetch] Maximum number of AJAX requests allowed per fetch.
+ @param {Number}    [options.maxRequestsPerTransform] Maximum number of AJAX requests allowed per transform.
  @constructor
  */
 export default class JSONAPISource extends Source {
@@ -37,6 +46,9 @@ export default class JSONAPISource extends Source {
     this.host             = options.host;
     this.headers          = options.headers || { Accept: 'application/vnd.api+json' };
 
+    this.maxRequestsPerFetch     = options.maxRequestsPerFetch;
+    this.maxRequestsPerTransform = options.maxRequestsPerTransform;
+
     const SerializerClass = options.SerializerClass || JSONAPISerializer;
     this.serializer       = new SerializerClass(this.schema);
 
@@ -50,21 +62,20 @@ export default class JSONAPISource extends Source {
   _transform(transform) {
     const requests = getTransformRequests(transform);
 
-    if (requests.length === 0) {
-      return Orbit.Promise.resolve([transform]);
-    } else if (requests.length > 1) {
-      throw new TransformNotAllowed('JSONAPISource can only process one transform request at a time.', transform);
+    if (this.maxRequestsPerTransform && requests.length > this.maxRequestsPerTransform) {
+      return Orbit.Promise.resolve()
+        .then(() => {
+          throw new TransformNotAllowed(
+            `This transform requires ${requests.length} requests, which exceeds the specified limit of ${this.maxRequestsPerTransform} requests per transform.`,
+            transform);
+        });
     }
 
-    let request = requests[0];
-    let processor = TransformRequestProcessors[request.op];
-
-    if (!processor) {
-      throw new TransformNotAllowed('JSONAPISource can not process this transform request.', request);
-    }
-
-    return processor(this, request)
-      .then((additionalTransforms = []) => [transform].concat(additionalTransforms));
+    return this._processRequests(requests, TransformRequestProcessors)
+      .then(transforms => {
+        transforms.unshift(transform);
+        return transforms;
+      });
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -74,21 +85,16 @@ export default class JSONAPISource extends Source {
   _fetch(query) {
     const requests = getFetchRequests(query);
 
-    if (requests.length === 0) {
-      return Orbit.Promise.resolve([]);
-    } else if (requests.length > 1) {
-      throw new FetchNotAllowed('JSONAPISource can only process one fetch request at a time.', query);
+    if (this.maxRequestsPerFetch && requests.length > this.maxRequestsPerFetch) {
+      return Orbit.Promise.resolve()
+        .then(() => {
+          throw new FetchNotAllowed(
+            `This query requires ${requests.length} fetch requests, which exceeds the specified limit of ${this.maxRequestsPerFetch} requests per query.`,
+            query);
+        });
     }
 
-    let request = requests[0];
-    let processor = FetchRequestProcessors[request.op];
-
-    if (!processor) {
-      throw new FetchNotAllowed('JSONAPISource can not process this fetch request.', request);
-    }
-
-    return processor(this, request)
-      .then((transforms = []) => transforms);
+    return this._processRequests(requests, FetchRequestProcessors);
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -178,5 +184,29 @@ export default class JSONAPISource extends Source {
   relatedResourceURL(type, id, relationship) {
     return this.resourceURL(type, id) +
            '/' + this.serializer.resourceRelationship(type, relationship);
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Private methods
+  /////////////////////////////////////////////////////////////////////////////
+
+  _processRequests(requests, processors) {
+    let transforms = [];
+    let result = Orbit.Promise.resolve();
+
+    requests.forEach(request => {
+      let processor = processors[request.op];
+
+      result = result.then(() => {
+        return processor(this, request)
+          .then(additionalTransforms => {
+            if (additionalTransforms) {
+              Array.prototype.push.apply(transforms, additionalTransforms);
+            }
+          });
+      });
+    });
+
+    return result.then(() => transforms);
   }
 }
