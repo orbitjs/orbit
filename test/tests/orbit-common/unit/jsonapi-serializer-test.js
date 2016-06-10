@@ -354,7 +354,7 @@ test('#deserialize - can deserialize a simple resource with only type and id - u
     record,
     {
       __normalized: true,
-      id: undefined,
+      id: record.id,
       type: 'planet',
       keys: {
         remoteId: '123'

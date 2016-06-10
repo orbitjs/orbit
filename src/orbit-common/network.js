@@ -40,5 +40,7 @@ export default class Network {
         [keyName]: keyValue
       }
     });
+
+    return generatedId;
   }
 }

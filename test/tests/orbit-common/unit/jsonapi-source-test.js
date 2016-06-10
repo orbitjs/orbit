@@ -481,8 +481,8 @@ test('#transform - can replace a hasMany relationship with PATCH', function(asse
 test('#transform - a single transform can result in multiple requests', function(assert) {
   assert.expect(3);
 
-  let planet1 = schema.normalize({ type: 'planet', keys: { remoteId: '1' } });
-  let planet2 = schema.normalize({ type: 'planet', keys: { remoteId: '2' } });
+  let planet1 = network.initializeRecord({ type: 'planet', keys: { remoteId: '1' } });
+  let planet2 = network.initializeRecord({ type: 'planet', keys: { remoteId: '2' } });
 
   server.respondWith('DELETE', '/planets/1', function(xhr) {
     assert.deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
@@ -510,8 +510,8 @@ test('#transform - a single transform can result in multiple requests', function
 test('#transform - source can limit the number of allowed requests per transform with `maxRequestsPerTransform`', function(assert) {
   assert.expect(1);
 
-  let planet1 = schema.normalize({ type: 'planet', keys: { remoteId: '1' } });
-  let planet2 = schema.normalize({ type: 'planet', keys: { remoteId: '2' } });
+  let planet1 = network.initializeRecord({ type: 'planet', keys: { remoteId: '1' } });
+  let planet2 = network.initializeRecord({ type: 'planet', keys: { remoteId: '2' } });
 
   source.maxRequestsPerTransform = 1;
 
