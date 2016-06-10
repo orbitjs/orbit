@@ -1,9 +1,11 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from 'orbit/main';
-import { assert } from 'orbit/lib/assert';
 import Source from 'orbit/source';
-import Cache from './cache';
+import Fetchable from 'orbit/fetchable';
 import Transformable from 'orbit/transformable';
+import { assert } from 'orbit/lib/assert';
+import TransformOperators from './local-storage/transform-operators';
+import FetchOperators from './local-storage/fetch-operators';
 
 var supportsLocalStorage = function() {
   try {
@@ -30,95 +32,68 @@ export default class LocalStorageSource extends Source {
 
     super(options);
 
+    Fetchable.extend(this);
     Transformable.extend(this);
 
     this.schema    = options.schema;
     this.name      = options.name || 'localStorage';
     this.namespace = options['namespace'] || 'orbit'; // local storage namespace
     this.delimiter = options['delimiter'] || '/'; // local storage key
-    this._autosave = options.autosave !== undefined ? options.autosave : true;
-    let autoload   = options.autoload !== undefined ? options.autoload : true;
-
-    this._isDirty = false;
-
-    // TODO - move away from using a cache in favor of direct reads/writes to
-    //        local storage.
-    this.cache = new Cache(options.schema, options.cacheOptions);
-
-    this.on('transform', () => this._saveData());
-
-    if (autoload) { this.load(); }
   }
 
-  // load: function() {
-  //   for (var key in window.localStorage) {
-  //     if (key.indexOf(this.namespace) === 0) {
-  //       var path = key.split(this.delimiter);
-  //       var item = JSON.parse(window.localStorage.getItem(key));
-  //       this._cache._doc._data[path[1]][path[2]] = item;
-  //     }
-  //   }
-  // },
+  getKeyForRecord(record) {
+    return [this.namespace, record.type, record.id].join(this.delimiter);
+  }
 
-  load() {
-    var storage = window.localStorage.getItem(this.namespace);
-    if (storage) {
-      this.cache.reset(JSON.parse(storage));
+  getRecord(record) {
+    const key = this.getKeyForRecord(record);
+
+    return JSON.parse(window.localStorage.getItem(key));
+  }
+
+  putRecord(record) {
+    const key = this.getKeyForRecord(record);
+
+    // console.log('LocalStorageSource#putRecord', key, JSON.stringify(record));
+
+    window.localStorage.setItem(key, JSON.stringify(record));
+  }
+
+  removeRecord(record) {
+    const key = this.getKeyForRecord(record);
+
+    // console.log('LocalStorageSource#removeRecord', key, JSON.stringify(record));
+
+    window.localStorage.removeItem(key);
+  }
+
+  reset() {
+    for (let key in window.localStorage) {
+      if (key.indexOf(this.namespace) === 0) {
+        window.localStorage.removeItem(key);
+      }
     }
   }
-
-  enableAutosave() {
-    if (!this._autosave) {
-      this._autosave = true;
-      if (this._isDirty) { this._saveData(); }
-    }
-  }
-
-  disableAutosave() {
-    if (this._autosave) {
-      this._autosave = false;
-    }
-  }
-
-  // getKey: function(path) {
-  //   return [this.namespace, path[0], path[1]].join(this.delimiter);
-  // },
 
   /////////////////////////////////////////////////////////////////////////////
   // Transformable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
   _transform(transform) {
-    this.cache.transform(transform);
+    transform.operations.forEach(operation => {
+      TransformOperators[operation.op](this, operation);
+    });
+
     return Orbit.Promise.resolve([transform]);
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  // Internals
+  // Fetchable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _saveData(forceSave) {
-    if (!this._autosave && !forceSave) {
-      this._isDirty = true;
-      return;
-    }
-    window.localStorage.setItem(this.namespace, JSON.stringify(this.cache.get()));
-    this._isDirty = false;
-  }
+  _fetch(query) {
+    const transforms = FetchOperators[query.expression.op](this, query.expression);
 
-  // _saveData: function(operation) {
-  //   if (!this._autosave && !operation) {
-  //     this._isDirty = true;
-  //     return;
-  //   }
-  //   var obj = this.retrieve([operation.path[0], operation.path[1]]);
-  //
-  //   if (operation.op === 'add' || operation.op === 'replace') {
-  //     window.localStorage.setItem(this.getKey(operation.path), JSON.stringify(obj));
-  //   }
-  //   if (operation.op === 'remove') {
-  //     window.localStorage.removeItem(this.getKey(operation.path));
-  //   }
-  //   this._isDirty = false;
-  // }
+    return Orbit.Promise.resolve(transforms);
+  }
 }

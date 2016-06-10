@@ -1,30 +1,35 @@
-function verifyLocalStorageContainsRecord(namespace, type, id, record, ignoreFields) {
-  let recordKey = [namespace, type, id].join('/');
+function getRecord(source, record) {
+  let recordKey = [source.namespace, record.type, record.id].join(source.delimiter);
 
-  let actual = JSON.parse(window.localStorage.getItem(recordKey));
+  return JSON.parse(window.localStorage.getItem(recordKey));
+}
+
+export function verifyLocalStorageContainsRecord(source, record, ignoreFields) {
+  let actual = getRecord(source, record);
 
   if (ignoreFields) {
     for (let i = 0, l = ignoreFields.length, field; i < l; i++) {
       field = ignoreFields[i];
-      actual[id][field] = record[field];
+      actual[record.id][field] = record[field];
     }
   }
 
-  deepEqual(actual,
-            expected,
-            'data in local storage matches expectations');
+  deepEqual(actual, record, 'local storage contains record');
 }
 
-function verifyLocalStorageIsEmpty(namespace) {
-  var contents = JSON.parse(window.localStorage.getItem(namespace));
-  if (contents === null) {
-    equal(contents, null, 'local storage should still be empty');
-  } else {
-    deepEqual(contents, {}, 'local storage should still be empty');
+export function verifyLocalStorageDoesNotContainRecord(source, record) {
+  let actual = getRecord(source, record);
+
+  equal(actual, null, 'local storage does not contain record');
+}
+
+export function verifyLocalStorageIsEmpty(source) {
+  let isEmpty = true;
+  for (let key in window.localStorage) {
+    if (key.indexOf(source.namespace) === 0) {
+      isEmpty = false;
+      break;
+    }
   }
+  ok(isEmpty, 'local storage does not contain records for source');
 }
-
-export {
-  verifyLocalStorageIsEmpty,
-  verifyLocalStorageContainsRecord
-};
