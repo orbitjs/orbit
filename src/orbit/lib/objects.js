@@ -168,12 +168,20 @@ var merge =  function(base, source) {
   return merged;
 };
 
-function get(obj, ...args) {
+/**
+  Similar to the lodash _.get function, this function uses a path to
+  retrieve values from a nested object.
+
+  @param {Object} obj - object to pull values from
+  @param {string[]} path - any array of strings specifying the path to use
+  @returns {*} the value of the obj at path or undefined
+ */
+function get(obj, path) {
   let index = -1;
   let result = obj;
 
-  while (++index < args.length) {
-    result = result[args[index]];
+  while (++index < path.length) {
+    result = result[path[index]];
     if (!result) {
       return result;
     }

@@ -16,7 +16,7 @@ export default class KeyMap {
    @returns {string} the model's key value
    */
   idToKey(type, keyName, idValue) {
-    return get(this._data, type, keyName, 'idToKeyMap', idValue);
+    return get(this._data, [type, keyName, 'idToKeyMap', idValue]);
   }
 
   /**
@@ -28,7 +28,7 @@ export default class KeyMap {
    @returns {string} the model's id value
    */
   keyToId(type, keyName, keyValue) {
-    return get(this._data, type, keyName, 'keyToIdMap', keyValue);
+    return get(this._data, [type, keyName, 'keyToIdMap', keyValue]);
   }
 
   /**

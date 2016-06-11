@@ -1,3 +1,12 @@
+/**
+  Like the Lodash _.every function, this function takes an
+  array and a predicate function and returns true or false depending
+  on whether the predicate is true for every item in the array.
+
+  @param {Array} array - array to iterate through
+  @param {function} predicate - function that returns true or false
+  @returns {boolean} determination of whether every predicate call was true
+ */
 function every(array, predicate) {
   let index = -1;
   let length = array.length;
@@ -11,6 +20,15 @@ function every(array, predicate) {
   return true;
 }
 
+/**
+  Like the Lodash _.some function, this function takes an
+  array and a predicate function and returns true or false depending
+  on whether the predicate is true for any of the items in the array.
+
+  @param {Array} array - array to iterate through
+  @param {function} predicate - function that returns true or false
+  @returns {boolean} determination of whether any predicate call was true
+ */
 function some(array, predicate) {
   let index = -1;
   let length = array.length;
@@ -24,6 +42,14 @@ function some(array, predicate) {
   return false;
 }
 
+/**
+  This function is similar to Array.prototype.find, but it returns the
+  result of calling the value function rather than an item of the array.
+
+  @param {Array} array - array to iterate through
+  @param {function} valueFn - function that returns true or false
+  @returns {any} the first result of valueFn that returned true or undefined
+ */
 function firstResult(array, valueFn) {
   let index = -1;
   let length = array.length;
