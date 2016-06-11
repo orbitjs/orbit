@@ -3,7 +3,6 @@
 QUnit.config.autostart = false;
 QUnit.config.urlConfig.push({ id: 'nolint', label: 'Disable Linting' });
 
-// TODO: load based on params
 setTimeout(function() {
   for (var moduleName in requirejs.entries) {
     var isTest = moduleName.match(/[-_]test$/);
