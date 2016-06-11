@@ -21,7 +21,7 @@ module('OC - KeyMap', {
   }
 });
 
-test('#push', function() {
+test('#pushRecord', function() {
   let keyMap = new KeyMap(schema);
 
   keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
