@@ -4,7 +4,7 @@ import Store from 'orbit-common/store';
 import JsonApiSource from 'orbit-common/jsonapi-source';
 import { eq } from 'orbit/lib/eq';
 import qb from 'orbit-common/query/builder';
-import Network from 'orbit-common/network';
+import KeyMap from 'orbit-common/key-map';
 import {
   addRecord,
   replaceRecord,
@@ -81,7 +81,6 @@ function jsonResponse(status, json) {
 
 module('Integration - Coordinator', function(hooks) {
   let store;
-  let network;
   // let localStorage;
   let jsonApiSource;
   let coordinator;
@@ -90,10 +89,10 @@ module('Integration - Coordinator', function(hooks) {
     server = sinon.fakeServer.create();
     server.autoRespond = true;
 
-    network = new Network(planetsSchema);
+    let keyMap = new KeyMap();
     coordinator = new Coordinator();
-    jsonApiSource = new JsonApiSource({ network });
-    store = new Store({ network });
+    jsonApiSource = new JsonApiSource({ schema: planetsSchema, keyMap: new KeyMap() });
+    store = new Store({ schema: planetsSchema, keyMap });
     // localStorage = new LocalStorageSource({ schema });
 
     coordinator.addNode('master', {

@@ -2,12 +2,12 @@ import 'tests/test-helper';
 import Schema from 'orbit-common/schema';
 import DeletionTrackingProcessor from 'orbit-common/cache/operation-processors/deletion-tracking-processor';
 import Cache from 'orbit-common/cache';
-import Network from 'orbit-common/network';
+import KeyMap from 'orbit-common/key-map';
 import {
   removeRecord
 } from 'orbit-common/transform/operators';
 
-let schema, network, cache;
+let schema, cache;
 
 const schemaDefinition = {
   models: {
@@ -44,14 +44,13 @@ const schemaDefinition = {
 
 module('OC - OperationProcessors - DeletionTrackingProcessor', {
   setup() {
+    let keyMap = new KeyMap();
     schema = new Schema(schemaDefinition);
-    network = new Network(schema);
-    cache = new Cache(network, { processors: [DeletionTrackingProcessor] });
+    cache = new Cache({ schema, keyMap, processors: [DeletionTrackingProcessor] });
   },
 
   teardown() {
     schema = null;
-    network = null;
     cache = null;
   }
 });

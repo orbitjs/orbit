@@ -31,7 +31,8 @@ import { FetchNotAllowed, TransformNotAllowed } from './lib/exceptions';
  */
 export default class JSONAPISource extends Source {
   constructor(options = {}) {
-    assert('JSONAPISource\'s `network` must be specified in `options.network` constructor argument', options.network);
+    assert('JSONAPISource\'s `schema` must be specified in `options.schema` constructor argument', options.schema);
+    assert('JSONAPISource\'s `keyMap` must be specified in `options.keyMap` constructor argument', options.keyMap);
     assert('JSONAPISource requires Orbit.Promise be defined', Orbit.Promise);
     assert('JSONAPISource requires Orbit.ajax be defined', Orbit.ajax);
 
@@ -40,7 +41,9 @@ export default class JSONAPISource extends Source {
     Fetchable.extend(this);
     Transformable.extend(this);
 
-    this.network          = options.network;
+    // TODO: Do we need schema and keyMap instance properties?
+    this.schema           = options.schema;
+    this.keyMap           = options.keyMap;
     this.name             = options.name || 'jsonapi';
     this.namespace        = options.namespace;
     this.host             = options.host;
@@ -50,7 +53,7 @@ export default class JSONAPISource extends Source {
     this.maxRequestsPerTransform = options.maxRequestsPerTransform;
 
     const SerializerClass = options.SerializerClass || JSONAPISerializer;
-    this.serializer       = new SerializerClass(this.network);
+    this.serializer       = new SerializerClass({ schema: this.schema, keyMap: this.keyMap });
 
     assert('Serializer must be an instance of OC.Serializer', this.serializer instanceof Serializer);
   }

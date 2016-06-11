@@ -1,10 +1,10 @@
 import Source from 'orbit/source';
 import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
+import KeyMap from 'orbit-common/key-map';
 import JSONAPISource from 'orbit-common/jsonapi-source';
 import qb from 'orbit-common/query/builder';
 import { TransformNotAllowed } from 'orbit-common/lib/exceptions';
-import Network from 'orbit-common/network';
 import {
   addRecord,
   replaceRecord,
@@ -17,7 +17,7 @@ import {
   replaceHasOne
 } from 'orbit-common/transform/operators';
 
-let server, network, source;
+let server, keyMap, source;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -57,14 +57,14 @@ module('OC - JSONAPISource - with a secondary key', {
       }
     });
 
-    network = new Network(schema);
-    source = new JSONAPISource({ network });
+    keyMap = new KeyMap();
+    source = new JSONAPISource({ schema, keyMap });
 
     source.serializer.resourceKey = function() { return 'remoteId'; };
   },
 
   teardown() {
-    network = null;
+    keyMap = null;
     source = null;
 
     server.restore();
@@ -92,8 +92,7 @@ test('implements Transformable', function(assert) {
 test('source saves options', function(assert) {
   assert.expect(6);
   let schema = new Schema({});
-  let network = new Network(schema);
-  source = new JSONAPISource({ network, host: '127.0.0.1:8888', namespace: 'api', headers: { 'User-Agent': 'CERN-LineMode/2.15 libwww/2.17b3' } });
+  source = new JSONAPISource({ schema, keyMap, host: '127.0.0.1:8888', namespace: 'api', headers: { 'User-Agent': 'CERN-LineMode/2.15 libwww/2.17b3' } });
   assert.equal(source.namespace, 'api', 'Namespace should be defined');
   assert.equal(source.host, '127.0.0.1:8888', 'Host should be defined');
   assert.equal(source.headers['User-Agent'], 'CERN-LineMode/2.15 libwww/2.17b3', 'Headers should be defined');
@@ -106,7 +105,7 @@ test('#resourcePath - returns resource\'s path without its host and namespace', 
   assert.expect(1);
   source.host = 'http://127.0.0.1:8888';
   source.namespace = 'api';
-  network.keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
+  keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
 
   assert.equal(source.resourcePath('planet', '1'), 'planets/a', 'resourcePath returns the path to the resource relative to the host and namespace');
 });
@@ -115,14 +114,14 @@ test('#resourceURL - respects options to construct URLs', function(assert) {
   assert.expect(1);
   source.host = 'http://127.0.0.1:8888';
   source.namespace = 'api';
-  network.keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
+  keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
 
   assert.equal(source.resourceURL('planet', '1'), 'http://127.0.0.1:8888/api/planets/a', 'resourceURL method should use the options to construct URLs');
 });
 
 test('#resourceRelationshipURL - constructs relationship URLs based upon base resourceURL', function(assert) {
   assert.expect(1);
-  network.keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
+  keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
 
   assert.equal(source.resourceRelationshipURL('planet', '1', 'moons'), '/planets/a/relationships/moons', 'resourceRelationshipURL appends /relationships/[relationship] to resourceURL');
 });
@@ -629,12 +628,12 @@ module('OC - JSONAPISource - with no secondary keys', {
       }
     });
 
-    network = new Network(schema);
-    source = new JSONAPISource({ network });
+    keyMap = new KeyMap();
+    source = new JSONAPISource({ schema, keyMap });
   },
 
   teardown() {
-    network = null;
+    keyMap = null;
     source = null;
 
     server.restore();

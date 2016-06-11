@@ -1,10 +1,10 @@
 import Schema from 'orbit-common/schema';
 import SchemaConsistencyProcessor from 'orbit-common/cache/operation-processors/schema-consistency-processor';
 import Cache from 'orbit-common/cache';
-import Network from 'orbit-common/network';
+import KeyMap from 'orbit-common/key-map';
 import { identity } from 'orbit-common/lib/identifiers';
 
-let schema, network, cache, processor;
+let schema, cache, processor;
 
 const schemaDefinition = {
   models: {
@@ -41,15 +41,14 @@ const schemaDefinition = {
 
 module('OC - OperationProcessors - SchemaConsistencyProcessor', {
   setup() {
+    let keyMap = new KeyMap();
     schema = new Schema(schemaDefinition);
-    network = new Network(schema);
-    cache = new Cache(network, { processors: [SchemaConsistencyProcessor] });
+    cache = new Cache({ schema, keyMap, processors: [SchemaConsistencyProcessor] });
     processor = cache._processors[0];
   },
 
   teardown() {
     schema = null;
-    network = null;
     cache = null;
     processor = null;
   }

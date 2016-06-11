@@ -1,7 +1,7 @@
 import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
+import KeyMap from 'orbit-common/key-map';
 import CacheObservable from 'orbit-common/cache/observables/cache-observable';
-import Network from 'orbit-common/network';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/from';
 import 'rxjs/add/operator/map';
@@ -42,13 +42,11 @@ const planetsSchema = new Schema({
   }
 });
 
-const planetsNetwork = new Network(planetsSchema);
-
 module('OC - Cache - CacheObservable', function(hooks) {
   let cache;
 
   hooks.beforeEach(function() {
-    let keyMap = planetsNetwork.keyMap;
+    let keyMap = new KeyMap();
 
     keyMap.pushRecord({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
 
@@ -68,7 +66,7 @@ module('OC - Cache - CacheObservable', function(hooks) {
       attributes: { name: 'Titan' },
       relationships: { planet: { data: 'planet:saturn' } } });
 
-    cache = new Cache(planetsNetwork);
+    cache = new Cache({ keyMap, schema: planetsSchema });
   });
 
   test('matching value', function(assert) {

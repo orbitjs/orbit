@@ -1,6 +1,6 @@
 import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
-import Network from 'orbit-common/network';
+import KeyMap from 'orbit-common/key-map';
 import { queryExpression as oqe } from 'orbit/query/expression';
 import {
   RecordNotFoundException,
@@ -19,13 +19,13 @@ import {
   replaceHasOne
 } from 'orbit-common/transform/operators';
 
-let network, cache;
+let schema, keyMap;
 
 ///////////////////////////////////////////////////////////////////////////////
 
 module('OC - Cache', {
   setup() {
-    let schema = new Schema({
+    schema = new Schema({
       models: {
         planet: {
           relationships: {
@@ -39,22 +39,24 @@ module('OC - Cache', {
         }
       }
     });
-    network = new Network(schema);
+
+    keyMap = new KeyMap();
   },
 
   teardown() {
-    network = null;
+    schema = null;
+    keyMap = null;
   }
 });
 
 test('it exists', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   assert.ok(cache);
 });
 
 test('#transform sets data and #get retrieves it', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   const earth = { type: 'planet', id: '1', attributes: { name: 'Earth' } };
 
@@ -65,7 +67,7 @@ test('#transform sets data and #get retrieves it', function(assert) {
 });
 
 test('#has indicates whether a path exists', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   const earth = { type: 'planet', id: '1', attributes: { name: 'Earth' } };
 
@@ -79,7 +81,7 @@ test('#has indicates whether a path exists', function(assert) {
 });
 
 test('#hasDeleted by default just returns the inverse of #has', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   const earth = { type: 'planet', id: '1', attributes: { name: 'Earth' } };
 
@@ -129,7 +131,7 @@ test('#hasDeleted by default just returns the inverse of #has', function(assert)
 // });
 
 test('#length returns the size of data at a path', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   assert.equal(cache.length('notthere'), 0, 'returns 0 when an object does not exist at a path');
 
@@ -146,7 +148,7 @@ test('#length returns the size of data at a path', function(assert) {
 });
 
 test('#reset clears the cache by default', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   cache.transform(addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } }));
 
@@ -156,7 +158,7 @@ test('#reset clears the cache by default', function(assert) {
 });
 
 test('#reset overrides the cache completely with the value specified', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   cache.transform(addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } }));
 
@@ -168,7 +170,7 @@ test('#reset overrides the cache completely with the value specified', function(
 });
 
 test('#transform still succeeds when an operation is a noop', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   cache.transform([
     addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } }),
@@ -179,7 +181,7 @@ test('#transform still succeeds when an operation is a noop', function(assert) {
 });
 
 test('#transform tracks refs and clears them from hasOne relationships when a referenced record is removed', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   const jupiter = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: { data: undefined } } };
   const io = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: 'planet:p1' } } };
@@ -203,7 +205,7 @@ test('#transform tracks refs and clears them from hasOne relationships when a re
 });
 
 test('#transform tracks refs and clears them from hasMany relationships when a referenced record is removed', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   var io = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: null } } };
   var europa = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: null } } };
@@ -230,7 +232,7 @@ test('#transform tracks refs and clears them from hasMany relationships when a r
 });
 
 test('#transform adds link to hasMany if record doesn\'t exist', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   cache.transform(addToHasMany({ type: 'planet', id: 'p1' }, 'moons', { type: 'moon', id: 'moon1' }));
 
@@ -240,7 +242,7 @@ test('#transform adds link to hasMany if record doesn\'t exist', function(assert
 test('#transform does not remove link from hasMany if record doesn\'t exist', function(assert) {
   assert.expect(1);
 
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   cache.on('patch', () => {
     ok(false, 'no operations were applied');
@@ -254,7 +256,7 @@ test('#transform does not remove link from hasMany if record doesn\'t exist', fu
 test('#transform adds hasOne if record doesn\'t exist', function(assert) {
   assert.expect(1);
 
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   const operation = {
     op: 'replaceHasOne',
@@ -273,7 +275,7 @@ test('#transform adds hasOne if record doesn\'t exist', function(assert) {
 test('#transform adds empty hasOne link even if record doesn\'t exist', function(assert) {
   assert.expect(1);
 
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   const operation = {
     op: 'replaceHasOne',
@@ -292,7 +294,7 @@ test('#transform adds empty hasOne link even if record doesn\'t exist', function
 test('#transform does not add link to hasMany if link already exists', function(assert) {
   assert.expect(1);
 
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   const jupiter = { id: 'p1', type: 'planet', attributes: { name: 'Jupiter' }, relationships: { moons: { data: { 'moon:m1': true } } } };
 
@@ -310,7 +312,7 @@ test('#transform does not add link to hasMany if link already exists', function(
 test('#transform does not remove relationship from hasMany if relationship doesn\'t exist', function(assert) {
   assert.expect(1);
 
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   const jupiter = { id: 'p1', type: 'planet', attributes: { name: 'Jupiter' }, relationships: { moons: {} } };
 
@@ -328,7 +330,7 @@ test('#transform does not remove relationship from hasMany if relationship doesn
 test('does not replace hasOne if relationship already exists', function(assert) {
   assert.expect(1);
 
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   const europa = { id: 'm1', type: 'moon', attributes: { name: 'Europa' }, relationships: { planet: { data: 'planet:p1' } } };
 
@@ -346,7 +348,7 @@ test('does not replace hasOne if relationship already exists', function(assert) 
 test('does not remove hasOne if relationship doesn\'t exist', function(assert) {
   assert.expect(1);
 
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   const europa = { type: 'moon', id: 'm1', attributes: { name: 'Europa' }, relationships: { planet: { data: null } } };
 
@@ -378,8 +380,9 @@ test('#transform removing model with a bi-directional hasOne', function(assert) 
       }
     }
   });
-  let network = new Network(hasOneSchema);
-  cache = new Cache(network);
+
+  let cache = new Cache({ schema: hasOneSchema, keyMap });
+
   cache.transform([
     addRecord({
       id: '1',
@@ -426,8 +429,8 @@ test('#transform removes dependent records', function(assert) {
       }
     }
   });
-  let network = new Network(dependentSchema);
-  cache = new Cache(network);
+
+  let cache = new Cache({ schema: dependentSchema, keyMap });
 
   const jupiter = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: {} } };
   const io = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: 'planet:p1' } } };
@@ -464,8 +467,8 @@ test('#transform does not remove non-dependent records', function() {
       }
     }
   });
-  let network = new Network(dependentSchema);
-  cache = new Cache(network);
+
+  let cache = new Cache({ schema: dependentSchema, keyMap });
 
   const jupiter = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: {} } };
   const io = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: 'planet:p1' } } };
@@ -488,7 +491,7 @@ test('#transform does not remove non-dependent records', function() {
 });
 
 test('#query can retrieve an individual record with `record`', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   let jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', classification: 'gas giant', atmosphere: true } };
   cache.reset({ planet: { jupiter } });
@@ -500,7 +503,7 @@ test('#query can retrieve an individual record with `record`', function(assert) 
 });
 
 test('#query can perform a simple matching filter', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   let jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', classification: 'gas giant', atmosphere: true } };
   let earth = { type: 'planet', id: 'earth', attributes: { name: 'Earth', classification: 'terrestrial', atmosphere: true } };
@@ -522,7 +525,7 @@ test('#query can perform a simple matching filter', function(assert) {
 });
 
 test('#query can perform a complex conditional `and` filter', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   let jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', classification: 'gas giant', atmosphere: true } };
   let earth = { type: 'planet', id: 'earth', attributes: { name: 'Earth', classification: 'terrestrial', atmosphere: true } };
@@ -548,7 +551,7 @@ test('#query can perform a complex conditional `and` filter', function(assert) {
 });
 
 test('#query can perform a complex conditional `or` filter', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   let jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', classification: 'gas giant', atmosphere: true } };
   let earth = { type: 'planet', id: 'earth', attributes: { name: 'Earth', classification: 'terrestrial', atmosphere: true } };
@@ -575,7 +578,7 @@ test('#query can perform a complex conditional `or` filter', function(assert) {
 });
 
 test('#query - record', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   const jupiter = {
     id: 'jupiter', type: 'planet',
@@ -591,7 +594,7 @@ test('#query - record', function(assert) {
 });
 
 test('#query - record - finds record', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   const jupiter = {
     id: 'jupiter', type: 'planet',
@@ -607,7 +610,7 @@ test('#query - record - finds record', function(assert) {
 });
 
 test('#query - record - throws RecordNotFoundException if record doesn\'t exist', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   assert.throws(
     () => cache.query(oqe('record', { type: 'planet', id: 'jupiter' })),
@@ -616,7 +619,7 @@ test('#query - record - throws RecordNotFoundException if record doesn\'t exist'
 });
 
 test('#query - records - finds matching records', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   const jupiter = {
     id: 'jupiter', type: 'planet',
@@ -637,7 +640,7 @@ test('#query - records - finds matching records', function(assert) {
 });
 
 test('#query - records - throws ModelNotRegisteredException when model isn\'t registered in schema', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   assert.throws(
     () => cache.query(oqe('records', 'black-hole')),
@@ -646,7 +649,7 @@ test('#query - records - throws ModelNotRegisteredException when model isn\'t re
 });
 
 test('#query - relatedRecords', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   const jupiter = {
     id: 'jupiter', type: 'planet',
@@ -669,7 +672,7 @@ test('#query - relatedRecords', function(assert) {
 });
 
 test('#query - relatedRecord', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   const jupiter = {
     id: 'jupiter', type: 'planet',
@@ -692,7 +695,7 @@ test('#query - relatedRecord', function(assert) {
 });
 
 test('#rollback', function(assert) {
-  cache = new Cache(network);
+  let cache = new Cache({ schema, keyMap });
 
   const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
   const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };

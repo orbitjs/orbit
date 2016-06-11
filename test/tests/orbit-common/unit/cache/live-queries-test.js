@@ -1,6 +1,6 @@
 import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
-import Network from 'orbit-common/network';
+import KeyMap from 'orbit-common/key-map';
 import { identity } from 'orbit-common/lib/identifiers';
 import qb from 'orbit-common/query/builder';
 import {
@@ -30,8 +30,6 @@ const planetsSchema = new Schema({
   }
 });
 
-const planetsNetwork = new Network(planetsSchema);
-
 module('OC - Cache - liveQuery', function(hooks) {
   let cache;
   let pluto;
@@ -39,7 +37,7 @@ module('OC - Cache - liveQuery', function(hooks) {
   let callisto;
   let io;
 
-  let keyMap = planetsNetwork.keyMap;
+  let keyMap = new KeyMap;
 
   hooks.beforeEach(function() {
     pluto = { type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } };
@@ -62,7 +60,7 @@ module('OC - Cache - liveQuery', function(hooks) {
 
     [pluto, jupiter, callisto, io].forEach((p) => keyMap.pushRecord(p));
 
-    cache = new Cache(planetsNetwork);
+    cache = new Cache({ keyMap, schema: planetsSchema });
   });
 
   test('records', function(assert) {

@@ -1,6 +1,6 @@
 import Schema from 'orbit-common/schema';
 import Store from 'orbit-common/store';
-import Network from 'orbit-common/network';
+import KeyMap from 'orbit-common/key-map';
 import Transaction from 'orbit-common/transaction';
 import { uuid } from 'orbit/lib/uuid';
 import {
@@ -10,8 +10,7 @@ import {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-let store;
-let network;
+let store, keyMap;
 
 module('OC - Transaction', {
   setup: function() {
@@ -40,12 +39,12 @@ module('OC - Transaction', {
       }
     });
 
-    network = new Network(schema);
-    store = new Store({ network });
+    keyMap = new KeyMap();
+    store = new Store({ schema, keyMap });
   },
 
   teardown: function() {
-    network = null;
+    keyMap = null;
     store = null;
   }
 });

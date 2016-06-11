@@ -9,7 +9,7 @@ export default class JSONAPISerializer extends Serializer {
   }
 
   resourceType(type) {
-    return dasherize(this.network.schema.pluralize(type));
+    return dasherize(this.schema.pluralize(type));
   }
 
   resourceRelationship(type, relationship) {
@@ -21,7 +21,7 @@ export default class JSONAPISerializer extends Serializer {
   }
 
   typeFromResourceType(resourceType) {
-    return camelize(this.network.schema.singularize(resourceType));
+    return camelize(this.schema.singularize(resourceType));
   }
 
   attrFromResourceAttr(type, resourceAttr) {
@@ -54,7 +54,7 @@ export default class JSONAPISerializer extends Serializer {
     if (resourceKey === 'id') {
       return id;
     } else {
-      return this.network.keyMap.idToKey(type, resourceKey, id);
+      return this.keyMap.idToKey(type, resourceKey, id);
     }
   }
 

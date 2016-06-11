@@ -5,21 +5,24 @@ import Queryable from 'orbit/queryable';
 import Updatable from 'orbit/updatable';
 import Transformable from 'orbit/transformable';
 import Cache from './cache';
+import { extend as assign } from 'orbit/lib/objects';
 
 export default class Store extends Source {
-  constructor(options = {}) {
-    assert('Store\'s `network` must be specified in `options.network` constructor argument', options.network);
+  constructor({ schema, keyMap, cacheOptions, name } = {}) {
+    assert('Store\'s `schema` must be specified in `options.schema` constructor argument', schema);
+    assert('Store\'s `keyMap` must be specified in `options.keyMap` constructor argument', keyMap);
 
-    super(options);
+    super(...arguments);
 
     Queryable.extend(this);
     Updatable.extend(this);
     Transformable.extend(this);
 
-    this.network = options.network;
-    this.name = options.name || 'store';
+    this.schema = schema;
+    this.keyMap = keyMap;
+    this.name = name || 'store';
 
-    this.cache = new Cache(this.network, options.cacheOptions);
+    this.cache = new Cache(assign({}, { schema, keyMap }, cacheOptions));
   }
 
   /////////////////////////////////////////////////////////////////////////////

@@ -9,7 +9,7 @@ let source;
 
 module('Orbit - Transformable', {
   setup() {
-    source = new Source({ network: null });
+    source = new Source();
     Transformable.extend(source);
   },
 
