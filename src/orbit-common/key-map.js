@@ -98,14 +98,4 @@ export default class KeyMap {
       }
     });
   }
-
-  _initialTypeDataForKeys(keyNames) {
-    let typeData = {};
-
-    keyNames.forEach(keyName => {
-      typeData[keyName] = { keyToIdMap: {}, idToKeyMap: {} };
-    });
-
-    return typeData;
-  }
 }
