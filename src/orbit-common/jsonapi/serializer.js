@@ -78,7 +78,7 @@ export default class JSONAPISerializer extends Serializer {
       return existingId;
     }
 
-    return this.generateNewId(type, resourceKey, resourceId);
+    return this._generateNewId(type, resourceKey, resourceId);
   }
 
   serialize(records) {
@@ -272,7 +272,7 @@ export default class JSONAPISerializer extends Serializer {
     return toIdentifier(type, id);
   }
 
-  generateNewId(type, keyName, keyValue) {
+  _generateNewId(type, keyName, keyValue) {
     let newId = this.schema.generateDefaultId(type, keyName);
 
     this.keyMap.pushRecord({
