@@ -49,22 +49,8 @@ module('OC - Cache - CacheObservable', function(hooks) {
     let keyMap = new KeyMap();
 
     keyMap.pushRecord({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
-
     keyMap.pushRecord({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
     keyMap.pushRecord({ type: 'moon', id: 'callisto', attributes: { name: 'Callisto' } });
-
-    // TODO: determine if this has any effect
-    keyMap.pushRecord({
-      type: 'planet',
-      id: 'saturn',
-      attributes: { name: 'Saturn' },
-      relationships: { moons: { data: { 'moon:titan': true } } } });
-
-    planetsSchema.normalize({
-      type: 'moon',
-      id: 'titan',
-      attributes: { name: 'Titan' },
-      relationships: { planet: { data: 'planet:saturn' } } });
 
     cache = new Cache({ keyMap, schema: planetsSchema });
   });

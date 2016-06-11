@@ -41,9 +41,6 @@ export default class JSONAPISource extends Source {
     Fetchable.extend(this);
     Transformable.extend(this);
 
-    // TODO: Do we need schema and keyMap instance properties?
-    this.schema           = options.schema;
-    this.keyMap           = options.keyMap;
     this.name             = options.name || 'jsonapi';
     this.namespace        = options.namespace;
     this.host             = options.host;
@@ -53,7 +50,7 @@ export default class JSONAPISource extends Source {
     this.maxRequestsPerTransform = options.maxRequestsPerTransform;
 
     const SerializerClass = options.SerializerClass || JSONAPISerializer;
-    this.serializer       = new SerializerClass({ schema: this.schema, keyMap: this.keyMap });
+    this.serializer       = new SerializerClass({ schema: options.schema, keyMap: options.keyMap });
 
     assert('Serializer must be an instance of OC.Serializer', this.serializer instanceof Serializer);
   }
