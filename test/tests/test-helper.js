@@ -16,13 +16,14 @@ import {
 
 import {
   verifyLocalStorageIsEmpty,
-  verifyLocalStorageContainsRecord
+  verifyLocalStorageContainsRecord,
+  verifyLocalStorageDoesNotContainRecord
+
 } from './support/local-storage';
 
 import { planetsSchema } from './support/schemas';
 
 import './support/rsvp';
-
 
 export {
   serializeOps,
@@ -32,5 +33,6 @@ export {
   failedOperation,
   verifyLocalStorageIsEmpty,
   verifyLocalStorageContainsRecord,
+  verifyLocalStorageDoesNotContainRecord,
   planetsSchema
 };
