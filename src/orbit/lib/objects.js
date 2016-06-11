@@ -169,8 +169,8 @@ var merge =  function(base, source) {
 };
 
 /**
-  Similar to the lodash _.get function, this function uses a path to
-  retrieve a value from a nested object.
+  Similar to the lodash _.get function, this function uses a path to retrieve a
+  value from a nested object.
 
   @param {Object} obj - object to pull values from
   @param {string[]} path - any array of strings specifying the path to use
@@ -191,9 +191,9 @@ function get(obj, path) {
 }
 
 /**
-  Similar to the Lodash _.set function, this function uses a path to
-  set a value on an object. This function will create objects along the
-  path if necessary to allow setting an deeply nested value.
+  Similar to the Lodash _.set function, this function uses a path to set a
+  value on an object. This function will create objects along the path if
+  necessary to allow setting a deeply nested value.
 
   @param {Object} obj - object to set values in
   @param {string[]} path - any array of strings specifying the path to use
