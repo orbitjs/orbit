@@ -170,7 +170,7 @@ var merge =  function(base, source) {
 
 /**
   Similar to the lodash _.get function, this function uses a path to
-  retrieve values from a nested object.
+  retrieve a value from a nested object.
 
   @param {Object} obj - object to pull values from
   @param {string[]} path - any array of strings specifying the path to use
@@ -190,4 +190,45 @@ function get(obj, path) {
   return result;
 }
 
-export { clone, expose, extend, isArray, toArray, isObject, isNone, merge, get };
+/**
+  Similar to the Lodash _.set function, this function uses a path to
+  set a value on an object. This function will create objects along the
+  path if necessary to allow setting an deeply nested value.
+
+  @param {Object} obj - object to set values in
+  @param {string[]} path - any array of strings specifying the path to use
+  @param {*} value - the value to set
+  @returns {undefined}
+ */
+function set(obj, path, value) {
+  let index = -1;
+  let length = path.length;
+  let lastIndex = length - 1;
+  let nested = obj;
+
+  /* eslint-disable no-eq-null, eqeqeq */
+  while (nested != null && ++index < length) {
+    let key = path[index];
+
+    if (typeof nested === 'object') {
+      let newValue = value;
+
+      if (index != lastIndex) {
+        let objValue = nested[key];
+
+        if (objValue == null) {
+          newValue = (typeof path[index + 1] === 'number') ? [] : {};
+        } else {
+          newValue = objValue;
+        }
+      }
+
+      nested[key] = newValue;
+    }
+
+    nested = nested[key];
+  }
+  /* eslint-enable no-eq-null, eqeqeq */
+}
+
+export { clone, expose, extend, isArray, toArray, isObject, isNone, merge, get, set };

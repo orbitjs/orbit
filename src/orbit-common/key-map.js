@@ -1,4 +1,4 @@
-import { get } from 'orbit/lib/objects';
+import { get, set } from 'orbit/lib/objects';
 import { firstResult } from 'orbit/lib/arrays';
 import { assert } from 'orbit/lib/assert';
 
@@ -56,7 +56,6 @@ export default class KeyMap {
     });
   }
 
-  // TODO: use _.set pattern to clean this up and accept one key at a time per record
   /**
     Integrate the id and key values of a record into this keyMap.
 
@@ -73,20 +72,10 @@ export default class KeyMap {
       return;
     }
 
-    let recordKeyNames = Object.keys(keys);
-
-    let typeData = this._data[type];
-    if (!typeData) {
-      typeData = this._data[type] = this._initialTypeDataForKeys(recordKeyNames);
-    }
-
-    recordKeyNames.forEach(keyName => {
+    Object.keys(keys).forEach(keyName => {
       let keyValue = keys[keyName];
-      if (keyValue) {
-        let typeKeyData = typeData[keyName];
-        typeKeyData.idToKeyMap[id] = keyValue;
-        typeKeyData.keyToIdMap[keyValue] = id;
-      }
+      set(this._data, [type, keyName, 'idToKeyMap', id], keyValue);
+      set(this._data, [type, keyName, 'keyToIdMap', keyValue], id);
     });
   }
 

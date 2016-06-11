@@ -10,7 +10,8 @@ module('OC - KeyMap', {
       modelDefaults: {
         id: { defaultValue: uuid },
         keys: {
-          remoteId: {}
+          remoteId: {},
+          anotherKey: {}
         }
       },
       models: {
@@ -28,13 +29,16 @@ test('#pushRecord', function() {
   keyMap.pushRecord({ type: 'planet', id: '2', keys: { remoteId: 'b' } });
   keyMap.pushRecord({ type: 'moon', id: '1', keys: { remoteId: 'c' } });
   keyMap.pushRecord({ type: 'moon', id: '2', keys: { remoteId: 'a' } });
+  keyMap.pushRecord({ type: 'planet', id: '3', keys: { anotherKey: 'd' } });
 
   equal(keyMap.keyToId('moon', 'remoteId', 'c'), '1');
   equal(keyMap.keyToId('planet', 'remoteId', 'a'), '1');
+  equal(keyMap.keyToId('planet', 'anotherKey', 'd'), '3');
   equal(keyMap.keyToId('planet', 'remoteId', 'bogus'), undefined);
 
   equal(keyMap.idToKey('planet', 'remoteId', '2'), 'b');
   equal(keyMap.idToKey('moon', 'remoteId', '2'), 'a');
+  equal(keyMap.idToKey('planet', 'anotherKey', '3'), 'd');
   equal(keyMap.idToKey('planet', 'remoteId', 'bogus'), undefined);
 });
 
