@@ -344,3 +344,19 @@ test('#containsModel', function(assert) {
   assert.ok(schema.containsModel('moon'), 'identifies when schema contains model');
   assert.ok(!schema.containsModel('black-hole'), 'identifies when scheam does not contain model');
 });
+
+test('#generateDefaultId', function(assert) {
+  const schema = new Schema({
+    modelDefaults: {
+      id: {
+        defaultValue: () => 'generated-id'
+      }
+    },
+
+    models: {
+      moon: {}
+    }
+  });
+
+  assert.equal(schema.generateDefaultId('moon'), 'generated-id', 'provides the default value for the ID');
+});

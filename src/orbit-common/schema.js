@@ -422,6 +422,12 @@ export default class Schema {
     }
   }
 
+  /**
+   Generate an id for a given model type.
+
+   @param {String} type - a model type
+   @returns {String} a generated model ID
+   */
   generateDefaultId(type) {
     let value = this.modelDefinition(type).id.defaultValue;
 
