@@ -98,6 +98,12 @@ const ExpressionToRequestMap = {
     request.filter = buildFilters(filters);
 
     buildFetchRequest(select, request);
+  },
+
+  relatedRecords(expression, request) {
+    request.op = 'relatedRecords';
+    request.record = expression.args[0];
+    request.relationship = expression.args[1];
   }
 };
 

@@ -542,6 +542,36 @@ test('#fetch - records with filter', function(assert) {
     });
 });
 
+test('#fetch - relatedRecords', function(assert) {
+  let planetRecord = source.serializer.deserialize({
+    data: {
+      type: 'planets',
+      id: 'jupiter'
+    }
+  }).primary;
+
+  server.respondWith('GET', '/planets/jupiter/moons', function(xhr) {
+    assert.ok(true, 'made the correct request');
+
+    let data = [{
+      type: 'moons',
+      id: 'io',
+      attributes: {
+        name: 'Io'
+      }
+    }];
+
+    xhr.respond(200, { 'Content-Type': 'application/json' }, JSON.stringify({ data }));
+  });
+
+  let query = qb.relatedRecords(planetRecord, 'moons');
+  return source.fetch(query).then((transforms) => {
+    assert.equal(transforms.length, 1, 'one transform returned');
+    assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
+    assert.deepEqual(transforms[0].operations.map(o => o.record.attributes.name), ['Io']);
+  });
+});
+
 module('OC - JSONAPISource - with no secondary keys', {
   setup() {
     // fake xhr
