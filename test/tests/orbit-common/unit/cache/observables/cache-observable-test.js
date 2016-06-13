@@ -1,5 +1,6 @@
 import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
+import KeyMap from 'orbit-common/key-map';
 import CacheObservable from 'orbit-common/cache/observables/cache-observable';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/from';
@@ -45,22 +46,13 @@ module('OC - Cache - CacheObservable', function(hooks) {
   let cache;
 
   hooks.beforeEach(function() {
-    planetsSchema.normalize({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
+    let keyMap = new KeyMap();
 
-    planetsSchema.normalize({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
-    planetsSchema.normalize({ type: 'moon', id: 'callisto', attributes: { name: 'Callisto' } });
+    keyMap.pushRecord({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
+    keyMap.pushRecord({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
+    keyMap.pushRecord({ type: 'moon', id: 'callisto', attributes: { name: 'Callisto' } });
 
-    planetsSchema.normalize({
-      type: 'planet', id: 'saturn',
-      attributes: { name: 'Saturn' },
-      relationships: { moons: { data: { 'moon:titan': true } } } });
-
-    planetsSchema.normalize({
-      type: 'moon', id: 'titan',
-      attributes: { name: 'Titan' },
-      relationships: { planet: { data: 'planet:saturn' } } });
-
-    cache = new Cache(planetsSchema);
+    cache = new Cache({ keyMap, schema: planetsSchema });
   });
 
   test('matching value', function(assert) {

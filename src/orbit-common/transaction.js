@@ -33,9 +33,10 @@ export default class Transaction extends Store {
     assert('Transaction constructor requires `options`', options);
     assert('`baseStore` must be supplied as an option when constructing a Transaction.', options.baseStore);
 
-    options.schema = options.baseStore.schema;
     options.cacheOptions = options.cacheOptions || {};
     options.cacheOptions.base = options.baseStore.cache;
+    options.schema = options.baseStore.schema;
+    options.keyMap = options.baseStore.keyMap;
 
     super(options);
 

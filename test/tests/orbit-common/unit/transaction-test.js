@@ -1,5 +1,6 @@
 import Schema from 'orbit-common/schema';
 import Store from 'orbit-common/store';
+import KeyMap from 'orbit-common/key-map';
 import Transaction from 'orbit-common/transaction';
 import { uuid } from 'orbit/lib/uuid';
 import {
@@ -9,12 +10,11 @@ import {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-let store;
-let schema;
+let store, keyMap;
 
 module('OC - Transaction', {
   setup: function() {
-    schema = new Schema({
+    let schema = new Schema({
       models: {
         planet: {
           attributes: {
@@ -39,11 +39,12 @@ module('OC - Transaction', {
       }
     });
 
-    store = new Store({ schema });
+    keyMap = new KeyMap();
+    store = new Store({ schema, keyMap });
   },
 
   teardown: function() {
-    schema = null;
+    keyMap = null;
     store = null;
   }
 });
@@ -64,15 +65,15 @@ test('automatically begins by default', function(assert) {
 });
 
 test('starts with the same cache contents as the base store', function(assert) {
-  const jupiter = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
+  const jupiter = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
 
   return store.update(addRecord(jupiter))
     .then(() => {
-      assert.deepEqual(store.cache.get(['planet', jupiter.id]), jupiter, 'planet should be jupiter');
+      assert.deepEqual(store.cache.get(['planet', 'jupiter-id']), jupiter, 'planet should be jupiter');
 
       let transaction = store.createTransaction();
 
-      assert.deepEqual(transaction.cache.get(['planet', jupiter.id]), jupiter, 'planet should be jupiter');
+      assert.deepEqual(transaction.cache.get(['planet', 'jupiter-id']), jupiter, 'planet should be jupiter');
     });
 });
 
@@ -84,7 +85,7 @@ test('does not auto-begin if the `active` option = false', function(assert) {
 test('once begun, tracks operations performed', function(assert) {
   assert.expect(3);
 
-  const jupiter = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
+  const jupiter = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
   const transaction = store.createTransaction();
 
   assert.equal(transaction.operations.length, 0, 'transaction has no operations');
@@ -103,7 +104,7 @@ test('once begun, tracks operations performed', function(assert) {
 test('#commit applies coalesced operations to `baseStore`', function(assert) {
   assert.expect(2);
 
-  const jupiter = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
+  const jupiter = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
 
   const transaction = store.createTransaction();
 

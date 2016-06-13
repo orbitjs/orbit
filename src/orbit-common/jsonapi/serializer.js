@@ -54,7 +54,7 @@ export default class JSONAPISerializer extends Serializer {
     if (resourceKey === 'id') {
       return id;
     } else {
-      return this.schema.idToKey(type, resourceKey, id);
+      return this.keyMap.idToKey(type, resourceKey, id);
     }
   }
 
@@ -68,15 +68,17 @@ export default class JSONAPISerializer extends Serializer {
       resourceId = resourceId[resourceKey];
     }
 
-    let id;
-
     if (resourceKey === 'id') {
-      id = resourceId;
-    } else {
-      id = this.schema.keyToId(type, resourceKey, resourceId, true);
+      return resourceId;
     }
 
-    return id;
+    let existingId = this.keyMap.keyToId(type, resourceKey, resourceId);
+
+    if (existingId) {
+      return existingId;
+    }
+
+    return this._generateNewId(type, resourceKey, resourceId);
   }
 
   serialize(records) {
@@ -190,7 +192,21 @@ export default class JSONAPISerializer extends Serializer {
     this.deserializeAttributes(record, data);
     this.deserializeRelationships(record, data);
 
-    return this.schema.normalize(record);
+    return this.initializeRecord(record);
+  }
+
+  initializeRecord(record) {
+    if (!record.id) {
+      record.id = this.keyMap.findIdForRecord(record);
+    }
+
+    this.schema.normalize(record);
+
+    if (record.id) {
+      this.keyMap.pushRecord(record);
+    }
+
+    return record;
   }
 
   deserializeKey(record, data) {
@@ -254,5 +270,19 @@ export default class JSONAPISerializer extends Serializer {
     var type = this.typeFromResourceType(resourceIdentifier.type);
     var id = this.idFromResourceId(type, resourceIdentifier.id);
     return toIdentifier(type, id);
+  }
+
+  _generateNewId(type, keyName, keyValue) {
+    let newId = this.schema.generateDefaultId(type, keyName);
+
+    this.keyMap.pushRecord({
+      type,
+      id: newId,
+      keys: {
+        [keyName]: keyValue
+      }
+    });
+
+    return newId;
   }
 }

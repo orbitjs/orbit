@@ -1,5 +1,6 @@
 import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
+import KeyMap from 'orbit-common/key-map';
 import { identity } from 'orbit-common/lib/identifiers';
 import qb from 'orbit-common/query/builder';
 import {
@@ -36,25 +37,17 @@ module('OC - Cache - liveQuery', function(hooks) {
   let callisto;
   let io;
 
+  let keyMap = new KeyMap;
+
   hooks.beforeEach(function() {
-    pluto = planetsSchema.normalize({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
+    pluto = { type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } };
+    jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } };
+    callisto = { type: 'moon', id: 'callisto', attributes: { name: 'Callisto' } };
+    io = { type: 'moon', id: 'io', attributes: { name: 'Io' } };
 
-    jupiter = planetsSchema.normalize({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
-    callisto = planetsSchema.normalize({ type: 'moon', id: 'callisto', attributes: { name: 'Callisto' } });
+    [pluto, jupiter, callisto, io].forEach((p) => keyMap.pushRecord(p));
 
-    planetsSchema.normalize({
-      type: 'planet', id: 'saturn',
-      attributes: { name: 'Saturn' },
-      relationships: { moons: { data: { 'moon:titan': true } } } });
-
-    planetsSchema.normalize({
-      type: 'moon', id: 'titan',
-      attributes: { name: 'Titan' },
-      relationships: { planet: { data: 'planet:saturn' } } });
-
-    io = planetsSchema.normalize({ type: 'moon', id: 'io', attributes: { name: 'Io' } });
-
-    cache = new Cache(planetsSchema);
+    cache = new Cache({ keyMap, schema: planetsSchema });
   });
 
   test('records', function(assert) {

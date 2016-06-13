@@ -1,6 +1,7 @@
 import Source from 'orbit/source';
 import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
+import KeyMap from 'orbit-common/key-map';
 import JSONAPISource from 'orbit-common/jsonapi-source';
 import qb from 'orbit-common/query/builder';
 import { TransformNotAllowed } from 'orbit-common/lib/exceptions';
@@ -16,7 +17,7 @@ import {
   replaceHasOne
 } from 'orbit-common/transform/operators';
 
-let server, schema, source;
+let server, keyMap, source;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -26,7 +27,7 @@ module('OC - JSONAPISource - with a secondary key', {
     server = sinon.fakeServer.create();
     server.autoRespond = true;
 
-    schema = new Schema({
+    let schema = new Schema({
       modelDefaults: {
         id: {
           defaultValue: uuid
@@ -56,13 +57,14 @@ module('OC - JSONAPISource - with a secondary key', {
       }
     });
 
-    source = new JSONAPISource({ schema: schema });
+    keyMap = new KeyMap();
+    source = new JSONAPISource({ schema, keyMap });
 
     source.serializer.resourceKey = function() { return 'remoteId'; };
   },
 
   teardown() {
-    schema = null;
+    keyMap = null;
     source = null;
 
     server.restore();
@@ -90,7 +92,7 @@ test('implements Transformable', function(assert) {
 test('source saves options', function(assert) {
   assert.expect(6);
   let schema = new Schema({});
-  source = new JSONAPISource({ schema: schema, host: '127.0.0.1:8888', namespace: 'api', headers: { 'User-Agent': 'CERN-LineMode/2.15 libwww/2.17b3' } });
+  source = new JSONAPISource({ schema, keyMap, host: '127.0.0.1:8888', namespace: 'api', headers: { 'User-Agent': 'CERN-LineMode/2.15 libwww/2.17b3' } });
   assert.equal(source.namespace, 'api', 'Namespace should be defined');
   assert.equal(source.host, '127.0.0.1:8888', 'Host should be defined');
   assert.equal(source.headers['User-Agent'], 'CERN-LineMode/2.15 libwww/2.17b3', 'Headers should be defined');
@@ -103,7 +105,7 @@ test('#resourcePath - returns resource\'s path without its host and namespace', 
   assert.expect(1);
   source.host = 'http://127.0.0.1:8888';
   source.namespace = 'api';
-  schema.normalize({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
+  keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
 
   assert.equal(source.resourcePath('planet', '1'), 'planets/a', 'resourcePath returns the path to the resource relative to the host and namespace');
 });
@@ -112,14 +114,14 @@ test('#resourceURL - respects options to construct URLs', function(assert) {
   assert.expect(1);
   source.host = 'http://127.0.0.1:8888';
   source.namespace = 'api';
-  schema.normalize({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
+  keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
 
   assert.equal(source.resourceURL('planet', '1'), 'http://127.0.0.1:8888/api/planets/a', 'resourceURL method should use the options to construct URLs');
 });
 
 test('#resourceRelationshipURL - constructs relationship URLs based upon base resourceURL', function(assert) {
   assert.expect(1);
-  schema.normalize({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
+  keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
 
   assert.equal(source.resourceRelationshipURL('planet', '1', 'moons'), '/planets/a/relationships/moons', 'resourceRelationshipURL appends /relationships/[relationship] to resourceURL');
 });
@@ -133,7 +135,7 @@ test('#transform - can add records', function(assert) {
 
   let transformCount = 0;
 
-  let planet = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
+  let planet = source.serializer.deserializeRecord({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
 
   let addPlanetOp = {
     op: 'addRecord',
@@ -215,7 +217,14 @@ test('#transform - can transform records', function(assert) {
 
   let transformCount = 0;
 
-  let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' }, attributes: { name: 'Jupiter', classification: 'gas giant' } });
+  let planet = source.serializer.deserializeRecord({
+    type: 'planet',
+    id: '12345',
+    attributes: {
+      name: 'Jupiter',
+      classification: 'gas giant'
+    }
+  });
 
   let replacePlanetOp = {
     op: 'replaceRecord',
@@ -282,7 +291,14 @@ test('#transform - can transform records', function(assert) {
 test('#transform - can replace a single attribute', function(assert) {
   assert.expect(2);
 
-  let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' }, attributes: { name: 'Jupiter', classification: 'gas giant' } });
+  let planet = source.serializer.deserializeRecord({
+    type: 'planet',
+    id: '12345',
+    attributes: {
+      name: 'Jupiter',
+      classification: 'gas giant'
+    }
+  });
 
   server.respondWith('PATCH', '/planets/12345', function(xhr) {
     deepEqual(JSON.parse(xhr.requestBody),
@@ -310,7 +326,10 @@ test('#transform - can replace a single attribute', function(assert) {
 test('#transform - can delete records', function(assert) {
   assert.expect(2);
 
-  let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
+  let planet = source.serializer.deserializeRecord({
+    type: 'planet',
+    id: '12345'
+  });
 
   server.respondWith('DELETE', '/planets/12345', function(xhr) {
     assert.deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
@@ -328,8 +347,15 @@ test('#transform - can delete records', function(assert) {
 test('#transform - can add a hasMany relationship with POST', function(assert) {
   assert.expect(2);
 
-  let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
-  let moon = schema.normalize({ type: 'moon', keys: { remoteId: '987' } });
+  let planet = source.serializer.deserializeRecord({
+    type: 'planet',
+    id: '12345'
+  });
+
+  let moon = source.serializer.deserializeRecord({
+    type: 'moon',
+    id: '987'
+  });
 
   server.respondWith('POST', '/planets/12345/relationships/moons', function(xhr) {
     assert.deepEqual(JSON.parse(xhr.requestBody), { data: [{ type: 'moons', id: '987' }] },
@@ -348,8 +374,15 @@ test('#transform - can add a hasMany relationship with POST', function(assert) {
 test('#transform - can remove a relationship with DELETE', function(assert) {
   expect(2);
 
-  let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
-  let moon = schema.normalize({ type: 'moon', keys: { remoteId: '987' } });
+  let planet = source.serializer.deserializeRecord({
+    type: 'planet',
+    id: '12345'
+  });
+
+  let moon = source.serializer.deserializeRecord({
+    type: 'moon',
+    id: '987'
+  });
 
   server.respondWith('DELETE', '/planets/12345/relationships/moons', function(xhr) {
     assert.deepEqual(JSON.parse(xhr.requestBody), { data: [{ type: 'moons', id: '987' }] },
@@ -368,8 +401,15 @@ test('#transform - can remove a relationship with DELETE', function(assert) {
 test('#transform - can update a hasOne relationship with PATCH', function(assert) {
   assert.expect(2);
 
-  let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
-  let moon = schema.normalize({ type: 'moon', keys: { remoteId: '987' } });
+  let planet = source.serializer.deserializeRecord({
+    type: 'planet',
+    id: '12345'
+  });
+
+  let moon = source.serializer.deserializeRecord({
+    type: 'moon',
+    id: '987'
+  });
 
   server.respondWith('PATCH', '/moons/987', function(xhr) {
     assert.deepEqual(JSON.parse(xhr.requestBody),
@@ -389,7 +429,10 @@ test('#transform - can update a hasOne relationship with PATCH', function(assert
 test('#transform - can clear a hasOne relationship with PATCH', function(assert) {
   assert.expect(2);
 
-  let moon = schema.normalize({ type: 'moon', keys: { remoteId: '987' } });
+  let moon = source.serializer.deserializeRecord({
+    type: 'moon',
+    id: '987'
+  });
 
   server.respondWith('PATCH', '/moons/987', function(xhr) {
     assert.deepEqual(JSON.parse(xhr.requestBody),
@@ -409,8 +452,15 @@ test('#transform - can clear a hasOne relationship with PATCH', function(assert)
 test('#transform - can replace a hasMany relationship with PATCH', function(assert) {
   assert.expect(2);
 
-  let planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
-  let moon = schema.normalize({ type: 'moon', keys: { remoteId: '987' } });
+  let planet = source.serializer.deserializeRecord({
+    type: 'planet',
+    id: '12345'
+  });
+
+  let moon = source.serializer.deserializeRecord({
+    type: 'moon',
+    id: '987'
+  });
 
   server.respondWith('PATCH', '/planets/12345', function(xhr) {
     assert.deepEqual(JSON.parse(xhr.requestBody),
@@ -430,8 +480,8 @@ test('#transform - can replace a hasMany relationship with PATCH', function(asse
 test('#transform - a single transform can result in multiple requests', function(assert) {
   assert.expect(3);
 
-  let planet1 = schema.normalize({ type: 'planet', keys: { remoteId: '1' } });
-  let planet2 = schema.normalize({ type: 'planet', keys: { remoteId: '2' } });
+  let planet1 = source.serializer.initializeRecord({ type: 'planet', keys: { remoteId: '1' } });
+  let planet2 = source.serializer.initializeRecord({ type: 'planet', keys: { remoteId: '2' } });
 
   server.respondWith('DELETE', '/planets/1', function(xhr) {
     assert.deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
@@ -459,8 +509,8 @@ test('#transform - a single transform can result in multiple requests', function
 test('#transform - source can limit the number of allowed requests per transform with `maxRequestsPerTransform`', function(assert) {
   assert.expect(1);
 
-  let planet1 = schema.normalize({ type: 'planet', keys: { remoteId: '1' } });
-  let planet2 = schema.normalize({ type: 'planet', keys: { remoteId: '2' } });
+  let planet1 = source.serializer.initializeRecord({ type: 'planet', keys: { remoteId: '1' } });
+  let planet2 = source.serializer.initializeRecord({ type: 'planet', keys: { remoteId: '2' } });
 
   source.maxRequestsPerTransform = 1;
 
@@ -478,7 +528,10 @@ test('#fetch - record', function(assert) {
 
   const data = { type: 'planets', id: '12345', attributes: { name: 'Jupiter', classification: 'gas giant' } };
 
-  const planet = schema.normalize({ type: 'planet', keys: { remoteId: '12345' } });
+  const planet = source.serializer.deserializeRecord({
+    type: 'planet',
+    id: '12345'
+  });
 
   server.respondWith('GET', '/planets/12345', function(xhr) {
     assert.ok(true, 'GET request');
@@ -548,7 +601,7 @@ module('OC - JSONAPISource - with no secondary keys', {
     server = sinon.fakeServer.create();
     server.autoRespond = true;
 
-    schema = new Schema({
+    let schema = new Schema({
       modelDefaults: {
         id: {
           defaultValue: uuid
@@ -575,11 +628,12 @@ module('OC - JSONAPISource - with no secondary keys', {
       }
     });
 
-    source = new JSONAPISource({ schema: schema });
+    keyMap = new KeyMap();
+    source = new JSONAPISource({ schema, keyMap });
   },
 
   teardown() {
-    schema = null;
+    keyMap = null;
     source = null;
 
     server.restore();
@@ -591,7 +645,7 @@ test('#transform - can add records', function(assert) {
 
   let transformCount = 0;
 
-  let planet = schema.normalize({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
+  let planet = source.serializer.deserializeRecord({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
 
   let addPlanetOp = {
     op: 'addRecord',

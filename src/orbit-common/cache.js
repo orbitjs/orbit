@@ -36,10 +36,11 @@ import 'orbit-common/rxjs/add/observable/from-orbit-event';
  @constructor
  */
 export default class Cache {
-  constructor(schema, options = {}) {
+  constructor(options = {}) {
     Evented.extend(this);
 
-    this.schema = schema;
+    this.keyMap = options.keyMap;
+    this.schema = options.schema;
 
     if (options.base) {
       this._doc = options.base._doc;
@@ -132,7 +133,7 @@ export default class Cache {
     this.transformLog.clear();
     this._transformInverses = {};
 
-    this.schema.registerAllKeys(data);
+    this.keyMap.pushDocument(data);
 
     this._processors.forEach(processor => processor.reset(data));
   }

@@ -1,6 +1,7 @@
 import Schema from 'orbit-common/schema';
 import CacheIntegrityProcessor from 'orbit-common/cache/operation-processors/cache-integrity-processor';
 import Cache from 'orbit-common/cache';
+import KeyMap from 'orbit-common/key-map';
 import { identity } from 'orbit-common/lib/identifiers';
 
 let schema, cache, processor;
@@ -40,8 +41,9 @@ const schemaDefinition = {
 
 module('OC - OperationProcessors - CacheIntegrityProcessor', {
   setup() {
+    let keyMap = new KeyMap();
     schema = new Schema(schemaDefinition);
-    cache = new Cache(schema, { processors: [CacheIntegrityProcessor] });
+    cache = new Cache({ schema, keyMap, processors: [CacheIntegrityProcessor] });
     processor = cache._processors[0];
   },
 

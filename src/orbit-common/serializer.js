@@ -1,5 +1,6 @@
 export default class Serializer {
-  constructor(schema) {
+  constructor({ schema, keyMap }) {
     this.schema = schema;
+    this.keyMap = keyMap;
   }
 }
