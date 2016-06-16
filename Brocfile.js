@@ -38,8 +38,8 @@ var packages = [
   }
 ];
 
-var loader = new Funnel('bower_components', {
-  srcDir: 'loader',
+var loader = new Funnel('node_modules', {
+  srcDir: 'loader.js/lib/loader/',
   files: ['loader.js'],
   destDir: '/assets/'
 });
@@ -176,13 +176,13 @@ mainWithTests = concat(mainWithTests, {
 var vendor = concat('', {
   inputFiles: [
     'node_modules/immutable/dist/immutable.js',
-    'bower_components/jquery/dist/jquery.js',
-    'bower_components/rsvp/rsvp.js'],
+    'node_modules/jquery/dist/jquery.js',
+    'node_modules/rsvp/dist/rsvp.js'],
   outputFile: '/assets/vendor.js'
 });
 
-var qunit = new Funnel('bower_components', {
-  srcDir: '/qunit/qunit',
+var qunit = new Funnel('node_modules', {
+  srcDir: '/qunitjs/qunit',
   files: ['qunit.js', 'qunit.css'],
   destDir: '/assets'
 });
