@@ -181,8 +181,8 @@ var vendor = concat('', {
   outputFile: '/assets/vendor.js'
 });
 
-var qunit = new Funnel('bower_components', {
-  srcDir: '/qunit/qunit',
+var qunit = new Funnel('node_modules', {
+  srcDir: '/qunitjs/qunit',
   files: ['qunit.js', 'qunit.css'],
   destDir: '/assets'
 });
