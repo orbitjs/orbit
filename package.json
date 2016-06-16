@@ -46,6 +46,7 @@
     "broccoli-sourcemap-concat": "^0.4.3",
     "git-repo-version": "^0.1.1",
     "js-string-escape": "^1.0.1",
+    "loader.js": "^4.0.1",
     "testem": "^1.0.0-rc.1",
     "yuidocjs": "^0.8.1"
   },

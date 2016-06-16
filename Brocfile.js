@@ -38,8 +38,8 @@ var packages = [
   }
 ];
 
-var loader = new Funnel('bower_components', {
-  srcDir: 'loader',
+var loader = new Funnel('node_modules', {
+  srcDir: 'loader.js/lib/loader/',
   files: ['loader.js'],
   destDir: '/assets/'
 });
