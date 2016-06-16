@@ -3,7 +3,6 @@
   "version": "0.8.0-beta.1",
   "private": true,
   "devDependencies": {
-    "jquery": "~1.11.1",
     "qunit": "~1.20.0",
     "rsvp": "~3.0.16"
   }

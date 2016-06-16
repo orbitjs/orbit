@@ -45,6 +45,7 @@
     "broccoli-replace": "~0.12.0",
     "broccoli-sourcemap-concat": "^0.4.3",
     "git-repo-version": "^0.1.1",
+    "jquery": "^3.0.0",
     "js-string-escape": "^1.0.1",
     "loader.js": "^4.0.1",
     "testem": "^1.0.0-rc.1",
