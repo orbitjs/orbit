@@ -1,4 +1,4 @@
-import { isArray, isObject, isNone } from 'orbit/lib/objects';
+import { isObject } from 'orbit/lib/objects';
 import OperationProcessor from './operation-processor';
 import { toIdentifier, parseIdentifier } from './../../lib/identifiers';
 
@@ -49,6 +49,9 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
       case 'removeRecord':
         return this._recordRemoved(operation.record);
 
+      case 'replaceRecord':
+        return this._recordRelationshipsRemoved(operation.record);
+
       default:
         return [];
     }
@@ -67,6 +70,9 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
 
       case 'addRecord':
         return this._recordAdded(operation.record);
+
+      case 'replaceRecord':
+        return this._recordRelationshipsAdded(operation.record);
 
       default:
         return [];
@@ -119,7 +125,7 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
       if (relatedRecords === undefined) {
         const relationshipData = this.cache.get([record.type, record.id, 'relationships', relationship, 'data']);
         if (relationshipData) {
-          relatedRecords = recordsFromData(relationshipData);
+          relatedRecords = recordArrayFromData(relationshipData);
         }
       }
 
@@ -132,17 +138,7 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
   }
 
   _recordAdded(record) {
-    const relationships = record.relationships;
-
-    if (relationships) {
-      Object.keys(relationships).forEach(relationship => {
-        const relationshipData = relationships[relationship] && relationships[relationship].data;
-        if (relationshipData) {
-          const relatedRecords = recordsFromData(relationshipData);
-          relatedRecords.forEach(relatedRecord => this._addRevLink(record, relationship, relatedRecord));
-        }
-      }, this);
-    }
+    this._addAllRevLinks(record);
 
     return [];
   }
@@ -179,20 +175,21 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
       delete this._rev[record.type][record.id];
     }
 
-    // when a whole record is removed, remove references corresponding to each relationship
-    const relationships = this.cache.get([record.type, record.id, 'relationships']);
-    if (relationships) {
-      Object.keys(relationships).forEach(relationship => {
-        const relationshipData = relationships[relationship] && relationships[relationship].data;
-        if (relationshipData) {
-          recordsFromData(relationshipData).forEach(relatedRecord => {
-            this._removeRevLink(record, relationship, relatedRecord);
-          });
-        }
-      });
-    }
+    this._removeAllRevLinks(record);
 
     return ops;
+  }
+
+  _recordRelationshipsAdded(record) {
+    this._addAllRevLinks(record);
+
+    return [];
+  }
+
+  _recordRelationshipsRemoved(record) {
+    this._removeAllRevLinks(record);
+
+    return [];
   }
 
   _revLink(record) {
@@ -205,6 +202,36 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
       rev = revForType[record.id] = {};
     }
     return rev;
+  }
+
+  _addAllRevLinks(record) {
+    const relationships = record.relationships;
+    if (relationships) {
+      Object.keys(relationships).forEach(relationship => {
+        const relationshipData = relationships[relationship] && relationships[relationship].data;
+        if (relationshipData) {
+          const relatedRecords = recordArrayFromData(relationshipData);
+          relatedRecords.forEach(relatedRecord => {
+            this._addRevLink(record, relationship, relatedRecord);
+          });
+        }
+      });
+    }
+  }
+
+  _removeAllRevLinks(record) {
+    const relationships = this.cache.get([record.type, record.id, 'relationships']);
+    if (relationships) {
+      Object.keys(relationships).forEach(relationship => {
+        const relationshipData = relationships[relationship] && relationships[relationship].data;
+        if (relationshipData) {
+          const relatedRecords = recordArrayFromData(relationshipData);
+          relatedRecords.forEach(relatedRecord => {
+            this._removeRevLink(record, relationship, relatedRecord);
+          });
+        }
+      });
+    }
   }
 
   _addRevLink(record, relationship, relatedRecord) {
@@ -236,20 +263,16 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
   }
 }
 
-function recordsFromData(data) {
+function recordArrayFromData(data) {
   let ids;
 
-  if (isArray(data)) {
-    ids = data;
-  } else if (isObject(data)) {
+  if (isObject(data)) {
     ids = Object.keys(data);
-  } else if (isNone(data)) {
-    ids = [];
-  } else {
+  } else if (typeof data === 'string') {
     ids = [data];
+  } else {
+    ids = [];
   }
 
-  return ids.map(id => {
-    return parseIdentifier(id);
-  });
+  return ids.map(id => parseIdentifier(id));
 }

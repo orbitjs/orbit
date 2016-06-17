@@ -15,7 +15,7 @@ const schemaDefinition = {
       },
       relationships: {
         moons: { type: 'hasMany', model: 'moon', inverse: 'planet', actsAsSet: true },
-        races: { type: 'hasMany', model: 'race', inverse: 'planets' },
+        inhabitants: { type: 'hasMany', model: 'inhabitant', inverse: 'planets' },
         next: { type: 'hasOne', model: 'planet', inverse: 'previous' },
         previous: { type: 'hasOne', model: 'planet', inverse: 'next' }
       }
@@ -28,12 +28,12 @@ const schemaDefinition = {
         planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
       }
     },
-    race: {
+    inhabitant: {
       attributes: {
         name: { type: 'string' }
       },
       relationships: {
-        planets: { type: 'hasMany', model: 'planet', inverse: 'races' }
+        planets: { type: 'hasMany', model: 'planet', inverse: 'inhabitants' }
       }
     }
   }
@@ -72,8 +72,8 @@ test('reset empty cache', function(assert) {
                    relationships: { planet: { data: 'planet:jupiter' } } };
 
   cache.reset({
-    planet: { saturn: saturn, jupiter: jupiter },
-    moon: { titan: titan, europa: europa }
+    planet: { saturn, jupiter },
+    moon: { titan, europa }
   });
 
   assert.deepEqual(processor._rev, {
@@ -114,8 +114,8 @@ test('add to hasOne => hasMany', function(assert) {
                    relationships: { planet: { data: 'planet:jupiter' } } };
 
   cache.reset({
-    planet: { saturn: saturn, jupiter: jupiter },
-    moon: { titan: titan, europa: europa }
+    planet: { saturn, jupiter },
+    moon: { titan, europa }
   });
 
   assert.deepEqual(processor._rev, {
@@ -198,8 +198,8 @@ test('replace hasOne => hasMany', function(assert) {
                    relationships: { planet: { data: 'planet:jupiter' } } };
 
   cache.reset({
-    planet: { saturn: saturn, jupiter: jupiter },
-    moon: { titan: titan, europa: europa }
+    planet: { saturn, jupiter },
+    moon: { titan, europa }
   });
 
   assert.deepEqual(processor._rev, {
@@ -275,8 +275,8 @@ test('replace hasMany => hasOne with empty array', function(assert) {
                   relationships: { planet: { data: 'planet:saturn' } } };
 
   cache.reset({
-    planet: { saturn: saturn },
-    moon: { titan: titan }
+    planet: { saturn },
+    moon: { titan }
   });
 
   assert.deepEqual(processor._rev, {
@@ -341,8 +341,8 @@ test('replace hasMany => hasOne with populated array', function(assert) {
                   relationships: { planet: { data: 'planet:saturn' } } };
 
   cache.reset({
-    planet: { saturn: saturn, jupiter: jupiter },
-    moon: { titan: titan }
+    planet: { saturn, jupiter },
+    moon: { titan }
   });
 
   assert.deepEqual(processor._rev, {
@@ -412,8 +412,8 @@ test('replace hasMany => hasOne with populated array, when already populated', f
                    relationships: { planet: { data: 'planet:jupiter' } } };
 
   cache.reset({
-    planet: { saturn: saturn, jupiter: jupiter },
-    moon: { titan: titan, europa: europa }
+    planet: { saturn, jupiter },
+    moon: { titan, europa }
   });
 
   assert.deepEqual(processor._rev, {
@@ -477,51 +477,51 @@ test('replace hasMany => hasOne with populated array, when already populated', f
 });
 
 test('replace hasMany => hasMany', function(assert) {
-  const human = { type: 'race', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
-  const earth = { type: 'planet', id: 'earth', relationships: { races: { data: { 'race:human': true } } } };
+  const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
+  const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: { 'inhabitant:human': true } } } };
 
   cache.reset({
-    race: { human: human },
-    planet: { earth: earth }
+    inhabitant: { human },
+    planet: { earth }
   });
 
   assert.deepEqual(processor._rev, {
     'planet': {
       'earth': {
-        'race/human/relationships/planets/data/planet:earth': true
+        'inhabitant/human/relationships/planets/data/planet:earth': true
       }
     },
-    'race': {
+    'inhabitant': {
       'human': {
-        'planet/earth/relationships/races/data/race:human': true
+        'planet/earth/relationships/inhabitants/data/inhabitant:human': true
       }
     }
   }, 'rev links match');
 
-  const clearRacesOp = {
+  const clearInhabitantsOp = {
     op: 'replaceHasMany',
     record: earth,
-    relationship: 'races',
+    relationship: 'inhabitants',
     relatedRecords: []
   };
 
   assert.deepEqual(
-    processor.after(clearRacesOp),
+    processor.after(clearInhabitantsOp),
     []
   );
 
   assert.deepEqual(
-    processor.finally(clearRacesOp),
+    processor.finally(clearInhabitantsOp),
     []
   );
 
   assert.deepEqual(processor._rev, {
     'planet': {
       'earth': {
-        'race/human/relationships/planets/data/planet:earth': true
+        'inhabitant/human/relationships/planets/data/planet:earth': true
       }
     },
-    'race': {
+    'inhabitant': {
       'human': {
       }
     }
@@ -546,8 +546,8 @@ test('remove hasOne => hasMany', function(assert) {
                    relationships: { planet: { data: 'planet:jupiter' } } };
 
   cache.reset({
-    planet: { saturn: saturn, jupiter: jupiter },
-    moon: { titan: titan, europa: europa }
+    planet: { saturn, jupiter },
+    moon: { titan, europa }
   });
 
   assert.deepEqual(processor._rev, {
@@ -624,7 +624,7 @@ test('add to hasOne => hasOne', function(assert) {
                   attributes: { name: 'Earth' } };
 
   cache.reset({
-    planet: { saturn: saturn, jupiter: jupiter, earth: earth }
+    planet: { saturn, jupiter, earth }
   });
 
   assert.deepEqual(processor._rev, {
@@ -686,7 +686,7 @@ test('replace hasOne => hasOne with existing value', function(assert) {
                   attributes: { name: 'Earth' } };
 
   cache.reset({
-    planet: { saturn: saturn, jupiter: jupiter, earth: earth }
+    planet: { saturn, jupiter, earth }
   });
 
   assert.deepEqual(processor._rev, {
@@ -737,11 +737,11 @@ test('replace hasOne => hasOne with existing value', function(assert) {
 
 test('add to hasMany => hasMany', function(assert) {
   const earth = { type: 'planet', id: 'earth' };
-  const human = { type: 'race', id: 'human' };
+  const human = { type: 'inhabitant', id: 'human' };
 
   cache.reset({
-    planet: { earth: earth },
-    race: { human: human }
+    planet: { earth },
+    inhabitant: { human }
   });
 
   assert.deepEqual(processor._rev, {}, 'empty rev links');
@@ -771,30 +771,30 @@ test('add to hasMany => hasMany', function(assert) {
   assert.deepEqual(processor._rev, {
     'planet': {
       'earth': {
-        'race/human/relationships/planets/data/planet:earth': true
+        'inhabitant/human/relationships/planets/data/planet:earth': true
       }
     }
   }, 'rev links match');
 });
 
 test('remove from hasMany => hasMany', function(assert) {
-  const earth = { type: 'planet', id: 'earth', relationships: { races: { data: { 'race:human': true } } } };
-  const human = { type: 'race', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
+  const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: { 'inhabitant:human': true } } } };
+  const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
 
   cache.reset({
-    planet: { earth: earth },
-    race: { human: human }
+    planet: { earth },
+    inhabitant: { human }
   });
 
   assert.deepEqual(processor._rev, {
     'planet': {
       'earth': {
-        'race/human/relationships/planets/data/planet:earth': true
+        'inhabitant/human/relationships/planets/data/planet:earth': true
       }
     },
-    'race': {
+    'inhabitant': {
       'human': {
-        'planet/earth/relationships/races/data/race:human': true
+        'planet/earth/relationships/inhabitants/data/inhabitant:human': true
       }
     }
   }, 'rev links match');
@@ -826,60 +826,60 @@ test('remove from hasMany => hasMany', function(assert) {
       'earth': {
       }
     },
-    'race': {
+    'inhabitant': {
       'human': {
-        'planet/earth/relationships/races/data/race:human': true
+        'planet/earth/relationships/inhabitants/data/inhabitant:human': true
       }
     }
   }, 'rev links match');
 });
 
 test('remove record with hasMany relationships', function(assert) {
-  const earth = { type: 'planet', id: 'earth', relationships: { races: { data: { 'race:human': true } } } };
-  const human = { type: 'race', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
+  const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: { 'inhabitant:human': true } } } };
+  const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
 
   cache.reset({
     planet: { earth },
-    race: { human }
+    inhabitant: { human }
   });
 
   assert.deepEqual(processor._rev, {
     'planet': {
       'earth': {
-        'race/human/relationships/planets/data/planet:earth': true
+        'inhabitant/human/relationships/planets/data/planet:earth': true
       }
     },
-    'race': {
+    'inhabitant': {
       'human': {
-        'planet/earth/relationships/races/data/race:human': true
+        'planet/earth/relationships/inhabitants/data/inhabitant:human': true
       }
     }
   }, 'rev links match');
 
-  const removeRaceOp = {
+  const removeInhabitantOp = {
     op: 'removeRecord',
     record: human
   };
 
   assert.deepEqual(
-    processor.before(removeRaceOp),
+    processor.before(removeInhabitantOp),
     []
   );
 
   assert.deepEqual(
-    processor.after(removeRaceOp),
+    processor.after(removeInhabitantOp),
     [
       {
         op: 'removeFromHasMany',
         record: identity(earth),
-        relationship: 'races',
+        relationship: 'inhabitants',
         relatedRecord: identity(human)
       }
     ]
   );
 
   assert.deepEqual(
-    processor.finally(removeRaceOp),
+    processor.finally(removeInhabitantOp),
     []
   );
 
@@ -888,7 +888,55 @@ test('remove record with hasMany relationships', function(assert) {
       'earth': {
       }
     },
-    'race': {
+    'inhabitant': {
+    }
+  }, 'rev links match');
+});
+
+test('replaceRecord', function(assert) {
+  const earth = { type: 'planet', id: 'earth' };
+  const human = { type: 'inhabitant', id: 'human' };
+
+  cache.reset({
+    planet: { earth },
+    inhabitant: { human }
+  });
+
+  assert.deepEqual(processor._rev, {}, 'empty rev links');
+
+  const humanOnEarth = {
+    type: 'inhabitant',
+    id: 'human',
+    relationships: {
+      planets: { data: { 'planet:earth': true } }
+    }
+  };
+
+  const replaceHumanOp = {
+    op: 'replaceRecord',
+    record: humanOnEarth
+  };
+
+  assert.deepEqual(
+    processor.before(replaceHumanOp),
+    []
+  );
+
+  assert.deepEqual(
+    processor.after(replaceHumanOp),
+    []
+  );
+
+  assert.deepEqual(
+    processor.finally(replaceHumanOp),
+    []
+  );
+
+  assert.deepEqual(processor._rev, {
+    'planet': {
+      'earth': {
+        'inhabitant/human/relationships/planets/data/planet:earth': true
+      }
     }
   }, 'rev links match');
 });
