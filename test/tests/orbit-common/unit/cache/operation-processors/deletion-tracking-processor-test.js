@@ -18,7 +18,7 @@ const schemaDefinition = {
       },
       relationships: {
         moons: { type: 'hasMany', model: 'moon', inverse: 'planet', actsAsSet: true },
-        races: { type: 'hasMany', model: 'race', inverse: 'planets' },
+        inhabitants: { type: 'hasMany', model: 'inhabitant', inverse: 'planets' },
         next: { type: 'hasOne', model: 'planet', inverse: 'previous' },
         previous: { type: 'hasOne', model: 'planet', inverse: 'next' }
       }
@@ -31,12 +31,12 @@ const schemaDefinition = {
         planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
       }
     },
-    race: {
+    inhabitant: {
       attributes: {
         name: { type: 'string' }
       },
       relationships: {
-        planets: { type: 'hasMany', model: 'planet', inverse: 'races' }
+        planets: { type: 'hasMany', model: 'planet', inverse: 'inhabitants' }
       }
     }
   }

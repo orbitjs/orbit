@@ -15,7 +15,7 @@ const schemaDefinition = {
       },
       relationships: {
         moons: { type: 'hasMany', model: 'moon', inverse: 'planet', actsAsSet: true },
-        races: { type: 'hasMany', model: 'race', inverse: 'planets' },
+        inhabitants: { type: 'hasMany', model: 'inhabitant', inverse: 'planets' },
         next: { type: 'hasOne', model: 'planet', inverse: 'previous' },
         previous: { type: 'hasOne', model: 'planet', inverse: 'next' }
       }
@@ -28,12 +28,12 @@ const schemaDefinition = {
         planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
       }
     },
-    race: {
+    inhabitant: {
       attributes: {
         name: { type: 'string' }
       },
       relationships: {
-        planets: { type: 'hasMany', model: 'planet', inverse: 'races' }
+        planets: { type: 'hasMany', model: 'planet', inverse: 'inhabitants' }
       }
     }
   }
@@ -90,11 +90,6 @@ test('add to hasOne => hasMany', function(assert) {
 
   assert.deepEqual(
     processor.after(addPlanetOp),
-    []
-  );
-
-  assert.deepEqual(
-    processor.finally(addPlanetOp),
     [
       {
         op: 'addToHasMany',
@@ -103,6 +98,11 @@ test('add to hasOne => hasMany', function(assert) {
         relatedRecord: identity(europa)
       }
     ]
+  );
+
+  assert.deepEqual(
+    processor.finally(addPlanetOp),
+    []
   );
 });
 
@@ -148,21 +148,19 @@ test('replace hasOne => hasMany', function(assert) {
         record: identity(jupiter),
         relationship: 'moons',
         relatedRecord: identity(europa)
-      }
-    ]
-  );
-
-  assert.deepEqual(
-    processor.finally(
-      replacePlanetOp
-    ),
-    [
+      },
       {
         op: 'addToHasMany',
         record: identity(saturn),
         relationship: 'moons',
         relatedRecord: identity(europa)
       }
+    ]
+  );
+
+  assert.deepEqual(
+    processor.finally(replacePlanetOp),
+    [
     ]
   );
 });
@@ -244,14 +242,6 @@ test('replace hasMany => hasOne with populated array', function(assert) {
   assert.deepEqual(
     processor.after(replaceMoonsOp),
     [
-      // op('replace', ['moon', titan.id, 'relationships', 'planet'], null),
-      // op('remove', ['planet', saturn.id, 'relationships', 'moons', titan.id])
-    ]
-  );
-
-  assert.deepEqual(
-    processor.finally(replaceMoonsOp),
-    [
       {
         op: 'replaceHasOne',
         record: identity(titan),
@@ -259,6 +249,11 @@ test('replace hasMany => hasOne with populated array', function(assert) {
         relatedRecord: identity(jupiter)
       }
     ]
+  );
+
+  assert.deepEqual(
+    processor.finally(replaceMoonsOp),
+    []
   );
 });
 
@@ -304,15 +299,7 @@ test('replace hasMany => hasOne with populated array, when already populated', f
         record: identity(titan),
         relationship: 'planet',
         relatedRecord: null
-      }
-      // op('replace', ['moon', europa.id, 'relationships', 'planet'], null),
-      // op('remove', ['planet', jupiter.id, 'relationships', 'moons', europa.id])
-    ]
-  );
-
-  assert.deepEqual(
-    processor.finally(replaceMoonsOp),
-    [
+      },
       {
         op: 'replaceHasOne',
         record: identity(europa),
@@ -321,26 +308,31 @@ test('replace hasMany => hasOne with populated array, when already populated', f
       }
     ]
   );
+
+  assert.deepEqual(
+    processor.finally(replaceMoonsOp),
+    []
+  );
 });
 
-test('replace hasMany => hasMany', function(assert) {
-  const human = { type: 'race', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
-  const earth = { type: 'planet', id: 'earth', relationships: { races: { data: { 'race:human': true } } } };
+test('replace hasMany => hasMany, clearing records', function(assert) {
+  const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
+  const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: { 'inhabitant:human': true } } } };
 
   cache.reset({
-    race: { human },
+    inhabitant: { human },
     planet: { earth }
   });
 
-  const clearRacesOp = {
+  const clearInhabitantsOp = {
     op: 'replaceHasMany',
     record: identity(earth),
-    relationship: 'races',
+    relationship: 'inhabitants',
     relatedRecords: []
   };
 
   assert.deepEqual(
-    processor.after(clearRacesOp),
+    processor.after(clearInhabitantsOp),
     [
       {
         op: 'removeFromHasMany',
@@ -352,7 +344,49 @@ test('replace hasMany => hasMany', function(assert) {
   );
 
   assert.deepEqual(
-    processor.finally(clearRacesOp),
+    processor.finally(clearInhabitantsOp),
+    []
+  );
+});
+
+test('replace hasMany => hasMany, replacing some records', function(assert) {
+  const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
+  const cat = { type: 'inhabitant', id: 'cat' };
+  const dog = { type: 'inhabitant', id: 'dog' };
+  const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: { 'inhabitant:human': true } } } };
+
+  cache.reset({
+    inhabitant: { human, cat, dog },
+    planet: { earth }
+  });
+
+  const clearInhabitantsOp = {
+    op: 'replaceHasMany',
+    record: identity(earth),
+    relationship: 'inhabitants',
+    relatedRecords: [identity(human), identity(cat), identity(dog)]
+  };
+
+  assert.deepEqual(
+    processor.after(clearInhabitantsOp),
+    [
+      {
+        op: 'addToHasMany',
+        record: identity(cat),
+        relationship: 'planets',
+        relatedRecord: identity(earth)
+      },
+      {
+        op: 'addToHasMany',
+        record: identity(dog),
+        relationship: 'planets',
+        relatedRecord: identity(earth)
+      }
+    ]
+  );
+
+  assert.deepEqual(
+    processor.finally(clearInhabitantsOp),
     []
   );
 });
@@ -439,11 +473,6 @@ test('add to hasOne => hasOne', function(assert) {
 
   assert.deepEqual(
     processor.after(changePlanetOp),
-    []
-  );
-
-  assert.deepEqual(
-    processor.finally(changePlanetOp),
     [
       {
         op: 'replaceHasOne',
@@ -452,6 +481,11 @@ test('add to hasOne => hasOne', function(assert) {
         relatedRecord: identity(earth)
       }
     ]
+  );
+
+  assert.deepEqual(
+    processor.finally(changePlanetOp),
+    []
   );
 });
 
@@ -486,13 +520,6 @@ test('replace hasOne => hasOne with existing value', function(assert) {
   assert.deepEqual(
     processor.after(changePlanetOp),
     [
-      // op('remove', ['planet', saturn.id, 'relationships', 'next'])
-    ]
-  );
-
-  assert.deepEqual(
-    processor.finally(changePlanetOp),
-    [
       {
         op: 'replaceHasOne',
         record: identity(jupiter),
@@ -501,15 +528,59 @@ test('replace hasOne => hasOne with existing value', function(assert) {
       }
     ]
   );
+
+  assert.deepEqual(
+    processor.finally(changePlanetOp),
+    []
+  );
+});
+
+test('replace hasOne => hasOne with current existing value', function(assert) {
+  const saturn = { type: 'planet', id: 'saturn',
+                 attributes: { name: 'Saturn' },
+                 relationships: { next: { data: 'planet:jupiter' } } };
+
+  const jupiter = { type: 'planet', id: 'jupiter',
+                  attributes: { name: 'Jupiter' },
+                  relationships: { previous: { data: 'planet:saturn' } } };
+
+  const earth = { type: 'planet', id: 'earth',
+                attributes: { name: 'Earth' } };
+
+  cache.reset({
+    planet: { saturn, jupiter, earth }
+  });
+
+  const changePlanetOp = {
+    op: 'replaceHasOne',
+    record: identity(saturn),
+    relationship: 'next',
+    relatedRecord: identity(jupiter)
+  };
+
+  assert.deepEqual(
+    processor.before(changePlanetOp),
+    []
+  );
+
+  assert.deepEqual(
+    processor.after(changePlanetOp),
+    []
+  );
+
+  assert.deepEqual(
+    processor.finally(changePlanetOp),
+    []
+  );
 });
 
 test('add to hasMany => hasMany', function(assert) {
   const earth = { type: 'planet', id: 'earth' };
-  const human = { type: 'race', id: 'human' };
+  const human = { type: 'inhabitant', id: 'human' };
 
   cache.reset({
     planet: { earth },
-    race: { human }
+    inhabitant: { human }
   });
 
   const addPlanetOp = {
@@ -526,29 +597,29 @@ test('add to hasMany => hasMany', function(assert) {
 
   assert.deepEqual(
     processor.after(addPlanetOp),
-    []
-  );
-
-  assert.deepEqual(
-    processor.finally(addPlanetOp),
     [
       {
         op: 'addToHasMany',
         record: identity(earth),
-        relationship: 'races',
+        relationship: 'inhabitants',
         relatedRecord: identity(human)
       }
     ]
   );
+
+  assert.deepEqual(
+    processor.finally(addPlanetOp),
+    []
+  );
 });
 
 test('remove from hasMany => hasMany', function(assert) {
-  const earth = { type: 'planet', id: 'earth', relationships: { races: { data: { 'race:human': true } } } };
-  const human = { type: 'race', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
+  const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: { 'inhabitant:human': true } } } };
+  const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
 
   cache.reset({
     planet: { earth },
-    race: { human }
+    inhabitant: { human }
   });
 
   const removePlanetOp = {
@@ -569,7 +640,7 @@ test('remove from hasMany => hasMany', function(assert) {
       {
         op: 'removeFromHasMany',
         record: identity(earth),
-        relationship: 'races',
+        relationship: 'inhabitants',
         relatedRecord: identity(human)
       }
     ]
@@ -577,6 +648,106 @@ test('remove from hasMany => hasMany', function(assert) {
 
   assert.deepEqual(
     processor.finally(removePlanetOp),
+    []
+  );
+});
+
+test('replaceRecord', function(assert) {
+  const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
+  const cat = { type: 'inhabitant', id: 'cat' };
+  const dog = { type: 'inhabitant', id: 'dog' };
+  const moon = { type: 'moon', id: 'themoon' };
+  const saturn = { type: 'planet', id: 'saturn',
+                 attributes: { name: 'Saturn' },
+                 relationships: { next: { data: 'planet:jupiter' } } };
+  const jupiter = { type: 'planet', id: 'jupiter',
+                  attributes: { name: 'Jupiter' },
+                  relationships: { previous: { data: 'planet:saturn' } } };
+  const earth = {
+    type: 'planet', id: 'earth',
+    relationships: {
+      inhabitants: {
+        data: {
+          'inhabitant:human': true
+        }
+      },
+      moons: {
+      },
+      next: {
+        data: 'planet:jupiter'
+      }
+    }
+  };
+  const earth2 = {
+    type: 'planet', id: 'earth',
+    relationships: {
+      inhabitants: {
+        data: {
+          'inhabitant:human': true,
+          'inhabitant:cat': true,
+          'inhabitant:dog': true
+        }
+      },
+      moons: {
+        data: {
+          'moon:themoon': true
+        }
+      },
+      next: {
+        data: 'planet:saturn'
+      }
+    }
+  };
+
+  cache.reset({
+    inhabitant: { human, cat, dog },
+    planet: { earth, jupiter, saturn },
+    moon: { moon }
+  });
+
+  const clearInhabitantsOp = {
+    op: 'replaceRecord',
+    record: earth2
+  };
+
+  assert.deepEqual(
+    processor.after(clearInhabitantsOp),
+    [
+      {
+        op: 'replaceHasOne',
+        record: identity(moon),
+        relationship: 'planet',
+        relatedRecord: identity(earth)
+      },
+      {
+        op: 'addToHasMany',
+        record: identity(cat),
+        relationship: 'planets',
+        relatedRecord: identity(earth)
+      },
+      {
+        op: 'addToHasMany',
+        record: identity(dog),
+        relationship: 'planets',
+        relatedRecord: identity(earth)
+      },
+      {
+        op: 'replaceHasOne',
+        record: identity(jupiter),
+        relationship: 'previous',
+        relatedRecord: null
+      },
+      {
+        op: 'replaceHasOne',
+        record: identity(saturn),
+        relationship: 'previous',
+        relatedRecord: identity(earth)
+      }
+    ]
+  );
+
+  assert.deepEqual(
+    processor.finally(clearInhabitantsOp),
     []
   );
 });
