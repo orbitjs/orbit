@@ -74,7 +74,7 @@ module('OC - Store', function(hooks) {
     assert.expect(3);
 
     const jupiter = {
-      id: '1',
+      id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter', classification: 'gas giant' }
     };
@@ -82,9 +82,9 @@ module('OC - Store', function(hooks) {
     assert.equal(store.cache.length('planet'), 0, 'cache should start empty');
 
     return store.update(addRecord(jupiter))
-      .then(function() {
+      .then(() => {
         assert.equal(store.cache.length('planet'), 1, 'cache should contain one planet');
-        assert.deepEqual(store.cache.get('planet/1'), jupiter, 'planet should be jupiter');
+        assert.deepEqual(store.cache.get('planet/jupiter'), jupiter, 'planet should be jupiter');
       });
   });
 
@@ -92,46 +92,53 @@ module('OC - Store', function(hooks) {
     assert.expect(2);
 
     let jupiter = {
-      id: '1',
+      id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter', classification: 'gas giant' }
     };
 
     store.cache.reset({
       planet: {
-        '1': jupiter
+        jupiter
       }
     });
 
     assert.equal(store.cache.length('planet'), 1, 'cache should contain one planet');
 
-    return store.query(qb.record({ type: 'planet', id: '1' }))
-      .then(function(foundPlanet) {
+    return store.query(qb.record({ type: 'planet', id: 'jupiter' }))
+      .then(foundPlanet => {
         assert.deepEqual(foundPlanet, jupiter, 'found planet matches original');
       });
   });
 
-  QUnit.skip('#liveQuery', function(assert) {
+  test('#liveQuery - invokes `query()` and then returns `cache.liveQuery()`', function(assert) {
     const done = assert.async();
 
-    const jupiter = keyMap.pushRecord({ type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } });
-    const pluto = keyMap.pushRecord({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } });
+    const jupiter = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: { name: 'Jupiter' }
+    };
 
-    const setupStore = store.update([
-      addRecord(pluto),
-      addRecord(jupiter)
-    ]);
+    const pluto = {
+      type: 'planet',
+      id: 'pluto',
+      attributes: { name: 'Pluto' }
+    };
 
-    setupStore.then(() => {
-      const liveQuery = store.liveQuery(qb.records('planet'));
-      liveQuery.subscribe(op => console.log(op));
+    store.cache.reset({
+      planet: {
+        jupiter,
+        pluto
+      }
+    });
 
-      liveQuery.take(2).toArray().subscribe(operations => {
-        assert.patternMatches(operations[0], { op: 'add', record: { id: 'pluto' } });
-        assert.patternMatches(operations[0], { op: 'add', record: { id: 'jupiter' } });
+    const liveQuery = store.liveQuery(qb.records('planet'));
 
-        done();
-      });
+    liveQuery.take(2).toArray().subscribe(operations => {
+      assert.deepEqual(operations[0], { op: 'addRecord', record: jupiter });
+      assert.deepEqual(operations[1], { op: 'addRecord', record: pluto });
+      done();
     });
   });
 });
