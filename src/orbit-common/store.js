@@ -51,10 +51,11 @@ export default class Store extends Source {
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  // LiveQuery interface implementation
+  // Public methods
   /////////////////////////////////////////////////////////////////////////////
 
-  liveQuery(/* expression */) {
-    throw new Error('coming soon');
+  liveQuery(query) {
+    this.query(query);
+    return this.cache.liveQuery(query);
   }
 }
