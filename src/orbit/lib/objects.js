@@ -79,10 +79,9 @@ var expose = function(destination, source) {
  @method extend
  @for Orbit
  @param {Object} destination The object to merge into
- @param {Object} source One or more source objects
+ @param {Object} sources One or more source objects
  */
-var extend = function(destination) {
-  var sources = Array.prototype.slice.call(arguments, 1);
+var extend = function(destination, ...sources) {
   sources.forEach(function(source) {
     for (var p in source) {
       if (source.hasOwnProperty(p)) {

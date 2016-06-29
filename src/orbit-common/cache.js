@@ -101,8 +101,8 @@ export default class Cache {
    ```
 
    @method liveQuery
-   @param {Expression} query
-   @return {Observable} stream of operations for the results to a query
+   @param {Object} query
+   @return {<Observable>} Observable stream of operations for the results to a query
    */
   liveQuery(_query, context) {
     const query = Query.from(_query);
@@ -142,7 +142,7 @@ export default class Cache {
    Return immutable data at a particular path.
 
    @method get
-   @param path
+   @param {string|Array<string>} path
    @returns {Object}
    */
   getRaw(_path) {
@@ -222,7 +222,7 @@ export default class Cache {
    operations.
 
    @method transform
-   @param {Transform} transform The transform to apply.
+   @param {Object} transform The transform to apply.
    */
   transform(_transform) {
     let transform = Transform.from(_transform);

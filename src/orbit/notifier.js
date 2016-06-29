@@ -85,7 +85,7 @@ export default class Notifier {
    Any responses from listeners will be ignored.
 
    @method emit
-   @param {*} Any number of parameters to be sent to listeners
+   @param {...args} args - any number of parameters to be sent to listeners
    */
   emit(...args) {
     this.listeners.slice(0).forEach((listener) => {
