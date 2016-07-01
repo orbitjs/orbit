@@ -8,8 +8,8 @@ export default {
    Mixes the `Updatable` interface into a source
 
    @method extend
-   @param {Source} source Source to extend
-   @returns {Source} Extended source
+   @param {Object} source - Source to extend
+   @returns {Object} Extended source
    */
   extend(source) {
     if (source._updatable === undefined) {

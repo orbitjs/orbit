@@ -1,4 +1,3 @@
-import Source from 'orbit/source';
 import Fetchable from 'orbit/fetchable';
 import Transform from 'orbit/transform';
 import { Promise } from 'rsvp';
@@ -8,7 +7,7 @@ var source;
 
 module('Orbit - Fetchable', {
   setup: function() {
-    source = new Source();
+    source = {};
     Fetchable.extend(source);
   },
 

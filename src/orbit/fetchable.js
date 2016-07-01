@@ -1,16 +1,18 @@
 import Query from './query';
+import Transformable from './transformable';
 import { extend } from './lib/objects';
 
 export default {
   /**
-   Mixes the `Fetchable` interface into an source
+   Mixes the `Fetchable` interface into a source.
 
    @method extend
-   @param {Source} source Source to extend
-   @returns {Source} Extended source
+   @param {Object} source - Source to extend
+   @returns {Object} Extended source
    */
   extend(source) {
     if (source._fetchable === undefined) {
+      Transformable.extend(source);
       extend(source, this.interface);
     }
     return source;

@@ -1,4 +1,3 @@
-import Source from 'orbit/source';
 import Updatable from 'orbit/updatable';
 import Transform from 'orbit/transform';
 import { Promise } from 'rsvp';
@@ -8,7 +7,7 @@ var source;
 
 module('Orbit - Updatable', {
   setup: function() {
-    source = new Source();
+    source = {};
     Updatable.extend(source);
   },
 

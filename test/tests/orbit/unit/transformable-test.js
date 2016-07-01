@@ -1,5 +1,4 @@
 import Orbit from 'orbit/main';
-import Source from 'orbit/source';
 import Transformable from 'orbit/transformable';
 import Transform from 'orbit/transform';
 
@@ -9,7 +8,7 @@ let source;
 
 module('Orbit - Transformable', {
   setup() {
-    source = new Source();
+    source = {};
     Transformable.extend(source);
   },
 
@@ -20,14 +19,46 @@ module('Orbit - Transformable', {
 
 test('it exists', function(assert) {
   assert.ok(source);
+  assert.ok(source.transformLog, 'has a transform log');
+});
+
+test('it should mixin Evented', function(assert) {
+  ['on', 'off', 'emit', 'poll'].forEach(function(prop) {
+    assert.ok(source[prop], 'should have Evented properties');
+  });
 });
 
 test('it defines `transformed`', function(assert) {
   assert.equal(typeof source.transformed, 'function', 'transformed exists');
 });
 
-test('it should require the definition of _transform', function(assert) {
-  assert.throws(source._transform, 'presence of _transform should be verified');
+test('#transformed should trigger `transform` event BEFORE resolving', function(assert) {
+  assert.expect(3);
+
+  let order = 0;
+  const appliedTransform = Transform.from({ op: 'addRecord', value: {} });
+
+  source.on('transform', (transform) => {
+    assert.equal(++order, 1, '`transform` event triggered after action performed successfully');
+    assert.strictEqual(transform, appliedTransform, 'applied transform matches');
+  });
+
+  return source.transformed([appliedTransform])
+    .then(() => {
+      assert.equal(++order, 2, 'transformed promise resolved last');
+    });
+});
+
+test('#transformLog contains transforms applied', function(assert) {
+  assert.expect(2);
+
+  const appliedTransform = Transform.from({ op: 'addRecord', value: {} });
+
+  assert.ok(!source.transformLog.contains(appliedTransform.id));
+
+  return source
+    .transformed([appliedTransform])
+    .then(() => assert.ok(source.transformLog.contains(appliedTransform.id)));
 });
 
 test('#transform should convert non-Transforms into Transforms', function(assert) {

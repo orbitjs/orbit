@@ -1,6 +1,6 @@
 import Orbit from 'orbit/main';
 import { assert } from 'orbit/lib/assert';
-import Source from 'orbit/source';
+import Source from './source';
 import Queryable from 'orbit/queryable';
 import Updatable from 'orbit/updatable';
 import Transformable from 'orbit/transformable';
@@ -9,7 +9,6 @@ import { extend as assign } from 'orbit/lib/objects';
 
 export default class Store extends Source {
   constructor({ schema, keyMap, cacheOptions, name } = {}) {
-    assert('Store\'s `schema` must be specified in `options.schema` constructor argument', schema);
     assert('Store\'s `keyMap` must be specified in `options.keyMap` constructor argument', keyMap);
 
     super(...arguments);
@@ -18,7 +17,6 @@ export default class Store extends Source {
     Updatable.extend(this);
     Transformable.extend(this);
 
-    this.schema = schema;
     this.keyMap = keyMap;
     this.name = name || 'store';
 
