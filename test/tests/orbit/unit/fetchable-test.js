@@ -1,7 +1,7 @@
 import Fetchable from 'orbit/fetchable';
 import Transform from 'orbit/transform';
 import { Promise } from 'rsvp';
-import { failedOperation } from 'tests/test-helper';
+import { successfulOperation, failedOperation } from 'tests/test-helper';
 
 var source;
 
@@ -66,6 +66,92 @@ test('it should trigger `fetch` event after a successful action in which `_fetch
     .then((result) => {
       assert.equal(++order, 3, 'promise resolved last');
       assert.strictEqual(result, resultingTransforms, 'success!');
+    });
+});
+
+test('it should resolve all promises returned from `beforeFetch` before calling `_transform`', function(assert) {
+  assert.expect(12);
+
+  let order = 0;
+
+  const resultingTransforms = [
+    Transform.from({ op: 'addRecord' }, { op: 'addRecord' }),
+    Transform.from({ op: 'replaceRecordAttribute' })
+  ];
+
+  source.on('beforeFetch', () => {
+    assert.equal(++order, 1, 'beforeFetch triggered first');
+    return successfulOperation();
+  });
+
+  source.on('beforeFetch', () => {
+    assert.equal(++order, 2, 'beforeFetch triggered second');
+    return undefined;
+  });
+
+  source.on('beforeFetch', () => {
+    assert.equal(++order, 3, 'beforeFetch triggered third');
+    return successfulOperation();
+  });
+
+  source._fetch = function(query) {
+    assert.equal(++order, 4, 'action performed after willFetch');
+    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query object matches');
+    return Promise.resolve(resultingTransforms);
+  };
+
+  let transformCount = 0;
+  source.on('transform', (transform) => {
+    assert.strictEqual(transform, resultingTransforms[transformCount++], 'transform matches');
+    return Promise.resolve();
+  });
+
+  source.on('fetch', (query, result) => {
+    assert.equal(++order, 5, 'fetch triggered after action performed successfully');
+    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query matches');
+    assert.strictEqual(result, resultingTransforms, 'result matches');
+  });
+
+  return source.fetch({ fetch: ['abc', 'def'] })
+    .then((result) => {
+      assert.equal(++order, 6, 'promise resolved last');
+      assert.strictEqual(result, resultingTransforms, 'success!');
+    });
+});
+
+test('it should resolve all promises returned from `beforeFetch` and fail if any fail', function(assert) {
+  assert.expect(7);
+
+  let order = 0;
+
+  source.on('beforeFetch', () => {
+    assert.equal(++order, 1, 'beforeFetch triggered third');
+    return successfulOperation();
+  });
+
+  source.on('beforeFetch', () => {
+    assert.equal(++order, 2, 'beforeFetch triggered third');
+    return failedOperation();
+  });
+
+  source._fetch = function() {
+    assert.ok(false, '_fetch should not be invoked');
+  };
+
+  source.on('fetch', () => {
+    assert.ok(false, 'fetch should not be triggered');
+  });
+
+  source.on('fetchFail', (query, error) => {
+    assert.equal(++order, 3, 'fetchFail triggered after an unsuccessful beforeFetch');
+    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query matches');
+    assert.equal(error, ':(', 'error matches');
+  });
+
+  return source.fetch({ fetch: ['abc', 'def'] })
+    .catch((error) => {
+      assert.equal(++order, 4, 'promise resolved last');
+      assert.equal(error, ':(', 'failure');
     });
 });
 

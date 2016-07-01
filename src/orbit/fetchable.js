@@ -24,7 +24,8 @@ export default {
     fetch(queryOrExpression) {
       const query = Query.from(queryOrExpression, this.queryBuilder);
 
-      return this._fetch(query)
+      return this.series('beforeFetch', query)
+        .then(() => this._fetch(query))
         .then(result => this.transformed(result))
         .then(result => {
           return this.settle('fetch', query, result)
