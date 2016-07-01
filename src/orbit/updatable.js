@@ -1,10 +1,11 @@
 import Orbit from './main';
 import Transform from './transform';
+import Transformable from './transformable';
 import { extend } from './lib/objects';
 
 export default {
   /**
-   Mixes the `Updatable` interface into an source
+   Mixes the `Updatable` interface into a source
 
    @method extend
    @param {Source} source Source to extend
@@ -12,6 +13,7 @@ export default {
    */
   extend(source) {
     if (source._updatable === undefined) {
+      Transformable.extend(source);
       extend(source, this.interface);
     }
     return source;
@@ -28,12 +30,9 @@ export default {
       }
 
       return this.series('beforeUpdate', transform)
-        .then(() => this._update(transform))
-        .then(result => this.transformed(result))
-        .then(result => {
-          return this.settle('update', transform, result)
-            .then(() => result);
-        })
+        .then(() => this.transform(transform))
+        .then(() => this.settle('update', transform))
+        .then(() => transform)
         .catch(error => {
           return this.settle('updateFail', transform, error)
             .then(() => { throw error; });
