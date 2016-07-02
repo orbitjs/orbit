@@ -8,6 +8,9 @@ import SchemaConsistencyProcessor from 'orbit-common/cache/operation-processors/
 import {
   addRecord
 } from 'orbit-common/transform/operators';
+import Transform from 'orbit/transform';
+import { identity } from 'orbit-common/lib/identifiers';
+import { all } from 'rsvp';
 
 const schemaDefinition = {
   models: {
@@ -140,5 +143,44 @@ module('OC - Store', function(hooks) {
       assert.deepEqual(operations[1], { op: 'addRecord', record: pluto });
       done();
     });
+  });
+
+  test('#rollback', function(assert) {
+    const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
+    const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
+    const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
+    const recordD = { id: 'neptune', type: 'planet', attributes: { name: 'Neptune' } };
+    const recordE = { id: 'uranus', type: 'planet', attributes: { name: 'Uranus' } };
+
+    const addRecordATransform = new Transform(addRecord(recordA));
+
+    return all([
+      store.transform(addRecordATransform),
+      store.transform(addRecord(recordB)),
+      store.transform(addRecord(recordC)),
+      store.transform([
+        addRecord(recordD),
+        addRecord(recordE)
+      ])
+    ])
+      .then(() => {
+        const rollbackOperations = [];
+        store.cache.on('patch', (operation) => rollbackOperations.push(operation));
+
+        store.rollback(addRecordATransform.id);
+
+        assert.deepEqual(
+          rollbackOperations,
+          [
+            { op: 'removeRecord', record: identity(recordE) },
+            { op: 'removeRecord', record: identity(recordD) },
+            { op: 'removeRecord', record: identity(recordC) },
+            { op: 'removeRecord', record: identity(recordB) }
+          ],
+          'emits inverse operations in correct order'
+        );
+
+        equal(store.transformLog.head(), addRecordATransform.id, 'rolls back transform log');
+      });
   });
 });

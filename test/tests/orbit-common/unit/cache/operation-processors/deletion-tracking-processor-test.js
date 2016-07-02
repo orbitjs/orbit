@@ -67,7 +67,7 @@ test('tracks deletions and makes them queryable through `hasDeleted`', function(
 
   assert.equal(cache.hasDeleted('planet/saturn'), false, 'Saturn has not been deleted yet');
 
-  cache.transform(removeRecord(saturn));
+  cache.patch(removeRecord(saturn));
 
   assert.equal(cache.hasDeleted('planet/saturn'), true, 'Saturn has been deleted');
   assert.equal(cache.hasDeleted('planet/jupiter'), false, 'Jupiter has not been deleted');

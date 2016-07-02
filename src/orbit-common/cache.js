@@ -6,8 +6,6 @@ import { isArray, isObject } from 'orbit/lib/objects';
 import { eq } from 'orbit/lib/eq';
 import CacheIntegrityProcessor from './cache/operation-processors/cache-integrity-processor';
 import SchemaConsistencyProcessor from './cache/operation-processors/schema-consistency-processor';
-import Transform from 'orbit/transform';
-import TransformLog from 'orbit/transform/log';
 import Query from 'orbit/query';
 import QueryEvaluator from 'orbit/query/evaluator';
 import QueryOperators from './cache/query-operators';
@@ -47,9 +45,6 @@ export default class Cache {
     } else {
       this._doc = Immutable.fromJS({});
     }
-
-    this.transformLog = new TransformLog();
-    this._transformInverses = {};
 
     this.queryEvaluator = new QueryEvaluator(this, QueryOperators);
 
@@ -130,8 +125,6 @@ export default class Cache {
   */
   reset(data = {}) {
     this._doc = Immutable.fromJS(data);
-    this.transformLog.clear();
-    this._transformInverses = {};
 
     this.keyMap.pushDocument(data);
 
@@ -218,43 +211,22 @@ export default class Cache {
   }
 
   /**
-   Patches the document with a Transform, which may include any number of
-   operations.
+   Patches the document with an operation.
 
-   @method transform
-   @param {Transform} transform The transform to apply.
+   @method patch
+   @param {Object or Array} operationOrOperations The operation or operations to apply.
+   @returns {Array} Array of inverse operations.
    */
-  transform(_transform) {
-    let transform = Transform.from(_transform);
+  patch(operationOrOperations) {
+    const inverse = [];
 
-    // let ops = this.prepareOperations(transform.operations);
-    let ops = transform.operations;
-    let inverse = [];
+    if (isArray(operationOrOperations)) {
+      this._applyOperations(operationOrOperations, inverse);
+    } else {
+      this._applyOperation(operationOrOperations, inverse);
+    }
 
-    this._applyOperations(ops, inverse);
-
-    this.transformLog.append(transform.id);
-
-    this._transformInverses[transform.id] = inverse;
-
-    this.emit('transform', transform);
-
-    return transform;
-  }
-
-  /**
-   Rolls back the cache to a particular transformId
-
-   @method rollback
-   @param {string} transformId
-  */
-  rollback(transformId) {
-    this.transformLog
-      .after(transformId)
-      .reverse()
-      .forEach((id) => this._rollbackTransform(id));
-
-    this.transformLog.rollback(transformId);
+    return inverse;
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -285,7 +257,7 @@ export default class Cache {
     const inverseOp = inverseTransform(this, operation);
 
     if (inverseOp) {
-      inverse.push(inverseOp);
+      inverse.unshift(inverseOp);
 
       // Query and perform related `before` operations
       this._processors
@@ -342,10 +314,5 @@ export default class Cache {
     // console.debug('Cache#patch', op);
 
     this.emit('patch', op);
-  }
-
-  _rollbackTransform(transformId) {
-    const inverseOperations = this._transformInverses[transformId];
-    inverseOperations.reverse().forEach(op => this._transformDoc(op));
   }
 }
