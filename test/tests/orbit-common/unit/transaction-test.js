@@ -2,6 +2,7 @@ import Schema from 'orbit-common/schema';
 import Store from 'orbit-common/store';
 import KeyMap from 'orbit-common/key-map';
 import Transaction from 'orbit-common/transaction';
+import Transform from 'orbit/transform';
 import { uuid } from 'orbit/lib/uuid';
 import {
   addRecord,
@@ -90,13 +91,13 @@ test('once begun, tracks operations performed', function(assert) {
 
   assert.equal(transaction.operations.length, 0, 'transaction has no operations');
 
-  return transaction.update(addRecord(jupiter))
-    .then(transforms => {
-      const operations = transforms.map(t => t.operations).reduce((a, b) => a.concat(b));
+  const transform = new Transform(addRecord(jupiter));
 
+  return transaction.update(transform)
+    .then(() => {
       assert.equal(transaction.operations.length, 1, 'transaction has one operation');
       assert.deepEqual(transaction.operations,
-        operations,
+        transform.operations,
         'transaction tracked `add` operation');
     });
 });

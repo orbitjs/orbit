@@ -1,4 +1,3 @@
-import Source from 'orbit/source';
 import Updatable from 'orbit/updatable';
 import Transform from 'orbit/transform';
 import { Promise } from 'rsvp';
@@ -8,7 +7,7 @@ var source;
 
 module('Orbit - Updatable', {
   setup: function() {
-    source = new Source();
+    source = {};
     Updatable.extend(source);
   },
 
@@ -25,10 +24,10 @@ test('it should mixin Updatable', function(assert) {
   assert.ok(source._updatable, 'should have `_updatable` flag');
 });
 
-test('it should resolve as a failure when _update fails', function(assert) {
+test('it should resolve as a failure when `transform` fails', function(assert) {
   assert.expect(2);
 
-  source._update = function() {
+  source._transform = function() {
     return failedOperation();
   };
 
@@ -39,8 +38,8 @@ test('it should resolve as a failure when _update fails', function(assert) {
     });
 });
 
-test('it should trigger `update` event after a successful action in which `_update` returns an array of transforms', function(assert) {
-  assert.expect(13);
+test('it should trigger `update` event after a successful action in which `transform` returns an array of transforms', function(assert) {
+  assert.expect(12);
 
   let order = 0;
 
@@ -57,7 +56,7 @@ test('it should trigger `update` event after a successful action in which `_upda
     assert.strictEqual(transform, addRecordTransform, 'transform matches');
   });
 
-  source._update = function(transform) {
+  source._transform = function(transform) {
     assert.equal(++order, 2, 'action performed after beforeUpdate');
     assert.strictEqual(transform, addRecordTransform, 'transform object matches');
     return Promise.resolve(resultingTransforms);
@@ -70,16 +69,15 @@ test('it should trigger `update` event after a successful action in which `_upda
     return Promise.resolve();
   });
 
-  source.on('update', (transform, result) => {
+  source.on('update', (transform) => {
     assert.equal(++order, 5, 'update triggered after action performed successfully');
     assert.strictEqual(transform, addRecordTransform, 'transform matches');
-    assert.strictEqual(result, resultingTransforms, 'result matches');
   });
 
   return source.update(addRecordTransform)
     .then((result) => {
       assert.equal(++order, 6, 'promise resolved last');
-      assert.strictEqual(result, resultingTransforms, 'success!');
+      assert.strictEqual(result, addRecordTransform, 'transform is returned on success');
     });
 });
 
@@ -90,7 +88,7 @@ test('it should trigger `updateFail` event after an unsuccessful update', functi
 
   let order = 0;
 
-  source._update = function(transform) {
+  source._transform = function(transform) {
     assert.equal(++order, 1, 'action performed after willUpdate');
     assert.strictEqual(transform, addRecordTransform, 'transform matches');
     return failedOperation();
@@ -113,7 +111,7 @@ test('it should trigger `updateFail` event after an unsuccessful update', functi
     });
 });
 
-test('it should resolve all promises returned from `beforeUpdate` before calling `_update`', function(assert) {
+test('it should resolve all promises returned from `beforeUpdate` before calling `_transform`', function(assert) {
   assert.expect(7);
 
   let order = 0;
@@ -141,8 +139,8 @@ test('it should resolve all promises returned from `beforeUpdate` before calling
     return successfulOperation();
   });
 
-  source._update = function() {
-    assert.equal(++order, 4, '_update invoked after all `beforeUpdate` handlers');
+  source._transform = function() {
+    assert.equal(++order, 4, '_transform invoked after all `beforeUpdate` handlers');
     return Promise.resolve(resultingTransforms);
   };
 
@@ -153,7 +151,7 @@ test('it should resolve all promises returned from `beforeUpdate` before calling
   return source.update(addRecordTransform)
     .then((result) => {
       assert.equal(++order, 6, 'promise resolved last');
-      assert.strictEqual(result, resultingTransforms, 'success!');
+      assert.strictEqual(result, addRecordTransform, 'transform is returned on success');
     });
 });
 
@@ -174,8 +172,8 @@ test('it should resolve all promises returned from `beforeUpdate` and fail if an
     return failedOperation();
   });
 
-  source._update = function() {
-    assert.ok(false, '_update should not be invoked');
+  source._transform = function() {
+    assert.ok(false, '_transform should not be invoked');
   };
 
   source.on('update', () => {

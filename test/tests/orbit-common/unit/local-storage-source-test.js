@@ -3,7 +3,7 @@ import {
   verifyLocalStorageDoesNotContainRecord,
   verifyLocalStorageIsEmpty
 } from 'tests/test-helper';
-import Source from 'orbit/source';
+import Source from 'orbit-common/source';
 import Schema from 'orbit-common/schema';
 import LocalStorageSource from 'orbit-common/local-storage-source';
 import {

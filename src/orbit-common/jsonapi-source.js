@@ -3,7 +3,7 @@ import Orbit from 'orbit/main';
 import { assert } from 'orbit/lib/assert';
 import Fetchable from 'orbit/fetchable';
 import Transformable from 'orbit/transformable';
-import Source from 'orbit/source';
+import Source from './source';
 import Serializer from './serializer';
 import JSONAPISerializer from './jsonapi/serializer';
 import { getFetchRequests, FetchRequestProcessors } from './jsonapi/fetch-requests';

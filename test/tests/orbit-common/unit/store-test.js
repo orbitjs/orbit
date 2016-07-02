@@ -1,4 +1,4 @@
-import Source from 'orbit/source';
+import Source from 'orbit-common/source';
 import Schema from 'orbit-common/schema';
 import KeyMap from 'orbit-common/key-map';
 import Store from 'orbit-common/store';

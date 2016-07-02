@@ -140,16 +140,14 @@ module('Integration - Coordinator', function(hooks) {
   });
 
   test('#update - addRecord', function(assert) {
-    assert.expect(3);
+    assert.expect(1);
 
     let record = { type: 'planet', attributes: { name: 'Pluto' } };
 
     onAddPlutoRequest(stubbedResponses.planetAdded);
 
     return store.update(addRecord(record))
-      .then(transforms => {
-        assert.equal(transforms.length, 1);
-        assert.deepEqual(transforms[0].operations.map(o => o.op), ['addRecord']);
+      .then(() => {
         assert.equal(store.cache.get(['planet', record.id, 'attributes', 'name']), 'Pluto', 'record matches');
       });
   });
@@ -168,7 +166,7 @@ module('Integration - Coordinator', function(hooks) {
   });
 
   test('#update - replaceRecord', function(assert) {
-    assert.expect(3);
+    assert.expect(1);
 
     store.cache.transform(
       addRecord({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto', classification: 'superior' } })
@@ -177,9 +175,7 @@ module('Integration - Coordinator', function(hooks) {
     server.respondWith('PATCH', '/planets/pluto', jsonResponse(200, {}));
 
     return store.update(replaceRecord({ type: 'planet', id: 'pluto', keys: { id: 'pluto' }, attributes: { name: 'Pluto2', classification: 'gas giant' } }))
-      .then(transforms => {
-        assert.equal(transforms.length, 1);
-        assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
+      .then(() => {
         assert.equal(store.cache.get(['planet', 'pluto', 'attributes', 'name']), 'Pluto2', 'record matches');
       });
   });

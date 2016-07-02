@@ -1,17 +1,19 @@
 import Orbit from './main';
 import { extend } from './lib/objects';
 import Query from './query';
+import Evented from './evented';
 
 export default {
   /**
-   Mixes the `Queryable` interface into an source
+   Mixes the `Queryable` interface into a source
 
    @method extend
-   @param {Source} source Source to extend
-   @returns {Source} Extended source
+   @param {Object} source - Source to extend
+   @returns {Object} Extended source
    */
   extend(source) {
     if (source._queryable === undefined) {
+      Evented.extend(source);
       extend(source, this.interface);
     }
     return source;

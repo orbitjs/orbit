@@ -1,6 +1,6 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from 'orbit/main';
-import Source from 'orbit/source';
+import Source from './source';
 import Fetchable from 'orbit/fetchable';
 import Transformable from 'orbit/transformable';
 import { assert } from 'orbit/lib/assert';
@@ -35,7 +35,6 @@ export default class LocalStorageSource extends Source {
     Fetchable.extend(this);
     Transformable.extend(this);
 
-    this.schema    = options.schema;
     this.name      = options.name || 'localStorage';
     this.namespace = options['namespace'] || 'orbit'; // local storage namespace
     this.delimiter = options['delimiter'] || '/'; // local storage key

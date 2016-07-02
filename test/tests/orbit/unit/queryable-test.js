@@ -1,4 +1,3 @@
-import Source from 'orbit/source';
 import Queryable from 'orbit/queryable';
 import { Promise } from 'rsvp';
 import { successfulOperation, failedOperation } from 'tests/test-helper';
@@ -7,7 +6,7 @@ var source;
 
 module('Orbit - Queryable', {
   setup: function() {
-    source = new Source();
+    source = {};
     Queryable.extend(source);
   },
 
