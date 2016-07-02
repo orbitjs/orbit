@@ -63,7 +63,7 @@ module('OC - Cache - liveQuery', function(hooks) {
       done();
     });
 
-    cache.transform([
+    cache.patch([
       addRecord(pluto),
       replaceAttribute(pluto, 'name', 'Pluto2'),
       addRecord(jupiter)
@@ -82,7 +82,7 @@ module('OC - Cache - liveQuery', function(hooks) {
       done();
     });
 
-    cache.transform([
+    cache.patch([
       addRecord(pluto),
       addRecord(jupiter)
     ]);
@@ -103,7 +103,7 @@ module('OC - Cache - liveQuery', function(hooks) {
       done();
     });
 
-    cache.transform([
+    cache.patch([
       addRecord(pluto),
       removeRecord(pluto)
     ]);
@@ -122,7 +122,7 @@ module('OC - Cache - liveQuery', function(hooks) {
       done();
     });
 
-    cache.transform([
+    cache.patch([
       removeRecord(pluto),
       addRecord(pluto)
     ]);
@@ -131,7 +131,7 @@ module('OC - Cache - liveQuery', function(hooks) {
   test('filter - change attribute that causes removal from matches', function(assert) {
     const done = assert.async();
 
-    cache.transform(addRecord(pluto));
+    cache.patch(addRecord(pluto));
 
     const liveQuery = cache.liveQuery(
       qb.records('planet')
@@ -145,7 +145,7 @@ module('OC - Cache - liveQuery', function(hooks) {
       done();
     });
 
-    cache.transform(replaceAttribute({ type: 'planet', id: 'pluto' }, 'name', 'Jupiter'));
+    cache.patch(replaceAttribute({ type: 'planet', id: 'pluto' }, 'name', 'Jupiter'));
   });
 
   test('filter - change attribute that causes add to matches', function(assert) {
@@ -160,7 +160,7 @@ module('OC - Cache - liveQuery', function(hooks) {
       done();
     });
 
-    cache.transform([
+    cache.patch([
       addRecord({ type: 'planet', id: 'uranus', attributes: { name: 'Uranus' } }),
       replaceAttribute({ type: 'planet', id: 'uranus' }, 'name', 'Uranus2')
     ]);
@@ -174,7 +174,7 @@ module('OC - Cache - liveQuery', function(hooks) {
     const onOperation = sinon.stub();
     liveQuery.subscribe(onOperation);
 
-    cache.transform([
+    cache.patch([
       addRecord(pluto),
       removeRecord(pluto)
     ]);
@@ -196,7 +196,7 @@ module('OC - Cache - liveQuery', function(hooks) {
       done();
     });
 
-    cache.transform([
+    cache.patch([
       addRecord(pluto),
       addRecord(jupiter)
     ]);
@@ -205,7 +205,7 @@ module('OC - Cache - liveQuery', function(hooks) {
   test('filter - records with existing match in cache', function(assert) {
     const done = assert.async();
 
-    cache.transform(addRecord(pluto));
+    cache.patch(addRecord(pluto));
 
     const liveQuery = cache.liveQuery(qb.records('planet'));
 
@@ -218,7 +218,7 @@ module('OC - Cache - liveQuery', function(hooks) {
   test('record - existing record with removal', function(assert) {
     const done = assert.async();
 
-    cache.transform(addRecord(pluto));
+    cache.patch(addRecord(pluto));
     const liveQuery = cache.liveQuery(qb.record(identity(pluto)));
     // liveQuery.subscribe(op => console.log('op', op));
 
@@ -231,7 +231,7 @@ module('OC - Cache - liveQuery', function(hooks) {
       done();
     });
 
-    cache.transform(removeRecord(pluto));
+    cache.patch(removeRecord(pluto));
   });
 
   module('relatedRecord', function() {
@@ -251,7 +251,7 @@ module('OC - Cache - liveQuery', function(hooks) {
         done();
       });
 
-      cache.transform([
+      cache.patch([
         // this first transform should not match the liveQuery's filter
         replaceHasOne(io, 'planet', pluto),
         // subsequent transforms should match the liveQuery's filter
@@ -278,7 +278,7 @@ module('OC - Cache - liveQuery', function(hooks) {
         done();
       });
 
-      cache.transform([
+      cache.patch([
         // this first transform should not match the liveQuery's filter
         addToHasMany(pluto, 'moons', io),
         // subsequent transforms should match the liveQuery's filter

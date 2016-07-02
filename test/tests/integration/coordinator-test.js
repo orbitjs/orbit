@@ -168,7 +168,7 @@ module('Integration - Coordinator', function(hooks) {
   test('#update - replaceRecord', function(assert) {
     assert.expect(1);
 
-    store.cache.transform(
+    store.cache.patch(
       addRecord({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto', classification: 'superior' } })
     );
 
@@ -187,7 +187,7 @@ module('Integration - Coordinator', function(hooks) {
 
     server.respondWith('DELETE', '/planets/pluto', stubbedResponses.deletePlanet);
 
-    store.cache.transform(addRecord(pluto));
+    store.cache.patch(addRecord(pluto));
 
     return store.update(removeRecord(pluto))
       .then(() => {
@@ -202,7 +202,7 @@ module('Integration - Coordinator', function(hooks) {
     const jupiter = { type: 'planet', id: 'jupiter' };
     const io = { type: 'moon', id: 'io' };
 
-    store.cache.transform([
+    store.cache.patch([
       addRecord(jupiter),
       addRecord(io)
     ]);
@@ -223,7 +223,7 @@ module('Integration - Coordinator', function(hooks) {
     const jupiter = { type: 'planet', id: 'jupiter' };
     const io = { type: 'moon', id: 'io' };
 
-    store.cache.transform([
+    store.cache.patch([
       addRecord(jupiter),
       addRecord(io),
       addToHasMany(jupiter, 'moons', io)
@@ -247,7 +247,7 @@ module('Integration - Coordinator', function(hooks) {
     const io = { type: 'moon', id: 'io' };
     const requestBody = { data: { id: 'io', type: 'moons', relationships: { planet: { data: { type: 'planets', id: 'earth' } } } } };
 
-    store.cache.transform([
+    store.cache.patch([
       addRecord(earth),
       addRecord(jupiter),
       addRecord(io),
@@ -272,7 +272,7 @@ module('Integration - Coordinator', function(hooks) {
     const europa = { type: 'moon', id: 'europa' };
     const expectedRequestBody = { data: { id: 'jupiter', type: 'planets', relationships: { moons: { data: [{ type: 'moons', id: 'io' }, { type: 'moons', id: 'europa' }] } } } };
 
-    store.cache.transform([
+    store.cache.patch([
       addRecord(jupiter),
       addRecord(io),
       addRecord(europa)

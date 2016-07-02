@@ -130,7 +130,7 @@ module('OC - Cache - CacheObservable', function(hooks) {
         assert.deepEqual(relatedRecords, [ganymede]);
       });
 
-    cache.transform([
+    cache.patch([
       addRecord(ganymede),
       addRecord(jupiter),
       addToHasMany(jupiter, 'moons', ganymede)
@@ -141,7 +141,7 @@ module('OC - Cache - CacheObservable', function(hooks) {
     const jupiter = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const ganymede = { id: 'ganymede', type: 'moon', attributes: { name: 'Ganymede' } };
 
-    cache.transform([
+    cache.patch([
       addRecord(ganymede),
       addRecord(jupiter),
       addToHasMany(jupiter, 'moons', ganymede)
@@ -154,14 +154,14 @@ module('OC - Cache - CacheObservable', function(hooks) {
         assert.deepEqual(relatedRecords, []);
       });
 
-    cache.transform(removeFromHasMany(jupiter, 'moons', ganymede));
+    cache.patch(removeFromHasMany(jupiter, 'moons', ganymede));
   });
 
   test('patches for hasMany relatedRecords', function(assert) {
     const jupiter = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const ganymede = { id: 'ganymede', type: 'moon', attributes: { name: 'Ganymede' } };
 
-    cache.transform([
+    cache.patch([
       addRecord(ganymede),
       addRecord(jupiter),
       addToHasMany(jupiter, 'moons', ganymede)
@@ -175,7 +175,7 @@ module('OC - Cache - CacheObservable', function(hooks) {
         assert.deepEqual(operation, { op: 'replaceAttribute', record: ganymede, attribute: 'colour', value: 'blue' });
       });
 
-    cache.transform(replaceAttribute(ganymede, 'colour', 'blue'));
+    cache.patch(replaceAttribute(ganymede, 'colour', 'blue'));
   });
 
   test('forHasOne', function(assert) {
@@ -210,7 +210,7 @@ module('OC - Cache - CacheObservable', function(hooks) {
         ]);
       });
 
-    cache.transform([
+    cache.patch([
       addRecord(jupiter),
       addRecord(ganymede),
       replaceHasOne(ganymede, 'planet', jupiter),
@@ -222,7 +222,7 @@ module('OC - Cache - CacheObservable', function(hooks) {
     const jupiter = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const ganymede = { id: 'ganymede', type: 'moon', attributes: { name: 'Ganymede' } };
 
-    cache.transform([
+    cache.patch([
       addRecord(jupiter),
       addRecord(ganymede),
       replaceHasOne(ganymede, 'planet', jupiter)
@@ -235,7 +235,7 @@ module('OC - Cache - CacheObservable', function(hooks) {
         assert.deepEqual(operation, { op: 'removeRecord', record: jupiter });
       });
 
-    cache.transform(replaceHasOne(ganymede, 'planet', null));
+    cache.patch(replaceHasOne(ganymede, 'planet', null));
   });
 
   test('related record for hasOne after add', function(assert) {
@@ -249,7 +249,7 @@ module('OC - Cache - CacheObservable', function(hooks) {
         assert.deepEqual(relatedRecord, jupiter);
       });
 
-    cache.transform([
+    cache.patch([
       addRecord(ganymede),
       addRecord(jupiter),
       replaceHasOne(ganymede, 'planet', jupiter)
@@ -260,7 +260,7 @@ module('OC - Cache - CacheObservable', function(hooks) {
     const jupiter = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const ganymede = { id: 'ganymede', type: 'moon', attributes: { name: 'Ganymede' } };
 
-    cache.transform([
+    cache.patch([
       addRecord(ganymede),
       addRecord(jupiter),
       replaceHasOne(ganymede, 'planet', jupiter)
@@ -273,14 +273,14 @@ module('OC - Cache - CacheObservable', function(hooks) {
         assert.deepEqual(relatedRecord, null);
       });
 
-    cache.transform(replaceHasOne(ganymede, 'planet', null));
+    cache.patch(replaceHasOne(ganymede, 'planet', null));
   });
 
   test('patches for hasOne relatedRecord', function(assert) {
     const jupiter = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const ganymede = { id: 'ganymede', type: 'moon', attributes: { name: 'Ganymede' } };
 
-    cache.transform([
+    cache.patch([
       addRecord(ganymede),
       addRecord(jupiter),
       replaceHasOne(ganymede, 'planet', jupiter)
@@ -299,7 +299,7 @@ module('OC - Cache - CacheObservable', function(hooks) {
         });
       });
 
-    cache.transform(replaceAttribute(jupiter, 'colour', 'blue'));
+    cache.patch(replaceAttribute(jupiter, 'colour', 'blue'));
   });
 
   QUnit.skip('filter');
