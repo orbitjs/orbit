@@ -1,6 +1,5 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from './main';
-import Evented from './evented';
 
 /**
  `Action` provides a wrapper for actions that are performed in an `ActionQueue`.
@@ -27,8 +26,6 @@ import Evented from './evented';
  */
 export default class Action {
   constructor(options) {
-    Evented.extend(this);
-
     this.id = options.id;
     this.data = options.data;
     this._process = options.process;
@@ -40,13 +37,11 @@ export default class Action {
     this.processing = false;
 
     this.complete = new Orbit.Promise((resolve, reject) => {
-      this.one('didProcess', (...args) => {
-        resolve(...args);
-      });
-      this.one('didNotProcess', (e) => {
+      this.didProcess = resolve;
+      this.didNotProcess = (e) => {
         this.processing = false;
         reject(e);
-      });
+      };
     });
   }
 
@@ -56,16 +51,11 @@ export default class Action {
 
       try {
         let ret = this._process();
-        if (ret) {
-          if (ret.then) {
-            ret
-              .then((...args) => this.didProcess(...args))
-              .catch(err => this.didNotProcess(err));
-          } else {
-            this.didProcess(ret);
-          }
+
+        if (ret && ret.then) {
+          ret.then(this.didProcess, this.didNotProcess);
         } else {
-          this.didProcess();
+          this.didProcess(ret);
         }
       } catch (e) {
         this.didNotProcess(e);
@@ -73,13 +63,5 @@ export default class Action {
     }
 
     return this.complete;
-  }
-
-  didProcess(...args) {
-    this.emit('didProcess', ...args);
-  }
-
-  didNotProcess(e) {
-    this.emit('didNotProcess', e);
   }
 }
