@@ -175,7 +175,7 @@ test('#modelDefinition throws an exception if a model is not registered', functi
 });
 
 test('#modelNotDefined can provide lazy registrations of models', function(assert) {
-  assert.expect(4);
+  assert.expect(2);
 
   const schema = new Schema({
     models: {
@@ -188,16 +188,16 @@ test('#modelNotDefined can provide lazy registrations of models', function(asser
     }
   };
 
-  assert.equal(schema.containsModel('planet'), false, 'model not registered');
-
   schema.modelNotDefined = function(type) {
     assert.equal(type, 'planet', 'modelNotDefined called as expected');
     schema.registerModel('planet', planetDefinition);
   };
 
-  assert.equal(schema.containsModel('planet'), true, 'model registered via modelNotDefined hook');
-
-  assert.deepEqual(schema.modelDefinition('planet').attributes, planetDefinition.attributes);
+  assert.deepEqual(
+    schema.modelDefinition('planet').attributes,
+    planetDefinition.attributes,
+    'model registered via modelNotDefined hook'
+  );
 });
 
 test('#normalize initializes a record with a unique primary key', function() {
@@ -339,10 +339,15 @@ test('#singularize simply removes a trailing `s` if present at the end of words'
   equal(schema.singularize('data'), 'data', 'no Latin knowledge here');
 });
 
-test('#containsModel', function(assert) {
+test('#ensureModelTypeInitialized throws an error when a model type has not been registered', function(assert) {
   const schema = new Schema({ models: { moon: {} } });
-  assert.ok(schema.containsModel('moon'), 'identifies when schema contains model');
-  assert.ok(!schema.containsModel('black-hole'), 'identifies when scheam does not contain model');
+
+  // No errors when the model is present
+  schema.ensureModelTypeInitialized('moon');
+
+  assert.throws(function() {
+    schema.ensureModelTypeInitialized('planet');
+  }, ModelNotRegisteredException, 'threw a OC.ModelNotRegisteredException');
 });
 
 test('#generateDefaultId', function(assert) {
