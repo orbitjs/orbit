@@ -40,6 +40,14 @@ module('Orbit - TransformLog', function() {
       assert.equal(log.length(), 3, 'reflects number of transforms that have been added');
     });
 
+    test('#before', function(assert) {
+      assert.deepEqual(log.before(transformCId), [transformAId, transformBId], 'includes transformIds preceding specified transformId');
+    });
+
+    test('#before - transformId that hasn\'t been logged', function(assert) {
+      assert.throws(() => log.before(transformDId), TransformNotLoggedException);
+    });
+
     test('#after', function(assert) {
       assert.deepEqual(log.after(transformAId), [transformBId, transformCId], 'includes transformIds following specified transformId');
     });

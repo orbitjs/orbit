@@ -21,6 +21,11 @@ export default class TransformLog {
     return this._log.length;
   }
 
+  before(transformId) {
+    const index = this._indexOf(transformId);
+    return this._log.slice(0, index);
+  }
+
   after(transformId) {
     const index = this._indexOf(transformId);
     return this._log.slice(index + 1);
