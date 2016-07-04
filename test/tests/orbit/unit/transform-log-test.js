@@ -61,6 +61,20 @@ module('Orbit - TransformLog', function() {
       assert.deepEqual(log.after(log.head()), [], 'is empty');
     });
 
+    test('#truncate', function(assert) {
+      log.truncate(transformBId);
+      assert.deepEqual(log.entries(), [transformBId, transformCId], 'removes transformIds before specified transformId');
+    });
+
+    test('#truncate - to head', function(assert) {
+      log.truncate(log.head());
+      assert.deepEqual(log.entries(), [transformCId], 'only head entry remains in log');
+    });
+
+    test('#truncate - to transformId that hasn\'t been logged', function(assert) {
+      assert.throws(() => log.truncate(transformDId), TransformNotLoggedException);
+    });
+
     test('#rollback', function(assert) {
       log.rollback(transformAId);
       assert.deepEqual(log.entries(), [transformAId], 'removes transformIds after specified transformId');
