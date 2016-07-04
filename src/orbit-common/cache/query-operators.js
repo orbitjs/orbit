@@ -1,8 +1,5 @@
 import { merge } from 'orbit/lib/objects';
-import {
-  RecordNotFoundException,
-  ModelNotRegisteredException
-} from '../lib/exceptions';
+import { RecordNotFoundException } from '../lib/exceptions';
 import { every, some } from 'orbit/lib/arrays';
 
 const EMPTY = () => {};
@@ -48,12 +45,16 @@ export default {
     return matches;
   },
 
-  record(context, recordIdentity) {
+  record(context, { type, id }) {
     const cache = this.target;
-    const record = cache.get([recordIdentity.type, recordIdentity.id]);
+    const schema = cache.schema;
+
+    schema.ensureModelTypeInitialized(type);
+
+    const record = cache.get([type, id]);
 
     if (!record) {
-      throw new RecordNotFoundException(`Record not found ${recordIdentity.type}:${recordIdentity.id}`);
+      throw new RecordNotFoundException(`Record not found ${type}:${id}`);
     }
 
     return record;
@@ -63,9 +64,7 @@ export default {
     const cache = this.target;
     const schema = cache.schema;
 
-    if (!schema.containsModel(type)) {
-      throw new ModelNotRegisteredException(`No model registered for ${type}`);
-    }
+    schema.ensureModelTypeInitialized(type);
 
     const records = cache.get([type]);
 

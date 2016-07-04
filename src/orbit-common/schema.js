@@ -1,7 +1,12 @@
 /* eslint-disable valid-jsdoc */
 import { clone } from 'orbit/lib/objects';
 import { uuid } from 'orbit/lib/uuid';
-import { OperationNotAllowed, ModelNotRegisteredException, KeyNotRegisteredException, RelationshipNotRegisteredException } from './lib/exceptions';
+import {
+  OperationNotAllowed,
+  ModelNotRegisteredException,
+  KeyNotRegisteredException,
+  RelationshipNotRegisteredException
+} from './lib/exceptions';
 import Evented from 'orbit/evented';
 
 /**
@@ -340,7 +345,7 @@ export default class Schema {
    @method modelNotDefined
    @param {String} [model] name of model
    */
-  // TODO modelNotDefined: null,
+  modelNotDefined() {}
 
   /**
    Look up a model definition.
@@ -352,15 +357,24 @@ export default class Schema {
    raised.
 
    @method modelDefinition
-   @param {String} [model] name of model
+   @param {String} type - type of model
    @return {Object} model definition
    */
-  modelDefinition(name) {
-    if (this.containsModel(name)) {
-      return this.models[name];
-    } else {
-      throw new ModelNotRegisteredException(name);
+  modelDefinition(type) {
+    let definition = this.models[type];
+
+    if (!definition) {
+      // Call a hook for lazy type definition
+      this.modelNotDefined(type);
+
+      definition = this.models[type];
+
+      if (!definition) {
+        throw new ModelNotRegisteredException(type);
+      }
     }
+
+    return definition;
   }
 
   initDefaults(record) {
@@ -486,15 +500,8 @@ export default class Schema {
     return relDef;
   }
 
-  containsModel(name) {
-    if (!!this.models[name]) {
-      return true;
-    }
-    if (this.modelNotDefined) {
-      this.modelNotDefined(name);
-      return !!this.models[name];
-    }
-    return false;
+  ensureModelTypeInitialized(type) {
+    this.modelDefinition(type);
   }
 
   _mergeModelSchemas(base) {
