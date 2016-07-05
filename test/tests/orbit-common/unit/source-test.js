@@ -31,4 +31,8 @@ module('OC - Source', function(hooks) {
       'Assertion failed: Source\'s `schema` must be specified in `options.schema` constructor argument'
     );
   });
+
+  test('it is Transformable', function(assert) {
+    assert.ok(source._transformable, 'Transformable mixin has been applied');
+  });
 });
