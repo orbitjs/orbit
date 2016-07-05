@@ -251,7 +251,22 @@ module('OC - Store', function(hooks) {
       });
   });
 
-  test('#rollback', function(assert) {
+  test('#fork - creates a new store that starts with the same schema, keyMap, and cache contents as the base store', function(assert) {
+    const jupiter = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+
+    return store.update(addRecord(jupiter))
+      .then(() => {
+        assert.deepEqual(store.cache.get(['planet', 'jupiter-id']), jupiter, 'verify store data');
+
+        let fork = store.fork();
+
+        assert.deepEqual(fork.cache.get(['planet', 'jupiter-id']), jupiter, 'data in fork matches data in store');
+        assert.strictEqual(store.schema, fork.schema, 'schema matches');
+        assert.strictEqual(store.keyMap, fork.keyMap, 'keyMap matches');
+      });
+  });
+
+  test('#rollback - rolls back transform log and replays transform inverses against the cache', function(assert) {
     const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
     const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };

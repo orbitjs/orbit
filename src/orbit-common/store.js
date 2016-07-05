@@ -55,6 +55,26 @@ export default class Store extends Source {
   }
 
   /**
+   Create a clone, or "fork", from a "base" store.
+
+   The forked store will have the same `schema` and `keyMap` as its base store.
+   The forked store's cache will start with the same immutable document as
+   the base store. Its contents and log will evolve independently.
+
+   @method fork
+   @param {Object} [options] - Options to pass to the forked store's constructor.
+   @returns {Store} The forked store.
+  */
+  fork(options = {}) {
+    options.cacheOptions = options.cacheOptions || {};
+    options.cacheOptions.base = this.cache;
+    options.schema = this.schema;
+    options.keyMap = this.keyMap;
+
+    return new Store(options);
+  }
+
+  /**
    Rolls back the Store to a particular transformId
 
    @method rollback
