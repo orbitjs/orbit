@@ -145,6 +145,112 @@ module('OC - Store', function(hooks) {
     });
   });
 
+  test('#transformsSince - returns all transforms since a specified transformId', function(assert) {
+    const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
+    const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
+    const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
+
+    const addRecordATransform = new Transform(addRecord(recordA));
+    const addRecordBTransform = new Transform(addRecord(recordB));
+    const addRecordCTransform = new Transform(addRecord(recordC));
+
+    return all([
+      store.transform(addRecordATransform),
+      store.transform(addRecordBTransform),
+      store.transform(addRecordCTransform)
+    ])
+      .then(() => {
+        assert.deepEqual(
+          store.transformsSince(addRecordATransform.id),
+          [
+            addRecordBTransform,
+            addRecordCTransform
+          ],
+          'returns transforms since the specified transform'
+        );
+      });
+  });
+
+  test('#allTransforms - returns all tracked transforms', function(assert) {
+    const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
+    const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
+    const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
+
+    const addRecordATransform = new Transform(addRecord(recordA));
+    const addRecordBTransform = new Transform(addRecord(recordB));
+    const addRecordCTransform = new Transform(addRecord(recordC));
+
+    return all([
+      store.transform(addRecordATransform),
+      store.transform(addRecordBTransform),
+      store.transform(addRecordCTransform)
+    ])
+      .then(() => {
+        assert.deepEqual(
+          store.allTransforms(),
+          [
+            addRecordATransform,
+            addRecordBTransform,
+            addRecordCTransform
+          ],
+          'tracks transforms in correct order'
+        );
+      });
+  });
+
+  test('#truncateHistory - clears transforms from log as well as tracked transforms before a specified transform', function(assert) {
+    const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
+    const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
+    const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
+
+    const addRecordATransform = new Transform(addRecord(recordA));
+    const addRecordBTransform = new Transform(addRecord(recordB));
+    const addRecordCTransform = new Transform(addRecord(recordC));
+
+    return all([
+      store.transform(addRecordATransform),
+      store.transform(addRecordBTransform),
+      store.transform(addRecordCTransform)
+    ])
+      .then(() => {
+        store.truncateHistory(addRecordBTransform.id);
+
+        assert.deepEqual(
+          store.allTransforms(),
+          [
+            addRecordBTransform,
+            addRecordCTransform
+          ],
+          'remaining transforms are in correct order'
+        );
+      });
+  });
+
+  test('#clearHistory - clears all transforms from log as well as tracked transforms', function(assert) {
+    const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
+    const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
+    const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
+
+    const addRecordATransform = new Transform(addRecord(recordA));
+    const addRecordBTransform = new Transform(addRecord(recordB));
+    const addRecordCTransform = new Transform(addRecord(recordC));
+
+    return all([
+      store.transform(addRecordATransform),
+      store.transform(addRecordBTransform),
+      store.transform(addRecordCTransform)
+    ])
+      .then(() => {
+        store.clearHistory();
+
+        assert.deepEqual(
+          store.allTransforms(),
+          [],
+          'no transforms remain in history'
+        );
+      });
+  });
+
   test('#rollback', function(assert) {
     const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
