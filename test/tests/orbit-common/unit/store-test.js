@@ -258,11 +258,26 @@ module('OC - Store', function(hooks) {
       .then(() => {
         assert.deepEqual(store.cache.get(['planet', 'jupiter-id']), jupiter, 'verify store data');
 
-        let fork = store.fork();
+        const fork = store.fork();
 
         assert.deepEqual(fork.cache.get(['planet', 'jupiter-id']), jupiter, 'data in fork matches data in store');
         assert.strictEqual(store.schema, fork.schema, 'schema matches');
         assert.strictEqual(store.keyMap, fork.keyMap, 'keyMap matches');
+      });
+  });
+
+  test('#merge - merges transforms from a forked store back into a base store', function(assert) {
+    const jupiter = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+
+    let fork = store.fork();
+
+    return fork.update(addRecord(jupiter))
+      .then(() => {
+        assert.deepEqual(fork.cache.get(['planet', 'jupiter-id']), jupiter, 'verify fork data');
+        return store.merge(fork);
+      })
+      .then(() => {
+        assert.deepEqual(store.cache.get(['planet', 'jupiter-id']), jupiter, 'data in store matches data in fork');
       });
   });
 
