@@ -20,5 +20,26 @@ export default class Source {
 
     Transformable.extend(this);
   }
+
+  /**
+   Truncates the Source's logged and tracked transforms to remove everything
+   before a particular `transformId`.
+
+   @method truncateHistory
+   @param {string} transformId - The ID of the transform to truncate history to.
+   @returns {undefined}
+  */
+  truncateHistory(transformId) {
+    this.transformLog.truncate(transformId);
+  }
+
+  /**
+   Clears the Source's logged and tracked transforms entirely.
+
+   @method clearHistory
+   @returns {undefined}
+  */
+  clearHistory() {
+    this.transformLog.clear();
   }
 }
