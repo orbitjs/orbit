@@ -40,6 +40,14 @@ module('Orbit - TransformLog', function() {
       assert.equal(log.length(), 3, 'reflects number of transforms that have been added');
     });
 
+    test('#before', function(assert) {
+      assert.deepEqual(log.before(transformCId), [transformAId, transformBId], 'includes transformIds preceding specified transformId');
+    });
+
+    test('#before - transformId that hasn\'t been logged', function(assert) {
+      assert.throws(() => log.before(transformDId), TransformNotLoggedException);
+    });
+
     test('#after', function(assert) {
       assert.deepEqual(log.after(transformAId), [transformBId, transformCId], 'includes transformIds following specified transformId');
     });
@@ -51,6 +59,20 @@ module('Orbit - TransformLog', function() {
     test('#after - head', function(assert) {
       log.after(log.head());
       assert.deepEqual(log.after(log.head()), [], 'is empty');
+    });
+
+    test('#truncate', function(assert) {
+      log.truncate(transformBId);
+      assert.deepEqual(log.entries(), [transformBId, transformCId], 'removes transformIds before specified transformId');
+    });
+
+    test('#truncate - to head', function(assert) {
+      log.truncate(log.head());
+      assert.deepEqual(log.entries(), [transformCId], 'only head entry remains in log');
+    });
+
+    test('#truncate - to transformId that hasn\'t been logged', function(assert) {
+      assert.throws(() => log.truncate(transformDId), TransformNotLoggedException);
     });
 
     test('#rollback', function(assert) {
