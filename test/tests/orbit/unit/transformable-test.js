@@ -1,14 +1,13 @@
 import Orbit from 'orbit/main';
+import Source from 'orbit/source';
 import Transformable from 'orbit/transformable';
 import Transform from 'orbit/transform';
 
 let source;
 
-///////////////////////////////////////////////////////////////////////////////
-
 module('Orbit - Transformable', {
   setup() {
-    source = {};
+    source = new Source();
     Transformable.extend(source);
   },
 
@@ -19,46 +18,19 @@ module('Orbit - Transformable', {
 
 test('it exists', function(assert) {
   assert.ok(source);
-  assert.ok(source.transformLog, 'has a transform log');
 });
 
-test('it should mixin Evented', function(assert) {
-  ['on', 'off', 'emit', 'poll'].forEach(function(prop) {
-    assert.ok(source[prop], 'should have Evented properties');
-  });
+test('it should be applied to a Source', function(assert) {
+  assert.throws(function() {
+    let pojo = {};
+    Transformable.extend(pojo);
+  },
+  Error('Assertion failed: Transformable interface can only be applied to a Source'),
+  'assertion raised');
 });
 
-test('it defines `transformed`', function(assert) {
-  assert.equal(typeof source.transformed, 'function', 'transformed exists');
-});
-
-test('#transformed should trigger `transform` event BEFORE resolving', function(assert) {
-  assert.expect(3);
-
-  let order = 0;
-  const appliedTransform = Transform.from({ op: 'addRecord', value: {} });
-
-  source.on('transform', (transform) => {
-    assert.equal(++order, 1, '`transform` event triggered after action performed successfully');
-    assert.strictEqual(transform, appliedTransform, 'applied transform matches');
-  });
-
-  return source.transformed([appliedTransform])
-    .then(() => {
-      assert.equal(++order, 2, 'transformed promise resolved last');
-    });
-});
-
-test('#transformLog contains transforms applied', function(assert) {
-  assert.expect(2);
-
-  const appliedTransform = Transform.from({ op: 'addRecord', value: {} });
-
-  assert.ok(!source.transformLog.contains(appliedTransform.id));
-
-  return source
-    .transformed([appliedTransform])
-    .then(() => assert.ok(source.transformLog.contains(appliedTransform.id)));
+test('it defines `transform`', function(assert) {
+  assert.equal(typeof source.transform, 'function', 'transform function exists');
 });
 
 test('#transform should convert non-Transforms into Transforms', function(assert) {

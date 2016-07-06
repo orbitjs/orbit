@@ -1,7 +1,8 @@
 import Orbit from './main';
+import { assert } from './lib/assert';
 import { extend } from './lib/objects';
 import Query from './query';
-import Evented from './evented';
+import Source from './source';
 
 export default {
   /**
@@ -13,7 +14,7 @@ export default {
    */
   extend(source) {
     if (source._queryable === undefined) {
-      Evented.extend(source);
+      assert('Queryable interface can only be applied to a Source', source instanceof Source);
       extend(source, this.interface);
     }
     return source;

@@ -1,6 +1,7 @@
-import Query from './query';
-import Transformable from './transformable';
+import { assert } from './lib/assert';
 import { extend } from './lib/objects';
+import Query from './query';
+import Source from './source';
 
 export default {
   /**
@@ -12,7 +13,7 @@ export default {
    */
   extend(source) {
     if (source._fetchable === undefined) {
-      Transformable.extend(source);
+      assert('Fetchable interface can only be applied to a Source', source instanceof Source);
       extend(source, this.interface);
     }
     return source;

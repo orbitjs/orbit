@@ -1,5 +1,5 @@
 import { assert } from 'orbit/lib/assert';
-import Transformable from 'orbit/transformable';
+import OrbitSource from 'orbit/source';
 
 /**
  Base class for sources.
@@ -11,35 +11,12 @@ import Transformable from 'orbit/transformable';
  @param {String}    options.name - Name for source
  @constructor
  */
-export default class Source {
-  constructor({ schema, name }) {
-    assert('Source\'s `schema` must be specified in `options.schema` constructor argument', schema);
+export default class Source extends OrbitSource {
+  constructor(options = {}) {
+    assert('Source\'s `schema` must be specified in `options.schema` constructor argument', options.schema);
 
-    this.schema = schema;
-    this.name   = name;
+    super(...arguments);
 
-    Transformable.extend(this);
-  }
-
-  /**
-   Truncates the Source's logged and tracked transforms to remove everything
-   before a particular `transformId`.
-
-   @method truncateHistory
-   @param {string} transformId - The ID of the transform to truncate history to.
-   @returns {undefined}
-  */
-  truncateHistory(transformId) {
-    this.transformLog.truncate(transformId);
-  }
-
-  /**
-   Clears the Source's logged and tracked transforms entirely.
-
-   @method clearHistory
-   @returns {undefined}
-  */
-  clearHistory() {
-    this.transformLog.clear();
+    this.schema = options.schema;
   }
 }

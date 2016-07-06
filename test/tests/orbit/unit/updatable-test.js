@@ -1,13 +1,14 @@
+import Source from 'orbit/source';
 import Updatable from 'orbit/updatable';
 import Transform from 'orbit/transform';
 import { Promise } from 'rsvp';
 import { successfulOperation, failedOperation } from 'tests/test-helper';
 
-var source;
+let source;
 
 module('Orbit - Updatable', {
   setup: function() {
-    source = {};
+    source = new Source();
     Updatable.extend(source);
   },
 
@@ -18,6 +19,15 @@ module('Orbit - Updatable', {
 
 test('it exists', function(assert) {
   assert.ok(source);
+});
+
+test('it should be applied to a Source', function(assert) {
+  assert.throws(function() {
+    let pojo = {};
+    Updatable.extend(pojo);
+  },
+  Error('Assertion failed: Updatable interface can only be applied to a Source'),
+  'assertion raised');
 });
 
 test('it should mixin Updatable', function(assert) {
