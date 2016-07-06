@@ -48,6 +48,21 @@ test('its prototype chain is correct', function(assert) {
   assert.ok(source instanceof Source, 'instanceof Source');
 });
 
+test('implements Fetchable', function(assert) {
+  assert.ok(source._fetchable, 'implements Fetchable');
+  assert.ok(typeof source.fetch === 'function', 'has `fetch` method');
+});
+
+test('implements Updatable', function(assert) {
+  assert.ok(source._updatable, 'implements Updatable');
+  assert.ok(typeof source.update === 'function', 'has `update` method');
+});
+
+test('implements Transformable', function(assert) {
+  assert.ok(source._transformable, 'implements Transformable');
+  assert.ok(typeof source.transform === 'function', 'has `transform` method');
+});
+
 test('is assigned a default namespace and delimiter', function(assert) {
   assert.equal(source.namespace, 'orbit', 'namespace is `orbit` by default');
   assert.equal(source.delimiter, '/', 'delimiter is `/` by default');

@@ -2,7 +2,7 @@
 import Orbit from 'orbit/main';
 import Source from './source';
 import Fetchable from 'orbit/fetchable';
-import Transformable from 'orbit/transformable';
+import Updatable from 'orbit/updatable';
 import { assert } from 'orbit/lib/assert';
 import TransformOperators from './local-storage/transform-operators';
 import FetchOperators from './local-storage/fetch-operators';
@@ -33,7 +33,7 @@ export default class LocalStorageSource extends Source {
     super(options);
 
     Fetchable.extend(this);
-    Transformable.extend(this);
+    Updatable.extend(this); // implicitly extends Transformable
 
     this.name      = options.name || 'localStorage';
     this.namespace = options['namespace'] || 'orbit'; // local storage namespace

@@ -2,7 +2,7 @@
 import Orbit from 'orbit/main';
 import { assert } from 'orbit/lib/assert';
 import Fetchable from 'orbit/fetchable';
-import Transformable from 'orbit/transformable';
+import Updatable from 'orbit/updatable';
 import Source from './source';
 import Serializer from './serializer';
 import JSONAPISerializer from './jsonapi/serializer';
@@ -39,7 +39,7 @@ export default class JSONAPISource extends Source {
     super(options);
 
     Fetchable.extend(this);
-    Transformable.extend(this);
+    Updatable.extend(this); // implicitly extends Transformable
 
     this.name             = options.name || 'jsonapi';
     this.namespace        = options.namespace;

@@ -84,6 +84,11 @@ test('implements Fetchable', function(assert) {
   assert.ok(typeof source.fetch === 'function', 'has `fetch` method');
 });
 
+test('implements Updatable', function(assert) {
+  assert.ok(source._updatable, 'implements Updatable');
+  assert.ok(typeof source.update === 'function', 'has `update` method');
+});
+
 test('implements Transformable', function(assert) {
   assert.ok(source._transformable, 'implements Transformable');
   assert.ok(typeof source.transform === 'function', 'has `transform` method');
