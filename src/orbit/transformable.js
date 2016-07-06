@@ -1,8 +1,8 @@
 import Orbit from './main';
+import { assert } from './lib/assert';
 import { extend } from './lib/objects';
-import Evented from './evented';
 import Transform from './transform';
-import TransformLog from './transform/log';
+import Source from './source';
 
 export default {
   /**
@@ -14,9 +14,8 @@ export default {
    */
   extend(source) {
     if (source._transformable === undefined) {
-      Evented.extend(source);
+      assert('Transformable interface can only be applied to a Source', source instanceof Source);
       extend(source, this.interface);
-      source.transformLog = new TransformLog();
     }
     return source;
   },
@@ -33,21 +32,6 @@ export default {
 
       return this._transform(transform)
         .then(result => this.transformed(result));
-    },
-
-    transformed(transforms) {
-      return transforms
-        .reduce((chain, transform) => {
-          return chain.then(() => {
-            if (this.transformLog.contains(transform.id)) {
-              return Orbit.Promise.resolve();
-            }
-
-            this.transformLog.append(transform.id);
-            return this.settle('transform', transform);
-          });
-        }, Orbit.Promise.resolve())
-        .then(() => transforms);
     }
   }
 };

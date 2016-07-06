@@ -1,12 +1,13 @@
 import Queryable from 'orbit/queryable';
+import Source from 'orbit/source';
 import { Promise } from 'rsvp';
 import { successfulOperation, failedOperation } from 'tests/test-helper';
 
-var source;
+let source;
 
 module('Orbit - Queryable', {
   setup: function() {
-    source = {};
+    source = new Source();
     Queryable.extend(source);
   },
 
@@ -17,6 +18,15 @@ module('Orbit - Queryable', {
 
 test('it exists', function(assert) {
   assert.ok(source);
+});
+
+test('it should be applied to a Source', function(assert) {
+  assert.throws(function() {
+    let pojo = {};
+    Queryable.extend(pojo);
+  },
+  Error('Assertion failed: Queryable interface can only be applied to a Source'),
+  'assertion raised');
 });
 
 test('it should resolve as a failure when _query fails', function(assert) {

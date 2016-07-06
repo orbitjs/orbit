@@ -1,6 +1,8 @@
 import Orbit from './main';
+import Source from './source';
 import Transform from './transform';
 import Transformable from './transformable';
+import { assert } from './lib/assert';
 import { extend } from './lib/objects';
 
 export default {
@@ -13,6 +15,7 @@ export default {
    */
   extend(source) {
     if (source._updatable === undefined) {
+      assert('Updatable interface can only be applied to a Source', source instanceof Source);
       Transformable.extend(source);
       extend(source, this.interface);
     }

@@ -1,13 +1,14 @@
+import Source from 'orbit/source';
 import Fetchable from 'orbit/fetchable';
 import Transform from 'orbit/transform';
 import { Promise } from 'rsvp';
 import { successfulOperation, failedOperation } from 'tests/test-helper';
 
-var source;
+let source;
 
 module('Orbit - Fetchable', {
   setup: function() {
-    source = {};
+    source = new Source();
     Fetchable.extend(source);
   },
 
@@ -18,6 +19,15 @@ module('Orbit - Fetchable', {
 
 test('it exists', function(assert) {
   assert.ok(source);
+});
+
+test('it should be applied to a Source', function(assert) {
+  assert.throws(function() {
+    let pojo = {};
+    Fetchable.extend(pojo);
+  },
+  Error('Assertion failed: Fetchable interface can only be applied to a Source'),
+  'assertion raised');
 });
 
 test('it should resolve as a failure when _fetch fails', function(assert) {
