@@ -26,18 +26,22 @@ export default {
     _updatable: true,
 
     update(transformOrOperations) {
-      const transform = Transform.from(transformOrOperations);
+      const requestedTransform = Transform.from(transformOrOperations);
+      let appliedTransforms;
 
-      if (this.transformLog.contains(transform.id)) {
+      if (this.transformLog.contains(requestedTransform.id)) {
         return Orbit.Promise.resolve([]);
       }
 
-      return this.series('beforeUpdate', transform)
-        .then(() => this.transform(transform))
-        .then(() => this.settle('update', transform))
-        .then(() => transform)
+      return this.series('beforeUpdate', requestedTransform)
+        .then(() => this.transform(requestedTransform))
+        .then(transforms => {
+          appliedTransforms = transforms;
+          return this.settle('update', requestedTransform, appliedTransforms);
+        })
+        .then(() => appliedTransforms)
         .catch(error => {
-          return this.settle('updateFail', transform, error)
+          return this.settle('updateFail', requestedTransform, error)
             .then(() => { throw error; });
         });
     }

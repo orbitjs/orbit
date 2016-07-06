@@ -87,7 +87,7 @@ test('it should trigger `update` event after a successful action in which `trans
   return source.update(addRecordTransform)
     .then((result) => {
       assert.equal(++order, 6, 'promise resolved last');
-      assert.strictEqual(result, addRecordTransform, 'transform is returned on success');
+      assert.deepEqual(result, resultingTransforms, 'applied transforms are returned on success');
     });
 });
 
@@ -161,7 +161,7 @@ test('it should resolve all promises returned from `beforeUpdate` before calling
   return source.update(addRecordTransform)
     .then((result) => {
       assert.equal(++order, 6, 'promise resolved last');
-      assert.strictEqual(result, addRecordTransform, 'transform is returned on success');
+      assert.deepEqual(result, resultingTransforms, 'applied transforms are returned on success');
     });
 });
 
