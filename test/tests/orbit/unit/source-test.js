@@ -18,7 +18,7 @@ module('Orbit - Source', function(hooks) {
   });
 
   test('it should mixin Evented', function(assert) {
-    ['on', 'off', 'emit', 'poll'].forEach(function(prop) {
+    ['on', 'off', 'emit'].forEach(function(prop) {
       assert.ok(source[prop], 'should have Evented properties');
     });
   });

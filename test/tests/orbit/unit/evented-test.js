@@ -194,54 +194,6 @@ test('#emit - can emit multiple events with the same arguments sequentially', fu
   evented.emit('greeting salutation', 'hello');
 });
 
-test('#poll - can poll listeners with an event and return all the responses in an array', function() {
-  expect(4);
-
-  let listener1 = function(message) {
-    equal(message, 'hello', 'notification message should match');
-    // note: no return value
-  };
-  let listener2 = function(message) {
-    equal(message, 'hello', 'notification message should match');
-    return 'bonjour';
-  };
-  let listener3 = function(message) {
-    equal(message, 'hello', 'notification message should match');
-    return 'sup';
-  };
-
-  evented.on('greeting', listener1);
-  evented.on('greeting', listener2);
-  evented.on('greeting', listener3);
-
-  deepEqual(evented.poll('greeting', 'hello'), ['bonjour', 'sup'], 'poll response should include the responses of all listeners');
-});
-
-test('#poll - can poll listeners with multiple events and return all the responses in a single array', function() {
-  expect(2);
-
-  let greeting1 = function() {
-    return 'Hello';
-  };
-  let greeting2 = function() {
-    return 'Bon jour';
-  };
-  let parting1 = function() {
-    return 'Goodbye';
-  };
-  let parting2 = function() {
-    return 'Au revoir';
-  };
-
-  evented.on('greeting', greeting1);
-  evented.on('greeting', greeting2);
-  evented.on('parting', parting1);
-  evented.on('parting', parting2);
-
-  deepEqual(evented.poll('greeting parting'), ['Hello', 'Bon jour', 'Goodbye', 'Au revoir'], 'poll response should include the responses of all listeners in order');
-  deepEqual(evented.poll('parting greeting'), ['Goodbye', 'Au revoir', 'Hello', 'Bon jour'], 'poll response should include the responses of all listeners in order');
-});
-
 test('#listeners - can return all the listeners (and bindings) for an event', function() {
   expect(1);
 

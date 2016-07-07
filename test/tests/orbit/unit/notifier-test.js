@@ -86,26 +86,3 @@ test('it notifies listeners when publishing any number of arguments', function()
 
   notifier.emit('hello', 'world');
 });
-
-test('it notifies listeners when polling with a simple message and returns any responses', function() {
-  expect(4);
-
-  let listener1 = function(message) {
-    equal(message, 'hello', 'notification message should match');
-    // note: no return value
-  };
-  let listener2 = function(message) {
-    equal(message, 'hello', 'notification message should match');
-    return 'bonjour';
-  };
-  let listener3 = function(message) {
-    equal(message, 'hello', 'notification message should match');
-    return 'sup';
-  };
-
-  notifier.addListener(listener1);
-  notifier.addListener(listener2);
-  notifier.addListener(listener3);
-
-  deepEqual(notifier.poll('hello'), ['bonjour', 'sup'], 'poll response should include the responses of all listeners');
-});

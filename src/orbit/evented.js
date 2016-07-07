@@ -63,26 +63,6 @@ function removeNotifierForEvent(object, eventName) {
  source.emit('greeting salutation', 'hello', 'bonjour', 'guten tag');
  ```
 
- Last but not least, listeners can be polled
- (note that spaces can't be used in event names):
-
- ```javascript
- source.on('question', function(question) {
-   if (question === 'favorite food?') return 'beer';
- });
-
- source.on('question', function(question) {
-   if (question === 'favorite food?') return 'wasabi almonds';
- });
-
- source.on('question', function(question) {
-   // this listener doesn't return anything, and therefore won't participate
-   // in the poll
- });
-
- source.poll('question', 'favorite food?'); // returns ['beer', 'wasabi almonds']
- ```
-
  @class Evented
  @namespace Orbit
  @extension
@@ -154,19 +134,6 @@ export default {
           notifier.emit.apply(notifier, args);
         }
       });
-    },
-
-    poll(eventNames, ...args) {
-      let responses = [];
-
-      eventNames.split(/\s+/).forEach((eventName) => {
-        let notifier = notifierForEvent(this, eventName);
-        if (notifier) {
-          responses = responses.concat(notifier.poll.apply(notifier, args));
-        }
-      });
-
-      return responses;
     },
 
     listeners(eventNames) {
