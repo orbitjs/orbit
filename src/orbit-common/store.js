@@ -12,12 +12,9 @@ import {
 
 export default class Store extends Source {
   constructor({ schema, keyMap, cacheOptions, name } = {}) {
-    assert('Store\'s `keyMap` must be specified in `options.keyMap` constructor argument', keyMap);
-
     super(...arguments);
 
-    Queryable.extend(this);
-    Updatable.extend(this);
+    assert('Store\'s `keyMap` must be specified in `options.keyMap` constructor argument', keyMap);
 
     this.keyMap = keyMap;
     this.name = name || 'store';
@@ -200,3 +197,6 @@ export default class Store extends Source {
     delete this._transformInverses[transformId];
   }
 }
+
+Queryable.extend(Store.prototype);
+Updatable.extend(Store.prototype);

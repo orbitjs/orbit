@@ -32,9 +32,6 @@ export default class LocalStorageSource extends Source {
 
     super(options);
 
-    Fetchable.extend(this);
-    Updatable.extend(this); // implicitly extends Transformable
-
     this.name      = options.name || 'localStorage';
     this.namespace = options['namespace'] || 'orbit'; // local storage namespace
     this.delimiter = options['delimiter'] || '/'; // local storage key
@@ -96,3 +93,6 @@ export default class LocalStorageSource extends Source {
     return Orbit.Promise.resolve(transforms);
   }
 }
+
+Fetchable.extend(LocalStorageSource.prototype);
+Updatable.extend(LocalStorageSource.prototype); // implicitly extends Transformable

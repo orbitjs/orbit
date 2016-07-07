@@ -50,8 +50,6 @@ export default class ActionQueue {
   constructor(options) {
     assert('ActionQueue requires Orbit.Promise to be defined', Orbit.Promise);
 
-    Evented.extend(this);
-
     options = options || {};
     this.autoProcess = options.autoProcess !== undefined ? options.autoProcess : true;
 
@@ -121,3 +119,5 @@ export default class ActionQueue {
     }
   }
 }
+
+Evented.extend(ActionQueue.prototype);

@@ -38,9 +38,6 @@ export default class JSONAPISource extends Source {
 
     super(options);
 
-    Fetchable.extend(this);
-    Updatable.extend(this); // implicitly extends Transformable
-
     this.name             = options.name || 'jsonapi';
     this.namespace        = options.namespace;
     this.host             = options.host;
@@ -210,3 +207,6 @@ export default class JSONAPISource extends Source {
     return result.then(() => transforms);
   }
 }
+
+Fetchable.extend(JSONAPISource.prototype);
+Updatable.extend(JSONAPISource.prototype); // implicitly extends Transformable

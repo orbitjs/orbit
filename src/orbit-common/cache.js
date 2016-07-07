@@ -35,8 +35,6 @@ import 'orbit-common/rxjs/add/observable/from-orbit-event';
  */
 export default class Cache {
   constructor(options = {}) {
-    Evented.extend(this);
-
     this.keyMap = options.keyMap;
     this.schema = options.schema;
 
@@ -316,3 +314,5 @@ export default class Cache {
     this.emit('patch', op);
   }
 }
+
+Evented.extend(Cache.prototype);
