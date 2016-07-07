@@ -14,7 +14,6 @@ import TransformLog from './transform/log';
 export default class Source {
   constructor(options = {}) {
     this.name = options.name;
-    Evented.extend(this);
     this.transformLog = new TransformLog();
   }
 
@@ -67,3 +66,5 @@ export default class Source {
     this.transformLog.clear();
   }
 }
+
+Evented.extend(Source.prototype);

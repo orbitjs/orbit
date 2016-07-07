@@ -4,7 +4,10 @@ import { assert } from './lib/assert';
 import { extend } from './lib/objects';
 
 function notifierForEvent(object, eventName, createIfUndefined) {
-  var notifier = object._eventedNotifiers[eventName];
+  if (object._eventedNotifiers === undefined) {
+    object._eventedNotifiers = {};
+  }
+  let notifier = object._eventedNotifiers[eventName];
   if (!notifier && createIfUndefined) {
     notifier = object._eventedNotifiers[eventName] = new Notifier();
   }
@@ -12,7 +15,9 @@ function notifierForEvent(object, eventName, createIfUndefined) {
 }
 
 function removeNotifierForEvent(object, eventName) {
-  delete object._eventedNotifiers[eventName];
+  if (object._eventedNotifiers && object._eventedNotifiers[eventName]) {
+    delete object._eventedNotifiers[eventName];
+  }
 }
 
 /**
@@ -81,8 +86,8 @@ export default {
 
     if (object._evented === undefined) {
       extend(object, this.interface);
-      object._eventedNotifiers = {};
     }
+
     return object;
   },
 

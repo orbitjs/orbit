@@ -286,8 +286,6 @@ export default class Schema {
       this.singularize = options.singularize;
     }
 
-    Evented.extend(this);
-
     // register provided model schema
     this.models = {};
     if (options.models) {
@@ -540,3 +538,5 @@ export default class Schema {
     }
   }
 }
+
+Evented.extend(Schema.prototype);
