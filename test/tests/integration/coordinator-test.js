@@ -2,6 +2,7 @@ import { planetsSchema } from 'tests/test-helper';
 import Coordinator from 'orbit-common/coordinator';
 import Store from 'orbit-common/store';
 import JsonApiSource from 'orbit-common/jsonapi-source';
+import LocalStorageSource from 'orbit-common/local-storage-source';
 import { eq } from 'orbit/lib/eq';
 import qb from 'orbit-common/query/builder';
 import KeyMap from 'orbit-common/key-map';
@@ -16,6 +17,10 @@ import {
   replaceHasMany,
   replaceHasOne
 } from 'orbit-common/transform/operators';
+import {
+  verifyLocalStorageContainsRecord,
+  verifyLocalStorageDoesNotContainRecord
+} from 'tests/test-helper';
 
 let server;
 
@@ -81,7 +86,7 @@ function jsonResponse(status, json) {
 
 module('Integration - Coordinator', function(hooks) {
   let store;
-  // let localStorage;
+  let localStorage;
   let jsonApiSource;
   let coordinator;
 
@@ -93,15 +98,15 @@ module('Integration - Coordinator', function(hooks) {
     coordinator = new Coordinator();
     jsonApiSource = new JsonApiSource({ schema: planetsSchema, keyMap: new KeyMap() });
     store = new Store({ schema: planetsSchema, keyMap });
-    // localStorage = new LocalStorageSource({ schema });
+    localStorage = new LocalStorageSource({ schema: planetsSchema, keyMap });
 
     coordinator.addNode('master', {
       sources: [store]
     });
 
-    // let backup = coordinator.addNode('backup', {
-    //   sources: [localStorage]
-    // });
+    coordinator.addNode('backup', {
+      sources: [localStorage]
+    });
 
     coordinator.addNode('upstream', {
       sources: [jsonApiSource]
@@ -112,9 +117,9 @@ module('Integration - Coordinator', function(hooks) {
       sourceNode: 'master',
       targetNode: 'upstream',
       sourceEvent: 'beforeUpdate',
-      targetRequest: 'transform',
+      targetRequest: 'update',
       blocking: true,
-      mergeTransforms: true
+      syncResults: true
     });
 
     coordinator.defineStrategy({
@@ -124,23 +129,24 @@ module('Integration - Coordinator', function(hooks) {
       sourceEvent: 'beforeQuery',
       targetRequest: 'fetch',
       blocking: true,
-      mergeTransforms: true
+      syncResults: true
     });
 
-    // coordinator.defineStrategy({
-    //   type: 'transform',
-    //   sourceNode: 'master',
-    //   targetNode: 'backup',
-    //   blocking: false
-    // });
+    coordinator.defineStrategy({
+      type: 'sync',
+      sourceNode: 'master',
+      targetNode: 'backup',
+      blocking: false
+    });
   });
 
   hooks.afterEach(function() {
+    localStorage.reset();
     server.restore();
   });
 
   test('#update - addRecord', function(assert) {
-    assert.expect(1);
+    assert.expect(2);
 
     let record = { type: 'planet', attributes: { name: 'Pluto' } };
 
@@ -149,11 +155,12 @@ module('Integration - Coordinator', function(hooks) {
     return store.update(addRecord(record))
       .then(() => {
         assert.equal(store.cache.get(['planet', record.id, 'attributes', 'name']), 'Pluto', 'record matches');
+        verifyLocalStorageContainsRecord(localStorage, record);
       });
   });
 
   test('#update - addRecord - error', function(assert) {
-    assert.expect(1);
+    assert.expect(2);
 
     let record = { type: 'planet', attributes: { name: 'Pluto' } };
 
@@ -162,26 +169,31 @@ module('Integration - Coordinator', function(hooks) {
     return store.update(addRecord(record))
       .catch(error => {
         assert.equal(error.responseJSON.errors[0].detail, 'Pluto isn\'t really a planet!');
+        verifyLocalStorageDoesNotContainRecord(localStorage, record);
       });
   });
 
   test('#update - replaceRecord', function(assert) {
-    assert.expect(1);
+    assert.expect(2);
+
+    const pluto = { type: 'planet', id: 'pluto', attributes: { name: 'Pluto', classification: 'superior' } };
+    const pluto2 = { type: 'planet', id: 'pluto', keys: { remoteId: 'pluto2' }, attributes: { name: 'Pluto2', classification: 'gas giant' } };
 
     store.cache.patch(
-      addRecord({ type: 'planet', id: 'pluto', attributes: { name: 'Pluto', classification: 'superior' } })
+      addRecord(pluto)
     );
 
     server.respondWith('PATCH', '/planets/pluto', jsonResponse(200, {}));
 
-    return store.update(replaceRecord({ type: 'planet', id: 'pluto', keys: { id: 'pluto' }, attributes: { name: 'Pluto2', classification: 'gas giant' } }))
+    return store.update(replaceRecord(pluto2))
       .then(() => {
         assert.equal(store.cache.get(['planet', 'pluto', 'attributes', 'name']), 'Pluto2', 'record matches');
+        verifyLocalStorageContainsRecord(localStorage, pluto2);
       });
   });
 
   test('#update - removeRecord', function(assert) {
-    assert.expect(2);
+    assert.expect(3);
 
     const pluto = { type: 'planet', id: 'pluto' };
 
@@ -193,6 +205,7 @@ module('Integration - Coordinator', function(hooks) {
       .then(() => {
         assert.notOk(store.cache.has(['planet', 'pluto']), 'cache updated');
         assert.ok(wasRequested('DELETE', '/planets/pluto'), 'server updated');
+        verifyLocalStorageDoesNotContainRecord(localStorage, pluto);
       });
   });
 

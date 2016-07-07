@@ -86,16 +86,14 @@ export default class Coordinator {
       case 'query':
         return node.queryableSource;
 
+      case 'beforeFetch':
       case 'fetch':
         return node.fetchableSource;
-
-      case 'transform':
-        return node.transformableSource;
     }
   }
 
-  sourceForRequest(node, event) {
-    switch (event) {
+  sourceForRequest(node, request) {
+    switch (request) {
       case 'update':
         return node.updatableSource;
 
@@ -104,9 +102,6 @@ export default class Coordinator {
 
       case 'fetch':
         return node.fetchableSource;
-
-      case 'transform':
-        return node.transformableSource;
     }
   }
 
@@ -147,7 +142,7 @@ export default class Coordinator {
       source.on(strategy.sourceEvent, request => {
         const promise = this.queueRequest(target, strategy.targetRequest, request)
           .then(result => {
-            if (result && strategy.mergeTransforms) {
+            if (result && strategy.syncResults) {
               return result.reduce((chain, t) => {
                 return chain.then(() => this.queueTransform(source, t));
               }, Orbit.Promise.resolve());
@@ -158,10 +153,10 @@ export default class Coordinator {
           return promise;
         }
       });
-    } else if (strategy.type === 'transform') {
+    } else if (strategy.type === 'sync') {
       const sourceNode = this.nodes[strategy.sourceNode];
       const targetNode = this.nodes[strategy.targetNode];
-      const target = this.sourceForRequest(targetNode, 'transform');
+      const target = targetNode.transformableSource;
 
       Object.keys(sourceNode.sources).forEach(name => {
         const source = sourceNode.sources[name];
