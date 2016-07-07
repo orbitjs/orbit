@@ -16,25 +16,7 @@
  notifier.emit('hello'); // logs "I heard hello" and "I also heard hello"
  ```
 
- Notifiers can also poll listeners with an event and return their responses:
-
- ```javascript
- var dailyQuestion = new Orbit.Notifier();
- dailyQuestion.addListener(function(question) {
-   if (question === 'favorite food?') return 'beer';
- });
- dailyQuestion.addListener(function(question) {
-   if (question === 'favorite food?') return 'wasabi almonds';
- });
- dailyQuestion.addListener(function(question) {
-   // this listener doesn't return anything, and therefore won't participate
-   // in the poll
- });
-
- dailyQuestion.poll('favorite food?'); // returns ['beer', 'wasabi almonds']
- ```
-
- Calls to `emit` and `poll` will send along all of their arguments.
+ Calls to `emit` will send along all of their arguments.
 
  @class Notifier
  @namespace Orbit
@@ -91,25 +73,5 @@ export default class Notifier {
     this.listeners.slice(0).forEach((listener) => {
       listener[0].apply(listener[1], args);
     });
-  }
-
-  /**
-   Poll registered listeners.
-
-   Any responses from listeners will be returned in an array.
-
-   @method poll
-   @param {*} Any number of parameters to be sent to listeners
-   @returns {Array} Array of responses
-   */
-  poll(...args) {
-    let allResponses = [];
-
-    this.listeners.slice(0).forEach((listener) => {
-      let response = listener[0].apply(listener[1], args);
-      if (response !== undefined) { allResponses.push(response); }
-    });
-
-    return allResponses;
   }
 }
