@@ -113,28 +113,14 @@ packages.forEach(function(pkg) {
   });
 });
 
-var rxjs = (function() {
-  var original = new Funnel('node_modules', {
-    srcDir: 'rxjs-es',
-    include: ['**/*.js'],
-    destDir: 'rxjs'
-  });
-
-  var withAsyncFix = replace(original, {
-    files: [
-      'rxjs/Rx.DOM.js',
-      'rxjs/Rx.js'
-    ],
-    patterns: [
-      { match: /async,/, replace: 'async: async,' }
-    ]
-  });
-
-  return withAsyncFix;
-})();
+var rxjs = new Funnel('node_modules', {
+  srcDir: 'rxjs-es',
+  include: ['**/*.js'],
+  destDir: 'rxjs'
+});
 
 var symbolObservable = new Funnel('node_modules', {
-  srcDir: 'symbol-observable',
+  srcDir: 'rxjs-es/node_modules/symbol-observable/es',
   include: ['ponyfill.js'],
   destDir: '.',
   getDestinationPath: function() {
