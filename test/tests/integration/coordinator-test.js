@@ -1,5 +1,7 @@
 import { planetsSchema } from 'tests/test-helper';
 import Coordinator from 'orbit-common/coordinator';
+import SyncStrategy from 'orbit-common/strategies/sync-strategy';
+import RequestStrategy from 'orbit-common/strategies/request-strategy';
 import Store from 'orbit-common/store';
 import JsonApiSource from 'orbit-common/jsonapi-source';
 import LocalStorageSource from 'orbit-common/local-storage-source';
@@ -89,6 +91,9 @@ module('Integration - Coordinator', function(hooks) {
   let localStorage;
   let jsonApiSource;
   let coordinator;
+  let updateRequestStrategy;
+  let queryRequestStrategy;
+  let localBackupStrategy;
 
   hooks.beforeEach(function() {
     server = sinon.fakeServer.create();
@@ -112,8 +117,8 @@ module('Integration - Coordinator', function(hooks) {
       sources: [jsonApiSource]
     });
 
-    coordinator.defineStrategy({
-      type: 'request',
+    updateRequestStrategy = new RequestStrategy({
+      coordinator,
       sourceNode: 'master',
       targetNode: 'upstream',
       sourceEvent: 'beforeUpdate',
@@ -122,8 +127,8 @@ module('Integration - Coordinator', function(hooks) {
       syncResults: true
     });
 
-    coordinator.defineStrategy({
-      type: 'request',
+    queryRequestStrategy = new RequestStrategy({
+      coordinator,
       sourceNode: 'master',
       targetNode: 'upstream',
       sourceEvent: 'beforeQuery',
@@ -132,8 +137,8 @@ module('Integration - Coordinator', function(hooks) {
       syncResults: true
     });
 
-    coordinator.defineStrategy({
-      type: 'sync',
+    localBackupStrategy = new SyncStrategy({
+      coordinator,
       sourceNode: 'master',
       targetNode: 'backup',
       blocking: false
@@ -141,6 +146,10 @@ module('Integration - Coordinator', function(hooks) {
   });
 
   hooks.afterEach(function() {
+    updateRequestStrategy.deactivate();
+    queryRequestStrategy.deactivate();
+    localBackupStrategy.deactivate();
+
     localStorage.reset();
     server.restore();
   });

@@ -1,4 +1,3 @@
-import Orbit from 'orbit/main';
 import { assert } from 'orbit/lib/assert';
 import ActionQueue from 'orbit/action-queue';
 
@@ -129,47 +128,5 @@ export default class Coordinator {
     });
 
     return action.complete;
-  }
-
-  defineStrategy(strategy) {
-    if (strategy.type === 'request') {
-      const sourceNode = this.nodes[strategy.sourceNode];
-      const targetNode = this.nodes[strategy.targetNode];
-      const source = this.sourceForEvent(sourceNode, strategy.sourceEvent);
-      const target = this.sourceForRequest(targetNode, strategy.targetRequest);
-
-      // TODO move event management to a Strategy object
-      source.on(strategy.sourceEvent, request => {
-        const promise = this.queueRequest(target, strategy.targetRequest, request)
-          .then(result => {
-            if (result && strategy.syncResults) {
-              return result.reduce((chain, t) => {
-                return chain.then(() => this.queueTransform(source, t));
-              }, Orbit.Promise.resolve());
-            }
-          });
-
-        if (strategy.blocking) {
-          return promise;
-        }
-      });
-    } else if (strategy.type === 'sync') {
-      const sourceNode = this.nodes[strategy.sourceNode];
-      const targetNode = this.nodes[strategy.targetNode];
-      const target = targetNode.transformableSource;
-
-      Object.keys(sourceNode.sources).forEach(name => {
-        const source = sourceNode.sources[name];
-
-        // TODO move event management to a Strategy object
-        source.on('transform', transform => {
-          const promise = this.queueTransform(target, transform);
-
-          if (strategy.blocking) {
-            return promise;
-          }
-        });
-      });
-    }
   }
 }
