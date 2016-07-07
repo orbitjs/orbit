@@ -52,7 +52,6 @@
   },
   "dependencies": {
     "immutable": "^3.7.6",
-    "rxjs-es": "5.0.0-beta.8",
-    "symbol-observable": "~0.2.4"
+    "rxjs-es": "5.0.0-beta.10"
   }
 }
