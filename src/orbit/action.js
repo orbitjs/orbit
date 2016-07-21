@@ -37,8 +37,8 @@ export default class Action {
     this.processing = false;
 
     this.complete = new Orbit.Promise((resolve, reject) => {
-      this.didProcess = resolve;
-      this.didNotProcess = (e) => {
+      this._success = resolve;
+      this._fail = (e) => {
         this.processing = false;
         reject(e);
       };
@@ -53,12 +53,12 @@ export default class Action {
         let ret = this._process();
 
         if (ret && ret.then) {
-          ret.then(this.didProcess, this.didNotProcess);
+          ret.then(this._success, this._fail);
         } else {
-          this.didProcess(ret);
+          this._success(ret);
         }
       } catch (e) {
-        this.didNotProcess(e);
+        this._fail(e);
       }
     }
 
