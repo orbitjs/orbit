@@ -19,8 +19,9 @@ test('it is set to `autoProcess` by default', function() {
 });
 
 test('will auto-process pushed actions sequentially by default', function(assert) {
-  assert.expect(5);
+  assert.expect(13);
   const done = assert.async();
+  let order = 0;
 
   const queue = new ActionQueue();
 
@@ -28,25 +29,39 @@ test('will auto-process pushed actions sequentially by default', function(assert
   let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
   let transformCount = 0;
 
+  queue.on('beforeAction', function(action) {
+    if (transformCount === 0) {
+      assert.equal(order++, 0, 'op1 - order of beforeAction event');
+      assert.deepEqual(action.data, op1, 'op1 - beforeAction - data correct');
+    } else if (transformCount === 1) {
+      assert.equal(order++, 3, 'op2 - order of beforeAction event');
+      assert.deepEqual(action.data, op2, 'op2 - beforeAction - data correct');
+    }
+  });
+
   queue.on('action', function(action) {
     if (transformCount === 1) {
+      assert.equal(order++, 2, 'op1 - order of action event');
       assert.deepEqual(action.data, op1, 'op1 processed');
     } else if (transformCount === 2) {
+      assert.equal(order++, 5, 'op2 - order of action event');
       assert.deepEqual(action.data, op2, 'op2 processed');
     }
   });
 
   queue.on('complete', function() {
-    assert.ok(true, 'queue completed');
+    assert.equal(order++, 6, 'order of complete event');
     done();
   });
 
   const _transform = function(op) {
     transformCount++;
     if (transformCount === 1) {
-      assert.deepEqual(op, op1, 'op1 passed as argument');
+      assert.equal(order++, 1, '_transform - op1 - order');
+      assert.deepEqual(op, op1, '_transform - op1 passed as argument');
     } else if (transformCount === 2) {
-      assert.deepEqual(op, op2, 'op2 passed as argument');
+      assert.equal(order++, 4, '_transform - op2 - order');
+      assert.deepEqual(op, op2, '_transform - op2 passed as argument');
     }
   };
 

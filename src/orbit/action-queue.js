@@ -104,6 +104,8 @@ export default class ActionQueue {
     } else {
       let action = this.currentAction = this.actions[0];
 
+      this.emit('beforeAction', action);
+
       action.process()
         .then(() => {
           this.emit('action', action);
