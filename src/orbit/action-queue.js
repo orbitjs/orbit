@@ -82,10 +82,9 @@ export default class ActionQueue {
         processing = Orbit.Promise.resolve();
       } else {
         processing = this.processing = new Orbit.Promise((resolve, reject) => {
-          this.one('didProcess', () => resolve());
+          this.one('complete', () => resolve());
 
-          this.one('didNotProcessAction', (action, e) => {
-            this.emit('didNotProcess', { action: action }, e);
+          this.one('fail', (action, e) => {
             reject(e);
           });
         });
@@ -101,20 +100,20 @@ export default class ActionQueue {
     if (this.content.length === 0) {
       this.current = null;
       this.processing = null;
-      this.emit('didProcess');
+      this.emit('complete');
     } else {
       let action = this.current = this.content[0];
 
       action.process()
         .then(() => {
-          this.emit('didProcessAction', action);
+          this.emit('action', action);
           this.content.shift();
           this._settleEach();
         })
         .catch((e) => {
           this.current = null;
           this.processing = null;
-          this.emit('didNotProcessAction', action, e);
+          this.emit('fail', action, e);
         });
     }
   }

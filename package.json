@@ -44,10 +44,10 @@
     "git-repo-version": "^0.1.1",
     "jquery": "^3.0.0",
     "js-string-escape": "^1.0.1",
-    "loader.js": "^4.0.1",
+    "loader.js": "4.0.1",
     "qunitjs": "^1.23.1",
     "rsvp": "^3.2.1",
-    "testem": "^1.0.0-rc.1",
+    "testem": "1.6.0",
     "yuidocjs": "^0.8.1"
   },
   "dependencies": {
