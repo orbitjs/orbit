@@ -1,13 +1,13 @@
 import Schema from 'orbit-common/schema';
-import { uuid } from 'orbit/lib/uuid';
 
 var planetsSchema = new Schema({
+  modelDefaults: {
+    keys: {
+      remoteId: { defaultValue: null }
+    }
+  },
   models: {
     planet: {
-      keys: {
-        id: { primaryKey: true, defaultValue: uuid },
-        remoteId: { defaultValue: null }
-      },
       attributes: {
         name: { type: 'string' },
         classification: { type: 'string' }

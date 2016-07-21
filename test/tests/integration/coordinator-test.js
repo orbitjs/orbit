@@ -98,12 +98,12 @@ module('Integration - Coordinator', function(hooks) {
   test('#update - addRecord', function(assert) {
     assert.expect(4);
 
-    let record = { type: 'planet', attributes: { name: 'Pluto' } };
+    let record = { type: 'planet', attributes: { name: 'Pluto', classification: 'ice' } };
 
     fetchStub
       .withArgs('/planets')
       .returns(jsonapiResponse(201, {
-        data: { type: 'planets', id: '12345', attributes: { name: 'Pluto', classification: 'gas giant' } }
+        data: { type: 'planets', id: '12345', attributes: { name: 'Pluto', classification: 'ice' } }
       }));
 
     return store.update(addRecord(record))
@@ -363,7 +363,7 @@ module('Integration - Coordinator', function(hooks) {
     assert.expect(3);
 
     const data = [
-      { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
+      { type: 'planets', id: '12345', attributes: { name: 'Jupiter', classification: 'gas giant' } }
     ];
 
     fetchStub
