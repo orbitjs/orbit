@@ -54,8 +54,8 @@ export default class ActionQueue {
     this.autoProcess = options.autoProcess !== undefined ? options.autoProcess : true;
 
     this.processing = false;
-    this.current = null;
-    this.content = [];
+    this.currentAction = null;
+    this.actions = [];
   }
 
   push(action) {
@@ -67,7 +67,7 @@ export default class ActionQueue {
       actionObject = new Action(action);
     }
 
-    this.content.push(actionObject);
+    this.actions.push(actionObject);
 
     if (this.autoProcess) { this.process(); }
 
@@ -78,7 +78,7 @@ export default class ActionQueue {
     let processing = this.processing;
 
     if (!processing) {
-      if (this.content.length === 0) {
+      if (this.actions.length === 0) {
         processing = Orbit.Promise.resolve();
       } else {
         processing = this.processing = new Orbit.Promise((resolve, reject) => {
@@ -97,21 +97,23 @@ export default class ActionQueue {
   }
 
   _settleEach() {
-    if (this.content.length === 0) {
-      this.current = null;
+    if (this.actions.length === 0) {
+      this.currentAction = null;
       this.processing = null;
       this.emit('complete');
     } else {
-      let action = this.current = this.content[0];
+      let action = this.currentAction = this.actions[0];
+
+      this.emit('beforeAction', action);
 
       action.process()
         .then(() => {
           this.emit('action', action);
-          this.content.shift();
+          this.actions.shift();
           this._settleEach();
         })
         .catch((e) => {
-          this.current = null;
+          this.currentAction = null;
           this.processing = null;
           this.emit('fail', action, e);
         });
