@@ -7,9 +7,31 @@ export default {
   /**
    Mixes the `Pushable` interface into a source.
 
-   The `Pushable` interface adds a single method to a Source: `push`.
-   `push` accepts a transform as an argument and returns an array of
-   transforms that are applied as a result.
+   The `Pushable` interface adds a single method to a Source: `push`. This
+   method accepts a `Transform` instance as an argument and returns a promise
+   that resolves to an array of `Transform` instances that are applied as a
+   result. In other words, `push` captures the direct and side effects of
+   applying a `Transform` to a source.
+
+   This interface is part of the "request flow" in Orbit. Requests trigger
+   events before and after processing of each request. Observers can delay the
+   resolution of a request by returning a promise in an event listener.
+
+   The `Pushable` interface introduces the following events:
+
+   * `beforePush` - emitted prior to the processing of `push`, this event
+     includes the requested `Transform` as an argument.
+
+   * `push` - emitted after a `push` has successfully been applied, this
+     event's arguments include both the requested `Transform` and an array of
+     the actual applied `Transform` instances.
+
+   * `pushFail` - emitted when an error has occurred pushing a transform, this
+     event's arguments include both the requested `Transform` and the error.
+
+   A `Pushable` source must implement a private method `_push`, which performs
+   the processing required for `push` and returns a promise that resolves to an
+   array of `Transform` instances.
 
    @method extend
    @param {Object} source - Source to extend

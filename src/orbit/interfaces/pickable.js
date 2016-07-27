@@ -7,8 +7,15 @@ export default {
   /**
    Mixes the `Pickable` interface into a source.
 
-   The `Pickable` interface adds the `pick` method to a source.
-   `pick` accepts a transform as an argument and applies it to the source.
+   The `Pickable` interface adds the `pick` method to a source. This method
+   accepts a `Transform` as an argument and applies it to the source.
+
+   This interface is part of the "sync flow" in Orbit. This flow is used to
+   synchronize the contents of sources.
+
+   Other sources can participate in the resolution of a `pick` by observing
+   the `transform` event, which is emitted whenever a new `Transform` is
+   committed to a source.
 
    @method extend
    @param {Object} source - Source to extend
