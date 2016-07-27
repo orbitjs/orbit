@@ -30,14 +30,6 @@ export class TransformNotAllowed extends Exception {
   }
 }
 
-export class FetchNotAllowed extends Exception {
-  constructor(message, query) {
-    super(message);
-    this.query = query;
-    this.name = 'OC.FetchNotAllowed';
-  }
-}
-
 export class QueryNotAllowed extends Exception {
   constructor(message, query) {
     super(message);

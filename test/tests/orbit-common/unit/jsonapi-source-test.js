@@ -79,9 +79,9 @@ test('its prototype chain is correct', function(assert) {
   assert.ok(source instanceof Source, 'instanceof Source');
 });
 
-test('implements Fetchable', function(assert) {
-  assert.ok(source._fetchable, 'implements Fetchable');
-  assert.ok(typeof source.fetch === 'function', 'has `fetch` method');
+test('implements Pullable', function(assert) {
+  assert.ok(source._pullable, 'implements Pullable');
+  assert.ok(typeof source.pull === 'function', 'has `pull` method');
 });
 
 test('implements Updatable', function(assert) {
@@ -528,7 +528,7 @@ test('#transform - source can limit the number of allowed requests per transform
     });
 });
 
-test('#fetch - record', function(assert) {
+test('#pull - record', function(assert) {
   assert.expect(4);
 
   const data = { type: 'planets', id: '12345', attributes: { name: 'Jupiter', classification: 'gas giant' } };
@@ -545,7 +545,7 @@ test('#fetch - record', function(assert) {
                 JSON.stringify({ data }));
   });
 
-  return source.fetch(qb.record({ type: 'planet', id: planet.id }))
+  return source.pull(qb.record({ type: 'planet', id: planet.id }))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
@@ -553,7 +553,7 @@ test('#fetch - record', function(assert) {
     });
 });
 
-test('#fetch - records', function(assert) {
+test('#pull - records', function(assert) {
   assert.expect(4);
 
   const data = [
@@ -569,7 +569,7 @@ test('#fetch - records', function(assert) {
                 JSON.stringify({ data }));
   });
 
-  return source.fetch(qb.records('planet'))
+  return source.pull(qb.records('planet'))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
@@ -577,7 +577,7 @@ test('#fetch - records', function(assert) {
     });
 });
 
-test('#fetch - records with filter', function(assert) {
+test('#pull - records with filter', function(assert) {
   assert.expect(4);
 
   const data = [
@@ -591,7 +591,7 @@ test('#fetch - records with filter', function(assert) {
                 JSON.stringify({ data }));
   });
 
-  return source.fetch(qb.records('planet')
+  return source.pull(qb.records('planet')
                         .filterAttributes({ name: 'Jupiter' }))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
@@ -600,7 +600,7 @@ test('#fetch - records with filter', function(assert) {
     });
 });
 
-test('#fetch - relatedRecords', function(assert) {
+test('#pull - relatedRecords', function(assert) {
   let planetRecord = source.serializer.deserialize({
     data: {
       type: 'planets',
@@ -623,7 +623,7 @@ test('#fetch - relatedRecords', function(assert) {
   });
 
   let query = qb.relatedRecords(planetRecord, 'moons');
-  return source.fetch(query).then((transforms) => {
+  return source.pull(query).then((transforms) => {
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
     assert.deepEqual(transforms[0].operations.map(o => o.record.attributes.name), ['Io']);

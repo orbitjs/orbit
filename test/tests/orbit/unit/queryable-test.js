@@ -36,7 +36,7 @@ test('it should resolve as a failure when _query fails', function(assert) {
     return failedOperation();
   };
 
-  return source.query({ fetch: '' })
+  return source.query({ query: '' })
     .catch((error) => {
       assert.ok(true, 'query promise resolved as a failure');
       assert.equal(error, ':(', 'failure');
@@ -50,17 +50,17 @@ test('it should trigger `query` event after a successful action in which `_query
 
   source._query = function(query) {
     assert.equal(++order, 1, 'action performed after willQuery');
-    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query object matches');
+    assert.deepEqual(query.expression, { query: ['abc', 'def'] }, 'query object matches');
     return successfulOperation();
   };
 
   source.on('query', (query, result) => {
     assert.equal(++order, 2, 'query triggered after action performed successfully');
-    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query matches');
+    assert.deepEqual(query.expression, { query: ['abc', 'def'] }, 'query matches');
     assert.equal(result, ':)', 'result matches');
   });
 
-  return source.query({ fetch: ['abc', 'def'] })
+  return source.query({ query: ['abc', 'def'] })
     .then((result) => {
       assert.equal(++order, 3, 'promise resolved last');
       assert.equal(result, ':)', 'success!');
@@ -74,17 +74,17 @@ test('it should trigger `query` event after a successful action in which `_query
 
   source._query = function(query) {
     assert.equal(++order, 1, 'action performed after willQuery');
-    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query object matches');
+    assert.deepEqual(query.expression, { query: ['abc', 'def'] }, 'query object matches');
     return;
   };
 
   source.on('query', (query, result) => {
     equal(++order, 2, 'query triggered after action performed successfully');
-    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query matches');
+    assert.deepEqual(query.expression, { query: ['abc', 'def'] }, 'query matches');
     assert.equal(result, undefined, 'result matches');
   });
 
-  return source.query({ fetch: ['abc', 'def'] })
+  return source.query({ query: ['abc', 'def'] })
     .then((result) => {
       assert.equal(++order, 3, 'promise resolved last');
       assert.equal(result, undefined, 'undefined result');
@@ -98,7 +98,7 @@ test('`query` event should receive results as the last argument, even if they ar
 
   source._query = function(query) {
     assert.equal(++order, 1, 'action performed after willQuery');
-    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query object matches');
+    assert.deepEqual(query.expression, { query: ['abc', 'def'] }, 'query object matches');
     return new Promise(function(resolve) {
       resolve(['a', 'b', 'c']);
     });
@@ -106,11 +106,11 @@ test('`query` event should receive results as the last argument, even if they ar
 
   source.on('query', (query, result) => {
     equal(++order, 2, 'query triggered after action performed successfully');
-    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query matches');
+    assert.deepEqual(query.expression, { query: ['abc', 'def'] }, 'query matches');
     assert.deepEqual(result, ['a', 'b', 'c'], 'result matches');
   });
 
-  return source.query({ fetch: ['abc', 'def'] })
+  return source.query({ query: ['abc', 'def'] })
     .then((result) => {
       assert.equal(++order, 3, 'promise resolved last');
       assert.deepEqual(result, ['a', 'b', 'c'], 'success!');
@@ -124,7 +124,7 @@ test('it should trigger `queryFail` event after an unsuccessful query', function
 
   source._query = function(query) {
     assert.equal(++order, 1, 'action performed after willQuery');
-    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query object matches');
+    assert.deepEqual(query.expression, { query: ['abc', 'def'] }, 'query object matches');
     return failedOperation();
   };
 
@@ -134,11 +134,11 @@ test('it should trigger `queryFail` event after an unsuccessful query', function
 
   source.on('queryFail', (query, error) => {
     assert.equal(++order, 2, 'queryFail triggered after an unsuccessful query');
-    assert.deepEqual(query.expression, { fetch: ['abc', 'def'] }, 'query matches');
+    assert.deepEqual(query.expression, { query: ['abc', 'def'] }, 'query matches');
     assert.equal(error, ':(', 'error matches');
   });
 
-  return source.query({ fetch: ['abc', 'def'] })
+  return source.query({ query: ['abc', 'def'] })
     .catch((error) => {
       assert.equal(++order, 3, 'promise resolved last');
       assert.equal(error, ':(', 'failure');
@@ -174,7 +174,7 @@ test('it should resolve all promises returned from `beforeQuery` before calling 
     assert.equal(++order, 5, 'query triggered after action performed successfully');
   });
 
-  return source.query({ fetch: '' })
+  return source.query({ query: '' })
     .then((result) => {
       assert.equal(++order, 6, 'promise resolved last');
       assert.equal(result, ':)', 'success!');
@@ -208,7 +208,7 @@ test('it should resolve all promises returned from `beforeQuery` and fail if any
     assert.equal(++order, 3, 'queryFail triggered after action failed');
   });
 
-  return source.query({ fetch: '' })
+  return source.query({ query: '' })
     .catch(error => {
       assert.equal(++order, 4, 'promise failed because no actions succeeded');
       assert.equal(error, ':(', 'failure');

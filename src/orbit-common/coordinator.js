@@ -38,9 +38,9 @@ export default class Coordinator {
     let needsRequestQueue = false;
     let needsTransformQueue = false;
 
-    if (source._fetchable && options.fetchable !== false) {
-      assert(`A 'fetchable' source has already been defined for node '${node.name}'`, !node.fetchableSource);
-      node.fetchableSource = source;
+    if (source._pullable && options.pullable !== false) {
+      assert(`A 'pullable' source has already been defined for node '${node.name}'`, !node.pullableSource);
+      node.pullableSource = source;
       needsRequestQueue = true;
     }
 
@@ -85,9 +85,9 @@ export default class Coordinator {
       case 'query':
         return node.queryableSource;
 
-      case 'beforeFetch':
-      case 'fetch':
-        return node.fetchableSource;
+      case 'beforePull':
+      case 'pull':
+        return node.pullableSource;
     }
   }
 
@@ -99,8 +99,8 @@ export default class Coordinator {
       case 'query':
         return node.queryableSource;
 
-      case 'fetch':
-        return node.fetchableSource;
+      case 'pull':
+        return node.pullableSource;
     }
   }
 

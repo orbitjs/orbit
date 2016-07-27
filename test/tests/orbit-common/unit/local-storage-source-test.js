@@ -48,9 +48,8 @@ test('its prototype chain is correct', function(assert) {
   assert.ok(source instanceof Source, 'instanceof Source');
 });
 
-test('implements Fetchable', function(assert) {
-  assert.ok(source._fetchable, 'implements Fetchable');
-  assert.ok(typeof source.fetch === 'function', 'has `fetch` method');
+test('implements pull', function(assert) {
+  assert.ok(typeof source.pull === 'function', 'has `pull` method');
 });
 
 test('implements Updatable', function(assert) {
@@ -399,7 +398,7 @@ test('#reset - clears records for source', function(assert) {
     .then(() => verifyLocalStorageIsEmpty(source));
 });
 
-test('#fetch - all records', function(assert) {
+test('#pull - all records', function(assert) {
   assert.expect(2);
 
   let earth = schema.normalize({
@@ -435,7 +434,7 @@ test('#fetch - all records', function(assert) {
     addRecord(jupiter),
     addRecord(io)
   ])
-    .then(() => source.fetch(qb.records()))
+    .then(() => source.pull(qb.records()))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(
@@ -446,7 +445,7 @@ test('#fetch - all records', function(assert) {
     });
 });
 
-test('#fetch - records of one type', function(assert) {
+test('#pull - records of one type', function(assert) {
   assert.expect(2);
 
   let earth = schema.normalize({
@@ -482,7 +481,7 @@ test('#fetch - records of one type', function(assert) {
     addRecord(jupiter),
     addRecord(io)
   ])
-    .then(() => source.fetch(qb.records('planet')))
+    .then(() => source.pull(qb.records('planet')))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(
@@ -493,7 +492,7 @@ test('#fetch - records of one type', function(assert) {
     });
 });
 
-test('#fetch - a specific record', function(assert) {
+test('#pull - a specific record', function(assert) {
   assert.expect(2);
 
   let earth = schema.normalize({
@@ -529,7 +528,7 @@ test('#fetch - a specific record', function(assert) {
     addRecord(jupiter),
     addRecord(io)
   ])
-    .then(() => source.fetch(qb.record(jupiter)))
+    .then(() => source.pull(qb.record(jupiter)))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(

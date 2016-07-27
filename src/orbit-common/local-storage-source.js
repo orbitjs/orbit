@@ -1,11 +1,11 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from 'orbit/main';
 import Source from './source';
-import Fetchable from 'orbit/fetchable';
+import Pullable from 'orbit/interfaces/pullable';
 import Updatable from 'orbit/updatable';
 import { assert } from 'orbit/lib/assert';
 import TransformOperators from './local-storage/transform-operators';
-import FetchOperators from './local-storage/fetch-operators';
+import { QueryOperators } from './local-storage/queries';
 
 var supportsLocalStorage = function() {
   try {
@@ -84,15 +84,15 @@ export default class LocalStorageSource extends Source {
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  // Fetchable interface implementation
+  // Pull implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _fetch(query) {
-    const transforms = FetchOperators[query.expression.op](this, query.expression);
+  _pull(query) {
+    const transforms = QueryOperators[query.expression.op](this, query.expression);
 
     return Orbit.Promise.resolve(transforms);
   }
 }
 
-Fetchable.extend(LocalStorageSource.prototype);
+Pullable.extend(LocalStorageSource.prototype);
 Updatable.extend(LocalStorageSource.prototype); // implicitly extends Transformable

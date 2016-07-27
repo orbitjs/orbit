@@ -23,11 +23,7 @@ module('Orbit - Source', function(hooks) {
     });
   });
 
-  test('it defines `transformed`', function(assert) {
-    assert.equal(typeof source.transformed, 'function', 'transformed exists');
-  });
-
-  test('#transformed should trigger `transform` event BEFORE resolving', function(assert) {
+  test('#_transformed should trigger `transform` event BEFORE resolving', function(assert) {
     assert.expect(3);
 
     let order = 0;
@@ -38,9 +34,9 @@ module('Orbit - Source', function(hooks) {
       assert.strictEqual(transform, appliedTransform, 'applied transform matches');
     });
 
-    return source.transformed([appliedTransform])
+    return source._transformed([appliedTransform])
       .then(() => {
-        assert.equal(++order, 2, 'transformed promise resolved last');
+        assert.equal(++order, 2, '_transformed promise resolved last');
       });
   });
 
@@ -52,12 +48,12 @@ module('Orbit - Source', function(hooks) {
     assert.ok(!source.transformLog.contains(appliedTransform.id));
 
     return source
-      .transformed([appliedTransform])
+      ._transformed([appliedTransform])
       .then(() => assert.ok(source.transformLog.contains(appliedTransform.id)));
   });
 
   test('it can truncate its transform history', function(assert) {
-    return source.transformed([transformA, transformB, transformC])
+    return source._transformed([transformA, transformB, transformC])
       .then(() => {
         assert.deepEqual(
           source.transformLog.entries(),
@@ -74,7 +70,7 @@ module('Orbit - Source', function(hooks) {
   });
 
   test('it can clear its transform history', function(assert) {
-    return source.transformed([transformA, transformB, transformC])
+    return source._transformed([transformA, transformB, transformC])
       .then(() => {
         assert.deepEqual(
           source.transformLog.entries(),

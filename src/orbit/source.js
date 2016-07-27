@@ -18,33 +18,6 @@ export default class Source {
   }
 
   /**
-   Notifies listeners that this source has been transformed by emitting the
-   `transform` event.
-
-   Resolves when any promises returned to event listeners are resolved.
-
-   Also, adds an entry to the Source's `transformLog` for each transform.
-
-   @method transformed
-   @param {Array} transforms - Transforms that have occurred.
-   @returns {Promise} Promise that resolves to transforms.
-  */
-  transformed(transforms) {
-    return transforms
-      .reduce((chain, transform) => {
-        return chain.then(() => {
-          if (this.transformLog.contains(transform.id)) {
-            return Orbit.Promise.resolve();
-          }
-
-          this.transformLog.append(transform.id);
-          return this.settle('transform', transform);
-        });
-      }, Orbit.Promise.resolve())
-      .then(() => transforms);
-  }
-
-  /**
    Truncates the source's logged and tracked transforms to remove everything
    before a particular `transformId`.
 
@@ -64,6 +37,38 @@ export default class Source {
   */
   clearHistory() {
     this.transformLog.clear();
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Private methods
+  /////////////////////////////////////////////////////////////////////////////
+
+  /**
+   Notifies listeners that this source has been transformed by emitting the
+   `transform` event.
+
+   Resolves when any promises returned to event listeners are resolved.
+
+   Also, adds an entry to the Source's `transformLog` for each transform.
+
+   @private
+   @method _transformed
+   @param {Array} transforms - Transforms that have occurred.
+   @returns {Promise} Promise that resolves to transforms.
+  */
+  _transformed(transforms) {
+    return transforms
+      .reduce((chain, transform) => {
+        return chain.then(() => {
+          if (this.transformLog.contains(transform.id)) {
+            return Orbit.Promise.resolve();
+          }
+
+          this.transformLog.append(transform.id);
+          return this.settle('transform', transform);
+        });
+      }, Orbit.Promise.resolve())
+      .then(() => transforms);
   }
 }
 

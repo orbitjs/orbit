@@ -31,7 +31,7 @@ export default {
       }
 
       return this._transform(transform)
-        .then(result => this.transformed(result));
+        .then(result => this._transformed(result));
     }
   }
 };
