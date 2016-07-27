@@ -48,13 +48,14 @@ test('its prototype chain is correct', function(assert) {
   assert.ok(source instanceof Source, 'instanceof Source');
 });
 
-test('implements pull', function(assert) {
-  assert.ok(typeof source.pull === 'function', 'has `pull` method');
+test('implements Pushable', function(assert) {
+  assert.ok(source._pushable, 'implements Pushable');
+  assert.ok(typeof source.push === 'function', 'has `push` method');
 });
 
-test('implements Updatable', function(assert) {
-  assert.ok(source._updatable, 'implements Updatable');
-  assert.ok(typeof source.update === 'function', 'has `update` method');
+test('implements Pullable', function(assert) {
+  assert.ok(source._pullable, 'implements Pullable');
+  assert.ok(typeof source.pull === 'function', 'has `pull` method');
 });
 
 test('implements Transformable', function(assert) {

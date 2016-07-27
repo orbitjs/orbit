@@ -2,7 +2,8 @@
 import Orbit from 'orbit/main';
 import Source from './source';
 import Pullable from 'orbit/interfaces/pullable';
-import Updatable from 'orbit/updatable';
+import Pushable from 'orbit/interfaces/pushable';
+import Transformable from 'orbit/transformable';
 import { assert } from 'orbit/lib/assert';
 import TransformOperators from './local-storage/transform-operators';
 import { QueryOperators } from './local-storage/queries';
@@ -84,7 +85,19 @@ export default class LocalStorageSource extends Source {
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  // Pull implementation
+  // Pushable interface implementation
+  /////////////////////////////////////////////////////////////////////////////
+
+  _push(transform) {
+    transform.operations.forEach(operation => {
+      TransformOperators[operation.op](this, operation);
+    });
+
+    return Orbit.Promise.resolve([transform]);
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Pullable implementation
   /////////////////////////////////////////////////////////////////////////////
 
   _pull(query) {
@@ -95,4 +108,5 @@ export default class LocalStorageSource extends Source {
 }
 
 Pullable.extend(LocalStorageSource.prototype);
-Updatable.extend(LocalStorageSource.prototype); // implicitly extends Transformable
+Pushable.extend(LocalStorageSource.prototype);
+Transformable.extend(LocalStorageSource.prototype);

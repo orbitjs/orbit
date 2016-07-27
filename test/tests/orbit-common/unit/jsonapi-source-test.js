@@ -84,14 +84,9 @@ test('implements Pullable', function(assert) {
   assert.ok(typeof source.pull === 'function', 'has `pull` method');
 });
 
-test('implements Updatable', function(assert) {
-  assert.ok(source._updatable, 'implements Updatable');
-  assert.ok(typeof source.update === 'function', 'has `update` method');
-});
-
-test('implements Transformable', function(assert) {
-  assert.ok(source._transformable, 'implements Transformable');
-  assert.ok(typeof source.transform === 'function', 'has `transform` method');
+test('implements Pushable', function(assert) {
+  assert.ok(source._pushable, 'implements Pushable');
+  assert.ok(typeof source.push === 'function', 'has `push` method');
 });
 
 test('source saves options', function(assert) {
@@ -135,7 +130,7 @@ test('#ajaxHeaders - include JSONAPI Accept header by default', function(assert)
   assert.deepEqual(source.ajaxHeaders(), { Accept: 'application/vnd.api+json' }, 'Default headers should include JSONAPI Accept header');
 });
 
-test('#transform - can add records', function(assert) {
+test('#push - can add records', function(assert) {
   assert.expect(4);
 
   let transformCount = 0;
@@ -211,13 +206,13 @@ test('#transform - can add records', function(assert) {
     }
   });
 
-  return source.transform(addRecord(planet))
+  return source.push(addRecord(planet))
     .then(function() {
       assert.ok(true, 'transform resolves successfully');
     });
 });
 
-test('#transform - can transform records', function(assert) {
+test('#push - can transform records', function(assert) {
   expect(3);
 
   let transformCount = 0;
@@ -287,13 +282,13 @@ test('#transform - can transform records', function(assert) {
     }
   });
 
-  return source.transform(replaceRecord(planet))
+  return source.push(replaceRecord(planet))
     .then(() => {
       assert.ok(true, 'transform resolves successfully');
     });
 });
 
-test('#transform - can replace a single attribute', function(assert) {
+test('#push - can replace a single attribute', function(assert) {
   assert.expect(2);
 
   let planet = source.serializer.deserializeRecord({
@@ -322,13 +317,13 @@ test('#transform - can replace a single attribute', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.transform(replaceAttribute(planet, 'classification', 'terrestrial'))
+  return source.push(replaceAttribute(planet, 'classification', 'terrestrial'))
     .then(() => {
       assert.ok(true, 'record patched');
     });
 });
 
-test('#transform - can delete records', function(assert) {
+test('#push - can delete records', function(assert) {
   assert.expect(2);
 
   let planet = source.serializer.deserializeRecord({
@@ -343,13 +338,13 @@ test('#transform - can delete records', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.transform(removeRecord(planet))
+  return source.push(removeRecord(planet))
     .then(() => {
       assert.ok(true, 'record deleted');
     });
 });
 
-test('#transform - can add a hasMany relationship with POST', function(assert) {
+test('#push - can add a hasMany relationship with POST', function(assert) {
   assert.expect(2);
 
   let planet = source.serializer.deserializeRecord({
@@ -370,13 +365,13 @@ test('#transform - can add a hasMany relationship with POST', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.transform(addToHasMany(planet, 'moons', moon))
+  return source.push(addToHasMany(planet, 'moons', moon))
     .then(() => {
       assert.ok(true, 'records linked');
     });
 });
 
-test('#transform - can remove a relationship with DELETE', function(assert) {
+test('#push - can remove a relationship with DELETE', function(assert) {
   expect(2);
 
   let planet = source.serializer.deserializeRecord({
@@ -397,13 +392,13 @@ test('#transform - can remove a relationship with DELETE', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.transform(removeFromHasMany(planet, 'moons', moon))
+  return source.push(removeFromHasMany(planet, 'moons', moon))
     .then(function() {
       assert.ok(true, 'records unlinked');
     });
 });
 
-test('#transform - can update a hasOne relationship with PATCH', function(assert) {
+test('#push - can update a hasOne relationship with PATCH', function(assert) {
   assert.expect(2);
 
   let planet = source.serializer.deserializeRecord({
@@ -425,13 +420,13 @@ test('#transform - can update a hasOne relationship with PATCH', function(assert
                 JSON.stringify({}));
   });
 
-  return source.transform(replaceHasOne(moon, 'planet', planet))
+  return source.push(replaceHasOne(moon, 'planet', planet))
     .then(function() {
       assert.ok(true, 'relationship replaced');
     });
 });
 
-test('#transform - can clear a hasOne relationship with PATCH', function(assert) {
+test('#push - can clear a hasOne relationship with PATCH', function(assert) {
   assert.expect(2);
 
   let moon = source.serializer.deserializeRecord({
@@ -448,13 +443,13 @@ test('#transform - can clear a hasOne relationship with PATCH', function(assert)
                 JSON.stringify({}));
   });
 
-  return source.transform(replaceHasOne(moon, 'planet', null))
+  return source.push(replaceHasOne(moon, 'planet', null))
     .then(function() {
       assert.ok(true, 'relationship replaced');
     });
 });
 
-test('#transform - can replace a hasMany relationship with PATCH', function(assert) {
+test('#push - can replace a hasMany relationship with PATCH', function(assert) {
   assert.expect(2);
 
   let planet = source.serializer.deserializeRecord({
@@ -476,13 +471,13 @@ test('#transform - can replace a hasMany relationship with PATCH', function(asse
                 JSON.stringify({}));
   });
 
-  return source.transform(replaceHasMany(planet, 'moons', [moon]))
+  return source.push(replaceHasMany(planet, 'moons', [moon]))
     .then(function() {
       assert.ok(true, 'relationship replaced');
     });
 });
 
-test('#transform - a single transform can result in multiple requests', function(assert) {
+test('#push - a single transform can result in multiple requests', function(assert) {
   assert.expect(3);
 
   let planet1 = source.serializer.initializeRecord({ type: 'planet', keys: { remoteId: '1' } });
@@ -502,7 +497,7 @@ test('#transform - a single transform can result in multiple requests', function
                 JSON.stringify({}));
   });
 
-  return source.transform([
+  return source.push([
     removeRecord(planet1),
     removeRecord(planet2)
   ])
@@ -511,7 +506,7 @@ test('#transform - a single transform can result in multiple requests', function
     });
 });
 
-test('#transform - source can limit the number of allowed requests per transform with `maxRequestsPerTransform`', function(assert) {
+test('#push - source can limit the number of allowed requests per transform with `maxRequestsPerTransform`', function(assert) {
   assert.expect(1);
 
   let planet1 = source.serializer.initializeRecord({ type: 'planet', keys: { remoteId: '1' } });
@@ -519,7 +514,7 @@ test('#transform - source can limit the number of allowed requests per transform
 
   source.maxRequestsPerTransform = 1;
 
-  return source.transform([
+  return source.push([
     removeRecord(planet1),
     removeRecord(planet2)
   ])
@@ -675,7 +670,7 @@ module('OC - JSONAPISource - with no secondary keys', {
   }
 });
 
-test('#transform - can add records', function(assert) {
+test('#push - can add records', function(assert) {
   assert.expect(3);
 
   let transformCount = 0;
@@ -735,7 +730,7 @@ test('#transform - can add records', function(assert) {
     }
   });
 
-  return source.transform(addRecord(planet))
+  return source.push(addRecord(planet))
     .then(function() {
       assert.ok(true, 'transform resolves successfully');
     });

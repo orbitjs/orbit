@@ -2,7 +2,7 @@
 import Orbit from 'orbit/main';
 import { assert } from 'orbit/lib/assert';
 import Pullable from 'orbit/interfaces/pullable';
-import Updatable from 'orbit/updatable';
+import Pushable from 'orbit/interfaces/pushable';
 import Source from './source';
 import Serializer from './serializer';
 import JSONAPISerializer from './jsonapi/serializer';
@@ -53,10 +53,10 @@ export default class JSONAPISource extends Source {
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  // Transformable interface implementation
+  // Pushable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _transform(transform) {
+  _push(transform) {
     const requests = getTransformRequests(transform);
 
     if (this.maxRequestsPerTransform && requests.length > this.maxRequestsPerTransform) {
@@ -76,7 +76,7 @@ export default class JSONAPISource extends Source {
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  // Pull interface implementation
+  // Pullable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
   _pull(query) {
@@ -209,4 +209,4 @@ export default class JSONAPISource extends Source {
 }
 
 Pullable.extend(JSONAPISource.prototype);
-Updatable.extend(JSONAPISource.prototype); // implicitly extends Transformable
+Pushable.extend(JSONAPISource.prototype);

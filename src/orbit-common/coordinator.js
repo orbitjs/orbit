@@ -38,6 +38,12 @@ export default class Coordinator {
     let needsRequestQueue = false;
     let needsTransformQueue = false;
 
+    if (source._pushable && options.pushable !== false) {
+      assert(`A 'pushable' source has already been defined for node '${node.name}'`, !node.pushableSource);
+      node.pushableSource = source;
+      needsRequestQueue = true;
+    }
+
     if (source._pullable && options.pullable !== false) {
       assert(`A 'pullable' source has already been defined for node '${node.name}'`, !node.pullableSource);
       node.pullableSource = source;
@@ -85,6 +91,10 @@ export default class Coordinator {
       case 'query':
         return node.queryableSource;
 
+      case 'beforePush':
+      case 'push':
+        return node.pushableSource;
+
       case 'beforePull':
       case 'pull':
         return node.pullableSource;
@@ -93,11 +103,8 @@ export default class Coordinator {
 
   sourceForRequest(node, request) {
     switch (request) {
-      case 'update':
-        return node.updatableSource;
-
-      case 'query':
-        return node.queryableSource;
+      case 'push':
+        return node.pushableSource;
 
       case 'pull':
         return node.pullableSource;
