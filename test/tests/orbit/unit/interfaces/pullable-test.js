@@ -1,6 +1,7 @@
 import Source from 'orbit/source';
 import Pullable from 'orbit/interfaces/pullable';
 import Transform from 'orbit/transform';
+import Query from 'orbit/query';
 import { Promise } from 'rsvp';
 import { successfulOperation, failedOperation } from 'tests/test-helper';
 
@@ -37,7 +38,7 @@ test('it should resolve as a failure when _pull fails', function(assert) {
     return failedOperation();
   };
 
-  return source.pull({ query: '' })
+  return source.pull(Query.from({ query: ['abc', 'def'] }))
     .catch((error) => {
       assert.ok(true, 'pull promise resolved as a failure');
       assert.equal(error, ':(', 'failure');
@@ -72,7 +73,7 @@ test('it should trigger `pull` event after a successful action in which `_pull` 
     assert.strictEqual(result, resultingTransforms, 'result matches');
   });
 
-  return source.pull({ query: ['abc', 'def'] })
+  return source.pull(Query.from({ query: ['abc', 'def'] }))
     .then((result) => {
       assert.equal(++order, 3, 'promise resolved last');
       assert.strictEqual(result, resultingTransforms, 'success!');
@@ -122,7 +123,7 @@ test('it should resolve all promises returned from `beforePull` before calling `
     assert.strictEqual(result, resultingTransforms, 'result matches');
   });
 
-  return source.pull({ query: ['abc', 'def'] })
+  return source.pull(Query.from({ query: ['abc', 'def'] }))
     .then((result) => {
       assert.equal(++order, 6, 'promise resolved last');
       assert.strictEqual(result, resultingTransforms, 'success!');
@@ -158,7 +159,7 @@ test('it should resolve all promises returned from `beforePull` and fail if any 
     assert.equal(error, ':(', 'error matches');
   });
 
-  return source.pull({ query: ['abc', 'def'] })
+  return source.pull(Query.from({ query: ['abc', 'def'] }))
     .catch((error) => {
       assert.equal(++order, 4, 'promise resolved last');
       assert.equal(error, ':(', 'failure');
@@ -186,7 +187,7 @@ test('it should trigger `pullFail` event after an unsuccessful pull', function(a
     assert.equal(error, ':(', 'error matches');
   });
 
-  return source.pull({ query: ['abc', 'def'] })
+  return source.pull(Query.from({ query: ['abc', 'def'] }))
     .catch((error) => {
       assert.equal(++order, 3, 'promise resolved last');
       assert.equal(error, ':(', 'failure');

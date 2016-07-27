@@ -1,6 +1,5 @@
 import { assert } from '../lib/assert';
 import { extend } from '../lib/objects';
-import Query from '../query';
 import Source from '../source';
 
 export default {
@@ -26,9 +25,7 @@ export default {
   interface: {
     _pullable: true,
 
-    pull(queryOrExpression) {
-      const query = Query.from(queryOrExpression, this.queryBuilder);
-
+    pull(query) {
       return this.series('beforePull', query)
         .then(() => this._pull(query))
         .then(result => this._transformed(result))
