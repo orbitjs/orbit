@@ -3,7 +3,7 @@ import Orbit from 'orbit/main';
 import Source from './source';
 import Pullable from 'orbit/interfaces/pullable';
 import Pushable from 'orbit/interfaces/pushable';
-import Transformable from 'orbit/transformable';
+import Transformable from 'orbit/interfaces/transformable';
 import { assert } from 'orbit/lib/assert';
 import TransformOperators from './local-storage/transform-operators';
 import { QueryOperators } from './local-storage/queries';
@@ -77,11 +77,8 @@ export default class LocalStorageSource extends Source {
   /////////////////////////////////////////////////////////////////////////////
 
   _transform(transform) {
-    transform.operations.forEach(operation => {
-      TransformOperators[operation.op](this, operation);
-    });
-
-    return Orbit.Promise.resolve([transform]);
+    this._applyTransform(transform);
+    return Orbit.Promise.resolve();
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -89,10 +86,7 @@ export default class LocalStorageSource extends Source {
   /////////////////////////////////////////////////////////////////////////////
 
   _push(transform) {
-    transform.operations.forEach(operation => {
-      TransformOperators[operation.op](this, operation);
-    });
-
+    this._applyTransform(transform);
     return Orbit.Promise.resolve([transform]);
   }
 
@@ -104,6 +98,16 @@ export default class LocalStorageSource extends Source {
     const transforms = QueryOperators[query.expression.op](this, query.expression);
 
     return Orbit.Promise.resolve(transforms);
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Private
+  /////////////////////////////////////////////////////////////////////////////
+
+  _applyTransform(transform) {
+    transform.operations.forEach(operation => {
+      TransformOperators[operation.op](this, operation);
+    });
   }
 }
 

@@ -1,4 +1,4 @@
-import Queryable from 'orbit/queryable';
+import Queryable from 'orbit/interfaces/queryable';
 import Source from 'orbit/source';
 import { Promise } from 'rsvp';
 import { successfulOperation, failedOperation } from 'tests/test-helper';

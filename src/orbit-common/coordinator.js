@@ -7,7 +7,7 @@ export default class Coordinator {
     this.nodes = {};
 
     this.requestQueues = {};
-    this.transformQueues = {};
+    this.syncQueues = {};
   }
 
   addNode(name, options = {}) {
@@ -36,7 +36,7 @@ export default class Coordinator {
     assert(`A source named '${source.name}' has already been added to node '${node.name}'.`, !node.sources[source.name]);
 
     let needsRequestQueue = false;
-    let needsTransformQueue = false;
+    let needsSyncQueue = false;
 
     if (source._pushable && options.pushable !== false) {
       assert(`A 'pushable' source has already been defined for node '${node.name}'`, !node.pushableSource);
@@ -65,7 +65,7 @@ export default class Coordinator {
     if (source._transformable && options.transformable !== false) {
       assert(`A 'transformable' source has already been defined for node '${node.name}'`, !node.transformableSource);
       node.transformableSource = source;
-      needsTransformQueue = true;
+      needsSyncQueue = true;
     }
 
     node.sources[source.name] = source;
@@ -76,12 +76,12 @@ export default class Coordinator {
       this.requestQueues[source.name] = new ActionQueue();
     }
 
-    if (needsTransformQueue) {
-      this.transformQueues[source.name] = new ActionQueue();
+    if (needsSyncQueue) {
+      this.syncQueues[source.name] = new ActionQueue();
     }
   }
 
-  sourceForEvent(node, event) {
+  sourceForRequestEvent(node, event) {
     switch (event) {
       case 'beforeUpdate':
       case 'update':
@@ -125,7 +125,7 @@ export default class Coordinator {
   }
 
   queueTransform(source, transform) {
-    const queue = this.transformQueues[source.name];
+    const queue = this.syncQueues[source.name];
 
     const action = queue.push({
       data: transform,

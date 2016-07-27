@@ -2,8 +2,9 @@ import Orbit from 'orbit/main';
 import { assert } from 'orbit/lib/assert';
 import { extend as assign } from 'orbit/lib/objects';
 import Source from './source';
-import Queryable from 'orbit/queryable';
-import Updatable from 'orbit/updatable';
+import Transformable from 'orbit/interfaces/transformable';
+import Queryable from 'orbit/interfaces/queryable';
+import Updatable from 'orbit/interfaces/updatable';
 import Cache from './cache';
 import {
   coalesceTransforms,
@@ -30,12 +31,17 @@ export default class Store extends Source {
   /////////////////////////////////////////////////////////////////////////////
 
   _transform(transform) {
-    const inverse = this.cache.patch(transform.operations);
-
-    this._transforms[transform.id] = transform;
-    this._transformInverses[transform.id] = inverse;
-
+    this._applyTransform(transform);
     return Orbit.Promise.resolve([transform]);
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Updatable interface implementation
+  /////////////////////////////////////////////////////////////////////////////
+
+  _update(transform) {
+    this._applyTransform(transform);
+    return Orbit.Promise.resolve();
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -184,6 +190,12 @@ export default class Store extends Source {
   // Private methods
   /////////////////////////////////////////////////////////////////////////////
 
+  _applyTransform(transform) {
+    const inverse = this.cache.patch(transform.operations);
+    this._transforms[transform.id] = transform;
+    this._transformInverses[transform.id] = inverse;
+  }
+
   _rollbackTransform(transformId) {
     const inverseOperations = this._transformInverses[transformId];
     if (inverseOperations) {
@@ -200,3 +212,4 @@ export default class Store extends Source {
 
 Queryable.extend(Store.prototype);
 Updatable.extend(Store.prototype);
+Transformable.extend(Store.prototype);

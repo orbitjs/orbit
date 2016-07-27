@@ -1,8 +1,8 @@
-import Orbit from './main';
-import { assert } from './lib/assert';
-import { extend } from './lib/objects';
-import Query from './query';
-import Source from './source';
+import Orbit from '../main';
+import { assert } from '../lib/assert';
+import { extend } from '../lib/objects';
+import Query from '../query';
+import Source from '../source';
 
 export default {
   /**

@@ -1,8 +1,8 @@
-import Orbit from './main';
-import { assert } from './lib/assert';
-import { extend } from './lib/objects';
-import Transform from './transform';
-import Source from './source';
+import Orbit from '../main';
+import { assert } from '../lib/assert';
+import { extend } from '../lib/objects';
+import Transform from '../transform';
+import Source from '../source';
 
 export default {
   /**
@@ -31,7 +31,7 @@ export default {
       }
 
       return this._transform(transform)
-        .then(result => this._transformed(result));
+        .then(() => this._transformed([transform]));
     }
   }
 };

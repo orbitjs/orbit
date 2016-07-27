@@ -1,6 +1,6 @@
 import Orbit from 'orbit/main';
 import Source from 'orbit/source';
-import Transformable from 'orbit/transformable';
+import Transformable from 'orbit/interfaces/transformable';
 import Transform from 'orbit/transform';
 
 let source;
