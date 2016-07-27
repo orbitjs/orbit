@@ -3,6 +3,7 @@ import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
 import KeyMap from 'orbit-common/key-map';
 import JSONAPISource from 'orbit-common/jsonapi-source';
+import Transform from 'orbit/transform';
 import qb from 'orbit-common/query/builder';
 import { TransformNotAllowed } from 'orbit-common/lib/exceptions';
 import {
@@ -206,7 +207,7 @@ test('#push - can add records', function(assert) {
     }
   });
 
-  return source.push(addRecord(planet))
+  return source.push(Transform.from(addRecord(planet)))
     .then(function() {
       assert.ok(true, 'transform resolves successfully');
     });
@@ -282,7 +283,7 @@ test('#push - can transform records', function(assert) {
     }
   });
 
-  return source.push(replaceRecord(planet))
+  return source.push(Transform.from(replaceRecord(planet)))
     .then(() => {
       assert.ok(true, 'transform resolves successfully');
     });
@@ -317,7 +318,7 @@ test('#push - can replace a single attribute', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.push(replaceAttribute(planet, 'classification', 'terrestrial'))
+  return source.push(Transform.from(replaceAttribute(planet, 'classification', 'terrestrial')))
     .then(() => {
       assert.ok(true, 'record patched');
     });
@@ -338,7 +339,7 @@ test('#push - can delete records', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.push(removeRecord(planet))
+  return source.push(Transform.from(removeRecord(planet)))
     .then(() => {
       assert.ok(true, 'record deleted');
     });
@@ -365,7 +366,7 @@ test('#push - can add a hasMany relationship with POST', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.push(addToHasMany(planet, 'moons', moon))
+  return source.push(Transform.from(addToHasMany(planet, 'moons', moon)))
     .then(() => {
       assert.ok(true, 'records linked');
     });
@@ -392,7 +393,7 @@ test('#push - can remove a relationship with DELETE', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.push(removeFromHasMany(planet, 'moons', moon))
+  return source.push(Transform.from(removeFromHasMany(planet, 'moons', moon)))
     .then(function() {
       assert.ok(true, 'records unlinked');
     });
@@ -420,7 +421,7 @@ test('#push - can update a hasOne relationship with PATCH', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.push(replaceHasOne(moon, 'planet', planet))
+  return source.push(Transform.from(replaceHasOne(moon, 'planet', planet)))
     .then(function() {
       assert.ok(true, 'relationship replaced');
     });
@@ -443,7 +444,7 @@ test('#push - can clear a hasOne relationship with PATCH', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.push(replaceHasOne(moon, 'planet', null))
+  return source.push(Transform.from(replaceHasOne(moon, 'planet', null)))
     .then(function() {
       assert.ok(true, 'relationship replaced');
     });
@@ -471,7 +472,7 @@ test('#push - can replace a hasMany relationship with PATCH', function(assert) {
                 JSON.stringify({}));
   });
 
-  return source.push(replaceHasMany(planet, 'moons', [moon]))
+  return source.push(Transform.from(replaceHasMany(planet, 'moons', [moon])))
     .then(function() {
       assert.ok(true, 'relationship replaced');
     });
@@ -497,10 +498,10 @@ test('#push - a single transform can result in multiple requests', function(asse
                 JSON.stringify({}));
   });
 
-  return source.push([
+  return source.push(Transform.from([
     removeRecord(planet1),
     removeRecord(planet2)
-  ])
+  ]))
     .then(() => {
       assert.ok(true, 'record deleted');
     });
@@ -514,10 +515,10 @@ test('#push - source can limit the number of allowed requests per transform with
 
   source.maxRequestsPerTransform = 1;
 
-  return source.push([
+  return source.push(Transform.from([
     removeRecord(planet1),
     removeRecord(planet2)
-  ])
+  ]))
     .catch(e => {
       assert.ok(e instanceof TransformNotAllowed, 'TransformNotAllowed thrown');
     });
@@ -730,7 +731,7 @@ test('#push - can add records', function(assert) {
     }
   });
 
-  return source.push(addRecord(planet))
+  return source.push(Transform.from(addRecord(planet)))
     .then(function() {
       assert.ok(true, 'transform resolves successfully');
     });

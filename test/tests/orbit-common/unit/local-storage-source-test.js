@@ -6,6 +6,7 @@ import {
 import Source from 'orbit-common/source';
 import Schema from 'orbit-common/schema';
 import LocalStorageSource from 'orbit-common/local-storage-source';
+import Transform from 'orbit/transform';
 import {
   addRecord,
   replaceRecord,
@@ -87,7 +88,7 @@ test('#push - addRecord', function(assert) {
     }
   });
 
-  return source.push(addRecord(planet))
+  return source.push(Transform.from(addRecord(planet)))
     .then(() => verifyLocalStorageContainsRecord(source, planet));
 });
 
@@ -113,8 +114,8 @@ test('#push - replaceRecord', function(assert) {
     }
   });
 
-  return source.push(addRecord(original))
-    .then(() => source.push(replaceRecord(revised)))
+  return source.push(Transform.from(addRecord(original)))
+    .then(() => source.push(Transform.from(replaceRecord(revised))))
     .then(() => verifyLocalStorageContainsRecord(source, revised));
 });
 
@@ -130,8 +131,8 @@ test('#push - removeRecord', function(assert) {
     }
   });
 
-  return source.push(addRecord(planet))
-    .then(() => source.push(removeRecord(planet)))
+  return source.push(Transform.from(addRecord(planet)))
+    .then(() => source.push(Transform.from(removeRecord(planet))))
     .then(() => verifyLocalStorageDoesNotContainRecord(source, planet));
 });
 
@@ -159,8 +160,8 @@ test('#push - replaceKey', function(assert) {
     }
   });
 
-  return source.push(addRecord(original))
-    .then(() => source.push(replaceKey(original, 'remoteId', '123')))
+  return source.push(Transform.from(addRecord(original)))
+    .then(() => source.push(Transform.from(replaceKey(original, 'remoteId', '123'))))
     .then(() => verifyLocalStorageContainsRecord(source, revised));
 });
 
@@ -186,8 +187,8 @@ test('#push - replaceAttribute', function(assert) {
     }
   });
 
-  return source.push(addRecord(original))
-    .then(() => source.push(replaceAttribute(original, 'order', 5)))
+  return source.push(Transform.from(addRecord(original)))
+    .then(() => source.push(Transform.from(replaceAttribute(original, 'order', 5))))
     .then(() => verifyLocalStorageContainsRecord(source, revised));
 });
 
@@ -224,8 +225,8 @@ test('#push - addToHasMany', function(assert) {
     }
   });
 
-  return source.push(addRecord(original))
-    .then(() => source.push(addToHasMany(original, 'moons', { type: 'moon', id: 'moon1' })))
+  return source.push(Transform.from(addRecord(original)))
+    .then(() => source.push(Transform.from(addToHasMany(original, 'moons', { type: 'moon', id: 'moon1' }))))
     .then(() => verifyLocalStorageContainsRecord(source, revised));
 });
 
@@ -265,8 +266,8 @@ test('#push - removeFromHasMany', function(assert) {
     }
   });
 
-  return source.push(addRecord(original))
-    .then(() => source.push(removeFromHasMany(original, 'moons', { type: 'moon', id: 'moon2' })))
+  return source.push(Transform.from(addRecord(original)))
+    .then(() => source.push(Transform.from(removeFromHasMany(original, 'moons', { type: 'moon', id: 'moon2' }))))
     .then(() => verifyLocalStorageContainsRecord(source, revised));
 });
 
@@ -306,8 +307,8 @@ test('#push - replaceHasMany', function(assert) {
     }
   });
 
-  return source.push(addRecord(original))
-    .then(() => source.push(replaceHasMany(original, 'moons', [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }])))
+  return source.push(Transform.from(addRecord(original)))
+    .then(() => source.push(Transform.from(replaceHasMany(original, 'moons', [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }]))))
     .then(() => verifyLocalStorageContainsRecord(source, revised));
 });
 
@@ -342,8 +343,8 @@ test('#push - replaceHasOne - record', function(assert) {
     }
   });
 
-  return source.push(addRecord(original))
-    .then(() => source.push(replaceHasOne(original, 'solarSystem', { type: 'solarSystem', id: 'ss1' })))
+  return source.push(Transform.from(addRecord(original)))
+    .then(() => source.push(Transform.from(replaceHasOne(original, 'solarSystem', { type: 'solarSystem', id: 'ss1' }))))
     .then(() => verifyLocalStorageContainsRecord(source, revised));
 });
 
@@ -378,8 +379,8 @@ test('#push - replaceHasOne - null', function(assert) {
     }
   });
 
-  return source.push(addRecord(original))
-    .then(() => source.push(replaceHasOne(original, 'solarSystem', null)))
+  return source.push(Transform.from(addRecord(original)))
+    .then(() => source.push(Transform.from(replaceHasOne(original, 'solarSystem', null))))
     .then(() => verifyLocalStorageContainsRecord(source, revised));
 });
 
@@ -391,7 +392,7 @@ test('#reset - clears records for source', function(assert) {
     id: 'jupiter'
   });
 
-  return source.push(addRecord(planet))
+  return source.push(Transform.from(addRecord(planet)))
     .then(() => {
       verifyLocalStorageContainsRecord(source, planet);
       source.reset();
@@ -430,11 +431,11 @@ test('#pull - all records', function(assert) {
 
   source.reset();
 
-  return source.push([
+  return source.push(Transform.from([
     addRecord(earth),
     addRecord(jupiter),
     addRecord(io)
-  ])
+  ]))
     .then(() => source.pull(qb.records()))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
@@ -477,11 +478,11 @@ test('#pull - records of one type', function(assert) {
 
   source.reset();
 
-  return source.push([
+  return source.push(Transform.from([
     addRecord(earth),
     addRecord(jupiter),
     addRecord(io)
-  ])
+  ]))
     .then(() => source.pull(qb.records('planet')))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
@@ -524,11 +525,11 @@ test('#pull - a specific record', function(assert) {
 
   source.reset();
 
-  return source.push([
+  return source.push(Transform.from([
     addRecord(earth),
     addRecord(jupiter),
     addRecord(io)
-  ])
+  ]))
     .then(() => source.pull(qb.record(jupiter)))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');

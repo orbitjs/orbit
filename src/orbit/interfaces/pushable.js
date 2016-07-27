@@ -1,6 +1,5 @@
 import Orbit from '../main';
 import Source from '../source';
-import Transform from '../transform';
 import { assert } from '../lib/assert';
 import { extend } from '../lib/objects';
 
@@ -27,9 +26,7 @@ export default {
   interface: {
     _pushable: true,
 
-    push(transformOrOperations) {
-      const transform = Transform.from(transformOrOperations);
-
+    push(transform) {
       if (this.transformLog.contains(transform.id)) {
         return Orbit.Promise.resolve([]);
       }
