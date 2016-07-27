@@ -24,7 +24,7 @@ export default {
     _queryable: true,
 
     query(queryOrExpression) {
-      const query = Query.from(queryOrExpression);
+      const query = Query.from(queryOrExpression, this.queryBuilder);
 
       return this.series('beforeQuery', query)
         .then(() => {
