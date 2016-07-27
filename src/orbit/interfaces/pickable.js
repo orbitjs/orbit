@@ -1,36 +1,36 @@
 import Orbit from '../main';
 import { assert } from '../lib/assert';
 import { extend } from '../lib/objects';
-import Transform from '../transform';
 import Source from '../source';
 
 export default {
   /**
-   Mixes the `Transformable` interface into a source
+   Mixes the `Pickable` interface into a source.
+
+   The `Pickable` interface adds the `pick` method to a source.
+   `pick` accepts a transform as an argument and applies it to the source.
 
    @method extend
    @param {Object} source - Source to extend
    @returns {Object} Extended source
    */
   extend(source) {
-    if (source._transformable === undefined) {
-      assert('Transformable interface can only be applied to a Source', source instanceof Source);
+    if (source._pickable === undefined) {
+      assert('Pickable interface can only be applied to a Source', source instanceof Source);
       extend(source, this.interface);
     }
     return source;
   },
 
   interface: {
-    _transformable: true,
+    _pickable: true,
 
-    transform(transformOrOperations) {
-      const transform = Transform.from(transformOrOperations);
-
+    pick(transform) {
       if (this.transformLog.contains(transform.id)) {
-        return Orbit.Promise.resolve([]);
+        return Orbit.Promise.resolve();
       }
 
-      return this._transform(transform)
+      return this._pick(transform)
         .then(() => this._transformed([transform]));
     }
   }

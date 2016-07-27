@@ -62,9 +62,9 @@ export default class Coordinator {
       needsRequestQueue = true;
     }
 
-    if (source._transformable && options.transformable !== false) {
-      assert(`A 'transformable' source has already been defined for node '${node.name}'`, !node.transformableSource);
-      node.transformableSource = source;
+    if (source._pickable && options.pickable !== false) {
+      assert(`A 'pickable' source has already been defined for node '${node.name}'`, !node.pickableSource);
+      node.pickableSource = source;
       needsSyncQueue = true;
     }
 
@@ -130,7 +130,7 @@ export default class Coordinator {
     const action = queue.push({
       data: transform,
       process: () => {
-        return source.transform(transform);
+        return source.pick(transform);
       }
     });
 

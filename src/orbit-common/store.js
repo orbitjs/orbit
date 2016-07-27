@@ -2,7 +2,7 @@ import Orbit from 'orbit/main';
 import { assert } from 'orbit/lib/assert';
 import { extend as assign } from 'orbit/lib/objects';
 import Source from './source';
-import Transformable from 'orbit/interfaces/transformable';
+import Pickable from 'orbit/interfaces/pickable';
 import Queryable from 'orbit/interfaces/queryable';
 import Updatable from 'orbit/interfaces/updatable';
 import Cache from './cache';
@@ -27,12 +27,12 @@ export default class Store extends Source {
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  // Transformable interface implementation
+  // Pickable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _transform(transform) {
+  _pick(transform) {
     this._applyTransform(transform);
-    return Orbit.Promise.resolve([transform]);
+    return Orbit.Promise.resolve();
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -212,4 +212,4 @@ export default class Store extends Source {
 
 Queryable.extend(Store.prototype);
 Updatable.extend(Store.prototype);
-Transformable.extend(Store.prototype);
+Pickable.extend(Store.prototype);
