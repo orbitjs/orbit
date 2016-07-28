@@ -22,29 +22,28 @@ function deserialize(source, data) {
 
 export const QueryRequestProcessors = {
   records(source, request) {
-    const { type } = request;
-    const hash = {};
+    const { type, filter } = request;
+    const settings = {};
 
-    if (request.filter) {
-      hash.data = hash.data || {};
-      hash.data.filter = request.filter;
+    if (filter) {
+      settings.params = { filter };
     }
 
-    return source.ajax(source.resourceURL(type), 'GET', hash)
+    return source.fetch(source.resourceURL(type), settings)
       .then(data => deserialize(source, data));
   },
 
   record(source, request) {
     const { record } = request;
 
-    return source.ajax(source.resourceURL(record.type, record.id), 'GET')
+    return source.fetch(source.resourceURL(record.type, record.id))
       .then(data => deserialize(source, data));
   },
 
   relationship(source, request) {
     const { record, relationship } = request;
 
-    return source.ajax(source.resourceRelationshipURL(record.type, record.id, relationship), 'GET')
+    return source.fetch(source.resourceRelationshipURL(record.type, record.id, relationship))
       .then(raw => {
         let relId = source.serializer.deserializeRelationship(raw.data);
         return relId;
@@ -54,7 +53,7 @@ export const QueryRequestProcessors = {
   relatedRecords(source, request) {
     const { record, relationship } = request;
 
-    return source.ajax(source.relatedResourceURL(record.type, record.id, relationship), 'GET')
+    return source.fetch(source.relatedResourceURL(record.type, record.id, relationship))
       .then(data => deserialize(source, data));
   }
 };

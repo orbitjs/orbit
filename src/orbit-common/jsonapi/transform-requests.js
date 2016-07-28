@@ -9,7 +9,7 @@ export const TransformRequestProcessors = {
     const record = serializer.initializeRecord(request.record);
     const json = serializer.serialize(record);
 
-    return source.ajax(source.resourceURL(record.type), 'POST', { data: json })
+    return source.fetch(source.resourceURL(record.type), { method: 'POST', json })
       .then((raw) => {
         let data = serializer.deserialize(raw);
         let updatedRecord = data.primary;
@@ -24,7 +24,7 @@ export const TransformRequestProcessors = {
   removeRecord(source, request) {
     const { type, id } = request.record;
 
-    return source.ajax(source.resourceURL(type, id), 'DELETE')
+    return source.fetch(source.resourceURL(type, id), { method: 'DELETE' })
       .then(() => []);
   },
 
@@ -32,7 +32,7 @@ export const TransformRequestProcessors = {
     const { type, id } = request.record;
     const json = source.serializer.serialize(request.record);
 
-    return source.ajax(source.resourceURL(type, id), 'PATCH', { data: json })
+    return source.fetch(source.resourceURL(type, id), { method: 'PATCH', json })
       .then(() => []);
   },
 
@@ -43,7 +43,7 @@ export const TransformRequestProcessors = {
       data: request.relatedRecords.map(r => source.serializer.serializeIdentifier(r))
     };
 
-    return source.ajax(source.resourceRelationshipURL(type, id, relationship), 'POST', { data: json })
+    return source.fetch(source.resourceRelationshipURL(type, id, relationship), { method: 'POST', json })
       .then(() => []);
   },
 
@@ -54,7 +54,7 @@ export const TransformRequestProcessors = {
       data: request.relatedRecords.map(r => source.serializer.serializeIdentifier(r))
     };
 
-    return source.ajax(source.resourceRelationshipURL(type, id, relationship), 'DELETE', { data: json })
+    return source.fetch(source.resourceRelationshipURL(type, id, relationship), { method: 'DELETE', json })
       .then(() => []);
   },
 
@@ -65,7 +65,7 @@ export const TransformRequestProcessors = {
       data: relatedRecord ? source.serializer.serializeIdentifier(relatedRecord) : null
     };
 
-    return source.ajax(source.resourceRelationshipURL(type, id, relationship), 'PATCH', { data: json })
+    return source.fetch(source.resourceRelationshipURL(type, id, relationship), { method: 'PATCH', json })
       .then(() => []);
   },
 
@@ -76,7 +76,7 @@ export const TransformRequestProcessors = {
       data: relatedRecords.map(r => source.serializer.serializeIdentifier(r))
     };
 
-    return source.ajax(source.resourceRelationshipURL(type, id, relationship), 'PATCH', { data: json })
+    return source.fetch(source.resourceRelationshipURL(type, id, relationship), { method: 'PATCH', json })
       .then(() => []);
   }
 };

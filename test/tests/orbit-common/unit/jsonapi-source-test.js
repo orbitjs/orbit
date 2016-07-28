@@ -17,16 +17,15 @@ import {
   replaceHasMany,
   replaceHasOne
 } from 'orbit-common/transform/operators';
+import { jsonapiResponse } from 'tests/test-helper';
 
-let server, keyMap, source;
+let fetchStub, keyMap, source;
 
 ///////////////////////////////////////////////////////////////////////////////
 
 module('OC - JSONAPISource - with a secondary key', {
   setup() {
-    // fake xhr
-    server = sinon.fakeServer.create();
-    server.autoRespond = true;
+    fetchStub = sinon.stub(window, 'fetch');
 
     let schema = new Schema({
       modelDefaults: {
@@ -68,7 +67,7 @@ module('OC - JSONAPISource - with a secondary key', {
     keyMap = null;
     source = null;
 
-    server.restore();
+    fetchStub.restore();
   }
 });
 
@@ -91,15 +90,14 @@ test('implements Pushable', function(assert) {
 });
 
 test('source saves options', function(assert) {
-  assert.expect(6);
+  assert.expect(5);
   let schema = new Schema({});
-  source = new JSONAPISource({ schema, keyMap, host: '127.0.0.1:8888', namespace: 'api', headers: { 'User-Agent': 'CERN-LineMode/2.15 libwww/2.17b3' } });
+  source = new JSONAPISource({ schema, keyMap, host: '127.0.0.1:8888', namespace: 'api', defaultFetchHeaders: { 'User-Agent': 'CERN-LineMode/2.15 libwww/2.17b3' } });
   assert.equal(source.namespace, 'api', 'Namespace should be defined');
   assert.equal(source.host, '127.0.0.1:8888', 'Host should be defined');
-  assert.equal(source.headers['User-Agent'], 'CERN-LineMode/2.15 libwww/2.17b3', 'Headers should be defined');
+  assert.equal(source.defaultFetchHeaders['User-Agent'], 'CERN-LineMode/2.15 libwww/2.17b3', 'Headers should be defined');
   assert.equal(source.resourceNamespace(), source.namespace, 'Default namespace should be used by default');
   assert.equal(source.resourceHost(), source.host, 'Default host should be used by default');
-  assert.deepEqual(source.ajaxHeaders(), source.headers, 'Default headers should be used by default');
 });
 
 test('#resourcePath - returns resource\'s path without its host and namespace', function(assert) {
@@ -127,12 +125,12 @@ test('#resourceRelationshipURL - constructs relationship URLs based upon base re
   assert.equal(source.resourceRelationshipURL('planet', '1', 'moons'), '/planets/a/relationships/moons', 'resourceRelationshipURL appends /relationships/[relationship] to resourceURL');
 });
 
-test('#ajaxHeaders - include JSONAPI Accept header by default', function(assert) {
-  assert.deepEqual(source.ajaxHeaders(), { Accept: 'application/vnd.api+json' }, 'Default headers should include JSONAPI Accept header');
+test('#defaultFetchHeaders - include JSONAPI Accept header by default', function(assert) {
+  assert.deepEqual(source.defaultFetchHeaders, { Accept: 'application/vnd.api+json' }, 'Default headers should include JSONAPI Accept header');
 });
 
 test('#push - can add records', function(assert) {
-  assert.expect(4);
+  assert.expect(6);
 
   let transformCount = 0;
 
@@ -166,28 +164,6 @@ test('#push - can add records', function(assert) {
     value: '12345'
   };
 
-  server.respondWith('POST', '/planets', function(xhr) {
-    assert.deepEqual(JSON.parse(xhr.requestBody),
-      {
-        data: {
-          type: 'planets',
-          attributes: {
-            name: 'Jupiter',
-            classification: 'gas giant'
-          },
-          relationships: {
-            moons: {
-              data: []
-            }
-          }
-        }
-      },
-      'POST request');
-    xhr.respond(201,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({ data: { id: '12345', type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } } }));
-  });
-
   source.on('transform', function(transform) {
     transformCount++;
 
@@ -207,14 +183,41 @@ test('#push - can add records', function(assert) {
     }
   });
 
+  fetchStub
+    .withArgs('/planets')
+    .returns(jsonapiResponse(201, {
+      data: { id: '12345', type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
+    }));
+
   return source.push(Transform.from(addRecord(planet)))
     .then(function() {
       assert.ok(true, 'transform resolves successfully');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        {
+          data: {
+            type: 'planets',
+            attributes: {
+              name: 'Jupiter',
+              classification: 'gas giant'
+            },
+            relationships: {
+              moons: {
+                data: []
+              }
+            }
+          }
+        },
+        'fetch called with expected data'
+      );
     });
 });
 
 test('#push - can transform records', function(assert) {
-  expect(3);
+  expect(5);
 
   let transformCount = 0;
 
@@ -248,29 +251,6 @@ test('#push - can transform records', function(assert) {
     }
   };
 
-  server.respondWith('PATCH', '/planets/12345', function(xhr) {
-    assert.deepEqual(JSON.parse(xhr.requestBody),
-      {
-        data: {
-          type: 'planets',
-          id: '12345',
-          attributes: {
-            name: 'Jupiter',
-            classification: 'gas giant'
-          },
-          relationships: {
-            moons: {
-              data: []
-            }
-          }
-        }
-      },
-      'PATCH request');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({ data: { id: '12345', type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } } }));
-  });
-
   source.on('transform', function(transform) {
     transformCount++;
 
@@ -283,14 +263,45 @@ test('#push - can transform records', function(assert) {
     }
   });
 
+  fetchStub
+    .withArgs('/planets/12345')
+    .returns(
+      jsonapiResponse(
+        200,
+        { data: { id: '12345', type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } } }
+      )
+    );
+
   return source.push(Transform.from(replaceRecord(planet)))
     .then(() => {
       assert.ok(true, 'transform resolves successfully');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        {
+          data: {
+            type: 'planets',
+            id: '12345',
+            attributes: {
+              name: 'Jupiter',
+              classification: 'gas giant'
+            },
+            relationships: {
+              moons: {
+                data: []
+              }
+            }
+          }
+        },
+        'fetch called with expected data'
+      );
     });
 });
 
 test('#push - can replace a single attribute', function(assert) {
-  assert.expect(2);
+  assert.expect(4);
 
   let planet = source.serializer.deserializeRecord({
     type: 'planet',
@@ -301,52 +312,56 @@ test('#push - can replace a single attribute', function(assert) {
     }
   });
 
-  server.respondWith('PATCH', '/planets/12345', function(xhr) {
-    deepEqual(JSON.parse(xhr.requestBody),
-      {
-        data: {
-          type: 'planets',
-          id: '12345',
-          attributes: {
-            classification: 'terrestrial'
-          }
-        }
-      },
-      'PATCH request');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({}));
-  });
+  fetchStub
+    .withArgs('/planets/12345')
+    .returns(jsonapiResponse(200));
 
   return source.push(Transform.from(replaceAttribute(planet, 'classification', 'terrestrial')))
     .then(() => {
       assert.ok(true, 'record patched');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        {
+          data: {
+            type: 'planets',
+            id: '12345',
+            attributes: {
+              classification: 'terrestrial'
+            }
+          }
+        },
+        'fetch called with expected data'
+      );
     });
 });
 
 test('#push - can delete records', function(assert) {
-  assert.expect(2);
+  assert.expect(4);
 
   let planet = source.serializer.deserializeRecord({
     type: 'planet',
     id: '12345'
   });
 
-  server.respondWith('DELETE', '/planets/12345', function(xhr) {
-    assert.deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({}));
-  });
+  fetchStub
+    .withArgs('/planets/12345')
+    .returns(jsonapiResponse(200));
 
   return source.push(Transform.from(removeRecord(planet)))
     .then(() => {
       assert.ok(true, 'record deleted');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'DELETE', 'fetch called with expected method');
+      assert.equal(fetchStub.getCall(0).args[1].body, null, 'fetch called with no data');
     });
 });
 
 test('#push - can add a hasMany relationship with POST', function(assert) {
-  assert.expect(2);
+  assert.expect(4);
 
   let planet = source.serializer.deserializeRecord({
     type: 'planet',
@@ -358,22 +373,26 @@ test('#push - can add a hasMany relationship with POST', function(assert) {
     id: '987'
   });
 
-  server.respondWith('POST', '/planets/12345/relationships/moons', function(xhr) {
-    assert.deepEqual(JSON.parse(xhr.requestBody), { data: [{ type: 'moons', id: '987' }] },
-              'POST request to add relationship to primary record');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({}));
-  });
+  fetchStub
+    .withArgs('/planets/12345/relationships/moons')
+    .returns(jsonapiResponse(201));
 
   return source.push(Transform.from(addToHasMany(planet, 'moons', moon)))
     .then(() => {
       assert.ok(true, 'records linked');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        { data: [{ type: 'moons', id: '987' }] },
+        'fetch called with expected data'
+      );
     });
 });
 
 test('#push - can remove a relationship with DELETE', function(assert) {
-  expect(2);
+  expect(4);
 
   let planet = source.serializer.deserializeRecord({
     type: 'planet',
@@ -385,22 +404,26 @@ test('#push - can remove a relationship with DELETE', function(assert) {
     id: '987'
   });
 
-  server.respondWith('DELETE', '/planets/12345/relationships/moons', function(xhr) {
-    assert.deepEqual(JSON.parse(xhr.requestBody), { data: [{ type: 'moons', id: '987' }] },
-              'DELETE request to remove relationship from primary record');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({}));
-  });
+  fetchStub
+    .withArgs('/planets/12345/relationships/moons')
+    .returns(jsonapiResponse(200));
 
   return source.push(Transform.from(removeFromHasMany(planet, 'moons', moon)))
     .then(function() {
       assert.ok(true, 'records unlinked');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'DELETE', 'fetch called with expected method');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        { data: [{ type: 'moons', id: '987' }] },
+        'fetch called with expected data'
+      );
     });
 });
 
 test('#push - can update a hasOne relationship with PATCH', function(assert) {
-  assert.expect(2);
+  assert.expect(4);
 
   let planet = source.serializer.deserializeRecord({
     type: 'planet',
@@ -412,46 +435,52 @@ test('#push - can update a hasOne relationship with PATCH', function(assert) {
     id: '987'
   });
 
-  server.respondWith('PATCH', '/moons/987', function(xhr) {
-    assert.deepEqual(JSON.parse(xhr.requestBody),
-      { data: { type: 'moons', id: '987', relationships: { planet: { data: { type: 'planets', id: '12345' } } } } },
-      'PATCH request to add relationship to primary record');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({}));
-  });
+  fetchStub
+    .withArgs('/moons/987')
+    .returns(jsonapiResponse(200));
 
   return source.push(Transform.from(replaceHasOne(moon, 'planet', planet)))
     .then(function() {
       assert.ok(true, 'relationship replaced');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        { data: { type: 'moons', id: '987', relationships: { planet: { data: { type: 'planets', id: '12345' } } } } },
+        'fetch called with expected data'
+      );
     });
 });
 
 test('#push - can clear a hasOne relationship with PATCH', function(assert) {
-  assert.expect(2);
+  assert.expect(4);
 
   let moon = source.serializer.deserializeRecord({
     type: 'moon',
     id: '987'
   });
 
-  server.respondWith('PATCH', '/moons/987', function(xhr) {
-    assert.deepEqual(JSON.parse(xhr.requestBody),
-      { data: { type: 'moons', id: '987', relationships: { planet: { data: null } } } },
-      'PATCH request to replace relationship');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({}));
-  });
+  fetchStub
+    .withArgs('/moons/987')
+    .returns(jsonapiResponse(200));
 
   return source.push(Transform.from(replaceHasOne(moon, 'planet', null)))
     .then(function() {
       assert.ok(true, 'relationship replaced');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        { data: { type: 'moons', id: '987', relationships: { planet: { data: null } } } },
+        'fetch called with expected data'
+      );
     });
 });
 
 test('#push - can replace a hasMany relationship with PATCH', function(assert) {
-  assert.expect(2);
+  assert.expect(4);
 
   let planet = source.serializer.deserializeRecord({
     type: 'planet',
@@ -463,47 +492,52 @@ test('#push - can replace a hasMany relationship with PATCH', function(assert) {
     id: '987'
   });
 
-  server.respondWith('PATCH', '/planets/12345', function(xhr) {
-    assert.deepEqual(JSON.parse(xhr.requestBody),
-      { data: { type: 'planets', id: '12345', relationships: { moons: { data: [{ type: 'moons', id: '987' }] } } } },
-      'PATCH request to replace relationship');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({}));
-  });
+  fetchStub
+    .withArgs('/planets/12345')
+    .returns(jsonapiResponse(200));
 
   return source.push(Transform.from(replaceHasMany(planet, 'moons', [moon])))
     .then(function() {
       assert.ok(true, 'relationship replaced');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        { data: { type: 'planets', id: '12345', relationships: { moons: { data: [{ type: 'moons', id: '987' }] } } } },
+        'fetch called with expected data'
+      );
     });
 });
 
 test('#push - a single transform can result in multiple requests', function(assert) {
-  assert.expect(3);
+  assert.expect(6);
 
   let planet1 = source.serializer.initializeRecord({ type: 'planet', keys: { remoteId: '1' } });
   let planet2 = source.serializer.initializeRecord({ type: 'planet', keys: { remoteId: '2' } });
 
-  server.respondWith('DELETE', '/planets/1', function(xhr) {
-    assert.deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({}));
-  });
+  fetchStub
+    .withArgs('/planets/1')
+    .returns(jsonapiResponse(200));
 
-  server.respondWith('DELETE', '/planets/2', function(xhr) {
-    assert.deepEqual(JSON.parse(xhr.requestBody), null, 'DELETE request');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({}));
-  });
+  fetchStub
+    .withArgs('/planets/2')
+    .returns(jsonapiResponse(200));
 
   return source.push(Transform.from([
     removeRecord(planet1),
     removeRecord(planet2)
   ]))
     .then(() => {
-      assert.ok(true, 'record deleted');
+      assert.ok(true, 'records deleted');
+
+      assert.equal(fetchStub.callCount, 2, 'fetch called twice');
+
+      assert.equal(fetchStub.getCall(0).args[1].method, 'DELETE', 'fetch called with expected method');
+      assert.equal(fetchStub.getCall(0).args[1].body, null, 'fetch called with no data');
+
+      assert.equal(fetchStub.getCall(1).args[1].method, 'DELETE', 'fetch called with expected method');
+      assert.equal(fetchStub.getCall(1).args[1].body, null, 'fetch called with no data');
     });
 });
 
@@ -525,7 +559,7 @@ test('#push - source can limit the number of allowed requests per transform with
 });
 
 test('#pull - record', function(assert) {
-  assert.expect(4);
+  assert.expect(5);
 
   const data = { type: 'planets', id: '12345', attributes: { name: 'Jupiter', classification: 'gas giant' } };
 
@@ -534,23 +568,23 @@ test('#pull - record', function(assert) {
     id: '12345'
   });
 
-  server.respondWith('GET', '/planets/12345', function(xhr) {
-    assert.ok(true, 'GET request');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({ data }));
-  });
+  fetchStub
+    .withArgs('/planets/12345')
+    .returns(jsonapiResponse(200, { data }));
 
   return source.pull(qb.record({ type: 'planet', id: planet.id }))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
       assert.deepEqual(transforms[0].operations.map(o => o.record.attributes.name), ['Jupiter']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 });
 
 test('#pull - records', function(assert) {
-  assert.expect(4);
+  assert.expect(5);
 
   const data = [
     { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } },
@@ -558,34 +592,31 @@ test('#pull - records', function(assert) {
     { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant' } }
   ];
 
-  server.respondWith('GET', '/planets', function(xhr) {
-    assert.ok(true, 'GET request');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({ data }));
-  });
+  fetchStub
+    .withArgs('/planets')
+    .returns(jsonapiResponse(200, { data }));
 
   return source.pull(qb.records('planet'))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
       assert.deepEqual(transforms[0].operations.map(o => o.record.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 });
 
 test('#pull - records with filter', function(assert) {
-  assert.expect(4);
+  assert.expect(5);
 
   const data = [
     { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
   ];
 
-  server.respondWith('GET', `/planets?${encodeURIComponent('filter[name]')}=Jupiter`, function(xhr) {
-    assert.ok(true, 'GET request');
-    xhr.respond(200,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({ data }));
-  });
+  fetchStub
+    .withArgs(`/planets?${encodeURIComponent('filter[name]')}=Jupiter`)
+    .returns(jsonapiResponse(200, { data }));
 
   return source.pull(qb.records('planet')
                         .filterAttributes({ name: 'Jupiter' }))
@@ -593,10 +624,15 @@ test('#pull - records with filter', function(assert) {
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
       assert.deepEqual(transforms[0].operations.map(o => o.record.attributes.name), ['Jupiter']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 });
 
 test('#pull - relatedRecords', function(assert) {
+  assert.expect(5);
+
   let planetRecord = source.serializer.deserialize({
     data: {
       type: 'planets',
@@ -604,33 +640,32 @@ test('#pull - relatedRecords', function(assert) {
     }
   }).primary;
 
-  server.respondWith('GET', '/planets/jupiter/moons', function(xhr) {
-    assert.ok(true, 'made the correct request');
+  let data = [{
+    type: 'moons',
+    id: 'io',
+    attributes: {
+      name: 'Io'
+    }
+  }];
 
-    let data = [{
-      type: 'moons',
-      id: 'io',
-      attributes: {
-        name: 'Io'
-      }
-    }];
-
-    xhr.respond(200, { 'Content-Type': 'application/json' }, JSON.stringify({ data }));
-  });
+  fetchStub
+    .withArgs('/planets/jupiter/moons')
+    .returns(jsonapiResponse(200, { data }));
 
   let query = qb.relatedRecords(planetRecord, 'moons');
   return source.pull(query).then((transforms) => {
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
     assert.deepEqual(transforms[0].operations.map(o => o.record.attributes.name), ['Io']);
+
+    assert.equal(fetchStub.callCount, 1, 'fetch called once');
+    assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
   });
 });
 
 module('OC - JSONAPISource - with no secondary keys', {
   setup() {
-    // fake xhr
-    server = sinon.fakeServer.create();
-    server.autoRespond = true;
+    fetchStub = sinon.stub(window, 'fetch');
 
     let schema = new Schema({
       modelDefaults: {
@@ -667,12 +702,12 @@ module('OC - JSONAPISource - with no secondary keys', {
     keyMap = null;
     source = null;
 
-    server.restore();
+    fetchStub.restore();
   }
 });
 
 test('#push - can add records', function(assert) {
-  assert.expect(3);
+  assert.expect(5);
 
   let transformCount = 0;
 
@@ -696,29 +731,6 @@ test('#push - can add records', function(assert) {
     }
   };
 
-  server.respondWith('POST', '/planets', function(xhr) {
-    assert.deepEqual(JSON.parse(xhr.requestBody),
-      {
-        data: {
-          type: 'planets',
-          id: planet.id,
-          attributes: {
-            name: 'Jupiter',
-            classification: 'gas giant'
-          },
-          relationships: {
-            moons: {
-              data: []
-            }
-          }
-        }
-      },
-      'POST request');
-    xhr.respond(201,
-                { 'Content-Type': 'application/json' },
-                JSON.stringify({ data: { id: planet.id, type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } } }));
-  });
-
   source.on('transform', function(transform) {
     transformCount++;
 
@@ -731,8 +743,36 @@ test('#push - can add records', function(assert) {
     }
   });
 
+  fetchStub
+    .withArgs('/planets')
+    .returns(jsonapiResponse(201, {
+      data: { id: planet.id, type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
+    }));
+
   return source.push(Transform.from(addRecord(planet)))
     .then(function() {
       assert.ok(true, 'transform resolves successfully');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        {
+          data: {
+            type: 'planets',
+            id: planet.id,
+            attributes: {
+              name: 'Jupiter',
+              classification: 'gas giant'
+            },
+            relationships: {
+              moons: {
+                data: []
+              }
+            }
+          }
+        },
+        'fetch called with expected data'
+      );
     });
 });

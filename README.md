@@ -51,12 +51,11 @@ your promise library's `Promise` constructor as follows:
 Orbit.Promise = RSVP.Promise;
 ```
 
-If you're using an Orbit source that relies on an `ajax` method (such as
-`JSONAPISource`), configure it as follows:
-
-```javascript
-Orbit.ajax = jQuery.ajax;
-```
+The `JSONAPISource` uses the experimental [Fetch
+API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) for network
+requests. If you're running Orbit in an environment that does not support fetch,
+use a polyfill such as [whatwg-fetch](https://github.com/github/fetch) or
+[node-fetch](https://github.com/bitinn/node-fetch).
 
 Other sources may have other configuration requirements.
 

@@ -1,3 +1,4 @@
+/* globals fetch */
 /* eslint-disable valid-jsdoc */
 import Orbit from 'orbit/main';
 import { assert } from 'orbit/lib/assert';
@@ -8,12 +9,14 @@ import Serializer from './serializer';
 import JSONAPISerializer from './jsonapi/serializer';
 import { getQueryRequests, QueryRequestProcessors } from './jsonapi/queries';
 import { getTransformRequests, TransformRequestProcessors } from './jsonapi/transform-requests';
+import { encodeQueryParams } from './jsonapi/query-params';
 import { QueryNotAllowed, TransformNotAllowed } from './lib/exceptions';
 
 /**
- Source for accessing a JSON API compliant RESTful API with AJAX.
+ Source for accessing a JSON API compliant RESTful API with a network fetch
+ request.
 
- If a single transform or query requires more than one ajax request,
+ If a single transform or query requires more than one fetch request,
  requests will be performed sequentially and resolved together. From the
  perspective of Orbit, these operations will all succeed or fail together. The
  `maxRequestsPerTransform` and `maxRequestsPerQuery` options allow limits to be
@@ -34,14 +37,13 @@ export default class JSONAPISource extends Source {
     assert('JSONAPISource\'s `schema` must be specified in `options.schema` constructor argument', options.schema);
     assert('JSONAPISource\'s `keyMap` must be specified in `options.keyMap` constructor argument', options.keyMap);
     assert('JSONAPISource requires Orbit.Promise be defined', Orbit.Promise);
-    assert('JSONAPISource requires Orbit.ajax be defined', Orbit.ajax);
 
     super(options);
 
-    this.name             = options.name || 'jsonapi';
-    this.namespace        = options.namespace;
-    this.host             = options.host;
-    this.headers          = options.headers || { Accept: 'application/vnd.api+json' };
+    this.name                = options.name || 'jsonapi';
+    this.namespace           = options.namespace;
+    this.host                = options.host;
+    this.defaultFetchHeaders = options.defaultFetchHeaders || { Accept: 'application/vnd.api+json' };
 
     this.maxRequestsPerQuery     = options.maxRequestsPerQuery;
     this.maxRequestsPerTransform = options.maxRequestsPerTransform;
@@ -98,45 +100,51 @@ export default class JSONAPISource extends Source {
   // Publicly accessible methods particular to JSONAPISource
   /////////////////////////////////////////////////////////////////////////////
 
-  ajax(url, method, settings = {}) {
-    return new Orbit.Promise((resolve, reject) => {
-      settings.url = url;
-      settings.type = method;
-      settings.dataType = 'json';
-      settings.context = this;
+  fetch(_url, settings = {}) {
+    settings.headers = settings.headers || this.defaultFetchHeaders;
 
-      if (settings.data && method !== 'GET') {
-        if (!settings.contentType) {
-          settings.contentType = this.ajaxContentType(settings);
-        }
-        settings.data = JSON.stringify(settings.data);
+    let url = _url;
+    let headers = settings.headers;
+    let method = settings.method || 'GET';
+
+    // console.log('fetch', url, settings, 'polyfill', fetch.polyfill);
+
+    if (settings.json) {
+      assert('`json` and `body` can\'t both be set for fetch requests.', !settings.body);
+      settings.body = JSON.stringify(settings.json);
+      delete settings.json;
+    }
+
+    if (settings.body && method !== 'GET') {
+      headers['Content-Type'] = headers['Content-Type'] || 'application/vnd.api+json; charset=utf-8';
+    }
+
+    if (settings.params) {
+      if (url.indexOf('?') === -1) {
+        url += '?';
+      } else {
+        url += '&';
       }
+      url += encodeQueryParams(settings.params);
 
-      if (!settings.headers) {
-        settings.headers = this.ajaxHeaders(settings);
-      }
+      delete settings.params;
+    }
 
-      settings.success = function(json) {
-        resolve(json);
-      };
-
-      settings.error = function(jqXHR) {
-        if (jqXHR) {
-          jqXHR.then = null;
-        }
-        reject(jqXHR);
-      };
-
-      Orbit.ajax(settings);
-    });
+    return fetch(url, settings)
+      .then(this.checkFetchStatus)
+      .then(response => response.json());
   }
 
-  ajaxContentType(/* settings */) {
-    return 'application/vnd.api+json; charset=utf-8';
-  }
-
-  ajaxHeaders(/* settings */) {
-    return this.headers;
+  checkFetchStatus(response) {
+    // console.log('fetch response', response);
+    if (response.status >= 200 && response.status < 300) {
+      return response;
+    } else {
+      // TODO - raise specific errors
+      let error = new Error(response.statusText);
+      error.response = response;
+      throw error;
+    }
   }
 
   resourceNamespace(/* type */) {
