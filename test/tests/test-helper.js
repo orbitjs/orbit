@@ -21,11 +21,16 @@ import {
 
 } from './support/local-storage';
 
+import {
+  jsonapiResponse
+} from './support/jsonapi';
+
 import { planetsSchema } from './support/schemas';
 
 import './support/rsvp';
 
 export {
+  jsonapiResponse,
   serializeOps,
   serializeOp,
   op,

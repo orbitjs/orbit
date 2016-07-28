@@ -1,9 +1,9 @@
+/* globals fetch */
 import Orbit from 'orbit/main';
 import { Promise } from 'rsvp';
-import jQuery from 'jquery';
 
 Orbit.Promise = Promise;
-Orbit.ajax = jQuery.ajax;
+Orbit.fetch = fetch;
 
 Orbit.pluralize = function(original) {
   return original.match(/s$/) ? original : original + 's';

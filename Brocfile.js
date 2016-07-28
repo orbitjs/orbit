@@ -162,7 +162,7 @@ mainWithTests = concat(mainWithTests, {
 var vendor = concat('', {
   inputFiles: [
     'node_modules/immutable/dist/immutable.js',
-    'node_modules/jquery/dist/jquery.js',
+    'node_modules/whatwg-fetch/fetch.js',
     'node_modules/rsvp/dist/rsvp.js'],
   outputFile: '/assets/vendor.js'
 });
