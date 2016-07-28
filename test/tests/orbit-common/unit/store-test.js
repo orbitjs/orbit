@@ -155,9 +155,9 @@ module('OC - Store', function(hooks) {
     const addRecordCTransform = new Transform(addRecord(recordC));
 
     return all([
-      store.transform(addRecordATransform),
-      store.transform(addRecordBTransform),
-      store.transform(addRecordCTransform)
+      store.pick(addRecordATransform),
+      store.pick(addRecordBTransform),
+      store.pick(addRecordCTransform)
     ])
       .then(() => {
         assert.deepEqual(
@@ -181,9 +181,9 @@ module('OC - Store', function(hooks) {
     const addRecordCTransform = new Transform(addRecord(recordC));
 
     return all([
-      store.transform(addRecordATransform),
-      store.transform(addRecordBTransform),
-      store.transform(addRecordCTransform)
+      store.pick(addRecordATransform),
+      store.pick(addRecordBTransform),
+      store.pick(addRecordCTransform)
     ])
       .then(() => {
         assert.deepEqual(
@@ -208,9 +208,9 @@ module('OC - Store', function(hooks) {
     const addRecordCTransform = new Transform(addRecord(recordC));
 
     return all([
-      store.transform(addRecordATransform),
-      store.transform(addRecordBTransform),
-      store.transform(addRecordCTransform)
+      store.pick(addRecordATransform),
+      store.pick(addRecordBTransform),
+      store.pick(addRecordCTransform)
     ])
       .then(() => {
         store.truncateHistory(addRecordBTransform.id);
@@ -236,9 +236,9 @@ module('OC - Store', function(hooks) {
     const addRecordCTransform = new Transform(addRecord(recordC));
 
     return all([
-      store.transform(addRecordATransform),
-      store.transform(addRecordBTransform),
-      store.transform(addRecordCTransform)
+      store.pick(addRecordATransform),
+      store.pick(addRecordBTransform),
+      store.pick(addRecordCTransform)
     ])
       .then(() => {
         store.clearHistory();
@@ -288,16 +288,18 @@ module('OC - Store', function(hooks) {
     const recordD = { id: 'neptune', type: 'planet', attributes: { name: 'Neptune' } };
     const recordE = { id: 'uranus', type: 'planet', attributes: { name: 'Uranus' } };
 
-    const addRecordATransform = new Transform(addRecord(recordA));
+    const addRecordATransform = Transform.from(addRecord(recordA));
+    const addRecordBTransform = Transform.from(addRecord(recordB));
+    const addRecordCTransform = Transform.from(addRecord(recordC));
 
     return all([
-      store.transform(addRecordATransform),
-      store.transform(addRecord(recordB)),
-      store.transform(addRecord(recordC)),
-      store.transform([
+      store.pick(addRecordATransform),
+      store.pick(addRecordBTransform),
+      store.pick(addRecordCTransform),
+      store.pick(Transform.from([
         addRecord(recordD),
         addRecord(recordE)
-      ])
+      ]))
     ])
       .then(() => {
         const rollbackOperations = [];

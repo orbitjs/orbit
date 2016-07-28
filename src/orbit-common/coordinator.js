@@ -7,7 +7,7 @@ export default class Coordinator {
     this.nodes = {};
 
     this.requestQueues = {};
-    this.transformQueues = {};
+    this.syncQueues = {};
   }
 
   addNode(name, options = {}) {
@@ -36,11 +36,17 @@ export default class Coordinator {
     assert(`A source named '${source.name}' has already been added to node '${node.name}'.`, !node.sources[source.name]);
 
     let needsRequestQueue = false;
-    let needsTransformQueue = false;
+    let needsSyncQueue = false;
 
-    if (source._fetchable && options.fetchable !== false) {
-      assert(`A 'fetchable' source has already been defined for node '${node.name}'`, !node.fetchableSource);
-      node.fetchableSource = source;
+    if (source._pushable && options.pushable !== false) {
+      assert(`A 'pushable' source has already been defined for node '${node.name}'`, !node.pushableSource);
+      node.pushableSource = source;
+      needsRequestQueue = true;
+    }
+
+    if (source._pullable && options.pullable !== false) {
+      assert(`A 'pullable' source has already been defined for node '${node.name}'`, !node.pullableSource);
+      node.pullableSource = source;
       needsRequestQueue = true;
     }
 
@@ -56,10 +62,10 @@ export default class Coordinator {
       needsRequestQueue = true;
     }
 
-    if (source._transformable && options.transformable !== false) {
-      assert(`A 'transformable' source has already been defined for node '${node.name}'`, !node.transformableSource);
-      node.transformableSource = source;
-      needsTransformQueue = true;
+    if (source._pickable && options.pickable !== false) {
+      assert(`A 'pickable' source has already been defined for node '${node.name}'`, !node.pickableSource);
+      node.pickableSource = source;
+      needsSyncQueue = true;
     }
 
     node.sources[source.name] = source;
@@ -70,12 +76,12 @@ export default class Coordinator {
       this.requestQueues[source.name] = new ActionQueue();
     }
 
-    if (needsTransformQueue) {
-      this.transformQueues[source.name] = new ActionQueue();
+    if (needsSyncQueue) {
+      this.syncQueues[source.name] = new ActionQueue();
     }
   }
 
-  sourceForEvent(node, event) {
+  sourceForRequestEvent(node, event) {
     switch (event) {
       case 'beforeUpdate':
       case 'update':
@@ -85,22 +91,23 @@ export default class Coordinator {
       case 'query':
         return node.queryableSource;
 
-      case 'beforeFetch':
-      case 'fetch':
-        return node.fetchableSource;
+      case 'beforePush':
+      case 'push':
+        return node.pushableSource;
+
+      case 'beforePull':
+      case 'pull':
+        return node.pullableSource;
     }
   }
 
   sourceForRequest(node, request) {
     switch (request) {
-      case 'update':
-        return node.updatableSource;
+      case 'push':
+        return node.pushableSource;
 
-      case 'query':
-        return node.queryableSource;
-
-      case 'fetch':
-        return node.fetchableSource;
+      case 'pull':
+        return node.pullableSource;
     }
   }
 
@@ -118,12 +125,12 @@ export default class Coordinator {
   }
 
   queueTransform(source, transform) {
-    const queue = this.transformQueues[source.name];
+    const queue = this.syncQueues[source.name];
 
     const action = queue.push({
       data: transform,
       process: () => {
-        return source.transform(transform);
+        return source.pick(transform);
       }
     });
 

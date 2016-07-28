@@ -6,6 +6,7 @@ import {
 import Source from 'orbit-common/source';
 import Schema from 'orbit-common/schema';
 import LocalStorageSource from 'orbit-common/local-storage-source';
+import Transform from 'orbit/transform';
 import {
   addRecord,
   replaceRecord,
@@ -48,19 +49,19 @@ test('its prototype chain is correct', function(assert) {
   assert.ok(source instanceof Source, 'instanceof Source');
 });
 
-test('implements Fetchable', function(assert) {
-  assert.ok(source._fetchable, 'implements Fetchable');
-  assert.ok(typeof source.fetch === 'function', 'has `fetch` method');
+test('implements Pushable', function(assert) {
+  assert.ok(source._pushable, 'implements Pushable');
+  assert.ok(typeof source.push === 'function', 'has `push` method');
 });
 
-test('implements Updatable', function(assert) {
-  assert.ok(source._updatable, 'implements Updatable');
-  assert.ok(typeof source.update === 'function', 'has `update` method');
+test('implements Pullable', function(assert) {
+  assert.ok(source._pullable, 'implements Pullable');
+  assert.ok(typeof source.pull === 'function', 'has `pull` method');
 });
 
-test('implements Transformable', function(assert) {
-  assert.ok(source._transformable, 'implements Transformable');
-  assert.ok(typeof source.transform === 'function', 'has `transform` method');
+test('implements Pickable', function(assert) {
+  assert.ok(source._pickable, 'implements Pickable');
+  assert.ok(typeof source.pick === 'function', 'has `pick` method');
 });
 
 test('is assigned a default namespace and delimiter', function(assert) {
@@ -75,7 +76,7 @@ test('#getKeyForRecord returns the local storage key that will be used for a rec
   );
 });
 
-test('#transform - addRecord', function(assert) {
+test('#push - addRecord', function(assert) {
   assert.expect(1);
 
   let planet = schema.normalize({
@@ -87,11 +88,11 @@ test('#transform - addRecord', function(assert) {
     }
   });
 
-  return source.transform(addRecord(planet))
+  return source.push(Transform.from(addRecord(planet)))
     .then(() => verifyLocalStorageContainsRecord(source, planet));
 });
 
-test('#transform - replaceRecord', function(assert) {
+test('#push - replaceRecord', function(assert) {
   assert.expect(1);
 
   let original = schema.normalize({
@@ -113,12 +114,12 @@ test('#transform - replaceRecord', function(assert) {
     }
   });
 
-  return source.transform(addRecord(original))
-    .then(() => source.transform(replaceRecord(revised)))
+  return source.push(Transform.from(addRecord(original)))
+    .then(() => source.push(Transform.from(replaceRecord(revised))))
     .then(() => verifyLocalStorageContainsRecord(source, revised));
 });
 
-test('#transform - removeRecord', function(assert) {
+test('#push - removeRecord', function(assert) {
   assert.expect(1);
 
   let planet = schema.normalize({
@@ -130,12 +131,12 @@ test('#transform - removeRecord', function(assert) {
     }
   });
 
-  return source.transform(addRecord(planet))
-    .then(() => source.transform(removeRecord(planet)))
+  return source.push(Transform.from(addRecord(planet)))
+    .then(() => source.push(Transform.from(removeRecord(planet))))
     .then(() => verifyLocalStorageDoesNotContainRecord(source, planet));
 });
 
-test('#transform - replaceKey', function(assert) {
+test('#push - replaceKey', function(assert) {
   assert.expect(1);
 
   let original = schema.normalize({
@@ -159,12 +160,12 @@ test('#transform - replaceKey', function(assert) {
     }
   });
 
-  return source.transform(addRecord(original))
-    .then(() => source.transform(replaceKey(original, 'remoteId', '123')))
+  return source.push(Transform.from(addRecord(original)))
+    .then(() => source.push(Transform.from(replaceKey(original, 'remoteId', '123'))))
     .then(() => verifyLocalStorageContainsRecord(source, revised));
 });
 
-test('#transform - replaceAttribute', function(assert) {
+test('#push - replaceAttribute', function(assert) {
   assert.expect(1);
 
   let original = schema.normalize({
@@ -186,12 +187,12 @@ test('#transform - replaceAttribute', function(assert) {
     }
   });
 
-  return source.transform(addRecord(original))
-    .then(() => source.transform(replaceAttribute(original, 'order', 5)))
+  return source.push(Transform.from(addRecord(original)))
+    .then(() => source.push(Transform.from(replaceAttribute(original, 'order', 5))))
     .then(() => verifyLocalStorageContainsRecord(source, revised));
 });
 
-test('#transform - addToHasMany', function(assert) {
+test('#push - addToHasMany', function(assert) {
   assert.expect(1);
 
   let original = schema.normalize({
@@ -224,12 +225,12 @@ test('#transform - addToHasMany', function(assert) {
     }
   });
 
-  return source.transform(addRecord(original))
-    .then(() => source.transform(addToHasMany(original, 'moons', { type: 'moon', id: 'moon1' })))
+  return source.push(Transform.from(addRecord(original)))
+    .then(() => source.push(Transform.from(addToHasMany(original, 'moons', { type: 'moon', id: 'moon1' }))))
     .then(() => verifyLocalStorageContainsRecord(source, revised));
 });
 
-test('#transform - removeFromHasMany', function(assert) {
+test('#push - removeFromHasMany', function(assert) {
   assert.expect(1);
 
   let original = schema.normalize({
@@ -265,12 +266,12 @@ test('#transform - removeFromHasMany', function(assert) {
     }
   });
 
-  return source.transform(addRecord(original))
-    .then(() => source.transform(removeFromHasMany(original, 'moons', { type: 'moon', id: 'moon2' })))
+  return source.push(Transform.from(addRecord(original)))
+    .then(() => source.push(Transform.from(removeFromHasMany(original, 'moons', { type: 'moon', id: 'moon2' }))))
     .then(() => verifyLocalStorageContainsRecord(source, revised));
 });
 
-test('#transform - replaceHasMany', function(assert) {
+test('#push - replaceHasMany', function(assert) {
   assert.expect(1);
 
   let original = schema.normalize({
@@ -306,12 +307,12 @@ test('#transform - replaceHasMany', function(assert) {
     }
   });
 
-  return source.transform(addRecord(original))
-    .then(() => source.transform(replaceHasMany(original, 'moons', [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }])))
+  return source.push(Transform.from(addRecord(original)))
+    .then(() => source.push(Transform.from(replaceHasMany(original, 'moons', [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }]))))
     .then(() => verifyLocalStorageContainsRecord(source, revised));
 });
 
-test('#transform - replaceHasOne - record', function(assert) {
+test('#push - replaceHasOne - record', function(assert) {
   assert.expect(1);
 
   let original = schema.normalize({
@@ -342,12 +343,12 @@ test('#transform - replaceHasOne - record', function(assert) {
     }
   });
 
-  return source.transform(addRecord(original))
-    .then(() => source.transform(replaceHasOne(original, 'solarSystem', { type: 'solarSystem', id: 'ss1' })))
+  return source.push(Transform.from(addRecord(original)))
+    .then(() => source.push(Transform.from(replaceHasOne(original, 'solarSystem', { type: 'solarSystem', id: 'ss1' }))))
     .then(() => verifyLocalStorageContainsRecord(source, revised));
 });
 
-test('#transform - replaceHasOne - null', function(assert) {
+test('#push - replaceHasOne - null', function(assert) {
   assert.expect(1);
 
   let original = schema.normalize({
@@ -378,8 +379,8 @@ test('#transform - replaceHasOne - null', function(assert) {
     }
   });
 
-  return source.transform(addRecord(original))
-    .then(() => source.transform(replaceHasOne(original, 'solarSystem', null)))
+  return source.push(Transform.from(addRecord(original)))
+    .then(() => source.push(Transform.from(replaceHasOne(original, 'solarSystem', null))))
     .then(() => verifyLocalStorageContainsRecord(source, revised));
 });
 
@@ -391,7 +392,7 @@ test('#reset - clears records for source', function(assert) {
     id: 'jupiter'
   });
 
-  return source.transform(addRecord(planet))
+  return source.push(Transform.from(addRecord(planet)))
     .then(() => {
       verifyLocalStorageContainsRecord(source, planet);
       source.reset();
@@ -399,7 +400,7 @@ test('#reset - clears records for source', function(assert) {
     .then(() => verifyLocalStorageIsEmpty(source));
 });
 
-test('#fetch - all records', function(assert) {
+test('#pull - all records', function(assert) {
   assert.expect(2);
 
   let earth = schema.normalize({
@@ -430,12 +431,12 @@ test('#fetch - all records', function(assert) {
 
   source.reset();
 
-  return source.transform([
+  return source.push(Transform.from([
     addRecord(earth),
     addRecord(jupiter),
     addRecord(io)
-  ])
-    .then(() => source.fetch(qb.records()))
+  ]))
+    .then(() => source.pull(qb.records()))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(
@@ -446,7 +447,7 @@ test('#fetch - all records', function(assert) {
     });
 });
 
-test('#fetch - records of one type', function(assert) {
+test('#pull - records of one type', function(assert) {
   assert.expect(2);
 
   let earth = schema.normalize({
@@ -477,12 +478,12 @@ test('#fetch - records of one type', function(assert) {
 
   source.reset();
 
-  return source.transform([
+  return source.push(Transform.from([
     addRecord(earth),
     addRecord(jupiter),
     addRecord(io)
-  ])
-    .then(() => source.fetch(qb.records('planet')))
+  ]))
+    .then(() => source.pull(qb.records('planet')))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(
@@ -493,7 +494,7 @@ test('#fetch - records of one type', function(assert) {
     });
 });
 
-test('#fetch - a specific record', function(assert) {
+test('#pull - a specific record', function(assert) {
   assert.expect(2);
 
   let earth = schema.normalize({
@@ -524,12 +525,12 @@ test('#fetch - a specific record', function(assert) {
 
   source.reset();
 
-  return source.transform([
+  return source.push(Transform.from([
     addRecord(earth),
     addRecord(jupiter),
     addRecord(io)
-  ])
-    .then(() => source.fetch(qb.record(jupiter)))
+  ]))
+    .then(() => source.pull(qb.record(jupiter)))
     .then(transforms => {
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(

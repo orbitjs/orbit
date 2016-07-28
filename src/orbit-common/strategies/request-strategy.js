@@ -10,7 +10,7 @@ export default class RequestStrategy {
     this.syncResults = syncResults;
     this.blocking = blocking;
 
-    this.source = coordinator.sourceForEvent(this.sourceNode, sourceEvent);
+    this.source = coordinator.sourceForRequestEvent(this.sourceNode, sourceEvent);
     this.target = coordinator.sourceForRequest(this.targetNode, targetRequest);
 
     if (autoActivate || autoActivate === undefined) {

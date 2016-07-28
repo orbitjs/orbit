@@ -12,7 +12,7 @@ export default class SyncStrategy {
 
   activate() {
     const { sourceNode, targetNode } = this;
-    const target = targetNode.transformableSource;
+    const target = targetNode.pickableSource;
 
     this.eventListeners = {};
 

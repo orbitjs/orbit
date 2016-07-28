@@ -1,11 +1,12 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from 'orbit/main';
 import Source from './source';
-import Fetchable from 'orbit/fetchable';
-import Updatable from 'orbit/updatable';
+import Pullable from 'orbit/interfaces/pullable';
+import Pushable from 'orbit/interfaces/pushable';
+import Pickable from 'orbit/interfaces/pickable';
 import { assert } from 'orbit/lib/assert';
 import TransformOperators from './local-storage/transform-operators';
-import FetchOperators from './local-storage/fetch-operators';
+import { QueryOperators } from './local-storage/queries';
 
 var supportsLocalStorage = function() {
   try {
@@ -72,27 +73,44 @@ export default class LocalStorageSource extends Source {
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  // Transformable interface implementation
+  // Pickable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _transform(transform) {
-    transform.operations.forEach(operation => {
-      TransformOperators[operation.op](this, operation);
-    });
+  _pick(transform) {
+    this._applyTransform(transform);
+    return Orbit.Promise.resolve();
+  }
 
+  /////////////////////////////////////////////////////////////////////////////
+  // Pushable interface implementation
+  /////////////////////////////////////////////////////////////////////////////
+
+  _push(transform) {
+    this._applyTransform(transform);
     return Orbit.Promise.resolve([transform]);
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  // Fetchable interface implementation
+  // Pullable implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _fetch(query) {
-    const transforms = FetchOperators[query.expression.op](this, query.expression);
+  _pull(query) {
+    const transforms = QueryOperators[query.expression.op](this, query.expression);
 
     return Orbit.Promise.resolve(transforms);
   }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Private
+  /////////////////////////////////////////////////////////////////////////////
+
+  _applyTransform(transform) {
+    transform.operations.forEach(operation => {
+      TransformOperators[operation.op](this, operation);
+    });
+  }
 }
 
-Fetchable.extend(LocalStorageSource.prototype);
-Updatable.extend(LocalStorageSource.prototype); // implicitly extends Transformable
+Pullable.extend(LocalStorageSource.prototype);
+Pushable.extend(LocalStorageSource.prototype);
+Pickable.extend(LocalStorageSource.prototype);

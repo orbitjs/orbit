@@ -1,31 +1,31 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from 'orbit/main';
 import { assert } from 'orbit/lib/assert';
-import Fetchable from 'orbit/fetchable';
-import Updatable from 'orbit/updatable';
+import Pullable from 'orbit/interfaces/pullable';
+import Pushable from 'orbit/interfaces/pushable';
 import Source from './source';
 import Serializer from './serializer';
 import JSONAPISerializer from './jsonapi/serializer';
-import { getFetchRequests, FetchRequestProcessors } from './jsonapi/fetch-requests';
+import { getQueryRequests, QueryRequestProcessors } from './jsonapi/queries';
 import { getTransformRequests, TransformRequestProcessors } from './jsonapi/transform-requests';
-import { FetchNotAllowed, TransformNotAllowed } from './lib/exceptions';
+import { QueryNotAllowed, TransformNotAllowed } from './lib/exceptions';
 
 /**
  Source for accessing a JSON API compliant RESTful API with AJAX.
 
- If a single transform or fetch operation requires more than one ajax request,
+ If a single transform or query requires more than one ajax request,
  requests will be performed sequentially and resolved together. From the
  perspective of Orbit, these operations will all succeed or fail together. The
- `maxRequestsPerTransform` and `maxRequestsPerFetch` options allow limits to be
+ `maxRequestsPerTransform` and `maxRequestsPerQuery` options allow limits to be
  set on this behavior. These options should be set to `1` if your client/server
- configuration is unable to resolve partially successful transforms / fetches.
+ configuration is unable to resolve partially successful transforms / queries.
 
  @class JSONAPISource
  @extends Source
  @namespace OC
  @param {Object}    [options]
  @param {OC.Schema} [options.schema] Schema for source (required)
- @param {Number}    [options.maxRequestsPerFetch] Maximum number of AJAX requests allowed per fetch.
+ @param {Number}    [options.maxRequestsPerQuery] Maximum number of AJAX requests allowed per query.
  @param {Number}    [options.maxRequestsPerTransform] Maximum number of AJAX requests allowed per transform.
  @constructor
  */
@@ -43,7 +43,7 @@ export default class JSONAPISource extends Source {
     this.host             = options.host;
     this.headers          = options.headers || { Accept: 'application/vnd.api+json' };
 
-    this.maxRequestsPerFetch     = options.maxRequestsPerFetch;
+    this.maxRequestsPerQuery     = options.maxRequestsPerQuery;
     this.maxRequestsPerTransform = options.maxRequestsPerTransform;
 
     const SerializerClass = options.SerializerClass || JSONAPISerializer;
@@ -53,10 +53,10 @@ export default class JSONAPISource extends Source {
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  // Transformable interface implementation
+  // Pushable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _transform(transform) {
+  _push(transform) {
     const requests = getTransformRequests(transform);
 
     if (this.maxRequestsPerTransform && requests.length > this.maxRequestsPerTransform) {
@@ -76,22 +76,22 @@ export default class JSONAPISource extends Source {
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  // Fetchable interface implementation
+  // Pullable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _fetch(query) {
-    const requests = getFetchRequests(query);
+  _pull(query) {
+    const requests = getQueryRequests(query);
 
-    if (this.maxRequestsPerFetch && requests.length > this.maxRequestsPerFetch) {
+    if (this.maxRequestsPerQuery && requests.length > this.maxRequestsPerQuery) {
       return Orbit.Promise.resolve()
         .then(() => {
-          throw new FetchNotAllowed(
-            `This query requires ${requests.length} fetch requests, which exceeds the specified limit of ${this.maxRequestsPerFetch} requests per query.`,
+          throw new QueryNotAllowed(
+            `This query requires ${requests.length} requests, which exceeds the specified limit of ${this.maxRequestsPerQuery} requests per query.`,
             query);
         });
     }
 
-    return this._processRequests(requests, FetchRequestProcessors);
+    return this._processRequests(requests, QueryRequestProcessors);
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -208,5 +208,5 @@ export default class JSONAPISource extends Source {
   }
 }
 
-Fetchable.extend(JSONAPISource.prototype);
-Updatable.extend(JSONAPISource.prototype); // implicitly extends Transformable
+Pullable.extend(JSONAPISource.prototype);
+Pushable.extend(JSONAPISource.prototype);

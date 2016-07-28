@@ -20,7 +20,7 @@ function deserialize(source, data) {
   return [Transform.from(operations)];
 }
 
-export const FetchRequestProcessors = {
+export const QueryRequestProcessors = {
   records(source, request) {
     const { type } = request;
     const hash = {};
@@ -59,12 +59,12 @@ export const FetchRequestProcessors = {
   }
 };
 
-export function getFetchRequests(query) {
-  // For now, assume a 1:1 mapping between queries and fetch requests
-  return [buildFetchRequest(query.expression)];
+export function getQueryRequests(query) {
+  // For now, assume a 1:1 mapping between queries and requests
+  return [buildQueryRequest(query.expression)];
 }
 
-function buildFetchRequest(expression, request = {}) {
+function buildQueryRequest(expression, request = {}) {
   if (ExpressionToRequestMap[expression.op]) {
     ExpressionToRequestMap[expression.op](expression, request);
   } else {
@@ -97,7 +97,7 @@ const ExpressionToRequestMap = {
     const [select, filters] = expression.args;
     request.filter = buildFilters(filters);
 
-    buildFetchRequest(select, request);
+    buildQueryRequest(select, request);
   },
 
   relatedRecords(expression, request) {
