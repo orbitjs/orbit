@@ -48,14 +48,24 @@ does not implement Promises, or if you wish to use another Promise implementatio
 your promise library's `Promise` constructor as follows:
 
 ```javascript
+import Orbit from 'orbit';
+
 Orbit.Promise = RSVP.Promise;
 ```
 
 The `JSONAPISource` uses the experimental [Fetch
 API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) for network
-requests. If you're running Orbit in an environment that does not support fetch,
-use a polyfill such as [whatwg-fetch](https://github.com/github/fetch) or
-[node-fetch](https://github.com/bitinn/node-fetch).
+requests. If you're running Orbit in an environment that does not support
+`fetch`, use a polyfill such as [whatwg-fetch](https://github.com/github/fetch)
+or [node-fetch](https://github.com/bitinn/node-fetch). Alternatively, you can
+use a `fetch` ponyfill and set it on the main `Orbit` object. For example:
+
+```javascript
+import Orbit from 'orbit';
+import fetch from 'ember-network/fetch';
+
+Orbit.fetch = fetch;
+```
 
 Other sources may have other configuration requirements.
 

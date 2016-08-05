@@ -1,3 +1,4 @@
+/* globals Promise */
 /**
  Contains core methods and classes for Orbit.js
 
@@ -12,5 +13,9 @@
  @static
  */
 var Orbit = {};
+
+if (typeof Promise !== 'undefined') {
+  Orbit.Promise = Promise;
+}
 
 export default Orbit;

@@ -12,6 +12,10 @@ import { getTransformRequests, TransformRequestProcessors } from './jsonapi/tran
 import { encodeQueryParams } from './jsonapi/query-params';
 import { QueryNotAllowed, TransformNotAllowed } from './lib/exceptions';
 
+if (typeof fetch !== 'undefined' && Orbit.fetch === undefined) {
+  Orbit.fetch = fetch;
+}
+
 /**
  Source for accessing a JSON API compliant RESTful API with a network fetch
  request.
@@ -37,6 +41,7 @@ export default class JSONAPISource extends Source {
     assert('JSONAPISource\'s `schema` must be specified in `options.schema` constructor argument', options.schema);
     assert('JSONAPISource\'s `keyMap` must be specified in `options.keyMap` constructor argument', options.keyMap);
     assert('JSONAPISource requires Orbit.Promise be defined', Orbit.Promise);
+    assert('JSONAPISource requires Orbit.fetch be defined', Orbit.fetch);
 
     super(options);
 
@@ -130,7 +135,7 @@ export default class JSONAPISource extends Source {
       delete settings.params;
     }
 
-    return fetch(url, settings)
+    return Orbit.fetch(url, settings)
       .then(this.checkFetchStatus)
       .then(response => response.json());
   }
