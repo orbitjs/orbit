@@ -1,3 +1,4 @@
+import Orbit from 'orbit/main';
 import Source from 'orbit-common/source';
 import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
@@ -25,7 +26,7 @@ let fetchStub, keyMap, source;
 
 module('OC - JSONAPISource - with a secondary key', {
   setup() {
-    fetchStub = sinon.stub(window, 'fetch');
+    fetchStub = sinon.stub(Orbit, 'fetch');
 
     let schema = new Schema({
       modelDefaults: {
@@ -665,7 +666,7 @@ test('#pull - relatedRecords', function(assert) {
 
 module('OC - JSONAPISource - with no secondary keys', {
   setup() {
-    fetchStub = sinon.stub(window, 'fetch');
+    fetchStub = sinon.stub(Orbit, 'fetch');
 
     let schema = new Schema({
       modelDefaults: {

@@ -1,4 +1,4 @@
-import { planetsSchema } from 'tests/test-helper';
+import Orbit from 'orbit/main';
 import Coordinator from 'orbit-common/coordinator';
 import SyncStrategy from 'orbit-common/strategies/sync-strategy';
 import RequestStrategy from 'orbit-common/strategies/request-strategy';
@@ -21,7 +21,8 @@ import {
 import {
   verifyLocalStorageContainsRecord,
   verifyLocalStorageDoesNotContainRecord,
-  jsonapiResponse
+  jsonapiResponse,
+  planetsSchema
 } from 'tests/test-helper';
 
 let fetchStub;
@@ -36,7 +37,7 @@ module('Integration - Coordinator', function(hooks) {
   let localBackupStrategy;
 
   hooks.beforeEach(function() {
-    fetchStub = sinon.stub(window, 'fetch');
+    fetchStub = sinon.stub(Orbit, 'fetch');
 
     let keyMap = new KeyMap();
     coordinator = new Coordinator();
