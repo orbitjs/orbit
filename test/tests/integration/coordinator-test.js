@@ -118,31 +118,32 @@ module('Integration - Coordinator', function(hooks) {
   });
 
   test('#update - addRecord - error', function(assert) {
-    assert.expect(4);
+    assert.expect(5);
 
     let record = { type: 'planet', attributes: { name: 'Pluto' } };
+    let errors = {
+      errors: [
+        {
+          status: 422,
+          source: {
+            pointer: 'data/attributes/name'
+          },
+          title: 'Invalid Attribute',
+          detail: 'Pluto isn\'t really a planet!'
+        }
+      ]
+    };
 
     fetchStub
       .withArgs('/planets')
-      .returns(jsonapiResponse(422, {
-        errors: [
-          {
-            status: 422,
-            source: {
-              pointer: 'data/attributes/name'
-            },
-            title: 'Invalid Attribute',
-            detail: 'Pluto isn\'t really a planet!'
-          }
-        ]
-      }));
+      .returns(jsonapiResponse(422, errors));
 
     return store.update(addRecord(record))
       .catch(error => {
         assert.equal(fetchStub.callCount, 1, 'fetch called once');
         assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
-
         assert.equal(error.response.status, 422, 'error status matches');
+        assert.deepEqual(error.data, errors, 'error data matches');
 
         verifyLocalStorageDoesNotContainRecord(localStorage, record);
       });

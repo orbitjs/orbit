@@ -11,6 +11,7 @@ import { getQueryRequests, QueryRequestProcessors } from './jsonapi/queries';
 import { getTransformRequests, TransformRequestProcessors } from './jsonapi/transform-requests';
 import { encodeQueryParams } from './jsonapi/query-params';
 import { QueryNotAllowed, TransformNotAllowed } from './lib/exceptions';
+import { Exception } from 'orbit/lib/exceptions';
 
 if (typeof fetch !== 'undefined' && Orbit.fetch === undefined) {
   Orbit.fetch = fetch;
@@ -136,20 +137,24 @@ export default class JSONAPISource extends Source {
     }
 
     return Orbit.fetch(url, settings)
-      .then(this.checkFetchStatus)
+      .then(response => this.checkFetchStatus(response))
       .then(response => response.json());
   }
 
   checkFetchStatus(response) {
-    // console.log('fetch response', response);
     if (response.status >= 200 && response.status < 300) {
       return response;
     } else {
-      // TODO - raise specific errors
-      let error = new Error(response.statusText);
-      error.response = response;
-      throw error;
+      return response.json()
+        .then(data => this.throwFetchException(response, data));
     }
+  }
+
+  throwFetchException(response, data) {
+    let error = new Exception(response.statusText);
+    error.response = response;
+    error.data = data;
+    throw error;
   }
 
   resourceNamespace(/* type */) {
