@@ -29,11 +29,10 @@ export default class Action {
     this.id = options.id;
     this.data = options.data;
     this._process = options.process;
-    this._processing = false;
+    this._started = false;
     this._resolution = new Orbit.Promise((resolve, reject) => {
       this._success = resolve;
       this._fail = (e) => {
-        this._processing = false;
         reject(e);
       };
     });
@@ -44,8 +43,8 @@ export default class Action {
   }
 
   process() {
-    if (!this._processing) {
-      this._processing = true;
+    if (!this._started) {
+      this._started = true;
 
       try {
         let ret = this._process();
