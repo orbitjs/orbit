@@ -1,5 +1,5 @@
 /* eslint-disable valid-jsdoc */
-import Orbit from './main';
+import Orbit from 'orbit';
 
 /**
  `Action` provides a wrapper for actions that are performed in an `ActionQueue`.
@@ -29,11 +29,6 @@ export default class Action {
     this.id = options.id;
     this.data = options.data;
     this._process = options.process;
-
-    this.reset();
-  }
-
-  reset() {
     this.processing = false;
 
     this.complete = new Orbit.Promise((resolve, reject) => {
