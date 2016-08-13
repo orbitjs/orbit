@@ -62,3 +62,11 @@ export default class Action {
     return this.settle();
   }
 }
+
+Action.from = function(actionOrOptions) {
+  if (actionOrOptions instanceof Action) {
+    return actionOrOptions;
+  } else {
+    return new Action(actionOrOptions);
+  }
+};
