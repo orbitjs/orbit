@@ -100,7 +100,7 @@ test('it created a promise immediately that won\'t be resolved until process is 
     }
   });
 
-  action.complete
+  action.settle()
     .then(function() {
       assert.ok(true, 'process resolved');
     });
