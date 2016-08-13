@@ -8,17 +8,17 @@ import { Promise } from 'rsvp';
 
 module('Orbit - ActionQueue', {});
 
-test('it exists', function() {
+test('can be instantiated', function() {
   const queue = new ActionQueue(noop);
   ok(queue);
 });
 
-test('it is set to `autoProcess` by default', function() {
+test('#autoProcess is enabled by default', function() {
   const queue = new ActionQueue(noop);
   equal(queue.autoProcess, true, 'autoProcess === true');
 });
 
-test('will auto-process pushed actions sequentially by default', function(assert) {
+test('auto-processes pushed actions sequentially by default', function(assert) {
   assert.expect(13);
   const done = assert.async();
   let order = 0;
@@ -133,7 +133,7 @@ test('with `autoProcess` disabled, will process pushed functions sequentially wh
   queue.process();
 });
 
-test('will auto-process pushed async functions sequentially by default', function(assert) {
+test('can enqueue actions while another action is being processed', function(assert) {
   expect(8);
   const done = assert.async();
 
