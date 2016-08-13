@@ -54,13 +54,13 @@ export default class ActionQueue {
     this.autoProcess = options.autoProcess !== undefined ? options.autoProcess : true;
 
     this._resolution = null;
-    this.actions = [];
+    this._actions = [];
   }
 
   push(_action) {
     let action = Action.from(_action);
 
-    this.actions.push(action);
+    this._actions.push(action);
 
     if (this.autoProcess) { this.process(); }
 
@@ -70,13 +70,13 @@ export default class ActionQueue {
   clear() {
     assert('ActionQueue#clear can only be called when the queue is not being processed', !this._resolution);
 
-    this.actions = [];
+    this._actions = [];
   }
 
   shift() {
     assert('ActionQueue#shift can only be called when the queue is not being processed', !this._resolution);
 
-    return this.actions.shift();
+    return this._actions.shift();
   }
 
   unshift(_action) {
@@ -84,14 +84,14 @@ export default class ActionQueue {
 
     let action = Action.from(_action);
 
-    this.actions.unshift(action);
+    this._actions.unshift(action);
 
     return action;
   }
 
   process() {
     if (!this._resolution) {
-      if (this.actions.length === 0) {
+      if (this._actions.length === 0) {
         this._resolution = Orbit.Promise.resolve();
       } else {
         this._resolution = new Orbit.Promise((resolve, reject) => {
@@ -110,18 +110,18 @@ export default class ActionQueue {
   }
 
   _settleEach() {
-    if (this.actions.length === 0) {
+    if (this._actions.length === 0) {
       this._resolution = null;
       this.emit('complete');
     } else {
-      let action = this.actions[0];
+      let action = this._actions[0];
 
       this.emit('beforeAction', action);
 
       action.process()
         .then(() => {
           this.emit('action', action);
-          this.actions.shift();
+          this._actions.shift();
           this._settleEach();
         })
         .catch((e) => {
