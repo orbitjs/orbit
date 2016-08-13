@@ -57,20 +57,36 @@ export default class ActionQueue {
     this.actions = [];
   }
 
-  push(action) {
-    let actionObject;
+  push(_action) {
+    let action = Action.from(_action);
 
-    if (action instanceof Action) {
-      actionObject = action;
-    } else {
-      actionObject = new Action(action);
-    }
-
-    this.actions.push(actionObject);
+    this.actions.push(action);
 
     if (this.autoProcess) { this.process(); }
 
-    return actionObject;
+    return action;
+  }
+
+  clear() {
+    assert('ActionQueue#clear can only be called when the queue is not being processed', !this._resolution);
+
+    this.actions = [];
+  }
+
+  shift() {
+    assert('ActionQueue#shift can only be called when the queue is not being processed', !this._resolution);
+
+    return this.actions.shift();
+  }
+
+  unshift(_action) {
+    assert('ActionQueue#unshift can only be called when the queue is not being processed', !this._resolution);
+
+    let action = Action.from(_action);
+
+    this.actions.unshift(action);
+
+    return action;
   }
 
   process() {
