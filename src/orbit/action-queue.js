@@ -53,8 +53,7 @@ export default class ActionQueue {
     options = options || {};
     this.autoProcess = options.autoProcess !== undefined ? options.autoProcess : true;
 
-    this.processing = false;
-    this.currentAction = null;
+    this._resolution = null;
     this.actions = [];
   }
 
@@ -75,13 +74,11 @@ export default class ActionQueue {
   }
 
   process() {
-    let processing = this.processing;
-
-    if (!processing) {
+    if (!this._resolution) {
       if (this.actions.length === 0) {
-        processing = Orbit.Promise.resolve();
+        this._resolution = Orbit.Promise.resolve();
       } else {
-        processing = this.processing = new Orbit.Promise((resolve, reject) => {
+        this._resolution = new Orbit.Promise((resolve, reject) => {
           this.one('complete', () => resolve());
 
           this.one('fail', (action, e) => {
@@ -93,16 +90,15 @@ export default class ActionQueue {
       }
     }
 
-    return processing;
+    return this._resolution;
   }
 
   _settleEach() {
     if (this.actions.length === 0) {
-      this.currentAction = null;
-      this.processing = null;
+      this._resolution = null;
       this.emit('complete');
     } else {
-      let action = this.currentAction = this.actions[0];
+      let action = this.actions[0];
 
       this.emit('beforeAction', action);
 
@@ -113,8 +109,7 @@ export default class ActionQueue {
           this._settleEach();
         })
         .catch((e) => {
-          this.currentAction = null;
-          this.processing = null;
+          this._resolution = null;
           this.emit('fail', action, e);
         });
     }
