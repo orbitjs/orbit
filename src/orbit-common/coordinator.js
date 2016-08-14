@@ -121,7 +121,7 @@ export default class Coordinator {
       }
     });
 
-    return action.complete;
+    return action.settle();
   }
 
   queueTransform(source, transform) {
@@ -134,6 +134,6 @@ export default class Coordinator {
       }
     });
 
-    return action.complete;
+    return action.settle();
   }
 }

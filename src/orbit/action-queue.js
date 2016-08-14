@@ -53,35 +53,48 @@ export default class ActionQueue {
     options = options || {};
     this.autoProcess = options.autoProcess !== undefined ? options.autoProcess : true;
 
-    this.processing = false;
-    this.currentAction = null;
-    this.actions = [];
+    this._resolution = null;
+    this._actions = [];
   }
 
-  push(action) {
-    let actionObject;
+  push(_action) {
+    let action = Action.from(_action);
 
-    if (action instanceof Action) {
-      actionObject = action;
-    } else {
-      actionObject = new Action(action);
-    }
-
-    this.actions.push(actionObject);
+    this._actions.push(action);
 
     if (this.autoProcess) { this.process(); }
 
-    return actionObject;
+    return action;
+  }
+
+  clear() {
+    assert('ActionQueue#clear can only be called when the queue is not being processed', !this._resolution);
+
+    this._actions = [];
+  }
+
+  shift() {
+    assert('ActionQueue#shift can only be called when the queue is not being processed', !this._resolution);
+
+    return this._actions.shift();
+  }
+
+  unshift(_action) {
+    assert('ActionQueue#unshift can only be called when the queue is not being processed', !this._resolution);
+
+    let action = Action.from(_action);
+
+    this._actions.unshift(action);
+
+    return action;
   }
 
   process() {
-    let processing = this.processing;
-
-    if (!processing) {
-      if (this.actions.length === 0) {
-        processing = Orbit.Promise.resolve();
+    if (!this._resolution) {
+      if (this._actions.length === 0) {
+        this._resolution = Orbit.Promise.resolve();
       } else {
-        processing = this.processing = new Orbit.Promise((resolve, reject) => {
+        this._resolution = new Orbit.Promise((resolve, reject) => {
           this.one('complete', () => resolve());
 
           this.one('fail', (action, e) => {
@@ -93,28 +106,26 @@ export default class ActionQueue {
       }
     }
 
-    return processing;
+    return this._resolution;
   }
 
   _settleEach() {
-    if (this.actions.length === 0) {
-      this.currentAction = null;
-      this.processing = null;
+    if (this._actions.length === 0) {
+      this._resolution = null;
       this.emit('complete');
     } else {
-      let action = this.currentAction = this.actions[0];
+      let action = this._actions[0];
 
       this.emit('beforeAction', action);
 
       action.process()
         .then(() => {
           this.emit('action', action);
-          this.actions.shift();
+          this._actions.shift();
           this._settleEach();
         })
         .catch((e) => {
-          this.currentAction = null;
-          this.processing = null;
+          this._resolution = null;
           this.emit('fail', action, e);
         });
     }

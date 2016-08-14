@@ -100,10 +100,20 @@ test('it created a promise immediately that won\'t be resolved until process is 
     }
   });
 
-  action.complete
+  action.settle()
     .then(function() {
       assert.ok(true, 'process resolved');
     });
 
   return action.process();
+});
+
+test('Action.from will return an action instance passed into it', function(assert) {
+  let action = new Action({process: function() {}});
+  assert.strictEqual(Action.from(action), action);
+});
+
+test('Action.from will create an action from options passed into it', function(assert) {
+  let action = Action.from({process: function() {}});
+  assert.ok(action instanceof Action);
 });

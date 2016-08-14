@@ -8,17 +8,17 @@ import { Promise } from 'rsvp';
 
 module('Orbit - ActionQueue', {});
 
-test('it exists', function() {
+test('can be instantiated', function() {
   const queue = new ActionQueue(noop);
   ok(queue);
 });
 
-test('it is set to `autoProcess` by default', function() {
+test('#autoProcess is enabled by default', function() {
   const queue = new ActionQueue(noop);
   equal(queue.autoProcess, true, 'autoProcess === true');
 });
 
-test('will auto-process pushed actions sequentially by default', function(assert) {
+test('auto-processes pushed actions sequentially by default', function(assert) {
   assert.expect(13);
   const done = assert.async();
   let order = 0;
@@ -108,9 +108,9 @@ test('with `autoProcess` disabled, will process pushed functions sequentially wh
   const _transform = function(op) {
     transformCount++;
     if (transformCount === 1) {
-      assert.deepEqual(op, op1, 'op1 passed as argument');
+      assert.deepEqual(op, op1, '_transform - op1 passed as argument');
     } else if (transformCount === 2) {
-      assert.deepEqual(op, op2, 'op2 passed as argument');
+      assert.deepEqual(op, op2, '_transform - op2 passed as argument');
     }
   };
 
@@ -133,7 +133,7 @@ test('with `autoProcess` disabled, will process pushed functions sequentially wh
   queue.process();
 });
 
-test('will auto-process pushed async functions sequentially by default', function(assert) {
+test('can enqueue actions while another action is being processed', function(assert) {
   expect(8);
   const done = assert.async();
 
@@ -232,9 +232,9 @@ test('will stop processing when an action errors', function(assert) {
   const _transform = function(op) {
     transformCount++;
     if (transformCount === 1) {
-      assert.deepEqual(op, op1, 'op1 passed as argument');
+      assert.deepEqual(op, op1, '_transform - op1 passed as argument');
     } else if (transformCount === 2) {
-      assert.deepEqual(op, op2, 'op2 passed as argument');
+      assert.ok(false, '_transform should only be called once');
     }
   };
 
@@ -257,5 +257,175 @@ test('will stop processing when an action errors', function(assert) {
   return queue.process()
     .catch(err => {
       assert.equal(err.message, ':(', 'process rejection - error matches expectation');
+    });
+});
+
+test('#shift can remove failed actions from an inactive queue, allowing processing to be restarted', function(assert) {
+  assert.expect(9);
+
+  const queue = new ActionQueue({ autoProcess: false });
+
+  let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
+  let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+  let op3 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+  let transformCount = 0;
+
+  queue.on('action', function(action) {
+    if (transformCount === 1) {
+      assert.deepEqual(action.data, op1, 'action - op1 processed');
+    } else if (transformCount === 2) {
+      assert.deepEqual(action.data, op3, 'action - op3 processed');
+    }
+  });
+
+  queue.on('fail', function(action, err) {
+    assert.deepEqual(action.data, op2, 'fail - op2 failed processing');
+    assert.equal(err.message, ':(', 'fail - error matches expectation');
+  });
+
+  queue.on('complete', function() {
+    assert.ok(true, 'queue should complete after processing has restarted');
+  });
+
+  const _transform = function(op) {
+    transformCount++;
+    if (transformCount === 1) {
+      assert.deepEqual(op, op1, '_transform - op1 passed as argument');
+    } else if (transformCount === 2) {
+      assert.deepEqual(op, op3, '_transform - op3 passed as argument');
+    }
+  };
+
+  queue.push({
+    id: 1,
+    process: function() {
+      _transform.call(this, this.data);
+    },
+    data: op1
+  });
+
+  queue.push({
+    id: 2,
+    process: function() {
+      throw new Error(':(');
+    },
+    data: op2
+  });
+
+  queue.push({
+    id: 3,
+    process: function() {
+      _transform.call(this, this.data);
+    },
+    data: op3
+  });
+
+  return queue.process()
+    .catch(err => {
+      assert.equal(err.message, ':(', 'process rejection - error matches expectation');
+
+      let failedAction = queue.shift();
+      assert.deepEqual(failedAction.data, op2, 'op2, which failed, is returned from `shift`');
+
+      // continue processing
+      return queue.process();
+    });
+});
+
+test('#unshift can add a new action to the beginning of an inactive queue', function(assert) {
+  assert.expect(5);
+  const done = assert.async();
+
+  const queue = new ActionQueue({ autoProcess: false });
+
+  let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
+  let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+  let transformCount = 0;
+
+  queue.on('action', function(action) {
+    if (transformCount === 1) {
+      assert.deepEqual(action.data, op2, 'op2 processed');
+    } else if (transformCount === 2) {
+      assert.deepEqual(action.data, op1, 'op1 processed');
+    }
+  });
+
+  queue.on('complete', function() {
+    assert.ok(true, 'queue completed');
+    done();
+  });
+
+  const _transform = function(op) {
+    transformCount++;
+    if (transformCount === 1) {
+      assert.deepEqual(op, op2, '_transform - op2 passed as argument');
+    } else if (transformCount === 2) {
+      assert.deepEqual(op, op1, '_transform - op1 passed as argument');
+    }
+  };
+
+  queue.push({
+    id: 1,
+    process: function() {
+      _transform.call(this, this.data);
+    },
+    data: op1
+  });
+
+  queue.unshift({
+    id: 2,
+    process: function() {
+      _transform.call(this, this.data);
+    },
+    data: op2
+  });
+
+  queue.process();
+});
+
+test('#clear removes all actions from an inactive queue', function(assert) {
+  assert.expect(1);
+  const done = assert.async();
+
+  const queue = new ActionQueue({ autoProcess: false });
+
+  let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
+  let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+
+  queue.on('action', function() {
+    assert.ok(false, 'no actions should be processed');
+  });
+
+  queue.on('complete', function() {
+    assert.ok(false, 'queue should not complete');
+    done();
+  });
+
+  const _transform = function() {
+    assert.ok(false, '_transform should not be called');
+  };
+
+  queue.push({
+    id: 1,
+    process: function() {
+      _transform.call(this, this.data);
+    },
+    data: op1
+  });
+
+  queue.push({
+    id: 2,
+    process: function() {
+      _transform.call(this, this.data);
+    },
+    data: op2
+  });
+
+  queue.clear();
+
+  queue.process()
+    .then(() => {
+      assert.ok(true, 'queue was cleared so no processing was needed');
+      done();
     });
 });
