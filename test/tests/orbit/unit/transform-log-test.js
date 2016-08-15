@@ -1,5 +1,5 @@
 import TransformLog from 'orbit/transform/log';
-import { TransformNotLoggedException } from 'orbit/lib/exceptions';
+import { TransformNotLoggedException, OutOfRangeException } from 'orbit/lib/exceptions';
 
 module('Orbit - TransformLog', function() {
   const transformAId = 'f8d2c75f-f758-4314-b5c5-ac7fb783ab26';
@@ -48,6 +48,18 @@ module('Orbit - TransformLog', function() {
       assert.throws(() => log.before(transformDId), TransformNotLoggedException);
     });
 
+    test('#before - specifying a -1 relativePosition', function(assert) {
+      assert.deepEqual(log.before(transformCId, -1), [transformAId], 'includes transformIds preceding specified transformId');
+    });
+
+    test('#before - specifying a relativePosition that is too low', function(assert) {
+      assert.throws(() => log.before(transformCId, -3), OutOfRangeException);
+    });
+
+    test('#before - specifying a relativePosition that is too high', function(assert) {
+      assert.throws(() => log.before(transformCId, 1), OutOfRangeException);
+    });
+
     test('#after', function(assert) {
       assert.deepEqual(log.after(transformAId), [transformBId, transformCId], 'includes transformIds following specified transformId');
     });
@@ -56,9 +68,25 @@ module('Orbit - TransformLog', function() {
       assert.throws(() => log.after(transformDId), TransformNotLoggedException);
     });
 
+    test('#after - specifying a +1 relativePosition', function(assert) {
+      assert.deepEqual(log.after(transformAId, 1), [transformCId], 'includes transformIds following specified transformId');
+    });
+
+    test('#after - specifying a -1 relativePosition', function(assert) {
+      assert.deepEqual(log.after(transformAId, -1), [transformAId, transformBId, transformCId], 'includes transformIds following specified transformId');
+    });
+
     test('#after - head', function(assert) {
       log.after(log.head());
       assert.deepEqual(log.after(log.head()), [], 'is empty');
+    });
+
+    test('#after - specifying a relativePosition that is too low', function(assert) {
+      assert.throws(() => log.after(transformAId, -2), OutOfRangeException);
+    });
+
+    test('#after - specifying a relativePosition that is too high', function(assert) {
+      assert.throws(() => log.after(transformCId, 1), OutOfRangeException);
     });
 
     test('#truncate', function(assert) {
@@ -71,8 +99,21 @@ module('Orbit - TransformLog', function() {
       assert.deepEqual(log.entries(), [transformCId], 'only head entry remains in log');
     });
 
+    test('#truncate - just past head clears the log', function(assert) {
+      log.truncate(transformCId, +1);
+      assert.deepEqual(log.entries(), [], 'clears log');
+    });
+
     test('#truncate - to transformId that hasn\'t been logged', function(assert) {
       assert.throws(() => log.truncate(transformDId), TransformNotLoggedException);
+    });
+
+    test('#truncate - specifying a relativePosition that is too low', function(assert) {
+      assert.throws(() => log.truncate(transformAId, -1), OutOfRangeException);
+    });
+
+    test('#truncate - specifying a relativePosition that is too high', function(assert) {
+      assert.throws(() => log.truncate(transformCId, +2), OutOfRangeException);
     });
 
     test('#rollback', function(assert) {
@@ -88,6 +129,20 @@ module('Orbit - TransformLog', function() {
     test('#rollback - to transformId that hasn\'t been logged', function(assert) {
       assert.throws(() => log.rollback(transformDId), TransformNotLoggedException);
     });
+
+    test('#rollback - to just before first', function(assert) {
+      log.rollback(transformAId, -1);
+      assert.deepEqual(log.entries(), [], 'removes all entries');
+    });
+
+    test('#rollback - specifying a relativePosition that is too low', function(assert) {
+      assert.throws(() => log.rollback(transformAId, -2), OutOfRangeException);
+    });
+
+    test('#rollback - specifying a relativePosition that is too high', function(assert) {
+      assert.throws(() => log.rollback(transformCId, +1), OutOfRangeException);
+    });
+
 
     test('#head', function(assert) {
       assert.equal(log.head(), transformCId, 'is last transformId');
