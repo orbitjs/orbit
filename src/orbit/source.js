@@ -1,6 +1,7 @@
 import Orbit from './main';
 import Evented from './evented';
 import TransformLog from './transform/log';
+import ActionQueue from './action-queue';
 
 /**
  Base class for sources.
@@ -15,6 +16,8 @@ export default class Source {
   constructor(options = {}) {
     this.name = options.name;
     this.transformLog = new TransformLog();
+    this.requestQueue = new ActionQueue();
+    this.syncQueue = new ActionQueue();
   }
 
   /**
@@ -70,6 +73,25 @@ export default class Source {
       }, Orbit.Promise.resolve())
       .then(() => transforms);
   }
+
+  _enqueueRequest(method, ...args) {
+    return enqueueAction(this, this.requestQueue, method, ...args);
+  }
+
+  _enqueueSync(method, ...args) {
+    return enqueueAction(this, this.syncQueue, method, ...args);
+  }
+}
+
+function enqueueAction(source, queue, method, ...args) {
+  const action = queue.push({
+    data: { method, args },
+    process: () => {
+      return source[`__${method}__`].apply(source, args);
+    }
+  });
+
+  return action.settle();
 }
 
 Evented.extend(Source.prototype);

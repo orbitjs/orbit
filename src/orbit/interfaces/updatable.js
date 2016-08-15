@@ -1,8 +1,8 @@
 import Orbit from '../main';
-import Source from '../source';
-import Transform from '../transform';
 import { assert } from '../lib/assert';
 import { extend } from '../lib/objects';
+import Transform from '../transform';
+import Source from '../source';
 
 export default {
   /**
@@ -50,6 +50,14 @@ export default {
     update(transformOrOperations) {
       const transform = Transform.from(transformOrOperations);
 
+      if (this.transformLog.contains(transform.id)) {
+        return Orbit.Promise.resolve([]);
+      }
+
+      return this._enqueueRequest('update', transform);
+    },
+
+    __update__(transform) {
       if (this.transformLog.contains(transform.id)) {
         return Orbit.Promise.resolve([]);
       }

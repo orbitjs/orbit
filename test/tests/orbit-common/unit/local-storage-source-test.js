@@ -59,9 +59,9 @@ test('implements Pullable', function(assert) {
   assert.ok(typeof source.pull === 'function', 'has `pull` method');
 });
 
-test('implements Pickable', function(assert) {
-  assert.ok(source._pickable, 'implements Pickable');
-  assert.ok(typeof source.pick === 'function', 'has `pick` method');
+test('implements Syncable', function(assert) {
+  assert.ok(source._syncable, 'implements Pickable');
+  assert.ok(typeof source.sync === 'function', 'has `sync` method');
 });
 
 test('is assigned a default namespace and delimiter', function(assert) {

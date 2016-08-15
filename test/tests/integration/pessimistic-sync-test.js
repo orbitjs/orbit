@@ -1,7 +1,4 @@
 import Orbit from 'orbit/main';
-import Coordinator from 'orbit-common/coordinator';
-import SyncStrategy from 'orbit-common/strategies/sync-strategy';
-import RequestStrategy from 'orbit-common/strategies/request-strategy';
 import Store from 'orbit-common/store';
 import JsonApiSource from 'orbit-common/jsonapi-source';
 import LocalStorageSource from 'orbit-common/local-storage-source';
@@ -27,70 +24,34 @@ import {
 
 let fetchStub;
 
-module('Integration - Coordinator', function(hooks) {
+module('Integration - Pessimistic Sync', function(hooks) {
   let store;
-  let localStorage;
-  let jsonApiSource;
-  let coordinator;
-  let updateRequestStrategy;
-  let queryRequestStrategy;
-  let localBackupStrategy;
+  let backup;
+  let remote;
 
   hooks.beforeEach(function() {
     fetchStub = sinon.stub(Orbit, 'fetch');
 
     let keyMap = new KeyMap();
-    coordinator = new Coordinator();
-    jsonApiSource = new JsonApiSource({ schema: planetsSchema, keyMap: new KeyMap() });
+    remote = new JsonApiSource({ schema: planetsSchema, keyMap: new KeyMap() });
     store = new Store({ schema: planetsSchema, keyMap });
-    localStorage = new LocalStorageSource({ schema: planetsSchema, keyMap });
+    backup = new LocalStorageSource({ schema: planetsSchema, keyMap });
 
-    coordinator.addNode('master', {
-      sources: [store]
-    });
+    store.on('beforeUpdate',
+      transform => remote.push(transform)
+                         .then(result => store.sync(result)));
 
-    coordinator.addNode('backup', {
-      sources: [localStorage]
-    });
+    store.on('beforeQuery',
+      query => remote.pull(query)
+                     .then(result => store.sync(result)));
 
-    coordinator.addNode('upstream', {
-      sources: [jsonApiSource]
-    });
-
-    updateRequestStrategy = new RequestStrategy({
-      coordinator,
-      sourceNode: 'master',
-      targetNode: 'upstream',
-      sourceEvent: 'beforeUpdate',
-      targetRequest: 'push',
-      blocking: true,
-      syncResults: true
-    });
-
-    queryRequestStrategy = new RequestStrategy({
-      coordinator,
-      sourceNode: 'master',
-      targetNode: 'upstream',
-      sourceEvent: 'beforeQuery',
-      targetRequest: 'pull',
-      blocking: true,
-      syncResults: true
-    });
-
-    localBackupStrategy = new SyncStrategy({
-      coordinator,
-      sourceNode: 'master',
-      targetNode: 'backup',
-      blocking: false
-    });
+    store.on('transform', transform => backup.sync(transform));
   });
 
   hooks.afterEach(function() {
-    updateRequestStrategy.deactivate();
-    queryRequestStrategy.deactivate();
-    localBackupStrategy.deactivate();
+    backup.reset();
 
-    localStorage.reset();
+    store = backup = remote = null;
 
     fetchStub.restore();
   });
@@ -113,7 +74,7 @@ module('Integration - Coordinator', function(hooks) {
 
         assert.equal(store.cache.get(['planet', record.id, 'attributes', 'name']), 'Pluto', 'record matches');
 
-        verifyLocalStorageContainsRecord(localStorage, record);
+        verifyLocalStorageContainsRecord(backup, record);
       });
   });
 
@@ -145,7 +106,7 @@ module('Integration - Coordinator', function(hooks) {
         assert.equal(error.response.status, 422, 'error status matches');
         assert.deepEqual(error.data, errors, 'error data matches');
 
-        verifyLocalStorageDoesNotContainRecord(localStorage, record);
+        verifyLocalStorageDoesNotContainRecord(backup, record);
       });
   });
 
@@ -170,7 +131,7 @@ module('Integration - Coordinator', function(hooks) {
 
         assert.equal(store.cache.get(['planet', 'pluto', 'attributes', 'name']), 'Pluto2', 'record matches');
 
-        verifyLocalStorageContainsRecord(localStorage, pluto2);
+        verifyLocalStorageContainsRecord(backup, pluto2);
       });
   });
 
@@ -192,7 +153,7 @@ module('Integration - Coordinator', function(hooks) {
 
         assert.notOk(store.cache.has(['planet', 'pluto']), 'cache updated');
 
-        verifyLocalStorageDoesNotContainRecord(localStorage, pluto);
+        verifyLocalStorageDoesNotContainRecord(backup, pluto);
       });
   });
 

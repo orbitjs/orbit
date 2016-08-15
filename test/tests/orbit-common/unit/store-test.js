@@ -155,9 +155,9 @@ module('OC - Store', function(hooks) {
     const addRecordCTransform = new Transform(addRecord(recordC));
 
     return all([
-      store.pick(addRecordATransform),
-      store.pick(addRecordBTransform),
-      store.pick(addRecordCTransform)
+      store.sync(addRecordATransform),
+      store.sync(addRecordBTransform),
+      store.sync(addRecordCTransform)
     ])
       .then(() => {
         assert.deepEqual(
@@ -181,9 +181,9 @@ module('OC - Store', function(hooks) {
     const addRecordCTransform = new Transform(addRecord(recordC));
 
     return all([
-      store.pick(addRecordATransform),
-      store.pick(addRecordBTransform),
-      store.pick(addRecordCTransform)
+      store.sync(addRecordATransform),
+      store.sync(addRecordBTransform),
+      store.sync(addRecordCTransform)
     ])
       .then(() => {
         assert.deepEqual(
@@ -208,9 +208,9 @@ module('OC - Store', function(hooks) {
     const addRecordCTransform = new Transform(addRecord(recordC));
 
     return all([
-      store.pick(addRecordATransform),
-      store.pick(addRecordBTransform),
-      store.pick(addRecordCTransform)
+      store.sync(addRecordATransform),
+      store.sync(addRecordBTransform),
+      store.sync(addRecordCTransform)
     ])
       .then(() => {
         store.truncateHistory(addRecordBTransform.id);
@@ -236,9 +236,9 @@ module('OC - Store', function(hooks) {
     const addRecordCTransform = new Transform(addRecord(recordC));
 
     return all([
-      store.pick(addRecordATransform),
-      store.pick(addRecordBTransform),
-      store.pick(addRecordCTransform)
+      store.sync(addRecordATransform),
+      store.sync(addRecordBTransform),
+      store.sync(addRecordCTransform)
     ])
       .then(() => {
         store.clearHistory();
@@ -293,10 +293,10 @@ module('OC - Store', function(hooks) {
     const addRecordCTransform = Transform.from(addRecord(recordC));
 
     return all([
-      store.pick(addRecordATransform),
-      store.pick(addRecordBTransform),
-      store.pick(addRecordCTransform),
-      store.pick(Transform.from([
+      store.sync(addRecordATransform),
+      store.sync(addRecordBTransform),
+      store.sync(addRecordCTransform),
+      store.sync(Transform.from([
         addRecord(recordD),
         addRecord(recordE)
       ]))

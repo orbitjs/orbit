@@ -1,7 +1,7 @@
 import Orbit from '../main';
-import Source from '../source';
 import { assert } from '../lib/assert';
 import { extend } from '../lib/objects';
+import Source from '../source';
 
 export default {
   /**
@@ -49,6 +49,14 @@ export default {
     _pushable: true,
 
     push(transform) {
+      if (this.transformLog.contains(transform.id)) {
+        return Orbit.Promise.resolve([]);
+      }
+
+      return this._enqueueRequest('push', transform);
+    },
+
+    __push__(transform) {
       if (this.transformLog.contains(transform.id)) {
         return Orbit.Promise.resolve([]);
       }
