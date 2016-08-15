@@ -33,7 +33,7 @@
   "devDependencies": {
     "babel-eslint": "^6.0.4",
     "broccoli": "^0.16.0",
-    "broccoli-babel-transpiler": "^5.4.5",
+    "broccoli-babel-transpiler": "^5.5.0",
     "broccoli-cli": "0.0.1",
     "broccoli-es6modules": "^0.4.0",
     "broccoli-funnel": "^1.0.1",
