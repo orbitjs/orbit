@@ -15,7 +15,7 @@ export function jsonapiResponse(_options, _body) {
   options.headers['Content-Type'] = 'application/vnd.api+json';
   const response = new window.Response(body, options);
 
-  console.log(body, options);
+  // console.log(body, options);
 
   return Promise.resolve(response);
 }
