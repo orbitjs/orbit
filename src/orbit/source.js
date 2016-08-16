@@ -26,10 +26,11 @@ export default class Source {
 
    @method truncateHistory
    @param {string} transformId - The ID of the transform to truncate history to.
+   @param {number} relativePosition - An integer position relative to the specified transform.
    @returns {undefined}
   */
-  truncateHistory(transformId) {
-    this.transformLog.truncate(transformId);
+  truncateHistory(transformId, relativePosition = 0) {
+    this.transformLog.truncate(transformId, relativePosition);
   }
 
   /**
