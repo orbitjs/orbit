@@ -18,6 +18,10 @@ import {
   // replaceHasOne
 } from 'orbit-common/transform/operators';
 import {
+  ClientError,
+  NetworkError
+} from 'orbit-common/lib/exceptions';
+import {
   jsonapiResponse
 } from 'tests/test-helper';
 
@@ -38,12 +42,22 @@ module('Integration - Optimistic Sync', function(hooks) {
       transform => {
         remote.push(transform)
           .catch(e => {
-            if (e.response && e.response.status >= 400 && e.response.status < 500) {
-              remote.requestQueue.clear();
+            if (e instanceof ClientError) {
               store.rollback(transform.id, -1);
+              remote.requestQueue.clear();
+            } else {
+              throw e;
             }
           });
       });
+
+    remote.on('pushFail', (transform, e) => {
+      if (e instanceof NetworkError) {
+        // When network errors are encountered, try again in 1ms
+        // (don't actually do this - use a progressively incrementing timeout instead)
+        setTimeout(() => remote.requestQueue.retry(), 1);
+      }
+    });
 
     remote.on('transform',
       transform => {
@@ -85,7 +99,7 @@ module('Integration - Optimistic Sync', function(hooks) {
       });
   });
 
-  test('#update - add a single record unsuccessfully - abort', function(assert) {
+  test('#update - add a single record unsuccessfully - rolls back a client error', function(assert) {
     const done = assert.async();
 
     assert.expect(4);
@@ -94,7 +108,7 @@ module('Integration - Optimistic Sync', function(hooks) {
 
     assert.equal(remote.requestQueue.length, 0, 'request queue is empty');
 
-    remote.requestQueue.one('fail', (/* action, e */) => {
+    remote.requestQueue.one('complete', () => {
       assert.equal(store.cache.get(['planet', pluto.id]), undefined, 'planet has been removed from the store');
       done();
     });
@@ -119,6 +133,43 @@ module('Integration - Optimistic Sync', function(hooks) {
         assert.equal(store.cache.get(['planet', pluto.id, 'attributes', 'name']), 'Pluto', 'planet exists in store');
 
         assert.equal(remote.requestQueue.length, 1, 'request is queued for jsonapi source');
+      });
+  });
+
+  test('#update - add a single record - encounters a network error', function(assert) {
+    const done = assert.async();
+
+    assert.expect(5);
+
+    const pluto = { type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } };
+
+    assert.equal(remote.requestQueue.length, 0, 'request queue is empty');
+
+    remote.one('pushFail', (transform, e) => {
+      assert.ok(e instanceof NetworkError, 'NetworkError encountered.');
+
+      // network goes back up
+      fetchStub
+        .withArgs('/planets')
+        .returns(jsonapiResponse(201, {
+          data: { type: 'planets', id: '12345', attributes: { name: 'Pluto', classification: 'ice' } }
+        }));
+    });
+
+    remote.requestQueue.one('complete', () => {
+      assert.equal(remote.requestQueue.length, 0, 'request has been processed by jsonapi source');
+      done();
+    });
+
+    fetchStub
+      .withArgs('/planets')
+      .returns(Orbit.Promise.reject(new Error('Connection failed.')));
+
+    store.update(addRecord(pluto))
+      .then(() => {
+        assert.equal(remote.requestQueue.length, 1, 'request is queued for jsonapi source');
+
+        assert.equal(store.cache.get(['planet', pluto.id, 'attributes', 'name']), 'Pluto', 'planet exists in store');
       });
   });
 

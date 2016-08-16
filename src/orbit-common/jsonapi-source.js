@@ -10,8 +10,7 @@ import JSONAPISerializer from './jsonapi/serializer';
 import { getQueryRequests, QueryRequestProcessors } from './jsonapi/queries';
 import { getTransformRequests, TransformRequestProcessors } from './jsonapi/transform-requests';
 import { encodeQueryParams } from './jsonapi/query-params';
-import { QueryNotAllowed, TransformNotAllowed } from './lib/exceptions';
-import { Exception } from 'orbit/lib/exceptions';
+import { QueryNotAllowed, TransformNotAllowed, ClientError, ServerError, NetworkError } from './lib/exceptions';
 
 if (typeof fetch !== 'undefined' && Orbit.fetch === undefined) {
   Orbit.fetch = fetch;
@@ -137,24 +136,33 @@ export default class JSONAPISource extends Source {
     }
 
     return Orbit.fetch(url, settings)
-      .then(response => this.checkFetchStatus(response))
-      .then(response => response.json());
+      .catch(e => this.handleFetchError(e))
+      .then(response => this.handleFetchResponse(response));
   }
 
-  checkFetchStatus(response) {
+  handleFetchResponse(response) {
     if (response.status >= 200 && response.status < 300) {
-      return response;
+      return response.json();
     } else {
       return response.json()
-        .then(data => this.throwFetchException(response, data));
+        .then(data => this.handleFetchResponseError(response, data));
     }
   }
 
-  throwFetchException(response, data) {
-    let error = new Exception(response.statusText);
+  handleFetchResponseError(response, data) {
+    let error;
+    if (response.status >= 400 && response.status < 500) {
+      error = new ClientError(response.statusText);
+    } else {
+      error = new ServerError(response.statusText);
+    }
     error.response = response;
     error.data = data;
     throw error;
+  }
+
+  handleFetchError(e) {
+    throw new NetworkError(e);
   }
 
   resourceNamespace(/* type */) {
