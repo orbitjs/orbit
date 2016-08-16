@@ -16,11 +16,8 @@ import { uuid } from './lib/uuid';
  @constructor
  */
 export default class Transform {
-  constructor(ops, _options) {
+  constructor(ops, options = {}) {
     this.operations = toArray(ops);
-
-    let options = _options || {};
-
     this.id = options.id || uuid();
   }
 
