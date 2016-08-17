@@ -1,15 +1,15 @@
 import Orbit from 'orbit/main';
 import { assert } from 'orbit/lib/assert';
 import { extend as assign } from 'orbit/lib/objects';
-import Source from './source';
 import Syncable from 'orbit/interfaces/syncable';
 import Queryable from 'orbit/interfaces/queryable';
 import Updatable from 'orbit/interfaces/updatable';
-import Cache from './cache';
 import {
   coalesceTransforms,
   reduceTransforms
-} from './lib/transforms';
+} from 'orbit-common/lib/transforms';
+import Source from 'orbit-common/source';
+import Cache from './cache';
 
 export default class Store extends Source {
   constructor({ schema, keyMap, cacheOptions, name } = {}) {

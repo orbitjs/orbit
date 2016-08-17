@@ -1,7 +1,4 @@
-import Orbit from 'orbit/main';
-import Store from 'orbit-common/store';
-import JSONAPISource from 'orbit-jsonapi/jsonapi-source';
-import LocalStorageSource from 'orbit-local-storage/local-storage-source';
+import Orbit from 'orbit';
 import qb from 'orbit-common/query/builder';
 import KeyMap from 'orbit-common/key-map';
 import {
@@ -15,6 +12,9 @@ import {
   replaceHasMany,
   replaceHasOne
 } from 'orbit-common/transform/operators';
+import Store from 'orbit-store/store';
+import JSONAPISource from 'orbit-jsonapi/jsonapi-source';
+import LocalStorageSource from 'orbit-local-storage/local-storage-source';
 import {
   verifyLocalStorageContainsRecord,
   verifyLocalStorageDoesNotContainRecord,

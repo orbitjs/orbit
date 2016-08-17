@@ -6,7 +6,6 @@ import 'rxjs/add/operator/concatAll';
 import 'orbit-common/rxjs/add/operator/matching';
 import CacheObservable from './cache-observable';
 
-
 export default class RecordObservable extends Observable {
   constructor(subscribe, cache) {
     super(subscribe);

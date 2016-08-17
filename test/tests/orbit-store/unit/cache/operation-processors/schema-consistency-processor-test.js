@@ -1,8 +1,8 @@
 import Schema from 'orbit-common/schema';
-import SchemaConsistencyProcessor from 'orbit-common/cache/operation-processors/schema-consistency-processor';
-import Cache from 'orbit-common/cache';
 import KeyMap from 'orbit-common/key-map';
 import { identity } from 'orbit-common/lib/identifiers';
+import Cache from 'orbit-store/cache';
+import SchemaConsistencyProcessor from 'orbit-store/cache/operation-processors/schema-consistency-processor';
 
 let schema, cache, processor;
 

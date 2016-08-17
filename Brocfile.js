@@ -25,6 +25,11 @@ var packages = [
               'orbit-common/**/*.js']
   },
   {
+    name: 'orbit-store',
+    include: ['orbit-store.js',
+              'orbit-store/**/*.js']
+  },
+  {
     name: 'orbit-local-storage',
     include: ['orbit-local-storage.js',
               'orbit-local-storage/**/*.js']

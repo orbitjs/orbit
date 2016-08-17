@@ -1,15 +1,15 @@
+import Transform from 'orbit/transform';
 import Source from 'orbit-common/source';
 import Schema from 'orbit-common/schema';
 import KeyMap from 'orbit-common/key-map';
-import Store from 'orbit-common/store';
 import qb from 'orbit-common/query/builder';
-import CacheIntegrityProcessor from 'orbit-common/cache/operation-processors/cache-integrity-processor';
-import SchemaConsistencyProcessor from 'orbit-common/cache/operation-processors/schema-consistency-processor';
 import {
   addRecord
 } from 'orbit-common/transform/operators';
-import Transform from 'orbit/transform';
 import { identity } from 'orbit-common/lib/identifiers';
+import Store from 'orbit-store/store';
+import CacheIntegrityProcessor from 'orbit-store/cache/operation-processors/cache-integrity-processor';
+import SchemaConsistencyProcessor from 'orbit-store/cache/operation-processors/schema-consistency-processor';
 import { all } from 'rsvp';
 
 const schemaDefinition = {

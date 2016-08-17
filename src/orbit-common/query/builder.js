@@ -1,5 +1,5 @@
-import { Records, Record, RelatedRecord, RelatedRecords } from 'orbit-common/query/terms';
 import { queryExpression as oqe } from 'orbit/query/expression';
+import { Records, Record, RelatedRecord, RelatedRecords } from './terms';
 
 export default {
   records(type) {

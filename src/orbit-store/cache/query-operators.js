@@ -1,6 +1,6 @@
 import { merge } from 'orbit/lib/objects';
-import { RecordNotFoundException } from '../lib/exceptions';
 import { every, some } from 'orbit/lib/arrays';
+import { RecordNotFoundException } from 'orbit-common/lib/exceptions';
 
 const EMPTY = () => {};
 

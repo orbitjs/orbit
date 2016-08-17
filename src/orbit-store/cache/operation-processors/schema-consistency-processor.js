@@ -1,6 +1,6 @@
 import { isObject } from 'orbit/lib/objects';
+import { identity, toIdentifier, parseIdentifier, eqIdentity } from 'orbit-common/lib/identifiers';
 import OperationProcessor from './operation-processor';
-import { identity, toIdentifier, parseIdentifier, eqIdentity } from './../../lib/identifiers';
 
 /**
  An operation processor that ensures that a cache's data is consistent with

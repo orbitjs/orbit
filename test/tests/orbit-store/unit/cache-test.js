@@ -1,4 +1,3 @@
-import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
 import KeyMap from 'orbit-common/key-map';
 import { queryExpression as oqe } from 'orbit/query/expression';
@@ -17,6 +16,7 @@ import {
   // replaceHasMany,
   replaceHasOne
 } from 'orbit-common/transform/operators';
+import Cache from 'orbit-store/cache';
 
 let schema, keyMap;
 

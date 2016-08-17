@@ -1,11 +1,7 @@
 import Orbit from 'orbit';
-import { planetsSchema } from 'tests/test-helper';
-import Store from 'orbit-common/store';
-import JSONAPISource from 'orbit-jsonapi/jsonapi-source';
 // import { eq } from 'orbit/lib/eq';
 // import qb from 'orbit-common/query/builder';
 import KeyMap from 'orbit-common/key-map';
-import { all } from 'rsvp';
 import {
   addRecord
   // replaceRecord,
@@ -21,9 +17,13 @@ import {
   ClientError,
   NetworkError
 } from 'orbit-common/lib/exceptions';
+import Store from 'orbit-store/store';
+import JSONAPISource from 'orbit-jsonapi/jsonapi-source';
 import {
   jsonapiResponse
 } from 'tests/test-helper';
+import { planetsSchema } from 'tests/test-helper';
+import { all } from 'rsvp';
 
 let fetchStub;
 

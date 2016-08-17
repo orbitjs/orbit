@@ -1,11 +1,11 @@
-import 'tests/test-helper';
 import Schema from 'orbit-common/schema';
-import DeletionTrackingProcessor from 'orbit-common/cache/operation-processors/deletion-tracking-processor';
-import Cache from 'orbit-common/cache';
 import KeyMap from 'orbit-common/key-map';
 import {
   removeRecord
 } from 'orbit-common/transform/operators';
+import DeletionTrackingProcessor from 'orbit-store/cache/operation-processors/deletion-tracking-processor';
+import Cache from 'orbit-store/cache';
+import 'tests/test-helper';
 
 let schema, cache;
 

@@ -4,17 +4,17 @@
 import Evented from 'orbit/evented';
 import { isArray, isObject } from 'orbit/lib/objects';
 import { eq } from 'orbit/lib/eq';
-import CacheIntegrityProcessor from './cache/operation-processors/cache-integrity-processor';
-import SchemaConsistencyProcessor from './cache/operation-processors/schema-consistency-processor';
 import Query from 'orbit/query';
 import QueryEvaluator from 'orbit/query/evaluator';
+import 'orbit-common/rxjs/add/observable/from-orbit-event';
+import { Observable } from 'rxjs/Observable';
+import CacheObservable from './cache/observables/cache-observable';
+import CacheIntegrityProcessor from './cache/operation-processors/cache-integrity-processor';
+import SchemaConsistencyProcessor from './cache/operation-processors/schema-consistency-processor';
 import QueryOperators from './cache/query-operators';
 import PatchTransforms from './cache/patch-transforms';
 import InverseTransforms from './cache/inverse-transforms';
 import LiveQueryOperators from './cache/live-query-operators';
-import { Observable } from 'rxjs/Observable';
-import CacheObservable from 'orbit-common/cache/observables/cache-observable';
-import 'orbit-common/rxjs/add/observable/from-orbit-event';
 
 /**
  `Cache` provides a thin wrapper over an internally maintained instance of a

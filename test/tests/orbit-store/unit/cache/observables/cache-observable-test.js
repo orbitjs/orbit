@@ -1,12 +1,5 @@
-import Cache from 'orbit-common/cache';
 import Schema from 'orbit-common/schema';
 import KeyMap from 'orbit-common/key-map';
-import CacheObservable from 'orbit-common/cache/observables/cache-observable';
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/observable/from';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/take';
-import 'rxjs/add/operator/toArray';
 import {
   addRecord,
   // replaceRecord,
@@ -18,6 +11,13 @@ import {
   // replaceHasMany,
   replaceHasOne
 } from 'orbit-common/transform/operators';
+import Cache from 'orbit-store/cache';
+import CacheObservable from 'orbit-store/cache/observables/cache-observable';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/observable/from';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/take';
+import 'rxjs/add/operator/toArray';
 
 const planetsSchema = new Schema({
   models: {
