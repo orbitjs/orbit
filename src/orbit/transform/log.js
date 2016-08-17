@@ -1,4 +1,4 @@
-import { TransformNotLoggedException } from 'orbit/lib/exceptions';
+import { TransformNotLoggedException, OutOfRangeException } from 'orbit/lib/exceptions';
 
 export default class TransformLog {
   constructor() {
@@ -21,24 +21,40 @@ export default class TransformLog {
     return this._log.length;
   }
 
-  before(transformId) {
+  before(transformId, relativePosition = 0) {
     const index = this._indexOf(transformId);
-    return this._log.slice(0, index);
+    const position = index + relativePosition;
+    if (position < 0 || position >= this._log.length) { this._throwOutOfRange(position); }
+
+    return this._log.slice(0, position);
   }
 
-  after(transformId) {
+  after(transformId, relativePosition = 0) {
     const index = this._indexOf(transformId);
-    return this._log.slice(index + 1);
+    const position = index + 1 + relativePosition;
+    if (position < 0 || position > this._log.length) { this._throwOutOfRange(position); }
+
+    return this._log.slice(position);
   }
 
-  truncate(transformId) {
+  truncate(transformId, relativePosition = 0) {
     const index = this._indexOf(transformId);
-    this._log = this._log.slice(index);
+    const position = index + relativePosition;
+    if (position < 0 || position > this._log.length) { this._throwOutOfRange(position); }
+
+    if (position === this._log.length) {
+      this.clear();
+    } else {
+      this._log = this._log.slice(position);
+    }
   }
 
-  rollback(transformId) {
+  rollback(transformId, relativePosition = 0) {
     const index = this._indexOf(transformId);
-    this._log.length = index + 1;
+    const position = index + 1 + relativePosition;
+    if (position < 0 || position > this._log.length) { this._throwOutOfRange(position); }
+
+    this._log.length = position;
   }
 
   clear() {
@@ -60,5 +76,9 @@ export default class TransformLog {
 
   _throwTransformNotLogged(transformId) {
     throw new TransformNotLoggedException(transformId);
+  }
+
+  _throwOutOfRange(position) {
+    throw new OutOfRangeException(position);
   }
 }

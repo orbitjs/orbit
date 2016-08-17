@@ -1,0 +1,15 @@
+build
+build-support
+docs
+node_modules
+test
+tmp
+*.log
+*.DS_Store
+*.editorconfig
+*.eslintrc.js
+*.gitignore
+*.travis.yml
+Brocfile.js
+testem.json
+yuidoc.json

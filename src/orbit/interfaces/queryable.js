@@ -48,7 +48,10 @@ export default {
 
     query(queryOrExpression) {
       const query = Query.from(queryOrExpression, this.queryBuilder);
+      return this._enqueueRequest('query', query);
+    },
 
+    __query__(query) {
       return this.series('beforeQuery', query)
         .then(() => this._query(query))
         .then((result) => {

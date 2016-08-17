@@ -52,66 +52,88 @@ export default class ActionQueue {
 
     options = options || {};
     this.autoProcess = options.autoProcess !== undefined ? options.autoProcess : true;
-
-    this._resolution = null;
     this._actions = [];
+  }
+
+  get length() {
+    return this._actions.length;
+  }
+
+  get current() {
+    return this._actions[0];
+  }
+
+  get processing() {
+    const current = this.current;
+
+    return current !== undefined &&
+           current.started &&
+           !current.settled;
   }
 
   push(_action) {
     let action = Action.from(_action);
-
     this._actions.push(action);
-
     if (this.autoProcess) { this.process(); }
-
     return action;
   }
 
-  clear() {
-    assert('ActionQueue#clear can only be called when the queue is not being processed', !this._resolution);
+  retry() {
+    this._cancel();
+    this.current.reset();
+    return this.process();
+  }
 
+  skip() {
+    this._cancel();
+    this._actions.shift();
+    return this.process();
+  }
+
+  clear() {
+    this._cancel();
     this._actions = [];
+    return this.process();
   }
 
   shift() {
-    assert('ActionQueue#shift can only be called when the queue is not being processed', !this._resolution);
-
+    this._cancel();
     return this._actions.shift();
   }
 
   unshift(_action) {
-    assert('ActionQueue#unshift can only be called when the queue is not being processed', !this._resolution);
-
+    this._cancel();
     let action = Action.from(_action);
-
     this._actions.unshift(action);
-
     return action;
   }
 
   process() {
-    if (!this._resolution) {
+    let resolution = this._resolution;
+
+    if (!resolution) {
       if (this._actions.length === 0) {
-        this._resolution = Orbit.Promise.resolve();
+        resolution = Orbit.Promise.resolve();
+        this.emit('complete');
       } else {
-        this._resolution = new Orbit.Promise((resolve, reject) => {
+        this._resolution = resolution = new Orbit.Promise((resolve, reject) => {
           this.one('complete', () => resolve());
-
-          this.one('fail', (action, e) => {
-            reject(e);
-          });
+          this.one('fail', (action, e) => reject(e));
         });
-
-        this._settleEach();
+        this._settleEach(resolution);
       }
     }
 
-    return this._resolution;
+    return resolution;
   }
 
-  _settleEach() {
+  _cancel() {
+    this._resolution = null;
+  }
+
+  _settleEach(resolution) {
     if (this._actions.length === 0) {
-      this._resolution = null;
+      this._cancel();
       this.emit('complete');
     } else {
       let action = this._actions[0];
@@ -120,13 +142,17 @@ export default class ActionQueue {
 
       action.process()
         .then(() => {
-          this.emit('action', action);
-          this._actions.shift();
-          this._settleEach();
+          if (resolution === this._resolution) {
+            this._actions.shift();
+            this.emit('action', action);
+            this._settleEach(resolution);
+          }
         })
         .catch((e) => {
-          this._resolution = null;
-          this.emit('fail', action, e);
+          if (resolution === this._resolution) {
+            this._cancel();
+            this.emit('fail', action, e);
+          }
         });
     }
   }

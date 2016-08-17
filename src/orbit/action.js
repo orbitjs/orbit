@@ -29,13 +29,31 @@ export default class Action {
     this.id = options.id;
     this.data = options.data;
     this._process = options.process;
+    this.reset();
+  }
+
+  reset() {
     this._started = false;
+    this._settled = false;
     this._resolution = new Orbit.Promise((resolve, reject) => {
-      this._success = resolve;
+      this._success = (r) => {
+        this._settled = true;
+        resolve(r);
+      };
+
       this._fail = (e) => {
+        this._settled = true;
         reject(e);
       };
     });
+  }
+
+  get started() {
+    return this._started;
+  }
+
+  get settled() {
+    return this._settled;
   }
 
   settle() {

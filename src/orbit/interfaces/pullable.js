@@ -48,6 +48,10 @@ export default {
     _pullable: true,
 
     pull(query) {
+      return this._enqueueRequest('pull', query);
+    },
+
+    __pull__(query) {
       return this.series('beforePull', query)
         .then(() => this._pull(query))
         .then(result => this._transformed(result))

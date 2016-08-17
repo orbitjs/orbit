@@ -3,7 +3,7 @@ import Orbit from 'orbit/main';
 import Source from './source';
 import Pullable from 'orbit/interfaces/pullable';
 import Pushable from 'orbit/interfaces/pushable';
-import Pickable from 'orbit/interfaces/pickable';
+import Syncable from 'orbit/interfaces/syncable';
 import { assert } from 'orbit/lib/assert';
 import TransformOperators from './local-storage/transform-operators';
 import { QueryOperators } from './local-storage/queries';
@@ -73,10 +73,10 @@ export default class LocalStorageSource extends Source {
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  // Pickable interface implementation
+  // Syncable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _pick(transform) {
+  _sync(transform) {
     this._applyTransform(transform);
     return Orbit.Promise.resolve();
   }
@@ -113,4 +113,4 @@ export default class LocalStorageSource extends Source {
 
 Pullable.extend(LocalStorageSource.prototype);
 Pushable.extend(LocalStorageSource.prototype);
-Pickable.extend(LocalStorageSource.prototype);
+Syncable.extend(LocalStorageSource.prototype);

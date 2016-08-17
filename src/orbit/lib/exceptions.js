@@ -51,3 +51,11 @@ export class QueryBuilderNotRegisteredException extends Exception {
     this.name = 'Orbit.QueryBuilderNotRegisteredException';
   }
 }
+
+export class OutOfRangeException extends Exception {
+  constructor(value) {
+    super(`Out of range: ${value}`);
+    this.value = value;
+    this.name = 'Orbit.OutOfRangeException';
+  }
+}

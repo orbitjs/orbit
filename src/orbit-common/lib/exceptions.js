@@ -80,6 +80,27 @@ export class RelationshipNotRegisteredException extends Exception {
   }
 }
 
+export class ClientError extends Exception {
+  constructor(description) {
+    super(description);
+    this.name = 'OC.ClientError';
+  }
+}
+
+export class ServerError extends Exception {
+  constructor(description) {
+    super(description);
+    this.name = 'OC.ServerError';
+  }
+}
+
+export class NetworkError extends Exception {
+  constructor(description) {
+    super(description);
+    this.name = 'OC.NetworkError';
+  }
+}
+
 class _RecordException extends Exception {
   constructor(type, record, key) {
     let message = type + '/' + record;
