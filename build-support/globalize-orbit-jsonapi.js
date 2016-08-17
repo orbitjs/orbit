@@ -1,1 +1,1 @@
-window.OrbitJSONAPI = requireModule("orbit-jsonapi");
+self.OrbitJSONAPI = requireModule("orbit-jsonapi");

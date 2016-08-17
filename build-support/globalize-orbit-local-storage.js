@@ -1,1 +1,1 @@
-window.OrbitLocalStorage = requireModule("orbit-local-storage");
+self.OrbitLocalStorage = requireModule("orbit-local-storage");

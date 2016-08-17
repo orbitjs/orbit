@@ -10,7 +10,7 @@ import { QueryOperators } from './lib/queries';
 
 var supportsLocalStorage = function() {
   try {
-    return 'localStorage' in window && window['localStorage'] !== null;
+    return 'localStorage' in self && self['localStorage'] !== null;
   } catch (e) {
     return false;
   }
@@ -45,7 +45,7 @@ export default class LocalStorageSource extends Source {
   getRecord(record) {
     const key = this.getKeyForRecord(record);
 
-    return JSON.parse(window.localStorage.getItem(key));
+    return JSON.parse(self.localStorage.getItem(key));
   }
 
   putRecord(record) {
@@ -53,7 +53,7 @@ export default class LocalStorageSource extends Source {
 
     // console.log('LocalStorageSource#putRecord', key, JSON.stringify(record));
 
-    window.localStorage.setItem(key, JSON.stringify(record));
+    self.localStorage.setItem(key, JSON.stringify(record));
   }
 
   removeRecord(record) {
@@ -61,13 +61,13 @@ export default class LocalStorageSource extends Source {
 
     // console.log('LocalStorageSource#removeRecord', key, JSON.stringify(record));
 
-    window.localStorage.removeItem(key);
+    self.localStorage.removeItem(key);
   }
 
   reset() {
-    for (let key in window.localStorage) {
+    for (let key in self.localStorage) {
       if (key.indexOf(this.namespace) === 0) {
-        window.localStorage.removeItem(key);
+        self.localStorage.removeItem(key);
       }
     }
   }
