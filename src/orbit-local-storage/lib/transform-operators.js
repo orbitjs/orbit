@@ -1,4 +1,4 @@
-import { toIdentifier } from '../lib/identifiers';
+import { toIdentifier } from 'orbit-common/lib/identifiers';
 
 export default {
   addRecord(source, operation) {

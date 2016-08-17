@@ -1,12 +1,12 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from 'orbit/main';
-import Source from './source';
+import Source from 'orbit-common/source';
 import Pullable from 'orbit/interfaces/pullable';
 import Pushable from 'orbit/interfaces/pushable';
 import Syncable from 'orbit/interfaces/syncable';
 import { assert } from 'orbit/lib/assert';
-import TransformOperators from './local-storage/transform-operators';
-import { QueryOperators } from './local-storage/queries';
+import TransformOperators from './lib/transform-operators';
+import { QueryOperators } from './lib/queries';
 
 var supportsLocalStorage = function() {
   try {

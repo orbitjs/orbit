@@ -5,7 +5,7 @@ import {
 } from 'tests/test-helper';
 import Source from 'orbit-common/source';
 import Schema from 'orbit-common/schema';
-import LocalStorageSource from 'orbit-common/local-storage-source';
+import LocalStorageSource from 'orbit-local-storage/local-storage-source';
 import Transform from 'orbit/transform';
 import {
   addRecord,

@@ -1,7 +1,7 @@
 import Orbit from 'orbit/main';
 import Store from 'orbit-common/store';
 import JsonApiSource from 'orbit-common/jsonapi-source';
-import LocalStorageSource from 'orbit-common/local-storage-source';
+import LocalStorageSource from 'orbit-local-storage/local-storage-source';
 import qb from 'orbit-common/query/builder';
 import KeyMap from 'orbit-common/key-map';
 import {
