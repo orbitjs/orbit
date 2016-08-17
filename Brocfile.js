@@ -16,29 +16,23 @@ var version = gitVersion().replace(/^v/, '');
 var packages = [
   {
     name: 'orbit',
-    include: [/orbit.js/,
-              /(orbit\/.+.js)/],
-    exclude: [/orbit-common.js/,
-              /(orbit\-common\/.+.js)/,
-              /orbit-local-storage.js/,
-              /(orbit-local-storage\/.+.js)/,
-              /orbit-jsonapi.js/,
-              /(orbit-jsonapi\/.+.js)/]
+    include: ['orbit.js',
+              'orbit/**/*.js']
   },
   {
     name: 'orbit-common',
-    include: [/orbit-common.js/,
-              /(orbit\-common\/.+.js)/]
+    include: ['orbit-common.js',
+              'orbit-common/**/*.js']
   },
   {
     name: 'orbit-local-storage',
-    include: [/orbit-local-storage.js/,
-              /(orbit-local-storage\/.+.js)/]
+    include: ['orbit-local-storage.js',
+              'orbit-local-storage/**/*.js']
   },
   {
     name: 'orbit-jsonapi',
-    include: [/orbit-jsonapi.js/,
-              /(orbit-jsonapi\/.+.js)/]
+    include: ['orbit-jsonapi.js',
+              'orbit-jsonapi/**/*.js']
   }
 ];
 
