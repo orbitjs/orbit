@@ -3,7 +3,7 @@ import Source from 'orbit-common/source';
 import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
 import KeyMap from 'orbit-common/key-map';
-import JSONAPISource from 'orbit-common/jsonapi-source';
+import JSONAPISource from 'orbit-jsonapi/jsonapi-source';
 import Transform from 'orbit/transform';
 import qb from 'orbit-common/query/builder';
 import { TransformNotAllowed } from 'orbit-common/lib/exceptions';

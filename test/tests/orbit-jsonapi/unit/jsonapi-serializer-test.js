@@ -1,10 +1,10 @@
-import 'tests/test-helper';
+import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
 import Serializer from 'orbit-common/serializer';
 import KeyMap from 'orbit-common/key-map';
-import JSONAPISerializer from 'orbit-common/jsonapi/serializer';
 import { toIdentifier } from 'orbit-common/lib/identifiers';
-import { uuid } from 'orbit/lib/uuid';
+import JSONAPISerializer from 'orbit-jsonapi/jsonapi-serializer';
+import 'tests/test-helper';
 
 let keyMap;
 

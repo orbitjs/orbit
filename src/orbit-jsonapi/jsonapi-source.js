@@ -4,13 +4,13 @@ import Orbit from 'orbit/main';
 import { assert } from 'orbit/lib/assert';
 import Pullable from 'orbit/interfaces/pullable';
 import Pushable from 'orbit/interfaces/pushable';
-import Source from './source';
-import Serializer from './serializer';
-import JSONAPISerializer from './jsonapi/serializer';
-import { getQueryRequests, QueryRequestProcessors } from './jsonapi/queries';
-import { getTransformRequests, TransformRequestProcessors } from './jsonapi/transform-requests';
-import { encodeQueryParams } from './jsonapi/query-params';
-import { QueryNotAllowed, TransformNotAllowed, ClientError, ServerError, NetworkError } from './lib/exceptions';
+import Source from 'orbit-common/source';
+import Serializer from 'orbit-common/serializer';
+import { QueryNotAllowed, TransformNotAllowed, ClientError, ServerError, NetworkError } from 'orbit-common/lib/exceptions';
+import JSONAPISerializer from './jsonapi-serializer';
+import { encodeQueryParams } from './lib/query-params';
+import { getQueryRequests, QueryRequestProcessors } from './lib/queries';
+import { getTransformRequests, TransformRequestProcessors } from './lib/transform-requests';
 
 if (typeof fetch !== 'undefined' && Orbit.fetch === undefined) {
   Orbit.fetch = fetch;

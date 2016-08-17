@@ -1,4 +1,4 @@
-import { encodeQueryParams } from 'orbit-common/jsonapi/query-params';
+import { encodeQueryParams } from 'orbit-jsonapi/lib/query-params';
 
 module('OC - JSONAPI - QueryParams', function() {
   module('encodeQueryParams', function() {

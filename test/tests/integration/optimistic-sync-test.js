@@ -1,7 +1,7 @@
 import Orbit from 'orbit';
 import { planetsSchema } from 'tests/test-helper';
 import Store from 'orbit-common/store';
-import JsonApiSource from 'orbit-common/jsonapi-source';
+import JSONAPISource from 'orbit-jsonapi/jsonapi-source';
 // import { eq } from 'orbit/lib/eq';
 // import qb from 'orbit-common/query/builder';
 import KeyMap from 'orbit-common/key-map';
@@ -35,7 +35,7 @@ module('Integration - Optimistic Sync', function(hooks) {
     fetchStub = sinon.stub(Orbit, 'fetch');
 
     let keyMap = new KeyMap();
-    remote = new JsonApiSource({ schema: planetsSchema, keyMap: new KeyMap() });
+    remote = new JSONAPISource({ schema: planetsSchema, keyMap: new KeyMap() });
     store = new Store({ schema: planetsSchema, keyMap });
 
     store.on('update',

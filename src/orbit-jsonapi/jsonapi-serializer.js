@@ -1,7 +1,7 @@
-import Serializer from '../serializer';
 import { isArray, isObject } from 'orbit/lib/objects';
 import { dasherize, camelize } from 'orbit/lib/strings';
-import { parseIdentifier, toIdentifier } from '../lib/identifiers';
+import Serializer from 'orbit-common/serializer';
+import { parseIdentifier, toIdentifier } from 'orbit-common/lib/identifiers';
 
 export default class JSONAPISerializer extends Serializer {
   resourceKey(/* type */) {
