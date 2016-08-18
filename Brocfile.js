@@ -47,11 +47,11 @@ var loader = new Funnel('node_modules', {
   destDir: '/assets/'
 });
 
-var globalizedLoader = new Funnel('build-support', {
-  srcDir: '/',
-  files: ['globalized-loader.js'],
-  destDir: '/assets/'
-});
+// var globalizedLoader = new Funnel('build-support', {
+//   srcDir: '/',
+//   files: ['globalized-loader.js'],
+//   destDir: '/assets/'
+// });
 
 var generatedPackageConfig = new Funnel('build-support', {
   srcDir: '/',
@@ -83,7 +83,7 @@ var buildExtras = new Funnel('build-support', {
 
 var src = {};
 var main = {};
-var globalized = {};
+// var globalized = {};
 
 packages.forEach(function(pkg) {
   src[pkg.name] = new Funnel('src', {
@@ -101,19 +101,19 @@ packages.forEach(function(pkg) {
     outputFile: '/' + pkg.name + '.amd.js'
   });
 
-  var support = new Funnel('build-support', {
-    srcDir: '/',
-    files: ['iife-start.js', 'globalize-' + pkg.name + '.js', 'iife-stop.js'],
-    destDir: '/'
-  });
-
-  var loaderTree = (pkg.name === 'orbit' ? loader : globalizedLoader);
-  var loaderFile = (pkg.name === 'orbit' ? 'loader.js' : 'globalized-loader.js');
-
-  globalized[pkg.name] = concat(mergeTrees([loaderTree, main[pkg.name], support]), {
-    inputFiles: ['iife-start.js', 'assets/' + loaderFile, pkg.name + '.amd.js', 'globalize-' + pkg.name + '.js', 'iife-stop.js'],
-    outputFile: '/' + pkg.name + '.js'
-  });
+  // var support = new Funnel('build-support', {
+  //   srcDir: '/',
+  //   files: ['iife-start.js', 'globalize-' + pkg.name + '.js', 'iife-stop.js'],
+  //   destDir: '/'
+  // });
+  //
+  // var loaderTree = (pkg.name === 'orbit' ? loader : globalizedLoader);
+  // var loaderFile = (pkg.name === 'orbit' ? 'loader.js' : 'globalized-loader.js');
+  //
+  // globalized[pkg.name] = concat(mergeTrees([loaderTree, main[pkg.name], support]), {
+  //   inputFiles: ['iife-start.js', 'assets/' + loaderFile, pkg.name + '.amd.js', 'globalize-' + pkg.name + '.js', 'iife-stop.js'],
+  //   outputFile: '/' + pkg.name + '.js'
+  // });
 });
 
 var rxjs = new Funnel('node_modules', {
@@ -145,9 +145,9 @@ var allMain = mergeTrees(Object.keys(main).map(function(pkg) {
   return main[pkg];
 }));
 
-var allGlobalized = mergeTrees(Object.keys(globalized).map(function(pkg) {
-  return globalized[pkg];
-}));
+// var allGlobalized = mergeTrees(Object.keys(globalized).map(function(pkg) {
+//   return globalized[pkg];
+// }));
 
 var eslintTests = eslint(tests, { testGenerator: testGenerator });
 
@@ -155,7 +155,6 @@ var mainWithTests = mergeTrees([allSrc, tests, eslintSrc, eslintTests], { overwr
 
 mainWithTests = new CompileES6Modules(mainWithTests);
 mainWithTests = new TranspileES6(mainWithTests);
-
 
 mainWithTests = concat(mainWithTests, {
   inputFiles: ['**/*.js'],
@@ -187,6 +186,15 @@ var testIndex = new Funnel('test', {
   destDir: '/tests'
 });
 
-module.exports = mergeTrees([loader, globalizedLoader, allMain,
-  allGlobalized, mainWithTests, vendor, qunit, testSupport, testIndex,
-  generatedPackageConfig, buildExtras]);
+module.exports = mergeTrees([
+  loader,
+  // globalizedLoader,
+  allMain,
+  // allGlobalized,
+  mainWithTests,
+  vendor,
+  qunit,
+  testSupport,
+  testIndex,
+  generatedPackageConfig,
+  buildExtras]);
