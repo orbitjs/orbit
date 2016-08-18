@@ -154,32 +154,6 @@ export default {
       return listeners;
     },
 
-    resolve(eventNames) {
-      let listeners = this.listeners(eventNames);
-      let args = Array.prototype.slice.call(arguments, 1);
-
-      return new Orbit.Promise(function(resolve, reject) {
-        function resolveEach() {
-          if (listeners.length === 0) {
-            reject();
-          } else {
-            let listener = listeners.shift();
-            let response = listener[0].apply(listener[1], args);
-
-            if (response) {
-              response
-                .then(success => resolve(success))
-                .catch(() => resolveEach());
-            } else {
-              resolveEach();
-            }
-          }
-        }
-
-        resolveEach();
-      });
-    },
-
     settle(eventNames) {
       let listeners = this.listeners(eventNames);
       let args = Array.prototype.slice.call(arguments, 1);

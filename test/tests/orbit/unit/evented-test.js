@@ -238,41 +238,6 @@ test('#listeners - can return all the listeners (and bindings) for multiple even
   deepEqual(evented.listeners('greeting parting'), [[greeting1, binding1], [greeting2, binding2], [parting1, binding1], [parting2, binding2]], 'listeners include nested arrays of functions and bindings');
 });
 
-test('#resolve - can fulfill promises returned by listeners to an event, in order, until one resolves', function(assert) {
-  assert.expect(8);
-
-  let order = 0;
-  let listener1 = function(message) {
-    assert.equal(message, 'hello', 'notification message should match');
-    assert.equal(++order, 1, 'listener1 triggered first');
-    // doesn't return anything
-  };
-  let listener2 = function(message) {
-    assert.equal(message, 'hello', 'notification message should match');
-    assert.equal(++order, 2, 'listener2 triggered second');
-    return failedOperation();
-  };
-  let listener3 = function(message) {
-    assert.equal(message, 'hello', 'notification message should match');
-    assert.equal(++order, 3, 'listener3 triggered third');
-    return successfulOperation();
-  };
-  let listener4 = function() {
-    assert.ok(false, 'listener should not be reached');
-  };
-
-  evented.on('greeting', listener1, this);
-  evented.on('greeting', listener2, this);
-  evented.on('greeting', listener3, this);
-  evented.on('greeting', listener4, this);
-
-  return evented.resolve('greeting', 'hello')
-    .then(result => {
-      assert.equal(result, ':)', 'success!');
-      assert.equal(++order, 4, 'promise resolved last');
-    });
-});
-
 test('#settle - can fulfill all promises returned by listeners to an event, in order, until all are settled', function(assert) {
   assert.expect(10);
 
