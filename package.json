@@ -25,7 +25,7 @@
   ],
   "main": "Brocfile.js",
   "scripts": {
-    "build": "rm -rf build && BROCCOLI_ENV=test broccoli build build",
+    "build": "rm -rf dist && BROCCOLI_ENV=test broccoli build dist",
     "test": "testem ci",
     "start": "BROCCOLI_ENV=test broccoli serve",
     "docs": "yuidoc ./src"
@@ -39,9 +39,7 @@
     "broccoli-funnel": "^1.0.1",
     "broccoli-lint-eslint": "^2.3.0",
     "broccoli-merge-trees": "^1.1.1",
-    "broccoli-replace": "~0.12.0",
     "broccoli-sourcemap-concat": "^0.4.3",
-    "git-repo-version": "^0.1.1",
     "js-string-escape": "^1.0.1",
     "loader.js": "4.0.1",
     "qunitjs": "^1.23.1",
