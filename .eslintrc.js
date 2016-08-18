@@ -3,6 +3,7 @@ module.exports = {
   env: {},
   globals: {
     setTimeout: true,
+    self: true,
     window: true,
     console: true
   },

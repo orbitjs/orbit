@@ -1,4 +1,4 @@
-import Orbit from 'orbit/main';
+import Orbit from 'orbit';
 
 function deferred() {
   let deferred = {};

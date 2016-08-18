@@ -1,4 +1,4 @@
-import Orbit from 'orbit/main';
+import Orbit from 'orbit';
 import { Promise } from 'rsvp';
 
 Orbit.Promise = Promise;

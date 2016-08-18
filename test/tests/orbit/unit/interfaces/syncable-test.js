@@ -1,4 +1,4 @@
-import Orbit from 'orbit/main';
+import Orbit from 'orbit';
 import Source from 'orbit/source';
 import Syncable from 'orbit/interfaces/syncable';
 import Transform from 'orbit/transform';

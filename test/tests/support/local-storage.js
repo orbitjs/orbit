@@ -1,7 +1,7 @@
 function getRecord(source, record) {
   let recordKey = [source.namespace, record.type, record.id].join(source.delimiter);
 
-  return JSON.parse(window.localStorage.getItem(recordKey));
+  return JSON.parse(self.localStorage.getItem(recordKey));
 }
 
 export function verifyLocalStorageContainsRecord(source, record, ignoreFields) {
@@ -25,7 +25,7 @@ export function verifyLocalStorageDoesNotContainRecord(source, record) {
 
 export function verifyLocalStorageIsEmpty(source) {
   let isEmpty = true;
-  for (let key in window.localStorage) {
+  for (let key in self.localStorage) {
     if (key.indexOf(source.namespace) === 0) {
       isEmpty = false;
       break;

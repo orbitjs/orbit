@@ -4,4 +4,4 @@ var Orbit = requireModule("orbit")["default"];
 Orbit.__define__ = define;
 Orbit.__requireModule__ = requireModule;
 
-window.Orbit = Orbit;
+self.Orbit = Orbit;
