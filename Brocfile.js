@@ -62,7 +62,7 @@ packages.forEach(function(pkg) {
 
   // generate AMD
   main[pkg] = new CompileES6Modules(main[pkg], {
-    format: 'umd'
+    format: 'amd'
   });
   main[pkg] = new TranspileES6(main[pkg]);
   main[pkg] = concat(main[pkg], {
