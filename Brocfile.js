@@ -2,6 +2,7 @@
 var concat     = require('broccoli-sourcemap-concat');
 var Funnel     = require('broccoli-funnel');
 var mergeTrees = require('broccoli-merge-trees');
+var replace    = require('broccoli-string-replace');
 var CompileES6Modules = require('broccoli-es6modules');
 var TranspileES6 = require('broccoli-babel-transpiler');
 var eslint = require('broccoli-lint-eslint');
@@ -39,12 +40,37 @@ packages.forEach(function(pkg) {
   });
 
   main[pkg] = mergeTrees([src[pkg]]);
-  main[pkg] = new CompileES6Modules(main[pkg]);
+
+  // generate CJS
+  var cjs = new CompileES6Modules(main[pkg], {
+    format: 'cjs'
+  });
+  cjs = new TranspileES6(cjs);
+  cjs = replace(cjs, {
+    files: ['**/*.js'],
+    pattern: {
+      match: /require\('orbit/g,
+      replacement: function() {
+        return "require('orbit.js/orbit";
+      }
+    }
+  });
+  cjs = new Funnel(cjs, {
+    srcDir: '/',
+    destDir: 'cjs'
+  });
+
+  // generate AMD
+  main[pkg] = new CompileES6Modules(main[pkg], {
+    format: 'umd'
+  });
   main[pkg] = new TranspileES6(main[pkg]);
   main[pkg] = concat(main[pkg], {
     inputFiles: ['**/*.js'],
     outputFile: '/amd/' + pkg + '.js'
   });
+
+  main[pkg] = mergeTrees([main[pkg], cjs]);
 });
 
 var rxjs = new Funnel('node_modules', {
