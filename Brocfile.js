@@ -53,22 +53,6 @@ var loader = new Funnel('node_modules', {
 //   destDir: '/assets/'
 // });
 
-var generatedPackageConfig = new Funnel('build-support', {
-  srcDir: '/',
-  destDir: '/',
-  files: ['bower.json', 'package.json']
-});
-
-generatedPackageConfig = replace(generatedPackageConfig, {
-  files: ['bower.json', 'package.json'],
-  pattern: {
-    match: /VERSION_PLACEHOLDER/,
-    replacement: function() {
-      return version;
-    }
-  }
-});
-
 var tests = new Funnel('test', {
   srcDir: '/tests',
   include: [/.js$/],
@@ -196,5 +180,4 @@ module.exports = mergeTrees([
   qunit,
   testSupport,
   testIndex,
-  generatedPackageConfig,
   buildExtras]);
