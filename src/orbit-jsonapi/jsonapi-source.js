@@ -1,6 +1,6 @@
 /* globals fetch */
 /* eslint-disable valid-jsdoc */
-import Orbit from 'orbit/main';
+import Orbit from 'orbit';
 import { assert } from 'orbit/lib/assert';
 import Pullable from 'orbit/interfaces/pullable';
 import Pushable from 'orbit/interfaces/pushable';

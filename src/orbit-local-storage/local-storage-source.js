@@ -1,5 +1,5 @@
 /* eslint-disable valid-jsdoc */
-import Orbit from 'orbit/main';
+import Orbit from 'orbit';
 import Source from 'orbit-common/source';
 import Pullable from 'orbit/interfaces/pullable';
 import Pushable from 'orbit/interfaces/pushable';

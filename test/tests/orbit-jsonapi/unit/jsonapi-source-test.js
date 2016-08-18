@@ -1,4 +1,4 @@
-import Orbit from 'orbit/main';
+import Orbit from 'orbit';
 import Source from 'orbit-common/source';
 import { uuid } from 'orbit/lib/uuid';
 import Schema from 'orbit-common/schema';
