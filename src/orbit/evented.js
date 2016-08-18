@@ -3,23 +3,6 @@ import Notifier from './notifier';
 import { assert } from './lib/assert';
 import { extend } from './lib/objects';
 
-function notifierForEvent(object, eventName, createIfUndefined) {
-  if (object._eventedNotifiers === undefined) {
-    object._eventedNotifiers = {};
-  }
-  let notifier = object._eventedNotifiers[eventName];
-  if (!notifier && createIfUndefined) {
-    notifier = object._eventedNotifiers[eventName] = new Notifier();
-  }
-  return notifier;
-}
-
-function removeNotifierForEvent(object, eventName) {
-  if (object._eventedNotifiers && object._eventedNotifiers[eventName]) {
-    delete object._eventedNotifiers[eventName];
-  }
-}
-
 /**
  The `Evented` interface uses notifiers to add events to an object. Like
  notifiers, events will send along all of their arguments to subscribed
@@ -154,63 +137,60 @@ export default {
       return listeners;
     },
 
-    settle(eventNames) {
-      let listeners = this.listeners(eventNames);
-      let args = Array.prototype.slice.call(arguments, 1);
+    settle(eventNames, ...args) {
+      const listeners = this.listeners(eventNames);
 
-      return new Orbit.Promise((resolve) => {
-        function settleEach() {
-          if (listeners.length === 0) {
-            resolve();
-          } else {
-            let listener = listeners.shift();
-            let response;
-
-            try {
-              response = listener[0].apply(listener[1], args);
-            } catch (e) {
-              console.error('Orbit ignored error in event listener', eventNames);
-              console.error(e.stack || e);
-            }
-
-            if (response) {
-              return response
-                .then(() => settleEach())
-                .catch(() => settleEach());
-            } else {
-              settleEach();
-            }
-          }
-        }
-
-        settleEach();
-      });
+      return listeners.reduce((chain, [callback, binding]) => {
+        return chain
+          .then(() => callback.apply(binding, args))
+          .catch(e => {
+            console.error('Orbit ignored error in event listener', eventNames);
+            console.error(e.stack || e);
+          });
+      }, Orbit.Promise.resolve());
     },
 
-    series(eventNames) {
-      let listeners = this.listeners(eventNames);
-      let args = Array.prototype.slice.call(arguments, 1);
+    series(eventNames, ...args) {
+      const listeners = this.listeners(eventNames);
 
       return new Orbit.Promise((resolve, reject) => {
-        function settleEach() {
-          if (listeners.length === 0) {
-            resolve();
-          } else {
-            let listener = listeners.shift();
-            let response = listener[0].apply(listener[1], args);
-
-            if (response) {
-              return response
-                .then(() => settleEach())
-                .catch(error => reject(error));
-            } else {
-              settleEach();
-            }
-          }
-        }
-
-        settleEach();
+        resolveInSeries(listeners, args, resolve, reject);
       });
     }
   }
 };
+
+function notifierForEvent(object, eventName, createIfUndefined) {
+  if (object._eventedNotifiers === undefined) {
+    object._eventedNotifiers = {};
+  }
+  let notifier = object._eventedNotifiers[eventName];
+  if (!notifier && createIfUndefined) {
+    notifier = object._eventedNotifiers[eventName] = new Notifier();
+  }
+  return notifier;
+}
+
+function removeNotifierForEvent(object, eventName) {
+  if (object._eventedNotifiers && object._eventedNotifiers[eventName]) {
+    delete object._eventedNotifiers[eventName];
+  }
+}
+
+function resolveInSeries(listeners, args, resolve, reject) {
+  if (listeners.length === 0) {
+    resolve();
+  } else {
+    let listener = listeners.shift();
+    let [callback, binding] = listener;
+    let response = callback.apply(binding, args);
+
+    if (response) {
+      return Orbit.Promise.resolve(response)
+        .then(() => resolveInSeries(listeners, args, resolve, reject))
+        .catch(error => reject(error));
+    } else {
+      resolveInSeries(listeners, args, resolve, reject);
+    }
+  }
+}
