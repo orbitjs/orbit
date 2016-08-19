@@ -17,7 +17,7 @@ export default class TransformLog {
     return this._log;
   }
 
-  length() {
+  get length() {
     return this._log.length;
   }
 

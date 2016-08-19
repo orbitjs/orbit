@@ -69,7 +69,7 @@ export default class Coordinator {
     let logs = this._sources
       .filter(s => s !== source)
       .map(s => s.transformLog)
-      .filter(log => log.length() > 0);
+      .filter(log => log.length > 0);
 
     if (logs.length === 0) { return; }
 

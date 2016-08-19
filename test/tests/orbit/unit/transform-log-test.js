@@ -14,7 +14,7 @@ module('Orbit - TransformLog', function() {
     });
 
     test('#length', function(assert) {
-      assert.equal(log.length(), 0, 'is zero');
+      assert.equal(log.length, 0, 'is zero');
     });
 
     test('#append', function(assert) {
@@ -37,7 +37,7 @@ module('Orbit - TransformLog', function() {
     });
 
     test('#length', function(assert) {
-      assert.equal(log.length(), 3, 'reflects number of transforms that have been added');
+      assert.equal(log.length, 3, 'reflects number of transforms that have been added');
     });
 
     test('#before', function(assert) {
