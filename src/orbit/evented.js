@@ -3,23 +3,6 @@ import Notifier from './notifier';
 import { assert } from './lib/assert';
 import { extend } from './lib/objects';
 
-function notifierForEvent(object, eventName, createIfUndefined) {
-  if (object._eventedNotifiers === undefined) {
-    object._eventedNotifiers = {};
-  }
-  let notifier = object._eventedNotifiers[eventName];
-  if (!notifier && createIfUndefined) {
-    notifier = object._eventedNotifiers[eventName] = new Notifier();
-  }
-  return notifier;
-}
-
-function removeNotifierForEvent(object, eventName) {
-  if (object._eventedNotifiers && object._eventedNotifiers[eventName]) {
-    delete object._eventedNotifiers[eventName];
-  }
-}
-
 /**
  The `Evented` interface uses notifiers to add events to an object. Like
  notifiers, events will send along all of their arguments to subscribed
@@ -94,27 +77,23 @@ export default {
   interface: {
     _evented: true,
 
-    on(eventNames, callback, _binding) {
-      let binding = _binding || this;
+    on(eventName, callback, _binding) {
+      const binding = _binding || this;
 
-      eventNames.split(/\s+/).forEach((eventName) => {
-        notifierForEvent(this, eventName, true).addListener(callback, binding);
-      });
+      notifierForEvent(this, eventName, true).addListener(callback, binding);
     },
 
-    off(eventNames, callback, _binding) {
-      let binding = _binding || this;
+    off(eventName, callback, _binding) {
+      const binding = _binding || this;
+      const notifier = notifierForEvent(this, eventName);
 
-      eventNames.split(/\s+/).forEach((eventName) => {
-        let notifier = notifierForEvent(this, eventName);
-        if (notifier) {
-          if (callback) {
-            notifier.removeListener(callback, binding);
-          } else {
-            removeNotifierForEvent(this, eventName);
-          }
+      if (notifier) {
+        if (callback) {
+          notifier.removeListener(callback, binding);
+        } else {
+          removeNotifierForEvent(this, eventName);
         }
-      });
+      }
     },
 
     one(eventName, callback, _binding) {
@@ -132,111 +111,74 @@ export default {
       notifier.addListener(callOnce, binding);
     },
 
-    emit(eventNames, ...args) {
-      eventNames.split(/\s+/).forEach((eventName) => {
-        let notifier = notifierForEvent(this, eventName);
-        if (notifier) {
-          notifier.emit.apply(notifier, args);
-        }
-      });
+    emit(eventName, ...args) {
+      let notifier = notifierForEvent(this, eventName);
+
+      if (notifier) {
+        notifier.emit.apply(notifier, args);
+      }
     },
 
-    listeners(eventNames) {
-      let listeners = [];
+    listeners(eventName) {
+      let notifier = notifierForEvent(this, eventName);
 
-      eventNames.split(/\s+/).forEach((eventName) => {
-        let notifier = notifierForEvent(this, eventName);
-        if (notifier) {
-          listeners = listeners.concat(notifier.listeners);
-        }
-      });
-
-      return listeners;
+      return notifier ? notifier.listeners : [];
     },
 
-    resolve(eventNames) {
-      let listeners = this.listeners(eventNames);
-      let args = Array.prototype.slice.call(arguments, 1);
+    settle(eventName, ...args) {
+      const listeners = this.listeners(eventName);
 
-      return new Orbit.Promise(function(resolve, reject) {
-        function resolveEach() {
-          if (listeners.length === 0) {
-            reject();
-          } else {
-            let listener = listeners.shift();
-            let response = listener[0].apply(listener[1], args);
-
-            if (response) {
-              response
-                .then(success => resolve(success))
-                .catch(() => resolveEach());
-            } else {
-              resolveEach();
-            }
-          }
-        }
-
-        resolveEach();
-      });
+      return listeners.reduce((chain, [callback, binding]) => {
+        return chain
+          .then(() => callback.apply(binding, args))
+          .catch(e => {
+            console.error('Orbit ignored error in event listener', eventName);
+            console.error(e.stack || e);
+          });
+      }, Orbit.Promise.resolve());
     },
 
-    settle(eventNames) {
-      let listeners = this.listeners(eventNames);
-      let args = Array.prototype.slice.call(arguments, 1);
-
-      return new Orbit.Promise((resolve) => {
-        function settleEach() {
-          if (listeners.length === 0) {
-            resolve();
-          } else {
-            let listener = listeners.shift();
-            let response;
-
-            try {
-              response = listener[0].apply(listener[1], args);
-            } catch (e) {
-              console.error('Orbit ignored error in event listener', eventNames);
-              console.error(e.stack || e);
-            }
-
-            if (response) {
-              return response
-                .then(() => settleEach())
-                .catch(() => settleEach());
-            } else {
-              settleEach();
-            }
-          }
-        }
-
-        settleEach();
-      });
-    },
-
-    series(eventNames) {
-      let listeners = this.listeners(eventNames);
-      let args = Array.prototype.slice.call(arguments, 1);
+    series(eventName, ...args) {
+      const listeners = this.listeners(eventName);
 
       return new Orbit.Promise((resolve, reject) => {
-        function settleEach() {
-          if (listeners.length === 0) {
-            resolve();
-          } else {
-            let listener = listeners.shift();
-            let response = listener[0].apply(listener[1], args);
-
-            if (response) {
-              return response
-                .then(() => settleEach())
-                .catch(error => reject(error));
-            } else {
-              settleEach();
-            }
-          }
-        }
-
-        settleEach();
+        resolveInSeries(listeners, args, resolve, reject);
       });
     }
   }
 };
+
+function notifierForEvent(object, eventName, createIfUndefined) {
+  if (object._eventedNotifiers === undefined) {
+    object._eventedNotifiers = {};
+  }
+  let notifier = object._eventedNotifiers[eventName];
+  if (!notifier && createIfUndefined) {
+    notifier = object._eventedNotifiers[eventName] = new Notifier();
+  }
+  return notifier;
+}
+
+function removeNotifierForEvent(object, eventName) {
+  if (object._eventedNotifiers && object._eventedNotifiers[eventName]) {
+    delete object._eventedNotifiers[eventName];
+  }
+}
+
+function resolveInSeries(listeners, args, resolve, reject) {
+  if (listeners.length === 0) {
+    resolve();
+  } else {
+    let listener = listeners.shift();
+    let [callback, binding] = listener;
+    let response = callback.apply(binding, args);
+
+    if (response) {
+      return Orbit.Promise.resolve(response)
+        .then(() => resolveInSeries(listeners, args, resolve, reject))
+        .catch(error => reject(error));
+    } else {
+      resolveInSeries(listeners, args, resolve, reject);
+    }
+  }
+}
