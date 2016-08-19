@@ -9,15 +9,15 @@ export default class TransformLog {
     this._log.push(transformId);
   }
 
-  head() {
+  get head() {
     return this._log[this._log.length - 1];
   }
 
-  entries() {
+  get entries() {
     return this._log;
   }
 
-  length() {
+  get length() {
     return this._log.length;
   }
 
@@ -59,10 +59,6 @@ export default class TransformLog {
 
   clear() {
     this._log = [];
-  }
-
-  isEmpty() {
-    return this._log.length === 0;
   }
 
   contains(transformId) {

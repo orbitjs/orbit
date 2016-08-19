@@ -56,14 +56,14 @@ module('Orbit - Source', function(hooks) {
     return source._transformed([transformA, transformB, transformC])
       .then(() => {
         assert.deepEqual(
-          source.transformLog.entries(),
+          source.transformLog.entries,
           [transformA, transformB, transformC].map(t => t.id),
           'transform log is correct');
 
         source.truncateHistory(transformB.id);
 
         assert.deepEqual(
-          source.transformLog.entries(),
+          source.transformLog.entries,
           [transformB, transformC].map(t => t.id),
           'transform log has been truncated');
       });
@@ -73,14 +73,14 @@ module('Orbit - Source', function(hooks) {
     return source._transformed([transformA, transformB, transformC])
       .then(() => {
         assert.deepEqual(
-          source.transformLog.entries(),
+          source.transformLog.entries,
           [transformA, transformB, transformC].map(t => t.id),
           'transform log is correct');
 
         source.clearHistory();
 
         assert.deepEqual(
-          source.transformLog.entries(),
+          source.transformLog.entries,
           [],
           'transform log has been cleared');
       });

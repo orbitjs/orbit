@@ -52,15 +52,15 @@ export default {
     },
 
     __pull__(query) {
-      return this.series('beforePull', query)
+      return this.fulfillInSeries('beforePull', query)
         .then(() => this._pull(query))
         .then(result => this._transformed(result))
         .then(result => {
-          return this.settle('pull', query, result)
+          return this.settleInSeries('pull', query, result)
             .then(() => result);
         })
         .catch(error => {
-          return this.settle('pullFail', query, error)
+          return this.settleInSeries('pullFail', query, error)
             .then(() => { throw error; });
         });
     }

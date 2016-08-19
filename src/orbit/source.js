@@ -69,7 +69,7 @@ export default class Source {
           }
 
           this.transformLog.append(transform.id);
-          return this.settle('transform', transform);
+          return this.settleInSeries('transform', transform);
         });
       }, Orbit.Promise.resolve())
       .then(() => transforms);

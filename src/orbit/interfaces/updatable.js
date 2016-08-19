@@ -62,12 +62,12 @@ export default {
         return Orbit.Promise.resolve([]);
       }
 
-      return this.series('beforeUpdate', transform)
+      return this.fulfillInSeries('beforeUpdate', transform)
         .then(() => this._update(transform))
         .then(() => this._transformed([transform]))
-        .then(() => this.settle('update', transform))
+        .then(() => this.settleInSeries('update', transform))
         .catch(error => {
-          return this.settle('updateFail', transform, error)
+          return this.settleInSeries('updateFail', transform, error)
             .then(() => { throw error; });
         });
     }

@@ -318,7 +318,7 @@ module('OC - Store', function(hooks) {
           'emits inverse operations in correct order'
         );
 
-        equal(store.transformLog.head(), addRecordATransform.id, 'rolls back transform log');
+        equal(store.transformLog.head, addRecordATransform.id, 'rolls back transform log');
       });
   });
 });

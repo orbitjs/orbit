@@ -125,7 +125,7 @@ export default {
       return notifier ? notifier.listeners : [];
     },
 
-    settle(eventName, ...args) {
+    settleInSeries(eventName, ...args) {
       const listeners = this.listeners(eventName);
 
       return listeners.reduce((chain, [callback, binding]) => {
@@ -138,11 +138,11 @@ export default {
       }, Orbit.Promise.resolve());
     },
 
-    series(eventName, ...args) {
+    fulfillInSeries(eventName, ...args) {
       const listeners = this.listeners(eventName);
 
       return new Orbit.Promise((resolve, reject) => {
-        resolveInSeries(listeners, args, resolve, reject);
+        fulfillEach(listeners, args, resolve, reject);
       });
     }
   }
@@ -165,7 +165,7 @@ function removeNotifierForEvent(object, eventName) {
   }
 }
 
-function resolveInSeries(listeners, args, resolve, reject) {
+function fulfillEach(listeners, args, resolve, reject) {
   if (listeners.length === 0) {
     resolve();
   } else {
@@ -175,10 +175,10 @@ function resolveInSeries(listeners, args, resolve, reject) {
 
     if (response) {
       return Orbit.Promise.resolve(response)
-        .then(() => resolveInSeries(listeners, args, resolve, reject))
+        .then(() => fulfillEach(listeners, args, resolve, reject))
         .catch(error => reject(error));
     } else {
-      resolveInSeries(listeners, args, resolve, reject);
+      fulfillEach(listeners, args, resolve, reject);
     }
   }
 }
