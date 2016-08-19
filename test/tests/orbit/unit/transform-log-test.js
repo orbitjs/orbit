@@ -23,7 +23,7 @@ module('Orbit - TransformLog', function() {
     });
 
     test('#head', function(assert) {
-      assert.equal(log.head(), null, 'is null');
+      assert.equal(log.head, null, 'is null');
     });
   });
 
@@ -77,8 +77,8 @@ module('Orbit - TransformLog', function() {
     });
 
     test('#after - head', function(assert) {
-      log.after(log.head());
-      assert.deepEqual(log.after(log.head()), [], 'is empty');
+      log.after(log.head);
+      assert.deepEqual(log.after(log.head), [], 'is empty');
     });
 
     test('#after - specifying a relativePosition that is too low', function(assert) {
@@ -95,7 +95,7 @@ module('Orbit - TransformLog', function() {
     });
 
     test('#truncate - to head', function(assert) {
-      log.truncate(log.head());
+      log.truncate(log.head);
       assert.deepEqual(log.entries(), [transformCId], 'only head entry remains in log');
     });
 
@@ -122,8 +122,8 @@ module('Orbit - TransformLog', function() {
     });
 
     test('#rollback - to head', function(assert) {
-      log.rollback(log.head());
-      assert.deepEqual(log.head(), transformCId, 'doesn\'t change log');
+      log.rollback(log.head);
+      assert.deepEqual(log.head, transformCId, 'doesn\'t change log');
     });
 
     test('#rollback - to transformId that hasn\'t been logged', function(assert) {
@@ -145,7 +145,7 @@ module('Orbit - TransformLog', function() {
 
 
     test('#head', function(assert) {
-      assert.equal(log.head(), transformCId, 'is last transformId');
+      assert.equal(log.head, transformCId, 'is last transformId');
     });
 
     test('#contains', function(assert) {

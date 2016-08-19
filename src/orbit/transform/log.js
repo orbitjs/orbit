@@ -9,7 +9,7 @@ export default class TransformLog {
     this._log.push(transformId);
   }
 
-  head() {
+  get head() {
     return this._log[this._log.length - 1];
   }
 
