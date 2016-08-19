@@ -1,3 +1,4 @@
+/* globals Immutable */
 import TransformLog from 'orbit/transform/log';
 import { TransformNotLoggedException, OutOfRangeException } from 'orbit/lib/exceptions';
 
@@ -7,6 +8,25 @@ module('Orbit - TransformLog', function() {
   const transformCId = 'ea054670-8901-45c2-b908-4db2c5bb9c7d';
   const transformDId = '771b25ff-b971-42e0-aac3-c285aef75326';
   let log;
+
+  test('can be instantiated with no data', function(assert) {
+    log = new TransformLog();
+    assert.ok(log, 'log instantiated');
+    assert.equal(log.length, 0, 'log has expected size');
+  });
+
+  test('can be instantiated with immutable list data', function(assert) {
+    let data = new Immutable.List(['a', 'b']);
+    log = new TransformLog(data);
+    assert.ok(log, 'log instantiated');
+    assert.strictEqual(log.data, data, 'log has expected data');
+  });
+
+  test('can be instantiated with a normal JS array', function(assert) {
+    log = new TransformLog(['a', 'b']);
+    assert.ok(log, 'log instantiated');
+    assert.equal(log.length, 2, 'log has expected data');
+  });
 
   module('when empty', function(assert) {
     assert.beforeEach(function() {
@@ -18,6 +38,13 @@ module('Orbit - TransformLog', function() {
     });
 
     test('#append', function(assert) {
+      assert.expect(3);
+
+      log.on('append', (transformId, data) => {
+        assert.strictEqual(transformId, transformAId, 'append event emits transform');
+        assert.strictEqual(data.size, 0, 'append event emits prev state');
+      });
+
       log.append(transformAId);
       assert.deepEqual(log.entries, [transformAId], 'adds transformId to log');
     });
@@ -34,6 +61,11 @@ module('Orbit - TransformLog', function() {
       log.append(transformAId);
       log.append(transformBId);
       log.append(transformCId);
+    });
+
+    test('#data', function(assert) {
+      assert.ok(Immutable.List.isList(log.data), 'is immutable');
+      assert.equal(log.data.size, 3, 'contains the expected transforms');
     });
 
     test('#length', function(assert) {
@@ -89,7 +121,26 @@ module('Orbit - TransformLog', function() {
       assert.throws(() => log.after(transformCId, 1), OutOfRangeException);
     });
 
+    test('#clear', function(assert) {
+      assert.expect(2);
+
+      log.on('clear', (data) => {
+        assert.strictEqual(data.size, 3, 'clear event emits prev state');
+      });
+
+      log.clear();
+      assert.deepEqual(log.entries, [], 'clears all transforms');
+    });
+
     test('#truncate', function(assert) {
+      assert.expect(4);
+
+      log.on('truncate', (transformId, relativePosition, data) => {
+        assert.strictEqual(transformId, transformBId, 'truncate event emits transform');
+        assert.strictEqual(relativePosition, 0, 'truncate event emits relativePosition');
+        assert.strictEqual(data.size, 3, 'truncate event emits prev state');
+      });
+
       log.truncate(transformBId);
       assert.deepEqual(log.entries, [transformBId, transformCId], 'removes transformIds before specified transformId');
     });
@@ -117,6 +168,14 @@ module('Orbit - TransformLog', function() {
     });
 
     test('#rollback', function(assert) {
+      assert.expect(4);
+
+      log.on('rollback', (transformId, relativePosition, data) => {
+        assert.strictEqual(transformId, transformAId, 'rollback event emits transform');
+        assert.strictEqual(relativePosition, 0, 'rollback event emits relativePosition');
+        assert.strictEqual(data.size, 3, 'rollback event emits prev state');
+      });
+
       log.rollback(transformAId);
       assert.deepEqual(log.entries, [transformAId], 'removes transformIds after specified transformId');
     });

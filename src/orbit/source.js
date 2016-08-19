@@ -20,29 +20,6 @@ export default class Source {
     this.syncQueue = new ActionQueue();
   }
 
-  /**
-   Truncates the source's logged and tracked transforms to remove everything
-   before a particular `transformId`.
-
-   @method truncateHistory
-   @param {string} transformId - The ID of the transform to truncate history to.
-   @param {number} relativePosition - An integer position relative to the specified transform.
-   @returns {undefined}
-  */
-  truncateHistory(transformId, relativePosition = 0) {
-    this.transformLog.truncate(transformId, relativePosition);
-  }
-
-  /**
-   Clears the source's logged and tracked transforms entirely.
-
-   @method clearHistory
-   @returns {undefined}
-  */
-  clearHistory() {
-    this.transformLog.clear();
-  }
-
   /////////////////////////////////////////////////////////////////////////////
   // Private methods
   /////////////////////////////////////////////////////////////////////////////
