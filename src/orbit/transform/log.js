@@ -61,10 +61,6 @@ export default class TransformLog {
     this._log = [];
   }
 
-  isEmpty() {
-    return this._log.length === 0;
-  }
-
   contains(transformId) {
     return this._log.indexOf(transformId) !== -1;
   }
