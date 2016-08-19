@@ -20,16 +20,6 @@ export default class Source {
     this.syncQueue = new ActionQueue();
   }
 
-  /**
-   Clears the source's logged and tracked transforms entirely.
-
-   @method clearHistory
-   @returns {undefined}
-  */
-  clearHistory() {
-    this.transformLog.clear();
-  }
-
   /////////////////////////////////////////////////////////////////////////////
   // Private methods
   /////////////////////////////////////////////////////////////////////////////

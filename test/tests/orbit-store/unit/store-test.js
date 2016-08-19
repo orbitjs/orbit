@@ -226,7 +226,7 @@ module('OC - Store', function(hooks) {
       });
   });
 
-  test('#clearHistory - clears all transforms from log as well as tracked transforms', function(assert) {
+  test('transformLog.clear - clears all transforms from log as well as tracked transforms', function(assert) {
     const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
     const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
@@ -241,7 +241,7 @@ module('OC - Store', function(hooks) {
       store.sync(addRecordCTransform)
     ])
       .then(() => {
-        store.clearHistory();
+        store.transformLog.clear();
 
         assert.deepEqual(
           store.allTransforms(),

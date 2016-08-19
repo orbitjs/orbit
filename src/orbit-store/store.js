@@ -23,6 +23,8 @@ export default class Store extends Source {
 
     this._transforms = {};
     this._transformInverses = {};
+
+    this.transformLog.on('clear', this._logCleared, this);
     this.transformLog.on('truncate', this._logTruncated, this);
 
     this.cache = new Cache(assign({ schema, keyMap }, cacheOptions));
@@ -159,19 +161,6 @@ export default class Store extends Source {
       .map(id => this._transforms[id]);
   }
 
-  /**
-   Clears the Source's logged and tracked transforms entirely.
-
-   @method clearHistory
-   @returns {undefined}
-  */
-  clearHistory() {
-    super.clearHistory(...arguments);
-
-    this._transforms = {};
-    this._transformInverses = {};
-  }
-
   /////////////////////////////////////////////////////////////////////////////
   // Private methods
   /////////////////////////////////////////////////////////////////////////////
@@ -185,6 +174,11 @@ export default class Store extends Source {
   _clearTransformFromHistory(transformId) {
     delete this._transforms[transformId];
     delete this._transformInverses[transformId];
+  }
+
+  _logCleared(/* data */) {
+    this._transforms = {};
+    this._transformInverses = {};
   }
 
   _logTruncated(transformId, relativePosition, data) {
