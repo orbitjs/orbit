@@ -107,7 +107,7 @@ export default class Coordinator {
   _truncateHistory(transformId, relativePosition) {
     this._sources.forEach(s => {
       if (s.transformLog.contains(transformId)) {
-        s.truncateHistory(transformId, relativePosition);
+        s.transformLog.truncate(transformId, relativePosition);
       }
     });
   }

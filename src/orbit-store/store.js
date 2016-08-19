@@ -4,6 +4,7 @@ import { extend as assign } from 'orbit/lib/objects';
 import Syncable from 'orbit/interfaces/syncable';
 import Queryable from 'orbit/interfaces/queryable';
 import Updatable from 'orbit/interfaces/updatable';
+import TransformLog from 'orbit/transform/log';
 import {
   coalesceTransforms,
   reduceTransforms
@@ -22,6 +23,7 @@ export default class Store extends Source {
 
     this._transforms = {};
     this._transformInverses = {};
+    this.transformLog.on('truncate', this._logTruncated, this);
 
     this.cache = new Cache(assign({ schema, keyMap }, cacheOptions));
   }
@@ -158,22 +160,6 @@ export default class Store extends Source {
   }
 
   /**
-   Truncates the Source's logged and tracked transforms to remove everything
-   before a particular `transformId`.
-
-   @method truncateHistory
-   @param {string} transformId - The ID of the transform to truncate history to.
-   @returns {undefined}
-  */
-  truncateHistory(transformId) {
-    super.truncateHistory(...arguments);
-
-    this.transformLog
-      .before(transformId)
-      .forEach(id => this._clearTransformFromHistory(id));
-  }
-
-  /**
    Clears the Source's logged and tracked transforms entirely.
 
    @method clearHistory
@@ -196,17 +182,24 @@ export default class Store extends Source {
     this._transformInverses[transform.id] = inverse;
   }
 
+  _clearTransformFromHistory(transformId) {
+    delete this._transforms[transformId];
+    delete this._transformInverses[transformId];
+  }
+
+  _logTruncated(transformId, relativePosition, data) {
+    const prevLog = new TransformLog(data);
+    prevLog
+      .before(transformId)
+      .forEach(id => this._clearTransformFromHistory(id));
+  }
+
   _rollbackTransform(transformId) {
     const inverseOperations = this._transformInverses[transformId];
     if (inverseOperations) {
       this.cache.patch(inverseOperations);
     }
     this._clearTransformFromHistory(transformId);
-  }
-
-  _clearTransformFromHistory(transformId) {
-    delete this._transforms[transformId];
-    delete this._transformInverses[transformId];
   }
 }
 
