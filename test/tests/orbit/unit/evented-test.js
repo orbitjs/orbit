@@ -180,7 +180,7 @@ test('#listeners - can return all the listeners (and bindings) for an event', fu
   deepEqual(evented.listeners('greeting'), [[greeting1, binding1], [greeting2, binding2]], 'listeners include nested arrays of functions and bindings');
 });
 
-test('#settle - can fulfill all promises returned by listeners to an event, in order, until all are settled', function(assert) {
+test('#settleInSeries - can fulfill all promises returned by listeners to an event, in order, until all are settled', function(assert) {
   assert.expect(10);
 
   let order = 0;
@@ -210,19 +210,19 @@ test('#settle - can fulfill all promises returned by listeners to an event, in o
   evented.on('greeting', listener3, this);
   evented.on('greeting', listener4, this);
 
-  return evented.settle('greeting', 'hello')
+  return evented.settleInSeries('greeting', 'hello')
     .then(result => {
       equal(result, undefined, 'no result returned');
       equal(++order, 5, 'promise resolved last');
     });
 });
 
-test('#settle - resolves regardless of errors thrown in handlers', function(assert) {
+test('#settleInSeries - resolves regardless of errors thrown in handlers', function(assert) {
   assert.expect(1);
 
   evented.on('greeting', () => { throw new Error(); });
 
-  return evented.settle('greeting', 'hello')
+  return evented.settleInSeries('greeting', 'hello')
     .then(function(result) {
       assert.equal(result, undefined, 'Completed');
     })
@@ -231,7 +231,7 @@ test('#settle - resolves regardless of errors thrown in handlers', function(asse
     });
 });
 
-test('#series - it can fulfill all promises returned by listeners to an event, in order, until all are settled', function(assert) {
+test('#fulfillInSeries - it can fulfill all promises returned by listeners to an event, in order, until all are settled', function(assert) {
   assert.expect(6);
 
   let order = 0;
@@ -249,14 +249,14 @@ test('#series - it can fulfill all promises returned by listeners to an event, i
   evented.on('greeting', listener1, this);
   evented.on('greeting', listener2, this);
 
-  return evented.series('greeting', 'hello').then(
+  return evented.fulfillInSeries('greeting', 'hello').then(
     function(result) {
       assert.equal(result, undefined, 'no result returned');
       assert.equal(++order, 3, 'promise resolved last');
     });
 });
 
-test('#series - it will fail when any listener fails and return the error', function(assert) {
+test('#fulfillInSeries - it will fail when any listener fails and return the error', function(assert) {
   assert.expect(8);
 
   let order = 0;
@@ -284,7 +284,7 @@ test('#series - it will fail when any listener fails and return the error', func
   evented.on('greeting', listener3, this);
   evented.on('greeting', listener4, this);
 
-  return evented.series('greeting', 'hello')
+  return evented.fulfillInSeries('greeting', 'hello')
     .then(() => {
       assert.ok(false, 'success handler should not be reached');
     })

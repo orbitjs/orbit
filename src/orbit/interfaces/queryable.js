@@ -52,14 +52,14 @@ export default {
     },
 
     __query__(query) {
-      return this.series('beforeQuery', query)
+      return this.fulfillInSeries('beforeQuery', query)
         .then(() => this._query(query))
         .then((result) => {
-          return this.settle('query', query, result)
+          return this.settleInSeries('query', query, result)
             .then(() => result);
         })
         .catch((error) => {
-          return this.settle('queryFail', query, error)
+          return this.settleInSeries('queryFail', query, error)
             .then(() => { throw error; });
         });
     }
