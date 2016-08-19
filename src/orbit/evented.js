@@ -77,27 +77,23 @@ export default {
   interface: {
     _evented: true,
 
-    on(eventNames, callback, _binding) {
-      let binding = _binding || this;
+    on(eventName, callback, _binding) {
+      const binding = _binding || this;
 
-      eventNames.split(/\s+/).forEach((eventName) => {
-        notifierForEvent(this, eventName, true).addListener(callback, binding);
-      });
+      notifierForEvent(this, eventName, true).addListener(callback, binding);
     },
 
-    off(eventNames, callback, _binding) {
-      let binding = _binding || this;
+    off(eventName, callback, _binding) {
+      const binding = _binding || this;
+      const notifier = notifierForEvent(this, eventName);
 
-      eventNames.split(/\s+/).forEach((eventName) => {
-        let notifier = notifierForEvent(this, eventName);
-        if (notifier) {
-          if (callback) {
-            notifier.removeListener(callback, binding);
-          } else {
-            removeNotifierForEvent(this, eventName);
-          }
+      if (notifier) {
+        if (callback) {
+          notifier.removeListener(callback, binding);
+        } else {
+          removeNotifierForEvent(this, eventName);
         }
-      });
+      }
     },
 
     one(eventName, callback, _binding) {
@@ -115,43 +111,35 @@ export default {
       notifier.addListener(callOnce, binding);
     },
 
-    emit(eventNames, ...args) {
-      eventNames.split(/\s+/).forEach((eventName) => {
-        let notifier = notifierForEvent(this, eventName);
-        if (notifier) {
-          notifier.emit.apply(notifier, args);
-        }
-      });
+    emit(eventName, ...args) {
+      let notifier = notifierForEvent(this, eventName);
+
+      if (notifier) {
+        notifier.emit.apply(notifier, args);
+      }
     },
 
-    listeners(eventNames) {
-      let listeners = [];
+    listeners(eventName) {
+      let notifier = notifierForEvent(this, eventName);
 
-      eventNames.split(/\s+/).forEach((eventName) => {
-        let notifier = notifierForEvent(this, eventName);
-        if (notifier) {
-          listeners = listeners.concat(notifier.listeners);
-        }
-      });
-
-      return listeners;
+      return notifier ? notifier.listeners : [];
     },
 
-    settle(eventNames, ...args) {
-      const listeners = this.listeners(eventNames);
+    settle(eventName, ...args) {
+      const listeners = this.listeners(eventName);
 
       return listeners.reduce((chain, [callback, binding]) => {
         return chain
           .then(() => callback.apply(binding, args))
           .catch(e => {
-            console.error('Orbit ignored error in event listener', eventNames);
+            console.error('Orbit ignored error in event listener', eventName);
             console.error(e.stack || e);
           });
       }, Orbit.Promise.resolve());
     },
 
-    series(eventNames, ...args) {
-      const listeners = this.listeners(eventNames);
+    series(eventName, ...args) {
+      const listeners = this.listeners(eventName);
 
       return new Orbit.Promise((resolve, reject) => {
         resolveInSeries(listeners, args, resolve, reject);
