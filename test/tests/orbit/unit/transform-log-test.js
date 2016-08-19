@@ -19,7 +19,7 @@ module('Orbit - TransformLog', function() {
 
     test('#append', function(assert) {
       log.append(transformAId);
-      assert.deepEqual(log.entries(), [transformAId], 'adds transformId to log');
+      assert.deepEqual(log.entries, [transformAId], 'adds transformId to log');
     });
 
     test('#head', function(assert) {
@@ -91,17 +91,17 @@ module('Orbit - TransformLog', function() {
 
     test('#truncate', function(assert) {
       log.truncate(transformBId);
-      assert.deepEqual(log.entries(), [transformBId, transformCId], 'removes transformIds before specified transformId');
+      assert.deepEqual(log.entries, [transformBId, transformCId], 'removes transformIds before specified transformId');
     });
 
     test('#truncate - to head', function(assert) {
       log.truncate(log.head);
-      assert.deepEqual(log.entries(), [transformCId], 'only head entry remains in log');
+      assert.deepEqual(log.entries, [transformCId], 'only head entry remains in log');
     });
 
     test('#truncate - just past head clears the log', function(assert) {
       log.truncate(transformCId, +1);
-      assert.deepEqual(log.entries(), [], 'clears log');
+      assert.deepEqual(log.entries, [], 'clears log');
     });
 
     test('#truncate - to transformId that hasn\'t been logged', function(assert) {
@@ -118,7 +118,7 @@ module('Orbit - TransformLog', function() {
 
     test('#rollback', function(assert) {
       log.rollback(transformAId);
-      assert.deepEqual(log.entries(), [transformAId], 'removes transformIds after specified transformId');
+      assert.deepEqual(log.entries, [transformAId], 'removes transformIds after specified transformId');
     });
 
     test('#rollback - to head', function(assert) {
@@ -132,7 +132,7 @@ module('Orbit - TransformLog', function() {
 
     test('#rollback - to just before first', function(assert) {
       log.rollback(transformAId, -1);
-      assert.deepEqual(log.entries(), [], 'removes all entries');
+      assert.deepEqual(log.entries, [], 'removes all entries');
     });
 
     test('#rollback - specifying a relativePosition that is too low', function(assert) {

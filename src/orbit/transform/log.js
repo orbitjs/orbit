@@ -13,7 +13,7 @@ export default class TransformLog {
     return this._log[this._log.length - 1];
   }
 
-  entries() {
+  get entries() {
     return this._log;
   }
 

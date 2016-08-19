@@ -153,8 +153,7 @@ export default class Store extends Source {
    @returns {Array} Array of transforms.
   */
   allTransforms() {
-    return this.transformLog
-      .entries()
+    return this.transformLog.entries
       .map(id => this._transforms[id]);
   }
 

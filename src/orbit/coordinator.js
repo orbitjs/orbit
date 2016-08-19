@@ -77,7 +77,7 @@ export default class Coordinator {
     if (transformId) {
       entries = [transformId];
     } else {
-      entries = source.transformLog.entries();
+      entries = source.transformLog.entries;
     }
     let latestMatch;
 
