@@ -102,18 +102,18 @@ export class NetworkError extends Exception {
 }
 
 class _RecordException extends Exception {
-  constructor(type, record, key) {
-    let message = type + '/' + record;
+  constructor(description, type, id, relationship) {
+    let message = `${description} - ${type}:${id}`;
 
-    if (key) {
-      message += '/' + key;
+    if (relationship) {
+      message += '/' + relationship;
     }
 
     super(message);
 
     this.type = type;
-    this.record = record;
-    this.key = key;
+    this.id = id;
+    this.relationship = relationship;
   }
 }
 
@@ -127,8 +127,8 @@ class _RecordException extends Exception {
  @constructor
  */
 export class RecordNotFoundException extends _RecordException {
-  constructor(type, record) {
-    super(type, record);
+  constructor(type, id) {
+    super('Record not found', type, id);
     this.name = 'OC.RecordNotFoundException';
   }
 }
@@ -143,8 +143,8 @@ export class RecordNotFoundException extends _RecordException {
  @constructor
  */
 export class RelationshipNotFoundException extends _RecordException {
-  constructor(type, record, key) {
-    super(type, record, key);
+  constructor(type, id, relationship) {
+    super('Relationship not found', type, id, relationship);
     this.name = 'OC.RelationshipNotFoundException';
   }
 }
@@ -159,8 +159,8 @@ export class RelationshipNotFoundException extends _RecordException {
  @constructor
  */
 export class RecordAlreadyExistsException extends _RecordException {
-  constructor(type, record) {
-    super(type, record);
+  constructor(type, id) {
+    super('Record already exists', type, id);
     this.name = 'OC.RecordAlreadyExistsException';
   }
 }

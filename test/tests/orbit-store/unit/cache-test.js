@@ -581,7 +581,7 @@ test('#query - record - throws RecordNotFoundException if record doesn\'t exist'
 
   assert.throws(
     () => cache.query(oqe('record', { type: 'planet', id: 'jupiter' })),
-    new RecordNotFoundException('Record not found planet:jupiter')
+    new RecordNotFoundException('planet', 'jupiter')
   );
 });
 
