@@ -144,7 +144,7 @@ test('with `autoProcess` disabled, will process pushed functions sequentially wh
 });
 
 test('can enqueue actions while another action is being processed', function(assert) {
-  expect(8);
+  expect(9);
   const done = assert.async();
 
   const queue = new ActionQueue();
@@ -206,6 +206,7 @@ test('can enqueue actions while another action is being processed', function(ass
 
   queue.process()
     .then(function() {
+      assert.equal(queue.complete, true, 'queue processing complete');
       equal(++order, 8, 'queue resolves last');
       done();
     });
@@ -214,7 +215,7 @@ test('can enqueue actions while another action is being processed', function(ass
 });
 
 test('will stop processing when an action errors', function(assert) {
-  assert.expect(5);
+  assert.expect(6);
 
   const queue = new ActionQueue({ autoProcess: false });
 
@@ -265,13 +266,14 @@ test('will stop processing when an action errors', function(assert) {
   });
 
   return queue.process()
-    .catch(err => {
-      assert.equal(err.message, ':(', 'process rejection - error matches expectation');
+    .then(() => {
+      assert.equal(queue.complete, false, 'queue processing encountered a problem');
+      assert.equal(queue.error.message, ':(', 'process error matches expectation');
     });
 });
 
 test('#retry resets the current action in an inactive queue and restarts processing', function(assert) {
-  assert.expect(11);
+  assert.expect(12);
 
   const queue = new ActionQueue({ autoProcess: false });
 
@@ -337,8 +339,9 @@ test('#retry resets the current action in an inactive queue and restarts process
   });
 
   return queue.process()
-    .catch(err => {
-      assert.equal(err.message, ':(', 'process rejection - error matches expectation');
+    .then(() => {
+      assert.equal(queue.complete, false, 'queue processing encountered a problem');
+      assert.equal(queue.error.message, ':(', 'process error matches expectation');
       assert.strictEqual(queue.current.data, op2, 'op2 is current failed action');
 
       // skip current action and continue processing
@@ -347,75 +350,6 @@ test('#retry resets the current action in an inactive queue and restarts process
 });
 
 test('#skip removes the current action from an inactive queue and restarts processing', function(assert) {
-  assert.expect(8);
-
-  const queue = new ActionQueue({ autoProcess: false });
-
-  let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
-  let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
-  let op3 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
-  let transformCount = 0;
-
-  queue.on('action', function(action) {
-    if (transformCount === 1) {
-      assert.strictEqual(action.data, op1, 'action - op1 processed');
-    } else if (transformCount === 2) {
-      assert.strictEqual(action.data, op3, 'action - op3 processed');
-    }
-  });
-
-  queue.on('fail', function(action, err) {
-    assert.strictEqual(action.data, op2, 'fail - op2 failed processing');
-    assert.equal(err.message, ':(', 'fail - error matches expectation');
-  });
-
-  queue.on('complete', function() {
-    assert.ok(true, 'queue should complete after processing has restarted');
-  });
-
-  const _transform = function(op) {
-    transformCount++;
-    if (transformCount === 1) {
-      assert.strictEqual(op, op1, '_transform - op1 passed as argument');
-    } else if (transformCount === 2) {
-      assert.strictEqual(op, op3, '_transform - op3 passed as argument');
-    }
-  };
-
-  queue.push({
-    id: 1,
-    process: function() {
-      _transform.call(this, this.data);
-    },
-    data: op1
-  });
-
-  queue.push({
-    id: 2,
-    process: function() {
-      throw new Error(':(');
-    },
-    data: op2
-  });
-
-  queue.push({
-    id: 3,
-    process: function() {
-      _transform.call(this, this.data);
-    },
-    data: op3
-  });
-
-  return queue.process()
-    .catch(err => {
-      assert.equal(err.message, ':(', 'process rejection - error matches expectation');
-
-      // skip current action and continue processing
-      return queue.skip();
-    });
-});
-
-test('#shift can remove failed actions from an inactive queue, allowing processing to be restarted', function(assert) {
   assert.expect(9);
 
   const queue = new ActionQueue({ autoProcess: false });
@@ -476,8 +410,79 @@ test('#shift can remove failed actions from an inactive queue, allowing processi
   });
 
   return queue.process()
-    .catch(err => {
-      assert.equal(err.message, ':(', 'process rejection - error matches expectation');
+    .then(() => {
+      assert.equal(queue.complete, false, 'queue processing encountered a problem');
+      assert.equal(queue.error.message, ':(', 'process error matches expectation');
+
+      // skip current action and continue processing
+      return queue.skip();
+    });
+});
+
+test('#shift can remove failed actions from an inactive queue, allowing processing to be restarted', function(assert) {
+  assert.expect(10);
+
+  const queue = new ActionQueue({ autoProcess: false });
+
+  let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
+  let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+  let op3 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+  let transformCount = 0;
+
+  queue.on('action', function(action) {
+    if (transformCount === 1) {
+      assert.strictEqual(action.data, op1, 'action - op1 processed');
+    } else if (transformCount === 2) {
+      assert.strictEqual(action.data, op3, 'action - op3 processed');
+    }
+  });
+
+  queue.on('fail', function(action, err) {
+    assert.strictEqual(action.data, op2, 'fail - op2 failed processing');
+    assert.equal(err.message, ':(', 'fail - error matches expectation');
+  });
+
+  queue.on('complete', function() {
+    assert.ok(true, 'queue should complete after processing has restarted');
+  });
+
+  const _transform = function(op) {
+    transformCount++;
+    if (transformCount === 1) {
+      assert.strictEqual(op, op1, '_transform - op1 passed as argument');
+    } else if (transformCount === 2) {
+      assert.strictEqual(op, op3, '_transform - op3 passed as argument');
+    }
+  };
+
+  queue.push({
+    id: 1,
+    process: function() {
+      _transform.call(this, this.data);
+    },
+    data: op1
+  });
+
+  queue.push({
+    id: 2,
+    process: function() {
+      throw new Error(':(');
+    },
+    data: op2
+  });
+
+  queue.push({
+    id: 3,
+    process: function() {
+      _transform.call(this, this.data);
+    },
+    data: op3
+  });
+
+  return queue.process()
+    .then(() => {
+      assert.equal(queue.complete, false, 'queue processing encountered a problem');
+      assert.equal(queue.error.message, ':(', 'process error matches expectation');
 
       let failedAction = queue.shift();
       assert.strictEqual(failedAction.data, op2, 'op2, which failed, is returned from `shift`');

@@ -63,6 +63,14 @@ export default class ActionQueue {
     return this._actions[0];
   }
 
+  get error() {
+    return this._error;
+  }
+
+  get complete() {
+    return this.length === 0;
+  }
+
   get processing() {
     const current = this.current;
 
@@ -114,11 +122,11 @@ export default class ActionQueue {
     if (!resolution) {
       if (this._actions.length === 0) {
         resolution = Orbit.Promise.resolve();
-        this.emit('complete');
+        this._complete();
       } else {
-        this._resolution = resolution = new Orbit.Promise((resolve, reject) => {
-          this.one('complete', () => resolve());
-          this.one('fail', (action, e) => reject(e));
+        this._error = null;
+        this._resolution = resolution = new Orbit.Promise((resolve) => {
+          this._resolve = resolve;
         });
         this._settleEach(resolution);
       }
@@ -127,14 +135,32 @@ export default class ActionQueue {
     return resolution;
   }
 
+  _complete() {
+    if (this._resolve) {
+      this._resolve();
+    }
+    this._error = null;
+    this._resolution = null;
+    this.emit('complete');
+  }
+
+  _fail(action, e) {
+    if (this._resolve) {
+      this._resolve();
+    }
+    this._error = e;
+    this._resolution = null;
+    this.emit('fail', action, e);
+  }
+
   _cancel() {
+    this._error = null;
     this._resolution = null;
   }
 
   _settleEach(resolution) {
     if (this._actions.length === 0) {
-      this._cancel();
-      this.emit('complete');
+      this._complete();
     } else {
       let action = this._actions[0];
 
@@ -150,8 +176,7 @@ export default class ActionQueue {
         })
         .catch((e) => {
           if (resolution === this._resolution) {
-            this._cancel();
-            this.emit('fail', action, e);
+            this._fail(action, e);
           }
         });
     }
