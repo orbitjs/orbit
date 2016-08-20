@@ -54,7 +54,7 @@ export default {
     const record = cache.get([type, id]);
 
     if (!record) {
-      throw new RecordNotFoundException(`Record not found ${type}:${id}`);
+      throw new RecordNotFoundException(type, id);
     }
 
     return record;

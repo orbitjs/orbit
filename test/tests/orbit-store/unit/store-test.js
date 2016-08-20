@@ -114,6 +114,19 @@ module('OC - Store', function(hooks) {
       });
   });
 
+  test('#query - catches errors', function(assert) {
+    assert.expect(2);
+
+    store.cache.reset({});
+
+    assert.equal(store.cache.length('planet'), 0, 'cache should contain no planets');
+
+    return store.query(qb.record({ type: 'planet', id: 'jupiter' }))
+      .catch(e => {
+        assert.equal(e.message, 'Record not found - planet:jupiter');
+      });
+  });
+
   test('#liveQuery - invokes `query()` and then returns `cache.liveQuery()`', function(assert) {
     const done = assert.async();
 
