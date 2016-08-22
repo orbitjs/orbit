@@ -1,13 +1,13 @@
 /* eslint-disable valid-jsdoc */
-import { clone } from 'orbit/lib/objects';
-import { uuid } from 'orbit/lib/uuid';
+import { clone } from './lib/objects';
+import { uuid } from './lib/uuid';
 import {
   OperationNotAllowed,
   ModelNotRegisteredException,
   KeyNotRegisteredException,
   RelationshipNotRegisteredException
 } from './lib/exceptions';
-import Evented from 'orbit/evented';
+import Evented from './evented';
 
 /**
  `Schema` defines the models allowed in a source, including their keys,

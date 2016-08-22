@@ -3,7 +3,7 @@ import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/concatAll';
-import 'orbit-common/rxjs/add/operator/matching';
+import 'orbit/rxjs/add/operator/matching';
 
 export default class RecordsObservable extends Observable {
   constructor(subscribe, cache) {

@@ -1,12 +1,12 @@
 import Orbit from 'orbit';
-import Source from 'orbit-common/source';
+import Source from 'orbit/source';
 import { uuid } from 'orbit/lib/uuid';
-import Schema from 'orbit-common/schema';
-import KeyMap from 'orbit-common/key-map';
+import Schema from 'orbit/schema';
+import KeyMap from 'orbit/key-map';
 import JSONAPISource from 'orbit-jsonapi/jsonapi-source';
 import Transform from 'orbit/transform';
-import qb from 'orbit-common/query/builder';
-import { TransformNotAllowed } from 'orbit-common/lib/exceptions';
+import qb from 'orbit/query/builder';
+import { TransformNotAllowed } from 'orbit/lib/exceptions';
 import {
   addRecord,
   replaceRecord,
@@ -17,7 +17,7 @@ import {
   removeFromHasMany,
   replaceHasMany,
   replaceHasOne
-} from 'orbit-common/transform/operators';
+} from 'orbit/transform/operators';
 import { jsonapiResponse } from 'tests/test-helper';
 
 let fetchStub, keyMap, source;

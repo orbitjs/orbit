@@ -1,4 +1,4 @@
-import { coalesceOperations } from 'orbit-common/lib/operations';
+import { coalesceOperations } from 'orbit/lib/operations';
 
 module('OC - Lib - Operations', function() {
   module('`coalesceOperations`', function() {

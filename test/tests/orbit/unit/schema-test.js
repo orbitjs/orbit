@@ -1,6 +1,6 @@
-import Schema from 'orbit-common/schema';
+import Schema from 'orbit/schema';
 import { uuid } from 'orbit/lib/uuid';
-import { ModelNotRegisteredException } from 'orbit-common/lib/exceptions';
+import { ModelNotRegisteredException } from 'orbit/lib/exceptions';
 
 ///////////////////////////////////////////////////////////////////////////////
 

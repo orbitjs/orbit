@@ -1,12 +1,12 @@
 import Transform from 'orbit/transform';
-import Source from 'orbit-common/source';
-import Schema from 'orbit-common/schema';
-import KeyMap from 'orbit-common/key-map';
-import qb from 'orbit-common/query/builder';
+import Source from 'orbit/source';
+import Schema from 'orbit/schema';
+import KeyMap from 'orbit/key-map';
+import qb from 'orbit/query/builder';
 import {
   addRecord
-} from 'orbit-common/transform/operators';
-import { identity } from 'orbit-common/lib/identifiers';
+} from 'orbit/transform/operators';
+import { identity } from 'orbit/lib/identifiers';
 import Store from 'orbit-store/store';
 import CacheIntegrityProcessor from 'orbit-store/cache/operation-processors/cache-integrity-processor';
 import SchemaConsistencyProcessor from 'orbit-store/cache/operation-processors/schema-consistency-processor';

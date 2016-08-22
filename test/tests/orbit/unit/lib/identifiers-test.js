@@ -1,4 +1,4 @@
-import { toIdentifier, parseIdentifier, identity, eqIdentity } from 'orbit-common/lib/identifiers';
+import { toIdentifier, parseIdentifier, identity, eqIdentity } from 'orbit/lib/identifiers';
 
 module('OC - Lib - Identifiers', {
 });

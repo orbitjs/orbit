@@ -1,6 +1,6 @@
-import Schema from 'orbit-common/schema';
-import KeyMap from 'orbit-common/key-map';
-import { identity } from 'orbit-common/lib/identifiers';
+import Schema from 'orbit/schema';
+import KeyMap from 'orbit/key-map';
+import { identity } from 'orbit/lib/identifiers';
 import Cache from 'orbit-store/cache';
 import SchemaConsistencyProcessor from 'orbit-store/cache/operation-processors/schema-consistency-processor';
 

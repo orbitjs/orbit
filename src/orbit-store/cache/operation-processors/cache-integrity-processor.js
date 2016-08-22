@@ -1,5 +1,5 @@
 import { isObject } from 'orbit/lib/objects';
-import { toIdentifier, parseIdentifier } from 'orbit-common/lib/identifiers';
+import { toIdentifier, parseIdentifier } from 'orbit/lib/identifiers';
 import OperationProcessor from './operation-processor';
 
 /**

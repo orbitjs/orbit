@@ -8,8 +8,8 @@ import TransformLog from 'orbit/transform/log';
 import {
   coalesceTransforms,
   reduceTransforms
-} from 'orbit-common/lib/transforms';
-import Source from 'orbit-common/source';
+} from 'orbit/lib/transforms';
+import Source from 'orbit/source';
 import Cache from './cache';
 
 export default class Store extends Source {

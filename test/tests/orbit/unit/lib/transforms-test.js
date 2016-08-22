@@ -3,7 +3,7 @@ import {
   operationsInTransforms,
   reduceTransforms,
   coalesceTransforms
-} from 'orbit-common/lib/transforms';
+} from 'orbit/lib/transforms';
 
 module('OC - Lib - Transforms', function() {
   test('operationsInTransforms - returns a single array containing all the operations in an array of transforms', function(assert) {

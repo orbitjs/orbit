@@ -1,4 +1,4 @@
-import { isObject, isNone } from 'orbit/lib/objects';
+import { isObject, isNone } from './objects';
 
 function toIdentifier(type, id) {
   if (type) {

@@ -1,5 +1,5 @@
 import { eq } from 'orbit/lib/eq';
-import { toIdentifier, parseIdentifier } from 'orbit-common/lib/identifiers';
+import { toIdentifier, parseIdentifier } from 'orbit/lib/identifiers';
 
 const InverseTransforms = {
   addRecord(doc, op) {

@@ -9,7 +9,7 @@ import {
   removeFromHasMany,
   replaceHasMany,
   replaceHasOne
-} from 'orbit-common/transform/operators';
+} from 'orbit/transform/operators';
 
 ///////////////////////////////////////////////////////////////////////////////
 

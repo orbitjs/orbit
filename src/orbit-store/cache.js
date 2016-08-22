@@ -6,7 +6,7 @@ import { isArray, isObject } from 'orbit/lib/objects';
 import { eq } from 'orbit/lib/eq';
 import Query from 'orbit/query';
 import QueryEvaluator from 'orbit/query/evaluator';
-import 'orbit-common/rxjs/add/observable/from-orbit-event';
+import 'orbit/rxjs/add/observable/from-orbit-event';
 import { Observable } from 'rxjs/Observable';
 import CacheObservable from './cache/observables/cache-observable';
 import CacheIntegrityProcessor from './cache/operation-processors/cache-integrity-processor';

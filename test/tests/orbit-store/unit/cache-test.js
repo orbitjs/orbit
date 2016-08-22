@@ -1,10 +1,10 @@
-import Schema from 'orbit-common/schema';
-import KeyMap from 'orbit-common/key-map';
+import Schema from 'orbit/schema';
+import KeyMap from 'orbit/key-map';
 import { queryExpression as oqe } from 'orbit/query/expression';
 import {
   RecordNotFoundException,
   ModelNotRegisteredException
-} from 'orbit-common/lib/exceptions';
+} from 'orbit/lib/exceptions';
 import {
   addRecord,
   // replaceRecord,
@@ -15,7 +15,7 @@ import {
   removeFromHasMany,
   // replaceHasMany,
   replaceHasOne
-} from 'orbit-common/transform/operators';
+} from 'orbit/transform/operators';
 import Cache from 'orbit-store/cache';
 
 let schema, keyMap;

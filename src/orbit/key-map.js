@@ -1,6 +1,6 @@
-import { get, set } from 'orbit/lib/objects';
-import { firstResult } from 'orbit/lib/arrays';
-import { assert } from 'orbit/lib/assert';
+import { get, set } from './lib/objects';
+import { firstResult } from './lib/arrays';
+import { assert } from './lib/assert';
 
 export default class KeyMap {
   constructor() {

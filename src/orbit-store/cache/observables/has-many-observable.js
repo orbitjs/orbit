@@ -2,9 +2,9 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/observable/concat';
-import 'orbit-common/rxjs/add/operator/matching';
+import 'orbit/rxjs/add/operator/matching';
 import RecordsObservable from './records-observable';
-import qb from 'orbit-common/query/builder';
+import qb from 'orbit/query/builder';
 
 export default class HasManyObservable extends Observable {
   constructor(subscribe, cache, record, relationship) {

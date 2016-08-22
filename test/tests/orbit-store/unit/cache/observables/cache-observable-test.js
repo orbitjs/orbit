@@ -1,5 +1,5 @@
-import Schema from 'orbit-common/schema';
-import KeyMap from 'orbit-common/key-map';
+import Schema from 'orbit/schema';
+import KeyMap from 'orbit/key-map';
 import {
   addRecord,
   // replaceRecord,
@@ -10,7 +10,7 @@ import {
   removeFromHasMany,
   // replaceHasMany,
   replaceHasOne
-} from 'orbit-common/transform/operators';
+} from 'orbit/transform/operators';
 import Cache from 'orbit-store/cache';
 import CacheObservable from 'orbit-store/cache/observables/cache-observable';
 import { Observable } from 'rxjs/Observable';

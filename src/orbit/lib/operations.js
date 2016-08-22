@@ -1,5 +1,5 @@
 /* eslint-disable valid-jsdoc */
-import { eq } from 'orbit/lib/eq';
+import { eq } from './eq';
 import { identity, eqIdentity, toIdentifier } from './identifiers';
 
 function mergeOps(superceded, superceding, consecutiveOps) {

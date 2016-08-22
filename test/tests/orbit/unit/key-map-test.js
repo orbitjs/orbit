@@ -1,5 +1,5 @@
-import Schema from 'orbit-common/schema';
-import KeyMap from 'orbit-common/key-map';
+import Schema from 'orbit/schema';
+import KeyMap from 'orbit/key-map';
 import { uuid } from 'orbit/lib/uuid';
 
 let schema;

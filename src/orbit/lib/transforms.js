@@ -1,5 +1,5 @@
 /* eslint-disable valid-jsdoc */
-import Transform from 'orbit/transform';
+import Transform from '../transform';
 import { coalesceOperations } from './operations';
 
 /**

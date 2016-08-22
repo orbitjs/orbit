@@ -1,4 +1,4 @@
-import { buildPatternMatcher } from 'orbit/lib/pattern-matcher';
+import { buildPatternMatcher } from '../../lib/pattern-matcher';
 
 export function matching(pattern) {
   const isMatch = buildPatternMatcher(pattern);

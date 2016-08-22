@@ -10,11 +10,14 @@ import ActionQueue from './action-queue';
  @namespace Orbit
  @param {Object} [options] - Options for source
  @param {String} [options.name] - Name for source
+ @param {Schema} [options.schema] - Schema for source
  @constructor
  */
 export default class Source {
   constructor(options = {}) {
     this.name = options.name;
+    this.schema = options.schema;
+
     this.transformLog = new TransformLog();
     this.requestQueue = new ActionQueue();
     this.syncQueue = new ActionQueue();

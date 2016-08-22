@@ -1,7 +1,7 @@
-import Schema from 'orbit-common/schema';
-import KeyMap from 'orbit-common/key-map';
-import { identity } from 'orbit-common/lib/identifiers';
-import qb from 'orbit-common/query/builder';
+import Schema from 'orbit/schema';
+import KeyMap from 'orbit/key-map';
+import { identity } from 'orbit/lib/identifiers';
+import qb from 'orbit/query/builder';
 import {
   addRecord,
   // replaceRecord,
@@ -12,7 +12,7 @@ import {
   removeFromHasMany,
   // replaceHasMany,
   replaceHasOne
-} from 'orbit-common/transform/operators';
+} from 'orbit/transform/operators';
 import Cache from 'orbit-store/cache';
 
 const planetsSchema = new Schema({

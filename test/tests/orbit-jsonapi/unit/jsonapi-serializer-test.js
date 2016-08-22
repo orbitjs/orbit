@@ -1,8 +1,7 @@
 import { uuid } from 'orbit/lib/uuid';
-import Schema from 'orbit-common/schema';
-import Serializer from 'orbit-common/serializer';
-import KeyMap from 'orbit-common/key-map';
-import { toIdentifier } from 'orbit-common/lib/identifiers';
+import Schema from 'orbit/schema';
+import KeyMap from 'orbit/key-map';
+import { toIdentifier } from 'orbit/lib/identifiers';
 import JSONAPISerializer from 'orbit-jsonapi/jsonapi-serializer';
 import 'tests/test-helper';
 
@@ -76,10 +75,6 @@ function setupWithUUIDs() {
 
 test('it exists', function() {
   ok(setupWithLocalIds());
-});
-
-test('its prototype chain is correct', function() {
-  ok(setupWithLocalIds() instanceof Serializer, 'instanceof Serializer');
 });
 
 test('#resourceKey returns \'id\' by default', function() {
