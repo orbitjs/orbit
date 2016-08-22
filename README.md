@@ -87,18 +87,6 @@ non-blocking (i.e. associated actions are resolved in the background without
 blocking the flow of the application). Connectors can be used to enable
 uni or bi-directional flow of data between sources.
 
-## Orbit Common Library
-
-The Orbit Common library (namespaced `OC` by default) contains a set of
-compatible data sources, currently including: an in-memory cache, a local
-storage source, and a source for accessing [JSON API](http://jsonapi.org/)
-compliant APIs with AJAX.
-
-You can define your own data sources that will work with Orbit as long as they
-support Orbit's interfaces. You can either make sources compliant with the
-Orbit Common library or use Orbit's base interfaces to create an independent
-collection of compatible sources.
-
 ## Contributing
 
 ### Installing Orbit
