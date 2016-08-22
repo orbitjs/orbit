@@ -1,14 +1,3 @@
-/**
- Core methods and classes for Orbit.js
-
- @module orbit
- @main orbit
- */
-
-const Orbit = {};
-
-if (typeof self.Promise !== 'undefined') {
-  Orbit.Promise = self.Promise;
-}
+import Orbit from 'orbit/main';
 
 export default Orbit;
