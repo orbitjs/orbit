@@ -1,5 +1,5 @@
 /* eslint-disable valid-jsdoc */
-import Orbit from 'orbit';
+import Orbit from './main';
 
 /**
  `Action` provides a wrapper for actions that are performed in an `ActionQueue`.

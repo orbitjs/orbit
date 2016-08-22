@@ -1,4 +1,4 @@
-import Orbit from 'orbit';
+import Orbit from './main';
 import Evented from './evented';
 import TransformLog from './transform/log';
 import ActionQueue from './action-queue';

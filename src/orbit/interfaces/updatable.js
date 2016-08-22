@@ -1,4 +1,4 @@
-import Orbit from 'orbit';
+import Orbit from '../main';
 import { assert } from '../lib/assert';
 import { extend } from '../lib/objects';
 import Transform from '../transform';

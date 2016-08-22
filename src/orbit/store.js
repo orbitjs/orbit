@@ -1,4 +1,4 @@
-import Orbit from 'orbit';
+import Orbit from './main';
 import { assert } from './lib/assert';
 import { extend as assign } from './lib/objects';
 import Syncable from './interfaces/syncable';

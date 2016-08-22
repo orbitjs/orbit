@@ -1,4 +1,4 @@
-import Orbit from 'orbit';
+import Orbit from './main';
 import Notifier from './notifier';
 import { assert } from './lib/assert';
 import { extend } from './lib/objects';
