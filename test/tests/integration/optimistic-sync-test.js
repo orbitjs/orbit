@@ -1,7 +1,7 @@
 import Orbit from 'orbit';
 // import { eq } from 'orbit/lib/eq';
-// import qb from 'orbit-common/query/builder';
-import KeyMap from 'orbit-common/key-map';
+// import qb from 'orbit/query/builder';
+import KeyMap from 'orbit/key-map';
 import {
   addRecord
   // replaceRecord,
@@ -12,12 +12,12 @@ import {
   // removeFromHasMany,
   // replaceHasMany,
   // replaceHasOne
-} from 'orbit-common/transform/operators';
+} from 'orbit/transform/operators';
 import {
   ClientError,
   NetworkError
-} from 'orbit-common/lib/exceptions';
-import Store from 'orbit-store/store';
+} from 'orbit/lib/exceptions';
+import Store from 'orbit/store';
 import JSONAPISource from 'orbit-jsonapi/jsonapi-source';
 import {
   jsonapiResponse

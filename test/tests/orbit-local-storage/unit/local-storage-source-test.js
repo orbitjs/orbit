@@ -3,8 +3,8 @@ import {
   verifyLocalStorageDoesNotContainRecord,
   verifyLocalStorageIsEmpty
 } from 'tests/test-helper';
-import Source from 'orbit-common/source';
-import Schema from 'orbit-common/schema';
+import Source from 'orbit/source';
+import Schema from 'orbit/schema';
 import LocalStorageSource from 'orbit-local-storage/local-storage-source';
 import Transform from 'orbit/transform';
 import {
@@ -17,8 +17,8 @@ import {
   removeFromHasMany,
   replaceHasMany,
   replaceHasOne
-} from 'orbit-common/transform/operators';
-import qb from 'orbit-common/query/builder';
+} from 'orbit/transform/operators';
+import qb from 'orbit/query/builder';
 
 let schema, source;
 

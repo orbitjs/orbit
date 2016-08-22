@@ -1,9 +1,13 @@
 import { isArray, isObject } from 'orbit/lib/objects';
 import { dasherize, camelize } from 'orbit/lib/strings';
-import Serializer from 'orbit-common/serializer';
-import { parseIdentifier, toIdentifier } from 'orbit-common/lib/identifiers';
+import { parseIdentifier, toIdentifier } from 'orbit/lib/identifiers';
 
-export default class JSONAPISerializer extends Serializer {
+export default class JSONAPISerializer {
+  constructor({ schema, keyMap }) {
+    this.schema = schema;
+    this.keyMap = keyMap;
+  }
+
   resourceKey(/* type */) {
     return 'id';
   }

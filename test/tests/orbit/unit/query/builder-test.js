@@ -1,42 +1,112 @@
 import 'tests/test-helper';
-import Builder from 'orbit/query/builder';
-import Query from 'orbit/query';
-import { Value } from 'orbit/query/terms';
 import { queryExpression as oqe } from 'orbit/query/expression';
+import qb from 'orbit/query/builder';
 
-///////////////////////////////////////////////////////////////////////////////
+module('OC - QueryBuilder', function() {
+  test('record', function(assert) {
+    assert.deepEqual(
+      qb.record({ type: 'planet', id: '123' }).toQueryExpression(),
 
-module('Orbit', function() {
-  module('Query', function() {
-    module('Builder', function(hooks) {
-      let builder;
+      oqe('record', { type: 'planet', id: '123' })
+    );
+  });
 
-      hooks.beforeEach(() => {
-        builder = new Builder({
-          operators: {
-            get(path) {
-              return new Value(oqe('get', path));
-            }
-          }
-        });
-      });
+  test('record', function(assert) {
+    assert.deepEqual(
+      qb.record({ type: 'planet', id: '123' }).toQueryExpression(),
 
-      hooks.afterEach(() => {
-        builder = null;
-      });
+      oqe('record', { type: 'planet', id: '123' })
+    );
+  });
 
-      test('exists', function(assert) {
-        assert.ok(builder, 'it exists');
-      });
+  test('records', function(assert) {
+    assert.deepEqual(
+      qb.records('planet').toQueryExpression(),
 
-      test('#build - takes a function and returns a Query instance ', function(assert) {
-        assert.expect(2);
+      oqe('records', 'planet')
+    );
+  });
 
-        let query = builder.build(b => b.get('foo'));
+  test('records/filter/equal/get', function(assert) {
+    assert.deepEqual(
+      qb.records('planet')
+        .filter(record => record.attribute('name').equal('Pluto'))
+        .toQueryExpression(),
 
-        assert.ok(query instanceof Query, 'returns Query');
-        assert.deepEqual(query.expression, oqe('get', 'foo'), 'query contains expression returned from builder');
-      });
-    });
+      oqe('filter',
+        oqe('records', 'planet'),
+        oqe('equal', oqe('attribute', 'name'), 'Pluto'))
+    );
+  });
+
+  test('records/filter/equal/get/or', function(assert) {
+    assert.deepEqual(
+      qb.records('planet')
+        .filter(record =>
+          qb.or(
+            record.attribute('name').equal('Jupiter'),
+            record.attribute('name').equal('Pluto')
+          )
+        )
+        .toQueryExpression(),
+
+      oqe('filter',
+        oqe('records', 'planet'),
+          oqe('or',
+            oqe('equal', oqe('attribute', 'name'), 'Jupiter'),
+            oqe('equal', oqe('attribute', 'name'), 'Pluto')))
+    );
+  });
+
+  test('records/filter/equal/get/and', function(assert) {
+    assert.deepEqual(
+      qb.records('planet')
+        .filter(record =>
+          qb.and(
+            record.attribute('name').equal('Jupiter'),
+            record.attribute('name').equal('Pluto')
+          )
+        )
+        .toQueryExpression(),
+
+      oqe('filter',
+        oqe('records', 'planet'),
+          oqe('and',
+            oqe('equal', oqe('attribute', 'name'), 'Jupiter'),
+            oqe('equal', oqe('attribute', 'name'), 'Pluto')))
+    );
+  });
+
+  test('records/filter/equal/attribute/and', function(assert) {
+    assert.deepEqual(
+      qb.records('planet')
+        .filter(record =>
+          qb.and(
+            record.attribute('name').equal('Jupiter'),
+            record.attribute('name').equal('Pluto')
+          )
+        )
+        .toQueryExpression(),
+
+      oqe('filter',
+        oqe('records', 'planet'),
+          oqe('and',
+            oqe('equal', oqe('attribute', 'name'), 'Jupiter'),
+            oqe('equal', oqe('attribute', 'name'), 'Pluto')))
+    );
+  });
+
+  test('records/filterAttributes', function(assert) {
+    assert.deepEqual(
+      qb.records('planet')
+        .filterAttributes({ 'name': 'Jupiter', 'age': '23000000' })
+        .toQueryExpression(),
+
+      oqe('filter',
+        oqe('records', 'planet'),
+          oqe('and',
+            oqe('equal', oqe('attribute', 'name'), 'Jupiter'),
+            oqe('equal', oqe('attribute', 'age'), '23000000')))
+    );
   });
 });

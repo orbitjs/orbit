@@ -4,9 +4,8 @@ import Orbit from 'orbit';
 import { assert } from 'orbit/lib/assert';
 import Pullable from 'orbit/interfaces/pullable';
 import Pushable from 'orbit/interfaces/pushable';
-import Source from 'orbit-common/source';
-import Serializer from 'orbit-common/serializer';
-import { QueryNotAllowed, TransformNotAllowed, ClientError, ServerError, NetworkError } from 'orbit-common/lib/exceptions';
+import Source from 'orbit/source';
+import { QueryNotAllowed, TransformNotAllowed, ClientError, ServerError, NetworkError } from 'orbit/lib/exceptions';
 import JSONAPISerializer from './jsonapi-serializer';
 import { encodeQueryParams } from './lib/query-params';
 import { getQueryRequests, QueryRequestProcessors } from './lib/queries';
@@ -55,8 +54,6 @@ export default class JSONAPISource extends Source {
 
     const SerializerClass = options.SerializerClass || JSONAPISerializer;
     this.serializer       = new SerializerClass({ schema: options.schema, keyMap: options.keyMap });
-
-    assert('Serializer must be an instance of OC.Serializer', this.serializer instanceof Serializer);
   }
 
   /////////////////////////////////////////////////////////////////////////////

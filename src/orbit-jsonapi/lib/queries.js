@@ -1,6 +1,6 @@
 import { toArray } from 'orbit/lib/objects';
 import Transform from 'orbit/transform';
-import { QueryExpressionParseError } from 'orbit-common/lib/exceptions';
+import { QueryExpressionParseError } from 'orbit/lib/exceptions';
 
 function deserialize(source, data) {
   const deserialized = source.serializer.deserialize(data);

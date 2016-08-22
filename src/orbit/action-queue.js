@@ -1,5 +1,5 @@
 /* eslint-disable valid-jsdoc */
-import Orbit from 'orbit';
+import Orbit from './main';
 import Action from './action';
 import Evented from './evented';
 import { assert } from './lib/assert';

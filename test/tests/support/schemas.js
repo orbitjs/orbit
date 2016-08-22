@@ -1,4 +1,4 @@
-import Schema from 'orbit-common/schema';
+import Schema from 'orbit/schema';
 
 var planetsSchema = new Schema({
   modelDefaults: {
