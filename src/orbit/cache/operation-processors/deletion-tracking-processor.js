@@ -1,4 +1,4 @@
-import { isArray, expose } from 'orbit/lib/objects';
+import { isArray, expose } from '../../lib/objects';
 import OperationProcessor from './operation-processor';
 
 /**

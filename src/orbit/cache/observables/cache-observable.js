@@ -2,8 +2,8 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/filter';
 import HasOneObservable from './has-one-observable';
 import HasManyObservable from './has-many-observable';
-import 'orbit/rxjs/add/operator/matching';
-import { identity } from 'orbit/lib/identifiers';
+import '../../rxjs/add/operator/matching';
+import { identity } from '../../lib/identifiers';
 
 export default class CacheObservable extends Observable {
   constructor(subscribe, cache) {

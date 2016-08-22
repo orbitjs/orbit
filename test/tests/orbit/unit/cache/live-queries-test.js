@@ -13,7 +13,7 @@ import {
   // replaceHasMany,
   replaceHasOne
 } from 'orbit/transform/operators';
-import Cache from 'orbit-store/cache';
+import Cache from 'orbit/cache';
 
 const planetsSchema = new Schema({
   models: {

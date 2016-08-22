@@ -17,7 +17,7 @@ import {
   ClientError,
   NetworkError
 } from 'orbit/lib/exceptions';
-import Store from 'orbit-store/store';
+import Store from 'orbit/store';
 import JSONAPISource from 'orbit-jsonapi/jsonapi-source';
 import {
   jsonapiResponse

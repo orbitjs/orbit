@@ -1,12 +1,12 @@
 /* globals Immutable */
 /* eslint-disable valid-jsdoc */
 
-import Evented from 'orbit/evented';
-import { isArray, isObject } from 'orbit/lib/objects';
-import { eq } from 'orbit/lib/eq';
-import Query from 'orbit/query';
-import QueryEvaluator from 'orbit/query/evaluator';
-import 'orbit/rxjs/add/observable/from-orbit-event';
+import Evented from './evented';
+import { isArray, isObject } from './lib/objects';
+import { eq } from './lib/eq';
+import Query from './query';
+import QueryEvaluator from './query/evaluator';
+import './rxjs/add/observable/from-orbit-event';
 import { Observable } from 'rxjs/Observable';
 import CacheObservable from './cache/observables/cache-observable';
 import CacheIntegrityProcessor from './cache/operation-processors/cache-integrity-processor';

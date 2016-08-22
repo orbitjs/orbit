@@ -1,8 +1,8 @@
 import Schema from 'orbit/schema';
 import KeyMap from 'orbit/key-map';
 import { identity } from 'orbit/lib/identifiers';
-import CacheIntegrityProcessor from 'orbit-store/cache/operation-processors/cache-integrity-processor';
-import Cache from 'orbit-store/cache';
+import CacheIntegrityProcessor from 'orbit/cache/operation-processors/cache-integrity-processor';
+import Cache from 'orbit/cache';
 
 let schema, cache, processor;
 

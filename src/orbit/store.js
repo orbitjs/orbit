@@ -1,15 +1,15 @@
 import Orbit from 'orbit';
-import { assert } from 'orbit/lib/assert';
-import { extend as assign } from 'orbit/lib/objects';
-import Syncable from 'orbit/interfaces/syncable';
-import Queryable from 'orbit/interfaces/queryable';
-import Updatable from 'orbit/interfaces/updatable';
-import TransformLog from 'orbit/transform/log';
+import { assert } from './lib/assert';
+import { extend as assign } from './lib/objects';
+import Syncable from './interfaces/syncable';
+import Queryable from './interfaces/queryable';
+import Updatable from './interfaces/updatable';
+import TransformLog from './transform/log';
 import {
   coalesceTransforms,
   reduceTransforms
-} from 'orbit/lib/transforms';
-import Source from 'orbit/source';
+} from './lib/transforms';
+import Source from './source';
 import Cache from './cache';
 
 export default class Store extends Source {

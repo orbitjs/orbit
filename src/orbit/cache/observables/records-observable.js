@@ -3,17 +3,16 @@ import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/concatAll';
-import 'orbit/rxjs/add/operator/matching';
-import CacheObservable from './cache-observable';
+import '../../rxjs/add/operator/matching';
 
-export default class RecordObservable extends Observable {
+export default class RecordsObservable extends Observable {
   constructor(subscribe, cache) {
     super(subscribe);
     this.cache = cache;
   }
 
   lift(operator) {
-    const observable = new RecordObservable();
+    const observable = new RecordsObservable();
     observable.source = this;
     observable.operator = operator;
     observable.cache = this.cache;
@@ -21,16 +20,16 @@ export default class RecordObservable extends Observable {
   }
 
   patches() {
-    const recordPatches = this.map(record => {
-      return this.cache.patches.matching({ record: { id: record.id } });
+    return this.map(records => {
+      return this.cache.patches.matching({
+        record: { id: records.map(r => r.id) }
+      });
     }).switch();
-
-    return CacheObservable.fromObservable(recordPatches, this.cache);
   }
 
   static fromObservable(observable, cache) {
     const subscribe = observable.subscribe.bind(observable);
 
-    return new RecordObservable(subscribe, cache);
+    return new RecordsObservable(subscribe, cache);
   }
 }

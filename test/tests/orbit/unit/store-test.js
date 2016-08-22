@@ -7,9 +7,9 @@ import {
   addRecord
 } from 'orbit/transform/operators';
 import { identity } from 'orbit/lib/identifiers';
-import Store from 'orbit-store/store';
-import CacheIntegrityProcessor from 'orbit-store/cache/operation-processors/cache-integrity-processor';
-import SchemaConsistencyProcessor from 'orbit-store/cache/operation-processors/schema-consistency-processor';
+import Store from 'orbit/store';
+import CacheIntegrityProcessor from 'orbit/cache/operation-processors/cache-integrity-processor';
+import SchemaConsistencyProcessor from 'orbit/cache/operation-processors/schema-consistency-processor';
 import { all } from 'rsvp';
 
 const schemaDefinition = {

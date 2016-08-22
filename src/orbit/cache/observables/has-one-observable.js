@@ -8,9 +8,9 @@ import 'rxjs/add/operator/startWith';
 import 'rxjs/add/operator/concatAll';
 import 'rxjs/add/observable/concat';
 import 'rxjs/add/observable/empty';
-import 'orbit/rxjs/add/operator/matching';
+import '../../rxjs/add/operator/matching';
 import RecordObservable from './record-observable';
-import qb from 'orbit/query/builder';
+import qb from '../../query/builder';
 
 function extractRecordFromHasOneResult(value) {
   if (!value) { return null; }

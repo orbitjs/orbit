@@ -1,5 +1,5 @@
-import { queryExpression as oqe } from 'orbit/query/expression';
-import Query from 'orbit/query';
+import { queryExpression as oqe } from '../query/expression';
+import Query from '../query';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/concat';
 

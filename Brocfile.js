@@ -10,7 +10,6 @@ var testGenerator = require('./build-support/test-generator');
 
 var packages = [
   'orbit',
-  'orbit-store',
   'orbit-local-storage',
   'orbit-jsonapi'
 ];

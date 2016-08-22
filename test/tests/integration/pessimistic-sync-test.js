@@ -12,7 +12,7 @@ import {
   replaceHasMany,
   replaceHasOne
 } from 'orbit/transform/operators';
-import Store from 'orbit-store/store';
+import Store from 'orbit/store';
 import JSONAPISource from 'orbit-jsonapi/jsonapi-source';
 import LocalStorageSource from 'orbit-local-storage/local-storage-source';
 import {

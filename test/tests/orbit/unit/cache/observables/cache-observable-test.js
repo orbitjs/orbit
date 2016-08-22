@@ -11,8 +11,8 @@ import {
   // replaceHasMany,
   replaceHasOne
 } from 'orbit/transform/operators';
-import Cache from 'orbit-store/cache';
-import CacheObservable from 'orbit-store/cache/observables/cache-observable';
+import Cache from 'orbit/cache';
+import CacheObservable from 'orbit/cache/observables/cache-observable';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/from';
 import 'rxjs/add/operator/map';

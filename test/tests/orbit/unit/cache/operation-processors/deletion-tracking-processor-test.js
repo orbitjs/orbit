@@ -3,8 +3,8 @@ import KeyMap from 'orbit/key-map';
 import {
   removeRecord
 } from 'orbit/transform/operators';
-import DeletionTrackingProcessor from 'orbit-store/cache/operation-processors/deletion-tracking-processor';
-import Cache from 'orbit-store/cache';
+import DeletionTrackingProcessor from 'orbit/cache/operation-processors/deletion-tracking-processor';
+import Cache from 'orbit/cache';
 import 'tests/test-helper';
 
 let schema, cache;
