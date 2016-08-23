@@ -14,30 +14,15 @@ import {
   failedOperation
 } from './support/operations';
 
-import {
-  verifyLocalStorageIsEmpty,
-  verifyLocalStorageContainsRecord,
-  verifyLocalStorageDoesNotContainRecord
-
-} from './support/local-storage';
-
-import {
-  jsonapiResponse
-} from './support/jsonapi';
-
 import { planetsSchema } from './support/schemas';
 
 import './support/rsvp';
 
 export {
-  jsonapiResponse,
   serializeOps,
   serializeOp,
   op,
   successfulOperation,
   failedOperation,
-  verifyLocalStorageIsEmpty,
-  verifyLocalStorageContainsRecord,
-  verifyLocalStorageDoesNotContainRecord,
   planetsSchema
 };
