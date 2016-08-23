@@ -4,10 +4,9 @@
   "version": "0.8.0-beta.1",
   "description": "Core library for Orbit.js, the flexible data access and synchronization layer.",
   "homepage": "https://github.com/orbitjs/orbit-core",
-  "author": {
-    "name": "Cerebris Corporation",
-    "url": "http://cerebris.com"
-  },
+  "contributors": [
+    "Dan Gebhardt (http://www.cerebris.com)"
+  ],
   "repository": {
     "type": "git",
     "url": "git://github.com/orbitjs/orbit-core.git"
@@ -15,8 +14,13 @@
   "bugs": {
     "url": "https://github.com/orbitjs/orbit-core/issues"
   },
-  "keywords": ["orbit.js", "data", "synchronization"],
-  "licenses": "MIT",
+  "keywords": [
+    "orbit.js",
+    "data",
+    "immutable",
+    "synchronization"
+  ],
+  "license": "MIT",
   "scripts": {
     "build": "rm -rf dist && BROCCOLI_ENV=test broccoli build dist",
     "test": "testem ci",
@@ -39,7 +43,6 @@
     "qunitjs": "^1.23.1",
     "rsvp": "^3.2.1",
     "testem": "1.6.0",
-    "whatwg-fetch": "1.0.0",
     "yuidocjs": "^0.8.1"
   },
   "dependencies": {
