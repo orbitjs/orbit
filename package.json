@@ -1,6 +1,5 @@
 {
   "name": "orbit-core",
-  "private": true,
   "version": "0.8.0-beta.1",
   "description": "Core library for Orbit.js, the flexible data access and synchronization layer.",
   "homepage": "https://github.com/orbitjs/orbit-core",
