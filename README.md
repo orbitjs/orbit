@@ -7,8 +7,6 @@ Orbit provides a foundation for building advanced features in client-side
 applications such as offline operation, maintenance and synchronization of local
 caches, undo / redo stacks and ad hoc editing contexts.
 
-Orbit relies heavily on promises, events and low-level transforms.
-
 ## Goals
 
 * Support any number of different data sources in an application and
@@ -22,11 +20,23 @@ Orbit relies heavily on promises, events and low-level transforms.
 * Coordinate transformations across sources. Handle merges automatically
   where possible but allow for complete custom control.
 
-* Allow for blocking and non-blocking transformations.
+* Allow for blocking and non-blocking coordination.
 
 * Allow for synchronous and asynchronous requests.
 
-* Support transactions and undo/redo by tracking inverses of operations.
+* Support transactions and rollbacks by tracking operation inverses.
+
+## Installation
+
+Install with npm:
+
+```
+npm install orbit-core
+```
+
+The original source code is maintained in ES2015 modules in `/src`.
+
+AMD and CJS builds are in `/dist`.
 
 ## Dependencies
 
@@ -41,55 +51,21 @@ support legacy browsers, you will need to include a library such as
 
 ## Configuration
 
-You'll need to configure Orbit to recognize any applicable dependencies.
-
-Orbit defaults to using the global `Promise` constructor, if it exists. If your environment
-does not implement Promises, or if you wish to use another Promise implementation, configure
-your promise library's `Promise` constructor as follows:
+Orbit defaults to using the global `Promise` constructor, if it exists. If your
+environment does not implement Promises, or if you wish to use another Promise
+implementation, configure your promise library's `Promise` constructor as
+follows:
 
 ```javascript
 import Orbit from 'orbit';
+import RSVP from 'rsvp';
 
 Orbit.Promise = RSVP.Promise;
 ```
 
-The `JSONAPISource` uses the experimental [Fetch
-API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) for network
-requests. If you're running Orbit in an environment that does not support
-`fetch`, use a polyfill such as [whatwg-fetch](https://github.com/github/fetch)
-or [node-fetch](https://github.com/bitinn/node-fetch). Alternatively, you can
-use a `fetch` ponyfill and set it on the main `Orbit` object. For example:
-
-```javascript
-import Orbit from 'orbit';
-import fetch from 'ember-network/fetch';
-
-Orbit.fetch = fetch;
-```
-
-Other sources may have other configuration requirements.
-
-## How does Orbit work?
-
-Orbit requires that every data source support one or more common interfaces.
-These interfaces define how data can be both *accessed* and *transformed*.
-
-The methods for accessing and transforming data return promises. These promises
-might be fulfilled synchronously or asynchronously. Once fulfilled, events
-are triggered to indicate success or failure. Any event listeners can engage
-with an event by returning a promise. In this way, multiple data sources can be
-involved in a single action.
-
-Standard connectors are supplied for listening to events on a data source and
-calling corresponding actions on a target. These connectors can be blocking
-(i.e. they don't resolve until all associated actions are resolved) or
-non-blocking (i.e. associated actions are resolved in the background without
-blocking the flow of the application). Connectors can be used to enable
-uni or bi-directional flow of data between sources.
-
 ## Contributing
 
-### Installing Orbit
+### Installation
 
 Install the CLI for [Broccoli](https://github.com/broccolijs/broccoli) globally:
 
@@ -97,26 +73,25 @@ Install the CLI for [Broccoli](https://github.com/broccolijs/broccoli) globally:
 npm install -g broccoli-cli
 ```
 
-Install the rest of Orbit's dependencies:
+Install other dependencies:
 
 ```
 npm install
 ```
 
-### Building Orbit
+### Building
 
-Distributable versions of Orbit can be built to the `/build` directory by
-running:
+Distributions can be built to the `/dist` directory by running:
 
 ```
 npm run build
 ```
 
-### Testing Orbit
+### Testing
 
 #### CI Testing
 
-Orbit can be tested in CI mode by running:
+Test in CI mode by running:
 
 ```
 npm test
@@ -130,7 +105,7 @@ testem ci
 
 #### Browser Testing
 
-Orbit can be tested within a browser
+Test within a browser
 (at [http://localhost:4200/tests/](http://localhost:4200/tests/)) by running:
 
 ```
