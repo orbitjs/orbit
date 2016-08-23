@@ -23,6 +23,7 @@
   "engines": {
     "node": ">= 4.0.0"
   },
+  "main": "src/index.js",
   "scripts": {
     "build": "rm -rf dist && BROCCOLI_ENV=test broccoli build dist",
     "test": "testem ci",
