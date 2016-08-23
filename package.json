@@ -1,7 +1,7 @@
 {
   "name": "orbit-core",
   "version": "0.8.0-beta.1",
-  "description": "Core library for Orbit.js, the flexible data access and synchronization layer.",
+  "description": "Core library for Orbit.js, a flexible data access and synchronization layer.",
   "homepage": "https://github.com/orbitjs/orbit-core",
   "contributors": [
     "Dan Gebhardt (http://www.cerebris.com)"
