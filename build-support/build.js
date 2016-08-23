@@ -7,6 +7,7 @@ var CompileES6Modules = require('broccoli-es6modules');
 var TranspileES6 = require('broccoli-babel-transpiler');
 var eslint = require('broccoli-lint-eslint');
 var testGenerator = require('./test-generator');
+var path = require('path');
 
 module.exports = function build(pkg, namespace) {
   namespace = namespace || pkg;
@@ -51,26 +52,23 @@ module.exports = function build(pkg, namespace) {
 
   // Generate Dependencies and Tests /////////////////////////////////////////////
 
-  var loader = new Funnel('node_modules', {
-    srcDir: 'loader.js/lib/loader/',
+  var loader = new Funnel(path.join(require.resolve('loader.js'), '..'), {
     files: ['loader.js'],
     destDir: '/assets/'
   });
 
-  var testSrc = new Funnel('test', {
-    srcDir: '/tests',
-    include: [/.js$/],
+  var testSrc = new Funnel('test/tests', {
+    include: ['**/*.js'],
     destDir: '/tests'
   });
 
-  var rxjs = new Funnel('node_modules', {
-    srcDir: 'rxjs-es',
+  var rxjs = new Funnel(path.join(require.resolve('rxjs-es'), '..'), {
     include: ['**/*.js'],
     destDir: 'rxjs'
   });
 
-  var symbolObservable = new Funnel('node_modules', {
-    srcDir: 'rxjs-es/node_modules/symbol-observable/es',
+  var symbolObservable = new Funnel(path.join(require.resolve('rxjs-es'), '..'), {
+    srcDir: 'node_modules/symbol-observable/es',
     include: ['ponyfill.js'],
     destDir: '.',
     getDestinationPath: function() {
@@ -92,8 +90,9 @@ module.exports = function build(pkg, namespace) {
 
   var vendor = concat('', {
     inputFiles: [
-      'node_modules/immutable/dist/immutable.js',
-      'node_modules/rsvp/dist/rsvp.js'],
+      path.join(require.resolve('immutable'), '..', 'immutable.js'),
+      path.join(require.resolve('rsvp'), '..', 'rsvp.js')
+    ],
     outputFile: '/assets/vendor.js'
   });
 
