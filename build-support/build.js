@@ -96,8 +96,7 @@ module.exports = function build(pkg, namespace) {
     outputFile: '/assets/vendor.js'
   });
 
-  var qunit = new Funnel('node_modules', {
-    srcDir: '/qunitjs/qunit',
+  var qunit = new Funnel(path.join(require.resolve('qunitjs'), '..'), {
     files: ['qunit.js', 'qunit.css'],
     destDir: '/assets'
   });
