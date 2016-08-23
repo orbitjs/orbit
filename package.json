@@ -20,6 +20,9 @@
     "immutable",
     "synchronization"
   ],
+  "engines": {
+    "node": ">= 4.0.0"
+  },
   "license": "MIT",
   "scripts": {
     "build": "rm -rf dist && BROCCOLI_ENV=test broccoli build dist",
