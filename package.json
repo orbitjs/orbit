@@ -51,6 +51,6 @@
   },
   "dependencies": {
     "immutable": "^3.7.6",
-    "rxjs-es": "5.0.0-beta.10"
+    "rxjs-es": "^5.0.0-beta.11"
   }
 }
