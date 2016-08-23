@@ -1,4 +1,5 @@
 build-support
+config
 dist/assets
 dist/tests
 docs
