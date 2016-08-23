@@ -3,10 +3,10 @@
   "before_tests": "npm run build",
   "src_files": ["src/**/*.js", "test/**/*.js"],
   "serve_files": [
-    "build/assets/loader.js",
-    "build/assets/vendor.js",
-    "build/assets/tests.amd.js",
-    "build/assets/test-support.js"
+    "dist/assets/loader.js",
+    "dist/assets/vendor.js",
+    "dist/assets/tests.js",
+    "dist/assets/test-support.js"
   ],
   "launch_in_ci": ["Firefox"]
 }
