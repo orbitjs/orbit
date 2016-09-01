@@ -62,25 +62,10 @@ module.exports = function build(pkg, namespace) {
     destDir: '/tests'
   });
 
-  var rxjs = new Funnel(path.join(require.resolve('rxjs-es'), '..'), {
-    include: ['**/*.js'],
-    destDir: 'rxjs'
-  });
-
-  var symbolObservable = new Funnel(path.join(require.resolve('rxjs-es'), '..'), {
-    srcDir: 'node_modules/symbol-observable/es',
-    include: ['ponyfill.js'],
-    destDir: '.',
-    getDestinationPath: function() {
-      return 'symbol-observable.js';
-    }
-  });
-
   var eslintSrc = eslint(amdSrc, { testGenerator: testGenerator });
   var eslintTests = eslint(testSrc, { testGenerator: testGenerator });
-  var depSrc = mergeTrees([rxjs, symbolObservable]);
 
-  var amdSrcWithTests = mergeTrees([amdSrc, depSrc, testSrc, eslintSrc, eslintTests], { overwrite: true });
+  var amdSrcWithTests = mergeTrees([amdSrc, testSrc, eslintSrc, eslintTests], { overwrite: true });
   amdSrcWithTests = new CompileES6Modules(amdSrcWithTests);
   amdSrcWithTests = new TranspileES6(amdSrcWithTests);
   amdSrcWithTests = concat(amdSrcWithTests, {
