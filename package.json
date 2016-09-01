@@ -50,7 +50,6 @@
     "yuidocjs": "^0.8.1"
   },
   "dependencies": {
-    "immutable": "^3.7.6",
-    "rxjs-es": "^5.0.0-beta.11"
+    "immutable": "^3.7.6"
   }
 }
