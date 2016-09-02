@@ -18,17 +18,25 @@ import Orbit from './main';
 
  @class Action
  @namespace Orbit
- @param {Object}    [options]
- @param {Object}    [options.id] Optional identifier
- @param {Object}    [options.data] Optional data
- @param {Object}    [options.process] A function that performs the action
- @constructor
  */
+
 export default class Action {
-  constructor(options) {
-    this.id = options.id;
+  /**
+   * Constructor for `Action` class.
+   *
+   * @param  {Object} target         Target object
+   * @param  {String} method         Name of method to call on `target`
+   * @param  {Object} [options={}]   Options
+   * @param  {Any}    [options.meta] Optional metadata
+   * @param  {Any}    [options.data] Optional data to send as an arg when calling `method`
+   * @constructor
+   */
+  constructor(target, method, options = {}) {
+    this.target = target;
+    this.method = method;
+    this.meta = options.meta;
     this.data = options.data;
-    this._process = options.process;
+
     this.reset();
   }
 
@@ -65,7 +73,14 @@ export default class Action {
       this._started = true;
 
       try {
-        let ret = this._process();
+        const method = this.target[this.method];
+
+        let ret;
+        if (this.data) {
+          ret = method.call(this.target, this.data);
+        } else {
+          ret = method.call(this.target);
+        }
 
         if (ret && ret.then) {
           ret.then(this._success, this._fail);
@@ -80,11 +95,3 @@ export default class Action {
     return this.settle();
   }
 }
-
-Action.from = function(actionOrOptions) {
-  if (actionOrOptions instanceof Action) {
-    return actionOrOptions;
-  } else {
-    return new Action(actionOrOptions);
-  }
-};

@@ -1,7 +1,6 @@
 import 'tests/test-helper';
 import ActionQueue from 'orbit/action-queue';
 import Evented from 'orbit/evented';
-import { noop } from 'orbit/lib/stubs';
 import { Promise } from 'rsvp';
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -9,12 +8,14 @@ import { Promise } from 'rsvp';
 module('Orbit - ActionQueue', {});
 
 test('can be instantiated', function() {
-  const queue = new ActionQueue(noop);
+  const target = {};
+  const queue = new ActionQueue(target);
   ok(queue);
 });
 
 test('#autoProcess is enabled by default', function() {
-  const queue = new ActionQueue(noop);
+  const target = {};
+  const queue = new ActionQueue(target);
   equal(queue.autoProcess, true, 'autoProcess === true');
 });
 
@@ -23,7 +24,20 @@ test('auto-processes pushed actions sequentially by default', function(assert) {
   const done = assert.async();
   let order = 0;
 
-  const queue = new ActionQueue();
+  const target = {
+    _transform(op) {
+      transformCount++;
+      if (transformCount === 1) {
+        assert.equal(order++, 1, '_transform - op1 - order');
+        assert.strictEqual(op, op1, '_transform - op1 passed as argument');
+      } else if (transformCount === 2) {
+        assert.equal(order++, 4, '_transform - op2 - order');
+        assert.strictEqual(op, op2, '_transform - op2 passed as argument');
+      }
+    }
+  };
+
+  const queue = new ActionQueue(target);
 
   let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
   let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -64,30 +78,13 @@ test('auto-processes pushed actions sequentially by default', function(assert) {
     done();
   });
 
-  const _transform = function(op) {
-    transformCount++;
-    if (transformCount === 1) {
-      assert.equal(order++, 1, '_transform - op1 - order');
-      assert.strictEqual(op, op1, '_transform - op1 passed as argument');
-    } else if (transformCount === 2) {
-      assert.equal(order++, 4, '_transform - op2 - order');
-      assert.strictEqual(op, op2, '_transform - op2 passed as argument');
-    }
-  };
-
-  queue.push({
+  queue.push('_transform', {
     id: 1,
-    process: function() {
-      _transform.call(this, this.data);
-    },
     data: op1
   });
 
-  queue.push({
+  queue.push('_transform', {
     id: 2,
-    process: function() {
-      _transform.call(this, this.data);
-    },
     data: op2
   });
 });
@@ -96,7 +93,18 @@ test('with `autoProcess` disabled, will process pushed functions sequentially wh
   assert.expect(5);
   const done = assert.async();
 
-  const queue = new ActionQueue();
+  const target = {
+    _transform(op) {
+      transformCount++;
+      if (transformCount === 1) {
+        assert.strictEqual(op, op1, '_transform - op1 passed as argument');
+      } else if (transformCount === 2) {
+        assert.strictEqual(op, op2, '_transform - op2 passed as argument');
+      }
+    }
+  };
+
+  const queue = new ActionQueue(target);
 
   let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
   let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -115,28 +123,13 @@ test('with `autoProcess` disabled, will process pushed functions sequentially wh
     done();
   });
 
-  const _transform = function(op) {
-    transformCount++;
-    if (transformCount === 1) {
-      assert.strictEqual(op, op1, '_transform - op1 passed as argument');
-    } else if (transformCount === 2) {
-      assert.strictEqual(op, op2, '_transform - op2 passed as argument');
-    }
-  };
-
-  queue.push({
+  queue.push('_transform', {
     id: 1,
-    process: function() {
-      _transform.call(this, this.data);
-    },
     data: op1
   });
 
-  queue.push({
+  queue.push('_transform', {
     id: 2,
-    process: function() {
-      _transform.call(this, this.data);
-    },
     data: op2
   });
 
@@ -147,7 +140,29 @@ test('can enqueue actions while another action is being processed', function(ass
   expect(9);
   const done = assert.async();
 
-  const queue = new ActionQueue();
+  const target = {
+    _transform(op) {
+      let promise;
+      if (op === op1) {
+        equal(++order, 1, '_transform with op1');
+        promise = new Promise(function(resolve) {
+          trigger.on('start1', function() {
+            equal(++order, 2, '_transform with op1 resolved');
+            resolve();
+          });
+        });
+      } else if (op === op2) {
+        equal(++order, 4, '_transform with op1');
+        promise = new Promise(function(resolve) {
+          equal(++order, 5, '_transform with op1 resolved');
+          resolve();
+        });
+      }
+      return promise;
+    }
+  };
+
+  const queue = new ActionQueue(target);
 
   let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
   let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -168,39 +183,13 @@ test('can enqueue actions while another action is being processed', function(ass
   const trigger = {};
   Evented.extend(trigger);
 
-  const _transform = function(op) {
-    let promise;
-    if (op === op1) {
-      equal(++order, 1, '_transform with op1');
-      promise = new Promise(function(resolve) {
-        trigger.on('start1', function() {
-          equal(++order, 2, '_transform with op1 resolved');
-          resolve();
-        });
-      });
-    } else if (op === op2) {
-      equal(++order, 4, '_transform with op1');
-      promise = new Promise(function(resolve) {
-        equal(++order, 5, '_transform with op1 resolved');
-        resolve();
-      });
-    }
-    return promise;
-  };
-
-  queue.push({
+  queue.push('_transform', {
     id: 1,
-    process: function() {
-      _transform.call(this, this.data);
-    },
     data: op1
   });
 
-  queue.push({
+  queue.push('_transform', {
     id: 2,
-    process: function() {
-      _transform.call(this, this.data);
-    },
     data: op2
   });
 
@@ -217,7 +206,18 @@ test('can enqueue actions while another action is being processed', function(ass
 test('will stop processing when an action errors', function(assert) {
   assert.expect(6);
 
-  const queue = new ActionQueue({ autoProcess: false });
+  const target = {
+    _transform(op) {
+      transformCount++;
+      if (transformCount === 1) {
+        assert.strictEqual(op, op1, '_transform - op1 passed as argument');
+      } else if (transformCount === 2) {
+        throw new Error(':(');
+      }
+    }
+  };
+
+  const queue = new ActionQueue(target, { autoProcess: false });
 
   let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
   let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -240,28 +240,13 @@ test('will stop processing when an action errors', function(assert) {
     assert.ok(false, 'queue should not complete');
   });
 
-  const _transform = function(op) {
-    transformCount++;
-    if (transformCount === 1) {
-      assert.strictEqual(op, op1, '_transform - op1 passed as argument');
-    } else if (transformCount === 2) {
-      assert.ok(false, '_transform should only be called once');
-    }
-  };
-
-  queue.push({
+  queue.push('_transform', {
     id: 1,
-    process: function() {
-      _transform.call(this, this.data);
-    },
     data: op1
   });
 
-  queue.push({
+  queue.push('_transform', {
     id: 2,
-    process: function() {
-      throw new Error(':(');
-    },
     data: op2
   });
 
@@ -275,7 +260,22 @@ test('will stop processing when an action errors', function(assert) {
 test('#retry resets the current action in an inactive queue and restarts processing', function(assert) {
   assert.expect(12);
 
-  const queue = new ActionQueue({ autoProcess: false });
+  const target = {
+    _transform(op) {
+      transformCount++;
+      if (transformCount === 1) {
+        assert.strictEqual(op, op1, '_transform - op1 passed as argument');
+      } else if (transformCount === 2) {
+        throw new Error(':(');
+      } else if (transformCount === 3) {
+        assert.strictEqual(op, op2, '_transform - op2 passed as argument');
+      } else if (transformCount === 4) {
+        assert.strictEqual(op, op3, '_transform - op3 passed as argument');
+      }
+    }
+  };
+
+  const queue = new ActionQueue(target, { autoProcess: false });
 
   let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
   let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -301,40 +301,18 @@ test('#retry resets the current action in an inactive queue and restarts process
     assert.ok(true, 'queue should complete after processing has restarted');
   });
 
-  const _transform = function(op) {
-    transformCount++;
-    if (transformCount === 1) {
-      assert.strictEqual(op, op1, '_transform - op1 passed as argument');
-    } else if (transformCount === 2) {
-      throw new Error(':(');
-    } else if (transformCount === 3) {
-      assert.strictEqual(op, op2, '_transform - op2 passed as argument');
-    } else if (transformCount === 4) {
-      assert.strictEqual(op, op3, '_transform - op3 passed as argument');
-    }
-  };
-
-  queue.push({
+  queue.push('_transform', {
     id: 1,
-    process: function() {
-      _transform.call(this, this.data);
-    },
     data: op1
   });
 
-  queue.push({
+  queue.push('_transform', {
     id: 2,
-    process: function() {
-      _transform.call(this, this.data);
-    },
     data: op2
   });
 
-  queue.push({
+  queue.push('_transform', {
     id: 3,
-    process: function() {
-      _transform.call(this, this.data);
-    },
     data: op3
   });
 
@@ -350,9 +328,22 @@ test('#retry resets the current action in an inactive queue and restarts process
 });
 
 test('#skip removes the current action from an inactive queue and restarts processing', function(assert) {
-  assert.expect(9);
+  assert.expect(8);
 
-  const queue = new ActionQueue({ autoProcess: false });
+  const target = {
+    _transform(op) {
+      transformCount++;
+      if (transformCount === 1) {
+        assert.strictEqual(op, op1, '_transform - op1 passed as argument');
+      } else if (transformCount === 2) {
+        throw new Error(':(');
+      } else if (transformCount === 3) {
+        assert.strictEqual(op, op3, '_transform - op3 passed as argument');
+      }
+    }
+  };
+
+  const queue = new ActionQueue(target, { autoProcess: false });
 
   let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
   let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -376,36 +367,18 @@ test('#skip removes the current action from an inactive queue and restarts proce
     assert.ok(true, 'queue should complete after processing has restarted');
   });
 
-  const _transform = function(op) {
-    transformCount++;
-    if (transformCount === 1) {
-      assert.strictEqual(op, op1, '_transform - op1 passed as argument');
-    } else if (transformCount === 2) {
-      assert.strictEqual(op, op3, '_transform - op3 passed as argument');
-    }
-  };
-
-  queue.push({
+  queue.push('_transform', {
     id: 1,
-    process: function() {
-      _transform.call(this, this.data);
-    },
     data: op1
   });
 
-  queue.push({
+  queue.push('_transform', {
     id: 2,
-    process: function() {
-      throw new Error(':(');
-    },
     data: op2
   });
 
-  queue.push({
+  queue.push('_transform', {
     id: 3,
-    process: function() {
-      _transform.call(this, this.data);
-    },
     data: op3
   });
 
@@ -420,9 +393,22 @@ test('#skip removes the current action from an inactive queue and restarts proce
 });
 
 test('#shift can remove failed actions from an inactive queue, allowing processing to be restarted', function(assert) {
-  assert.expect(10);
+  assert.expect(9);
 
-  const queue = new ActionQueue({ autoProcess: false });
+  const target = {
+    _transform(op) {
+      transformCount++;
+      if (transformCount === 1) {
+        assert.strictEqual(op, op1, '_transform - op1 passed as argument');
+      } else if (transformCount === 2) {
+        throw new Error(':(');
+      } else if (transformCount === 3) {
+        assert.strictEqual(op, op3, '_transform - op3 passed as argument');
+      }
+    }
+  };
+
+  const queue = new ActionQueue(target, { autoProcess: false });
 
   let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
   let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -446,36 +432,18 @@ test('#shift can remove failed actions from an inactive queue, allowing processi
     assert.ok(true, 'queue should complete after processing has restarted');
   });
 
-  const _transform = function(op) {
-    transformCount++;
-    if (transformCount === 1) {
-      assert.strictEqual(op, op1, '_transform - op1 passed as argument');
-    } else if (transformCount === 2) {
-      assert.strictEqual(op, op3, '_transform - op3 passed as argument');
-    }
-  };
-
-  queue.push({
+  queue.push('_transform', {
     id: 1,
-    process: function() {
-      _transform.call(this, this.data);
-    },
     data: op1
   });
 
-  queue.push({
+  queue.push('_transform', {
     id: 2,
-    process: function() {
-      throw new Error(':(');
-    },
     data: op2
   });
 
-  queue.push({
+  queue.push('_transform', {
     id: 3,
-    process: function() {
-      _transform.call(this, this.data);
-    },
     data: op3
   });
 
@@ -496,7 +464,18 @@ test('#unshift can add a new action to the beginning of an inactive queue', func
   assert.expect(5);
   const done = assert.async();
 
-  const queue = new ActionQueue({ autoProcess: false });
+  const target = {
+    _transform(op) {
+      transformCount++;
+      if (transformCount === 1) {
+        assert.strictEqual(op, op2, '_transform - op2 passed as argument');
+      } else if (transformCount === 2) {
+        assert.strictEqual(op, op1, '_transform - op1 passed as argument');
+      }
+    }
+  };
+
+  const queue = new ActionQueue(target, { autoProcess: false });
 
   let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
   let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -515,28 +494,13 @@ test('#unshift can add a new action to the beginning of an inactive queue', func
     done();
   });
 
-  const _transform = function(op) {
-    transformCount++;
-    if (transformCount === 1) {
-      assert.strictEqual(op, op2, '_transform - op2 passed as argument');
-    } else if (transformCount === 2) {
-      assert.strictEqual(op, op1, '_transform - op1 passed as argument');
-    }
-  };
-
-  queue.push({
+  queue.push('_transform', {
     id: 1,
-    process: function() {
-      _transform.call(this, this.data);
-    },
     data: op1
   });
 
-  queue.unshift({
+  queue.unshift('_transform', {
     id: 2,
-    process: function() {
-      _transform.call(this, this.data);
-    },
     data: op2
   });
 
@@ -547,7 +511,13 @@ test('#clear removes all actions from an inactive queue', function(assert) {
   assert.expect(2);
   const done = assert.async();
 
-  const queue = new ActionQueue({ autoProcess: false });
+  const target = {
+    _transform() {
+      assert.ok(false, '_transform should not be called');
+    }
+  };
+
+  const queue = new ActionQueue(target, { autoProcess: false });
 
   let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
   let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -556,27 +526,17 @@ test('#clear removes all actions from an inactive queue', function(assert) {
     assert.ok(false, 'no actions should be processed');
   });
 
-  const _transform = function() {
-    assert.ok(false, '_transform should not be called');
-  };
-
   queue.on('complete', function() {
     assert.ok(true, 'queue completed after clear');
   });
 
-  queue.push({
+  queue.push('_transform', {
     id: 1,
-    process: function() {
-      _transform.call(this, this.data);
-    },
     data: op1
   });
 
-  queue.push({
+  queue.unshift('_transform', {
     id: 2,
-    process: function() {
-      _transform.call(this, this.data);
-    },
     data: op2
   });
 

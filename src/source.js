@@ -15,12 +15,12 @@ import ActionQueue from './action-queue';
  */
 export default class Source {
   constructor(options = {}) {
-    this.name = options.name;
+    const name = this.name = options.name;
     this.schema = options.schema;
 
-    this.transformLog = new TransformLog();
-    this.requestQueue = new ActionQueue();
-    this.syncQueue = new ActionQueue();
+    this.transformLog = new TransformLog(null, { name: `${name}-log` });
+    this.requestQueue = new ActionQueue(this, { name: `${name}-requests` });
+    this.syncQueue = new ActionQueue(this, { name: `${name}-sync` });
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -55,20 +55,20 @@ export default class Source {
       .then(() => transforms);
   }
 
-  _enqueueRequest(method, ...args) {
-    return enqueueAction(this, this.requestQueue, method, ...args);
+  _enqueueRequest(method, data) {
+    return enqueueAction(this, this.requestQueue, method, data);
   }
 
-  _enqueueSync(method, ...args) {
-    return enqueueAction(this, this.syncQueue, method, ...args);
+  _enqueueSync(method, data) {
+    return enqueueAction(this, this.syncQueue, method, data);
   }
 }
 
-function enqueueAction(source, queue, method, ...args) {
-  const action = queue.push({
-    data: { method, args },
-    process: () => {
-      return source[`__${method}__`].apply(source, args);
+function enqueueAction(source, queue, method, data) {
+  const action = queue.push(`__${method}__`, {
+    data,
+    meta: {
+      method
     }
   });
 

@@ -47,10 +47,12 @@ import { assert } from './lib/assert';
  @constructor
  */
 export default class ActionQueue {
-  constructor(options) {
+  constructor(target, options = {}) {
     assert('ActionQueue requires Orbit.Promise to be defined', Orbit.Promise);
 
-    options = options || {};
+    this.target = target;
+
+    this.name = options.name;
     this.autoProcess = options.autoProcess !== undefined ? options.autoProcess : true;
     this._actions = [];
   }
@@ -79,8 +81,8 @@ export default class ActionQueue {
            !current.settled;
   }
 
-  push(_action) {
-    let action = Action.from(_action);
+  push(method, options) {
+    const action = new Action(this.target, method, options);
     this._actions.push(action);
     if (this.autoProcess) { this.process(); }
     return action;
@@ -109,9 +111,9 @@ export default class ActionQueue {
     return this._actions.shift();
   }
 
-  unshift(_action) {
+  unshift(method, options) {
+    const action = new Action(this.target, method, options);
     this._cancel();
-    let action = Action.from(_action);
     this._actions.unshift(action);
     return action;
   }
