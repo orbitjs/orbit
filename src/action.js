@@ -94,4 +94,16 @@ export default class Action {
 
     return this.settle();
   }
+
+  serialize() {
+    const { method, data, meta } = this;
+    return { method, data, meta };
+  }
+
+  static deserialize(target, serialized) {
+    return new Action(target, serialized.method, {
+      data: serialized.data,
+      meta: serialized.meta
+    });
+  }
 }

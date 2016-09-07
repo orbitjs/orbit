@@ -20,6 +20,34 @@ test('can be assigned optional data and meta', function(assert) {
   assert.deepEqual(action.meta, { label: '123' }, 'meta has been set');
 });
 
+test('can be serialized', function(assert) {
+  const target = {
+    doSomething() {}
+  };
+  const action = new Action(target, 'doSomething', { data: 'abc', meta: { label: '123' } });
+  assert.deepEqual(
+    action.serialize(),
+    {
+      method: 'doSomething',
+      data: 'abc',
+      meta: { label: '123' }
+    }
+  );
+});
+
+test('can be deserialized', function(assert) {
+  const target = {
+    doSomething() {}
+  };
+  const action = Action.deserialize(target, {
+    method: 'doSomething',
+    data: 'abc',
+    meta: { label: '123' }
+  });
+  assert.deepEqual(action.data, 'abc', 'data has been set');
+  assert.deepEqual(action.meta, { label: '123' }, 'meta has been set');
+});
+
 test('can be assigned a synchronous function to process', function(assert) {
   assert.expect(5);
 
