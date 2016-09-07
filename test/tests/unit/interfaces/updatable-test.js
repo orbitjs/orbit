@@ -8,7 +8,7 @@ let source;
 
 module('Orbit - Updatable', {
   setup: function() {
-    source = new Source();
+    source = new Source({ name: 'src1' });
     Updatable.extend(source);
   },
 

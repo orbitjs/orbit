@@ -9,7 +9,7 @@ let source;
 
 module('Orbit - Source Interfaces - Pullable', {
   setup: function() {
-    source = new Source();
+    source = new Source({ name: 'src1' });
     Pullable.extend(source);
   },
 
