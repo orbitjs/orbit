@@ -1,3 +1,4 @@
+import Orbit from './main';
 import { assert } from './lib/assert';
 
 export default class Coordinator {
@@ -40,13 +41,83 @@ export default class Coordinator {
   }
 
   activate() {
-    this._active = true;
-    this._sources.forEach(source => this._activateSource(source));
+    this.activated = this.review()
+      .then(() => {
+        this._active = true;
+        this._sources.forEach(source => this._activateSource(source));
+      });
+
+    return this.activated;
+  }
+
+  review() {
+    if (this._reviewing) {
+      this._extraReviewNeeded = true;
+    } else {
+      this._reviewing = this._reifySources()
+        .then(() => this._review())
+        .then(() => {
+          if (this._extraReviewNeeded) {
+            this._extraReviewNeeded = false;
+            return this._review();
+          } else {
+            this._reviewing = null;
+          }
+        });
+    }
+    return this._reviewing;
   }
 
   deactivate() {
     this._active = false;
+    this.activated = null;
     this._sources.forEach(source => this._deactivateSource(source));
+  }
+
+  _reifySources() {
+    return this._sources
+      .reduce((chain, source) => {
+        return chain.then(() => source.transformLog.reified);
+      }, Orbit.Promise.resolve());
+  }
+
+  _review() {
+    if (this._sources.length > 1) {
+      let primaryLog = this._sources[0].transformLog;
+      let otherLogs = this._sources.slice(1).map(s => s.transformLog);
+      let entries = primaryLog.entries;
+      let latestMatch;
+
+      for (let i = 0; i < entries.length; i++) {
+        let entry = entries[i];
+
+        let match = true;
+        for (let j = 0; j < otherLogs.length; j++) {
+          if (!otherLogs[j].contains(entry)) {
+            match = false;
+            break;
+          }
+        }
+
+        if (match) {
+          latestMatch = entry;
+        } else {
+          break;
+        }
+      }
+
+      if (latestMatch) {
+        return this._truncateSources(latestMatch, +1);
+      }
+    }
+    return Orbit.Promise.resolve();
+  }
+
+  _truncateSources(transformId, relativePosition) {
+    return this._sources
+      .reduce((chain, source) => {
+        return chain.then(() => source.transformLog.truncate(transformId, relativePosition));
+      }, Orbit.Promise.resolve());
   }
 
   _activateSource(source) {
@@ -54,61 +125,13 @@ export default class Coordinator {
       this._sourceTransformed(source, transform.id);
     };
     source.on('transform', listener);
-    this._reviewSourceLogs(source);
   }
 
   _deactivateSource(source) {
     source.off('transform', this._transformListeners[source.name]);
   }
 
-  _sourceTransformed(source, transformId) {
-    this._reviewSourceLogs(source, transformId);
-  }
-
-  _reviewSourceLogs(source, transformId = null) {
-    let logs = this._sources
-      .filter(s => s !== source)
-      .map(s => s.transformLog)
-      .filter(log => log.length > 0);
-
-    if (logs.length === 0) { return; }
-
-    let entries;
-    if (transformId) {
-      entries = [transformId];
-    } else {
-      entries = source.transformLog.entries;
-    }
-    let latestMatch;
-
-    for (let i = 0; i < entries.length; i++) {
-      let entry = entries[i];
-
-      let match = true;
-      for (let j = 0; j < logs.length; j++) {
-        if (!logs[j].contains(entry)) {
-          match = false;
-          break;
-        }
-      }
-
-      if (match) {
-        latestMatch = entry;
-      } else {
-        break;
-      }
-    }
-
-    if (latestMatch) {
-      this._truncateHistory(latestMatch, +1);
-    }
-  }
-
-  _truncateHistory(transformId, relativePosition) {
-    this._sources.forEach(s => {
-      if (s.transformLog.contains(transformId)) {
-        s.transformLog.truncate(transformId, relativePosition);
-      }
-    });
+  _sourceTransformed(/* source, transformId */) {
+    this.review();
   }
 }

@@ -7,7 +7,7 @@ let source;
 
 module('Orbit - Syncable', {
   setup() {
-    source = new Source();
+    source = new Source({ name: 'src1' });
     Syncable.extend(source);
   },
 

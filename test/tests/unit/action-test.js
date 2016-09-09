@@ -11,23 +11,58 @@ test('can be instantiated', function(assert) {
   assert.ok(action);
 });
 
-test('can be assigned an optional id and data', function(assert) {
-  const action = new Action({ id: 'abc', data: '123' });
-  assert.equal(action.id, 'abc', 'id has been set');
-  assert.equal(action.data, '123', 'data has been set');
+test('can be assigned optional data and meta', function(assert) {
+  const target = {
+    doSomething() {}
+  };
+  const action = new Action(target, 'doSomething', { data: 'abc', meta: { label: '123' } });
+  assert.deepEqual(action.data, 'abc', 'data has been set');
+  assert.deepEqual(action.meta, { label: '123' }, 'meta has been set');
+});
+
+test('can be serialized', function(assert) {
+  const target = {
+    doSomething() {}
+  };
+  const action = new Action(target, 'doSomething', { data: 'abc', meta: { label: '123' } });
+  assert.deepEqual(
+    action.serialize(),
+    {
+      method: 'doSomething',
+      data: 'abc',
+      meta: { label: '123' }
+    }
+  );
+});
+
+test('can be deserialized', function(assert) {
+  const target = {
+    doSomething() {}
+  };
+  const action = Action.deserialize(target, {
+    method: 'doSomething',
+    data: 'abc',
+    meta: { label: '123' }
+  });
+  assert.deepEqual(action.data, 'abc', 'data has been set');
+  assert.deepEqual(action.meta, { label: '123' }, 'meta has been set');
 });
 
 test('can be assigned a synchronous function to process', function(assert) {
   assert.expect(5);
 
-  const action = new Action({
-    process() {
+  let action;
+
+  const target = {
+    doSomething() {
       assert.ok(true, 'process invoked');
-      assert.ok(this.started, 'action started');
-      assert.ok(!this.settled, 'action not settled');
+      assert.ok(action.started, 'action started');
+      assert.ok(!action.settled, 'action not settled');
       return ':)';
     }
-  });
+  };
+
+  action = new Action(target, 'doSomething');
 
   return action.process()
     .then(function(response) {
@@ -39,11 +74,13 @@ test('can be assigned a synchronous function to process', function(assert) {
 test('can be assigned an asynchronous function to process', function(assert) {
   assert.expect(5);
 
-  const action = new Action({
-    process: function() {
+  let action;
+
+  const target = {
+    doSomething() {
       assert.ok(true, 'process invoked');
-      assert.ok(this.started, 'action started');
-      assert.ok(!this.settled, 'action not settled');
+      assert.ok(action.started, 'action started');
+      assert.ok(!action.settled, 'action not settled');
       return new Promise(function(resolve) {
         function respond() {
           resolve(':)');
@@ -51,7 +88,9 @@ test('can be assigned an asynchronous function to process', function(assert) {
         setTimeout(respond, 1);
       });
     }
-  });
+  };
+
+  action = new Action(target, 'doSomething');
 
   return action.process()
     .then(function(response) {
@@ -63,12 +102,16 @@ test('can be assigned an asynchronous function to process', function(assert) {
 test('can be assigned a synchronous function that throws an exception', function(assert) {
   assert.expect(2);
 
-  const action = new Action({
-    process: function() {
+  let action;
+
+  const target = {
+    doSomething() {
       assert.ok(true, 'process invoked');
       throw new Error(':(');
     }
-  });
+  };
+
+  action = new Action(target, 'doSomething');
 
   return action.process()
     .catch((e) => {
@@ -77,18 +120,23 @@ test('can be assigned a synchronous function that throws an exception', function
 });
 
 test('can be assigned an asynchronous function that rejects', function(assert) {
-  assert.expect(5);
+  assert.expect(6);
 
-  const action = new Action({
-    process: function() {
+  let action;
+
+  const target = {
+    doSomething(data) {
       assert.ok(true, 'process invoked');
-      assert.ok(this.started, 'action started');
-      assert.ok(!this.settled, 'action not settled');
+      assert.equal(data, '1', 'argument matches');
+      assert.ok(action.started, 'action started');
+      assert.ok(!action.settled, 'action not settled');
       return new Promise(function(resolve, reject) {
         setTimeout(reject(':('), 1);
       });
     }
-  });
+  };
+
+  action = new Action(target, 'doSomething', { data: '1' });
 
   return action.process()
     .catch((e) => {
@@ -98,14 +146,19 @@ test('can be assigned an asynchronous function that rejects', function(assert) {
 });
 
 test('it creates a promise immediately that won\'t be resolved until process is called', function(assert) {
-  assert.expect(2);
+  assert.expect(3);
 
-  var action = new Action({
-    process() {
+  let action;
+
+  const target = {
+    doSomething(data) {
       assert.ok(true, 'process invoked');
+      assert.equal(data, '1', 'argument matches');
       return;
     }
-  });
+  };
+
+  action = new Action(target, 'doSomething', { data: '1' });
 
   action.settle()
     .then(function() {
@@ -118,14 +171,18 @@ test('it creates a promise immediately that won\'t be resolved until process is 
 test('#reset returns to an unstarted, unsettled state', function(assert) {
   assert.expect(7);
 
-  const action = new Action({
-    process() {
+  let action;
+
+  const target = {
+    doSomething() {
       assert.ok(true, 'process invoked');
-      assert.ok(this.started, 'action started');
-      assert.ok(!this.settled, 'action not settled');
+      assert.ok(action.started, 'action started');
+      assert.ok(!action.settled, 'action not settled');
       return ':)';
     }
-  });
+  };
+
+  action = new Action(target, 'doSomething');
 
   return action.process()
     .then(function(response) {
@@ -137,14 +194,4 @@ test('#reset returns to an unstarted, unsettled state', function(assert) {
       assert.ok(!action.started, 'after reset, action has not started');
       assert.ok(!action.settled, 'after reset, action has not settled');
     });
-});
-
-test('Action.from will return an action instance passed into it', function(assert) {
-  let action = new Action({process: function() {}});
-  assert.strictEqual(Action.from(action), action);
-});
-
-test('Action.from will create an action from options passed into it', function(assert) {
-  let action = Action.from({process: function() {}});
-  assert.ok(action instanceof Action);
 });

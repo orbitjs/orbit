@@ -7,7 +7,7 @@ let source;
 
 module('Orbit - Queryable', {
   setup: function() {
-    source = new Source();
+    source = new Source({ name: 'src1' });
     Queryable.extend(source);
   },
 

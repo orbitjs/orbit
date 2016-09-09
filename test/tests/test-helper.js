@@ -16,6 +16,8 @@ import {
 
 import { planetsSchema } from './support/schemas';
 
+import FakeBucket from './support/fake-bucket';
+
 import './support/rsvp';
 
 export {
@@ -24,5 +26,6 @@ export {
   op,
   successfulOperation,
   failedOperation,
-  planetsSchema
+  planetsSchema,
+  FakeBucket
 };

@@ -2,6 +2,7 @@ import Orbit from './main';
 import Evented from './evented';
 import TransformLog from './transform/log';
 import ActionQueue from './action-queue';
+import { assert } from './lib/assert';
 
 /**
  Base class for sources.
@@ -15,12 +16,15 @@ import ActionQueue from './action-queue';
  */
 export default class Source {
   constructor(options = {}) {
-    this.name = options.name;
+    assert('Source requires a name', options.name);
+
+    const name = this.name = options.name;
+    const bucket = this.bucket = options.bucket;
     this.schema = options.schema;
 
-    this.transformLog = new TransformLog();
-    this.requestQueue = new ActionQueue();
-    this.syncQueue = new ActionQueue();
+    this.transformLog = new TransformLog(null, { name: `${name}-log`, bucket });
+    this.requestQueue = new ActionQueue(this, { name: `${name}-requests`, bucket });
+    this.syncQueue = new ActionQueue(this, { name: `${name}-sync`, bucket });
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -48,31 +52,30 @@ export default class Source {
             return Orbit.Promise.resolve();
           }
 
-          this.transformLog.append(transform.id);
-          return this.settleInSeries('transform', transform);
+          return this.transformLog.append(transform.id)
+            .then(() => this.settleInSeries('transform', transform));
         });
       }, Orbit.Promise.resolve())
       .then(() => transforms);
   }
 
-  _enqueueRequest(method, ...args) {
-    return enqueueAction(this, this.requestQueue, method, ...args);
+  _enqueueRequest(method, data) {
+    return enqueueAction(this, this.requestQueue, method, data);
   }
 
-  _enqueueSync(method, ...args) {
-    return enqueueAction(this, this.syncQueue, method, ...args);
+  _enqueueSync(method, data) {
+    return enqueueAction(this, this.syncQueue, method, data);
   }
 }
 
-function enqueueAction(source, queue, method, ...args) {
-  const action = queue.push({
-    data: { method, args },
-    process: () => {
-      return source[`__${method}__`].apply(source, args);
+function enqueueAction(source, queue, method, data) {
+  return queue.push(`__${method}__`, {
+    data,
+    meta: {
+      method
     }
-  });
-
-  return action.settle();
+  })
+    .then(action => action.settle());
 }
 
 Evented.extend(Source.prototype);

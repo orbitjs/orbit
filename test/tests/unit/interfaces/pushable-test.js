@@ -8,7 +8,7 @@ let source;
 
 module('Orbit - Pushable', {
   setup: function() {
-    source = new Source();
+    source = new Source({ name: 'src1' });
     Pushable.extend(source);
   },
 

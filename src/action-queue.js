@@ -47,12 +47,20 @@ import { assert } from './lib/assert';
  @constructor
  */
 export default class ActionQueue {
-  constructor(options) {
+  constructor(target, options = {}) {
     assert('ActionQueue requires Orbit.Promise to be defined', Orbit.Promise);
 
-    options = options || {};
+    this.target = target;
+
+    this.name = options.name;
+    this.bucket = options.bucket;
     this.autoProcess = options.autoProcess !== undefined ? options.autoProcess : true;
-    this._actions = [];
+    this._reify()
+      .then(() => {
+        if (this.length > 0 && this.autoProcess) {
+          this.process();
+        }
+      });
   }
 
   get length() {
@@ -79,60 +87,98 @@ export default class ActionQueue {
            !current.settled;
   }
 
-  push(_action) {
-    let action = Action.from(_action);
-    this._actions.push(action);
-    if (this.autoProcess) { this.process(); }
-    return action;
+  push(method, options) {
+    return this.reified
+      .then(() => {
+        const action = new Action(this.target, method, options);
+        this._actions.push(action);
+        return this._persist()
+          .then(() => {
+            if (this.autoProcess) {
+              return this.process()
+                .then(() => action);
+            } else {
+              return action;
+            }
+          });
+      });
   }
 
   retry() {
-    this._cancel();
-    this.current.reset();
-    return this.process();
+    return this.reified
+      .then(() => {
+        this._cancel();
+        this.current.reset();
+        return this._persist();
+      })
+      .then(() => this.process());
   }
 
   skip() {
-    this._cancel();
-    this._actions.shift();
-    return this.process();
+    return this.reified
+      .then(() => {
+        this._cancel();
+        this._actions.shift();
+        return this._persist();
+      })
+      .then(() => this.process());
   }
 
   clear() {
-    this._cancel();
-    this._actions = [];
-    return this.process();
+    return this.reified
+      .then(() => {
+        this._cancel();
+        this._actions = [];
+        return this._persist();
+      })
+      .then(() => this.process());
   }
 
   shift() {
-    this._cancel();
-    return this._actions.shift();
+    let action;
+
+    return this.reified
+      .then(() => {
+        this._cancel();
+        action = this._actions.shift();
+        return this._persist();
+      })
+      .then(() => action);
   }
 
-  unshift(_action) {
-    this._cancel();
-    let action = Action.from(_action);
-    this._actions.unshift(action);
-    return action;
+  unshift(method, options) {
+    let action;
+
+    return this.reified
+      .then(() => {
+        action = new Action(this.target, method, options);
+        this._cancel();
+        this._actions.unshift(action);
+        return this._persist();
+      })
+      .then(() => action);
   }
 
   process() {
-    let resolution = this._resolution;
+    return this.reified
+      .then(() => {
+        let resolution = this._resolution;
 
-    if (!resolution) {
-      if (this._actions.length === 0) {
-        resolution = Orbit.Promise.resolve();
-        this._complete();
-      } else {
-        this._error = null;
-        this._resolution = resolution = new Orbit.Promise((resolve) => {
-          this._resolve = resolve;
-        });
-        this._settleEach(resolution);
-      }
-    }
+        if (!resolution) {
+          if (this._actions.length === 0) {
+            resolution = Orbit.Promise.resolve();
+            this._complete();
+          } else {
+            this._error = null;
+            this._resolution = resolution = new Orbit.Promise((resolve) => {
+              this._resolve = resolve;
+            });
+            this._settleEach(resolution);
+          }
+        }
 
-    return resolution;
+        return resolution;
+      });
   }
 
   _complete() {
@@ -170,8 +216,11 @@ export default class ActionQueue {
         .then(() => {
           if (resolution === this._resolution) {
             this._actions.shift();
-            this.emit('action', action);
-            this._settleEach(resolution);
+            this._persist()
+              .then(() => {
+                this.emit('action', action);
+                this._settleEach(resolution);
+              });
           }
         })
         .catch((e) => {
@@ -179,6 +228,39 @@ export default class ActionQueue {
             this._fail(action, e);
           }
         });
+    }
+  }
+
+  _reify() {
+    this._actions = [];
+
+    if (this.bucket) {
+      this.reified = this.bucket.getItem(this.name)
+        .then(serialized => this._deserializeActions(serialized));
+    } else {
+      this.reified = Orbit.Promise.resolve();
+    }
+
+    return this.reified;
+  }
+
+  _deserializeActions(serialized) {
+    if (serialized) {
+      this._actions = serialized.map(a => Action.deserialize(this.target, a));
+    } else {
+      this._actions = [];
+    }
+  }
+
+  _serializeActions() {
+    return this._actions.map(a => a.serialize());
+  }
+
+  _persist() {
+    if (this.bucket) {
+      return this.bucket.setItem(this.name, this._serializeActions());
+    } else {
+      return Orbit.Promise.resolve();
     }
   }
 }
