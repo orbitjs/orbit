@@ -36,29 +36,31 @@ module('Orbit - Coordinator', function(hooks) {
       s1._transformed([tA, tB]),
       s2._transformed([tA, tB]),
       s3._transformed([tA, tB, tC])
-    ]).then(() => {
-      assert.ok(s1.transformLog.contains('a'), 's1 contains a');
-      assert.ok(s2.transformLog.contains('a'), 's2 contains a');
-      assert.ok(s3.transformLog.contains('a'), 's3 contains a');
+    ])
+      .then(() => {
+        assert.ok(s1.transformLog.contains('a'), 's1 contains a');
+        assert.ok(s2.transformLog.contains('a'), 's2 contains a');
+        assert.ok(s3.transformLog.contains('a'), 's3 contains a');
 
-      assert.ok(s1.transformLog.contains('b'), 's1 contains b');
-      assert.ok(s2.transformLog.contains('b'), 's2 contains b');
-      assert.ok(s3.transformLog.contains('b'), 's3 contains b');
+        assert.ok(s1.transformLog.contains('b'), 's1 contains b');
+        assert.ok(s2.transformLog.contains('b'), 's2 contains b');
+        assert.ok(s3.transformLog.contains('b'), 's3 contains b');
 
-      assert.ok(s3.transformLog.contains('b'), 's3 contains c');
+        assert.ok(s3.transformLog.contains('b'), 's3 contains c');
 
-      return coordinator.review();
-    }).then(() => {
-      assert.ok(!s1.transformLog.contains('a'), 's1 has removed a');
-      assert.ok(!s2.transformLog.contains('a'), 's2 has removed a');
-      assert.ok(!s3.transformLog.contains('a'), 's3 has removed a');
+        return coordinator.review();
+      })
+      .then(() => {
+        assert.ok(!s1.transformLog.contains('a'), 's1 has removed a');
+        assert.ok(!s2.transformLog.contains('a'), 's2 has removed a');
+        assert.ok(!s3.transformLog.contains('a'), 's3 has removed a');
 
-      assert.ok(!s1.transformLog.contains('b'), 's1 has removed b');
-      assert.ok(!s2.transformLog.contains('b'), 's2 has removed b');
-      assert.ok(!s3.transformLog.contains('b'), 's3 has removed b');
+        assert.ok(!s1.transformLog.contains('b'), 's1 has removed b');
+        assert.ok(!s2.transformLog.contains('b'), 's2 has removed b');
+        assert.ok(!s3.transformLog.contains('b'), 's3 has removed b');
 
-      assert.ok(s3.transformLog.contains('c'), 's3 contains c');
-    });
+        assert.ok(s3.transformLog.contains('c'), 's3 contains c');
+      });
   });
 
   test('observes source transforms and truncates their history to after the most recent common entry', function(assert) {
