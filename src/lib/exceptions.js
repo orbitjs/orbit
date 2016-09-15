@@ -10,13 +10,8 @@
 export class Exception {
   constructor(message) {
     this.message = message;
-    this.error = new Error(this.toString());
+    this.error = new Error(this.message);
     this.stack = this.error.stack;
-    this.name = 'Orbit.Exception';
-  }
-
-  toString() {
-    return this.name + ': ' + this.message;
   }
 }
 
@@ -30,9 +25,8 @@ export class Exception {
  */
 export class PathNotFoundException extends Exception {
   constructor(path) {
-    super(path.join('/'));
+    super(`Path not found: ${path.join('/')}`);
     this.path = path;
-    this.name = 'Orbit.PathNotFoundException';
   }
 }
 
@@ -40,7 +34,6 @@ export class TransformNotLoggedException extends Exception {
   constructor(transformId) {
     super(`Transform not logged: ${transformId}`);
     this.transformId = transformId;
-    this.name = 'Orbit.TransformNotLoggedException';
   }
 }
 
@@ -48,7 +41,6 @@ export class QueryBuilderNotRegisteredException extends Exception {
   constructor(queryBuilder) {
     super(`QueryBuilder not registered: ${queryBuilder}`);
     this.queryBuilder = queryBuilder;
-    this.name = 'Orbit.QueryBuilderNotRegisteredException';
   }
 }
 
@@ -56,7 +48,6 @@ export class OutOfRangeException extends Exception {
   constructor(value) {
     super(`Out of range: ${value}`);
     this.value = value;
-    this.name = 'Orbit.OutOfRangeException';
   }
 }
 
@@ -64,100 +55,88 @@ export class OutOfRangeException extends Exception {
  Exception thrown when an operation is not allowed.
 
  @class OperationNotAllowed
- @namespace OC
  @param {Object} description
  @constructor
  */
 export class OperationNotAllowed extends Exception {
-  constructor(message, operation) {
-    super(message);
+  constructor(operation) {
+    super(`Operation not allowed: ${operation}`);
     this.operation = operation;
-    this.name = 'OC.OperationNotAllowed';
   }
 }
 
 export class TransformNotAllowed extends Exception {
-  constructor(message, transform) {
-    super(message);
+  constructor(transform) {
+    super(`Transform not allowed: ${transform}`);
     this.transform = transform;
-    this.name = 'OC.TransformNotAllowed';
   }
 }
 
 export class QueryNotAllowed extends Exception {
-  constructor(message, query) {
-    super(message);
+  constructor(query) {
+    super(`Query not allowed: ${query}`);
     this.query = query;
-    this.name = 'OC.QueryNotAllowed';
   }
 }
 
 export class QueryExpressionParseError extends Exception {
-  constructor(message, expression) {
-    super(message);
+  constructor(expression) {
+    super(`Query expression parse error: ${expression}`);
     this.expression = expression;
-    this.name = 'OC.QueryExpressionParseError';
   }
 }
 
 export class UpdateNotAllowed extends Exception {
-  constructor(message, transform) {
-    super(message);
-    this.query = transform;
-    this.name = 'OC.UpdateNotAllowed';
+  constructor(transform) {
+    super(`Update not allowed: ${transform}`);
+    this.transform = transform;
   }
 }
 
 export class ModelNotRegisteredException extends Exception {
   constructor(model) {
-    super(`model ${model} not registered`);
+    super(`Model not registered: ${model}`);
     this.model = model;
-    this.name = 'OC.ModelNotRegisteredException';
   }
 }
 
 export class KeyNotRegisteredException extends Exception {
   constructor(model, key) {
-    super(`key '${model}#${key}' not registered`);
+    super(`Key not registered: '${model}#${key}'`);
     this.model = model;
     this.key = key;
-    this.name = 'OC.KeyNotRegisteredException';
   }
 }
 
 export class RelationshipNotRegisteredException extends Exception {
   constructor(model, relationship) {
-    super(`relationship '${model}#${relationship}' not registered`);
+    super(`Relationship not registered: '${model}#${relationship}'`);
     this.model = model;
     this.relationship = relationship;
-    this.name = 'OC.RelationshipNotRegisteredException';
   }
 }
 
 export class ClientError extends Exception {
   constructor(description) {
-    super(description);
-    this.name = 'OC.ClientError';
+    super(`Client error: ${description}`);
   }
 }
 
 export class ServerError extends Exception {
   constructor(description) {
-    super(description);
-    this.name = 'OC.ServerError';
+    super(`Server error: ${description}`);
   }
 }
 
 export class NetworkError extends Exception {
   constructor(description) {
-    super(description);
-    this.name = 'OC.NetworkError';
+    super(`Network error: ${description}`);
   }
 }
 
 class _RecordException extends Exception {
   constructor(description, type, id, relationship) {
-    let message = `${description} - ${type}:${id}`;
+    let message = `${description}: ${type}:${id}`;
 
     if (relationship) {
       message += '/' + relationship;
@@ -175,15 +154,13 @@ class _RecordException extends Exception {
  Exception thrown when a record can not be found.
 
  @class RecordNotFoundException
- @namespace OC
  @param {String} type
- @param {Object} record
+ @param {String} id
  @constructor
  */
 export class RecordNotFoundException extends _RecordException {
   constructor(type, id) {
     super('Record not found', type, id);
-    this.name = 'OC.RecordNotFoundException';
   }
 }
 
@@ -193,13 +170,12 @@ export class RecordNotFoundException extends _RecordException {
  @class RelationshipNotFoundException
  @namespace OC
  @param {String} type
- @param {Object} record
+ @param {String} id
  @constructor
  */
 export class RelationshipNotFoundException extends _RecordException {
   constructor(type, id, relationship) {
     super('Relationship not found', type, id, relationship);
-    this.name = 'OC.RelationshipNotFoundException';
   }
 }
 
@@ -215,6 +191,5 @@ export class RelationshipNotFoundException extends _RecordException {
 export class RecordAlreadyExistsException extends _RecordException {
   constructor(type, id) {
     super('Record already exists', type, id);
-    this.name = 'OC.RecordAlreadyExistsException';
   }
 }
