@@ -45,7 +45,7 @@
     "js-string-escape": "^1.0.1",
     "loader.js": "4.0.1",
     "qunitjs": "^1.23.1",
-    "rsvp": "^3.2.1",
+    "rsvp": "3.2.1",
     "testem": "1.6.0",
     "yuidocjs": "^0.8.1"
   },
