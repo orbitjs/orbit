@@ -96,57 +96,6 @@ test('`modelDefaults` can be overridden', function() {
   equal(Object.keys(model.relationships).length, 0, 'model has no relationships');
 });
 
-test('#registerModel can register models after initialization', function(assert) {
-  const done = assert.async();
-
-  const customIdGenerator = function() {
-    return Math.random().toString(); // don't do this ;)
-  };
-
-  const schema = new Schema({
-    modelDefaults: {
-      id: {
-        defaultValue: customIdGenerator
-      },
-      keys: {
-        remoteId: {}
-      },
-      attributes: {
-        someAttr: {}
-      },
-      relationships: {
-        someLink: {}
-      }
-    },
-    models: {
-      planet: {}
-    }
-  });
-
-  assert.ok(schema.models, 'schema.models has been set');
-  assert.ok(schema.models['planet'], 'model definition has been set');
-  assert.equal(schema.models['moon'], undefined, 'moon\'s definition has NOT been set');
-
-  schema.on('modelRegistered', function(name) {
-    if (name === 'moon') {
-      let model;
-      assert.ok(model = schema.models['moon'], 'model definition has been set');
-      assert.strictEqual(model.id.defaultValue, customIdGenerator, 'model.id.defaultValue has been set');
-      assert.ok(model.keys, 'model.keys has been set');
-      assert.ok(model.attributes, 'model.attributes has been set');
-      assert.ok(model.relationships, 'model.relationships has been set');
-      assert.ok(model.keys.remoteId, 'model.keys.remoteId has been set');
-      assert.equal(Object.keys(model.keys).length, 1, 'model has one key');
-      assert.equal(Object.keys(model.attributes).length, 1, 'model has no attributes');
-      assert.equal(Object.keys(model.relationships).length, 1, 'model has no relationships');
-
-      done();
-    }
-  });
-
-  schema.registerModel('moon', {});
-});
-
 test('#modelDefinition returns a registered model definition', function(assert) {
   const planetDefinition = {
     attributes: {
@@ -172,32 +121,6 @@ test('#modelDefinition throws an exception if a model is not registered', functi
   throws(function() {
     schema.modelDefinition('planet');
   }, ModelNotRegisteredException, 'threw a OC.ModelNotRegisteredException');
-});
-
-test('#modelNotDefined can provide lazy registrations of models', function(assert) {
-  assert.expect(2);
-
-  const schema = new Schema({
-    models: {
-    }
-  });
-
-  const planetDefinition = {
-    attributes: {
-      name: { type: 'string', defaultValue: 'Earth' }
-    }
-  };
-
-  schema.modelNotDefined = function(type) {
-    assert.equal(type, 'planet', 'modelNotDefined called as expected');
-    schema.registerModel('planet', planetDefinition);
-  };
-
-  assert.deepEqual(
-    schema.modelDefinition('planet').attributes,
-    planetDefinition.attributes,
-    'model registered via modelNotDefined hook'
-  );
 });
 
 test('#normalize initializes a record with a unique primary key', function() {
@@ -337,17 +260,6 @@ test('#singularize simply removes a trailing `s` if present at the end of words'
   const schema = new Schema();
   equal(schema.singularize('cows'), 'cow', 'no kine here');
   equal(schema.singularize('data'), 'data', 'no Latin knowledge here');
-});
-
-test('#ensureModelTypeInitialized throws an error when a model type has not been registered', function(assert) {
-  const schema = new Schema({ models: { moon: {} } });
-
-  // No errors when the model is present
-  schema.ensureModelTypeInitialized('moon');
-
-  assert.throws(function() {
-    schema.ensureModelTypeInitialized('planet');
-  }, ModelNotRegisteredException, 'threw a OC.ModelNotRegisteredException');
 });
 
 test('#generateDefaultId', function(assert) {

@@ -289,27 +289,21 @@ export default class Schema {
     // register provided model schema
     this.models = {};
     if (options.models) {
-      for (var modelName in options.models) {
-        if (options.models.hasOwnProperty(modelName)) {
-          this.registerModel(modelName, options.models[modelName]);
-        }
-      }
+      Object.keys(options.models).forEach(modelName => {
+        this._registerModel(modelName, options.models[modelName]);
+      });
     }
   }
 
   /**
    Registers a model's schema definition.
 
-   Emits the `modelRegistered` event upon completion.
-
    @param {String} [name]       name of the model
    @param {Object} [definition] model schema definition
+   @private
    */
-  registerModel(name, definition) {
-    var modelSchema = this._mergeModelSchemas({}, this.modelDefaults, definition);
-
-    this.models[name] = modelSchema;
-    this.emit('modelRegistered', name);
+  _registerModel(name, definition) {
+    this.models[name] = this._mergeModelSchemas({}, this.modelDefaults, definition);
   }
 
   /**
@@ -335,24 +329,9 @@ export default class Schema {
   }
 
   /**
-   A hook that can be used to define a model that's not yet defined.
-
-   This allows for schemas to lazily define models, rather than requiring
-   full definitions upfront.
-
-   @method modelNotDefined
-   @param {String} [model] name of model
-   */
-  modelNotDefined() {}
-
-  /**
    Look up a model definition.
 
-   If none can be found, `modelNotDefined` will be triggered, which provides
-   an opportunity for lazily defining models.
-
-   If still no model has been defined, a `ModelNotRegisteredException` is
-   raised.
+   If no model has been defined, a `ModelNotRegisteredException` is raised.
 
    @method modelDefinition
    @param {String} type - type of model
@@ -362,14 +341,7 @@ export default class Schema {
     let definition = this.models[type];
 
     if (!definition) {
-      // Call a hook for lazy type definition
-      this.modelNotDefined(type);
-
-      definition = this.models[type];
-
-      if (!definition) {
-        throw new ModelNotRegisteredException(type);
-      }
+      throw new ModelNotRegisteredException(type);
     }
 
     return definition;
@@ -496,10 +468,6 @@ export default class Schema {
     if (!relDef) { throw new RelationshipNotRegisteredException(modelName, relationship); }
 
     return relDef;
-  }
-
-  ensureModelTypeInitialized(type) {
-    this.modelDefinition(type);
   }
 
   _mergeModelSchemas(base) {
