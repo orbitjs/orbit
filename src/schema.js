@@ -14,7 +14,7 @@ import Evented from './evented';
  attributes and relationships. A single schema may be shared across multiple
  sources.
 
- Schemas are defined with an initial set of options, passed in as a constructor
+ Schemas are defined with an initial set of settings, passed in as a constructor
  argument:
 
  ``` javascript
@@ -257,72 +257,106 @@ follows:
  ```
 
  @class Schema
- @namespace OC
- @param {Object}   [options]
- @param {Object}   [options.modelDefaults] defaults for model schemas
- @param {Function} [options.pluralize] Function used to pluralize names
- @param {Function} [options.singularize] Function used to singularize names
- @param {Object}   [options.models] schemas for individual models supported by this schema
- @constructor
  */
 export default class Schema {
-  constructor(_options) {
-    let options = _options || {};
+  /**
+   * Create a new Schema.
+   *
+   * @constructor
+   * @param {Object}   [settings={}]
+   * @param {Integer}  [settings.version]       Optional. Schema version. Defaults to 1.
+   * @param {Object}   [settings.models]        Schemas for individual models supported by this schema.
+   * @param {Object}   [settings.modelDefaults] Optional. Defaults for model schemas.
+   * @param {Function} [settings.pluralize]     Optional. Function used to pluralize names.
+   * @param {Function} [settings.singularize]   Optional. Function used to singularize names.
+   */
+  constructor(settings = {}) {
+    this.version = settings.version !== undefined ? settings.version : 1;
+    this._registerSettings(settings);
+  }
 
-    // model defaults
-    if (options.modelDefaults) {
-      this.modelDefaults = options.modelDefaults;
+  /**
+   * Upgrades Schema to a new version with new settings.
+   *
+   * Emits the `upgrade` event to cue sources to upgrade their data.
+   *
+   * @param {Object}   [settings={}]
+   * @param {Integer}  [settings.version]       Optional. Schema version. Defaults to the current version + 1.
+   * @param {Object}   [settings.models]        Schemas for individual models supported by this schema.
+   * @param {Object}   [settings.modelDefaults] Optional. Defaults for model schemas.
+   * @param {Function} [settings.pluralize]     Optional. Function used to pluralize names.
+   * @param {Function} [settings.singularize]   Optional. Function used to singularize names.
+   */
+  upgrade(settings = {}) {
+    this.version = settings.version !== undefined ? settings.version : (this.version + 1);
+    this._registerSettings(settings);
+    this.emit('upgrade', this.version);
+  }
+
+  /**
+   * Registers a complete set of settings
+   *
+   * @param {Object} [settings={}] Settings passed into `constructor` or `upgrade`
+   */
+  _registerSettings(settings = {}) {
+    // Set inflection functions
+    if (settings.pluralize) {
+      this.pluralize = settings.pluralize;
+    }
+    if (settings.singularize) {
+      this.singularize = settings.singularize;
+    }
+
+    // Set model schema defaults
+    if (settings.modelDefaults) {
+      this.modelDefaults = settings.modelDefaults;
     } else {
       this.modelDefaults = {
         id: { defaultValue: uuid }
       };
     }
 
-    // inflection
-    if (options.pluralize) {
-      this.pluralize = options.pluralize;
-    }
-    if (options.singularize) {
-      this.singularize = options.singularize;
-    }
-
-    // register provided model schema
-    this.models = {};
-    if (options.models) {
-      for (var modelName in options.models) {
-        if (options.models.hasOwnProperty(modelName)) {
-          this.registerModel(modelName, options.models[modelName]);
-        }
-      }
-    }
+    // Register model schemas
+    this._registerModels(settings.models);
   }
 
   /**
-   Registers a model's schema definition.
-
-   Emits the `modelRegistered` event upon completion.
-
-   @param {String} [name]       name of the model
-   @param {Object} [definition] model schema definition
+   * Registers the schema of all models.
+   *
+   * @private
+   * @param {Object} models Hash of models, keyed by type
    */
-  registerModel(name, definition) {
-    var modelSchema = this._mergeModelSchemas({}, this.modelDefaults, definition);
-
-    this.models[name] = modelSchema;
-    this.emit('modelRegistered', name);
+  _registerModels(models) {
+    this.models = {};
+    if (models) {
+      Object.keys(models).forEach(modelName => {
+        this._registerModel(modelName, models[modelName]);
+      });
+    }
   }
 
   /**
-   Normalizes a record according to its type and corresponding schema
-   definition.
+   * Registers a model's schema definition.
+   *
+   * @private
+   * @param {String} name       Name of the model
+   * @param {Object} definition Model schema definition
+   */
+  _registerModel(name, definition) {
+    this.models[name] = this._mergeModelSchemas({}, this.modelDefaults, definition);
+  }
 
-   A record's primary key, relationships, and meta data will all be initialized.
-
-   A record can only be normalized once. A flag is set on the record
-   (`__normalized`) to prevent "re-normalization".
-
-   @param  {Object} [record] record data
-   @return {Object} normalized version of `data`
+  /**
+   * Normalizes a record according to its type and corresponding schema
+   * definition.
+   *
+   * A record's primary key, relationships, and meta data will all be initialized.
+   *
+   * A record can only be normalized once. A flag is set on the record
+   * (`__normalized`) to prevent "re-normalization".
+   *
+   * @param {Object} record Record data
+   * @return {Object} Normalized version of `data`
    */
   normalize(record) {
     if (record.__normalized) { return record; }
@@ -335,41 +369,18 @@ export default class Schema {
   }
 
   /**
-   A hook that can be used to define a model that's not yet defined.
-
-   This allows for schemas to lazily define models, rather than requiring
-   full definitions upfront.
-
-   @method modelNotDefined
-   @param {String} [model] name of model
-   */
-  modelNotDefined() {}
-
-  /**
-   Look up a model definition.
-
-   If none can be found, `modelNotDefined` will be triggered, which provides
-   an opportunity for lazily defining models.
-
-   If still no model has been defined, a `ModelNotRegisteredException` is
-   raised.
-
-   @method modelDefinition
-   @param {String} type - type of model
-   @return {Object} model definition
+   * Returns a model definition.
+   *
+   * If no model has been defined, a `ModelNotRegisteredException` is raised.
+   *
+   * @param {String} type Type of model
+   * @return {Object} Model definition
    */
   modelDefinition(type) {
     let definition = this.models[type];
 
     if (!definition) {
-      // Call a hook for lazy type definition
-      this.modelNotDefined(type);
-
-      definition = this.models[type];
-
-      if (!definition) {
-        throw new ModelNotRegisteredException(type);
-      }
+      throw new ModelNotRegisteredException(type);
     }
 
     return definition;
@@ -435,10 +446,10 @@ export default class Schema {
   }
 
   /**
-   Generate an id for a given model type.
-
-   @param {String} type - a model type
-   @returns {String} a generated model ID
+   * Generate an id for a given model type.
+   *
+   * @param {String} type A model type
+   * @return {String} Generated model ID
    */
   generateDefaultId(type) {
     let value = this.modelDefinition(type).id.defaultValue;
@@ -496,10 +507,6 @@ export default class Schema {
     if (!relDef) { throw new RelationshipNotRegisteredException(modelName, relationship); }
 
     return relDef;
-  }
-
-  ensureModelTypeInitialized(type) {
-    this.modelDefinition(type);
   }
 
   _mergeModelSchemas(base) {
