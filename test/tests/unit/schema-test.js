@@ -4,32 +4,66 @@ import { ModelNotRegisteredException } from 'orbit/lib/exceptions';
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module('OC - Schema');
+module('Schema');
 
-test('it exists', function() {
+test('can be instantiated', function(assert) {
   const schema = new Schema();
-  ok(schema);
+  assert.ok(schema);
 });
 
-test('it has a `modelDefaults` set by default', function() {
+test('#version is assigned `1` by default', function(assert) {
+  const schema = new Schema();
+  assert.equal(schema.version, 1, 'version === 1');
+});
+
+test('#upgrade bumps the current version', function(assert) {
+  const done = assert.async();
+
+  const schema = new Schema({
+    models: {
+      planet: {}
+    }
+  });
+  assert.equal(schema.version, 1, 'version === 1');
+
+  schema.on('upgrade', (version) => {
+    assert.equal(version, 2, 'version is passed as argument');
+    assert.equal(schema.version, 2, 'version === 2');
+    assert.ok(schema.models.planet.attributes.name, 'model attribute has been added');
+    done();
+  });
+
+  schema.upgrade({
+    models: {
+      planet: {
+        attributes: {
+          name: { type: 'string' }
+        }
+      }
+    }
+  });
+});
+
+test('#modelDefaults is assigned by default', function(assert) {
   const schema = new Schema({
     models: {
       planet: {}
     }
   });
 
-  ok(schema.modelDefaults, 'modelDefaults has been set');
-  ok(schema.modelDefaults.id, 'modelDefaults.id has been set');
-  strictEqual(schema.modelDefaults.id.defaultValue, uuid, 'modelDefaults.id.defaultValue has been set');
+  assert.ok(schema.modelDefaults, 'modelDefaults has been set');
+  assert.ok(schema.modelDefaults.id, 'modelDefaults.id has been set');
+  assert.strictEqual(schema.modelDefaults.id.defaultValue, uuid, 'modelDefaults.id.defaultValue has been set');
 
-  ok(schema.models, 'schema.models has been set');
+  assert.ok(schema.models, 'schema.models has been set');
+
   const model = schema.models.planet;
-  ok(model, 'model definition has been set');
-  ok(model.id, 'model.id has been set');
-  strictEqual(model.id.defaultValue, uuid, 'model.id.defaultValue has been set');
+  assert.ok(model, 'model definition has been set');
+  assert.ok(model.id, 'model.id has been set');
+  assert.strictEqual(model.id.defaultValue, uuid, 'model.id.defaultValue has been set');
 });
 
-test('`modelDefaults` can be overridden', function() {
+test('#modelDefaults can be overridden', function() {
   const customIdGenerator = function() {
     return Math.random().toString(); // don't do this ;)
   };
@@ -72,9 +106,8 @@ test('`modelDefaults` can be overridden', function() {
   ok(schema.modelDefaults.attributes.someAttr, 'default model schema attribute has been set');
   ok(schema.modelDefaults.relationships.someLink, 'default model link schema has been set');
 
-  let model;
   ok(schema.models, 'schema.models has been set');
-  model = schema.models.planet;
+  let model = schema.models.planet;
   ok(model, 'model definition has been set');
   ok(model.id, 'model.id has been set');
   ok(model.keys, 'model.keys has been set');
