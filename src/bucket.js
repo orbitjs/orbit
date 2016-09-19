@@ -5,7 +5,11 @@
  */
 export default class Bucket {
   constructor(options = {}) {
-    this.name = options.name;
+    this._name = options.name;
+  }
+
+  get name() {
+    return this._name;
   }
 
   getItem(/* key */) {
