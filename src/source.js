@@ -18,13 +18,25 @@ export default class Source {
   constructor(options = {}) {
     assert('Source requires a name', options.name);
 
-    const name = this.name = options.name;
-    const bucket = this.bucket = options.bucket;
-    this.schema = options.schema;
+    const name = this._name = options.name;
+    const bucket = this._bucket = options.bucket;
+    this._schema = options.schema;
 
     this.transformLog = new TransformLog(null, { name: `${name}-log`, bucket });
     this.requestQueue = new ActionQueue(this, { name: `${name}-requests`, bucket });
     this.syncQueue = new ActionQueue(this, { name: `${name}-sync`, bucket });
+  }
+
+  get name() {
+    return this._name;
+  }
+
+  get bucket() {
+    return this._bucket;
+  }
+
+  get schema() {
+    return this._schema;
   }
 
   /////////////////////////////////////////////////////////////////////////////
