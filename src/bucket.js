@@ -6,10 +6,20 @@
 export default class Bucket {
   constructor(options = {}) {
     this._name = options.name;
+    this._namespace = options.namespace;
+    this._version = options.version;
   }
 
   get name() {
     return this._name;
+  }
+
+  get namespace() {
+    return this._namespace;
+  }
+
+  get version() {
+    return this._version;
   }
 
   getItem(/* key */) {
