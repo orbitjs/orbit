@@ -7,8 +7,8 @@ import Bucket from 'orbit/bucket';
  * memory, but useful for testing.
  */
 export default class FakeBucket extends Bucket {
-  constructor(options = {}) {
-    super(options);
+  constructor(settings = {}) {
+    super(settings);
     this.data = {};
   }
 

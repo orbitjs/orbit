@@ -28,7 +28,7 @@ module('Orbit - Source', function() {
 
   test('creates a `transformLog`, `requestQueue`, and `syncQueue`, and assigns each the same bucket as the Source', function(assert) {
     assert.expect(8);
-    const bucket = new FakeBucket();
+    const bucket = new FakeBucket({ name: 'fake-bucket' });
     source = new Source({ name: 'src1', bucket });
     assert.equal(source.name, 'src1', 'source has been assigned name');
     assert.equal(source.transformLog.name, 'src1-log', 'transformLog has been assigned name');

@@ -2,8 +2,24 @@ import Bucket from 'orbit/bucket';
 
 module('Bucket', function() {
   test('can be instantiated', function(assert) {
-    let bucket = new Bucket();
+    let bucket = new Bucket({ name: 'bucket' });
     assert.ok(bucket, 'bucket exists');
+  });
+
+  test('requires a name', function(assert) {
+    assert.expect(1);
+    assert.throws(function() {
+      let bucket = new Bucket();
+      assert.ok(!bucket, 'should not get here'); // added for linting
+    },
+    Error('Assertion failed: Bucket requires a name'),
+    'assertion raised');
+  });
+
+  test('has a default namespace and version', function(assert) {
+    let bucket = new Bucket({ name: 'bucket' });
+    assert.equal(bucket.namespace, 'orbit-bucket', 'default namespace');
+    assert.equal(bucket.version, 1, 'default version');
   });
 
   test('can be instantiated with a name, namespace, and version', function(assert) {
