@@ -263,16 +263,26 @@ export default class Schema {
    * Create a new Schema.
    *
    * @constructor
-   * @param {Object}   [settings={}]
+   * @param {Object}   [settings={}]            Optional. Configuration settings.
    * @param {Integer}  [settings.version]       Optional. Schema version. Defaults to 1.
-   * @param {Object}   [settings.models]        Schemas for individual models supported by this schema.
+   * @param {Object}   [settings.models]        Optional. Schemas for individual models supported by this schema.
    * @param {Object}   [settings.modelDefaults] Optional. Defaults for model schemas.
    * @param {Function} [settings.pluralize]     Optional. Function used to pluralize names.
    * @param {Function} [settings.singularize]   Optional. Function used to singularize names.
    */
   constructor(settings = {}) {
-    this.version = settings.version !== undefined ? settings.version : 1;
-    this._registerSettings(settings);
+    if (settings.version === undefined) {
+      settings.version = 1;
+    }
+    this._applySettings(settings);
+  }
+
+  /**
+   * Version
+   * @return {Integer} Version of schema.
+   */
+  get version() {
+    return this._version;
   }
 
   /**
@@ -280,7 +290,7 @@ export default class Schema {
    *
    * Emits the `upgrade` event to cue sources to upgrade their data.
    *
-   * @param {Object}   [settings={}]
+   * @param {Object}   [settings={}]            Settings.
    * @param {Integer}  [settings.version]       Optional. Schema version. Defaults to the current version + 1.
    * @param {Object}   [settings.models]        Schemas for individual models supported by this schema.
    * @param {Object}   [settings.modelDefaults] Optional. Defaults for model schemas.
@@ -288,17 +298,23 @@ export default class Schema {
    * @param {Function} [settings.singularize]   Optional. Function used to singularize names.
    */
   upgrade(settings = {}) {
-    this.version = settings.version !== undefined ? settings.version : (this.version + 1);
-    this._registerSettings(settings);
-    this.emit('upgrade', this.version);
+    if (settings.version === undefined) {
+      settings.version = this._version + 1;
+    }
+    this._applySettings(settings);
+    this.emit('upgrade', this._version);
   }
 
   /**
    * Registers a complete set of settings
    *
-   * @param {Object} [settings={}] Settings passed into `constructor` or `upgrade`
+   * @private
+   * @param {Object} settings Settings passed into `constructor` or `upgrade`.
    */
-  _registerSettings(settings = {}) {
+  _applySettings(settings) {
+    // Version
+    this._version = settings.version;
+
     // Set inflection functions
     if (settings.pluralize) {
       this.pluralize = settings.pluralize;
@@ -310,14 +326,16 @@ export default class Schema {
     // Set model schema defaults
     if (settings.modelDefaults) {
       this.modelDefaults = settings.modelDefaults;
-    } else {
+    } else if (this.modelDefaults === undefined) {
       this.modelDefaults = {
         id: { defaultValue: uuid }
       };
     }
 
     // Register model schemas
-    this._registerModels(settings.models);
+    if (settings.models) {
+      this._registerModels(settings.models);
+    }
   }
 
   /**
