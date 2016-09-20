@@ -1,5 +1,6 @@
 import Orbit from './main';
 import Evented from './evented';
+import { assert } from './lib/assert';
 
 /**
  * Buckets are used by sources to persist transient state, such as logs and
@@ -8,11 +9,15 @@ import Evented from './evented';
  */
 export default class Bucket {
   constructor(settings = {}) {
+    assert('Bucket requires a name', settings.name);
+
     this._name = settings.name;
 
     if (settings.version === undefined) {
       settings.version = 1;
     }
+
+    settings.namespace = settings.namespace || 'orbit-bucket';
 
     this._applySettings(settings);
   }

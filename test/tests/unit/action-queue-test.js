@@ -550,17 +550,17 @@ module('ActionQueue', function() {
       });
   });
 
-  module('assigned a bucket', function(assert) {
+  module('assigned a bucket', function(hooks) {
     const op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     const op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
 
     let bucket;
 
-    assert.beforeEach(function() {
-      bucket = new FakeBucket();
+    hooks.beforeEach(function() {
+      bucket = new FakeBucket({ name: 'fake-bucket' });
     });
 
-    assert.afterEach(function() {
+    hooks.afterEach(function() {
       bucket = null;
     });
 

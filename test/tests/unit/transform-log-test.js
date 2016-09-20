@@ -248,14 +248,14 @@ module('Orbit - TransformLog', function() {
     });
   });
 
-  module('using a bucket', function(assert) {
+  module('using a bucket', function(hooks) {
     let bucket;
 
-    assert.beforeEach(function() {
-      bucket = new FakeBucket();
+    hooks.beforeEach(function() {
+      bucket = new FakeBucket({ name: 'fake-bucket' });
     });
 
-    assert.afterEach(function() {
+    hooks.afterEach(function() {
       bucket = null;
     });
 
