@@ -232,7 +232,7 @@ test('#settleInSeries - resolves regardless of errors thrown in handlers', funct
 });
 
 test('#fulfillInSeries - it can fulfill all promises returned by listeners to an event, in order, until all are settled', function(assert) {
-  assert.expect(6);
+  assert.expect(7);
 
   let order = 0;
   let listener1 = function(message) {
@@ -253,6 +253,9 @@ test('#fulfillInSeries - it can fulfill all promises returned by listeners to an
     function(result) {
       assert.equal(result, undefined, 'no result returned');
       assert.equal(++order, 3, 'promise resolved last');
+    }).then(function() {
+      const listeners = evented.listeners('greeting');
+      assert.equal(listeners.length, 2, 'listeners should not be unregistered');
     });
 });
 

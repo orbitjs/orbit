@@ -169,7 +169,8 @@ function fulfillEach(listeners, args, resolve, reject) {
   if (listeners.length === 0) {
     resolve();
   } else {
-    let listener = listeners.shift();
+    let listener;
+    [listener, ...listeners] = listeners;
     let [callback, binding] = listener;
     let response = callback.apply(binding, args);
 
