@@ -1,4 +1,3 @@
-/* globals Immutable */
 import TransformLog from 'orbit/transform/log';
 import { TransformNotLoggedException, OutOfRangeException } from 'orbit/lib/exceptions';
 import { FakeBucket } from 'tests/test-helper';
@@ -16,14 +15,7 @@ module('Orbit - TransformLog', function() {
     assert.equal(log.length, 0, 'log has expected size');
   });
 
-  test('can be instantiated with immutable list data', function(assert) {
-    let data = new Immutable.List(['a', 'b']);
-    log = new TransformLog(data);
-    assert.ok(log, 'log instantiated');
-    assert.strictEqual(log.data, data, 'log has expected data');
-  });
-
-  test('can be instantiated with a normal JS array', function(assert) {
+  test('can be instantiated with an array', function(assert) {
     log = new TransformLog(['a', 'b']);
     assert.ok(log, 'log instantiated');
     assert.equal(log.length, 2, 'log has expected data');
@@ -39,11 +31,10 @@ module('Orbit - TransformLog', function() {
     });
 
     test('#append', function(assert) {
-      assert.expect(3);
+      assert.expect(2);
 
-      log.on('append', (transformIds, data) => {
+      log.on('append', (transformIds) => {
         assert.deepEqual(transformIds, [transformAId], 'append event emits transform');
-        assert.strictEqual(data.size, 0, 'append event emits prev state');
       });
 
       return log.append(transformAId)
@@ -68,9 +59,8 @@ module('Orbit - TransformLog', function() {
       );
     });
 
-    test('#data', function(assert) {
-      assert.ok(Immutable.List.isList(log.data), 'is immutable');
-      assert.equal(log.data.size, 3, 'contains the expected transforms');
+    test('#entries', function(assert) {
+      assert.equal(log.entries.length, 3, 'contains the expected transforms');
     });
 
     test('#length', function(assert) {
@@ -129,8 +119,8 @@ module('Orbit - TransformLog', function() {
     test('#clear', function(assert) {
       assert.expect(2);
 
-      log.on('clear', (data) => {
-        assert.strictEqual(data.size, 3, 'clear event emits prev state');
+      log.on('clear', () => {
+        assert.ok(true, 'clear event emitted');
       });
 
       return log.clear()
@@ -140,12 +130,11 @@ module('Orbit - TransformLog', function() {
     });
 
     test('#truncate', function(assert) {
-      assert.expect(4);
+      assert.expect(3);
 
-      log.on('truncate', (transformId, relativePosition, data) => {
+      log.on('truncate', (transformId, relativePosition) => {
         assert.strictEqual(transformId, transformBId, 'truncate event emits transform');
         assert.strictEqual(relativePosition, 0, 'truncate event emits relativePosition');
-        assert.strictEqual(data.size, 3, 'truncate event emits prev state');
       });
 
       return log.truncate(transformBId)
@@ -190,12 +179,11 @@ module('Orbit - TransformLog', function() {
     });
 
     test('#rollback', function(assert) {
-      assert.expect(4);
+      assert.expect(3);
 
-      log.on('rollback', (transformId, relativePosition, data) => {
+      log.on('rollback', (transformId, relativePosition) => {
         assert.strictEqual(transformId, transformAId, 'rollback event emits transform');
         assert.strictEqual(relativePosition, 0, 'rollback event emits relativePosition');
-        assert.strictEqual(data.size, 3, 'rollback event emits prev state');
       });
 
       return log.rollback(transformAId)
@@ -267,7 +255,7 @@ module('Orbit - TransformLog', function() {
           return log.reified;
         })
         .then(() => {
-          assert.equal(log.data.size, 2, 'log contains the expected transforms');
+          assert.equal(log.length, 2, 'log contains the expected transforms');
         });
     });
 
@@ -292,7 +280,7 @@ module('Orbit - TransformLog', function() {
       return log.append(transformAId, transformBId, transformCId)
         .then(() => log.truncate(log.head))
         .then(() => {
-          assert.equal(log.data.size, 1, 'log contains the expected transforms');
+          assert.equal(log.length, 1, 'log contains the expected transforms');
           return bucket.getItem('log');
         })
         .then(logged => {
@@ -307,7 +295,7 @@ module('Orbit - TransformLog', function() {
       return log.append(transformAId, transformBId, transformCId)
         .then(() => log.rollback(transformBId))
         .then(() => {
-          assert.equal(log.data.size, 2, 'log contains the expected transforms');
+          assert.equal(log.length, 2, 'log contains the expected transforms');
           return bucket.getItem('log');
         })
         .then(logged => {
@@ -322,7 +310,7 @@ module('Orbit - TransformLog', function() {
       return log.append(transformAId, transformBId, transformCId)
         .then(() => log.clear())
         .then(() => {
-          assert.equal(log.data.size, 0, 'log contains the expected transforms');
+          assert.equal(log.length, 0, 'log contains the expected transforms');
           return bucket.getItem('log');
         })
         .then(logged => {

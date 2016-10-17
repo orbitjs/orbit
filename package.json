@@ -17,7 +17,6 @@
   "keywords": [
     "orbit.js",
     "data",
-    "immutable",
     "synchronization"
   ],
   "engines": {
@@ -47,8 +46,5 @@
     "rsvp": "3.2.1",
     "testem": "1.6.0",
     "yuidocjs": "^0.8.1"
-  },
-  "dependencies": {
-    "immutable": "^3.7.6"
   }
 }

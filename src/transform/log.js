@@ -1,4 +1,3 @@
-/* globals Immutable */
 import Orbit from '../main';
 import Evented from '../evented';
 import { TransformNotLoggedException, OutOfRangeException } from '../lib/exceptions';
@@ -10,33 +9,26 @@ export default class TransformLog {
     this._reify(data);
   }
 
-  get data() {
-    return this._data;
-  }
-
   get head() {
-    return this._data.last();
+    return this._data[this._data.length - 1];
   }
 
   get entries() {
-    return this._data.toArray();
+    return this._data;
   }
 
   get length() {
-    return this._data.size;
+    return this._data.length;
   }
 
   append(...transformIds) {
-    let data;
-
     return this.reified
       .then(() => {
-        data = this._data;
-        this._data = data.push(...transformIds);
+        Array.prototype.push.apply(this._data, transformIds);
         return this._persist();
       })
       .then(() => {
-        this.emit('append', transformIds, data);
+        this.emit('append', transformIds);
       });
   }
 
@@ -47,11 +39,11 @@ export default class TransformLog {
     }
 
     const position = index + relativePosition;
-    if (position < 0 || position >= this._data.size) {
+    if (position < 0 || position >= this._data.length) {
       throw new OutOfRangeException(position);
     }
 
-    return this._data.slice(0, position).toJS();
+    return this._data.slice(0, position);
   }
 
   after(transformId, relativePosition = 0) {
@@ -61,64 +53,58 @@ export default class TransformLog {
     }
 
     const position = index + 1 + relativePosition;
-    if (position < 0 || position > this._data.size) {
+    if (position < 0 || position > this._data.length) {
       throw new OutOfRangeException(position);
     }
 
-    return this._data.slice(position).toJS();
+    return this._data.slice(position);
   }
 
   truncate(transformId, relativePosition = 0) {
-    let data;
-
     return this.reified
       .then(() => {
-        data = this._data;
         const index = this._data.indexOf(transformId);
         if (index === -1) {
           throw new TransformNotLoggedException(transformId);
         }
 
         const position = index + relativePosition;
-        if (position < 0 || position > this._data.size) {
+        if (position < 0 || position > this._data.length) {
           throw new OutOfRangeException(position);
         }
 
         if (position === this._data.length) {
-          this._data = data.clear();
+          this._data = [];
         } else {
-          this._data = data.slice(position);
+          this._data = this._data.slice(position);
         }
 
         return this._persist();
       })
       .then(() => {
-        this.emit('truncate', transformId, relativePosition, data);
+        this.emit('truncate', transformId, relativePosition);
       });
   }
 
   rollback(transformId, relativePosition = 0) {
-    let data;
-
     return this.reified
       .then(() => {
-        data = this._data;
         const index = this._data.indexOf(transformId);
         if (index === -1) {
           throw new TransformNotLoggedException(transformId);
         }
 
         const position = index + 1 + relativePosition;
-        if (position < 0 || position > this._data.size) {
+        if (position < 0 || position > this._data.length) {
           throw new OutOfRangeException(position);
         }
 
-        this._data = data.setSize(position);
+        this._data = this._data.slice(0, position);
 
         return this._persist();
       })
       .then(() => {
-        this.emit('rollback', transformId, relativePosition, data);
+        this.emit('rollback', transformId, relativePosition);
       });
   }
 
@@ -127,8 +113,7 @@ export default class TransformLog {
 
     return this.reified
       .then(() => {
-        data = this._data;
-        this._data = data.clear();
+        this._data = [];
         return this._persist();
       })
       .then(() => this.emit('clear', data));
@@ -140,7 +125,7 @@ export default class TransformLog {
 
   _persist() {
     if (this.bucket) {
-      return this.bucket.setItem(this.name, this._data.toJS());
+      return this.bucket.setItem(this.name, this._data);
     } else {
       return Orbit.Promise.resolve();
     }
@@ -158,13 +143,9 @@ export default class TransformLog {
 
   _initData(data) {
     if (data) {
-      if (Immutable.List.isList(data)) {
-        this._data = data;
-      } else {
-        this._data = new Immutable.List(data);
-      }
+      this._data = data;
     } else {
-      this._data = new Immutable.List();
+      this._data = [];
     }
   }
 }

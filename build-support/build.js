@@ -75,7 +75,6 @@ module.exports = function build(pkg, namespace) {
 
   var vendor = concat('', {
     inputFiles: [
-      path.join(require.resolve('immutable'), '..', 'immutable.js'),
       path.join(require.resolve('rsvp'), '..', 'rsvp.js')
     ],
     outputFile: '/assets/vendor.js'
