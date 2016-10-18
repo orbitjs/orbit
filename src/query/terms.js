@@ -58,6 +58,10 @@ export class Records extends TermBase {
     return new this.constructor(oqe('sort', this.expression, sortExpressions.map(parseSortExpression)));
   }
 
+  page(options) {
+    return new this.constructor(oqe('page', this.expression, options));
+  }
+
   static withScopes(scopes) {
     const typeTerm = function(oqe) {
       Records.call(this, oqe);
