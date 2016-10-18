@@ -1,3 +1,4 @@
+import { isObject } from '../lib/objects';
 import { queryExpression as oqe } from './expression';
 
 export class TermBase {
@@ -53,6 +54,10 @@ export class Records extends TermBase {
     return new this.constructor(oqe('filter', this.expression, andExpression));
   }
 
+  sort(...sortExpressions) {
+    return new this.constructor(oqe('sort', this.expression, sortExpressions.map(parseSortExpression)));
+  }
+
   static withScopes(scopes) {
     const typeTerm = function(oqe) {
       Records.call(this, oqe);
@@ -75,4 +80,47 @@ export class RelatedRecords extends TermBase {
   constructor(record, relationship) {
     super(oqe('relatedRecords', record, relationship));
   }
+}
+
+function parseSortExpression(sortExpression) {
+  if (isObject(sortExpression)) {
+    return parseSortExpressionObject(sortExpression);
+  } else if (typeof sortExpression === 'string') {
+    return parseCompactSortExpression(sortExpression);
+  }
+  throw new Error('Sort expression must be either an object or a string.');
+}
+
+function parseSortExpressionObject(sortExpression) {
+  if (sortExpression.attribute === undefined) {
+    throw new Error('Unsupported sort field type.');
+  }
+
+  const order = sortExpression.order || 'ascending';
+  if (order !== 'ascending' && order !== 'descending') {
+    throw new Error('Invalid sort order.');
+  }
+
+  return {
+    field: oqe('attribute', sortExpression.attribute),
+    order
+  };
+}
+
+function parseCompactSortExpression(sortExpression) {
+  let attribute;
+  let order;
+
+  if (sortExpression[0] === '-') {
+    attribute = sortExpression.slice(1);
+    order = 'descending';
+  } else {
+    attribute = sortExpression;
+    order = 'ascending';
+  }
+
+  return {
+    field: oqe('attribute', attribute),
+    order
+  };
 }

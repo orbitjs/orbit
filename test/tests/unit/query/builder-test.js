@@ -109,4 +109,127 @@ module('OC - QueryBuilder', function() {
             oqe('equal', oqe('attribute', 'age'), '23000000')))
     );
   });
+
+  test('records/sort (one field, compact)', function(assert) {
+    assert.deepEqual(
+      qb.records('planet')
+        .sort('name')
+        .toQueryExpression(),
+
+      oqe('sort',
+        oqe('records', 'planet'),
+        [{ field: oqe('attribute', 'name'), order: 'ascending' }])
+    );
+  });
+
+  test('records/sort (one field descending, compact)', function(assert) {
+    assert.deepEqual(
+      qb.records('planet')
+        .sort('-name')
+        .toQueryExpression(),
+
+      oqe('sort',
+        oqe('records', 'planet'),
+        [{ field: oqe('attribute', 'name'), order: 'descending' }])
+    );
+  });
+
+  test('records/sort (multiple fields, compact)', function(assert) {
+    assert.deepEqual(
+      qb.records('planet')
+        .sort('name', 'age')
+        .toQueryExpression(),
+
+      oqe('sort',
+        oqe('records', 'planet'),
+        [
+          { field: oqe('attribute', 'name'), order: 'ascending' },
+          { field: oqe('attribute', 'age'), order: 'ascending' }
+        ])
+    );
+  });
+
+  test('records/sort (one field, default order)', function(assert) {
+    assert.deepEqual(
+      qb.records('planet')
+        .sort({ attribute: 'name' })
+        .toQueryExpression(),
+
+      oqe('sort',
+        oqe('records', 'planet'),
+        [{ field: oqe('attribute', 'name'), order: 'ascending' }])
+    );
+  });
+
+  test('records/sort (one field, ascending order)', function(assert) {
+    assert.deepEqual(
+      qb.records('planet')
+        .sort({ attribute: 'name', order: 'ascending' })
+        .toQueryExpression(),
+
+      oqe('sort',
+        oqe('records', 'planet'),
+        [{ field: oqe('attribute', 'name'), order: 'ascending' }])
+    );
+  });
+
+  test('records/sort (one field, descending order)', function(assert) {
+    assert.deepEqual(
+      qb.records('planet')
+        .sort({ attribute: 'name', order: 'descending' })
+        .toQueryExpression(),
+
+      oqe('sort',
+        oqe('records', 'planet'),
+        [{ field: oqe('attribute', 'name'), order: 'descending' }])
+    );
+  });
+
+  test('records/sort (multiple fields)', function(assert) {
+    assert.deepEqual(
+      qb.records('planet')
+        .sort(
+          { attribute: 'name', order: 'ascending' },
+          { attribute: 'age', order: 'ascending' }
+        )
+        .toQueryExpression(),
+
+      oqe('sort',
+        oqe('records', 'planet'),
+        [
+          { field: oqe('attribute', 'name'), order: 'ascending' },
+          { field: oqe('attribute', 'age'), order: 'ascending' }
+        ])
+    );
+  });
+
+  test('records/sort (unsupported sort field type)', function(assert) {
+    assert.throws(
+      () => {
+        qb.records('planet')
+          .sort({});
+      },
+      new Error('Unsupported sort field type.')
+    );
+  });
+
+  test('records/sort (invalid sort order)', function(assert) {
+    assert.throws(
+      () => {
+        qb.records('planet')
+          .sort({ attribute: 'name', order: 'invalid' });
+      },
+      new Error('Invalid sort order.')
+    );
+  });
+
+  test('records/sort (invalid sort expression)', function(assert) {
+    assert.throws(
+      () => {
+        qb.records('planet')
+          .sort(null);
+      },
+      new Error('Sort expression must be either an object or a string.')
+    );
+  });
 });
