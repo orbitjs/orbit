@@ -232,4 +232,16 @@ module('OC - QueryBuilder', function() {
       new Error('Sort expression must be either an object or a string.')
     );
   });
+
+  test('records/page', function(assert) {
+    assert.deepEqual(
+      qb.records('planet')
+        .page({ offset: 1, limit: 10})
+        .toQueryExpression(),
+
+      oqe('page',
+        oqe('records', 'planet'),
+        { offset: 1, limit: 10 })
+    );
+  });
 });
