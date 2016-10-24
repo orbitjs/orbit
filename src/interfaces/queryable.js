@@ -46,8 +46,8 @@ export default {
   interface: {
     _queryable: true,
 
-    query(queryOrExpression) {
-      const query = Query.from(queryOrExpression, this.queryBuilder);
+    query(queryOrExpression, options) {
+      const query = Query.from(queryOrExpression, options);
       return this._enqueueRequest('query', query);
     },
 

@@ -26,12 +26,12 @@ export default class Query {
   }
 }
 
-Query.from = function(queryOrExpression) {
+Query.from = function(queryOrExpression, options) {
   if (queryOrExpression.toQueryExpression) {
-    return new Query(queryOrExpression.toQueryExpression());
+    return new Query(queryOrExpression.toQueryExpression(), options);
   } else if (queryOrExpression instanceof Query) {
     return queryOrExpression;
   } else {
-    return new Query(queryOrExpression);
+    return new Query(queryOrExpression, options);
   }
 };
