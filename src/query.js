@@ -11,6 +11,8 @@ import { uuid } from './lib/uuid';
  @param {Object}    [expression] Query expression
  @param {Object}    [options]
  @param {String}    [options.id] Unique id for this query (will be assigned a uuid by default)
+ @param {Object}    [options.sources] Optional. Instructions for specific sources to refine the
+                    query, keyed by source name.
  @constructor
  */
 export default class Query {
@@ -20,6 +22,7 @@ export default class Query {
     let options = _options || {};
 
     this.id = options.id || uuid();
+    this.sources = options.sources || {};
   }
 }
 

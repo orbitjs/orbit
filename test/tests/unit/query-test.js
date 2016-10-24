@@ -15,13 +15,26 @@ module('Orbit', function() {
       assert.ok(query.id, 'query has an id');
     });
 
+    test('it is assigned an empty `sources`', function(assert) {
+      let query = new Query();
+      assert.deepEqual(query.sources, {}, 'query has empty sources');
+    });
+
     test('can be created from with all attributes specified as options', function(assert) {
       let expression = { op: 'foo' };
-      let options = { id: 'abc123' };
+      let options = {
+        id: 'abc123',
+        sources: {
+          jsonapi: {
+            include: 'bar'
+          }
+        }
+      };
 
       let query = new Query(expression, options);
 
       assert.strictEqual(query.id, options.id, 'id was populated');
+      assert.strictEqual(query.sources, options.sources, 'sources was populated');
       assert.deepEqual(query.expression, expression, 'expression was populated');
     });
 
