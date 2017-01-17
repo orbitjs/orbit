@@ -40,9 +40,6 @@ AMD and CJS builds are in `/dist`.
 
 ## Dependencies
 
-Orbit.js is dependent upon [Immutable.js](https://github.com/facebook/immutable-js/)
-for immutable data structures.
-
 Orbit.js must be used in an environment that includes an implementation of the
 [Promises/A+](http://promises-aplus.github.io/promises-spec/). If you wish to
 support legacy browsers, you will need to include a library such as
