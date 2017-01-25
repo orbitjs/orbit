@@ -1,12 +1,9 @@
 {
   "framework": "qunit",
-  "before_tests": "npm run build",
-  "src_files": ["src/**/*.js", "test/**/*.js"],
-  "serve_files": [
-    "dist/assets/loader.js",
-    "dist/assets/vendor.js",
-    "dist/assets/tests.js",
-    "dist/assets/test-support.js"
-  ],
-  "launch_in_ci": ["Firefox"]
+  "test_page": "tests/index.html",
+  "before_tests": "npm run build:tests",
+  "src_files": ["src/**/*", "test/**/*"],
+  "launch_in_ci": ["firefox"],
+  "debug": true,
+  "port": 0
 }

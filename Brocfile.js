@@ -1,4 +1,8 @@
-/* eslint-env node */
-var build = require('./build-support/build');
+const build = require('@glimmer/build');
+const path = require('path');
 
-module.exports = build('orbit-core', 'orbit');
+module.exports = build({
+  testDependencies: [
+    path.join(require.resolve('rsvp'), '..', 'rsvp.js')
+  ]
+});
