@@ -1,10 +1,10 @@
 sudo: false
 language: node_js
 node_js:
-  - "4"
+  - "6"
 
 addons:
-  firefox: "48.0"
+  firefox: "50.0"
 
 before_install:
   - "export DISPLAY=:99.0"

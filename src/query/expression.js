@@ -1,4 +1,4 @@
-import { isObject } from 'orbit/lib/objects';
+import { isObject } from '../lib/objects';
 
 class QueryExpression {
   constructor(op, args) {
