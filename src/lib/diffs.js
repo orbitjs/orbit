@@ -29,7 +29,7 @@ import { arrayToOptions } from './config';
  @param {String} [options.basePath] A base path to be prefixed to all paths in return patch operations
  @returns {Array} Array of patch operations to get from `a` to `b` (or undefined if they are equal)
  */
-var diffs = function(a, b, options) {
+export function diffs(a, b, options) {
   if (a === b) {
     return undefined;
   } else {
@@ -122,6 +122,4 @@ var diffs = function(a, b, options) {
 
     return [{ op: 'replace', path: basePath, value: clone(b) }];
   }
-};
-
-export { diffs };
+}

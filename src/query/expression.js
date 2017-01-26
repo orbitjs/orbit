@@ -1,6 +1,6 @@
 import { isObject } from '../lib/objects';
 
-class QueryExpression {
+export default class QueryExpression {
   constructor(op, args) {
     this.__oqe__ = true;
     this.op = op;
@@ -20,5 +20,3 @@ export function queryExpression(op, ...args) {
 export function isQueryExpression(obj) {
   return isObject(obj) && obj.__oqe__;
 }
-
-export default QueryExpression;

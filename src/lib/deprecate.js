@@ -8,13 +8,11 @@
  @param {String} message Description of the deprecation
  @param {Boolean} test An optional boolean. If false, the deprecation will be displayed.
  */
-var deprecate = function(message, test) {
+export function deprecate(message, test) {
   if (typeof test === 'function') {
     if (test()) { return; }
   } else {
     if (test) { return; }
   }
   console.warn(message);
-};
-
-export { deprecate };
+}

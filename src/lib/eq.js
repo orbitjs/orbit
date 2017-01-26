@@ -15,7 +15,7 @@
  @param b
  @returns {Boolean} are `a` and `b` equal?
  */
-var eq = function(a, b) {
+export function eq(a, b) {
   // Some elements of this function come from underscore
   // (c) 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
   //
@@ -68,6 +68,4 @@ var eq = function(a, b) {
     }
   }
   return true;
-};
-
-export { eq };
+}

@@ -1,3 +1,1 @@
-import Orbit from './main';
-
-export default Orbit;
+export { default } from './main';

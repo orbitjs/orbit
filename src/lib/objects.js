@@ -10,7 +10,7 @@
  @param {Object} obj
  @returns {Object} Clone of the original object
  */
-var clone = function(obj) {
+export function clone(obj) {
   if (obj === undefined || obj === null || typeof obj !== 'object') { return obj; }
 
   let dup;
@@ -41,7 +41,7 @@ var clone = function(obj) {
     }
   }
   return dup;
-};
+}
 
 /**
  Expose properties and methods from one object on another.
@@ -54,7 +54,7 @@ var clone = function(obj) {
  @param {Object} destination
  @param {Object} source
  */
-var expose = function(destination, source) {
+export function expose(destination, source) {
   var properties;
   if (arguments.length > 2) {
     properties = Array.prototype.slice.call(arguments, 2);
@@ -71,7 +71,7 @@ var expose = function(destination, source) {
       destination[p] = source[p];
     }
   });
-};
+}
 
 /**
  Extend an object with the properties of one or more other objects.
@@ -81,7 +81,7 @@ var expose = function(destination, source) {
  @param {Object} destination The object to merge into
  @param {Object} source One or more source objects
  */
-var extend = function(destination) {
+export function extend(destination) {
   var sources = Array.prototype.slice.call(arguments, 1);
   sources.forEach(function(source) {
     for (var p in source) {
@@ -91,7 +91,7 @@ var extend = function(destination) {
     }
   });
   return destination;
-};
+}
 
 /**
  Checks whether an object is an instance of an `Array`
@@ -101,9 +101,9 @@ var extend = function(destination) {
  @param {Object} obj
  @returns {boolean}
  */
-var isArray = function(obj) {
+export function isArray(obj) {
   return Object.prototype.toString.call(obj) === '[object Array]';
-};
+}
 
 /**
  Converts an object to an `Array` if it's not already.
@@ -113,13 +113,13 @@ var isArray = function(obj) {
  @param {Object} obj
  @returns {Array}
  */
-var toArray = function(obj) {
+export function toArray(obj) {
   if (isNone(obj)) {
     return [];
   } else {
     return isArray(obj) ? obj : [obj];
   }
-};
+}
 
 /**
  Checks whether a value is a non-null object
@@ -129,9 +129,9 @@ var toArray = function(obj) {
  @param {Object} obj
  @returns {boolean}
  */
-var isObject = function(obj) {
+export function isObject(obj) {
   return obj !== null && typeof obj === 'object';
-};
+}
 
 /**
  Checks whether an object is null or undefined
@@ -141,9 +141,9 @@ var isObject = function(obj) {
  @param {Object} obj
  @returns {boolean}
  */
-var isNone = function(obj) {
+export function isNone(obj) {
   return obj === undefined || obj === null;
-};
+}
 
 /**
  Combines two objects values
@@ -154,7 +154,7 @@ var isNone = function(obj) {
  @param {Object} source
  @returns {Object}
  */
-var merge =  function(base, source) {
+export function merge(base, source) {
   var merged = clone(base);
   if (source) {
     Object.keys(source).forEach(function(field) {
@@ -166,7 +166,7 @@ var merge =  function(base, source) {
   }
 
   return merged;
-};
+}
 
 /**
   Similar to the lodash _.get function, this function uses a path to retrieve a
@@ -176,7 +176,7 @@ var merge =  function(base, source) {
   @param {string[]} path - any array of strings specifying the path to use
   @returns {*} the value of the obj at path or undefined
  */
-function get(obj, path) {
+export function get(obj, path) {
   let index = -1;
   let result = obj;
 
@@ -200,7 +200,7 @@ function get(obj, path) {
   @param {*} value - the value to set
   @returns {boolean} - was the value was actually changed?
  */
-function set(obj, path, value) {
+export function set(obj, path, value) {
   let ptr = obj;
   let prop = path.pop();
   let segment;
@@ -218,4 +218,3 @@ function set(obj, path, value) {
     return true;
   }
 }
-export { clone, expose, extend, isArray, toArray, isObject, isNone, merge, get, set };
