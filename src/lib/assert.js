@@ -8,8 +8,6 @@
  @param desc Description of the error thrown
  @param test Value that should be truthy for assertion to pass
  */
-var assert = function(desc, test) {
+export function assert(desc, test) {
   if (!test) { throw new Error('Assertion failed: ' + desc); }
-};
-
-export { assert };
+}

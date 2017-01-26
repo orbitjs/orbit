@@ -18,7 +18,7 @@
  @param {Array} a
  @returns {Object} Set of options, keyed by the elements in `a`
  */
-var arrayToOptions = function(a) {
+export function arrayToOptions(a) {
   var options = {};
   if (a) {
     for (var i in a) {
@@ -26,6 +26,4 @@ var arrayToOptions = function(a) {
     }
   }
   return options;
-};
-
-export { arrayToOptions };
+}

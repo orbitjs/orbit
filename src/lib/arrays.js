@@ -7,7 +7,7 @@
   @param {function} predicate - function that returns true or false
   @returns {boolean} determination of whether every predicate call was true
  */
-function every(array, predicate) {
+export function every(array, predicate) {
   let index = -1;
   let length = array.length;
 
@@ -29,7 +29,7 @@ function every(array, predicate) {
   @param {function} predicate - function that returns true or false
   @returns {boolean} determination of whether any predicate call was true
  */
-function some(array, predicate) {
+export function some(array, predicate) {
   let index = -1;
   let length = array.length;
 
@@ -50,7 +50,7 @@ function some(array, predicate) {
   @param {function} valueFn - function that returns true or false
   @returns {*} the first result of valueFn that returned true or undefined
  */
-function firstResult(array, valueFn) {
+export function firstResult(array, valueFn) {
   let index = -1;
   let length = array.length;
 
@@ -61,5 +61,3 @@ function firstResult(array, valueFn) {
     }
   }
 }
-
-export { every, some, firstResult };

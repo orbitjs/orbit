@@ -8,7 +8,7 @@
  @method noop
  @for Orbit
  */
-var noop = function() {};
+export function noop() {}
 
 /**
  Empty method that should be overridden. Otherwise, it will throw an Error.
@@ -18,6 +18,4 @@ var noop = function() {};
  @method required
  @for Orbit
  */
-var required = function() { throw new Error('Missing implementation'); };
-
-export { noop, required };
+export function required() { throw new Error('Missing implementation'); };

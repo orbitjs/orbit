@@ -1,6 +1,6 @@
 import { isArray } from './objects';
 
-function joinPath(path) {
+export function joinPath(path) {
   if (isArray(path)) {
     if (path.length === 0) {
       return '/';
@@ -12,7 +12,7 @@ function joinPath(path) {
   }
 }
 
-function splitPath(path) {
+export function splitPath(path) {
   if (typeof path === 'string') {
     if (path.indexOf('/') === 0) {
       path = path.substr(1);
@@ -30,8 +30,3 @@ function splitPath(path) {
     return path;
   }
 }
-
-export {
-  joinPath,
-  splitPath
-};

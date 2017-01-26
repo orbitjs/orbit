@@ -8,10 +8,8 @@
  @param {Object} func
  @returns {function}
  */
-var spread = function(func) {
+export function spread(func) {
   return function(args) {
     func.apply(null, args);
   };
-};
-
-export { spread };
+}
