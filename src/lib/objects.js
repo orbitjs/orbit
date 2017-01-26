@@ -198,37 +198,24 @@ function get(obj, path) {
   @param {Object} obj - object to set values in
   @param {string[]} path - any array of strings specifying the path to use
   @param {*} value - the value to set
-  @returns {undefined}
+  @returns {boolean} - was the value was actually changed?
  */
 function set(obj, path, value) {
-  let index = -1;
-  let length = path.length;
-  let lastIndex = length - 1;
-  let nested = obj;
-
-  /* eslint-disable no-eq-null, eqeqeq */
-  while (nested != null && ++index < length) {
-    let key = path[index];
-
-    if (typeof nested === 'object') {
-      let newValue = value;
-
-      if (index != lastIndex) {
-        let objValue = nested[key];
-
-        if (objValue == null) {
-          newValue = (typeof path[index + 1] === 'number') ? [] : {};
-        } else {
-          newValue = objValue;
-        }
-      }
-
-      nested[key] = newValue;
+  let ptr = obj;
+  let prop = path.pop();
+  let segment;
+  for (let i = 0, l = path.length; i < l; i++) {
+    segment = path[i];
+    if (ptr[segment] === undefined) {
+      ptr[segment] = (typeof segment === 'number') ? [] : {};
     }
-
-    nested = nested[key];
+    ptr = ptr[segment];
   }
-  /* eslint-enable no-eq-null, eqeqeq */
+  if (ptr[prop] === value) {
+    return false;
+  } else {
+    ptr[prop] = value;
+    return true;
+  }
 }
-
 export { clone, expose, extend, isArray, toArray, isObject, isNone, merge, get, set };
