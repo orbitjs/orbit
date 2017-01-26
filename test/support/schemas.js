@@ -1,6 +1,6 @@
 import Schema from '../../src/schema';
 
-var planetsSchema = new Schema({
+export const planetsSchema = new Schema({
   modelDefaults: {
     keys: {
       remoteId: { defaultValue: null }
@@ -26,5 +26,3 @@ var planetsSchema = new Schema({
     }
   }
 });
-
-export { planetsSchema };
