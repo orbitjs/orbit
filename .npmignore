@@ -1,10 +1,7 @@
-build-support
-config
-dist/assets
-dist/tests
 docs
 node_modules
 test
+tests
 tmp
 *.log
 *.DS_Store
