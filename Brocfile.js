@@ -1,8 +1,16 @@
+"use strict";
+
 const build = require('@glimmer/build');
+const funnel = require('broccoli-funnel');
 const path = require('path');
 
-module.exports = build({
-  testDependencies: [
-    path.join(require.resolve('rsvp'), '..', 'rsvp.js')
-  ]
-});
+let buildOptions = {};
+
+if (process.env.BROCCOLI_ENV === 'tests') {
+  buildOptions.vendorTrees = [
+    funnel(path.join(require.resolve('rsvp'), '..'), {
+      include: ['rsvp.js'] })
+  ];
+}
+
+module.exports = build(buildOptions);

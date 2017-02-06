@@ -22,7 +22,7 @@
     "docs": "yuidoc ./src"
   },
   "devDependencies": {
-    "@glimmer/build": "^0.1.9",
+    "@glimmer/build": "^0.2.1",
     "yuidocjs": "^0.8.1"
   }
 }
