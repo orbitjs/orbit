@@ -1,8 +1,8 @@
-import { buildPatternMatcher } from '../../src/lib/pattern-matcher';
+import { buildPatternMatcher } from './pattern-matcher';
 
 const { module, test } = QUnit;
 
-module('Lib / PatternMatcher', function() {
+module('Test / Support / PatternMatcher', function() {
   test('matches nested properties', function(assert) {
     const isMatch = buildPatternMatcher({ record: { id: 'pluto' } });
     assert.ok(isMatch({ record: { id: 'pluto' } }));
