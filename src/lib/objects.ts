@@ -10,7 +10,7 @@
  @param {Object} obj
  @returns {Object} Clone of the original object
  */
-export function clone(obj) {
+export function clone(obj: Object): Object {
   if (obj === undefined || obj === null || typeof obj !== 'object') { return obj; }
 
   let dup;
@@ -54,8 +54,8 @@ export function clone(obj) {
  @param {Object} destination
  @param {Object} source
  */
-export function expose(destination, source) {
-  var properties;
+export function expose(destination: Object, source: Object): void {
+  let properties;
   if (arguments.length > 2) {
     properties = Array.prototype.slice.call(arguments, 2);
   } else {
@@ -81,8 +81,8 @@ export function expose(destination, source) {
  @param {Object} destination The object to merge into
  @param {Object} source One or more source objects
  */
-export function extend(destination) {
-  var sources = Array.prototype.slice.call(arguments, 1);
+export function extend(destination: Object): Object {
+  let sources = Array.prototype.slice.call(arguments, 1);
   sources.forEach(function(source) {
     for (var p in source) {
       if (source.hasOwnProperty(p)) {
@@ -101,7 +101,7 @@ export function extend(destination) {
  @param {Object} obj
  @returns {boolean}
  */
-export function isArray(obj) {
+export function isArray(obj: any): boolean {
   return Object.prototype.toString.call(obj) === '[object Array]';
 }
 
@@ -113,7 +113,7 @@ export function isArray(obj) {
  @param {Object} obj
  @returns {Array}
  */
-export function toArray(obj) {
+export function toArray(obj: any): any[] {
   if (isNone(obj)) {
     return [];
   } else {
@@ -129,7 +129,7 @@ export function toArray(obj) {
  @param {Object} obj
  @returns {boolean}
  */
-export function isObject(obj) {
+export function isObject(obj: any): boolean {
   return obj !== null && typeof obj === 'object';
 }
 
@@ -141,7 +141,7 @@ export function isObject(obj) {
  @param {Object} obj
  @returns {boolean}
  */
-export function isNone(obj) {
+export function isNone(obj: any): boolean {
   return obj === undefined || obj === null;
 }
 
@@ -154,7 +154,7 @@ export function isNone(obj) {
  @param {Object} source
  @returns {Object}
  */
-export function merge(base, source) {
+export function merge(base: Object, source: Object): Object {
   var merged = clone(base);
   if (source) {
     Object.keys(source).forEach(function(field) {
@@ -176,7 +176,7 @@ export function merge(base, source) {
   @param {string[]} path - any array of strings specifying the path to use
   @returns {*} the value of the obj at path or undefined
  */
-export function get(obj, path) {
+export function get(obj: Object, path: string[]): any {
   let index = -1;
   let result = obj;
 
@@ -200,7 +200,7 @@ export function get(obj, path) {
   @param {*} value - the value to set
   @returns {boolean} - was the value was actually changed?
  */
-export function set(obj, path, value) {
+export function set(obj: Object, path: string[], value: any): boolean {
   let ptr = obj;
   let prop = path.pop();
   let segment;
