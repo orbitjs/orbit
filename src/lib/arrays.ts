@@ -7,9 +7,9 @@
   @param {function} predicate - function that returns true or false
   @returns {boolean} determination of whether every predicate call was true
  */
-export function every(array, predicate) {
-  let index = -1;
-  let length = array.length;
+export function every(array: any[], predicate: (member: any, index: number) => boolean): boolean {
+  let index: number = -1;
+  let length: number = array.length;
 
   while (++index < length) {
     if (!predicate(array[index], index)) {
@@ -29,9 +29,9 @@ export function every(array, predicate) {
   @param {function} predicate - function that returns true or false
   @returns {boolean} determination of whether any predicate call was true
  */
-export function some(array, predicate) {
-  let index = -1;
-  let length = array.length;
+export function some(array: any[], predicate: (member: any, index: number) => boolean): boolean {
+  let index: number = -1;
+  let length: number = array.length;
 
   while (++index < length) {
     if (predicate(array[index], index)) {
@@ -50,9 +50,9 @@ export function some(array, predicate) {
   @param {function} valueFn - function that returns true or false
   @returns {*} the first result of valueFn that returned true or undefined
  */
-export function firstResult(array, valueFn) {
-  let index = -1;
-  let length = array.length;
+export function firstResult(array: any[], valueFn: (member: any, index: number) => any): any {
+  let index: number = -1;
+  let length: number = array.length;
 
   while (++index < length) {
     let result = valueFn(array[index], index);
