@@ -4,7 +4,6 @@ const { module, test } = QUnit;
 
 module('Lib / Identifiers', function() {
   test('`toIdentifier` converts inputs to an identifier', function(assert) {
-    assert.equal(toIdentifier('planet', '1'), 'planet:1', 'works with `type` and `id` args');
     assert.equal(toIdentifier(null), null, 'works with null');
     assert.equal(toIdentifier({ type: 'planet', id: '1' }), 'planet:1', 'works with an identity object');
   });
