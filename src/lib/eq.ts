@@ -10,12 +10,11 @@
  arrays.
 
  @method eq
- @for Orbit
  @param a
  @param b
  @returns {Boolean} are `a` and `b` equal?
  */
-export function eq(a, b) {
+export function eq(a: any, b: any): boolean {
   // Some elements of this function come from underscore
   // (c) 2009-2013 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
   //
