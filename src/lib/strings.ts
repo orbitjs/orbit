@@ -1,5 +1,3 @@
-/* eslint-disable valid-jsdoc */
-
 /**
  Uppercase the first letter of a string, but don't change the remainder.
 
@@ -8,7 +6,7 @@
  @param {String} str
  @returns {String} capitalized string
  */
-export function capitalize(str) {
+export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
@@ -20,7 +18,7 @@ export function capitalize(str) {
  @param {String} str
  @returns {String} camelized string
  */
-export function camelize(str) {
+export function camelize(str: string): string {
   return str
     .replace(/(\-|\_|\.|\s)+(.)?/g, function(match, separator, chr) {
       return chr ? chr.toUpperCase() : '';
@@ -38,7 +36,7 @@ export function camelize(str) {
  @param {String} str
  @returns {String} lower case, underscored string
  */
-export function decamelize(str) {
+export function decamelize(str: string): string {
   return str
     .replace(/([a-z\d])([A-Z])/g, '$1_$2')
     .toLowerCase();
@@ -52,7 +50,7 @@ export function decamelize(str) {
  @param {String} str
  @returns {String} dasherized string
  */
-export function dasherize(str) {
+export function dasherize(str: string): string {
   return decamelize(str).replace(/[ _]/g, '-');
 }
 
@@ -64,7 +62,7 @@ export function dasherize(str) {
  @param {String} str
  @returns {String} underscored string
  */
-export function underscore(str) {
+export function underscore(str: string): string {
   return str
     .replace(/([a-z\d])([A-Z]+)/g, '$1_$2')
     .replace(/\-|\s+/g, '_')
