@@ -1,8 +1,35 @@
 /* eslint-disable valid-jsdoc */
 import { eq } from './eq';
-import { identity, eqIdentity, toIdentifier } from './identifiers';
+import { Identity, identity, eqIdentity, toIdentifier } from './identifiers';
 
-function mergeOps(superceded, superceding, consecutiveOps) {
+export interface Record extends Identity {
+  keys?: Object; // TODO
+  attributes?: Object;
+  relationships?: Object; // TODO
+}
+
+export interface Operation {
+  op: string;
+  record?: Record;
+  attribute?: string;
+  relationship?: string;
+  relatedRecord?: Identity;
+  relatedRecords?: Identity[];
+  value?: any;
+  _deleted?: boolean;
+}
+
+export interface RemoveRecordOperation extends Operation {
+  op: 'removeRecord';
+  record: Identity;
+}
+
+export interface AddRecordOperation extends Operation {
+  op: 'addRecord';
+  record: Record;
+}
+
+function mergeOps(superceded: Operation, superceding: Operation, consecutiveOps: boolean): void {
   if (eqIdentity(superceded.record, superceding.record)) {
     if (superceding.op === 'removeRecord') {
       superceded._deleted = true;
@@ -28,7 +55,7 @@ function mergeOps(superceded, superceding, consecutiveOps) {
           } else if (superceded.op === 'replaceHasMany') {
             replaceRecordHasMany(superceded.record, superceded.relationship, superceded.relatedRecords);
             delete superceded.relationship;
-            delete superceded.relaetdRecords;
+            delete superceded.relatedRecords;
           }
           if (superceding.op === 'replaceAttribute') {
             replaceRecordAttribute(superceded.record, superceding.attribute, superceding.value);
@@ -80,33 +107,34 @@ function mergeOps(superceded, superceding, consecutiveOps) {
   }
 }
 
-function isReplaceFieldOp(op) {
+function isReplaceFieldOp(op: string): boolean {
   return (op === 'replaceAttribute' ||
           op === 'replaceHasOne' ||
           op === 'replaceHasMany');
 }
 
-function replaceRecordAttribute(record, attribute, value) {
+function replaceRecordAttribute(record: Record, attribute: string, value: any) {
   record.attributes = record.attributes || {};
   record.attributes[attribute] = value;
 }
 
-function replaceRecordHasOne(record, relationship, relatedRecord) {
+function replaceRecordHasOne(record: Record, relationship: string, relatedRecord: Identity) {
   record.relationships = record.relationships || {};
   record.relationships[relationship] = record.relationships[relationship] || {};
-  record.relationships[relationship].data = relatedRecord ? toIdentifier(relatedRecord) : null;
+  record.relationships[relationship].data = toIdentifier(relatedRecord);
 }
 
-function replaceRecordHasMany(record, relationship, relatedRecords) {
+function replaceRecordHasMany(record: Record, relationship: string, relatedRecords: Identity[]) {
   record.relationships = record.relationships || {};
   record.relationships[relationship] = record.relationships[relationship] || {};
-  record.relationships[relationship].data = {};
+  let relatedRecordData = {};
   relatedRecords.forEach(r => {
-    record.relationships[relationship].data[toIdentifier(r)] = true;
+    relatedRecordData[toIdentifier(r)] = true;
   });
+  record.relationships[relationship].data = relatedRecordData;
 }
 
-function addToHasMany(record, relationship, relatedRecord) {
+function addToHasMany(record: Record, relationship: string, relatedRecord: Identity) {
   record.relationships = record.relationships || {};
   record.relationships[relationship] = record.relationships[relationship] || {};
   record.relationships[relationship].data = record.relationships[relationship].data || {};
@@ -124,7 +152,7 @@ function addToHasMany(record, relationship, relatedRecord) {
  @param {Array} operations
  @returns {Array}
  */
-export function coalesceOperations(operations) {
+export function coalesceOperations(operations: Operation[]) {
   for (let i = 0, l = operations.length; i < l; i++) {
     let currentOp = operations[i];
     let consecutiveOps = true;
@@ -145,8 +173,8 @@ export function coalesceOperations(operations) {
   return operations.filter(o => !o._deleted);
 }
 
-export function recordDiffs(record, updatedRecord) {
-  const diffs = [];
+export function recordDiffs(record: Record, updatedRecord: Record): Operation[] {
+  const diffs: Operation[] = [];
 
   if (record && updatedRecord) {
     const recordIdentity = identity(record);
