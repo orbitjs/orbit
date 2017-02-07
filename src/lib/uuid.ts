@@ -19,7 +19,7 @@ var lut = []; for (var i = 0; i < 256; i++) { lut[i] = (i < 16 ? '0' : '') + (i)
  @for Orbit
  @returns {String} a version 4 UUID
  */
-export function uuid() {
+export function uuid(): string {
   var d0 = Math.random() * 0xffffffff | 0;
   var d1 = Math.random() * 0xffffffff | 0;
   var d2 = Math.random() * 0xffffffff | 0;
