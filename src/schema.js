@@ -7,7 +7,7 @@ import {
   KeyNotRegisteredException,
   RelationshipNotRegisteredException
 } from './lib/exceptions';
-import Evented from './evented';
+import evented from './evented';
 
 /**
  `Schema` defines the models allowed in a source, including their keys,
@@ -258,6 +258,7 @@ follows:
 
  @class Schema
  */
+@evented
 export default class Schema {
   /**
    * Create a new Schema.
@@ -563,5 +564,3 @@ export default class Schema {
     }
   }
 }
-
-Evented.extend(Schema.prototype);

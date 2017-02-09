@@ -1,5 +1,6 @@
 import { assert } from '../lib/assert';
 import { extend } from '../lib/objects';
+import { settleInSeries, fulfillInSeries } from '../evented';
 import Query from '../query';
 import Source from '../source';
 
@@ -52,14 +53,14 @@ export default {
     },
 
     __query__(query) {
-      return this.fulfillInSeries('beforeQuery', query)
+      return fulfillInSeries(this, 'beforeQuery', query)
         .then(() => this._query(query))
         .then((result) => {
-          return this.settleInSeries('query', query, result)
+          return settleInSeries(this, 'query', query, result)
             .then(() => result);
         })
         .catch((error) => {
-          return this.settleInSeries('queryFail', query, error)
+          return settleInSeries(this, 'queryFail', query, error)
             .then(() => { throw error; });
         });
     }

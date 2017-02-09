@@ -1,6 +1,7 @@
 import Orbit from '../main';
 import { assert } from '../lib/assert';
 import { extend } from '../lib/objects';
+import { settleInSeries, fulfillInSeries } from '../evented';
 import Transform from '../transform';
 import Source from '../source';
 
@@ -62,12 +63,12 @@ export default {
         return Orbit.Promise.resolve([]);
       }
 
-      return this.fulfillInSeries('beforeUpdate', transform)
+      return fulfillInSeries(this, 'beforeUpdate', transform)
         .then(() => this._update(transform))
         .then(() => this._transformed([transform]))
-        .then(() => this.settleInSeries('update', transform))
+        .then(() => settleInSeries(this, 'update', transform))
         .catch(error => {
-          return this.settleInSeries('updateFail', transform, error)
+          return settleInSeries(this, 'updateFail', transform, error)
             .then(() => { throw error; });
         });
     }

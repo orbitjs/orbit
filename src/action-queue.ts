@@ -1,8 +1,15 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from './main';
 import Action from './action';
-import Evented from './evented';
+import Bucket from './bucket';
+import evented, { Evented } from './evented';
 import { assert } from './lib/assert';
+
+export interface ActionQueueOptions {
+  name?: string;
+  bucket?: Bucket;
+  autoProcess?: boolean;
+}
 
 /**
  `ActionQueue` is a FIFO queue of actions that should be performed sequentially.
@@ -46,8 +53,27 @@ import { assert } from './lib/assert';
                    processed as soon as they are pushed?
  @constructor
  */
-export default class ActionQueue {
-  constructor(target, options = {}) {
+@evented
+export default class ActionQueue implements Evented {
+  public name: string;
+  public target: any;
+  public bucket: Bucket;
+  public autoProcess: boolean;
+  public reified: any; // TODO - Promise
+
+  private _actions: any[];
+  private _error: any;
+  private _resolution: any;
+  private _resolve: any;
+
+  // Evented interface stubs
+  on: (event: string, callback: () => void, binding?: any) => void;
+  off: (event: string, callback: () => void, binding?: any) => void;
+  one: (event: string, callback: () => void, binding?: any) => void;
+  emit: (event: string, ...args) => void;
+  listeners: (event: string) => any[];
+
+  constructor(target, options: ActionQueueOptions = {}) {
     assert('ActionQueue requires Orbit.Promise to be defined', Orbit.Promise);
 
     this.target = target;
@@ -264,5 +290,3 @@ export default class ActionQueue {
     }
   }
 }
-
-Evented.extend(ActionQueue.prototype);

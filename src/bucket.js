@@ -1,5 +1,5 @@
 import Orbit from './main';
-import Evented from './evented';
+import evented from './evented';
 import { assert } from './lib/assert';
 
 /**
@@ -7,6 +7,7 @@ import { assert } from './lib/assert';
  * queues, that should not be lost in the event of an unexpected exception or
  * shutdown.
  */
+@evented
 export default class Bucket {
   constructor(settings = {}) {
     assert('Bucket requires a name', settings.name);
@@ -79,5 +80,3 @@ export default class Bucket {
     console.error('Bucket#removeItem not implemented');
   }
 }
-
-Evented.extend(Bucket.prototype);

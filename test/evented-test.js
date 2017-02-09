@@ -1,5 +1,5 @@
 import './test-helper';
-import Evented from '../src/evented';
+import evented, { isEvented, fulfillInSeries, settleInSeries } from '../src/evented';
 import { Promise } from 'rsvp';
 
 const { module, test } = QUnit;
@@ -17,19 +17,21 @@ function failedOperation() {
 }
 
 module('Evented', function(hooks) {
-  let evented;
+  let obj;
 
   hooks.beforeEach(function() {
-    evented = {};
-    Evented.extend(evented);
+    @evented
+    class Foo {}
+
+    obj = new Foo();
   });
 
   hooks.afterEach(function() {
-    evented = null;
+    obj = null;
   });
 
-  test('it exists', function(assert) {
-    assert.ok(evented);
+  test('isEvented - tests for the application of the @evented decorator', function(assert) {
+    assert.ok(isEvented(obj));
   });
 
   test('#emit - notifies listeners when emitting a simple message', function(assert) {
@@ -42,10 +44,10 @@ module('Evented', function(hooks) {
       assert.equal(message, 'hello', 'notification message should match');
     };
 
-    evented.on('greeting', listener1);
-    evented.on('greeting', listener2);
+    obj.on('greeting', listener1);
+    obj.on('greeting', listener2);
 
-    evented.emit('greeting', 'hello');
+    obj.emit('greeting', 'hello');
   });
 
   test('#emit - notifies listeners registered with `one` only once each', function(assert) {
@@ -58,12 +60,12 @@ module('Evented', function(hooks) {
       assert.equal(message, 'hello', 'notification message should match');
     };
 
-    evented.one('greeting', listener1);
-    evented.one('greeting', listener2);
+    obj.one('greeting', listener1);
+    obj.one('greeting', listener2);
 
-    evented.emit('greeting', 'hello');
-    evented.emit('greeting', 'hello');
-    evented.emit('greeting', 'hello');
+    obj.emit('greeting', 'hello');
+    obj.emit('greeting', 'hello');
+    obj.emit('greeting', 'hello');
   });
 
   test('#off can unregister individual listeners from an event', function(assert) {
@@ -76,11 +78,11 @@ module('Evented', function(hooks) {
       assert.equal(message, 'hello', 'notification message should match');
     };
 
-    evented.on('greeting', listener1);
-    evented.on('greeting', listener2);
-    evented.off('greeting', listener1);
+    obj.on('greeting', listener1);
+    obj.on('greeting', listener2);
+    obj.off('greeting', listener1);
 
-    evented.emit('greeting', 'hello');
+    obj.emit('greeting', 'hello');
   });
 
   test('#off - can unregister all listeners from an event', function(assert) {
@@ -89,22 +91,22 @@ module('Evented', function(hooks) {
     let listener1 = function() {};
     let listener2 = function() {};
 
-    evented.on('greeting', listener1);
-    evented.on('salutation', listener1);
-    evented.on('salutation', listener2);
+    obj.on('greeting', listener1);
+    obj.on('salutation', listener1);
+    obj.on('salutation', listener2);
 
-    assert.equal(evented.listeners('greeting').length, 1);
-    assert.equal(evented.listeners('salutation').length, 2);
+    assert.equal(obj.listeners('greeting').length, 1);
+    assert.equal(obj.listeners('salutation').length, 2);
 
-    evented.off('salutation');
+    obj.off('salutation');
 
-    assert.equal(evented.listeners('greeting').length, 1);
-    assert.equal(evented.listeners('salutation').length, 0);
+    assert.equal(obj.listeners('greeting').length, 1);
+    assert.equal(obj.listeners('salutation').length, 0);
 
-    evented.off('greeting');
+    obj.off('greeting');
 
-    assert.equal(evented.listeners('greeting').length, 0);
-    assert.equal(evented.listeners('salutation').length, 0);
+    assert.equal(obj.listeners('greeting').length, 0);
+    assert.equal(obj.listeners('salutation').length, 0);
   });
 
   test('#emit - allows listeners to be registered for multiple events', function(assert) {
@@ -117,12 +119,12 @@ module('Evented', function(hooks) {
       assert.equal(message, 'hello', 'notification message should match');
     };
 
-    evented.on('greeting', listener1);
-    evented.on('salutation', listener1);
-    evented.on('salutation', listener2);
+    obj.on('greeting', listener1);
+    obj.on('salutation', listener1);
+    obj.on('salutation', listener2);
 
-    evented.emit('greeting', 'hello');
-    evented.emit('salutation', 'hello');
+    obj.emit('greeting', 'hello');
+    obj.emit('salutation', 'hello');
   });
 
   test('#emit - notifies listeners using custom bindings, if specified', function(assert) {
@@ -139,10 +141,10 @@ module('Evented', function(hooks) {
       assert.equal(message, 'hello', 'notification message should match');
     };
 
-    evented.on('greeting', listener1, binding1);
-    evented.on('greeting', listener2, binding2);
+    obj.on('greeting', listener1, binding1);
+    obj.on('greeting', listener2, binding2);
 
-    evented.emit('greeting', 'hello');
+    obj.emit('greeting', 'hello');
   });
 
   test('#emit - notifies listeners when emitting events with any number of arguments', function(assert) {
@@ -157,10 +159,10 @@ module('Evented', function(hooks) {
       assert.equal(arguments[1], 'world', 'notification message should match');
     };
 
-    evented.on('greeting', listener1);
-    evented.on('greeting', listener2);
+    obj.on('greeting', listener1);
+    obj.on('greeting', listener2);
 
-    evented.emit('greeting', 'hello', 'world');
+    obj.emit('greeting', 'hello', 'world');
   });
 
   test('#listeners - can return all the listeners (and bindings) for an event', function(assert) {
@@ -175,13 +177,13 @@ module('Evented', function(hooks) {
       return 'Bon jour';
     };
 
-    evented.on('greeting', greeting1, binding1);
-    evented.on('greeting', greeting2, binding2);
+    obj.on('greeting', greeting1, binding1);
+    obj.on('greeting', greeting2, binding2);
 
-    assert.deepEqual(evented.listeners('greeting'), [[greeting1, binding1], [greeting2, binding2]], 'listeners include nested arrays of functions and bindings');
+    assert.deepEqual(obj.listeners('greeting'), [[greeting1, binding1], [greeting2, binding2]], 'listeners include nested arrays of functions and bindings');
   });
 
-  test('#settleInSeries - can fulfill all promises returned by listeners to an event, in order, until all are settled', function(assert) {
+  test('settleInSeries - can fulfill all promises returned by listeners to an event, in order, until all are settled', function(assert) {
     assert.expect(10);
 
     let order = 0;
@@ -206,24 +208,24 @@ module('Evented', function(hooks) {
       return failedOperation();
     };
 
-    evented.on('greeting', listener1, this);
-    evented.on('greeting', listener2, this);
-    evented.on('greeting', listener3, this);
-    evented.on('greeting', listener4, this);
+    obj.on('greeting', listener1, this);
+    obj.on('greeting', listener2, this);
+    obj.on('greeting', listener3, this);
+    obj.on('greeting', listener4, this);
 
-    return evented.settleInSeries('greeting', 'hello')
+    return settleInSeries(obj, 'greeting', 'hello')
       .then(result => {
         assert.equal(result, undefined, 'no result returned');
         assert.equal(++order, 5, 'promise resolved last');
       });
   });
 
-  test('#settleInSeries - resolves regardless of errors thrown in handlers', function(assert) {
+  test('settleInSeries - resolves regardless of errors thrown in handlers', function(assert) {
     assert.expect(1);
 
-    evented.on('greeting', () => { throw new Error(); });
+    obj.on('greeting', () => { throw new Error(); });
 
-    return evented.settleInSeries('greeting', 'hello')
+    return settleInSeries(obj, 'greeting', 'hello')
       .then(function(result) {
         assert.equal(result, undefined, 'Completed');
       })
@@ -232,7 +234,7 @@ module('Evented', function(hooks) {
       });
   });
 
-  test('#fulfillInSeries - it can fulfill all promises returned by listeners to an event, in order, until all are settled', function(assert) {
+  test('fulfillInSeries - it can fulfill all promises returned by listeners to an event, in order, until all are settled', function(assert) {
     assert.expect(7);
 
     let order = 0;
@@ -247,20 +249,20 @@ module('Evented', function(hooks) {
       return successfulOperation();
     };
 
-    evented.on('greeting', listener1, this);
-    evented.on('greeting', listener2, this);
+    obj.on('greeting', listener1, this);
+    obj.on('greeting', listener2, this);
 
-    return evented.fulfillInSeries('greeting', 'hello').then(
+    return fulfillInSeries(obj, 'greeting', 'hello').then(
       function(result) {
         assert.equal(result, undefined, 'no result returned');
         assert.equal(++order, 3, 'promise resolved last');
       }).then(function() {
-        const listeners = evented.listeners('greeting');
+        const listeners = obj.listeners('greeting');
         assert.equal(listeners.length, 2, 'listeners should not be unregistered');
       });
   });
 
-  test('#fulfillInSeries - it will fail when any listener fails and return the error', function(assert) {
+  test('fulfillInSeries - it will fail when any listener fails and return the error', function(assert) {
     assert.expect(8);
 
     let order = 0;
@@ -283,12 +285,12 @@ module('Evented', function(hooks) {
       assert.ok(false, 'listener4 should not be triggered');
     };
 
-    evented.on('greeting', listener1, this);
-    evented.on('greeting', listener2, this);
-    evented.on('greeting', listener3, this);
-    evented.on('greeting', listener4, this);
+    obj.on('greeting', listener1, this);
+    obj.on('greeting', listener2, this);
+    obj.on('greeting', listener3, this);
+    obj.on('greeting', listener4, this);
 
-    return evented.fulfillInSeries('greeting', 'hello')
+    return fulfillInSeries(obj, 'greeting', 'hello')
       .then(() => {
         assert.ok(false, 'success handler should not be reached');
       })

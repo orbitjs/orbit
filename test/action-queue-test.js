@@ -1,5 +1,5 @@
 import ActionQueue from '../src/action-queue';
-import Evented from '../src/evented';
+import evented from '../src/evented';
 import { FakeBucket } from './test-helper';
 import { Promise } from 'rsvp';
 
@@ -179,8 +179,10 @@ module('ActionQueue', function() {
       assert.equal(++order, 7, 'queue completed');
     });
 
-    const trigger = {};
-    Evented.extend(trigger);
+    @evented
+    class Trigger {}
+
+    let trigger = new Trigger;
 
     queue.push('_transform', {
       id: 1,

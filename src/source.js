@@ -1,5 +1,5 @@
 import Orbit from './main';
-import Evented from './evented';
+import evented, { settleInSeries } from './evented';
 import TransformLog from './transform/log';
 import ActionQueue from './action-queue';
 import { assert } from './lib/assert';
@@ -14,6 +14,7 @@ import { assert } from './lib/assert';
  @param {Schema} [options.schema] - Schema for source
  @constructor
  */
+@evented
 export default class Source {
   constructor(options = {}) {
     assert('Source requires a name', options.name);
@@ -65,7 +66,7 @@ export default class Source {
           }
 
           return this.transformLog.append(transform.id)
-            .then(() => this.settleInSeries('transform', transform));
+            .then(() => settleInSeries(this, 'transform', transform));
         });
       }, Orbit.Promise.resolve())
       .then(() => transforms);
@@ -89,5 +90,3 @@ function enqueueAction(source, queue, method, data) {
   })
     .then(action => action.settle());
 }
-
-Evented.extend(Source.prototype);

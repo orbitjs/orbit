@@ -1,5 +1,6 @@
 import Source from '../src/source';
 import Transform from '../src/transform';
+import { isEvented } from '../src/evented';
 import { FakeBucket } from './test-helper';
 
 const { module, test } = QUnit;
@@ -23,9 +24,7 @@ module('Source', function() {
 
   test('it should mixin Evented', function(assert) {
     source = new Source({ name: 'src1' });
-    ['on', 'off', 'emit'].forEach(function(prop) {
-      assert.ok(source[prop], 'should have Evented properties');
-    });
+    assert.ok(isEvented(source), 'Source is evented');
   });
 
   test('creates a `transformLog`, `requestQueue`, and `syncQueue`, and assigns each the same bucket as the Source', function(assert) {

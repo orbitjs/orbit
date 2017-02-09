@@ -1,7 +1,8 @@
 import Orbit from '../main';
-import Evented from '../evented';
+import evented from '../evented';
 import { TransformNotLoggedException, OutOfRangeException } from '../lib/exceptions';
 
+@evented
 export default class TransformLog {
   constructor(data, options = {}) {
     this.name = options.name;
@@ -149,5 +150,3 @@ export default class TransformLog {
     }
   }
 }
-
-Evented.extend(TransformLog.prototype);
