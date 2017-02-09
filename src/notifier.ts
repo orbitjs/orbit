@@ -23,6 +23,8 @@
  @constructor
  */
 export default class Notifier {
+  public listeners: any[]; // TODO - define Listener interface
+
   constructor() {
     this.listeners = [];
   }
