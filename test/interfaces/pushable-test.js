@@ -1,41 +1,39 @@
 import Source from '../../src/source';
-import Pushable from '../../src/interfaces/pushable';
+import pushable, { isPushable } from '../../src/interfaces/pushable';
 import Transform from '../../src/transform';
 import { Promise } from 'rsvp';
 import { successfulOperation, failedOperation } from '../test-helper';
 
 const { module, test } = QUnit;
 
-module('Pushable', function(hooks) {
+module('@pushable', function(hooks) {
   let source;
 
   hooks.beforeEach(function() {
-    source = new Source({ name: 'src1' });
-    Pushable.extend(source);
+    @pushable
+    class MySource extends Source {}
+
+    source = new MySource({ name: 'src1' });
   });
 
   hooks.afterEach(function() {
     source = null;
   });
 
-  test('it exists', function(assert) {
-    assert.ok(source);
+  test('isPushable - tests for the application of the @pushable decorator', function(assert) {
+    assert.ok(isPushable(source));
   });
 
-  test('it should be applied to a Source', function(assert) {
+  test('should be applied to a Source', function(assert) {
     assert.throws(function() {
-      let pojo = {};
-      Pushable.extend(pojo);
+      @pushable
+      class Vanilla {}
     },
     Error('Assertion failed: Pushable interface can only be applied to a Source'),
     'assertion raised');
   });
 
-  test('it should mixin Pushable', function(assert) {
-    assert.ok(source._pushable, 'should have `_pushable` flag');
-  });
-
-  test('it should resolve as a failure when `transform` fails', function(assert) {
+  test('#push should resolve as a failure when `transform` fails', function(assert) {
     assert.expect(2);
 
     source._push = function() {
@@ -49,7 +47,7 @@ module('Pushable', function(hooks) {
       });
   });
 
-  test('it should trigger `push` event after a successful action in which `transform` returns an array of transforms', function(assert) {
+  test('#push should trigger `push` event after a successful action in which `transform` returns an array of transforms', function(assert) {
     assert.expect(12);
 
     let order = 0;
@@ -92,7 +90,7 @@ module('Pushable', function(hooks) {
       });
   });
 
-  test('it should trigger `pushFail` event after an unsuccessful push', function(assert) {
+  test('#push should trigger `pushFail` event after an unsuccessful push', function(assert) {
     assert.expect(7);
 
     const addRecordTransform = Transform.from({ op: 'addRecord' });
@@ -122,7 +120,7 @@ module('Pushable', function(hooks) {
       });
   });
 
-  test('it should resolve all promises returned from `beforePush` before calling `_push`', function(assert) {
+  test('#push should resolve all promises returned from `beforePush` before calling `_push`', function(assert) {
     assert.expect(7);
 
     let order = 0;
@@ -166,7 +164,7 @@ module('Pushable', function(hooks) {
       });
   });
 
-  test('it should resolve all promises returned from `beforePush` and fail if any fail', function(assert) {
+  test('#push should resolve all promises returned from `beforePush` and fail if any fail', function(assert) {
     assert.expect(5);
 
     let order = 0;
