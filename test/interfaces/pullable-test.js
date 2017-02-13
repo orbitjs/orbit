@@ -1,5 +1,5 @@
 import Source from '../../src/source';
-import Pullable from '../../src/interfaces/pullable';
+import pullable, { isPullable } from '../../src/interfaces/pullable';
 import Transform from '../../src/transform';
 import Query from '../../src/query';
 import { Promise } from 'rsvp';
@@ -7,32 +7,34 @@ import { successfulOperation, failedOperation } from '../test-helper';
 
 const { module, test } = QUnit;
 
-module('Pullable', function(hooks) {
+module('@pullable', function(hooks) {
   let source;
 
   hooks.beforeEach(function() {
-    source = new Source({ name: 'src1' });
-    Pullable.extend(source);
+    @pullable
+    class MySource extends Source {}
+
+    source = new MySource({ name: 'src1' });
   });
 
   hooks.afterEach(function() {
     source = null;
   });
 
-  test('it exists', function(assert) {
-    assert.ok(source);
+  test('isPullable - tests for the application of the @pullable decorator', function(assert) {
+    assert.ok(isPullable(source));
   });
 
-  test('it should be applied to a Source', function(assert) {
+  test('should be applied to a Source', function(assert) {
     assert.throws(function() {
-      let pojo = {};
-      Pullable.extend(pojo);
+      @pullable
+      class Vanilla {}
     },
     Error('Assertion failed: Pullable interface can only be applied to a Source'),
     'assertion raised');
   });
 
-  test('it should resolve as a failure when _pull fails', function(assert) {
+  test('#pull should resolve as a failure when _pull fails', function(assert) {
     assert.expect(2);
 
     source._pull = function() {
@@ -46,7 +48,7 @@ module('Pullable', function(hooks) {
       });
   });
 
-  test('it should trigger `pull` event after a successful action in which `_pull` returns an array of transforms', function(assert) {
+  test('#pull should trigger `pull` event after a successful action in which `_pull` returns an array of transforms', function(assert) {
     assert.expect(9);
 
     let order = 0;
@@ -81,7 +83,7 @@ module('Pullable', function(hooks) {
       });
   });
 
-  test('it should resolve all promises returned from `beforePull` before calling `_transform`', function(assert) {
+  test('#pull should resolve all promises returned from `beforePull` before calling `_transform`', function(assert) {
     assert.expect(12);
 
     let order = 0;
@@ -131,7 +133,7 @@ module('Pullable', function(hooks) {
       });
   });
 
-  test('it should resolve all promises returned from `beforePull` and fail if any fail', function(assert) {
+  test('#pull should resolve all promises returned from `beforePull` and fail if any fail', function(assert) {
     assert.expect(7);
 
     let order = 0;
@@ -167,7 +169,7 @@ module('Pullable', function(hooks) {
       });
   });
 
-  test('it should trigger `pullFail` event after an unsuccessful pull', function(assert) {
+  test('#pull should trigger `pullFail` event after an unsuccessful pull', function(assert) {
     assert.expect(7);
 
     let order = 0;
