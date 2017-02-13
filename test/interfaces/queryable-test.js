@@ -1,50 +1,53 @@
-import Queryable from '../../src/interfaces/queryable';
+import queryable, { isQueryable } from '../../src/interfaces/queryable';
 import Source from '../../src/source';
+import Query from '../../src/query';
 import { Promise } from 'rsvp';
 import { successfulOperation, failedOperation } from '../test-helper';
 
 const { module, test } = QUnit;
 
-module('Queryable', function(hooks) {
+module('@queryable', function(hooks) {
   let source;
 
   hooks.beforeEach(function() {
-    source = new Source({ name: 'src1' });
-    Queryable.extend(source);
+    @queryable
+    class MySource extends Source {}
+
+    source = new MySource({ name: 'src1' });
   });
 
   hooks.afterEach(function() {
     source = null;
   });
 
-  test('it exists', function(assert) {
-    assert.ok(source);
+  test('isQueryable - tests for the application of the @queryable decorator', function(assert) {
+    assert.ok(isQueryable(source));
   });
 
   test('it should be applied to a Source', function(assert) {
     assert.throws(function() {
-      let pojo = {};
-      Queryable.extend(pojo);
+      @queryable
+      class Vanilla {}
     },
     Error('Assertion failed: Queryable interface can only be applied to a Source'),
     'assertion raised');
   });
 
-  test('it should resolve as a failure when _query fails', function(assert) {
+  test('#query should resolve as a failure when _query fails', function(assert) {
     assert.expect(2);
 
     source._query = function() {
       return failedOperation();
     };
 
-    return source.query({ query: '' })
+    return source.query(Query.from({ query: '' }))
       .catch((error) => {
         assert.ok(true, 'query promise resolved as a failure');
         assert.equal(error, ':(', 'failure');
       });
   });
 
-  test('it should trigger `query` event after a successful action in which `_query` resolves successfully', function(assert) {
+  test('#query should trigger `query` event after a successful action in which `_query` resolves successfully', function(assert) {
     assert.expect(7);
 
     let order = 0;
@@ -61,14 +64,14 @@ module('Queryable', function(hooks) {
       assert.equal(result, ':)', 'result matches');
     });
 
-    return source.query({ query: ['abc', 'def'] })
+    return source.query(Query.from({ query: ['abc', 'def'] }))
       .then((result) => {
         assert.equal(++order, 3, 'promise resolved last');
         assert.equal(result, ':)', 'success!');
       });
   });
 
-  test('it should trigger `query` event after a successful action in which `_query` just returns (not a promise)', function(assert) {
+  test('#query should trigger `query` event after a successful action in which `_query` just returns (not a promise)', function(assert) {
     assert.expect(7);
 
     let order = 0;
@@ -85,7 +88,7 @@ module('Queryable', function(hooks) {
       assert.equal(result, undefined, 'result matches');
     });
 
-    return source.query({ query: ['abc', 'def'] })
+    return source.query(Query.from({ query: ['abc', 'def'] }))
       .then((result) => {
         assert.equal(++order, 3, 'promise resolved last');
         assert.equal(result, undefined, 'undefined result');
@@ -111,14 +114,14 @@ module('Queryable', function(hooks) {
       assert.deepEqual(result, ['a', 'b', 'c'], 'result matches');
     });
 
-    return source.query({ query: ['abc', 'def'] })
+    return source.query(Query.from({ query: ['abc', 'def'] }))
       .then((result) => {
         assert.equal(++order, 3, 'promise resolved last');
         assert.deepEqual(result, ['a', 'b', 'c'], 'success!');
       });
   });
 
-  test('it should trigger `queryFail` event after an unsuccessful query', function(assert) {
+  test('#query should trigger `queryFail` event after an unsuccessful query', function(assert) {
     assert.expect(7);
 
     let order = 0;
@@ -139,14 +142,14 @@ module('Queryable', function(hooks) {
       assert.equal(error, ':(', 'error matches');
     });
 
-    return source.query({ query: ['abc', 'def'] })
+    return source.query(Query.from({ query: ['abc', 'def'] }))
       .catch((error) => {
         assert.equal(++order, 3, 'promise resolved last');
         assert.equal(error, ':(', 'failure');
       });
   });
 
-  test('it should resolve all promises returned from `beforeQuery` before calling `_query`', function(assert) {
+  test('#query should resolve all promises returned from `beforeQuery` before calling `_query`', function(assert) {
     assert.expect(7);
 
     let order = 0;
@@ -175,14 +178,14 @@ module('Queryable', function(hooks) {
       assert.equal(++order, 5, 'query triggered after action performed successfully');
     });
 
-    return source.query({ query: '' })
+    return source.query(Query.from({ query: '' }))
       .then((result) => {
         assert.equal(++order, 6, 'promise resolved last');
         assert.equal(result, ':)', 'success!');
       });
   });
 
-  test('it should resolve all promises returned from `beforeQuery` and fail if any fail', function(assert) {
+  test('#query should resolve all promises returned from `beforeQuery` and fail if any fail', function(assert) {
     assert.expect(5);
 
     let order = 0;
@@ -209,7 +212,7 @@ module('Queryable', function(hooks) {
       assert.equal(++order, 3, 'queryFail triggered after action failed');
     });
 
-    return source.query({ query: '' })
+    return source.query(Query.from({ query: '' }))
       .catch(error => {
         assert.equal(++order, 4, 'promise failed because no actions succeeded');
         assert.equal(error, ':(', 'failure');
