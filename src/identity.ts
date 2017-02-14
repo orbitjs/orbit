@@ -1,4 +1,4 @@
-import { isObject, isNone } from './objects';
+import { isObject, isNone } from './lib/objects';
 
 export interface Identity {
   type: string;

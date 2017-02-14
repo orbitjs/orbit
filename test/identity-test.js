@@ -1,8 +1,8 @@
-import { toIdentifier, parseIdentifier, identity, eqIdentity } from '../../src/lib/identifiers';
+import { toIdentifier, parseIdentifier, identity, eqIdentity } from '../src/identity';
 
 const { module, test } = QUnit;
 
-module('Lib / Identifiers', function() {
+module('Identity', function() {
   test('`toIdentifier` converts inputs to an identifier', function(assert) {
     assert.equal(toIdentifier(null), null, 'works with null');
     assert.equal(toIdentifier({ type: 'planet', id: '1' }), 'planet:1', 'works with an identity object');

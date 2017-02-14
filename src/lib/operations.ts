@@ -1,23 +1,7 @@
 /* eslint-disable valid-jsdoc */
 import { eq } from './eq';
-import { Identity, identity, eqIdentity, toIdentifier } from './identifiers';
-
-export interface Record extends Identity {
-  keys?: Object; // TODO
-  attributes?: Object;
-  relationships?: Object; // TODO
-}
-
-export interface Operation {
-  op: string;
-  record?: Record;
-  attribute?: string;
-  relationship?: string;
-  relatedRecord?: Identity;
-  relatedRecords?: Identity[];
-  value?: any;
-  _deleted?: boolean;
-}
+import { Operation } from '../operation';
+import { Identity, identity, eqIdentity, toIdentifier } from '../identity';
 
 export interface RemoveRecordOperation extends Operation {
   op: 'removeRecord';
