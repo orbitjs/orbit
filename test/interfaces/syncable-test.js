@@ -1,40 +1,38 @@
 import Orbit from '../../src';
 import Source from '../../src/source';
-import Syncable from '../../src/interfaces/syncable';
+import syncable, { isSyncable } from '../../src/interfaces/syncable';
 import Transform from '../../src/transform';
 
 const { module, test } = QUnit;
 
-module('Syncable', function(hooks) {
+module('@syncable', function(hooks) {
   let source;
 
   hooks.beforeEach(function() {
-    source = new Source({ name: 'src1' });
-    Syncable.extend(source);
+    @syncable
+    class MySource extends Source {}
+
+    source = new MySource({ name: 'src1' });
   });
 
   hooks.afterEach(function() {
     source = null;
   });
 
-  test('it exists', function(assert) {
-    assert.ok(source);
+  test('isSyncable - tests for the application of the @syncable decorator', function(assert) {
+    assert.ok(isSyncable(source));
   });
 
   test('it should be applied to a Source', function(assert) {
     assert.throws(function() {
-      let pojo = {};
-      Syncable.extend(pojo);
+      @syncable
+      class Vanilla {}
     },
     Error('Assertion failed: Syncable interface can only be applied to a Source'),
     'assertion raised');
   });
 
-  test('it defines `sync`', function(assert) {
-    assert.equal(typeof source.sync, 'function', 'sync function exists');
-  });
-
-  test('#transform accepts a Transform and calls internal method `_sync`', function(assert) {
+  test('#sync accepts a Transform and calls internal method `_sync`', function(assert) {
     assert.expect(2);
 
     const addPlanet = Transform.from({ op: 'add', path: 'planet/1', value: 'data' });
