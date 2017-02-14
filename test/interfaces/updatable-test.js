@@ -1,41 +1,39 @@
 import Source from '../../src/source';
-import Updatable from '../../src/interfaces/updatable';
+import updatable, { isUpdatable } from '../../src/interfaces/updatable';
 import Transform from '../../src/transform';
 import { Promise } from 'rsvp';
 import { successfulOperation, failedOperation } from '../test-helper';
 
 const { module, test } = QUnit;
 
-module('Updatable', function(hooks) {
+module('@updatable', function(hooks) {
   let source;
 
   hooks.beforeEach(function() {
-    source = new Source({ name: 'src1' });
-    Updatable.extend(source);
+    @updatable
+    class MySource extends Source {}
+
+    source = new MySource({ name: 'src1' });
   });
 
   hooks.afterEach(function() {
     source = null;
   });
 
-  test('it exists', function(assert) {
-    assert.ok(source);
+  test('isUpdatable - tests for the application of the @updatable decorator', function(assert) {
+    assert.ok(isUpdatable(source));
   });
 
-  test('it should be applied to a Source', function(assert) {
+  test('should be applied to a Source', function(assert) {
     assert.throws(function() {
-      let pojo = {};
-      Updatable.extend(pojo);
+      @updatable
+      class Vanilla {}
     },
     Error('Assertion failed: Updatable interface can only be applied to a Source'),
     'assertion raised');
   });
 
-  test('it should mixin Updatable', function(assert) {
-    assert.ok(source._updatable, 'should have `_updatable` flag');
-  });
-
-  test('it should resolve as a failure when `transform` fails', function(assert) {
+  test('#update should resolve as a failure when `transform` fails', function(assert) {
     assert.expect(2);
 
     source._update = function() {
@@ -49,7 +47,7 @@ module('Updatable', function(hooks) {
       });
   });
 
-  test('it should trigger `update` event after a successful action in which `_update` returns an array of transforms', function(assert) {
+  test('#update should trigger `update` event after a successful action in which `_update` returns an array of transforms', function(assert) {
     assert.expect(9);
 
     let order = 0;
@@ -84,7 +82,7 @@ module('Updatable', function(hooks) {
       });
   });
 
-  test('it should trigger `updateFail` event after an unsuccessful update', function(assert) {
+  test('#update should trigger `updateFail` event after an unsuccessful update', function(assert) {
     assert.expect(7);
 
     const addRecordTransform = Transform.from({ op: 'addRecord' });
@@ -114,7 +112,7 @@ module('Updatable', function(hooks) {
       });
   });
 
-  test('it should resolve all promises returned from `beforeUpdate` before calling `_update`', function(assert) {
+  test('#update should resolve all promises returned from `beforeUpdate` before calling `_update`', function(assert) {
     assert.expect(6);
 
     let order = 0;
@@ -151,7 +149,7 @@ module('Updatable', function(hooks) {
       });
   });
 
-  test('it should resolve all promises returned from `beforeUpdate` and fail if any fail', function(assert) {
+  test('#update should resolve all promises returned from `beforeUpdate` and fail if any fail', function(assert) {
     assert.expect(5);
 
     let order = 0;
