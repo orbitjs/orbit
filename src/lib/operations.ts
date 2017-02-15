@@ -1,6 +1,7 @@
 /* eslint-disable valid-jsdoc */
 import { eq } from './eq';
 import { Operation } from '../operation';
+import { Record } from '../record';
 import { Identity, identity, eqIdentity, toIdentifier } from '../identity';
 
 export interface RemoveRecordOperation extends Operation {
