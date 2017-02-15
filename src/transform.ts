@@ -1,4 +1,5 @@
 /* eslint-disable valid-jsdoc */
+import { Operation } from './operation';
 import { toArray } from './lib/objects';
 import { uuid } from './lib/uuid';
 
@@ -9,27 +10,25 @@ import { uuid } from './lib/uuid';
  Transforms are automatically assigned a UUID `id`.
 
  @class Transform
- @namespace Orbit
  @param {Array}     [operations] Operations to apply
  @param {Object}    [options]
  @param {String}    [options.id] Unique id for this transform (will be assigned a uuid by default)
  @constructor
  */
 export default class Transform {
-  constructor(ops, options = {}) {
-    this.operations = toArray(ops);
-    this.id = options.id || uuid();
+  id: string;
+  operations: Operation[];
+
+  constructor(operations: Operation[], id?: string) {
+    this.operations = operations;
+    this.id = id || uuid();
   }
 
-  isEmpty() {
-    return this.operations.length === 0;
+  static from(transformOrOperations: Transform | Operation[], id?: string): Transform {
+    if (transformOrOperations instanceof Transform) {
+      return transformOrOperations;
+    } else {
+      return new Transform(transformOrOperations, id);
+    }
   }
 }
-
-Transform.from = function(transformOrOperations) {
-  if (transformOrOperations instanceof Transform) {
-    return transformOrOperations;
-  } else {
-    return new Transform(transformOrOperations);
-  }
-};

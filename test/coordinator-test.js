@@ -6,9 +6,9 @@ import { all } from 'rsvp';
 const { module, test } = QUnit;
 
 module('Coordinator', function(hooks) {
-  const tA = new Transform({ op: 'addRecord', value: {} }, { id: 'a' });
-  const tB = new Transform({ op: 'addRecord', value: {} }, { id: 'b' });
-  const tC = new Transform({ op: 'addRecord', value: {} }, { id: 'c' });
+  const tA = new Transform([{ op: 'addRecord', value: {} }], 'a');
+  const tB = new Transform([{ op: 'addRecord', value: {} }], 'b');
+  const tC = new Transform([{ op: 'addRecord', value: {} }], 'c');
 
   let coordinator, s1, s2, s3;
 
