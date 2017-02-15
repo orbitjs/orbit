@@ -8,7 +8,10 @@ const { module, test } = QUnit;
 
 module('Action', function() {
   test('can be instantiated', function(assert) {
-    var action = new Action({});
+    const target = {
+      doSomething() {}
+    };
+    const action = new Action(target, 'doSomething');
     assert.ok(action);
   });
 

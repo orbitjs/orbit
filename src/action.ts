@@ -1,6 +1,17 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from './main';
 
+export interface ActionOptions {
+  meta?: any;
+  data?: any;
+}
+
+export interface SerializedAction {
+  method: string;
+  meta: any;
+  data: any;  
+}
+
 /**
  `Action` provides a wrapper for actions that are performed in an `ActionQueue`.
 
@@ -17,10 +28,19 @@ import Orbit from './main';
  be reset and the action can be tried again.
 
  @class Action
- @namespace Orbit
  */
-
 export default class Action {
+  target: any;
+  method: string;
+  meta: any;
+  data: any;
+
+  private _started: boolean;
+  private _settled: boolean;
+  private _resolution: Promise<any>;
+  private _success: (resolution: any) => void;
+  private _fail: (e: Error) => void;
+
   /**
    * Constructor for `Action` class.
    *
@@ -31,16 +51,18 @@ export default class Action {
    * @param  {Any}    [options.data] Optional data to send as an arg when calling `method`
    * @constructor
    */
-  constructor(target, method, options = {}) {
+  constructor(target, method, options?: ActionOptions) {
     this.target = target;
     this.method = method;
-    this.meta = options.meta;
-    this.data = options.data;
+    if (options) {
+      this.meta = options.meta;
+      this.data = options.data;
+    }
 
     this.reset();
   }
 
-  reset() {
+  reset(): void {
     this._started = false;
     this._settled = false;
     this._resolution = new Orbit.Promise((resolve, reject) => {
@@ -56,19 +78,19 @@ export default class Action {
     });
   }
 
-  get started() {
+  get started(): boolean {
     return this._started;
   }
 
-  get settled() {
+  get settled(): boolean {
     return this._settled;
   }
 
-  settle() {
+  settle(): Promise<any> {
     return this._resolution;
   }
 
-  process() {
+  process(): Promise<any> {
     if (!this._started) {
       this._started = true;
 
@@ -95,12 +117,12 @@ export default class Action {
     return this.settle();
   }
 
-  serialize() {
+  serialize(): SerializedAction {
     const { method, data, meta } = this;
     return { method, data, meta };
   }
 
-  static deserialize(target, serialized) {
+  static deserialize(target, serialized: SerializedAction) {
     return new Action(target, serialized.method, {
       data: serialized.data,
       meta: serialized.meta
