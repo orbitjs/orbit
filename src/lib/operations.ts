@@ -1,12 +1,11 @@
 /* eslint-disable valid-jsdoc */
 import { eq } from './eq';
 import { Operation } from '../operation';
-import { Record } from '../record';
-import { Identity, identity, eqIdentity, toIdentifier } from '../identity';
+import { Record, RecordIdentity, cloneRecordIdentity, equalRecordIdentities, serializeRecordIdentity } from '../record';
 
 export interface RemoveRecordOperation extends Operation {
   op: 'removeRecord';
-  record: Identity;
+  record: RecordIdentity;
 }
 
 export interface AddRecordOperation extends Operation {
@@ -15,7 +14,7 @@ export interface AddRecordOperation extends Operation {
 }
 
 function mergeOps(superceded: Operation, superceding: Operation, consecutiveOps: boolean): void {
-  if (eqIdentity(superceded.record, superceding.record)) {
+  if (equalRecordIdentities(superceded.record, superceding.record)) {
     if (superceding.op === 'removeRecord') {
       superceded._deleted = true;
       if (superceded.op === 'addRecord') {
@@ -75,15 +74,15 @@ function mergeOps(superceded: Operation, superceding: Operation, consecutiveOps:
       } else if (superceding.op === 'removeFromHasMany') {
         if (superceded.op === 'addToHasMany' &&
             superceded.relationship === superceding.relationship &&
-            eqIdentity(superceded.relatedRecord, superceding.relatedRecord)) {
+            equalRecordIdentities(superceded.relatedRecord, superceding.relatedRecord)) {
           superceded._deleted = true;
           superceding._deleted = true;
         } else if (superceded.op === 'addRecord' || superceded.op === 'replaceRecord') {
           if (superceded.record.relationships &&
               superceded.record.relationships[superceding.relationship] &&
               superceded.record.relationships[superceding.relationship].data &&
-              superceded.record.relationships[superceding.relationship].data[toIdentifier(superceding.relatedRecord)]) {
-            delete superceded.record.relationships[superceding.relationship].data[toIdentifier(superceding.relatedRecord)];
+              superceded.record.relationships[superceding.relationship].data[serializeRecordIdentity(superceding.relatedRecord)]) {
+            delete superceded.record.relationships[superceding.relationship].data[serializeRecordIdentity(superceding.relatedRecord)];
             superceding._deleted = true;
           }
         }
@@ -103,27 +102,27 @@ function replaceRecordAttribute(record: Record, attribute: string, value: any) {
   record.attributes[attribute] = value;
 }
 
-function replaceRecordHasOne(record: Record, relationship: string, relatedRecord: Identity) {
+function replaceRecordHasOne(record: Record, relationship: string, relatedRecord: RecordIdentity) {
   record.relationships = record.relationships || {};
   record.relationships[relationship] = record.relationships[relationship] || {};
-  record.relationships[relationship].data = toIdentifier(relatedRecord);
+  record.relationships[relationship].data = serializeRecordIdentity(relatedRecord);
 }
 
-function replaceRecordHasMany(record: Record, relationship: string, relatedRecords: Identity[]) {
+function replaceRecordHasMany(record: Record, relationship: string, relatedRecords: RecordIdentity[]) {
   record.relationships = record.relationships || {};
   record.relationships[relationship] = record.relationships[relationship] || {};
   let relatedRecordData = {};
   relatedRecords.forEach(r => {
-    relatedRecordData[toIdentifier(r)] = true;
+    relatedRecordData[serializeRecordIdentity(r)] = true;
   });
   record.relationships[relationship].data = relatedRecordData;
 }
 
-function addToHasMany(record: Record, relationship: string, relatedRecord: Identity) {
+function addToHasMany(record: Record, relationship: string, relatedRecord: RecordIdentity) {
   record.relationships = record.relationships || {};
   record.relationships[relationship] = record.relationships[relationship] || {};
   record.relationships[relationship].data = record.relationships[relationship].data || {};
-  record.relationships[relationship].data[toIdentifier(relatedRecord)] = true;
+  record.relationships[relationship].data[serializeRecordIdentity(relatedRecord)] = true;
 }
 
 /**
@@ -162,7 +161,7 @@ export function recordDiffs(record: Record, updatedRecord: Record): Operation[] 
   const diffs: Operation[] = [];
 
   if (record && updatedRecord) {
-    const recordIdentity = identity(record);
+    const recordIdentity = cloneRecordIdentity(record);
 
     if (updatedRecord.attributes) {
       Object.keys(updatedRecord.attributes).forEach(attribute => {

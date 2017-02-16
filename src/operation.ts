@@ -1,13 +1,12 @@
-import { Identity } from './identity';
-import { Record } from './record';
+import { Record, RecordIdentity } from './record';
 
 export interface Operation {
   op: string;
   record?: Record;
   attribute?: string;
   relationship?: string;
-  relatedRecord?: Identity;
-  relatedRecords?: Identity[];
+  relatedRecord?: RecordIdentity;
+  relatedRecords?: RecordIdentity[];
   value?: any;
   _deleted?: boolean;
 }
