@@ -1,6 +1,6 @@
 import Orbit from './main';
 import evented, { settleInSeries } from './evented';
-import TransformLog from './transform/log';
+import TransformLog from './transform-log';
 import ActionQueue from './action-queue';
 import { assert } from './lib/assert';
 

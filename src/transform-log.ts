@@ -1,28 +1,58 @@
-import Orbit from '../main';
-import evented from '../evented';
-import { TransformNotLoggedException, OutOfRangeException } from '../lib/exceptions';
+import Orbit from './main';
+import evented, { Evented } from './evented';
+import Bucket from './bucket';
+import Transform from './transform';
+import { TransformNotLoggedException, OutOfRangeException } from './lib/exceptions';
+
+export interface TransformLogOptions {
+  name: string;
+  bucket: Bucket;
+}
 
 @evented
-export default class TransformLog {
-  constructor(data, options = {}) {
-    this.name = options.name;
-    this.bucket = options.bucket;
+export default class TransformLog implements Evented {
+  private _name: string;
+  private _bucket: Bucket;
+  private _data: string[];
+
+  public reified: Promise<void>;
+
+  // Evented interface stubs
+  on: (event: string, callback: () => void, binding?: any) => void;
+  off: (event: string, callback: () => void, binding?: any) => void;
+  one: (event: string, callback: () => void, binding?: any) => void;
+  emit: (event: string, ...args) => void;
+  listeners: (event: string) => any[];
+
+  constructor(data: string[], options: TransformLogOptions) {
+    if (options) {
+      this._name = options.name;
+      this._bucket = options.bucket;
+    }
     this._reify(data);
   }
 
-  get head() {
+  get name(): string {
+    return this._name;
+  }
+
+  get bucket(): Bucket {
+    return this._bucket;
+  }
+
+  get head(): string {
     return this._data[this._data.length - 1];
   }
 
-  get entries() {
+  get entries(): string[] {
     return this._data;
   }
 
-  get length() {
+  get length(): number {
     return this._data.length;
   }
 
-  append(...transformIds) {
+  append(...transformIds: string[]): Promise<void> {
     return this.reified
       .then(() => {
         Array.prototype.push.apply(this._data, transformIds);
@@ -33,7 +63,7 @@ export default class TransformLog {
       });
   }
 
-  before(transformId, relativePosition = 0) {
+  before(transformId: string, relativePosition: number = 0): string[] {
     const index = this._data.indexOf(transformId);
     if (index === -1) {
       throw new TransformNotLoggedException(transformId);
@@ -47,7 +77,7 @@ export default class TransformLog {
     return this._data.slice(0, position);
   }
 
-  after(transformId, relativePosition = 0) {
+  after(transformId: string, relativePosition: number = 0): string[] {
     const index = this._data.indexOf(transformId);
     if (index === -1) {
       throw new TransformNotLoggedException(transformId);
@@ -61,7 +91,7 @@ export default class TransformLog {
     return this._data.slice(position);
   }
 
-  truncate(transformId, relativePosition = 0) {
+  truncate(transformId: string, relativePosition: number = 0): Promise<void> {
     return this.reified
       .then(() => {
         const index = this._data.indexOf(transformId);
@@ -87,7 +117,7 @@ export default class TransformLog {
       });
   }
 
-  rollback(transformId, relativePosition = 0) {
+  rollback(transformId: string, relativePosition: number = 0): Promise<void> {
     return this.reified
       .then(() => {
         const index = this._data.indexOf(transformId);
@@ -109,7 +139,7 @@ export default class TransformLog {
       });
   }
 
-  clear() {
+  clear(): Promise<void> {
     let data;
 
     return this.reified
@@ -120,21 +150,21 @@ export default class TransformLog {
       .then(() => this.emit('clear', data));
   }
 
-  contains(transformId) {
+  contains(transformId: string): boolean {
     return this._data.includes(transformId);
   }
 
-  _persist() {
+  _persist(): Promise<void> {
     if (this.bucket) {
-      return this.bucket.setItem(this.name, this._data);
+      return this._bucket.setItem(this.name, this._data);
     } else {
       return Orbit.Promise.resolve();
     }
   }
 
-  _reify(data) {
-    if (!data && this.bucket) {
-      this.reified = this.bucket.getItem(this.name)
+  _reify(data: string[]): void {
+    if (!data && this._bucket) {
+      this.reified = this._bucket.getItem(this._name)
         .then(bucketData => this._initData(bucketData));
     } else {
       this._initData(data);
@@ -142,7 +172,7 @@ export default class TransformLog {
     }
   }
 
-  _initData(data) {
+  _initData(data: string[]): void {
     if (data) {
       this._data = data;
     } else {

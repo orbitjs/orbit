@@ -1,4 +1,4 @@
-import TransformLog from '../src/transform/log';
+import TransformLog from '../src/transform-log';
 import { TransformNotLoggedException, OutOfRangeException } from '../src/lib/exceptions';
 import { FakeBucket } from './test-helper';
 
