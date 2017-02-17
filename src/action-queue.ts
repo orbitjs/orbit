@@ -59,7 +59,7 @@ export default class ActionQueue implements Evented {
   public target: any;
   public bucket: Bucket;
   public autoProcess: boolean;
-  public reified: any; // TODO - Promise
+  public reified: Promise<any>;
 
   private _actions: any[];
   private _error: any;
