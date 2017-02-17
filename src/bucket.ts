@@ -1,6 +1,11 @@
 import Orbit from './main';
-import evented from './evented';
+import evented, { Evented } from './evented';
 import { assert } from './lib/assert';
+
+export interface BucketSettings {
+  namespace?: string;
+  version?: number;
+}
 
 /**
  * Buckets are used by sources to persist transient state, such as logs and
@@ -8,11 +13,20 @@ import { assert } from './lib/assert';
  * shutdown.
  */
 @evented
-export default class Bucket {
-  constructor(settings = {}) {
-    assert('Bucket requires a name', settings.name);
+export default class Bucket implements Evented {
+  private _name: string;
+  private _namespace: string;
+  private _version: number;
 
-    this._name = settings.name;
+  // Evented interface stubs
+  on: (event: string, callback: () => void, binding?: any) => void;
+  off: (event: string, callback: () => void, binding?: any) => void;
+  one: (event: string, callback: () => void, binding?: any) => void;
+  emit: (event: string, ...args) => void;
+  listeners: (event: string) => any[];
+
+  constructor(name: string, settings: BucketSettings = {}) {
+    this._name = name;
 
     if (settings.version === undefined) {
       settings.version = 1;
@@ -23,15 +37,21 @@ export default class Bucket {
     this._applySettings(settings);
   }
 
-  get name() {
+  getItem: (key: string) => Promise<any>;
+
+  setItem: (key: string, value: any) => Promise<void>;
+
+  removeItem: (key: string) => Promise<void>;
+
+  get name(): string {
     return this._name;
   }
 
-  get namespace() {
+  get namespace(): string {
     return this._namespace;
   }
 
-  get version() {
+  get version(): number {
     return this._version;
   }
 
@@ -44,7 +64,7 @@ export default class Bucket {
    * @param  {Integer}  [settings.version] Optional. Version. Defaults to the current version + 1.
    * @return {Promise}                     Promise that resolves when upgrade has completed.
    */
-  upgrade(settings = {}) {
+  upgrade(settings: BucketSettings = {}): Promise<void> {
     if (settings.version === undefined) {
       settings.version = this._version + 1;
     }
@@ -60,23 +80,11 @@ export default class Bucket {
    * @param  {Integer}  settings.version  Bucket version.
    * @return {Promise}                    Promise that resolves when settings have been applied.
    */
-  _applySettings(settings) {
+  _applySettings(settings: BucketSettings): Promise<void> {
     if (settings.namespace) {
       this._namespace = settings.namespace;
     }
     this._version = settings.version;
     return Orbit.Promise.resolve();
-  }
-
-  getItem(/* key */) {
-    console.error('Bucket#getItem not implemented');
-  }
-
-  setItem(/* key, value */) {
-    console.error('Bucket#setItem not implemented');
-  }
-
-  removeItem(/* key */) {
-    console.error('Bucket#removeItem not implemented');
   }
 }
