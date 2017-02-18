@@ -1,5 +1,5 @@
 import { isObject } from '../lib/objects';
-import { queryExpression as oqe } from './expression';
+import { queryExpression as oqe } from '../query-expression';
 
 export class TermBase {
   constructor(expression) {

@@ -1,4 +1,4 @@
-import { queryExpression as oqe } from './expression';
+import { queryExpression as oqe } from '../query-expression';
 import { Records, Record, RelatedRecord, RelatedRecords } from './terms';
 
 export default {

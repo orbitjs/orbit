@@ -1,5 +1,5 @@
 import Query from '../src/query';
-import { queryExpression as oqe } from '../src/query/expression';
+import { queryExpression as oqe } from '../src/query-expression';
 
 const { module, test } = QUnit;
 

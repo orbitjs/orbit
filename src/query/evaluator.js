@@ -1,4 +1,4 @@
-import { isQueryExpression } from './expression';
+import { isQueryExpression, QueryExpression } from '../query-expression';
 
 export default class QueryEvaluator {
   constructor(target, operators) {
