@@ -1,8 +1,12 @@
 import { get, set } from './lib/objects';
 import { firstResult } from './lib/arrays';
 import { assert } from './lib/assert';
+import { Dict } from './lib/dict';
+import { Record } from './record';
 
 export default class KeyMap {
+  private _data: Dict<any>;
+
   constructor() {
     this._data = {};
   }
@@ -15,7 +19,7 @@ export default class KeyMap {
    @param {String} idValue - the model id
    @returns {string} the model's key value
    */
-  idToKey(type, keyName, idValue) {
+  idToKey(type: string, keyName: string, idValue: string): string {
     return get(this._data, [type, keyName, 'idToKeyMap', idValue]);
   }
 
@@ -27,33 +31,8 @@ export default class KeyMap {
    @param {String} keyValue - the value of the key to look up
    @returns {string} the model's id value
    */
-  keyToId(type, keyName, keyValue) {
+  keyToId(type: string, keyName: string, keyValue: string): string {
     return get(this._data, [type, keyName, 'keyToIdMap', keyValue]);
-  }
-
-  /**
-   Given a data object structured according to this schema, register all of its
-   key mappings. This data object may contain any number of records and types.
-
-   @param {Object} document - data structured according to the schema
-   @returns {undefined}
-   */
-  pushDocument(document) {
-    if (!document) {
-      return;
-    }
-
-    Object.keys(document).forEach(type => {
-      let idRecordMap = document[type];
-      Object.keys(idRecordMap).forEach(id => {
-        let record = idRecordMap[id];
-        this.pushRecord({
-          type,
-          id: record.id,
-          keys: record.keys
-        });
-      });
-    });
   }
 
   /**
@@ -65,8 +44,8 @@ export default class KeyMap {
    @param {Object} record.keys - a map of keys and their values
    @returns {undefined}
    */
-  pushRecord({ type, id, keys }) {
-    assert(`You pushed a ${type} record into the KeyMap that does not have an ID. Make sure you provide an Orbit ID to this record before pushing.`, id);
+  pushRecord(record: Record): void {
+    const { type, id, keys } = record;
 
     if (!keys) {
       return;
@@ -85,7 +64,7 @@ export default class KeyMap {
    @param {Object} record - a data structure that represents a record
    @returns {String|undefined} either the ID value or nothing
    */
-  findIdForRecord(record) {
+  findIdForRecord(record: Record): string {
     if (!record.keys) {
       return;
     }
