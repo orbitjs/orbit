@@ -1,13 +1,56 @@
 /* eslint-disable valid-jsdoc */
+import { assert } from './lib/assert';
 import { clone } from './lib/objects';
 import { uuid } from './lib/uuid';
-import {
-  OperationNotAllowed,
-  ModelNotRegisteredException,
-  KeyNotRegisteredException,
-  RelationshipNotRegisteredException
-} from './lib/exceptions';
-import evented from './evented';
+import { Dict } from './lib/dict';
+import evented, { Evented } from './evented';
+import { Record } from './record';
+
+export interface AttributeDefinition {
+  type?: string;
+  defaultValue?: any;
+}
+
+export interface RelationshipDefinition {
+  type: 'hasMany' | 'hasOne';
+  model?: string;
+  inverse?: string;
+  defaultValue?: any;
+}
+
+export interface KeyDefinition {
+  primaryKey?: boolean;
+  defaultValue?: () => string;
+}
+
+export interface IdDefinition {
+  defaultValue: () => string;
+}
+
+export interface ModelDefinition {
+  id?: IdDefinition;
+  keys?: Dict<KeyDefinition>;
+  attributes?: Dict<AttributeDefinition>;
+  relationships?: Dict<RelationshipDefinition>;
+}
+
+export interface SchemaSettings {
+  version?: number;
+  pluralize?: (word: string) => string;
+  singularize?: (word: string) => string;
+  models?: Dict<ModelDefinition>;
+  modelDefaults?: ModelDefinition;
+}
+
+const NORMALIZED = '__normalized__';
+
+function isNormalized(record: any): boolean {
+  return !!record[NORMALIZED];
+}
+
+function markNormalized(record: any): void {
+  record[NORMALIZED] = true;
+}
 
 /**
  `Schema` defines the models allowed in a source, including their keys,
@@ -259,7 +302,19 @@ follows:
  @class Schema
  */
 @evented
-export default class Schema {
+export default class Schema implements Evented {
+  modelDefaults: ModelDefinition;
+  models: Dict<ModelDefinition>;
+
+  private _version: number;
+
+  // Evented interface stubs
+  on: (event: string, callback: () => void, binding?: any) => void;
+  off: (event: string, callback: () => void, binding?: any) => void;
+  one: (event: string, callback: () => void, binding?: any) => void;
+  emit: (event: string, ...args) => void;
+  listeners: (event: string) => any[];
+
   /**
    * Create a new Schema.
    *
@@ -271,10 +326,11 @@ export default class Schema {
    * @param {Function} [settings.pluralize]     Optional. Function used to pluralize names.
    * @param {Function} [settings.singularize]   Optional. Function used to singularize names.
    */
-  constructor(settings = {}) {
+  constructor(settings: SchemaSettings = {}) {
     if (settings.version === undefined) {
       settings.version = 1;
     }
+
     this._applySettings(settings);
   }
 
@@ -282,7 +338,7 @@ export default class Schema {
    * Version
    * @return {Integer} Version of schema.
    */
-  get version() {
+  get version(): number {
     return this._version;
   }
 
@@ -298,7 +354,7 @@ export default class Schema {
    * @param {Function} [settings.pluralize]     Optional. Function used to pluralize names.
    * @param {Function} [settings.singularize]   Optional. Function used to singularize names.
    */
-  upgrade(settings = {}) {
+  upgrade(settings: SchemaSettings = {}): void {
     if (settings.version === undefined) {
       settings.version = this._version + 1;
     }
@@ -312,7 +368,7 @@ export default class Schema {
    * @private
    * @param {Object} settings Settings passed into `constructor` or `upgrade`.
    */
-  _applySettings(settings) {
+  _applySettings(settings: SchemaSettings): void {
     // Version
     this._version = settings.version;
 
@@ -345,7 +401,7 @@ export default class Schema {
    * @private
    * @param {Object} models Hash of models, keyed by type
    */
-  _registerModels(models) {
+  _registerModels(models: Dict<ModelDefinition>): void {
     this.models = {};
     if (models) {
       Object.keys(models).forEach(modelName => {
@@ -361,8 +417,8 @@ export default class Schema {
    * @param {String} name       Name of the model
    * @param {Object} definition Model schema definition
    */
-  _registerModel(name, definition) {
-    this.models[name] = this._mergeModelSchemas({}, this.modelDefaults, definition);
+  _registerModel(name: string, definition: ModelDefinition) {
+    this.models[name] = mergeModelDefinitions({}, this.modelDefaults, definition);
   }
 
   /**
@@ -372,15 +428,15 @@ export default class Schema {
    * A record's primary key, relationships, and meta data will all be initialized.
    *
    * A record can only be normalized once. A flag is set on the record
-   * (`__normalized`) to prevent "re-normalization".
+   * (`__normalized__`) to prevent "re-normalization".
    *
    * @param {Object} record Record data
    * @return {Object} Normalized version of `data`
    */
-  normalize(record) {
-    if (record.__normalized) { return record; }
+  normalize(record: Record): Record {
+    if (isNormalized(record)) { return record; }
 
-    record.__normalized = true;
+    markNormalized(record);
 
     this.initDefaults(record);
 
@@ -395,22 +451,14 @@ export default class Schema {
    * @param {String} type Type of model
    * @return {Object} Model definition
    */
-  modelDefinition(type) {
-    let definition = this.models[type];
-
-    if (!definition) {
-      throw new ModelNotRegisteredException(type);
-    }
-
-    return definition;
+  modelDefinition(name: string): ModelDefinition {
+    return this.models[name];
   }
 
-  initDefaults(record) {
-    if (!record.__normalized) {
-      throw new OperationNotAllowed('Schema.initDefaults requires a normalized record');
-    }
+  initDefaults(record: Record) {
+    assert('Schema.initDefaults requires a normalized record', isNormalized(record));
 
-    function defaultValue(record, value) {
+    function defaultValue(record: Record, value: any): any {
       if (typeof value === 'function') {
         return value.call(record);
       } else {
@@ -418,42 +466,42 @@ export default class Schema {
       }
     }
 
-    var modelSchema = this.modelDefinition(record.type);
+    let modelDefinition: ModelDefinition = this.modelDefinition(record.type);
 
     // init default id value
     if (record.id === undefined) {
-      record.id = defaultValue(record, modelSchema.id.defaultValue);
+      record.id = defaultValue(record, modelDefinition.id.defaultValue);
     }
 
     // init default key values
-    if (modelSchema.keys && Object.keys(modelSchema.keys).length > 0) {
+    if (modelDefinition.keys && Object.keys(modelDefinition.keys).length > 0) {
       if (record.keys === undefined) { record.keys = {}; }
 
-      for (var key in modelSchema.keys) {
+      for (var key in modelDefinition.keys) {
         if (record.keys[key] === undefined) {
-          record.keys[key] = defaultValue(record, modelSchema.keys[key].defaultValue);
+          record.keys[key] = defaultValue(record, modelDefinition.keys[key].defaultValue);
         }
       }
     }
 
     // init default attribute values
-    if (modelSchema.attributes) {
+    if (modelDefinition.attributes) {
       if (record.attributes === undefined) { record.attributes = {}; }
 
-      for (var attribute in modelSchema.attributes) {
+      for (var attribute in modelDefinition.attributes) {
         if (record.attributes[attribute] === undefined) {
-          record.attributes[attribute] = defaultValue(record, modelSchema.attributes[attribute].defaultValue);
+          record.attributes[attribute] = defaultValue(record, modelDefinition.attributes[attribute].defaultValue);
         }
       }
     }
 
     // init default relationship values
-    if (modelSchema.relationships) {
+    if (modelDefinition.relationships) {
       if (record.relationships === undefined) { record.relationships = {}; }
 
-      for (var relationship in modelSchema.relationships) {
+      for (var relationship in modelDefinition.relationships) {
         if (record.relationships[relationship] === undefined) {
-          const relationshipDefinition = modelSchema.relationships[relationship];
+          const relationshipDefinition = modelDefinition.relationships[relationship];
           const defaultForType = relationshipDefinition.type === 'hasMany' ? {} : null;
 
           record.relationships[relationship] = {
@@ -502,7 +550,7 @@ export default class Schema {
    @param  {String} word
    @return {String} singular form of `word`
    */
-  singularize(word) {
+  singularize(word: string): string {
     if (word.lastIndexOf('s') === word.length - 1) {
       return word.substr(0, word.length - 1);
     } else {
@@ -510,57 +558,45 @@ export default class Schema {
     }
   }
 
-  keyDefinition(modelName, key) {
-    var modelDef = this.modelDefinition(modelName);
-
-    var keyDef = modelDef.keys[key];
-    if (!keyDef) { throw new KeyNotRegisteredException(modelName, key); }
-
-    return keyDef;
+  keyDefinition(modelName, key): KeyDefinition {
+    return this.modelDefinition(modelName).keys[key];
   }
 
-  relationshipDefinition(modelName, relationship) {
-    var modelDef = this.modelDefinition(modelName);
-
-    var relDef = modelDef.relationships[relationship];
-    if (!relDef) { throw new RelationshipNotRegisteredException(modelName, relationship); }
-
-    return relDef;
+  relationshipDefinition(modelName, relationship): RelationshipDefinition {
+    return this.modelDefinition(modelName).relationships[relationship];
   }
+}
 
-  _mergeModelSchemas(base) {
-    var sources = Array.prototype.slice.call(arguments, 1);
+function mergeModelDefinitions(base: ModelDefinition, ...sources: ModelDefinition[]) {
+  // ensure model schema has categories set
+  base.id = base.id || { defaultValue: uuid };
+  base.keys = base.keys || {};
+  base.attributes = base.attributes || {};
+  base.relationships = base.relationships || {};
 
-    // ensure model schema has categories set
-    base.id = base.id || {};
-    base.keys = base.keys || {};
-    base.attributes = base.attributes || {};
-    base.relationships = base.relationships || {};
+  sources.forEach(source => {
+    source = clone(source);
+    mergeModelFields(base.id, source.id);
+    mergeModelFields(base.keys, source.keys);
+    mergeModelFields(base.attributes, source.attributes);
+    mergeModelFields(base.relationships, source.relationships);
+  });
 
-    sources.forEach(source => {
-      source = clone(source);
-      this._mergeModelFields(base.id, source.id);
-      this._mergeModelFields(base.keys, source.keys);
-      this._mergeModelFields(base.attributes, source.attributes);
-      this._mergeModelFields(base.relationships, source.relationships);
-    });
+  return base;
+}
 
-    return base;
-  }
-
-  _mergeModelFields(base, source) {
-    if (source) {
-      Object.keys(source).forEach(function(field) {
-        if (source.hasOwnProperty(field)) {
-          var fieldDef = source[field];
-          if (fieldDef) {
-            base[field] = fieldDef;
-          } else {
-            // fields defined as falsey should be removed
-            delete base[field];
-          }
+function mergeModelFields(base, source) {
+  if (source) {
+    Object.keys(source).forEach(function(field) {
+      if (source.hasOwnProperty(field)) {
+        var fieldDef = source[field];
+        if (fieldDef) {
+          base[field] = fieldDef;
+        } else {
+          // fields defined as falsey should be removed
+          delete base[field];
         }
-      });
-    }
+      }
+    });
   }
 }
