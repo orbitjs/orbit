@@ -1,8 +1,10 @@
-import { isObject } from '../lib/objects';
-import { queryExpression as oqe } from '../query-expression';
+import { isObject } from './lib/objects';
+import { queryExpression as oqe, QueryExpression } from './query-expression';
 
-export class TermBase {
-  constructor(expression) {
+export class QueryTerm {
+  expression: QueryExpression;
+
+  constructor(expression?: QueryExpression) {
     this.expression = expression;
   }
 
@@ -11,13 +13,13 @@ export class TermBase {
   }
 }
 
-export class Cursor extends TermBase {
+export class Cursor extends QueryTerm {
   get(path) {
     return new Value(oqe('get', path));
   }
 }
 
-export class Value extends TermBase {
+export class Value extends QueryTerm {
   equal(value) {
     return oqe('equal', this.expression, value);
   }
@@ -29,13 +31,13 @@ export class RecordCursor extends Cursor {
   }
 }
 
-export class Record extends TermBase {
+export class Record extends QueryTerm {
   constructor(record) {
     super(oqe('record', record));
   }
 }
 
-export class Records extends TermBase {
+export class Records extends QueryTerm {
   filter(predicateExpression) {
     const filterBuilder = new RecordCursor();
     return new this.constructor(oqe('filter', this.expression, predicateExpression(filterBuilder)));
@@ -74,13 +76,13 @@ export class Records extends TermBase {
   }
 }
 
-export class RelatedRecord extends TermBase {
+export class RelatedRecord extends QueryTerm {
   constructor(record, relationship) {
     super(oqe('relatedRecord', record, relationship));
   }
 }
 
-export class RelatedRecords extends TermBase {
+export class RelatedRecords extends QueryTerm {
   constructor(record, relationship) {
     super(oqe('relatedRecords', record, relationship));
   }

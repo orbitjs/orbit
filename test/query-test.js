@@ -1,4 +1,5 @@
 import Query from '../src/query';
+import { QueryTerm } from '../src/query-term';
 import { queryExpression as oqe } from '../src/query-expression';
 
 const { module, test } = QUnit;
@@ -56,12 +57,7 @@ module('Query', function() {
   test('.from should call toQueryExpression() if available', function(assert) {
     const expression = oqe('records', 'planet');
     const options = { sources: { jsonapi: { include: 'bar' } } };
-    const queryFactory = {
-      toQueryExpression() {
-        return expression;
-      }
-    };
-
+    const queryFactory = new QueryTerm(expression);
     const query = Query.from(queryFactory, options);
     assert.deepEqual(query.expression, expression, 'expression was populated');
     assert.deepEqual(query.sources, options.sources, 'sources was populated');

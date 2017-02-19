@@ -1,6 +1,6 @@
-import { queryExpression as oqe } from '../../src/query-expression';
-import qb from '../../src/query/builder';
-import '../test-helper';
+import { queryExpression as oqe } from '../src/query-expression';
+import qb from '../src/query-builder';
+import './test-helper';
 
 const { module, test } = QUnit;
 
