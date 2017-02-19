@@ -16,22 +16,6 @@ export class Exception {
   }
 }
 
-/**
- Exception thrown when a path in a document can not be found.
-
- @class PathNotFoundException
- @param {String} path
- @constructor
- */
-export class PathNotFoundException extends Exception {
-  public path: string[];
-
-  constructor(path: string[]) {
-    super(`Path not found: ${path.join('/')}`);
-    this.path = path;
-  }
-}
-
 export class TransformNotLoggedException extends Exception {
   public transformId: string;
 
@@ -41,68 +25,12 @@ export class TransformNotLoggedException extends Exception {
   }
 }
 
-export class QueryBuilderNotRegisteredException extends Exception {
-  public queryBuilder: string;
-
-  constructor(queryBuilder: string) {
-    super(`QueryBuilder not registered: ${queryBuilder}`);
-    this.queryBuilder = queryBuilder;
-  }
-}
-
 export class OutOfRangeException extends Exception {
   public value: number;
 
   constructor(value: number) {
     super(`Out of range: ${value}`);
     this.value = value;
-  }
-}
-
-/**
- Exception thrown when an operation is not allowed.
-
- @class OperationNotAllowed
- @param {Object} description
- @constructor
- */
-export class OperationNotAllowed extends Exception {
-  public operation: string;
-
-  constructor(operation: string) {
-    super(`Operation not allowed: ${operation}`);
-    this.operation = operation;
-  }
-}
-
-export class ModelNotRegisteredException extends Exception {
-  public model: string;
-
-  constructor(model: string) {
-    super(`Model not registered: ${model}`);
-    this.model = model;
-  }
-}
-
-export class KeyNotRegisteredException extends Exception {
-  public model: string;
-  public key: string;
-  
-  constructor(model, key) {
-    super(`Key not registered: '${model}#${key}'`);
-    this.model = model;
-    this.key = key;
-  }
-}
-
-export class RelationshipNotRegisteredException extends Exception {
-  public model: string;
-  public relationship: string;
-
-  constructor(model: string, relationship: string) {
-    super(`Relationship not registered: '${model}#${relationship}'`);
-    this.model = model;
-    this.relationship = relationship;
   }
 }
 
