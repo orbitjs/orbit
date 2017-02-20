@@ -1,5 +1,5 @@
 import Source from '../../src/source';
-import pushable, { isPushable } from '../../src/interfaces/pushable';
+import pushable, { isPushable } from '../../src/source-decorators/pushable';
 import Transform from '../../src/transform';
 import { Promise } from 'rsvp';
 import { successfulOperation, failedOperation } from '../test-helper';

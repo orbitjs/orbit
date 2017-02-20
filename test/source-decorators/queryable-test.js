@@ -1,4 +1,4 @@
-import queryable, { isQueryable } from '../../src/interfaces/queryable';
+import queryable, { isQueryable } from '../../src/source-decorators/queryable';
 import Source from '../../src/source';
 import Query from '../../src/query';
 import { Promise } from 'rsvp';

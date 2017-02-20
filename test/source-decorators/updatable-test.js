@@ -1,5 +1,5 @@
 import Source from '../../src/source';
-import updatable, { isUpdatable } from '../../src/interfaces/updatable';
+import updatable, { isUpdatable } from '../../src/source-decorators/updatable';
 import Transform from '../../src/transform';
 import { Promise } from 'rsvp';
 import { successfulOperation, failedOperation } from '../test-helper';

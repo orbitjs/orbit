@@ -1,6 +1,6 @@
 import Orbit from '../../src';
 import Source from '../../src/source';
-import syncable, { isSyncable } from '../../src/interfaces/syncable';
+import syncable, { isSyncable } from '../../src/source-decorators/syncable';
 import Transform from '../../src/transform';
 
 const { module, test } = QUnit;

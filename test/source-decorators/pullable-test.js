@@ -1,5 +1,5 @@
 import Source from '../../src/source';
-import pullable, { isPullable } from '../../src/interfaces/pullable';
+import pullable, { isPullable } from '../../src/source-decorators/pullable';
 import Transform from '../../src/transform';
 import Query from '../../src/query';
 import { Promise } from 'rsvp';
