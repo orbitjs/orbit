@@ -4,11 +4,6 @@ import Bucket from './bucket';
 import Transform from './transform';
 import { TransformNotLoggedException, OutOfRangeException } from './lib/exceptions';
 
-export interface TransformLogOptions {
-  name: string;
-  bucket: Bucket;
-}
-
 @evented
 export default class TransformLog implements Evented {
   private _name: string;
@@ -24,11 +19,9 @@ export default class TransformLog implements Evented {
   emit: (event: string, ...args) => void;
   listeners: (event: string) => any[];
 
-  constructor(data: string[], options: TransformLogOptions) {
-    if (options) {
-      this._name = options.name;
-      this._bucket = options.bucket;
-    }
+  constructor(name?: string, data?: string[], bucket?: Bucket) {
+    this._name = name;
+    this._bucket = bucket;
     this._reify(data);
   }
 
