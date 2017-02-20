@@ -10,13 +10,13 @@ const { module, test } = QUnit;
 module('ActionQueue', function() {
   test('can be instantiated', function(assert) {
     const target = {};
-    const queue = new ActionQueue(target);
+    const queue = new ActionQueue('queue', target);
     assert.ok(queue);
   });
 
   test('#autoProcess is enabled by default', function(assert) {
     const target = {};
-    const queue = new ActionQueue(target);
+    const queue = new ActionQueue('queue', target);
     assert.equal(queue.autoProcess, true, 'autoProcess === true');
   });
 
@@ -38,7 +38,7 @@ module('ActionQueue', function() {
       }
     };
 
-    const queue = new ActionQueue(target);
+    const queue = new ActionQueue('queue', target);
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -103,7 +103,7 @@ module('ActionQueue', function() {
       }
     };
 
-    const queue = new ActionQueue(target);
+    const queue = new ActionQueue('queue', target);
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -161,7 +161,7 @@ module('ActionQueue', function() {
       }
     };
 
-    const queue = new ActionQueue(target);
+    const queue = new ActionQueue('queue', target);
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -221,7 +221,7 @@ module('ActionQueue', function() {
       }
     };
 
-    const queue = new ActionQueue(target, { autoProcess: false });
+    const queue = new ActionQueue('queue', target, null, false);
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -279,7 +279,7 @@ module('ActionQueue', function() {
       }
     };
 
-    const queue = new ActionQueue(target, { autoProcess: false });
+    const queue = new ActionQueue('queue', target, null, false);
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -347,7 +347,7 @@ module('ActionQueue', function() {
       }
     };
 
-    const queue = new ActionQueue(target, { autoProcess: false });
+    const queue = new ActionQueue('queue', target, null, false);
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -412,7 +412,7 @@ module('ActionQueue', function() {
       }
     };
 
-    const queue = new ActionQueue(target, { autoProcess: false });
+    const queue = new ActionQueue('queue', target, null, false);
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -482,7 +482,7 @@ module('ActionQueue', function() {
       }
     };
 
-    const queue = new ActionQueue(target, { autoProcess: false });
+    const queue = new ActionQueue('queue', target, null, false);
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -524,7 +524,7 @@ module('ActionQueue', function() {
       }
     };
 
-    const queue = new ActionQueue(target, { autoProcess: false });
+    const queue = new ActionQueue('queue', target, null, false);
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -592,7 +592,7 @@ module('ActionQueue', function() {
       let queue;
       bucket.setItem('queue', serialized)
         .then(() => {
-          queue = new ActionQueue(target, { bucket, name: 'queue' });
+          queue = new ActionQueue('queue', target, bucket);
           return queue.reified;
         })
         .then(() => {
@@ -618,7 +618,7 @@ module('ActionQueue', function() {
         _transform() {}
       };
 
-      const queue = new ActionQueue(target, { bucket, name: 'queue' });
+      const queue = new ActionQueue('queue', target, bucket);
 
       let transformCount = 0;
 
