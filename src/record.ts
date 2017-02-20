@@ -1,14 +1,37 @@
 import { isObject, isNone } from './lib/objects';
+import { Dict } from './lib/dict';
 
 export interface RecordIdentity {
   type: string;
   id: string;
 }
 
+export interface RecordKey {
+  string;
+}
+
+export interface RecordIdentifier {
+  string;
+}
+
+export interface RecordAttribute {
+  any;
+}
+
+export interface RecordHasOneRelationship {
+  data: null | RecordIdentifier;
+}
+
+export interface RecordHasManyRelationship {
+  data: Dict<RecordIdentifier>;
+}
+
+export type RecordRelationship = RecordHasOneRelationship | RecordHasManyRelationship;
+
 export interface Record extends RecordIdentity {
-  keys?: Object; // TODO
-  attributes?: Object;
-  relationships?: Object; // TODO
+  keys?: Dict<RecordKey>;
+  attributes?: Dict<RecordAttribute>;
+  relationships?: Dict<RecordRelationship>;
 }
 
 export function serializeRecordIdentity(identity: RecordIdentity): string {
