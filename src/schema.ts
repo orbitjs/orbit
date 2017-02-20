@@ -44,11 +44,11 @@ export interface SchemaSettings {
 
 const NORMALIZED = '__normalized__';
 
-function isNormalized(record: any): boolean {
+export function isRecordNormalized(record: Record): boolean {
   return !!record[NORMALIZED];
 }
 
-function markNormalized(record: any): void {
+function markRecordNormalized(record: Record): void {
   record[NORMALIZED] = true;
 }
 
@@ -434,9 +434,9 @@ export default class Schema implements Evented {
    * @return {Object} Normalized version of `data`
    */
   normalize(record: Record): Record {
-    if (isNormalized(record)) { return record; }
+    if (isRecordNormalized(record)) { return record; }
 
-    markNormalized(record);
+    markRecordNormalized(record);
 
     this.initDefaults(record);
 
@@ -455,8 +455,8 @@ export default class Schema implements Evented {
     return this.models[name];
   }
 
-  initDefaults(record: Record) {
-    assert('Schema.initDefaults requires a normalized record', isNormalized(record));
+  initDefaults(record: Record): void {
+    assert('Schema.initDefaults requires a normalized record', isRecordNormalized(record));
 
     function defaultValue(record: Record, value: any): any {
       if (typeof value === 'function') {
@@ -518,14 +518,8 @@ export default class Schema implements Evented {
    * @param {String} type A model type
    * @return {String} Generated model ID
    */
-  generateDefaultId(type) {
-    let value = this.modelDefinition(type).id.defaultValue;
-
-    if (typeof value === 'function') {
-      return value();
-    } else {
-      return value;
-    }
+  generateDefaultId(model: string): string {
+    return this.modelDefinition(model).id.defaultValue();
   }
 
   /**
@@ -537,7 +531,7 @@ export default class Schema implements Evented {
    @param  {String} word
    @return {String} plural form of `word`
    */
-  pluralize(word) {
+  pluralize(word: string): string {
     return word + 's';
   }
 
@@ -567,7 +561,7 @@ export default class Schema implements Evented {
   }
 }
 
-function mergeModelDefinitions(base: ModelDefinition, ...sources: ModelDefinition[]) {
+function mergeModelDefinitions(base: ModelDefinition, ...sources: ModelDefinition[]): ModelDefinition {
   // ensure model schema has categories set
   base.id = base.id || { defaultValue: uuid };
   base.keys = base.keys || {};
@@ -585,7 +579,7 @@ function mergeModelDefinitions(base: ModelDefinition, ...sources: ModelDefinitio
   return base;
 }
 
-function mergeModelFields(base, source) {
+function mergeModelFields(base, source): void {
   if (source) {
     Object.keys(source).forEach(function(field) {
       if (source.hasOwnProperty(field)) {
