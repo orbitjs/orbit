@@ -19,9 +19,7 @@ module('Coordinator', function(hooks) {
   });
 
   test('can be instantiated', function(assert) {
-    coordinator = new Coordinator({
-      sources: [s1, s2, s3]
-    });
+    coordinator = new Coordinator([s1, s2, s3]);
 
     assert.ok(coordinator);
   });
@@ -29,10 +27,7 @@ module('Coordinator', function(hooks) {
   test('reviews sources and truncates their history to after the most recent common entry', function(assert) {
     assert.expect(14);
 
-    coordinator = new Coordinator({
-      sources: [s1, s2, s3],
-      autoActivate: false
-    });
+    coordinator = new Coordinator([s1, s2, s3], false);
 
     return all([
       s1._transformed([tA, tB]),
@@ -68,9 +63,7 @@ module('Coordinator', function(hooks) {
   QUnit.skip('observes source transforms and truncates their history to after the most recent common entry', function(assert) {
     assert.expect(7);
 
-    coordinator = new Coordinator({
-      sources: [s1, s2, s3]
-    });
+    coordinator = new Coordinator([s1, s2, s3]);
 
     return coordinator.activated
       .then(() => all([
