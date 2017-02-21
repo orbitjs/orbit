@@ -61,7 +61,7 @@ export class NetworkError extends Exception {
   }
 }
 
-abstract class RecordException extends Exception {
+export abstract class RecordException extends Exception {
   public description: string;
   public type: string;
   public id: string;

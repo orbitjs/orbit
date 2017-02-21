@@ -2,7 +2,7 @@ import Orbit from './main';
 import evented, { Evented } from './evented';
 import Bucket from './bucket';
 import Transform from './transform';
-import { TransformNotLoggedException, OutOfRangeException } from './lib/exceptions';
+import { TransformNotLoggedException, OutOfRangeException } from './exception';
 
 @evented
 export default class TransformLog implements Evented {

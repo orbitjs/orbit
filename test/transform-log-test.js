@@ -1,5 +1,5 @@
 import TransformLog from '../src/transform-log';
-import { TransformNotLoggedException, OutOfRangeException } from '../src/lib/exceptions';
+import { TransformNotLoggedException, OutOfRangeException } from '../src/exception';
 import { FakeBucket } from './test-helper';
 
 const { module, test } = QUnit;
