@@ -11,17 +11,16 @@ import { uuid } from './lib/uuid';
 
  @class Transform
  @param {Array}     [operations] Operations to apply
- @param {Object}    [options]
- @param {String}    [options.id] Unique id for this transform (will be assigned a uuid by default)
+ @param {String}    [id] Unique id for this transform (will be assigned a uuid by default)
  @constructor
  */
 export default class Transform {
   id: string;
   operations: Operation[];
 
-  constructor(operations: Operation[], id?: string) {
+  constructor(operations: Operation[], id: string = uuid()) {
     this.operations = operations;
-    this.id = id || uuid();
+    this.id = id;
   }
 
   static from(transformOrOperations: Transform | Operation[], id?: string): Transform {
