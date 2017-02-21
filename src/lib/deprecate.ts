@@ -1,3 +1,5 @@
+declare const console: any;
+
 /**
  Display a deprecation warning with the provided message.
 

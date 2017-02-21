@@ -3,6 +3,8 @@ import Notifier from './notifier';
 import { assert } from './lib/assert';
 import { extend } from './lib/objects';
 
+declare const console: any;
+
 /**
  The `Evented` interface uses notifiers to add events to an object. Like
  notifiers, events will send along all of their arguments to subscribed

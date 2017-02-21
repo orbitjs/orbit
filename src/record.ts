@@ -6,31 +6,19 @@ export interface RecordIdentity {
   id: string;
 }
 
-export interface RecordKey {
-  string;
-}
-
-export interface RecordIdentifier {
-  string;
-}
-
-export interface RecordAttribute {
-  any;
-}
-
 export interface RecordHasOneRelationship {
-  data: null | RecordIdentifier;
+  data: string;
 }
 
 export interface RecordHasManyRelationship {
-  data: Dict<RecordIdentifier>;
+  data: Dict<string>;
 }
 
 export type RecordRelationship = RecordHasOneRelationship | RecordHasManyRelationship;
 
 export interface Record extends RecordIdentity {
-  keys?: Dict<RecordKey>;
-  attributes?: Dict<RecordAttribute>;
+  keys?: Dict<string>;
+  attributes?: Dict<any>;
   relationships?: Dict<RecordRelationship>;
 }
 

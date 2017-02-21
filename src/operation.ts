@@ -218,13 +218,13 @@ function updateRecordReplaceAttribute(record: Record, attribute: string, value: 
 
 function updateRecordReplaceHasOne(record: Record, relationship: string, relatedRecord: RecordIdentity) {
   record.relationships = record.relationships || {};
-  record.relationships[relationship] = record.relationships[relationship] || {};
+  record.relationships[relationship] = record.relationships[relationship] || { data: null };
   record.relationships[relationship].data = serializeRecordIdentity(relatedRecord);
 }
 
 function updateRecordReplaceHasMany(record: Record, relationship: string, relatedRecords: RecordIdentity[]) {
   record.relationships = record.relationships || {};
-  record.relationships[relationship] = record.relationships[relationship] || {};
+  record.relationships[relationship] = record.relationships[relationship] || { data: {} };
   let relatedRecordData = {};
   relatedRecords.forEach(r => {
     relatedRecordData[serializeRecordIdentity(r)] = true;
@@ -234,7 +234,7 @@ function updateRecordReplaceHasMany(record: Record, relationship: string, relate
 
 function updateRecordAddToHasMany(record: Record, relationship: string, relatedRecord: RecordIdentity) {
   record.relationships = record.relationships || {};
-  record.relationships[relationship] = record.relationships[relationship] || {};
+  record.relationships[relationship] = record.relationships[relationship] || { data: {} };
   record.relationships[relationship].data = record.relationships[relationship].data || {};
   record.relationships[relationship].data[serializeRecordIdentity(relatedRecord)] = true;
 }

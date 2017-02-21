@@ -108,7 +108,7 @@ export default class Source implements Evented {
   }
 }
 
-function enqueueAction(source: Source, queue: ActionQueue, method: string, data: any): Promise<void> {
+function enqueueAction(source: Source, queue: ActionQueue, method: string, data: any): Promise<any> {
   return queue.push(`__${method}__`, {
     data,
     meta: {

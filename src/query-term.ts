@@ -40,7 +40,7 @@ export class Record extends QueryTerm {
 export class Records extends QueryTerm {
   filter(predicateExpression) {
     const filterBuilder = new RecordCursor();
-    return new this.constructor(oqe('filter', this.expression, predicateExpression(filterBuilder)));
+    return new QueryTerm(oqe('filter', this.expression, predicateExpression(filterBuilder)));
   }
 
   filterAttributes(attributeValues) {
@@ -53,15 +53,15 @@ export class Records extends QueryTerm {
     const andExpression = attributeExpressions.length === 1 ? attributeExpressions[0]
                                                             : oqe('and', ...attributeExpressions);
 
-    return new this.constructor(oqe('filter', this.expression, andExpression));
+    return new QueryTerm(oqe('filter', this.expression, andExpression));
   }
 
   sort(...sortExpressions) {
-    return new this.constructor(oqe('sort', this.expression, sortExpressions.map(parseSortExpression)));
+    return new QueryTerm(oqe('sort', this.expression, sortExpressions.map(parseSortExpression)));
   }
 
   page(options) {
-    return new this.constructor(oqe('page', this.expression, options));
+    return new QueryTerm(oqe('page', this.expression, options));
   }
 
   static withScopes(scopes) {

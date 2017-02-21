@@ -10,7 +10,7 @@
  @param {Object} obj
  @returns {Object} Clone of the original object
  */
-export function clone(obj: Object): Object {
+export function clone(obj: any): any {
   if (obj === undefined || obj === null || typeof obj !== 'object') { return obj; }
 
   let dup;

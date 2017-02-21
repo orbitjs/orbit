@@ -54,7 +54,7 @@ export default class ActionQueue implements Evented {
   private _error: any;
   private _resolution: Promise<void>;
   private _resolve: any;
-  private _reified: Promise<void>;
+  private _reified: Promise<any>;
 
   // Evented interface stubs
   on: (event: string, callback: () => void, binding?: any) => void;
