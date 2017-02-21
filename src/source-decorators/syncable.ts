@@ -1,6 +1,6 @@
 import Orbit from '../main';
-import { assert } from '../lib/assert';
-import { extend, isArray } from '../lib/objects';
+import { assert } from '../utils/assert';
+import { extend, isArray } from '../utils/objects';
 import Source from '../source';
 import Transform from '../transform';
 

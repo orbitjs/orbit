@@ -1,8 +1,8 @@
 /* eslint-disable valid-jsdoc */
-import { assert } from './lib/assert';
-import { clone } from './lib/objects';
-import { uuid } from './lib/uuid';
-import { Dict } from './lib/dict';
+import { assert } from './utils/assert';
+import { clone } from './utils/objects';
+import { uuid } from './utils/uuid';
+import { Dict } from './utils/dict';
 import evented, { Evented } from './evented';
 import { Record } from './record';
 

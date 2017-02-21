@@ -3,7 +3,7 @@ import Orbit from './main';
 import Action, { SerializedAction } from './action';
 import Bucket from './bucket';
 import evented, { Evented } from './evented';
-import { assert } from './lib/assert';
+import { assert } from './utils/assert';
 
 /**
  `ActionQueue` is a FIFO queue of actions that should be performed sequentially.

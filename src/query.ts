@@ -1,4 +1,4 @@
-import { uuid } from './lib/uuid';
+import { uuid } from './utils/uuid';
 import { QueryExpression, isQueryExpression } from './query-expression';
 import { QueryTerm } from './query-term';
 

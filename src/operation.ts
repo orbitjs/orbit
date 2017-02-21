@@ -1,5 +1,5 @@
 import { Record, RecordIdentity, cloneRecordIdentity, equalRecordIdentities, serializeRecordIdentity } from './record';
-import { eq } from './lib/eq';
+import { eq } from './utils/eq';
 
 export interface Operation {
   op: string;

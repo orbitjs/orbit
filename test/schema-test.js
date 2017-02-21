@@ -1,5 +1,5 @@
 import Schema from '../src/schema';
-import { uuid } from '../src/lib/uuid';
+import { uuid } from '../src/utils/uuid';
 
 const { module, test } = QUnit;
 

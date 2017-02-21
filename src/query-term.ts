@@ -1,4 +1,4 @@
-import { isObject } from './lib/objects';
+import { isObject } from './utils/objects';
 import { queryExpression as oqe, QueryExpression } from './query-expression';
 
 export class QueryTerm {

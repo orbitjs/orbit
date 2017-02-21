@@ -1,4 +1,4 @@
-import { eq } from '../../src/lib/eq';
+import { eq } from '../../src/utils/eq';
 
 const { module, test } = QUnit;
 

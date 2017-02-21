@@ -1,6 +1,6 @@
 import Schema from '../src/schema';
 import KeyMap from '../src/key-map';
-import { uuid } from '../src/lib/uuid';
+import { uuid } from '../src/utils/uuid';
 
 const { module, test } = QUnit;
 

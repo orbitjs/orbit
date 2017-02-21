@@ -1,7 +1,7 @@
 /* eslint-disable valid-jsdoc */
 import { Operation } from './operation';
-import { toArray } from './lib/objects';
-import { uuid } from './lib/uuid';
+import { toArray } from './utils/objects';
+import { uuid } from './utils/uuid';
 
 /**
  Transforms represent a set of operations that are applied to mutate a

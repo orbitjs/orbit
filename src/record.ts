@@ -1,5 +1,5 @@
-import { isObject, isNone } from './lib/objects';
-import { Dict } from './lib/dict';
+import { isObject, isNone } from './utils/objects';
+import { Dict } from './utils/dict';
 
 export interface RecordIdentity {
   type: string;

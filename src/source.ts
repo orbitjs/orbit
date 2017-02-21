@@ -5,7 +5,7 @@ import Schema from './schema';
 import Transform from './transform';
 import TransformLog from './transform-log';
 import ActionQueue from './action-queue';
-import { assert } from './lib/assert';
+import { assert } from './utils/assert';
 
 /**
  Base class for sources.

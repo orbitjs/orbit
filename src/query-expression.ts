@@ -1,4 +1,4 @@
-import { isObject } from './lib/objects';
+import { isObject } from './utils/objects';
 
 export const QUERY_EXPRESSION = '__oqe__';
 

@@ -1,4 +1,4 @@
-import { clone, expose, extend, isArray, toArray, isObject, isNone, merge, get, set } from '../../src/lib/objects';
+import { clone, expose, extend, isArray, toArray, isObject, isNone, merge, get, set } from '../../src/utils/objects';
 
 const { module, test } = QUnit;
 

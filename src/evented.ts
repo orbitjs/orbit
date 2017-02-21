@@ -1,7 +1,7 @@
 import Orbit from './main';
 import Notifier from './notifier';
-import { assert } from './lib/assert';
-import { extend } from './lib/objects';
+import { assert } from './utils/assert';
+import { extend } from './utils/objects';
 
 declare const console: any;
 
