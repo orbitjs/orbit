@@ -124,4 +124,4 @@ npm run docs
 
 ## License
 
-Copyright 2016 Cerebris Corporation. MIT License (see LICENSE for details).
+Copyright 2014-2017 Cerebris Corporation. MIT License (see LICENSE for details).
