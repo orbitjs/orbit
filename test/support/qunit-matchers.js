@@ -1,4 +1,4 @@
-import { buildPatternMatcher } from '../../src/lib/pattern-matcher';
+import { buildPatternMatcher } from './pattern-matcher';
 
 QUnit.assert.matchesPattern = function(actual, pattern, message) {
   const isMatch = buildPatternMatcher(pattern);

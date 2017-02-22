@@ -6,10 +6,9 @@
     "experimentalDecorators": true,
     "inlineSources": true,
     "inlineSourceMap": true,
-    "declaration": false,
+    "declaration": true,
     "newLine": "LF",
-    "outDir": "dist",
-    "allowJs": true
+    "outDir": "dist"
   },
   "include": [
     "src/**/*.ts",

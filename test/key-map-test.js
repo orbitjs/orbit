@@ -1,6 +1,6 @@
 import Schema from '../src/schema';
 import KeyMap from '../src/key-map';
-import { uuid } from '../src/lib/uuid';
+import { uuid } from '../src/utils/uuid';
 
 const { module, test } = QUnit;
 
@@ -53,24 +53,5 @@ module('KeyMap', function(hooks) {
 
     let missingId = keyMap.findIdForRecord({ type: 'planet', id: undefined, keys: { remoteId: 'b' } });
     assert.equal(missingId, undefined, 'returns undefined when id cannot be found');
-  });
-
-  test('#pushDocument', function(assert) {
-    let keyMap = new KeyMap(schema);
-
-    keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
-
-    keyMap.pushDocument({
-      planet: {
-        '2': { id: '2', keys: { remoteId: 'b' } }
-      },
-      moon: {
-        '3': { id: '3', keys: { remoteId: 'b' } }
-      }
-    });
-
-    assert.equal(keyMap.keyToId('planet', 'remoteId', 'a'), '1', 'old key remains');
-    assert.equal(keyMap.keyToId('planet', 'remoteId', 'b'), '2', 'new key on old type was registered');
-    assert.equal(keyMap.keyToId('moon', 'remoteId', 'b'), '3', 'new key on new type was registered');
   });
 });

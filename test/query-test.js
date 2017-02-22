@@ -1,5 +1,6 @@
 import Query from '../src/query';
-import { queryExpression as oqe } from '../src/query/expression';
+import { QueryTerm } from '../src/query-term';
+import { queryExpression as oqe } from '../src/query-expression';
 
 const { module, test } = QUnit;
 
@@ -16,26 +17,11 @@ module('Query', function() {
     assert.ok(query.id, 'query has an id');
   });
 
-  test('it is assigned an empty `sources`', function(assert) {
-    let query = new Query();
-    assert.deepEqual(query.sources, {}, 'query has empty sources');
-  });
-
   test('can be created from with all attributes specified as options', function(assert) {
     let expression = { op: 'foo' };
-    let options = {
-      id: 'abc123',
-      sources: {
-        jsonapi: {
-          include: 'bar'
-        }
-      }
-    };
+    let query = new Query(expression, 'abc123');
 
-    let query = new Query(expression, options);
-
-    assert.strictEqual(query.id, options.id, 'id was populated');
-    assert.strictEqual(query.sources, options.sources, 'sources was populated');
+    assert.strictEqual(query.id, 'abc123', 'id was populated');
     assert.deepEqual(query.expression, expression, 'expression was populated');
   });
 
@@ -46,24 +32,15 @@ module('Query', function() {
 
   test('.from will create a query from an expression passed into it', function(assert) {
     const expression = { op: 'foo' };
-    const options = { sources: { jsonapi: { include: 'bar' } } };
-    const query = Query.from(expression, options);
+    const query = Query.from(expression);
     assert.ok(query instanceof Query);
     assert.deepEqual(query.expression, expression, 'expression was populated');
-    assert.deepEqual(query.sources, options.sources, 'sources was populated');
   });
 
   test('.from should call toQueryExpression() if available', function(assert) {
     const expression = oqe('records', 'planet');
-    const options = { sources: { jsonapi: { include: 'bar' } } };
-    const queryFactory = {
-      toQueryExpression() {
-        return expression;
-      }
-    };
-
-    const query = Query.from(queryFactory, options);
+    const queryFactory = new QueryTerm(expression);
+    const query = Query.from(queryFactory);
     assert.deepEqual(query.expression, expression, 'expression was populated');
-    assert.deepEqual(query.sources, options.sources, 'sources was populated');
   });
 });

@@ -10,30 +10,18 @@ module('Transform', function() {
     assert.ok(transform);
   });
 
-  test('#isEmpty returns true if no operations have been added', function(assert) {
-    assert.expect(2);
-
-    let emptyTransform = new Transform();
-    assert.equal(emptyTransform.isEmpty(), true);
-
-    let fullTransform = new Transform([
-      { op: 'addRecord', record: { type: 'planet', id: '2' } }
-    ]);
-    assert.equal(fullTransform.isEmpty(), false);
-  });
-
   test('it is assigned an `id`', function(assert) {
     let transform = new Transform();
     assert.ok(transform.id, 'transform has an id');
   });
 
-  test('can be created from with all attributes specified as options', function(assert) {
-    let operations = [];
-    let options = { id: 'abc123' };
+  test('can be created from with operations and an id', function(assert) {
+    let operations = [{ op: 'addRecord' }];
+    let id = 'abc123';
 
-    let transform = new Transform(operations, options);
+    let transform = new Transform(operations, id);
 
-    assert.strictEqual(transform.id, options.id, 'id was populated');
+    assert.strictEqual(transform.id, id, 'id was populated');
     assert.deepEqual(transform.operations, operations, 'operations was populated');
   });
 

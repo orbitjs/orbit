@@ -1,6 +1,5 @@
 import Schema from '../src/schema';
-import { uuid } from '../src/lib/uuid';
-import { ModelNotRegisteredException } from '../src/lib/exceptions';
+import { uuid } from '../src/utils/uuid';
 
 const { module, test } = QUnit;
 
@@ -146,17 +145,6 @@ module('Schema', function() {
     assert.deepEqual(schema.modelDefinition('planet').attributes, planetDefinition.attributes);
   });
 
-  test('#modelDefinition throws an exception if a model is not registered', function(assert) {
-    const schema = new Schema({
-      models: {
-      }
-    });
-
-    assert.throws(function() {
-      schema.modelDefinition('planet');
-    }, ModelNotRegisteredException, 'threw a OC.ModelNotRegisteredException');
-  });
-
   test('#normalize initializes a record with a unique primary key', function(assert) {
     const schema = new Schema({
       models: {
@@ -170,20 +158,6 @@ module('Schema', function() {
     assert.ok(earth.id, 'id has been set');
     assert.ok(mars.id, 'id has been set');
     assert.notEqual(earth.id, mars.id, 'ids are unique');
-  });
-
-  test('#normalize throws a ModelNotRegisteredException error for missing models', function(assert) {
-    const schema = new Schema({
-      models: {
-        planet: {}
-      }
-    });
-
-    assert.expect(1);
-
-    assert.throws(function() {
-      schema.normalize({ type: 'not-planet' });
-    }, ModelNotRegisteredException, 'threw a OC.ModelNotRegisteredException');
   });
 
   test('#normalize initializes a record\'s attributes with any defaults that are specified with a value or function', function(assert) {

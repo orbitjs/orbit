@@ -1,5 +1,5 @@
 /* globals Promise */
-import { isArray } from '../../src/lib/objects';
+import { isArray } from '../../src/utils/objects';
 
 export function serializeOps(o) {
   return isArray(o) ? o.map(r => serializeOp(r)) : serializeOp(o);
