@@ -1,4 +1,4 @@
-# Orbit.js [![Build Status](https://secure.travis-ci.org/orbitjs/orbit-core.png?branch=master)](http://travis-ci.org/orbitjs/orbit-core) [![Join the chat at https://gitter.im/orbitjs/orbit.js](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/orbitjs/orbit.js?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# Orbit [![Build Status](https://secure.travis-ci.org/orbitjs/orbit.png?branch=master)](http://travis-ci.org/orbitjs/orbit) [![Join the chat at https://gitter.im/orbitjs/orbit.js](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/orbitjs/orbit.js?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Orbit is a library for coordinating access to data sources and keeping their
 contents synchronized.
@@ -28,15 +28,11 @@ caches, undo / redo stacks and ad hoc editing contexts.
 
 ## Installation
 
-Install with npm:
+Install Orbit's core package with npm:
 
 ```
-npm install orbit-core
+npm install @orbit/core
 ```
-
-The original source code is maintained in ES2015 modules in `/src`.
-
-AMD and CJS builds are in `/dist`.
 
 ## Dependencies
 
@@ -53,7 +49,7 @@ implementation, configure your promise library's `Promise` constructor as
 follows:
 
 ```javascript
-import Orbit from 'orbit';
+import Orbit from '@orbit/core';
 import RSVP from 'rsvp';
 
 Orbit.Promise = RSVP.Promise;
@@ -61,15 +57,12 @@ Orbit.Promise = RSVP.Promise;
 
 ## Contributing
 
+Orbit's main packages are maintained in this "mono-repo" and managed by
+[lerna](https://lernajs.io).
+
 ### Installation
 
-Install the CLI for [Broccoli](https://github.com/broccolijs/broccoli) globally:
-
-```
-npm install -g broccoli-cli
-```
-
-Install other dependencies:
+Install dependencies for the main repo and its packages:
 
 ```
 npm install
@@ -77,7 +70,7 @@ npm install
 
 ### Building
 
-Distributions can be built to the `/dist` directory by running:
+Build distributions for all packages:
 
 ```
 npm run build
@@ -85,41 +78,17 @@ npm run build
 
 ### Testing
 
-#### CI Testing
-
-Test in CI mode by running:
+Test all packages:
 
 ```
 npm test
 ```
 
-Or directly with testem (useful for configuring options):
+Or `cd` into each package's dir and test it individually in the browser:
 
 ```
-testem ci
-```
-
-#### Browser Testing
-
-Test within a browser
-(at [http://localhost:4200/tests/](http://localhost:4200/tests/)) by running:
-
-```
-npm start
-```
-
-Or directly with `broccoli` (useful for configuring the port, etc.):
-
-```
-broccoli serve
-```
-
-### Generating Documentation
-
-Generate docs in the `/docs` directory:
-
-```
-npm run docs
+cd packages/@orbit/core
+testem
 ```
 
 ## License

@@ -1,29 +1,24 @@
 {
-  "name": "orbit-core",
-  "version": "0.8.0-beta.11",
-  "description": "Core library for Orbit.js, a flexible data access and synchronization layer.",
+  "name": "@orbit/orbit",
+  "private": true,
+  "description": "Core library for Orbit - a flexible data access and synchronization layer.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
   ],
   "keywords": [
+    "orbit",
     "orbit.js",
     "data",
     "synchronization"
   ],
-  "repository": "https://github.com/orbitjs/orbit-core",
+  "repository": "https://github.com/orbitjs/orbit",
   "license": "MIT",
-  "main": "dist/commonjs/es5/index.js",
-  "module": "dist/modules/es2017/index.js",
-  "types": "dist/types/index.d.ts",
   "scripts": {
-    "build": "rm -rf dist && BROCCOLI_ENV=dist broccoli build dist",
-    "build:tests": "rm -rf tests && BROCCOLI_ENV=tests broccoli build tests",
-    "preversion": "rm -rf dist && BROCCOLI_ENV=dist broccoli build dist",
-    "test": "testem ci",
-    "docs": "yuidoc ./src"
+    "postinstall": "lerna bootstrap",
+    "build": "lerna run build",
+    "test": "lerna run test"
   },
   "devDependencies": {
-    "@glimmer/build": "^0.2.1",
-    "yuidocjs": "^0.8.1"
+    "lerna": "2.0.0-beta.37"
   }
 }
