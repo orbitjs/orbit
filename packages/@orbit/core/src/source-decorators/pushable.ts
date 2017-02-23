@@ -1,6 +1,5 @@
 import Orbit from '../main';
-import { assert } from '../utils/assert';
-import { extend } from '../utils/objects';
+import { assert } from '@orbit/utils';
 import { settleInSeries, fulfillInSeries } from '../evented';
 import Source from '../source';
 import Transform from '../transform';
@@ -8,7 +7,7 @@ import Transform from '../transform';
 export const PUSHABLE = '__pushable__';
 
 export function isPushable(obj: any) {
-  return !!obj[PUSHABLE];  
+  return !!obj[PUSHABLE];
 }
 
 export interface Pushable {

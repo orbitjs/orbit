@@ -1,6 +1,5 @@
 import Orbit from '../main';
-import { assert } from '../utils/assert';
-import { extend } from '../utils/objects';
+import { assert } from '@orbit/utils';
 import { settleInSeries, fulfillInSeries } from '../evented';
 import { Operation } from '../operation';
 import Transform from '../transform';
@@ -9,7 +8,7 @@ import Source from '../source';
 export const UPDATABLE = '__updatable__';
 
 export function isUpdatable(obj: any) {
-  return !!obj[UPDATABLE];  
+  return !!obj[UPDATABLE];
 }
 
 export interface Updatable {

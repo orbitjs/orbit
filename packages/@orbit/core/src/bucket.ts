@@ -1,6 +1,6 @@
 import Orbit from './main';
 import evented, { Evented } from './evented';
-import { assert } from './utils/assert';
+import { assert } from '@orbit/utils';
 
 export interface BucketSettings {
   namespace?: string;

@@ -1,7 +1,4 @@
-import { get, set } from './utils/objects';
-import { firstResult } from './utils/arrays';
-import { assert } from './utils/assert';
-import { Dict } from './utils/dict';
+import { assert, get, set, firstResult, Dict } from '@orbit/utils';
 import { Record } from './record';
 
 export default class KeyMap {

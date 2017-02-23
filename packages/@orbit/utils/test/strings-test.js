@@ -1,4 +1,4 @@
-import { capitalize, camelize, decamelize, dasherize, underscore } from '../../src/utils/strings';
+import { capitalize, camelize, decamelize, dasherize, underscore } from '../src/strings';
 
 const { module, test } = QUnit;
 

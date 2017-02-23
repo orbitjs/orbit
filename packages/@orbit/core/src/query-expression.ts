@@ -1,11 +1,11 @@
-import { isObject } from './utils/objects';
+import { isObject } from '@orbit/utils';
 
 export const QUERY_EXPRESSION = '__oqe__';
 
 export interface QueryExpression {
   __oqe__: true;
   op: string;
-  args: any[];  
+  args: any[];
 }
 
 export function queryExpression(op: string, ...args: any[]): QueryExpression {

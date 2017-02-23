@@ -1,4 +1,4 @@
-import { isObject } from './utils/objects';
+import { isObject } from '@orbit/utils';
 import { queryExpression as oqe, QueryExpression } from './query-expression';
 
 export class QueryTerm {

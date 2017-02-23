@@ -1,5 +1,5 @@
 import { isQueryExpression, QueryExpression } from './query-expression';
-import { Dict } from './utils/dict';
+import { Dict } from '@orbit/utils';
 
 export interface QueryOperator {
   (context: any, ...expression: any[]): any;

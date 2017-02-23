@@ -1,5 +1,4 @@
-import { isObject, isNone } from './utils/objects';
-import { Dict } from './utils/dict';
+import { Dict, isObject, isNone } from '@orbit/utils';
 
 export interface RecordIdentity {
   type: string;

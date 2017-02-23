@@ -1,5 +1,5 @@
 import { Record, RecordIdentity, cloneRecordIdentity, equalRecordIdentities, serializeRecordIdentity } from './record';
-import { eq } from './utils/eq';
+import { eq } from '@orbit/utils';
 
 export interface Operation {
   op: string;
@@ -127,16 +127,16 @@ function mergeOps(superceded: RecordOperation, superceding: RecordOperation, con
       }
     } else if (!isOperationMarkedToDelete(superceding) && (consecutiveOps || superceding.op === 'replaceAttribute')) {
       if (isReplaceFieldOp(superceded.op) && isReplaceFieldOp(superceding.op)) {
-        if (superceded.op === 'replaceAttribute' && 
-            superceding.op === 'replaceAttribute' && 
+        if (superceded.op === 'replaceAttribute' &&
+            superceding.op === 'replaceAttribute' &&
             superceded.attribute === superceding.attribute) {
           markOperationToDelete(superceded);
-        } else if (superceded.op === 'replaceHasOne' && 
-            superceding.op === 'replaceHasOne' && 
+        } else if (superceded.op === 'replaceHasOne' &&
+            superceding.op === 'replaceHasOne' &&
             superceded.relationship === superceding.relationship) {
           markOperationToDelete(superceded);
-        } else if (superceded.op === 'replaceHasMany' && 
-            superceding.op === 'replaceHasMany' && 
+        } else if (superceded.op === 'replaceHasMany' &&
+            superceding.op === 'replaceHasMany' &&
             superceded.relationship === superceding.relationship) {
           markOperationToDelete(superceded);
         } else {
@@ -288,7 +288,7 @@ export function recordDiffs(record: Record, updatedRecord: Record): RecordOperat
             attribute,
             value
           }
-          
+
           diffs.push(op);
         }
       });

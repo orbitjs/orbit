@@ -5,7 +5,7 @@ import Schema from './schema';
 import Transform from './transform';
 import TransformLog from './transform-log';
 import ActionQueue from './action-queue';
-import { assert } from './utils/assert';
+import { assert } from '@orbit/utils';
 
 /**
  Base class for sources.
@@ -25,7 +25,7 @@ export default class Source implements Evented {
   private _transformLog: TransformLog;
   private _requestQueue: ActionQueue;
   private _syncQueue: ActionQueue;
-  
+
   // Evented interface stubs
   on: (event: string, callback: () => void, binding?: any) => void;
   off: (event: string, callback: () => void, binding?: any) => void;
@@ -64,7 +64,7 @@ export default class Source implements Evented {
   }
 
   get syncQueue(): ActionQueue {
-    return this._syncQueue; 
+    return this._syncQueue;
   }
 
   /////////////////////////////////////////////////////////////////////////////

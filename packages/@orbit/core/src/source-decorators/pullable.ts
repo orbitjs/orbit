@@ -1,5 +1,4 @@
-import { assert } from '../utils/assert';
-import { extend } from '../utils/objects';
+import { assert } from '@orbit/utils';
 import { settleInSeries, fulfillInSeries } from '../evented';
 import Source from '../source';
 import Query from '../query';
@@ -8,7 +7,7 @@ import Transform from '../transform';
 export const PULLABLE = '__pullable__';
 
 export function isPullable(obj: any) {
-  return !!obj[PULLABLE];  
+  return !!obj[PULLABLE];
 }
 
 export interface Pullable {
