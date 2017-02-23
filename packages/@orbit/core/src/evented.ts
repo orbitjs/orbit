@@ -1,7 +1,6 @@
 import Orbit from './main';
 import Notifier from './notifier';
-import { assert } from './utils/assert';
-import { extend } from './utils/objects';
+import { assert } from '@orbit/utils';
 
 declare const console: any;
 
@@ -14,7 +13,7 @@ declare const console: any;
 
  ```javascript
  import evented from 'orbit-core/evented';
- 
+
  @evented
  class Source {}
  ```

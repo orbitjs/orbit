@@ -1,5 +1,4 @@
-import { assert } from '../utils/assert';
-import { extend } from '../utils/objects';
+import { assert } from '@orbit/utils';
 import { settleInSeries, fulfillInSeries } from '../evented';
 import Query from '../query';
 import Source from '../source';
@@ -7,7 +6,7 @@ import Source from '../source';
 export const QUERYABLE = '__queryable__';
 
 export function isQueryable(obj: any) {
-  return !!obj[QUERYABLE];  
+  return !!obj[QUERYABLE];
 }
 
 export interface Queryable {

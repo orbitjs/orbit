@@ -1,8 +1,7 @@
 import Orbit from './main';
 import Source from './source';
 import Transform from './transform';
-import { Dict } from './utils/dict';
-import { assert } from './utils/assert';
+import { Dict, assert } from '@orbit/utils';
 
 export default class Coordinator {
   private _active: boolean;

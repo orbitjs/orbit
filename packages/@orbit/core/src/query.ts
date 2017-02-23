@@ -1,4 +1,4 @@
-import { uuid } from './utils/uuid';
+import { uuid } from '@orbit/utils';
 import { QueryExpression, isQueryExpression } from './query-expression';
 import { QueryTerm } from './query-term';
 

@@ -1,13 +1,12 @@
 import Orbit from '../main';
-import { assert } from '../utils/assert';
-import { extend, isArray } from '../utils/objects';
+import { assert, isArray } from '@orbit/utils';
 import Source from '../source';
 import Transform from '../transform';
 
 export const SYNCABLE = '__syncable__';
 
 export function isSyncable(obj: any) {
-  return !!obj[SYNCABLE];  
+  return !!obj[SYNCABLE];
 }
 
 export interface Syncable {
