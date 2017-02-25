@@ -15,7 +15,7 @@ export { QueryTerm } from './query-term';
 export { default as Query } from './query';
 export * from './record';
 export { default as Schema, AttributeDefinition, RelationshipDefinition, KeyDefinition, IdDefinition, ModelDefinition, SchemaSettings, isRecordNormalized } from './schema';
-export { default as Source } from './source';
+export { default as Source, SourceOptions } from './source';
 export { default as TransformLog } from './transform-log';
 export { default as Transform } from './transform';
 export { default as pullable, Pullable, isPullable } from './source-decorators/pullable';

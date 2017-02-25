@@ -1,11 +1,17 @@
 import Orbit from './main';
 import evented, { Evented, settleInSeries } from './evented';
 import Bucket from './bucket';
+import KeyMap from './key-map';
 import Schema from './schema';
 import Transform from './transform';
 import TransformLog from './transform-log';
 import ActionQueue from './action-queue';
 import { assert } from '@orbit/utils';
+
+export interface SourceOptions {
+  keyMap?: KeyMap;
+  bucket?: Bucket;
+}
 
 /**
  Base class for sources.
@@ -21,6 +27,7 @@ import { assert } from '@orbit/utils';
 export default class Source implements Evented {
   private _name: string;
   private _bucket: Bucket;
+  private _keyMap: KeyMap;
   private _schema: Schema;
   private _transformLog: TransformLog;
   private _requestQueue: ActionQueue;
@@ -33,10 +40,11 @@ export default class Source implements Evented {
   emit: (event: string, ...args) => void;
   listeners: (event: string) => any[];
 
-  constructor(name: string, schema: Schema, bucket?: Bucket) {
+  constructor(name: string, schema: Schema, options: SourceOptions = {}) {
     this._name = name;
     this._schema = schema;
-    this._bucket = bucket;
+    this._keyMap = options.keyMap;
+    const bucket = this._bucket = options.bucket;
 
     this._transformLog = new TransformLog(`${name}-log`, null, bucket);
     this._requestQueue = new ActionQueue(`${name}-requests`, this, bucket);
@@ -47,12 +55,16 @@ export default class Source implements Evented {
     return this._name;
   }
 
-  get bucket(): Bucket {
-    return this._bucket;
-  }
-
   get schema(): Schema {
     return this._schema;
+  }
+
+  get keyMap(): KeyMap {
+    return this._keyMap;
+  }
+
+  get bucket(): Bucket {
+    return this._bucket;
   }
 
   get transformLog(): TransformLog {
