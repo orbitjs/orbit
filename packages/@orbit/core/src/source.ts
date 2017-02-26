@@ -25,13 +25,13 @@ export interface SourceOptions {
  */
 @evented
 export default class Source implements Evented {
-  private _name: string;
-  private _bucket: Bucket;
-  private _keyMap: KeyMap;
-  private _schema: Schema;
-  private _transformLog: TransformLog;
-  private _requestQueue: ActionQueue;
-  private _syncQueue: ActionQueue;
+  protected _name: string;
+  protected _bucket: Bucket;
+  protected _keyMap: KeyMap;
+  protected _schema: Schema;
+  protected _transformLog: TransformLog;
+  protected _requestQueue: ActionQueue;
+  protected _syncQueue: ActionQueue;
 
   // Evented interface stubs
   on: (event: string, callback: () => void, binding?: any) => void;
