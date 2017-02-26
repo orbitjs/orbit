@@ -28,7 +28,7 @@ export interface RemoveRecordOperation extends Operation {
   record: RecordIdentity;
 }
 
-export function removeRecord(record: Record): RemoveRecordOperation {
+export function removeRecord(record: RecordIdentity): RemoveRecordOperation {
   return { op: 'removeRecord', record};
 }
 
@@ -39,7 +39,7 @@ export interface ReplaceKeyOperation extends Operation {
   value: string;
 }
 
-export function replaceKey(record: Record, key: string, value: string): ReplaceKeyOperation {
+export function replaceKey(record: RecordIdentity, key: string, value: string): ReplaceKeyOperation {
   return { op: 'replaceKey', record, key, value };
 }
 
@@ -50,7 +50,7 @@ export interface ReplaceAttributeOperation extends Operation {
   value: any;
 }
 
-export function replaceAttribute(record: Record, attribute: string, value: any): ReplaceAttributeOperation {
+export function replaceAttribute(record: RecordIdentity, attribute: string, value: any): ReplaceAttributeOperation {
   return { op: 'replaceAttribute', record, attribute, value };
 }
 
@@ -61,7 +61,7 @@ export interface AddToHasManyOperation extends Operation {
   relatedRecord: RecordIdentity;
 }
 
-export function addToHasMany(record: Record, relationship: string, relatedRecord: RecordIdentity): AddToHasManyOperation {
+export function addToHasMany(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): AddToHasManyOperation {
   return { op: 'addToHasMany', record, relationship, relatedRecord };
 }
 
@@ -72,7 +72,7 @@ export interface RemoveFromHasManyOperation extends Operation {
   relatedRecord: RecordIdentity;
 }
 
-export function removeFromHasMany(record: Record, relationship: string, relatedRecord: RecordIdentity): RemoveFromHasManyOperation {
+export function removeFromHasMany(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): RemoveFromHasManyOperation {
   return { op: 'removeFromHasMany', record, relationship, relatedRecord };
 }
 
@@ -83,7 +83,7 @@ export interface ReplaceHasManyOperation extends Operation {
   relatedRecords: RecordIdentity[];
 }
 
-export function replaceHasMany(record: Record, relationship: string, relatedRecords: RecordIdentity[]): ReplaceHasManyOperation {
+export function replaceHasMany(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]): ReplaceHasManyOperation {
   return { op: 'replaceHasMany', record, relationship, relatedRecords };
 }
 
@@ -94,7 +94,7 @@ export interface ReplaceHasOneOperation extends Operation {
   relatedRecord: RecordIdentity;
 }
 
-export function replaceHasOne(record: Record, relationship: string, relatedRecord: RecordIdentity): ReplaceHasOneOperation {
+export function replaceHasOne(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): ReplaceHasOneOperation {
   return { op: 'replaceHasOne', record, relationship, relatedRecord };
 }
 
