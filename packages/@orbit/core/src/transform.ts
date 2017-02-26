@@ -2,6 +2,8 @@
 import { Operation } from './operation';
 import { toArray, uuid } from '@orbit/utils';
 
+export type TransformOrOperations = Transform | Operation[];
+
 /**
  Transforms represent a set of operations that are applied to mutate a
  source.
@@ -22,7 +24,7 @@ export default class Transform {
     this.id = id;
   }
 
-  static from(transformOrOperations: Transform | Operation[], id?: string): Transform {
+  static from(transformOrOperations: TransformOrOperations, id?: string): Transform {
     if (transformOrOperations instanceof Transform) {
       return transformOrOperations;
     } else {
