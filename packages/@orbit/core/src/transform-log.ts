@@ -85,8 +85,11 @@ export default class TransformLog implements Evented {
   }
 
   truncate(transformId: string, relativePosition: number = 0): Promise<void> {
+    let removed: string[];
+
     return this.reified
       .then(() => {
+  
         const index = this._data.indexOf(transformId);
         if (index === -1) {
           throw new TransformNotLoggedException(transformId);
@@ -98,19 +101,23 @@ export default class TransformLog implements Evented {
         }
 
         if (position === this._data.length) {
+          removed = this._data;
           this._data = [];
         } else {
+          removed = this._data.slice(0, position);
           this._data = this._data.slice(position);
         }
 
         return this._persist();
       })
       .then(() => {
-        this.emit('truncate', transformId, relativePosition);
+        this.emit('truncate', transformId, relativePosition, removed);
       });
   }
 
   rollback(transformId: string, relativePosition: number = 0): Promise<void> {
+    let removed: string[];
+
     return this.reified
       .then(() => {
         const index = this._data.indexOf(transformId);
@@ -123,24 +130,26 @@ export default class TransformLog implements Evented {
           throw new OutOfRangeException(position);
         }
 
+        removed = this._data.slice(position);
         this._data = this._data.slice(0, position);
 
         return this._persist();
       })
       .then(() => {
-        this.emit('rollback', transformId, relativePosition);
+        this.emit('rollback', transformId, relativePosition, removed);
       });
   }
 
   clear(): Promise<void> {
-    let data;
+    let clearedData;
 
     return this.reified
       .then(() => {
+        clearedData = this._data;
         this._data = [];
         return this._persist();
       })
-      .then(() => this.emit('clear', data));
+      .then(() => this.emit('clear', clearedData));
   }
 
   contains(transformId: string): boolean {

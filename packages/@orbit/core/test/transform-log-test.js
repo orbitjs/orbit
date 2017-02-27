@@ -121,8 +121,8 @@ module('TransformLog', function() {
     test('#clear', function(assert) {
       assert.expect(2);
 
-      log.on('clear', () => {
-        assert.ok(true, 'clear event emitted');
+      log.on('clear', (removed) => {
+        assert.deepEqual(removed, [transformAId, transformBId, transformCId], 'clear event emitted');
       });
 
       return log.clear()
@@ -132,11 +132,12 @@ module('TransformLog', function() {
     });
 
     test('#truncate', function(assert) {
-      assert.expect(3);
+      assert.expect(4);
 
-      log.on('truncate', (transformId, relativePosition) => {
+      log.on('truncate', (transformId, relativePosition, removed) => {
         assert.strictEqual(transformId, transformBId, 'truncate event emits transform');
         assert.strictEqual(relativePosition, 0, 'truncate event emits relativePosition');
+        assert.deepEqual(removed, [transformAId], 'truncate event emits removed transforms');
       });
 
       return log.truncate(transformBId)
@@ -181,11 +182,12 @@ module('TransformLog', function() {
     });
 
     test('#rollback', function(assert) {
-      assert.expect(3);
+      assert.expect(4);
 
-      log.on('rollback', (transformId, relativePosition) => {
+      log.on('rollback', (transformId, relativePosition, removed) => {
         assert.strictEqual(transformId, transformAId, 'rollback event emits transform');
         assert.strictEqual(relativePosition, 0, 'rollback event emits relativePosition');
+        assert.deepEqual(removed, [transformBId, transformCId], 'rollback event emits removed transforms');
       });
 
       return log.rollback(transformAId)
