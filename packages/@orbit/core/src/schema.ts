@@ -13,6 +13,7 @@ export interface RelationshipDefinition {
   model?: string;
   inverse?: string;
   defaultValue?: any;
+  dependent?: 'remove';
 }
 
 export interface KeyDefinition {
