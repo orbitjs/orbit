@@ -9,6 +9,8 @@ import ActionQueue from './action-queue';
 import { assert } from '@orbit/utils';
 
 export interface SourceOptions {
+  name?: string;
+  schema?: Schema;
   keyMap?: KeyMap;
   bucket?: Bucket;
 }
@@ -40,15 +42,19 @@ export default class Source implements Evented {
   emit: (event: string, ...args) => void;
   listeners: (event: string) => any[];
 
-  constructor(name: string, schema: Schema, options: SourceOptions = {}) {
-    this._name = name;
-    this._schema = schema;
+  constructor(options: SourceOptions = {}) {
+    this._schema = options.schema;
     this._keyMap = options.keyMap;
+    const name = this._name = options.name;
     const bucket = this._bucket = options.bucket;
 
-    this._transformLog = new TransformLog({ name: `${name}-log`, bucket });
-    this._requestQueue = new ActionQueue(this, { name: `${name}-requests`, bucket });
-    this._syncQueue = new ActionQueue(this, { name: `${name}-sync`, bucket });
+    if (bucket) {
+      assert('TransformLog requires a name if it has a bucket', !!name);
+    }
+
+    this._transformLog = new TransformLog({ name: name ? `${name}-log` : undefined, bucket });
+    this._requestQueue = new ActionQueue(this, { name: name ? `${name}-requests` : undefined, bucket });
+    this._syncQueue = new ActionQueue(this, { name: name ? `${name}-sync` : undefined, bucket });
   }
 
   get name(): string {
