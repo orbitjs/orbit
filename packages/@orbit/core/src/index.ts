@@ -1,5 +1,5 @@
 export { default } from './main';
-export { default as ActionQueue } from './action-queue';
+export { default as ActionQueue, ActionQueueOptions } from './action-queue';
 export { default as Action, ActionOptions, SerializedAction } from './action';
 export { default as Bucket, BucketSettings } from './bucket';
 export { default as Coordinator } from './coordinator';

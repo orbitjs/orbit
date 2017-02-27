@@ -47,8 +47,8 @@ export default class Source implements Evented {
     const bucket = this._bucket = options.bucket;
 
     this._transformLog = new TransformLog({ name: `${name}-log`, bucket });
-    this._requestQueue = new ActionQueue(`${name}-requests`, this, bucket);
-    this._syncQueue = new ActionQueue(`${name}-sync`, this, bucket);
+    this._requestQueue = new ActionQueue(this, { name: `${name}-requests`, bucket });
+    this._syncQueue = new ActionQueue(this, { name: `${name}-sync`, bucket });
   }
 
   get name(): string {
