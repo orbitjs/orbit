@@ -46,7 +46,7 @@ export default class Source implements Evented {
     this._keyMap = options.keyMap;
     const bucket = this._bucket = options.bucket;
 
-    this._transformLog = new TransformLog(`${name}-log`, null, bucket);
+    this._transformLog = new TransformLog({ name: `${name}-log`, bucket });
     this._requestQueue = new ActionQueue(`${name}-requests`, this, bucket);
     this._syncQueue = new ActionQueue(`${name}-sync`, this, bucket);
   }

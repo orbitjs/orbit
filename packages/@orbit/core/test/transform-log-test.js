@@ -18,7 +18,7 @@ module('TransformLog', function() {
   });
 
   test('can be instantiated with a name and array of ids', function(assert) {
-    log = new TransformLog('log1', ['a', 'b']);
+    log = new TransformLog({ name: 'log1', data: ['a', 'b'] });
     assert.ok(log, 'log instantiated');
     assert.equal(log.length, 2, 'log has expected data');
   });
@@ -251,11 +251,20 @@ module('TransformLog', function() {
       bucket = null;
     });
 
+    test('requires a name for lookups in the bucket', function(assert) {
+      assert.throws(
+        function() {
+          let log = new TransformLog({ bucket });
+        },
+        Error('Assertion failed: TransformLog requires a name if it has a bucket'),
+        'assertion raised');
+    });
+
     test('will be reified from data in the bucket', function(assert) {
       assert.expect(1);
       return bucket.setItem('log', [transformAId, transformBId])
         .then(() => {
-          log = new TransformLog('log', null, bucket);
+          log = new TransformLog({ name: 'log', bucket });
           return log.reified;
         })
         .then(() => {
@@ -265,7 +274,7 @@ module('TransformLog', function() {
 
     test('#append - changes appended to the log are persisted to its bucket', function(assert) {
       assert.expect(2);
-      log = new TransformLog('log', null, bucket);
+      log = new TransformLog({ name: 'log', bucket });
 
       return log.append(transformAId, transformBId)
         .then(() => {
@@ -279,7 +288,7 @@ module('TransformLog', function() {
 
     test('#truncate - truncations to the log are persisted to its bucket', function(assert) {
       assert.expect(2);
-      log = new TransformLog('log', null, bucket);
+      log = new TransformLog({ name: 'log', bucket });
 
       return log.append(transformAId, transformBId, transformCId)
         .then(() => log.truncate(log.head))
@@ -294,7 +303,7 @@ module('TransformLog', function() {
 
     test('#rollback - when the log is rolled back, it is persisted to its bucket', function(assert) {
       assert.expect(2);
-      log = new TransformLog('log', null, bucket);
+      log = new TransformLog({ name: 'log', bucket });
 
       return log.append(transformAId, transformBId, transformCId)
         .then(() => log.rollback(transformBId))
@@ -309,7 +318,7 @@ module('TransformLog', function() {
 
     test('#clear - when the log is cleared, it is persisted to its bucket', function(assert) {
       assert.expect(2);
-      log = new TransformLog('log', null, bucket);
+      log = new TransformLog({ name: 'log', bucket });
 
       return log.append(transformAId, transformBId, transformCId)
         .then(() => log.clear())

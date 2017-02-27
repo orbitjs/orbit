@@ -1,8 +1,15 @@
+import { assert } from '@orbit/utils';
 import Orbit from './main';
 import evented, { Evented } from './evented';
 import Bucket from './bucket';
 import Transform from './transform';
 import { TransformNotLoggedException, OutOfRangeException } from './exception';
+
+export interface TransformLogOptions {
+  name?: string;
+  data?: string[];
+  bucket?: Bucket;
+}
 
 @evented
 export default class TransformLog implements Evented {
@@ -19,10 +26,15 @@ export default class TransformLog implements Evented {
   emit: (event: string, ...args) => void;
   listeners: (event: string) => any[];
 
-  constructor(name?: string, data?: string[], bucket?: Bucket) {
-    this._name = name;
-    this._bucket = bucket;
-    this._reify(data);
+  constructor(options: TransformLogOptions = {}) {
+    this._name = options.name;
+    this._bucket = options.bucket;
+
+    if (this._bucket) {
+      assert('TransformLog requires a name if it has a bucket', !!this._name);
+    }
+
+    this._reify(options.data);
   }
 
   get name(): string {
