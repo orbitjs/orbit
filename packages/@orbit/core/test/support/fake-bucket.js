@@ -1,5 +1,5 @@
 import Orbit from '../../src';
-import Bucket from '../../src/bucket';
+import { Bucket } from '../../src/bucket';
 
 /**
  * A simple implementation of a Bucket that saves values to an in-memory

@@ -3,7 +3,7 @@ import { assert } from '@orbit/utils';
 import { settleInSeries, fulfillInSeries } from '../evented';
 import { Operation } from '../operation';
 import Transform, { TransformOrOperations } from '../transform';
-import Source from '../source';
+import { Source } from '../source';
 
 export const UPDATABLE = '__updatable__';
 

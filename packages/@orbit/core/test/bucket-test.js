@@ -1,21 +1,26 @@
-import Bucket from '../src/bucket';
+import { Bucket } from '../src/bucket';
 
 const { module, test } = QUnit;
 
 module('Bucket', function() {
+  // Extend Bucket because it's an abstract class
+  class MyBucket extends Bucket {
+    constructor(settings = {}) { super(settings); }
+  }
+
   test('can be instantiated', function(assert) {
-    let bucket = new Bucket();
+    let bucket = new MyBucket();
     assert.ok(bucket, 'bucket exists');
   });
 
   test('has a default namespace and version', function(assert) {
-    let bucket = new Bucket();
+    let bucket = new MyBucket();
     assert.equal(bucket.namespace, 'orbit-bucket', 'default namespace');
     assert.equal(bucket.version, 1, 'default version');
   });
 
   test('can be instantiated with a name, namespace, and version', function(assert) {
-    let bucket = new Bucket({
+    let bucket = new MyBucket({
       name: 'my-bucket',
       namespace: 'app-settings',
       version: 1
@@ -30,7 +35,7 @@ module('Bucket', function() {
 
     assert.expect(5);
 
-    let bucket = new Bucket({
+    let bucket = new MyBucket({
       name: 'my-bucket',
       namespace: 'ns1',
       version: 1

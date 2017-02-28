@@ -1,4 +1,4 @@
-import Source from '../../src/source';
+import { Source } from '../../src/source';
 import pushable, { isPushable } from '../../src/source-decorators/pushable';
 import Transform from '../../src/transform';
 import { Promise } from 'rsvp';
@@ -11,7 +11,9 @@ module('@pushable', function(hooks) {
 
   hooks.beforeEach(function() {
     @pushable
-    class MySource extends Source {}
+    class MySource extends Source {
+      constructor() { super(); }
+    }
 
     source = new MySource({ name: 'src1' });
   });

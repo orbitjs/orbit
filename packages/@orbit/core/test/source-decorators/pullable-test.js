@@ -1,4 +1,4 @@
-import Source from '../../src/source';
+import { Source } from '../../src/source';
 import pullable, { isPullable } from '../../src/source-decorators/pullable';
 import Transform from '../../src/transform';
 import Query from '../../src/query';
@@ -12,7 +12,9 @@ module('@pullable', function(hooks) {
 
   hooks.beforeEach(function() {
     @pullable
-    class MySource extends Source {}
+    class MySource extends Source {
+      constructor() { super(); }
+    }
 
     source = new MySource({ name: 'src1' });
   });

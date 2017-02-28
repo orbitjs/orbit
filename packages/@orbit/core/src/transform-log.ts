@@ -1,7 +1,7 @@
 import { assert } from '@orbit/utils';
 import Orbit from './main';
 import evented, { Evented } from './evented';
-import Bucket from './bucket';
+import { Bucket } from './bucket';
 import Transform from './transform';
 import { TransformNotLoggedException, OutOfRangeException } from './exception';
 

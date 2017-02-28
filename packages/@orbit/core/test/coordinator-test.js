@@ -1,4 +1,4 @@
-import Source from '../src/source';
+import { Source } from '../src/source';
 import Coordinator from '../src/coordinator';
 import Transform from '../src/transform';
 import { all } from 'rsvp';

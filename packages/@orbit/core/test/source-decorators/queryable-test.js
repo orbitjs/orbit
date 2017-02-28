@@ -1,5 +1,5 @@
 import queryable, { isQueryable } from '../../src/source-decorators/queryable';
-import Source from '../../src/source';
+import { Source } from '../../src/source';
 import Query from '../../src/query';
 import { Promise } from 'rsvp';
 import { successfulOperation, failedOperation } from '../test-helper';
@@ -11,7 +11,9 @@ module('@queryable', function(hooks) {
 
   hooks.beforeEach(function() {
     @queryable
-    class MySource extends Source {}
+    class MySource extends Source {
+      constructor() { super(); }
+    }
 
     source = new MySource({ name: 'src1' });
   });

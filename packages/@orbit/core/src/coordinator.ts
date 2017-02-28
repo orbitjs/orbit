@@ -1,5 +1,5 @@
 import Orbit from './main';
-import Source from './source';
+import { Source } from './source';
 import Transform from './transform';
 import { Dict, assert } from '@orbit/utils';
 
