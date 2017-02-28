@@ -14,7 +14,7 @@ export default class QueryEvaluator {
     this.operators = operators;
   }
 
-  evaluate(expression: QueryExpression, context = {}): any {
+  evaluate(expression: QueryExpression, context: object = {}): any {
     if (isQueryExpression(expression)) {
       let operator = this.operators[expression.op];
       if (!operator) {

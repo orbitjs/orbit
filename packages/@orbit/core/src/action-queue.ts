@@ -5,6 +5,12 @@ import Bucket from './bucket';
 import evented, { Evented } from './evented';
 import { assert } from '@orbit/utils';
 
+export interface ActionQueueOptions {
+  name?: string;
+  bucket?: Bucket;
+  autoProcess?: boolean;
+}
+
 /**
  `ActionQueue` is a FIFO queue of actions that should be performed sequentially.
 
@@ -63,13 +69,18 @@ export default class ActionQueue implements Evented {
   emit: (event: string, ...args) => void;
   listeners: (event: string) => any[];
 
-  constructor(name: string, target: any, bucket?: Bucket, autoProcess: boolean = true) {
+  constructor(target: object, options: ActionQueueOptions = {}) {
     assert('ActionQueue requires Orbit.Promise to be defined', Orbit.Promise);
 
-    this._name = name;
     this._target = target;
-    this._bucket = bucket;
-    this.autoProcess = autoProcess;
+    this._name = options.name;
+    this._bucket = options.bucket;
+    this.autoProcess = options.autoProcess === undefined ? true : options.autoProcess;
+
+    if (this._bucket) {
+      assert('ActionQueue requires a name if it has a bucket', !!this._name);
+    }
+    
     this._reify()
       .then(() => {
         if (this.length > 0 && this.autoProcess) {

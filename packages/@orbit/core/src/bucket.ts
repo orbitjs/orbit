@@ -3,6 +3,7 @@ import evented, { Evented } from './evented';
 import { assert } from '@orbit/utils';
 
 export interface BucketSettings {
+  name?: string;
   namespace?: string;
   version?: number;
 }
@@ -25,9 +26,7 @@ export default class Bucket implements Evented {
   emit: (event: string, ...args) => void;
   listeners: (event: string) => any[];
 
-  constructor(name: string, settings: BucketSettings = {}) {
-    this._name = name;
-
+  constructor(settings: BucketSettings = {}) {
     if (settings.version === undefined) {
       settings.version = 1;
     }
@@ -81,6 +80,9 @@ export default class Bucket implements Evented {
    * @return {Promise}                    Promise that resolves when settings have been applied.
    */
   _applySettings(settings: BucketSettings): Promise<void> {
+    if (settings.name) {
+      this._name = settings.name;
+    }
     if (settings.namespace) {
       this._namespace = settings.namespace;
     }

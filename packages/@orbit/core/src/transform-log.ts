@@ -1,8 +1,15 @@
+import { assert } from '@orbit/utils';
 import Orbit from './main';
 import evented, { Evented } from './evented';
 import Bucket from './bucket';
 import Transform from './transform';
 import { TransformNotLoggedException, OutOfRangeException } from './exception';
+
+export interface TransformLogOptions {
+  name?: string;
+  data?: string[];
+  bucket?: Bucket;
+}
 
 @evented
 export default class TransformLog implements Evented {
@@ -19,10 +26,15 @@ export default class TransformLog implements Evented {
   emit: (event: string, ...args) => void;
   listeners: (event: string) => any[];
 
-  constructor(name?: string, data?: string[], bucket?: Bucket) {
-    this._name = name;
-    this._bucket = bucket;
-    this._reify(data);
+  constructor(options: TransformLogOptions = {}) {
+    this._name = options.name;
+    this._bucket = options.bucket;
+
+    if (this._bucket) {
+      assert('TransformLog requires a name if it has a bucket', !!this._name);
+    }
+
+    this._reify(options.data);
   }
 
   get name(): string {
@@ -85,8 +97,11 @@ export default class TransformLog implements Evented {
   }
 
   truncate(transformId: string, relativePosition: number = 0): Promise<void> {
+    let removed: string[];
+
     return this.reified
       .then(() => {
+  
         const index = this._data.indexOf(transformId);
         if (index === -1) {
           throw new TransformNotLoggedException(transformId);
@@ -98,19 +113,23 @@ export default class TransformLog implements Evented {
         }
 
         if (position === this._data.length) {
+          removed = this._data;
           this._data = [];
         } else {
+          removed = this._data.slice(0, position);
           this._data = this._data.slice(position);
         }
 
         return this._persist();
       })
       .then(() => {
-        this.emit('truncate', transformId, relativePosition);
+        this.emit('truncate', transformId, relativePosition, removed);
       });
   }
 
   rollback(transformId: string, relativePosition: number = 0): Promise<void> {
+    let removed: string[];
+
     return this.reified
       .then(() => {
         const index = this._data.indexOf(transformId);
@@ -123,24 +142,26 @@ export default class TransformLog implements Evented {
           throw new OutOfRangeException(position);
         }
 
+        removed = this._data.slice(position);
         this._data = this._data.slice(0, position);
 
         return this._persist();
       })
       .then(() => {
-        this.emit('rollback', transformId, relativePosition);
+        this.emit('rollback', transformId, relativePosition, removed);
       });
   }
 
   clear(): Promise<void> {
-    let data;
+    let clearedData;
 
     return this.reified
       .then(() => {
+        clearedData = this._data;
         this._data = [];
         return this._persist();
       })
-      .then(() => this.emit('clear', data));
+      .then(() => this.emit('clear', clearedData));
   }
 
   contains(transformId: string): boolean {

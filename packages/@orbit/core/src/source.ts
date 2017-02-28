@@ -1,11 +1,19 @@
 import Orbit from './main';
 import evented, { Evented, settleInSeries } from './evented';
 import Bucket from './bucket';
+import KeyMap from './key-map';
 import Schema from './schema';
 import Transform from './transform';
 import TransformLog from './transform-log';
 import ActionQueue from './action-queue';
 import { assert } from '@orbit/utils';
+
+export interface SourceOptions {
+  name?: string;
+  schema?: Schema;
+  keyMap?: KeyMap;
+  bucket?: Bucket;
+}
 
 /**
  Base class for sources.
@@ -19,12 +27,13 @@ import { assert } from '@orbit/utils';
  */
 @evented
 export default class Source implements Evented {
-  private _name: string;
-  private _bucket: Bucket;
-  private _schema: Schema;
-  private _transformLog: TransformLog;
-  private _requestQueue: ActionQueue;
-  private _syncQueue: ActionQueue;
+  protected _name: string;
+  protected _bucket: Bucket;
+  protected _keyMap: KeyMap;
+  protected _schema: Schema;
+  protected _transformLog: TransformLog;
+  protected _requestQueue: ActionQueue;
+  protected _syncQueue: ActionQueue;
 
   // Evented interface stubs
   on: (event: string, callback: () => void, binding?: any) => void;
@@ -33,26 +42,35 @@ export default class Source implements Evented {
   emit: (event: string, ...args) => void;
   listeners: (event: string) => any[];
 
-  constructor(name: string, schema: Schema, bucket?: Bucket) {
-    this._name = name;
-    this._schema = schema;
-    this._bucket = bucket;
+  constructor(options: SourceOptions = {}) {
+    this._schema = options.schema;
+    this._keyMap = options.keyMap;
+    const name = this._name = options.name;
+    const bucket = this._bucket = options.bucket;
 
-    this._transformLog = new TransformLog(`${name}-log`, null, bucket);
-    this._requestQueue = new ActionQueue(`${name}-requests`, this, bucket);
-    this._syncQueue = new ActionQueue(`${name}-sync`, this, bucket);
+    if (bucket) {
+      assert('TransformLog requires a name if it has a bucket', !!name);
+    }
+
+    this._transformLog = new TransformLog({ name: name ? `${name}-log` : undefined, bucket });
+    this._requestQueue = new ActionQueue(this, { name: name ? `${name}-requests` : undefined, bucket });
+    this._syncQueue = new ActionQueue(this, { name: name ? `${name}-sync` : undefined, bucket });
   }
 
   get name(): string {
     return this._name;
   }
 
-  get bucket(): Bucket {
-    return this._bucket;
-  }
-
   get schema(): Schema {
     return this._schema;
+  }
+
+  get keyMap(): KeyMap {
+    return this._keyMap;
+  }
+
+  get bucket(): Bucket {
+    return this._bucket;
   }
 
   get transformLog(): TransformLog {

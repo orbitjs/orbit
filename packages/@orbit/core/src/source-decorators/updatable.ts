@@ -2,7 +2,7 @@ import Orbit from '../main';
 import { assert } from '@orbit/utils';
 import { settleInSeries, fulfillInSeries } from '../evented';
 import { Operation } from '../operation';
-import Transform from '../transform';
+import Transform, { TransformOrOperations } from '../transform';
 import Source from '../source';
 
 export const UPDATABLE = '__updatable__';
@@ -12,7 +12,7 @@ export function isUpdatable(obj: any) {
 }
 
 export interface Updatable {
-  update(transformOrOperations: Transform | Operation[]): Promise<void>;
+  update(transformOrOperations: TransformOrOperations): Promise<void>;
 }
 
 /**
@@ -56,7 +56,7 @@ export default function updatable(Klass: any): void {
 
   proto[UPDATABLE] = true;
 
-  proto.update = function(transformOrOperations: Transform | Operation[]): Promise<void> {
+  proto.update = function(transformOrOperations: TransformOrOperations): Promise<void> {
     const transform = Transform.from(transformOrOperations);
 
     if (this.transformLog.contains(transform.id)) {

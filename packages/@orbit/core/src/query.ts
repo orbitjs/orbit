@@ -2,6 +2,8 @@ import { uuid } from '@orbit/utils';
 import { QueryExpression, isQueryExpression } from './query-expression';
 import { QueryTerm } from './query-term';
 
+export type QueryOrExpression = Query | QueryExpression | QueryTerm;
+
 /**
  Queries are used to extract data from a source.
 
@@ -21,7 +23,7 @@ export default class Query {
     this.id = id;
   }
 
-  static from(queryOrExpression: Query | QueryExpression | QueryTerm, id?: string): Query {
+  static from(queryOrExpression: QueryOrExpression, id?: string): Query {
     if (queryOrExpression instanceof QueryTerm) {
       return new Query(queryOrExpression.toQueryExpression(), id);
     } else if (queryOrExpression instanceof Query) {

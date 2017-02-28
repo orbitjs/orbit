@@ -4,18 +4,19 @@ const { module, test } = QUnit;
 
 module('Bucket', function() {
   test('can be instantiated', function(assert) {
-    let bucket = new Bucket('my-bucket');
+    let bucket = new Bucket();
     assert.ok(bucket, 'bucket exists');
   });
 
   test('has a default namespace and version', function(assert) {
-    let bucket = new Bucket('my-bucket');
+    let bucket = new Bucket();
     assert.equal(bucket.namespace, 'orbit-bucket', 'default namespace');
     assert.equal(bucket.version, 1, 'default version');
   });
 
   test('can be instantiated with a name, namespace, and version', function(assert) {
-    let bucket = new Bucket('my-bucket', {
+    let bucket = new Bucket({
+      name: 'my-bucket',
       namespace: 'app-settings',
       version: 1
     });
@@ -29,7 +30,8 @@ module('Bucket', function() {
 
     assert.expect(5);
 
-    let bucket = new Bucket('my-bucket', {
+    let bucket = new Bucket({
+      name: 'my-bucket',
       namespace: 'ns1',
       version: 1
     });
