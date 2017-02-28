@@ -1,8 +1,8 @@
 /* eslint-disable valid-jsdoc */
 import { Operation } from './operation';
-import { toArray, uuid } from '@orbit/utils';
+import { isArray, toArray, uuid } from '@orbit/utils';
 
-export type TransformOrOperations = Transform | Operation[];
+export type TransformOrOperations = Transform | Operation | Operation[];
 
 /**
  Transforms represent a set of operations that are applied to mutate a
@@ -27,8 +27,10 @@ export default class Transform {
   static from(transformOrOperations: TransformOrOperations, id?: string): Transform {
     if (transformOrOperations instanceof Transform) {
       return transformOrOperations;
+    } else if (isArray(transformOrOperations)) {
+      return new Transform(<Operation[]>transformOrOperations, id);
     } else {
-      return new Transform(transformOrOperations, id);
+      return new Transform([<Operation>transformOrOperations], id);
     }
   }
 }
