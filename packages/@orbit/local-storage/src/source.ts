@@ -4,7 +4,7 @@ import Orbit, {
   syncable, Syncable,
   Query,
   Record, RecordIdentity,
-  Source, SourceOptions,
+  Source, SourceSettings,
   Transform
 } from '@orbit/core';
 import { assert } from '@orbit/utils';
@@ -14,7 +14,7 @@ import { supportsLocalStorage } from './lib/local-storage';
 
 declare const self: any;
 
-export interface LocalStorageSourceOptions extends SourceOptions {
+export interface LocalStorageSourceSettings extends SourceSettings {
   delimiter?: string;
   namespace?: string;
 }
@@ -50,16 +50,16 @@ export default class LocalStorageSource extends Source implements Pullable, Push
    * @param {String} [settings.namespace] Optional. Prefix for keys used in localStorage. Defaults to 'orbit'.
    * @param {String} [settings.delimiter] Optional. Delimiter used to separate key segments in localStorage. Defaults to '/'.
    */
-  constructor(options: LocalStorageSourceOptions = {}) {
-    assert('LocalStorageSource\'s `schema` must be specified in `settings.schema` constructor argument', !!options.schema);
+  constructor(settings: LocalStorageSourceSettings = {}) {
+    assert('LocalStorageSource\'s `schema` must be specified in `settings.schema` constructor argument', !!settings.schema);
     assert('Your browser does not support local storage!', supportsLocalStorage());
 
-    options.name = options.name || 'localStorage';
+    settings.name = settings.name || 'localStorage';
 
-    super(options);
+    super(settings);
 
-    this._namespace = options.namespace || 'orbit';
-    this._delimiter = options.delimiter || '/';
+    this._namespace = settings.namespace || 'orbit';
+    this._delimiter = settings.delimiter || '/';
   }
 
   get namespace(): string {

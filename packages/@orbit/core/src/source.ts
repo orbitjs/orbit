@@ -8,7 +8,7 @@ import TransformLog from './transform-log';
 import ActionQueue from './action-queue';
 import { assert } from '@orbit/utils';
 
-export interface SourceOptions {
+export interface SourceSettings {
   name?: string;
   schema?: Schema;
   keyMap?: KeyMap;
@@ -20,9 +20,9 @@ export interface SourceOptions {
 
  @class Source
  @namespace Orbit
- @param {Object} [options] - Options for source
- @param {String} [options.name] - Name for source
- @param {Schema} [options.schema] - Schema for source
+ @param {Object} [settings] - settings for source
+ @param {String} [settings.name] - Name for source
+ @param {Schema} [settings.schema] - Schema for source
  @constructor
  */
 @evented
@@ -42,11 +42,11 @@ export abstract class Source implements Evented {
   emit: (event: string, ...args) => void;
   listeners: (event: string) => any[];
 
-  constructor(options: SourceOptions = {}) {
-    this._schema = options.schema;
-    this._keyMap = options.keyMap;
-    const name = this._name = options.name;
-    const bucket = this._bucket = options.bucket;
+  constructor(settings: SourceSettings = {}) {
+    this._schema = settings.schema;
+    this._keyMap = settings.keyMap;
+    const name = this._name = settings.name;
+    const bucket = this._bucket = settings.bucket;
 
     if (bucket) {
       assert('TransformLog requires a name if it has a bucket', !!name);
