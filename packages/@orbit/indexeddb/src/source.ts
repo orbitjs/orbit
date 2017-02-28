@@ -4,7 +4,7 @@ import Orbit, {
   syncable, Syncable,
   Query,
   Record, RecordIdentity,
-  Source, SourceOptions,
+  Source, SourceSettings,
   Transform
 } from '@orbit/core';
 import { assert } from '@orbit/utils';
@@ -15,7 +15,7 @@ import { supportsIndexedDB } from './lib/indexeddb';
 declare const self: any;
 declare const console: any;
 
-export interface IndexedDBSourceOptions extends SourceOptions {
+export interface IndexedDBSourceSettings extends SourceSettings {
   namespace?: string;
 }
 
@@ -45,20 +45,20 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
    * Create a new IndexedDBSource.
    *
    * @constructor
-   * @param {Object}  [options = {}]
-   * @param {Schema}  [options.schema]    Orbit Schema.
-   * @param {String}  [options.name]      Optional. Name for source. Defaults to 'indexedDB'.
-   * @param {String}  [options.namespace] Optional. Namespace of the application. Will be used for the IndexedDB database name. Defaults to 'orbit'.
+   * @param {Object}  [settings = {}]
+   * @param {Schema}  [settings.schema]    Orbit Schema.
+   * @param {String}  [settings.name]      Optional. Name for source. Defaults to 'indexedDB'.
+   * @param {String}  [settings.namespace] Optional. Namespace of the application. Will be used for the IndexedDB database name. Defaults to 'orbit'.
    */
-  constructor(options: IndexedDBSourceOptions = {}) {
-    assert('IndexedDBSource\'s `schema` must be specified in `options.schema` constructor argument', !!options.schema);
+  constructor(settings: IndexedDBSourceSettings = {}) {
+    assert('IndexedDBSource\'s `schema` must be specified in `settings.schema` constructor argument', !!settings.schema);
     assert('Your browser does not support IndexedDB!', supportsIndexedDB());
 
-    options.name = options.name || 'indexedDB';
+    settings.name = settings.name || 'indexedDB';
 
-    super(options);
+    super(settings);
 
-    this._namespace = options.namespace || 'orbit';
+    this._namespace = settings.namespace || 'orbit';
 
     this.schema.on('upgrade', () => this.reopenDB());
   }

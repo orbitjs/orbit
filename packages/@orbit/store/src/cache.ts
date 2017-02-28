@@ -17,7 +17,7 @@ import PatchTransforms, { PatchTransformFunc } from './cache/patch-transforms';
 import InverseTransforms, { InverseTransformFunc } from './cache/inverse-transforms';
 import ImmutableMap from './immutable-map';
 
-export interface CacheOptions {
+export interface CacheSettings {
   schema?: Schema;
   keyMap?: KeyMap;
   processors?: OperationProcessorClass[];
@@ -37,8 +37,8 @@ export interface CacheOptions {
  @class Cache
  @namespace OC
  @param {OC.Schema} schema
- @param {Object}  [options]
- @param {Array}   [options.processors=[SchemaConsistencyProcessor, CacheIntegrityProcessor]] Operation processors to notify for every call to `transform`.
+ @param {Object}  [settings]
+ @param {Array}   [settings.processors=[SchemaConsistencyProcessor, CacheIntegrityProcessor]] Operation processors to notify for every call to `transform`.
  @constructor
  */
 @evented
@@ -56,16 +56,16 @@ export default class Cache implements Evented {
   emit: (event: string, ...args) => void;
   listeners: (event: string) => any[];
 
-  constructor(options: CacheOptions = {}) {
-    this._schema = options.schema;
-    this._keyMap = options.keyMap;
+  constructor(settings: CacheSettings = {}) {
+    this._schema = settings.schema;
+    this._keyMap = settings.keyMap;
 
     this._queryEvaluator = new QueryEvaluator(this, QueryOperators);
 
-    const processors: OperationProcessorClass[] = options.processors ? options.processors : [SchemaConsistencyProcessor, CacheIntegrityProcessor];
+    const processors: OperationProcessorClass[] = settings.processors ? settings.processors : [SchemaConsistencyProcessor, CacheIntegrityProcessor];
     this._processors = processors.map(Processor => new Processor(this));
 
-    this.reset(options.base);
+    this.reset(settings.base);
   }
 
   get keyMap(): KeyMap {

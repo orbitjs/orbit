@@ -2,7 +2,7 @@ import Orbit, {
   KeyMap,
   RecordOperation,
   Schema,
-  Source, SourceOptions,
+  Source, SourceSettings,
   Syncable, syncable,
   Query, QueryOrExpression,
   Queryable, queryable,
@@ -13,10 +13,10 @@ import Orbit, {
   coalesceRecordOperations
 } from '@orbit/core';
 import { assert, Dict } from '@orbit/utils';
-import Cache, { CacheOptions } from './cache';
+import Cache, { CacheSettings } from './cache';
 
-export interface StoreOptions extends SourceOptions {
-  cacheOptions?: CacheOptions
+export interface StoreSettings extends SourceSettings {
+  cacheSettings?: CacheSettings
 }
 
 export interface StoreMergeOptions {
@@ -41,16 +41,16 @@ export default class Store extends Source implements Syncable, Queryable, Updata
   // Updatable interface stubs
   update: (transformOrOperations: TransformOrOperations) => Promise<void>;
 
-  constructor(options: StoreOptions = {}) {
-    let keyMap: KeyMap = options.keyMap;
-    assert('Store\'s `keyMap` must be specified in `options.keyMap` constructor argument', !!keyMap);
+  constructor(settings: StoreSettings = {}) {
+    let keyMap: KeyMap = settings.keyMap;
+    assert('Store\'s `keyMap` must be specified in `settings.keyMap` constructor argument', !!keyMap);
 
-    options.name = options.name || 'store';
+    settings.name = settings.name || 'store';
 
-    let schema: Schema = options.schema;
+    let schema: Schema = settings.schema;
     assert('Store requires a schema', !!schema);
 
-    super(options);
+    super(settings);
 
     this._transforms = {};
     this._transformInverses = {};
@@ -59,10 +59,10 @@ export default class Store extends Source implements Syncable, Queryable, Updata
     this.transformLog.on('truncate', <() => void>this._logTruncated, this);
     this.transformLog.on('rollback', <() => void>this._logRolledback, this);
 
-    let cacheOptions: CacheOptions = options.cacheOptions || {};
-    cacheOptions.schema = schema;
-    cacheOptions.keyMap = keyMap;
-    this._cache = new Cache(cacheOptions);
+    let cacheSettings: CacheSettings = settings.cacheSettings || {};
+    cacheSettings.schema = schema;
+    cacheSettings.keyMap = keyMap;
+    this._cache = new Cache(cacheSettings);
   }
 
   get cache(): Cache {
@@ -107,16 +107,15 @@ export default class Store extends Source implements Syncable, Queryable, Updata
    the base store. Its contents and log will evolve independently.
 
    @method fork
-   @param {String} [name] - The name of the forked store.
    @returns {Store} The forked store.
   */
-  fork(options: StoreOptions = {}) {
-    options.schema = this._schema;
-    options.cacheOptions = options.cacheOptions || {};
-    options.cacheOptions.base = this._cache;
-    options.keyMap = this._keyMap;
+  fork(settings: StoreSettings = {}) {
+    settings.schema = this._schema;
+    settings.cacheSettings = settings.cacheSettings || {};
+    settings.cacheSettings.base = this._cache;
+    settings.keyMap = this._keyMap;
 
-    return new Store(options);
+    return new Store(settings);
   }
 
   /**
@@ -131,7 +130,7 @@ export default class Store extends Source implements Syncable, Queryable, Updata
 
    @method merge
    @param {Store} forkedStore - The store to merge.
-   @param {Object}  [options] Options
+   @param {Object}  [options] settings
    @param {Boolean} [options.coalesce = true] Should operations be coalesced into a minimal equivalent set?
    @param {String}  [options.sinceTransformId = null] Select only transforms since the specified ID.
    @returns {Promise} The result of calling `update()` with the forked transforms.
