@@ -1,7 +1,7 @@
 import Orbit from '../main';
 import { assert } from '@orbit/utils';
 import { settleInSeries, fulfillInSeries } from '../evented';
-import Source from '../source';
+import { Source } from '../source';
 import Transform from '../transform';
 
 export const PUSHABLE = '__pushable__';

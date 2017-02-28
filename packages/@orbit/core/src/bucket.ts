@@ -14,7 +14,7 @@ export interface BucketSettings {
  * shutdown.
  */
 @evented
-export default class Bucket implements Evented {
+export abstract class Bucket implements Evented {
   private _name: string;
   private _namespace: string;
   private _version: number;
@@ -36,11 +36,11 @@ export default class Bucket implements Evented {
     this._applySettings(settings);
   }
 
-  getItem: (key: string) => Promise<any>;
+  abstract getItem(key: string): Promise<any>;
 
-  setItem: (key: string, value: any) => Promise<void>;
+  abstract setItem(key: string, value: any): Promise<void>;
 
-  removeItem: (key: string) => Promise<void>;
+  abstract removeItem(key: string): Promise<void>;
 
   get name(): string {
     return this._name;

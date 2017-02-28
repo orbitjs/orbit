@@ -1,4 +1,4 @@
-import Source from '../src/source';
+import { Source } from '../src/source';
 import Schema from '../src/schema';
 import Transform from '../src/transform';
 import { isEvented } from '../src/evented';

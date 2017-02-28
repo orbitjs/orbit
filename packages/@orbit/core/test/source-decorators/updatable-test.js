@@ -1,4 +1,4 @@
-import Source from '../../src/source';
+import { Source } from '../../src/source';
 import updatable, { isUpdatable } from '../../src/source-decorators/updatable';
 import Transform from '../../src/transform';
 import { Promise } from 'rsvp';
@@ -11,7 +11,9 @@ module('@updatable', function(hooks) {
 
   hooks.beforeEach(function() {
     @updatable
-    class MySource extends Source {}
+    class MySource extends Source {
+      constructor() { super(); }
+    }
 
     source = new MySource({ name: 'src1' });
   });

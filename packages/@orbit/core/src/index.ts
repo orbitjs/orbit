@@ -1,7 +1,7 @@
 export { default } from './main';
 export { default as ActionQueue, ActionQueueOptions } from './action-queue';
 export { default as Action, ActionOptions, SerializedAction } from './action';
-export { default as Bucket, BucketSettings } from './bucket';
+export { Bucket, BucketSettings } from './bucket';
 export { default as Coordinator } from './coordinator';
 export { default as evented, Evented, isEvented } from './evented';
 export * from './exception';
@@ -15,7 +15,7 @@ export { QueryTerm } from './query-term';
 export { default as Query, QueryOrExpression } from './query';
 export * from './record';
 export { default as Schema, AttributeDefinition, RelationshipDefinition, KeyDefinition, IdDefinition, ModelDefinition, SchemaSettings, isRecordNormalized } from './schema';
-export { default as Source, SourceOptions } from './source';
+export { Source, SourceOptions } from './source';
 export { default as TransformLog, TransformLogOptions } from './transform-log';
 export { default as Transform, TransformOrOperations } from './transform';
 export { default as pullable, Pullable, isPullable } from './source-decorators/pullable';

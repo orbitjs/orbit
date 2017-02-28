@@ -1,6 +1,6 @@
 import Orbit from './main';
 import evented, { Evented, settleInSeries } from './evented';
-import Bucket from './bucket';
+import { Bucket } from './bucket';
 import KeyMap from './key-map';
 import Schema from './schema';
 import Transform from './transform';
@@ -26,7 +26,7 @@ export interface SourceOptions {
  @constructor
  */
 @evented
-export default class Source implements Evented {
+export abstract class Source implements Evented {
   protected _name: string;
   protected _bucket: Bucket;
   protected _keyMap: KeyMap;

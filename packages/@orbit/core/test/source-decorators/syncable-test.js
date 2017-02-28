@@ -1,5 +1,5 @@
 import Orbit from '../../src';
-import Source from '../../src/source';
+import { Source } from '../../src/source';
 import syncable, { isSyncable } from '../../src/source-decorators/syncable';
 import Transform from '../../src/transform';
 
@@ -10,7 +10,9 @@ module('@syncable', function(hooks) {
 
   hooks.beforeEach(function() {
     @syncable
-    class MySource extends Source {}
+    class MySource extends Source {
+      constructor() { super(); }
+    }
 
     source = new MySource({ name: 'src1' });
   });

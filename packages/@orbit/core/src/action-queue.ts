@@ -1,7 +1,7 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from './main';
 import Action, { SerializedAction } from './action';
-import Bucket from './bucket';
+import { Bucket } from './bucket';
 import evented, { Evented } from './evented';
 import { assert } from '@orbit/utils';
 
