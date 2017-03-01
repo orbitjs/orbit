@@ -61,6 +61,17 @@ export class NetworkError extends Exception {
   }
 }
 
+export class QueryExpressionParseError extends Exception {
+  public description: string;
+  public expression: any;
+
+  constructor(description: string, expression: any) {
+    super(`Query expression parse error: ${description}`);
+    this.description = description;
+    this.expression = expression;
+  }
+}
+
 export abstract class RecordException extends Exception {
   public description: string;
   public type: string;
