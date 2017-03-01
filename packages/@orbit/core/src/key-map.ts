@@ -57,21 +57,14 @@ export default class KeyMap {
 
   /**
    Given a record, find the cached ID if it exists.
-
-   @param {Object} record - a data structure that represents a record
-   @returns {String|undefined} either the ID value or nothing
    */
-  findIdForRecord(record: Record): string {
-    if (!record.keys) {
-      return;
-    }
-
-    let keyNames = Object.keys(record.keys);
+  idFromKeys(type: string, keys: Dict<string>): string {
+    let keyNames = Object.keys(keys);
 
     return firstResult(keyNames, (keyName) => {
-      let keyValue = record.keys[keyName];
+      let keyValue = keys[keyName];
       if (keyValue) {
-        return this.keyToId(record.type, keyName, keyValue);
+        return this.keyToId(type, keyName, keyValue);
       }
     });
   }

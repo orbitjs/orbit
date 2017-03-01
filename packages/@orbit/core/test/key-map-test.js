@@ -43,15 +43,15 @@ module('KeyMap', function(hooks) {
     assert.equal(keyMap.idToKey('planet', 'remoteId', 'bogus'), undefined);
   });
 
-  test('#findIdForRecord', function(assert) {
+  test('#idFromKeys', function(assert) {
     let keyMap = new KeyMap(schema);
 
     keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
 
-    let foundId = keyMap.findIdForRecord({ type: 'planet', id: undefined, keys: { remoteId: 'a' } });
+    let foundId = keyMap.idFromKeys('planet', { remoteId: 'a' });
     assert.equal(foundId, '1', 'Found previously pushed id');
 
-    let missingId = keyMap.findIdForRecord({ type: 'planet', id: undefined, keys: { remoteId: 'b' } });
+    let missingId = keyMap.idFromKeys('planet', { remoteId: 'b' });
     assert.equal(missingId, undefined, 'returns undefined when id cannot be found');
   });
 });
