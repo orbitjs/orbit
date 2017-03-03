@@ -72,6 +72,28 @@ export class QueryExpressionParseError extends Exception {
   }
 }
 
+export class QueryNotAllowed extends Exception {
+  public description: string;
+  public query: any;
+
+  constructor(description: string, query: any) {
+    super(`Query not allowed: ${description}`);
+    this.description = description;
+    this.query = query;
+  }
+}
+
+export class TransformNotAllowed extends Exception {
+  public description: string;
+  public transform: any;
+
+  constructor(description: string, transform: any) {
+    super(`Transform not allowed: ${description}`);
+    this.description = description;
+    this.transform = transform;
+  }
+}
+
 export abstract class RecordException extends Exception {
   public description: string;
   public type: string;
