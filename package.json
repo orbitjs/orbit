@@ -16,7 +16,7 @@
   "scripts": {
     "postinstall": "lerna bootstrap",
     "build": "lerna run build",
-    "test": "lerna run build && lerna run test"
+    "test": "lerna run build && lerna run test --concurrency 1"
   },
   "devDependencies": {
     "lerna": "2.0.0-beta.37"
