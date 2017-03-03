@@ -1,5 +1,7 @@
 declare const self: any;
 
-export default {
+const Orbit: any = {
   Promise: self.Promise
 };
+
+export default Orbit;

@@ -10,7 +10,6 @@ module.exports = {
     deepEqual: true,
     expect: true,
     QUnit: true,
-    sinon: true,
     notStrictEqual: true
   }
 }

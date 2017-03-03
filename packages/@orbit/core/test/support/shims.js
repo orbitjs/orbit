@@ -1,5 +1,5 @@
 (function() {
-  /* global define, RSVP, sinon */
+  /* global define, RSVP */
 
   define('rsvp', [], function() {
     'use strict';
