@@ -1,12 +1,7 @@
 import './support/orbit-setup';
-import { on } from 'rsvp';
 import './support/qunit-matchers';
 
 const { module, test } = QUnit;
-
-on('error', function(reason) {
-  console.error('rsvp error', reason);
-});
 
 import {
   serializeOps,

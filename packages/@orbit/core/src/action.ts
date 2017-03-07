@@ -1,15 +1,8 @@
-/* eslint-disable valid-jsdoc */
 import Orbit from './main';
 
-export interface ActionOptions {
-  meta?: any;
-  data?: any;
-}
-
-export interface SerializedAction {
+export interface Action {
   method: string;
-  meta: any;
-  data: any;  
+  data?: any;
 }
 
 /**
@@ -29,11 +22,9 @@ export interface SerializedAction {
 
  @class Action
  */
-export default class Action {
-  target: any;
-  method: string;
-  meta: any;
-  data: any;
+export class ActionProcessor {
+  target: object;
+  action: Action;
 
   private _started: boolean;
   private _settled: boolean;
@@ -44,20 +35,13 @@ export default class Action {
   /**
    * Constructor for `Action` class.
    *
-   * @param  {Object} target         Target object
-   * @param  {String} method         Name of method to call on `target`
-   * @param  {Object} [options={}]   Options
-   * @param  {Any}    [options.meta] Optional metadata
-   * @param  {Any}    [options.data] Optional data to send as an arg when calling `method`
+   * @param {object} target Target object
+   * @param {Action} action Action
    * @constructor
    */
-  constructor(target, method, options?: ActionOptions) {
+  constructor(target: object, action: Action) {
     this.target = target;
-    this.method = method;
-    if (options) {
-      this.meta = options.meta;
-      this.data = options.data;
-    }
+    this.action = action;
 
     this.reset();
   }
@@ -95,14 +79,9 @@ export default class Action {
       this._started = true;
 
       try {
-        const method = this.target[this.method];
+        const method = this.target[this.action.method];
 
-        let ret;
-        if (this.data) {
-          ret = method.call(this.target, this.data);
-        } else {
-          ret = method.call(this.target);
-        }
+        let ret = method.call(this.target, this.action.data);
 
         if (ret && ret.then) {
           ret.then(this._success, this._fail);
@@ -115,17 +94,5 @@ export default class Action {
     }
 
     return this.settle();
-  }
-
-  serialize(): SerializedAction {
-    const { method, data, meta } = this;
-    return { method, data, meta };
-  }
-
-  static deserialize(target, serialized: SerializedAction) {
-    return new Action(target, serialized.method, {
-      data: serialized.data,
-      meta: serialized.meta
-    });
   }
 }
