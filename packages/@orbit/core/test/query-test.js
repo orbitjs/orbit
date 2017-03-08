@@ -19,10 +19,12 @@ module('Query', function() {
 
   test('can be created from with all attributes specified as options', function(assert) {
     let expression = { op: 'foo' };
-    let query = new Query(expression, 'abc123');
+    let options = { sources: { jsonapi: { include: 'comments' } }}
+    let query = new Query(expression, options, 'abc123');
 
     assert.strictEqual(query.id, 'abc123', 'id was populated');
     assert.deepEqual(query.expression, expression, 'expression was populated');
+    assert.deepEqual(query.options, options, 'options was populated');
   });
 
   test('.from will return a query passed into it', function(assert) {

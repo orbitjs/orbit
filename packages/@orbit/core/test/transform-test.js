@@ -15,14 +15,16 @@ module('Transform', function() {
     assert.ok(transform.id, 'transform has an id');
   });
 
-  test('can be created from with operations and an id', function(assert) {
+  test('can be created from with operations, options, and an id', function(assert) {
     let operations = [{ op: 'addRecord' }];
+    let options = { sources: { jsonapi: { include: 'comments' } }}
     let id = 'abc123';
 
-    let transform = new Transform(operations, id);
+    let transform = new Transform(operations, options, id);
 
     assert.strictEqual(transform.id, id, 'id was populated');
     assert.deepEqual(transform.operations, operations, 'operations was populated');
+    assert.deepEqual(transform.options, options, 'options was populated');
   });
 
   test('.from will return a transform passed into it', function(assert) {

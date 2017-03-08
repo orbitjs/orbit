@@ -577,7 +577,7 @@ module('JSONAPISource', function(hooks) {
         });
     });
 
-    QUnit.skip('#pull - record with include', function(assert) {
+    test('#pull - record with include', function(assert) {
       assert.expect(2);
 
       const data = {
@@ -755,7 +755,7 @@ module('JSONAPISource', function(hooks) {
         });
     });
 
-    QUnit.skip('#pull - records with include', function(assert) {
+    test('#pull - records with include', function(assert) {
       assert.expect(2);
 
       const options = {
@@ -777,7 +777,7 @@ module('JSONAPISource', function(hooks) {
         });
     });
 
-    QUnit.skip('#pull - records with include many relationships', function(assert) {
+    test('#pull - records with include many relationships', function(assert) {
       assert.expect(2);
 
       const options = {
@@ -832,7 +832,7 @@ module('JSONAPISource', function(hooks) {
       });
     });
 
-    QUnit.skip('#pull - relatedRecords with include', function(assert) {
+    test('#pull - relatedRecords with include', function(assert) {
       assert.expect(2);
 
       const planetRecord = source.serializer.deserializeDocument({

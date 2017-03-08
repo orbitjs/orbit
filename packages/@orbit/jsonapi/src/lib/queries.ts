@@ -91,17 +91,16 @@ export function getQueryRequests(source: Source, query) {
 function buildRequestFromQuery(source: Source, query: Query) {
   const request = buildRequestFromExpression(query.expression);
 
-  // TODO - allow `options` 
-  // const options = query.sources[source.name] || {};
+  const options = (query.options && query.options.sources && query.options.sources[source.name]) || {};
 
-  // if (options.include) {
-  //   request.include = options.include.join(',');
-  // }
+  if (options.include) {
+    request.include = options.include.join(',');
+  }
 
   return request;
 }
 
-function buildRequestFromExpression(expression, request = {}) {
+function buildRequestFromExpression(expression, request = {}): any {
   if (ExpressionToRequestMap[expression.op]) {
     ExpressionToRequestMap[expression.op](expression, request);
   } else {
