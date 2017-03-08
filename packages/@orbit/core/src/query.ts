@@ -17,19 +17,26 @@ export type QueryOrExpression = Query | QueryExpression | QueryTerm;
 export default class Query {
   id: string;
   expression: QueryExpression;
+  options: any;
 
-  constructor(expression: QueryExpression, id: string = uuid()) {
+  constructor(expression: QueryExpression, options?: object, id: string = uuid()) {
     this.expression = expression;
+    this.options = options;
     this.id = id;
   }
 
-  static from(queryOrExpression: QueryOrExpression, id?: string): Query {
-    if (queryOrExpression instanceof QueryTerm) {
-      return new Query(queryOrExpression.toQueryExpression(), id);
-    } else if (queryOrExpression instanceof Query) {
-      return queryOrExpression;
+  static from(queryOrExpression: QueryOrExpression, options?: object, id?: string): Query {
+    if (queryOrExpression instanceof Query) {
+      if (options && options !== queryOrExpression.options ||
+          id && id !== queryOrExpression.id) {
+        return new Query(queryOrExpression.expression, options || queryOrExpression.options, id);
+      } else {
+        return queryOrExpression;
+      }
+    } else if (queryOrExpression instanceof QueryTerm) {
+      return new Query(queryOrExpression.toQueryExpression(), options, id);
     } else {
-      return new Query(queryOrExpression, id);
+      return new Query(queryOrExpression, options, id);
     }
   }
 }

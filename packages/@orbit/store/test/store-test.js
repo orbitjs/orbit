@@ -11,6 +11,7 @@ import Store from '../src/store';
 import CacheIntegrityProcessor from '../src/cache/operation-processors/cache-integrity-processor';
 import SchemaConsistencyProcessor from '../src/cache/operation-processors/schema-consistency-processor';
 import { all } from 'rsvp';
+import './test-helper';
 
 const { module, test } = QUnit;
 

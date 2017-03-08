@@ -1,7 +1,8 @@
+import Orbit from '../src/main';
 import ActionQueue from '../src/action-queue';
-import evented from '../src/evented';
+import { Action } from '../src/action';
+import evented, { Evented } from '../src/evented';
 import { FakeBucket } from './test-helper';
-import { Promise } from 'rsvp';
 
 const { module, test } = QUnit;
 
@@ -77,13 +78,13 @@ module('ActionQueue', function() {
       done();
     });
 
-    queue.push('_transform', {
-      id: 1,
+    queue.push({
+      method: '_transform', 
       data: op1
     });
 
-    queue.push('_transform', {
-      id: 2,
+    queue.push({
+      method: '_transform', 
       data: op2
     });
   });
@@ -122,13 +123,13 @@ module('ActionQueue', function() {
       done();
     });
 
-    queue.push('_transform', {
-      id: 1,
+    queue.push({
+      method: '_transform', 
       data: op1
     });
 
-    queue.push('_transform', {
-      id: 2,
+    queue.push({
+      method: '_transform', 
       data: op2
     });
 
@@ -139,12 +140,24 @@ module('ActionQueue', function() {
     assert.expect(9);
     const done = assert.async();
 
+    @evented
+    class Trigger implements Evented {
+      // Evented interface stubs
+      on: (event: string, callback: any, binding?: any) => void;
+      off: (event: string, callback: any, binding?: any) => void;
+      one: (event: string, callback: any, binding?: any) => void;
+      emit: (event: string, ...args) => void;
+      listeners: (event: string) => any[];
+    }
+
+    let trigger = new Trigger;
+
     const target = {
       _transform(op) {
         let promise;
         if (op === op1) {
           assert.equal(++order, 1, '_transform with op1');
-          promise = new Promise(function(resolve) {
+          promise = new Orbit.Promise(function(resolve) {
             trigger.on('start1', function() {
               assert.equal(++order, 2, '_transform with op1 resolved');
               resolve();
@@ -152,7 +165,7 @@ module('ActionQueue', function() {
           });
         } else if (op === op2) {
           assert.equal(++order, 4, '_transform with op2');
-          promise = new Promise(function(resolve) {
+          promise = new Orbit.Promise(function(resolve) {
             assert.equal(++order, 5, '_transform with op2 resolved');
             resolve();
           });
@@ -179,18 +192,13 @@ module('ActionQueue', function() {
       assert.equal(++order, 7, 'queue completed');
     });
 
-    @evented
-    class Trigger {}
-
-    let trigger = new Trigger;
-
-    queue.push('_transform', {
-      id: 1,
+    queue.push({
+      method: '_transform', 
       data: op1
     });
 
-    queue.push('_transform', {
-      id: 2,
+    queue.push({
+      method: '_transform', 
       data: op2
     });
 
@@ -208,7 +216,7 @@ module('ActionQueue', function() {
   });
 
   test('will stop processing when an action errors', function(assert) {
-    assert.expect(6);
+    assert.expect(7);
 
     const target = {
       _transform(op) {
@@ -244,25 +252,26 @@ module('ActionQueue', function() {
       assert.ok(false, 'queue should not complete');
     });
 
-    queue.push('_transform', {
-      id: 1,
+    queue.push({
+      method: '_transform', 
       data: op1
     });
 
-    queue.push('_transform', {
-      id: 2,
+    queue.push({
+      method: '_transform', 
       data: op2
     });
 
     return queue.process()
-      .then(() => {
+      .catch((e) => {
         assert.equal(queue.complete, false, 'queue processing encountered a problem');
         assert.equal(queue.error.message, ':(', 'process error matches expectation');
+        assert.strictEqual(queue.error, e, 'process error matches expectation');
       });
   });
 
   test('#retry resets the current action in an inactive queue and restarts processing', function(assert) {
-    assert.expect(12);
+    assert.expect(13);
 
     const target = {
       _transform(op) {
@@ -305,25 +314,26 @@ module('ActionQueue', function() {
       assert.ok(true, 'queue should complete after processing has restarted');
     });
 
-    queue.push('_transform', {
-      id: 1,
+    queue.push({
+      method: '_transform', 
       data: op1
     });
 
-    queue.push('_transform', {
-      id: 2,
+    queue.push({
+      method: '_transform', 
       data: op2
     });
 
-    queue.push('_transform', {
-      id: 3,
+    queue.push({
+      method: '_transform', 
       data: op3
     });
 
     return queue.process()
-      .then(() => {
+      .catch((e) => {
         assert.equal(queue.complete, false, 'queue processing encountered a problem');
         assert.equal(queue.error.message, ':(', 'process error matches expectation');
+        assert.strictEqual(queue.error, e, 'process error matches expectation');
         assert.strictEqual(queue.current.data, op2, 'op2 is current failed action');
 
         // skip current action and continue processing
@@ -332,71 +342,6 @@ module('ActionQueue', function() {
   });
 
   test('#skip removes the current action from an inactive queue and restarts processing', function(assert) {
-    assert.expect(8);
-
-    const target = {
-      _transform(op) {
-        transformCount++;
-        if (transformCount === 1) {
-          assert.strictEqual(op, op1, '_transform - op1 passed as argument');
-        } else if (transformCount === 2) {
-          throw new Error(':(');
-        } else if (transformCount === 3) {
-          assert.strictEqual(op, op3, '_transform - op3 passed as argument');
-        }
-      }
-    };
-
-    const queue = new ActionQueue(target, { autoProcess: false });
-
-    let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
-    let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
-    let op3 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
-    let transformCount = 0;
-
-    queue.on('action', function(action) {
-      if (transformCount === 1) {
-        assert.strictEqual(action.data, op1, 'action - op1 processed');
-      } else if (transformCount === 2) {
-        assert.strictEqual(action.data, op3, 'action - op3 processed');
-      }
-    });
-
-    queue.on('fail', function(action, err) {
-      assert.strictEqual(action.data, op2, 'fail - op2 failed processing');
-      assert.equal(err.message, ':(', 'fail - error matches expectation');
-    });
-
-    queue.on('complete', function() {
-      assert.ok(true, 'queue should complete after processing has restarted');
-    });
-
-    queue.push('_transform', {
-      id: 1,
-      data: op1
-    });
-
-    queue.push('_transform', {
-      id: 2,
-      data: op2
-    });
-
-    queue.push('_transform', {
-      id: 3,
-      data: op3
-    });
-
-    return queue.process()
-      .then(() => {
-        assert.equal(queue.complete, false, 'queue processing encountered a problem');
-        assert.equal(queue.error.message, ':(', 'process error matches expectation');
-
-        // skip current action and continue processing
-        return queue.skip();
-      });
-  });
-
-  test('#shift can remove failed actions from an inactive queue, allowing processing to be restarted', function(assert) {
     assert.expect(9);
 
     const target = {
@@ -436,25 +381,92 @@ module('ActionQueue', function() {
       assert.ok(true, 'queue should complete after processing has restarted');
     });
 
-    queue.push('_transform', {
-      id: 1,
+    queue.push({
+      method: '_transform', 
       data: op1
     });
 
-    queue.push('_transform', {
-      id: 2,
+    queue.push({
+      method: '_transform', 
       data: op2
     });
 
-    queue.push('_transform', {
-      id: 3,
+    queue.push({
+      method: '_transform', 
       data: op3
     });
 
     return queue.process()
-      .then(() => {
+      .catch((e) => {
         assert.equal(queue.complete, false, 'queue processing encountered a problem');
         assert.equal(queue.error.message, ':(', 'process error matches expectation');
+        assert.strictEqual(queue.error, e, 'process error matches expectation');
+
+        // skip current action and continue processing
+        return queue.skip();
+      });
+  });
+
+  test('#shift can remove failed actions from an inactive queue, allowing processing to be restarted', function(assert) {
+    assert.expect(10);
+
+    const target = {
+      _transform(op) {
+        transformCount++;
+        if (transformCount === 1) {
+          assert.strictEqual(op, op1, '_transform - op1 passed as argument');
+        } else if (transformCount === 2) {
+          throw new Error(':(');
+        } else if (transformCount === 3) {
+          assert.strictEqual(op, op3, '_transform - op3 passed as argument');
+        }
+      }
+    };
+
+    const queue = new ActionQueue(target, { autoProcess: false });
+
+    let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
+    let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+    let op3 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+    let transformCount = 0;
+
+    queue.on('action', function(action) {
+      if (transformCount === 1) {
+        assert.strictEqual(action.data, op1, 'action - op1 processed');
+      } else if (transformCount === 2) {
+        assert.strictEqual(action.data, op3, 'action - op3 processed');
+      }
+    });
+
+    queue.on('fail', function(action, err) {
+      assert.strictEqual(action.data, op2, 'fail - op2 failed processing');
+      assert.equal(err.message, ':(', 'fail - error matches expectation');
+    });
+
+    queue.on('complete', function() {
+      assert.ok(true, 'queue should complete after processing has restarted');
+    });
+
+    queue.push({
+      method: '_transform', 
+      data: op1
+    });
+
+    queue.push({
+      method: '_transform', 
+      data: op2
+    });
+
+    queue.push({
+      method: '_transform', 
+      data: op3
+    });
+
+    return queue.process()
+      .catch((e) => {
+        assert.equal(queue.complete, false, 'queue processing encountered a problem');
+        assert.equal(queue.error.message, ':(', 'process error matches expectation');
+        assert.strictEqual(queue.error, e, 'process error matches expectation');
 
         return queue.shift()
           .then(failedAction => {
@@ -501,13 +513,13 @@ module('ActionQueue', function() {
       done();
     });
 
-    queue.push('_transform', {
-      id: 1,
+    queue.push({
+      method: '_transform', 
       data: op1
     });
 
-    queue.unshift('_transform', {
-      id: 2,
+    queue.unshift({
+      method: '_transform', 
       data: op2
     });
 
@@ -537,13 +549,13 @@ module('ActionQueue', function() {
       assert.ok(true, 'queue completed after clear');
     });
 
-    queue.push('_transform', {
-      id: 1,
+    queue.push({
+      method: '_transform', 
       data: op1
     });
 
-    queue.unshift('_transform', {
-      id: 2,
+    queue.push({
+      method: '_transform', 
       data: op2
     });
 
@@ -586,16 +598,14 @@ module('ActionQueue', function() {
         _transform() {}
       };
 
-      const serialized = [
+      const serialized: Action[] = [
         {
           method: '_transform',
-          data: op1,
-          meta: { label: 'one' }
+          data: op1
         },
         {
           method: '_transform',
-          data: op2,
-          meta: { label: 'two' }
+          data: op2
         }
       ];
 
@@ -622,7 +632,7 @@ module('ActionQueue', function() {
 
     test('#push - actions pushed to a queue are persisted to its bucket', function(assert) {
       const done = assert.async();
-      assert.expect(6);
+      assert.expect(9);
 
       const target = {
         _transform() {}
@@ -639,30 +649,16 @@ module('ActionQueue', function() {
           assert.strictEqual(action.data, op1, 'op1 processed');
           bucket.getItem('queue')
             .then(serialized => {
-              assert.deepEqual(serialized, [
-                {
-                  method: '_transform',
-                  data: op1,
-                  meta: { label: 'one' }
-                },
-                {
-                  method: '_transform',
-                  data: op2,
-                  meta: { label: 'two' }
-                }
-              ], 'two ops have been serialized');
+              assert.equal(serialized.length, 2);
+              assert.deepEqual(serialized[0].data, op1)
+              assert.deepEqual(serialized[1].data, op2)
             });
         } else if (transformCount === 2) {
           assert.strictEqual(action.data, op2, 'op2 processed');
           bucket.getItem('queue')
             .then(serialized => {
-              assert.deepEqual(serialized, [
-                {
-                  method: '_transform',
-                  data: op2,
-                  meta: { label: 'two' }
-                }
-              ], 'one serialized op remains');
+              assert.equal(serialized.length, 1);
+              assert.deepEqual(serialized[0].data, op2)
             });
         }
       });
@@ -677,8 +673,15 @@ module('ActionQueue', function() {
           });
       });
 
-      queue.push('_transform', { data: op1, meta: { label: 'one' } });
-      queue.push('_transform', { data: op2, meta: { label: 'two' } });
+      queue.push({
+        method: '_transform', 
+        data: op1
+      });
+
+      queue.push({
+        method: '_transform', 
+        data: op2
+      });
     });
   });
 });

@@ -1,3 +1,4 @@
+import './test-helper';
 import {
   verifyIndexedDBContainsRecord,
   verifyIndexedDBDoesNotContainRecord

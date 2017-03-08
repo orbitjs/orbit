@@ -11,35 +11,35 @@ export default class ImmutableMap {
     }
   }
 
-  get(key) {
+  get(key): any {
     return this._data.get(key);
   }
 
-  set(key, value) {
+  set(key, value): void {
     this._data = this._data.set(key, value);
   }
 
-  remove(key) {
+  remove(key): void {
     this._data = this._data.remove(key);
   }
 
-  has(key) {
+  has(key): boolean {
     return this.get(key) !== undefined;
   }
 
-  get data() {
+  get data(): any {
     return this._data;
   }
 
-  get length() {
+  get length(): number {
     return this._data.size;
   }
 
-  get keys() {
+  get keys(): any[] {
     return Array.from(this._data.keys());
   }
 
-  get values() {
+  get values(): any[] {
     return Array.from(this._data.values());
   }
 }

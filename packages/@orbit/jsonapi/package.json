@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@glimmer/build": "^0.2.1",
-    "sinon": "^1.17.7"
+    "sinon": "^1.17.7",
+    "whatwg-fetch": "^2.0.3"
   }
 }

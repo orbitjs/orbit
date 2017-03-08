@@ -6,6 +6,7 @@ import {
 } from '@orbit/core';
 import CacheIntegrityProcessor from '../../../src/cache/operation-processors/cache-integrity-processor';
 import Cache from '../../../src/cache';
+import '../../test-helper';
 
 const { module, test } = QUnit;
 

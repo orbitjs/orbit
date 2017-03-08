@@ -1,4 +1,4 @@
-/* globals Promise */
+import Orbit from '../../src/main';
 import { isArray } from '@orbit/utils';
 
 export function serializeOps(o) {
@@ -30,13 +30,13 @@ export function op(opType, _path, value) {
 }
 
 export function successfulOperation(response) {
-  return new Promise(function(resolve) {
+  return new Orbit.Promise(function(resolve) {
     resolve(response || ':)');
   });
 }
 
 export function failedOperation(response) {
-  return new Promise(function(resolve, reject) {
+  return new Orbit.Promise(function(resolve, reject) {
     reject(response || ':(');
   });
 }

@@ -18,19 +18,26 @@ export type TransformOrOperations = Transform | Operation | Operation[];
 export default class Transform {
   id: string;
   operations: Operation[];
+  options: any;
 
-  constructor(operations: Operation[], id: string = uuid()) {
+  constructor(operations: Operation[], options?: object, id: string = uuid()) {
     this.operations = operations;
+    this.options = options;
     this.id = id;
   }
 
-  static from(transformOrOperations: TransformOrOperations, id?: string): Transform {
+  static from(transformOrOperations: TransformOrOperations, options?: object, id?: string): Transform {
     if (transformOrOperations instanceof Transform) {
-      return transformOrOperations;
+      if (options && options !== transformOrOperations.options ||
+          id && id !== transformOrOperations.id) {
+        return new Transform(transformOrOperations.operations, options || transformOrOperations.options, id);
+      } else {
+        return transformOrOperations;
+      }
     } else if (isArray(transformOrOperations)) {
-      return new Transform(<Operation[]>transformOrOperations, id);
+      return new Transform(<Operation[]>transformOrOperations, options, id);
     } else {
-      return new Transform([<Operation>transformOrOperations], id);
+      return new Transform([<Operation>transformOrOperations], options, id);
     }
   }
 }

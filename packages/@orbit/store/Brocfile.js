@@ -11,6 +11,8 @@ if (process.env.BROCCOLI_ENV === 'tests') {
   buildOptions.vendorTrees = [
     buildVendorPackage('@orbit/utils', { external: ['babel-helpers'] }),
     buildVendorPackage('@orbit/core', { external: ['babel-helpers', '@orbit/utils'] }),
+    funnel(path.join(require.resolve('babel-polyfill'), '../../dist'), {
+      include: ['polyfill.js'] }),
     funnel(path.join(require.resolve('rsvp'), '..'), {
       include: ['rsvp.js'] })
   ];

@@ -1,6 +1,6 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from './main';
-import Action, { SerializedAction } from './action';
+import { Action, ActionProcessor } from './action';
 import { Bucket } from './bucket';
 import evented, { Evented } from './evented';
 import { assert } from '@orbit/utils';
@@ -54,18 +54,20 @@ export default class ActionQueue implements Evented {
   public autoProcess: boolean;
 
   private _name: string;
-  private _target: any;
+  private _target: object;
   private _bucket: Bucket;
-  private _actions: any[];
+  private _actions: Action[];
+  private _processors: ActionProcessor[];
   private _error: any;
   private _resolution: Promise<void>;
   private _resolve: any;
+  private _reject: any;
   private _reified: Promise<any>;
 
   // Evented interface stubs
-  on: (event: string, callback: () => void, binding?: any) => void;
-  off: (event: string, callback: () => void, binding?: any) => void;
-  one: (event: string, callback: () => void, binding?: any) => void;
+  on: (event: string, callback: any, binding?: any) => void;
+  off: (event: string, callback: any, binding?: any) => void;
+  one: (event: string, callback: any, binding?: any) => void;
   emit: (event: string, ...args) => void;
   listeners: (event: string) => any[];
 
@@ -102,11 +104,15 @@ export default class ActionQueue implements Evented {
   }
 
   get length(): number {
-    return this._actions.length;
+    return this._actions ? this._actions.length : 0;
   }
 
   get current(): Action {
-    return this._actions[0];
+    return this._actions && this._actions[0];
+  }
+
+  get currentProcessor(): ActionProcessor {
+    return this._processors && this._processors[0];
   }
 
   get error(): any {
@@ -118,39 +124,39 @@ export default class ActionQueue implements Evented {
   }
 
   get processing(): boolean {
-    const current = this.current;
+    const processor = this.currentProcessor;
 
-    return current !== undefined &&
-           current.started &&
-           !current.settled;
+    return processor !== undefined &&
+           processor.started &&
+           !processor.settled;
   }
 
   get reified(): Promise<void> {
     return this._reified;
   }
 
-  push(method, options): Promise<Action> {
-    return this._reified
+  push(action: Action): Promise<void> {
+    let processor = new ActionProcessor(this._target, action);
+
+    this._reified
       .then(() => {
-        const action = new Action(this._target, method, options);
         this._actions.push(action);
-        return this._persist()
-          .then(() => {
-            if (this.autoProcess) {
-              return this.process()
-                .then(() => action);
-            } else {
-              return action;
-            }
-          });
+        this._processors.push(processor);
+
+        if (this.autoProcess) {
+          return this._persist()
+            .then(() => this.process());
+        }
       });
+
+    return processor.settle();
   }
 
   retry(): Promise<void> {
     return this._reified
       .then(() => {
         this._cancel();
-        this.current.reset();
+        this.currentProcessor.reset();
         return this._persist();
       })
       .then(() => this.process());
@@ -161,6 +167,7 @@ export default class ActionQueue implements Evented {
       .then(() => {
         this._cancel();
         this._actions.shift();
+        this._processors.shift();
         return this._persist();
       })
       .then(() => this.process());
@@ -171,6 +178,7 @@ export default class ActionQueue implements Evented {
       .then(() => {
         this._cancel();
         this._actions = [];
+        this._processors = [];
         return this._persist();
       })
       .then(() => this.process());
@@ -183,22 +191,20 @@ export default class ActionQueue implements Evented {
       .then(() => {
         this._cancel();
         action = this._actions.shift();
+        this._processors.shift();
         return this._persist();
       })
       .then(() => action);
   }
 
-  unshift(method, options): Promise<Action> {
-    let action;
-
+  unshift(action: Action): Promise<void> {
     return this._reified
       .then(() => {
-        action = new Action(this._target, method, options);
         this._cancel();
         this._actions.unshift(action);
+        this._processors.unshift(new ActionProcessor(this._target, action));
         return this._persist();
-      })
-      .then(() => action);
+      });
   }
 
   process(): Promise<any> {
@@ -212,8 +218,9 @@ export default class ActionQueue implements Evented {
             this._complete();
           } else {
             this._error = null;
-            this._resolution = resolution = new Orbit.Promise((resolve) => {
+            this._resolution = resolution = new Orbit.Promise((resolve, reject) => {
               this._resolve = resolve;
+              this._reject = reject;
             });
             this._settleEach(resolution);
           }
@@ -223,41 +230,48 @@ export default class ActionQueue implements Evented {
       });
   }
 
-  _complete(): void {
+  private _complete(): void {
     if (this._resolve) {
       this._resolve();
     }
+    this._resolve = null;
+    this._reject = null;
     this._error = null;
     this._resolution = null;
     this.emit('complete');
   }
 
-  _fail(action, e): void {
-    if (this._resolve) {
-      this._resolve();
+  private _fail(action, e): void {
+    if (this._reject) {
+      this._reject(e);
     }
+    this._resolve = null;
+    this._reject = null;
     this._error = e;
     this._resolution = null;
     this.emit('fail', action, e);
   }
 
-  _cancel(): void {
+  private _cancel(): void {
     this._error = null;
     this._resolution = null;
   }
 
-  _settleEach(resolution): void {
+  private _settleEach(resolution): void {
     if (this._actions.length === 0) {
       this._complete();
     } else {
       let action = this._actions[0];
+      let processor = this._processors[0];
 
       this.emit('beforeAction', action);
 
-      action.process()
-        .then(() => {
+      processor.process()
+        .then((result) => {
           if (resolution === this._resolution) {
             this._actions.shift();
+            this._processors.shift();
+
             this._persist()
               .then(() => {
                 this.emit('action', action);
@@ -273,12 +287,18 @@ export default class ActionQueue implements Evented {
     }
   }
 
-  _reify(): Promise<void> {
+  private _reify(): Promise<void> {
     this._actions = [];
+    this._processors = [];
 
     if (this._bucket) {
       this._reified = this._bucket.getItem(this._name)
-        .then(serialized => this._deserializeActions(serialized));
+        .then(actions => {
+          if (actions) {
+            this._actions = actions;
+            this._processors = actions.map(action => new ActionProcessor(this._target, action));
+          }
+        });
     } else {
       this._reified = Orbit.Promise.resolve();
     }
@@ -286,21 +306,9 @@ export default class ActionQueue implements Evented {
     return this._reified;
   }
 
-  _deserializeActions(serialized: SerializedAction[]): void {
-    if (serialized) {
-      this._actions = serialized.map(a => Action.deserialize(this._target, a));
-    } else {
-      this._actions = [];
-    }
-  }
-
-  _serializeActions(): SerializedAction[] {
-    return this._actions.map(a => a.serialize());
-  }
-
-  _persist(): Promise<void> {
+  private _persist(): Promise<void> {
     if (this._bucket) {
-      return this._bucket.setItem(this._name, this._serializeActions());
+      return this._bucket.setItem(this._name, this._actions);
     } else {
       return Orbit.Promise.resolve();
     }

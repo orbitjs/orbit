@@ -19,6 +19,7 @@ import {
   Source
 } from '@orbit/core';
 import LocalStorageSource from '../src/source';
+import './test-helper';
 
 const { module, test } = QUnit;
 

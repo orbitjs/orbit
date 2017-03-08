@@ -3,7 +3,7 @@
   "test_page": "tests/index.html",
   "before_tests": "npm run build:tests",
   "src_files": ["src/**/*", "test/**/*"],
-  "launch_in_ci": ["firefox"],
+  "launch_in_ci": ["phantomjs"],
   "debug": true,
   "port": 0
 }

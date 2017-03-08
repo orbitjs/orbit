@@ -14,8 +14,6 @@ import {
   failedOperation
 } from './support/operations';
 
-import { planetsSchema } from './support/schemas';
-
 import './support/rsvp';
 
 export {
@@ -23,6 +21,5 @@ export {
   serializeOp,
   op,
   successfulOperation,
-  failedOperation,
-  planetsSchema
+  failedOperation
 };

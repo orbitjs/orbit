@@ -6,6 +6,7 @@ import {
 } from '@orbit/core';
 import Cache from '../../../src/cache';
 import SchemaConsistencyProcessor from '../../../src/cache/operation-processors/schema-consistency-processor';
+import '../../test-helper';
 
 const { module, test } = QUnit;
 
