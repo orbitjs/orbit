@@ -1,5 +1,6 @@
 import './test-helper';
 import { Action, ActionProcessor } from '../src/action';
+import Orbit from '../src/main';
 
 const { module, test } = QUnit;
 
@@ -43,7 +44,7 @@ module('ActionProcessor', function() {
         assert.ok(true, 'process invoked');
         assert.ok(processor.started, 'processor started');
         assert.ok(!processor.settled, 'processor not settled');
-        return new Promise(function(resolve) {
+        return new Orbit.Promise(function(resolve) {
           function respond() {
             resolve(':)');
           }
@@ -88,7 +89,7 @@ module('ActionProcessor', function() {
         assert.equal(data, '1', 'argument matches');
         assert.ok(processor.started, 'processor started');
         assert.ok(!processor.settled, 'processor not settled');
-        return new Promise(function(resolve, reject) {
+        return new Orbit.Promise(function(resolve, reject) {
           setTimeout(reject(':('), 1);
         });
       }

@@ -165,7 +165,7 @@ export default class TransformLog implements Evented {
   }
 
   contains(transformId: string): boolean {
-    return this._data.includes(transformId);
+    return this._data.indexOf(transformId) > -1;
   }
 
   _persist(): Promise<void> {

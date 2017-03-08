@@ -906,10 +906,10 @@ module('JSONAPISource', function(hooks) {
 
       let transformCount = 0;
 
-      let planet = { 
-        type: 'planet', 
+      let planet = {
+        type: 'planet',
         id: 'jupiter',
-        attributes: { name: 'Jupiter', classification: 'gas giant' } 
+        attributes: { name: 'Jupiter', classification: 'gas giant' }
       };
 
       let addPlanetOp = {
@@ -963,6 +963,6 @@ module('JSONAPISource', function(hooks) {
             'fetch called with expected data'
           );
         });
-    });  
+    });
   });
 });

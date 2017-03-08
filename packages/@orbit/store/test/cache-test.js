@@ -14,6 +14,7 @@ import {
   Schema
 } from '@orbit/core';
 import Cache from '../src/cache';
+import './test-helper';
 
 const { module, test } = QUnit;
 

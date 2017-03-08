@@ -14,7 +14,9 @@ if (process.env.BROCCOLI_ENV === 'tests') {
     funnel(path.join(require.resolve('rsvp'), '..'), {
       include: ['rsvp.js'] }),
     funnel(path.join(require.resolve('sinon'), '../../pkg'), {
-     include: ['sinon.js'] }),
+      include: ['sinon.js'] }),
+    funnel(path.join(require.resolve('whatwg-fetch'), '../'), {
+      include: ['fetch.js'] })
  ];
 }
 

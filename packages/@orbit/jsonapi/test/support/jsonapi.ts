@@ -18,7 +18,7 @@ export function jsonapiResponse(_options, body) {
     options.headers['Content-Type'] = 'application/vnd.api+json';
     response = new self.Response(JSON.stringify(body), options);
   } else {
-    response = new self.Response(options);
+    response = new self.Response(null, options);
   }
 
   // console.log('jsonapiResponse', body, options, response.headers.get('Content-Type'));
