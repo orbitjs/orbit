@@ -1,5 +1,6 @@
 /* eslint-disable valid-jsdoc */
-import { assert, clone, uuid, Dict } from '@orbit/utils';
+import Orbit from './main';
+import { assert, clone, Dict } from '@orbit/utils';
 import evented, { Evented } from './evented';
 import { Record } from './record';
 
@@ -94,24 +95,12 @@ It's possible to override the ID generator for all models as follows:
 
 ```
  var schema = new Schema({
-   modelDefaults: {
-     id: {defaultValue: customIdGenerator}
-   }
+   generateId: customIdGenerator
  });
 ```
 
-It's also possible to override the ID generator for only specific models as
-follows:
-
-```
- var schema = new Schema({
-   models: {
-     planet: {
-       id: {defaultValue: customIdGenerator}
-     }
-   }
- });
-```
+`generateId` takes the model `type` as an argument, which allows for per-model
+customization.
 
  ## Fields
 
@@ -125,9 +114,6 @@ follows:
 
  * `type` - a classification, often category-specific, that defines a field's
    purpose and/or contents.
-
- * `defaultValue` - a value or function that returns a value, to be set on
-   record initialization when a field's value is `undefined`.
 
  Default fields for models can be specified in a `modelDefaults` object. A
  single primary key field, `id`, is defined by default (see below).
@@ -236,17 +222,19 @@ follows:
  attributes or relationships that are present across models in the schema.
 
  As discussed above, `modelDefaults` defines a single primary key by default.
- `modelDefaults` can be overridden to include any number of attributes and relationships.
+ `modelDefaults` can be overridden to include any number of keys, attributes,
+ and relationships.
+
  For instance:
 
  ```
   var schema = new Schema({
     modelDefaults: {
       keys: {
-        __id: {primaryKey: true, defaultValue: uuid}
+        remoteId: {}
       },
       attributes: {
-        createdAt: {type: 'date', defaultValue: currentTime}
+        createdAt: {type: 'date'}
       }
     }
   });
@@ -254,8 +242,7 @@ follows:
 
  The default fields can be overridden in or removed from any particular model
  definition. To remove any key, attribute or relationship definition inherited from
- `modelDefaults` simply define the field with a falsey value (`undefined`,
- `null`, or `false`).
+ `modelDefaults` simply define the field with a `null` value.
 
  For example, the following schema removes `createdAt` from the `planet` model:
 
@@ -263,17 +250,17 @@ follows:
   var schema = new Schema({
     modelDefaults: {
       keys: {
-        __id: {primaryKey: true, defaultValue: uuid}
+        remoteId: {}
       },
       attributes: {
-        createdAt: {type: 'date', defaultValue: currentTime}
+        createdAt: {type: 'date'}
       }
     },
     models: {
       planet: {
         attributes: {
           name: {type: 'string'},
-          createdAt: undefined
+          createdAt: null
         }
       }
     }
@@ -422,15 +409,15 @@ export default class Schema implements Evented {
    * @return {String} Generated model ID
    */
   generateId(modelName?: string): string {
-    return uuid();
+    return Orbit.uuid();
   }
 
   /**
    * A naive pluralization method.
-   * 
+   *
    * Override with a more robust general purpose inflector or provide an
    * inflector tailored to the vocabularly of your application.
-   * 
+   *
    * @param  {String} word
    * @return {String} plural form of `word`
    */
@@ -440,10 +427,10 @@ export default class Schema implements Evented {
 
   /**
    * A naive singularization method.
-   * 
+   *
    * Override with a more robust general purpose inflector or provide an
    * inflector tailored to the vocabularly of your application.
-   * 
+   *
    * @param  {String} word
    * @return {String} singular form of `word`
    */

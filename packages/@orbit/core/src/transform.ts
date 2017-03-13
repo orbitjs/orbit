@@ -1,6 +1,7 @@
 /* eslint-disable valid-jsdoc */
+import Orbit from './main';
 import { Operation } from './operation';
-import { isArray, toArray, uuid } from '@orbit/utils';
+import { isArray, toArray } from '@orbit/utils';
 
 export type TransformOrOperations = Transform | Operation | Operation[];
 
@@ -20,7 +21,7 @@ export default class Transform {
   operations: Operation[];
   options: any;
 
-  constructor(operations: Operation[], options?: object, id: string = uuid()) {
+  constructor(operations: Operation[], options?: object, id: string = Orbit.uuid()) {
     this.operations = operations;
     this.options = options;
     this.id = id;

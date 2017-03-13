@@ -1,6 +1,5 @@
 import Schema from '../src/schema';
 import KeyMap from '../src/key-map';
-import { uuid } from '@orbit/utils';
 
 const { module, test } = QUnit;
 
@@ -10,7 +9,6 @@ module('KeyMap', function(hooks) {
   hooks.beforeEach(function() {
     schema = new Schema({
       modelDefaults: {
-        id: { defaultValue: uuid },
         keys: {
           remoteId: {},
           anotherKey: {}
