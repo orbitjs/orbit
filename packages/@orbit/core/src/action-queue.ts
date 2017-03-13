@@ -137,19 +137,20 @@ export default class ActionQueue implements Evented {
 
   push(action: Action): Promise<void> {
     let processor = new ActionProcessor(this._target, action);
-
-    this._reified
+    return this._reified
       .then(() => {
         this._actions.push(action);
         this._processors.push(processor);
-
+        return this._persist();
+      })
+      .then(() => {
         if (this.autoProcess) {
-          return this._persist()
-            .then(() => this.process());
+          return this.process()
+            .then(() => processor.settle());
+        } else {
+          return processor.settle();
         }
       });
-
-    return processor.settle();
   }
 
   retry(): Promise<void> {
