@@ -1,4 +1,4 @@
-import { uuid } from '@orbit/utils';
+import Orbit from './main';
 import { QueryExpression, isQueryExpression } from './query-expression';
 import { QueryTerm } from './query-term';
 
@@ -19,7 +19,7 @@ export default class Query {
   expression: QueryExpression;
   options: any;
 
-  constructor(expression: QueryExpression, options?: object, id: string = uuid()) {
+  constructor(expression: QueryExpression, options?: object, id: string = Orbit.uuid()) {
     this.expression = expression;
     this.options = options;
     this.id = id;

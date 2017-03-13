@@ -1,5 +1,4 @@
 import Schema from '../src/schema';
-import { uuid } from '@orbit/utils';
 
 const { module, test } = QUnit;
 

@@ -1,7 +1,7 @@
-import { Dict, uuid } from '@orbit/utils';
-import { 
+import { Dict } from '@orbit/utils';
+import {
   KeyMap,
-  ModelDefinition, 
+  ModelDefinition,
   Schema, SchemaSettings,
   serializeRecordIdentity
 } from '@orbit/core';
@@ -45,9 +45,6 @@ module('JSONAPISerializer', function(hooks) {
     let keyMap: KeyMap;
 
     const modelDefaults: ModelDefinition = {
-      id: {
-        defaultValue: uuid
-      },
       keys: {
         remoteId: {}
       }
