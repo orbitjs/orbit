@@ -1,4 +1,4 @@
-import { get, merge, every, some } from '@orbit/utils';
+import { deepGet, merge, every, some } from '@orbit/utils';
 import { RecordNotFoundException } from '@orbit/core';
 
 const EMPTY = () => {};
@@ -104,7 +104,7 @@ export default {
     const cache = this.target;
     const { type, id } = record;
     const currentRecord = cache.records(type).get(id);
-    const data = currentRecord && get(currentRecord, ['relationships', relationship, 'data']);
+    const data = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
     const results = {};
 
     Object.keys(data || {}).forEach(identifier => {
@@ -119,7 +119,7 @@ export default {
     const cache = this.target;
     const { type, id } = record;
     const currentRecord = cache.records(type).get(id);
-    const data = currentRecord && get(currentRecord, ['relationships', relationship, 'data']);
+    const data = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
 
     if (!data) { return null; }
 
@@ -130,6 +130,6 @@ export default {
   attribute(context, name) {
     const [type, id] = context.basePath;
     const record = this.target.records(type).get(id);
-    return record && get(record, ['attributes', name]);
+    return record && deepGet(record, ['attributes', name]);
   }
 };

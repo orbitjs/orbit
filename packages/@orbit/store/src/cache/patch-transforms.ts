@@ -13,7 +13,7 @@ import {
   ReplaceKeyOperation,
   ReplaceRecordOperation
 } from '@orbit/core';
-import { clone, get, set } from '@orbit/utils';
+import { clone, deepGet, deepSet } from '@orbit/utils';
 import Cache from '../cache';
 
 export interface PatchTransformFunc {
@@ -53,7 +53,7 @@ export default {
     const records = cache.records(type);
     let record = records.get(id);
     if (record) {
-      if (get(record, ['keys', op.key]) === op.value) {
+      if (deepGet(record, ['keys', op.key]) === op.value) {
         return false;
       } else {
         record = clone(record);
@@ -61,7 +61,7 @@ export default {
     } else {
       record = { type, id };
     }
-    if (set(record, ['keys', op.key], op.value)) {
+    if (deepSet(record, ['keys', op.key], op.value)) {
       records.set(id, record);
       return true;
     }
@@ -72,7 +72,7 @@ export default {
     const records = cache.records(type);
     let record = records.get(id);
     if (record) {
-      if (get(record, ['attributes', op.attribute]) === op.value) {
+      if (deepGet(record, ['attributes', op.attribute]) === op.value) {
         return false;
       } else {
         record = clone(record);
@@ -80,7 +80,7 @@ export default {
     } else {
       record = { type, id };
     }
-    if (set(record, ['attributes', op.attribute], op.value)) {
+    if (deepSet(record, ['attributes', op.attribute], op.value)) {
       records.set(id, record);
       return true;
     }
@@ -92,7 +92,7 @@ export default {
     const relatedIdentifier = serializeRecordIdentity(op.relatedRecord);
     let record = records.get(id);
     if (record) {
-      if (get(record, ['relationships', op.relationship, 'data', relatedIdentifier]) === true) {
+      if (deepGet(record, ['relationships', op.relationship, 'data', relatedIdentifier]) === true) {
         return false;
       } else {
         record = clone(record);
@@ -100,7 +100,7 @@ export default {
     } else {
       record = { type, id };
     }
-    if (set(record, ['relationships', op.relationship, 'data', relatedIdentifier], true)) {
+    if (deepSet(record, ['relationships', op.relationship, 'data', relatedIdentifier], true)) {
       records.set(id, record);
       return true;
     }
@@ -112,9 +112,9 @@ export default {
     let record = records.get(id);
     if (record) {
       const relatedIdentifier = serializeRecordIdentity(op.relatedRecord);
-      if (get(record, ['relationships', op.relationship, 'data', relatedIdentifier])) {
+      if (deepGet(record, ['relationships', op.relationship, 'data', relatedIdentifier])) {
         record = clone(record);
-        let data = get(record, ['relationships', op.relationship, 'data']);
+        let data = deepGet(record, ['relationships', op.relationship, 'data']);
         delete data[relatedIdentifier];
         records.set(id, record);
         return true;
@@ -137,7 +137,7 @@ export default {
       let identifier = serializeRecordIdentity(r);
       relatedData[identifier] = true;
     });
-    if (set(record, ['relationships', op.relationship, 'data'], relatedData)) {
+    if (deepSet(record, ['relationships', op.relationship, 'data'], relatedData)) {
       records.set(id, record);
       return true;
     }
@@ -154,7 +154,7 @@ export default {
     const records = cache.records(type);
     let record = records.get(id);
     if (record) {
-      if (get(record, ['relationships', op.relationship, 'data']) === relatedData) {
+      if (deepGet(record, ['relationships', op.relationship, 'data']) === relatedData) {
         return false;
       } else {
         record = clone(record);
@@ -162,7 +162,7 @@ export default {
     } else {
       record = { type, id };
     }
-    if (set(record, ['relationships', op.relationship, 'data'], relatedData)) {
+    if (deepSet(record, ['relationships', op.relationship, 'data'], relatedData)) {
       records.set(id, record);
       return true;
     }

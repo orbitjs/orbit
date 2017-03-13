@@ -176,7 +176,7 @@ export function merge(base: Object, source: Object): Object {
   @param {string[]} path - any array of strings specifying the path to use
   @returns {*} the value of the obj at path or undefined
  */
-export function get(obj: Object, path: string[]): any {
+export function deepGet(obj: Object, path: string[]): any {
   let index = -1;
   let result = obj;
 
@@ -200,7 +200,7 @@ export function get(obj: Object, path: string[]): any {
   @param {*} value - the value to set
   @returns {boolean} - was the value was actually changed?
  */
-export function set(obj: Object, path: string[], value: any): boolean {
+export function deepSet(obj: Object, path: string[], value: any): boolean {
   let ptr = obj;
   let prop = path.pop();
   let segment;

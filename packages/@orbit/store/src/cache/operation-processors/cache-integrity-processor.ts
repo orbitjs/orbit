@@ -1,4 +1,4 @@
-import { get, isObject, Dict } from '@orbit/utils';
+import { deepGet, isObject, Dict } from '@orbit/utils';
 import { 
   serializeRecordIdentity, 
   deserializeRecordIdentity,
@@ -109,7 +109,7 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
     if (relationshipDef.inverse) {
       if (relatedRecord === undefined) {
         const currentRecord = this.cache.records(record.type).get(record.id);
-        const relationshipData = currentRecord && get(currentRecord, ['relationships', relationship, 'data']);
+        const relationshipData = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
         if (relationshipData) {
           relatedRecord = deserializeRecordIdentity(relationshipData);
         }
@@ -129,7 +129,7 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
     if (relationshipDef.inverse) {
       if (relatedRecords === undefined) {
         const currentRecord = this.cache.records(record.type).get(record.id);
-        const relationshipData = currentRecord && get(currentRecord, ['relationships', relationship, 'data']);
+        const relationshipData = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
         if (relationshipData) {
           relatedRecords = recordArrayFromData(relationshipData);
         }

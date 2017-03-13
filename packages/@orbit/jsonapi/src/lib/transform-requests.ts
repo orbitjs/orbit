@@ -16,7 +16,7 @@ import {
   ReplaceHasOneOperation,
   ReplaceHasManyOperation
 } from '@orbit/core';
-import { clone, set } from '@orbit/utils';
+import { clone, deepSet } from '@orbit/utils';
 import JSONAPISource from '../jsonapi-source';
 import { JSONAPIDocument } from '../jsonapi-document';
 import { DeserializedDocument } from '../jsonapi-serializer';
@@ -206,7 +206,7 @@ const OperationToRequestMap = {
       id: operation.record.id
     };
 
-    set(record, ['relationships', operation.relationship, 'data'], serializeRecordIdentity(operation.relatedRecord));
+    deepSet(record, ['relationships', operation.relationship, 'data'], serializeRecordIdentity(operation.relatedRecord));
 
     return {
       op: 'replaceRecord',
@@ -220,7 +220,7 @@ const OperationToRequestMap = {
     operation.relatedRecords.forEach(r => {
       relationshipData[serializeRecordIdentity(r)] = true;
     });
-    set(record, ['relationships', operation.relationship, 'data'], relationshipData);
+    deepSet(record, ['relationships', operation.relationship, 'data'], relationshipData);
 
     return {
       op: 'replaceRecord',
@@ -230,13 +230,13 @@ const OperationToRequestMap = {
 };
 
 function replaceRecordAttribute(record: RecordIdentity, attribute: string, value: any) {
-  set(record, ['attributes', attribute], value);
+  deepSet(record, ['attributes', attribute], value);
 }
 
 function replaceRecordHasOne(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity) {
-  set(record, ['relationships', relationship, 'data'], relatedRecord ? cloneRecordIdentity(relatedRecord) : null);
+  deepSet(record, ['relationships', relationship, 'data'], relatedRecord ? cloneRecordIdentity(relatedRecord) : null);
 }
 
 function replaceRecordHasMany(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]) {
-  set(record, ['relationships', relationship, 'data'], relatedRecords.map(r => cloneRecordIdentity(r)));
+  deepSet(record, ['relationships', relationship, 'data'], relatedRecords.map(r => cloneRecordIdentity(r)));
 }

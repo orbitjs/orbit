@@ -1,4 +1,4 @@
-import { isArray, isObject, dasherize, camelize, set, Dict } from '@orbit/utils';
+import { isArray, isObject, dasherize, camelize, deepSet, Dict } from '@orbit/utils';
 import { 
   deserializeRecordIdentity, 
   serializeRecordIdentity,
@@ -155,7 +155,7 @@ export default class JSONAPISerializer {
   serializeAttribute(resource: Resource, record: Record, attr: string): void {
     let value: any = record.attributes[attr];
     if (value !== undefined) {
-      set(resource, ['attributes', this.resourceAttribute(record.type, attr)], value);
+      deepSet(resource, ['attributes', this.resourceAttribute(record.type, attr)], value);
     }
   }
 
@@ -183,7 +183,7 @@ export default class JSONAPISerializer {
 
       const resourceRelationship = this.resourceRelationship(record.type, relationship);
 
-      set(resource, ['relationships', resourceRelationship, 'data'], data);
+      deepSet(resource, ['relationships', resourceRelationship, 'data'], data);
     }
   }
 
