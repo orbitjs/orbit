@@ -5,28 +5,20 @@ import { Record } from './record';
 
 export interface AttributeDefinition {
   type?: string;
-  defaultValue?: any;
 }
 
 export interface RelationshipDefinition {
   type: 'hasMany' | 'hasOne';
   model?: string;
   inverse?: string;
-  defaultValue?: any;
   dependent?: 'remove';
 }
 
 export interface KeyDefinition {
   primaryKey?: boolean;
-  defaultValue?: () => string;
-}
-
-export interface IdDefinition {
-  defaultValue: () => string;
 }
 
 export interface ModelDefinition {
-  id?: IdDefinition;
   keys?: Dict<KeyDefinition>;
   attributes?: Dict<AttributeDefinition>;
   relationships?: Dict<RelationshipDefinition>;
@@ -34,20 +26,11 @@ export interface ModelDefinition {
 
 export interface SchemaSettings {
   version?: number;
+  generateId?: (modelName?: string) => string;
   pluralize?: (word: string) => string;
   singularize?: (word: string) => string;
   models?: Dict<ModelDefinition>;
   modelDefaults?: ModelDefinition;
-}
-
-const NORMALIZED = '__normalized__';
-
-export function isRecordNormalized(record: Record): boolean {
-  return !!record[NORMALIZED];
-}
-
-function markRecordNormalized(record: Record): void {
-  record[NORMALIZED] = true;
 }
 
 /**
@@ -370,7 +353,10 @@ export default class Schema implements Evented {
     // Version
     this._version = settings.version;
 
-    // Set inflection functions
+    // Allow overrides
+    if (settings.generateId) {
+      this.generateId = settings.generateId;
+    }
     if (settings.pluralize) {
       this.pluralize = settings.pluralize;
     }
@@ -382,9 +368,7 @@ export default class Schema implements Evented {
     if (settings.modelDefaults) {
       this.modelDefaults = settings.modelDefaults;
     } else if (this.modelDefaults === undefined) {
-      this.modelDefaults = {
-        id: { defaultValue: uuid }
-      };
+      this.modelDefaults = {};
     }
 
     // Register model schemas
@@ -420,28 +404,6 @@ export default class Schema implements Evented {
   }
 
   /**
-   * Normalizes a record according to its type and corresponding schema
-   * definition.
-   *
-   * A record's primary key, relationships, and meta data will all be initialized.
-   *
-   * A record can only be normalized once. A flag is set on the record
-   * (`__normalized__`) to prevent "re-normalization".
-   *
-   * @param {Object} record Record data
-   * @return {Object} Normalized version of `data`
-   */
-  normalize(record: Record): Record {
-    if (isRecordNormalized(record)) { return record; }
-
-    markRecordNormalized(record);
-
-    this.initDefaults(record);
-
-    return record;
-  }
-
-  /**
    * Returns a model definition.
    *
    * If no model has been defined, a `ModelNotRegisteredException` is raised.
@@ -453,94 +415,37 @@ export default class Schema implements Evented {
     return this.models[name];
   }
 
-  initDefaults(record: Record): void {
-    assert('Schema.initDefaults requires a normalized record', isRecordNormalized(record));
-
-    function defaultValue(record: Record, value: any): any {
-      if (typeof value === 'function') {
-        return value.call(record);
-      } else {
-        return value;
-      }
-    }
-
-    let modelDefinition: ModelDefinition = this.modelDefinition(record.type);
-
-    // init default id value
-    if (record.id === undefined) {
-      record.id = defaultValue(record, modelDefinition.id.defaultValue);
-    }
-
-    // init default key values
-    if (modelDefinition.keys && Object.keys(modelDefinition.keys).length > 0) {
-      if (record.keys === undefined) { record.keys = {}; }
-
-      for (var key in modelDefinition.keys) {
-        if (record.keys[key] === undefined) {
-          record.keys[key] = defaultValue(record, modelDefinition.keys[key].defaultValue);
-        }
-      }
-    }
-
-    // init default attribute values
-    if (modelDefinition.attributes) {
-      if (record.attributes === undefined) { record.attributes = {}; }
-
-      for (var attribute in modelDefinition.attributes) {
-        if (record.attributes[attribute] === undefined) {
-          record.attributes[attribute] = defaultValue(record, modelDefinition.attributes[attribute].defaultValue);
-        }
-      }
-    }
-
-    // init default relationship values
-    if (modelDefinition.relationships) {
-      if (record.relationships === undefined) { record.relationships = {}; }
-
-      for (var relationship in modelDefinition.relationships) {
-        if (record.relationships[relationship] === undefined) {
-          const relationshipDefinition = modelDefinition.relationships[relationship];
-          const defaultForType = relationshipDefinition.type === 'hasMany' ? {} : null;
-
-          record.relationships[relationship] = {
-            data: defaultValue(record, relationshipDefinition.defaultValue) || defaultForType
-          };
-        }
-      }
-    }
-  }
-
   /**
    * Generate an id for a given model type.
    *
-   * @param {String} type A model type
+   * @param {String} modelName Model name
    * @return {String} Generated model ID
    */
-  generateDefaultId(model: string): string {
-    return this.modelDefinition(model).id.defaultValue();
+  generateId(modelName?: string): string {
+    return uuid();
   }
 
   /**
-   A naive pluralization method.
-
-   Override with a more robust general purpose inflector or provide an
-   inflector tailored to the vocabularly of your application.
-
-   @param  {String} word
-   @return {String} plural form of `word`
+   * A naive pluralization method.
+   * 
+   * Override with a more robust general purpose inflector or provide an
+   * inflector tailored to the vocabularly of your application.
+   * 
+   * @param  {String} word
+   * @return {String} plural form of `word`
    */
   pluralize(word: string): string {
     return word + 's';
   }
 
   /**
-   A naive singularization method.
-
-   Override with a more robust general purpose inflector or provide an
-   inflector tailored to the vocabularly of your application.
-
-   @param  {String} word
-   @return {String} singular form of `word`
+   * A naive singularization method.
+   * 
+   * Override with a more robust general purpose inflector or provide an
+   * inflector tailored to the vocabularly of your application.
+   * 
+   * @param  {String} word
+   * @return {String} singular form of `word`
    */
   singularize(word: string): string {
     if (word.lastIndexOf('s') === word.length - 1) {
@@ -561,14 +466,12 @@ export default class Schema implements Evented {
 
 function mergeModelDefinitions(base: ModelDefinition, ...sources: ModelDefinition[]): ModelDefinition {
   // ensure model schema has categories set
-  base.id = base.id || { defaultValue: uuid };
   base.keys = base.keys || {};
   base.attributes = base.attributes || {};
   base.relationships = base.relationships || {};
 
   sources.forEach(source => {
     source = clone(source);
-    mergeModelFields(base.id, source.id);
     mergeModelFields(base.keys, source.keys);
     mergeModelFields(base.attributes, source.attributes);
     mergeModelFields(base.relationships, source.relationships);

@@ -88,14 +88,14 @@ module('IndexedDBSource', function(hooks) {
   test('#push - addRecord', function(assert) {
     assert.expect(1);
 
-    let planet = schema.normalize({
+    let planet = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
         name: 'Jupiter',
         classification: 'gas giant'
       }
-    });
+    };
 
     return source.push(Transform.from(addRecord(planet)))
       .then(() => verifyIndexedDBContainsRecord(assert, source, planet));
@@ -104,16 +104,16 @@ module('IndexedDBSource', function(hooks) {
   test('#push - replaceRecord', function(assert) {
     assert.expect(1);
 
-    let original = schema.normalize({
+    let original = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
         name: 'Jupiter',
         classification: 'gas giant'
       }
-    });
+    };
 
-    let revised = schema.normalize({
+    let revised = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -121,7 +121,7 @@ module('IndexedDBSource', function(hooks) {
         classification: 'gas giant',
         revised: true
       }
-    });
+    };
 
     return source.push(Transform.from(addRecord(original)))
       .then(() => source.push(Transform.from(replaceRecord(revised))))
@@ -131,14 +131,14 @@ module('IndexedDBSource', function(hooks) {
   test('#push - removeRecord', function(assert) {
     assert.expect(1);
 
-    let planet = schema.normalize({
+    let planet = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
         name: 'Jupiter',
         classification: 'gas giant'
       }
-    });
+    };
 
     return source.push(Transform.from(addRecord(planet)))
       .then(() => source.push(Transform.from(removeRecord(planet))))
@@ -148,16 +148,16 @@ module('IndexedDBSource', function(hooks) {
   test('#push - replaceKey', function(assert) {
     assert.expect(1);
 
-    let original = schema.normalize({
+    let original = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
         name: 'Jupiter',
         classification: 'gas giant'
       }
-    });
+    };
 
-    let revised = schema.normalize({
+    let revised = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -167,7 +167,7 @@ module('IndexedDBSource', function(hooks) {
       keys: {
         remoteId: '123'
       }
-    });
+    };
 
     return source.push(Transform.from(addRecord(original)))
       .then(() => source.push(Transform.from(replaceKey(original, 'remoteId', '123'))))
@@ -177,16 +177,16 @@ module('IndexedDBSource', function(hooks) {
   test('#push - replaceAttribute', function(assert) {
     assert.expect(1);
 
-    let original = schema.normalize({
+    let original = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
         name: 'Jupiter',
         classification: 'gas giant'
       }
-    });
+    };
 
-    let revised = schema.normalize({
+    let revised = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -194,7 +194,7 @@ module('IndexedDBSource', function(hooks) {
         classification: 'gas giant',
         order: 5
       }
-    });
+    };
 
     return source.push(Transform.from(addRecord(original)))
       .then(() => source.push(Transform.from(replaceAttribute(original, 'order', 5))))
@@ -204,7 +204,7 @@ module('IndexedDBSource', function(hooks) {
   test('#push - addToHasMany', function(assert) {
     assert.expect(1);
 
-    let original = schema.normalize({
+    let original = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -216,9 +216,9 @@ module('IndexedDBSource', function(hooks) {
           data: {}
         }
       }
-    });
+    };
 
-    let revised = schema.normalize({
+    let revised = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -232,7 +232,7 @@ module('IndexedDBSource', function(hooks) {
           }
         }
       }
-    });
+    };
 
     return source.push(Transform.from(addRecord(original)))
       .then(() => source.push(Transform.from(addToHasMany(original, 'moons', { type: 'moon', id: 'moon1' }))))
@@ -242,7 +242,7 @@ module('IndexedDBSource', function(hooks) {
   test('#push - removeFromHasMany', function(assert) {
     assert.expect(1);
 
-    let original = schema.normalize({
+    let original = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -257,9 +257,9 @@ module('IndexedDBSource', function(hooks) {
           }
         }
       }
-    });
+    };
 
-    let revised = schema.normalize({
+    let revised = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -273,7 +273,7 @@ module('IndexedDBSource', function(hooks) {
           }
         }
       }
-    });
+    };
 
     return source.push(Transform.from(addRecord(original)))
       .then(() => source.push(Transform.from(removeFromHasMany(original, 'moons', { type: 'moon', id: 'moon2' }))))
@@ -283,7 +283,7 @@ module('IndexedDBSource', function(hooks) {
   test('#push - replaceHasMany', function(assert) {
     assert.expect(1);
 
-    let original = schema.normalize({
+    let original = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -297,9 +297,9 @@ module('IndexedDBSource', function(hooks) {
           }
         }
       }
-    });
+    };
 
-    let revised = schema.normalize({
+    let revised = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -314,7 +314,7 @@ module('IndexedDBSource', function(hooks) {
           }
         }
       }
-    });
+    };
 
     return source.push(Transform.from(addRecord(original)))
       .then(() => source.push(Transform.from(replaceHasMany(original, 'moons', [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }]))))
@@ -324,7 +324,7 @@ module('IndexedDBSource', function(hooks) {
   test('#push - replaceHasOne - record', function(assert) {
     assert.expect(1);
 
-    let original = schema.normalize({
+    let original = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -336,9 +336,9 @@ module('IndexedDBSource', function(hooks) {
           data: null
         }
       }
-    });
+    };
 
-    let revised = schema.normalize({
+    let revised = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -350,7 +350,7 @@ module('IndexedDBSource', function(hooks) {
           data: 'solarSystem:ss1'
         }
       }
-    });
+    };
 
     return source.push(Transform.from(addRecord(original)))
       .then(() => source.push(Transform.from(replaceHasOne(original, 'solarSystem', { type: 'solarSystem', id: 'ss1' }))))
@@ -360,7 +360,7 @@ module('IndexedDBSource', function(hooks) {
   test('#push - replaceHasOne - null', function(assert) {
     assert.expect(1);
 
-    let original = schema.normalize({
+    let original = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -372,9 +372,9 @@ module('IndexedDBSource', function(hooks) {
           data: 'solarSystem:ss1'
         }
       }
-    });
+    };
 
-    let revised = schema.normalize({
+    let revised = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -386,7 +386,7 @@ module('IndexedDBSource', function(hooks) {
           data: null
         }
       }
-    });
+    };
 
     return source.push(Transform.from(addRecord(original)))
       .then(() => source.push(Transform.from(replaceHasOne(original, 'solarSystem', null))))
@@ -396,31 +396,31 @@ module('IndexedDBSource', function(hooks) {
   test('#pull - all records', function(assert) {
     assert.expect(2);
 
-    let earth = schema.normalize({
+    let earth = {
       type: 'planet',
       id: 'earth',
       attributes: {
         name: 'Earth',
         classification: 'terrestrial'
       }
-    });
+    };
 
-    let jupiter = schema.normalize({
+    let jupiter = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
         name: 'Jupiter',
         classification: 'gas giant'
       }
-    });
+    };
 
-    let io = schema.normalize({
+    let io = {
       type: 'moon',
       id: 'io',
       attributes: {
         name: 'Io'
       }
-    });
+    };
 
     return source.push(Transform.from([
       addRecord(earth),
@@ -441,31 +441,31 @@ module('IndexedDBSource', function(hooks) {
   test('#pull - records of one type', function(assert) {
     assert.expect(2);
 
-    let earth = schema.normalize({
+    let earth = {
       type: 'planet',
       id: 'earth',
       attributes: {
         name: 'Earth',
         classification: 'terrestrial'
       }
-    });
+    };
 
-    let jupiter = schema.normalize({
+    let jupiter = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
         name: 'Jupiter',
         classification: 'gas giant'
       }
-    });
+    };
 
-    let io = schema.normalize({
+    let io = {
       type: 'moon',
       id: 'io',
       attributes: {
         name: 'Io'
       }
-    });
+    };
 
     return source.push(Transform.from([
       addRecord(earth),
@@ -486,31 +486,31 @@ module('IndexedDBSource', function(hooks) {
   test('#pull - a specific record', function(assert) {
     assert.expect(2);
 
-    let earth = schema.normalize({
+    let earth = {
       type: 'planet',
       id: 'earth',
       attributes: {
         name: 'Earth',
         classification: 'terrestrial'
       }
-    });
+    };
 
-    let jupiter = schema.normalize({
+    let jupiter = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
         name: 'Jupiter',
         classification: 'gas giant'
       }
-    });
+    };
 
-    let io = schema.normalize({
+    let io = {
       type: 'moon',
       id: 'io',
       attributes: {
         name: 'Io'
       }
-    });
+    };
 
     return source.clearRecords('planet')
       .then(() => source.clearRecords('moon'))

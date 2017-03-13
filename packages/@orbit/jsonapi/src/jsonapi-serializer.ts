@@ -225,9 +225,9 @@ export default class JSONAPISerializer {
         };
 
         id = this.keyMap.idFromKeys(type, keys) ||
-             this.schema.generateDefaultId(type);
+             this.schema.generateId(type);
       } else {
-        id = this.schema.generateDefaultId(type);
+        id = this.schema.generateId(type);
       }
 
       record = { type, id };
@@ -299,7 +299,7 @@ export default class JSONAPISerializer {
   }
 
   protected _generateNewId(type: string, keyName: string, keyValue: string) {
-    let id = this.schema.generateDefaultId(type);
+    let id = this.schema.generateId(type);
 
     this.keyMap.pushRecord({
       type,

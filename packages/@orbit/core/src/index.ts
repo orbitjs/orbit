@@ -14,7 +14,7 @@ export * from './query-expression';
 export { QueryTerm } from './query-term';
 export { default as Query, QueryOrExpression } from './query';
 export * from './record';
-export { default as Schema, AttributeDefinition, RelationshipDefinition, KeyDefinition, IdDefinition, ModelDefinition, SchemaSettings, isRecordNormalized } from './schema';
+export { default as Schema, AttributeDefinition, RelationshipDefinition, KeyDefinition, ModelDefinition, SchemaSettings } from './schema';
 export { Source, SourceSettings } from './source';
 export { default as TransformLog, TransformLogOptions } from './transform-log';
 export { default as Transform, TransformOrOperations } from './transform';
