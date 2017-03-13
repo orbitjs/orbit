@@ -1,6 +1,6 @@
 import { 
   Dict, 
-  get, 
+  deepGet, 
   isObject 
 } from '@orbit/utils';
 import { 
@@ -88,7 +88,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
     if (inverseRelationship) {
       if (relatedRecord === undefined) {
         const currentRecord = this.cache.records(record.type).get(record.id);
-        const relationshipData = currentRecord && get(currentRecord, ['relationships', relationship, 'data']);
+        const relationshipData = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
         if (relationshipData) {
           relatedRecord = deserializeRecordIdentity(relationshipData);
         }
@@ -109,7 +109,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
 
     if (inverseRelationship) {
       const currentRecord = this.cache.records(record.type).get(record.id);
-      const prevRelationshipData = currentRecord && get(currentRecord, ['relationships', relationship, 'data']);
+      const prevRelationshipData = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
       let prevRelatedRecord;
 
       if (prevRelationshipData) {
@@ -139,7 +139,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
     if (inverseRelationship) {
       if (relatedRecords === undefined) {
         const currentRecord = this.cache.records(record.type).get(record.id);
-        const relationshipData = currentRecord && get(currentRecord, ['relationships', relationship, 'data']);
+        const relationshipData = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
         if (relationshipData) {
           relatedRecords = recordArrayFromData(relationshipData);
         }
@@ -157,7 +157,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
     const ops: RecordOperation[] = [];
     const relationshipDef = this.cache.schema.relationshipDefinition(record.type, relationship);
     const currentRecord = this.cache.records(record.type).get(record.id);
-    const prevRelationshipData = currentRecord && get(currentRecord, ['relationships', relationship, 'data']);
+    const prevRelationshipData = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
     const prevRelatedRecordMap = recordMapFromData(prevRelationshipData);
     const relatedRecordMap = recordMapFromArray(relatedRecords);
 
@@ -202,7 +202,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
   _recordRemoved(record: RecordIdentity): RecordOperation[] {
     const ops: RecordOperation[] = [];
     const currentRecord = this.cache.records(record.type).get(record.id);
-    const relationships = currentRecord && get(currentRecord, ['relationships']);
+    const relationships = currentRecord && deepGet(currentRecord, ['relationships']);
 
     if (relationships) {
       const modelDef = this.cache.schema.modelDefinition(record.type);
@@ -229,7 +229,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
     for (let relationship in modelDef.relationships) {
       const relationshipDef = modelDef.relationships[relationship];
       const currentRecord = this.cache.records(record.type).get(record.id);
-      const prevRelationshipData = currentRecord && get(currentRecord, ['relationships', relationship, 'data']);
+      const prevRelationshipData = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
       const prevRelatedRecordMap = recordMapFromData(prevRelationshipData);
       const relationshipData = record &&
                                record.relationships &&

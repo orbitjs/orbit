@@ -1,4 +1,4 @@
-import { clone, expose, extend, isArray, toArray, isObject, isNone, merge, get, set } from '../src/objects';
+import { clone, expose, extend, isArray, toArray, isObject, isNone, merge, deepGet, deepSet } from '../src/objects';
 
 const { module, test } = QUnit;
 
@@ -163,7 +163,7 @@ module('Lib / Object', function() {
               'Original object mutated');
   });
 
-  test('`get` retrieves a value from a nested object', function(assert) {
+  test('`deepGet` retrieves a value from a nested object', function(assert) {
     let obj = {
       author: {
         name: {
@@ -172,32 +172,32 @@ module('Lib / Object', function() {
       }
     };
 
-    assert.equal(get(obj, ['author', 'name', 'first']), 'Ginkgo', 'returns a match');
-    assert.equal(get(obj, ['author', 'name', 'last']), undefined, 'returns undefined if no match');
+    assert.equal(deepGet(obj, ['author', 'name', 'first']), 'Ginkgo', 'returns a match');
+    assert.equal(deepGet(obj, ['author', 'name', 'last']), undefined, 'returns undefined if no match');
   });
 
-  test('`set` sets a value on an object, creating objects/arrays as needed', function(assert) {
+  test('`deepSet` sets a value on an object, creating objects/arrays as needed', function(assert) {
     let obj = {};
 
-    let ret = set(obj, ['name'], 'Ginkgo');
+    let ret = deepSet(obj, ['name'], 'Ginkgo');
 
     assert.deepEqual(obj, { name: 'Ginkgo' }, 'simple set one level deep');
     assert.equal(ret, true, 'object was mutated');
 
-    ret = set(obj, ['appendages', 'feet'], 4);
+    ret = deepSet(obj, ['appendages', 'feet'], 4);
 
     assert.deepEqual(obj, { name: 'Ginkgo', appendages: { feet: 4 } }, 'simple set one level deep');
     assert.equal(ret, true, 'object was mutated');
 
     let owner = { name: 'dgeb' };
 
-    ret = set(obj, ['owner'], owner);
+    ret = deepSet(obj, ['owner'], owner);
     assert.equal(ret, true, 'object was mutated');
 
-    ret = set(obj, ['owner'], owner);
+    ret = deepSet(obj, ['owner'], owner);
     assert.equal(ret, false, 'object was not mutated');
 
-    ret = set(obj, ['toys', 2], 'blue chewy');
+    ret = deepSet(obj, ['toys', 2], 'blue chewy');
     assert.equal(obj.toys[2], 'blue chewy', 'set can add array members too');
   });
 });

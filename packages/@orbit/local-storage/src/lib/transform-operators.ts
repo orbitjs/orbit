@@ -13,7 +13,7 @@ import {
   ReplaceRecordOperation
 } from '@orbit/core';
 import {
-  set
+  deepSet
 } from '@orbit/utils';
 import Source from '../source';
 
@@ -46,7 +46,7 @@ export default {
 
   addToHasMany(source: Source, operation: AddToHasManyOperation) {
     let record: Record = source.getRecord(operation.record) || cloneRecordIdentity(operation.record);
-    set(record, ['relationships', operation.relationship, 'data', serializeRecordIdentity(operation.relatedRecord)], true);
+    deepSet(record, ['relationships', operation.relationship, 'data', serializeRecordIdentity(operation.relatedRecord)], true);
     source.putRecord(record);
   },
 
@@ -69,14 +69,14 @@ export default {
     operation.relatedRecords.forEach(relatedRecord => {
       data[serializeRecordIdentity(relatedRecord)] = true;
     });
-    set(record, ['relationships', operation.relationship, 'data'], data);
+    deepSet(record, ['relationships', operation.relationship, 'data'], data);
     source.putRecord(record);
   },
 
   replaceHasOne(source: Source, operation: ReplaceHasOneOperation) {
     let record: Record = source.getRecord(operation.record) || cloneRecordIdentity(operation.record);
     let data = operation.relatedRecord ? serializeRecordIdentity(operation.relatedRecord) : null;
-    set(record, ['relationships', operation.relationship, 'data'], data);
+    deepSet(record, ['relationships', operation.relationship, 'data'], data);
     source.putRecord(record);
   }
 };

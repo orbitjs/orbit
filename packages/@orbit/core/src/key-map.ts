@@ -1,4 +1,4 @@
-import { assert, get, set, firstResult, Dict } from '@orbit/utils';
+import { assert, deepGet, deepSet, firstResult, Dict } from '@orbit/utils';
 import { Record } from './record';
 
 export default class KeyMap {
@@ -17,7 +17,7 @@ export default class KeyMap {
    @returns {string} the model's key value
    */
   idToKey(type: string, keyName: string, idValue: string): string {
-    return get(this._data, [type, keyName, 'idToKeyMap', idValue]);
+    return deepGet(this._data, [type, keyName, 'idToKeyMap', idValue]);
   }
 
   /**
@@ -29,7 +29,7 @@ export default class KeyMap {
    @returns {string} the model's id value
    */
   keyToId(type: string, keyName: string, keyValue: string): string {
-    return get(this._data, [type, keyName, 'keyToIdMap', keyValue]);
+    return deepGet(this._data, [type, keyName, 'keyToIdMap', keyValue]);
   }
 
   /**
@@ -50,8 +50,8 @@ export default class KeyMap {
 
     Object.keys(keys).forEach(keyName => {
       let keyValue = keys[keyName];
-      set(this._data, [type, keyName, 'idToKeyMap', id], keyValue);
-      set(this._data, [type, keyName, 'keyToIdMap', keyValue], id);
+      deepSet(this._data, [type, keyName, 'idToKeyMap', id], keyValue);
+      deepSet(this._data, [type, keyName, 'keyToIdMap', keyValue], id);
     });
   }
 
