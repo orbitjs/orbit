@@ -1,4 +1,3 @@
-import { uuid } from '@orbit/utils';
 import Orbit, {
   addRecord,
   replaceRecord,
@@ -40,9 +39,6 @@ module('JSONAPISource', function(hooks) {
 
       let schema = new Schema({
         modelDefaults: {
-          id: {
-            defaultValue: uuid
-          },
           keys: {
             remoteId: {}
           }
@@ -867,11 +863,6 @@ module('JSONAPISource', function(hooks) {
       fetchStub = sinon.stub(Orbit, 'fetch');
 
       let schema = new Schema({
-        modelDefaults: {
-          id: {
-            defaultValue: uuid
-          }
-        },
         models: {
           planet: {
             attributes: {
