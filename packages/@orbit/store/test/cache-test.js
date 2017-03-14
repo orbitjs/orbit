@@ -546,6 +546,38 @@ module('Cache', function(hooks) {
     );
   });
 
+  test('#query can filter and sort by attributes', function(assert) {
+    let cache = new Cache({ schema, keyMap });
+
+    let jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', classification: 'gas giant', atmosphere: true } };
+    let earth = { type: 'planet', id: 'earth', attributes: { name: 'Earth', classification: 'terrestrial', atmosphere: true } };
+    let venus = { type: 'planet', id: 'venus', attributes: { name: 'Venus', classification: 'terrestrial', atmosphere: true } };
+    let mercury = { type: 'planet', id: 'mercury', attributes: { name: 'Mercury', classification: 'terrestrial', atmosphere: false } };
+
+    cache.patch([
+      addRecord(jupiter),
+      addRecord(earth),
+      addRecord(venus),
+      addRecord(mercury)
+    ]);
+
+    assert.deepEqual(
+      cache.query(
+        oqe('sort',
+          oqe('filter',
+              oqe('records', 'planet'),
+              oqe('equal', oqe('attribute', 'classification'), 'terrestrial')),
+          [{ field: oqe('attribute', 'name'), order: 'ascending' }]
+        )
+      ),
+      [
+        earth,
+        mercury,
+        venus
+      ]
+    );
+  });
+
   test('#query can sort by an attribute in descending order', function(assert) {
     let cache = new Cache({ schema, keyMap });
 

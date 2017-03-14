@@ -38,9 +38,17 @@ export class Record extends QueryTerm {
 }
 
 export class Records extends QueryTerm {
+  sort(...sortExpressions) {
+    return new Records(oqe('sort', this.expression, sortExpressions.map(parseSortExpression)));
+  }
+
+  page(options) {
+    return new Records(oqe('page', this.expression, options));
+  }
+
   filter(predicateExpression) {
     const filterBuilder = new RecordCursor();
-    return new QueryTerm(oqe('filter', this.expression, predicateExpression(filterBuilder)));
+    return new Records(oqe('filter', this.expression, predicateExpression(filterBuilder)));
   }
 
   filterAttributes(attributeValues) {
@@ -53,26 +61,7 @@ export class Records extends QueryTerm {
     const andExpression = attributeExpressions.length === 1 ? attributeExpressions[0]
                                                             : oqe('and', ...attributeExpressions);
 
-    return new QueryTerm(oqe('filter', this.expression, andExpression));
-  }
-
-  sort(...sortExpressions) {
-    return new QueryTerm(oqe('sort', this.expression, sortExpressions.map(parseSortExpression)));
-  }
-
-  page(options) {
-    return new QueryTerm(oqe('page', this.expression, options));
-  }
-
-  static withScopes(scopes) {
-    const typeTerm = function(oqe) {
-      Records.call(this, oqe);
-    };
-
-    typeTerm.prototype = Object.create(Records.prototype);
-    Object.assign(typeTerm.prototype, scopes);
-
-    return typeTerm;
+    return new Records(oqe('filter', this.expression, andExpression));
   }
 }
 
@@ -82,7 +71,7 @@ export class RelatedRecord extends QueryTerm {
   }
 }
 
-export class RelatedRecords extends QueryTerm {
+export class RelatedRecords extends Records {
   constructor(record, relationship) {
     super(oqe('relatedRecords', record, relationship));
   }
