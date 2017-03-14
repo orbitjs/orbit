@@ -246,4 +246,24 @@ module('QueryBuilder', function() {
         { offset: 1, limit: 10 })
     );
   });
+
+  test('records/filterAttributes/sort/page', function(assert) {
+    assert.deepEqual(
+      qb.records('planet')
+        .filterAttributes({ 'name': 'Jupiter', 'age': '23000000' })
+        .sort({ attribute: 'name', order: 'descending' })
+        .page({ offset: 1, limit: 10})
+        .toQueryExpression(),
+
+      oqe('page',
+        oqe('sort',
+          oqe('filter',
+            oqe('records', 'planet'),
+              oqe('and',
+                oqe('equal', oqe('attribute', 'name'), 'Jupiter'),
+                oqe('equal', oqe('attribute', 'age'), '23000000'))),
+        [{ field: oqe('attribute', 'name'), order: 'descending' }]),
+        { offset: 1, limit: 10 })
+    );
+  });
 });
