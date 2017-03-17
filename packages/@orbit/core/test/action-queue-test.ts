@@ -79,12 +79,12 @@ module('ActionQueue', function() {
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op1
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op2
     });
   });
@@ -124,12 +124,12 @@ module('ActionQueue', function() {
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op1
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op2
     });
 
@@ -193,12 +193,12 @@ module('ActionQueue', function() {
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op1
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op2
     });
 
@@ -253,12 +253,12 @@ module('ActionQueue', function() {
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op1
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op2
     });
 
@@ -315,17 +315,17 @@ module('ActionQueue', function() {
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op1
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op2
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op3
     });
 
@@ -382,17 +382,17 @@ module('ActionQueue', function() {
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op1
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op2
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op3
     });
 
@@ -448,17 +448,17 @@ module('ActionQueue', function() {
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op1
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op2
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op3
     });
 
@@ -480,7 +480,7 @@ module('ActionQueue', function() {
   });
 
   test('#unshift can add a new action to the beginning of an inactive queue', function(assert) {
-    assert.expect(5);
+    assert.expect(9);
     const done = assert.async();
 
     const target = {
@@ -500,6 +500,22 @@ module('ActionQueue', function() {
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let transformCount = 0;
 
+    let changeCount = 0;
+    queue.on('change', function() {
+      changeCount++;
+      if (changeCount === 1) {
+        assert.equal(queue.entries.length, 1);
+      } else if (changeCount === 2) {
+        assert.equal(queue.entries.length, 2);
+      } else if (changeCount === 3) {
+        assert.equal(queue.entries.length, 1);
+      } else if (changeCount === 4) {
+        assert.equal(queue.entries.length, 0);
+      } else {
+        assert.ok(false, 'should not get here');
+      }
+    });
+
     queue.on('action', function(action) {
       if (transformCount === 1) {
         assert.strictEqual(action.data, op2, 'op2 processed');
@@ -514,12 +530,12 @@ module('ActionQueue', function() {
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op1
     });
 
     queue.unshift({
-      method: '_transform', 
+      method: '_transform',
       data: op2
     });
 
@@ -550,12 +566,12 @@ module('ActionQueue', function() {
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op1
     });
 
     queue.push({
-      method: '_transform', 
+      method: '_transform',
       data: op2
     });
 
@@ -674,12 +690,12 @@ module('ActionQueue', function() {
       });
 
       queue.push({
-        method: '_transform', 
+        method: '_transform',
         data: op1
       });
 
       queue.push({
-        method: '_transform', 
+        method: '_transform',
         data: op2
       });
     });
