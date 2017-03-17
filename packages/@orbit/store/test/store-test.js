@@ -252,6 +252,27 @@ module('Store', function(hooks) {
       });
   });
 
+  test('#merge - can accept options that will be assigned to the resulting transform', function(assert) {
+    assert.expect(3);
+
+    const jupiter = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+
+    let fork = store.fork();
+
+    store.on('update', (transform) => {
+      assert.equal(transform.options.label, 'Create Jupiter');
+    });
+
+    return fork.update(addRecord(jupiter))
+      .then(() => {
+        assert.deepEqual(fork.cache.records('planet').get('jupiter-id'), jupiter, 'verify fork data');
+        return store.merge(fork, { transformOptions: { label: 'Create Jupiter' }});
+      })
+      .then(() => {
+        assert.deepEqual(store.cache.records('planet').get('jupiter-id'), jupiter, 'data in store matches data in fork');
+      });
+  });
+
   test('#rollback - rolls back transform log and replays transform inverses against the cache', function(assert) {
     const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };

@@ -22,6 +22,7 @@ export interface StoreSettings extends SourceSettings {
 export interface StoreMergeOptions {
   coalesce?: boolean;
   sinceTransformId?: string;
+  transformOptions?: object;
 }
 
 @syncable
@@ -154,7 +155,7 @@ export default class Store extends Source implements Syncable, Queryable, Updata
       ops = coalesceRecordOperations(ops);
     }
 
-    reducedTransform = new Transform(ops);
+    reducedTransform = new Transform(ops, options.transformOptions);
 
     return this.update(reducedTransform);
   }
