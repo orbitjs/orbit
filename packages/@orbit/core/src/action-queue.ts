@@ -107,6 +107,10 @@ export default class ActionQueue implements Evented {
     return this._actions ? this._actions.length : 0;
   }
 
+  get entries(): Action[] {
+    return this._actions;
+  }
+
   get current(): Action {
     return this._actions && this._actions[0];
   }
@@ -308,6 +312,7 @@ export default class ActionQueue implements Evented {
   }
 
   private _persist(): Promise<void> {
+    this.emit('change');
     if (this._bucket) {
       return this._bucket.setItem(this._name, this._actions);
     } else {
