@@ -8,8 +8,7 @@ let buildOptions = {};
 
 if (process.env.BROCCOLI_ENV === 'tests') {
   buildOptions.vendorTrees = [
-    funnel(path.join(require.resolve('rsvp'), '..'), {
-      include: ['rsvp.js'] })
+    funnel(path.join(require.resolve('rsvp'), '..'), { include: ['rsvp.js'] })
   ];
 }
 

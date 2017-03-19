@@ -4,6 +4,7 @@ import { Action } from '../src/action';
 import evented, { Evented } from '../src/evented';
 import { FakeBucket } from './test-helper';
 
+const { Promise } = Orbit;
 const { module, test } = QUnit;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -157,7 +158,7 @@ module('ActionQueue', function() {
         let promise;
         if (op === op1) {
           assert.equal(++order, 1, '_transform with op1');
-          promise = new Orbit.Promise(function(resolve) {
+          promise = new Promise(function(resolve) {
             trigger.on('start1', function() {
               assert.equal(++order, 2, '_transform with op1 resolved');
               resolve();
@@ -165,7 +166,7 @@ module('ActionQueue', function() {
           });
         } else if (op === op2) {
           assert.equal(++order, 4, '_transform with op2');
-          promise = new Orbit.Promise(function(resolve) {
+          promise = new Promise(function(resolve) {
             assert.equal(++order, 5, '_transform with op2 resolved');
             resolve();
           });

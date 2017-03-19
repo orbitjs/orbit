@@ -82,7 +82,7 @@ export default class ActionQueue implements Evented {
     if (this._bucket) {
       assert('ActionQueue requires a name if it has a bucket', !!this._name);
     }
-    
+
     this._reify()
       .then(() => {
         if (this.length > 0 && this.autoProcess) {

@@ -1,17 +1,18 @@
 "use strict";
 
 const build = require('@glimmer/build');
-const buildVendorPackage = require('@glimmer/build/lib/build-vendor-package');
+const packageDist = require('@glimmer/build/lib/package-dist');
 const funnel = require('broccoli-funnel');
 const path = require('path');
 
-let buildOptions = {};
+let buildOptions = {
+  external: ['@orbit/utils']
+};
 
 if (process.env.BROCCOLI_ENV === 'tests') {
   buildOptions.vendorTrees = [
-    buildVendorPackage('@orbit/utils', { external: ['babel-helpers'] }),
-    funnel(path.join(require.resolve('rsvp'), '..'), {
-      include: ['rsvp.js'] })
+    packageDist('@orbit/utils'),
+    funnel(path.join(require.resolve('rsvp'), '..'), { include: ['rsvp.js'] })
   ];
 }
 
