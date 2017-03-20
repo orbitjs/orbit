@@ -5,7 +5,7 @@ import {
   Record,
   RecordIdentity,
   RecordOperation
-} from '@orbit/core';
+} from '@orbit/data';
 import { OperationProcessor } from './operation-processor';
 
 /**

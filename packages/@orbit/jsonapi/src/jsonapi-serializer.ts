@@ -1,13 +1,13 @@
 import { isArray, isObject, dasherize, camelize, deepSet, Dict } from '@orbit/utils';
-import { 
-  deserializeRecordIdentity, 
+import {
+  deserializeRecordIdentity,
   serializeRecordIdentity,
   Schema,
   KeyMap,
   Record,
   RecordIdentity,
   RecordRelationship
-} from '@orbit/core';
+} from '@orbit/data';
 import {
   Resource,
   ResourceIdentity,
@@ -119,7 +119,7 @@ export default class JSONAPISerializer {
     return {
       data: isArray(data) ? this.serializeRecords(<Record[]>data) : this.serializeRecord(<Record>data)
     };
-  } 
+  }
 
   serializeRecords(records: Record[]): Resource[] {
     return records.map(record => this.serializeRecord(record));
@@ -218,7 +218,7 @@ export default class JSONAPISerializer {
     } else {
       let id: string;
       let keys: Dict<string>;
-      
+
       if (resource.id) {
         keys = {
           [resourceKey]: resource.id

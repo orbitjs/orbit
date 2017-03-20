@@ -15,7 +15,7 @@ import {
   RemoveFromHasManyOperation,
   ReplaceHasOneOperation,
   ReplaceHasManyOperation
-} from '@orbit/core';
+} from '@orbit/data';
 import { clone, deepSet } from '@orbit/utils';
 import JSONAPISource from '../jsonapi-source';
 import { JSONAPIDocument } from '../jsonapi-document';

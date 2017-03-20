@@ -1,4 +1,4 @@
-import { Transform } from '@orbit/core';
+import { Transform } from '@orbit/data';
 import { isNone } from '@orbit/utils';
 
 declare const self: any;

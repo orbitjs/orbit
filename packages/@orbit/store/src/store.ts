@@ -11,7 +11,7 @@ import Orbit, {
   TransformLog,
   TransformOrOperations,
   coalesceRecordOperations
-} from '@orbit/core';
+} from '@orbit/data';
 import { assert, Dict } from '@orbit/utils';
 import Cache, { CacheSettings } from './cache';
 

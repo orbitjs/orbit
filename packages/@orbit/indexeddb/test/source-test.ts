@@ -16,7 +16,7 @@ import {
   Transform,
   Schema,
   Source
-} from '@orbit/core';
+} from '@orbit/data';
 import IndexedDBSource from '../src/source';
 import './test-helper';
 

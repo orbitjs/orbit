@@ -1,14 +1,16 @@
 /* eslint-disable valid-jsdoc */
 import { isArray, Dict } from '@orbit/utils';
 import {
-  evented, Evented,
+  evented, Evented
+} from '@orbit/core';
+import {
   KeyMap,
   RecordOperation,
   Query,
   QueryEvaluator,
   QueryOrExpression,
   Schema
-} from '@orbit/core';
+} from '@orbit/data';
 import { OperationProcessor, OperationProcessorClass } from './cache/operation-processors/operation-processor';
 import CacheIntegrityProcessor from './cache/operation-processors/cache-integrity-processor';
 import SchemaConsistencyProcessor from './cache/operation-processors/schema-consistency-processor';

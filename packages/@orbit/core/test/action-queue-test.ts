@@ -1,6 +1,6 @@
 import Orbit from '../src/main';
 import ActionQueue from '../src/action-queue';
-import { Action } from '../src/action';
+import { Action, Actionable } from '../src/action';
 import evented, { Evented } from '../src/evented';
 import { FakeBucket } from './test-helper';
 
@@ -11,13 +11,17 @@ const { module, test } = QUnit;
 
 module('ActionQueue', function() {
   test('can be instantiated', function(assert) {
-    const target = {};
+    const target: Actionable = {
+      perform(action: Action): Promise<void> { return Promise.resolve(); }
+    };
     const queue = new ActionQueue(target);
     assert.ok(queue);
   });
 
   test('#autoProcess is enabled by default', function(assert) {
-    const target = {};
+    const target: Actionable = {
+      perform(action: Action): Promise<void> { return Promise.resolve(); }
+    };
     const queue = new ActionQueue(target);
     assert.equal(queue.autoProcess, true, 'autoProcess === true');
   });
@@ -27,16 +31,17 @@ module('ActionQueue', function() {
     const done = assert.async();
     let order = 0;
 
-    const target = {
-      _transform(op) {
+    const target: Actionable = {
+      perform(action: Action): Promise<void> { 
         transformCount++;
         if (transformCount === 1) {
-          assert.equal(order++, 1, '_transform - op1 - order');
-          assert.strictEqual(op, op1, '_transform - op1 passed as argument');
+          assert.equal(order++, 1, 'transform - op1 - order');
+          assert.strictEqual(action.data, op1, 'transform - op1 passed as argument');
         } else if (transformCount === 2) {
-          assert.equal(order++, 4, '_transform - op2 - order');
-          assert.strictEqual(op, op2, '_transform - op2 passed as argument');
+          assert.equal(order++, 4, 'transform - op2 - order');
+          assert.strictEqual(action.data, op2, 'transform - op2 passed as argument');
         }
+        return Promise.resolve();
       }
     };
 
@@ -46,7 +51,7 @@ module('ActionQueue', function() {
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let transformCount = 0;
 
-    queue.on('beforeAction', function(action) {
+    queue.on('beforeAction', function(action: Action) {
       if (transformCount === 0) {
         assert.equal(order++, 0, 'op1 - order of beforeAction event');
         assert.strictEqual(action.data, op1, 'op1 - beforeAction - data correct');
@@ -58,7 +63,7 @@ module('ActionQueue', function() {
       }
     });
 
-    queue.on('action', function(action) {
+    queue.on('action', function(action: Action) {
       if (transformCount === 1) {
         assert.equal(order++, 2, 'op1 - order of action event');
         assert.strictEqual(action.data, op1, 'op1 processed');
@@ -80,12 +85,12 @@ module('ActionQueue', function() {
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op1
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op2
     });
   });
@@ -94,14 +99,15 @@ module('ActionQueue', function() {
     assert.expect(5);
     const done = assert.async();
 
-    const target = {
-      _transform(op) {
+    const target: Actionable = {
+      perform(action: Action): Promise<void> { 
         transformCount++;
         if (transformCount === 1) {
-          assert.strictEqual(op, op1, '_transform - op1 passed as argument');
+          assert.strictEqual(action.data, op1, 'transform - op1 passed as argument');
         } else if (transformCount === 2) {
-          assert.strictEqual(op, op2, '_transform - op2 passed as argument');
+          assert.strictEqual(action.data, op2, 'transform - op2 passed as argument');
         }
+        return Promise.resolve();
       }
     };
 
@@ -125,12 +131,12 @@ module('ActionQueue', function() {
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op1
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op2
     });
 
@@ -153,21 +159,22 @@ module('ActionQueue', function() {
 
     let trigger = new Trigger;
 
-    const target = {
-      _transform(op) {
+    const target: Actionable = {
+      perform(action: Action): Promise<void> { 
         let promise;
+        let op = action.data;
         if (op === op1) {
-          assert.equal(++order, 1, '_transform with op1');
+          assert.equal(++order, 1, 'transform with op1');
           promise = new Promise(function(resolve) {
             trigger.on('start1', function() {
-              assert.equal(++order, 2, '_transform with op1 resolved');
+              assert.equal(++order, 2, 'transform with op1 resolved');
               resolve();
             });
           });
         } else if (op === op2) {
-          assert.equal(++order, 4, '_transform with op2');
+          assert.equal(++order, 4, 'transform with op2');
           promise = new Promise(function(resolve) {
-            assert.equal(++order, 5, '_transform with op2 resolved');
+            assert.equal(++order, 5, 'transform with op2 resolved');
             resolve();
           });
         }
@@ -194,12 +201,12 @@ module('ActionQueue', function() {
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op1
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op2
     });
 
@@ -219,14 +226,15 @@ module('ActionQueue', function() {
   test('will stop processing when an action errors', function(assert) {
     assert.expect(7);
 
-    const target = {
-      _transform(op) {
+    const target: Actionable = {
+      perform(action: Action): Promise<void> { 
         transformCount++;
         if (transformCount === 1) {
-          assert.strictEqual(op, op1, '_transform - op1 passed as argument');
+          assert.strictEqual(action.data, op1, 'transform - op1 passed as argument');
         } else if (transformCount === 2) {
-          throw new Error(':(');
+          return Promise.reject(new Error(':('));
         }
+        return Promise.resolve();
       }
     };
 
@@ -254,12 +262,12 @@ module('ActionQueue', function() {
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op1
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op2
     });
 
@@ -274,18 +282,20 @@ module('ActionQueue', function() {
   test('#retry resets the current action in an inactive queue and restarts processing', function(assert) {
     assert.expect(13);
 
-    const target = {
-      _transform(op) {
+    const target: Actionable = {
+      perform(action: Action): Promise<void> { 
         transformCount++;
+        let op = action.data;
         if (transformCount === 1) {
-          assert.strictEqual(op, op1, '_transform - op1 passed as argument');
+          assert.strictEqual(op, op1, 'transform - op1 passed as argument');
         } else if (transformCount === 2) {
-          throw new Error(':(');
+          return Promise.reject(new Error(':('));
         } else if (transformCount === 3) {
-          assert.strictEqual(op, op2, '_transform - op2 passed as argument');
+          assert.strictEqual(op, op2, 'transform - op2 passed as argument');
         } else if (transformCount === 4) {
-          assert.strictEqual(op, op3, '_transform - op3 passed as argument');
+          assert.strictEqual(op, op3, 'transform - op3 passed as argument');
         }
+        return Promise.resolve();
       }
     };
 
@@ -316,17 +326,17 @@ module('ActionQueue', function() {
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op1
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op2
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op3
     });
 
@@ -345,16 +355,18 @@ module('ActionQueue', function() {
   test('#skip removes the current action from an inactive queue and restarts processing', function(assert) {
     assert.expect(9);
 
-    const target = {
-      _transform(op) {
+    const target: Actionable = {
+      perform(action: Action): Promise<void> { 
         transformCount++;
+        let op = action.data;
         if (transformCount === 1) {
-          assert.strictEqual(op, op1, '_transform - op1 passed as argument');
+          assert.strictEqual(op, op1, 'transform - op1 passed as argument');
         } else if (transformCount === 2) {
-          throw new Error(':(');
+          return Promise.reject(new Error(':('));
         } else if (transformCount === 3) {
-          assert.strictEqual(op, op3, '_transform - op3 passed as argument');
+          assert.strictEqual(op, op3, 'transform - op3 passed as argument');
         }
+        return Promise.resolve();
       }
     };
 
@@ -383,17 +395,17 @@ module('ActionQueue', function() {
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op1
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op2
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op3
     });
 
@@ -411,16 +423,18 @@ module('ActionQueue', function() {
   test('#shift can remove failed actions from an inactive queue, allowing processing to be restarted', function(assert) {
     assert.expect(10);
 
-    const target = {
-      _transform(op) {
+    const target: Actionable = {
+      perform(action: Action): Promise<void> { 
         transformCount++;
+        let op = action.data;
         if (transformCount === 1) {
-          assert.strictEqual(op, op1, '_transform - op1 passed as argument');
+          assert.strictEqual(op, op1, 'transform - op1 passed as argument');
         } else if (transformCount === 2) {
-          throw new Error(':(');
+          return Promise.reject(new Error(':('));
         } else if (transformCount === 3) {
-          assert.strictEqual(op, op3, '_transform - op3 passed as argument');
+          assert.strictEqual(op, op3, 'transform - op3 passed as argument');
         }
+        return Promise.resolve();
       }
     };
 
@@ -449,17 +463,17 @@ module('ActionQueue', function() {
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op1
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op2
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op3
     });
 
@@ -484,14 +498,16 @@ module('ActionQueue', function() {
     assert.expect(9);
     const done = assert.async();
 
-    const target = {
-      _transform(op) {
+    const target: Actionable = {
+      perform(action: Action): Promise<void> { 
         transformCount++;
+        let op = action.data;
         if (transformCount === 1) {
-          assert.strictEqual(op, op2, '_transform - op2 passed as argument');
+          assert.strictEqual(op, op2, 'transform - op2 passed as argument');
         } else if (transformCount === 2) {
-          assert.strictEqual(op, op1, '_transform - op1 passed as argument');
+          assert.strictEqual(op, op1, 'transform - op1 passed as argument');
         }
+        return Promise.resolve();
       }
     };
 
@@ -531,12 +547,12 @@ module('ActionQueue', function() {
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op1
     });
 
     queue.unshift({
-      method: '_transform',
+      type: 'transform',
       data: op2
     });
 
@@ -547,9 +563,10 @@ module('ActionQueue', function() {
     assert.expect(2);
     const done = assert.async();
 
-    const target = {
-      _transform() {
-        assert.ok(false, '_transform should not be called');
+    const target: Actionable = {
+      perform(action: Action): Promise<void> { 
+        assert.ok(false, 'transform should not be called');
+        return Promise.resolve();
       }
     };
 
@@ -567,12 +584,12 @@ module('ActionQueue', function() {
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op1
     });
 
     queue.push({
-      method: '_transform',
+      type: 'transform',
       data: op2
     });
 
@@ -600,7 +617,11 @@ module('ActionQueue', function() {
     test('requires a name for lookups in the bucket', function(assert) {
       assert.throws(
         function() {
-          const target = {};
+          const target: Actionable = {
+            perform(action: Action): Promise<void> { 
+              return Promise.resolve();
+            }
+          };
           let queue = new ActionQueue(target, { bucket });
         },
         Error('Assertion failed: ActionQueue requires a name if it has a bucket'),
@@ -611,17 +632,19 @@ module('ActionQueue', function() {
       const done = assert.async();
       assert.expect(3);
 
-      const target = {
-        _transform() {}
+      const target: Actionable = {
+        perform(action: Action): Promise<void> { 
+          return Promise.resolve();
+        }
       };
 
       const serialized: Action[] = [
         {
-          method: '_transform',
+          type: 'transform',
           data: op1
         },
         {
-          method: '_transform',
+          type: 'transform',
           data: op2
         }
       ];
@@ -651,8 +674,10 @@ module('ActionQueue', function() {
       const done = assert.async();
       assert.expect(9);
 
-      const target = {
-        _transform() {}
+      const target: Actionable = {
+        perform(action: Action): Promise<void> { 
+          return Promise.resolve();
+        }
       };
 
       const queue = new ActionQueue(target, { name: 'queue', bucket });
@@ -691,12 +716,12 @@ module('ActionQueue', function() {
       });
 
       queue.push({
-        method: '_transform',
+        type: 'transform',
         data: op1
       });
 
       queue.push({
-        method: '_transform',
+        type: 'transform',
         data: op2
       });
     });

@@ -1,11 +1,14 @@
 import Orbit from './main';
-import evented, { Evented, settleInSeries } from './evented';
-import { Bucket } from './bucket';
+import { 
+  evented, Evented, settleInSeries,
+  Bucket,
+  ActionQueue,
+  Action, Actionable
+} from '@orbit/core';
 import KeyMap from './key-map';
 import Schema from './schema';
 import Transform from './transform';
 import TransformLog from './transform-log';
-import ActionQueue from './action-queue';
 import { assert } from '@orbit/utils';
 
 export interface SourceSettings {
@@ -26,7 +29,7 @@ export interface SourceSettings {
  @constructor
  */
 @evented
-export abstract class Source implements Evented {
+export abstract class Source implements Evented, Actionable {
   protected _name: string;
   protected _bucket: Bucket;
   protected _keyMap: KeyMap;
@@ -85,6 +88,12 @@ export abstract class Source implements Evented {
     return this._syncQueue;
   }
 
+  // Actionable interface 
+  perform(action: Action): Promise<any> {
+    let method = `__${action.type}__`;
+    return this[method].call(this, action.data);
+  };
+
   /////////////////////////////////////////////////////////////////////////////
   // Private methods
   /////////////////////////////////////////////////////////////////////////////
@@ -117,18 +126,11 @@ export abstract class Source implements Evented {
       .then(() => transforms);
   }
 
-  private _enqueueRequest(method: string, data: any): Promise<void> {
-    return enqueueAction(this, this._requestQueue, method, data);
+  private _enqueueRequest(type: string, data: any): Promise<void> {
+    return this._requestQueue.push({ type, data });
   }
 
-  private _enqueueSync(method: string, data: any): Promise<void> {
-    return enqueueAction(this, this._syncQueue, method, data);
+  private _enqueueSync(type: string, data: any): Promise<void> {
+    return this._syncQueue.push({ type, data });
   }
-}
-
-function enqueueAction(source: Source, queue: ActionQueue, method: string, data: any): Promise<any> {
-  return queue.push({
-    method: `__${method}__`,
-    data
-  });
 }

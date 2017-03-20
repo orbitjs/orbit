@@ -1,5 +1,5 @@
 import { deepGet, merge, every, some } from '@orbit/utils';
-import { RecordNotFoundException } from '@orbit/core';
+import { RecordNotFoundException } from '@orbit/data';
 
 const EMPTY = () => {};
 

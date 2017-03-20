@@ -1,7 +1,7 @@
 import { Source } from '../src/source';
 import Schema from '../src/schema';
 import Transform from '../src/transform';
-import { isEvented } from '../src/evented';
+import { isEvented } from '@orbit/core';
 import { FakeBucket } from './test-helper';
 
 const { module, test } = QUnit;

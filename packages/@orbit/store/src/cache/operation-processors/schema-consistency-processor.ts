@@ -12,7 +12,7 @@ import {
   RecordOperation,
   RelationshipDefinition,
   serializeRecordIdentity
-} from '@orbit/core';
+} from '@orbit/data';
 import { OperationProcessor } from './operation-processor';
 
 /**

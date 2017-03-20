@@ -17,7 +17,7 @@ import {
   Transform,
   Schema,
   Source
-} from '@orbit/core';
+} from '@orbit/data';
 import LocalStorageSource from '../src/source';
 import './test-helper';
 

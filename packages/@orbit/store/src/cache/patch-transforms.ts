@@ -12,7 +12,7 @@ import {
   ReplaceHasOneOperation,
   ReplaceKeyOperation,
   ReplaceRecordOperation
-} from '@orbit/core';
+} from '@orbit/data';
 import { clone, deepGet, deepSet } from '@orbit/utils';
 import Cache from '../cache';
 

@@ -17,7 +17,7 @@ import Orbit, {
   TransformNotAllowed,
   Schema,
   Source
-} from '@orbit/core';
+} from '@orbit/data';
 import JSONAPISource from '../src/jsonapi-source';
 import { jsonapiResponse } from './support/jsonapi';
 import './test-helper';

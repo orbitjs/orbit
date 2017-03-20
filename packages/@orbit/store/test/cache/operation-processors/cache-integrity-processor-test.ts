@@ -3,7 +3,7 @@ import {
   KeyMap,
   cloneRecordIdentity,
   addRecord
-} from '@orbit/core';
+} from '@orbit/data';
 import CacheIntegrityProcessor from '../../../src/cache/operation-processors/cache-integrity-processor';
 import Cache from '../../../src/cache';
 import '../../test-helper';

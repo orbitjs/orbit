@@ -1,6 +1,6 @@
 import Orbit from '../main';
 import { assert } from '@orbit/utils';
-import { settleInSeries, fulfillInSeries } from '../evented';
+import { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Operation } from '../operation';
 import Transform, { TransformOrOperations } from '../transform';
 import { Source } from '../source';

@@ -1,4 +1,4 @@
-import Orbit from '@orbit/core';
+import Orbit from '@orbit/data';
 
 function getRecord(source, record) {
   return source.openDB()
