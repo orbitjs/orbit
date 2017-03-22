@@ -2,6 +2,9 @@ sudo: required
 dist: trusty
 language: node_js
 
+addons:
+  firefox: latest
+
 node_js:
   - "6"
 
