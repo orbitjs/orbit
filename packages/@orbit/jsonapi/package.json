@@ -29,7 +29,7 @@
     "@orbit/utils": "0.8.0-beta.11"
   },
   "devDependencies": {
-    "@glimmer/build": "^0.2.1",
+    "@glimmer/build": "^0.6.0",
     "sinon": "^1.17.7",
     "whatwg-fetch": "^2.0.3"
   }

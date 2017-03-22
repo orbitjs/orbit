@@ -19,10 +19,10 @@ import Orbit, {
   Source
 } from '@orbit/core';
 import JSONAPISource from '../src/jsonapi-source';
-import './test-helper';
 import { jsonapiResponse } from './support/jsonapi';
-import sinon from 'sinon';
+import './test-helper';
 
+declare const sinon: any;
 declare const self: any;
 
 const { module, test } = QUnit;
