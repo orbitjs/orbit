@@ -11,7 +11,7 @@ import {
   ReplaceHasOneOperation,
   ReplaceKeyOperation,
   ReplaceRecordOperation
-} from '@orbit/core';
+} from '@orbit/data';
 import {
   deepSet
 } from '@orbit/utils';

@@ -1,5 +1,5 @@
 import { assert } from '@orbit/utils';
-import { settleInSeries, fulfillInSeries } from '../evented';
+import { settleInSeries, fulfillInSeries } from '@orbit/core';
 import Query from '../query';
 import { Source } from '../source';
 

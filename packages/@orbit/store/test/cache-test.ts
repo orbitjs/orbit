@@ -12,7 +12,7 @@ import {
   queryExpression as oqe,
   RecordNotFoundException,
   Schema
-} from '@orbit/core';
+} from '@orbit/data';
 import Cache from '../src/cache';
 import './test-helper';
 

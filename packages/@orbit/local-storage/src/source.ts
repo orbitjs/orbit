@@ -6,7 +6,7 @@ import Orbit, {
   Record, RecordIdentity,
   Source, SourceSettings,
   Transform
-} from '@orbit/core';
+} from '@orbit/data';
 import { assert } from '@orbit/utils';
 import TransformOperators from './lib/transform-operators';
 import { QueryOperators } from './lib/queries';

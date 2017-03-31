@@ -4,7 +4,7 @@ import {
   ModelDefinition,
   Schema, SchemaSettings,
   serializeRecordIdentity
-} from '@orbit/core';
+} from '@orbit/data';
 import JSONAPISerializer from '../src/jsonapi-serializer';
 import './test-helper';
 

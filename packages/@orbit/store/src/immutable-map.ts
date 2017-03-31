@@ -3,7 +3,7 @@ import hamt from './utils/hamt';
 export default class ImmutableMap {
   private _data: any;
 
-  constructor(base) {
+  constructor(base?: any) {
     if (base) {
       this._data = base.data;
     } else {

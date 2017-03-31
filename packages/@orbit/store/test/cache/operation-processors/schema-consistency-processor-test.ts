@@ -3,7 +3,7 @@ import {
   cloneRecordIdentity as identity,
   KeyMap,
   Schema
-} from '@orbit/core';
+} from '@orbit/data';
 import Cache from '../../../src/cache';
 import SchemaConsistencyProcessor from '../../../src/cache/operation-processors/schema-consistency-processor';
 import '../../test-helper';

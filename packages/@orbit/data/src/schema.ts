@@ -1,7 +1,7 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from './main';
 import { assert, clone, Dict } from '@orbit/utils';
-import evented, { Evented } from './evented';
+import { evented, Evented } from '@orbit/core';
 import { Record } from './record';
 
 export interface AttributeDefinition {

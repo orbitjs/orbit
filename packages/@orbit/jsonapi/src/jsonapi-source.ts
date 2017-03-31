@@ -12,10 +12,10 @@ import Orbit, {
   TransformOrOperations,
   coalesceRecordOperations,
   QueryNotAllowed, TransformNotAllowed,
-  ClientError, 
-  ServerError, 
+  ClientError,
+  ServerError,
   NetworkError
-} from '@orbit/core';
+} from '@orbit/data';
 import { assert } from '@orbit/utils';
 import JSONAPISerializer from './jsonapi-serializer';
 import { encodeQueryParams } from './lib/query-params';

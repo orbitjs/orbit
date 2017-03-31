@@ -13,7 +13,7 @@ import {
   ReplaceHasOneOperation,
   ReplaceKeyOperation,
   ReplaceRecordOperation
-} from '@orbit/core';
+} from '@orbit/data';
 import Cache from '../cache';
 
 export interface InverseTransformFunc {

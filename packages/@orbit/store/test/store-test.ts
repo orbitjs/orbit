@@ -6,7 +6,7 @@ import {
   Schema,
   Source,
   Transform
-} from '@orbit/core';
+} from '@orbit/data';
 import Store from '../src/store';
 import CacheIntegrityProcessor from '../src/cache/operation-processors/cache-integrity-processor';
 import SchemaConsistencyProcessor from '../src/cache/operation-processors/schema-consistency-processor';

@@ -1,4 +1,4 @@
-import Orbit, { Transform } from '@orbit/core';
+import Orbit, { Transform } from '@orbit/data';
 import { isNone } from '@orbit/utils';
 
 export const QueryOperators = {

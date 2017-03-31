@@ -1,4 +1,4 @@
-import { Transform } from '@orbit/core';
+import { Transform } from '@orbit/data';
 import { getTransformRequests } from '../../src/lib/transform-requests';
 
 const { module, test } = QUnit;

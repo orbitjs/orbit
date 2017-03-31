@@ -1,6 +1,7 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from './main';
-import { Action, ActionProcessor } from './action';
+import { Action, Actionable } from './action';
+import ActionProcessor from './action-processor';
 import { Bucket } from './bucket';
 import evented, { Evented } from './evented';
 import { assert } from '@orbit/utils';
@@ -54,7 +55,7 @@ export default class ActionQueue implements Evented {
   public autoProcess: boolean;
 
   private _name: string;
-  private _target: object;
+  private _target: Actionable;
   private _bucket: Bucket;
   private _actions: Action[];
   private _processors: ActionProcessor[];
@@ -71,7 +72,7 @@ export default class ActionQueue implements Evented {
   emit: (event: string, ...args) => void;
   listeners: (event: string) => any[];
 
-  constructor(target: object, options: ActionQueueOptions = {}) {
+  constructor(target: Actionable, options: ActionQueueOptions = {}) {
     assert('ActionQueue requires Orbit.Promise to be defined', Orbit.Promise);
 
     this._target = target;

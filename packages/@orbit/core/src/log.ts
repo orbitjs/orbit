@@ -2,17 +2,16 @@ import { assert } from '@orbit/utils';
 import Orbit from './main';
 import evented, { Evented } from './evented';
 import { Bucket } from './bucket';
-import Transform from './transform';
-import { TransformNotLoggedException, OutOfRangeException } from './exception';
+import { NotLoggedException, OutOfRangeException } from './exception';
 
-export interface TransformLogOptions {
+export interface LogOptions {
   name?: string;
   data?: string[];
   bucket?: Bucket;
 }
 
 @evented
-export default class TransformLog implements Evented {
+export default class Log implements Evented {
   private _name: string;
   private _bucket: Bucket;
   private _data: string[];
@@ -26,12 +25,12 @@ export default class TransformLog implements Evented {
   emit: (event: string, ...args) => void;
   listeners: (event: string) => any[];
 
-  constructor(options: TransformLogOptions = {}) {
+  constructor(options: LogOptions = {}) {
     this._name = options.name;
     this._bucket = options.bucket;
 
     if (this._bucket) {
-      assert('TransformLog requires a name if it has a bucket', !!this._name);
+      assert('Log requires a name if it has a bucket', !!this._name);
     }
 
     this._reify(options.data);
@@ -57,21 +56,21 @@ export default class TransformLog implements Evented {
     return this._data.length;
   }
 
-  append(...transformIds: string[]): Promise<void> {
+  append(...ids: string[]): Promise<void> {
     return this.reified
       .then(() => {
-        Array.prototype.push.apply(this._data, transformIds);
+        Array.prototype.push.apply(this._data, ids);
         return this._persist();
       })
       .then(() => {
-        this.emit('append', transformIds);
+        this.emit('append', ids);
       });
   }
 
-  before(transformId: string, relativePosition: number = 0): string[] {
-    const index = this._data.indexOf(transformId);
+  before(id: string, relativePosition: number = 0): string[] {
+    const index = this._data.indexOf(id);
     if (index === -1) {
-      throw new TransformNotLoggedException(transformId);
+      throw new NotLoggedException(id);
     }
 
     const position = index + relativePosition;
@@ -82,10 +81,10 @@ export default class TransformLog implements Evented {
     return this._data.slice(0, position);
   }
 
-  after(transformId: string, relativePosition: number = 0): string[] {
-    const index = this._data.indexOf(transformId);
+  after(id: string, relativePosition: number = 0): string[] {
+    const index = this._data.indexOf(id);
     if (index === -1) {
-      throw new TransformNotLoggedException(transformId);
+      throw new NotLoggedException(id);
     }
 
     const position = index + 1 + relativePosition;
@@ -96,15 +95,15 @@ export default class TransformLog implements Evented {
     return this._data.slice(position);
   }
 
-  truncate(transformId: string, relativePosition: number = 0): Promise<void> {
+  truncate(id: string, relativePosition: number = 0): Promise<void> {
     let removed: string[];
 
     return this.reified
       .then(() => {
-  
-        const index = this._data.indexOf(transformId);
+
+        const index = this._data.indexOf(id);
         if (index === -1) {
-          throw new TransformNotLoggedException(transformId);
+          throw new NotLoggedException(id);
         }
 
         const position = index + relativePosition;
@@ -123,18 +122,18 @@ export default class TransformLog implements Evented {
         return this._persist();
       })
       .then(() => {
-        this.emit('truncate', transformId, relativePosition, removed);
+        this.emit('truncate', id, relativePosition, removed);
       });
   }
 
-  rollback(transformId: string, relativePosition: number = 0): Promise<void> {
+  rollback(id: string, relativePosition: number = 0): Promise<void> {
     let removed: string[];
 
     return this.reified
       .then(() => {
-        const index = this._data.indexOf(transformId);
+        const index = this._data.indexOf(id);
         if (index === -1) {
-          throw new TransformNotLoggedException(transformId);
+          throw new NotLoggedException(id);
         }
 
         const position = index + 1 + relativePosition;
@@ -148,7 +147,7 @@ export default class TransformLog implements Evented {
         return this._persist();
       })
       .then(() => {
-        this.emit('rollback', transformId, relativePosition, removed);
+        this.emit('rollback', id, relativePosition, removed);
       });
   }
 
@@ -164,8 +163,8 @@ export default class TransformLog implements Evented {
       .then(() => this.emit('clear', clearedData));
   }
 
-  contains(transformId: string): boolean {
-    return this._data.indexOf(transformId) > -1;
+  contains(id: string): boolean {
+    return this._data.indexOf(id) > -1;
   }
 
   _persist(): Promise<void> {

@@ -23,6 +23,6 @@
     "test": "testem ci"
   },
   "devDependencies": {
-    "@glimmer/build": "^0.6.0"
+    "@glimmer/build": "^0.6.2"
   }
 }

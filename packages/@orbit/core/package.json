@@ -26,6 +26,6 @@
     "@orbit/utils": "0.8.0-beta.11"
   },
   "devDependencies": {
-    "@glimmer/build": "^0.6.0"
+    "@glimmer/build": "^0.6.2"
   }
 }

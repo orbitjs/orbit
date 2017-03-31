@@ -1,5 +1,5 @@
 import Cache from '../../cache';
-import { RecordOperation } from '@orbit/core';
+import { RecordOperation } from '@orbit/data';
 
 export interface OperationProcessorClass {
   new (cache: Cache): OperationProcessor;

@@ -1,9 +1,9 @@
 import { toArray } from '@orbit/utils';
 import {
   Query,
-  QueryExpressionParseError, 
-  Transform 
-} from '@orbit/core';
+  QueryExpressionParseError,
+  Transform
+} from '@orbit/data';
 import Source from '../jsonapi-source';
 import { DeserializedDocument } from '../jsonapi-serializer';
 import { JSONAPIDocument } from '../jsonapi-document';
