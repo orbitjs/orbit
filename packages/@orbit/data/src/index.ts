@@ -11,7 +11,6 @@ export { default as Query, QueryOrExpression } from './query';
 export * from './record';
 export { default as Schema, AttributeDefinition, RelationshipDefinition, KeyDefinition, ModelDefinition, SchemaSettings } from './schema';
 export { Source, SourceSettings } from './source';
-export { default as TransformLog, TransformLogOptions } from './transform-log';
 export { default as Transform, TransformOrOperations } from './transform';
 export { default as pullable, Pullable, isPullable } from './source-decorators/pullable';
 export { default as pushable, Pushable, isPushable } from './source-decorators/pushable';

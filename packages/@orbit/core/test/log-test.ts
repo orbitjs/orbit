@@ -1,11 +1,11 @@
-import TransformLog from '../src/transform-log';
-import { TransformNotLoggedException, OutOfRangeException } from '../src/exception';
+import Log from '../src/log';
+import { NotLoggedException, OutOfRangeException } from '../src/exception';
 import { FakeBucket } from './test-helper';
 import './test-helper';
 
 const { module, test } = QUnit;
 
-module('TransformLog', function() {
+module('Log', function() {
   const transformAId = 'f8d2c75f-f758-4314-b5c5-ac7fb783ab26';
   const transformBId = '1d12dc84-0d03-4875-a4a6-0e389737d891';
   const transformCId = 'ea054670-8901-45c2-b908-4db2c5bb9c7d';
@@ -13,20 +13,20 @@ module('TransformLog', function() {
   let log;
 
   test('can be instantiated with no params', function(assert) {
-    log = new TransformLog();
+    log = new Log();
     assert.ok(log, 'log instantiated');
     assert.equal(log.length, 0, 'log has expected size');
   });
 
   test('can be instantiated with a name and array of ids', function(assert) {
-    log = new TransformLog({ name: 'log1', data: ['a', 'b'] });
+    log = new Log({ name: 'log1', data: ['a', 'b'] });
     assert.ok(log, 'log instantiated');
     assert.equal(log.length, 2, 'log has expected data');
   });
 
   module('when empty', function(assert) {
     assert.beforeEach(function() {
-      log = new TransformLog();
+      log = new Log();
     });
 
     test('#length', function(assert) {
@@ -53,7 +53,7 @@ module('TransformLog', function() {
 
   module('containing several transformIds', function(assert) {
     assert.beforeEach(function() {
-      log = new TransformLog();
+      log = new Log();
 
       return log.append(
         transformAId,
@@ -75,7 +75,7 @@ module('TransformLog', function() {
     });
 
     test('#before - transformId that hasn\'t been logged', function(assert) {
-      assert.throws(() => log.before(transformDId), TransformNotLoggedException);
+      assert.throws(() => log.before(transformDId), NotLoggedException);
     });
 
     test('#before - specifying a -1 relativePosition', function(assert) {
@@ -95,7 +95,7 @@ module('TransformLog', function() {
     });
 
     test('#after - transformId that hasn\'t been logged', function(assert) {
-      assert.throws(() => log.after(transformDId), TransformNotLoggedException);
+      assert.throws(() => log.after(transformDId), NotLoggedException);
     });
 
     test('#after - specifying a +1 relativePosition', function(assert) {
@@ -164,7 +164,7 @@ module('TransformLog', function() {
     test('#truncate - to transformId that hasn\'t been logged', function(assert) {
       return log.truncate(transformDId)
         .catch(e => {
-          assert.ok(e instanceof TransformNotLoggedException, 'TransformNotLoggedException caught');
+          assert.ok(e instanceof NotLoggedException, 'NotLoggedException caught');
         });
     });
 
@@ -207,7 +207,7 @@ module('TransformLog', function() {
     test('#rollback - to transformId that hasn\'t been logged', function(assert) {
       return log.rollback(transformDId)
         .catch(e => {
-          assert.ok(e instanceof TransformNotLoggedException, 'TransformNotLoggedException caught');
+          assert.ok(e instanceof NotLoggedException, 'NotLoggedException caught');
         });
     });
 
@@ -255,9 +255,9 @@ module('TransformLog', function() {
     test('requires a name for lookups in the bucket', function(assert) {
       assert.throws(
         function() {
-          let log = new TransformLog({ bucket });
+          let log = new Log({ bucket });
         },
-        Error('Assertion failed: TransformLog requires a name if it has a bucket'),
+        Error('Assertion failed: Log requires a name if it has a bucket'),
         'assertion raised');
     });
 
@@ -265,7 +265,7 @@ module('TransformLog', function() {
       assert.expect(1);
       return bucket.setItem('log', [transformAId, transformBId])
         .then(() => {
-          log = new TransformLog({ name: 'log', bucket });
+          log = new Log({ name: 'log', bucket });
           return log.reified;
         })
         .then(() => {
@@ -275,7 +275,7 @@ module('TransformLog', function() {
 
     test('#append - changes appended to the log are persisted to its bucket', function(assert) {
       assert.expect(2);
-      log = new TransformLog({ name: 'log', bucket });
+      log = new Log({ name: 'log', bucket });
 
       return log.append(transformAId, transformBId)
         .then(() => {
@@ -289,7 +289,7 @@ module('TransformLog', function() {
 
     test('#truncate - truncations to the log are persisted to its bucket', function(assert) {
       assert.expect(2);
-      log = new TransformLog({ name: 'log', bucket });
+      log = new Log({ name: 'log', bucket });
 
       return log.append(transformAId, transformBId, transformCId)
         .then(() => log.truncate(log.head))
@@ -304,7 +304,7 @@ module('TransformLog', function() {
 
     test('#rollback - when the log is rolled back, it is persisted to its bucket', function(assert) {
       assert.expect(2);
-      log = new TransformLog({ name: 'log', bucket });
+      log = new Log({ name: 'log', bucket });
 
       return log.append(transformAId, transformBId, transformCId)
         .then(() => log.rollback(transformBId))
@@ -319,7 +319,7 @@ module('TransformLog', function() {
 
     test('#clear - when the log is cleared, it is persisted to its bucket', function(assert) {
       assert.expect(2);
-      log = new TransformLog({ name: 'log', bucket });
+      log = new Log({ name: 'log', bucket });
 
       return log.append(transformAId, transformBId, transformCId)
         .then(() => log.clear())

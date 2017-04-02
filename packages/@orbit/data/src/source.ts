@@ -3,12 +3,12 @@ import {
   evented, Evented, settleInSeries,
   Bucket,
   ActionQueue,
-  Action, Actionable
+  Action, Actionable,
+  Log
 } from '@orbit/core';
 import KeyMap from './key-map';
 import Schema from './schema';
 import Transform from './transform';
-import TransformLog from './transform-log';
 import { assert } from '@orbit/utils';
 
 export interface SourceSettings {
@@ -34,7 +34,7 @@ export abstract class Source implements Evented, Actionable {
   protected _bucket: Bucket;
   protected _keyMap: KeyMap;
   protected _schema: Schema;
-  protected _transformLog: TransformLog;
+  protected _transformLog: Log;
   protected _requestQueue: ActionQueue;
   protected _syncQueue: ActionQueue;
 
@@ -55,7 +55,7 @@ export abstract class Source implements Evented, Actionable {
       assert('TransformLog requires a name if it has a bucket', !!name);
     }
 
-    this._transformLog = new TransformLog({ name: name ? `${name}-log` : undefined, bucket });
+    this._transformLog = new Log({ name: name ? `${name}-log` : undefined, bucket });
     this._requestQueue = new ActionQueue(this, { name: name ? `${name}-requests` : undefined, bucket });
     this._syncQueue = new ActionQueue(this, { name: name ? `${name}-sync` : undefined, bucket });
   }
@@ -76,7 +76,7 @@ export abstract class Source implements Evented, Actionable {
     return this._bucket;
   }
 
-  get transformLog(): TransformLog {
+  get transformLog(): Log {
     return this._transformLog;
   }
 
