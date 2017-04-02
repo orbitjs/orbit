@@ -44,78 +44,7 @@ module('Schema', function() {
     });
   });
 
-  test('#modelDefaults is assigned by default', function(assert) {
-    const schema = new Schema({
-      models: {
-        planet: {}
-      }
-    });
-
-    assert.ok(schema.modelDefaults, 'modelDefaults has been set');
-    assert.ok(schema.models, 'schema.models has been set');
-    assert.ok(schema.models.planet, 'model definition has been set');
-  });
-
-  test('#modelDefaults can be overridden', function(assert) {
-    const customIdGenerator = function() {
-      return Math.random().toString(); // don't do this ;)
-    };
-
-    const schema = new Schema({
-      generateId: customIdGenerator,
-      modelDefaults: {
-        keys: {
-          remoteId: {}
-        },
-        attributes: {
-          someAttr: {}
-        },
-        relationships: {
-          someLink: {}
-        }
-      },
-      models: {
-        planet: {},
-        moon: {
-          keys: {
-            remoteId: undefined
-          },
-          attributes: {
-            someAttr: undefined
-          },
-          relationships: {
-            someLink: undefined
-          }
-        }
-      }
-    });
-
-    assert.strictEqual(schema.generateId, customIdGenerator, 'custom id generator has been set');
-    assert.ok(schema.modelDefaults, 'modelDefaults has been set');
-    assert.ok(schema.modelDefaults.keys.remoteId, 'custom remoteId key has been set');
-    assert.ok(schema.modelDefaults.attributes.someAttr, 'default model schema attribute has been set');
-    assert.ok(schema.modelDefaults.relationships.someLink, 'default model link schema has been set');
-
-    assert.ok(schema.models, 'schema.models has been set');
-    let model = schema.models.planet;
-    assert.ok(model, 'model definition has been set');
-    assert.ok(model.keys, 'model.keys has been set');
-    assert.ok(model.attributes, 'model.attributes has been set');
-    assert.ok(model.relationships, 'model.relationships has been set');
-    assert.ok(model.attributes['someAttr'], 'model.attributes match defaults');
-    assert.ok(model.relationships['someLink'], 'model.relationships match defaults');
-
-    model = schema.models.moon;
-    assert.ok(model, 'model definition has been set');
-    assert.ok(model.keys, 'model.keys has been set');
-    assert.ok(model.attributes, 'model.attributes has been set');
-    assert.ok(model.relationships, 'model.relationships has been set');
-    assert.equal(Object.keys(model.keys).length, 0, 'model has no keys');
-    assert.equal(Object.keys(model.attributes).length, 0, 'model has no attributes');
-    assert.equal(Object.keys(model.relationships).length, 0, 'model has no relationships');
-  });
-
-  test('#modelDefinition returns a registered model definition', function(assert) {
+  test('#models provides access to model definitions', function(assert) {
     const planetDefinition = {
       attributes: {
         name: { type: 'string', defaultValue: 'Earth' }
@@ -128,7 +57,7 @@ module('Schema', function() {
       }
     });
 
-    assert.deepEqual(schema.modelDefinition('planet').attributes, planetDefinition.attributes);
+    assert.deepEqual(schema.models.planet.attributes, planetDefinition.attributes);
   });
 
   test('#pluralize simply adds an `s` to the end of words', function(assert) {

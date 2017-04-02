@@ -85,7 +85,7 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
 
   private _relatedRecordAdded(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): RecordOperation[] {
     if (relatedRecord) {
-      const relationshipDef = this.cache.schema.relationshipDefinition(record.type, relationship);
+      const relationshipDef = this.cache.schema.models[record.type].relationships[relationship];
       if (relationshipDef.inverse) {
         this._addRevLink(record, relationship, relatedRecord);
       }
@@ -95,7 +95,7 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
 
   private _relatedRecordsAdded(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]): RecordOperation[] {
     if (relatedRecords && relatedRecords.length > 0) {
-      const relationshipDef = this.cache.schema.relationshipDefinition(record.type, relationship);
+      const relationshipDef = this.cache.schema.models[record.type].relationships[relationship];
       if (relationshipDef.inverse) {
         relatedRecords.forEach(relatedRecord => this._addRevLink(record, relationship, relatedRecord));
       }
@@ -104,7 +104,7 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
   }
 
   private _relatedRecordRemoved(record: RecordIdentity, relationship: string, relatedRecord?: RecordIdentity): RecordOperation[] {
-    const relationshipDef = this.cache.schema.relationshipDefinition(record.type, relationship);
+    const relationshipDef = this.cache.schema.models[record.type].relationships[relationship];
 
     if (relationshipDef.inverse) {
       if (relatedRecord === undefined) {
@@ -124,7 +124,7 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
   }
 
   private _relatedRecordsRemoved(record: RecordIdentity, relationship: string, relatedRecords?: RecordIdentity[]): RecordOperation[] {
-    const relationshipDef = this.cache.schema.relationshipDefinition(record.type, relationship);
+    const relationshipDef = this.cache.schema.models[record.type].relationships[relationship];
 
     if (relationshipDef.inverse) {
       if (relatedRecords === undefined) {
@@ -243,7 +243,7 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
 
   _addRevLink(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): void {
     if (relatedRecord) {
-      const relationshipDef = this.cache.schema.relationshipDefinition(record.type, relationship);
+      const relationshipDef = this.cache.schema.models[record.type].relationships[relationship];
       const relationshipPath = [record.type, record.id, 'relationships', relationship, 'data'];
 
       if (relationshipDef.type === 'hasMany') {
@@ -257,7 +257,7 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
 
   _removeRevLink(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): void {
     if (relatedRecord) {
-      const relationshipDef = this.cache.schema.relationshipDefinition(record.type, relationship);
+      const relationshipDef = this.cache.schema.models[record.type].relationships[relationship];
       const relationshipPath = [record.type, record.id, 'relationships', relationship, 'data'];
 
       if (relationshipDef.type === 'hasMany') {
