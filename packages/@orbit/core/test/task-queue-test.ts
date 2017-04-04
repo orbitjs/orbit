@@ -1,6 +1,6 @@
 import Orbit from '../src/main';
-import ActionQueue from '../src/action-queue';
-import { Action, Actionable } from '../src/action';
+import TaskQueue from '../src/task-queue';
+import { Task, Performer } from '../src/task';
 import evented, { Evented } from '../src/evented';
 import { FakeBucket } from './test-helper';
 
@@ -9,72 +9,72 @@ const { module, test } = QUnit;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module('ActionQueue', function() {
+module('TaskQueue', function() {
   test('can be instantiated', function(assert) {
-    const target: Actionable = {
-      perform(action: Action): Promise<void> { return Promise.resolve(); }
+    const target: Performer = {
+      perform(task: Task): Promise<void> { return Promise.resolve(); }
     };
-    const queue = new ActionQueue(target);
+    const queue = new TaskQueue(target);
     assert.ok(queue);
   });
 
   test('#autoProcess is enabled by default', function(assert) {
-    const target: Actionable = {
-      perform(action: Action): Promise<void> { return Promise.resolve(); }
+    const target: Performer = {
+      perform(task: Task): Promise<void> { return Promise.resolve(); }
     };
-    const queue = new ActionQueue(target);
+    const queue = new TaskQueue(target);
     assert.equal(queue.autoProcess, true, 'autoProcess === true');
   });
 
-  test('auto-processes pushed actions sequentially by default', function(assert) {
+  test('auto-processes pushed tasks sequentially by default', function(assert) {
     assert.expect(21);
     const done = assert.async();
     let order = 0;
 
-    const target: Actionable = {
-      perform(action: Action): Promise<void> { 
+    const target: Performer = {
+      perform(task: Task): Promise<void> { 
         transformCount++;
         if (transformCount === 1) {
           assert.equal(order++, 1, 'transform - op1 - order');
-          assert.strictEqual(action.data, op1, 'transform - op1 passed as argument');
+          assert.strictEqual(task.data, op1, 'transform - op1 passed as argument');
         } else if (transformCount === 2) {
           assert.equal(order++, 4, 'transform - op2 - order');
-          assert.strictEqual(action.data, op2, 'transform - op2 passed as argument');
+          assert.strictEqual(task.data, op2, 'transform - op2 passed as argument');
         }
         return Promise.resolve();
       }
     };
 
-    const queue = new ActionQueue(target);
+    const queue = new TaskQueue(target);
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let transformCount = 0;
 
-    queue.on('beforeAction', function(action: Action) {
+    queue.on('beforeTask', function(task: Task) {
       if (transformCount === 0) {
-        assert.equal(order++, 0, 'op1 - order of beforeAction event');
-        assert.strictEqual(action.data, op1, 'op1 - beforeAction - data correct');
-        assert.strictEqual(queue.current, action, 'op1 - beforeAction - current action matches expectation');
+        assert.equal(order++, 0, 'op1 - order of beforeTask event');
+        assert.strictEqual(task.data, op1, 'op1 - beforeTask - data correct');
+        assert.strictEqual(queue.current, task, 'op1 - beforeTask - current task matches expectation');
       } else if (transformCount === 1) {
-        assert.equal(order++, 3, 'op2 - order of beforeAction event');
-        assert.strictEqual(action.data, op2, 'op2 - beforeAction - data correct');
-        assert.strictEqual(queue.current, action, 'op2 - beforeAction - current action matches expectation');
+        assert.equal(order++, 3, 'op2 - order of beforeTask event');
+        assert.strictEqual(task.data, op2, 'op2 - beforeTask - data correct');
+        assert.strictEqual(queue.current, task, 'op2 - beforeTask - current task matches expectation');
       }
     });
 
-    queue.on('action', function(action: Action) {
+    queue.on('task', function(task: Task) {
       if (transformCount === 1) {
-        assert.equal(order++, 2, 'op1 - order of action event');
-        assert.strictEqual(action.data, op1, 'op1 processed');
-        assert.equal(queue.length, 1, 'op1 - after action - queue length');
-        assert.strictEqual(queue.current.data, op2, 'after op1 - current action is op2');
-        assert.equal(queue.processing, false, 'after op1 - queue.processing === false between actions');
+        assert.equal(order++, 2, 'op1 - order of task event');
+        assert.strictEqual(task.data, op1, 'op1 processed');
+        assert.equal(queue.length, 1, 'op1 - after task - queue length');
+        assert.strictEqual(queue.current.data, op2, 'after op1 - current task is op2');
+        assert.equal(queue.processing, false, 'after op1 - queue.processing === false between tasks');
       } else if (transformCount === 2) {
-        assert.equal(order++, 5, 'op2 - order of action event');
-        assert.strictEqual(action.data, op2, 'op2 processed');
-        assert.equal(queue.length, 0, 'op2 - after action - queue length');
-        assert.strictEqual(queue.current, undefined, 'after op2 - current action is empty');
+        assert.equal(order++, 5, 'op2 - order of task event');
+        assert.strictEqual(task.data, op2, 'op2 processed');
+        assert.equal(queue.length, 0, 'op2 - after task - queue length');
+        assert.strictEqual(queue.current, undefined, 'after op2 - current task is empty');
         assert.equal(queue.processing, false, 'after op2 - queue.processing === false');
       }
     });
@@ -99,29 +99,29 @@ module('ActionQueue', function() {
     assert.expect(5);
     const done = assert.async();
 
-    const target: Actionable = {
-      perform(action: Action): Promise<void> { 
+    const target: Performer = {
+      perform(task: Task): Promise<void> { 
         transformCount++;
         if (transformCount === 1) {
-          assert.strictEqual(action.data, op1, 'transform - op1 passed as argument');
+          assert.strictEqual(task.data, op1, 'transform - op1 passed as argument');
         } else if (transformCount === 2) {
-          assert.strictEqual(action.data, op2, 'transform - op2 passed as argument');
+          assert.strictEqual(task.data, op2, 'transform - op2 passed as argument');
         }
         return Promise.resolve();
       }
     };
 
-    const queue = new ActionQueue(target);
+    const queue = new TaskQueue(target);
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let transformCount = 0;
 
-    queue.on('action', function(action) {
+    queue.on('task', function(task) {
       if (transformCount === 1) {
-        assert.strictEqual(action.data, op1, 'op1 processed');
+        assert.strictEqual(task.data, op1, 'op1 processed');
       } else if (transformCount === 2) {
-        assert.strictEqual(action.data, op2, 'op2 processed');
+        assert.strictEqual(task.data, op2, 'op2 processed');
       }
     });
 
@@ -143,7 +143,7 @@ module('ActionQueue', function() {
     queue.process();
   });
 
-  test('can enqueue actions while another action is being processed', function(assert) {
+  test('can enqueue tasks while another task is being processed', function(assert) {
     assert.expect(9);
     const done = assert.async();
 
@@ -159,10 +159,10 @@ module('ActionQueue', function() {
 
     let trigger = new Trigger;
 
-    const target: Actionable = {
-      perform(action: Action): Promise<void> { 
+    const target: Performer = {
+      perform(task: Task): Promise<void> { 
         let promise;
-        let op = action.data;
+        let op = task.data;
         if (op === op1) {
           assert.equal(++order, 1, 'transform with op1');
           promise = new Promise(function(resolve) {
@@ -182,16 +182,16 @@ module('ActionQueue', function() {
       }
     };
 
-    const queue = new ActionQueue(target);
+    const queue = new TaskQueue(target);
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let order = 0;
 
-    queue.on('action', function(action) {
-      if (action.data === op1) {
+    queue.on('task', function(task) {
+      if (task.data === op1) {
         assert.equal(++order, 3, 'op1 completed');
-      } else if (action.data === op2) {
+      } else if (task.data === op2) {
         assert.equal(++order, 6, 'op2 completed');
       }
     });
@@ -223,14 +223,14 @@ module('ActionQueue', function() {
       });
   });
 
-  test('will stop processing when an action errors', function(assert) {
+  test('will stop processing when an task errors', function(assert) {
     assert.expect(7);
 
-    const target: Actionable = {
-      perform(action: Action): Promise<void> { 
+    const target: Performer = {
+      perform(task: Task): Promise<void> { 
         transformCount++;
         if (transformCount === 1) {
-          assert.strictEqual(action.data, op1, 'transform - op1 passed as argument');
+          assert.strictEqual(task.data, op1, 'transform - op1 passed as argument');
         } else if (transformCount === 2) {
           return Promise.reject(new Error(':('));
         }
@@ -238,22 +238,22 @@ module('ActionQueue', function() {
       }
     };
 
-    const queue = new ActionQueue(target, { autoProcess: false });
+    const queue = new TaskQueue(target, { autoProcess: false });
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let transformCount = 0;
 
-    queue.on('action', function(action) {
+    queue.on('task', function(task) {
       if (transformCount === 1) {
-        assert.strictEqual(action.data, op1, 'action - op1 processed');
+        assert.strictEqual(task.data, op1, 'task - op1 processed');
       } else if (transformCount === 2) {
         assert.ok(false, 'op2 could not be processed');
       }
     });
 
-    queue.on('fail', function(action, err) {
-      assert.strictEqual(action.data, op2, 'fail - op2 failed processing');
+    queue.on('fail', function(task, err) {
+      assert.strictEqual(task.data, op2, 'fail - op2 failed processing');
       assert.equal(err.message, ':(', 'fail - error matches expectation');
     });
 
@@ -279,13 +279,13 @@ module('ActionQueue', function() {
       });
   });
 
-  test('#retry resets the current action in an inactive queue and restarts processing', function(assert) {
+  test('#retry resets the current task in an inactive queue and restarts processing', function(assert) {
     assert.expect(13);
 
-    const target: Actionable = {
-      perform(action: Action): Promise<void> { 
+    const target: Performer = {
+      perform(task: Task): Promise<void> { 
         transformCount++;
-        let op = action.data;
+        let op = task.data;
         if (transformCount === 1) {
           assert.strictEqual(op, op1, 'transform - op1 passed as argument');
         } else if (transformCount === 2) {
@@ -299,25 +299,25 @@ module('ActionQueue', function() {
       }
     };
 
-    const queue = new ActionQueue(target, { autoProcess: false });
+    const queue = new TaskQueue(target, { autoProcess: false });
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let op3 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let transformCount = 0;
 
-    queue.on('action', function(action) {
+    queue.on('task', function(task) {
       if (transformCount === 1) {
-        assert.strictEqual(action.data, op1, 'action - op1 processed');
+        assert.strictEqual(task.data, op1, 'task - op1 processed');
       } else if (transformCount === 3) {
-        assert.strictEqual(action.data, op2, 'action - op2 processed');
+        assert.strictEqual(task.data, op2, 'task - op2 processed');
       } else if (transformCount === 4) {
-        assert.strictEqual(action.data, op3, 'action - op3 processed');
+        assert.strictEqual(task.data, op3, 'task - op3 processed');
       }
     });
 
-    queue.on('fail', function(action, err) {
-      assert.strictEqual(action.data, op2, 'fail - op2 failed processing');
+    queue.on('fail', function(task, err) {
+      assert.strictEqual(task.data, op2, 'fail - op2 failed processing');
       assert.equal(err.message, ':(', 'fail - error matches expectation');
     });
 
@@ -345,20 +345,20 @@ module('ActionQueue', function() {
         assert.equal(queue.complete, false, 'queue processing encountered a problem');
         assert.equal(queue.error.message, ':(', 'process error matches expectation');
         assert.strictEqual(queue.error, e, 'process error matches expectation');
-        assert.strictEqual(queue.current.data, op2, 'op2 is current failed action');
+        assert.strictEqual(queue.current.data, op2, 'op2 is current failed task');
 
-        // skip current action and continue processing
+        // skip current task and continue processing
         return queue.retry();
       });
   });
 
-  test('#skip removes the current action from an inactive queue and restarts processing', function(assert) {
+  test('#skip removes the current task from an inactive queue and restarts processing', function(assert) {
     assert.expect(9);
 
-    const target: Actionable = {
-      perform(action: Action): Promise<void> { 
+    const target: Performer = {
+      perform(task: Task): Promise<void> { 
         transformCount++;
-        let op = action.data;
+        let op = task.data;
         if (transformCount === 1) {
           assert.strictEqual(op, op1, 'transform - op1 passed as argument');
         } else if (transformCount === 2) {
@@ -370,23 +370,23 @@ module('ActionQueue', function() {
       }
     };
 
-    const queue = new ActionQueue(target, { autoProcess: false });
+    const queue = new TaskQueue(target, { autoProcess: false });
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let op3 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let transformCount = 0;
 
-    queue.on('action', function(action) {
+    queue.on('task', function(task) {
       if (transformCount === 1) {
-        assert.strictEqual(action.data, op1, 'action - op1 processed');
+        assert.strictEqual(task.data, op1, 'task - op1 processed');
       } else if (transformCount === 2) {
-        assert.strictEqual(action.data, op3, 'action - op3 processed');
+        assert.strictEqual(task.data, op3, 'task - op3 processed');
       }
     });
 
-    queue.on('fail', function(action, err) {
-      assert.strictEqual(action.data, op2, 'fail - op2 failed processing');
+    queue.on('fail', function(task, err) {
+      assert.strictEqual(task.data, op2, 'fail - op2 failed processing');
       assert.equal(err.message, ':(', 'fail - error matches expectation');
     });
 
@@ -415,18 +415,18 @@ module('ActionQueue', function() {
         assert.equal(queue.error.message, ':(', 'process error matches expectation');
         assert.strictEqual(queue.error, e, 'process error matches expectation');
 
-        // skip current action and continue processing
+        // skip current task and continue processing
         return queue.skip();
       });
   });
 
-  test('#shift can remove failed actions from an inactive queue, allowing processing to be restarted', function(assert) {
+  test('#shift can remove failed tasks from an inactive queue, allowing processing to be restarted', function(assert) {
     assert.expect(10);
 
-    const target: Actionable = {
-      perform(action: Action): Promise<void> { 
+    const target: Performer = {
+      perform(task: Task): Promise<void> { 
         transformCount++;
-        let op = action.data;
+        let op = task.data;
         if (transformCount === 1) {
           assert.strictEqual(op, op1, 'transform - op1 passed as argument');
         } else if (transformCount === 2) {
@@ -438,23 +438,23 @@ module('ActionQueue', function() {
       }
     };
 
-    const queue = new ActionQueue(target, { autoProcess: false });
+    const queue = new TaskQueue(target, { autoProcess: false });
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let op3 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let transformCount = 0;
 
-    queue.on('action', function(action) {
+    queue.on('task', function(task) {
       if (transformCount === 1) {
-        assert.strictEqual(action.data, op1, 'action - op1 processed');
+        assert.strictEqual(task.data, op1, 'task - op1 processed');
       } else if (transformCount === 2) {
-        assert.strictEqual(action.data, op3, 'action - op3 processed');
+        assert.strictEqual(task.data, op3, 'task - op3 processed');
       }
     });
 
-    queue.on('fail', function(action, err) {
-      assert.strictEqual(action.data, op2, 'fail - op2 failed processing');
+    queue.on('fail', function(task, err) {
+      assert.strictEqual(task.data, op2, 'fail - op2 failed processing');
       assert.equal(err.message, ':(', 'fail - error matches expectation');
     });
 
@@ -484,8 +484,8 @@ module('ActionQueue', function() {
         assert.strictEqual(queue.error, e, 'process error matches expectation');
 
         return queue.shift()
-          .then(failedAction => {
-            assert.strictEqual(failedAction.data, op2, 'op2, which failed, is returned from `shift`');
+          .then(failedTask => {
+            assert.strictEqual(failedTask.data, op2, 'op2, which failed, is returned from `shift`');
           })
           .then(function() {
             // continue processing
@@ -494,14 +494,14 @@ module('ActionQueue', function() {
       });
   });
 
-  test('#unshift can add a new action to the beginning of an inactive queue', function(assert) {
+  test('#unshift can add a new task to the beginning of an inactive queue', function(assert) {
     assert.expect(9);
     const done = assert.async();
 
-    const target: Actionable = {
-      perform(action: Action): Promise<void> { 
+    const target: Performer = {
+      perform(task: Task): Promise<void> { 
         transformCount++;
-        let op = action.data;
+        let op = task.data;
         if (transformCount === 1) {
           assert.strictEqual(op, op2, 'transform - op2 passed as argument');
         } else if (transformCount === 2) {
@@ -511,7 +511,7 @@ module('ActionQueue', function() {
       }
     };
 
-    const queue = new ActionQueue(target, { autoProcess: false });
+    const queue = new TaskQueue(target, { autoProcess: false });
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -533,11 +533,11 @@ module('ActionQueue', function() {
       }
     });
 
-    queue.on('action', function(action) {
+    queue.on('task', function(task) {
       if (transformCount === 1) {
-        assert.strictEqual(action.data, op2, 'op2 processed');
+        assert.strictEqual(task.data, op2, 'op2 processed');
       } else if (transformCount === 2) {
-        assert.strictEqual(action.data, op1, 'op1 processed');
+        assert.strictEqual(task.data, op1, 'op1 processed');
       }
     });
 
@@ -559,24 +559,24 @@ module('ActionQueue', function() {
     queue.process();
   });
 
-  test('#clear removes all actions from an inactive queue', function(assert) {
+  test('#clear removes all tasks from an inactive queue', function(assert) {
     assert.expect(2);
     const done = assert.async();
 
-    const target: Actionable = {
-      perform(action: Action): Promise<void> { 
+    const target: Performer = {
+      perform(task: Task): Promise<void> { 
         assert.ok(false, 'transform should not be called');
         return Promise.resolve();
       }
     };
 
-    const queue = new ActionQueue(target, { autoProcess: false });
+    const queue = new TaskQueue(target, { autoProcess: false });
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
 
-    queue.on('action', function() {
-      assert.ok(false, 'no actions should be processed');
+    queue.on('task', function() {
+      assert.ok(false, 'no tasks should be processed');
     });
 
     queue.on('complete', function() {
@@ -617,28 +617,28 @@ module('ActionQueue', function() {
     test('requires a name for lookups in the bucket', function(assert) {
       assert.throws(
         function() {
-          const target: Actionable = {
-            perform(action: Action): Promise<void> { 
+          const target: Performer = {
+            perform(task: Task): Promise<void> { 
               return Promise.resolve();
             }
           };
-          let queue = new ActionQueue(target, { bucket });
+          let queue = new TaskQueue(target, { bucket });
         },
-        Error('Assertion failed: ActionQueue requires a name if it has a bucket'),
+        Error('Assertion failed: TaskQueue requires a name if it has a bucket'),
         'assertion raised');
     });
 
-    test('will be reified with the actions serialized in its bucket and immediately process them', function(assert) {
+    test('will be reified with the tasks serialized in its bucket and immediately process them', function(assert) {
       const done = assert.async();
       assert.expect(3);
 
-      const target: Actionable = {
-        perform(action: Action): Promise<void> { 
+      const target: Performer = {
+        perform(task: Task): Promise<void> { 
           return Promise.resolve();
         }
       };
 
-      const serialized: Action[] = [
+      const serialized: Task[] = [
         {
           type: 'transform',
           data: op1
@@ -652,11 +652,11 @@ module('ActionQueue', function() {
       let queue;
       bucket.setItem('queue', serialized)
         .then(() => {
-          queue = new ActionQueue(target, { name: 'queue', bucket });
+          queue = new TaskQueue(target, { name: 'queue', bucket });
           return queue.reified;
         })
         .then(() => {
-          assert.equal(queue.length, 2, 'queue has two actions');
+          assert.equal(queue.length, 2, 'queue has two tasks');
 
           queue.on('complete', function() {
             assert.ok(true, 'queue completed');
@@ -670,25 +670,25 @@ module('ActionQueue', function() {
         });
     });
 
-    test('#push - actions pushed to a queue are persisted to its bucket', function(assert) {
+    test('#push - tasks pushed to a queue are persisted to its bucket', function(assert) {
       const done = assert.async();
       assert.expect(9);
 
-      const target: Actionable = {
-        perform(action: Action): Promise<void> { 
+      const target: Performer = {
+        perform(task: Task): Promise<void> { 
           return Promise.resolve();
         }
       };
 
-      const queue = new ActionQueue(target, { name: 'queue', bucket });
+      const queue = new TaskQueue(target, { name: 'queue', bucket });
 
       let transformCount = 0;
 
-      queue.on('beforeAction', function(action) {
+      queue.on('beforeTask', function(task) {
         transformCount++;
 
         if (transformCount === 1) {
-          assert.strictEqual(action.data, op1, 'op1 processed');
+          assert.strictEqual(task.data, op1, 'op1 processed');
           bucket.getItem('queue')
             .then(serialized => {
               assert.equal(serialized.length, 2);
@@ -696,7 +696,7 @@ module('ActionQueue', function() {
               assert.deepEqual(serialized[1].data, op2)
             });
         } else if (transformCount === 2) {
-          assert.strictEqual(action.data, op2, 'op2 processed');
+          assert.strictEqual(task.data, op2, 'op2 processed');
           bucket.getItem('queue')
             .then(serialized => {
               assert.equal(serialized.length, 1);

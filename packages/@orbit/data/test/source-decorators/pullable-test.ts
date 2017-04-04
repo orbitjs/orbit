@@ -17,7 +17,7 @@ module('@pullable', function(hooks) {
       constructor() { super(); }
     }
 
-    source = new MySource({ name: 'src1' });
+    source = new MySource();
   });
 
   hooks.afterEach(function() {
