@@ -2,8 +2,8 @@ import Orbit from './main';
 import { 
   evented, Evented, settleInSeries,
   Bucket,
-  ActionQueue,
-  Action, Actionable,
+  TaskQueue,
+  Task, Performer,
   Log
 } from '@orbit/core';
 import KeyMap from './key-map';
@@ -29,14 +29,14 @@ export interface SourceSettings {
  @constructor
  */
 @evented
-export abstract class Source implements Evented, Actionable {
+export abstract class Source implements Evented, Performer {
   protected _name: string;
   protected _bucket: Bucket;
   protected _keyMap: KeyMap;
   protected _schema: Schema;
   protected _transformLog: Log;
-  protected _requestQueue: ActionQueue;
-  protected _syncQueue: ActionQueue;
+  protected _requestQueue: TaskQueue;
+  protected _syncQueue: TaskQueue;
 
   // Evented interface stubs
   on: (event: string, callback: () => void, binding?: any) => void;
@@ -56,8 +56,8 @@ export abstract class Source implements Evented, Actionable {
     }
 
     this._transformLog = new Log({ name: name ? `${name}-log` : undefined, bucket });
-    this._requestQueue = new ActionQueue(this, { name: name ? `${name}-requests` : undefined, bucket });
-    this._syncQueue = new ActionQueue(this, { name: name ? `${name}-sync` : undefined, bucket });
+    this._requestQueue = new TaskQueue(this, { name: name ? `${name}-requests` : undefined, bucket });
+    this._syncQueue = new TaskQueue(this, { name: name ? `${name}-sync` : undefined, bucket });
   }
 
   get name(): string {
@@ -80,18 +80,18 @@ export abstract class Source implements Evented, Actionable {
     return this._transformLog;
   }
 
-  get requestQueue(): ActionQueue {
+  get requestQueue(): TaskQueue {
     return this._requestQueue;
   }
 
-  get syncQueue(): ActionQueue {
+  get syncQueue(): TaskQueue {
     return this._syncQueue;
   }
 
-  // Actionable interface 
-  perform(action: Action): Promise<any> {
-    let method = `__${action.type}__`;
-    return this[method].call(this, action.data);
+  // Performer interface 
+  perform(task: Task): Promise<any> {
+    let method = `__${task.type}__`;
+    return this[method].call(this, task.data);
   };
 
   /////////////////////////////////////////////////////////////////////////////
