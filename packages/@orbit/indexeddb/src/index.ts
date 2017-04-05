@@ -1,3 +1,2 @@
-export { default as IndexedDBSource, IndexedDBSourceSettings } from './source';
-export { default as IndexedDBBucket, IndexedDBBucketSettings } from './bucket';
+export { default, IndexedDBSourceSettings } from './source';
 export { supportsIndexedDB } from './lib/indexeddb';
