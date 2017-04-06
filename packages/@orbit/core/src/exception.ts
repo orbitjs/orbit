@@ -1,14 +1,21 @@
 /**
- Base Exception
-
- @class Exception
- @constructor
+ * Base exception class.
+ * 
+ * @export
+ * @class Exception
  */
 export class Exception {
   public message: string;
   public error: Error;
   public stack: string;
 
+  /**
+   * Creates an instance of Exception.
+   * 
+   * @param {string} message 
+   * 
+   * @memberOf Exception
+   */
   constructor(message: string) {
     this.message = message;
     this.error = new Error(this.message);
@@ -16,6 +23,13 @@ export class Exception {
   }
 }
 
+/**
+ * Exception raised when an item does not exist in a log.
+ * 
+ * @export
+ * @class NotLoggedException
+ * @extends {Exception}
+ */
 export class NotLoggedException extends Exception {
   public id: string;
 
@@ -25,6 +39,13 @@ export class NotLoggedException extends Exception {
   }
 }
 
+/**
+ * Exception raised when a value is outside an allowed range.
+ * 
+ * @export
+ * @class OutOfRangeException
+ * @extends {Exception}
+ */
 export class OutOfRangeException extends Exception {
   public value: number;
 

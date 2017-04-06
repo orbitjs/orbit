@@ -150,9 +150,9 @@ module('TaskQueue', function() {
     @evented
     class Trigger implements Evented {
       // Evented interface stubs
-      on: (event: string, callback: any, binding?: any) => void;
-      off: (event: string, callback: any, binding?: any) => void;
-      one: (event: string, callback: any, binding?: any) => void;
+      on: (event: string, callback: Function, binding?: object) => void;
+      off: (event: string, callback: Function, binding?: object) => void;
+      one: (event: string, callback: Function, binding?: object) => void;
       emit: (event: string, ...args) => void;
       listeners: (event: string) => any[];
     }

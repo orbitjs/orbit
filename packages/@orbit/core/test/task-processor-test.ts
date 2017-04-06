@@ -6,6 +6,8 @@ import './test-helper';
 const { Promise } = Orbit;
 const { module, test } = QUnit;
 
+declare const setTimeout: any;
+
 ///////////////////////////////////////////////////////////////////////////////
 
 module('TaskProcessor', function() {

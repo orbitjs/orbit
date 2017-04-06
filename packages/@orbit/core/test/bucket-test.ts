@@ -1,12 +1,18 @@
+import Orbit from '../src/main';
 import { Bucket } from '../src/bucket';
 import './test-helper';
 
+const { Promise } = Orbit;
 const { module, test } = QUnit;
 
 module('Bucket', function() {
   // Extend Bucket because it's an abstract class
   class MyBucket extends Bucket {
     constructor(settings = {}) { super(settings); }
+
+    getItem(key: string): Promise<any> { return Promise.resolve(); }
+    setItem(key: string, value: any): Promise<void> { return Promise.resolve(); }
+    removeItem(key: string): Promise<void> { return Promise.resolve(); }
   }
 
   test('can be instantiated', function(assert) {

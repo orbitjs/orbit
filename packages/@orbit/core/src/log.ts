@@ -10,6 +10,17 @@ export interface LogOptions {
   bucket?: Bucket;
 }
 
+/**
+ * Logs track a series of unique events that have occurred. Each event is
+ * tracked based on its unique id. The log only tracks the ids but currently
+ * does not track any details.
+ *
+ * Logs can automatically be persisted by assigning them a bucket.
+ * 
+ * @export
+ * @class Log
+ * @implements {Evented}
+ */
 @evented
 export default class Log implements Evented {
   private _name: string;
