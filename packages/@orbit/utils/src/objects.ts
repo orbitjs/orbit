@@ -1,14 +1,14 @@
 /* eslint-disable valid-jsdoc */
 
 /**
- Creates a deeply nested clone of an object.
-
- Traverses all object properties (but not prototype properties).
-
- @method clone
- @for Orbit
- @param {Object} obj
- @returns {Object} Clone of the original object
+ * Clones a value. If the value is an object, a deeply nested clone will be
+ * created.
+ *
+ * Traverses all object properties (but not prototype properties).
+ *
+ * @export
+ * @param {*} obj 
+ * @returns {*} Clone of the input `obj`
  */
 export function clone(obj: any): any {
   if (obj === undefined || obj === null || typeof obj !== 'object') { return obj; }
@@ -44,17 +44,15 @@ export function clone(obj: any): any {
 }
 
 /**
- Expose properties and methods from one object on another.
-
- Methods will be called on `source` and will maintain `source` as the
- context.
-
- @method expose
- @for Orbit
- @param {Object} destination
- @param {Object} source
+ * Expose properties and methods from one object on another.
+ *
+ * Methods will be called on `source` and will maintain `source` as the context.
+ *
+ * @export
+ * @param {object} destination
+ * @param {object} source
  */
-export function expose(destination: Object, source: Object): void {
+export function expose(destination: object, source: object): void {
   let properties;
   if (arguments.length > 2) {
     properties = Array.prototype.slice.call(arguments, 2);
@@ -81,8 +79,17 @@ export function expose(destination: Object, source: Object): void {
  @param {Object} destination The object to merge into
  @param {Object} source One or more source objects
  */
-export function extend(destination: Object): Object {
-  let sources = Array.prototype.slice.call(arguments, 1);
+
+
+/**
+ * Extend an object with the properties of one or more other objects.
+ * 
+ * @export
+ * @param {object} destination 
+ * @param {any} sources 
+ * @returns {object} 
+ */
+export function extend(destination: object, ...sources): object {
   sources.forEach(function(source) {
     for (var p in source) {
       if (source.hasOwnProperty(p)) {
@@ -94,24 +101,22 @@ export function extend(destination: Object): Object {
 }
 
 /**
- Checks whether an object is an instance of an `Array`
-
- @method isArray
- @for Orbit
- @param {Object} obj
- @returns {boolean}
+ * Checks whether an object is an instance of an `Array`
+ * 
+ * @export
+ * @param {*} obj 
+ * @returns {boolean} 
  */
 export function isArray(obj: any): boolean {
   return Object.prototype.toString.call(obj) === '[object Array]';
 }
 
 /**
- Converts an object to an `Array` if it's not already.
-
- @method toArray
- @for Orbit
- @param {Object} obj
- @returns {Array}
+ * Converts an object to an `Array` if it's not already.
+ * 
+ * @export
+ * @param {*} obj 
+ * @returns {any[]} 
  */
 export function toArray(obj: any): any[] {
   if (isNone(obj)) {
@@ -122,39 +127,36 @@ export function toArray(obj: any): any[] {
 }
 
 /**
- Checks whether a value is a non-null object
-
- @method isObject
- @for Orbit
- @param {Object} obj
- @returns {boolean}
+ * Checks whether a value is a non-null object
+ * 
+ * @export
+ * @param {*} obj 
+ * @returns {boolean} 
  */
 export function isObject(obj: any): boolean {
   return obj !== null && typeof obj === 'object';
 }
 
 /**
- Checks whether an object is null or undefined
-
- @method isNone
- @for Orbit
- @param {Object} obj
- @returns {boolean}
+ * Checks whether an object is null or undefined
+ * 
+ * @export
+ * @param {*} obj 
+ * @returns {boolean} 
  */
 export function isNone(obj: any): boolean {
   return obj === undefined || obj === null;
 }
 
 /**
- Combines two objects values
-
- @method merge
- @for Orbit
- @param {Object} base
- @param {Object} source
- @returns {Object}
+ * Combines the properties of two objects into a new object
+ * 
+ * @export
+ * @param {object} base 
+ * @param {object} source 
+ * @returns {object} 
  */
-export function merge(base: Object, source: Object): Object {
+export function merge(base: object, source: object): object {
   var merged = clone(base);
   if (source) {
     Object.keys(source).forEach(function(field) {
@@ -169,12 +171,13 @@ export function merge(base: Object, source: Object): Object {
 }
 
 /**
-  Similar to the lodash _.get function, this function uses a path to retrieve a
-  value from a nested object.
-
-  @param {Object} obj - object to pull values from
-  @param {string[]} path - any array of strings specifying the path to use
-  @returns {*} the value of the obj at path or undefined
+ * Similar to the lodash _.get function, this function uses a path to retrieve a
+ * value from a nested object.
+ * 
+ * @export
+ * @param {Object} obj 
+ * @param {string[]} path 
+ * @returns {*} 
  */
 export function deepGet(obj: Object, path: string[]): any {
   let index = -1;
@@ -191,14 +194,18 @@ export function deepGet(obj: Object, path: string[]): any {
 }
 
 /**
-  Similar to the Lodash _.set function, this function uses a path to set a
-  value on an object. This function will create objects along the path if
-  necessary to allow setting a deeply nested value.
-
-  @param {Object} obj - object to set values in
-  @param {string[]} path - any array of strings specifying the path to use
-  @param {*} value - the value to set
-  @returns {boolean} - was the value was actually changed?
+ * Similar to the Lodash _.set function, this function uses a path to set a
+ * value on an object. This function will create objects along the path if
+ * necessary to allow setting a deeply nested value.
+ * 
+ * Returns `false` only if the current value is already strictly equal to the 
+ * requested `value` argument. Otherwise returns `true`.
+ *
+ * @export
+ * @param {Object} obj
+ * @param {string[]} path
+ * @param {*} value
+ * @returns {boolean} was the value was actually changed?
  */
 export function deepSet(obj: Object, path: string[], value: any): boolean {
   let ptr = obj;

@@ -10,14 +10,14 @@
  * @author Andrew Hacking (ahacking@gmail.com)
  *
  **/
-var lut = []; for (var i = 0; i < 256; i++) { lut[i] = (i < 16 ? '0' : '') + (i).toString(16); }
+let lut = []; for (var i = 0; i < 256; i++) { lut[i] = (i < 16 ? '0' : '') + (i).toString(16); }
 
 /**
- `uuid` generates a Version 4 UUID using Jeff Wards high performance generator.
-
- @method v4uuid
- @for Orbit
- @returns {String} a version 4 UUID
+ * `uuid` generates a Version 4 UUID using Jeff Ward's high performance
+ * generator.
+ *
+ * @export
+ * @returns {string}
  */
 export function uuid(): string {
   var d0 = Math.random() * 0xffffffff | 0;

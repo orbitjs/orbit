@@ -1,22 +1,21 @@
 /**
- Uppercase the first letter of a string, but don't change the remainder.
-
- @method capitalize
- @for Orbit
- @param {String} str
- @returns {String} capitalized string
+ * Uppercase the first letter of a string, but don't change the remainder.
+ * 
+ * @export
+ * @param {string} str 
+ * @returns {string} 
  */
 export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 /**
- Convert underscored, dasherized, or space-delimited words into lowerCamelCase.
-
- @method camelize
- @for Orbit
- @param {String} str
- @returns {String} camelized string
+ * Convert underscored, dasherized, or space-delimited words into
+ * lowerCamelCase.
+ *
+ * @export
+ * @param {string} str
+ * @returns {string}
  */
 export function camelize(str: string): string {
   return str
@@ -29,12 +28,11 @@ export function camelize(str: string): string {
 }
 
 /**
- Converts a camelized string into all lowercase separated by underscores.
-
- @method decamelize
- @for Orbit
- @param {String} str
- @returns {String} lower case, underscored string
+ * Converts a camelized string into all lowercase separated by underscores.
+ * 
+ * @export
+ * @param {string} str 
+ * @returns {string} 
  */
 export function decamelize(str: string): string {
   return str
@@ -43,24 +41,22 @@ export function decamelize(str: string): string {
 }
 
 /**
- Dasherize words that are underscored, space-delimited, or camelCased.
-
- @method dasherize
- @for Orbit
- @param {String} str
- @returns {String} dasherized string
+ * Dasherize words that are underscored, space-delimited, or camelCased.
+ * 
+ * @export
+ * @param {string} str 
+ * @returns {string} 
  */
 export function dasherize(str: string): string {
   return decamelize(str).replace(/[ _]/g, '-');
 }
 
 /**
- Underscore words that are dasherized, space-delimited, or camelCased.
-
- @method underscore
- @for Orbit
- @param {String} str
- @returns {String} underscored string
+ * Underscore words that are dasherized, space-delimited, or camelCased.
+ * 
+ * @export
+ * @param {string} str 
+ * @returns {string} 
  */
 export function underscore(str: string): string {
   return str
