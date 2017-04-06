@@ -116,7 +116,14 @@ export default class TaskQueue implements Evented {
     return this._error;
   }
 
-  get complete(): boolean {
+  /**
+   * Is the queue empty?
+   * 
+   * @readonly
+   * @type {boolean}
+   * @memberOf TaskQueue
+   */
+  get empty(): boolean {
     return this.length === 0;
   }
 
