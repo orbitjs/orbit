@@ -1,0 +1,9 @@
+{
+  "framework": "qunit",
+  "test_page": "tests/index.html",
+  "before_tests": "npm run build:tests",
+  "src_files": ["src/**/*", "test/**/*"],
+  "launch_in_ci": ["Firefox"],
+  "debug": true,
+  "port": 0
+}

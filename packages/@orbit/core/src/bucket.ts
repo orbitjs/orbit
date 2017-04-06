@@ -9,9 +9,22 @@ export interface BucketSettings {
 }
 
 /**
- * Buckets are used by sources to persist transient state, such as logs and
- * queues, that should not be lost in the event of an unexpected exception or
- * shutdown.
+ * Buckets can persist state. The base `Bucket` class is abstract and should be
+ * extended to created buckets with different persistence strategies.
+ *
+ * Buckets have a simple map-like interface with methods like `getItem`,
+ * `setItem`, and `removeItem`. All methods return promises to enable usage with
+ * asynchronous stores like IndexedDB.
+ *
+ * Buckets can be assigned a unique `namespace` in order to avoid collisions.
+ * 
+ * Buckets can be assigned a version, and can be "upgraded" to a new version.
+ * The upgrade process allows buckets to migrate their data between versions.
+ *
+ * @export
+ * @abstract
+ * @class Bucket
+ * @implements {Evented}
  */
 @evented
 export abstract class Bucket implements Evented {
@@ -26,6 +39,13 @@ export abstract class Bucket implements Evented {
   emit: (event: string, ...args) => void;
   listeners: (event: string) => any[];
 
+  /**
+   * Creates an instance of Bucket.
+   * 
+   * @param {BucketSettings} [settings={}] 
+   * 
+   * @memberOf Bucket
+   */
   constructor(settings: BucketSettings = {}) {
     if (settings.version === undefined) {
       settings.version = 1;
@@ -36,20 +56,73 @@ export abstract class Bucket implements Evented {
     this._applySettings(settings);
   }
 
+  /**
+   * Retrieves an item from the bucket.
+   * 
+   * @abstract
+   * @param {string} key 
+   * @returns {Promise<any>} 
+   * 
+   * @memberOf Bucket
+   */
   abstract getItem(key: string): Promise<any>;
 
+  /**
+   * Stores an item in the bucket.
+   * 
+   * @abstract
+   * @param {string} key 
+   * @param {*} value 
+   * @returns {Promise<void>} 
+   * 
+   * @memberOf Bucket
+   */
   abstract setItem(key: string, value: any): Promise<void>;
 
+  /**
+   * Removes an item from the bucket.
+   * 
+   * @abstract
+   * @param {string} key 
+   * @returns {Promise<void>} 
+   * 
+   * @memberOf Bucket
+   */
   abstract removeItem(key: string): Promise<void>;
 
+  /**
+   * Name used for tracking and debugging a bucket instance.
+   * 
+   * @readonly
+   * @type {string}
+   * @memberOf Bucket
+   */
   get name(): string {
     return this._name;
   }
 
+  /**
+   * The namespace used by the bucket when accessing any items.
+   * 
+   * This is used to distinguish one bucket's contents from another.
+   * 
+   * @readonly
+   * @type {string}
+   * @memberOf Bucket
+   */
   get namespace(): string {
     return this._namespace;
   }
 
+  /**
+   * The current version of the bucket.
+   * 
+   * To change versions, `upgrade` should be invoked.
+   * 
+   * @readonly
+   * @type {number}
+   * @memberOf Bucket
+   */
   get version(): number {
     return this._version;
   }
@@ -59,10 +132,10 @@ export abstract class Bucket implements Evented {
    *
    * Settings, beyond `version`, are bucket-specific.
    *
-   * @param  {Object}   [settings={}]      Settings.
-   * @param  {Integer}  [settings.version] Optional. Version. Defaults to the current version + 1.
-   * @return {Promise}                     Promise that resolves when upgrade has completed.
-   */
+   * @param {BucketSettings} settings 
+   * @returns {Promise<void>} 
+   * @memberOf Bucket
+    */
   upgrade(settings: BucketSettings = {}): Promise<void> {
     if (settings.version === undefined) {
       settings.version = this._version + 1;
@@ -73,11 +146,10 @@ export abstract class Bucket implements Evented {
 
   /**
    * Applies settings passed from a `constructor` or `upgrade`.
-   *
-   * @private
-   * @param  {Object}   settings          Settings.
-   * @param  {Integer}  settings.version  Bucket version.
-   * @return {Promise}                    Promise that resolves when settings have been applied.
+   * 
+   * @param {BucketSettings} settings 
+   * @returns {Promise<void>} 
+   * @memberOf Bucket
    */
   _applySettings(settings: BucketSettings): Promise<void> {
     if (settings.name) {
