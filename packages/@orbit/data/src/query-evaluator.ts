@@ -1,10 +1,22 @@
 import { isQueryExpression, QueryExpression } from './query-expression';
 import { Dict } from '@orbit/utils';
 
+/**
+ * 
+ * 
+ * @export
+ * @interface QueryOperator
+ */
 export interface QueryOperator {
   (context: any, ...expression: any[]): any;
 }
 
+/**
+ * 
+ * 
+ * @export
+ * @class QueryEvaluator
+ */
 export default class QueryEvaluator {
   target: any;
   operators: Dict<QueryOperator>;

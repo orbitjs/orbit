@@ -9,7 +9,7 @@ import {
   replaceHasMany,
   replaceHasOne,
   coalesceRecordOperations
-} from '../src/operation';
+} from '../src/index';
 import './test-helper';
 
 const { module, test } = QUnit;

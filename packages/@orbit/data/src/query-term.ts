@@ -1,5 +1,5 @@
 import { isObject } from '@orbit/utils';
-import { queryExpression as oqe, QueryExpression } from './query-expression';
+import { oqe, QueryExpression } from './query-expression';
 
 export class QueryTerm {
   expression: QueryExpression;
@@ -8,7 +8,7 @@ export class QueryTerm {
     this.expression = expression;
   }
 
-  toQueryExpression() {
+  toQueryExpression(): QueryExpression {
     return this.expression;
   }
 }

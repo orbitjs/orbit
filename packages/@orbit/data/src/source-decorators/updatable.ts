@@ -3,49 +3,75 @@ import { assert } from '@orbit/utils';
 import { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Operation } from '../operation';
 import Transform, { TransformOrOperations } from '../transform';
-import { Source } from '../source';
+import { Source, SourceClass } from '../source';
 
 export const UPDATABLE = '__updatable__';
 
-export function isUpdatable(obj: any) {
-  return !!obj[UPDATABLE];
-}
-
-export interface Updatable {
-  update(transformOrOperations: TransformOrOperations): Promise<void>;
+/**
+ * Has a source been decorated as `@updatable`?
+ * 
+ * @export
+ * @param {*} obj 
+ * @returns 
+ */
+export function isUpdatable(source: Source) {
+  return !!source[UPDATABLE];
 }
 
 /**
- Mixes the `Updatable` interface into a source.
+ * A source decorated as `@updatable` must also implement the `Updatable`
+ * interface.
+ *
+ * @export
+ * @interface Updatable
+ */
+export interface Updatable {
+  /**
+   * The `update` method accepts a `Transform` instance or an array of
+   * operations which it then converts to a `Transform` instance. The source
+   * applies the update and returns a promise that resolves when complete.
+   *
+   * @param {TransformOrOperations} transformOrOperations
+   * @param {object} [options] 
+   * @param {string} [id] 
+   * @returns {Promise<void>}
+   *
+   * @memberOf Updatable
+   */
+  update(transformOrOperations: TransformOrOperations, options?: object, id?: string): Promise<void>;
 
-  The `Updatable` interface adds a single method to a source: `update`. This
-  method accepts a `Transform` instance or an array of operations which it then
-  converts to a `Transform` instance. The source applies the update and returns
-  a promise that resolves when complete.
+  _update(transform: Transform): Promise<void>;
+}
 
-  This interface is part of the "request flow" in Orbit. Requests trigger
-  events before and after processing of each request. Observers can delay the
-  resolution of a request by returning a promise in an event listener.
-
-  The `Updatable` interface introduces the following events:
-
-  * `beforeUpdate` - emitted prior to the processing of `update`, this event
-    includes the requested `Transform` as an argument.
-
-  * `update` - emitted after an `update` has successfully been applied, this
-    event includes the requested `Transform` as an argument.
-
-  * `updateFail` - emitted when an error has occurred applying an update, this
-    event's arguments include both the requested `Transform` and the error.
-
-  An `Updatable` source must implement a private method `_update`, which
-  performs the processing required for `update` and returns a promise that
-  resolves when complete.
-
-  @function updatable
-  @param {Object} source - Source to decorate
-  */
-export default function updatable(Klass: any): void {
+/**
+ * Marks a source as "updatable" and adds an implementation of the `Updatable`
+ * interface.
+ *
+ * The `update` method is part of the "request flow" in Orbit. Requests trigger
+ * events before and after processing of each request. Observers can delay the
+ * resolution of a request by returning a promise in an event listener.
+ *
+ * An updatable source emits the following events:
+ *
+ * - `beforeUpdate` - emitted prior to the processing of `update`, this event
+ * includes the requested `Transform` as an argument.
+ *
+ * - `update` - emitted after an `update` has successfully been applied, this
+ * event includes the requested `Transform` as an argument.
+ *
+ * - `updateFail` - emitted when an error has occurred applying an update, this
+ * event's arguments include both the requested `Transform` and the error.
+ *
+ * An updatable source must implement a private method `_update`, which performs
+ * the processing required for `update` and returns a promise that resolves when
+ * complete.
+ *
+ * @export
+ * @decorator
+ * @param {SourceClass} Klass 
+ * @returns {void}
+ */
+export default function updatable(Klass: SourceClass): void {
   let proto = Klass.prototype;
 
   if (isUpdatable(proto)) {
@@ -56,8 +82,8 @@ export default function updatable(Klass: any): void {
 
   proto[UPDATABLE] = true;
 
-  proto.update = function(transformOrOperations: TransformOrOperations): Promise<void> {
-    const transform = Transform.from(transformOrOperations);
+  proto.update = function(transformOrOperations: TransformOrOperations, options?: object, id?: string): Promise<void> {
+    const transform = Transform.from(transformOrOperations, options, id);
 
     if (this.transformLog.contains(transform.id)) {
       return Orbit.Promise.resolve([]);

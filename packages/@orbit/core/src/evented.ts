@@ -10,10 +10,10 @@ export const EVENTED = '__evented__';
  * Has a class been decorated as `@evented`?
  * 
  * @export
- * @param {*} obj 
+ * @param {object} obj 
  * @returns {boolean} 
  */
-export function isEvented(obj: any): boolean {
+export function isEvented(obj: object): boolean {
   return !!obj[EVENTED];
 }
 
@@ -84,7 +84,7 @@ export interface Evented {
  * @export
  * @param {*} Klass 
  */
-export default function evented(Klass: any) {
+export default function evented(Klass: any): void {
   let proto = Klass.prototype;
 
   if (isEvented(proto)) {

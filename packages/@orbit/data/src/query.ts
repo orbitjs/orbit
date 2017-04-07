@@ -5,26 +5,47 @@ import { QueryTerm } from './query-term';
 export type QueryOrExpression = Query | QueryExpression | QueryTerm;
 
 /**
- Queries are used to extract data from a source.
-
- Queries are automatically assigned a UUID `id`.
-
- @class Query
- @param {Object} [expression] Query expression
- @param {String} [id] Optional. Unique id for this query (will be assigned a uuid by default)
- @constructor
+ * Queries are used to extract data from a source.
+ * 
+ * Queries will be automatically assigned an `id` if none is specifically
+ * assigned.
+ * 
+ * @export
+ * @class Query
  */
 export default class Query {
   id: string;
   expression: QueryExpression;
   options: any;
 
+  /**
+   * Creates an instance of a `Query`.
+   * 
+   * @param {QueryExpression} expression 
+   * @param {object} [options] 
+   * @param {string} [id=Orbit.uuid()] 
+   * 
+   * @memberOf Query
+   */
   constructor(expression: QueryExpression, options?: object, id: string = Orbit.uuid()) {
     this.expression = expression;
     this.options = options;
     this.id = id;
   }
 
+  /**
+   * Create a new `Query` from a query or expression, if necessary.
+   * 
+   * Accepts optional `options` and `id`.
+   * 
+   * @static
+   * @param {QueryOrExpression} queryOrExpression 
+   * @param {object} [options] 
+   * @param {string} [id] 
+   * @returns {Query} 
+   * 
+   * @memberOf Query
+   */
   static from(queryOrExpression: QueryOrExpression, options?: object, id?: string): Query {
     if (queryOrExpression instanceof Query) {
       if (options && options !== queryOrExpression.options ||

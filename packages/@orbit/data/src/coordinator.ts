@@ -3,6 +3,15 @@ import { Source } from './source';
 import Transform from './transform';
 import { Dict, assert } from '@orbit/utils';
 
+/**
+ * The Coordinator class observes sources registered with it, and truncates
+ * logs up to the most recent common entry between them.
+ * 
+ * This class is experimental and should be considered a work in progress.
+ * 
+ * @export
+ * @class Coordinator
+ */
 export default class Coordinator {
   private _active: boolean;
   private _sources: Source[];
@@ -138,12 +147,12 @@ export default class Coordinator {
       this._sourceTransformed(source, transform.id);
     };
 
-    source.on('transform', <() => void>listener);
+    source.on('transform', listener);
   }
 
   _deactivateSource(source: Source) {
     const listener = this._transformListeners[source.name];
-    source.off('transform', <() => void>listener);
+    source.off('transform', listener);
   }
 
   _sourceTransformed(source: Source, transformId: string) {

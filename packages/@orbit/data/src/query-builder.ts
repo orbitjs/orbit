@@ -1,9 +1,16 @@
-import { queryExpression as oqe, QueryExpression } from './query-expression';
+import { oqe, QueryExpression } from './query-expression';
 import { RecordIdentity } from './record';
 import { QueryTerm, Records, Record, RelatedRecord, RelatedRecords } from './query-term';
 
-export default {
-  records(type: string): Records {
+/**
+ * A builder for record-specific queries.
+ * 
+ * `oqb` is an abbreviation for "Orbit Query Builder".
+ * 
+ * @export
+ */
+export const oqb = {
+  records(type?: string): Records {
     return new Records(oqe('records', type));
   },
 

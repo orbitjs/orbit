@@ -1,23 +1,12 @@
 import { Exception } from '@orbit/core';
 
-export class TransformNotLoggedException extends Exception {
-  public transformId: string;
-
-  constructor(transformId: string) {
-    super(`Transform not logged: ${transformId}`);
-    this.transformId = transformId;
-  }
-}
-
-export class OutOfRangeException extends Exception {
-  public value: number;
-
-  constructor(value: number) {
-    super(`Out of range: ${value}`);
-    this.value = value;
-  }
-}
-
+/**
+ * An client-side error occurred while communicating with a remote server.
+ * 
+ * @export
+ * @class ClientError
+ * @extends {Exception}
+ */
 export class ClientError extends Exception {
   public description: string;
 
@@ -27,6 +16,13 @@ export class ClientError extends Exception {
   }
 }
 
+/**
+ * A server-side error occurred while communicating with a remote server.
+ * 
+ * @export
+ * @class ServerError
+ * @extends {Exception}
+ */
 export class ServerError extends Exception {
   public description: string;
 
@@ -36,6 +32,14 @@ export class ServerError extends Exception {
   }
 }
 
+/**
+ * A networking error occurred while attempting to communicate with a remote
+ * server.
+ *
+ * @export
+ * @class NetworkError
+ * @extends {Exception}
+ */
 export class NetworkError extends Exception {
   public description: string;
 
@@ -45,6 +49,13 @@ export class NetworkError extends Exception {
   }
 }
 
+/**
+ * A query expression could not be parsed.
+ * 
+ * @export
+ * @class QueryExpressionParseError
+ * @extends {Exception}
+ */
 export class QueryExpressionParseError extends Exception {
   public description: string;
   public expression: any;
@@ -56,6 +67,13 @@ export class QueryExpressionParseError extends Exception {
   }
 }
 
+/**
+ * A query is invalid for a particular source.
+ * 
+ * @export
+ * @class QueryNotAllowed
+ * @extends {Exception}
+ */
 export class QueryNotAllowed extends Exception {
   public description: string;
   public query: any;
@@ -67,6 +85,13 @@ export class QueryNotAllowed extends Exception {
   }
 }
 
+/**
+ * A transform is invalid for a particular source.
+ * 
+ * @export
+ * @class TransformNotAllowed
+ * @extends {Exception}
+ */
 export class TransformNotAllowed extends Exception {
   public description: string;
   public transform: any;
@@ -78,6 +103,14 @@ export class TransformNotAllowed extends Exception {
   }
 }
 
+/**
+ * An error occurred related to a particular record.
+ * 
+ * @export
+ * @abstract
+ * @class RecordException
+ * @extends {Exception}
+ */
 export abstract class RecordException extends Exception {
   public description: string;
   public type: string;
@@ -101,12 +134,11 @@ export abstract class RecordException extends Exception {
 }
 
 /**
- Exception thrown when a record can not be found.
-
- @class RecordNotFoundException
- @param {String} type
- @param {String} id
- @constructor
+ * A record could not be found.
+ * 
+ * @export
+ * @class RecordNotFoundException
+ * @extends {RecordException}
  */
 export class RecordNotFoundException extends RecordException {
   constructor(type: string, id: string) {
@@ -115,13 +147,11 @@ export class RecordNotFoundException extends RecordException {
 }
 
 /**
- Exception thrown when a relationship can not be found.
-
- @class RelationshipNotFoundException
- @namespace OC
- @param {String} type
- @param {String} id
- @constructor
+ * A relationship could not be found.
+ * 
+ * @export
+ * @class RelationshipNotFoundException
+ * @extends {RecordException}
  */
 export class RelationshipNotFoundException extends RecordException {
   constructor(type: string, id: string, relationship: string) {
@@ -130,13 +160,11 @@ export class RelationshipNotFoundException extends RecordException {
 }
 
 /**
- Exception thrown when a record already exists.
-
- @class RecordAlreadyExistsException
- @namespace OC
- @param {String} type
- @param {Object} record
- @constructor
+ * The record already exists.
+ * 
+ * @export
+ * @class RecordAlreadyExistsException
+ * @extends {RecordException}
  */
 export class RecordAlreadyExistsException extends RecordException {
   constructor(type: string, id: string) {

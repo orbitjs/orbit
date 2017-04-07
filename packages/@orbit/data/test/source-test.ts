@@ -10,12 +10,14 @@ module('Source', function(hooks) {
   let source;
   let schema;
 
+  class MySource extends Source {}
+
   hooks.beforeEach(function() {
     schema = new Schema();
   });
 
   test('it can be instantiated', function(assert) {
-    source = new Source();
+    source = new MySource();
     assert.ok(source);
     assert.ok(source.transformLog, 'has a transform log');
   });
@@ -23,7 +25,7 @@ module('Source', function(hooks) {
   test('creates a `transformLog`, `requestQueue`, and `syncQueue`, and assigns each the same bucket as the Source', function(assert) {
     assert.expect(8);
     const bucket = new FakeBucket();
-    source = new Source({ name: 'src1', schema, bucket });
+    source = new MySource({ name: 'src1', schema, bucket });
     assert.equal(source.name, 'src1', 'source has been assigned name');
     assert.equal(source.transformLog.name, 'src1-log', 'transformLog has been assigned name');
     assert.equal(source.requestQueue.name, 'src1-requests', 'requestQueue has been assigned name');
@@ -37,9 +39,9 @@ module('Source', function(hooks) {
   test('#_transformed should trigger `transform` event BEFORE resolving', function(assert) {
     assert.expect(3);
 
-    source = new Source();
+    source = new MySource();
     let order = 0;
-    const appliedTransform = Transform.from({ op: 'addRecord', value: {} });
+    const appliedTransform = Transform.from({ op: 'addRecord' });
 
     source.on('transform', (transform) => {
       assert.equal(++order, 1, '`transform` event triggered after action performed successfully');
@@ -55,8 +57,8 @@ module('Source', function(hooks) {
   test('#transformLog contains transforms applied', function(assert) {
     assert.expect(2);
 
-    source = new Source();
-    const appliedTransform = Transform.from({ op: 'addRecord', value: {} });
+    source = new MySource();
+    const appliedTransform = Transform.from({ op: 'addRecord' });
 
     assert.ok(!source.transformLog.contains(appliedTransform.id));
 

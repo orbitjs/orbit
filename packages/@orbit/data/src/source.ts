@@ -18,6 +18,8 @@ export interface SourceSettings {
   bucket?: Bucket;
 }
 
+export type SourceClass = (new () => Source);
+
 /**
  Base class for sources.
 
@@ -39,9 +41,9 @@ export abstract class Source implements Evented, Performer {
   protected _syncQueue: TaskQueue;
 
   // Evented interface stubs
-  on: (event: string, callback: () => void, binding?: any) => void;
-  off: (event: string, callback: () => void, binding?: any) => void;
-  one: (event: string, callback: () => void, binding?: any) => void;
+  on: (event: string, callback: Function, binding?: object) => void;
+  off: (event: string, callback: Function, binding?: object) => void;
+  one: (event: string, callback: Function, binding?: object) => void;
   emit: (event: string, ...args) => void;
   listeners: (event: string) => any[];
 
