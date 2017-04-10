@@ -22,7 +22,7 @@ function getRecord(source, record) {
     });
 }
 
-export function verifyIndexedDBContainsRecord(assert, source, record, ignoreFields) {
+export function verifyIndexedDBContainsRecord(assert, source, record, ignoreFields?) {
   return getRecord(source, record)
     .then(actual => {
       if (ignoreFields) {

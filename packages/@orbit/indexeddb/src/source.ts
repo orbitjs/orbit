@@ -8,8 +8,8 @@ import Orbit, {
   Transform
 } from '@orbit/data';
 import { assert } from '@orbit/utils';
-import TransformOperators from './lib/transform-operators';
-import { QueryOperators } from './lib/queries';
+import transformOperators from './lib/transform-operators';
+import queryOperators from './lib/query-operators';
 import { supportsIndexedDB } from './lib/indexeddb';
 
 declare const self: any;
@@ -307,7 +307,7 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
 
   _pull(query: Query): Promise<Transform[]> {
     return this.openDB()
-      .then(() => QueryOperators[query.expression.op](this, query.expression));
+      .then(() => queryOperators[query.expression.op](this, query.expression));
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -320,7 +320,7 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
         let result = Orbit.Promise.resolve();
 
         transform.operations.forEach(operation => {
-          let processor = TransformOperators[operation.op];
+          let processor = transformOperators[operation.op];
           result = result.then(() => processor(this, operation));
         });
 
