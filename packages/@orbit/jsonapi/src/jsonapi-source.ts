@@ -8,7 +8,6 @@ import Orbit, {
   Pullable, pullable,
   Pushable, pushable,
   Transform,
-  TransformLog,
   TransformOrOperations,
   coalesceRecordOperations,
   QueryNotAllowed, TransformNotAllowed,
@@ -16,6 +15,7 @@ import Orbit, {
   ServerError,
   NetworkError
 } from '@orbit/data';
+import { Log } from '@orbit/core';
 import { assert } from '@orbit/utils';
 import JSONAPISerializer from './jsonapi-serializer';
 import { encodeQueryParams } from './lib/query-params';

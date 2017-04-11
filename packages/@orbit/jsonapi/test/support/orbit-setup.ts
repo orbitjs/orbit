@@ -1,6 +1,7 @@
 import Orbit from '@orbit/core';
 
 declare const RSVP: any;
+declare const self: any;
 
 Orbit.Promise = RSVP.Promise;
 

@@ -1,4 +1,4 @@
-import { toArray } from '@orbit/utils';
+import { toArray, deepSet } from '@orbit/utils';
 import {
   Query,
   QueryExpressionParseError,
@@ -68,16 +68,11 @@ export const QueryRequestProcessors = {
 
 function buildRequestSettings(request) {
   const settings = {};
-  const params = {};
 
   for (const param of ['filter', 'include', 'page', 'sort']) {
     if (request[param]) {
-      params[param] = request[param];
+      deepSet(settings, ['params', param], request[param]);
     }
-  }
-
-  if (Object.keys(params).length > 0) {
-    settings.params = params;
   }
 
   return settings;
