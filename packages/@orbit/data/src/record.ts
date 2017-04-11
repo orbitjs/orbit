@@ -15,15 +15,13 @@ export interface RecordHasManyRelationship {
 
 export type RecordRelationship = RecordHasOneRelationship | RecordHasManyRelationship;
 
-export interface Record {
-  type: string;
-  id?: string;
+export interface Record extends RecordIdentity {
   keys?: Dict<string>;
   attributes?: Dict<any>;
   relationships?: Dict<RecordRelationship>;
 }
 
-export function serializeRecordIdentity(identity: Record | RecordIdentity): string {
+export function serializeRecordIdentity(identity: RecordIdentity): string {
   if (isNone(identity)) {
     return null;
   }
@@ -40,12 +38,12 @@ export function deserializeRecordIdentity(identity: string): RecordIdentity {
   return { type, id };
 }
 
-export function cloneRecordIdentity(identity: Record | RecordIdentity): RecordIdentity {
+export function cloneRecordIdentity(identity: RecordIdentity): RecordIdentity {
   const { type, id } = identity;
   return { type, id };
 }
 
-export function equalRecordIdentities(record1: Record | RecordIdentity, record2: Record | RecordIdentity): boolean {
+export function equalRecordIdentities(record1: RecordIdentity, record2: RecordIdentity): boolean {
   return (isNone(record1) && isNone(record2)) ||
          (isObject(record1) && isObject(record2) &&
           record1.type === record2.type &&
