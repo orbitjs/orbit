@@ -2,11 +2,44 @@ import Orbit from './main';
 import evented, { Evented } from './evented';
 import { assert } from '@orbit/utils';
 
+/**
+ * Settings used to instantiate and/or upgrade a `Bucket`.
+ * 
+ * @export
+ * @interface BucketSettings
+ */
 export interface BucketSettings {
+  /**
+   * Name used for tracking and debugging a bucket instance.
+   * 
+   * @type {string}
+   * @memberOf BucketSettings
+   */
   name?: string;
+
+  /**
+   * The namespace used by the bucket when accessing any items.
+   * 
+   * This is used to distinguish one bucket's contents from another. 
+   * 
+   * @type {string}
+   * @memberOf BucketSettings
+   */
   namespace?: string;
+
+  /**
+   * The current version of the bucket.
+   * 
+   * Used to identify the version of the bucket's schema and thus migrate it 
+   * as needed.
+   * 
+   * @type {number}
+   * @memberOf BucketSettings
+   */
   version?: number;
 }
+
+export type BUCKET_EVENTS = 'upgrade';
 
 /**
  * Buckets can persist state. The base `Bucket` class is abstract and should be
@@ -33,14 +66,14 @@ export abstract class Bucket implements Evented {
   private _version: number;
 
   // Evented interface stubs
-  on: (event: string, callback: () => void, binding?: any) => void;
-  off: (event: string, callback: () => void, binding?: any) => void;
-  one: (event: string, callback: () => void, binding?: any) => void;
-  emit: (event: string, ...args) => void;
-  listeners: (event: string) => any[];
+  on: (event: BUCKET_EVENTS, callback: Function, binding?: object) => void;
+  off: (event: BUCKET_EVENTS, callback: Function, binding?: object) => void;
+  one: (event: BUCKET_EVENTS, callback: Function, binding?: object) => void;
+  emit: (event: BUCKET_EVENTS, ...args) => void;
+  listeners: (event: BUCKET_EVENTS) => any[];
 
   /**
-   * Creates an instance of Bucket.
+   * Creates an instance of `Bucket`.
    * 
    * @param {BucketSettings} [settings={}] 
    * 

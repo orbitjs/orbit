@@ -1,6 +1,9 @@
-import { Source } from '../src/source';
-import Coordinator from '../src/coordinator';
-import Transform from '../src/transform';
+import { 
+  Source, 
+  Coordinator, 
+  Transform, 
+  addRecord 
+} from '../src/index';
 import './test-helper';
 
 declare const RSVP: any;
@@ -8,16 +11,18 @@ const { all } = RSVP;
 const { module, test } = QUnit;
 
 module('Coordinator', function(hooks) {
-  const tA = new Transform([{ op: 'addRecord', value: {} }], null, 'a');
-  const tB = new Transform([{ op: 'addRecord', value: {} }], null, 'b');
-  const tC = new Transform([{ op: 'addRecord', value: {} }], null, 'c');
+  const tA = new Transform([addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })], null, 'a');
+  const tB = new Transform([addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })], null, 'b');
+  const tC = new Transform([addRecord({ type: 'planet', id: 'c', attributes: { name: 'c' } })], null, 'c');
 
   let coordinator, s1, s2, s3;
 
   hooks.beforeEach(function() {
-    s1 = new Source({ name: 's1' });
-    s2 = new Source({ name: 's2' });
-    s3 = new Source({ name: 's3' });
+    class MySource extends Source {}
+
+    s1 = new MySource({ name: 's1' });
+    s2 = new MySource({ name: 's2' });
+    s3 = new MySource({ name: 's3' });
   });
 
   test('can be instantiated', function(assert) {

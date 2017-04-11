@@ -1,6 +1,6 @@
 import Query from '../src/query';
 import { QueryTerm } from '../src/query-term';
-import { queryExpression as oqe } from '../src/query-expression';
+import { oqe } from '../src/query-expression';
 import './test-helper';
 
 const { module, test } = QUnit;
@@ -9,17 +9,17 @@ const { module, test } = QUnit;
 
 module('Query', function() {
   test('it exists', function(assert) {
-    let query = new Query();
+    let query = new Query(oqe('records'));
     assert.ok(query);
   });
 
   test('it is assigned an `id`', function(assert) {
-    let query = new Query();
+    let query = new Query(oqe('records'));
     assert.ok(query.id, 'query has an id');
   });
 
   test('can be created from with all attributes specified as options', function(assert) {
-    let expression = { op: 'foo' };
+    let expression = oqe('foo');
     let options = { sources: { jsonapi: { include: 'comments' } }}
     let query = new Query(expression, options, 'abc123');
 
@@ -29,12 +29,12 @@ module('Query', function() {
   });
 
   test('.from will return a query passed into it', function(assert) {
-    let query = new Query();
+    let query = new Query(oqe('records'));
     assert.strictEqual(Query.from(query), query);
   });
 
   test('.from will create a query from an expression passed into it', function(assert) {
-    const expression = { op: 'foo' };
+    const expression = oqe('records');
     const query = Query.from(expression);
     assert.ok(query instanceof Query);
     assert.deepEqual(query.expression, expression, 'expression was populated');

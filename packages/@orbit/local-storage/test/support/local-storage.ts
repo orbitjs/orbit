@@ -1,10 +1,12 @@
+declare const self: any;
+
 function getRecord(source, record) {
   let recordKey = [source.namespace, record.type, record.id].join(source.delimiter);
 
   return JSON.parse(self.localStorage.getItem(recordKey));
 }
 
-export function verifyLocalStorageContainsRecord(assert, source, record, ignoreFields) {
+export function verifyLocalStorageContainsRecord(assert, source, record, ignoreFields?) {
   let actual = getRecord(source, record);
 
   if (ignoreFields) {

@@ -1,5 +1,6 @@
 import Orbit from '../../src/main';
 import { Bucket } from '@orbit/core';
+import { Dict } from '@orbit/utils';
 
 /**
  * A simple implementation of a Bucket that saves values to an in-memory
@@ -7,6 +8,8 @@ import { Bucket } from '@orbit/core';
  * memory, but useful for testing.
  */
 export default class FakeBucket extends Bucket {
+  data: Dict<any>;
+
   constructor(settings = {}) {
     super(settings);
     this.data = {};

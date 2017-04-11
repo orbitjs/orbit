@@ -2,7 +2,8 @@ import {
   addRecord,
   cloneRecordIdentity as identity,
   KeyMap,
-  Schema
+  Schema,
+  SchemaSettings
 } from '@orbit/data';
 import Cache from '../../../src/cache';
 import SchemaConsistencyProcessor from '../../../src/cache/operation-processors/schema-consistency-processor';
@@ -13,7 +14,7 @@ const { module, test } = QUnit;
 module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
   let schema, cache, processor;
 
-  const schemaDefinition = {
+  const schemaDefinition: SchemaSettings = {
     models: {
       planet: {
         attributes: {
@@ -21,7 +22,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
           classification: { type: 'string' }
         },
         relationships: {
-          moons: { type: 'hasMany', model: 'moon', inverse: 'planet', actsAsSet: true },
+          moons: { type: 'hasMany', model: 'moon', inverse: 'planet' },
           inhabitants: { type: 'hasMany', model: 'inhabitant', inverse: 'planets' },
           next: { type: 'hasOne', model: 'planet', inverse: 'previous' },
           previous: { type: 'hasOne', model: 'planet', inverse: 'next' }
@@ -228,8 +229,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
                     relationships: { planet: { data: 'planet:saturn' } } };
 
     const jupiter = { type: 'planet', id: 'jupiter',
-                      attributes: { name: 'Jupiter' },
-                      relationships: { moons: {} } };
+                      attributes: { name: 'Jupiter' } };
 
     cache.patch([
       addRecord(saturn),
@@ -692,8 +692,6 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
           data: {
             'inhabitant:human': true
           }
-        },
-        moons: {
         },
         next: {
           data: 'planet:jupiter'

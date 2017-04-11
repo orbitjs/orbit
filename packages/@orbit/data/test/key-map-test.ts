@@ -1,29 +1,11 @@
-import Schema from '../src/schema';
 import KeyMap from '../src/key-map';
 import './test-helper';
 
 const { module, test } = QUnit;
 
 module('KeyMap', function(hooks) {
-  let schema;
-
-  hooks.beforeEach(function() {
-    schema = new Schema({
-      modelDefaults: {
-        keys: {
-          remoteId: {},
-          anotherKey: {}
-        }
-      },
-      models: {
-        planet: {},
-        moon: {}
-      }
-    });
-  });
-
   test('#pushRecord', function(assert) {
-    let keyMap = new KeyMap(schema);
+    let keyMap = new KeyMap();
 
     keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
     keyMap.pushRecord({ type: 'planet', id: '2', keys: { remoteId: 'b' } });
@@ -43,7 +25,7 @@ module('KeyMap', function(hooks) {
   });
 
   test('#idFromKeys', function(assert) {
-    let keyMap = new KeyMap(schema);
+    let keyMap = new KeyMap();
 
     keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
 

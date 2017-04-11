@@ -4,76 +4,87 @@ import { assert } from '@orbit/utils';
 
 declare const console: any;
 
-/**
- The `Evented` interface uses notifiers to add events to an object. Like
- notifiers, events will send along all of their arguments to subscribed
- listeners.
-
- The `Evented` interface can extend an object or prototype as follows:
-
- ```javascript
- import evented from 'orbit-core/evented';
-
- @evented
- class Source {}
- ```
-
- Listeners can then register themselves for particular events with `on`:
-
- ```javascript
- var listener1 = function(message) {
-       console.log('listener1 heard ' + message);
-     },
-     listener2 = function(message) {
-       console.log('listener2 heard ' + message);
-     };
-
- source.on('greeting', listener1);
- source.on('greeting', listener2);
-
- evented.emit('greeting', 'hello'); // logs "listener1 heard hello" and
-                                    //      "listener2 heard hello"
- ```
-
- Listeners can be unregistered from events at any time with `off`:
-
- ```javascript
- source.off('greeting', listener2);
- ```
-
- A listener can register itself for multiple events at once:
-
- ```javascript
- source.on('greeting salutation', listener2);
- ```
-
- And multiple events can be triggered sequentially at once,
- assuming that you want to pass them all the same arguments:
-
- ```javascript
- source.emit('greeting salutation', 'hello', 'bonjour', 'guten tag');
- ```
-
- @class Evented
- @extension
- @constructor
- */
-
 export const EVENTED = '__evented__';
 
-export function isEvented(obj: any) {
+/**
+ * Has a class been decorated as `@evented`?
+ * 
+ * @export
+ * @param {object} obj 
+ * @returns {boolean} 
+ */
+export function isEvented(obj: object): boolean {
   return !!obj[EVENTED];
 }
 
+/**
+ * A class decorated as `@evented` should also implement the `Evented` 
+ * interface.
+ * 
+ * ```ts
+ * import { evented, Evented } from '@orbit/core';
+ *
+ * @evented
+ * class Source implements Evented {
+ *   // ... Evented implementation
+ * }
+ * ```
+ * 
+ * @export
+ * @interface Evented
+ */
 export interface Evented {
-  on: (event: string, callback: () => void, binding?: any) => void;
-  off: (event: string, callback: () => void, binding?: any) => void;
-  one: (event: string, callback: () => void, binding?: any) => void;
+  on: (event: string, callback: Function, binding?: object) => void;
+  off: (event: string, callback: Function, binding?: object) => void;
+  one: (event: string, callback: Function, binding?: object) => void;
   emit: (event: string, ...args) => void;
   listeners: (event: string) => any[];
 }
 
-export default function evented(Klass: any) {
+/**
+ * Marks a class as evented.
+ * 
+ * An evented class should also implement the `Evented` interface.
+ *
+ * ```ts
+ * import { evented, Evented } from '@orbit/core';
+ *
+ * @evented
+ * class Source implements Evented {
+ *   ...
+ * }
+ * ```
+ * 
+ * Listeners can then register themselves for particular events with `on`:
+ *
+ * ```ts
+ * let source = new Source();
+ * 
+ * function listener1(message: string) {
+ *   console.log('listener1 heard ' + message);
+ * };
+ * function listener2(message: string) {
+ *   console.log('listener2 heard ' + message);
+ * };
+ *
+ * source.on('greeting', listener1);
+ * source.on('greeting', listener2);
+ *
+ * evented.emit('greeting', 'hello'); // logs "listener1 heard hello" and
+ *                                    //      "listener2 heard hello"
+ * ```
+ *
+ * Listeners can be unregistered from events at any time with `off`:
+ *
+ * ```ts
+ * source.off('greeting', listener2);
+ * ```
+ * 
+ * @decorator
+ * @export
+ * @param {*} Klass 
+ */
+export default function evented(Klass: any): void {
   let proto = Klass.prototype;
 
   if (isEvented(proto)) {
@@ -130,20 +141,40 @@ export default function evented(Klass: any) {
   };
 }
 
-export function settleInSeries(obj: Evented, eventName, ...args) {
+/**
+ * Settle any promises returned by event listeners in series.
+ * 
+ * If any errors are encountered during processing, they will be ignored.
+ * 
+ * @export
+ * @param {Evented} obj 
+ * @param {any} eventName 
+ * @param {any} args 
+ * @returns {Promise<void>}
+ */
+export function settleInSeries(obj: Evented, eventName, ...args): Promise<void> {
   const listeners = obj.listeners(eventName);
 
   return listeners.reduce((chain, [callback, binding]) => {
     return chain
       .then(() => callback.apply(binding, args))
-      .catch(e => {
-        console.error('Orbit ignored error in event listener', eventName);
-        console.error(e.stack || e);
-      });
+      .catch(e => {});
   }, Orbit.Promise.resolve());
 }
 
-export function fulfillInSeries(obj: Evented, eventName, ...args) {
+/**
+ * Fulfill any promises returned by event listeners in series.
+ * 
+ * Processing will stop if an error is encountered and the returned promise will
+ * be rejected.
+ * 
+ * @export
+ * @param {Evented} obj 
+ * @param {any} eventName 
+ * @param {any} args 
+ * @returns {Promise<void>}
+ */
+export function fulfillInSeries(obj: Evented, eventName, ...args): Promise<void> {
   const listeners = obj.listeners(eventName);
 
   return new Orbit.Promise((resolve, reject) => {

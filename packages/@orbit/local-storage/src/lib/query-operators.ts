@@ -3,7 +3,7 @@ import { isNone } from '@orbit/utils';
 
 declare const self: any;
 
-export const QueryOperators = {
+export default {
   records(source, expression) {
     const operations = [];
     let allowedTypes = expression.args;

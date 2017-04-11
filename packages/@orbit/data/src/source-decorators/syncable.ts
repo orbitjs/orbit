@@ -1,36 +1,58 @@
 import Orbit from '../main';
 import { assert, isArray } from '@orbit/utils';
-import { Source } from '../source';
+import { Source, SourceClass } from '../source';
 import Transform from '../transform';
 
 export const SYNCABLE = '__syncable__';
 
-export function isSyncable(obj: any) {
-  return !!obj[SYNCABLE];
+/**
+ * Has a source been decorated as `@syncable`?
+ * 
+ * @export
+ * @param {SourceClass} source 
+ * @returns 
+ */
+export function isSyncable(source: SourceClass) {
+  return !!source[SYNCABLE];
 }
 
+/**
+ * A source decorated as `@syncable` must also implement the `Syncable`
+ * interface.
+ *
+ * @export
+ * @interface Syncable
+ */
 export interface Syncable {
+  /**
+   * The `sync` method to a source. This method accepts a `Transform` or array
+   * of `Transform`s as an argument and applies it to the source.
+   *
+   * @param {(Transform | Transform[])} transformOrTransforms
+   * @returns {Promise<void>}
+   *
+   * @memberOf Syncable
+   */
   sync(transformOrTransforms: Transform | Transform[]): Promise<void>;
 }
 
 /**
-  Mixes the `Syncable` interface into a source.
-
-  The `Syncable` interface adds the `sync` method to a source. This method
-  accepts a `Transform` or array of `Transform`s as an argument and applies it
-  to the source.
-
-  This interface is part of the "sync flow" in Orbit. This flow is used to
-  synchronize the contents of sources.
-
-  Other sources can participate in the resolution of a `sync` by observing
-  the `transform` event, which is emitted whenever a new `Transform` is
-  applied to a source.
-
-  @function sync
-  @param {Object} source - Source to extend
-  */
-export default function syncable(Klass: any): void {
+ * Marks a source as "syncable" and adds an implementation of the `Syncable`
+ * interface.
+ *
+ * The `sync` method is part of the "sync flow" in Orbit. This flow is used to
+ * synchronize the contents of sources.
+ *
+ * Other sources can participate in the resolution of a `sync` by observing the
+ * `transform` event, which is emitted whenever a new `Transform` is applied to
+ * a source.
+ *
+ * @export
+ * @decorator
+ * @param {SourceClass} Klass 
+ * @returns {void} 
+ */
+export default function syncable(Klass: SourceClass): void {
   let proto = Klass.prototype;
 
   if (isSyncable(proto)) {

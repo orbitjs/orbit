@@ -7,12 +7,12 @@ const { module, test } = QUnit;
 
 module('Transform', function() {
   test('it exists', function(assert) {
-    let transform = new Transform();
+    let transform = new Transform([]);
     assert.ok(transform);
   });
 
   test('it is assigned an `id`', function(assert) {
-    let transform = new Transform();
+    let transform = new Transform([]);
     assert.ok(transform.id, 'transform has an id');
   });
 
@@ -29,7 +29,7 @@ module('Transform', function() {
   });
 
   test('.from will return a transform passed into it', function(assert) {
-    let transform = new Transform();
+    let transform = new Transform([]);
     assert.strictEqual(Transform.from(transform), transform);
   });
 

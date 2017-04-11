@@ -52,9 +52,9 @@ export default class Cache implements Evented {
   private _records: Dict<ImmutableMap>;
 
   // Evented interface stubs
-  on: (event: string, callback: () => void, binding?: any) => void;
-  off: (event: string, callback: () => void, binding?: any) => void;
-  one: (event: string, callback: () => void, binding?: any) => void;
+  on: (event: string, callback: Function, binding?: object) => void;
+  off: (event: string, callback: Function, binding?: object) => void;
+  one: (event: string, callback: Function, binding?: object) => void;
   emit: (event: string, ...args) => void;
   listeners: (event: string) => any[];
 
@@ -123,7 +123,7 @@ export default class Cache implements Evented {
    @method reset
    @param {Object} data
   */
-  reset(base: Cache) {
+  reset(base?: Cache) {
     this._records = {};
 
     Object.keys(this._schema.models).forEach(type => {

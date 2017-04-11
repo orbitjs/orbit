@@ -1,5 +1,5 @@
-import { queryExpression as oqe } from '../src/query-expression';
-import qb from '../src/query-builder';
+import { oqe } from '../src/query-expression';
+import { oqb } from '../src/query-builder';
 import './test-helper';
 
 const { module, test } = QUnit;
@@ -7,7 +7,7 @@ const { module, test } = QUnit;
 module('QueryBuilder', function() {
   test('record', function(assert) {
     assert.deepEqual(
-      qb.record({ type: 'planet', id: '123' }).toQueryExpression(),
+      oqb.record({ type: 'planet', id: '123' }).toQueryExpression(),
 
       oqe('record', { type: 'planet', id: '123' })
     );
@@ -15,7 +15,7 @@ module('QueryBuilder', function() {
 
   test('record', function(assert) {
     assert.deepEqual(
-      qb.record({ type: 'planet', id: '123' }).toQueryExpression(),
+      oqb.record({ type: 'planet', id: '123' }).toQueryExpression(),
 
       oqe('record', { type: 'planet', id: '123' })
     );
@@ -23,7 +23,7 @@ module('QueryBuilder', function() {
 
   test('records', function(assert) {
     assert.deepEqual(
-      qb.records('planet').toQueryExpression(),
+      oqb.records('planet').toQueryExpression(),
 
       oqe('records', 'planet')
     );
@@ -31,7 +31,8 @@ module('QueryBuilder', function() {
 
   test('records/filter/equal/get', function(assert) {
     assert.deepEqual(
-      qb.records('planet')
+      oqb
+        .records('planet')
         .filter(record => record.attribute('name').equal('Pluto'))
         .toQueryExpression(),
 
@@ -43,9 +44,10 @@ module('QueryBuilder', function() {
 
   test('records/filter/equal/get/or', function(assert) {
     assert.deepEqual(
-      qb.records('planet')
+      oqb
+        .records('planet')
         .filter(record =>
-          qb.or(
+          oqb.or(
             record.attribute('name').equal('Jupiter'),
             record.attribute('name').equal('Pluto')
           )
@@ -62,9 +64,10 @@ module('QueryBuilder', function() {
 
   test('records/filter/equal/get/and', function(assert) {
     assert.deepEqual(
-      qb.records('planet')
+      oqb
+        .records('planet')
         .filter(record =>
-          qb.and(
+          oqb.and(
             record.attribute('name').equal('Jupiter'),
             record.attribute('name').equal('Pluto')
           )
@@ -81,9 +84,10 @@ module('QueryBuilder', function() {
 
   test('records/filter/equal/attribute/and', function(assert) {
     assert.deepEqual(
-      qb.records('planet')
+      oqb
+        .records('planet')
         .filter(record =>
-          qb.and(
+          oqb.and(
             record.attribute('name').equal('Jupiter'),
             record.attribute('name').equal('Pluto')
           )
@@ -100,7 +104,8 @@ module('QueryBuilder', function() {
 
   test('records/filterAttributes', function(assert) {
     assert.deepEqual(
-      qb.records('planet')
+      oqb
+        .records('planet')
         .filterAttributes({ 'name': 'Jupiter', 'age': '23000000' })
         .toQueryExpression(),
 
@@ -114,7 +119,8 @@ module('QueryBuilder', function() {
 
   test('records/sort (one field, compact)', function(assert) {
     assert.deepEqual(
-      qb.records('planet')
+      oqb
+        .records('planet')
         .sort('name')
         .toQueryExpression(),
 
@@ -126,7 +132,8 @@ module('QueryBuilder', function() {
 
   test('records/sort (one field descending, compact)', function(assert) {
     assert.deepEqual(
-      qb.records('planet')
+      oqb
+        .records('planet')
         .sort('-name')
         .toQueryExpression(),
 
@@ -138,7 +145,8 @@ module('QueryBuilder', function() {
 
   test('records/sort (multiple fields, compact)', function(assert) {
     assert.deepEqual(
-      qb.records('planet')
+      oqb
+        .records('planet')
         .sort('name', 'age')
         .toQueryExpression(),
 
@@ -153,7 +161,8 @@ module('QueryBuilder', function() {
 
   test('records/sort (one field, default order)', function(assert) {
     assert.deepEqual(
-      qb.records('planet')
+      oqb
+        .records('planet')
         .sort({ attribute: 'name' })
         .toQueryExpression(),
 
@@ -165,7 +174,8 @@ module('QueryBuilder', function() {
 
   test('records/sort (one field, ascending order)', function(assert) {
     assert.deepEqual(
-      qb.records('planet')
+      oqb
+        .records('planet')
         .sort({ attribute: 'name', order: 'ascending' })
         .toQueryExpression(),
 
@@ -177,7 +187,8 @@ module('QueryBuilder', function() {
 
   test('records/sort (one field, descending order)', function(assert) {
     assert.deepEqual(
-      qb.records('planet')
+      oqb
+        .records('planet')
         .sort({ attribute: 'name', order: 'descending' })
         .toQueryExpression(),
 
@@ -189,7 +200,8 @@ module('QueryBuilder', function() {
 
   test('records/sort (multiple fields)', function(assert) {
     assert.deepEqual(
-      qb.records('planet')
+      oqb
+        .records('planet')
         .sort(
           { attribute: 'name', order: 'ascending' },
           { attribute: 'age', order: 'ascending' }
@@ -208,7 +220,8 @@ module('QueryBuilder', function() {
   test('records/sort (unsupported sort field type)', function(assert) {
     assert.throws(
       () => {
-        qb.records('planet')
+        oqb
+          .records('planet')
           .sort({});
       },
       new Error('Unsupported sort field type.')
@@ -218,7 +231,8 @@ module('QueryBuilder', function() {
   test('records/sort (invalid sort order)', function(assert) {
     assert.throws(
       () => {
-        qb.records('planet')
+        oqb
+          .records('planet')
           .sort({ attribute: 'name', order: 'invalid' });
       },
       new Error('Invalid sort order.')
@@ -228,7 +242,8 @@ module('QueryBuilder', function() {
   test('records/sort (invalid sort expression)', function(assert) {
     assert.throws(
       () => {
-        qb.records('planet')
+        oqb
+          .records('planet')
           .sort(null);
       },
       new Error('Sort expression must be either an object or a string.')
@@ -237,7 +252,8 @@ module('QueryBuilder', function() {
 
   test('records/page', function(assert) {
     assert.deepEqual(
-      qb.records('planet')
+      oqb
+        .records('planet')
         .page({ offset: 1, limit: 10})
         .toQueryExpression(),
 
@@ -249,7 +265,8 @@ module('QueryBuilder', function() {
 
   test('records/filterAttributes/sort/page', function(assert) {
     assert.deepEqual(
-      qb.records('planet')
+      oqb
+        .records('planet')
         .filterAttributes({ 'name': 'Jupiter', 'age': '23000000' })
         .sort({ attribute: 'name', order: 'descending' })
         .page({ offset: 1, limit: 10})

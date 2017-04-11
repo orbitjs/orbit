@@ -1,37 +1,92 @@
 import { Record, RecordIdentity, cloneRecordIdentity, equalRecordIdentities, serializeRecordIdentity } from './record';
 import { eq } from '@orbit/utils';
 
+/**
+ * Base Operation interface, which requires just an `op` string.
+ * 
+ * @export
+ * @interface Operation
+ */
 export interface Operation {
   op: string;
 }
 
+/**
+ * Add record operation.
+ * 
+ * @export
+ * @interface AddRecordOperation
+ * @extends {Operation}
+ */
 export interface AddRecordOperation extends Operation {
   op: 'addRecord';
   record: Record;
 }
 
+/**
+ * Instantiate a new `addRecord` operation.
+ * 
+ * @export
+ * @param {Record} record 
+ * @returns {AddRecordOperation} 
+ */
 export function addRecord(record: Record): AddRecordOperation {
   return { op: 'addRecord', record};
 }
 
+/**
+ * Replace record operation.
+ * 
+ * @export
+ * @interface ReplaceRecordOperation
+ * @extends {Operation}
+ */
 export interface ReplaceRecordOperation extends Operation {
   op: 'replaceRecord';
   record: Record;
 }
 
+/**
+ * Instantiate a new `replaceRecord` operation.
+ * 
+ * @export
+ * @param {Record} record 
+ * @returns {ReplaceRecordOperation} 
+ */
 export function replaceRecord(record: Record): ReplaceRecordOperation {
   return { op: 'replaceRecord', record};
 }
 
+/**
+ * Remove record operation.
+ * 
+ * @export
+ * @interface RemoveRecordOperation
+ * @extends {Operation}
+ */
 export interface RemoveRecordOperation extends Operation {
   op: 'removeRecord';
   record: RecordIdentity;
 }
 
+/**
+ * Instantiate a new `removeRecord` operation.
+ * 
+ * @export
+ * @param {RecordIdentity} record 
+ * @returns {RemoveRecordOperation} 
+ */
 export function removeRecord(record: RecordIdentity): RemoveRecordOperation {
   return { op: 'removeRecord', record};
 }
 
+/**
+ * Replace key operation.
+ * 
+ * @export
+ * @interface ReplaceKeyOperation
+ * @extends {Operation}
+ */
 export interface ReplaceKeyOperation extends Operation {
   op: 'replaceKey';
   record: RecordIdentity;
@@ -39,10 +94,26 @@ export interface ReplaceKeyOperation extends Operation {
   value: string;
 }
 
+/**
+ * Instantiate a new `replaceKey` operation.
+ * 
+ * @export
+ * @param {RecordIdentity} record 
+ * @param {string} key 
+ * @param {string} value 
+ * @returns {ReplaceKeyOperation} 
+ */
 export function replaceKey(record: RecordIdentity, key: string, value: string): ReplaceKeyOperation {
   return { op: 'replaceKey', record, key, value };
 }
 
+/**
+ * Replace attribute operation.
+ * 
+ * @export
+ * @interface ReplaceAttributeOperation
+ * @extends {Operation}
+ */
 export interface ReplaceAttributeOperation extends Operation {
   op: 'replaceAttribute';
   record: RecordIdentity;
@@ -50,10 +121,26 @@ export interface ReplaceAttributeOperation extends Operation {
   value: any;
 }
 
+/**
+ * Instantiate a new `replaceAttribute` operation.
+ * 
+ * @export
+ * @param {RecordIdentity} record 
+ * @param {string} attribute 
+ * @param {*} value 
+ * @returns {ReplaceAttributeOperation} 
+ */
 export function replaceAttribute(record: RecordIdentity, attribute: string, value: any): ReplaceAttributeOperation {
   return { op: 'replaceAttribute', record, attribute, value };
 }
 
+/**
+ * Add to has-many relationship operation.
+ * 
+ * @export
+ * @interface AddToHasManyOperation
+ * @extends {Operation}
+ */
 export interface AddToHasManyOperation extends Operation {
   op: 'addToHasMany';
   record: RecordIdentity;
@@ -61,10 +148,26 @@ export interface AddToHasManyOperation extends Operation {
   relatedRecord: RecordIdentity;
 }
 
+/**
+ * Instantiate a new `addToHasMany` operation.
+ * 
+ * @export
+ * @param {RecordIdentity} record 
+ * @param {string} relationship 
+ * @param {RecordIdentity} relatedRecord 
+ * @returns {AddToHasManyOperation} 
+ */
 export function addToHasMany(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): AddToHasManyOperation {
   return { op: 'addToHasMany', record, relationship, relatedRecord };
 }
 
+/**
+ * Remove from has-many relationship operation.
+ * 
+ * @export
+ * @interface RemoveFromHasManyOperation
+ * @extends {Operation}
+ */
 export interface RemoveFromHasManyOperation extends Operation {
   op: 'removeFromHasMany';
   record: RecordIdentity;
@@ -72,10 +175,26 @@ export interface RemoveFromHasManyOperation extends Operation {
   relatedRecord: RecordIdentity;
 }
 
+/**
+ * Instantiate a new `removeFromHasMany` operation.
+ * 
+ * @export
+ * @param {RecordIdentity} record 
+ * @param {string} relationship 
+ * @param {RecordIdentity} relatedRecord 
+ * @returns {RemoveFromHasManyOperation} 
+ */
 export function removeFromHasMany(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): RemoveFromHasManyOperation {
   return { op: 'removeFromHasMany', record, relationship, relatedRecord };
 }
 
+/**
+ * Replace has-many relationship operation.
+ * 
+ * @export
+ * @interface ReplaceHasManyOperation
+ * @extends {Operation}
+ */
 export interface ReplaceHasManyOperation extends Operation {
   op: 'replaceHasMany';
   record: RecordIdentity;
@@ -83,10 +202,26 @@ export interface ReplaceHasManyOperation extends Operation {
   relatedRecords: RecordIdentity[];
 }
 
+/**
+ * Instantiate a new `replaceHasMany` operation.
+ * 
+ * @export
+ * @param {RecordIdentity} record 
+ * @param {string} relationship 
+ * @param {RecordIdentity[]} relatedRecords 
+ * @returns {ReplaceHasManyOperation} 
+ */
 export function replaceHasMany(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]): ReplaceHasManyOperation {
   return { op: 'replaceHasMany', record, relationship, relatedRecords };
 }
 
+/**
+ * Replace has-one relationship operation.
+ * 
+ * @export
+ * @interface ReplaceHasOneOperation
+ * @extends {Operation}
+ */
 export interface ReplaceHasOneOperation extends Operation {
   op: 'replaceHasOne';
   record: RecordIdentity;
@@ -94,10 +229,24 @@ export interface ReplaceHasOneOperation extends Operation {
   relatedRecord: RecordIdentity;
 }
 
+/**
+ * Instantiate a new `replaceHasOne` operation.
+ * 
+ * @export
+ * @param {RecordIdentity} record 
+ * @param {string} relationship 
+ * @param {RecordIdentity} relatedRecord 
+ * @returns {ReplaceHasOneOperation} 
+ */
 export function replaceHasOne(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): ReplaceHasOneOperation {
   return { op: 'replaceHasOne', record, relationship, relatedRecord };
 }
 
+/**
+ * Union of all record-related operations.
+ * 
+ * @export
+ */
 export type RecordOperation = AddRecordOperation |
   ReplaceRecordOperation |
   RemoveRecordOperation |
@@ -118,7 +267,7 @@ function isOperationMarkedToDelete(operation: Operation): boolean {
   return o._deleted === true;
 }
 
-function mergeOps(superceded: RecordOperation, superceding: RecordOperation, consecutiveOps: boolean): void {
+function mergeOperations(superceded: RecordOperation, superceding: RecordOperation, consecutiveOps: boolean): void {
   if (equalRecordIdentities(superceded.record, superceding.record)) {
     if (superceding.op === 'removeRecord') {
       markOperationToDelete(superceded);
@@ -240,15 +389,14 @@ function updateRecordAddToHasMany(record: Record, relationship: string, relatedR
 }
 
 /**
- Coalesces operations into a minimal set of equivalent operations.
-
- This method respects the order of the operations array and does not allow
- reordering of operations that affect relationships.
-
- @method coalesceOperations
- @for Orbit
- @param {Array} operations
- @returns {Array}
+ * Coalesces operations into a minimal set of equivalent operations.
+ *
+ * This method respects the order of the operations array and does not allow
+ * reordering of operations that affect relationships.
+ *
+ * @export
+ * @param {RecordOperation[]} operations
+ * @returns {RecordOperation[]}
  */
 export function coalesceRecordOperations(operations: RecordOperation[]): RecordOperation[] {
   for (let i = 0, l = operations.length; i < l; i++) {
@@ -258,7 +406,7 @@ export function coalesceRecordOperations(operations: RecordOperation[]): RecordO
     for (let j = i + 1; j < l; j++) {
       let nextOp = operations[j];
 
-      mergeOps(currentOp, nextOp, consecutiveOps);
+      mergeOperations(currentOp, nextOp, consecutiveOps);
 
       if (isOperationMarkedToDelete(currentOp)) {
         break;
@@ -271,6 +419,15 @@ export function coalesceRecordOperations(operations: RecordOperation[]): RecordO
   return operations.filter(o => !isOperationMarkedToDelete(o));
 }
 
+/**
+ * Determine the differences between a record and its updated version in terms
+ * of a set of operations.
+ * 
+ * @export
+ * @param {Record} record 
+ * @param {Record} updatedRecord 
+ * @returns {RecordOperation[]} 
+ */
 export function recordDiffs(record: Record, updatedRecord: Record): RecordOperation[] {
   const diffs: RecordOperation[] = [];
 

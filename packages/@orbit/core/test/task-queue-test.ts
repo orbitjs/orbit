@@ -150,9 +150,9 @@ module('TaskQueue', function() {
     @evented
     class Trigger implements Evented {
       // Evented interface stubs
-      on: (event: string, callback: any, binding?: any) => void;
-      off: (event: string, callback: any, binding?: any) => void;
-      one: (event: string, callback: any, binding?: any) => void;
+      on: (event: string, callback: Function, binding?: object) => void;
+      off: (event: string, callback: Function, binding?: object) => void;
+      one: (event: string, callback: Function, binding?: object) => void;
       emit: (event: string, ...args) => void;
       listeners: (event: string) => any[];
     }
@@ -212,7 +212,7 @@ module('TaskQueue', function() {
 
     queue.process()
       .then(function() {
-        assert.equal(queue.complete, true, 'queue processing complete');
+        assert.equal(queue.empty, true, 'queue processing complete');
         assert.equal(++order, 8, 'queue resolves last');
         done();
       });
@@ -273,7 +273,7 @@ module('TaskQueue', function() {
 
     return queue.process()
       .catch((e) => {
-        assert.equal(queue.complete, false, 'queue processing encountered a problem');
+        assert.equal(queue.empty, false, 'queue processing encountered a problem');
         assert.equal(queue.error.message, ':(', 'process error matches expectation');
         assert.strictEqual(queue.error, e, 'process error matches expectation');
       });
@@ -342,7 +342,7 @@ module('TaskQueue', function() {
 
     return queue.process()
       .catch((e) => {
-        assert.equal(queue.complete, false, 'queue processing encountered a problem');
+        assert.equal(queue.empty, false, 'queue processing encountered a problem');
         assert.equal(queue.error.message, ':(', 'process error matches expectation');
         assert.strictEqual(queue.error, e, 'process error matches expectation');
         assert.strictEqual(queue.current.data, op2, 'op2 is current failed task');
@@ -411,7 +411,7 @@ module('TaskQueue', function() {
 
     return queue.process()
       .catch((e) => {
-        assert.equal(queue.complete, false, 'queue processing encountered a problem');
+        assert.equal(queue.empty, false, 'queue processing encountered a problem');
         assert.equal(queue.error.message, ':(', 'process error matches expectation');
         assert.strictEqual(queue.error, e, 'process error matches expectation');
 
@@ -479,7 +479,7 @@ module('TaskQueue', function() {
 
     return queue.process()
       .catch((e) => {
-        assert.equal(queue.complete, false, 'queue processing encountered a problem');
+        assert.equal(queue.empty, false, 'queue processing encountered a problem');
         assert.equal(queue.error.message, ':(', 'process error matches expectation');
         assert.strictEqual(queue.error, e, 'process error matches expectation');
 

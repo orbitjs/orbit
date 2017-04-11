@@ -10,7 +10,7 @@ export interface RecordHasOneRelationship {
 }
 
 export interface RecordHasManyRelationship {
-  data: Dict<string>;
+  data: Dict<boolean>;
 }
 
 export type RecordRelationship = RecordHasOneRelationship | RecordHasManyRelationship;

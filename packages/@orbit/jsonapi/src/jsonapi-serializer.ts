@@ -137,7 +137,7 @@ export default class JSONAPISerializer {
     return resource;
   }
 
-  serializeId(resource: Resource, record: Record): void {
+  serializeId(resource: Resource, record: RecordIdentity): void {
     let value = this.resourceId(record.type, record.id);
     if (value !== undefined) {
       resource.id = value;

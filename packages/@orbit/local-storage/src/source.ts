@@ -8,8 +8,8 @@ import Orbit, {
   Transform
 } from '@orbit/data';
 import { assert } from '@orbit/utils';
-import TransformOperators from './lib/transform-operators';
-import { QueryOperators } from './lib/queries';
+import transformOperators from './lib/transform-operators';
+import queryOperators from './lib/query-operators';
 import { supportsLocalStorage } from './lib/local-storage';
 
 declare const self: any;
@@ -70,7 +70,7 @@ export default class LocalStorageSource extends Source implements Pullable, Push
     return this._delimiter;
   }
 
-  getKeyForRecord(record: RecordIdentity): string {
+  getKeyForRecord(record: RecordIdentity | Record): string {
     return [this.namespace, record.type, record.id].join(this.delimiter);
   }
 
@@ -127,8 +127,7 @@ export default class LocalStorageSource extends Source implements Pullable, Push
   /////////////////////////////////////////////////////////////////////////////
 
   _pull(query: Query): Promise<Transform[]> {
-    const transforms = QueryOperators[query.expression.op](this, query.expression);
-
+    const transforms = queryOperators[query.expression.op](this, query.expression);
     return Orbit.Promise.resolve(transforms);
   }
 
@@ -138,7 +137,7 @@ export default class LocalStorageSource extends Source implements Pullable, Push
 
   protected _applyTransform(transform: Transform): void {
     transform.operations.forEach(operation => {
-      TransformOperators[operation.op](this, operation);
+      transformOperators[operation.op](this, operation);
     });
   }
 }

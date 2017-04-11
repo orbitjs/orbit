@@ -9,7 +9,7 @@ import {
   // replaceHasMany,
   replaceHasOne,
   KeyMap,
-  queryExpression as oqe,
+  oqe,
   RecordNotFoundException,
   Schema
 } from '@orbit/data';
@@ -180,12 +180,10 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema, keyMap });
 
-    const operation = {
-      op: 'replaceHasOne',
-      record: { type: 'moon', id: 'moon1' },
-      relationship: 'planet',
-      relatedRecord: { type: 'planet', id: 'p1' }
-    };
+    const operation = replaceHasOne(
+      { type: 'moon', id: 'moon1' },
+      'planet',
+      { type: 'planet', id: 'p1' });
 
     cache.on('patch', (op) => {
       assert.deepEqual(op, operation, 'applied operation');
@@ -199,12 +197,10 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema, keyMap });
 
-    const operation = {
-      op: 'replaceHasOne',
-      record: { type: 'moon', id: 'moon1' },
-      relationship: 'planet',
-      relatedRecord: null
-    };
+    const operation = replaceHasOne(
+      { type: 'moon', id: 'moon1' },
+      'planet',
+      null);
 
     cache.on('patch', (op) => {
       assert.deepEqual(op, operation, 'applied operation');
@@ -236,7 +232,7 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema, keyMap });
 
-    const jupiter = { id: 'p1', type: 'planet', attributes: { name: 'Jupiter' }, relationships: { moons: {} } };
+    const jupiter = { id: 'p1', type: 'planet', attributes: { name: 'Jupiter' } };
 
     cache.patch(addRecord(jupiter));
 
@@ -354,7 +350,7 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema: dependentSchema, keyMap });
 
-    const jupiter = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: {} } };
+    const jupiter = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' } };
     const io = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: 'planet:p1' } } };
     const europa = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: 'planet:p1' } } };
 
@@ -392,7 +388,7 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema: dependentSchema, keyMap });
 
-    const jupiter = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: {} } };
+    const jupiter = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' } };
     const io = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: 'planet:p1' } } };
     const europa = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: 'planet:p1' } } };
 

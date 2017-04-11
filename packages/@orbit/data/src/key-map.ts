@@ -1,6 +1,12 @@
 import { assert, deepGet, deepSet, firstResult, Dict } from '@orbit/utils';
 import { Record } from './record';
 
+/**
+ * Maintains a map between records' ids and keys.
+ * 
+ * @export
+ * @class KeyMap
+ */
 export default class KeyMap {
   private _data: Dict<any>;
 
@@ -9,37 +15,40 @@ export default class KeyMap {
   }
 
   /**
-   Return a key value given a type of model, key name and id.
-
-   @param {String} type - type of model
-   @param {String} keyName - the name of the key
-   @param {String} idValue - the model id
-   @returns {string} the model's key value
+   * Return a key value given a model type, key name, and id.
+   * 
+   * @param {string} type 
+   * @param {string} keyName 
+   * @param {string} idValue 
+   * @returns {string} 
+   * 
+   * @memberOf KeyMap
    */
   idToKey(type: string, keyName: string, idValue: string): string {
     return deepGet(this._data, [type, keyName, 'idToKeyMap', idValue]);
   }
 
   /**
-   Return an id value given a type of model, key name and key value.
-
-   @param {String} type - type of model
-   @param {String} keyName - the name of the key
-   @param {String} keyValue - the value of the key to look up
-   @returns {string} the model's id value
+   * Return an id value given a model type, key name, and key value.
+   * 
+   * @param {string} type 
+   * @param {string} keyName 
+   * @param {string} keyValue 
+   * @returns {string} 
+   * 
+   * @memberOf KeyMap
    */
   keyToId(type: string, keyName: string, keyValue: string): string {
     return deepGet(this._data, [type, keyName, 'keyToIdMap', keyValue]);
   }
 
   /**
-   Integrate the id and key values of a record into this keyMap.
-
-   @param {Object} record - a data structure that represents a record
-   @param {String} record.type - the type of model
-   @param {String} record.id - the model's ID
-   @param {Object} record.keys - a map of keys and their values
-   @returns {undefined}
+   * Store the id and key values of a record in this key map.
+   * 
+   * @param {Record} record 
+   * @returns {void} 
+   * 
+   * @memberOf KeyMap
    */
   pushRecord(record: Record): void {
     const { type, id, keys } = record;
@@ -56,7 +65,13 @@ export default class KeyMap {
   }
 
   /**
-   Given a record, find the cached ID if it exists.
+   * Given a record, find the cached id if it exists.
+   * 
+   * @param {string} type 
+   * @param {Dict<string>} keys 
+   * @returns {string} 
+   * 
+   * @memberOf KeyMap
    */
   idFromKeys(type: string, keys: Dict<string>): string {
     let keyNames = Object.keys(keys);

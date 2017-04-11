@@ -14,7 +14,7 @@ module('Record', function() {
   });
 
   test('`cloneRecordIdentity` returns a simple { type, id } identity object from any object with a `type` and `id`', function(assert) {
-    assert.deepEqual(cloneRecordIdentity({ type: 'planet', id: '1', attributes: { }, relationships: { } }), { type: 'planet', id: '1' });
+    assert.deepEqual(cloneRecordIdentity({ type: 'planet', id: '1' }), { type: 'planet', id: '1' });
   });
 
   test('`equalRecordIdentities` compares the type/id identity of two objects', function(assert) {

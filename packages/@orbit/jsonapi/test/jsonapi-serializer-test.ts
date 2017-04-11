@@ -13,6 +13,9 @@ const { module, test } = QUnit;
 module('JSONAPISerializer', function(hooks) {
   const modelDefinitions: Dict<ModelDefinition> = {
     planet: {
+      keys: {
+        remoteId: {}
+      },
       attributes: {
         name: { type: 'string' },
         classification: { type: 'string' }
@@ -23,6 +26,9 @@ module('JSONAPISerializer', function(hooks) {
       }
     },
     moon: {
+      keys: {
+        remoteId: {}
+      },
       attributes: {
         name: { type: 'string' }
       },
@@ -31,6 +37,9 @@ module('JSONAPISerializer', function(hooks) {
       }
     },
     solarSystem: {
+      keys: {
+        remoteId: {}
+      },
       attributes: {
         name: { type: 'string' }
       },
@@ -44,16 +53,10 @@ module('JSONAPISerializer', function(hooks) {
     let serializer;
     let keyMap: KeyMap;
 
-    const modelDefaults: ModelDefinition = {
-      keys: {
-        remoteId: {}
-      }
-    };
-
     hooks.beforeEach(function() {
       keyMap = new KeyMap();
 
-      let schema: Schema = new Schema({ models: modelDefinitions, modelDefaults });
+      let schema: Schema = new Schema({ models: modelDefinitions });
       serializer = new JSONAPISerializer({ schema, keyMap });
       serializer.resourceKey = function() { return 'remoteId'; };
     })

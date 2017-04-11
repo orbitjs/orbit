@@ -2,7 +2,7 @@ import Orbit from '@orbit/core';
 
 declare const self: any;
 
-export function jsonapiResponse(_options, body) {
+export function jsonapiResponse(_options, body?) {
   let options;
   let response;
 

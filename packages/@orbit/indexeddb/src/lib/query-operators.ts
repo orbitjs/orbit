@@ -1,7 +1,7 @@
 import Orbit, { Transform } from '@orbit/data';
 import { isNone } from '@orbit/utils';
 
-export const QueryOperators = {
+export default {
   records(source, expression) {
     const operations = [];
 

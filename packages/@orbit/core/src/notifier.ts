@@ -1,26 +1,25 @@
-/* eslint-disable valid-jsdoc */
-
 /**
- The `Notifier` class can emit messages to an array of subscribed listeners.
- Here's a simple example:
-
- ```javascript
- var notifier = new Orbit.Notifier();
- notifier.addListener(function(message) {
-   console.log("I heard " + message);
- });
- notifier.addListener(function(message) {
-   console.log("I also heard " + message);
- });
-
- notifier.emit('hello'); // logs "I heard hello" and "I also heard hello"
- ```
-
- Calls to `emit` will send along all of their arguments.
-
- @class Notifier
- @namespace Orbit
- @constructor
+ *  The `Notifier` class can emit messages to an array of subscribed listeners.
+ * Here's a simple example:
+ *
+ * ```ts
+ * import { Notifier } from '@orbit/core';
+ * 
+ * let notifier = new Notifier();
+ * notifier.addListener((message: string) => {
+ *   console.log("I heard " + message);
+ * });
+ * notifier.addListener((message: string) => {
+ *   console.log("I also heard " + message);
+ * });
+ *
+ * notifier.emit('hello'); // logs "I heard hello" and "I also heard hello"
+ * ```
+ *
+ * Calls to `emit` will send along all of their arguments.
+ *
+ * @export
+ * @class Notifier
  */
 export default class Notifier {
   public listeners: any[]; // TODO - define Listener interface
@@ -30,26 +29,29 @@ export default class Notifier {
   }
 
   /**
-   Add a callback as a listener, which will be triggered when sending
-   notifications.
-
-   @method addListener
-   @param {Function} callback Function to call as a notification
-   @param {Object} binding Context in which to call `callback`
+   * Add a callback as a listener, which will be triggered when sending
+   * notifications.
+   * 
+   * @param {Function} callback Function to call as a notification
+   * @param {object} binding Context in which to call `callback`
+   * 
+   * @memberOf Notifier
    */
-  addListener(callback, binding) {
+  addListener(callback: Function, binding: object) {
     binding = binding || this;
     this.listeners.push([callback, binding]);
   }
 
   /**
-   Remove a listener so that it will no longer receive notifications.
-
-   @method removeListener
-   @param {Function} callback Function registered as a callback
-   @param {Object} binding Context in which `callback` was registered
+   * Remove a listener so that it will no longer receive notifications.
+   * 
+   * @param {Function} callback Function registered as a callback
+   * @param {object} binding Context in which `callback` was registered 
+   * @returns 
+   * 
+   * @memberOf Notifier
    */
-  removeListener(callback, binding) {
+  removeListener(callback: Function, binding: object) {
     let listeners = this.listeners;
     let listener;
 
@@ -64,12 +66,11 @@ export default class Notifier {
   }
 
   /**
-   Notify registered listeners.
-
-   Any responses from listeners will be ignored.
-
-   @method emit
-   @param {*} Any number of parameters to be sent to listeners
+   * Notify registered listeners.
+   * 
+   * @param {any} args Params to be sent to listeners
+   * 
+   * @memberOf Notifier
    */
   emit(...args) {
     this.listeners.slice(0).forEach((listener) => {
