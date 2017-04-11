@@ -8,10 +8,10 @@ import Orbit, {
   Queryable, queryable,
   Updatable, updatable,
   Transform,
-  TransformLog,
   TransformOrOperations,
   coalesceRecordOperations
 } from '@orbit/data';
+import { Log } from '@orbit/core';
 import { assert, Dict } from '@orbit/utils';
 import Cache, { CacheSettings } from './cache';
 

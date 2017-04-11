@@ -2,8 +2,9 @@ import {
   addRecord,
   cloneRecordIdentity as identity,
   KeyMap,
-  QueryBuilder as qb,
+  oqb,
   Schema,
+  SchemaSettings,
   Source,
   Transform
 } from '@orbit/data';
@@ -18,7 +19,7 @@ const { all } = RSVP;
 const { module, test } = QUnit;
 
 module('Store', function(hooks) {
-  const schemaDefinition = {
+  const schemaDefinition: SchemaSettings = {
     models: {
       star: {
         attributes: {
@@ -62,10 +63,12 @@ module('Store', function(hooks) {
     assert.ok(store instanceof Source, 'instanceof Source');
   });
 
-  test('internal cache\'s options can be specified with `cacheOptions`', function(assert) {
-    var store = new Store({ schema, keyMap, cacheOptions: { processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor] } });
-    assert.ok(store.cache, 'cache exists');
-    assert.equal(store.cache._processors.length, 2, 'cache has 2 processors');
+  test('internal cache\'s settings can be specified with `cacheSettings`', function(assert) {
+    let store = new Store({ schema, keyMap, cacheSettings: { processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor] } });
+    let cache = <any>store.cache;
+
+    assert.ok(cache, 'cache exists');
+    assert.equal(cache._processors.length, 2, 'cache has 2 processors');
   });
 
   test('#update - transforms the store\'s cache', function(assert) {
@@ -99,7 +102,7 @@ module('Store', function(hooks) {
 
     assert.equal(store.cache.records('planet').length, 1, 'cache should contain one planet');
 
-    return store.query(qb.record({ type: 'planet', id: 'jupiter' }))
+    return store.query(oqb.record({ type: 'planet', id: 'jupiter' }))
       .then(foundPlanet => {
         assert.deepEqual(foundPlanet, jupiter, 'found planet matches original');
       });
@@ -112,7 +115,7 @@ module('Store', function(hooks) {
 
     assert.equal(store.cache.records('planet').length, 0, 'cache should contain no planets');
 
-    return store.query(qb.record({ type: 'planet', id: 'jupiter' }))
+    return store.query(oqb.record({ type: 'planet', id: 'jupiter' }))
       .catch(e => {
         assert.equal(e.message, 'Record not found: planet:jupiter');
       });
@@ -123,9 +126,9 @@ module('Store', function(hooks) {
     const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
     const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
 
-    const addRecordATransform = new Transform(addRecord(recordA));
-    const addRecordBTransform = new Transform(addRecord(recordB));
-    const addRecordCTransform = new Transform(addRecord(recordC));
+    const addRecordATransform = Transform.from(addRecord(recordA));
+    const addRecordBTransform = Transform.from(addRecord(recordB));
+    const addRecordCTransform = Transform.from(addRecord(recordC));
 
     return all([
       store.sync(addRecordATransform),
@@ -149,9 +152,9 @@ module('Store', function(hooks) {
     const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
     const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
 
-    const addRecordATransform = new Transform(addRecord(recordA));
-    const addRecordBTransform = new Transform(addRecord(recordB));
-    const addRecordCTransform = new Transform(addRecord(recordC));
+    const addRecordATransform = Transform.from(addRecord(recordA));
+    const addRecordBTransform = Transform.from(addRecord(recordB));
+    const addRecordCTransform = Transform.from(addRecord(recordC));
 
     return all([
       store.sync(addRecordATransform),
@@ -176,9 +179,9 @@ module('Store', function(hooks) {
     const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
     const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
 
-    const addRecordATransform = new Transform(addRecord(recordA));
-    const addRecordBTransform = new Transform(addRecord(recordB));
-    const addRecordCTransform = new Transform(addRecord(recordC));
+    const addRecordATransform = Transform.from(addRecord(recordA));
+    const addRecordBTransform = Transform.from(addRecord(recordB));
+    const addRecordCTransform = Transform.from(addRecord(recordC));
 
     return all([
       store.sync(addRecordATransform),
@@ -205,9 +208,9 @@ module('Store', function(hooks) {
     const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
     const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
 
-    const addRecordATransform = new Transform(addRecord(recordA));
-    const addRecordBTransform = new Transform(addRecord(recordB));
-    const addRecordCTransform = new Transform(addRecord(recordC));
+    const addRecordATransform = Transform.from(addRecord(recordA));
+    const addRecordBTransform = Transform.from(addRecord(recordB));
+    const addRecordCTransform = Transform.from(addRecord(recordC));
 
     return all([
       store.sync(addRecordATransform),

@@ -1,5 +1,6 @@
 import {
   Schema,
+  SchemaSettings,
   KeyMap,
   cloneRecordIdentity,
   addRecord
@@ -13,7 +14,7 @@ const { module, test } = QUnit;
 module('CacheIntegrityProcessor', function(hooks) {
   let schema, cache, processor;
 
-  const schemaDefinition = {
+  const schemaDefinition: SchemaSettings = {
     models: {
       planet: {
         attributes: {
@@ -21,7 +22,7 @@ module('CacheIntegrityProcessor', function(hooks) {
           classification: { type: 'string' }
         },
         relationships: {
-          moons: { type: 'hasMany', model: 'moon', inverse: 'planet', actsAsSet: true },
+          moons: { type: 'hasMany', model: 'moon', inverse: 'planet' },
           inhabitants: { type: 'hasMany', model: 'inhabitant', inverse: 'planets' },
           next: { type: 'hasOne', model: 'planet', inverse: 'previous' },
           previous: { type: 'hasOne', model: 'planet', inverse: 'next' }
@@ -344,8 +345,7 @@ module('CacheIntegrityProcessor', function(hooks) {
                     relationships: { moons: { data: { 'moon:titan': true } } } };
 
     const jupiter = { type: 'planet', id: 'jupiter',
-                      attributes: { name: 'Jupiter' },
-                      relationships: { moons: {} } };
+                      attributes: { name: 'Jupiter' } };
 
     const titan = { type: 'moon', id: 'titan',
                     attributes: { name: 'Titan' },
