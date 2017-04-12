@@ -57,22 +57,20 @@ export const oqb = {
   /**
    * Logically "or" conditions together.
    * 
-   * @param {*} a 
-   * @param {*} b 
+   * @param {any} conditions 
    * @returns {QueryExpression} 
    */
-  or(a: any, b: any): QueryExpression {
-    return oqe('or', a, b);
+  or(...conditions): QueryExpression {
+    return oqe('or', ...conditions);
   },
 
   /**
    * Logically "and" conditions together.
    * 
-   * @param {*} a 
-   * @param {*} b 
+   * @param {any} conditions 
    * @returns {QueryExpression} 
    */
-  and(a: any, b: any): QueryExpression {
-    return oqe('and', a, b);
+  and(...conditions): QueryExpression {
+    return oqe('and', ...conditions);
   }
 };
