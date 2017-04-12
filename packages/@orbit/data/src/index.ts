@@ -6,7 +6,7 @@ export * from './operation';
 export * from './query-builder';
 export { default as QueryEvaluator, QueryOperator } from './query-evaluator';
 export * from './query-expression';
-export { QueryTerm } from './query-term';
+export * from './query-term';
 export { default as Query, QueryOrExpression } from './query';
 export * from './record';
 export { default as Schema, AttributeDefinition, RelationshipDefinition, KeyDefinition, ModelDefinition, SchemaSettings } from './schema';

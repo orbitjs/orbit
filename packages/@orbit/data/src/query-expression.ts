@@ -22,7 +22,7 @@ export interface QueryExpression {
 }
 
 /**
- * Method to instantiate a query expression.
+ * Instantiate a query expression.
  * 
  * `oqe` is an abbreviation for "Orbit Query Expression".
  * 

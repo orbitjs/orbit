@@ -1,6 +1,13 @@
 import { isObject } from '@orbit/utils';
 import { oqe, QueryExpression } from './query-expression';
 
+/**
+ * Query terms are used by query builders to allow for the construction of
+ * query expressions in composable patterns. 
+ * 
+ * @export
+ * @class QueryTerm
+ */
 export class QueryTerm {
   expression: QueryExpression;
 
@@ -13,45 +20,63 @@ export class QueryTerm {
   }
 }
 
-export class Cursor extends QueryTerm {
-  get(path) {
-    return new Value(oqe('get', path));
-  }
-}
-
-export class Value extends QueryTerm {
+/**
+ * A query term that represents a value.
+ * 
+ * Supports equality checks for now. Could be expanded to handle any number of
+ * comparisons.
+ * 
+ * @export
+ * @class ValueTerm
+ * @extends {QueryTerm}
+ */
+export class ValueTerm extends QueryTerm {
   equal(value) {
     return oqe('equal', this.expression, value);
   }
 }
 
-export class RecordCursor extends Cursor {
-  attribute(name) {
-    return new Value(oqe('attribute', name));
+/**
+ * A query term that allows for iterating over records.
+ * 
+ * @export
+ * @class RecordCursor
+ * @extends {QueryTerm}
+ */
+export class RecordCursor extends QueryTerm {
+  attribute(name): ValueTerm {
+    return new ValueTerm(oqe('attribute', name));
   }
 }
 
-export class Record extends QueryTerm {
+/**
+ * A query term representing a single record.
+ * 
+ * @export
+ * @class RecordTerm
+ * @extends {QueryTerm}
+ */
+export class RecordTerm extends QueryTerm {
   constructor(record) {
     super(oqe('record', record));
   }
 }
 
-export class Records extends QueryTerm {
-  sort(...sortExpressions) {
-    return new Records(oqe('sort', this.expression, sortExpressions.map(parseSortExpression)));
+export class RecordsTerm extends QueryTerm {
+  sort(...sortExpressions): RecordsTerm {
+    return new RecordsTerm(oqe('sort', this.expression, sortExpressions.map(parseSortExpression)));
   }
 
-  page(options) {
-    return new Records(oqe('page', this.expression, options));
+  page(options): RecordsTerm {
+    return new RecordsTerm(oqe('page', this.expression, options));
   }
 
-  filter(predicateExpression) {
+  filter(predicateExpression): RecordsTerm {
     const filterBuilder = new RecordCursor();
-    return new Records(oqe('filter', this.expression, predicateExpression(filterBuilder)));
+    return new RecordsTerm(oqe('filter', this.expression, predicateExpression(filterBuilder)));
   }
 
-  filterAttributes(attributeValues) {
+  filterAttributes(attributeValues): RecordsTerm {
     const attributeExpressions = Object.keys(attributeValues).map(attribute => {
       return oqe('equal',
                oqe('attribute', attribute),
@@ -61,17 +86,17 @@ export class Records extends QueryTerm {
     const andExpression = attributeExpressions.length === 1 ? attributeExpressions[0]
                                                             : oqe('and', ...attributeExpressions);
 
-    return new Records(oqe('filter', this.expression, andExpression));
+    return new RecordsTerm(oqe('filter', this.expression, andExpression));
   }
 }
 
-export class RelatedRecord extends QueryTerm {
+export class RelatedRecordTerm extends QueryTerm {
   constructor(record, relationship) {
     super(oqe('relatedRecord', record, relationship));
   }
 }
 
-export class RelatedRecords extends Records {
+export class RelatedRecordsTerm extends RecordsTerm {
   constructor(record, relationship) {
     super(oqe('relatedRecords', record, relationship));
   }
