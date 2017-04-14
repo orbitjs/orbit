@@ -47,7 +47,7 @@ be used in ways that go beyond these original use cases.
 
 Orbit consists of the following core libraries:
 
-* [@orbit/core](./oackages/@orbit/core) - A core set of primitives for 
+* [@orbit/core](./packages/@orbit/core) - A core set of primitives for 
 performing, tracking, and responding to asynchronous tasks, including:
 
   * An event system that allows listeners to engage with the fulfillment of 
@@ -60,7 +60,7 @@ performing, tracking, and responding to asynchronous tasks, including:
 
   * A bucket interface for persisting state. Used by logs and queues.
 
-* [@orbit/data](./oackages/@orbit/data) - Applies the core Orbit primitives
+* [@orbit/data](./packages/@orbit/data) - Applies the core Orbit primitives
 to data sources. Includes the following elements:
 
   * A schema for defining models, including attributes and relationships. 
@@ -79,21 +79,21 @@ to data sources. Includes the following elements:
     and/or `updatable` - each decorator provides a unique interface that allows 
     for transforms and queries to be applied as appropriate.
 
-* [@orbit/utils](./oackages/@orbit/utils) - A common set of utility functions
+* [@orbit/utils](./packages/@orbit/utils) - A common set of utility functions
 used by Orbit libs.
 
 ### Standard data sources
 
 Orbit provides the following sources for accessing and persisting data:
 
-* [@orbit/jsonapi](./oackages/@orbit/jsonapi) - Provides full CRUD support,
+* [@orbit/jsonapi](./packages/@orbit/jsonapi) - Provides full CRUD support,
   including complex querying, for a RESTful API that conforms to the
   [JSON:API](http://jsonapi.org/) specification.
 
-* [@orbit/local-storage](./oackages/@orbit/local-storage) - 
+* [@orbit/local-storage](./packages/@orbit/local-storage) - 
   Persists records to local storage.
 
-* [@orbit/indexeddb-bucket](./oackages/@orbit/indexeddb-bucket) - 
+* [@orbit/indexeddb-bucket](./packages/@orbit/indexeddb-bucket) - 
   Persists records to IndexedDB.
 
 These standard sources can provide guidance for building your own custom sources
@@ -104,10 +104,10 @@ as well.
 Buckets are used to persist application state, such as queued requests and 
 change logs. Standard buckets include:
 
-* [@orbit/local-storage-bucket](./oackages/@orbit/local-storage-bucket) - 
+* [@orbit/local-storage-bucket](./packages/@orbit/local-storage-bucket) - 
   Persists state to local storage.
 
-* [@orbit/indexeddb-bucket](./oackages/@orbit/indexeddb-bucket) - 
+* [@orbit/indexeddb-bucket](./packages/@orbit/indexeddb-bucket) - 
   Persists state to IndexedDB.
 
 ## Contributing
