@@ -34,10 +34,14 @@ module('Log', function() {
     });
 
     test('#append', function(assert) {
-      assert.expect(2);
+      assert.expect(3);
 
       log.on('append', (transformIds) => {
         assert.deepEqual(transformIds, [transformAId], 'append event emits transform');
+      });
+
+      log.on('change', () => {
+        assert.ok('change event emitted');
       });
 
       return log.append(transformAId)
@@ -120,10 +124,14 @@ module('Log', function() {
     });
 
     test('#clear', function(assert) {
-      assert.expect(2);
+      assert.expect(3);
 
       log.on('clear', (removed) => {
         assert.deepEqual(removed, [transformAId, transformBId, transformCId], 'clear event emitted');
+      });
+
+      log.on('change', () => {
+        assert.ok('change event emitted');
       });
 
       return log.clear()
@@ -133,12 +141,16 @@ module('Log', function() {
     });
 
     test('#truncate', function(assert) {
-      assert.expect(4);
+      assert.expect(5);
 
       log.on('truncate', (transformId, relativePosition, removed) => {
         assert.strictEqual(transformId, transformBId, 'truncate event emits transform');
         assert.strictEqual(relativePosition, 0, 'truncate event emits relativePosition');
         assert.deepEqual(removed, [transformAId], 'truncate event emits removed transforms');
+      });
+
+      log.on('change', () => {
+        assert.ok('change event emitted');
       });
 
       return log.truncate(transformBId)
@@ -183,12 +195,16 @@ module('Log', function() {
     });
 
     test('#rollback', function(assert) {
-      assert.expect(4);
+      assert.expect(5);
 
       log.on('rollback', (transformId, relativePosition, removed) => {
         assert.strictEqual(transformId, transformAId, 'rollback event emits transform');
         assert.strictEqual(relativePosition, 0, 'rollback event emits relativePosition');
         assert.deepEqual(removed, [transformBId, transformCId], 'rollback event emits removed transforms');
+      });
+
+      log.on('change', () => {
+        assert.ok('change event emitted');
       });
 
       return log.rollback(transformAId)
