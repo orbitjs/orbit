@@ -179,6 +179,7 @@ export default class Log implements Evented {
   }
 
   _persist(): Promise<void> {
+    this.emit('change');
     if (this.bucket) {
       return this._bucket.setItem(this.name, this._data);
     } else {
