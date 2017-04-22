@@ -47,7 +47,8 @@ module('JSONAPISource', function(hooks) {
             },
             attributes: {
               name: { type: 'string' },
-              classification: { type: 'string' }
+              classification: { type: 'string' },
+              lengthOfDay: { type: 'number' }
             },
             relationships: {
               moons: { type: 'hasMany', model: 'moon', inverse: 'planet' },
@@ -641,19 +642,19 @@ module('JSONAPISource', function(hooks) {
       assert.expect(5);
 
       const data = [
-        { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
+        { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial', lengthOfDay: 24 } }
       ];
 
       fetchStub
-        .withArgs(`/planets?${encodeURIComponent('filter[name]')}=Jupiter`)
+        .withArgs(`/planets?${encodeURIComponent('filter[length-of-day]')}=24`)
         .returns(jsonapiResponse(200, { data }));
 
       return source.pull(Query.from(oqb.records('planet')
-                                      .filterAttributes({ name: 'Jupiter' })))
+                                       .filterAttributes({ lengthOfDay: 24 })))
         .then(transforms => {
           assert.equal(transforms.length, 1, 'one transform returned');
           assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
-          assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Jupiter']);
+          assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Earth']);
 
           assert.equal(fetchStub.callCount, 1, 'fetch called once');
           assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -712,16 +713,16 @@ module('JSONAPISource', function(hooks) {
       assert.expect(5);
 
       const data = [
-        { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } },
-        { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant' } },
-        { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial' } }
+        { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant', lengthOfDay: 9.9 } },
+        { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant', lengthOfDay: 10.7 } },
+        { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial', lengthOfDay: 24.0 } }
       ];
 
       fetchStub
-        .withArgs(`/planets?sort=${encodeURIComponent('classification,name')}`)
+        .withArgs(`/planets?sort=${encodeURIComponent('length-of-day,name')}`)
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(Query.from(oqb.records('planet').sort('classification', 'name')))
+      return source.pull(Query.from(oqb.records('planet').sort('lengthOfDay', 'name')))
         .then(transforms => {
           assert.equal(transforms.length, 1, 'one transform returned');
           assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
@@ -746,7 +747,7 @@ module('JSONAPISource', function(hooks) {
         .returns(jsonapiResponse(200, { data }));
 
       return source.pull(Query.from(oqb.records('planet')
-                                      .page({ offset: 1, limit: 10 })))
+                                       .page({ offset: 1, limit: 10 })))
         .then(transforms => {
           assert.equal(transforms.length, 1, 'one transform returned');
           assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);

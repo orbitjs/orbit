@@ -84,7 +84,7 @@ export function getQueryRequests(source: Source, query) {
 }
 
 function buildRequestFromQuery(source: Source, query: Query) {
-  const request = buildRequestFromExpression(query.expression);
+  const request = buildRequestFromExpression(source, query.expression);
 
   const options = (query.options && query.options.sources && query.options.sources[source.name]) || {};
 
@@ -95,9 +95,9 @@ function buildRequestFromQuery(source: Source, query: Query) {
   return request;
 }
 
-function buildRequestFromExpression(expression, request = {}): any {
+function buildRequestFromExpression(source: Source, expression, request = {}): any {
   if (ExpressionToRequestMap[expression.op]) {
-    ExpressionToRequestMap[expression.op](expression, request);
+    ExpressionToRequestMap[expression.op](source, expression, request);
   } else {
     throw new QueryExpressionParseError('Query expression could not be parsed.', expression);
   }
@@ -106,7 +106,7 @@ function buildRequestFromExpression(expression, request = {}): any {
 }
 
 const ExpressionToRequestMap = {
-  records(expression, request) {
+  records(source: Source, expression, request) {
     if (request.op) {
       throw new QueryExpressionParseError('Query request `op` can not be redefined.', expression);
     }
@@ -115,7 +115,7 @@ const ExpressionToRequestMap = {
     request.type = expression.args[0];
   },
 
-  record(expression, request) {
+  record(source: Source, expression, request) {
     if (request.op) {
       throw new QueryExpressionParseError('Query request `op` can not be redefined.', expression);
     }
@@ -124,64 +124,70 @@ const ExpressionToRequestMap = {
     request.record = expression.args[0];
   },
 
-  filter(expression, request) {
+  filter(source: Source, expression, request) {
     const [select, filters] = expression.args;
-    request.filter = buildFilters(filters);
+    request.filter = buildFilters(source, filters);
 
-    buildRequestFromExpression(select, request);
+    buildRequestFromExpression(source, select, request);
   },
 
-  sort(expression, request) {
+  sort(source: Source, expression, request) {
     const [select, sortExpressions] = expression.args;
-    request.sort = buildSort(sortExpressions);
+    request.sort = buildSort(source, sortExpressions);
 
-    buildRequestFromExpression(select, request);
+    buildRequestFromExpression(source, select, request);
   },
 
-  page(expression, request) {
+  page(source: Source, expression, request) {
     const [select, page] = expression.args;
     request.page = page;
 
-    buildRequestFromExpression(select, request);
+    buildRequestFromExpression(source, select, request);
   },
 
-  relatedRecords(expression, request) {
+  relatedRecords(source: Source, expression, request) {
     request.op = 'relatedRecords';
     request.record = expression.args[0];
     request.relationship = expression.args[1];
   }
 };
 
-function buildFilters(expression) {
+function buildFilters(source: Source, expression) {
   const filters = {};
 
   if (expression.op === 'and') {
-    expression.args.forEach(arg => parseFilter(arg, filters));
+    expression.args.forEach(arg => parseFilter(source, arg, filters));
   } else {
-    parseFilter(expression, filters);
+    parseFilter(source, expression, filters);
   }
 
   return filters;
 }
 
-function parseFilter(expression, filters) {
+function parseFilter(source: Source, expression, filters) {
   if (expression.op === 'equal') {
     const [filterExp, filterValue] = expression.args;
     if (filterExp.op === 'attribute') {
       const [attribute] = filterExp.args;
-      filters[attribute] = filterValue;
+      // Note: We don't know the `type` of the attribute here, so passing `null`
+      const resourceAttribute = source.serializer.resourceAttribute(null, attribute);
+      filters[resourceAttribute] = filterValue;
     }
   }
 }
 
-function buildSort(sortExpressions) {
-  return sortExpressions.map(parseSortExpression).join(',');
+function buildSort(source: Source, sortExpressions) {
+  return sortExpressions.map(exp => {
+    return parseSortExpression(source, exp);
+  }).join(',');
 }
 
-function parseSortExpression(sortExpression) {
+function parseSortExpression(source: Source, sortExpression) {
   if (sortExpression.field.op === 'attribute') {
     const [attribute] = sortExpression.field.args;
-    return (sortExpression.order === 'descending' ? '-' : '') + attribute;
+    // Note: We don't know the `type` of the attribute here, so passing `null`
+    const resourceAttribute = source.serializer.resourceAttribute(null, attribute);
+    return (sortExpression.order === 'descending' ? '-' : '') + resourceAttribute;
   }
   throw new QueryExpressionParseError('Query expression could not be parsed.', sortExpression.field);
 }
