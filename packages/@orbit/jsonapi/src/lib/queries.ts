@@ -1,14 +1,15 @@
-import { toArray, deepSet } from '@orbit/utils';
+import { toArray } from '@orbit/utils';
 import {
   Query,
   QueryExpressionParseError,
   Transform
 } from '@orbit/data';
-import Source from '../jsonapi-source';
+import JSONAPISource from '../jsonapi-source';
 import { DeserializedDocument } from '../jsonapi-serializer';
 import { JSONAPIDocument } from '../jsonapi-document';
+import { buildRequestSettings } from './request-settings';
 
-function deserialize(source: Source, document: JSONAPIDocument): Transform[] {
+function deserialize(source: JSONAPISource, document: JSONAPIDocument): Transform[] {
   const deserialized = source.serializer.deserializeDocument(document);
   const records = toArray(deserialized.data);
 
@@ -27,7 +28,7 @@ function deserialize(source: Source, document: JSONAPIDocument): Transform[] {
 }
 
 export const QueryRequestProcessors = {
-  records(source: Source, request) {
+  records(source: JSONAPISource, request) {
     const { type } = request;
     const settings = buildRequestSettings(request);
 
@@ -35,7 +36,7 @@ export const QueryRequestProcessors = {
       .then(data => deserialize(source, data));
   },
 
-  record(source: Source, request) {
+  record(source: JSONAPISource, request) {
     const { record } = request;
     const settings = buildRequestSettings(request);
 
@@ -43,7 +44,7 @@ export const QueryRequestProcessors = {
       .then(data => deserialize(source, data));
   },
 
-  relationship(source: Source, request) {
+  relationship(source: JSONAPISource, request) {
     const { record, relationship } = request;
     const settings = buildRequestSettings(request);
 
@@ -57,7 +58,7 @@ export const QueryRequestProcessors = {
       // });
   },
 
-  relatedRecords(source: Source, request) {
+  relatedRecords(source: JSONAPISource, request) {
     const { record, relationship } = request;
     const settings = buildRequestSettings(request);
 
@@ -66,24 +67,12 @@ export const QueryRequestProcessors = {
   }
 };
 
-function buildRequestSettings(request) {
-  const settings = {};
-
-  for (const param of ['filter', 'include', 'page', 'sort']) {
-    if (request[param]) {
-      deepSet(settings, ['params', param], request[param]);
-    }
-  }
-
-  return settings;
-}
-
-export function getQueryRequests(source: Source, query) {
+export function getQueryRequests(source: JSONAPISource, query) {
   // For now, assume a 1:1 mapping between queries and requests
   return [buildRequestFromQuery(source, query)];
 }
 
-function buildRequestFromQuery(source: Source, query: Query) {
+function buildRequestFromQuery(source: JSONAPISource, query: Query) {
   const request = buildRequestFromExpression(source, query.expression);
 
   const options = (query.options && query.options.sources && query.options.sources[source.name]) || {};
@@ -92,10 +81,14 @@ function buildRequestFromQuery(source: Source, query: Query) {
     request.include = options.include.join(',');
   }
 
+  if (options.timeout) {
+    request.timeout = options.timeout;
+  }
+
   return request;
 }
 
-function buildRequestFromExpression(source: Source, expression, request = {}): any {
+function buildRequestFromExpression(source: JSONAPISource, expression, request = {}): any {
   if (ExpressionToRequestMap[expression.op]) {
     ExpressionToRequestMap[expression.op](source, expression, request);
   } else {
@@ -106,7 +99,7 @@ function buildRequestFromExpression(source: Source, expression, request = {}): a
 }
 
 const ExpressionToRequestMap = {
-  records(source: Source, expression, request) {
+  records(source: JSONAPISource, expression, request) {
     if (request.op) {
       throw new QueryExpressionParseError('Query request `op` can not be redefined.', expression);
     }
@@ -115,7 +108,7 @@ const ExpressionToRequestMap = {
     request.type = expression.args[0];
   },
 
-  record(source: Source, expression, request) {
+  record(source: JSONAPISource, expression, request) {
     if (request.op) {
       throw new QueryExpressionParseError('Query request `op` can not be redefined.', expression);
     }
@@ -124,35 +117,35 @@ const ExpressionToRequestMap = {
     request.record = expression.args[0];
   },
 
-  filter(source: Source, expression, request) {
+  filter(source: JSONAPISource, expression, request) {
     const [select, filters] = expression.args;
     request.filter = buildFilters(source, filters);
 
     buildRequestFromExpression(source, select, request);
   },
 
-  sort(source: Source, expression, request) {
+  sort(source: JSONAPISource, expression, request) {
     const [select, sortExpressions] = expression.args;
     request.sort = buildSort(source, sortExpressions);
 
     buildRequestFromExpression(source, select, request);
   },
 
-  page(source: Source, expression, request) {
+  page(source: JSONAPISource, expression, request) {
     const [select, page] = expression.args;
     request.page = page;
 
     buildRequestFromExpression(source, select, request);
   },
 
-  relatedRecords(source: Source, expression, request) {
+  relatedRecords(source: JSONAPISource, expression, request) {
     request.op = 'relatedRecords';
     request.record = expression.args[0];
     request.relationship = expression.args[1];
   }
 };
 
-function buildFilters(source: Source, expression) {
+function buildFilters(source: JSONAPISource, expression) {
   const filters = {};
 
   if (expression.op === 'and') {
@@ -164,7 +157,7 @@ function buildFilters(source: Source, expression) {
   return filters;
 }
 
-function parseFilter(source: Source, expression, filters) {
+function parseFilter(source: JSONAPISource, expression, filters) {
   if (expression.op === 'equal') {
     const [filterExp, filterValue] = expression.args;
     if (filterExp.op === 'attribute') {
@@ -176,13 +169,13 @@ function parseFilter(source: Source, expression, filters) {
   }
 }
 
-function buildSort(source: Source, sortExpressions) {
+function buildSort(source: JSONAPISource, sortExpressions) {
   return sortExpressions.map(exp => {
     return parseSortExpression(source, exp);
   }).join(',');
 }
 
-function parseSortExpression(source: Source, sortExpression) {
+function parseSortExpression(source: JSONAPISource, sortExpression) {
   if (sortExpression.field.op === 'attribute') {
     const [attribute] = sortExpression.field.args;
     // Note: We don't know the `type` of the attribute here, so passing `null`

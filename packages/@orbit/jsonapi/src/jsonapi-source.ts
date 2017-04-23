@@ -35,6 +35,7 @@ export interface FetchSettings {
   json?: object;
   body?: string;
   params?: any;
+  timeout?: number;
 }
 
 export interface JSONAPISourceSettings extends SourceSettings {
@@ -43,6 +44,7 @@ export interface JSONAPISourceSettings extends SourceSettings {
   namespace?: string;
   host?: string;
   defaultFetchHeaders?: object;
+  defaultFetchTimeout?: number;
   SerializerClass?: (new () => JSONAPISerializer);
 }
 
@@ -68,6 +70,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
   namespace: string;
   host: string;
   defaultFetchHeaders: object;
+  defaultFetchTimeout: number;
   serializer: JSONAPISerializer;
 
   // Pullable interface stubs
@@ -88,6 +91,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
     this.namespace           = settings.namespace;
     this.host                = settings.host;
     this.defaultFetchHeaders = settings.defaultFetchHeaders || { Accept: 'application/vnd.api+json' };
+    this.defaultFetchTimeout = settings.defaultFetchTimeout || 5000;
 
     this.maxRequestsPerQuery     = settings.maxRequestsPerQuery;
     this.maxRequestsPerTransform = settings.maxRequestsPerTransform;
@@ -101,7 +105,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
   /////////////////////////////////////////////////////////////////////////////
 
   _push(transform: Transform): Promise<Transform[]> {
-    const requests = getTransformRequests(transform);
+    const requests = getTransformRequests(this, transform);
 
     if (this.maxRequestsPerTransform && requests.length > this.maxRequestsPerTransform) {
       return Orbit.Promise.resolve()
@@ -150,6 +154,11 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
 
     // console.log('fetch', url, settings, 'polyfill', fetch.polyfill);
 
+    let timeout = settings.timeout || this.defaultFetchTimeout;
+    if (settings.timeout) {
+      delete settings.timeout;
+    }
+
     if (settings.json) {
       assert('`json` and `body` can\'t both be set for fetch requests.', !settings.body);
       settings.body = JSON.stringify(settings.json);
@@ -171,12 +180,43 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
       delete settings.params;
     }
 
-    return Orbit.fetch(url, settings)
-      .catch(e => this.handleFetchError(e))
-      .then(response => this.handleFetchResponse(response));
+    if (timeout) {
+      return new Orbit.Promise((resolve, reject) => {
+        let timedOut;
+
+        let timer = self.setTimeout(() => {
+          timedOut = true;
+          reject(new NetworkError(`No fetch response within ${timeout}ms.`));
+        }, timeout);
+
+        Orbit.fetch(url, settings)
+          .catch(e => {
+            self.clearTimeout(timer);
+
+            if (!timedOut) {
+              return this.handleFetchError(e)
+                .then(response => resolve(response))
+                .catch(e => reject(e));
+            }
+          })
+          .then(response => {
+            self.clearTimeout(timer);
+
+            if (!timedOut) {
+              return this.handleFetchResponse(response)
+                .then(response => resolve(response))
+                .catch(e => reject(e));
+            }
+          });
+      });
+    } else {
+      return Orbit.fetch(url, settings)
+        .catch(e => this.handleFetchError(e))
+        .then(response => this.handleFetchResponse(response));
+    }
   }
 
-  handleFetchResponse(response: any): Promise<any> {
+  protected handleFetchResponse(response: any): Promise<any> {
     if (response.status === 201) {
       if (this.responseHasContent(response)) {
         return response.json();
@@ -192,13 +232,13 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
         return response.json()
           .then(data => this.handleFetchResponseError(response, data));
       } else {
-        this.handleFetchResponseError(response);
+        return this.handleFetchResponseError(response);
       }
     }
     return Orbit.Promise.resolve();
   }
 
-  handleFetchResponseError(response: any, data?: any): void {
+  protected handleFetchResponseError(response: any, data?: any): Promise<any> {
     let error;
     if (response.status >= 400 && response.status < 500) {
       error = new ClientError(response.statusText);
@@ -207,11 +247,12 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
     }
     error.response = response;
     error.data = data;
-    throw error;
+    return Orbit.Promise.reject(error);
   }
 
-  handleFetchError(e: any): void {
-    throw new NetworkError(e);
+  protected handleFetchError(e: any): Promise<any> {
+    let error = new NetworkError(e);
+    return Orbit.Promise.reject(error);
   }
 
   responseHasContent(response: any): boolean {

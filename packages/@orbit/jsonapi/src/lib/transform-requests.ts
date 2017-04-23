@@ -20,14 +20,16 @@ import { clone, deepSet } from '@orbit/utils';
 import JSONAPISource from '../jsonapi-source';
 import { JSONAPIDocument } from '../jsonapi-document';
 import { DeserializedDocument } from '../jsonapi-serializer';
+import { buildRequestSettings } from './request-settings';
 
 export const TransformRequestProcessors = {
-  addRecord(source: JSONAPISource, op: AddRecordOperation) {
+  addRecord(source: JSONAPISource, request) {
     const { serializer } = source;
-    const record = op.record;
+    const record = request.record;
     const requestDoc: JSONAPIDocument = serializer.serializeDocument(record);
+    const settings = buildRequestSettings(request, { method: 'POST', json: requestDoc });
 
-    return source.fetch(source.resourceURL(record.type), { method: 'POST', json: requestDoc })
+    return source.fetch(source.resourceURL(record.type), settings)
       .then((raw: JSONAPIDocument) => {
         let responseDoc: DeserializedDocument = serializer.deserializeDocument(raw);
         let updatedRecord: Record = <Record>responseDoc.data;
@@ -41,8 +43,9 @@ export const TransformRequestProcessors = {
 
   removeRecord(source: JSONAPISource, request) {
     const { type, id } = request.record;
+    const settings = buildRequestSettings(request, { method: 'DELETE' });
 
-    return source.fetch(source.resourceURL(type, id), { method: 'DELETE' })
+    return source.fetch(source.resourceURL(type, id), settings)
       .then(() => []);
   },
 
@@ -50,8 +53,9 @@ export const TransformRequestProcessors = {
     const record = request.record;
     const { type, id } = record;
     const requestDoc: JSONAPIDocument = source.serializer.serializeDocument(record);
+    const settings = buildRequestSettings(request, { method: 'PATCH', json: requestDoc });
 
-    return source.fetch(source.resourceURL(type, id), { method: 'PATCH', json: requestDoc })
+    return source.fetch(source.resourceURL(type, id), settings)
       .then(() => []);
   },
 
@@ -61,8 +65,9 @@ export const TransformRequestProcessors = {
     const json = {
       data: request.relatedRecords.map(r => source.serializer.resourceIdentity(r))
     };
+    const settings = buildRequestSettings(request, { method: 'POST', json });
 
-    return source.fetch(source.resourceRelationshipURL(type, id, relationship), { method: 'POST', json })
+    return source.fetch(source.resourceRelationshipURL(type, id, relationship), settings)
       .then(() => []);
   },
 
@@ -72,8 +77,9 @@ export const TransformRequestProcessors = {
     const json = {
       data: request.relatedRecords.map(r => source.serializer.resourceIdentity(r))
     };
+    const settings = buildRequestSettings(request, { method: 'DELETE', json });
 
-    return source.fetch(source.resourceRelationshipURL(type, id, relationship), { method: 'DELETE', json })
+    return source.fetch(source.resourceRelationshipURL(type, id, relationship), settings)
       .then(() => []);
   },
 
@@ -83,8 +89,9 @@ export const TransformRequestProcessors = {
     const json = {
       data: relatedRecord ? source.serializer.resourceIdentity(relatedRecord) : null
     };
+    const settings = buildRequestSettings(request, { method: 'PATCH', json });
 
-    return source.fetch(source.resourceRelationshipURL(type, id, relationship), { method: 'PATCH', json })
+    return source.fetch(source.resourceRelationshipURL(type, id, relationship), settings)
       .then(() => []);
   },
 
@@ -94,16 +101,19 @@ export const TransformRequestProcessors = {
     const json = {
       data: relatedRecords.map(r => source.serializer.resourceIdentity(r))
     };
+    const settings = buildRequestSettings(request, { method: 'PATCH', json });
 
-    return source.fetch(source.resourceRelationshipURL(type, id, relationship), { method: 'PATCH', json })
+    return source.fetch(source.resourceRelationshipURL(type, id, relationship), settings)
       .then(() => []);
   }
 };
 
-export function getTransformRequests(transform: Transform) {
+export function getTransformRequests(source: JSONAPISource, transform: Transform) {
   const operations: RecordOperation[] = <RecordOperation[]>transform.operations;
   const requests = [];
   let prevRequest;
+
+  const options = (transform.options && transform.options.sources && transform.options.sources[source.name]) || {};
 
   transform.operations.forEach((operation: RecordOperation) => {
     let request;
@@ -141,6 +151,14 @@ export function getTransformRequests(transform: Transform) {
     }
 
     if (request) {
+      if (options.include) {
+        request.include = options.include.join(',');
+      }
+
+      if (options.timeout) {
+        request.timeout = options.timeout;
+      }
+
       requests.push(request);
       prevRequest = request;
     }

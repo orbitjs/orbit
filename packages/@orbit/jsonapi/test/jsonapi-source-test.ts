@@ -8,7 +8,9 @@ import Orbit, {
   removeFromHasMany,
   replaceHasMany,
   replaceHasOne,
+  ClientError,
   KeyMap,
+  NetworkError,
   Query,
   oqb,
   Record,
@@ -138,6 +140,10 @@ module('JSONAPISource', function(hooks) {
 
     test('#defaultFetchHeaders - include JSONAPI Accept header by default', function(assert) {
       assert.deepEqual(source.defaultFetchHeaders, { Accept: 'application/vnd.api+json' }, 'Default headers should include JSONAPI Accept header');
+    });
+
+    test('#defaultFetchTimeout - is 5000ms by default', function(assert) {
+      assert.equal(source.defaultFetchTimeout, 5000, 'By default fetches will timeout after 5s');
     });
 
     test('#responseHasContent - returns true if JSONAPI media type appears anywhere in Content-Type header', function(assert) {
@@ -555,6 +561,127 @@ module('JSONAPISource', function(hooks) {
         });
     });
 
+    test('#push - request can timeout', function(assert) {
+      assert.expect(2);
+
+      let planet = source.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345',
+        attributes: {
+          name: 'Jupiter',
+          classification: 'gas giant'
+        }
+      });
+
+      // 10ms timeout
+      source.defaultFetchTimeout = 10;
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(jsonapiResponse(200, null, 20)); // 20ms delay
+
+      return source.push(Transform.from(replaceAttribute(planet, 'classification', 'terrestrial')))
+        .then(() => {
+          assert.ok(false, 'should not be reached');
+        })
+        .catch(e => {
+          assert.ok(e instanceof NetworkError, 'Network error raised');
+          assert.equal(e.description, 'No fetch response within 10ms.')
+        });
+    });
+
+    test('#push - allowed timeout can be specified per-request', function(assert) {
+      assert.expect(2);
+
+      let planet = source.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345',
+        attributes: {
+          name: 'Jupiter',
+          classification: 'gas giant'
+        }
+      });
+
+      const options = {
+        sources: {
+          jsonapi: {
+            timeout: 10 // 10ms timeout
+          }
+        }
+      };
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(jsonapiResponse(200, null, 20)); // 20ms delay
+
+      return source.push(Transform.from(replaceAttribute(planet, 'classification', 'terrestrial'), options))
+        .then(() => {
+          assert.ok(false, 'should not be reached');
+        })
+        .catch(e => {
+          assert.ok(e instanceof NetworkError, 'Network error raised');
+          assert.equal(e.description, 'No fetch response within 10ms.')
+        });
+    });
+
+    test('#push - fetch can reject with a NetworkError', function(assert) {
+      assert.expect(2);
+
+      let planet = source.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345',
+        attributes: {
+          name: 'Jupiter',
+          classification: 'gas giant'
+        }
+      });
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(Orbit.Promise.reject(':('));
+
+      return source.push(Transform.from(replaceAttribute(planet, 'classification', 'terrestrial')))
+        .then(() => {
+          assert.ok(false, 'should not be reached');
+        })
+        .catch(e => {
+          assert.ok(e instanceof NetworkError, 'Network error raised');
+          assert.equal(e.description, ':(')
+        });
+    });
+
+    test('#push - response can trigger a ClientError', function(assert) {
+      assert.expect(3);
+
+      let planet = source.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345',
+        attributes: {
+          name: 'Jupiter',
+          classification: 'gas giant'
+        }
+      });
+
+      let errors = [{
+        status: "422",
+        title: "Invalid classification specified"
+      }];
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(jsonapiResponse(422, { errors }));
+
+      return source.push(Transform.from(replaceAttribute(planet, 'classification', 'terrestrial')))
+        .then(() => {
+          assert.ok(false, 'should not be reached');
+        })
+        .catch(e => {
+          assert.ok(e instanceof ClientError, 'Client error raised');
+          assert.equal(e.description, 'Unprocessable Entity');
+          assert.deepEqual(e.data, { errors }, 'Error data included');
+        });
+    });
+
     test('#pull - record', function(assert) {
       assert.expect(5);
 
@@ -577,6 +704,104 @@ module('JSONAPISource', function(hooks) {
 
           assert.equal(fetchStub.callCount, 1, 'fetch called once');
           assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
+    test('#pull - request can timeout', function(assert) {
+      assert.expect(2);
+
+      const data = {
+        type: 'planets',
+        id: '12345',
+        attributes: { name: 'Jupiter', classification: 'gas giant' } ,
+        relationships: { moons: { data: [] } }
+      };
+
+      const planet = source.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345'
+      });
+
+      // 10ms timeout
+      source.defaultFetchTimeout = 10;
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(jsonapiResponse(200, { data }, 20)); // 20ms delay
+
+      return source.pull(Query.from(oqb.record({ type: 'planet', id: planet.id })))
+        .then(() => {
+          assert.ok(false, 'should not be reached');
+        })
+        .catch(e => {
+          assert.ok(e instanceof NetworkError, 'Network error raised');
+          assert.equal(e.description, 'No fetch response within 10ms.')
+        });
+    });
+
+    test('#pull - allowed timeout can be specified per-request', function(assert) {
+      assert.expect(2);
+
+      const data = {
+        type: 'planets',
+        id: '12345',
+        attributes: { name: 'Jupiter', classification: 'gas giant' } ,
+        relationships: { moons: { data: [] } }
+      };
+
+      const planet = source.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345'
+      });
+
+      const options = {
+        sources: {
+          jsonapi: {
+            timeout: 10 // 10ms timeout
+          }
+        }
+      };
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(jsonapiResponse(200, { data }, 20)); // 20ms delay
+
+      return source.pull(Query.from(oqb.record({ type: 'planet', id: planet.id }), options))
+        .then(() => {
+          assert.ok(false, 'should not be reached');
+        })
+        .catch(e => {
+          assert.ok(e instanceof NetworkError, 'Network error raised');
+          assert.equal(e.description, 'No fetch response within 10ms.')
+        });
+    });
+
+    test('#pull - fetch can reject with a NetworkError', function(assert) {
+      assert.expect(2);
+
+      const data = {
+        type: 'planets',
+        id: '12345',
+        attributes: { name: 'Jupiter', classification: 'gas giant' } ,
+        relationships: { moons: { data: [] } }
+      };
+
+      const planet = source.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345'
+      });
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(Orbit.Promise.reject(':('));
+
+      return source.pull(Query.from(oqb.record({ type: 'planet', id: planet.id })))
+        .then(() => {
+          assert.ok(false, 'should not be reached');
+        })
+        .catch(e => {
+          assert.ok(e instanceof NetworkError, 'Network error raised');
+          assert.equal(e.description, ':(')
         });
     });
 

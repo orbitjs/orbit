@@ -2,7 +2,7 @@ import Orbit from '@orbit/core';
 
 declare const self: any;
 
-export function jsonapiResponse(_options, body?) {
+export function jsonapiResponse(_options, body?, timeout?) {
   let options;
   let response;
 
@@ -23,7 +23,16 @@ export function jsonapiResponse(_options, body?) {
 
   // console.log('jsonapiResponse', body, options, response.headers.get('Content-Type'));
 
-  return Orbit.Promise.resolve(response);
+  if (timeout) {
+    return new Orbit.Promise((resolve, reject) => {
+        let timer = self.setTimeout(() => {
+          self.clearTimeout(timer);
+          resolve(response);
+        }, timeout);
+      });
+  } else {
+    return Orbit.Promise.resolve(response);
+  }
 }
 
 function statusText(code) {
