@@ -1,4 +1,4 @@
-import { clone, expose, extend, isArray, toArray, isObject, isNone, merge, deepGet, deepSet } from '../src/objects';
+import { clone, expose, extend, isArray, toArray, isObject, isNone, merge, deepGet, deepSet, objectValues } from '../src/objects';
 
 const { module, test } = QUnit;
 
@@ -199,5 +199,15 @@ module('Lib / Object', function() {
 
     ret = deepSet(obj, ['toys', 2], 'blue chewy');
     assert.equal(obj.toys[2], 'blue chewy', 'set can add array members too');
+  });
+
+  test('`objectValues` provides a ponyfill for `Object.values`', function(assert) {
+    let obj = {
+      a: '1',
+      b: '2',
+      c: null
+    };
+
+    assert.deepEqual(objectValues(obj), ['1', '2', null]);
   });
 });

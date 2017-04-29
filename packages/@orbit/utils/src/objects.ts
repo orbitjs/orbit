@@ -72,16 +72,6 @@ export function expose(destination: object, source: object): void {
 }
 
 /**
- Extend an object with the properties of one or more other objects.
-
- @method extend
- @for Orbit
- @param {Object} destination The object to merge into
- @param {Object} source One or more source objects
- */
-
-
-/**
  * Extend an object with the properties of one or more other objects.
  * 
  * @export
@@ -171,15 +161,16 @@ export function merge(base: object, source: object): object {
 }
 
 /**
- * Similar to the lodash _.get function, this function uses a path to retrieve a
- * value from a nested object.
+ * Retrieves a value from a nested path on an object.
+ * 
+ * Returns any falsy value encountered while traversing the path.
  * 
  * @export
- * @param {Object} obj 
+ * @param {object} obj 
  * @param {string[]} path 
  * @returns {*} 
  */
-export function deepGet(obj: Object, path: string[]): any {
+export function deepGet(obj: object, path: string[]): any {
   let index = -1;
   let result = obj;
 
@@ -194,20 +185,21 @@ export function deepGet(obj: Object, path: string[]): any {
 }
 
 /**
- * Similar to the Lodash _.set function, this function uses a path to set a
- * value on an object. This function will create objects along the path if
- * necessary to allow setting a deeply nested value.
- * 
- * Returns `false` only if the current value is already strictly equal to the 
+ * Sets a value on an object at a nested path.
+ *
+ * This function will create objects along the path if necessary to allow
+ * setting a deeply nested value.
+ *
+ * Returns `false` only if the current value is already strictly equal to the
  * requested `value` argument. Otherwise returns `true`.
  *
  * @export
- * @param {Object} obj
+ * @param {object} obj
  * @param {string[]} path
  * @param {*} value
  * @returns {boolean} was the value was actually changed?
  */
-export function deepSet(obj: Object, path: string[], value: any): boolean {
+export function deepSet(obj: object, path: string[], value: any): boolean {
   let ptr = obj;
   let prop = path.pop();
   let segment;
@@ -223,5 +215,22 @@ export function deepSet(obj: Object, path: string[], value: any): boolean {
   } else {
     ptr[prop] = value;
     return true;
+  }
+}
+
+/**
+ * Find an array of values that correspond to the keys of an object.
+ * 
+ * This is a ponyfill for `Object.values`, which is still experimental.
+ * 
+ * @export
+ * @param {object} obj 
+ * @returns {any[]} 
+ */
+export function objectValues(obj: object): any[] {
+  if (Object.values) {
+    return Object.values(obj);
+  } else {
+    return Object.keys(obj).map(k => obj[k]);
   }
 }
