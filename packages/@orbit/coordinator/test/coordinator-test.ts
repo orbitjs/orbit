@@ -1,9 +1,9 @@
+import Coordinator from '../src/index';
 import { 
   Source, 
-  Coordinator, 
   Transform, 
   addRecord 
-} from '../src/index';
+} from '@orbit/data';
 import './test-helper';
 
 declare const RSVP: any;

@@ -1,5 +1,4 @@
 export { default } from './main';
-export { default as Coordinator } from './coordinator';
 export * from './exception';
 export { default as KeyMap } from './key-map';
 export * from './operation';

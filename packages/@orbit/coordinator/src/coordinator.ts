@@ -1,6 +1,7 @@
-import Orbit from './main';
-import { Source } from './source';
-import Transform from './transform';
+import Orbit, {
+  Source,
+  Transform
+} from '@orbit/data';
 import { Dict, assert } from '@orbit/utils';
 
 /**
@@ -14,7 +15,7 @@ import { Dict, assert } from '@orbit/utils';
  */
 export default class Coordinator {
   private _active: boolean;
-  private _sources: Source[];
+  private _sources: Dict<Source>;
   private _transformListeners: Dict<(transform: Transform) => void>;
   private _activated: Promise<void>;
   private _reviewing: Promise<void>;
@@ -22,7 +23,7 @@ export default class Coordinator {
 
   constructor(sources: Source[] = [], autoActivate: boolean = true) {
     this._active = false;
-    this._sources = [];
+    this._sources = {};
     this._transformListeners = {};
 
     sources.forEach(source => this.addSource(source));
@@ -33,25 +34,32 @@ export default class Coordinator {
   }
 
   addSource(source: Source) {
-    assert(`Source '${source.name}' has already been added to the Coordinator.`, this._sources.indexOf(source) === -1);
+    const name = source.name;
 
-    this._sources.push(source);
+    assert(`Sources require a 'name' to be added to the Coordinator.`, !!name);
+    assert(`Source '${name}' has already been added to the Coordinator.`, !this._sources[name]);
+
+    this._sources[name] = source;
 
     if (this._active) {
       this._activateSource(source);
     }
   }
 
-  removeSource(source: Source) {
-    let i: number = this._sources.indexOf(source);
+  removeSource(name: string) {
+    let source = this._sources[name];
 
-    assert(`Source '${source.name}' has not been added to the Coordinator.`, i > -1);
+    assert(`Source '${name}' has not been added to the Coordinator.`, !!source);
 
     if (this._active) {
       this._deactivateSource(source);
     }
 
-    this._sources.splice(i, 1);
+    delete this._sources[name];
+  }
+
+  get sources(): Dict<Source> {
+    return this._sources;
   }
 
   get active(): boolean {
@@ -66,7 +74,7 @@ export default class Coordinator {
     this._activated = this.review()
       .then(() => {
         this._active = true;
-        this._sources.forEach(source => this._activateSource(source));
+        Object.values(this._sources).forEach(source => this._activateSource(source));
       });
 
     return this._activated;
@@ -93,20 +101,21 @@ export default class Coordinator {
   deactivate(): void {
     this._active = false;
     this._activated = null;
-    this._sources.forEach(source => this._deactivateSource(source));
+    Object.values(this._sources).forEach(source => this._deactivateSource(source));
   }
 
   _reifySources(): Promise<void> {
-    return this._sources
+    return Object.values(this._sources)
       .reduce((chain, source) => {
         return chain.then(() => source.transformLog.reified);
       }, Orbit.Promise.resolve());
   }
 
   _review(): Promise<void> {
-    if (this._sources.length > 1) {
-      let primaryLog = this._sources[0].transformLog;
-      let otherLogs = this._sources.slice(1).map(s => s.transformLog);
+    let sources = Object.values(this._sources);
+    if (sources.length > 1) {
+      let primaryLog = sources[0].transformLog;
+      let otherLogs = sources.slice(1).map(s => s.transformLog);
       let entries = primaryLog.entries;
       let latestMatch;
 
@@ -136,7 +145,7 @@ export default class Coordinator {
   }
 
   _truncateSources(transformId: string, relativePosition: number) {
-    return this._sources
+    return Object.values(this._sources)
       .reduce((chain, source) => {
         return chain.then(() => source.transformLog.truncate(transformId, relativePosition));
       }, Orbit.Promise.resolve());
