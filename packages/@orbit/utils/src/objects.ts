@@ -225,3 +225,18 @@ export function deepSet(obj: Object, path: string[], value: any): boolean {
     return true;
   }
 }
+
+/**
+ * Find an array of the values that correspond to the keys of an object.
+ * 
+ * This is a ponyfill for `Object.values`, which is still experimental.
+ * 
+ * @param object 
+ */
+export function objectValues(obj: object): any[] {
+  if (Object.values) {
+    return Object.values(obj);
+  } else {
+    return Object.keys(obj).map(k => obj[k]);
+  }
+}
