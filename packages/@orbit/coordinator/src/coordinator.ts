@@ -2,169 +2,163 @@ import Orbit, {
   Source,
   Transform
 } from '@orbit/data';
-import { Dict, assert } from '@orbit/utils';
+import { Dict, assert, objectValues } from '@orbit/utils';
+import { Strategy } from './strategy';
+
+export interface CoordinatorOptions {
+  sources?: Source[];
+  strategies?: Strategy[];
+  defaultActivationOptions?: ActivationOptions;
+}
+
+export interface ActivationOptions {
+  enableLogging?: boolean;
+}
 
 /**
- * The Coordinator class observes sources registered with it, and truncates
- * logs up to the most recent common entry between them.
- * 
- * This class is experimental and should be considered a work in progress.
+ * The Coordinator class manages a set of sources to which it applies a set of
+ * coordination strategies.
  * 
  * @export
  * @class Coordinator
  */
 export default class Coordinator {
-  private _active: boolean;
-  private _sources: Dict<Source>;
-  private _transformListeners: Dict<(transform: Transform) => void>;
-  private _activated: Promise<void>;
-  private _reviewing: Promise<void>;
-  private _extraReviewNeeded: boolean;
+  protected _sources: Dict<Source>;
+  protected _strategies: Dict<Strategy>;
+  protected _activated: Promise<any>;
+  protected _defaultActivationOptions: ActivationOptions;
+  protected _currentActivationOptions: ActivationOptions;
 
-  constructor(sources: Source[] = [], autoActivate: boolean = true) {
-    this._active = false;
+  constructor(options: CoordinatorOptions = {}) {
     this._sources = {};
-    this._transformListeners = {};
+    this._strategies = {};
 
-    sources.forEach(source => this.addSource(source));
-
-    if (autoActivate) {
-      this.activate();
+    if (options.sources) {
+      options.sources.forEach(source => this.addSource(source));
     }
+
+    if (options.strategies) {
+      options.strategies.forEach(strategy => this.addStrategy(strategy));
+    }
+
+    this._defaultActivationOptions = options.defaultActivationOptions || {};
   }
 
-  addSource(source: Source) {
+  addSource(source: Source): Promise<any> {
     const name = source.name;
 
     assert(`Sources require a 'name' to be added to the Coordinator.`, !!name);
-    assert(`Source '${name}' has already been added to the Coordinator.`, !this._sources[name]);
+    assert(`A source named '${name}' has already been added to the Coordinator.`, !this._sources[name]);
 
     this._sources[name] = source;
 
-    if (this._active) {
-      this._activateSource(source);
+    if (this._activated) {
+      return this.reactivate();
+    } else {
+      return Orbit.Promise.resolve();
     }
   }
 
-  removeSource(name: string) {
+  removeSource(name: string): Promise<any> {
     let source = this._sources[name];
 
     assert(`Source '${name}' has not been added to the Coordinator.`, !!source);
 
-    if (this._active) {
-      this._deactivateSource(source);
-    }
-
     delete this._sources[name];
-  }
 
-  get sources(): Dict<Source> {
-    return this._sources;
-  }
-
-  get active(): boolean {
-    return this._active;
-  }
-
-  get activated(): Promise<void> {
-    return this._activated;
-  }
-
-  activate(): Promise<void> {
-    this._activated = this.review()
-      .then(() => {
-        this._active = true;
-        Object.values(this._sources).forEach(source => this._activateSource(source));
-      });
-
-    return this._activated;
-  }
-
-  review(): Promise<void> {
-    if (this._reviewing) {
-      this._extraReviewNeeded = true;
+    if (this._activated) {
+      return this.reactivate();
     } else {
-      this._reviewing = this._reifySources()
-        .then(() => this._review())
+      return Orbit.Promise.resolve();
+    }
+  }
+
+  getSource(name: string) {
+    return this._sources[name];
+  }
+
+  get sources(): Source[] {
+    return objectValues(this._sources);
+  }
+
+  get sourceNames(): string[] {
+    return Object.keys(this._sources);
+  }
+
+  addStrategy(strategy: Strategy): Promise<any> {
+    const name = strategy.name;
+
+    assert(`Strategies require a 'name' to be added to the Coordinator.`, !!name);
+    assert(`A strategy named '${name}' has already been added to the Coordinator.`, !this._strategies[name]);
+
+    this._strategies[name] = strategy;
+
+    if (this._activated) {
+      this._activated = this._activated
         .then(() => {
-          if (this._extraReviewNeeded) {
-            this._extraReviewNeeded = false;
-            return this._review();
-          } else {
-            this._reviewing = null;
-          }
+          return strategy.activate(this, this._currentActivationOptions);
         });
+      return this._activated;
+    } else {
+      return Orbit.Promise.resolve();
     }
-    return this._reviewing;
   }
 
-  deactivate(): void {
-    this._active = false;
-    this._activated = null;
-    Object.values(this._sources).forEach(source => this._deactivateSource(source));
+  removeStrategy(name: string): Promise<any> {
+    let strategy = this._strategies[name];
+
+    assert(`Strategy '${name}' has not been added to the Coordinator.`, !!strategy);
+
+    return strategy.deactivate()
+      .then(() => {
+        delete this._strategies[name];
+      });
   }
 
-  _reifySources(): Promise<void> {
-    return Object.values(this._sources)
-      .reduce((chain, source) => {
-        return chain.then(() => source.transformLog.reified);
-      }, Orbit.Promise.resolve());
+  getStrategy(name: string) {
+    return this._strategies[name];
   }
 
-  _review(): Promise<void> {
-    let sources = Object.values(this._sources);
-    if (sources.length > 1) {
-      let primaryLog = sources[0].transformLog;
-      let otherLogs = sources.slice(1).map(s => s.transformLog);
-      let entries = primaryLog.entries;
-      let latestMatch;
+  get strategies(): Strategy[] {
+    return objectValues(this._strategies);
+  }
 
-      for (let i = 0; i < entries.length; i++) {
-        let entry = entries[i];
+  get strategyNames(): string[] {
+    return Object.keys(this._strategies);
+  }
 
-        let match = true;
-        for (let j = 0; j < otherLogs.length; j++) {
-          if (!otherLogs[j].contains(entry)) {
-            match = false;
-            break;
-          }
-        }
+  get activated(): Promise<void[]> {
+    return this._activated;
+  }
 
-        if (match) {
-          latestMatch = entry;
-        } else {
-          break;
-        }
+  activate(options: ActivationOptions = {}): Promise<void[]> {
+    if (!this._activated) {
+      if (options.enableLogging === undefined) {
+        options.enableLogging = this._defaultActivationOptions.enableLogging;
       }
 
-      if (latestMatch) {
-        return this._truncateSources(latestMatch, +1);
-      }
+      this._currentActivationOptions = options;
+      this._activated = Promise.all(this.strategies.map(strategy => strategy.activate(this, this._currentActivationOptions)));
     }
-    return Orbit.Promise.resolve();
+
+    return this._activated;
   }
 
-  _truncateSources(transformId: string, relativePosition: number) {
-    return Object.values(this._sources)
-      .reduce((chain, source) => {
-        return chain.then(() => source.transformLog.truncate(transformId, relativePosition));
-      }, Orbit.Promise.resolve());
+  deactivate(): Promise<any> {
+    return Promise.all(this.strategies.map(strategy => strategy.deactivate()))
+      .then(() => {
+        this._activated = null;
+      });
   }
 
-  _activateSource(source: Source) {
-    const listener = this._transformListeners[source.name] = (transform: Transform): void => {
-      this._sourceTransformed(source, transform.id);
-    };
+  reactivate(options?: ActivationOptions): Promise<any> {
+    options = options || this._currentActivationOptions;
 
-    source.on('transform', listener);
-  }
-
-  _deactivateSource(source: Source) {
-    const listener = this._transformListeners[source.name];
-    source.off('transform', listener);
-  }
-
-  _sourceTransformed(source: Source, transformId: string) {
-    this.review();
+    if (this._activated) {
+      return this.deactivate()
+        .then(() => this.activate(options));
+    } else {
+      return this.activate(options);
+    }
   }
 }
