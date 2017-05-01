@@ -11,14 +11,21 @@ export interface CoordinatorOptions {
   defaultActivationOptions?: ActivationOptions;
 }
 
+export enum LogLevel {
+  None,
+  Errors,
+  Warnings,
+  Info
+}
+
 export interface ActivationOptions {
-  enableLogging?: boolean;
+  logLevel?: LogLevel;
 }
 
 /**
  * The Coordinator class manages a set of sources to which it applies a set of
  * coordination strategies.
- * 
+ *
  * @export
  * @class Coordinator
  */
@@ -42,6 +49,10 @@ export default class Coordinator {
     }
 
     this._defaultActivationOptions = options.defaultActivationOptions || {};
+
+    if (this._defaultActivationOptions.logLevel === undefined) {
+      this._defaultActivationOptions.logLevel = LogLevel.Info;
+    }
   }
 
   addSource(source: Source): Promise<any> {
@@ -133,12 +144,12 @@ export default class Coordinator {
 
   activate(options: ActivationOptions = {}): Promise<void[]> {
     if (!this._activated) {
-      if (options.enableLogging === undefined) {
-        options.enableLogging = this._defaultActivationOptions.enableLogging;
+      if (options.logLevel === undefined) {
+        options.logLevel = this._defaultActivationOptions.logLevel;
       }
 
       this._currentActivationOptions = options;
-      this._activated = Promise.all(this.strategies.map(strategy => strategy.activate(this, this._currentActivationOptions)));
+      this._activated = Promise.all(this.strategies.map(strategy => strategy.activate(this, options)));
     }
 
     return this._activated;

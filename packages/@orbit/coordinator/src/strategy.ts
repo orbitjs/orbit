@@ -1,4 +1,4 @@
-import Coordinator, { ActivationOptions } from './coordinator';
+import Coordinator, { ActivationOptions, LogLevel } from './coordinator';
 import Orbit, {
   Source
 } from '@orbit/data';
@@ -45,6 +45,7 @@ export abstract class Strategy {
   protected _excludeSources: string[];
   protected _sources: Source[];
   protected _activated: Promise<any>;
+  protected _logLevel: LogLevel;
 
   constructor(options: StrategyOptions = {}) {
     assert('Strategy requires a name', !!options.name);
