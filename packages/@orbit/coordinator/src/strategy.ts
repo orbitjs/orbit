@@ -19,52 +19,33 @@ export interface StrategyOptions {
    * The names of sources to include in this strategy. Leave undefined
    * to include all sources registered with a coordinator.
    *
-   * Note: can not be used together with `excludeSources`.
-   *
    * @type {string[]}
    * @memberOf LogTruncationOptions
    */
-  includeSources?: string[];
-
-  /**
-   * The names of sources to exclude from this strategy. Leave undefined
-   * to include all sources registered with a coordinator.
-   *
-   * Note: can not be used together with `includeSources`.
-   *
-   * @type {string[]}
-   * @memberOf LogTruncationOptions
-   */
-  excludeSources?: string[];
+  sources?: string[];
 }
 
 export abstract class Strategy {
   protected _name: string;
   protected _coordinator: Coordinator;
-  protected _includeSources: string[];
-  protected _excludeSources: string[];
+  protected _sourceNames: string[];
   protected _sources: Source[];
   protected _activated: Promise<any>;
   protected _logLevel: LogLevel;
 
   constructor(options: StrategyOptions = {}) {
     assert('Strategy requires a name', !!options.name);
-    assert('Strategy can not include both `includeSources` and `excludeSources`', !(!!options.includeSources && !!options.excludeSources));
 
     this._name = options.name;
-    this._includeSources = options.includeSources;
-    this._excludeSources = options.excludeSources;
+    this._sourceNames = options.sources;
   }
 
   activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
     this._coordinator = coordinator;
+    this._logLevel = options.logLevel;
 
-    if (this._includeSources) {
-      this._sources = coordinator.sources.filter(s => this._includeSources.indexOf(s.name) > -1);
-
-    } else if (this._excludeSources) {
-      this._sources = coordinator.sources.filter(s => this._excludeSources.indexOf(s.name) === -1);
-
+    if (this._sourceNames) {
+      this._sources = coordinator.sources.filter(s => this._sourceNames.indexOf(s.name) > -1);
     } else {
       this._sources = coordinator.sources;
     }
