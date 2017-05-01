@@ -1,21 +1,23 @@
-import { 
-  Source, 
-  Coordinator, 
-  Transform, 
-  addRecord 
-} from '../src/index';
-import './test-helper';
+import Coordinator, {
+  LogTruncationStrategy
+} from '../../src/index';
+import {
+  Source,
+  Transform,
+  addRecord
+} from '@orbit/data';
+import '../test-helper';
 
 declare const RSVP: any;
 const { all } = RSVP;
 const { module, test } = QUnit;
 
-module('Coordinator', function(hooks) {
+module('LogTruncationStrategy', function(hooks) {
   const tA = new Transform([addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })], null, 'a');
   const tB = new Transform([addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })], null, 'b');
   const tC = new Transform([addRecord({ type: 'planet', id: 'c', attributes: { name: 'c' } })], null, 'c');
 
-  let coordinator, s1, s2, s3;
+  let logTruncationStrategy, coordinator, s1, s2, s3;
 
   hooks.beforeEach(function() {
     class MySource extends Source {}
@@ -26,21 +28,26 @@ module('Coordinator', function(hooks) {
   });
 
   test('can be instantiated', function(assert) {
-    coordinator = new Coordinator([s1, s2, s3]);
+    logTruncationStrategy = new LogTruncationStrategy();
 
-    assert.ok(coordinator);
+    assert.ok(logTruncationStrategy);
   });
 
   test('reviews sources and truncates their history to after the most recent common entry', function(assert) {
     assert.expect(14);
 
-    coordinator = new Coordinator([s1, s2, s3], false);
+    logTruncationStrategy = new LogTruncationStrategy();
+
+    coordinator = new Coordinator({
+      sources: [s1, s2, s3],
+      strategies: [logTruncationStrategy]
+    });
 
     return all([
-      s1._transformed([tA, tB]),
-      s2._transformed([tA, tB]),
-      s3._transformed([tA, tB, tC])
-    ])
+        s1._transformed([tA, tB]),
+        s2._transformed([tA, tB]),
+        s3._transformed([tA, tB, tC])
+      ])
       .then(() => {
         assert.ok(s1.transformLog.contains('a'), 's1 contains a');
         assert.ok(s2.transformLog.contains('a'), 's2 contains a');
@@ -52,7 +59,7 @@ module('Coordinator', function(hooks) {
 
         assert.ok(s3.transformLog.contains('b'), 's3 contains c');
 
-        return coordinator.review();
+        return coordinator.activate();
       })
       .then(() => {
         assert.ok(!s1.transformLog.contains('a'), 's1 has removed a');
@@ -67,12 +74,17 @@ module('Coordinator', function(hooks) {
       });
   });
 
-  QUnit.skip('observes source transforms and truncates their history to after the most recent common entry', function(assert) {
+  test('observes source transforms and truncates their history to after the most recent common entry', function(assert) {
     assert.expect(7);
 
-    coordinator = new Coordinator([s1, s2, s3]);
+    logTruncationStrategy = new LogTruncationStrategy();
 
-    return coordinator.activated
+    coordinator = new Coordinator({
+      sources: [s1, s2, s3],
+      strategies: [logTruncationStrategy]
+    });
+
+    return coordinator.activate()
       .then(() => all([
         s1._transformed([tA, tB]),
         s2._transformed([tA, tB]),

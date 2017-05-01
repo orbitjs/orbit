@@ -1,75 +1,41 @@
-import Orbit from './main';
-import { Source } from './source';
-import Transform from './transform';
-import { Dict, assert } from '@orbit/utils';
+import Coordinator, { ActivationOptions } from '../coordinator';
+import { Strategy, StrategyOptions } from '../strategy';
+import Orbit, {
+  Source,
+  Transform
+} from '@orbit/data';
+import { Dict, assert, objectValues } from '@orbit/utils';
 
-/**
- * The Coordinator class observes sources registered with it, and truncates
- * logs up to the most recent common entry between them.
- * 
- * This class is experimental and should be considered a work in progress.
- * 
- * @export
- * @class Coordinator
- */
-export default class Coordinator {
-  private _active: boolean;
-  private _sources: Source[];
-  private _transformListeners: Dict<(transform: Transform) => void>;
-  private _activated: Promise<void>;
-  private _reviewing: Promise<void>;
-  private _extraReviewNeeded: boolean;
+export interface LogTruncationOptions extends StrategyOptions {
+}
 
-  constructor(sources: Source[] = [], autoActivate: boolean = true) {
-    this._active = false;
-    this._sources = [];
-    this._transformListeners = {};
+export default class LogTruncationStrategy extends Strategy {
+  protected _reviewing: Promise<void>;
+  protected _extraReviewNeeded: boolean;
+  protected _transformListeners: Dict<(transform: Transform) => void>;
 
-    sources.forEach(source => this.addSource(source));
-
-    if (autoActivate) {
-      this.activate();
-    }
+  constructor(options: LogTruncationOptions = {}) {
+    options.name = options.name || 'log-truncation';
+    super(options);
   }
 
-  addSource(source: Source) {
-    assert(`Source '${source.name}' has already been added to the Coordinator.`, this._sources.indexOf(source) === -1);
-
-    this._sources.push(source);
-
-    if (this._active) {
-      this._activateSource(source);
-    }
-  }
-
-  removeSource(source: Source) {
-    let i: number = this._sources.indexOf(source);
-
-    assert(`Source '${source.name}' has not been added to the Coordinator.`, i > -1);
-
-    if (this._active) {
-      this._deactivateSource(source);
-    }
-
-    this._sources.splice(i, 1);
-  }
-
-  get active(): boolean {
-    return this._active;
-  }
-
-  get activated(): Promise<void> {
-    return this._activated;
-  }
-
-  activate(): Promise<void> {
-    this._activated = this.review()
+  activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
+    return this._activated = super.activate(coordinator, options)
       .then(() => {
-        this._active = true;
+        return this._reifySources();
+      })
+      .then(() => {
+        this._transformListeners = {};
         this._sources.forEach(source => this._activateSource(source));
+        return this.review();
       });
+  }
 
-    return this._activated;
+  deactivate(): Promise<any> {
+    return super.deactivate()
+      .then(() => {
+        this._transformListeners = null;
+      });
   }
 
   review(): Promise<void> {
@@ -90,12 +56,6 @@ export default class Coordinator {
     return this._reviewing;
   }
 
-  deactivate(): void {
-    this._active = false;
-    this._activated = null;
-    this._sources.forEach(source => this._deactivateSource(source));
-  }
-
   _reifySources(): Promise<void> {
     return this._sources
       .reduce((chain, source) => {
@@ -104,9 +64,10 @@ export default class Coordinator {
   }
 
   _review(): Promise<void> {
-    if (this._sources.length > 1) {
-      let primaryLog = this._sources[0].transformLog;
-      let otherLogs = this._sources.slice(1).map(s => s.transformLog);
+    let sources = this._sources;
+    if (sources.length > 1) {
+      let primaryLog = sources[0].transformLog;
+      let otherLogs = sources.slice(1).map(s => s.transformLog);
       let entries = primaryLog.entries;
       let latestMatch;
 
@@ -132,6 +93,7 @@ export default class Coordinator {
         return this._truncateSources(latestMatch, +1);
       }
     }
+
     return Orbit.Promise.resolve();
   }
 

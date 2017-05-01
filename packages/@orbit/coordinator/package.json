@@ -1,0 +1,31 @@
+{
+  "name": "@orbit/coordinator",
+  "version": "0.8.0-beta.11",
+  "description": "A coordinator and strategies for managing data flow and keeping sources in sync.",
+  "contributors": [
+    "Dan Gebhardt <dan@cerebris.com>"
+  ],
+  "keywords": [
+    "orbit",
+    "orbit.js",
+    "data",
+    "synchronization"
+  ],
+  "repository": "https://github.com/orbitjs/orbit",
+  "license": "MIT",
+  "main": "dist/commonjs/es5/index.js",
+  "module": "dist/modules/es2017/index.js",
+  "types": "dist/types/index.d.ts",
+  "scripts": {
+    "build": "rm -rf dist && BROCCOLI_ENV=dist broccoli build dist",
+    "build:tests": "rm -rf tests && BROCCOLI_ENV=tests broccoli build tests",
+    "preversion": "rm -rf dist && BROCCOLI_ENV=dist broccoli build dist",
+    "test": "testem ci"
+  },
+  "devDependencies": {
+    "@glimmer/build": "^0.6.3",
+    "@orbit/core": "0.8.0-beta.11",
+    "@orbit/data": "0.8.0-beta.11",
+    "@orbit/utils": "0.8.0-beta.11"
+  }
+}
