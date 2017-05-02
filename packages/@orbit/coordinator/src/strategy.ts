@@ -50,24 +50,17 @@ export abstract class Strategy {
       this._sources = coordinator.sources;
     }
 
-    this._activated = Orbit.Promise.resolve();
-
-    return this._activated;
+    return Orbit.Promise.resolve();
   }
 
   deactivate(): Promise<any> {
     this._coordinator = null;
-    this._activated = null;
 
     return Orbit.Promise.resolve();
   }
 
   get name(): string {
     return this._name;
-  }
-
-  get activated(): Promise<any> {
-    return this._activated;
   }
 
   get coordinator(): Coordinator {

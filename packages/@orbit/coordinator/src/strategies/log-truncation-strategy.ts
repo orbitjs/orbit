@@ -17,7 +17,7 @@ export class LogTruncationStrategy extends Strategy {
   }
 
   activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
-    return this._activated = super.activate(coordinator, options)
+    return super.activate(coordinator, options)
       .then(() => {
         return this._reifySources();
       })

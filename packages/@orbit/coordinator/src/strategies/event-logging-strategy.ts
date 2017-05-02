@@ -35,7 +35,7 @@ export class EventLoggingStrategy extends Strategy {
   }
 
   activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
-    return this._activated = super.activate(coordinator, options)
+    return super.activate(coordinator, options)
       .then(() => {
         this._eventListeners = {};
         this._sources.forEach(source => this._activateSource(source));

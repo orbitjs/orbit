@@ -67,16 +67,16 @@ module('Strategy', function(hooks) {
       }
 
       activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
-        super.activate(coordinator, options);
-
-        assert.deepEqual(this._sources, [s1, s2, s3]);
-
-        return Orbit.Promise.resolve();
+        return super.activate(coordinator, options)
+          .then(() => {
+            assert.deepEqual(this._sources, [s1, s2, s3]);
+          });
       }
     }
 
     strategy = new CustomStrategy();
-    strategy.activate(coordinator);
+
+    return strategy.activate(coordinator);
   });
 
   test('can include only specific sources', function(assert) {
@@ -89,15 +89,15 @@ module('Strategy', function(hooks) {
       }
 
       activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
-        super.activate(coordinator, options);
-
-        assert.deepEqual(this._sources, [s1, s2]);
-
-        return Orbit.Promise.resolve();
+        return super.activate(coordinator, options)
+          .then(() => {
+            assert.deepEqual(this._sources, [s1, s2]);
+          });
       }
     }
 
     strategy = new CustomStrategy({ sources: ['s1', 's2'] });
+
     return strategy.activate(coordinator);
   });
 
@@ -122,6 +122,7 @@ module('Strategy', function(hooks) {
 
     strategy = new CustomStrategy();
     coordinator.addStrategy(strategy);
+
     return coordinator.activate({ logLevel: LogLevel.Warnings });
   });
 });
