@@ -7,12 +7,12 @@ export const SYNCABLE = '__syncable__';
 
 /**
  * Has a source been decorated as `@syncable`?
- * 
+ *
  * @export
- * @param {SourceClass} source 
- * @returns 
+ * @param {SourceClass} source
+ * @returns
  */
-export function isSyncable(source: SourceClass) {
+export function isSyncable(source: Source) {
   return !!source[SYNCABLE];
 }
 
@@ -49,8 +49,8 @@ export interface Syncable {
  *
  * @export
  * @decorator
- * @param {SourceClass} Klass 
- * @returns {void} 
+ * @param {SourceClass} Klass
+ * @returns {void}
  */
 export default function syncable(Klass: SourceClass): void {
   let proto = Klass.prototype;

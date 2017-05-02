@@ -1,5 +1,6 @@
 import Coordinator, {
   ActivationOptions,
+  LogLevel,
   Strategy,
   StrategyOptions
 } from '../src/index';
@@ -66,16 +67,16 @@ module('Strategy', function(hooks) {
       }
 
       activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
-        super.activate(coordinator, options);
-
-        assert.deepEqual(this._sources, [s1, s2, s3]);
-
-        return Orbit.Promise.resolve();
+        return super.activate(coordinator, options)
+          .then(() => {
+            assert.deepEqual(this._sources, [s1, s2, s3]);
+          });
       }
     }
 
     strategy = new CustomStrategy();
-    strategy.activate(coordinator);
+
+    return strategy.activate(coordinator);
   });
 
   test('can include only specific sources', function(assert) {
@@ -88,37 +89,40 @@ module('Strategy', function(hooks) {
       }
 
       activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
-        super.activate(coordinator, options);
-
-        assert.deepEqual(this._sources, [s1, s2]);
-
-        return Orbit.Promise.resolve();
+        return super.activate(coordinator, options)
+          .then(() => {
+            assert.deepEqual(this._sources, [s1, s2]);
+          });
       }
     }
 
-    strategy = new CustomStrategy({ includeSources: ['s1', 's2'] });
-    strategy.activate(coordinator);
+    strategy = new CustomStrategy({ sources: ['s1', 's2'] });
+
+    return strategy.activate(coordinator);
   });
 
-  test('can exclude specific sources', function(assert) {
-    assert.expect(1);
+  test('#activate - receives the `logLevel` from the coordinator', function(assert) {
+    assert.expect(2);
 
     class CustomStrategy extends Strategy {
       constructor(options: StrategyOptions = {}) {
         options.name = 'custom';
         super(options);
+
+        assert.equal(this._logLevel, undefined, '_logLevel is initially undefined');
       }
 
       activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
-        super.activate(coordinator, options);
-
-        assert.deepEqual(this._sources, [s1, s3]);
-
-        return Orbit.Promise.resolve();
+        return super.activate(coordinator, options)
+          .then(() => {
+            assert.equal(this._logLevel, LogLevel.Warnings, '_logLevel is set by activate');
+          });
       }
     }
 
-    strategy = new CustomStrategy({ excludeSources: ['s2'] });
-    strategy.activate(coordinator);
+    strategy = new CustomStrategy();
+    coordinator.addStrategy(strategy);
+
+    return coordinator.activate({ logLevel: LogLevel.Warnings });
   });
 });

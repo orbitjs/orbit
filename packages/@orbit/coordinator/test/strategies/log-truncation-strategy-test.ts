@@ -102,4 +102,7 @@ module('LogTruncationStrategy', function(hooks) {
         assert.ok(s3.transformLog.contains('c'), 's3 contains c');
       });
   });
+
+  // TODO:
+  // * test deactivation
 });

@@ -6,21 +6,18 @@ import Orbit, {
 } from '@orbit/data';
 import { Dict, assert, objectValues } from '@orbit/utils';
 
-export interface LogTruncationOptions extends StrategyOptions {
-}
-
-export default class LogTruncationStrategy extends Strategy {
+export class LogTruncationStrategy extends Strategy {
   protected _reviewing: Promise<void>;
   protected _extraReviewNeeded: boolean;
   protected _transformListeners: Dict<(transform: Transform) => void>;
 
-  constructor(options: LogTruncationOptions = {}) {
+  constructor(options: StrategyOptions = {}) {
     options.name = options.name || 'log-truncation';
     super(options);
   }
 
   activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
-    return this._activated = super.activate(coordinator, options)
+    return super.activate(coordinator, options)
       .then(() => {
         return this._reifySources();
       })
@@ -34,6 +31,7 @@ export default class LogTruncationStrategy extends Strategy {
   deactivate(): Promise<any> {
     return super.deactivate()
       .then(() => {
+        this._sources.forEach(source => this._deactivateSource(source));
         this._transformListeners = null;
       });
   }

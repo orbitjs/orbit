@@ -1,6 +1,7 @@
 # @orbit/coordinator
 
-A coordinator and strategies for managing data flow and keeping @orbit/data sources in sync.
+A coordinator and set of coordination strategies for managing data flow and
+keeping @orbit/data sources in sync.
 
 ## Installation
 
