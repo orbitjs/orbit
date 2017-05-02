@@ -45,7 +45,7 @@ export abstract class Strategy {
     this._logLevel = options.logLevel;
 
     if (this._sourceNames) {
-      this._sources = coordinator.sources.filter(s => this._sourceNames.indexOf(s.name) > -1);
+      this._sources = this._sourceNames.map(name => coordinator.getSource(name));
     } else {
       this._sources = coordinator.sources;
     }
@@ -65,5 +65,9 @@ export abstract class Strategy {
 
   get coordinator(): Coordinator {
     return this._coordinator;
+  }
+
+  get sources(): Source[] {
+    return this._sources;
   }
 }
