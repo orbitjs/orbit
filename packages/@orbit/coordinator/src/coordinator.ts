@@ -55,33 +55,23 @@ export default class Coordinator {
     }
   }
 
-  addSource(source: Source): Promise<any> {
+  addSource(source: Source): void {
     const name = source.name;
 
-    assert(`Sources require a 'name' to be added to the Coordinator.`, !!name);
-    assert(`A source named '${name}' has already been added to the Coordinator.`, !this._sources[name]);
+    assert(`Sources require a 'name' to be added to a coordinator.`, !!name);
+    assert(`A source named '${name}' has already been added to this coordinator.`, !this._sources[name]);
+    assert(`A coordinator's sources can not be changed while it is active.`, !this._activated);
 
     this._sources[name] = source;
-
-    if (this._activated) {
-      return this.reactivate();
-    } else {
-      return Orbit.Promise.resolve();
-    }
   }
 
-  removeSource(name: string): Promise<any> {
+  removeSource(name: string): void {
     let source = this._sources[name];
 
-    assert(`Source '${name}' has not been added to the Coordinator.`, !!source);
+    assert(`Source '${name}' has not been added to this coordinator.`, !!source);
+    assert(`A coordinator's sources can not be changed while it is active.`, !this._activated);
 
     delete this._sources[name];
-
-    if (this._activated) {
-      return this.reactivate();
-    } else {
-      return Orbit.Promise.resolve();
-    }
   }
 
   getSource(name: string) {
@@ -96,37 +86,25 @@ export default class Coordinator {
     return Object.keys(this._sources);
   }
 
-  addStrategy(strategy: Strategy): Promise<any> {
+  addStrategy(strategy: Strategy): void {
     const name = strategy.name;
 
-    assert(`Strategies require a 'name' to be added to the Coordinator.`, !!name);
-    assert(`A strategy named '${name}' has already been added to the Coordinator.`, !this._strategies[name]);
+    assert(`A strategy named '${name}' has already been added to this coordinator.`, !this._strategies[name]);
+    assert(`A coordinator's strategies can not be changed while it is active.`, !this._activated);
 
     this._strategies[name] = strategy;
-
-    if (this._activated) {
-      this._activated = this._activated
-        .then(() => {
-          return strategy.activate(this, this._currentActivationOptions);
-        });
-      return this._activated;
-    } else {
-      return Orbit.Promise.resolve();
-    }
   }
 
-  removeStrategy(name: string): Promise<any> {
+  removeStrategy(name: string): void {
     let strategy = this._strategies[name];
 
-    assert(`Strategy '${name}' has not been added to the Coordinator.`, !!strategy);
+    assert(`Strategy '${name}' has not been added to this coordinator.`, !!strategy);
+    assert(`A coordinator's strategies can not be changed while it is active.`, !this._activated);
 
-    return strategy.deactivate()
-      .then(() => {
-        delete this._strategies[name];
-      });
+    delete this._strategies[name];
   }
 
-  getStrategy(name: string) {
+  getStrategy(name: string): Strategy {
     return this._strategies[name];
   }
 
@@ -160,16 +138,5 @@ export default class Coordinator {
       .then(() => {
         this._activated = null;
       });
-  }
-
-  reactivate(options?: ActivationOptions): Promise<any> {
-    options = options || this._currentActivationOptions;
-
-    if (this._activated) {
-      return this.deactivate()
-        .then(() => this.activate(options));
-    } else {
-      return this.activate(options);
-    }
   }
 }

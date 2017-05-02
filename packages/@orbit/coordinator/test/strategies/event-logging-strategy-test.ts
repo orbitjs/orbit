@@ -30,8 +30,9 @@ module('EventLoggingStrategy', function(hooks) {
 
     eventLoggingStrategy = new EventLoggingStrategy();
 
-    return coordinator.addStrategy(eventLoggingStrategy)
-      .then(() => assert.ok(true));
+    coordinator.addStrategy(eventLoggingStrategy);
+
+    assert.strictEqual(coordinator.getStrategy('event-logging'), eventLoggingStrategy);
   });
 
   test('for basic sources, installs `transform` listeners on activatation and removes them on deactivation', function(assert) {
