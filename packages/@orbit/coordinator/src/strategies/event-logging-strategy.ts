@@ -31,7 +31,7 @@ export class EventLoggingStrategy extends Strategy {
 
     this._events = options.events;
     this._interfaces = options.interfaces;
-    this._logPrefix = options.logPrefix || 'source-event';
+    this._logPrefix = options.logPrefix || '[source-event]';
   }
 
   activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
@@ -50,19 +50,19 @@ export class EventLoggingStrategy extends Strategy {
       });
   }
 
-  _activateSource(source: Source) {
+  protected _activateSource(source: Source) {
     this._sourceEvents(source).forEach(event => {
       this._addListener(source, event);
     });
   }
 
-  _deactivateSource(source: Source) {
+  protected _deactivateSource(source: Source) {
     this._sourceEvents(source).forEach(event => {
       this._removeListener(source, event);
     });
   }
 
-  _sourceEvents(source: Source) {
+  protected _sourceEvents(source: Source) {
     if (this._events) {
       return this._events;
     } else {
@@ -77,7 +77,7 @@ export class EventLoggingStrategy extends Strategy {
     }
   }
 
-  _sourceInterfaces(source: Source) {
+  protected _sourceInterfaces(source: Source) {
     let interfaces = ['transformable'];
     if (isPullable(source)) { interfaces.push('pullable'); }
     if (isPushable(source)) { interfaces.push('pushable'); }
@@ -87,7 +87,7 @@ export class EventLoggingStrategy extends Strategy {
     return interfaces;
   }
 
-  _interfaceEvents(interfaceName: string): string[] {
+  protected _interfaceEvents(interfaceName: string): string[] {
     if (this._logLevel === LogLevel.Info) {
       switch(interfaceName) {
         case 'pullable':
@@ -117,19 +117,19 @@ export class EventLoggingStrategy extends Strategy {
     }
   }
 
-  _addListener(source: Source, event: string) {
-    const listener = this._listener(source, event);
+  protected _addListener(source: Source, event: string) {
+    const listener = this._generateListener(source, event);
     deepSet(this._eventListeners, [source.name, event], listener);
     source.on(event, listener, this);
   }
 
-  _removeListener(source: Source, event: string) {
+  protected _removeListener(source: Source, event: string) {
     const listener = deepGet(this._eventListeners, [source.name, event]);
     source.off(event, listener, this);
     this._eventListeners[source.name][event] = null;
   }
 
-  _listener(source: Source, event: string) {
+  protected _generateListener(source: Source, event: string) {
     return (...args): void => {
       console.log(this._logPrefix, source.name, event, ...args);
     };
