@@ -1,5 +1,5 @@
-import { 
-  serializeRecordIdentity, 
+import {
+  serializeRecordIdentity,
   Record,
   RecordIdentity,
   RecordOperation,
@@ -13,7 +13,7 @@ import {
   ReplaceKeyOperation,
   ReplaceRecordOperation
 } from '@orbit/data';
-import { clone, deepGet, deepSet } from '@orbit/utils';
+import { clone, deepGet, deepSet, merge } from '@orbit/utils';
 import Cache from '../cache';
 
 export interface PatchTransformFunc {
@@ -31,10 +31,29 @@ export default {
   },
 
   replaceRecord(cache: Cache, op: ReplaceRecordOperation): boolean {
-    const { type, id } = op.record;
+    const replacement = op.record;
+    const { type, id } = replacement;
     const records = cache.records(type);
-    if (records.get(id) !== op.record) {
-      records.set(id, op.record);
+    const current = records.get(id);
+    if (current !== replacement) {
+      let result: Record;
+
+      if (current) {
+        result = { type, id };
+
+        ['attributes', 'keys', 'relationships'].forEach(grouping => {
+          if (current[grouping]) {
+            result[grouping] = merge(current[grouping], replacement[grouping]);
+          } else if (replacement[grouping]) {
+            result[grouping] = replacement[grouping];
+          }
+        });
+      } else {
+        result = replacement;
+      }
+
+      records.set(id, result);
+
       return true;
     }
   },

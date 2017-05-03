@@ -1,6 +1,6 @@
 import {
   addRecord,
-  // replaceRecord,
+  replaceRecord,
   removeRecord,
   // replaceKey,
   // replaceAttribute,
@@ -20,7 +20,7 @@ const { module, test } = QUnit;
 
 module('Cache', function(hooks) {
   let schema, keyMap;
-  
+
   hooks.beforeEach(function() {
     schema = new Schema({
       models: {
@@ -406,6 +406,58 @@ module('Cache', function(hooks) {
 
     assert.equal(cache.records('moon').length, 1, 'One moon left in store');
     assert.equal(cache.records('planet').length, 1, 'One planet left in store');
+  });
+
+  test('#patch merges records when "replacing" and will not stomp on attributes and relationships that are not replaced', function(assert) {
+    let cache = new Cache({ schema, keyMap });
+
+    cache.patch([
+      addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' }, relationships: { moons: { data: { 'moon:m1': true } } } })
+    ]);
+
+    let inverse = cache.patch([
+      replaceRecord({ type: 'planet', id: '1', attributes: { classification: 'terrestrial' } })
+    ]);
+
+    assert.deepEqual(
+      cache.query(oqe('record', { type: 'planet', id: '1' })),
+      { type: 'planet', id: '1', attributes: { name: 'Earth', classification: 'terrestrial' }, relationships: { moons: { data: { 'moon:m1': true } } } },
+      'records have been merged'
+    );
+
+    assert.deepEqual(
+      inverse,
+      [
+        replaceRecord({ type: 'planet', id: '1', attributes: { classification: null } })
+      ],
+      'ignores ops that are noops'
+    );
+  });
+
+  test('#patch merges records when "replacing" and _will_ replace specified attributes and relationships', function(assert) {
+    let cache = new Cache({ schema, keyMap });
+
+    cache.patch([
+      addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' }, relationships: { moons: { data: { 'moon:m1': true } } } })
+    ]);
+
+    let inverse = cache.patch([
+      replaceRecord({ type: 'planet', id: '1', attributes: { name: 'Jupiter', classification: 'terrestrial' }, relationships: { moons: { data: { 'moon:m2': true } } } })
+    ]);
+
+    assert.deepEqual(
+      cache.query(oqe('record', { type: 'planet', id: '1' })),
+      { type: 'planet', id: '1', attributes: { name: 'Jupiter', classification: 'terrestrial' }, relationships: { moons: { data: { 'moon:m2': true } } } },
+      'records have been merged'
+    );
+
+    assert.deepEqual(
+      inverse,
+      [
+        replaceRecord({ type: 'planet', id: '1', attributes: { name: 'Earth', classification: null }, relationships: { moons: { data: { 'moon:m1': true } } } })
+      ],
+      'ignores ops that are noops'
+    );
   });
 
   test('#query can retrieve an individual record with `record`', function(assert) {

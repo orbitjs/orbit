@@ -738,12 +738,6 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
       processor.after(clearInhabitantsOp),
       [
         {
-          op: 'replaceHasOne',
-          record: identity(moon),
-          relationship: 'planet',
-          relatedRecord: identity(earth)
-        },
-        {
           op: 'addToHasMany',
           record: identity(cat),
           relationship: 'planets',
@@ -753,6 +747,12 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
           op: 'addToHasMany',
           record: identity(dog),
           relationship: 'planets',
+          relatedRecord: identity(earth)
+        },
+        {
+          op: 'replaceHasOne',
+          record: identity(moon),
+          relationship: 'planet',
           relatedRecord: identity(earth)
         },
         {

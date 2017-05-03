@@ -1,6 +1,6 @@
 import { deepGet, eq } from '@orbit/utils';
-import { 
-  serializeRecordIdentity, 
+import {
+  serializeRecordIdentity,
   deserializeRecordIdentity,
   RecordIdentity,
   RecordOperation,
@@ -41,7 +41,40 @@ const InverseTransforms = {
   },
 
   replaceRecord(cache: Cache, op: ReplaceRecordOperation): RecordOperation {
-    return InverseTransforms.addRecord(cache, op);
+    const replacement = op.record;
+    const { type, id } = replacement;
+    const current = cache.records(type).get(id);
+
+    if (current === undefined) {
+      return {
+        op: 'removeRecord',
+        record: { type, id }
+      };
+    } else if (eq(current, replacement)) {
+      return;
+    } else {
+      let result = { type, id };
+
+      ['attributes', 'keys', 'relationships'].forEach(grouping => {
+        if (replacement[grouping]) {
+          result[grouping] = {};
+          Object.keys(replacement[grouping]).forEach(field => {
+            if (replacement[grouping].hasOwnProperty(field)) {
+              if (current[grouping] && current[grouping].hasOwnProperty(field)) {
+                result[grouping][field] = current[grouping][field];
+              } else {
+                result[grouping][field] = null;
+              }
+            }
+          });
+        }
+      });
+
+      return {
+        op: 'replaceRecord',
+        record: result
+      };
+    }
   },
 
   removeRecord(cache: Cache, op: RemoveRecordOperation): RecordOperation {
