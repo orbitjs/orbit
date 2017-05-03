@@ -1,6 +1,6 @@
 import { deepGet, isObject, Dict } from '@orbit/utils';
-import { 
-  serializeRecordIdentity, 
+import {
+  serializeRecordIdentity,
   deserializeRecordIdentity,
   Record,
   RecordIdentity,
