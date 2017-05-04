@@ -120,23 +120,29 @@ export default class Coordinator {
     return this._activated;
   }
 
-  activate(options: ActivationOptions = {}): Promise<void[]> {
+  activate(options: ActivationOptions = {}): Promise<void> {
     if (!this._activated) {
       if (options.logLevel === undefined) {
         options.logLevel = this._defaultActivationOptions.logLevel;
       }
 
       this._currentActivationOptions = options;
-      this._activated = Promise.all(this.strategies.map(strategy => strategy.activate(this, options)));
+
+      this._activated = this.strategies.reduce((chain, strategy) => {
+        return chain
+          .then(() => strategy.activate(this, options))
+      }, Orbit.Promise.resolve());
     }
 
     return this._activated;
   }
 
-  deactivate(): Promise<any> {
-    return Promise.all(this.strategies.map(strategy => strategy.deactivate()))
-      .then(() => {
-        this._activated = null;
-      });
+  deactivate(): Promise<void> {
+    this._activated = null;
+
+    return this.strategies.reverse().reduce((chain, strategy) => {
+      return chain
+        .then(() => strategy.deactivate());
+    }, Orbit.Promise.resolve());
   }
 }

@@ -73,7 +73,6 @@ module('LogTruncationStrategy', function(hooks) {
     });
 
     return coordinator.activate()
-      .then(() => { console.log('coordinator activated'); return Orbit.Promise.resolve(); })
       .then(() => s1._transformed([tA]))
       .then(() => s2._transformed([tA]))
       .then(() => s3._transformed([tA]))
