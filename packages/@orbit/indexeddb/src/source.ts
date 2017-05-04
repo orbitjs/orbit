@@ -137,6 +137,10 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
     });
   }
 
+  reset(): Promise<void> {
+    return this.deleteDB();
+  }
+
   /**
    * Migrate database.
    *
@@ -147,7 +151,7 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
     console.error('IndexedDBSource#migrateDB - should be overridden to upgrade IDBDatabase from: ', event.oldVersion, ' -> ', event.newVersion);
   }
 
-  deleteDB() {
+  deleteDB(): Promise<void> {
     this.closeDB();
 
     return new Orbit.Promise((resolve, reject) => {

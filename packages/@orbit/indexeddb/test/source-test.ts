@@ -85,6 +85,16 @@ module('IndexedDBSource', function(hooks) {
       });
   });
 
+  test('#reset is idempotent', async function(assert) {
+    return source.openDB()
+      .then(() => source.reset())
+      .then(() => source.reset())
+      .then(() => source.openDB())
+      .then(() => {
+        assert.ok(true, 'db has been reset twice and can still be reopened');
+      });
+  });
+
   test('#push - addRecord', function(assert) {
     assert.expect(1);
 
