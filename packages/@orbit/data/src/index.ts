@@ -14,5 +14,6 @@ export { default as Transform, TransformOrOperations } from './transform';
 export { default as pullable, Pullable, isPullable } from './source-interfaces/pullable';
 export { default as pushable, Pushable, isPushable } from './source-interfaces/pushable';
 export { default as queryable, Queryable, isQueryable } from './source-interfaces/queryable';
+export * from './source-interfaces/resettable';
 export { default as syncable, Syncable, isSyncable } from './source-interfaces/syncable';
 export { default as updatable, Updatable, isUpdatable } from './source-interfaces/updatable';
