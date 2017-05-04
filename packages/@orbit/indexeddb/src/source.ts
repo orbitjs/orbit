@@ -1,6 +1,7 @@
 import Orbit, {
   pullable, Pullable,
   pushable, Pushable,
+  Resettable,
   syncable, Syncable,
   Query,
   Record, RecordIdentity,
@@ -28,7 +29,7 @@ export interface IndexedDBSourceSettings extends SourceSettings {
 @pullable
 @pushable
 @syncable
-export default class IndexedDBSource extends Source implements Pullable, Pushable, Syncable {
+export default class IndexedDBSource extends Source implements Pullable, Pushable, Resettable, Syncable {
   protected _namespace: string;
   protected _db: any;
 
@@ -147,7 +148,7 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
     console.error('IndexedDBSource#migrateDB - should be overridden to upgrade IDBDatabase from: ', event.oldVersion, ' -> ', event.newVersion);
   }
 
-  deleteDB() {
+  deleteDB(): Promise<void> {
     this.closeDB();
 
     return new Orbit.Promise((resolve, reject) => {
@@ -282,6 +283,14 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
         resolve();
       };
     });
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Resettable interface implementation
+  /////////////////////////////////////////////////////////////////////////////
+
+  reset(): Promise<void> {
+    return this.deleteDB();
   }
 
   /////////////////////////////////////////////////////////////////////////////

@@ -136,6 +136,8 @@ export default class Cache implements Evented {
     // this.keyMap.pushDocument(data);
 
     this._processors.forEach(processor => processor.reset());
+
+    this.emit('reset');
   }
 
   /**

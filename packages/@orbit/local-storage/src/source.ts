@@ -1,6 +1,7 @@
 import Orbit, {
   pullable, Pullable,
   pushable, Pushable,
+  Resettable,
   syncable, Syncable,
   Query,
   Record, RecordIdentity,
@@ -28,7 +29,7 @@ export interface LocalStorageSourceSettings extends SourceSettings {
 @pullable
 @pushable
 @syncable
-export default class LocalStorageSource extends Source implements Pullable, Pushable, Syncable {
+export default class LocalStorageSource extends Source implements Pullable, Pushable, Resettable, Syncable {
   protected _namespace: string;
   protected _delimiter: string;
 
@@ -96,12 +97,17 @@ export default class LocalStorageSource extends Source implements Pullable, Push
     self.localStorage.removeItem(key);
   }
 
-  reset(): void {
+  /////////////////////////////////////////////////////////////////////////////
+  // Resettable interface implementation
+  /////////////////////////////////////////////////////////////////////////////
+
+  reset(): Promise<void> {
     for (let key in self.localStorage) {
       if (key.indexOf(this.namespace) === 0) {
         self.localStorage.removeItem(key);
       }
     }
+    return Orbit.Promise.resolve();
   }
 
   /////////////////////////////////////////////////////////////////////////////

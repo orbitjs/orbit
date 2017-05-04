@@ -62,11 +62,17 @@ module('Cache', function(hooks) {
   });
 
   test('#reset clears the cache by default', function(assert) {
+    assert.expect(3);
+
     let cache = new Cache({ schema, keyMap });
 
     cache.patch(addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } }));
 
     assert.equal(cache.records('planet').length, 1);
+
+    cache.on('reset', () => {
+      assert.ok(true, 'reset event emitted');
+    });
 
     cache.reset();
 

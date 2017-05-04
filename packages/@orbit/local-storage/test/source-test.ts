@@ -380,7 +380,7 @@ module('LocalStorageSource', function(hooks) {
     return source.push(Transform.from(addRecord(planet)))
       .then(() => {
         verifyLocalStorageContainsRecord(assert, source, planet);
-        source.reset();
+        return source.reset();
       })
       .then(() => verifyLocalStorageIsEmpty(assert, source));
   });
@@ -414,13 +414,13 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    source.reset();
 
-    return source.push(Transform.from([
-      addRecord(earth),
-      addRecord(jupiter),
-      addRecord(io)
-    ]))
+    return source.reset()
+      .then(() => source.push(Transform.from([
+        addRecord(earth),
+        addRecord(jupiter),
+        addRecord(io)
+      ])))
       .then(() => source.pull(oqb.records()))
       .then(transforms => {
         assert.equal(transforms.length, 1, 'one transform returned');
@@ -461,13 +461,12 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    source.reset();
-
-    return source.push(Transform.from([
-      addRecord(earth),
-      addRecord(jupiter),
-      addRecord(io)
-    ]))
+    return source.reset()
+      .then(() => source.push(Transform.from([
+        addRecord(earth),
+        addRecord(jupiter),
+        addRecord(io)
+      ])))
       .then(() => source.pull(oqb.records('planet')))
       .then(transforms => {
         assert.equal(transforms.length, 1, 'one transform returned');
@@ -508,13 +507,12 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    source.reset();
-
-    return source.push(Transform.from([
-      addRecord(earth),
-      addRecord(jupiter),
-      addRecord(io)
-    ]))
+    return source.reset()
+      .then(() => source.push(Transform.from([
+        addRecord(earth),
+        addRecord(jupiter),
+        addRecord(io)
+      ])))
       .then(() => source.pull(oqb.record(jupiter)))
       .then(transforms => {
         assert.equal(transforms.length, 1, 'one transform returned');
