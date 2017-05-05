@@ -59,7 +59,7 @@ export class LogTruncationStrategy extends Strategy {
     }
 
     if (match) {
-      return this._truncateSources(transformId, +1);
+      return this._truncateSources(transformId, 0);
     } else {
       return Orbit.Promise.resolve();
     }
