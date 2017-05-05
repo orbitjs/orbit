@@ -24,7 +24,6 @@ export class LogTruncationStrategy extends Strategy {
       .then(() => {
         this._transformListeners = {};
         this._sources.forEach(source => this._activateSource(source));
-        return this.review();
       });
   }
 
@@ -36,24 +35,6 @@ export class LogTruncationStrategy extends Strategy {
       });
   }
 
-  review(): Promise<void> {
-    if (this._reviewing) {
-      this._extraReviewNeeded = true;
-    } else {
-      this._reviewing = this._reifySources()
-        .then(() => this._review())
-        .then(() => {
-          if (this._extraReviewNeeded) {
-            this._extraReviewNeeded = false;
-            return this._review();
-          } else {
-            this._reviewing = null;
-          }
-        });
-    }
-    return this._reviewing;
-  }
-
   _reifySources(): Promise<void> {
     return this._sources
       .reduce((chain, source) => {
@@ -61,38 +42,27 @@ export class LogTruncationStrategy extends Strategy {
       }, Orbit.Promise.resolve());
   }
 
-  _review(): Promise<void> {
+  _review(source: Source, transformId: string): Promise<void> {
     let sources = this._sources;
+    let match = true;
+
     if (sources.length > 1) {
-      let primaryLog = sources[0].transformLog;
-      let otherLogs = sources.slice(1).map(s => s.transformLog);
-      let entries = primaryLog.entries;
-      let latestMatch;
-
-      for (let i = 0; i < entries.length; i++) {
-        let entry = entries[i];
-
-        let match = true;
-        for (let j = 0; j < otherLogs.length; j++) {
-          if (!otherLogs[j].contains(entry)) {
+      for (let i = 0; i < sources.length; i++) {
+        let s = sources[i];
+        if (s !== source) {
+          if (!s.transformLog.contains(transformId)) {
             match = false;
             break;
           }
         }
-
-        if (match) {
-          latestMatch = entry;
-        } else {
-          break;
-        }
-      }
-
-      if (latestMatch) {
-        return this._truncateSources(latestMatch, +1);
       }
     }
 
-    return Orbit.Promise.resolve();
+    if (match) {
+      return this._truncateSources(transformId, 0);
+    } else {
+      return Orbit.Promise.resolve();
+    }
   }
 
   _truncateSources(transformId: string, relativePosition: number) {
@@ -103,8 +73,8 @@ export class LogTruncationStrategy extends Strategy {
   }
 
   _activateSource(source: Source) {
-    const listener = this._transformListeners[source.name] = (transform: Transform): void => {
-      this._sourceTransformed(source, transform.id);
+    const listener = this._transformListeners[source.name] = (transform: Transform): Promise<void> => {
+      return this._review(source, transform.id);
     };
 
     source.on('transform', listener);
@@ -113,9 +83,6 @@ export class LogTruncationStrategy extends Strategy {
   _deactivateSource(source: Source) {
     const listener = this._transformListeners[source.name];
     source.off('transform', listener);
-  }
-
-  _sourceTransformed(source: Source, transformId: string) {
-    this.review();
+    delete this._transformListeners[source.name];
   }
 }

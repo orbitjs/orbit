@@ -215,17 +215,33 @@ module('Coordinator', function(hooks) {
   });
 
   test('can be activated and deactivated', function(assert) {
+    assert.expect(10);
+
     let activatedCount = 0;
     let deactivatedCount = 0;
 
     class CustomStrategy extends Strategy {
       activate(coordinator, options): Promise<any> {
         activatedCount++;
+        if (activatedCount === 1) {
+          assert.strictEqual(this.name, 's2', 'expected order');
+        } else if (activatedCount === 2) {
+          assert.strictEqual(this.name, 's1', 'expected order');
+        } else if (activatedCount === 3) {
+          assert.strictEqual(this.name, 's3', 'expected order');
+        }
         return Orbit.Promise.resolve();
       }
 
       deactivate(): Promise<any> {
         deactivatedCount++;
+        if (deactivatedCount === 1) {
+          assert.strictEqual(this.name, 's3', 'expected reverse order');
+        } else if (deactivatedCount === 2) {
+          assert.strictEqual(this.name, 's1', 'expected reverse order');
+        } else if (deactivatedCount === 3) {
+          assert.strictEqual(this.name, 's2', 'expected reverse order');
+        }
         return Orbit.Promise.resolve();
       }
     }
@@ -234,18 +250,19 @@ module('Coordinator', function(hooks) {
     let s2 = new CustomStrategy({ name: 's2' });
     let s3 = new CustomStrategy({ name: 's3' });
 
-    coordinator = new Coordinator({ strategies: [s1, s2] });
+    coordinator = new Coordinator({ strategies: [s2, s1] });
+    coordinator.addStrategy(s3);
 
     return coordinator.activate()
       .then(() => {
-        assert.equal(activatedCount, 2, 'both strategies have been activated');
+        assert.equal(activatedCount, 3, 'both strategies have been activated');
         assert.equal(deactivatedCount, 0, 'no strategies have been deactivated');
 
         return coordinator.deactivate();
       })
       .then(() => {
-        assert.equal(activatedCount, 2, 'activated count has not changed');
-        assert.equal(deactivatedCount, 2, 'both strategies have been deactivated');
+        assert.equal(activatedCount, 3, 'activated count has not changed');
+        assert.equal(deactivatedCount, 3, 'both strategies have been deactivated');
       });
   });
 });
