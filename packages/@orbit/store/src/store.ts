@@ -196,6 +196,14 @@ export default class Store extends Source implements Syncable, Queryable, Updata
       .map(id => this._transforms[id]);
   }
 
+  getTransform(transformId: string): Transform {
+    return this._transforms[transformId];
+  }
+
+  getInverseOperations(transformId: string): RecordOperation[] {
+    return this._transformInverses[transformId];
+  }
+
   /////////////////////////////////////////////////////////////////////////////
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
