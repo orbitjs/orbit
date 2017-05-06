@@ -25,29 +25,44 @@ export interface SyncStrategyOptions extends StrategyOptions {
   target: string;
 
   /**
+   * A filter function that returns `true` if the sync should be performed.
+   *
+   * `filter` will be invoked in the context of this strategy (and thus will
+   * have access to both `this.source` and `this.target`).
+   *
+   * @type {Function}
+   * @memberOf SyncStrategyOptionss
+   */
+  filter?: Function;
+
+  /**
    * Should resolution of the target's `sync` block the completion of the
    * source's `transform`?
    *
    * @type {boolean}
    * @memberOf SyncStrategyOptionss
    */
-  blocking: boolean;
+  blocking?: boolean;
 }
 
 export class SyncStrategy extends Strategy {
   protected _blocking: boolean;
+  protected _filter: Function;
   protected _listener: Function;
 
   constructor(options: SyncStrategyOptions) {
     assert('A `source` must be specified for a SyncStrategy', !!options.source);
     assert('A `target` must be specified for a SyncStrategy', !!options.target);
+    assert('`source` should be a Source name specified as a string', typeof options.source === 'string');
+    assert('`target` should be a Source name specified as a string', typeof options.target === 'string');
     options.sources = [options.source, options.target];
     delete options.source;
     delete options.target;
     options.name = options.name || `sync-${options.sources.join('-')}`;
     super(options);
 
-    this._blocking = options.blocking;
+    this._filter = options.filter;
+    this._blocking = options.blocking || false;
   }
 
   get source(): Source {
@@ -56,6 +71,10 @@ export class SyncStrategy extends Strategy {
 
   get target(): Source {
     return this._sources[1];
+  }
+
+  get blocking(): boolean {
+    return this._blocking;
   }
 
   activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
@@ -76,6 +95,12 @@ export class SyncStrategy extends Strategy {
 
   protected _generateListener() {
     return (transform) => {
+      if (this._filter) {
+        if (!this._filter.call(this, transform)) {
+          return;
+        }
+      }
+
       let result = this.target['sync'](transform);
       if (this._blocking) {
         return result;
