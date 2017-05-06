@@ -20,6 +20,14 @@ export interface RequestStrategyOptions extends StrategyOptions {
   source: string;
 
   /**
+   * The name of the event to observe.
+   *
+   * @type {string}
+   * @memberOf RequestStrategyOptions
+   */
+  on: string;
+
+  /**
    * The name of the source which will be acted upon.
    *
    * @type {string}
@@ -27,9 +35,28 @@ export interface RequestStrategyOptions extends StrategyOptions {
    */
   target?: string;
 
-  on: string;
-
+  /**
+   * The action to perform on the target.
+   *
+   * Can be specified as a string (e.g. `pull`) or a function which will be
+   * invoked in the context of this strategy (and thus will have access to
+   * both `this.source` and `this.target`).
+   *
+   * @type {(string | Function)}
+   * @memberOf RequestStrategyOptions
+   */
   action: string | Function;
+
+  /**
+   * A filter function that returns `true` if the `action` should be performed.
+   *
+   * `filter` will be invoked in the context of this strategy (and thus will
+   * have access to both `this.source` and `this.target`).
+   *
+   * @type {Function}
+   * @memberOf RequestStrategyOptions
+   */
+  filter?: Function;
 
   /**
    * Should resolution of `action` on the the target block the completion
@@ -38,7 +65,7 @@ export interface RequestStrategyOptions extends StrategyOptions {
    * @type {boolean}
    * @memberOf RequestStrategyOptionss
    */
-  blocking: boolean;
+  blocking?: boolean;
 }
 
 export class RequestStrategy extends Strategy {
@@ -46,12 +73,16 @@ export class RequestStrategy extends Strategy {
   protected _event: string;
   protected _action: string | Function;
   protected _listener: Function;
+  protected _filter: Function;
 
   constructor(options: RequestStrategyOptions) {
     assert('A `source` must be specified for a RequestStrategy', !!options.source);
+    assert('`source` should be a Source name specified as a string', typeof options.source === 'string');
+    assert('`on` should be specified as the name of the event a RequestStrategy listens for', typeof options.on === 'string');
     options.sources = [options.source];
     delete options.source;
     if (options.target) {
+      assert('`target` should be a Source name specified as a string', typeof options.target === 'string');
       options.sources.push(options.target);
       delete options.target;
     }
@@ -60,7 +91,8 @@ export class RequestStrategy extends Strategy {
 
     this._event = options.on;
     this._action = options.action;
-    this._blocking = options.blocking;
+    this._filter = options.filter;
+    this._blocking = options.blocking || false;
   }
 
   get source(): Source {
@@ -69,6 +101,10 @@ export class RequestStrategy extends Strategy {
 
   get target(): Source {
     return this._sources[1];
+  }
+
+  get blocking(): boolean {
+    return this._blocking;
   }
 
   activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
@@ -92,6 +128,12 @@ export class RequestStrategy extends Strategy {
 
     return (...args) => {
       let result;
+
+      if (this._filter) {
+        if (!this._filter.apply(this, args)) {
+          return;
+        }
+      }
 
       if (typeof this._action === 'string') {
         result = this.target[this._action](...args);
