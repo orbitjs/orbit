@@ -23,6 +23,26 @@ export interface StrategyOptions {
    * @memberOf LogTruncationOptions
    */
   sources?: string[];
+
+  /**
+   * The prefix to use for logging from this strategy.
+   *
+   * Defaults to `[${name}]`.
+   *
+   * @type {string}
+   * @memberOf StrategyOptions
+   */
+  logPrefix?: string;
+
+  /**
+   * A specific log level for this strategy.
+   *
+   * Overrides the log level used when activating the coordinator.
+   *
+   * @type {LogLevel}
+   * @memberOf StrategyOptions
+   */
+  logLevel?: LogLevel;
 }
 
 export abstract class Strategy {
@@ -31,18 +51,25 @@ export abstract class Strategy {
   protected _sourceNames: string[];
   protected _sources: Source[];
   protected _activated: Promise<any>;
+  protected _customLogLevel: LogLevel;
   protected _logLevel: LogLevel;
+  protected _logPrefix: string;
 
   constructor(options: StrategyOptions = {}) {
     assert('Strategy requires a name', !!options.name);
 
     this._name = options.name;
     this._sourceNames = options.sources;
+    this._logPrefix = options.logPrefix || `[${this._name}]`;
+    this._logLevel = this._customLogLevel = options.logLevel;
   }
 
   activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
     this._coordinator = coordinator;
-    this._logLevel = options.logLevel;
+
+    if (this._customLogLevel === undefined) {
+      this._logLevel = options.logLevel;
+    }
 
     if (this._sourceNames) {
       this._sources = this._sourceNames.map(name => coordinator.getSource(name));
@@ -69,5 +96,13 @@ export abstract class Strategy {
 
   get sources(): Source[] {
     return this._sources;
+  }
+
+  get logPrefix(): string {
+    return this._logPrefix;
+  }
+
+  get logLevel(): LogLevel {
+    return this._logLevel;
   }
 }

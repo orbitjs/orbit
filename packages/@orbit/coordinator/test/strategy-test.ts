@@ -57,6 +57,27 @@ module('Strategy', function(hooks) {
     );
   });
 
+  test('uses its name as the basis for a logPrefix', function(assert) {
+    class CustomStrategy extends Strategy {}
+
+    strategy = new CustomStrategy({
+      name: 'custom'
+    });
+
+    assert.equal(strategy.logPrefix, '[custom]');
+  });
+
+  test('can specify a custom logPrefix', function(assert) {
+    class CustomStrategy extends Strategy {}
+
+    strategy = new CustomStrategy({
+      name: 'custom',
+      logPrefix: '[foo-bar]'
+    });
+
+    assert.equal(strategy.logPrefix, '[foo-bar]');
+  });
+
   test('applies to all sources by default', function(assert) {
     assert.expect(1);
 
@@ -109,18 +130,43 @@ module('Strategy', function(hooks) {
         options.name = 'custom';
         super(options);
 
-        assert.equal(this._logLevel, undefined, '_logLevel is initially undefined');
+        assert.equal(this.logLevel, undefined, '_logLevel is initially undefined');
       }
 
       activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
         return super.activate(coordinator, options)
           .then(() => {
-            assert.equal(this._logLevel, LogLevel.Warnings, '_logLevel is set by activate');
+            assert.equal(this.logLevel, LogLevel.Warnings, '_logLevel is set by activate');
           });
       }
     }
 
     strategy = new CustomStrategy();
+    coordinator.addStrategy(strategy);
+
+    return coordinator.activate({ logLevel: LogLevel.Warnings });
+  });
+
+  test('a custom `logLevel` will override the level from the coordinator', function(assert) {
+    assert.expect(2);
+
+    class CustomStrategy extends Strategy {
+      constructor(options: StrategyOptions = {}) {
+        options.name = 'custom';
+        super(options);
+
+        assert.equal(this.logLevel, LogLevel.Errors, '_logLevel is custom');
+      }
+
+      activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
+        return super.activate(coordinator, options)
+          .then(() => {
+            assert.equal(this.logLevel, LogLevel.Errors, '_logLevel is custom even after activate');
+          });
+      }
+    }
+
+    strategy = new CustomStrategy({ logLevel: LogLevel.Errors });
     coordinator.addStrategy(strategy);
 
     return coordinator.activate({ logLevel: LogLevel.Warnings });

@@ -16,13 +16,11 @@ declare const console: any;
 export interface EventLoggingStrategyOptions extends StrategyOptions {
   events?: string[];
   interfaces?: string[];
-  logPrefix?: string;
 }
 
 export class EventLoggingStrategy extends Strategy {
   protected _events?: string[];
   protected _interfaces?: string[];
-  protected _logPrefix?: string;
   protected _eventListeners: Dict<Dict<Function>>;
 
   constructor(options: EventLoggingStrategyOptions = {}) {
