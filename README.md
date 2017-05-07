@@ -1,14 +1,14 @@
 # Orbit [![Build Status](https://secure.travis-ci.org/orbitjs/orbit.png?branch=master)](http://travis-ci.org/orbitjs/orbit) [![Join the chat at https://gitter.im/orbitjs/orbit.js](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/orbitjs/orbit.js?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Orbit is a composable framework for orchestrating change processing, tracking, 
+Orbit is a composable framework for orchestrating change processing, tracking,
 and synchronization across multiple data sources.
 
 Orbit is written in [Typescript](https://www.typescriptlang.org) and distributed
 on npm through the [@orbit](https://www.npmjs.com/org/orbit) organization.
 Pre-built distributions are provided in several module formats and ES language
-levels. 
+levels.
 
-Orbit is isomorphic - it can be run both in modern browsers as well as in the 
+Orbit is isomorphic - it can be run both in modern browsers as well as in the
 [Node.js](https://nodejs.org/) runtime.
 
 ## Goals
@@ -47,15 +47,15 @@ be used in ways that go beyond these original use cases.
 
 Orbit consists of the following core libraries:
 
-* [@orbit/core](./packages/@orbit/core) - A core set of primitives for 
+* [@orbit/core](./packages/@orbit/core) - A core set of primitives for
 performing, tracking, and responding to asynchronous tasks, including:
 
-  * An event system that allows listeners to engage with the fulfillment of 
+  * An event system that allows listeners to engage with the fulfillment of
     events by returning promises.
 
   * An asynchronous task processing queue.
 
-  * A log that tracks a history of changes and allows for revision and 
+  * A log that tracks a history of changes and allows for revision and
     interrogation.
 
   * A bucket interface for persisting state. Used by logs and queues.
@@ -63,9 +63,9 @@ performing, tracking, and responding to asynchronous tasks, including:
 * [@orbit/data](./packages/@orbit/data) - Applies the core Orbit primitives
 to data sources. Includes the following elements:
 
-  * A schema for defining models, including attributes and relationships. 
+  * A schema for defining models, including attributes and relationships.
 
-  * Operations used to manipulate records (e.g. `addRecord`, `removeRecord`, 
+  * Operations used to manipulate records (e.g. `addRecord`, `removeRecord`,
     `addToHasMany`, etc.).
 
   * Transforms, which are composed of any number of operations, and must be
@@ -75,9 +75,13 @@ to data sources. Includes the following elements:
     AST form.
 
   * A base `Source` class that can be used to abstract any source of data.
-    Sources can be decorated as `pullable`, `pushable`, `queryable`, `syncable`, 
-    and/or `updatable` - each decorator provides a unique interface that allows 
+    Sources can be decorated as `pullable`, `pushable`, `queryable`, `syncable`,
+    and/or `updatable` - each decorator provides a unique interface that allows
     for transforms and queries to be applied as appropriate.
+
+* [@orbit/coordinator](./packages/@orbit/coordinator) - A coordinator and set of
+coordination strategies for managing data flow and keeping @orbit/data sources
+in sync.
 
 * [@orbit/utils](./packages/@orbit/utils) - A common set of utility functions
 used by Orbit libs.
@@ -90,10 +94,10 @@ Orbit provides the following sources for accessing and persisting data:
   including complex querying, for a RESTful API that conforms to the
   [JSON:API](http://jsonapi.org/) specification.
 
-* [@orbit/local-storage](./packages/@orbit/local-storage) - 
+* [@orbit/local-storage](./packages/@orbit/local-storage) -
   Persists records to local storage.
 
-* [@orbit/indexeddb-bucket](./packages/@orbit/indexeddb-bucket) - 
+* [@orbit/indexeddb-bucket](./packages/@orbit/indexeddb-bucket) -
   Persists records to IndexedDB.
 
 These standard sources can provide guidance for building your own custom sources
@@ -101,13 +105,13 @@ as well.
 
 ### Standard persistence buckets
 
-Buckets are used to persist application state, such as queued requests and 
+Buckets are used to persist application state, such as queued requests and
 change logs. Standard buckets include:
 
-* [@orbit/local-storage-bucket](./packages/@orbit/local-storage-bucket) - 
+* [@orbit/local-storage-bucket](./packages/@orbit/local-storage-bucket) -
   Persists state to local storage.
 
-* [@orbit/indexeddb-bucket](./packages/@orbit/indexeddb-bucket) - 
+* [@orbit/indexeddb-bucket](./packages/@orbit/indexeddb-bucket) -
   Persists state to IndexedDB.
 
 ## Contributing
