@@ -34,7 +34,7 @@ module('SyncStrategy', function(hooks) {
 
     assert.ok(strategy);
     assert.strictEqual(strategy.blocking, false, 'blocking is false by default');
-    assert.equal(strategy.name, 'sync-s1-s2', 'name is based on source names by default');
+    assert.equal(strategy.name, 's1:transform -> s2:sync', 'name is based on source names by default');
   });
 
   test('assigns source and target when activated', function(assert) {
@@ -127,5 +127,72 @@ module('SyncStrategy', function(hooks) {
       .then(() => s1._transformed([tA, tB]));
   });
 
-  // TODO - test blocking option
+  test('can catch errors with a `catch` function', function(assert) {
+    const done = assert.async();
+    assert.expect(6);
+
+    strategy = new SyncStrategy({
+      source: 's1',
+      target: 's2',
+      blocking: true,
+      catch(e, transform: Transform) {
+        assert.equal(e.message, ':(', 'error matches');
+        assert.strictEqual(transform, tA, 'argument to catch is expected Transform');
+        assert.strictEqual(this, strategy, 'context is the strategy');
+      }
+    });
+
+    coordinator = new Coordinator({
+      sources: [s1, s2],
+      strategies: [strategy]
+    });
+
+    s2._sync = function(transform) {
+      assert.strictEqual(transform, tA, 'argument to _sync is expected Transform');
+      assert.strictEqual(this, s2, 'context is that of the target');
+      throw new Error(':(');
+    };
+
+    coordinator.activate()
+      .then(() => s1._transformed([tA]))
+      .then(() => {
+        assert.ok(true, 'transform event settled');
+        done();
+      });
+  });
+
+  test('errors rethrown within a `catch` function are not propagated', function(assert) {
+    const done = assert.async();
+    assert.expect(6);
+
+    strategy = new SyncStrategy({
+      source: 's1',
+      target: 's2',
+      blocking: true,
+      catch(e, transform: Transform) {
+        assert.equal(e.message, ':(', 'error matches');
+        assert.strictEqual(transform, tA, 'argument to catch is expected Transform');
+        assert.strictEqual(this, strategy, 'context is the strategy');
+        throw e;
+      }
+    });
+
+    coordinator = new Coordinator({
+      sources: [s1, s2],
+      strategies: [strategy]
+    });
+
+    s2._sync = function(transform) {
+      assert.strictEqual(transform, tA, 'argument to _sync is expected Transform');
+      assert.strictEqual(this, s2, 'context is that of the target');
+      throw new Error(':(');
+    };
+
+    coordinator.activate()
+      .then(() => s1._transformed([tA]))
+      .then(() => {
+        assert.ok(true, 'transformed event still settled after error was caught and rethrown');
+        done();
+      });
+  });
 });
