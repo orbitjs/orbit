@@ -1,5 +1,5 @@
 import Coordinator, {
-  RequestStrategy
+  ConnectionStrategy
 } from '../../src/index';
 import Orbit, {
   Source,
@@ -14,7 +14,7 @@ declare const RSVP: any;
 const { all } = RSVP;
 const { module, test } = QUnit;
 
-module('RequestStrategy', function(hooks) {
+module('ConnectionStrategy', function(hooks) {
   const tA = new Transform([addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })], null, 'a');
   const tB = new Transform([addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })], null, 'b');
   const tC = new Transform([addRecord({ type: 'planet', id: 'c', attributes: { name: 'c' } })], null, 'c');
@@ -32,7 +32,7 @@ module('RequestStrategy', function(hooks) {
   });
 
   test('can be instantiated', function(assert) {
-    strategy = new RequestStrategy({ source: 's1', target: 's2', on: 'update', action: 'push' });
+    strategy = new ConnectionStrategy({ source: 's1', target: 's2', on: 'update', action: 'push' });
 
     assert.ok(strategy);
     assert.strictEqual(strategy.blocking, false, 'blocking is false by default');
@@ -40,7 +40,7 @@ module('RequestStrategy', function(hooks) {
   });
 
   test('assigns source and target when activated', function(assert) {
-    strategy = new RequestStrategy({ source: 's1', target: 's2', on: 'update', action: 'push'});
+    strategy = new ConnectionStrategy({ source: 's1', target: 's2', on: 'update', action: 'push'});
 
     coordinator = new Coordinator({
       sources: [s1, s2],
@@ -57,7 +57,7 @@ module('RequestStrategy', function(hooks) {
   test('installs listeners on activate and removes them on deactivate', function(assert) {
     assert.expect(6);
 
-    strategy = new RequestStrategy({ source: 's1', target: 's2', on: 'update', action: 'push'});
+    strategy = new ConnectionStrategy({ source: 's1', target: 's2', on: 'update', action: 'push'});
 
     coordinator = new Coordinator({
       sources: [s1, s2],
@@ -84,7 +84,7 @@ module('RequestStrategy', function(hooks) {
     const done = assert.async();
     assert.expect(3);
 
-    strategy = new RequestStrategy({ source: 's1', target: 's2', on: 'update', action: 'push'});
+    strategy = new ConnectionStrategy({ source: 's1', target: 's2', on: 'update', action: 'push'});
 
     coordinator = new Coordinator({
       sources: [s1, s2],
@@ -110,7 +110,7 @@ module('RequestStrategy', function(hooks) {
     const done = assert.async();
     assert.expect(4);
 
-    strategy = new RequestStrategy({
+    strategy = new ConnectionStrategy({
       source: 's1',
       target: 's2',
       on: 'update',

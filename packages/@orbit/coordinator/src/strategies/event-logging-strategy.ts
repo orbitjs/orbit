@@ -97,7 +97,7 @@ export class EventLoggingStrategy extends Strategy {
         case 'updatable':
           return ['beforeUpdate', 'update', 'updateFail'];
         case 'syncable':
-          return ['sync'];
+          return ['beforeSync', 'sync', 'syncFail'];
         case 'transformable':
           return ['transform'];
       }
@@ -109,6 +109,8 @@ export class EventLoggingStrategy extends Strategy {
           return ['pushFail'];
         case 'queryable':
           return ['queryFail'];
+        case 'syncable':
+          return ['syncFail'];
         case 'updatable':
           return ['updateFail'];
        }
