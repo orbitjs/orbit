@@ -1,5 +1,6 @@
 import Orbit from '../main';
 import { assert, isArray } from '@orbit/utils';
+import { fulfillInSeries, settleInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import Transform from '../transform';
 
@@ -86,7 +87,13 @@ export default function syncable(Klass: SourceClass): void {
       return Orbit.Promise.resolve();
     }
 
-    return this._sync(transform)
-      .then(() => this._transformed([transform]));
+    return fulfillInSeries(this, 'beforeSync', transform)
+      .then(() => this._sync(transform))
+      .then(() => this._transformed([transform]))
+      .then(() => settleInSeries(this, 'sync', transform))
+      .catch(error => {
+        return settleInSeries(this, 'syncFail', transform, error)
+          .then(() => { throw error; });
+      });
   }
 }
