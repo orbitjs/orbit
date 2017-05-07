@@ -93,7 +93,7 @@ module('@updatable', function(hooks) {
     let order = 0;
 
     source._update = function(transform) {
-      assert.equal(++order, 1, 'action performed after willUpdate');
+      assert.equal(++order, 1, 'action performed after beforeUpdate');
       assert.strictEqual(transform, addRecordTransform, 'transform matches');
       return Promise.reject(':(');
     };
