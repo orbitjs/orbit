@@ -19,7 +19,7 @@
   "scripts": {
     "build": "rm -rf dist && BROCCOLI_ENV=dist broccoli build dist",
     "build:tests": "rm -rf tests && BROCCOLI_ENV=tests broccoli build tests",
-    "preversion": "rm -rf dist && BROCCOLI_ENV=dist broccoli build dist",
+    "prepublish": "npm run build",
     "test": "testem ci"
   },
   "dependencies": {
