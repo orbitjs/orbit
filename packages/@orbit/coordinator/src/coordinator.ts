@@ -138,11 +138,19 @@ export default class Coordinator {
   }
 
   deactivate(): Promise<void> {
-    this._activated = null;
-
-    return this.strategies.reverse().reduce((chain, strategy) => {
-      return chain
-        .then(() => strategy.deactivate());
-    }, Orbit.Promise.resolve());
+    if (this._activated) {
+      return this._activated
+        .then(() => {
+          return this.strategies.reverse().reduce((chain, strategy) => {
+            return chain
+              .then(() => strategy.deactivate());
+          }, Orbit.Promise.resolve());
+        })
+        .then(() => {
+          this._activated = null;
+        });
+    } else {
+      return Orbit.Promise.resolve();
+    }
   }
 }

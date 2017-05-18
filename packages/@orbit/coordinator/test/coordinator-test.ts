@@ -265,4 +265,39 @@ module('Coordinator', function(hooks) {
         assert.equal(deactivatedCount, 3, 'both strategies have been deactivated');
       });
   });
+
+  test('can be deactivated multiple times, without being activated', function(assert) {
+    assert.expect(2);
+
+    let activatedCount = 0;
+    let deactivatedCount = 0;
+
+    class CustomStrategy extends Strategy {
+      activate(coordinator, options): Promise<any> {
+        assert.ok(false, 'strategies should not be activated');
+        return Orbit.Promise.resolve();
+      }
+
+      deactivate(): Promise<any> {
+        assert.ok(false, 'strategies should not be deactivated');
+        return Orbit.Promise.resolve();
+      }
+    }
+
+    let s1 = new CustomStrategy({ name: 's1' });
+    let s2 = new CustomStrategy({ name: 's2' });
+    let s3 = new CustomStrategy({ name: 's3' });
+
+    coordinator = new Coordinator({ strategies: [s2, s1] });
+    coordinator.addStrategy(s3);
+
+    return coordinator.deactivate()
+      .then(() => {
+        assert.ok(true, 'deactivate completes despite not being active');
+        return coordinator.deactivate();
+      })
+      .then(() => {
+        assert.ok(true, 'deactivate can continue to be called');
+      });
+  });
 });
