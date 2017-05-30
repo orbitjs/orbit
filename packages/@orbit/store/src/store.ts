@@ -43,13 +43,12 @@ export default class Store extends Source implements Syncable, Queryable, Updata
   update: (transformOrOperations: TransformOrOperations) => Promise<void>;
 
   constructor(settings: StoreSettings = {}) {
+    assert('Store\'s `schema` must be specified in `settings.schema` constructor argument', !!settings.schema);
+
     let keyMap: KeyMap = settings.keyMap;
-    assert('Store\'s `keyMap` must be specified in `settings.keyMap` constructor argument', !!keyMap);
+    let schema: Schema = settings.schema;
 
     settings.name = settings.name || 'store';
-
-    let schema: Schema = settings.schema;
-    assert('Store requires a schema', !!schema);
 
     super(settings);
 
