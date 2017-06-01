@@ -152,16 +152,29 @@ module('Lib / Object', function() {
     assert.equal(isNone(undefined), true, 'isNone identifies undefined');
   });
 
-  test('`merge` combines two objects', function(assert) {
-    let a = { firstNames: 'Bob', underling: false };
+  test('`merge` can combine two objects', function(assert) {
+    let a = { firstName: 'Bob', underling: false };
     let b = { lastName: 'Dobbs', 'title': 'Mr.', underlings: null };
-    let expected = { title: 'Mr.', firstNames: 'Bob',
+    let expected = { title: 'Mr.', firstName: 'Bob',
                      lastName: 'Dobbs', underling: false, underlings: null };
+    let actual = merge(a, b);
 
-    assert.deepEqual(merge(a, b), expected, 'Object values are not merged');
-    assert.deepEqual(a, { firstNames: 'Bob', underling: false },
-              'Original object mutated');
+    assert.deepEqual(actual, expected, 'Objects are merged');
+    assert.strictEqual(actual, a, 'Passed object is mutated and returned');
   });
+
+  test('`merge` can combine multiple objects', function(assert) {
+    let a = { firstName: 'Bob', underling: false };
+    let b = { lastName: 'Dobbs', 'title': 'Mr.', underlings: null };
+    let c = { lastName: 'Johnson', underlings: undefined };
+    let expected = { title: 'Mr.', firstName: 'Bob',
+                     lastName: 'Johnson', underling: false, underlings: null };
+    let actual = merge(a, b, c);
+
+    assert.deepEqual(actual, expected, 'Objects are merged');
+    assert.strictEqual(actual, a, 'Passed object is mutated and returned');
+  });
+
 
   test('`deepGet` retrieves a value from a nested object', function(assert) {
     let obj = {

@@ -7,7 +7,7 @@
  * Traverses all object properties (but not prototype properties).
  *
  * @export
- * @param {*} obj 
+ * @param {*} obj
  * @returns {*} Clone of the input `obj`
  */
 export function clone(obj: any): any {
@@ -73,11 +73,11 @@ export function expose(destination: object, source: object): void {
 
 /**
  * Extend an object with the properties of one or more other objects.
- * 
+ *
  * @export
- * @param {object} destination 
- * @param {any} sources 
- * @returns {object} 
+ * @param {object} destination
+ * @param {any} sources
+ * @returns {object}
  */
 export function extend(destination: object, ...sources): object {
   sources.forEach(function(source) {
@@ -92,10 +92,10 @@ export function extend(destination: object, ...sources): object {
 
 /**
  * Checks whether an object is an instance of an `Array`
- * 
+ *
  * @export
- * @param {*} obj 
- * @returns {boolean} 
+ * @param {*} obj
+ * @returns {boolean}
  */
 export function isArray(obj: any): boolean {
   return Object.prototype.toString.call(obj) === '[object Array]';
@@ -103,10 +103,10 @@ export function isArray(obj: any): boolean {
 
 /**
  * Converts an object to an `Array` if it's not already.
- * 
+ *
  * @export
- * @param {*} obj 
- * @returns {any[]} 
+ * @param {*} obj
+ * @returns {any[]}
  */
 export function toArray(obj: any): any[] {
   if (isNone(obj)) {
@@ -118,10 +118,10 @@ export function toArray(obj: any): any[] {
 
 /**
  * Checks whether a value is a non-null object
- * 
+ *
  * @export
- * @param {*} obj 
- * @returns {boolean} 
+ * @param {*} obj
+ * @returns {boolean}
  */
 export function isObject(obj: any): boolean {
   return obj !== null && typeof obj === 'object';
@@ -129,46 +129,48 @@ export function isObject(obj: any): boolean {
 
 /**
  * Checks whether an object is null or undefined
- * 
+ *
  * @export
- * @param {*} obj 
- * @returns {boolean} 
+ * @param {*} obj
+ * @returns {boolean}
  */
 export function isNone(obj: any): boolean {
   return obj === undefined || obj === null;
 }
 
 /**
- * Combines the properties of two objects into a new object
- * 
+ * Merges properties from other objects into a base object. Properties that
+ * resolve to `undefined` will not overwrite properties on the base object
+ * that already exist.
+ *
  * @export
- * @param {object} base 
- * @param {object} source 
- * @returns {object} 
+ * @param {object} base
+ * @param {...object[]} sources
+ * @returns {object}
  */
-export function merge(base: object, source: object): object {
-  var merged = clone(base);
-  if (source) {
+export function merge(object: object, ...sources: object[]): object {
+  sources.forEach(source => {
     Object.keys(source).forEach(function(field) {
       if (source.hasOwnProperty(field)) {
-        var fieldDef = source[field];
-        merged[field] = fieldDef;
+        let value = source[field];
+        if (!(value === undefined && object[field] !== undefined)) {
+          object[field] = value;
+        }
       }
     });
-  }
-
-  return merged;
+  });
+  return object;
 }
 
 /**
  * Retrieves a value from a nested path on an object.
- * 
+ *
  * Returns any falsy value encountered while traversing the path.
- * 
+ *
  * @export
- * @param {object} obj 
- * @param {string[]} path 
- * @returns {*} 
+ * @param {object} obj
+ * @param {string[]} path
+ * @returns {*}
  */
 export function deepGet(obj: object, path: string[]): any {
   let index = -1;
@@ -220,12 +222,12 @@ export function deepSet(obj: object, path: string[], value: any): boolean {
 
 /**
  * Find an array of values that correspond to the keys of an object.
- * 
+ *
  * This is a ponyfill for `Object.values`, which is still experimental.
- * 
+ *
  * @export
- * @param {object} obj 
- * @returns {any[]} 
+ * @param {object} obj
+ * @returns {any[]}
  */
 export function objectValues(obj: object): any[] {
   if (Object.values) {
