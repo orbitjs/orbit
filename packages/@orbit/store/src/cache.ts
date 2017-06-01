@@ -7,14 +7,14 @@ import {
   KeyMap,
   RecordOperation,
   Query,
-  QueryEvaluator,
   QueryOrExpression,
   Schema
 } from '@orbit/data';
 import { OperationProcessor, OperationProcessorClass } from './cache/operation-processors/operation-processor';
 import CacheIntegrityProcessor from './cache/operation-processors/cache-integrity-processor';
 import SchemaConsistencyProcessor from './cache/operation-processors/schema-consistency-processor';
-import QueryOperators from './cache/query-operators';
+import QueryEvaluator from './cache/query-evaluator';
+import { QueryOperators, ContextualQueryOperators } from './cache/query-operators';
 import PatchTransforms, { PatchTransformFunc } from './cache/patch-transforms';
 import InverseTransforms, { InverseTransformFunc } from './cache/inverse-transforms';
 import ImmutableMap from './immutable-map';
@@ -62,7 +62,7 @@ export default class Cache implements Evented {
     this._schema = settings.schema;
     this._keyMap = settings.keyMap;
 
-    this._queryEvaluator = new QueryEvaluator(this, QueryOperators);
+    this._queryEvaluator = new QueryEvaluator(this, QueryOperators, ContextualQueryOperators);
 
     const processors: OperationProcessorClass[] = settings.processors ? settings.processors : [SchemaConsistencyProcessor, CacheIntegrityProcessor];
     this._processors = processors.map(Processor => new Processor(this));
@@ -76,10 +76,6 @@ export default class Cache implements Evented {
 
   get schema(): Schema {
     return this._schema;
-  }
-
-  get queryEvaluator(): QueryEvaluator {
-    return this._queryEvaluator;
   }
 
   records(type: string): ImmutableMap {
@@ -105,9 +101,9 @@ export default class Cache implements Evented {
    @param {Expression} query
    @return {Object} result of query (type depends on query)
    */
-  query(queryOrExpression: QueryOrExpression, context?: object): any {
+  query(queryOrExpression: QueryOrExpression): any {
     const query = Query.from(queryOrExpression);
-    return this.queryEvaluator.evaluate(query.expression, context);
+    return this._queryEvaluator.evaluate(query.expression);
   }
 
   /**
