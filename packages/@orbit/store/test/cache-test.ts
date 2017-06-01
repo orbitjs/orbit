@@ -14,7 +14,7 @@ import {
   Schema
 } from '@orbit/data';
 import Cache from '../src/cache';
-import './test-helper';
+import { arrayMembershipMatches } from './test-helper';
 
 const { module, test } = QUnit;
 
@@ -173,7 +173,7 @@ module('Cache', function(hooks) {
     let cache = new Cache({ schema, keyMap });
 
     cache.on('patch', () => {
-      ok(false, 'no operations were applied');
+      assert.ok(false, 'no operations were applied');
     });
 
     cache.patch(removeFromHasMany({ type: 'planet', id: 'p1' }, 'moons', { type: 'moon', id: 'moon1' }));
@@ -243,7 +243,7 @@ module('Cache', function(hooks) {
     cache.patch(addRecord(jupiter));
 
     cache.on('patch', () => {
-      ok(false, 'no operations were applied');
+      assert.ok(false, 'no operations were applied');
     });
 
     cache.patch(removeFromHasMany(jupiter, 'moons', { type: 'moon', id: 'm1' }));
@@ -493,15 +493,14 @@ module('Cache', function(hooks) {
       addRecord(mercury)
     ]);
 
-    assert.deepEqual(
+    arrayMembershipMatches(
+      assert,
       cache.query(
         oqe('filter',
             oqe('records', 'planet'),
             oqe('equal', oqe('attribute', 'name'), 'Jupiter'))
       ),
-      {
-        jupiter
-      }
+      [ jupiter ]
     );
   });
 
@@ -520,7 +519,8 @@ module('Cache', function(hooks) {
       addRecord(mercury)
     ]);
 
-    assert.deepEqual(
+    arrayMembershipMatches(
+      assert,
       cache.query(
         oqe('filter',
             oqe('records', 'planet'),
@@ -529,10 +529,10 @@ module('Cache', function(hooks) {
               oqe('equal', oqe('attribute', 'atmosphere'), true)
             ))
       ),
-      {
+      [
         earth,
         venus
-      }
+      ]
     );
   });
 
@@ -551,7 +551,8 @@ module('Cache', function(hooks) {
       addRecord(mercury)
     ]);
 
-    assert.deepEqual(
+    arrayMembershipMatches(
+      assert,
       cache.query(
         oqe('filter',
             oqe('records', 'planet'),
@@ -560,11 +561,11 @@ module('Cache', function(hooks) {
                 oqe('equal', oqe('attribute', 'atmosphere'), true)
           ))
       ),
-      {
+      [
         jupiter,
         earth,
         venus
-      }
+      ]
     );
   });
 
@@ -762,7 +763,7 @@ module('Cache', function(hooks) {
 
     assert.deepEqual(
       cache.query(oqe('records', 'planet')),
-      { jupiter }
+      [ jupiter ]
     );
   });
 
@@ -786,9 +787,7 @@ module('Cache', function(hooks) {
 
     assert.deepEqual(
       cache.query(oqe('relatedRecords', { type: 'planet', id: 'jupiter' }, 'moons')),
-      {
-        callisto
-      }
+      [ callisto ]
     );
   });
 

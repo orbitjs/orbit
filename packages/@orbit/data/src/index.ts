@@ -3,7 +3,6 @@ export * from './exception';
 export { default as KeyMap } from './key-map';
 export * from './operation';
 export * from './query-builder';
-export { default as QueryEvaluator, QueryOperator } from './query-evaluator';
 export * from './query-expression';
 export * from './query-term';
 export { default as Query, QueryOrExpression } from './query';

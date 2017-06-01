@@ -1,5 +1,6 @@
 import './support/orbit-setup';
 import './support/rsvp';
+export * from './support/matchers';
 
 declare const RSVP: any;
 declare const console: any;
