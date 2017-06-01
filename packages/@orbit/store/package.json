@@ -1,6 +1,6 @@
 {
   "name": "@orbit/store",
-  "version": "0.9.3",
+  "version": "0.10.0",
   "description": "Orbit source for managing in-memory records.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -23,9 +23,9 @@
     "test": "testem ci"
   },
   "dependencies": {
-    "@orbit/utils": "^0.9.2",
-    "@orbit/core": "^0.9.2",
-    "@orbit/data": "^0.9.2"
+    "@orbit/utils": "^0.10.0",
+    "@orbit/core": "^0.10.0",
+    "@orbit/data": "^0.10.0"
   },
   "devDependencies": {
     "@glimmer/build": "^0.6.3"

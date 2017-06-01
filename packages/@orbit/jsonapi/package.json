@@ -1,6 +1,6 @@
 {
   "name": "@orbit/jsonapi",
-  "version": "0.9.2",
+  "version": "0.10.0",
   "description": "JSON:API support for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -25,9 +25,9 @@
     "test": "testem ci"
   },
   "dependencies": {
-    "@orbit/utils": "^0.9.2",
-    "@orbit/core": "^0.9.2",
-    "@orbit/data": "^0.9.2"
+    "@orbit/utils": "^0.10.0",
+    "@orbit/core": "^0.10.0",
+    "@orbit/data": "^0.10.0"
   },
   "devDependencies": {
     "@glimmer/build": "^0.6.3",
