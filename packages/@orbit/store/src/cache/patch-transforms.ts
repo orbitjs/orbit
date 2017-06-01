@@ -42,8 +42,10 @@ export default {
         result = { type, id };
 
         ['attributes', 'keys', 'relationships'].forEach(grouping => {
-          if (current[grouping]) {
-            result[grouping] = merge(current[grouping], replacement[grouping]);
+          if (current[grouping] && replacement[grouping]) {
+            result[grouping] = merge({}, current[grouping], replacement[grouping]);
+          } else if (current[grouping]) {
+            result[grouping] = current[grouping];
           } else if (replacement[grouping]) {
             result[grouping] = replacement[grouping];
           }
