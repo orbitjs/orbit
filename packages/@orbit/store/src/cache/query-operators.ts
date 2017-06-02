@@ -1,5 +1,5 @@
 import { deepGet, merge, every, some } from '@orbit/utils';
-import { RecordNotFoundException } from '@orbit/data';
+import { RecordNotFoundException, QueryExpressionParseError } from '@orbit/data';
 
 const EMPTY = () => {};
 
@@ -40,6 +40,20 @@ export const QueryOperators = {
       }
       return 0;
     });
+  },
+
+  page(select, paginationOptions) {
+    const records = this.evaluate(select);
+
+    if (paginationOptions.limit !== undefined) {
+      let offset = paginationOptions.offset === undefined ? 0 : paginationOptions.offset;
+      let limit = paginationOptions.limit;
+
+      return records.slice(offset, offset + limit);
+
+    } else {
+      throw new QueryExpressionParseError('Pagination options not recognized for Store. Please specify `offset` and `limit`.', paginationOptions);
+    }
   },
 
   record({ type, id }) {
