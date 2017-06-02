@@ -9,6 +9,7 @@ import {
   // replaceHasMany,
   replaceHasOne,
   KeyMap,
+  oqb,
   oqe,
   RecordNotFoundException,
   Schema
@@ -764,6 +765,48 @@ module('Cache', function(hooks) {
     assert.deepEqual(
       cache.query(oqe('records', 'planet')),
       [ jupiter ]
+    );
+  });
+
+  test('#query - page - can paginate records by offset and limit', function(assert) {
+    let cache = new Cache({ schema, keyMap });
+
+    const jupiter = {
+      id: 'jupiter', type: 'planet',
+      attributes: { name: 'Jupiter' } };
+
+    const earth = {
+      id: 'earth', type: 'planet',
+      attributes: { name: 'Earth' } };
+
+    const venus = {
+      id: 'venus', type: 'planet',
+      attributes: { name: 'Venus' } };
+
+    const mars = {
+      id: 'mars', type: 'planet',
+      attributes: { name: 'Mars' } };
+
+    cache.patch([
+      addRecord(jupiter),
+      addRecord(earth),
+      addRecord(venus),
+      addRecord(mars)
+    ]);
+
+    assert.deepEqual(
+      cache.query(oqb.records('planet').sort('name')),
+      [ earth, jupiter, mars, venus ]
+    );
+
+    assert.deepEqual(
+      cache.query(oqb.records('planet').sort('name').page({ limit: 3 })),
+      [ earth, jupiter, mars ]
+    );
+
+    assert.deepEqual(
+      cache.query(oqb.records('planet').sort('name').page({ offset: 1, limit: 2 })),
+      [ jupiter, mars ]
     );
   });
 
