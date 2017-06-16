@@ -1,32 +1,11 @@
 import { isObject } from '@orbit/utils';
-import { oqe, QueryExpression } from './query-expression';
-
-/**
- * An interface for specifying record sorting.
- * 
- * @export
- * @interface SortSpecifier
- */
-export interface SortSpecifier {
-  attribute: string,
-  order: 'ascending' | 'descending'
-}
-
-/**
- * An expression form of a `SortSpecifier`.
- * 
- * @export
- * @interface SortExpression
- */
-export interface SortExpression {
-  field: QueryExpression,
-  order: 'ascending' | 'descending'
-}
+import { QueryExpression, FindRecord, FindRelatedRecord, FindRelatedRecords, FindRecords, SortSpecifier, AttributeSortSpecifier, PageSpecifier, FilterSpecifier } from './query-expression';
+import { RecordIdentity } from './record';
 
 /**
  * Query terms are used by query builders to allow for the construction of
- * query expressions in composable patterns. 
- * 
+ * query expressions in composable patterns.
+ *
  * @export
  * @class QueryTerm
  */
@@ -43,114 +22,113 @@ export class QueryTerm {
 }
 
 /**
- * A query term that represents a value.
- * 
- * @export
- * @class ValueTerm
- * @extends {QueryTerm}
- */
-export class ValueTerm extends QueryTerm {
-  /**
-   * Returns an expression that will check whether the context's value is equal 
-   * to a specified value.
-   * 
-   * @param {any} value 
-   * @returns {QueryExpression} 
-   * 
-   * @memberOf ValueTerm
-   */
-  equal(value): QueryExpression {
-    return oqe('equal', this.expression, value);
-  }
-}
-
-/**
- * A query term that allows for iterating over records and evaluating each one.
- * 
- * @export
- * @class RecordCursor
- * @extends {QueryTerm}
- */
-export class RecordCursor extends QueryTerm {
-  /**
-   * Retrieve the value of an attribute.
-   * 
-   * @param {string} name 
-   * @returns {ValueTerm} 
-   * 
-   * @memberOf RecordCursor
-   */
-  attribute(name: string): ValueTerm {
-    return new ValueTerm(oqe('attribute', name));
-  }
-}
-
-/**
  * A query term representing a single record.
- * 
+ *
  * @export
- * @class RecordTerm
+ * @class FindRecordTerm
  * @extends {QueryTerm}
  */
-export class RecordTerm extends QueryTerm {
-  constructor(record) {
-    super(oqe('record', record));
+export class FindRecordTerm extends QueryTerm {
+  expression: FindRecord;
+
+  constructor(record: RecordIdentity) {
+    let expression: FindRecord = {
+      op: 'findRecord',
+      record
+    };
+
+    super(expression);
   }
 }
 
-/**
- * A query term representing a collection of records.
- * 
- * @export
- * @class RecordsTerm
- * @extends {QueryTerm}
- */
-export class RecordsTerm extends QueryTerm {
+export class FindRelatedRecordTerm extends QueryTerm {
+  expression: FindRelatedRecord;
+
+  constructor(record: RecordIdentity, relationship: string) {
+    let expression: FindRelatedRecord = {
+      op: 'findRelatedRecord',
+      record,
+      relationship
+    };
+
+    super(expression);
+  }
+}
+
+export class FindRelatedRecordsTerm extends QueryTerm {
+  expression: FindRelatedRecords;
+
+  constructor(record: RecordIdentity, relationship: string) {
+    let expression: FindRelatedRecords = {
+      op: 'findRelatedRecords',
+      record,
+      relationship
+    };
+
+    super(expression);
+  }
+}
+
+export class FindRecordsTerm extends QueryTerm {
+  expression: FindRecords;
+
+  constructor(type?: string) {
+    let expression: FindRecords = {
+      op: 'findRecords',
+      type
+    };
+
+    super(expression);
+  }
+
   /**
    * Applies sorting to a collection query.
-   * 
+   *
    * Sort specifiers can be expressed in object form, like:
-   * 
+   *
    * ```ts
    * { attribute: 'name', order: 'descending' }
    * { attribute: 'name', order: 'ascending' }
    * ```
-   * 
+   *
    * Or in string form, like:
-   * 
+   *
    * ```ts
    * '-name' // descending order
    * 'name'  // ascending order
    * ```
-   * 
-   * @param {SortSpecifier[] | string[]} sortSpecifiers 
-   * @returns {RecordsTerm} 
-   * 
+   *
+   * @param {SortSpecifier[] | string[]} sortSpecifiers
+   * @returns {RecordsTerm}
+   *
    * @memberOf RecordsTerm
    */
-  sort(...sortSpecifiers): RecordsTerm {
-    return new RecordsTerm(oqe('sort', this.expression, sortSpecifiers.map(parseSortSpecifier)));
+  sort(...sortSpecifiers): FindRecordsTerm {
+    const specifiers = sortSpecifiers.map(parseSortSpecifier);
+    this.expression.sort = (this.expression.sort || []).concat(specifiers);
+    return this;
   }
 
   /**
    * Applies pagination to a collection query.
-   * 
+   *
    * Note: Options are currently an opaque pass-through to remote sources.
-   * 
+   *
    * @param {object} options
-   * @returns {RecordsTerm} 
-   * 
+   * @returns {RecordsTerm}
+   *
    * @memberOf RecordsTerm
    */
-  page(options: object): RecordsTerm {
-    return new RecordsTerm(oqe('page', this.expression, options));
+  page(options: PageSpecifier): FindRecordsTerm {
+    this.expression.page = options;
+    return this;
   }
 
   /**
    * Apply an advanced filter expression based on a `RecordCursor`.
    *
    * For example:
-   * 
+   *
    * ```ts
    * oqb
    *   .records('planet')
@@ -161,102 +139,41 @@ export class RecordsTerm extends QueryTerm {
    *     )
    *   )
    * ```
-   * 
-   * @param {(RecordCursor) => void} predicateExpression 
-   * @returns {RecordsTerm} 
-   * 
+   *
+   * @param {(RecordCursor) => void} predicateExpression
+   * @returns {RecordsTerm}
+   *
    * @memberOf RecordsTerm
    */
-  filter(predicateExpression: (RecordCursor) => void): RecordsTerm {
-    const filterBuilder = new RecordCursor();
-    return new RecordsTerm(oqe('filter', this.expression, predicateExpression(filterBuilder)));
-  }
-
-  /**
-   * Apply a group of equality filters based on record attributes.
-   * 
-   * For example:
-   * 
-   * ```ts
-   * oqb
-   *   .records('planet')
-   *   .filterAttributes({
-   *     name: 'Jupiter',
-   *     age: 23000000
-   *   })
-   * ```
-   * 
-   * @param {any} attributeValues 
-   * @returns {RecordsTerm} 
-   * 
-   * @memberOf RecordsTerm
-   */
-  filterAttributes(attributeValues): RecordsTerm {
-    const attributeExpressions = Object.keys(attributeValues).map(attribute => {
-      return oqe('equal',
-               oqe('attribute', attribute),
-               attributeValues[attribute]);
-    });
-
-    const andExpression = attributeExpressions.length === 1 ? attributeExpressions[0]
-                                                            : oqe('and', ...attributeExpressions);
-
-    return new RecordsTerm(oqe('filter', this.expression, andExpression));
+  filter(...filterSpecifiers): FindRecordsTerm {
+    const expressions = filterSpecifiers.map(parseFilterSpecifier);
+    this.expression.filter = (this.expression.filter || []).concat(filterSpecifiers);
+    return this;
   }
 }
 
-/**
- * A query term representing a related record.
- * 
- * @export
- * @class RelatedRecordTerm
- * @extends {QueryTerm}
- */
-export class RelatedRecordTerm extends QueryTerm {
-  constructor(record, relationship) {
-    super(oqe('relatedRecord', record, relationship));
+function parseFilterSpecifier(filterSpecifier: FilterSpecifier): FilterSpecifier {
+  if (isObject(filterSpecifier)) {
+    let s = filterSpecifier as FilterSpecifier;
+    s.kind = s.kind || 'attribute';
+    s.op = s.op || 'equal';
+    return s;
   }
 }
 
-/**
- * A query term representing a collection of records in a to-many relationship.
- * 
- * @export
- * @class RelatedRecordsTerm
- * @extends {RecordsTerm}
- */
-export class RelatedRecordsTerm extends RecordsTerm {
-  constructor(record, relationship) {
-    super(oqe('relatedRecords', record, relationship));
-  }
-}
-
-function parseSortSpecifier(sortSpecifier: SortSpecifier | string) {
+function parseSortSpecifier(sortSpecifier: SortSpecifier | string): SortSpecifier {
   if (isObject(sortSpecifier)) {
-    return parseSortSpecifierObject(<SortSpecifier>sortSpecifier);
+    let s = sortSpecifier as SortSpecifier;
+    s.kind = s.kind || 'attribute';
+    s.order = s.order || 'ascending';
+    return s;
   } else if (typeof sortSpecifier === 'string') {
     return parseSortSpecifierString(sortSpecifier);
   }
   throw new Error('Sort expression must be either an object or a string.');
 }
 
-function parseSortSpecifierObject(sortSpecifier: SortSpecifier): SortExpression {
-  if (sortSpecifier.attribute === undefined) {
-    throw new Error('Unsupported sort field type.');
-  }
-
-  const order = sortSpecifier.order || 'ascending';
-  if (order !== 'ascending' && order !== 'descending') {
-    throw new Error('Invalid sort order.');
-  }
-
-  return {
-    field: oqe('attribute', sortSpecifier.attribute),
-    order
-  };
-}
-
-function parseSortSpecifierString(sortSpecifier: string): SortExpression {
+function parseSortSpecifierString(sortSpecifier: string): AttributeSortSpecifier  {
   let attribute;
   let order;
 
@@ -269,7 +186,8 @@ function parseSortSpecifierString(sortSpecifier: string): SortExpression {
   }
 
   return {
-    field: oqe('attribute', attribute),
+    kind: 'attribute',
+    attribute,
     order
   };
 }

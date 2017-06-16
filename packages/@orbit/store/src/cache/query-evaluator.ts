@@ -1,4 +1,4 @@
-import { isQueryExpression, QueryExpression } from '@orbit/data';
+import { QueryExpression } from '@orbit/data';
 import { Dict } from '@orbit/utils';
 
 /**
@@ -6,15 +6,7 @@ import { Dict } from '@orbit/utils';
  * @interface QueryOperator
  */
 export interface QueryOperator {
-  (...expression: any[]): any;
-}
-
-/**
- * @export
- * @interface QueryOperator
- */
-export interface ContextualQueryOperator {
-  (context: any, ...expression: any[]): any;
+  (expression: QueryExpression): any;
 }
 
 /**
@@ -26,31 +18,17 @@ export interface ContextualQueryOperator {
 export default class QueryEvaluator {
   target: any;
   operators: Dict<QueryOperator>;
-  contextualOperators: Dict<ContextualQueryOperator>;
 
-  constructor(target: any, operators: Dict<QueryOperator>, contextualOperators: Dict<ContextualQueryOperator>) {
+  constructor(target: any, operators: Dict<QueryOperator>) {
     this.target = target;
     this.operators = operators;
-    this.contextualOperators = contextualOperators;
   }
 
-  evaluate(expression: QueryExpression, context?: any): any {
-    if (isQueryExpression(expression)) {
-      let args, operator;
-
-      if (context) {
-        operator = this.contextualOperators[expression.op];
-        args = [context].concat(expression.args);
-      } else {
-        operator = this.operators[expression.op];
-        args = expression.args;
-      }
-      if (!operator) {
-        throw new Error('Unable to find operator: ' + expression.op);
-      }
-      return operator.apply(this, args);
-    } else {
-      return expression;
+  evaluate(expression: QueryExpression): any {
+    const operator = this.operators[expression.op];
+    if (!operator) {
+      throw new Error('Unable to find operator: ' + expression.op);
     }
+    return operator.call(this, expression);
   }
 }

@@ -2,7 +2,7 @@ export { default } from './main';
 export * from './exception';
 export { default as KeyMap } from './key-map';
 export * from './operation';
-export * from './query-builder';
+export { default as QueryBuilder } from './query-builder';
 export * from './query-expression';
 export * from './query-term';
 export { default as Query, QueryOrExpression } from './query';

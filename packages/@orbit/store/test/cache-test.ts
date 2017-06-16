@@ -9,8 +9,6 @@ import {
   // replaceHasMany,
   replaceHasOne,
   KeyMap,
-  oqb,
-  oqe,
   RecordNotFoundException,
   Schema
 } from '@orbit/data';
@@ -427,7 +425,7 @@ module('Cache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(oqe('record', { type: 'planet', id: '1' })),
+      cache.query(q => q.findRecord({ type: 'planet', id: '1' })),
       { type: 'planet', id: '1', attributes: { name: 'Earth', classification: 'terrestrial' }, relationships: { moons: { data: { 'moon:m1': true } } } },
       'records have been merged'
     );
@@ -453,7 +451,7 @@ module('Cache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(oqe('record', { type: 'planet', id: '1' })),
+      cache.query(q => q.findRecord({ type: 'planet', id: '1' })),
       { type: 'planet', id: '1', attributes: { name: 'Jupiter', classification: 'terrestrial' }, relationships: { moons: { data: { 'moon:m2': true } } } },
       'records have been merged'
     );
@@ -474,7 +472,7 @@ module('Cache', function(hooks) {
     cache.patch([addRecord(jupiter)]);
 
     assert.deepEqual(
-      cache.query(oqe('record', { type: 'planet', id: 'jupiter' })),
+      cache.query(q => q.findRecord({ type: 'planet', id: 'jupiter' })),
       jupiter
     );
   });
@@ -496,16 +494,13 @@ module('Cache', function(hooks) {
 
     arrayMembershipMatches(
       assert,
-      cache.query(
-        oqe('filter',
-            oqe('records', 'planet'),
-            oqe('equal', oqe('attribute', 'name'), 'Jupiter'))
-      ),
+      cache.query(q => q.findRecords('planet')
+                        .filter({ attribute: 'name', value: 'Jupiter' })),
       [ jupiter ]
     );
   });
 
-  test('#query can perform a complex conditional `and` filter', function(assert) {
+  test('#query can perform a complex filter', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
     let jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', classification: 'gas giant', atmosphere: true } };
@@ -522,54 +517,15 @@ module('Cache', function(hooks) {
 
     arrayMembershipMatches(
       assert,
-      cache.query(
-        oqe('filter',
-            oqe('records', 'planet'),
-            oqe('and',
-              oqe('equal', oqe('attribute', 'classification'), 'terrestrial'),
-              oqe('equal', oqe('attribute', 'atmosphere'), true)
-            ))
-      ),
+      cache.query(q => q.findRecords('planet')
+                        .filter({ attribute: 'atmosphere', value: true },
+                                { attribute: 'classification', value: 'terrestrial'})),
       [
         earth,
         venus
       ]
     );
   });
-
-  test('#query can perform a complex conditional `or` filter', function(assert) {
-    let cache = new Cache({ schema, keyMap });
-
-    let jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', classification: 'gas giant', atmosphere: true } };
-    let earth = { type: 'planet', id: 'earth', attributes: { name: 'Earth', classification: 'terrestrial', atmosphere: true } };
-    let venus = { type: 'planet', id: 'venus', attributes: { name: 'Venus', classification: 'terrestrial', atmosphere: true } };
-    let mercury = { type: 'planet', id: 'mercury', attributes: { name: 'Mercury', classification: 'terrestrial', atmosphere: false } };
-
-    cache.patch([
-      addRecord(jupiter),
-      addRecord(earth),
-      addRecord(venus),
-      addRecord(mercury)
-    ]);
-
-    arrayMembershipMatches(
-      assert,
-      cache.query(
-        oqe('filter',
-            oqe('records', 'planet'),
-            oqe('or',
-                oqe('equal', oqe('attribute', 'classification'), 'gas giant'),
-                oqe('equal', oqe('attribute', 'atmosphere'), true)
-          ))
-      ),
-      [
-        jupiter,
-        earth,
-        venus
-      ]
-    );
-  });
-
 
   test('#query can sort by an attribute', function(assert) {
     let cache = new Cache({ schema, keyMap });
@@ -587,12 +543,8 @@ module('Cache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(
-        oqe('sort',
-          oqe('records', 'planet'),
-          [{ field: oqe('attribute', 'name'), order: 'ascending' }]
-        )
-      ),
+      cache.query(q => q.findRecords('planet')
+                        .sort('name')),
       [
         earth,
         jupiter,
@@ -618,17 +570,12 @@ module('Cache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(
-        oqe('sort',
-          oqe('filter',
-              oqe('records', 'planet'),
-              oqe('equal', oqe('attribute', 'classification'), 'terrestrial')),
-          [{ field: oqe('attribute', 'name'), order: 'ascending' }]
-        )
-      ),
+      cache.query(q => q.findRecords('planet')
+                        .filter({ attribute: 'atmosphere', value: true },
+                                { attribute: 'classification', value: 'terrestrial'})
+                        .sort('name')),
       [
         earth,
-        mercury,
         venus
       ]
     );
@@ -650,12 +597,8 @@ module('Cache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(
-        oqe('sort',
-          oqe('records', 'planet'),
-          [{ field: oqe('attribute', 'name'), order: 'descending' }]
-        )
-      ),
+      cache.query(q => q.findRecords('planet')
+                        .sort('-name')),
       [
         venus,
         mercury,
@@ -681,15 +624,8 @@ module('Cache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(
-        oqe('sort',
-          oqe('records', 'planet'),
-          [
-            { field: oqe('attribute', 'classification'), order: 'ascending' },
-            { field: oqe('attribute', 'name'), order: 'ascending' }
-          ]
-        )
-      ),
+      cache.query(q => q.findRecords('planet')
+                        .sort('classification', 'name')),
       [
         jupiter,
         earth,
@@ -699,7 +635,7 @@ module('Cache', function(hooks) {
     );
   });
 
-  test('#query - record', function(assert) {
+  test('#query - findRecord - finds record', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
     const jupiter = {
@@ -712,39 +648,21 @@ module('Cache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(oqe('record', { type: 'planet', id: 'jupiter' })),
+      cache.query(q => q.findRecord({ type: 'planet', id: 'jupiter' })),
       jupiter
     );
   });
 
-  test('#query - record - finds record', function(assert) {
-    let cache = new Cache({ schema, keyMap });
-
-    const jupiter = {
-      id: 'jupiter', type: 'planet',
-      attributes: { name: 'Jupiter' },
-      relationships: { moons: { data: { 'moon:callisto': true } } } };
-
-    cache.patch([
-      addRecord(jupiter)
-    ]);
-
-    assert.deepEqual(
-      cache.query(oqe('record', { type: 'planet', id: 'jupiter' })),
-      jupiter
-    );
-  });
-
-  test('#query - record - throws RecordNotFoundException if record doesn\'t exist', function(assert) {
+  test('#query - findRecord - throws RecordNotFoundException if record doesn\'t exist', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
     assert.throws(
-      () => cache.query(oqe('record', { type: 'planet', id: 'jupiter' })),
+      () => cache.query(q => q.findRecord({ type: 'planet', id: 'jupiter' })),
       RecordNotFoundException
     );
   });
 
-  test('#query - records - finds matching records', function(assert) {
+  test('#query - findRecords - finds matching records', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
     const jupiter = {
@@ -763,7 +681,7 @@ module('Cache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(oqe('records', 'planet')),
+      cache.query(q => q.findRecords('planet')),
       [ jupiter ]
     );
   });
@@ -795,22 +713,22 @@ module('Cache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(oqb.records('planet').sort('name')),
+      cache.query(q => q.findRecords('planet').sort('name')),
       [ earth, jupiter, mars, venus ]
     );
 
     assert.deepEqual(
-      cache.query(oqb.records('planet').sort('name').page({ limit: 3 })),
+      cache.query(q => q.findRecords('planet').sort('name').page({ limit: 3 })),
       [ earth, jupiter, mars ]
     );
 
     assert.deepEqual(
-      cache.query(oqb.records('planet').sort('name').page({ offset: 1, limit: 2 })),
+      cache.query(q => q.findRecords('planet').sort('name').page({ offset: 1, limit: 2 })),
       [ jupiter, mars ]
     );
   });
 
-  test('#query - relatedRecords', function(assert) {
+  test('#query - findRelatedRecords', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
     const jupiter = {
@@ -829,12 +747,12 @@ module('Cache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(oqe('relatedRecords', { type: 'planet', id: 'jupiter' }, 'moons')),
+      cache.query(q => q.findRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons')),
       [ callisto ]
     );
   });
 
-  test('#query - relatedRecord', function(assert) {
+  test('#query - findRelatedRecord', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
     const jupiter = {
@@ -853,7 +771,7 @@ module('Cache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(oqe('relatedRecord', { type: 'moon', id: 'callisto' }, 'planet')),
+      cache.query(q => q.findRelatedRecord({ type: 'moon', id: 'callisto' }, 'planet')),
       jupiter
     );
   });

@@ -8,13 +8,14 @@ import {
   RecordOperation,
   Query,
   QueryOrExpression,
+  QueryBuilder,
   Schema
 } from '@orbit/data';
 import { OperationProcessor, OperationProcessorClass } from './cache/operation-processors/operation-processor';
 import CacheIntegrityProcessor from './cache/operation-processors/cache-integrity-processor';
 import SchemaConsistencyProcessor from './cache/operation-processors/schema-consistency-processor';
 import QueryEvaluator from './cache/query-evaluator';
-import { QueryOperators, ContextualQueryOperators } from './cache/query-operators';
+import { QueryOperators } from './cache/query-operators';
 import PatchTransforms, { PatchTransformFunc } from './cache/patch-transforms';
 import InverseTransforms, { InverseTransformFunc } from './cache/inverse-transforms';
 import ImmutableMap from './immutable-map';
@@ -36,15 +37,13 @@ export interface CacheSettings {
  Once cached, data can be accessed at a particular path with `get`. The
  size of data at a path can be accessed with `length`.
 
- @class Cache
- @namespace OC
- @param {OC.Schema} schema
- @param {Object}  [settings]
- @param {Array}   [settings.processors=[SchemaConsistencyProcessor, CacheIntegrityProcessor]] Operation processors to notify for every call to `transform`.
- @constructor
+ * @export
+ * @class Cache
+ * @implements {Evented}
  */
 @evented
 export default class Cache implements Evented {
+  public queryBuilder: QueryBuilder;
   private _keyMap: KeyMap;
   private _schema: Schema;
   private _queryEvaluator: QueryEvaluator;
@@ -62,7 +61,7 @@ export default class Cache implements Evented {
     this._schema = settings.schema;
     this._keyMap = settings.keyMap;
 
-    this._queryEvaluator = new QueryEvaluator(this, QueryOperators, ContextualQueryOperators);
+    this._queryEvaluator = new QueryEvaluator(this, QueryOperators);
 
     const processors: OperationProcessorClass[] = settings.processors ? settings.processors : [SchemaConsistencyProcessor, CacheIntegrityProcessor];
     this._processors = processors.map(Processor => new Processor(this));
@@ -101,8 +100,12 @@ export default class Cache implements Evented {
    @param {Expression} query
    @return {Object} result of query (type depends on query)
    */
-  query(queryOrExpression: QueryOrExpression): any {
-    const query = Query.from(queryOrExpression);
+  query(queryOrExpression: QueryOrExpression, options?: object, id?: string): any {
+    let queryBuilder = this.queryBuilder;
+    if (!queryBuilder) {
+      queryBuilder = this.queryBuilder = new QueryBuilder();
+    }
+     const query = Query.from(queryOrExpression, options, id, queryBuilder);
     return this._queryEvaluator.evaluate(query.expression);
   }
 

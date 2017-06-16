@@ -2,7 +2,6 @@ import {
   addRecord,
   cloneRecordIdentity as identity,
   KeyMap,
-  oqb,
   Schema,
   SchemaSettings,
   Source,
@@ -102,7 +101,7 @@ module('Store', function(hooks) {
 
     assert.equal(store.cache.records('planet').length, 1, 'cache should contain one planet');
 
-    return store.query(oqb.record({ type: 'planet', id: 'jupiter' }))
+    return store.query(q => q.findRecord({ type: 'planet', id: 'jupiter' }))
       .then(foundPlanet => {
         assert.deepEqual(foundPlanet, jupiter, 'found planet matches original');
       });
@@ -115,7 +114,7 @@ module('Store', function(hooks) {
 
     assert.equal(store.cache.records('planet').length, 0, 'cache should contain no planets');
 
-    return store.query(oqb.record({ type: 'planet', id: 'jupiter' }))
+    return store.query(q => q.findRecord({ type: 'planet', id: 'jupiter' }))
       .catch(e => {
         assert.equal(e.message, 'Record not found: planet:jupiter');
       });
