@@ -37,7 +37,7 @@ export default class Store extends Source implements Syncable, Queryable, Updata
   sync: (transformOrTransforms: Transform | Transform[]) => Promise<void>;
 
   // Queryable interface stubs
-  query: (query: Query) => Promise<any>;
+  query: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<any>;
 
   // Updatable interface stubs
   update: (transformOrOperations: TransformOrOperations) => Promise<void>;

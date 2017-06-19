@@ -8,13 +8,13 @@ import {
   RecordOperation,
   Query,
   QueryOrExpression,
+  QueryExpression,
   QueryBuilder,
   Schema
 } from '@orbit/data';
 import { OperationProcessor, OperationProcessorClass } from './cache/operation-processors/operation-processor';
 import CacheIntegrityProcessor from './cache/operation-processors/cache-integrity-processor';
 import SchemaConsistencyProcessor from './cache/operation-processors/schema-consistency-processor';
-import QueryEvaluator from './cache/query-evaluator';
 import { QueryOperators } from './cache/query-operators';
 import PatchTransforms, { PatchTransformFunc } from './cache/patch-transforms';
 import InverseTransforms, { InverseTransformFunc } from './cache/inverse-transforms';
@@ -25,6 +25,7 @@ export interface CacheSettings {
   keyMap?: KeyMap;
   processors?: OperationProcessorClass[];
   base?: Cache;
+  queryBuilder?: QueryBuilder;
 }
 
 /**
@@ -43,10 +44,9 @@ export interface CacheSettings {
  */
 @evented
 export default class Cache implements Evented {
-  public queryBuilder: QueryBuilder;
   private _keyMap: KeyMap;
   private _schema: Schema;
-  private _queryEvaluator: QueryEvaluator;
+  private _queryBuilder: QueryBuilder;
   private _processors: OperationProcessor[];
   private _records: Dict<ImmutableMap>;
 
@@ -61,7 +61,7 @@ export default class Cache implements Evented {
     this._schema = settings.schema;
     this._keyMap = settings.keyMap;
 
-    this._queryEvaluator = new QueryEvaluator(this, QueryOperators);
+    this._queryBuilder = settings.queryBuilder || new QueryBuilder();
 
     const processors: OperationProcessorClass[] = settings.processors ? settings.processors : [SchemaConsistencyProcessor, CacheIntegrityProcessor];
     this._processors = processors.map(Processor => new Processor(this));
@@ -101,12 +101,8 @@ export default class Cache implements Evented {
    @return {Object} result of query (type depends on query)
    */
   query(queryOrExpression: QueryOrExpression, options?: object, id?: string): any {
-    let queryBuilder = this.queryBuilder;
-    if (!queryBuilder) {
-      queryBuilder = this.queryBuilder = new QueryBuilder();
-    }
-     const query = Query.from(queryOrExpression, options, id, queryBuilder);
-    return this._queryEvaluator.evaluate(query.expression);
+    const query = Query.from(queryOrExpression, options, id, this._queryBuilder);
+    return this._query(query.expression);
   }
 
   /**
@@ -198,5 +194,13 @@ export default class Cache implements Evented {
           .map(processor => processor.finally(operation))
           .forEach(ops => this._applyOperations(ops, inverse));
     }
+  }
+
+  protected _query(expression: QueryExpression): any {
+    const operator = QueryOperators[expression.op];
+    if (!operator) {
+      throw new Error('Unable to find operator: ' + expression.op);
+    }
+    return operator(this, expression);
   }
 }

@@ -1,5 +1,6 @@
-import { deepGet, merge, every, some } from '@orbit/utils';
+import { Dict, deepGet, merge, every, some } from '@orbit/utils';
 import {
+  QueryExpression,
   RecordNotFoundException,
   QueryExpressionParseError,
   FindRecord,
@@ -9,12 +10,20 @@ import {
   SortSpecifier,
   AttributeSortSpecifier
 } from '@orbit/data';
+import Cache from '../cache';
 
 const EMPTY = () => {};
 
-export const QueryOperators = {
-  findRecord(expression: FindRecord) {
-    const cache = this.target;
+/**
+ * @export
+ * @interface QueryOperator
+ */
+export interface QueryOperator {
+  (cache: Cache, expression: QueryExpression): any;
+}
+
+export const QueryOperators: Dict<QueryOperator> = {
+  findRecord(cache: Cache, expression: FindRecord) {
     const { type, id } = expression.record;
     const record = cache.records(type).get(id);
 
@@ -25,8 +34,8 @@ export const QueryOperators = {
     return record;
   },
 
-  findRecords(expression: FindRecords) {
-    let results = this.target.records(expression.type).values;
+  findRecords(cache: Cache, expression: FindRecords) {
+    let results = cache.records(expression.type).values;
     if (expression.filter) {
       results = filterRecords(results, expression.filter);
     }
@@ -39,8 +48,7 @@ export const QueryOperators = {
     return results;
   },
 
-  findRelatedRecords(expression: FindRelatedRecords) {
-    const cache = this.target;
+  findRelatedRecords(cache: Cache, expression: FindRelatedRecords) {
     const { record, relationship } = expression;
     const { type, id } = record;
     const currentRecord = cache.records(type).get(id);
@@ -57,8 +65,7 @@ export const QueryOperators = {
     return results;
   },
 
-  findRelatedRecord(expression: FindRelatedRecord) {
-    const cache = this.target;
+  findRelatedRecord(cache: Cache, expression: FindRelatedRecord) {
     const { record, relationship } = expression;
     const { type, id } = record;
     const currentRecord = cache.records(type).get(id);
