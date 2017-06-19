@@ -13,7 +13,6 @@ import {
   removeFromHasMany,
   replaceHasMany,
   replaceHasOne,
-  oqb,
   Transform,
   Schema,
   Source
@@ -421,7 +420,7 @@ module('LocalStorageSource', function(hooks) {
         addRecord(jupiter),
         addRecord(io)
       ])))
-      .then(() => source.pull(oqb.records()))
+      .then(() => source.pull(q => q.findRecords()))
       .then(transforms => {
         assert.equal(transforms.length, 1, 'one transform returned');
         assert.deepEqual(
@@ -467,7 +466,7 @@ module('LocalStorageSource', function(hooks) {
         addRecord(jupiter),
         addRecord(io)
       ])))
-      .then(() => source.pull(oqb.records('planet')))
+      .then(() => source.pull(q => q.findRecords('planet')))
       .then(transforms => {
         assert.equal(transforms.length, 1, 'one transform returned');
         assert.deepEqual(
@@ -513,7 +512,7 @@ module('LocalStorageSource', function(hooks) {
         addRecord(jupiter),
         addRecord(io)
       ])))
-      .then(() => source.pull(oqb.record(jupiter)))
+      .then(() => source.pull(q => q.findRecord(jupiter)))
       .then(transforms => {
         assert.equal(transforms.length, 1, 'one transform returned');
         assert.deepEqual(

@@ -1,22 +1,32 @@
-import { Transform } from '@orbit/data';
-import { isNone } from '@orbit/utils';
+import { Dict, isNone } from '@orbit/utils'
+import Orbit, {
+  QueryExpression,
+  Transform,
+  FindRecord,
+  FindRecords
+} from '@orbit/data';
+import LocalStorageSource from '../source';
 
 declare const self: any;
 
-export default {
-  records(source, expression) {
+export interface PullOperator {
+  (source: LocalStorageSource, expression: QueryExpression): Promise<Transform[]>;
+}
+
+export const PullOperators: Dict<PullOperator> = {
+  findRecords(source: LocalStorageSource, expression: FindRecords): Promise<Transform[]> {
     const operations = [];
-    let allowedTypes = expression.args;
-    let skipTypeCheck = (allowedTypes.length === 0 || (allowedTypes.length === 1 && isNone(allowedTypes[0])));
+
+    const typeFilter = expression.type;
 
     for (let key in self.localStorage) {
       if (key.indexOf(source.namespace) === 0) {
-        let typesMatch = skipTypeCheck;
+        let typesMatch = isNone(typeFilter);
 
         if (!typesMatch) {
           let fragments = key.split(source.delimiter);
           let type = fragments[1];
-          typesMatch = allowedTypes.indexOf(type) !== -1;
+          typesMatch = (typeFilter === type);
         }
 
         if (typesMatch) {
@@ -30,12 +40,12 @@ export default {
       }
     }
 
-    return [Transform.from(operations)];
+    return Orbit.Promise.resolve([Transform.from(operations)]);
   },
 
-  record(source, expression) {
+  findRecord(source: LocalStorageSource, expression: FindRecord): Promise<Transform[]> {
     const operations = [];
-    let requestedRecord = expression.args[0];
+    const requestedRecord = expression.record;
 
     for (let key in self.localStorage) {
       if (key.indexOf(source.namespace) === 0) {
@@ -57,6 +67,6 @@ export default {
       }
     }
 
-    return [Transform.from(operations)];
+    return Orbit.Promise.resolve([Transform.from(operations)]);
   }
 };
