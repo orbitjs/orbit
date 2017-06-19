@@ -10,7 +10,7 @@ import Orbit, {
 } from '@orbit/data';
 import { assert } from '@orbit/utils';
 import transformOperators from './lib/transform-operators';
-import queryOperators from './lib/query-operators';
+import { PullOperator, PullOperators } from './lib/pull-operators';
 import { supportsIndexedDB } from './lib/indexeddb';
 
 declare const self: any;
@@ -315,8 +315,13 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
   /////////////////////////////////////////////////////////////////////////////
 
   _pull(query: Query): Promise<Transform[]> {
+    const operator: PullOperator = PullOperators[query.expression.op];
+    if (!operator) {
+      throw new Error('IndexedDBSource does not support the `${query.expression.op}` operator for queries.');
+    }
+
     return this.openDB()
-      .then(() => queryOperators[query.expression.op](this, query.expression));
+      .then(() => operator(this, query.expression));
   }
 
   /////////////////////////////////////////////////////////////////////////////
