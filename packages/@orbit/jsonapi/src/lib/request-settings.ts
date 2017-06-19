@@ -1,15 +1,23 @@
 import { deepSet } from '@orbit/utils';
 import { FetchSettings } from '../jsonapi-source';
 
-export function buildRequestSettings(request, settings: FetchSettings = {}): FetchSettings {
+export interface RequestOptions {
+  filter?: any;
+  sort?: any;
+  page?: any;
+  include?: any;
+  timeout?: number;
+}
+
+export function buildFetchSettings(options: RequestOptions, settings: FetchSettings = {}): FetchSettings {
   for (const param of ['filter', 'include', 'page', 'sort']) {
-    if (request[param]) {
-      deepSet(settings, ['params', param], request[param]);
+    if (options[param]) {
+      deepSet(settings, ['params', param], options[param]);
     }
   }
 
-  if (request.timeout) {
-    settings.timeout = request.timeout;
+  if (options.timeout) {
+    settings.timeout = options.timeout;
   }
 
   return settings;

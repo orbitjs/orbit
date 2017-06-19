@@ -20,14 +20,14 @@ import { clone, deepSet } from '@orbit/utils';
 import JSONAPISource from '../jsonapi-source';
 import { JSONAPIDocument } from '../jsonapi-document';
 import { DeserializedDocument } from '../jsonapi-serializer';
-import { buildRequestSettings } from './request-settings';
+import { RequestOptions, buildFetchSettings } from './request-settings';
 
 export const TransformRequestProcessors = {
   addRecord(source: JSONAPISource, request) {
     const { serializer } = source;
     const record = request.record;
     const requestDoc: JSONAPIDocument = serializer.serializeDocument(record);
-    const settings = buildRequestSettings(request, { method: 'POST', json: requestDoc });
+    const settings = buildFetchSettings(request, { method: 'POST', json: requestDoc });
 
     return source.fetch(source.resourceURL(record.type), settings)
       .then((raw: JSONAPIDocument) => {
@@ -43,7 +43,7 @@ export const TransformRequestProcessors = {
 
   removeRecord(source: JSONAPISource, request) {
     const { type, id } = request.record;
-    const settings = buildRequestSettings(request, { method: 'DELETE' });
+    const settings = buildFetchSettings(request, { method: 'DELETE' });
 
     return source.fetch(source.resourceURL(type, id), settings)
       .then(() => []);
@@ -53,7 +53,7 @@ export const TransformRequestProcessors = {
     const record = request.record;
     const { type, id } = record;
     const requestDoc: JSONAPIDocument = source.serializer.serializeDocument(record);
-    const settings = buildRequestSettings(request, { method: 'PATCH', json: requestDoc });
+    const settings = buildFetchSettings(request, { method: 'PATCH', json: requestDoc });
 
     return source.fetch(source.resourceURL(type, id), settings)
       .then(() => []);
@@ -65,7 +65,7 @@ export const TransformRequestProcessors = {
     const json = {
       data: request.relatedRecords.map(r => source.serializer.resourceIdentity(r))
     };
-    const settings = buildRequestSettings(request, { method: 'POST', json });
+    const settings = buildFetchSettings(request, { method: 'POST', json });
 
     return source.fetch(source.resourceRelationshipURL(type, id, relationship), settings)
       .then(() => []);
@@ -77,7 +77,7 @@ export const TransformRequestProcessors = {
     const json = {
       data: request.relatedRecords.map(r => source.serializer.resourceIdentity(r))
     };
-    const settings = buildRequestSettings(request, { method: 'DELETE', json });
+    const settings = buildFetchSettings(request, { method: 'DELETE', json });
 
     return source.fetch(source.resourceRelationshipURL(type, id, relationship), settings)
       .then(() => []);
@@ -89,7 +89,7 @@ export const TransformRequestProcessors = {
     const json = {
       data: relatedRecord ? source.serializer.resourceIdentity(relatedRecord) : null
     };
-    const settings = buildRequestSettings(request, { method: 'PATCH', json });
+    const settings = buildFetchSettings(request, { method: 'PATCH', json });
 
     return source.fetch(source.resourceRelationshipURL(type, id, relationship), settings)
       .then(() => []);
@@ -101,7 +101,7 @@ export const TransformRequestProcessors = {
     const json = {
       data: relatedRecords.map(r => source.serializer.resourceIdentity(r))
     };
-    const settings = buildRequestSettings(request, { method: 'PATCH', json });
+    const settings = buildFetchSettings(request, { method: 'PATCH', json });
 
     return source.fetch(source.resourceRelationshipURL(type, id, relationship), settings)
       .then(() => []);
