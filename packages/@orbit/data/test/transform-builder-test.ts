@@ -55,43 +55,43 @@ module('TransformBuilder', function(hooks) {
     );
   });
 
-  test('#addToHasMany', function(assert) {
+  test('#addToRelatedRecords', function(assert) {
     let record = { type: 'planet', id: 'jupiter' };
     let relatedRecord = { type: 'moon', id: 'Io' };
 
     assert.deepEqual(
-      tb.addToHasMany(record, 'moons', relatedRecord),
-      { op: 'addToHasMany', record, relationship: 'moons', relatedRecord }
+      tb.addToRelatedRecords(record, 'moons', relatedRecord),
+      { op: 'addToRelatedRecords', record, relationship: 'moons', relatedRecord }
     );
   });
 
-  test('#removeFromHasMany', function(assert) {
+  test('#removeFromRelatedRecords', function(assert) {
     let record = { type: 'planet', id: 'jupiter' };
     let relatedRecord = { type: 'moon', id: 'Io' };
 
     assert.deepEqual(
-      tb.removeFromHasMany(record, 'moons', relatedRecord),
-      { op: 'removeFromHasMany', record, relationship: 'moons', relatedRecord }
+      tb.removeFromRelatedRecords(record, 'moons', relatedRecord),
+      { op: 'removeFromRelatedRecords', record, relationship: 'moons', relatedRecord }
     );
   });
 
-  test('#replaceHasMany', function(assert) {
+  test('#replaceRelatedRecords', function(assert) {
     let record = { type: 'planet', id: 'jupiter' };
     let relatedRecords = [{ type: 'moon', id: 'Io' }];
 
     assert.deepEqual(
-      tb.replaceHasMany(record, 'moons', relatedRecords),
-      { op: 'replaceHasMany', record, relationship: 'moons', relatedRecords }
+      tb.replaceRelatedRecords(record, 'moons', relatedRecords),
+      { op: 'replaceRelatedRecords', record, relationship: 'moons', relatedRecords }
     );
   });
 
-  test('#replaceHasOne', function(assert) {
+  test('#replaceRelatedRecord', function(assert) {
     let record = { type: 'moon', id: 'Io' };
     let relatedRecord = { type: 'planet', id: 'Jupiter' };
 
     assert.deepEqual(
-      tb.replaceHasOne(record, 'planet', relatedRecord),
-      { op: 'replaceHasOne', record, relationship: 'planet', relatedRecord }
+      tb.replaceRelatedRecord(record, 'planet', relatedRecord),
+      { op: 'replaceRelatedRecord', record, relationship: 'planet', relatedRecord }
     );
   });
 });

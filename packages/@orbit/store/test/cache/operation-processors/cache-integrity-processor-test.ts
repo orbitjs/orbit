@@ -147,7 +147,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     }, 'rev links match');
 
     const addPlanetOp = {
-      op: 'addToHasMany',
+      op: 'addToRelatedRecords',
       record: { type: 'moon', id: europa.id },
       relationship: 'planet',
       relatedRecord: { type: 'planet', id: saturn.id }
@@ -233,7 +233,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     }, 'rev links match');
 
     const replacePlanetOp = {
-      op: 'replaceHasOne',
+      op: 'replaceRelatedRecord',
       record: europa,
       relationship: 'planet',
       relatedRecord: saturn
@@ -304,7 +304,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     }, 'rev links match');
 
     const clearMoonsOp = {
-      op: 'replaceHasMany',
+      op: 'replaceRelatedRecords',
       record: saturn,
       relationship: 'moons',
       relatedRecords: []
@@ -370,7 +370,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     }, 'rev links match');
 
     const replaceMoonsOp = {
-      op: 'replaceHasMany',
+      op: 'replaceRelatedRecords',
       record: saturn,
       relationship: 'moons',
       relatedRecords: [{ type: 'moon', id: 'titan' }]
@@ -449,7 +449,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     }, 'rev links match');
 
     const replaceMoonsOp = {
-      op: 'replaceHasMany',
+      op: 'replaceRelatedRecords',
       record: saturn,
       relationship: 'moons',
       relatedRecords: [{ type: 'moon', id: 'europa' }]
@@ -512,7 +512,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     }, 'rev links match');
 
     const clearInhabitantsOp = {
-      op: 'replaceHasMany',
+      op: 'replaceRelatedRecords',
       record: earth,
       relationship: 'inhabitants',
       relatedRecords: []
@@ -586,7 +586,7 @@ module('CacheIntegrityProcessor', function(hooks) {
 
 
     const removePlanetOp = {
-      op: 'replaceHasOne',
+      op: 'replaceRelatedRecord',
       record: europa,
       relationship: 'planet',
       relatedRecord: null
@@ -656,7 +656,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     }, 'rev links match');
 
     const changePlanetOp = {
-      op: 'replaceHasOne',
+      op: 'replaceRelatedRecord',
       record: earth,
       relationship: 'next',
       relatedRecord: saturn
@@ -720,7 +720,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     }, 'rev links match');
 
     const changePlanetOp = {
-      op: 'replaceHasOne',
+      op: 'replaceRelatedRecord',
       record: earth,
       relationship: 'next',
       relatedRecord: jupiter
@@ -766,7 +766,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     assert.deepEqual(processor._rev, {}, 'empty rev links');
 
     const addPlanetOp = {
-      op: 'addToHasMany',
+      op: 'addToRelatedRecords',
       record: human,
       relationship: 'planets',
       relatedRecord: earth
@@ -819,7 +819,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     }, 'rev links match');
 
     const removePlanetOp = {
-      op: 'removeFromHasMany',
+      op: 'removeFromRelatedRecords',
       record: human,
       relationship: 'planets',
       relatedRecord: earth
@@ -889,7 +889,7 @@ module('CacheIntegrityProcessor', function(hooks) {
       processor.after(removeInhabitantOp),
       [
         {
-          op: 'removeFromHasMany',
+          op: 'removeFromRelatedRecords',
           record: cloneRecordIdentity(earth),
           relationship: 'inhabitants',
           relatedRecord: cloneRecordIdentity(human)

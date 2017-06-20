@@ -5,12 +5,12 @@ import {
   RecordIdentity,
   RecordOperation,
   AddRecordOperation,
-  AddToHasManyOperation,
+  AddToRelatedRecordsOperation,
   ReplaceAttributeOperation,
-  RemoveFromHasManyOperation,
+  RemoveFromRelatedRecordsOperation,
   RemoveRecordOperation,
-  ReplaceHasManyOperation,
-  ReplaceHasOneOperation,
+  ReplaceRelatedRecordsOperation,
+  ReplaceRelatedRecordOperation,
   ReplaceKeyOperation,
   ReplaceRecordOperation
 } from '@orbit/data';
@@ -120,7 +120,7 @@ const InverseTransforms = {
     }
   },
 
-  addToHasMany(cache: Cache, op: AddToHasManyOperation): RecordOperation {
+  addToRelatedRecords(cache: Cache, op: AddToRelatedRecordsOperation): RecordOperation {
     const { type, id } = op.record;
     const { relationship, relatedRecord } = op;
     const record = cache.records(type).get(id);
@@ -128,7 +128,7 @@ const InverseTransforms = {
 
     if (current === undefined) {
       return {
-        op: 'removeFromHasMany',
+        op: 'removeFromRelatedRecords',
         record: { type, id },
         relationship,
         relatedRecord
@@ -136,7 +136,7 @@ const InverseTransforms = {
     }
   },
 
-  removeFromHasMany(cache: Cache, op: RemoveFromHasManyOperation): RecordOperation {
+  removeFromRelatedRecords(cache: Cache, op: RemoveFromRelatedRecordsOperation): RecordOperation {
     const { type, id } = op.record;
     const { relationship, relatedRecord } = op;
     const record = cache.records(type).get(id);
@@ -144,7 +144,7 @@ const InverseTransforms = {
 
     if (current) {
       return {
-        op: 'addToHasMany',
+        op: 'addToRelatedRecords',
         record: { type, id },
         relationship,
         relatedRecord
@@ -152,7 +152,7 @@ const InverseTransforms = {
     }
   },
 
-  replaceHasMany(cache: Cache, op: ReplaceHasManyOperation): RecordOperation {
+  replaceRelatedRecords(cache: Cache, op: ReplaceRelatedRecordsOperation): RecordOperation {
     const { type, id } = op.record;
     const { relationship } = op;
     const record = cache.records(type).get(id);
@@ -166,7 +166,7 @@ const InverseTransforms = {
 
     if (!eq(currentRecords, op.relatedRecords)) {
       return {
-        op: 'replaceHasMany',
+        op: 'replaceRelatedRecords',
         record: { type, id },
         relationship,
         relatedRecords: currentRecords
@@ -174,7 +174,7 @@ const InverseTransforms = {
     }
   },
 
-  replaceHasOne(cache: Cache, op: ReplaceHasOneOperation): RecordOperation {
+  replaceRelatedRecord(cache: Cache, op: ReplaceRelatedRecordOperation): RecordOperation {
     const { type, id } = op.record;
     const { relationship } = op;
     const record = cache.records(type).get(id);
@@ -183,7 +183,7 @@ const InverseTransforms = {
 
     if (!eq(currentRecord, op.relatedRecord)) {
       return {
-        op: 'replaceHasOne',
+        op: 'replaceRelatedRecord',
         record: { type, id },
         relationship: relationship,
         relatedRecord: currentRecord

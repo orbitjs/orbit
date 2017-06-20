@@ -3,12 +3,12 @@ import {
   serializeRecordIdentity,
   Record, RecordIdentity,
   AddRecordOperation,
-  AddToHasManyOperation,
+  AddToRelatedRecordsOperation,
   ReplaceAttributeOperation,
-  RemoveFromHasManyOperation,
+  RemoveFromRelatedRecordsOperation,
   RemoveRecordOperation,
-  ReplaceHasManyOperation,
-  ReplaceHasOneOperation,
+  ReplaceRelatedRecordsOperation,
+  ReplaceRelatedRecordOperation,
   ReplaceKeyOperation,
   ReplaceRecordOperation
 } from '@orbit/data';
@@ -55,7 +55,7 @@ export default {
       });
   },
 
-  addToHasMany(source: Source, operation: AddToHasManyOperation) {
+  addToRelatedRecords(source: Source, operation: AddToRelatedRecordsOperation) {
     return getRecord(source, operation.record)
       .then(record => {
         deepSet(record, ['relationships', operation.relationship, 'data', serializeRecordIdentity(operation.relatedRecord)], true);
@@ -63,7 +63,7 @@ export default {
       });
   },
 
-  removeFromHasMany(source: Source, operation: RemoveFromHasManyOperation) {
+  removeFromRelatedRecords(source: Source, operation: RemoveFromRelatedRecordsOperation) {
     return getRecord(source, operation.record)
       .then(record => {
         if (record &&
@@ -78,7 +78,7 @@ export default {
       });
   },
 
-  replaceHasMany(source: Source, operation: ReplaceHasManyOperation) {
+  replaceRelatedRecords(source: Source, operation: ReplaceRelatedRecordsOperation) {
     return getRecord(source, operation.record)
       .then(record => {
         let data = {};
@@ -90,7 +90,7 @@ export default {
       });
   },
 
-  replaceHasOne(source: Source, operation: ReplaceHasOneOperation) {
+  replaceRelatedRecord(source: Source, operation: ReplaceRelatedRecordOperation) {
     return getRecord(source, operation.record)
       .then(record => {
         let data = operation.relatedRecord ? serializeRecordIdentity(operation.relatedRecord) : null;
