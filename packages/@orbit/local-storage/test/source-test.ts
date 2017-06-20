@@ -167,7 +167,7 @@ module('LocalStorageSource', function(hooks) {
       .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
   });
 
-  test('#push - addToHasMany', function(assert) {
+  test('#push - addToRelatedRecords', function(assert) {
     assert.expect(1);
 
     let original = {
@@ -201,11 +201,11 @@ module('LocalStorageSource', function(hooks) {
     };
 
     return source.push(t => t.addRecord(original))
-      .then(() => source.push(t => t.addToHasMany(original, 'moons', { type: 'moon', id: 'moon1' })))
+      .then(() => source.push(t => t.addToRelatedRecords(original, 'moons', { type: 'moon', id: 'moon1' })))
       .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
   });
 
-  test('#push - removeFromHasMany', function(assert) {
+  test('#push - removeFromRelatedRecords', function(assert) {
     assert.expect(1);
 
     let original = {
@@ -242,11 +242,11 @@ module('LocalStorageSource', function(hooks) {
     };
 
     return source.push(t => t.addRecord(original))
-      .then(() => source.push(t => t.removeFromHasMany(original, 'moons', { type: 'moon', id: 'moon2' })))
+      .then(() => source.push(t => t.removeFromRelatedRecords(original, 'moons', { type: 'moon', id: 'moon2' })))
       .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
   });
 
-  test('#push - replaceHasMany', function(assert) {
+  test('#push - replaceRelatedRecords', function(assert) {
     assert.expect(1);
 
     let original = {
@@ -283,11 +283,11 @@ module('LocalStorageSource', function(hooks) {
     };
 
     return source.push(t => t.addRecord(original))
-      .then(() => source.push(t => t.replaceHasMany(original, 'moons', [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }])))
+      .then(() => source.push(t => t.replaceRelatedRecords(original, 'moons', [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }])))
       .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
   });
 
-  test('#push - replaceHasOne - record', function(assert) {
+  test('#push - replaceRelatedRecord - record', function(assert) {
     assert.expect(1);
 
     let original = {
@@ -319,11 +319,11 @@ module('LocalStorageSource', function(hooks) {
     };
 
     return source.push(t => t.addRecord(original))
-      .then(() => source.push(t => t.replaceHasOne(original, 'solarSystem', { type: 'solarSystem', id: 'ss1' })))
+      .then(() => source.push(t => t.replaceRelatedRecord(original, 'solarSystem', { type: 'solarSystem', id: 'ss1' })))
       .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
   });
 
-  test('#push - replaceHasOne - null', function(assert) {
+  test('#push - replaceRelatedRecord - null', function(assert) {
     assert.expect(1);
 
     let original = {
@@ -355,7 +355,7 @@ module('LocalStorageSource', function(hooks) {
     };
 
     return source.push(t => t.addRecord(original))
-      .then(() => source.push(t => t.replaceHasOne(original, 'solarSystem', null)))
+      .then(() => source.push(t => t.replaceRelatedRecord(original, 'solarSystem', null)))
       .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
   });
 

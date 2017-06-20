@@ -11,10 +11,10 @@ import {
   RemoveRecordOperation,
   ReplaceAttributeOperation,
   ReplaceRecordOperation,
-  AddToHasManyOperation,
-  RemoveFromHasManyOperation,
-  ReplaceHasOneOperation,
-  ReplaceHasManyOperation
+  AddToRelatedRecordsOperation,
+  RemoveFromRelatedRecordsOperation,
+  ReplaceRelatedRecordOperation,
+  ReplaceRelatedRecordsOperation
 } from '@orbit/data';
 import { clone, deepSet } from '@orbit/utils';
 import JSONAPISource from '../jsonapi-source';
@@ -59,7 +59,7 @@ export const TransformRequestProcessors = {
       .then(() => []);
   },
 
-  addToHasMany(source: JSONAPISource, request) {
+  addToRelatedRecords(source: JSONAPISource, request) {
     const { type, id } = request.record;
     const { relationship } = request;
     const json = {
@@ -71,7 +71,7 @@ export const TransformRequestProcessors = {
       .then(() => []);
   },
 
-  removeFromHasMany(source: JSONAPISource, request) {
+  removeFromRelatedRecords(source: JSONAPISource, request) {
     const { type, id } = request.record;
     const { relationship } = request;
     const json = {
@@ -83,7 +83,7 @@ export const TransformRequestProcessors = {
       .then(() => []);
   },
 
-  replaceHasOne(source: JSONAPISource, request) {
+  replaceRelatedRecord(source: JSONAPISource, request) {
     const { type, id } = request.record;
     const { relationship, relatedRecord } = request;
     const json = {
@@ -95,7 +95,7 @@ export const TransformRequestProcessors = {
       .then(() => []);
   },
 
-  replaceHasMany(source: JSONAPISource, request) {
+  replaceRelatedRecords(source: JSONAPISource, request) {
     const { type, id } = request.record;
     const { relationship, relatedRecords } = request;
     const json = {
@@ -131,15 +131,15 @@ export function getTransformRequests(source: JSONAPISource, transform: Transform
         if (operation.op === 'replaceAttribute') {
           newRequestNeeded = false;
           replaceRecordAttribute(prevRequest.record, operation.attribute, operation.value);
-        } else if (operation.op === 'replaceHasOne') {
+        } else if (operation.op === 'replaceRelatedRecord') {
           newRequestNeeded = false;
           replaceRecordHasOne(prevRequest.record, operation.relationship, operation.relatedRecord);
-        } else if (operation.op === 'replaceHasMany') {
+        } else if (operation.op === 'replaceRelatedRecords') {
           newRequestNeeded = false;
           replaceRecordHasMany(prevRequest.record, operation.relationship, operation.relatedRecords);
         }
-      } else if (prevRequest.op === 'addToHasMany' &&
-                 operation.op === 'addToHasMany' &&
+      } else if (prevRequest.op === 'addToRelatedRecords' &&
+                 operation.op === 'addToRelatedRecords' &&
                  prevRequest.relationship === operation.relationship) {
         newRequestNeeded = false;
         prevRequest.relatedRecords.push(cloneRecordIdentity(operation.relatedRecord));
@@ -200,25 +200,25 @@ const OperationToRequestMap = {
     };
   },
 
-  addToHasMany(operation: AddToHasManyOperation) {
+  addToRelatedRecords(operation: AddToRelatedRecordsOperation) {
     return {
-      op: 'addToHasMany',
+      op: 'addToRelatedRecords',
       record: cloneRecordIdentity(operation.record),
       relationship: operation.relationship,
       relatedRecords: [cloneRecordIdentity(operation.relatedRecord)]
     };
   },
 
-  removeFromHasMany(operation: RemoveFromHasManyOperation) {
+  removeFromRelatedRecords(operation: RemoveFromRelatedRecordsOperation) {
     return {
-      op: 'removeFromHasMany',
+      op: 'removeFromRelatedRecords',
       record: cloneRecordIdentity(operation.record),
       relationship: operation.relationship,
       relatedRecords: [cloneRecordIdentity(operation.relatedRecord)]
     };
   },
 
-  replaceHasOne(operation: ReplaceHasOneOperation) {
+  replaceRelatedRecord(operation: ReplaceRelatedRecordOperation) {
     const record: Record = {
       type: operation.record.type,
       id: operation.record.id
@@ -232,7 +232,7 @@ const OperationToRequestMap = {
     };
   },
 
-  replaceHasMany(operation: ReplaceHasManyOperation) {
+  replaceRelatedRecords(operation: ReplaceRelatedRecordsOperation) {
     const record = cloneRecordIdentity(operation.record);
     const relationshipData = {};
     operation.relatedRecords.forEach(r => {

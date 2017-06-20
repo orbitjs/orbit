@@ -8,10 +8,10 @@ import {
   RemoveRecordOperation,
   ReplaceKeyOperation,
   ReplaceAttributeOperation,
-  AddToHasManyOperation,
-  RemoveFromHasManyOperation,
-  ReplaceHasManyOperation,
-  ReplaceHasOneOperation
+  AddToRelatedRecordsOperation,
+  RemoveFromRelatedRecordsOperation,
+  ReplaceRelatedRecordsOperation,
+  ReplaceRelatedRecordOperation
 } from './operation';
 import { eq } from '@orbit/utils';
 
@@ -71,50 +71,50 @@ export default class TransformBuilder {
   }
 
   /**
-   * Instantiate a new `addToHasMany` operation.
+   * Instantiate a new `addToRelatedRecords` operation.
    *
    * @param {RecordIdentity} record
    * @param {string} relationship
    * @param {RecordIdentity} relatedRecord
-   * @returns {AddToHasManyOperation}
+   * @returns {AddToRelatedRecordsOperation}
    */
-  addToHasMany(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): AddToHasManyOperation {
-    return { op: 'addToHasMany', record, relationship, relatedRecord };
+  addToRelatedRecords(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): AddToRelatedRecordsOperation {
+    return { op: 'addToRelatedRecords', record, relationship, relatedRecord };
   }
 
   /**
-   * Instantiate a new `removeFromHasMany` operation.
+   * Instantiate a new `removeFromRelatedRecords` operation.
    *
    * @param {RecordIdentity} record
    * @param {string} relationship
    * @param {RecordIdentity} relatedRecord
-   * @returns {RemoveFromHasManyOperation}
+   * @returns {RemoveFromRelatedRecordsOperation}
    */
-  removeFromHasMany(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): RemoveFromHasManyOperation {
-    return { op: 'removeFromHasMany', record, relationship, relatedRecord };
+  removeFromRelatedRecords(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): RemoveFromRelatedRecordsOperation {
+    return { op: 'removeFromRelatedRecords', record, relationship, relatedRecord };
   }
 
   /**
-   * Instantiate a new `replaceHasMany` operation.
+   * Instantiate a new `replaceRelatedRecords` operation.
    *
    * @param {RecordIdentity} record
    * @param {string} relationship
    * @param {RecordIdentity[]} relatedRecords
-   * @returns {ReplaceHasManyOperation}
+   * @returns {ReplaceRelatedRecordsOperation}
    */
-  replaceHasMany(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]): ReplaceHasManyOperation {
-    return { op: 'replaceHasMany', record, relationship, relatedRecords };
+  replaceRelatedRecords(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]): ReplaceRelatedRecordsOperation {
+    return { op: 'replaceRelatedRecords', record, relationship, relatedRecords };
   }
 
   /**
-   * Instantiate a new `replaceHasOne` operation.
+   * Instantiate a new `replaceRelatedRecord` operation.
    *
    * @param {RecordIdentity} record
    * @param {string} relationship
    * @param {RecordIdentity} relatedRecord
-   * @returns {ReplaceHasOneOperation}
+   * @returns {ReplaceRelatedRecordOperation}
    */
-  replaceHasOne(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): ReplaceHasOneOperation {
-    return { op: 'replaceHasOne', record, relationship, relatedRecord };
+  replaceRelatedRecord(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): ReplaceRelatedRecordOperation {
+    return { op: 'replaceRelatedRecord', record, relationship, relatedRecord };
   }
 }

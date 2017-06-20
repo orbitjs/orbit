@@ -127,7 +127,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + replaceHasMany for the same record', function(assert) {
+    test('can coalesce addRecord + replaceRelatedRecords for the same record', function(assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -135,7 +135,7 @@ module('Operation', function() {
             record: { type: 'contact', id: '1234', attributes: { name: 'Joe' } }
           },
           {
-            op: 'replaceHasMany',
+            op: 'replaceRelatedRecords',
             record: { type: 'contact', id: '1234' },
             relationship: 'phoneNumbers',
             relatedRecords: [{ type: 'phoneNumber', id: 'abc' }]
@@ -158,7 +158,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + replaceHasOne for the same record', function(assert) {
+    test('can coalesce addRecord + replaceRelatedRecord for the same record', function(assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -166,7 +166,7 @@ module('Operation', function() {
             record: { type: 'contact', id: '1234', attributes: { name: 'Joe' } }
           },
           {
-            op: 'replaceHasOne',
+            op: 'replaceRelatedRecord',
             record: { type: 'contact', id: '1234' },
             relationship: 'address',
             relatedRecord: { type: 'address', id: 'abc' }
@@ -189,7 +189,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + addToHasMany for the same record', function(assert) {
+    test('can coalesce addRecord + addToRelatedRecords for the same record', function(assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -197,7 +197,7 @@ module('Operation', function() {
             record: { type: 'contact', id: '1234', attributes: { name: 'Joe' } }
           },
           {
-            op: 'addToHasMany',
+            op: 'addToRelatedRecords',
             record: { type: 'contact', id: '1234' },
             relationship: 'phoneNumbers',
             relatedRecord: { type: 'phoneNumber', id: 'abc' }
@@ -220,7 +220,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + replaceHasOne for the same record', function(assert) {
+    test('can coalesce addRecord + replaceRelatedRecord for the same record', function(assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -228,7 +228,7 @@ module('Operation', function() {
             record: { type: 'contact', id: '1234', attributes: { name: 'Joe' } }
           },
           {
-            op: 'replaceHasOne',
+            op: 'replaceRelatedRecord',
             record: { type: 'contact', id: '1234' },
             relationship: 'address',
             relatedRecord: { type: 'address', id: 'abc' }
@@ -251,7 +251,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + replaceHasOne for the same record + relationship', function(assert) {
+    test('can coalesce addRecord + replaceRelatedRecord for the same record + relationship', function(assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -265,7 +265,7 @@ module('Operation', function() {
             }
           },
           {
-            op: 'replaceHasOne',
+            op: 'replaceRelatedRecord',
             record: { type: 'contact', id: '1234' },
             relationship: 'address',
             relatedRecord: { type: 'address', id: 'abc' }
@@ -288,17 +288,17 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce replaceHasOne + replaceHasOne for the same record + relationship', function(assert) {
+    test('can coalesce replaceRelatedRecord + replaceRelatedRecord for the same record + relationship', function(assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
-            op: 'replaceHasOne',
+            op: 'replaceRelatedRecord',
             record: { type: 'contact', id: '1234' },
             relationship: 'address',
             relatedRecord: { type: 'address', id: 'abc' }
           },
           {
-            op: 'replaceHasOne',
+            op: 'replaceRelatedRecord',
             record: { type: 'contact', id: '1234' },
             relationship: 'address',
             relatedRecord: { type: 'address', id: 'def' }
@@ -306,7 +306,7 @@ module('Operation', function() {
         ]),
         [
           {
-            op: 'replaceHasOne',
+            op: 'replaceRelatedRecord',
             record: { type: 'contact', id: '1234' },
             relationship: 'address',
             relatedRecord: { type: 'address', id: 'def' }
@@ -332,7 +332,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + replaceHasOne + removeRecord for the same record', function(assert) {
+    test('can coalesce addRecord + replaceRelatedRecord + removeRecord for the same record', function(assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -346,7 +346,7 @@ module('Operation', function() {
             }
           },
           {
-            op: 'replaceHasOne',
+            op: 'replaceRelatedRecord',
             record: { type: 'contact', id: '1234' },
             relationship: 'address',
             relatedRecord: { type: 'address', id: 'abc' }
@@ -361,7 +361,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + replaceHasOne + removeRecord for the same record in non-contiguous ops', function(assert) {
+    test('can coalesce addRecord + replaceRelatedRecord + removeRecord for the same record in non-contiguous ops', function(assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -379,7 +379,7 @@ module('Operation', function() {
             record: { type: 'contact', id: '5678', attributes: { name: 'Jim' } }
           },
           {
-            op: 'replaceHasOne',
+            op: 'replaceRelatedRecord',
             record: { type: 'contact', id: '1234' },
             relationship: 'address',
             relatedRecord: { type: 'address', id: 'abc' }
@@ -433,13 +433,13 @@ module('Operation', function() {
             value: 'a'
           },
           {
-            op: 'replaceHasOne',
+            op: 'replaceRelatedRecord',
             record: { type: 'contact', id: '1234' },
             relationship: 'address',
             relatedRecord: { type: 'address', id: 'def789' }
           },
           {
-            op: 'replaceHasOne',
+            op: 'replaceRelatedRecord',
             record: { type: 'address', id: 'def789' },
             relationship: 'contact',
             relatedRecord: { type: 'contact', id: '1234' }
@@ -463,13 +463,13 @@ module('Operation', function() {
             record: { type: 'address', id: 'def789', attributes: { street: 'abc' } }
           },
           {
-            op: 'replaceHasOne',
+            op: 'replaceRelatedRecord',
             record: { type: 'contact', id: '1234' },
             relationship: 'address',
             relatedRecord: { type: 'address', id: 'def789' }
           },
           {
-            op: 'replaceHasOne',
+            op: 'replaceRelatedRecord',
             record: { type: 'address', id: 'def789' },
             relationship: 'contact',
             relatedRecord: { type: 'contact', id: '1234' }
@@ -478,17 +478,17 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addToHasMany + removeFromHasMany for the same record + relationship', function(assert) {
+    test('can coalesce addToRelatedRecords + removeFromRelatedRecords for the same record + relationship', function(assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
-            op: 'addToHasMany',
+            op: 'addToRelatedRecords',
             record: { type: 'contact', id: '1234' },
             relationship: 'phoneNumbers',
             relatedRecord: { type: 'phoneNumber', id: 'abc' }
           },
           {
-            op: 'removeFromHasMany',
+            op: 'removeFromRelatedRecords',
             record: { type: 'contact', id: '1234' },
             relationship: 'phoneNumbers',
             relatedRecord: { type: 'phoneNumber', id: 'abc' }
@@ -499,7 +499,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + addToHasMany for the same record', function(assert) {
+    test('can coalesce addRecord + addToRelatedRecords for the same record', function(assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -516,7 +516,7 @@ module('Operation', function() {
             }
           },
           {
-            op: 'addToHasMany',
+            op: 'addToRelatedRecords',
             record: { type: 'address', id: 'def789' },
             relationship: 'phoneNumbers',
             relatedRecord: { type: 'phoneNumber', id: 'def' }
@@ -543,7 +543,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce replaceRecord + addToHasMany for the same record', function(assert) {
+    test('can coalesce replaceRecord + addToRelatedRecords for the same record', function(assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -560,7 +560,7 @@ module('Operation', function() {
             }
           },
           {
-            op: 'addToHasMany',
+            op: 'addToRelatedRecords',
             record: { type: 'address', id: 'def789' },
             relationship: 'phoneNumbers',
             relatedRecord: { type: 'phoneNumber', id: 'def' }
@@ -587,17 +587,17 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce removeFromHasMany + addToHasMany for the same record + relationship', function(assert) {
+    test('can coalesce removeFromRelatedRecords + addToRelatedRecords for the same record + relationship', function(assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
-            op: 'addToHasMany',
+            op: 'addToRelatedRecords',
             record: { type: 'address', id: 'def789' },
             relationship: 'phoneNumbers',
             relatedRecord: { type: 'phoneNumber', id: 'abc' }
           },
           {
-            op: 'removeFromHasMany',
+            op: 'removeFromRelatedRecords',
             record: { type: 'address', id: 'def789' },
             relationship: 'phoneNumbers',
             relatedRecord: { type: 'phoneNumber', id: 'abc' }
@@ -608,7 +608,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + removeFromHasMany for the same record', function(assert) {
+    test('can coalesce addRecord + removeFromRelatedRecords for the same record', function(assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -625,7 +625,7 @@ module('Operation', function() {
             }
           },
           {
-            op: 'removeFromHasMany',
+            op: 'removeFromRelatedRecords',
             record: { type: 'address', id: 'def789' },
             relationship: 'phoneNumbers',
             relatedRecord: { type: 'phoneNumber', id: 'abc' }

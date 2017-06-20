@@ -1,14 +1,14 @@
-import { 
+import {
   cloneRecordIdentity,
   serializeRecordIdentity,
   Record, RecordIdentity,
   AddRecordOperation,
-  AddToHasManyOperation,
+  AddToRelatedRecordsOperation,
   ReplaceAttributeOperation,
-  RemoveFromHasManyOperation,
+  RemoveFromRelatedRecordsOperation,
   RemoveRecordOperation,
-  ReplaceHasManyOperation,
-  ReplaceHasOneOperation,
+  ReplaceRelatedRecordsOperation,
+  ReplaceRelatedRecordOperation,
   ReplaceKeyOperation,
   ReplaceRecordOperation
 } from '@orbit/data';
@@ -44,13 +44,13 @@ export default {
     source.putRecord(record);
   },
 
-  addToHasMany(source: Source, operation: AddToHasManyOperation) {
+  addToRelatedRecords(source: Source, operation: AddToRelatedRecordsOperation) {
     let record: Record = source.getRecord(operation.record) || cloneRecordIdentity(operation.record);
     deepSet(record, ['relationships', operation.relationship, 'data', serializeRecordIdentity(operation.relatedRecord)], true);
     source.putRecord(record);
   },
 
-  removeFromHasMany(source: Source, operation: RemoveFromHasManyOperation) {
+  removeFromRelatedRecords(source: Source, operation: RemoveFromRelatedRecordsOperation) {
     let record: Record = source.getRecord(operation.record);
     if (record &&
         record.relationships &&
@@ -63,7 +63,7 @@ export default {
     }
   },
 
-  replaceHasMany(source: Source, operation: ReplaceHasManyOperation) {
+  replaceRelatedRecords(source: Source, operation: ReplaceRelatedRecordsOperation) {
     let record: Record = source.getRecord(operation.record) || cloneRecordIdentity(operation.record);
     let data = {};
     operation.relatedRecords.forEach(relatedRecord => {
@@ -73,7 +73,7 @@ export default {
     source.putRecord(record);
   },
 
-  replaceHasOne(source: Source, operation: ReplaceHasOneOperation) {
+  replaceRelatedRecord(source: Source, operation: ReplaceRelatedRecordOperation) {
     let record: Record = source.getRecord(operation.record) || cloneRecordIdentity(operation.record);
     let data = operation.relatedRecord ? serializeRecordIdentity(operation.relatedRecord) : null;
     deepSet(record, ['relationships', operation.relationship, 'data'], data);

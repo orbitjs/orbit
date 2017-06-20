@@ -153,7 +153,7 @@ module('Cache', function(hooks) {
   test('#patch adds link to hasMany if record doesn\'t exist', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
-    cache.patch(t => t.addToHasMany({ type: 'planet', id: 'p1' }, 'moons', { type: 'moon', id: 'm1' }));
+    cache.patch(t => t.addToRelatedRecords({ type: 'planet', id: 'p1' }, 'moons', { type: 'moon', id: 'm1' }));
 
     assert.equal(cache.records('planet').get('p1').relationships.moons.data['moon:m1'], true, 'relationship was added');
   });
@@ -167,7 +167,7 @@ module('Cache', function(hooks) {
       assert.ok(false, 'no operations were applied');
     });
 
-    cache.patch(t => t.removeFromHasMany({ type: 'planet', id: 'p1' }, 'moons', { type: 'moon', id: 'moon1' }));
+    cache.patch(t => t.removeFromRelatedRecords({ type: 'planet', id: 'p1' }, 'moons', { type: 'moon', id: 'moon1' }));
 
     assert.equal(cache.records('planet').get('p1'), undefined, 'planet does not exist');
   });
@@ -178,7 +178,7 @@ module('Cache', function(hooks) {
     let cache = new Cache({ schema, keyMap });
 
     const tb = new TransformBuilder();
-    const operation = tb.replaceHasOne(
+    const operation = tb.replaceRelatedRecord(
       { type: 'moon', id: 'moon1' },
       'planet',
       { type: 'planet', id: 'p1' });
@@ -196,7 +196,7 @@ module('Cache', function(hooks) {
     let cache = new Cache({ schema, keyMap });
 
     const tb = new TransformBuilder();
-    const operation = tb.replaceHasOne(
+    const operation = tb.replaceRelatedRecord(
       { type: 'moon', id: 'moon1' },
       'planet',
       null);
@@ -221,7 +221,7 @@ module('Cache', function(hooks) {
       assert.ok(false, 'no operations were applied');
     });
 
-    cache.patch(t => t.addToHasMany(jupiter, 'moons', { type: 'moon', id: 'm1' }));
+    cache.patch(t => t.addToRelatedRecords(jupiter, 'moons', { type: 'moon', id: 'm1' }));
 
     assert.ok(true, 'patch completed');
   });
@@ -239,7 +239,7 @@ module('Cache', function(hooks) {
       assert.ok(false, 'no operations were applied');
     });
 
-    cache.patch(t => t.removeFromHasMany(jupiter, 'moons', { type: 'moon', id: 'm1' }));
+    cache.patch(t => t.removeFromRelatedRecords(jupiter, 'moons', { type: 'moon', id: 'm1' }));
 
     assert.ok(true, 'patch completed');
   });
@@ -257,7 +257,7 @@ module('Cache', function(hooks) {
       assert.ok(false, 'no operations were applied');
     });
 
-    cache.patch(t => t.replaceHasOne(europa, 'planet', { type: 'planet', id: 'p1' }));
+    cache.patch(t => t.replaceRelatedRecord(europa, 'planet', { type: 'planet', id: 'p1' }));
 
     assert.ok(true, 'patch completed');
   });
@@ -275,7 +275,7 @@ module('Cache', function(hooks) {
       assert.ok(false, 'no operations were applied');
     });
 
-    cache.patch(t => t.replaceHasOne(europa, 'planet', null));
+    cache.patch(t => t.replaceRelatedRecord(europa, 'planet', null));
 
     assert.ok(true, 'patch completed');
   });
@@ -357,8 +357,8 @@ module('Cache', function(hooks) {
       t.addRecord(jupiter),
       t.addRecord(io),
       t.addRecord(europa),
-      t.addToHasMany(jupiter, 'moons', io),
-      t.addToHasMany(jupiter, 'moons', europa)
+      t.addToRelatedRecords(jupiter, 'moons', io),
+      t.addToRelatedRecords(jupiter, 'moons', europa)
     ]);
 
     // Removing the moon should remove the planet should remove the other moon
@@ -395,8 +395,8 @@ module('Cache', function(hooks) {
       t.addRecord(jupiter),
       t.addRecord(io),
       t.addRecord(europa),
-      t.addToHasMany(jupiter, 'moons', io),
-      t.addToHasMany(jupiter, 'moons', europa)
+      t.addToRelatedRecords(jupiter, 'moons', io),
+      t.addToRelatedRecords(jupiter, 'moons', europa)
     ]);
 
     // Since there are no dependent relationships, no other records will be

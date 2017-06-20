@@ -107,39 +107,39 @@ module('TransformRequests', function(hooks) {
       }]);
     });
 
-    test('addToHasMany', function(assert) {
+    test('addToRelatedRecords', function(assert) {
       const jupiter = { type: 'planet', id: 'jupiter' };
       const io = { type: 'moon', id: 'io' };
 
-      const t = Transform.from(tb.addToHasMany(jupiter, 'moons', io));
+      const t = Transform.from(tb.addToRelatedRecords(jupiter, 'moons', io));
 
       assert.deepEqual(getTransformRequests(source, t), [{
-        op: 'addToHasMany',
+        op: 'addToRelatedRecords',
         record: jupiter,
         relationship: 'moons',
         relatedRecords: [io]
       }]);
     });
 
-    test('removeFromHasMany', function(assert) {
+    test('removeFromRelatedRecords', function(assert) {
       const jupiter = { type: 'planet', id: 'jupiter' };
       const io = { type: 'moon', id: 'io' };
 
-      const t = Transform.from(tb.removeFromHasMany(jupiter, 'moons', io));
+      const t = Transform.from(tb.removeFromRelatedRecords(jupiter, 'moons', io));
 
       assert.deepEqual(getTransformRequests(source, t), [{
-        op: 'removeFromHasMany',
+        op: 'removeFromRelatedRecords',
         record: jupiter,
         relationship: 'moons',
         relatedRecords: [io]
       }]);
     });
 
-    test('replaceHasOne => replaceRecord', function(assert) {
+    test('replaceRelatedRecord => replaceRecord', function(assert) {
       const jupiter = { type: 'planet', id: 'jupiter' };
       const io = { type: 'moon', id: 'io' };
 
-      const t = Transform.from(tb.replaceHasOne(io, 'planet', jupiter));
+      const t = Transform.from(tb.replaceRelatedRecord(io, 'planet', jupiter));
 
       assert.deepEqual(getTransformRequests(source, t), [{
         op: 'replaceRecord',
@@ -155,10 +155,10 @@ module('TransformRequests', function(hooks) {
       }]);
     });
 
-    test('replaceHasOne (with null) => replaceRecord', function(assert) {
+    test('replaceRelatedRecord (with null) => replaceRecord', function(assert) {
       const io = { type: 'moon', id: 'io' };
 
-      const t = Transform.from(tb.replaceHasOne(io, 'planet', null));
+      const t = Transform.from(tb.replaceRelatedRecord(io, 'planet', null));
 
       assert.deepEqual(getTransformRequests(source, t), [{
         op: 'replaceRecord',
@@ -174,12 +174,12 @@ module('TransformRequests', function(hooks) {
       }]);
     });
 
-    test('replaceHasMany => replaceRecord', function(assert) {
+    test('replaceRelatedRecords => replaceRecord', function(assert) {
       const jupiter = { type: 'planet', id: 'jupiter' };
       const io = { type: 'moon', id: 'io' };
       const europa = { type: 'moon', id: 'europa' };
 
-      const t = Transform.from(tb.replaceHasMany(jupiter, 'moons', [io, europa]));
+      const t = Transform.from(tb.replaceRelatedRecords(jupiter, 'moons', [io, europa]));
 
       assert.deepEqual(getTransformRequests(source, t), [{
         op: 'replaceRecord',
@@ -243,18 +243,18 @@ module('TransformRequests', function(hooks) {
       }]);
     });
 
-    test('addToHasMany + addToHasMany => [addToHasMany]', function(assert) {
+    test('addToRelatedRecords + addToRelatedRecords => [addToRelatedRecords]', function(assert) {
       const jupiter = { type: 'planet', id: 'jupiter' };
       const io = { type: 'moon', id: 'io' };
       const europa = { type: 'moon', id: 'europa' };
 
       const t = Transform.from([
-        tb.addToHasMany(jupiter, 'moons', io),
-        tb.addToHasMany(jupiter, 'moons', europa)
+        tb.addToRelatedRecords(jupiter, 'moons', io),
+        tb.addToRelatedRecords(jupiter, 'moons', europa)
       ]);
 
       assert.deepEqual(getTransformRequests(source, t), [{
-        op: 'addToHasMany',
+        op: 'addToRelatedRecords',
         record: jupiter,
         relationship: 'moons',
         relatedRecords: [io, europa]

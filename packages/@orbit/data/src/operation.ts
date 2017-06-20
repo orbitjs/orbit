@@ -79,11 +79,11 @@ export interface ReplaceAttributeOperation extends Operation {
  * Add to has-many relationship operation.
  *
  * @export
- * @interface AddToHasManyOperation
+ * @interface AddToRelatedRecordsOperation
  * @extends {Operation}
  */
-export interface AddToHasManyOperation extends Operation {
-  op: 'addToHasMany';
+export interface AddToRelatedRecordsOperation extends Operation {
+  op: 'addToRelatedRecords';
   record: RecordIdentity;
   relationship: string;
   relatedRecord: RecordIdentity;
@@ -93,11 +93,11 @@ export interface AddToHasManyOperation extends Operation {
  * Remove from has-many relationship operation.
  *
  * @export
- * @interface RemoveFromHasManyOperation
+ * @interface RemoveFromRelatedRecordsOperation
  * @extends {Operation}
  */
-export interface RemoveFromHasManyOperation extends Operation {
-  op: 'removeFromHasMany';
+export interface RemoveFromRelatedRecordsOperation extends Operation {
+  op: 'removeFromRelatedRecords';
   record: RecordIdentity;
   relationship: string;
   relatedRecord: RecordIdentity;
@@ -107,11 +107,11 @@ export interface RemoveFromHasManyOperation extends Operation {
  * Replace has-many relationship operation.
  *
  * @export
- * @interface ReplaceHasManyOperation
+ * @interface ReplaceRelatedRecordsOperation
  * @extends {Operation}
  */
-export interface ReplaceHasManyOperation extends Operation {
-  op: 'replaceHasMany';
+export interface ReplaceRelatedRecordsOperation extends Operation {
+  op: 'replaceRelatedRecords';
   record: RecordIdentity;
   relationship: string;
   relatedRecords: RecordIdentity[];
@@ -121,11 +121,11 @@ export interface ReplaceHasManyOperation extends Operation {
  * Replace has-one relationship operation.
  *
  * @export
- * @interface ReplaceHasOneOperation
+ * @interface ReplaceRelatedRecordOperation
  * @extends {Operation}
  */
-export interface ReplaceHasOneOperation extends Operation {
-  op: 'replaceHasOne';
+export interface ReplaceRelatedRecordOperation extends Operation {
+  op: 'replaceRelatedRecord';
   record: RecordIdentity;
   relationship: string;
   relatedRecord: RecordIdentity;
@@ -141,10 +141,10 @@ export type RecordOperation = AddRecordOperation |
   RemoveRecordOperation |
   ReplaceKeyOperation |
   ReplaceAttributeOperation |
-  AddToHasManyOperation |
-  RemoveFromHasManyOperation |
-  ReplaceHasManyOperation |
-  ReplaceHasOneOperation;
+  AddToRelatedRecordsOperation |
+  RemoveFromRelatedRecordsOperation |
+  ReplaceRelatedRecordsOperation |
+  ReplaceRelatedRecordOperation;
 
 function markOperationToDelete(operation: Operation): void {
   const o: any = operation;
@@ -169,12 +169,12 @@ function mergeOperations(superceded: RecordOperation, superceding: RecordOperati
             superceding.op === 'replaceAttribute' &&
             superceded.attribute === superceding.attribute) {
           markOperationToDelete(superceded);
-        } else if (superceded.op === 'replaceHasOne' &&
-            superceding.op === 'replaceHasOne' &&
+        } else if (superceded.op === 'replaceRelatedRecord' &&
+            superceding.op === 'replaceRelatedRecord' &&
             superceded.relationship === superceding.relationship) {
           markOperationToDelete(superceded);
-        } else if (superceded.op === 'replaceHasMany' &&
-            superceding.op === 'replaceHasMany' &&
+        } else if (superceded.op === 'replaceRelatedRecords' &&
+            superceding.op === 'replaceRelatedRecords' &&
             superceded.relationship === superceding.relationship) {
           markOperationToDelete(superceded);
         } else {
@@ -182,20 +182,20 @@ function mergeOperations(superceded: RecordOperation, superceding: RecordOperati
             updateRecordReplaceAttribute(superceded.record, superceded.attribute, superceded.value);
             delete superceded.attribute;
             delete superceded.value;
-          } else if (superceded.op === 'replaceHasOne') {
+          } else if (superceded.op === 'replaceRelatedRecord') {
             updateRecordReplaceHasOne(superceded.record, superceded.relationship, superceded.relatedRecord);
             delete superceded.relationship;
             delete superceded.relatedRecord;
-          } else if (superceded.op === 'replaceHasMany') {
+          } else if (superceded.op === 'replaceRelatedRecords') {
             updateRecordReplaceHasMany(superceded.record, superceded.relationship, superceded.relatedRecords);
             delete superceded.relationship;
             delete superceded.relatedRecords;
           }
           if (superceding.op === 'replaceAttribute') {
             updateRecordReplaceAttribute(superceded.record, superceding.attribute, superceding.value);
-          } else if (superceding.op === 'replaceHasOne') {
+          } else if (superceding.op === 'replaceRelatedRecord') {
             updateRecordReplaceHasOne(superceded.record, superceding.relationship, superceding.relatedRecord);
-          } else if (superceding.op === 'replaceHasMany') {
+          } else if (superceding.op === 'replaceRelatedRecords') {
             updateRecordReplaceHasMany(superceded.record, superceding.relationship, superceding.relatedRecords);
           }
           superceded.op = 'replaceRecord';
@@ -205,13 +205,13 @@ function mergeOperations(superceded: RecordOperation, superceding: RecordOperati
                  isReplaceFieldOp(superceding.op)) {
         if (superceding.op === 'replaceAttribute') {
           updateRecordReplaceAttribute(superceded.record, superceding.attribute, superceding.value);
-        } else if (superceding.op === 'replaceHasOne') {
+        } else if (superceding.op === 'replaceRelatedRecord') {
           updateRecordReplaceHasOne(superceded.record, superceding.relationship, superceding.relatedRecord);
-        } else if (superceding.op === 'replaceHasMany') {
+        } else if (superceding.op === 'replaceRelatedRecords') {
           updateRecordReplaceHasMany(superceded.record, superceding.relationship, superceding.relatedRecords);
         }
         markOperationToDelete(superceding);
-      } else if (superceding.op === 'addToHasMany') {
+      } else if (superceding.op === 'addToRelatedRecords') {
         if (superceded.op === 'addRecord') {
           updateRecordAddToHasMany(superceded.record, superceding.relationship, superceding.relatedRecord);
           markOperationToDelete(superceding);
@@ -223,8 +223,8 @@ function mergeOperations(superceded: RecordOperation, superceding: RecordOperati
             markOperationToDelete(superceding);
           }
         }
-      } else if (superceding.op === 'removeFromHasMany') {
-        if (superceded.op === 'addToHasMany' &&
+      } else if (superceding.op === 'removeFromRelatedRecords') {
+        if (superceded.op === 'addToRelatedRecords' &&
             superceded.relationship === superceding.relationship &&
             equalRecordIdentities(superceded.relatedRecord, superceding.relatedRecord)) {
           markOperationToDelete(superceded);
@@ -245,8 +245,8 @@ function mergeOperations(superceded: RecordOperation, superceding: RecordOperati
 
 function isReplaceFieldOp(op: string): boolean {
   return (op === 'replaceAttribute' ||
-          op === 'replaceHasOne' ||
-          op === 'replaceHasMany');
+          op === 'replaceRelatedRecord' ||
+          op === 'replaceRelatedRecords');
 }
 
 function updateRecordReplaceAttribute(record: Record, attribute: string, value: any) {

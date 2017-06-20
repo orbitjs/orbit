@@ -369,7 +369,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345/relationships/moons')
         .returns(jsonapiResponse(204));
 
-      return source.push(t => t.addToHasMany(planet, 'moons', moon))
+      return source.push(t => t.addToRelatedRecords(planet, 'moons', moon))
         .then(() => {
           assert.ok(true, 'records linked');
 
@@ -400,7 +400,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345/relationships/moons')
         .returns(jsonapiResponse(200));
 
-      return source.push(t => t.removeFromHasMany(planet, 'moons', moon))
+      return source.push(t => t.removeFromRelatedRecords(planet, 'moons', moon))
         .then(function() {
           assert.ok(true, 'records unlinked');
 
@@ -431,7 +431,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/moons/987')
         .returns(jsonapiResponse(200));
 
-      return source.push(t => t.replaceHasOne(moon, 'planet', planet))
+      return source.push(t => t.replaceRelatedRecord(moon, 'planet', planet))
         .then(function() {
           assert.ok(true, 'relationship replaced');
 
@@ -457,7 +457,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/moons/987')
         .returns(jsonapiResponse(200));
 
-      return source.push(t => t.replaceHasOne(moon, 'planet', null))
+      return source.push(t => t.replaceRelatedRecord(moon, 'planet', null))
         .then(function() {
           assert.ok(true, 'relationship replaced');
 
@@ -488,7 +488,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200));
 
-      return source.push(t => t.replaceHasMany(planet, 'moons', [moon]))
+      return source.push(t => t.replaceRelatedRecords(planet, 'moons', [moon]))
         .then(function() {
           assert.ok(true, 'relationship replaced');
 

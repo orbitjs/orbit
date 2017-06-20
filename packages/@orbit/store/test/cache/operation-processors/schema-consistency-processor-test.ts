@@ -84,7 +84,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     ]);
 
     const addPlanetOp = {
-      op: 'addToHasMany',
+      op: 'addToRelatedRecords',
       record: { type: 'moon', id: europa.id },
       relationship: 'planet',
       relatedRecord: { type: 'planet', id: saturn.id }
@@ -99,7 +99,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
       processor.after(addPlanetOp),
       [
         {
-          op: 'addToHasMany',
+          op: 'addToRelatedRecords',
           record: identity(saturn),
           relationship: 'moons',
           relatedRecord: identity(europa)
@@ -138,7 +138,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     ]);
 
     const replacePlanetOp = {
-      op: 'replaceHasOne',
+      op: 'replaceRelatedRecord',
       record: identity(europa),
       relationship: 'planet',
       relatedRecord: identity(saturn)
@@ -153,13 +153,13 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
       processor.after(replacePlanetOp),
       [
         {
-          op: 'removeFromHasMany',
+          op: 'removeFromRelatedRecords',
           record: identity(jupiter),
           relationship: 'moons',
           relatedRecord: identity(europa)
         },
         {
-          op: 'addToHasMany',
+          op: 'addToRelatedRecords',
           record: identity(saturn),
           relationship: 'moons',
           relatedRecord: identity(europa)
@@ -189,7 +189,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     ]);
 
     const clearMoonsOp = {
-      op: 'replaceHasMany',
+      op: 'replaceRelatedRecords',
       record: identity(saturn),
       relationship: 'moons',
       relatedRecords: []
@@ -204,7 +204,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
       processor.after(clearMoonsOp),
       [
         {
-          op: 'replaceHasOne',
+          op: 'replaceRelatedRecord',
           record: identity(titan),
           relationship: 'planet',
           relatedRecord: null
@@ -237,7 +237,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     ]);
 
     const replaceMoonsOp = {
-      op: 'replaceHasMany',
+      op: 'replaceRelatedRecords',
       record: identity(jupiter),
       relationship: 'moons',
       relatedRecords: [identity(titan)]
@@ -252,7 +252,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
       processor.after(replaceMoonsOp),
       [
         {
-          op: 'replaceHasOne',
+          op: 'replaceRelatedRecord',
           record: identity(titan),
           relationship: 'planet',
           relatedRecord: identity(jupiter)
@@ -291,7 +291,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     ]);
 
     const replaceMoonsOp = {
-      op: 'replaceHasMany',
+      op: 'replaceRelatedRecords',
       record: identity(saturn),
       relationship: 'moons',
       relatedRecords: [identity(europa)]
@@ -306,13 +306,13 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
       processor.after(replaceMoonsOp),
       [
         {
-          op: 'replaceHasOne',
+          op: 'replaceRelatedRecord',
           record: identity(titan),
           relationship: 'planet',
           relatedRecord: null
         },
         {
-          op: 'replaceHasOne',
+          op: 'replaceRelatedRecord',
           record: identity(europa),
           relationship: 'planet',
           relatedRecord: identity(saturn)
@@ -336,7 +336,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     ]);
 
     const clearInhabitantsOp = {
-      op: 'replaceHasMany',
+      op: 'replaceRelatedRecords',
       record: identity(earth),
       relationship: 'inhabitants',
       relatedRecords: []
@@ -346,7 +346,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
       processor.after(clearInhabitantsOp),
       [
         {
-          op: 'removeFromHasMany',
+          op: 'removeFromRelatedRecords',
           record: identity(human),
           relationship: 'planets',
           relatedRecord: identity(earth)
@@ -374,7 +374,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     ]);
 
     const clearInhabitantsOp = {
-      op: 'replaceHasMany',
+      op: 'replaceRelatedRecords',
       record: identity(earth),
       relationship: 'inhabitants',
       relatedRecords: [identity(human), identity(cat), identity(dog)]
@@ -384,13 +384,13 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
       processor.after(clearInhabitantsOp),
       [
         {
-          op: 'addToHasMany',
+          op: 'addToRelatedRecords',
           record: identity(cat),
           relationship: 'planets',
           relatedRecord: identity(earth)
         },
         {
-          op: 'addToHasMany',
+          op: 'addToRelatedRecords',
           record: identity(dog),
           relationship: 'planets',
           relatedRecord: identity(earth)
@@ -429,7 +429,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     ]);
 
     const removePlanetOp = {
-      op: 'replaceHasOne',
+      op: 'replaceRelatedRecord',
       record: identity(europa),
       relationship: 'planet',
       relatedRecord: null
@@ -444,7 +444,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
       processor.after(removePlanetOp),
       [
         {
-          op: 'removeFromHasMany',
+          op: 'removeFromRelatedRecords',
           record: identity(jupiter),
           relationship: 'moons',
           relatedRecord: identity(europa)
@@ -477,7 +477,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     ]);
 
     const changePlanetOp = {
-      op: 'replaceHasOne',
+      op: 'replaceRelatedRecord',
       record: identity(earth),
       relationship: 'next',
       relatedRecord: identity(saturn)
@@ -492,7 +492,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
       processor.after(changePlanetOp),
       [
         {
-          op: 'replaceHasOne',
+          op: 'replaceRelatedRecord',
           record: identity(saturn),
           relationship: 'previous',
           relatedRecord: identity(earth)
@@ -525,7 +525,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     ]);
 
     const changePlanetOp = {
-      op: 'replaceHasOne',
+      op: 'replaceRelatedRecord',
       record: identity(earth),
       relationship: 'next',
       relatedRecord: identity(jupiter)
@@ -540,7 +540,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
       processor.after(changePlanetOp),
       [
         {
-          op: 'replaceHasOne',
+          op: 'replaceRelatedRecord',
           record: identity(jupiter),
           relationship: 'previous',
           relatedRecord: identity(earth)
@@ -573,7 +573,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     ]);
 
     const changePlanetOp = {
-      op: 'replaceHasOne',
+      op: 'replaceRelatedRecord',
       record: identity(saturn),
       relationship: 'next',
       relatedRecord: identity(jupiter)
@@ -605,7 +605,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     ]);
 
     const addPlanetOp = {
-      op: 'addToHasMany',
+      op: 'addToRelatedRecords',
       record: identity(human),
       relationship: 'planets',
       relatedRecord: identity(earth)
@@ -620,7 +620,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
       processor.after(addPlanetOp),
       [
         {
-          op: 'addToHasMany',
+          op: 'addToRelatedRecords',
           record: identity(earth),
           relationship: 'inhabitants',
           relatedRecord: identity(human)
@@ -644,7 +644,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     ]);
 
     const removePlanetOp = {
-      op: 'removeFromHasMany',
+      op: 'removeFromRelatedRecords',
       record: identity(human),
       relationship: 'planets',
       relatedRecord: identity(earth)
@@ -659,7 +659,7 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
       processor.after(removePlanetOp),
       [
         {
-          op: 'removeFromHasMany',
+          op: 'removeFromRelatedRecords',
           record: identity(earth),
           relationship: 'inhabitants',
           relatedRecord: identity(human)
@@ -737,31 +737,31 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
       processor.after(clearInhabitantsOp),
       [
         {
-          op: 'addToHasMany',
+          op: 'addToRelatedRecords',
           record: identity(cat),
           relationship: 'planets',
           relatedRecord: identity(earth)
         },
         {
-          op: 'addToHasMany',
+          op: 'addToRelatedRecords',
           record: identity(dog),
           relationship: 'planets',
           relatedRecord: identity(earth)
         },
         {
-          op: 'replaceHasOne',
+          op: 'replaceRelatedRecord',
           record: identity(moon),
           relationship: 'planet',
           relatedRecord: identity(earth)
         },
         {
-          op: 'replaceHasOne',
+          op: 'replaceRelatedRecord',
           record: identity(jupiter),
           relationship: 'previous',
           relatedRecord: null
         },
         {
-          op: 'replaceHasOne',
+          op: 'replaceRelatedRecord',
           record: identity(saturn),
           relationship: 'previous',
           relatedRecord: identity(earth)

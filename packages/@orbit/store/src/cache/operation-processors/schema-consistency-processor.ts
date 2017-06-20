@@ -33,16 +33,16 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
       case 'addRecord':
         return this._recordAdded(operation.record);
 
-      case 'addToHasMany':
+      case 'addToRelatedRecords':
         return this._relatedRecordAdded(operation.record, operation.relationship, operation.relatedRecord);
 
-      case 'replaceHasOne':
+      case 'replaceRelatedRecord':
         return this._relatedRecordReplaced(operation.record, operation.relationship, operation.relatedRecord);
 
-      case 'replaceHasMany':
+      case 'replaceRelatedRecords':
         return this._relatedRecordsReplaced(operation.record, operation.relationship, operation.relatedRecords);
 
-      case 'removeFromHasMany':
+      case 'removeFromRelatedRecords':
         return this._relatedRecordRemoved(operation.record, operation.relationship, operation.relatedRecord);
 
       case 'removeRecord':
@@ -279,7 +279,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
     const isHasMany = relationshipDef.type === 'hasMany';
 
     return <RecordOperation>{
-      op: isHasMany ? 'addToHasMany' : 'replaceHasOne',
+      op: isHasMany ? 'addToRelatedRecords' : 'replaceRelatedRecord',
       record,
       relationship,
       relatedRecord
@@ -291,7 +291,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
     const isHasMany = relationshipDef.type === 'hasMany';
 
     return <RecordOperation>{
-      op: isHasMany ? 'removeFromHasMany' : 'replaceHasOne',
+      op: isHasMany ? 'removeFromRelatedRecords' : 'replaceRelatedRecord',
       record,
       relationship,
       relatedRecord: isHasMany ? relatedRecord : null

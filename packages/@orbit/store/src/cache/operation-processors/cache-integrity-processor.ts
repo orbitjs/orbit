@@ -41,13 +41,13 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
 
   after(operation: RecordOperation): RecordOperation[] {
     switch (operation.op) {
-      case 'replaceHasOne':
+      case 'replaceRelatedRecord':
         return this._relatedRecordRemoved(operation.record, operation.relationship);
 
-      case 'replaceHasMany':
+      case 'replaceRelatedRecords':
         return this._relatedRecordsRemoved(operation.record, operation.relationship);
 
-      case 'removeFromHasMany':
+      case 'removeFromRelatedRecords':
         return this._relatedRecordRemoved(operation.record, operation.relationship, operation.relatedRecord);
 
       case 'removeRecord':
@@ -63,13 +63,13 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
 
   finally(operation): RecordOperation[] {
     switch (operation.op) {
-      case 'replaceHasOne':
+      case 'replaceRelatedRecord':
         return this._relatedRecordAdded(operation.record, operation.relationship, operation.relatedRecord);
 
-      case 'replaceHasMany':
+      case 'replaceRelatedRecords':
         return this._relatedRecordsAdded(operation.record, operation.relationship, operation.relatedRecords);
 
-      case 'addToHasMany':
+      case 'addToRelatedRecords':
         return this._relatedRecordAdded(operation.record, operation.relationship, operation.relatedRecord);
 
       case 'addRecord':
@@ -162,14 +162,14 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
 
           if (isHasMany) {
             ops.push({
-              op: 'removeFromHasMany',
+              op: 'removeFromRelatedRecords',
               record: { type: path[0], id: path[1] },
               relationship: path[3],
               relatedRecord: deserializeRecordIdentity(path[5])
             });
           } else {
             ops.push({
-              op: 'replaceHasOne',
+              op: 'replaceRelatedRecord',
               record: { type: path[0], id: path[1] },
               relationship: path[3],
               relatedRecord: null

@@ -4,12 +4,12 @@ import {
   RecordIdentity,
   RecordOperation,
   AddRecordOperation,
-  AddToHasManyOperation,
+  AddToRelatedRecordsOperation,
   ReplaceAttributeOperation,
-  RemoveFromHasManyOperation,
+  RemoveFromRelatedRecordsOperation,
   RemoveRecordOperation,
-  ReplaceHasManyOperation,
-  ReplaceHasOneOperation,
+  ReplaceRelatedRecordsOperation,
+  ReplaceRelatedRecordOperation,
   ReplaceKeyOperation,
   ReplaceRecordOperation
 } from '@orbit/data';
@@ -107,7 +107,7 @@ export default {
     }
   },
 
-  addToHasMany(cache: Cache, op: AddToHasManyOperation): boolean {
+  addToRelatedRecords(cache: Cache, op: AddToRelatedRecordsOperation): boolean {
     const { type, id } = op.record;
     const records = cache.records(type);
     const relatedIdentifier = serializeRecordIdentity(op.relatedRecord);
@@ -127,7 +127,7 @@ export default {
     }
   },
 
-  removeFromHasMany(cache: Cache, op: RemoveFromHasManyOperation): boolean {
+  removeFromRelatedRecords(cache: Cache, op: RemoveFromRelatedRecordsOperation): boolean {
     const { type, id } = op.record;
     const records = cache.records(type);
     let record = records.get(id);
@@ -144,7 +144,7 @@ export default {
     return false;
   },
 
-  replaceHasMany(cache: Cache, op: ReplaceHasManyOperation): boolean {
+  replaceRelatedRecords(cache: Cache, op: ReplaceRelatedRecordsOperation): boolean {
     const { type, id } = op.record;
     const records = cache.records(type);
     let record = records.get(id);
@@ -164,7 +164,7 @@ export default {
     }
   },
 
-  replaceHasOne(cache: Cache, op: ReplaceHasOneOperation): boolean {
+  replaceRelatedRecord(cache: Cache, op: ReplaceRelatedRecordOperation): boolean {
     let relatedData;
     if (op.relatedRecord) {
       relatedData = serializeRecordIdentity(op.relatedRecord);
