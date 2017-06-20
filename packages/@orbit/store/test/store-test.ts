@@ -64,10 +64,15 @@ module('Store', function(hooks) {
 
   test('internal cache\'s settings can be specified with `cacheSettings`', function(assert) {
     let store = new Store({ schema, keyMap, cacheSettings: { processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor] } });
-    let cache = <any>store.cache;
+    let cache = store.cache as any;
 
     assert.ok(cache, 'cache exists');
     assert.equal(cache._processors.length, 2, 'cache has 2 processors');
+  });
+
+  test('automatically shares its `transformBuilder` and `queryBuilder` with its cache', function(assert) {
+    assert.strictEqual(store.cache.transformBuilder, store.transformBuilder, 'transformBuilder is shared');
+    assert.strictEqual(store.cache.queryBuilder, store.queryBuilder, 'queryBuilder is shared');
   });
 
   test('#update - transforms the store\'s cache', function(assert) {
@@ -267,6 +272,8 @@ module('Store', function(hooks) {
         assert.deepEqual(fork.cache.records('planet').get('jupiter-id'), jupiter, 'data in fork matches data in store');
         assert.strictEqual(store.schema, fork.schema, 'schema matches');
         assert.strictEqual(store.keyMap, fork.keyMap, 'keyMap matches');
+        assert.strictEqual(store.transformBuilder, fork.transformBuilder, 'transformBuilder is shared');
+        assert.strictEqual(store.queryBuilder, fork.queryBuilder, 'queryBuilder is shared');
       });
   });
 

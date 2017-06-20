@@ -83,6 +83,14 @@ export default class Cache implements Evented {
     return this._schema;
   }
 
+  get queryBuilder(): QueryBuilder {
+    return this._queryBuilder;
+  }
+
+  get transformBuilder(): TransformBuilder {
+    return this._transformBuilder;
+  }
+
   records(type: string): ImmutableMap {
     return this._records[type];
   }
