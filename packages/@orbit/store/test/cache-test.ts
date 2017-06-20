@@ -1,8 +1,7 @@
 import {
   KeyMap,
   RecordNotFoundException,
-  Schema,
-  TransformBuilder
+  Schema
 } from '@orbit/data';
 import Cache from '../src/cache';
 import { arrayMembershipMatches } from './test-helper';
@@ -177,7 +176,7 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema, keyMap });
 
-    const tb = new TransformBuilder();
+    const tb = cache.transformBuilder;
     const operation = tb.replaceRelatedRecord(
       { type: 'moon', id: 'moon1' },
       'planet',
@@ -195,7 +194,7 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema, keyMap });
 
-    const tb = new TransformBuilder();
+    const tb = cache.transformBuilder;
     const operation = tb.replaceRelatedRecord(
       { type: 'moon', id: 'moon1' },
       'planet',
@@ -409,7 +408,7 @@ module('Cache', function(hooks) {
 
   test('#patch merges records when "replacing" and will not stomp on attributes and relationships that are not replaced', function(assert) {
     let cache = new Cache({ schema, keyMap });
-    const tb = new TransformBuilder();
+    const tb = cache.transformBuilder;
 
     cache.patch(t => [
       t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' }, relationships: { moons: { data: { 'moon:m1': true } } } })
@@ -436,7 +435,7 @@ module('Cache', function(hooks) {
 
   test('#patch merges records when "replacing" and _will_ replace specified attributes and relationships', function(assert) {
     let cache = new Cache({ schema, keyMap });
-    const tb = new TransformBuilder();
+    const tb = cache.transformBuilder;
 
     cache.patch([
       tb.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' }, relationships: { moons: { data: { 'moon:m1': true } } } })
@@ -475,7 +474,7 @@ module('Cache', function(hooks) {
 
   test('#query can perform a simple matching filter', function(assert) {
     let cache = new Cache({ schema, keyMap });
-    const tb = new TransformBuilder();
+    const tb = cache.transformBuilder;
 
     let jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', classification: 'gas giant', atmosphere: true } };
     let earth = { type: 'planet', id: 'earth', attributes: { name: 'Earth', classification: 'terrestrial', atmosphere: true } };
