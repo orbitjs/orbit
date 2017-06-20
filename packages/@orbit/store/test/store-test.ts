@@ -4,8 +4,7 @@ import {
   Schema,
   SchemaSettings,
   Source,
-  Transform,
-  TransformBuilder
+  Transform
 } from '@orbit/data';
 import Store from '../src/store';
 import CacheIntegrityProcessor from '../src/cache/operation-processors/cache-integrity-processor';
@@ -64,10 +63,15 @@ module('Store', function(hooks) {
 
   test('internal cache\'s settings can be specified with `cacheSettings`', function(assert) {
     let store = new Store({ schema, keyMap, cacheSettings: { processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor] } });
-    let cache = <any>store.cache;
+    let cache = store.cache as any;
 
     assert.ok(cache, 'cache exists');
     assert.equal(cache._processors.length, 2, 'cache has 2 processors');
+  });
+
+  test('automatically shares its `transformBuilder` and `queryBuilder` with its cache', function(assert) {
+    assert.strictEqual(store.cache.transformBuilder, store.transformBuilder, 'transformBuilder is shared');
+    assert.strictEqual(store.cache.queryBuilder, store.queryBuilder, 'queryBuilder is shared');
   });
 
   test('#update - transforms the store\'s cache', function(assert) {
@@ -122,9 +126,8 @@ module('Store', function(hooks) {
 
   test('#getTransform - returns a particular transform given an id', function(assert) {
     const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
-    const tb = new TransformBuilder();
 
-    const addRecordATransform = Transform.from(tb.addRecord(recordA));
+    const addRecordATransform = Transform.from(store.transformBuilder.addRecord(recordA));
     return store.sync(addRecordATransform)
       .then(() => {
         assert.strictEqual(store.getTransform(addRecordATransform.id), addRecordATransform);
@@ -133,9 +136,7 @@ module('Store', function(hooks) {
 
   test('#getInverseOperations - returns the inverse operations for a particular transform', function(assert) {
     const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
-    const tb = new TransformBuilder();
-
-    const addRecordATransform = Transform.from(tb.addRecord(recordA));
+    const addRecordATransform = Transform.from(store.transformBuilder.addRecord(recordA));
 
     return store.sync(addRecordATransform)
       .then(() => {
@@ -149,7 +150,7 @@ module('Store', function(hooks) {
     const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
     const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
-    const tb = new TransformBuilder();
+    const tb = store.transformBuilder;
 
     const addRecordATransform = Transform.from(tb.addRecord(recordA));
     const addRecordBTransform = Transform.from(tb.addRecord(recordB));
@@ -176,7 +177,7 @@ module('Store', function(hooks) {
     const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
     const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
-    const tb = new TransformBuilder();
+    const tb = store.transformBuilder;
 
     const addRecordATransform = Transform.from(tb.addRecord(recordA));
     const addRecordBTransform = Transform.from(tb.addRecord(recordB));
@@ -204,7 +205,7 @@ module('Store', function(hooks) {
     const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
     const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
-    const tb = new TransformBuilder();
+    const tb = store.transformBuilder;
 
     const addRecordATransform = Transform.from(tb.addRecord(recordA));
     const addRecordBTransform = Transform.from(tb.addRecord(recordB));
@@ -234,7 +235,7 @@ module('Store', function(hooks) {
     const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
     const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
-    const tb = new TransformBuilder();
+    const tb = store.transformBuilder;
 
     const addRecordATransform = Transform.from(tb.addRecord(recordA));
     const addRecordBTransform = Transform.from(tb.addRecord(recordB));
@@ -267,6 +268,8 @@ module('Store', function(hooks) {
         assert.deepEqual(fork.cache.records('planet').get('jupiter-id'), jupiter, 'data in fork matches data in store');
         assert.strictEqual(store.schema, fork.schema, 'schema matches');
         assert.strictEqual(store.keyMap, fork.keyMap, 'keyMap matches');
+        assert.strictEqual(store.transformBuilder, fork.transformBuilder, 'transformBuilder is shared');
+        assert.strictEqual(store.queryBuilder, fork.queryBuilder, 'queryBuilder is shared');
       });
   });
 
@@ -313,7 +316,7 @@ module('Store', function(hooks) {
     const recordD = { id: 'neptune', type: 'planet', attributes: { name: 'Neptune' } };
     const recordE = { id: 'uranus', type: 'planet', attributes: { name: 'Uranus' } };
 
-    const tb = new TransformBuilder();
+    const tb = store.transformBuilder;
     const addRecordATransform = Transform.from(tb.addRecord(recordA));
     const addRecordBTransform = Transform.from(tb.addRecord(recordB));
     const addRecordCTransform = Transform.from(tb.addRecord(recordC));

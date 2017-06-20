@@ -62,6 +62,8 @@ export default class Store extends Source implements Syncable, Queryable, Updata
     let cacheSettings: CacheSettings = settings.cacheSettings || {};
     cacheSettings.schema = schema;
     cacheSettings.keyMap = keyMap;
+    cacheSettings.queryBuilder = cacheSettings.queryBuilder || this.queryBuilder;
+    cacheSettings.transformBuilder = cacheSettings.transformBuilder || this.transformBuilder;
     this._cache = new Cache(cacheSettings);
   }
 
@@ -114,6 +116,8 @@ export default class Store extends Source implements Syncable, Queryable, Updata
     settings.cacheSettings = settings.cacheSettings || {};
     settings.cacheSettings.base = this._cache;
     settings.keyMap = this._keyMap;
+    settings.queryBuilder = this.queryBuilder;
+    settings.transformBuilder = this.transformBuilder;
 
     return new Store(settings);
   }

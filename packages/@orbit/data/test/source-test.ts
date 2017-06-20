@@ -1,6 +1,10 @@
-import { Source } from '../src/source';
-import Schema from '../src/schema';
-import Transform from '../src/transform';
+import {
+  Source,
+  Schema,
+  Transform,
+  TransformBuilder,
+  QueryBuilder
+} from '../src/index';
 import { isEvented } from '@orbit/core';
 import { FakeBucket } from './test-helper';
 
@@ -34,6 +38,26 @@ module('Source', function(hooks) {
     assert.strictEqual(source.transformLog.bucket, bucket, 'transformLog has been assigned bucket');
     assert.strictEqual(source.requestQueue.bucket, bucket, 'requestQueue has been assigned bucket');
     assert.strictEqual(source.syncQueue.bucket, bucket, 'syncQueue has been assigned bucket');
+  });
+
+  test('creates a `queryBuilder` upon first access', function(assert) {
+    const qb = source.queryBuilder;
+    assert.ok(qb, 'queryBuilder created');
+    assert.strictEqual(qb, source.queryBuilder, 'queryBuilder remains the same');
+  });
+
+  test('creates a `transformBuilder` upon first access', function(assert) {
+    const tb = source.transformBuilder;
+    assert.ok(tb, 'transformBuilder created');
+    assert.strictEqual(tb, source.transformBuilder, 'transformBuilder remains the same');
+  });
+
+  test('it can be instantiated with a `queryBuilder` and/or `transformBuilder`', function(assert) {
+    const queryBuilder = new QueryBuilder;
+    const transformBuilder = new TransformBuilder;
+    source = new MySource({ queryBuilder, transformBuilder });
+    assert.strictEqual(queryBuilder, source.queryBuilder, 'queryBuilder remains the same');
+    assert.strictEqual(transformBuilder, source.transformBuilder, 'transformBuilder remains the same');
   });
 
   test('#_transformed should trigger `transform` event BEFORE resolving', function(assert) {

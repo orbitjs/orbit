@@ -3,7 +3,6 @@ import { assert } from '@orbit/utils';
 import { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import Transform, { TransformOrOperations } from '../transform';
-import TransformBuilder from '../transform-builder';
 
 export const PUSHABLE = '__pushable__';
 
@@ -85,11 +84,7 @@ export default function pushable(Klass: SourceClass): void {
   proto[PUSHABLE] = true;
 
   proto.push = function(transformOrOperations: TransformOrOperations, options?: object, id?: string): Promise<Transform[]> {
-    let transformBuilder = this.transformBuilder;
-    if (!transformBuilder) {
-      transformBuilder = this.transformBuilder = new TransformBuilder();
-    }
-    const transform = Transform.from(transformOrOperations, options, id, transformBuilder);
+    const transform = Transform.from(transformOrOperations, options, id, this.transformBuilder);
 
     if (this.transformLog.contains(transform.id)) {
       return Orbit.Promise.resolve([]);

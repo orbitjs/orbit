@@ -1,7 +1,6 @@
 import { assert } from '@orbit/utils';
 import { settleInSeries, fulfillInSeries } from '@orbit/core';
 import Query, { QueryOrExpression } from '../query';
-import QueryBuilder from '../query-builder';
 import { Source, SourceClass } from '../source';
 
 export const QUERYABLE = '__queryable__';
@@ -81,11 +80,7 @@ export default function queryable(Klass: SourceClass): void {
   proto[QUERYABLE] = true;
 
   proto.query = function(queryOrExpression: QueryOrExpression, options?: object, id?: string): Promise<any> {
-    let queryBuilder = this.queryBuilder;
-    if (!queryBuilder) {
-      queryBuilder = this.queryBuilder = new QueryBuilder();
-    }
-    const query = Query.from(queryOrExpression, options, id, queryBuilder);
+    const query = Query.from(queryOrExpression, options, id, this.queryBuilder);
     return this._enqueueRequest('query', query);
   }
 
