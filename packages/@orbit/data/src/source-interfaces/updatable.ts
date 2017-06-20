@@ -2,17 +2,18 @@ import Orbit from '../main';
 import { assert } from '@orbit/utils';
 import { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Operation } from '../operation';
-import Transform, { TransformOrOperations } from '../transform';
 import { Source, SourceClass } from '../source';
+import Transform, { TransformOrOperations } from '../transform';
+import TransformBuilder from '../transform-builder';
 
 export const UPDATABLE = '__updatable__';
 
 /**
  * Has a source been decorated as `@updatable`?
- * 
+ *
  * @export
- * @param {*} obj 
- * @returns 
+ * @param {*} obj
+ * @returns
  */
 export function isUpdatable(source: Source) {
   return !!source[UPDATABLE];
@@ -32,8 +33,8 @@ export interface Updatable {
    * applies the update and returns a promise that resolves when complete.
    *
    * @param {TransformOrOperations} transformOrOperations
-   * @param {object} [options] 
-   * @param {string} [id] 
+   * @param {object} [options]
+   * @param {string} [id]
    * @returns {Promise<void>}
    *
    * @memberOf Updatable
@@ -68,7 +69,7 @@ export interface Updatable {
  *
  * @export
  * @decorator
- * @param {SourceClass} Klass 
+ * @param {SourceClass} Klass
  * @returns {void}
  */
 export default function updatable(Klass: SourceClass): void {
@@ -83,7 +84,11 @@ export default function updatable(Klass: SourceClass): void {
   proto[UPDATABLE] = true;
 
   proto.update = function(transformOrOperations: TransformOrOperations, options?: object, id?: string): Promise<void> {
-    const transform = Transform.from(transformOrOperations, options, id);
+    let transformBuilder = this.transformBuilder;
+    if (!transformBuilder) {
+      transformBuilder = this.transformBuilder = new TransformBuilder();
+    }
+    const transform = Transform.from(transformOrOperations, options, id, transformBuilder);
 
     if (this.transformLog.contains(transform.id)) {
       return Orbit.Promise.resolve([]);

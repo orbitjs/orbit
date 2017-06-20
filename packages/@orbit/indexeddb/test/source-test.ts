@@ -3,16 +3,6 @@ import {
   verifyIndexedDBDoesNotContainRecord
 } from './support/indexeddb';
 import {
-  addRecord,
-  replaceRecord,
-  removeRecord,
-  replaceKey,
-  replaceAttribute,
-  addToHasMany,
-  removeFromHasMany,
-  replaceHasMany,
-  replaceHasOne,
-  oqb,
   Transform,
   Schema,
   Source
@@ -107,7 +97,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    return source.push(Transform.from(addRecord(planet)))
+    return source.push(t => t.addRecord(planet))
       .then(() => verifyIndexedDBContainsRecord(assert, source, planet));
   });
 
@@ -133,8 +123,8 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    return source.push(Transform.from(addRecord(original)))
-      .then(() => source.push(Transform.from(replaceRecord(revised))))
+    return source.push(t => t.addRecord(original))
+      .then(() => source.push(t => t.replaceRecord(revised)))
       .then(() => verifyIndexedDBContainsRecord(assert, source, revised));
   });
 
@@ -150,8 +140,8 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    return source.push(Transform.from(addRecord(planet)))
-      .then(() => source.push(Transform.from(removeRecord(planet))))
+    return source.push(t => t.addRecord(planet))
+      .then(() => source.push(t => t.removeRecord(planet)))
       .then(() => verifyIndexedDBDoesNotContainRecord(assert, source, planet));
   });
 
@@ -179,8 +169,8 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    return source.push(Transform.from(addRecord(original)))
-      .then(() => source.push(Transform.from(replaceKey(original, 'remoteId', '123'))))
+    return source.push(t => t.addRecord(original))
+      .then(() => source.push(t => t.replaceKey(original, 'remoteId', '123')))
       .then(() => verifyIndexedDBContainsRecord(assert, source, revised));
   });
 
@@ -206,8 +196,8 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    return source.push(Transform.from(addRecord(original)))
-      .then(() => source.push(Transform.from(replaceAttribute(original, 'order', 5))))
+    return source.push(t => t.addRecord(original))
+      .then(() => source.push(t => t.replaceAttribute(original, 'order', 5)))
       .then(() => verifyIndexedDBContainsRecord(assert, source, revised));
   });
 
@@ -244,8 +234,8 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    return source.push(Transform.from(addRecord(original)))
-      .then(() => source.push(Transform.from(addToHasMany(original, 'moons', { type: 'moon', id: 'moon1' }))))
+    return source.push(t => t.addRecord(original))
+      .then(() => source.push(t => t.addToHasMany(original, 'moons', { type: 'moon', id: 'moon1' })))
       .then(() => verifyIndexedDBContainsRecord(assert, source, revised));
   });
 
@@ -285,8 +275,8 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    return source.push(Transform.from(addRecord(original)))
-      .then(() => source.push(Transform.from(removeFromHasMany(original, 'moons', { type: 'moon', id: 'moon2' }))))
+    return source.push(t => t.addRecord(original))
+      .then(() => source.push(t => t.removeFromHasMany(original, 'moons', { type: 'moon', id: 'moon2' })))
       .then(() => verifyIndexedDBContainsRecord(assert, source, revised));
   });
 
@@ -326,8 +316,8 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    return source.push(Transform.from(addRecord(original)))
-      .then(() => source.push(Transform.from(replaceHasMany(original, 'moons', [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }]))))
+    return source.push(t => t.addRecord(original))
+      .then(() => source.push(t => t.replaceHasMany(original, 'moons', [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }])))
       .then(() => verifyIndexedDBContainsRecord(assert, source, revised));
   });
 
@@ -362,8 +352,8 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    return source.push(Transform.from(addRecord(original)))
-      .then(() => source.push(Transform.from(replaceHasOne(original, 'solarSystem', { type: 'solarSystem', id: 'ss1' }))))
+    return source.push(t => t.addRecord(original))
+      .then(() => source.push(t => t.replaceHasOne(original, 'solarSystem', { type: 'solarSystem', id: 'ss1' })))
       .then(() => verifyIndexedDBContainsRecord(assert, source, revised));
   });
 
@@ -398,8 +388,8 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    return source.push(Transform.from(addRecord(original)))
-      .then(() => source.push(Transform.from(replaceHasOne(original, 'solarSystem', null))))
+    return source.push(t => t.addRecord(original))
+      .then(() => source.push(t => t.replaceHasOne(original, 'solarSystem', null)))
       .then(() => verifyIndexedDBContainsRecord(assert, source, revised));
   });
 
@@ -432,12 +422,12 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    return source.push(Transform.from([
-      addRecord(earth),
-      addRecord(jupiter),
-      addRecord(io)
-    ]))
-      .then(() => source.pull(oqb.records()))
+    return source.push(t => [
+      t.addRecord(earth),
+      t.addRecord(jupiter),
+      t.addRecord(io)
+    ])
+      .then(() => source.pull(q => q.findRecords()))
       .then(transforms => {
         assert.equal(transforms.length, 1, 'one transform returned');
         assert.deepEqual(
@@ -477,12 +467,12 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    return source.push(Transform.from([
-      addRecord(earth),
-      addRecord(jupiter),
-      addRecord(io)
-    ]))
-      .then(() => source.pull(oqb.records('planet')))
+    return source.push(t => [
+      t.addRecord(earth),
+      t.addRecord(jupiter),
+      t.addRecord(io)
+    ])
+      .then(() => source.pull(q => q.findRecords('planet')))
       .then(transforms => {
         assert.equal(transforms.length, 1, 'one transform returned');
         assert.deepEqual(
@@ -525,13 +515,13 @@ module('IndexedDBSource', function(hooks) {
     return source.clearRecords('planet')
       .then(() => source.clearRecords('moon'))
       .then(() => {
-        return source.push(Transform.from([
-          addRecord(earth),
-          addRecord(jupiter),
-          addRecord(io)
-        ]));
+        return source.push(t => [
+          t.addRecord(earth),
+          t.addRecord(jupiter),
+          t.addRecord(io)
+        ]);
       })
-      .then(() => source.pull(oqb.record(jupiter)))
+      .then(() => source.pull(q => q.findRecord(jupiter)))
       .then(transforms => {
         assert.equal(transforms.length, 1, 'one transform returned');
         assert.deepEqual(

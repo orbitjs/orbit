@@ -1,16 +1,17 @@
 import { assert } from '@orbit/utils';
 import { settleInSeries, fulfillInSeries } from '@orbit/core';
 import Query, { QueryOrExpression } from '../query';
+import QueryBuilder from '../query-builder';
 import { Source, SourceClass } from '../source';
 
 export const QUERYABLE = '__queryable__';
 
 /**
  * Has a source been decorated as `@queryable`?
- * 
+ *
  * @export
- * @param {object} obj 
- * @returns 
+ * @param {object} obj
+ * @returns
  */
 export function isQueryable(source: Source) {
   return !!source[QUERYABLE];
@@ -65,8 +66,8 @@ export interface Queryable {
  *
  * @export
  * @decorator
- * @param {SourceClass} Klass 
- * @returns {void} 
+ * @param {SourceClass} Klass
+ * @returns {void}
  */
 export default function queryable(Klass: SourceClass): void {
   let proto = Klass.prototype;
@@ -80,7 +81,11 @@ export default function queryable(Klass: SourceClass): void {
   proto[QUERYABLE] = true;
 
   proto.query = function(queryOrExpression: QueryOrExpression, options?: object, id?: string): Promise<any> {
-    const query = Query.from(queryOrExpression, options, id);
+    let queryBuilder = this.queryBuilder;
+    if (!queryBuilder) {
+      queryBuilder = this.queryBuilder = new QueryBuilder();
+    }
+    const query = Query.from(queryOrExpression, options, id, queryBuilder);
     return this._enqueueRequest('query', query);
   }
 

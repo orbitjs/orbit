@@ -5,16 +5,20 @@ import {
 } from '@orbit/core';
 import {
   KeyMap,
+  Operation,
   RecordOperation,
   Query,
   QueryOrExpression,
-  Schema
+  QueryExpression,
+  QueryBuilder,
+  Schema,
+  TransformBuilder,
+  TransformBuilderFunc
 } from '@orbit/data';
 import { OperationProcessor, OperationProcessorClass } from './cache/operation-processors/operation-processor';
 import CacheIntegrityProcessor from './cache/operation-processors/cache-integrity-processor';
 import SchemaConsistencyProcessor from './cache/operation-processors/schema-consistency-processor';
-import QueryEvaluator from './cache/query-evaluator';
-import { QueryOperators, ContextualQueryOperators } from './cache/query-operators';
+import { QueryOperators } from './cache/query-operators';
 import PatchTransforms, { PatchTransformFunc } from './cache/patch-transforms';
 import InverseTransforms, { InverseTransformFunc } from './cache/inverse-transforms';
 import ImmutableMap from './immutable-map';
@@ -24,6 +28,8 @@ export interface CacheSettings {
   keyMap?: KeyMap;
   processors?: OperationProcessorClass[];
   base?: Cache;
+  queryBuilder?: QueryBuilder;
+  transformBuilder?: TransformBuilder;
 }
 
 /**
@@ -36,18 +42,16 @@ export interface CacheSettings {
  Once cached, data can be accessed at a particular path with `get`. The
  size of data at a path can be accessed with `length`.
 
- @class Cache
- @namespace OC
- @param {OC.Schema} schema
- @param {Object}  [settings]
- @param {Array}   [settings.processors=[SchemaConsistencyProcessor, CacheIntegrityProcessor]] Operation processors to notify for every call to `transform`.
- @constructor
+ * @export
+ * @class Cache
+ * @implements {Evented}
  */
 @evented
 export default class Cache implements Evented {
   private _keyMap: KeyMap;
   private _schema: Schema;
-  private _queryEvaluator: QueryEvaluator;
+  private _queryBuilder: QueryBuilder;
+  private _transformBuilder: TransformBuilder;
   private _processors: OperationProcessor[];
   private _records: Dict<ImmutableMap>;
 
@@ -62,7 +66,8 @@ export default class Cache implements Evented {
     this._schema = settings.schema;
     this._keyMap = settings.keyMap;
 
-    this._queryEvaluator = new QueryEvaluator(this, QueryOperators, ContextualQueryOperators);
+    this._queryBuilder = settings.queryBuilder || new QueryBuilder();
+    this._transformBuilder = settings.transformBuilder || new TransformBuilder();
 
     const processors: OperationProcessorClass[] = settings.processors ? settings.processors : [SchemaConsistencyProcessor, CacheIntegrityProcessor];
     this._processors = processors.map(Processor => new Processor(this));
@@ -101,24 +106,24 @@ export default class Cache implements Evented {
    @param {Expression} query
    @return {Object} result of query (type depends on query)
    */
-  query(queryOrExpression: QueryOrExpression): any {
-    const query = Query.from(queryOrExpression);
-    return this._queryEvaluator.evaluate(query.expression);
+  query(queryOrExpression: QueryOrExpression, options?: object, id?: string): any {
+    const query = Query.from(queryOrExpression, options, id, this._queryBuilder);
+    return this._query(query.expression);
   }
 
   /**
-   Resets the cache's state to be either empty or to match the state of another
-   cache.
-
-   @example
-   ``` javascript
-   cache.reset(); // empties cache
-   cache.reset(cache2); // clones the state of cache2
-   ```
-
-   @method reset
-   @param {Object} data
-  */
+   * Resets the cache's state to be either empty or to match the state of
+   * another cache.
+   *
+   * @example
+   * ``` javascript
+   * cache.reset(); // empties cache
+   * cache.reset(cache2); // clones the state of cache2
+   * ```
+   *
+   * @param {Cache} [base]
+   * @memberof Cache
+   */
   reset(base?: Cache) {
     this._records = {};
 
@@ -137,13 +142,17 @@ export default class Cache implements Evented {
   }
 
   /**
-   Patches the document with an operation.
-
-   @method patch
-   @param {Object or Array} operationOrOperations The operation or operations to apply.
-   @returns {Array} Array of inverse operations.
+   * Patches the document with an operation.
+   *
+   * @param {(Operation | Operation[] | TransformBuilderFunc)} operationOrOperations
+   * @returns {Operation[]}
+   * @memberof Cache
    */
-  patch(operationOrOperations: RecordOperation | RecordOperation[]): RecordOperation[] {
+  patch(operationOrOperations: RecordOperation | RecordOperation[] | TransformBuilderFunc): RecordOperation[] {
+    if (typeof operationOrOperations === 'function') {
+      operationOrOperations = <RecordOperation | RecordOperation[]>operationOrOperations(this._transformBuilder);
+    }
+
     const inverse: RecordOperation[] = [];
 
     if (isArray(operationOrOperations)) {
@@ -195,5 +204,13 @@ export default class Cache implements Evented {
           .map(processor => processor.finally(operation))
           .forEach(ops => this._applyOperations(ops, inverse));
     }
+  }
+
+  protected _query(expression: QueryExpression): any {
+    const operator = QueryOperators[expression.op];
+    if (!operator) {
+      throw new Error('Unable to find operator: ' + expression.op);
+    }
+    return operator(this, expression);
   }
 }

@@ -1,7 +1,6 @@
 import Orbit, {
   Source,
   syncable, isSyncable,
-  addRecord,
   Transform
 } from '../../src/index';
 import '../test-helper';
@@ -39,7 +38,7 @@ module('@syncable', function(hooks) {
   test('#sync accepts a Transform and calls internal method `_sync`', function(assert) {
     assert.expect(2);
 
-    const addPlanet = addRecord({ type: 'planet', id: 'jupiter' });
+    const addPlanet = { op: 'addRecord', record: { type: 'planet', id: 'jupiter' } };
 
     source._sync = function(transform) {
       assert.strictEqual(transform, addPlanet, 'argument to _sync is a Transform');

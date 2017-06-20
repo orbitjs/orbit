@@ -1,5 +1,4 @@
 import {
-  addRecord,
   cloneRecordIdentity as identity,
   KeyMap,
   Schema,
@@ -77,11 +76,11 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
                     attributes: { name: 'Europa' },
                     relationships: { planet: { data: 'planet:jupiter' } } };
 
-    cache.patch([
-      addRecord(saturn),
-      addRecord(jupiter),
-      addRecord(titan),
-      addRecord(europa)
+    cache.patch(t => [
+      t.addRecord(saturn),
+      t.addRecord(jupiter),
+      t.addRecord(titan),
+      t.addRecord(europa)
     ]);
 
     const addPlanetOp = {
@@ -131,11 +130,11 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
                     attributes: { name: 'Europa' },
                     relationships: { planet: { data: 'planet:jupiter' } } };
 
-    cache.patch([
-      addRecord(saturn),
-      addRecord(jupiter),
-      addRecord(titan),
-      addRecord(europa)
+    cache.patch(t => [
+      t.addRecord(saturn),
+      t.addRecord(jupiter),
+      t.addRecord(titan),
+      t.addRecord(europa)
     ]);
 
     const replacePlanetOp = {
@@ -184,9 +183,9 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
                     attributes: { name: 'Titan' },
                     relationships: { planet: { data: 'planet:saturn' } } };
 
-    cache.patch([
-      addRecord(saturn),
-      addRecord(titan)
+    cache.patch(t => [
+      t.addRecord(saturn),
+      t.addRecord(titan)
     ]);
 
     const clearMoonsOp = {
@@ -231,10 +230,10 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     const jupiter = { type: 'planet', id: 'jupiter',
                       attributes: { name: 'Jupiter' } };
 
-    cache.patch([
-      addRecord(saturn),
-      addRecord(jupiter),
-      addRecord(titan)
+    cache.patch(t => [
+      t.addRecord(saturn),
+      t.addRecord(jupiter),
+      t.addRecord(titan)
     ]);
 
     const replaceMoonsOp = {
@@ -284,11 +283,11 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
                   attributes: { name: 'Europa' },
                   relationships: { planet: { data: 'planet:jupiter' } } };
 
-    cache.patch([
-      addRecord(saturn),
-      addRecord(jupiter),
-      addRecord(titan),
-      addRecord(europa)
+    cache.patch(t => [
+      t.addRecord(saturn),
+      t.addRecord(jupiter),
+      t.addRecord(titan),
+      t.addRecord(europa)
     ]);
 
     const replaceMoonsOp = {
@@ -331,9 +330,9 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
     const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: { 'inhabitant:human': true } } } };
 
-    cache.patch([
-      addRecord(earth),
-      addRecord(human)
+    cache.patch(t => [
+      t.addRecord(earth),
+      t.addRecord(human)
     ]);
 
     const clearInhabitantsOp = {
@@ -367,11 +366,11 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     const dog = { type: 'inhabitant', id: 'dog' };
     const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: { 'inhabitant:human': true } } } };
 
-    cache.patch([
-      addRecord(earth),
-      addRecord(human),
-      addRecord(cat),
-      addRecord(dog)
+    cache.patch(t => [
+      t.addRecord(earth),
+      t.addRecord(human),
+      t.addRecord(cat),
+      t.addRecord(dog)
     ]);
 
     const clearInhabitantsOp = {
@@ -422,11 +421,11 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
                   attributes: { name: 'Europa' },
                   relationships: { planet: { data: 'planet:jupiter' } } };
 
-    cache.patch([
-      addRecord(saturn),
-      addRecord(jupiter),
-      addRecord(titan),
-      addRecord(europa)
+    cache.patch(t => [
+      t.addRecord(saturn),
+      t.addRecord(jupiter),
+      t.addRecord(titan),
+      t.addRecord(europa)
     ]);
 
     const removePlanetOp = {
@@ -471,10 +470,10 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     const earth = { type: 'planet', id: 'earth',
                   attributes: { name: 'Earth' } };
 
-    cache.patch([
-      addRecord(saturn),
-      addRecord(jupiter),
-      addRecord(earth)
+    cache.patch(t => [
+      t.addRecord(saturn),
+      t.addRecord(jupiter),
+      t.addRecord(earth)
     ]);
 
     const changePlanetOp = {
@@ -519,10 +518,10 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     const earth = { type: 'planet', id: 'earth',
                   attributes: { name: 'Earth' } };
 
-    cache.patch([
-      addRecord(saturn),
-      addRecord(jupiter),
-      addRecord(earth)
+    cache.patch(t => [
+      t.addRecord(saturn),
+      t.addRecord(jupiter),
+      t.addRecord(earth)
     ]);
 
     const changePlanetOp = {
@@ -567,10 +566,10 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     const earth = { type: 'planet', id: 'earth',
                   attributes: { name: 'Earth' } };
 
-    cache.patch([
-      addRecord(saturn),
-      addRecord(jupiter),
-      addRecord(earth)
+    cache.patch(t => [
+      t.addRecord(saturn),
+      t.addRecord(jupiter),
+      t.addRecord(earth)
     ]);
 
     const changePlanetOp = {
@@ -600,9 +599,9 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     const earth = { type: 'planet', id: 'earth' };
     const human = { type: 'inhabitant', id: 'human' };
 
-    cache.patch([
-      addRecord(earth),
-      addRecord(human)
+    cache.patch(t => [
+      t.addRecord(earth),
+      t.addRecord(human)
     ]);
 
     const addPlanetOp = {
@@ -639,9 +638,9 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
     const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: { 'inhabitant:human': true } } } };
     const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
 
-    cache.patch([
-      addRecord(earth),
-      addRecord(human)
+    cache.patch(t => [
+      t.addRecord(earth),
+      t.addRecord(human)
     ]);
 
     const removePlanetOp = {
@@ -719,14 +718,14 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
       }
     };
 
-    cache.patch([
-      addRecord(earth),
-      addRecord(jupiter),
-      addRecord(saturn),
-      addRecord(moon),
-      addRecord(human),
-      addRecord(cat),
-      addRecord(dog)
+    cache.patch(t => [
+      t.addRecord(earth),
+      t.addRecord(jupiter),
+      t.addRecord(saturn),
+      t.addRecord(moon),
+      t.addRecord(human),
+      t.addRecord(cat),
+      t.addRecord(dog)
     ]);
 
     const clearInhabitantsOp = {

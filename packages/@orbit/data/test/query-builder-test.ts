@@ -1,286 +1,278 @@
-import { oqe } from '../src/query-expression';
-import { oqb } from '../src/query-builder';
+import QueryBuilder from '../src/query-builder';
 import './test-helper';
 
 const { module, test } = QUnit;
 
-module('QueryBuilder', function() {
-  test('record', function(assert) {
-    assert.deepEqual(
-      oqb.record({ type: 'planet', id: '123' }).toQueryExpression(),
+module('QueryBuilder', function(hooks) {
+  let oqb;
 
-      oqe('record', { type: 'planet', id: '123' })
+  hooks.beforeEach(function() {
+    oqb = new QueryBuilder();
+  });
+
+  test('findRecord', function(assert) {
+    assert.deepEqual(
+      oqb.findRecord({ type: 'planet', id: '123' }).toQueryExpression(),
+      {
+        op: 'findRecord',
+        record: {
+          type: 'planet',
+          id: '123'
+        }
+      }
     );
   });
 
-  test('record', function(assert) {
+  test('findRecords', function(assert) {
     assert.deepEqual(
-      oqb.record({ type: 'planet', id: '123' }).toQueryExpression(),
-
-      oqe('record', { type: 'planet', id: '123' })
+      oqb.findRecords('planet').toQueryExpression(),
+      {
+        op: 'findRecords',
+        type: 'planet'
+      }
     );
   });
 
-  test('records', function(assert) {
-    assert.deepEqual(
-      oqb.records('planet').toQueryExpression(),
-
-      oqe('records', 'planet')
-    );
-  });
-
-  test('records/filter/equal/get', function(assert) {
+  test('findRecords + filter', function(assert) {
     assert.deepEqual(
       oqb
-        .records('planet')
-        .filter(record => record.attribute('name').equal('Pluto'))
+        .findRecords('planet')
+        .filter({ attribute: 'name', value: 'Pluto' })
         .toQueryExpression(),
-
-      oqe('filter',
-        oqe('records', 'planet'),
-        oqe('equal', oqe('attribute', 'name'), 'Pluto'))
+      {
+        op: 'findRecords',
+        type: 'planet',
+        filter: [
+          {
+            op: 'equal',
+            kind: 'attribute',
+            attribute: 'name',
+            value: 'Pluto'
+          }
+        ]
+      }
     );
   });
 
-  test('records/filter/equal/get/or', function(assert) {
+  test('findRecords + filters', function(assert) {
     assert.deepEqual(
       oqb
-        .records('planet')
-        .filter(record =>
-          oqb.or(
-            record.attribute('name').equal('Jupiter'),
-            record.attribute('name').equal('Pluto')
-          )
-        )
+        .findRecords('planet')
+        .filter({ attribute: 'atmosphere', value: true },
+                { attribute: 'classification', value: 'terrestrial' })
         .toQueryExpression(),
-
-      oqe('filter',
-        oqe('records', 'planet'),
-          oqe('or',
-            oqe('equal', oqe('attribute', 'name'), 'Jupiter'),
-            oqe('equal', oqe('attribute', 'name'), 'Pluto')))
+      {
+        op: 'findRecords',
+        type: 'planet',
+        filter: [
+          {
+            op: 'equal',
+            kind: 'attribute',
+            attribute: 'atmosphere',
+            value: true
+          },
+          {
+            op: 'equal',
+            kind: 'attribute',
+            attribute: 'classification',
+            value: 'terrestrial'
+          }
+        ]
+      }
     );
   });
 
-  test('records/filter/equal/get/and', function(assert) {
+  test('findRecords + sort (one field, compact)', function(assert) {
     assert.deepEqual(
       oqb
-        .records('planet')
-        .filter(record =>
-          oqb.and(
-            record.attribute('name').equal('Jupiter'),
-            record.attribute('name').equal('Pluto')
-          )
-        )
-        .toQueryExpression(),
-
-      oqe('filter',
-        oqe('records', 'planet'),
-          oqe('and',
-            oqe('equal', oqe('attribute', 'name'), 'Jupiter'),
-            oqe('equal', oqe('attribute', 'name'), 'Pluto')))
-    );
-  });
-
-  test('records/filter/equal/attribute/and', function(assert) {
-    assert.deepEqual(
-      oqb
-        .records('planet')
-        .filter(record =>
-          oqb.and(
-            record.attribute('name').equal('Jupiter'),
-            record.attribute('name').equal('Pluto')
-          )
-        )
-        .toQueryExpression(),
-
-      oqe('filter',
-        oqe('records', 'planet'),
-          oqe('and',
-            oqe('equal', oqe('attribute', 'name'), 'Jupiter'),
-            oqe('equal', oqe('attribute', 'name'), 'Pluto')))
-    );
-  });
-
-  test('records/filterAttributes', function(assert) {
-    assert.deepEqual(
-      oqb
-        .records('planet')
-        .filterAttributes({ 'name': 'Jupiter', 'age': '23000000' })
-        .toQueryExpression(),
-
-      oqe('filter',
-        oqe('records', 'planet'),
-          oqe('and',
-            oqe('equal', oqe('attribute', 'name'), 'Jupiter'),
-            oqe('equal', oqe('attribute', 'age'), '23000000')))
-    );
-  });
-
-  test('records/sort (one field, compact)', function(assert) {
-    assert.deepEqual(
-      oqb
-        .records('planet')
+        .findRecords('planet')
         .sort('name')
         .toQueryExpression(),
-
-      oqe('sort',
-        oqe('records', 'planet'),
-        [{ field: oqe('attribute', 'name'), order: 'ascending' }])
+      {
+        op: 'findRecords',
+        type: 'planet',
+        sort: [
+          {
+            kind: 'attribute',
+            attribute: 'name',
+            order: 'ascending'
+          }
+        ]
+      }
     );
   });
 
-  test('records/sort (one field descending, compact)', function(assert) {
+  test('findRecords + sort (one field descending, compact)', function(assert) {
     assert.deepEqual(
       oqb
-        .records('planet')
+        .findRecords('planet')
         .sort('-name')
         .toQueryExpression(),
-
-      oqe('sort',
-        oqe('records', 'planet'),
-        [{ field: oqe('attribute', 'name'), order: 'descending' }])
+      {
+        op: 'findRecords',
+        type: 'planet',
+        sort: [
+          {
+            kind: 'attribute',
+            attribute: 'name',
+            order: 'descending'
+          }
+        ]
+      }
     );
   });
 
-  test('records/sort (multiple fields, compact)', function(assert) {
+  test('findRecords + sort (multiple fields, compact)', function(assert) {
     assert.deepEqual(
       oqb
-        .records('planet')
+        .findRecords('planet')
         .sort('name', 'age')
         .toQueryExpression(),
-
-      oqe('sort',
-        oqe('records', 'planet'),
-        [
-          { field: oqe('attribute', 'name'), order: 'ascending' },
-          { field: oqe('attribute', 'age'), order: 'ascending' }
-        ])
+      {
+        op: 'findRecords',
+        type: 'planet',
+        sort: [
+          {
+            kind: 'attribute',
+            attribute: 'name',
+            order: 'ascending'
+          },
+          {
+            kind: 'attribute',
+            attribute: 'age',
+            order: 'ascending'
+          }
+        ]
+      }
     );
   });
 
-  test('records/sort (one field, default order)', function(assert) {
+  test('findRecords + sort (one field, verbose)', function(assert) {
     assert.deepEqual(
       oqb
-        .records('planet')
+        .findRecords('planet')
         .sort({ attribute: 'name' })
         .toQueryExpression(),
-
-      oqe('sort',
-        oqe('records', 'planet'),
-        [{ field: oqe('attribute', 'name'), order: 'ascending' }])
+      {
+        op: 'findRecords',
+        type: 'planet',
+        sort: [
+          {
+            kind: 'attribute',
+            attribute: 'name',
+            order: 'ascending'
+          }
+        ]
+      }
     );
   });
 
-  test('records/sort (one field, ascending order)', function(assert) {
+  test('findRecords + sort (one field, specified order, verbose)', function(assert) {
     assert.deepEqual(
       oqb
-        .records('planet')
+        .findRecords('planet')
         .sort({ attribute: 'name', order: 'ascending' })
         .toQueryExpression(),
-
-      oqe('sort',
-        oqe('records', 'planet'),
-        [{ field: oqe('attribute', 'name'), order: 'ascending' }])
+      {
+        op: 'findRecords',
+        type: 'planet',
+        sort: [
+          {
+            kind: 'attribute',
+            attribute: 'name',
+            order: 'ascending'
+          }
+        ]
+      }
     );
   });
 
-  test('records/sort (one field, descending order)', function(assert) {
+  test('findRecords + sort (one field, specified order, verbose)', function(assert) {
     assert.deepEqual(
       oqb
-        .records('planet')
-        .sort({ attribute: 'name', order: 'descending' })
+        .findRecords('planet')
+        .sort({ attribute: 'name', order: 'ascending' },
+              { attribute: 'age', order: 'descending' })
         .toQueryExpression(),
-
-      oqe('sort',
-        oqe('records', 'planet'),
-        [{ field: oqe('attribute', 'name'), order: 'descending' }])
+      {
+        op: 'findRecords',
+        type: 'planet',
+        sort: [
+          {
+            kind: 'attribute',
+            attribute: 'name',
+            order: 'ascending'
+          },
+          {
+            kind: 'attribute',
+            attribute: 'age',
+            order: 'descending'
+          }
+        ]
+      }
     );
   });
 
-  test('records/sort (multiple fields)', function(assert) {
-    assert.deepEqual(
-      oqb
-        .records('planet')
-        .sort(
-          { attribute: 'name', order: 'ascending' },
-          { attribute: 'age', order: 'ascending' }
-        )
-        .toQueryExpression(),
-
-      oqe('sort',
-        oqe('records', 'planet'),
-        [
-          { field: oqe('attribute', 'name'), order: 'ascending' },
-          { field: oqe('attribute', 'age'), order: 'ascending' }
-        ])
-    );
-  });
-
-  test('records/sort (unsupported sort field type)', function(assert) {
+  test('findRecords + sort (invalid sort expression)', function(assert) {
     assert.throws(
       () => {
         oqb
-          .records('planet')
-          .sort({});
-      },
-      new Error('Unsupported sort field type.')
-    );
-  });
-
-  test('records/sort (invalid sort order)', function(assert) {
-    assert.throws(
-      () => {
-        oqb
-          .records('planet')
-          .sort({ attribute: 'name', order: 'invalid' });
-      },
-      new Error('Invalid sort order.')
-    );
-  });
-
-  test('records/sort (invalid sort expression)', function(assert) {
-    assert.throws(
-      () => {
-        oqb
-          .records('planet')
+          .findRecords('planet')
           .sort(null);
       },
       new Error('Sort expression must be either an object or a string.')
     );
   });
 
-  test('records/page', function(assert) {
+  test('findRecords + page', function(assert) {
     assert.deepEqual(
       oqb
-        .records('planet')
+        .findRecords('planet')
         .page({ offset: 1, limit: 10})
         .toQueryExpression(),
-
-      oqe('page',
-        oqe('records', 'planet'),
-        { offset: 1, limit: 10 })
+      {
+        op: 'findRecords',
+        type: 'planet',
+        page: { offset: 1, limit: 10 }
+      }
     );
   });
 
-  test('records/filterAttributes/sort/page', function(assert) {
+  test('findRecords + filter + sort + page', function(assert) {
     assert.deepEqual(
       oqb
-        .records('planet')
-        .filterAttributes({ 'name': 'Jupiter', 'age': '23000000' })
-        .sort({ attribute: 'name', order: 'descending' })
+        .findRecords('planet')
+        .filter({ attribute: 'name', value: 'Jupiter' },
+                { attribute: 'age', value: 23000000})
         .page({ offset: 1, limit: 10})
+        .sort('-name')
         .toQueryExpression(),
-
-      oqe('page',
-        oqe('sort',
-          oqe('filter',
-            oqe('records', 'planet'),
-              oqe('and',
-                oqe('equal', oqe('attribute', 'name'), 'Jupiter'),
-                oqe('equal', oqe('attribute', 'age'), '23000000'))),
-        [{ field: oqe('attribute', 'name'), order: 'descending' }]),
-        { offset: 1, limit: 10 })
+      {
+        op: 'findRecords',
+        type: 'planet',
+        filter: [
+          {
+            op: 'equal',
+            kind: 'attribute',
+            attribute: 'name',
+            value: 'Jupiter'
+          },
+          {
+            op: 'equal',
+            kind: 'attribute',
+            attribute: 'age',
+            value: 23000000
+          }
+        ],
+        page: { offset: 1, limit: 10 },
+        sort: [
+          {
+            kind: 'attribute',
+            attribute: 'name',
+            order: 'descending'
+          }
+        ]
+      }
     );
   });
 });

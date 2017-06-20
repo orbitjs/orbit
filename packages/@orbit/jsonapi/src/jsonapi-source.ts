@@ -19,7 +19,7 @@ import { Log } from '@orbit/core';
 import { assert } from '@orbit/utils';
 import JSONAPISerializer from './jsonapi-serializer';
 import { encodeQueryParams } from './lib/query-params';
-import { getQueryRequests, QueryRequestProcessors } from './lib/queries';
+import { PullOperator, PullOperators } from './lib/pull-operators';
 import { getTransformRequests, TransformRequestProcessors } from './lib/transform-requests';
 import { InvalidServerResponse } from './lib/exceptions';
 
@@ -39,7 +39,6 @@ export interface FetchSettings {
 }
 
 export interface JSONAPISourceSettings extends SourceSettings {
-  maxRequestsPerQuery?: number;
   maxRequestsPerTransform?: number;
   namespace?: string;
   host?: string;
@@ -65,7 +64,6 @@ export interface JSONAPISourceSettings extends SourceSettings {
 @pullable
 @pushable
 export default class JSONAPISource extends Source implements Pullable, Pushable {
-  maxRequestsPerQuery: number;
   maxRequestsPerTransform: number;
   namespace: string;
   host: string;
@@ -74,10 +72,10 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
   serializer: JSONAPISerializer;
 
   // Pullable interface stubs
-  pull: (query: Query) => Promise<Transform[]>;
+  pull: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<Transform[]>;
 
   // Pushable interface stubs
-  push: (transform: Transform) => Promise<Transform[]>;
+  push: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => Promise<Transform[]>;
 
   constructor(settings: JSONAPISourceSettings = {}) {
     assert('JSONAPISource\'s `schema` must be specified in `settings.schema` constructor argument', !!settings.schema);
@@ -93,7 +91,6 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
     this.defaultFetchHeaders = settings.defaultFetchHeaders || { Accept: 'application/vnd.api+json' };
     this.defaultFetchTimeout = settings.defaultFetchTimeout || 5000;
 
-    this.maxRequestsPerQuery     = settings.maxRequestsPerQuery;
     this.maxRequestsPerTransform = settings.maxRequestsPerTransform;
 
     const SerializerClass = settings.SerializerClass || JSONAPISerializer;
@@ -128,18 +125,11 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
   /////////////////////////////////////////////////////////////////////////////
 
   _pull(query: Query): Promise<Transform[]> {
-    const requests = getQueryRequests(this, query);
-
-    if (this.maxRequestsPerQuery && requests.length > this.maxRequestsPerQuery) {
-      return Orbit.Promise.resolve()
-        .then(() => {
-          throw new QueryNotAllowed(
-            `This query requires ${requests.length} requests, which exceeds the specified limit of ${this.maxRequestsPerQuery} requests per query.`,
-            query);
-        });
+    const operator: PullOperator = PullOperators[query.expression.op];
+    if (!operator) {
+      throw new Error('JSONAPISource does not support the `${query.expression.op}` operator for queries.');
     }
-
-    return this._processRequests(requests, QueryRequestProcessors);
+    return operator(this, query);
   }
 
   /////////////////////////////////////////////////////////////////////////////

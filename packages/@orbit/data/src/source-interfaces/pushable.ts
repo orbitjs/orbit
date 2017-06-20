@@ -3,15 +3,16 @@ import { assert } from '@orbit/utils';
 import { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import Transform, { TransformOrOperations } from '../transform';
+import TransformBuilder from '../transform-builder';
 
 export const PUSHABLE = '__pushable__';
 
 /**
  * Has a source been decorated as `@pushable`?
- * 
+ *
  * @export
- * @param {Source} source 
- * @returns 
+ * @param {Source} source
+ * @returns
  */
 export function isPushable(source: Source) {
   return !!source[PUSHABLE];
@@ -31,11 +32,11 @@ export interface Pushable {
    * applied as a result. In other words, `push` captures the direct results
    * _and_ side effects of applying a `Transform` to a source.
    *
-   * @param {TransformOrOperations} transformOrOperations 
-   * @param {object} [options] 
-   * @param {string} [id] 
-   * @returns {Promise<Transform[]>} 
-   * 
+   * @param {TransformOrOperations} transformOrOperations
+   * @param {object} [options]
+   * @param {string} [id]
+   * @returns {Promise<Transform[]>}
+   *
    * @memberOf Pushable
    */
   push(transformOrOperations: TransformOrOperations, options?: object, id?: string): Promise<Transform[]>;
@@ -69,7 +70,7 @@ export interface Pushable {
  *
  * @export
  * @decorator
- * @param {SourceClass} Klass 
+ * @param {SourceClass} Klass
  * @returns {void}
  */
 export default function pushable(Klass: SourceClass): void {
@@ -84,7 +85,11 @@ export default function pushable(Klass: SourceClass): void {
   proto[PUSHABLE] = true;
 
   proto.push = function(transformOrOperations: TransformOrOperations, options?: object, id?: string): Promise<Transform[]> {
-    const transform = Transform.from(transformOrOperations, options, id);
+    let transformBuilder = this.transformBuilder;
+    if (!transformBuilder) {
+      transformBuilder = this.transformBuilder = new TransformBuilder();
+    }
+    const transform = Transform.from(transformOrOperations, options, id, transformBuilder);
 
     if (this.transformLog.contains(transform.id)) {
       return Orbit.Promise.resolve([]);

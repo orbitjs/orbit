@@ -1,18 +1,7 @@
 import Orbit, {
-  addRecord,
-  replaceRecord,
-  removeRecord,
-  replaceKey,
-  replaceAttribute,
-  addToHasMany,
-  removeFromHasMany,
-  replaceHasMany,
-  replaceHasOne,
   ClientError,
   KeyMap,
   NetworkError,
-  Query,
-  oqb,
   Record,
   RecordIdentity,
   RecordOperation,
@@ -208,7 +197,7 @@ module('JSONAPISource', function(hooks) {
           data: { id: '12345', type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
         }));
 
-      return source.push(Transform.from(addRecord(planet)))
+      return source.push(t => t.addRecord(planet))
         .then(function() {
           assert.ok(true, 'transform resolves successfully');
 
@@ -280,7 +269,7 @@ module('JSONAPISource', function(hooks) {
           )
         );
 
-      return source.push(Transform.from(replaceRecord(planet)))
+      return source.push(t => t.replaceRecord(planet))
         .then(() => {
           assert.ok(true, 'transform resolves successfully');
 
@@ -319,7 +308,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200));
 
-      return source.push(Transform.from(replaceAttribute(planet, 'classification', 'terrestrial')))
+      return source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'))
         .then(() => {
           assert.ok(true, 'record patched');
 
@@ -353,7 +342,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200));
 
-      return source.push(Transform.from(removeRecord(planet)))
+      return source.push(t => t.removeRecord(planet))
         .then(() => {
           assert.ok(true, 'record deleted');
 
@@ -380,7 +369,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345/relationships/moons')
         .returns(jsonapiResponse(204));
 
-      return source.push(Transform.from(addToHasMany(planet, 'moons', moon)))
+      return source.push(t => t.addToHasMany(planet, 'moons', moon))
         .then(() => {
           assert.ok(true, 'records linked');
 
@@ -411,7 +400,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345/relationships/moons')
         .returns(jsonapiResponse(200));
 
-      return source.push(Transform.from(removeFromHasMany(planet, 'moons', moon)))
+      return source.push(t => t.removeFromHasMany(planet, 'moons', moon))
         .then(function() {
           assert.ok(true, 'records unlinked');
 
@@ -442,7 +431,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/moons/987')
         .returns(jsonapiResponse(200));
 
-      return source.push(Transform.from(replaceHasOne(moon, 'planet', planet)))
+      return source.push(t => t.replaceHasOne(moon, 'planet', planet))
         .then(function() {
           assert.ok(true, 'relationship replaced');
 
@@ -468,7 +457,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/moons/987')
         .returns(jsonapiResponse(200));
 
-      return source.push(Transform.from(replaceHasOne(moon, 'planet', null)))
+      return source.push(t => t.replaceHasOne(moon, 'planet', null))
         .then(function() {
           assert.ok(true, 'relationship replaced');
 
@@ -499,7 +488,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200));
 
-      return source.push(Transform.from(replaceHasMany(planet, 'moons', [moon])))
+      return source.push(t => t.replaceHasMany(planet, 'moons', [moon]))
         .then(function() {
           assert.ok(true, 'relationship replaced');
 
@@ -527,10 +516,10 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/2')
         .returns(jsonapiResponse(200));
 
-      return source.push(Transform.from([
-        removeRecord(planet1),
-        removeRecord(planet2)
-      ]))
+      return source.push(t => [
+        t.removeRecord(planet1),
+        t.removeRecord(planet2)
+      ])
         .then(() => {
           assert.ok(true, 'records deleted');
 
@@ -552,10 +541,10 @@ module('JSONAPISource', function(hooks) {
 
       source.maxRequestsPerTransform = 1;
 
-      return source.push(Transform.from([
-        removeRecord(planet1),
-        removeRecord(planet2)
-      ]))
+      return source.push(t => [
+        t.removeRecord(planet1),
+        t.removeRecord(planet2)
+      ])
         .catch(e => {
           assert.ok(e instanceof TransformNotAllowed, 'TransformNotAllowed thrown');
         });
@@ -580,7 +569,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, null, 20)); // 20ms delay
 
-      return source.push(Transform.from(replaceAttribute(planet, 'classification', 'terrestrial')))
+      return source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'))
         .then(() => {
           assert.ok(false, 'should not be reached');
         })
@@ -614,7 +603,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, null, 20)); // 20ms delay
 
-      return source.push(Transform.from(replaceAttribute(planet, 'classification', 'terrestrial'), options))
+      return source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'), options)
         .then(() => {
           assert.ok(false, 'should not be reached');
         })
@@ -640,7 +629,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(Orbit.Promise.reject(':('));
 
-      return source.push(Transform.from(replaceAttribute(planet, 'classification', 'terrestrial')))
+      return source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'))
         .then(() => {
           assert.ok(false, 'should not be reached');
         })
@@ -671,7 +660,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(422, { errors }));
 
-      return source.push(Transform.from(replaceAttribute(planet, 'classification', 'terrestrial')))
+      return source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'))
         .then(() => {
           assert.ok(false, 'should not be reached');
         })
@@ -696,7 +685,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(Query.from(oqb.record({ type: 'planet', id: planet.id })))
+      return source.pull(q => q.findRecord({ type: 'planet', id: planet.id }))
         .then(transforms => {
           assert.equal(transforms.length, 1, 'one transform returned');
           assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
@@ -729,7 +718,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, { data }, 20)); // 20ms delay
 
-      return source.pull(Query.from(oqb.record({ type: 'planet', id: planet.id })))
+      return source.pull(q => q.findRecord({ type: 'planet', id: planet.id }))
         .then(() => {
           assert.ok(false, 'should not be reached');
         })
@@ -766,7 +755,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, { data }, 20)); // 20ms delay
 
-      return source.pull(Query.from(oqb.record({ type: 'planet', id: planet.id }), options))
+      return source.pull(q => q.findRecord({ type: 'planet', id: planet.id }), options)
         .then(() => {
           assert.ok(false, 'should not be reached');
         })
@@ -795,7 +784,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(Orbit.Promise.reject(':('));
 
-      return source.pull(Query.from(oqb.record({ type: 'planet', id: planet.id })))
+      return source.pull(q => q.findRecord({ type: 'planet', id: planet.id }))
         .then(() => {
           assert.ok(false, 'should not be reached');
         })
@@ -832,7 +821,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345?include=moons')
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(Query.from(oqb.record({ type: 'planet', id: planet.id }), options))
+      return source.pull(q => q.findRecord({ type: 'planet', id: planet.id }), options)
         .then(() => {
           assert.equal(fetchStub.callCount, 1, 'fetch called once');
           assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -852,7 +841,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets')
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(Query.from(oqb.records('planet')))
+      return source.pull(q => q.findRecords('planet'))
         .then(transforms => {
           assert.equal(transforms.length, 1, 'one transform returned');
           assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
@@ -874,8 +863,8 @@ module('JSONAPISource', function(hooks) {
         .withArgs(`/planets?${encodeURIComponent('filter[length-of-day]')}=24`)
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(Query.from(oqb.records('planet')
-                                       .filterAttributes({ lengthOfDay: 24 })))
+      return source.pull(q => q.findRecords('planet')
+                               .filter({ attribute: 'lengthOfDay', value: 24 }))
         .then(transforms => {
           assert.equal(transforms.length, 1, 'one transform returned');
           assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
@@ -899,7 +888,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets?sort=name')
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(Query.from(oqb.records('planet').sort('name')))
+      return source.pull(q => q.findRecords('planet').sort('name'))
         .then(transforms => {
           assert.equal(transforms.length, 1, 'one transform returned');
           assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
@@ -923,7 +912,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets?sort=-name')
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(Query.from(oqb.records('planet').sort('-name')))
+      return source.pull(q => q.findRecords('planet').sort('-name'))
         .then(transforms => {
           assert.equal(transforms.length, 1, 'one transform returned');
           assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
@@ -947,7 +936,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs(`/planets?sort=${encodeURIComponent('length-of-day,name')}`)
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(Query.from(oqb.records('planet').sort('lengthOfDay', 'name')))
+      return source.pull(q => q.findRecords('planet').sort('lengthOfDay', 'name'))
         .then(transforms => {
           assert.equal(transforms.length, 1, 'one transform returned');
           assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
@@ -971,8 +960,8 @@ module('JSONAPISource', function(hooks) {
         .withArgs(`/planets?${encodeURIComponent('page[offset]')}=1&${encodeURIComponent('page[limit]')}=10`)
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(Query.from(oqb.records('planet')
-                                       .page({ offset: 1, limit: 10 })))
+      return source.pull(q => q.findRecords('planet')
+                               .page({ offset: 1, limit: 10 }))
         .then(transforms => {
           assert.equal(transforms.length, 1, 'one transform returned');
           assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
@@ -998,7 +987,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets?include=moons')
         .returns(jsonapiResponse(200, { data: [] }));
 
-      return source.pull(Query.from(oqb.records('planet'), options))
+      return source.pull(q => q.findRecords('planet'), options)
         .then(() => {
           assert.equal(fetchStub.callCount, 1, 'fetch called once');
           assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -1020,7 +1009,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs(`/planets?include=${encodeURIComponent('moons,solar-systems')}`)
         .returns(jsonapiResponse(200, { data: [] }));
 
-      return source.pull(Query.from(oqb.records('planet'), options))
+      return source.pull(q => q.findRecords('planet'), options)
         .then(() => {
           assert.equal(fetchStub.callCount, 1, 'fetch called once');
           assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -1049,8 +1038,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/jupiter/moons')
         .returns(jsonapiResponse(200, { data }));
 
-      let query = Query.from(oqb.relatedRecords(planetRecord, 'moons'));
-      return source.pull(query).then((transforms) => {
+      return source.pull(q => q.findRelatedRecords(planetRecord, 'moons')).then((transforms) => {
         assert.equal(transforms.length, 1, 'one transform returned');
         assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
         assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Io']);
@@ -1082,7 +1070,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/jupiter/moons?include=planet')
         .returns(jsonapiResponse(200, { data: [] }));
 
-      return source.pull(Query.from(oqb.relatedRecords(<RecordIdentity>planetRecord, 'moons'), options))
+      return source.pull(q => q.findRelatedRecords(<RecordIdentity>planetRecord, 'moons'), options)
         .then(() => {
           assert.equal(fetchStub.callCount, 1, 'fetch called once');
           assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -1165,7 +1153,7 @@ module('JSONAPISource', function(hooks) {
           data: { id: planet.id, type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
         }));
 
-      return source.push(Transform.from(addRecord(planet)))
+      return source.push(t => t.addRecord(planet))
         .then(function() {
           assert.ok(true, 'transform resolves successfully');
 

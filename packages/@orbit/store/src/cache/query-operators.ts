@@ -1,63 +1,30 @@
-import { deepGet, merge, every, some } from '@orbit/utils';
-import { RecordNotFoundException, QueryExpressionParseError } from '@orbit/data';
+import { Dict, deepGet, merge, every, some } from '@orbit/utils';
+import {
+  QueryExpression,
+  RecordNotFoundException,
+  QueryExpressionParseError,
+  FindRecord,
+  FindRecords,
+  FindRelatedRecord,
+  FindRelatedRecords,
+  SortSpecifier,
+  AttributeSortSpecifier
+} from '@orbit/data';
+import Cache from '../cache';
 
 const EMPTY = () => {};
 
-export const QueryOperators = {
-  filter(select, where) {
-    const records = this.evaluate(select);
+/**
+ * @export
+ * @interface QueryOperator
+ */
+export interface QueryOperator {
+  (cache: Cache, expression: QueryExpression): any;
+}
 
-    return records.filter(record => this.evaluate(where, record));
-  },
-
-  sort(select, sortExpressions) {
-    const records = this.evaluate(select);
-    const comparisonValues = new Map();
-
-    records.forEach(record => {
-      comparisonValues.set(
-        record,
-        sortExpressions.map(sortExpression => this.evaluate(
-          sortExpression.field,
-          record
-        ))
-      );
-    });
-
-    const comparisonOrders = sortExpressions.map(
-      sortExpression => sortExpression.order === 'descending' ? -1 : 1);
-
-    return records.sort((record1, record2) => {
-      const values1 = comparisonValues.get(record1);
-      const values2 = comparisonValues.get(record2);
-      for (let i = 0; i < sortExpressions.length; i++) {
-        if (values1[i] < values2[i]) {
-          return -comparisonOrders[i];
-        }
-        if (values1[i] > values2[i]) {
-          return comparisonOrders[i];
-        }
-      }
-      return 0;
-    });
-  },
-
-  page(select, paginationOptions) {
-    const records = this.evaluate(select);
-
-    if (paginationOptions.limit !== undefined) {
-      let offset = paginationOptions.offset === undefined ? 0 : paginationOptions.offset;
-      let limit = paginationOptions.limit;
-
-      return records.slice(offset, offset + limit);
-
-    } else {
-      throw new QueryExpressionParseError('Pagination options not recognized for Store. Please specify `offset` and `limit`.', paginationOptions);
-    }
-  },
-
-  record({ type, id }) {
-    const cache = this.target;
+export const QueryOperators: Dict<QueryOperator> = {
+  findRecord(cache: Cache, expression: FindRecord) {
+    const { type, id } = expression.record;
     const record = cache.records(type).get(id);
 
     if (!record) {
@@ -67,12 +34,22 @@ export const QueryOperators = {
     return record;
   },
 
-  records(type) {
-    return this.target.records(type).values;
+  findRecords(cache: Cache, expression: FindRecords) {
+    let results = cache.records(expression.type).values;
+    if (expression.filter) {
+      results = filterRecords(results, expression.filter);
+    }
+    if (expression.sort) {
+      results = sortRecords(results, expression.sort);
+    }
+    if (expression.page) {
+      results = paginateRecords(results, expression.page);
+    }
+    return results;
   },
 
-  relatedRecords(record, relationship) {
-    const cache = this.target;
+  findRelatedRecords(cache: Cache, expression: FindRelatedRecords) {
+    const { record, relationship } = expression;
     const { type, id } = record;
     const currentRecord = cache.records(type).get(id);
     const data = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
@@ -88,8 +65,8 @@ export const QueryOperators = {
     return results;
   },
 
-  relatedRecord(record, relationship) {
-    const cache = this.target;
+  findRelatedRecord(cache: Cache, expression: FindRelatedRecord) {
+    const { record, relationship } = expression;
     const { type, id } = record;
     const currentRecord = cache.records(type).get(id);
     const data = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
@@ -101,36 +78,76 @@ export const QueryOperators = {
   }
 };
 
-export const ContextualQueryOperators = {
-  and(context, ...expressions) {
-    return every(expressions, (exp) => this.evaluate(exp, context));
-  },
-
-  or(context, ...expressions) {
-    return some(expressions, (exp) => this.evaluate(exp, context));
-  },
-
-  equal(context, ...expressions) {
-    let value = EMPTY;
-
-    return every(expressions, (exp) => {
-      if (value === EMPTY) {
-        value = this.evaluate(exp, context);
-        return true;
+function filterRecords(records, filters) {
+  return records.filter(record => {
+    for (let i = 0, l = filters.length; i < l; i++) {
+      if (!applyFilter(record, filters[i])) {
+        return false;
       }
+    }
+    return true;
+  });
+}
 
-      return value === this.evaluate(exp, context);
-    });
-  },
-
-  attribute(context, name) {
-    if (context.attributes) {
-      return context.attributes[name];
-    } else {
-      const { type, id } = context;
-      const record = this.target.records(type).get(id);
-      return record && deepGet(record, ['attributes', name]);
+function applyFilter(record, filter) {
+  if (filter.kind === 'attribute') {
+    let actual = record.attributes[filter.attribute];
+    let expected = filter.value;
+    switch(filter.op) {
+      case 'equal': return actual === expected;
+      case 'gt':    return actual > expected;
+      case 'gte':   return actual >= expected;
+      case 'lt':    return actual < expected;
+      case 'lte':   return actual <= expected;
+      default:
+        throw new QueryExpressionParseError('Filter operation ${filter.op} not recognized for Store.', filter);
     }
   }
-};
+  return false;
+}
 
+function sortRecords(records, sortSpecifiers: SortSpecifier[]) {
+  const comparisonValues = new Map();
+
+  records.forEach(record => {
+    comparisonValues.set(
+      record,
+      sortSpecifiers.map(sortSpecifier => {
+        if (sortSpecifier.kind === 'attribute') {
+          return record.attributes[(<AttributeSortSpecifier>sortSpecifier).attribute]
+        } else {
+          throw new QueryExpressionParseError('Sort specifier ${sortSpecifier.kind} not recognized for Store.', sortSpecifier);
+        }
+      })
+    );
+  });
+
+  const comparisonOrders = sortSpecifiers.map(
+    sortExpression => sortExpression.order === 'descending' ? -1 : 1);
+
+  return records.sort((record1, record2) => {
+    const values1 = comparisonValues.get(record1);
+    const values2 = comparisonValues.get(record2);
+    for (let i = 0; i < sortSpecifiers.length; i++) {
+      if (values1[i] < values2[i]) {
+        return -comparisonOrders[i];
+      }
+      if (values1[i] > values2[i]) {
+        return comparisonOrders[i];
+      }
+    }
+    return 0;
+  });
+}
+
+function paginateRecords(records, paginationOptions) {
+  if (paginationOptions.limit !== undefined) {
+    let offset = paginationOptions.offset === undefined ? 0 : paginationOptions.offset;
+    let limit = paginationOptions.limit;
+
+    return records.slice(offset, offset + limit);
+
+  } else {
+    throw new QueryExpressionParseError('Pagination options not recognized for Store. Please specify `offset` and `limit`.', paginationOptions);
+  }
+}

@@ -2,8 +2,7 @@ import Orbit, {
   Source,
   pullable, isPullable,
   Transform,
-  Query,
-  oqe
+  Query
 } from '../../src/index';
 import '../test-helper';
 
@@ -45,7 +44,7 @@ module('@pullable', function(hooks) {
       return Promise.reject(':(');
     };
 
-    return source.pull(oqe('records', 'planet'))
+    return source.pull(q => q.findRecords('planet'))
       .catch((error) => {
         assert.ok(true, 'pull promise resolved as a failure');
         assert.equal(error, ':(', 'failure');
@@ -56,7 +55,7 @@ module('@pullable', function(hooks) {
     assert.expect(9);
 
     let order = 0;
-    let qe = oqe('records', 'planet');
+    let qe = { op: 'findRecords', type: 'planet' };
 
     const resultingTransforms = [
       Transform.from({ op: 'addRecord' }, { op: 'addRecord' }),
@@ -92,7 +91,7 @@ module('@pullable', function(hooks) {
     assert.expect(12);
 
     let order = 0;
-    let qe = oqe('records', 'planet');
+    let qe = { op: 'findRecords', type: 'planet' };
 
     const resultingTransforms = [
       Transform.from({ op: 'addRecord' }, { op: 'addRecord' }),
@@ -143,7 +142,7 @@ module('@pullable', function(hooks) {
     assert.expect(7);
 
     let order = 0;
-    let qe = oqe('records', 'planet');
+    let qe = { op: 'findRecords', type: 'planet' };
 
     source.on('beforePull', () => {
       assert.equal(++order, 1, 'beforePull triggered third');
@@ -180,7 +179,7 @@ module('@pullable', function(hooks) {
     assert.expect(7);
 
     let order = 0;
-    let qe = oqe('records', 'planet');
+    let qe = { op: 'findRecords', type: 'planet' };
 
     source._pull = function(query) {
       assert.equal(++order, 1, 'action performed after willPull');

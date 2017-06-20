@@ -2,8 +2,10 @@
 import Orbit from './main';
 import { Operation } from './operation';
 import { isArray, toArray } from '@orbit/utils';
+import TransformBuilder from './transform-builder';
 
-export type TransformOrOperations = Transform | Operation | Operation[];
+export type TransformBuilderFunc = (TransformBuilder) => Operation[];
+export type TransformOrOperations = Transform | Operation | Operation[] | TransformBuilderFunc;
 
 /**
  Transforms represent a set of operations that are applied to mutate a
@@ -27,7 +29,7 @@ export default class Transform {
     this.id = id;
   }
 
-  static from(transformOrOperations: TransformOrOperations, options?: object, id?: string): Transform {
+  static from(transformOrOperations: TransformOrOperations, options?: object, id?: string, builder?: TransformBuilder): Transform {
     if (transformOrOperations instanceof Transform) {
       if (options && options !== transformOrOperations.options ||
           id && id !== transformOrOperations.id) {
@@ -37,7 +39,9 @@ export default class Transform {
       }
     } else if (isArray(transformOrOperations)) {
       return new Transform(<Operation[]>transformOrOperations, options, id);
-    } else {
+    } else if (typeof transformOrOperations === 'function') {
+      return Transform.from(transformOrOperations(builder), options, id);
+     } else {
       return new Transform([<Operation>transformOrOperations], options, id);
     }
   }

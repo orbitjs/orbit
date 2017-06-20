@@ -6,8 +6,7 @@ import Coordinator, {
 } from '../src/index';
 import Orbit, {
   Source,
-  Transform,
-  addRecord
+  Transform
 } from '@orbit/data';
 import './test-helper';
 

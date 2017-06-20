@@ -1,51 +1,71 @@
-import { isObject } from '@orbit/utils';
+import { RecordIdentity } from './record';
 
-export const QUERY_EXPRESSION = '__oqe__';
+export type SortOrder = 'ascending' | 'descending';
+
+export interface SortSpecifier {
+  kind: string;
+  order: SortOrder;
+}
+
+export interface AttributeSortSpecifier extends SortSpecifier {
+  kind: 'attribute';
+  attribute: string;
+}
+
+export type ComparisonOperator = 'equal' | 'gt' | 'lt' | 'gte' | 'lte';
+
+export interface FilterSpecifier {
+  op: ComparisonOperator;
+  kind: string;
+}
+
+export interface AttributeFilterSpecifier extends FilterSpecifier {
+  kind: 'attribute';
+  attribute: string;
+  value: any;
+}
+
+export interface PageSpecifier {
+  kind: string;
+}
+
+export interface OffsetLimitPageSpecifier extends PageSpecifier {
+  kind: 'offsetLimit';
+  offset?: number;
+  limit?: number;
+}
 
 /**
  * An interface to represent a query expression.
- * 
- * Query expressions consist of an `op`, or query operation, as well as `args`,
- * an array of arguments that have meaning specific to the operation.
- * 
- * Query arguments may in turn consist of query expressions. For that reason,
- * the `__oqe__` member is used to distinguish between query expressions and
- * plain values.
- * 
+ *
  * @export
  * @interface QueryExpression
  */
 export interface QueryExpression {
-  __oqe__: true;
   op: string;
-  args: any[];
 }
 
-/**
- * Instantiate a query expression.
- * 
- * `oqe` is an abbreviation for "Orbit Query Expression".
- * 
- * @export
- * @param {string} op 
- * @param {...any[]} args 
- * @returns {QueryExpression} 
- */
-export function oqe(op: string, ...args: any[]): QueryExpression {
-  return {
-    __oqe__: true,
-    op,
-    args
-  };
+export interface FindRecord extends QueryExpression {
+  op: 'findRecord';
+  record: RecordIdentity;
 }
 
-/**
- * Does an object implement the `QueryExpression` interface?
- * 
- * @export
- * @param {*} obj 
- * @returns {boolean} 
- */
-export function isQueryExpression(obj: any): boolean {
-  return isObject(obj) && obj[QUERY_EXPRESSION];
+export interface FindRelatedRecord extends QueryExpression {
+  op: 'findRelatedRecord';
+  record: RecordIdentity;
+  relationship: string;
+}
+
+export interface FindRelatedRecords extends QueryExpression {
+  op: 'findRelatedRecords';
+  record: RecordIdentity;
+  relationship: string;
+}
+
+export interface FindRecords extends QueryExpression {
+  op: 'findRecords';
+  type?: string;
+  sort?: SortSpecifier[];
+  filter?: FilterSpecifier[];
+  page?: PageSpecifier;
 }

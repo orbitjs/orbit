@@ -4,7 +4,7 @@ import Coordinator, {
 import Orbit, {
   Source,
   Transform,
-  addRecord
+  TransformBuilder
 } from '@orbit/data';
 import '../test-helper';
 
@@ -13,10 +13,11 @@ const { all } = RSVP;
 const { module, test } = QUnit;
 
 module('LogTruncationStrategy', function(hooks) {
-  const tA = new Transform([addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })], null, 'a');
-  const tB = new Transform([addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })], null, 'b');
-  const tC = new Transform([addRecord({ type: 'planet', id: 'c', attributes: { name: 'c' } })], null, 'c');
-  const tD = new Transform([addRecord({ type: 'planet', id: 'd', attributes: { name: 'd' } })], null, 'd');
+  const t = new TransformBuilder();
+  const tA = new Transform([t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })], null, 'a');
+  const tB = new Transform([t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })], null, 'b');
+  const tC = new Transform([t.addRecord({ type: 'planet', id: 'c', attributes: { name: 'c' } })], null, 'c');
+  const tD = new Transform([t.addRecord({ type: 'planet', id: 'd', attributes: { name: 'd' } })], null, 'd');
 
   let logTruncationStrategy, coordinator, s1, s2, s3;
 

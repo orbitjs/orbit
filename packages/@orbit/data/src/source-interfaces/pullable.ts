@@ -2,16 +2,17 @@ import { assert } from '@orbit/utils';
 import { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import Query, { QueryOrExpression } from '../query';
+import QueryBuilder from '../query-builder';
 import Transform from '../transform';
 
 export const PULLABLE = '__pullable__';
 
 /**
  * Has a source been decorated as `@pullable`?
- * 
+ *
  * @export
- * @param {Source} source 
- * @returns 
+ * @param {Source} source
+ * @returns
  */
 export function isPullable(source: Source) {
   return !!source[PULLABLE];
@@ -46,7 +47,7 @@ export interface Pullable {
 /**
  * Marks a source as "pullable" and adds an implementation of the `Pullable`
  * interface.
- * 
+ *
  * The `pull` method is part of the "request flow" in Orbit. Requests trigger
  * events before and after processing of each request. Observers can delay the
  * resolution of a request by returning a promise in an event listener.
@@ -66,11 +67,11 @@ export interface Pullable {
  * A pullable source must implement a private method `_pull`, which performs
  * the processing required for `pull` and returns a promise that resolves to an
  * array of `Transform` instances.
- * 
+ *
  * @export
  * @decorator
- * @param {SourceClass} Klass 
- * @returns {void} 
+ * @param {SourceClass} Klass
+ * @returns {void}
  */
 export default function pullable(Klass: SourceClass): void {
   let proto = Klass.prototype;
@@ -84,7 +85,11 @@ export default function pullable(Klass: SourceClass): void {
   proto[PULLABLE] = true;
 
   proto.pull = function(queryOrExpression: QueryOrExpression, options?: object, id?: string): Promise<Transform[]> {
-    const query = Query.from(queryOrExpression, options, id);
+    let queryBuilder = this.queryBuilder;
+    if (!queryBuilder) {
+      queryBuilder = this.queryBuilder = new QueryBuilder();
+    }
+    const query = Query.from(queryOrExpression, options, id, queryBuilder);
     return this._enqueueRequest('pull', query);
   }
 

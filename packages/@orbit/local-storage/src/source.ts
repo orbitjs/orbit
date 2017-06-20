@@ -10,7 +10,7 @@ import Orbit, {
 } from '@orbit/data';
 import { assert } from '@orbit/utils';
 import transformOperators from './lib/transform-operators';
-import queryOperators from './lib/query-operators';
+import { PullOperator, PullOperators } from './lib/pull-operators';
 import { supportsLocalStorage } from './lib/local-storage';
 
 declare const self: any;
@@ -133,8 +133,12 @@ export default class LocalStorageSource extends Source implements Pullable, Push
   /////////////////////////////////////////////////////////////////////////////
 
   _pull(query: Query): Promise<Transform[]> {
-    const transforms = queryOperators[query.expression.op](this, query.expression);
-    return Orbit.Promise.resolve(transforms);
+    const operator: PullOperator = PullOperators[query.expression.op];
+    if (!operator) {
+      throw new Error('LocalStorageSource does not support the `${query.expression.op}` operator for queries.');
+    }
+
+    return operator(this, query.expression);
   }
 
   /////////////////////////////////////////////////////////////////////////////
