@@ -1,13 +1,4 @@
 import Orbit, {
-  addRecord,
-  replaceRecord,
-  removeRecord,
-  replaceKey,
-  replaceAttribute,
-  addToHasMany,
-  removeFromHasMany,
-  replaceHasMany,
-  replaceHasOne,
   ClientError,
   KeyMap,
   NetworkError,
@@ -206,7 +197,7 @@ module('JSONAPISource', function(hooks) {
           data: { id: '12345', type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
         }));
 
-      return source.push(Transform.from(addRecord(planet)))
+      return source.push(t => t.addRecord(planet))
         .then(function() {
           assert.ok(true, 'transform resolves successfully');
 
@@ -278,7 +269,7 @@ module('JSONAPISource', function(hooks) {
           )
         );
 
-      return source.push(Transform.from(replaceRecord(planet)))
+      return source.push(t => t.replaceRecord(planet))
         .then(() => {
           assert.ok(true, 'transform resolves successfully');
 
@@ -317,7 +308,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200));
 
-      return source.push(Transform.from(replaceAttribute(planet, 'classification', 'terrestrial')))
+      return source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'))
         .then(() => {
           assert.ok(true, 'record patched');
 
@@ -351,7 +342,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200));
 
-      return source.push(Transform.from(removeRecord(planet)))
+      return source.push(t => t.removeRecord(planet))
         .then(() => {
           assert.ok(true, 'record deleted');
 
@@ -378,7 +369,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345/relationships/moons')
         .returns(jsonapiResponse(204));
 
-      return source.push(Transform.from(addToHasMany(planet, 'moons', moon)))
+      return source.push(t => t.addToHasMany(planet, 'moons', moon))
         .then(() => {
           assert.ok(true, 'records linked');
 
@@ -409,7 +400,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345/relationships/moons')
         .returns(jsonapiResponse(200));
 
-      return source.push(Transform.from(removeFromHasMany(planet, 'moons', moon)))
+      return source.push(t => t.removeFromHasMany(planet, 'moons', moon))
         .then(function() {
           assert.ok(true, 'records unlinked');
 
@@ -440,7 +431,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/moons/987')
         .returns(jsonapiResponse(200));
 
-      return source.push(Transform.from(replaceHasOne(moon, 'planet', planet)))
+      return source.push(t => t.replaceHasOne(moon, 'planet', planet))
         .then(function() {
           assert.ok(true, 'relationship replaced');
 
@@ -466,7 +457,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/moons/987')
         .returns(jsonapiResponse(200));
 
-      return source.push(Transform.from(replaceHasOne(moon, 'planet', null)))
+      return source.push(t => t.replaceHasOne(moon, 'planet', null))
         .then(function() {
           assert.ok(true, 'relationship replaced');
 
@@ -497,7 +488,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200));
 
-      return source.push(Transform.from(replaceHasMany(planet, 'moons', [moon])))
+      return source.push(t => t.replaceHasMany(planet, 'moons', [moon]))
         .then(function() {
           assert.ok(true, 'relationship replaced');
 
@@ -525,10 +516,10 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/2')
         .returns(jsonapiResponse(200));
 
-      return source.push(Transform.from([
-        removeRecord(planet1),
-        removeRecord(planet2)
-      ]))
+      return source.push(t => [
+        t.removeRecord(planet1),
+        t.removeRecord(planet2)
+      ])
         .then(() => {
           assert.ok(true, 'records deleted');
 
@@ -550,10 +541,10 @@ module('JSONAPISource', function(hooks) {
 
       source.maxRequestsPerTransform = 1;
 
-      return source.push(Transform.from([
-        removeRecord(planet1),
-        removeRecord(planet2)
-      ]))
+      return source.push(t => [
+        t.removeRecord(planet1),
+        t.removeRecord(planet2)
+      ])
         .catch(e => {
           assert.ok(e instanceof TransformNotAllowed, 'TransformNotAllowed thrown');
         });
@@ -578,7 +569,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, null, 20)); // 20ms delay
 
-      return source.push(Transform.from(replaceAttribute(planet, 'classification', 'terrestrial')))
+      return source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'))
         .then(() => {
           assert.ok(false, 'should not be reached');
         })
@@ -612,7 +603,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, null, 20)); // 20ms delay
 
-      return source.push(Transform.from(replaceAttribute(planet, 'classification', 'terrestrial'), options))
+      return source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'), options)
         .then(() => {
           assert.ok(false, 'should not be reached');
         })
@@ -638,7 +629,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(Orbit.Promise.reject(':('));
 
-      return source.push(Transform.from(replaceAttribute(planet, 'classification', 'terrestrial')))
+      return source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'))
         .then(() => {
           assert.ok(false, 'should not be reached');
         })
@@ -669,7 +660,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(422, { errors }));
 
-      return source.push(Transform.from(replaceAttribute(planet, 'classification', 'terrestrial')))
+      return source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'))
         .then(() => {
           assert.ok(false, 'should not be reached');
         })
@@ -1162,7 +1153,7 @@ module('JSONAPISource', function(hooks) {
           data: { id: planet.id, type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
         }));
 
-      return source.push(Transform.from(addRecord(planet)))
+      return source.push(t => t.addRecord(planet))
         .then(function() {
           assert.ok(true, 'transform resolves successfully');
 

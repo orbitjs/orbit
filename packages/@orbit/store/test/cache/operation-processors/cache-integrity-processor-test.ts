@@ -2,8 +2,7 @@ import {
   Schema,
   SchemaSettings,
   KeyMap,
-  cloneRecordIdentity,
-  addRecord
+  cloneRecordIdentity
 } from '@orbit/data';
 import CacheIntegrityProcessor from '../../../src/cache/operation-processors/cache-integrity-processor';
 import Cache from '../../../src/cache';
@@ -77,11 +76,11 @@ module('CacheIntegrityProcessor', function(hooks) {
                     attributes: { name: 'Europa' },
                     relationships: { planet: { data: 'planet:jupiter' } } };
 
-    cache.patch([
-      addRecord(saturn),
-      addRecord(jupiter),
-      addRecord(titan),
-      addRecord(europa)
+    cache.patch(t => [
+      t.addRecord(saturn),
+      t.addRecord(jupiter),
+      t.addRecord(titan),
+      t.addRecord(europa)
     ]);
 
     assert.deepEqual(processor._rev, {
@@ -121,11 +120,11 @@ module('CacheIntegrityProcessor', function(hooks) {
                     attributes: { name: 'Europa' },
                     relationships: { planet: { data: 'planet:jupiter' } } };
 
-    cache.patch([
-      addRecord(saturn),
-      addRecord(jupiter),
-      addRecord(titan),
-      addRecord(europa)
+    cache.patch(t => [
+      t.addRecord(saturn),
+      t.addRecord(jupiter),
+      t.addRecord(titan),
+      t.addRecord(europa)
     ]);
 
     assert.deepEqual(processor._rev, {
@@ -207,11 +206,11 @@ module('CacheIntegrityProcessor', function(hooks) {
                     attributes: { name: 'Europa' },
                     relationships: { planet: { data: 'planet:jupiter' } } };
 
-    cache.patch([
-      addRecord(saturn),
-      addRecord(jupiter),
-      addRecord(titan),
-      addRecord(europa)
+    cache.patch(t => [
+      t.addRecord(saturn),
+      t.addRecord(jupiter),
+      t.addRecord(titan),
+      t.addRecord(europa)
     ]);
 
     assert.deepEqual(processor._rev, {
@@ -286,9 +285,9 @@ module('CacheIntegrityProcessor', function(hooks) {
                     attributes: { name: 'Titan' },
                     relationships: { planet: { data: 'planet:saturn' } } };
 
-    cache.patch([
-      addRecord(saturn),
-      addRecord(titan)
+    cache.patch(t => [
+      t.addRecord(saturn),
+      t.addRecord(titan)
     ]);
 
     assert.deepEqual(processor._rev, {
@@ -351,10 +350,10 @@ module('CacheIntegrityProcessor', function(hooks) {
                     attributes: { name: 'Titan' },
                     relationships: { planet: { data: 'planet:saturn' } } };
 
-    cache.patch([
-      addRecord(saturn),
-      addRecord(jupiter),
-      addRecord(titan)
+    cache.patch(t => [
+      t.addRecord(saturn),
+      t.addRecord(jupiter),
+      t.addRecord(titan)
     ]);
 
     assert.deepEqual(processor._rev, {
@@ -423,11 +422,11 @@ module('CacheIntegrityProcessor', function(hooks) {
                     attributes: { name: 'Europa' },
                     relationships: { planet: { data: 'planet:jupiter' } } };
 
-    cache.patch([
-      addRecord(saturn),
-      addRecord(jupiter),
-      addRecord(titan),
-      addRecord(europa)
+    cache.patch(t => [
+      t.addRecord(saturn),
+      t.addRecord(jupiter),
+      t.addRecord(titan),
+      t.addRecord(europa)
     ]);
 
     assert.deepEqual(processor._rev, {
@@ -494,9 +493,9 @@ module('CacheIntegrityProcessor', function(hooks) {
     const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
     const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: { 'inhabitant:human': true } } } };
 
-    cache.patch([
-      addRecord(human),
-      addRecord(earth)
+    cache.patch(t => [
+      t.addRecord(human),
+      t.addRecord(earth)
     ]);
 
     assert.deepEqual(processor._rev, {
@@ -559,11 +558,11 @@ module('CacheIntegrityProcessor', function(hooks) {
                     attributes: { name: 'Europa' },
                     relationships: { planet: { data: 'planet:jupiter' } } };
 
-    cache.patch([
-      addRecord(saturn),
-      addRecord(jupiter),
-      addRecord(titan),
-      addRecord(europa)
+    cache.patch(t => [
+      t.addRecord(saturn),
+      t.addRecord(jupiter),
+      t.addRecord(titan),
+      t.addRecord(europa)
     ]);
 
     assert.deepEqual(processor._rev, {
@@ -639,10 +638,10 @@ module('CacheIntegrityProcessor', function(hooks) {
     const earth = { type: 'planet', id: 'earth',
                     attributes: { name: 'Earth' } };
 
-    cache.patch([
-      addRecord(saturn),
-      addRecord(jupiter),
-      addRecord(earth)
+    cache.patch(t => [
+      t.addRecord(saturn),
+      t.addRecord(jupiter),
+      t.addRecord(earth)
     ]);
 
     assert.deepEqual(processor._rev, {
@@ -703,10 +702,10 @@ module('CacheIntegrityProcessor', function(hooks) {
     const earth = { type: 'planet', id: 'earth',
                     attributes: { name: 'Earth' } };
 
-    cache.patch([
-      addRecord(saturn),
-      addRecord(jupiter),
-      addRecord(earth)
+    cache.patch(t => [
+      t.addRecord(saturn),
+      t.addRecord(jupiter),
+      t.addRecord(earth)
     ]);
 
     assert.deepEqual(processor._rev, {
@@ -759,9 +758,9 @@ module('CacheIntegrityProcessor', function(hooks) {
     const earth = { type: 'planet', id: 'earth' };
     const human = { type: 'inhabitant', id: 'human' };
 
-    cache.patch([
-      addRecord(earth),
-      addRecord(human)
+    cache.patch(t => [
+      t.addRecord(earth),
+      t.addRecord(human)
     ]);
 
     assert.deepEqual(processor._rev, {}, 'empty rev links');
@@ -801,9 +800,9 @@ module('CacheIntegrityProcessor', function(hooks) {
     const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: { 'inhabitant:human': true } } } };
     const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
 
-    cache.patch([
-      addRecord(earth),
-      addRecord(human)
+    cache.patch(t => [
+      t.addRecord(earth),
+      t.addRecord(human)
     ]);
 
     assert.deepEqual(processor._rev, {
@@ -858,9 +857,9 @@ module('CacheIntegrityProcessor', function(hooks) {
     const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: { 'inhabitant:human': true } } } };
     const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
 
-    cache.patch([
-      addRecord(earth),
-      addRecord(human)
+    cache.patch(t => [
+      t.addRecord(earth),
+      t.addRecord(human)
     ]);
 
     assert.deepEqual(processor._rev, {
@@ -917,9 +916,9 @@ module('CacheIntegrityProcessor', function(hooks) {
     const earth = { type: 'planet', id: 'earth' };
     const human = { type: 'inhabitant', id: 'human' };
 
-    cache.patch([
-      addRecord(earth),
-      addRecord(human)
+    cache.patch(t => [
+      t.addRecord(earth),
+      t.addRecord(human)
     ]);
 
     assert.deepEqual(processor._rev, {}, 'empty rev links');

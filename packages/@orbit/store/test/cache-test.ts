@@ -1,16 +1,8 @@
 import {
-  addRecord,
-  replaceRecord,
-  removeRecord,
-  // replaceKey,
-  // replaceAttribute,
-  addToHasMany,
-  removeFromHasMany,
-  // replaceHasMany,
-  replaceHasOne,
   KeyMap,
   RecordNotFoundException,
-  Schema
+  Schema,
+  TransformBuilder
 } from '@orbit/data';
 import Cache from '../src/cache';
 import { arrayMembershipMatches } from './test-helper';
@@ -55,7 +47,7 @@ module('Cache', function(hooks) {
 
     const earth = { type: 'planet', id: '1', attributes: { name: 'Earth' } };
 
-    cache.patch(addRecord(earth));
+    cache.patch(t => t.addRecord(earth));
 
     assert.strictEqual(cache.records('planet').get('1'), earth, 'objects strictly match');
   });
@@ -65,7 +57,7 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema, keyMap });
 
-    cache.patch(addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } }));
+    cache.patch(t => t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } }));
 
     assert.equal(cache.records('planet').length, 1);
 
@@ -82,8 +74,8 @@ module('Cache', function(hooks) {
     let cache1 = new Cache({ schema, keyMap });
     let cache2 = new Cache({ schema, keyMap });
 
-    cache1.patch(addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } }));
-    cache2.patch(addRecord({ type: 'planet', id: '1', attributes: { name: 'Jupiter' } }));
+    cache1.patch(t => t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } }));
+    cache2.patch(t => t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Jupiter' } }));
 
     cache1.reset(cache2);
 
@@ -93,15 +85,15 @@ module('Cache', function(hooks) {
   test('#patch updates the cache and returns an array of inverse ops', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
-    let inverse = cache.patch([
-      addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } }),
-      removeRecord({ type: 'planet', id: '2' })
+    let inverse = cache.patch(t => [
+      t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } }),
+      t.removeRecord({ type: 'planet', id: '2' })
     ]);
 
     assert.deepEqual(
       inverse,
       [
-        removeRecord({ type: 'planet', id: '1' })
+        { op: 'removeRecord', record: { type: 'planet', id: '1' } }
       ],
       'ignores ops that are noops'
     );
@@ -114,16 +106,16 @@ module('Cache', function(hooks) {
     const io = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: 'planet:p1' } } };
     const europa = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: 'planet:p1' } } };
 
-    cache.patch([
-      addRecord(jupiter),
-      addRecord(io),
-      addRecord(europa)
+    cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(io),
+      t.addRecord(europa)
     ]);
 
     assert.equal(cache.records('moon').get('m1').relationships.planet.data, 'planet:p1', 'Jupiter has been assigned to Io');
     assert.equal(cache.records('moon').get('m2').relationships.planet.data, 'planet:p1', 'Jupiter has been assigned to Europa');
 
-    cache.patch(removeRecord(jupiter));
+    cache.patch(t => t.removeRecord(jupiter));
 
     assert.equal(cache.records('planet').get('p1'), undefined, 'Jupiter is GONE');
 
@@ -138,19 +130,19 @@ module('Cache', function(hooks) {
     var europa = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: null } } };
     var jupiter = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: { data: { 'moon:m1': true, 'moon:m2': true } } } };
 
-    cache.patch([
-      addRecord(io),
-      addRecord(europa),
-      addRecord(jupiter)]);
+    cache.patch(t => [
+      t.addRecord(io),
+      t.addRecord(europa),
+      t.addRecord(jupiter)]);
 
     assert.equal(cache.records('planet').get('p1').relationships.moons.data['moon:m1'], true, 'Jupiter has been assigned to Io');
     assert.equal(cache.records('planet').get('p1').relationships.moons.data['moon:m2'], true, 'Jupiter has been assigned to Europa');
 
-    cache.patch(removeRecord(io));
+    cache.patch(t => t.removeRecord(io));
 
     assert.equal(cache.records('moon').get('m1'), null, 'Io is GONE');
 
-    cache.patch(removeRecord(europa));
+    cache.patch(t => t.removeRecord(europa));
 
     assert.equal(cache.records('moon').get('m2'), null, 'Europa is GONE');
 
@@ -161,7 +153,7 @@ module('Cache', function(hooks) {
   test('#patch adds link to hasMany if record doesn\'t exist', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
-    cache.patch(addToHasMany({ type: 'planet', id: 'p1' }, 'moons', { type: 'moon', id: 'm1' }));
+    cache.patch(t => t.addToHasMany({ type: 'planet', id: 'p1' }, 'moons', { type: 'moon', id: 'm1' }));
 
     assert.equal(cache.records('planet').get('p1').relationships.moons.data['moon:m1'], true, 'relationship was added');
   });
@@ -175,7 +167,7 @@ module('Cache', function(hooks) {
       assert.ok(false, 'no operations were applied');
     });
 
-    cache.patch(removeFromHasMany({ type: 'planet', id: 'p1' }, 'moons', { type: 'moon', id: 'moon1' }));
+    cache.patch(t => t.removeFromHasMany({ type: 'planet', id: 'p1' }, 'moons', { type: 'moon', id: 'moon1' }));
 
     assert.equal(cache.records('planet').get('p1'), undefined, 'planet does not exist');
   });
@@ -185,7 +177,8 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema, keyMap });
 
-    const operation = replaceHasOne(
+    const tb = new TransformBuilder();
+    const operation = tb.replaceHasOne(
       { type: 'moon', id: 'moon1' },
       'planet',
       { type: 'planet', id: 'p1' });
@@ -202,7 +195,8 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema, keyMap });
 
-    const operation = replaceHasOne(
+    const tb = new TransformBuilder();
+    const operation = tb.replaceHasOne(
       { type: 'moon', id: 'moon1' },
       'planet',
       null);
@@ -221,13 +215,13 @@ module('Cache', function(hooks) {
 
     const jupiter = { id: 'p1', type: 'planet', attributes: { name: 'Jupiter' }, relationships: { moons: { data: { 'moon:m1': true } } } };
 
-    cache.patch(addRecord(jupiter));
+    cache.patch(t => t.addRecord(jupiter));
 
     cache.on('patch', () => {
       assert.ok(false, 'no operations were applied');
     });
 
-    cache.patch(addToHasMany(jupiter, 'moons', { type: 'moon', id: 'm1' }));
+    cache.patch(t => t.addToHasMany(jupiter, 'moons', { type: 'moon', id: 'm1' }));
 
     assert.ok(true, 'patch completed');
   });
@@ -239,13 +233,13 @@ module('Cache', function(hooks) {
 
     const jupiter = { id: 'p1', type: 'planet', attributes: { name: 'Jupiter' } };
 
-    cache.patch(addRecord(jupiter));
+    cache.patch(t => t.addRecord(jupiter));
 
     cache.on('patch', () => {
       assert.ok(false, 'no operations were applied');
     });
 
-    cache.patch(removeFromHasMany(jupiter, 'moons', { type: 'moon', id: 'm1' }));
+    cache.patch(t => t.removeFromHasMany(jupiter, 'moons', { type: 'moon', id: 'm1' }));
 
     assert.ok(true, 'patch completed');
   });
@@ -257,13 +251,13 @@ module('Cache', function(hooks) {
 
     const europa = { id: 'm1', type: 'moon', attributes: { name: 'Europa' }, relationships: { planet: { data: 'planet:p1' } } };
 
-    cache.patch(addRecord(europa));
+    cache.patch(t => t.addRecord(europa));
 
     cache.on('patch', () => {
       assert.ok(false, 'no operations were applied');
     });
 
-    cache.patch(replaceHasOne(europa, 'planet', { type: 'planet', id: 'p1' }));
+    cache.patch(t => t.replaceHasOne(europa, 'planet', { type: 'planet', id: 'p1' }));
 
     assert.ok(true, 'patch completed');
   });
@@ -275,13 +269,13 @@ module('Cache', function(hooks) {
 
     const europa = { type: 'moon', id: 'm1', attributes: { name: 'Europa' }, relationships: { planet: { data: null } } };
 
-    cache.patch(addRecord(europa));
+    cache.patch(t => t.addRecord(europa));
 
     cache.on('patch', () => {
       assert.ok(false, 'no operations were applied');
     });
 
-    cache.patch(replaceHasOne(europa, 'planet', null));
+    cache.patch(t => t.replaceHasOne(europa, 'planet', null));
 
     assert.ok(true, 'patch completed');
   });
@@ -306,15 +300,15 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema: hasOneSchema, keyMap });
 
-    cache.patch([
-      addRecord({
+    cache.patch(t => [
+      t.addRecord({
         id: '1',
         type: 'one',
         relationships: {
           two: { data: null }
         }
       }),
-      addRecord({
+      t.addRecord({
         id: '2',
         type: 'two',
         relationships: {
@@ -330,7 +324,7 @@ module('Cache', function(hooks) {
     assert.equal(one.relationships.two.data, 'two:2', 'one links to two');
     assert.equal(two.relationships.one.data, 'one:1', 'two links to one');
 
-    cache.patch(removeRecord(two));
+    cache.patch(t => t.removeRecord(two));
 
     assert.equal(cache.records('one').get('1').relationships.two.data, null, 'ones link to two got removed');
   });
@@ -359,16 +353,16 @@ module('Cache', function(hooks) {
     const io = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: 'planet:p1' } } };
     const europa = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: 'planet:p1' } } };
 
-    cache.patch([
-      addRecord(jupiter),
-      addRecord(io),
-      addRecord(europa),
-      addToHasMany(jupiter, 'moons', io),
-      addToHasMany(jupiter, 'moons', europa)
+    cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(io),
+      t.addRecord(europa),
+      t.addToHasMany(jupiter, 'moons', io),
+      t.addToHasMany(jupiter, 'moons', europa)
     ]);
 
     // Removing the moon should remove the planet should remove the other moon
-    cache.patch(removeRecord(io));
+    cache.patch(t => t.removeRecord(io));
 
     // TODO-investigate why there's still a moon left
     // assert.equal(cache.records('moon').length, 0, 'No moons left in store');
@@ -397,17 +391,17 @@ module('Cache', function(hooks) {
     const io = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: 'planet:p1' } } };
     const europa = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: 'planet:p1' } } };
 
-    cache.patch([
-      addRecord(jupiter),
-      addRecord(io),
-      addRecord(europa),
-      addToHasMany(jupiter, 'moons', io),
-      addToHasMany(jupiter, 'moons', europa)
+    cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(io),
+      t.addRecord(europa),
+      t.addToHasMany(jupiter, 'moons', io),
+      t.addToHasMany(jupiter, 'moons', europa)
     ]);
 
     // Since there are no dependent relationships, no other records will be
     // removed
-    cache.patch(removeRecord(io));
+    cache.patch(t => t.removeRecord(io));
 
     assert.equal(cache.records('moon').length, 1, 'One moon left in store');
     assert.equal(cache.records('planet').length, 1, 'One planet left in store');
@@ -415,13 +409,14 @@ module('Cache', function(hooks) {
 
   test('#patch merges records when "replacing" and will not stomp on attributes and relationships that are not replaced', function(assert) {
     let cache = new Cache({ schema, keyMap });
+    const tb = new TransformBuilder();
 
-    cache.patch([
-      addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' }, relationships: { moons: { data: { 'moon:m1': true } } } })
+    cache.patch(t => [
+      t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' }, relationships: { moons: { data: { 'moon:m1': true } } } })
     ]);
 
-    let inverse = cache.patch([
-      replaceRecord({ type: 'planet', id: '1', attributes: { classification: 'terrestrial' } })
+    let inverse = cache.patch(t => [
+      t.replaceRecord({ type: 'planet', id: '1', attributes: { classification: 'terrestrial' } })
     ]);
 
     assert.deepEqual(
@@ -433,7 +428,7 @@ module('Cache', function(hooks) {
     assert.deepEqual(
       inverse,
       [
-        replaceRecord({ type: 'planet', id: '1', attributes: { classification: null } })
+        tb.replaceRecord({ type: 'planet', id: '1', attributes: { classification: null } })
       ],
       'ignores ops that are noops'
     );
@@ -441,13 +436,14 @@ module('Cache', function(hooks) {
 
   test('#patch merges records when "replacing" and _will_ replace specified attributes and relationships', function(assert) {
     let cache = new Cache({ schema, keyMap });
+    const tb = new TransformBuilder();
 
     cache.patch([
-      addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' }, relationships: { moons: { data: { 'moon:m1': true } } } })
+      tb.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' }, relationships: { moons: { data: { 'moon:m1': true } } } })
     ]);
 
     let inverse = cache.patch([
-      replaceRecord({ type: 'planet', id: '1', attributes: { name: 'Jupiter', classification: 'terrestrial' }, relationships: { moons: { data: { 'moon:m2': true } } } })
+      tb.replaceRecord({ type: 'planet', id: '1', attributes: { name: 'Jupiter', classification: 'terrestrial' }, relationships: { moons: { data: { 'moon:m2': true } } } })
     ]);
 
     assert.deepEqual(
@@ -459,7 +455,7 @@ module('Cache', function(hooks) {
     assert.deepEqual(
       inverse,
       [
-        replaceRecord({ type: 'planet', id: '1', attributes: { name: 'Earth', classification: null }, relationships: { moons: { data: { 'moon:m1': true } } } })
+        tb.replaceRecord({ type: 'planet', id: '1', attributes: { name: 'Earth', classification: null }, relationships: { moons: { data: { 'moon:m1': true } } } })
       ],
       'ignores ops that are noops'
     );
@@ -469,7 +465,7 @@ module('Cache', function(hooks) {
     let cache = new Cache({ schema, keyMap });
 
     let jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', classification: 'gas giant', atmosphere: true } };
-    cache.patch([addRecord(jupiter)]);
+    cache.patch(t => [t.addRecord(jupiter)]);
 
     assert.deepEqual(
       cache.query(q => q.findRecord({ type: 'planet', id: 'jupiter' })),
@@ -479,17 +475,18 @@ module('Cache', function(hooks) {
 
   test('#query can perform a simple matching filter', function(assert) {
     let cache = new Cache({ schema, keyMap });
+    const tb = new TransformBuilder();
 
     let jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', classification: 'gas giant', atmosphere: true } };
     let earth = { type: 'planet', id: 'earth', attributes: { name: 'Earth', classification: 'terrestrial', atmosphere: true } };
     let venus = { type: 'planet', id: 'venus', attributes: { name: 'Venus', classification: 'terrestrial', atmosphere: true } };
     let mercury = { type: 'planet', id: 'mercury', attributes: { name: 'Mercury', classification: 'terrestrial', atmosphere: false } };
 
-    cache.patch([
-      addRecord(jupiter),
-      addRecord(earth),
-      addRecord(venus),
-      addRecord(mercury)
+    cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
     ]);
 
     arrayMembershipMatches(
@@ -508,11 +505,11 @@ module('Cache', function(hooks) {
     let venus = { type: 'planet', id: 'venus', attributes: { name: 'Venus', classification: 'terrestrial', atmosphere: true } };
     let mercury = { type: 'planet', id: 'mercury', attributes: { name: 'Mercury', classification: 'terrestrial', atmosphere: false } };
 
-    cache.patch([
-      addRecord(jupiter),
-      addRecord(earth),
-      addRecord(venus),
-      addRecord(mercury)
+    cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
     ]);
 
     arrayMembershipMatches(
@@ -535,11 +532,11 @@ module('Cache', function(hooks) {
     let venus = { type: 'planet', id: 'venus', attributes: { name: 'Venus', classification: 'terrestrial', atmosphere: true } };
     let mercury = { type: 'planet', id: 'mercury', attributes: { name: 'Mercury', classification: 'terrestrial', atmosphere: false } };
 
-    cache.patch([
-      addRecord(jupiter),
-      addRecord(earth),
-      addRecord(venus),
-      addRecord(mercury)
+    cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
     ]);
 
     assert.deepEqual(
@@ -562,11 +559,11 @@ module('Cache', function(hooks) {
     let venus = { type: 'planet', id: 'venus', attributes: { name: 'Venus', classification: 'terrestrial', atmosphere: true } };
     let mercury = { type: 'planet', id: 'mercury', attributes: { name: 'Mercury', classification: 'terrestrial', atmosphere: false } };
 
-    cache.patch([
-      addRecord(jupiter),
-      addRecord(earth),
-      addRecord(venus),
-      addRecord(mercury)
+    cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
     ]);
 
     assert.deepEqual(
@@ -589,11 +586,11 @@ module('Cache', function(hooks) {
     let venus = { type: 'planet', id: 'venus', attributes: { name: 'Venus', classification: 'terrestrial', atmosphere: true } };
     let mercury = { type: 'planet', id: 'mercury', attributes: { name: 'Mercury', classification: 'terrestrial', atmosphere: false } };
 
-    cache.patch([
-      addRecord(jupiter),
-      addRecord(earth),
-      addRecord(venus),
-      addRecord(mercury)
+    cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
     ]);
 
     assert.deepEqual(
@@ -616,11 +613,11 @@ module('Cache', function(hooks) {
     let venus = { type: 'planet', id: 'venus', attributes: { name: 'Venus', classification: 'terrestrial', atmosphere: true } };
     let mercury = { type: 'planet', id: 'mercury', attributes: { name: 'Mercury', classification: 'terrestrial', atmosphere: false } };
 
-    cache.patch([
-      addRecord(jupiter),
-      addRecord(earth),
-      addRecord(venus),
-      addRecord(mercury)
+    cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
     ]);
 
     assert.deepEqual(
@@ -643,8 +640,8 @@ module('Cache', function(hooks) {
       attributes: { name: 'Jupiter' },
       relationships: { moons: { data: { 'moon:callisto': true } } } };
 
-    cache.patch([
-      addRecord(jupiter)
+    cache.patch(t => [
+      t.addRecord(jupiter)
     ]);
 
     assert.deepEqual(
@@ -675,9 +672,9 @@ module('Cache', function(hooks) {
       attributes: { name: 'Callisto' },
       relationships: { planet: { data: 'planet:jupiter' } } };
 
-    cache.patch([
-      addRecord(jupiter),
-      addRecord(callisto)
+    cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(callisto)
     ]);
 
     assert.deepEqual(
@@ -705,11 +702,11 @@ module('Cache', function(hooks) {
       id: 'mars', type: 'planet',
       attributes: { name: 'Mars' } };
 
-    cache.patch([
-      addRecord(jupiter),
-      addRecord(earth),
-      addRecord(venus),
-      addRecord(mars)
+    cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mars)
     ]);
 
     assert.deepEqual(
@@ -741,9 +738,9 @@ module('Cache', function(hooks) {
       attributes: { name: 'Callisto' },
       relationships: { planet: { data: 'planet:jupiter' } } };
 
-    cache.patch([
-      addRecord(jupiter),
-      addRecord(callisto)
+    cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(callisto)
     ]);
 
     assert.deepEqual(
@@ -765,9 +762,9 @@ module('Cache', function(hooks) {
       attributes: { name: 'Callisto' },
       relationships: { planet: { data: 'planet:jupiter' } } };
 
-    cache.patch([
-      addRecord(jupiter),
-      addRecord(callisto)
+    cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(callisto)
     ]);
 
     assert.deepEqual(
