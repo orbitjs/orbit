@@ -1,5 +1,5 @@
 import Orbit from './main';
-import { 
+import {
   evented, Evented, settleInSeries,
   Bucket,
   TaskQueue,
@@ -8,7 +8,9 @@ import {
 } from '@orbit/core';
 import KeyMap from './key-map';
 import Schema from './schema';
+import QueryBuilder from './query-builder';
 import Transform from './transform';
+import TransformBuilder from './transform-builder';
 import { assert } from '@orbit/utils';
 
 export interface SourceSettings {
@@ -16,6 +18,8 @@ export interface SourceSettings {
   schema?: Schema;
   keyMap?: KeyMap;
   bucket?: Bucket;
+  queryBuilder?: QueryBuilder;
+  transformBuilder?: TransformBuilder;
 }
 
 export type SourceClass = (new () => Source);
@@ -39,6 +43,8 @@ export abstract class Source implements Evented, Performer {
   protected _transformLog: Log;
   protected _requestQueue: TaskQueue;
   protected _syncQueue: TaskQueue;
+  protected _queryBuilder: QueryBuilder;
+  protected _transformBuilder: TransformBuilder;
 
   // Evented interface stubs
   on: (event: string, callback: Function, binding?: object) => void;
@@ -52,6 +58,8 @@ export abstract class Source implements Evented, Performer {
     this._keyMap = settings.keyMap;
     const name = this._name = settings.name;
     const bucket = this._bucket = settings.bucket;
+    this._queryBuilder = settings.queryBuilder;
+    this._transformBuilder = settings.transformBuilder;
 
     if (bucket) {
       assert('TransformLog requires a name if it has a bucket', !!name);
@@ -90,7 +98,23 @@ export abstract class Source implements Evented, Performer {
     return this._syncQueue;
   }
 
-  // Performer interface 
+  get queryBuilder(): QueryBuilder {
+    let qb = this._queryBuilder;
+    if (qb === undefined) {
+      qb = this._queryBuilder = new QueryBuilder();
+    }
+    return qb;
+  }
+
+  get transformBuilder(): TransformBuilder {
+    let tb = this._transformBuilder;
+    if (tb === undefined) {
+      tb = this._transformBuilder = new TransformBuilder();
+    }
+    return tb;
+  }
+
+  // Performer interface
   perform(task: Task): Promise<any> {
     let method = `__${task.type}__`;
     return this[method].call(this, task.data);
