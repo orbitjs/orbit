@@ -1,6 +1,6 @@
 {
   "name": "@orbit/coordinator",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "A coordinator and set of coordination strategies for managing data flow and keeping @orbit/data sources in sync.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -25,7 +25,7 @@
   "devDependencies": {
     "@glimmer/build": "^0.6.3",
     "@orbit/core": "^0.10.0",
-    "@orbit/data": "^0.10.0",
+    "@orbit/data": "^0.11.0",
     "@orbit/utils": "^0.10.0"
   }
 }
