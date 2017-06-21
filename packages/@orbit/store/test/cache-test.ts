@@ -523,6 +523,33 @@ module('Cache', function(hooks) {
     );
   });
 
+  test('#query can perform a filter on attributes, even when a particular record has none', function(assert) {
+    let cache = new Cache({ schema, keyMap });
+
+    let jupiter = { type: 'planet', id: 'jupiter' };
+    let earth = { type: 'planet', id: 'earth', attributes: { name: 'Earth', classification: 'terrestrial', atmosphere: true } };
+    let venus = { type: 'planet', id: 'venus', attributes: { name: 'Venus', classification: 'terrestrial', atmosphere: true } };
+    let mercury = { type: 'planet', id: 'mercury', attributes: { name: 'Mercury', classification: 'terrestrial', atmosphere: false } };
+
+    cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
+    ]);
+
+    arrayMembershipMatches(
+      assert,
+      cache.query(q => q.findRecords('planet')
+                        .filter({ attribute: 'atmosphere', value: true },
+                                { attribute: 'classification', value: 'terrestrial'})),
+      [
+        earth,
+        venus
+      ]
+    );
+  });
+
   test('#query can sort by an attribute', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
@@ -546,6 +573,33 @@ module('Cache', function(hooks) {
         jupiter,
         mercury,
         venus
+      ]
+    );
+  });
+
+  test('#query can sort by an attribute, even when a particular record has none', function(assert) {
+    let cache = new Cache({ schema, keyMap });
+
+    let jupiter = { type: 'planet', id: 'jupiter' };
+    let earth = { type: 'planet', id: 'earth', attributes: { name: 'Earth', classification: 'terrestrial', atmosphere: true } };
+    let venus = { type: 'planet', id: 'venus', attributes: { name: 'Venus', classification: 'terrestrial', atmosphere: true } };
+    let mercury = { type: 'planet', id: 'mercury', attributes: { name: 'Mercury', classification: 'terrestrial', atmosphere: false } };
+
+    cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
+    ]);
+
+    assert.deepEqual(
+      cache.query(q => q.findRecords('planet')
+                        .sort('name')),
+      [
+        earth,
+        mercury,
+        venus,
+        jupiter
       ]
     );
   });
