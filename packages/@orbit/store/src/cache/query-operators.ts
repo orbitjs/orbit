@@ -1,4 +1,4 @@
-import { Dict, deepGet, merge, every, some } from '@orbit/utils';
+import { Dict, deepGet, merge, every, some, isNone } from '@orbit/utils';
 import {
   QueryExpression,
   RecordNotFoundException,
@@ -91,7 +91,7 @@ function filterRecords(records, filters) {
 
 function applyFilter(record, filter) {
   if (filter.kind === 'attribute') {
-    let actual = record.attributes[filter.attribute];
+    let actual = deepGet(record, ['attributes', filter.attribute]);
     let expected = filter.value;
     switch(filter.op) {
       case 'equal': return actual === expected;
@@ -114,7 +114,7 @@ function sortRecords(records, sortSpecifiers: SortSpecifier[]) {
       record,
       sortSpecifiers.map(sortSpecifier => {
         if (sortSpecifier.kind === 'attribute') {
-          return record.attributes[(<AttributeSortSpecifier>sortSpecifier).attribute]
+          return deepGet(record, ['attributes' , (<AttributeSortSpecifier>sortSpecifier).attribute])
         } else {
           throw new QueryExpressionParseError('Sort specifier ${sortSpecifier.kind} not recognized for Store.', sortSpecifier);
         }
@@ -131,9 +131,12 @@ function sortRecords(records, sortSpecifiers: SortSpecifier[]) {
     for (let i = 0; i < sortSpecifiers.length; i++) {
       if (values1[i] < values2[i]) {
         return -comparisonOrders[i];
-      }
-      if (values1[i] > values2[i]) {
+      } else if (values1[i] > values2[i]) {
         return comparisonOrders[i];
+      } else if (isNone(values1[i]) && !isNone(values2[i])) {
+        return comparisonOrders[i];
+      } else if (isNone(values2[i]) && !isNone(values1[i])) {
+        return -comparisonOrders[i];
       }
     }
     return 0;
