@@ -1,6 +1,6 @@
 {
   "name": "@orbit/data",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "A flexible data access and synchronization layer.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -23,8 +23,8 @@
     "test": "testem ci"
   },
   "dependencies": {
-    "@orbit/core": "^0.10.0",
-    "@orbit/utils": "^0.10.0"
+    "@orbit/core": "^0.11.1",
+    "@orbit/utils": "^0.11.1"
   },
   "devDependencies": {
     "@glimmer/build": "^0.6.3"
