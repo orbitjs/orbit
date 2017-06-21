@@ -1,6 +1,9 @@
 # @orbit/store
 
-An in-memory data store for Orbit.
+An in-memory data store that supports complex querying and updating. Because
+stores maintain data in immutable data structures, they can be efficiently
+forked. Forked stores can diverge from the master store, and then the changes
+can be merged later.
 
 ## Installation
 

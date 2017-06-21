@@ -1,6 +1,17 @@
 # @orbit/core
 
-The core library for Orbit.
+A core set of primitives for performing, tracking, and responding to
+asynchronous tasks, including:
+
+* An event system that allows listeners to engage with the fulfillment of
+  events by returning promises.
+
+* An asynchronous task processing queue.
+
+* A log that tracks a history of changes and allows for revision and
+  interrogation.
+
+* A bucket interface for persisting state. Used by logs and queues.
 
 ## Installation
 

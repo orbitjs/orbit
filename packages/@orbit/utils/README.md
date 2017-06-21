@@ -1,6 +1,6 @@
 # @orbit/utils
 
-Core utilities for Orbit.
+A common set of utility functions used by Orbit libraries.
 
 ## Installation
 
