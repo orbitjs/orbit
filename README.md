@@ -126,7 +126,13 @@ Orbit's main packages are maintained in this "mono-repo" and managed by
 
 ### Installation
 
-Install dependencies for the main repo and its packages:
+Install the CLI for [Broccoli](https://github.com/broccolijs/broccoli) globally:
+
+```
+npm install -g broccoli-cli
+```
+
+Install other dependencies:
 
 ```
 npm install
