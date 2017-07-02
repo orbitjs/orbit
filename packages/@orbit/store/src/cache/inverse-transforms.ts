@@ -1,7 +1,5 @@
 import { deepGet, eq } from '@orbit/utils';
 import {
-  serializeRecordIdentity,
-  deserializeRecordIdentity,
   RecordIdentity,
   RecordOperation,
   AddRecordOperation,
@@ -121,15 +119,11 @@ const InverseTransforms = {
   },
 
   addToRelatedRecords(cache: Cache, op: AddToRelatedRecordsOperation): RecordOperation {
-    const { type, id } = op.record;
-    const { relationship, relatedRecord } = op;
-    const record = cache.records(type).get(id);
-    const current = record && deepGet(record, ['relationships', relationship, 'data', serializeRecordIdentity(relatedRecord)]);
-
-    if (current === undefined) {
+    const { record, relationship, relatedRecord } = op;
+    if (!cache.relationships.relationshipExists(record, relationship, relatedRecord)) {
       return {
         op: 'removeFromRelatedRecords',
-        record: { type, id },
+        record,
         relationship,
         relatedRecord
       };
@@ -137,15 +131,11 @@ const InverseTransforms = {
   },
 
   removeFromRelatedRecords(cache: Cache, op: RemoveFromRelatedRecordsOperation): RecordOperation {
-    const { type, id } = op.record;
-    const { relationship, relatedRecord } = op;
-    const record = cache.records(type).get(id);
-    const current = record && deepGet(record, ['relationships', relationship, 'data', serializeRecordIdentity(relatedRecord)]);
-
-    if (current) {
+    const { record, relationship, relatedRecord } = op;
+    if (cache.relationships.relationshipExists(record, relationship, relatedRecord)) {
       return {
         op: 'addToRelatedRecords',
-        record: { type, id },
+        record,
         relationship,
         relatedRecord
       };
@@ -157,12 +147,7 @@ const InverseTransforms = {
     const { relationship } = op;
     const record = cache.records(type).get(id);
     const currentValue = record && deepGet(record, ['relationships', relationship, 'data']);
-    let currentRecords;
-    if (currentValue) {
-      currentRecords = Object.keys(currentValue).map(identifier => deserializeRecordIdentity(identifier));
-    } else {
-      currentRecords = [];
-    }
+    let currentRecords = currentValue ? currentValue : [];
 
     if (!eq(currentRecords, op.relatedRecords)) {
       return {
@@ -178,8 +163,7 @@ const InverseTransforms = {
     const { type, id } = op.record;
     const { relationship } = op;
     const record = cache.records(type).get(id);
-    const currentValue = record && deepGet(record, ['relationships', relationship, 'data']);
-    const currentRecord = currentValue ? deserializeRecordIdentity(currentValue) : currentValue;
+    const currentRecord = record && deepGet(record, ['relationships', relationship, 'data']);
 
     if (!eq(currentRecord, op.relatedRecord)) {
       return {

@@ -1,31 +1,28 @@
 import {
   Dict,
   deepGet,
-  isObject
+  isArray
 } from '@orbit/utils';
 import {
   cloneRecordIdentity,
-  deserializeRecordIdentity,
   equalRecordIdentities,
   Record,
   RecordIdentity,
   RecordOperation,
-  RelationshipDefinition,
-  serializeRecordIdentity
+  RelationshipDefinition
 } from '@orbit/data';
 import { OperationProcessor } from './operation-processor';
+import RecordIdentityMap from '../record-identity-map';
 
 /**
- An operation processor that ensures that a cache's data is consistent with
- its associated schema.
-
- This includes maintenance of inverse and dependent relationships.
-
- @class SchemaConsistencyProcessor
- @namespace OC
- @extends OperationProcessor
- @param {OC.Cache} [cache] Cache that is monitored.
- @constructor
+ * An operation processor that ensures that a cache's data is consistent with
+ * its associated schema.
+ *
+ * This includes maintenance of inverse and dependent relationships.
+ *
+ * @export
+ * @class SchemaConsistencyProcessor
+ * @extends {OperationProcessor}
  */
 export default class SchemaConsistencyProcessor extends OperationProcessor {
   after(operation: RecordOperation): RecordOperation[] {
@@ -74,7 +71,9 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
     const inverseRelationship = relationshipDef.inverse;
 
     if (inverseRelationship && relatedRecords && relatedRecords.length > 0) {
-      relatedRecords.forEach(relatedRecord => ops.push(this._addRelationshipOp(relatedRecord, inverseRelationship, record)));
+      relatedRecords.forEach(relatedRecord => {
+        ops.push(this._addRelationshipOp(relatedRecord, inverseRelationship, record))
+      });
     }
 
     return ops;
@@ -88,10 +87,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
     if (inverseRelationship) {
       if (relatedRecord === undefined) {
         const currentRecord = this.cache.records(record.type).get(record.id);
-        const relationshipData = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
-        if (relationshipData) {
-          relatedRecord = deserializeRecordIdentity(relationshipData);
-        }
+        relatedRecord = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
       }
 
       if (relatedRecord) {
@@ -108,17 +104,11 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
     const inverseRelationship = relationshipDef.inverse;
 
     if (inverseRelationship) {
-      const currentRecord = this.cache.records(record.type).get(record.id);
-      const prevRelationshipData = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
-      let prevRelatedRecord;
+      let currentRelatedRecord = this.cache.relationships.relatedRecord(record, relationship);
 
-      if (prevRelationshipData) {
-        prevRelatedRecord = deserializeRecordIdentity(prevRelationshipData);
-      }
-
-      if (!equalRecordIdentities(prevRelatedRecord, relatedRecord)) {
-        if (prevRelatedRecord) {
-          ops.push(this._removeRelationshipOp(prevRelatedRecord, inverseRelationship, record));
+      if (!equalRecordIdentities(relatedRecord, currentRelatedRecord)) {
+        if (currentRelatedRecord) {
+          ops.push(this._removeRelationshipOp(currentRelatedRecord, inverseRelationship, record));
         }
 
         if (relatedRecord) {
@@ -130,7 +120,6 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
     return ops;
   }
 
-
   _relatedRecordsRemoved(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]): RecordOperation[] {
     const ops: RecordOperation[] = [];
     const relationshipDef = this.cache.schema.models[record.type].relationships[relationship];
@@ -138,11 +127,8 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
 
     if (inverseRelationship) {
       if (relatedRecords === undefined) {
-        const currentRecord = this.cache.records(record.type).get(record.id);
-        const relationshipData = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
-        if (relationshipData) {
-          relatedRecords = recordArrayFromData(relationshipData);
-        }
+        let relatedRecordsMap = this.cache.relationships.relatedRecordsMap(record, relationship);
+        relatedRecords = relatedRecordsMap && relatedRecordsMap.all();
       }
 
       if (relatedRecords) {
@@ -156,20 +142,21 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
   _relatedRecordsReplaced(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]): RecordOperation[] {
     const ops: RecordOperation[] = [];
     const relationshipDef = this.cache.schema.models[record.type].relationships[relationship];
-    const currentRecord = this.cache.records(record.type).get(record.id);
-    const prevRelationshipData = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
-    const prevRelatedRecordMap = recordMapFromData(prevRelationshipData);
-    const relatedRecordMap = recordMapFromArray(relatedRecords);
+    const currentRelatedRecordsMap = this.cache.relationships.relatedRecordsMap(record, relationship);
 
-    const removedRecords = Object.keys(prevRelatedRecordMap)
-      .filter(id => !relatedRecordMap[id])
-      .map(id => deserializeRecordIdentity(id));
+    let addedRecords;
 
-    Array.prototype.push.apply(ops, this._removeRelatedRecordsOps(record, relationshipDef, removedRecords));
+    if (currentRelatedRecordsMap) {
+      const relatedRecordsMap = new RecordIdentityMap();
+      relatedRecords.forEach(r => relatedRecordsMap.add(r));
 
-    const addedRecords = Object.keys(relatedRecordMap)
-      .filter(id => !prevRelatedRecordMap[id])
-      .map(id => deserializeRecordIdentity(id));
+      let removedRecords = currentRelatedRecordsMap.exclusiveOf(relatedRecordsMap);
+      Array.prototype.push.apply(ops, this._removeRelatedRecordsOps(record, relationshipDef, removedRecords));
+
+      addedRecords = relatedRecordsMap.exclusiveOf(currentRelatedRecordsMap);
+    } else {
+      addedRecords = relatedRecords;
+    }
 
     Array.prototype.push.apply(ops, this._addRelatedRecordsOps(record, relationshipDef, addedRecords));
 
@@ -189,7 +176,6 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
 
         const relationshipData = relationships[relationship] &&
                                  relationships[relationship].data;
-
         const relatedRecords = recordArrayFromData(relationshipData);
 
         Array.prototype.push.apply(ops, this._addRelatedRecordsOps(recordIdentity, relationshipDef, relatedRecords));
@@ -230,26 +216,13 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
 
       for (let relationship in record.relationships) {
         const relationshipDef = modelDef.relationships[relationship];
-        const currentRecord = this.cache.records(record.type).get(record.id);
         const relationshipData = record && deepGet(record, ['relationships', relationship, 'data']);
-        const prevRelationshipData = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
 
-        const relatedRecordMap = recordMapFromData(relationshipData);
-        const prevRelatedRecordMap = recordMapFromData(prevRelationshipData);
-
-        if (prevRelationshipData !== undefined) {
-          const removedRecords = Object.keys(prevRelatedRecordMap)
-            .filter(id => !relatedRecordMap[id])
-            .map(id => deserializeRecordIdentity(id));
-
-          Array.prototype.push.apply(ops, this._removeRelatedRecordsOps(recordIdentity, relationshipDef, removedRecords));
+        if (relationshipDef.type === 'hasMany') {
+          Array.prototype.push.apply(ops, this._relatedRecordsReplaced(recordIdentity, relationship, relationshipData));
+        } else {
+          Array.prototype.push.apply(ops, this._relatedRecordReplaced(recordIdentity, relationship, relationshipData));
         }
-
-        const addedRecords = Object.keys(relatedRecordMap)
-          .filter(id => !prevRelatedRecordMap[id])
-          .map(id => deserializeRecordIdentity(id));
-
-        Array.prototype.push.apply(ops, this._addRelatedRecordsOps(recordIdentity, relationshipDef, addedRecords));
       }
     }
 
@@ -315,33 +288,11 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
 }
 
 function recordArrayFromData(data: any): RecordIdentity[] {
-  let ids;
-
-  if (isObject(data)) {
-    ids = Object.keys(data);
-  } else if (typeof data === 'string') {
-    ids = [data];
+  if (isArray(data)) {
+    return data;
+  } else if (data) {
+    return [data];
   } else {
-    ids = [];
+    return [];
   }
-
-  return ids.map(id => deserializeRecordIdentity(id));
-}
-
-function recordMapFromData(data: any): Dict<boolean>  {
-  if (isObject(data)) {
-    return <Dict<boolean>>data;
-  } else if (typeof data === 'string') {
-    return {[data]: true};
-  } else {
-    return {};
-  }
-}
-
-function recordMapFromArray(records): Dict<boolean> {
-  let map = {};
-  records.forEach(record => {
-    map[serializeRecordIdentity(record)] = true;
-  });
-  return map;
 }

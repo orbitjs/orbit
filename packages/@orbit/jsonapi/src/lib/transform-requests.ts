@@ -1,5 +1,4 @@
 import {
-  serializeRecordIdentity,
   cloneRecordIdentity,
   equalRecordIdentities,
   recordDiffs,
@@ -224,7 +223,7 @@ const OperationToRequestMap = {
       id: operation.record.id
     };
 
-    deepSet(record, ['relationships', operation.relationship, 'data'], serializeRecordIdentity(operation.relatedRecord));
+    deepSet(record, ['relationships', operation.relationship, 'data'], operation.relatedRecord);
 
     return {
       op: 'replaceRecord',
@@ -234,11 +233,7 @@ const OperationToRequestMap = {
 
   replaceRelatedRecords(operation: ReplaceRelatedRecordsOperation) {
     const record = cloneRecordIdentity(operation.record);
-    const relationshipData = {};
-    operation.relatedRecords.forEach(r => {
-      relationshipData[serializeRecordIdentity(r)] = true;
-    });
-    deepSet(record, ['relationships', operation.relationship, 'data'], relationshipData);
+    deepSet(record, ['relationships', operation.relationship, 'data'], operation.relatedRecords);
 
     return {
       op: 'replaceRecord',

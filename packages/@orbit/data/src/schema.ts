@@ -25,184 +25,58 @@ export interface ModelDefinition {
   relationships?: Dict<RelationshipDefinition>;
 }
 
+/**
+ * Settings used to initialze and/or upgrade schemas.
+ *
+ * @export
+ * @interface SchemaSettings
+ */
 export interface SchemaSettings {
+  /**
+   * Schema version. Defaults to 1.
+   *
+   * @type {number}@memberof SchemaSettings
+   */
   version?: number;
+
+  /**
+   * Function used to generate record IDs.
+   *
+   * @memberof SchemaSettings
+   */
   generateId?: (model?: string) => string;
+
+  /**
+   * Function used to pluralize names.
+   *
+   * @memberof SchemaSettings
+   */
   pluralize?: (word: string) => string;
+
+  /**
+   * Function used to singularize names.
+   *
+   * @memberof SchemaSettings
+   */
   singularize?: (word: string) => string;
+
+  /**
+   * Map of model definitions.
+   *
+   * @type {Dict<ModelDefinition>}
+   * @memberof SchemaSettings
+   */
   models?: Dict<ModelDefinition>;
 }
 
 /**
- `Schema` defines the models allowed in a source, including their keys,
- attributes and relationships. A single schema may be shared across multiple
- sources.
-
- Schemas are defined with an initial set of settings, passed in as a constructor
- argument:
-
- ``` javascript
-  var schema = new Schema({
-    models: {
-      planet: {
-        attributes: {
-          name: {type: 'string'},
-          classification: {type: 'string'}
-        },
-        relationships: {
-          moons: {type: 'hasMany', model: 'moon', inverse: 'planet'}
-        }
-      },
-      moon: {
-        attributes: {
-          name: {type: 'string'}
-        },
-        relationships: {
-          planet: {type: 'hasOne', model: 'planet', inverse: 'moons'}
-        }
-      }
-    }
-  });
- ```
-
- Models should be keyed by their singular name, and should be defined as an
- object that contains `attributes` and/or `relationships`.
-
- Models can be registered after a schema's been initialized with
- `registerModel`.
-
- ## Identity
-
- The following top-level members are used to uniquely identity records:
-
- * `type` - a string that uniquely identifies a model
- * `id` - a string that uniquely identifies a record of a given `type`
-
- Note that `id` must be client-generated for any types of data that may exist
- solely in Orbit, even briefly (i.e. until it's been accepted by the server).
- Each `id` can be mapped to a server-generated "key", as described below.
-
- By default, a v4 UUID generator is used to assign `id`, which ensures that IDs
- can be used within Orbit and on remote servers with an extremely low probability
- of a conflict.
-
- It's possible to override the ID generator with a custom function that accepts 
- model `type` as an argument:
-
- ```
- let counter = 0;
-
- const schema = new Schema({
-   generateId: function(type) { return counter++; }
- });
- ```
-
- ## Fields
-
- Fields represent application data that is unique to each model.
-
- There are three broad categories of fields available for models: keys,
- attributes, and relationships.
-
- Within each category, fields may be declared along with options appropriate
- for the category. Common field options include:
-
- * `type` - a classification, often category-specific, that defines a field's
-   purpose and/or contents.
-
- ### Keys
-
- When working with remote servers that do not support client-generated IDs, it's
- necessary to correlate local client-generated IDs with remote server-generated
- IDs, or "keys". Like `id`, keys uniquely identify a record of a particular
- model type.
-
- Keys currently accept no _standard_ options, so they should be declared with an empty 
- options hash as follows:
-
- ```
-  var schema = new Schema({
-    models: {
-      moons: {
-        keys: { remoteId: {} }
-      },
-      planets: {
-        keys: { remoteId: {} }
-      }
-    }
-  });
- ```
-
- > Note: Keys can only be of type `"string"`, which is unnecessary to declare.
-
- > Note: A key such as `remoteId` might be serialized as simply `id` when
- communicating with a server. However, it's important to distinguish it from
- the client-generated `id` used for each resource.
-
- ### Attributes
-
- Any properties that define a model's data, with the exception of relationships
- to other models, should be defined as "attributes".
-
- Attributes may be defined by their `type`, such as `"string"` or `"date"`,
- which can be used to define their purpose and contents. An attribute's type may
- also be used to determine how it should be normalized and serialized.
-
- ### Relationships
-
- Two types of relationships between models are allowed:
-
- * `hasOne` - for to-one relationships
- * `hasMany` - for to-many relationships
-
- Relationships must define the related `model` and may optionally define their
- `inverse`, which should correspond to the name of a relationship on the related
- model. Inverse relationships should be defined when relationships must be kept
- synchronized, so that adding or removing a relationship on the primary model
- results in a corresponding change on the inverse model.
-
- Here's an example of a schema definition that includes relationships with inverses:
-
- ```
-  var schema = new Schema({
-    models: {
-      planet: {
-        relationships: {
-          moons: { type: 'hasMany', model: 'moon', inverse: 'planet' }
-        }
-      },
-      moon: {
-        relationships: {
-          planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
-        }
-      }
-    }
-  });
- ```
-
- To-many relationships may be defined with a special attribute, `actsAsSet`, to indicate
- that they act as a set that should be changed together. Sources should respect
- this attribute when processing changes.
-
- ```
-  var schema = new Schema({
-    models: {
-      planet: {
-        relationships: {
-          moons: { type: 'hasMany', model: 'moon', inverse: 'planet',
-                   actsAsSet: true }
-        }
-      },
-      moon: {
-        relationships: {
-          planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
-        }
-      }
-    }
-  });
- ```
-
- @class Schema
+ * A `Schema` defines the models allowed in a source, including their keys,
+ * attributes, and relationships. A single schema may be shared across multiple
+ * sources.
+ *
+ * @export
+ * @class Schema
+ * @implements {Evented}
  */
 @evented
 export default class Schema implements Evented {
@@ -221,13 +95,14 @@ export default class Schema implements Evented {
    * Create a new Schema.
    *
    * @constructor
-   * @param {Object}   [settings={}]            Optional. Configuration settings.
-   * @param {Integer}  [settings.version]       Optional. Schema version. Defaults to 1.
+   * @param {SchemaSettings} [settings={}] Optional. Configuration settings.
+   * @param {Integer}        [settings.version]       Optional. Schema version. Defaults to 1.
    * @param {Object}   [settings.models]        Optional. Schemas for individual models supported by this schema.
    * @param {Function} [settings.generateId]    Optional. Function used to generate IDs.
    * @param {Function} [settings.pluralize]     Optional. Function used to pluralize names.
    * @param {Function} [settings.singularize]   Optional. Function used to singularize names.
    */
+
   constructor(settings: SchemaSettings = {}) {
     if (settings.version === undefined) {
       settings.version = 1;

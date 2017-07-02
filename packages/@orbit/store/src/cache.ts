@@ -4,6 +4,7 @@ import {
   evented, Evented
 } from '@orbit/core';
 import {
+  RecordIdentity,
   KeyMap,
   Operation,
   RecordOperation,
@@ -22,6 +23,8 @@ import { QueryOperators } from './cache/query-operators';
 import PatchTransforms, { PatchTransformFunc } from './cache/patch-transforms';
 import InverseTransforms, { InverseTransformFunc } from './cache/inverse-transforms';
 import ImmutableMap from './immutable-map';
+import RelationshipAccessor from './cache/relationship-accessor';
+import InverseRelationshipAccessor from './cache/inverse-relationship-accessor';
 
 export interface CacheSettings {
   schema?: Schema;
@@ -33,15 +36,12 @@ export interface CacheSettings {
 }
 
 /**
- `Cache` provides a thin wrapper over an internally maintained instance of a
- `Document`.
-
- `Cache` prepares records to be cached according to a specified schema. The
- schema also determines the paths at which records will be stored.
-
- Once cached, data can be accessed at a particular path with `get`. The
- size of data at a path can be accessed with `length`.
-
+ * A `Cache` is an in-memory data store that can be accessed synchronously.
+ *
+ * Caches use operation processors to maintain internal consistency.
+ *
+ * Because data is stored in immutable maps, caches can be forked efficiently.
+ *
  * @export
  * @class Cache
  * @implements {Evented}
@@ -54,6 +54,8 @@ export default class Cache implements Evented {
   private _transformBuilder: TransformBuilder;
   private _processors: OperationProcessor[];
   private _records: Dict<ImmutableMap>;
+  private _relationships: RelationshipAccessor;
+  private _inverseRelationships: InverseRelationshipAccessor;
 
   // Evented interface stubs
   on: (event: string, callback: Function, binding?: object) => void;
@@ -93,6 +95,14 @@ export default class Cache implements Evented {
 
   records(type: string): ImmutableMap {
     return this._records[type];
+  }
+
+  get relationships(): RelationshipAccessor {
+    return this._relationships;
+  }
+
+  get inverseRelationships(): InverseRelationshipAccessor {
+    return this._inverseRelationships;
   }
 
   /**
@@ -141,10 +151,13 @@ export default class Cache implements Evented {
       this._records[type] = new ImmutableMap(baseRecords);
     });
 
+    this._relationships = new RelationshipAccessor(this, base && base.relationships);
+    this._inverseRelationships = new InverseRelationshipAccessor(this, base && base.inverseRelationships);
+
     // TODO
     // this.keyMap.pushDocument(data);
 
-    this._processors.forEach(processor => processor.reset());
+    this._processors.forEach(processor => processor.reset(base));
 
     this.emit('reset');
   }
@@ -193,24 +206,27 @@ export default class Cache implements Evented {
           .forEach(ops => this._applyOperations(ops, inverse));
 
       // Query related `after` operations before performing
-      // the requested operation
-      let relatedOps = this._processors.map(processor => processor.after(operation));
+      // the requested operation. These will be applied on success.
+      let preparedOps = this._processors.map(processor => processor.after(operation));
 
       // Perform the requested operation
       let patchTransform: PatchTransformFunc = PatchTransforms[ operation.op ];
       if (patchTransform(this, operation)) {
-        // console.debug('Cache#patch', operation);
+        // Query and perform related `immediate` operations
+        this._processors
+            .forEach(processor => processor.immediate(operation));
+
+        // Emit event
         this.emit('patch', operation);
+
+        // Perform prepared operations after performing the requested operation
+        preparedOps.forEach(ops => this._applyOperations(ops, inverse));
+
+        // Query and perform related `finally` operations
+        this._processors
+            .map(processor => processor.finally(operation))
+            .forEach(ops => this._applyOperations(ops, inverse));
       };
-
-      // Perform related `after` operations after performing
-      // the requested operation
-      relatedOps.forEach(ops => this._applyOperations(ops, inverse));
-
-      // Query and perform related `finally` operations
-      this._processors
-          .map(processor => processor.finally(operation))
-          .forEach(ops => this._applyOperations(ops, inverse));
     }
   }
 

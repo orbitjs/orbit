@@ -6,11 +6,11 @@ export interface RecordIdentity {
 }
 
 export interface RecordHasOneRelationship {
-  data: string;
+  data: RecordIdentity | null;
 }
 
 export interface RecordHasManyRelationship {
-  data: Dict<boolean>;
+  data: RecordIdentity[];
 }
 
 export type RecordRelationship = RecordHasOneRelationship | RecordHasManyRelationship;
@@ -19,23 +19,6 @@ export interface Record extends RecordIdentity {
   keys?: Dict<string>;
   attributes?: Dict<any>;
   relationships?: Dict<RecordRelationship>;
-}
-
-export function serializeRecordIdentity(identity: RecordIdentity): string {
-  if (isNone(identity)) {
-    return null;
-  }
-  const { type, id } = identity;
-  if (isNone(type) || isNone(id)) {
-    return null;
-  } else {
-    return `${type}:${id}`;
-  }
-}
-
-export function deserializeRecordIdentity(identity: string): RecordIdentity {
-  const [type, id] = identity.split(':');
-  return { type, id };
 }
 
 export function cloneRecordIdentity(identity: RecordIdentity): RecordIdentity {

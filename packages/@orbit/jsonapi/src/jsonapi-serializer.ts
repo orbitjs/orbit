@@ -1,7 +1,5 @@
 import { isArray, isObject, dasherize, camelize, deepSet, Dict } from '@orbit/utils';
 import {
-  deserializeRecordIdentity,
-  serializeRecordIdentity,
   Schema,
   KeyMap,
   Record,
@@ -173,10 +171,10 @@ export default class JSONAPISerializer {
     if (value !== undefined) {
       let data;
 
-      if (isObject(value)) {
-        data = Object.keys(value).map(id => this.resourceIdentity(deserializeRecordIdentity(id)));
+      if (isArray(value)) {
+        data = (value as RecordIdentity[]).map(id => this.resourceIdentity(id));
       } else if (value !== null) {
-        data = this.resourceIdentity(deserializeRecordIdentity(<string>value));
+        data = this.resourceIdentity(value as RecordIdentity);
       } else {
         data = null;
       }
@@ -285,12 +283,9 @@ export default class JSONAPISerializer {
       if (resourceData === null) {
         data = null;
       } else if (isArray(resourceData)) {
-        data = {};
-        (<ResourceIdentity[]>resourceData).forEach(resourceIdentity => {
-          data[serializeRecordIdentity(this.recordIdentity(resourceIdentity))] = true;
-        });
+        data = (resourceData as ResourceIdentity[]).map(resourceIdentity => this.recordIdentity(resourceIdentity));
       } else {
-        data = serializeRecordIdentity(this.recordIdentity(<ResourceIdentity>resourceData));
+        data = this.recordIdentity(resourceData as ResourceIdentity);
       }
 
       record.relationships = record.relationships || {};

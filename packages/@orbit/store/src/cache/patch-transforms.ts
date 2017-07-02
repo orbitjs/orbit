@@ -1,5 +1,4 @@
 import {
-  serializeRecordIdentity,
   Record,
   RecordIdentity,
   RecordOperation,
@@ -110,10 +109,9 @@ export default {
   addToRelatedRecords(cache: Cache, op: AddToRelatedRecordsOperation): boolean {
     const { type, id } = op.record;
     const records = cache.records(type);
-    const relatedIdentifier = serializeRecordIdentity(op.relatedRecord);
     let record = records.get(id);
     if (record) {
-      if (deepGet(record, ['relationships', op.relationship, 'data', relatedIdentifier]) === true) {
+      if (cache.relationships.relationshipExists(record, op.relationship, op.relatedRecord)) {
         return false;
       } else {
         record = clone(record);
@@ -121,24 +119,34 @@ export default {
     } else {
       record = { type, id };
     }
-    if (deepSet(record, ['relationships', op.relationship, 'data', relatedIdentifier], true)) {
+
+    const relatedRecords = deepGet(record, ['relationships', op.relationship, 'data']) || [];
+    relatedRecords.push(op.relatedRecord);
+
+    if (deepSet(record, ['relationships', op.relationship, 'data'], relatedRecords)) {
       records.set(id, record);
       return true;
     }
   },
 
   removeFromRelatedRecords(cache: Cache, op: RemoveFromRelatedRecordsOperation): boolean {
+    const { relatedRecord } = op;
     const { type, id } = op.record;
     const records = cache.records(type);
     let record = records.get(id);
     if (record) {
-      const relatedIdentifier = serializeRecordIdentity(op.relatedRecord);
-      if (deepGet(record, ['relationships', op.relationship, 'data', relatedIdentifier])) {
+      if (cache.relationships.relationshipExists(record, op.relationship, op.relatedRecord)) {
         record = clone(record);
-        let data = deepGet(record, ['relationships', op.relationship, 'data']);
-        delete data[relatedIdentifier];
-        records.set(id, record);
-        return true;
+
+        let relatedRecords = deepGet(record, ['relationships', op.relationship, 'data']);
+        relatedRecords = relatedRecords.filter(r => {
+          return !(r.type === relatedRecord.type && r.id === relatedRecord.id);
+        });
+
+        if (deepSet(record, ['relationships', op.relationship, 'data'], relatedRecords)) {
+          records.set(id, record);
+          return true;
+        }
       }
     }
     return false;
@@ -153,29 +161,18 @@ export default {
     } else {
       record = { type, id };
     }
-    let relatedData = {};
-    op.relatedRecords.forEach(r => {
-      let identifier = serializeRecordIdentity(r);
-      relatedData[identifier] = true;
-    });
-    if (deepSet(record, ['relationships', op.relationship, 'data'], relatedData)) {
+    if (deepSet(record, ['relationships', op.relationship, 'data'], op.relatedRecords)) {
       records.set(id, record);
       return true;
     }
   },
 
   replaceRelatedRecord(cache: Cache, op: ReplaceRelatedRecordOperation): boolean {
-    let relatedData;
-    if (op.relatedRecord) {
-      relatedData = serializeRecordIdentity(op.relatedRecord);
-    } else {
-      relatedData = null;
-    }
     const { type, id } = op.record;
     const records = cache.records(type);
     let record = records.get(id);
     if (record) {
-      if (deepGet(record, ['relationships', op.relationship, 'data']) === relatedData) {
+      if (cache.relationships.relationshipExists(record, op.relationship, op.relatedRecord)) {
         return false;
       } else {
         record = clone(record);
@@ -183,7 +180,7 @@ export default {
     } else {
       record = { type, id };
     }
-    if (deepSet(record, ['relationships', op.relationship, 'data'], relatedData)) {
+    if (deepSet(record, ['relationships', op.relationship, 'data'], op.relatedRecord)) {
       records.set(id, record);
       return true;
     }
