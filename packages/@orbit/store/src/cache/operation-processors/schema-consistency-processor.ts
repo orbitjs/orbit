@@ -272,18 +272,10 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
   }
 
   _removeDependentRecords(relatedRecords: RecordIdentity[]): RecordOperation[] {
-    const ops: RecordOperation[] = [];
-
-    relatedRecords.forEach(relatedRecord => {
-      if (this.cache.records(relatedRecord.type).get(relatedRecord.id)) {
-        ops.push(<RecordOperation>{
-          op: 'removeRecord',
-          record: relatedRecord
-        });
-      }
+    return relatedRecords.map(record => <RecordOperation>{
+      op: 'removeRecord',
+      record
     });
-
-    return ops;
   }
 }
 
