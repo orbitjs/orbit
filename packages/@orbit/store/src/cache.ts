@@ -226,7 +226,7 @@ export default class Cache implements Evented {
         this._processors
             .map(processor => processor.finally(operation))
             .forEach(ops => this._applyOperations(ops, inverse));
-      };
+      }
     }
   }
 
