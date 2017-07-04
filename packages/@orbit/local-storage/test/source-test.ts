@@ -179,7 +179,7 @@ module('LocalStorageSource', function(hooks) {
       },
       relationships: {
         moons: {
-          data: {}
+          data: []
         }
       }
     };
@@ -193,9 +193,7 @@ module('LocalStorageSource', function(hooks) {
       },
       relationships: {
         moons: {
-          data: {
-            'moon:moon1': true
-          }
+          data: [{ type: 'moon', id: 'moon1' }]
         }
       }
     };
@@ -217,10 +215,10 @@ module('LocalStorageSource', function(hooks) {
       },
       relationships: {
         moons: {
-          data: {
-            'moon:moon1': true,
-            'moon:moon2': true
-          }
+          data: [
+            { type: 'moon', id: 'moon1' },
+            { type: 'moon', id: 'moon2' }
+          ]
         }
       }
     };
@@ -234,9 +232,7 @@ module('LocalStorageSource', function(hooks) {
       },
       relationships: {
         moons: {
-          data: {
-            'moon:moon1': true
-          }
+          data: [{ type: 'moon', id: 'moon1' }]
         }
       }
     };
@@ -258,9 +254,9 @@ module('LocalStorageSource', function(hooks) {
       },
       relationships: {
         moons: {
-          data: {
-            'moon:moon1': true
-          }
+          data: [
+            { type: 'moon', id: 'moon1' }
+          ]
         }
       }
     };
@@ -274,10 +270,10 @@ module('LocalStorageSource', function(hooks) {
       },
       relationships: {
         moons: {
-          data: {
-            'moon:moon2': true,
-            'moon:moon3': true
-          }
+          data: [
+            { type: 'moon', id: 'moon2' },
+            { type: 'moon', id: 'moon3' }
+          ]
         }
       }
     };
@@ -313,7 +309,7 @@ module('LocalStorageSource', function(hooks) {
       },
       relationships: {
         solarSystem: {
-          data: 'solarSystem:ss1'
+          data: { type: 'solarSystem', id: 'ss1' }
         }
       }
     };
@@ -335,7 +331,7 @@ module('LocalStorageSource', function(hooks) {
       },
       relationships: {
         solarSystem: {
-          data: 'solarSystem:ss1'
+          data: { type: 'solarSystem', id: 'ss1' }
         }
       }
     };

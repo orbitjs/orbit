@@ -1,5 +1,5 @@
-import { Record, RecordIdentity, cloneRecordIdentity, equalRecordIdentities, serializeRecordIdentity } from './record';
-import { eq } from '@orbit/utils';
+import { Record, RecordIdentity, cloneRecordIdentity, equalRecordIdentities } from './record';
+import { eq, deepGet, deepSet } from '@orbit/utils';
 
 /**
  * Base Operation interface, which requires just an `op` string.
@@ -232,9 +232,8 @@ function mergeOperations(superceded: RecordOperation, superceding: RecordOperati
         } else if (superceded.op === 'addRecord' || superceded.op === 'replaceRecord') {
           if (superceded.record.relationships &&
               superceded.record.relationships[superceding.relationship] &&
-              superceded.record.relationships[superceding.relationship].data &&
-              superceded.record.relationships[superceding.relationship].data[serializeRecordIdentity(superceding.relatedRecord)]) {
-            delete superceded.record.relationships[superceding.relationship].data[serializeRecordIdentity(superceding.relatedRecord)];
+              superceded.record.relationships[superceding.relationship].data) {
+            updateRecordRemoveFromHasMany(superceded.record, superceding.relationship, superceding.relatedRecord);
             markOperationToDelete(superceding);
           }
         }
@@ -255,26 +254,30 @@ function updateRecordReplaceAttribute(record: Record, attribute: string, value: 
 }
 
 function updateRecordReplaceHasOne(record: Record, relationship: string, relatedRecord: RecordIdentity) {
-  record.relationships = record.relationships || {};
-  record.relationships[relationship] = record.relationships[relationship] || { data: null };
-  record.relationships[relationship].data = serializeRecordIdentity(relatedRecord);
+  deepSet(record, ['relationships', relationship, 'data'], cloneRecordIdentity(relatedRecord));
 }
 
 function updateRecordReplaceHasMany(record: Record, relationship: string, relatedRecords: RecordIdentity[]) {
-  record.relationships = record.relationships || {};
-  record.relationships[relationship] = record.relationships[relationship] || { data: {} };
-  let relatedRecordData = {};
-  relatedRecords.forEach(r => {
-    relatedRecordData[serializeRecordIdentity(r)] = true;
-  });
-  record.relationships[relationship].data = relatedRecordData;
+  deepSet(record, ['relationships', relationship, 'data'], relatedRecords.map(cloneRecordIdentity));
 }
 
 function updateRecordAddToHasMany(record: Record, relationship: string, relatedRecord: RecordIdentity) {
-  record.relationships = record.relationships || {};
-  record.relationships[relationship] = record.relationships[relationship] || { data: {} };
-  record.relationships[relationship].data = record.relationships[relationship].data || {};
-  record.relationships[relationship].data[serializeRecordIdentity(relatedRecord)] = true;
+  const data = deepGet(record, ['relationships', relationship, 'data']) || [];
+  data.push(cloneRecordIdentity(relatedRecord));
+  deepSet(record, ['relationships', relationship, 'data'], data);
+}
+
+function updateRecordRemoveFromHasMany(record: Record, relationship: string, relatedRecord: RecordIdentity) {
+  const data = deepGet(record, ['relationships', relationship, 'data']) as RecordIdentity[];
+  if (data) {
+    for (let i = 0, l = data.length; i < l; i++) {
+      let r = data[i];
+      if (equalRecordIdentities(r, relatedRecord)) {
+        data.splice(i, 1);
+        break;
+      }
+    }
+  }
 }
 
 /**

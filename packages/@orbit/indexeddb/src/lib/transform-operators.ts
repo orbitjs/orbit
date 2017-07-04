@@ -1,6 +1,6 @@
 import {
   cloneRecordIdentity,
-  serializeRecordIdentity,
+  equalRecordIdentities,
   Record, RecordIdentity,
   AddRecordOperation,
   AddToRelatedRecordsOperation,
@@ -13,6 +13,7 @@ import {
   ReplaceRecordOperation
 } from '@orbit/data';
 import {
+  deepGet,
   deepSet
 } from '@orbit/utils';
 import Source from '../source';
@@ -58,7 +59,12 @@ export default {
   addToRelatedRecords(source: Source, operation: AddToRelatedRecordsOperation) {
     return getRecord(source, operation.record)
       .then(record => {
-        deepSet(record, ['relationships', operation.relationship, 'data', serializeRecordIdentity(operation.relatedRecord)], true);
+        let relationships = deepGet(record, ['relationships', operation.relationship, 'data']);
+        if (relationships) {
+          relationships.push(operation.relatedRecord);
+        } else {
+          deepSet(record, ['relationships', operation.relationship, 'data'], [operation.relatedRecord]);
+        }
         return source.putRecord(record);
       });
   },
@@ -66,13 +72,14 @@ export default {
   removeFromRelatedRecords(source: Source, operation: RemoveFromRelatedRecordsOperation) {
     return getRecord(source, operation.record)
       .then(record => {
-        if (record &&
-            record.relationships &&
-            record.relationships[operation.relationship] &&
-            record.relationships[operation.relationship].data &&
-            record.relationships[operation.relationship].data[serializeRecordIdentity(operation.relatedRecord)]
-        ) {
-          delete record.relationships[operation.relationship].data[serializeRecordIdentity(operation.relatedRecord)];
+        let relationships = deepGet(record, ['relationships', operation.relationship, 'data']) as RecordIdentity[];
+        if (relationships) {
+          for (let i = 0, l = relationships.length; i < l; i++) {
+            if (equalRecordIdentities(relationships[i], operation.relatedRecord)) {
+              relationships.splice(i, 1);
+              break;
+            }
+          }
           return source.putRecord(record);
         }
       });
@@ -81,11 +88,7 @@ export default {
   replaceRelatedRecords(source: Source, operation: ReplaceRelatedRecordsOperation) {
     return getRecord(source, operation.record)
       .then(record => {
-        let data = {};
-        operation.relatedRecords.forEach(relatedRecord => {
-          data[serializeRecordIdentity(relatedRecord)] = true;
-        });
-        deepSet(record, ['relationships', operation.relationship, 'data'], data);
+        deepSet(record, ['relationships', operation.relationship, 'data'], operation.relatedRecords);
         return source.putRecord(record);
       });
   },
@@ -93,8 +96,7 @@ export default {
   replaceRelatedRecord(source: Source, operation: ReplaceRelatedRecordOperation) {
     return getRecord(source, operation.record)
       .then(record => {
-        let data = operation.relatedRecord ? serializeRecordIdentity(operation.relatedRecord) : null;
-        deepSet(record, ['relationships', operation.relationship, 'data'], data);
+        deepSet(record, ['relationships', operation.relationship, 'data'], operation.relatedRecord);
         return source.putRecord(record);
       });
   }

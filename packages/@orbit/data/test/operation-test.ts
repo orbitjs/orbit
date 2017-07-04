@@ -149,7 +149,7 @@ module('Operation', function() {
               attributes: { name: 'Joe' },
               relationships: {
                 phoneNumbers: {
-                  data: { 'phoneNumber:abc': true }
+                  data:  [{ type: 'phoneNumber', id: 'abc' }]
                 }
               }
             }
@@ -180,7 +180,7 @@ module('Operation', function() {
               attributes: { name: 'Joe' },
               relationships: {
                 address: {
-                  data: 'address:abc'
+                  data: { type: 'address', id: 'abc' }
                 }
               }
             }
@@ -211,7 +211,7 @@ module('Operation', function() {
               attributes: { name: 'Joe' },
               relationships: {
                 phoneNumbers: {
-                  data: { 'phoneNumber:abc': true }
+                  data: [{ type: 'phoneNumber', id: 'abc' }]
                 }
               }
             }
@@ -242,7 +242,7 @@ module('Operation', function() {
               attributes: { name: 'Joe' },
               relationships: {
                 address: {
-                  data: 'address:abc'
+                  data: { type: 'address', id: 'abc' }
                 }
               }
             }
@@ -259,7 +259,7 @@ module('Operation', function() {
             record: { type: 'contact', id: '1234', attributes: { name: 'Joe' },
               relationships: {
                 address: {
-                  data: 'address:def'
+                  data: { type: 'address', id: 'def' }
                 }
               }
             }
@@ -279,7 +279,7 @@ module('Operation', function() {
               attributes: { name: 'Joe' },
               relationships: {
                 address: {
-                  data: 'address:abc'
+                  data: { type: 'address', id: 'abc' }
                 }
               }
             }
@@ -340,7 +340,7 @@ module('Operation', function() {
             record: { type: 'contact', id: '1234', attributes: { name: 'Joe' },
               relationships: {
                 address: {
-                  data: 'address:def'
+                  data: { type: 'address', id: 'def' }
                 }
               }
             }
@@ -369,7 +369,7 @@ module('Operation', function() {
             record: { type: 'contact', id: '1234', attributes: { name: 'Joe' },
               relationships: {
                 address: {
-                  data: 'address:def'
+                  data: { type: 'address', id: 'def' }
                 }
               }
             }
@@ -510,7 +510,7 @@ module('Operation', function() {
               attributes: { street: 'abc' },
               relationships: {
                 phoneNumbers: {
-                  data: { 'phoneNumber:abc': true }
+                  data: [{ type: 'phoneNumber', id: 'abc' }]
                 }
               }
             }
@@ -531,10 +531,10 @@ module('Operation', function() {
               attributes: { street: 'abc' },
               relationships: {
                 phoneNumbers: {
-                  data: {
-                    'phoneNumber:abc': true,
-                    'phoneNumber:def': true
-                  }
+                  data: [
+                    { type: 'phoneNumber', id: 'abc' },
+                    { type: 'phoneNumber', id: 'def' }
+                  ]
                 }
               }
             }
@@ -554,7 +554,7 @@ module('Operation', function() {
               attributes: { street: 'abc' },
               relationships: {
                 phoneNumbers: {
-                  data: { 'phoneNumber:abc': true }
+                  data: [{ type: 'phoneNumber', id: 'abc' }]
                 }
               }
             }
@@ -575,10 +575,10 @@ module('Operation', function() {
               attributes: { street: 'abc' },
               relationships: {
                 phoneNumbers: {
-                  data: {
-                    'phoneNumber:abc': true,
-                    'phoneNumber:def': true
-                  }
+                  data: [
+                    { type: 'phoneNumber', id: 'abc' },
+                    { type: 'phoneNumber', id: 'def' }
+                  ]
                 }
               }
             }
@@ -619,7 +619,9 @@ module('Operation', function() {
               attributes: { street: 'abc' },
               relationships: {
                 phoneNumbers: {
-                  data: { 'phoneNumber:abc': true }
+                  data: [
+                    { type: 'phoneNumber', id: 'abc' }
+                  ]
                 }
               }
             }
@@ -640,8 +642,7 @@ module('Operation', function() {
               attributes: { street: 'abc' },
               relationships: {
                 phoneNumbers: {
-                  data: {
-                  }
+                  data: []
                 }
               }
             }

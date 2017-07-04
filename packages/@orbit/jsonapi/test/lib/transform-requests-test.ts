@@ -148,7 +148,7 @@ module('TransformRequests', function(hooks) {
           id: 'io',
           relationships: {
             planet: {
-              data: 'planet:jupiter'
+              data: { type: 'planet', id: 'jupiter' }
             }
           }
         }
@@ -188,10 +188,10 @@ module('TransformRequests', function(hooks) {
           id: 'jupiter',
           relationships: {
             moons: {
-              data: {
-                'moon:io': true,
-                'moon:europa': true
-              }
+              data: [
+                { type: 'moon', id: 'io' },
+                { type: 'moon', id: 'europa' }
+              ]
             }
           }
         }

@@ -1,18 +1,9 @@
-import { serializeRecordIdentity, deserializeRecordIdentity, cloneRecordIdentity, equalRecordIdentities } from '../src/record';
+import { cloneRecordIdentity, equalRecordIdentities } from '../src/record';
 import './test-helper';
 
 const { module, test } = QUnit;
 
 module('Record', function() {
-  test('`serializeRecordIdentity` converts inputs to an identifier', function(assert) {
-    assert.equal(serializeRecordIdentity(null), null, 'works with null');
-    assert.equal(serializeRecordIdentity({ type: 'planet', id: '1' }), 'planet:1', 'works with an identity object');
-  });
-
-  test('`deserializeRecordIdentity` converts an identifier string to an object with a `type` and `id`', function(assert) {
-    assert.deepEqual(deserializeRecordIdentity('planet:1'), { type: 'planet', id: '1' });
-  });
-
   test('`cloneRecordIdentity` returns a simple { type, id } identity object from any object with a `type` and `id`', function(assert) {
     assert.deepEqual(cloneRecordIdentity({ type: 'planet', id: '1' }), { type: 'planet', id: '1' });
   });

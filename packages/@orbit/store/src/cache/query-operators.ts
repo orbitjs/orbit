@@ -8,7 +8,8 @@ import {
   FindRelatedRecord,
   FindRelatedRecords,
   SortSpecifier,
-  AttributeSortSpecifier
+  AttributeSortSpecifier,
+  RecordIdentity
 } from '@orbit/data';
 import Cache from '../cache';
 
@@ -53,16 +54,10 @@ export const QueryOperators: Dict<QueryOperator> = {
     const { type, id } = record;
     const currentRecord = cache.records(type).get(id);
     const data = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
-    const results = [];
 
-    if (data) {
-      Object.keys(data).forEach(identifier => {
-        const [relType, relId] = identifier.split(':');
-        results.push(cache.records(relType).get(relId));
-      });
-    }
+    if (!data) { return []; }
 
-    return results;
+    return (data as RecordIdentity[]).map(r => cache.records(r.type).get(r.id));
   },
 
   findRelatedRecord(cache: Cache, expression: FindRelatedRecord) {
@@ -73,8 +68,8 @@ export const QueryOperators: Dict<QueryOperator> = {
 
     if (!data) { return null; }
 
-    const [relType, relId] = data.split(':');
-    return cache.records(relType).get(relId);
+    const r = data as RecordIdentity;
+    return cache.records(r.type).get(r.id);
   }
 };
 

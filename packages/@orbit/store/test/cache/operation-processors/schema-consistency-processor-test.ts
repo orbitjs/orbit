@@ -5,12 +5,13 @@ import {
   SchemaSettings
 } from '@orbit/data';
 import Cache from '../../../src/cache';
+import CacheIntegrityProcessor from '../../../src/cache/operation-processors/cache-integrity-processor';
 import SchemaConsistencyProcessor from '../../../src/cache/operation-processors/schema-consistency-processor';
 import '../../test-helper';
 
 const { module, test } = QUnit;
 
-module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
+module('SchemaConsistencyProcessor', function(hooks) {
   let schema, cache, processor;
 
   const schemaDefinition: SchemaSettings = {
@@ -49,8 +50,8 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
   hooks.beforeEach(function() {
     let keyMap = new KeyMap();
     schema = new Schema(schemaDefinition);
-    cache = new Cache({ schema, keyMap, processors: [SchemaConsistencyProcessor] });
-    processor = cache._processors[0];
+    cache = new Cache({ schema, keyMap, processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor] });
+    processor = cache._processors[1];
   });
 
   hooks.afterEach(function() {
@@ -62,19 +63,19 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
   test('add to hasOne => hasMany', function(assert) {
     const saturn = { type: 'planet', id: 'saturn',
                     attributes: { name: 'Saturn' },
-                    relationships: { moons: { data: { 'moon:titan': true } } } };
+                    relationships: { moons: { data: [{ type: 'moon', id: 'titan' }] } } };
 
     const jupiter = { type: 'planet', id: 'jupiter',
                       attributes: { name: 'Jupiter' },
-                      relationships: { moons: { data: { 'moon:europa': true } } } };
+                      relationships: { moons: { data: [{ type: 'moon', id: 'europa' }] } } };
 
     const titan = { type: 'moon', id: 'titan',
                     attributes: { name: 'Titan' },
-                    relationships: { planet: { data: 'planet:saturn' } } };
+                    relationships: { planet: { data: { type: 'planet', id: 'saturn' } } } };
 
     const europa = { type: 'moon', id: 'europa',
                     attributes: { name: 'Europa' },
-                    relationships: { planet: { data: 'planet:jupiter' } } };
+                    relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } } };
 
     cache.patch(t => [
       t.addRecord(saturn),
@@ -116,19 +117,19 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
   test('replace hasOne => hasMany', function(assert) {
     const saturn = { type: 'planet', id: 'saturn',
                     attributes: { name: 'Saturn' },
-                    relationships: { moons: { data: { 'moon:titan': true } } } };
+                    relationships: { moons: { data: [{ type: 'moon', id: 'titan' }] } } };
 
     const jupiter = { type: 'planet', id: 'jupiter',
                       attributes: { name: 'Jupiter' },
-                      relationships: { moons: { data: { 'moon:europa': true } } } };
+                      relationships: { moons: { data: [{ type: 'moon', id: 'europa' }] } } };
 
     const titan = { type: 'moon', id: 'titan',
                     attributes: { name: 'Titan' },
-                    relationships: { planet: { data: 'planet:saturn' } } };
+                    relationships: { planet: { data: { type: 'planet', id: 'saturn' } } } };
 
     const europa = { type: 'moon', id: 'europa',
                     attributes: { name: 'Europa' },
-                    relationships: { planet: { data: 'planet:jupiter' } } };
+                    relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } } };
 
     cache.patch(t => [
       t.addRecord(saturn),
@@ -177,11 +178,11 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
   test('replace hasMany => hasOne with empty array', function(assert) {
     const saturn = { type: 'planet', id: 'saturn',
                     attributes: { name: 'Saturn' },
-                    relationships: { moons: { data: { 'moon:titan': true } } } };
+                    relationships: { moons: { data: [{ type: 'moon', id: 'titan' }] } } };
 
     const titan = { type: 'moon', id: 'titan',
                     attributes: { name: 'Titan' },
-                    relationships: { planet: { data: 'planet:saturn' } } };
+                    relationships: { planet: { data: { type: 'planet', id: 'saturn' } } } };
 
     cache.patch(t => [
       t.addRecord(saturn),
@@ -221,11 +222,11 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
   test('replace hasMany => hasOne with populated array', function(assert) {
     const saturn = { type: 'planet', id: 'saturn',
                     attributes: { name: 'Saturn' },
-                    relationships: { moons: { data: { 'moon:titan': true } } } };
+                    relationships: { moons: { data: [{ type: 'moon', id: 'titan' }] } } };
 
     const titan = { type: 'moon', id: 'titan',
                     attributes: { name: 'Titan' },
-                    relationships: { planet: { data: 'planet:saturn' } } };
+                    relationships: { planet: { data: { type: 'planet', id: 'saturn' } } } };
 
     const jupiter = { type: 'planet', id: 'jupiter',
                       attributes: { name: 'Jupiter' } };
@@ -269,19 +270,19 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
   test('replace hasMany => hasOne with populated array, when already populated', function(assert) {
     const saturn = { type: 'planet', id: 'saturn',
                   attributes: { name: 'Saturn' },
-                  relationships: { moons: { data: { 'moon:titan': true } } } };
+                  relationships: { moons: { data: [{ type: 'moon', id: 'titan' }] } } };
 
     const jupiter = { type: 'planet', id: 'jupiter',
                     attributes: { name: 'Jupiter' },
-                    relationships: { moons: { data: { 'moon:europa': true } } } };
+                    relationships: { moons: { data: [{ type: 'moon', id: 'europa' }] } } };
 
     const titan = { type: 'moon', id: 'titan',
                   attributes: { name: 'Titan' },
-                  relationships: { planet: { data: 'planet:saturn' } } };
+                  relationships: { planet: { data: { type: 'planet', id: 'saturn' } } } };
 
     const europa = { type: 'moon', id: 'europa',
                   attributes: { name: 'Europa' },
-                  relationships: { planet: { data: 'planet:jupiter' } } };
+                  relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } } };
 
     cache.patch(t => [
       t.addRecord(saturn),
@@ -327,8 +328,8 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
   });
 
   test('replace hasMany => hasMany, clearing records', function(assert) {
-    const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
-    const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: { 'inhabitant:human': true } } } };
+    const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: [{ type: 'planet', id: 'earth' }] } } };
+    const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: [{ type: 'inhabitant', id: 'human' }] } } };
 
     cache.patch(t => [
       t.addRecord(earth),
@@ -361,10 +362,10 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
   });
 
   test('replace hasMany => hasMany, replacing some records', function(assert) {
-    const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
+    const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: [{ type: 'planet', id: 'earth' }] } } };
     const cat = { type: 'inhabitant', id: 'cat' };
     const dog = { type: 'inhabitant', id: 'dog' };
-    const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: { 'inhabitant:human': true } } } };
+    const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: [{ type: 'inhabitant', id: 'human' }] } } };
 
     cache.patch(t => [
       t.addRecord(earth),
@@ -407,19 +408,19 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
   test('remove hasOne => hasMany', function(assert) {
     const saturn = { type: 'planet', id: 'saturn',
                   attributes: { name: 'Saturn' },
-                  relationships: { moons: { data: { 'moon:titan': true } } } };
+                  relationships: { moons: { data: [{ type: 'moon', id: 'titan' }] } } };
 
     const jupiter = { type: 'planet', id: 'jupiter',
                     attributes: { name: 'Jupiter' },
-                    relationships: { moons: { data: { 'moon:europa': true } } } };
+                    relationships: { moons: { data: [{ type: 'moon', id: 'europa' }] } } };
 
     const titan = { type: 'moon', id: 'titan',
                   attributes: { name: 'Titan' },
-                  relationships: { planet: { data: 'planet:saturn' } } };
+                  relationships: { planet: { data: { type: 'planet', id: 'saturn' } } } };
 
     const europa = { type: 'moon', id: 'europa',
                   attributes: { name: 'Europa' },
-                  relationships: { planet: { data: 'planet:jupiter' } } };
+                  relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } } };
 
     cache.patch(t => [
       t.addRecord(saturn),
@@ -461,11 +462,11 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
   test('add to hasOne => hasOne', function(assert) {
     const saturn = { type: 'planet', id: 'saturn',
                   attributes: { name: 'Saturn' },
-                  relationships: { next: { data: 'planet:jupiter' } } };
+                  relationships: { next: { data: { type: 'planet', id: 'jupiter' } } } };
 
     const jupiter = { type: 'planet', id: 'jupiter',
                     attributes: { name: 'Jupiter' },
-                    relationships: { previous: { data: 'planet:saturn' } } };
+                    relationships: { previous: { data: { type: 'planet', id: 'saturn' } } } };
 
     const earth = { type: 'planet', id: 'earth',
                   attributes: { name: 'Earth' } };
@@ -509,11 +510,11 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
   test('replace hasOne => hasOne with existing value', function(assert) {
     const saturn = { type: 'planet', id: 'saturn',
                   attributes: { name: 'Saturn' },
-                  relationships: { next: { data: 'planet:jupiter' } } };
+                  relationships: { next: { data: { type: 'planet', id: 'jupiter' } } } };
 
     const jupiter = { type: 'planet', id: 'jupiter',
                     attributes: { name: 'Jupiter' },
-                    relationships: { previous: { data: 'planet:saturn' } } };
+                    relationships: { previous: { data: { type: 'planet', id: 'saturn' } } } };
 
     const earth = { type: 'planet', id: 'earth',
                   attributes: { name: 'Earth' } };
@@ -557,11 +558,11 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
   test('replace hasOne => hasOne with current existing value', function(assert) {
     const saturn = { type: 'planet', id: 'saturn',
                   attributes: { name: 'Saturn' },
-                  relationships: { next: { data: 'planet:jupiter' } } };
+                  relationships: { next: { data: { type: 'planet', id: 'jupiter' } } } };
 
     const jupiter = { type: 'planet', id: 'jupiter',
                     attributes: { name: 'Jupiter' },
-                    relationships: { previous: { data: 'planet:saturn' } } };
+                    relationships: { previous: { data: { type: 'planet', id: 'saturn' } } } };
 
     const earth = { type: 'planet', id: 'earth',
                   attributes: { name: 'Earth' } };
@@ -635,8 +636,8 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
   });
 
   test('remove from hasMany => hasMany', function(assert) {
-    const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: { 'inhabitant:human': true } } } };
-    const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
+    const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: [{ type: 'inhabitant', id: 'human' }] } } };
+    const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: [{ type: 'planet', id: 'earth' }] } } };
 
     cache.patch(t => [
       t.addRecord(earth),
@@ -674,26 +675,24 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
   });
 
   test('replaceRecord', function(assert) {
-    const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: { 'planet:earth': true } } } };
+    const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: [{ type: 'planet', id: 'earth' }] } } };
     const cat = { type: 'inhabitant', id: 'cat' };
     const dog = { type: 'inhabitant', id: 'dog' };
     const moon = { type: 'moon', id: 'themoon' };
     const saturn = { type: 'planet', id: 'saturn',
                   attributes: { name: 'Saturn' },
-                  relationships: { next: { data: 'planet:jupiter' } } };
+                  relationships: { next: { data: { type: 'planet', id: 'jupiter' } } } };
     const jupiter = { type: 'planet', id: 'jupiter',
                     attributes: { name: 'Jupiter' },
-                    relationships: { previous: { data: 'planet:saturn' } } };
+                    relationships: { previous: { data: { type: 'planet', id: 'saturn' } } } };
     const earth = {
       type: 'planet', id: 'earth',
       relationships: {
         inhabitants: {
-          data: {
-            'inhabitant:human': true
-          }
+          data: [{ type: 'inhabitant', id: 'human' }]
         },
         next: {
-          data: 'planet:jupiter'
+          data: { type: 'planet', id: 'jupiter' }
         }
       }
     };
@@ -701,19 +700,17 @@ module('OperationProcessors - SchemaConsistencyProcessor', function(hooks) {
       type: 'planet', id: 'earth',
       relationships: {
         inhabitants: {
-          data: {
-            'inhabitant:human': true,
-            'inhabitant:cat': true,
-            'inhabitant:dog': true
-          }
+          data: [
+            { type: 'inhabitant', id: 'human' },
+            { type: 'inhabitant', id: 'cat' },
+            { type: 'inhabitant', id: 'dog' }
+          ]
         },
         moons: {
-          data: {
-            'moon:themoon': true
-          }
+          data: [{ type: 'moon', id: 'themoon' }]
         },
         next: {
-          data: 'planet:saturn'
+          data: { type: 'planet', id: 'saturn' }
         }
       }
     };

@@ -2,8 +2,7 @@ import { Dict } from '@orbit/utils';
 import {
   KeyMap,
   ModelDefinition,
-  Schema, SchemaSettings,
-  serializeRecordIdentity
+  Schema, SchemaSettings
 } from '@orbit/data';
 import JSONAPISerializer from '../src/jsonapi-serializer';
 import './test-helper';
@@ -156,10 +155,10 @@ module('JSONAPISerializer', function(hooks) {
             },
             relationships: {
               moons: {
-                data: {
-                  'moon:m1': true,
-                  'moon:m2': true
-                }
+                data: [
+                  { type: 'moon', id: 'm1' },
+                  { type: 'moon', id: 'm2' }
+                ]
               }
             }
           }
@@ -235,7 +234,7 @@ module('JSONAPISerializer', function(hooks) {
             },
             relationships: {
               solarSystem: {
-                data: 'solarSystem:ss1'
+                data: { type: 'solarSystem', id: 'ss1' }
               }
             }
           }
@@ -322,10 +321,6 @@ module('JSONAPISerializer', function(hooks) {
       let planet = result.data;
       let moon = result.included[0];
       let solarSystem = result.included[1];
-      let planetsMoons = {};
-      planetsMoons[`moon:${moon.id}`] = true;
-      let ssPlanets = {};
-      ssPlanets[`planet:${planet.id}`] = true;
 
       assert.deepEqual(
         result,
@@ -342,10 +337,12 @@ module('JSONAPISerializer', function(hooks) {
             },
             relationships: {
               moons: {
-                data: planetsMoons
+                data: [
+                  { type: 'moon', id: moon.id }
+                ]
               },
               solarSystem: {
-                data: `solarSystem:${solarSystem.id}`
+                data: { type: 'solarSystem', id: solarSystem.id }
               }
             }
           },
@@ -361,7 +358,7 @@ module('JSONAPISerializer', function(hooks) {
               },
               relationships: {
                 planet: {
-                  data: `planet:${planet.id}`
+                  data: { type: 'planet', id: planet.id }
                 }
               }
             },
@@ -376,7 +373,7 @@ module('JSONAPISerializer', function(hooks) {
               },
               relationships: {
                 planets: {
-                  data: ssPlanets
+                  data: [{ type: 'planet', id: planet.id }]
                 }
               }
             }
@@ -508,9 +505,7 @@ module('JSONAPISerializer', function(hooks) {
             },
             relationships: {
               moons: {
-                data: {
-                  'moon:5': true
-                }
+                data: [{ type: 'moon', id: '5' }]
               }
             }
           },
@@ -523,7 +518,7 @@ module('JSONAPISerializer', function(hooks) {
               },
               relationships: {
                 planet: {
-                  data: 'planet:12345'
+                  data: { type: 'planet', id: '12345' }
                 }
               }
             }
