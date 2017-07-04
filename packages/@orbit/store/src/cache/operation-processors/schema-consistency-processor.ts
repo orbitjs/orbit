@@ -127,8 +127,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
 
     if (inverseRelationship) {
       if (relatedRecords === undefined) {
-        let relatedRecordsMap = this.cache.relationships.relatedRecordsMap(record, relationship);
-        relatedRecords = relatedRecordsMap && relatedRecordsMap.all();
+        relatedRecords = this.cache.relationships.relatedRecords(record, relationship);
       }
 
       if (relatedRecords) {

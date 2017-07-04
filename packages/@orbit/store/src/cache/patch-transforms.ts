@@ -10,138 +10,106 @@ import {
   ReplaceRelatedRecordsOperation,
   ReplaceRelatedRecordOperation,
   ReplaceKeyOperation,
-  ReplaceRecordOperation
+  ReplaceRecordOperation,
+  equalRecordIdentities
 } from '@orbit/data';
 import { clone, deepGet, deepSet, merge } from '@orbit/utils';
 import Cache from '../cache';
 
 export interface PatchTransformFunc {
-  (cache: Cache, op: RecordOperation): boolean;
+  (cache: Cache, op: RecordOperation): void;
 }
 
 export default {
-  addRecord(cache: Cache, op: AddRecordOperation): boolean {
+  addRecord(cache: Cache, op: AddRecordOperation): void {
     const { type, id } = op.record;
     const records = cache.records(type);
-    if (records.get(id) !== op.record) {
-      records.set(id, op.record);
-      return true;
-    }
+    records.set(id, op.record);
   },
 
-  replaceRecord(cache: Cache, op: ReplaceRecordOperation): boolean {
+  replaceRecord(cache: Cache, op: ReplaceRecordOperation): void {
     const replacement = op.record;
     const { type, id } = replacement;
     const records = cache.records(type);
     const current = records.get(id);
-    if (current !== replacement) {
-      let result: Record;
+    let result: Record;
 
-      if (current) {
-        result = { type, id };
+    if (current) {
+      result = { type, id };
 
-        ['attributes', 'keys', 'relationships'].forEach(grouping => {
-          if (current[grouping] && replacement[grouping]) {
-            result[grouping] = merge({}, current[grouping], replacement[grouping]);
-          } else if (current[grouping]) {
-            result[grouping] = current[grouping];
-          } else if (replacement[grouping]) {
-            result[grouping] = replacement[grouping];
-          }
-        });
-      } else {
-        result = replacement;
-      }
-
-      records.set(id, result);
-
-      return true;
+      ['attributes', 'keys', 'relationships'].forEach(grouping => {
+        if (current[grouping] && replacement[grouping]) {
+          result[grouping] = merge({}, current[grouping], replacement[grouping]);
+        } else if (current[grouping]) {
+          result[grouping] = merge({}, current[grouping]);
+        } else if (replacement[grouping]) {
+          result[grouping] = merge({}, replacement[grouping]);
+        }
+      });
+    } else {
+      result = replacement;
     }
+
+    records.set(id, result);
   },
 
-  removeRecord(cache: Cache, op: RemoveRecordOperation): boolean {
+  removeRecord(cache: Cache, op: RemoveRecordOperation): void {
     const { type, id } = op.record;
     const records = cache.records(type);
-    if (records.get(id)) {
-      records.remove(id);
-      return true;
-    }
+    records.remove(id);
   },
 
-  replaceKey(cache: Cache, op: ReplaceKeyOperation): boolean {
+  replaceKey(cache: Cache, op: ReplaceKeyOperation): void {
     const { type, id } = op.record;
     const records = cache.records(type);
     let record = records.get(id);
     if (record) {
-      if (deepGet(record, ['keys', op.key]) === op.value) {
-        return false;
-      } else {
-        record = clone(record);
-      }
+      record = clone(record);
     } else {
       record = { type, id };
     }
-    if (deepSet(record, ['keys', op.key], op.value)) {
-      records.set(id, record);
-      return true;
-    }
+    deepSet(record, ['keys', op.key], op.value);
+    records.set(id, record);
   },
 
-  replaceAttribute(cache: Cache, op: ReplaceAttributeOperation): boolean {
+  replaceAttribute(cache: Cache, op: ReplaceAttributeOperation): void {
     const { type, id } = op.record;
     const records = cache.records(type);
     let record = records.get(id);
     if (record) {
-      if (deepGet(record, ['attributes', op.attribute]) === op.value) {
-        return false;
-      } else {
-        record = clone(record);
-      }
+      record = clone(record);
     } else {
       record = { type, id };
     }
-    if (deepSet(record, ['attributes', op.attribute], op.value)) {
-      records.set(id, record);
-      return true;
-    }
+    deepSet(record, ['attributes', op.attribute], op.value);
+    records.set(id, record);
   },
 
-  addToRelatedRecords(cache: Cache, op: AddToRelatedRecordsOperation): boolean {
+  addToRelatedRecords(cache: Cache, op: AddToRelatedRecordsOperation): void {
     const { type, id } = op.record;
     const records = cache.records(type);
     let record = records.get(id);
     if (record) {
-      if (cache.relationships.relationshipExists(record, op.relationship, op.relatedRecord)) {
-        return false;
-      } else {
-        record = clone(record);
-      }
+      record = clone(record);
     } else {
       record = { type, id };
     }
-
     const relatedRecords = deepGet(record, ['relationships', op.relationship, 'data']) || [];
     relatedRecords.push(op.relatedRecord);
 
-    if (deepSet(record, ['relationships', op.relationship, 'data'], relatedRecords)) {
-      records.set(id, record);
-      return true;
-    }
+    deepSet(record, ['relationships', op.relationship, 'data'], relatedRecords);
+    records.set(id, record);
   },
 
   removeFromRelatedRecords(cache: Cache, op: RemoveFromRelatedRecordsOperation): boolean {
-    const { relatedRecord } = op;
     const { type, id } = op.record;
     const records = cache.records(type);
     let record = records.get(id);
     if (record) {
-      if (cache.relationships.relationshipExists(record, op.relationship, op.relatedRecord)) {
-        record = clone(record);
-
-        let relatedRecords = deepGet(record, ['relationships', op.relationship, 'data']);
-        relatedRecords = relatedRecords.filter(r => {
-          return !(r.type === relatedRecord.type && r.id === relatedRecord.id);
-        });
+      record = clone(record);
+      let relatedRecords = deepGet(record, ['relationships', op.relationship, 'data']) as RecordIdentity[];
+      if (relatedRecords) {
+        relatedRecords = relatedRecords.filter(r => !equalRecordIdentities(r, op.relatedRecord));
 
         if (deepSet(record, ['relationships', op.relationship, 'data'], relatedRecords)) {
           records.set(id, record);
@@ -149,7 +117,6 @@ export default {
         }
       }
     }
-    return false;
   },
 
   replaceRelatedRecords(cache: Cache, op: ReplaceRelatedRecordsOperation): boolean {
@@ -172,11 +139,7 @@ export default {
     const records = cache.records(type);
     let record = records.get(id);
     if (record) {
-      if (cache.relationships.relationshipExists(record, op.relationship, op.relatedRecord)) {
-        return false;
-      } else {
-        record = clone(record);
-      }
+      record = clone(record);
     } else {
       record = { type, id };
     }
