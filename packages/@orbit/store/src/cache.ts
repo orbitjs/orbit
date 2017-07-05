@@ -211,22 +211,22 @@ export default class Cache implements Evented {
 
       // Perform the requested operation
       let patchTransform: PatchTransformFunc = PatchTransforms[ operation.op ];
-      if (patchTransform(this, operation)) {
-        // Query and perform related `immediate` operations
-        this._processors
-            .forEach(processor => processor.immediate(operation));
+      patchTransform(this, operation);
 
-        // Emit event
-        this.emit('patch', operation);
+      // Query and perform related `immediate` operations
+      this._processors
+          .forEach(processor => processor.immediate(operation));
 
-        // Perform prepared operations after performing the requested operation
-        preparedOps.forEach(ops => this._applyOperations(ops, inverse));
+      // Emit event
+      this.emit('patch', operation);
 
-        // Query and perform related `finally` operations
-        this._processors
-            .map(processor => processor.finally(operation))
-            .forEach(ops => this._applyOperations(ops, inverse));
-      };
+      // Perform prepared operations after performing the requested operation
+      preparedOps.forEach(ops => this._applyOperations(ops, inverse));
+
+      // Query and perform related `finally` operations
+      this._processors
+          .map(processor => processor.finally(operation))
+          .forEach(ops => this._applyOperations(ops, inverse));
     }
   }
 

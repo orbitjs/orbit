@@ -73,7 +73,7 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
         return;
 
       case 'replaceRecord':
-        this.cache.inverseRelationships.recordAdded(operation.record);
+        this.cache.relationships.replaceRecord(operation.record);
         return;
 
       case 'removeRecord':

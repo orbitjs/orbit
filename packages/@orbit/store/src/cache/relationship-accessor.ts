@@ -43,6 +43,7 @@ export default class RelationshipAccessor {
         }
       }
     }
+    return !relatedRecord;
   }
 
   relatedRecord(record: RecordIdentity, relationship: string): RecordIdentity {
@@ -56,13 +57,24 @@ export default class RelationshipAccessor {
     let rels = this._relationships[record.type].get(record.id);
     let map = rels && rels[relationship] as RecordIdentityMap;
     if (map) {
-      return map.all();
+      return map.values;
     }
   }
 
   relatedRecordsMap(record: RecordIdentity, relationship: string): RecordIdentityMap {
     let rels = this._relationships[record.type].get(record.id);
     return rels && rels[relationship];
+  }
+
+  relatedRecordsMatch(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]): boolean {
+    let map = this.relatedRecordsMap(record, relationship);
+    if (map) {
+      let otherMap = new RecordIdentityMap;
+      relatedRecords.forEach(id => otherMap.add(id));
+      return map.equals(otherMap);
+    } else {
+      return relatedRecords.length === 0;
+    }
   }
 
   addRecord(record: Record) {
@@ -92,8 +104,12 @@ export default class RelationshipAccessor {
   }
 
   addToRelatedRecords(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): void {
-    let rels = cloneRelationships(this._relationships[record.type].get(record.id));
-    let rel = rels[relationship] || new RecordIdentityMap();
+    let currentRels = this._relationships[record.type].get(record.id);
+    let rels = currentRels ? cloneRelationships(currentRels) : {};
+    let rel = rels[relationship];
+    if (!rel) {
+      rel = rels[relationship] = new RecordIdentityMap();
+    }
     rel.add(relatedRecord);
     this._relationships[record.type].set(record.id, rels);
   }
@@ -109,16 +125,23 @@ export default class RelationshipAccessor {
   }
 
   replaceRelatedRecords(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]): void {
-    let rels = cloneRelationships(this._relationships[record.type].get(record.id));
-    let rel = rels[relationship] || new RecordIdentityMap();
+    let currentRels = this._relationships[record.type].get(record.id);
+    let rels = currentRels ? cloneRelationships(currentRels) : {};
+    let rel = rels[relationship];
+    if (!rel) {
+      rel = rels[relationship] = new RecordIdentityMap();
+    }
     relatedRecords.forEach(relatedRecord => rel.add(relatedRecord));
     this._relationships[record.type].set(record.id, rels);
   }
 
   replaceRelatedRecord(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): void {
-    let rels = cloneRelationships(this._relationships[record.type].get(record.id));
-    rels[relationship] = relatedRecord;
-    this._relationships[record.type].set(record.id, rels);
+    let currentRels = this._relationships[record.type].get(record.id);
+    if ((currentRels && currentRels[relationship]) || relatedRecord) {
+      let rels = currentRels ? cloneRelationships(currentRels) : {};
+      rels[relationship] = relatedRecord;
+      this._relationships[record.type].set(record.id, rels);
+    }
   }
 }
 

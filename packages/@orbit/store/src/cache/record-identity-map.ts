@@ -31,7 +31,7 @@ export default class RecordIdentityMap {
     delete this.identities[serializeRecordIdentity(record)];
   }
 
-  all(): RecordIdentity[] {
+  get values(): RecordIdentity[] {
     return Object.keys(this.identities).map(id => deserializeRecordIdentity(id));
   }
 
@@ -47,5 +47,10 @@ export default class RecordIdentityMap {
     return Object.keys(this.identities)
       .filter(id => !other.identities[id])
       .map(id => deserializeRecordIdentity(id));
+  }
+
+  equals(other: RecordIdentityMap): boolean {
+    return this.exclusiveOf(other).length === 0 &&
+           other.exclusiveOf(this).length === 0;
   }
 }
