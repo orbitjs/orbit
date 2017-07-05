@@ -1,15 +1,14 @@
 {
-  "name": "@orbit/store",
+  "name": "@orbit/immutable",
   "version": "0.11.1",
-  "description": "Orbit source for managing in-memory records.",
+  "description": "Lightweight immutable library used by Orbit.js.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
   ],
   "keywords": [
     "orbit",
     "orbit.js",
-    "data",
-    "synchronization"
+    "immutable"
   ],
   "repository": "https://github.com/orbitjs/orbit",
   "license": "MIT",
@@ -21,12 +20,6 @@
     "build:tests": "rm -rf tests && BROCCOLI_ENV=tests broccoli build tests",
     "prepublish": "npm run build",
     "test": "testem ci"
-  },
-  "dependencies": {
-    "@orbit/utils": "^0.11.1",
-    "@orbit/core": "^0.11.1",
-    "@orbit/data": "^0.11.1",
-    "@orbit/immutable": "^0.11.1"
   },
   "devDependencies": {
     "@glimmer/build": "^0.6.3"

@@ -9,6 +9,7 @@ import {
   FindRelatedRecords,
   SortSpecifier,
   AttributeSortSpecifier,
+  Record,
   RecordIdentity
 } from '@orbit/data';
 import Cache from '../cache';
@@ -36,7 +37,7 @@ export const QueryOperators: Dict<QueryOperator> = {
   },
 
   findRecords(cache: Cache, expression: FindRecords) {
-    let results = cache.records(expression.type).values;
+    let results = Array.from(cache.records(expression.type).values());
     if (expression.filter) {
       results = filterRecords(results, expression.filter);
     }
@@ -101,7 +102,7 @@ function applyFilter(record, filter) {
   return false;
 }
 
-function sortRecords(records, sortSpecifiers: SortSpecifier[]) {
+function sortRecords(records: Record[], sortSpecifiers: SortSpecifier[]) {
   const comparisonValues = new Map();
 
   records.forEach(record => {

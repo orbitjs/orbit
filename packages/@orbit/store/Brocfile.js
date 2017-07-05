@@ -9,7 +9,8 @@ let buildOptions = {
   external: [
     '@orbit/utils',
     '@orbit/core',
-    '@orbit/data'
+    '@orbit/data',
+    '@orbit/immutable'
   ]
 };
 
@@ -18,6 +19,7 @@ if (process.env.BROCCOLI_ENV === 'tests') {
     packageDist('@orbit/utils'),
     packageDist('@orbit/core'),
     packageDist('@orbit/data'),
+    packageDist('@orbit/immutable'),
     funnel(path.join(require.resolve('rsvp'), '..'), { include: ['rsvp.js'] })
   ];
 }

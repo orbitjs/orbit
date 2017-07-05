@@ -58,7 +58,7 @@ module('Cache', function(hooks) {
 
     cache.patch(t => t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } }));
 
-    assert.equal(cache.records('planet').length, 1);
+    assert.equal(cache.records('planet').size, 1);
 
     cache.on('reset', () => {
       assert.ok(true, 'reset event emitted');
@@ -66,7 +66,7 @@ module('Cache', function(hooks) {
 
     cache.reset();
 
-    assert.equal(cache.records('planet').length, 0);
+    assert.equal(cache.records('planet').size, 0);
   });
 
   test('#reset overrides the cache completely with data from another cache', function(assert) {
@@ -417,8 +417,8 @@ module('Cache', function(hooks) {
     // Removing the moon should remove the planet should remove the other moon
     cache.patch(t => t.removeRecord(io));
 
-    assert.equal(cache.records('moon').length, 1, 'Only europa is left in store');
-    assert.equal(cache.records('planet').length, 0, 'No planets left in store');
+    assert.equal(cache.records('moon').size, 1, 'Only europa is left in store');
+    assert.equal(cache.records('planet').size, 0, 'No planets left in store');
   });
 
   test('#patch does not remove non-dependent records', function(assert) {
@@ -455,8 +455,8 @@ module('Cache', function(hooks) {
     // removed
     cache.patch(t => t.removeRecord(io));
 
-    assert.equal(cache.records('moon').length, 1, 'One moon left in store');
-    assert.equal(cache.records('planet').length, 1, 'One planet left in store');
+    assert.equal(cache.records('moon').size, 1, 'One moon left in store');
+    assert.equal(cache.records('planet').size, 1, 'One planet left in store');
   });
 
   test('#patch merges records when "replacing" and will not stomp on attributes and relationships that are not replaced', function(assert) {

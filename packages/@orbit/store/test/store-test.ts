@@ -83,11 +83,11 @@ module('Store', function(hooks) {
       attributes: { name: 'Jupiter', classification: 'gas giant' }
     };
 
-    assert.equal(store.cache.records('planet').length, 0, 'cache should start empty');
+    assert.equal(store.cache.records('planet').size, 0, 'cache should start empty');
 
     return store.update(t => t.addRecord(jupiter))
       .then(() => {
-        assert.equal(store.cache.records('planet').length, 1, 'cache should contain one planet');
+        assert.equal(store.cache.records('planet').size, 1, 'cache should contain one planet');
         assert.deepEqual(store.cache.records('planet').get('jupiter'), jupiter, 'planet should be jupiter');
       });
   });
@@ -103,7 +103,7 @@ module('Store', function(hooks) {
 
     store.cache.patch(t => t.addRecord(jupiter));
 
-    assert.equal(store.cache.records('planet').length, 1, 'cache should contain one planet');
+    assert.equal(store.cache.records('planet').size, 1, 'cache should contain one planet');
 
     return store.query(q => q.findRecord({ type: 'planet', id: 'jupiter' }))
       .then(foundPlanet => {
@@ -116,7 +116,7 @@ module('Store', function(hooks) {
 
     store.cache.reset();
 
-    assert.equal(store.cache.records('planet').length, 0, 'cache should contain no planets');
+    assert.equal(store.cache.records('planet').size, 0, 'cache should contain no planets');
 
     return store.query(q => q.findRecord({ type: 'planet', id: 'jupiter' }))
       .catch(e => {

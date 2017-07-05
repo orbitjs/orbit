@@ -4,6 +4,7 @@ import {
   evented, Evented
 } from '@orbit/core';
 import {
+  Record,
   RecordIdentity,
   KeyMap,
   Operation,
@@ -22,7 +23,7 @@ import SchemaConsistencyProcessor from './cache/operation-processors/schema-cons
 import { QueryOperators } from './cache/query-operators';
 import PatchTransforms, { PatchTransformFunc } from './cache/patch-transforms';
 import InverseTransforms, { InverseTransformFunc } from './cache/inverse-transforms';
-import ImmutableMap from './immutable-map';
+import { ImmutableMap } from '@orbit/immutable';
 import RelationshipAccessor from './cache/relationship-accessor';
 import InverseRelationshipAccessor from './cache/inverse-relationship-accessor';
 
@@ -53,7 +54,7 @@ export default class Cache implements Evented {
   private _queryBuilder: QueryBuilder;
   private _transformBuilder: TransformBuilder;
   private _processors: OperationProcessor[];
-  private _records: Dict<ImmutableMap>;
+  private _records: Dict<ImmutableMap<string, Record>>;
   private _relationships: RelationshipAccessor;
   private _inverseRelationships: InverseRelationshipAccessor;
 
@@ -93,7 +94,7 @@ export default class Cache implements Evented {
     return this._transformBuilder;
   }
 
-  records(type: string): ImmutableMap {
+  records(type: string): ImmutableMap<string, Record> {
     return this._records[type];
   }
 
@@ -148,7 +149,7 @@ export default class Cache implements Evented {
     Object.keys(this._schema.models).forEach(type => {
       let baseRecords = base && base.records(type);
 
-      this._records[type] = new ImmutableMap(baseRecords);
+      this._records[type] = new ImmutableMap<string, Record>(baseRecords);
     });
 
     this._relationships = new RelationshipAccessor(this, base && base.relationships);
