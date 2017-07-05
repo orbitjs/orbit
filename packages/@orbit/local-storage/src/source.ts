@@ -4,9 +4,11 @@ import Orbit, {
   Resettable,
   syncable, Syncable,
   Query,
+  QueryOrExpression,
   Record, RecordIdentity,
   Source, SourceSettings,
-  Transform
+  Transform,
+  TransformOrOperations
 } from '@orbit/data';
 import { assert } from '@orbit/utils';
 import transformOperators from './lib/transform-operators';
@@ -37,10 +39,10 @@ export default class LocalStorageSource extends Source implements Pullable, Push
   sync: (transformOrTransforms: Transform | Transform[]) => Promise<void>;
 
   // Pullable interface stubs
-  pull: (query: Query) => Promise<Transform[]>;
+  pull: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<Transform[]>;
 
   // Pushable interface stubs
-  push: (transform: Transform) => Promise<Transform[]>;
+  push: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => Promise<Transform[]>;
 
   /**
    * Create a new LocalStorageSource.
