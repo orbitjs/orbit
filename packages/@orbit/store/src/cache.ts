@@ -23,7 +23,7 @@ import SchemaConsistencyProcessor from './cache/operation-processors/schema-cons
 import { QueryOperators } from './cache/query-operators';
 import PatchTransforms, { PatchTransformFunc } from './cache/patch-transforms';
 import InverseTransforms, { InverseTransformFunc } from './cache/inverse-transforms';
-import ImmutableMap from './immutable-map';
+import { ImmutableMap } from '@orbit/immutable';
 import RelationshipAccessor from './cache/relationship-accessor';
 import InverseRelationshipAccessor from './cache/inverse-relationship-accessor';
 

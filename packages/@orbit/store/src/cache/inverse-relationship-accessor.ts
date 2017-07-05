@@ -5,7 +5,7 @@ import {
   RecordIdentity
 } from '@orbit/data';
 import Cache from '../cache';
-import ImmutableMap from '../immutable-map';
+import { ImmutableMap } from '@orbit/immutable';
 
 export interface InverseRelationship {
   record: RecordIdentity,

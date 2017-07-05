@@ -1,5 +1,4 @@
 import ImmutableMap from '../src/immutable-map';
-import './test-helper';
 
 const { module, test } = QUnit;
 
