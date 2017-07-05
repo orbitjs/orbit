@@ -17,7 +17,7 @@ import Orbit, {
 } from '@orbit/data';
 import { Log } from '@orbit/core';
 import { assert } from '@orbit/utils';
-import JSONAPISerializer from './jsonapi-serializer';
+import JSONAPISerializer, { JSONAPISerializerSettings } from './jsonapi-serializer';
 import { encodeQueryParams } from './lib/query-params';
 import { PullOperator, PullOperators } from './lib/pull-operators';
 import { getTransformRequests, TransformRequestProcessors } from './lib/transform-requests';
@@ -44,7 +44,7 @@ export interface JSONAPISourceSettings extends SourceSettings {
   host?: string;
   defaultFetchHeaders?: object;
   defaultFetchTimeout?: number;
-  SerializerClass?: (new () => JSONAPISerializer);
+  SerializerClass?: (new (settings: JSONAPISerializerSettings) => JSONAPISerializer);
 }
 
 /**
