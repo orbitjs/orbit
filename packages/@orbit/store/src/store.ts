@@ -40,7 +40,7 @@ export default class Store extends Source implements Syncable, Queryable, Updata
   query: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<any>;
 
   // Updatable interface stubs
-  update: (transformOrOperations: TransformOrOperations) => Promise<void>;
+  update: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => Promise<void>;
 
   constructor(settings: StoreSettings = {}) {
     assert('Store\'s `schema` must be specified in `settings.schema` constructor argument', !!settings.schema);
