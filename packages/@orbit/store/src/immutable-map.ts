@@ -1,9 +1,9 @@
 import hamt from './utils/hamt';
 
-export default class ImmutableMap {
+export default class ImmutableMap<K, V> {
   private _data: any;
 
-  constructor(base?: any) {
+  constructor(base?: ImmutableMap<K, V>) {
     if (base) {
       this._data = base.data;
     } else {
@@ -11,35 +11,35 @@ export default class ImmutableMap {
     }
   }
 
-  get(key): any {
-    return this._data.get(key);
-  }
-
-  set(key, value): void {
-    this._data = this._data.set(key, value);
-  }
-
-  remove(key): void {
-    this._data = this._data.remove(key);
-  }
-
-  has(key): boolean {
-    return this.get(key) !== undefined;
-  }
-
-  get data(): any {
-    return this._data;
-  }
-
-  get length(): number {
+  get size(): number {
     return this._data.size;
   }
 
-  get keys(): any[] {
-    return Array.from(this._data.keys());
+  get(key: K): V {
+    return this._data.get(key);
   }
 
-  get values(): any[] {
-    return Array.from(this._data.values());
+  set(key: K, value: V): void {
+    this._data = this._data.set(key, value);
+  }
+
+  remove(key: K): void {
+    this._data = this._data.remove(key);
+  }
+
+  has(key: K): boolean {
+    return this.get(key) !== undefined;
+  }
+
+  keys(): IterableIterator<K> {
+    return this._data.keys();
+  }
+
+  values(): IterableIterator<V> {
+    return this._data.values();
+  }
+
+  protected get data(): any {
+    return this._data;
   }
 }
