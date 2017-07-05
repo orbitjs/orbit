@@ -15,7 +15,6 @@ import transformOperators from './lib/transform-operators';
 import { PullOperator, PullOperators } from './lib/pull-operators';
 import { supportsIndexedDB } from './lib/indexeddb';
 
-declare const self: any;
 declare const console: any;
 
 export interface IndexedDBSourceSettings extends SourceSettings {
@@ -95,7 +94,7 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
       if (this._db) {
         resolve(this._db);
       } else {
-        let request = self.indexedDB.open(this.dbName, this.dbVersion);
+        let request = Orbit.globals.indexedDB.open(this.dbName, this.dbVersion);
 
         request.onerror = (/* event */) => {
           // console.error('error opening indexedDB', this.dbName);
@@ -154,7 +153,7 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
     this.closeDB();
 
     return new Orbit.Promise((resolve, reject) => {
-      let request = self.indexedDB.deleteDatabase(this.dbName);
+      let request = Orbit.globals.indexedDB.deleteDatabase(this.dbName);
 
       request.onerror = (/* event */) => {
         // console.error('error deleting indexedDB', this.dbName);

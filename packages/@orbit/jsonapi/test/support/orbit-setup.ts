@@ -1,12 +1,11 @@
 import Orbit from '@orbit/core';
 
 declare const RSVP: any;
-declare const self: any;
 
 Orbit.Promise = RSVP.Promise;
 
 // Polyfill environment Promise to keep whatwg-fetch polyfill happy
-self.Promise = self.Promise || RSVP.Promise;
+Orbit.globals.Promise = Orbit.globals.Promise || RSVP.Promise;
 
 // Use polyfilled fetch
-Orbit.fetch = self.fetch;
+Orbit.fetch = Orbit.globals.fetch;

@@ -7,8 +7,6 @@ import Orbit, {
 } from '@orbit/data';
 import LocalStorageSource from '../source';
 
-declare const self: any;
-
 export interface PullOperator {
   (source: LocalStorageSource, expression: QueryExpression): Promise<Transform[]>;
 }
@@ -19,7 +17,7 @@ export const PullOperators: Dict<PullOperator> = {
 
     const typeFilter = expression.type;
 
-    for (let key in self.localStorage) {
+    for (let key in Orbit.globals.localStorage) {
       if (key.indexOf(source.namespace) === 0) {
         let typesMatch = isNone(typeFilter);
 
@@ -30,7 +28,7 @@ export const PullOperators: Dict<PullOperator> = {
         }
 
         if (typesMatch) {
-          let record = JSON.parse(self.localStorage.getItem(key));
+          let record = JSON.parse(Orbit.globals.localStorage.getItem(key));
 
           operations.push({
             op: 'addRecord',
@@ -47,7 +45,7 @@ export const PullOperators: Dict<PullOperator> = {
     const operations = [];
     const requestedRecord = expression.record;
 
-    for (let key in self.localStorage) {
+    for (let key in Orbit.globals.localStorage) {
       if (key.indexOf(source.namespace) === 0) {
         let fragments = key.split(source.delimiter);
         let type = fragments[1];
@@ -55,7 +53,7 @@ export const PullOperators: Dict<PullOperator> = {
 
         if (type === requestedRecord.type &&
             id === requestedRecord.id) {
-          let record = JSON.parse(self.localStorage.getItem(key));
+          let record = JSON.parse(Orbit.globals.localStorage.getItem(key));
 
           operations.push({
             op: 'addRecord',

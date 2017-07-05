@@ -4,8 +4,6 @@ import Orbit, {
 import { assert } from '@orbit/utils';
 import { supportsLocalStorage } from './lib/local-storage';
 
-declare const self: any;
-
 export interface LocalStorageBucketSettings extends BucketSettings {
   delimiter?: string;
 }
@@ -49,18 +47,18 @@ export default class LocalStorageBucket extends Bucket {
 
   getItem(key: string): Promise<any> {
     const fullKey: string = this.getFullKeyForItem(key);
-    return Orbit.Promise.resolve(JSON.parse(self.localStorage.getItem(fullKey)));
+    return Orbit.Promise.resolve(JSON.parse(Orbit.globals.localStorage.getItem(fullKey)));
   }
 
   setItem(key: string, value: any): Promise<void> {
     const fullKey: string = this.getFullKeyForItem(key);
-    self.localStorage.setItem(fullKey, JSON.stringify(value));
+    Orbit.globals.localStorage.setItem(fullKey, JSON.stringify(value));
     return Orbit.Promise.resolve();
   }
 
   removeItem(key: string): Promise<void> {
     const fullKey: string = this.getFullKeyForItem(key);
-    self.localStorage.removeItem(fullKey);
+    Orbit.globals.localStorage.removeItem(fullKey);
     return Orbit.Promise.resolve();
   }
 }

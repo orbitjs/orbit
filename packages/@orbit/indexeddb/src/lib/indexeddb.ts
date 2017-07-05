@@ -1,9 +1,5 @@
-declare const self: any;
+import Orbit from '@orbit/core';
 
-export function supportsIndexedDB() {
-  try {
-    return 'indexedDB' in self && self['indexedDB'] !== null;
-  } catch (e) {
-    return false;
-  }
-};
+export function supportsIndexedDB(): boolean {
+  return !!Orbit.globals.indexedDB;
+}

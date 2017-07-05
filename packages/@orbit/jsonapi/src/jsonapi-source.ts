@@ -23,10 +23,8 @@ import { PullOperator, PullOperators } from './lib/pull-operators';
 import { getTransformRequests, TransformRequestProcessors } from './lib/transform-requests';
 import { InvalidServerResponse } from './lib/exceptions';
 
-declare const self: any;
-
-if (typeof self.fetch !== 'undefined' && Orbit.fetch === undefined) {
-  Orbit.fetch = self.fetch;
+if (typeof Orbit.globals.fetch !== 'undefined' && Orbit.fetch === undefined) {
+  Orbit.fetch = Orbit.globals.fetch;
 }
 
 export interface FetchSettings {
@@ -174,14 +172,14 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
       return new Orbit.Promise((resolve, reject) => {
         let timedOut;
 
-        let timer = self.setTimeout(() => {
+        let timer = Orbit.globals.setTimeout(() => {
           timedOut = true;
           reject(new NetworkError(`No fetch response within ${timeout}ms.`));
         }, timeout);
 
         Orbit.fetch(url, settings)
           .catch(e => {
-            self.clearTimeout(timer);
+            Orbit.globals.clearTimeout(timer);
 
             if (!timedOut) {
               return this.handleFetchError(e)
@@ -190,7 +188,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
             }
           })
           .then(response => {
-            self.clearTimeout(timer);
+            Orbit.globals.clearTimeout(timer);
 
             if (!timedOut) {
               return this.handleFetchResponse(response)

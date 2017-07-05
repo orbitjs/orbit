@@ -16,7 +16,6 @@ import { jsonapiResponse } from './support/jsonapi';
 import './test-helper';
 
 declare const sinon: any;
-declare const self: any;
 
 const { module, test } = QUnit;
 
@@ -136,13 +135,13 @@ module('JSONAPISource', function(hooks) {
     });
 
     test('#responseHasContent - returns true if JSONAPI media type appears anywhere in Content-Type header', function(assert) {
-      let response = new self.Response('{ data: null }', { headers: { 'Content-Type': 'application/vnd.api+json' } });
+      let response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/vnd.api+json' } });
       assert.equal(source.responseHasContent(response), true, 'Accepts content that is _only_ the JSONAPI media type.');
 
-      response = new self.Response('{ data: null }', { headers: { 'Content-Type': 'application/json,application/vnd.api+json; charset=utf-8' } });
+      response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/json,application/vnd.api+json; charset=utf-8' } });
       assert.equal(source.responseHasContent(response), true, 'Position of JSONAPI media type is not important.');
 
-      response = new self.Response('{ data: null }', { headers: { 'Content-Type': 'application/json' } });
+      response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/json' } });
       assert.equal(source.responseHasContent(response), false, 'Plain json can not be parsed by default.');
     });
 
