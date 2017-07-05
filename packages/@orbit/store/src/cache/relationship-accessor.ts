@@ -10,7 +10,7 @@ import RecordIdentityMap from './record-identity-map';
 
 export default class RelationshipAccessor {
   protected _cache: Cache;
-  protected _relationships: Dict<ImmutableMap>;
+  protected _relationships: Dict<ImmutableMap<string, Dict<RecordIdentity | RecordIdentityMap>>>;
 
   constructor(cache: Cache, base?: RelationshipAccessor) {
     this._cache = cache;
@@ -49,7 +49,7 @@ export default class RelationshipAccessor {
   relatedRecord(record: RecordIdentity, relationship: string): RecordIdentity {
     let rels = this._relationships[record.type].get(record.id);
     if (rels) {
-      return rels[relationship];
+      return rels[relationship] as RecordIdentity;
     }
   }
 
@@ -57,13 +57,15 @@ export default class RelationshipAccessor {
     let rels = this._relationships[record.type].get(record.id);
     let map = rels && rels[relationship] as RecordIdentityMap;
     if (map) {
-      return map.values;
+      return Array.from(map.values);
     }
   }
 
   relatedRecordsMap(record: RecordIdentity, relationship: string): RecordIdentityMap {
     let rels = this._relationships[record.type].get(record.id);
-    return rels && rels[relationship];
+    if (rels) {
+      return rels[relationship] as RecordIdentityMap;
+    }
   }
 
   relatedRecordsMatch(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]): boolean {

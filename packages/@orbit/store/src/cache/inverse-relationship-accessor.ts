@@ -14,7 +14,7 @@ export interface InverseRelationship {
 
 export default class InverseRelationshipAccessor {
   protected _cache: Cache;
-  protected _relationships: Dict<ImmutableMap>;
+  protected _relationships: Dict<ImmutableMap<string, InverseRelationship[]>>;
 
   constructor(cache: Cache, base?: InverseRelationshipAccessor) {
     this._cache = cache;

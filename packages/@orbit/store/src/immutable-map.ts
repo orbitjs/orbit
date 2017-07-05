@@ -1,13 +1,13 @@
-import hamt from './utils/hamt';
+import HAMTMap from './utils/hamt';
 
 export default class ImmutableMap<K, V> {
-  private _data: any;
+  private _data: HAMTMap;
 
   constructor(base?: ImmutableMap<K, V>) {
     if (base) {
       this._data = base.data;
     } else {
-      this._data = hamt.empty;
+      this._data = new HAMTMap();
     }
   }
 
@@ -39,7 +39,7 @@ export default class ImmutableMap<K, V> {
     return this._data.values();
   }
 
-  protected get data(): any {
+  protected get data(): HAMTMap {
     return this._data;
   }
 }
