@@ -23,15 +23,10 @@ export default class InverseRelationshipAccessor {
 
   reset(base?: InverseRelationshipAccessor) {
     let relationships = {};
-    if (base) {
-      Object.keys(base._relationships).forEach(type => {
-        relationships[type] = base._relationships;
-      });
-    } else {
-      Object.keys(this._cache.schema.models).forEach(type => {
-        relationships[type] = new ImmutableMap();
-      });
-    }
+    Object.keys(this._cache.schema.models).forEach(type => {
+      let baseRelationships = base && base._relationships[type];
+      relationships[type] = new ImmutableMap(baseRelationships);
+    });
     this._relationships = relationships;
   }
 

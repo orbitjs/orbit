@@ -1,13 +1,11 @@
 import { deepGet, isObject, isArray, Dict } from '@orbit/utils';
 import {
   cloneRecordIdentity,
-  Record,
   RecordIdentity,
   RecordOperation
 } from '@orbit/data';
 import Cache from '../../cache';
 import { OperationProcessor } from './operation-processor';
-import InverseRelationshipAccessor, { InverseRelationship } from '../inverse-relationship-accessor';
 
 /**
  * An operation processor that ensures that a cache's data is consistent and

@@ -12,7 +12,6 @@ const { module, test } = QUnit;
 module('RelationshipAccessor', function(hooks) {
   let schema: Schema;
   let cache: Cache;
-  let accessor: RelationshipAccessor;
 
   const schemaDefinition: SchemaSettings = {
     models: {
@@ -55,7 +54,31 @@ module('RelationshipAccessor', function(hooks) {
   hooks.afterEach(function() {
     schema = null;
     cache = null;
-    accessor = null;
+  });
+
+  test('can be instantiated with just a cache', function(assert) {
+    let accessor = new RelationshipAccessor(cache);
+    assert.ok(accessor, 'accessor created');
+  });
+
+  test('can be instantiated with a cache and a base accessor', function(assert) {
+    const jupiter = { type: 'planet', id: 'jupiter' };
+    const io = { type: 'moon', id: 'io' };
+
+    let base = new RelationshipAccessor(cache);
+    base.addToRelatedRecords(jupiter, 'moons', io);
+
+    assert.ok(base.relationshipExists(jupiter, 'moons', io), 'relationship exists');
+
+    let accessor = new RelationshipAccessor(cache, base);
+    assert.ok(accessor, 'accessor created');
+    assert.ok(accessor.relationshipExists(jupiter, 'moons', io), 'relationship exists in new accessor');
+
+    const europa = { type: 'moon', id: 'europa' };
+    base.addToRelatedRecords(jupiter, 'moons', europa);
+
+    assert.ok(base.relationshipExists(jupiter, 'moons', europa), 'relationship exists');
+    assert.ok(!accessor.relationshipExists(jupiter, 'moons', europa), 'relationship does not exist');
   });
 
   test('#addRecord can create has-one relationships', function(assert) {
@@ -67,7 +90,7 @@ module('RelationshipAccessor', function(hooks) {
       }
     };
 
-    accessor = new RelationshipAccessor(cache);
+    let accessor = new RelationshipAccessor(cache);
 
     assert.ok(!accessor.relationshipExists(europa, 'planet', { type: 'planet', id: 'p1' }), 'relationship does not exist');
 
@@ -89,7 +112,7 @@ module('RelationshipAccessor', function(hooks) {
       }
     };
 
-    accessor = new RelationshipAccessor(cache);
+    let accessor = new RelationshipAccessor(cache);
 
     assert.ok(!accessor.relationshipExists(jupiter, 'moons', { type: 'moon', id: 'io' }), 'relationship does not exist');
 
@@ -114,7 +137,7 @@ module('RelationshipAccessor', function(hooks) {
       }
     };
 
-    accessor = new RelationshipAccessor(cache);
+    let accessor = new RelationshipAccessor(cache);
 
     assert.ok(!accessor.relationshipExists(jupiter, 'moons', { type: 'moon', id: 'io' }), 'relationship does not exist');
 
@@ -152,7 +175,7 @@ module('RelationshipAccessor', function(hooks) {
       }
     };
 
-    accessor = new RelationshipAccessor(cache);
+    let accessor = new RelationshipAccessor(cache);
 
     assert.ok(!accessor.relationshipExists(jupiter, 'moons', { type: 'moon', id: 'io' }), 'relationship does not exist');
 
@@ -175,7 +198,7 @@ module('RelationshipAccessor', function(hooks) {
       }
     };
 
-    accessor = new RelationshipAccessor(cache);
+    let accessor = new RelationshipAccessor(cache);
 
     accessor.addRecord(jupiter);
 
@@ -204,7 +227,7 @@ module('RelationshipAccessor', function(hooks) {
       }
     };
 
-    accessor = new RelationshipAccessor(cache);
+    let accessor = new RelationshipAccessor(cache);
 
     accessor.addRecord(jupiter);
 
@@ -222,7 +245,6 @@ module('RelationshipAccessor', function(hooks) {
       'relatedRecords returns record identities');
   });
 
-
   test('#replaceRelatedRecord can create has-one relationships', function(assert) {
     const europa = {
       type: 'moon', id: 'm2',
@@ -232,7 +254,7 @@ module('RelationshipAccessor', function(hooks) {
       }
     };
 
-    accessor = new RelationshipAccessor(cache);
+    let accessor = new RelationshipAccessor(cache);
 
     accessor.addRecord(europa);
 
@@ -254,7 +276,7 @@ module('RelationshipAccessor', function(hooks) {
       }
     };
 
-    accessor = new RelationshipAccessor(cache);
+    let accessor = new RelationshipAccessor(cache);
 
     accessor.addRecord(jupiter);
 
