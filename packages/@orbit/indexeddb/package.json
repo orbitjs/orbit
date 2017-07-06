@@ -1,6 +1,6 @@
 {
   "name": "@orbit/indexeddb",
-  "version": "0.11.1",
+  "version": "0.12.0",
   "description": "IndexedDB support for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -22,9 +22,9 @@
     "test": "testem ci"
   },
   "dependencies": {
-    "@orbit/utils": "^0.11.1",
-    "@orbit/core": "^0.11.1",
-    "@orbit/data": "^0.11.1"
+    "@orbit/utils": "^0.12.0",
+    "@orbit/core": "^0.12.0",
+    "@orbit/data": "^0.12.0"
   },
   "devDependencies": {
     "@glimmer/build": "^0.6.3"
