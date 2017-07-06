@@ -1,9 +1,5 @@
-declare const self: any;
+import Orbit from '@orbit/core';
 
 export function supportsLocalStorage(): boolean {
-  try {
-    return 'localStorage' in self && self['localStorage'] !== null;
-  } catch (e) {
-    return false;
-  }
+  return !!Orbit.globals.localStorage;
 }

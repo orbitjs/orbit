@@ -15,8 +15,6 @@ import transformOperators from './lib/transform-operators';
 import { PullOperator, PullOperators } from './lib/pull-operators';
 import { supportsLocalStorage } from './lib/local-storage';
 
-declare const self: any;
-
 export interface LocalStorageSourceSettings extends SourceSettings {
   delimiter?: string;
   namespace?: string;
@@ -80,7 +78,7 @@ export default class LocalStorageSource extends Source implements Pullable, Push
   getRecord(record: RecordIdentity): Record {
     const key = this.getKeyForRecord(record);
 
-    return JSON.parse(self.localStorage.getItem(key));
+    return JSON.parse(Orbit.globals.localStorage.getItem(key));
   }
 
   putRecord(record: Record): void {
@@ -88,7 +86,7 @@ export default class LocalStorageSource extends Source implements Pullable, Push
 
     // console.log('LocalStorageSource#putRecord', key, JSON.stringify(record));
 
-    self.localStorage.setItem(key, JSON.stringify(record));
+    Orbit.globals.localStorage.setItem(key, JSON.stringify(record));
   }
 
   removeRecord(record: RecordIdentity): void {
@@ -96,7 +94,7 @@ export default class LocalStorageSource extends Source implements Pullable, Push
 
     // console.log('LocalStorageSource#removeRecord', key, JSON.stringify(record));
 
-    self.localStorage.removeItem(key);
+    Orbit.globals.localStorage.removeItem(key);
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -104,9 +102,9 @@ export default class LocalStorageSource extends Source implements Pullable, Push
   /////////////////////////////////////////////////////////////////////////////
 
   reset(): Promise<void> {
-    for (let key in self.localStorage) {
+    for (let key in Orbit.globals.localStorage) {
       if (key.indexOf(this.namespace) === 0) {
-        self.localStorage.removeItem(key);
+        Orbit.globals.localStorage.removeItem(key);
       }
     }
     return Orbit.Promise.resolve();

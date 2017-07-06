@@ -1,7 +1,5 @@
 import Orbit from '@orbit/core';
 
-declare const self: any;
-
 export function jsonapiResponse(_options, body?, timeout?) {
   let options;
   let response;
@@ -16,17 +14,17 @@ export function jsonapiResponse(_options, body?, timeout?) {
 
   if (body) {
     options.headers['Content-Type'] = 'application/vnd.api+json';
-    response = new self.Response(JSON.stringify(body), options);
+    response = new Orbit.globals.Response(JSON.stringify(body), options);
   } else {
-    response = new self.Response(options);
+    response = new Orbit.globals.Response(options);
   }
 
   // console.log('jsonapiResponse', body, options, response.headers.get('Content-Type'));
 
   if (timeout) {
     return new Orbit.Promise((resolve, reject) => {
-        let timer = self.setTimeout(() => {
-          self.clearTimeout(timer);
+        let timer = Orbit.globals.setTimeout(() => {
+          Orbit.globals.clearTimeout(timer);
           resolve(response);
         }, timeout);
       });

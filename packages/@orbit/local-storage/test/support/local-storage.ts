@@ -1,9 +1,9 @@
-declare const self: any;
+import Orbit from '@orbit/core';
 
 function getRecord(source, record) {
   let recordKey = [source.namespace, record.type, record.id].join(source.delimiter);
 
-  return JSON.parse(self.localStorage.getItem(recordKey));
+  return JSON.parse(Orbit.globals.localStorage.getItem(recordKey));
 }
 
 export function verifyLocalStorageContainsRecord(assert, source, record, ignoreFields?) {
@@ -27,7 +27,7 @@ export function verifyLocalStorageDoesNotContainRecord(assert, source, record) {
 
 export function verifyLocalStorageIsEmpty(assert, source) {
   let isEmpty = true;
-  for (let key in self.localStorage) {
+  for (let key in Orbit.globals.localStorage) {
     if (key.indexOf(source.namespace) === 0) {
       isEmpty = false;
       break;
