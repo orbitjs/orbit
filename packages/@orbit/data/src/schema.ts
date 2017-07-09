@@ -2,7 +2,7 @@
 import Orbit from './main';
 import { assert, clone, Dict } from '@orbit/utils';
 import { evented, Evented } from '@orbit/core';
-import { Record } from './record';
+import { Record, RecordInitializer } from './record';
 
 export interface AttributeDefinition {
   type?: string;
@@ -79,7 +79,7 @@ export interface SchemaSettings {
  * @implements {Evented}
  */
 @evented
-export default class Schema implements Evented {
+export default class Schema implements Evented, RecordInitializer {
   models: Dict<ModelDefinition>;
 
   private _version: number;
@@ -202,6 +202,12 @@ export default class Schema implements Evented {
       return word.substr(0, word.length - 1);
     } else {
       return word;
+    }
+  }
+
+  initializeRecord(record: Record): void {
+    if (record.id === undefined) {
+      record.id = this.generateId(record.type);
     }
   }
 }
