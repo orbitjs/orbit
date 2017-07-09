@@ -14,20 +14,21 @@ import {
   equalRecordIdentities
 } from '@orbit/data';
 import { clone, deepGet, deepSet, merge } from '@orbit/utils';
-import Cache from '../cache';
+import Cache, { PatchResultData } from '../cache';
 
 export interface PatchTransformFunc {
-  (cache: Cache, op: RecordOperation): void;
+  (cache: Cache, op: RecordOperation): PatchResultData;
 }
 
 export default {
-  addRecord(cache: Cache, op: AddRecordOperation): void {
-    const { type, id } = op.record;
-    const records = cache.records(type);
-    records.set(id, op.record);
+  addRecord(cache: Cache, op: AddRecordOperation): PatchResultData {
+    let record = op.record;
+    const records = cache.records(record.type);
+    records.set(record.id, record);
+    return record;
   },
 
-  replaceRecord(cache: Cache, op: ReplaceRecordOperation): void {
+  replaceRecord(cache: Cache, op: ReplaceRecordOperation): PatchResultData {
     const replacement = op.record;
     const { type, id } = replacement;
     const records = cache.records(type);
@@ -51,15 +52,22 @@ export default {
     }
 
     records.set(id, result);
+    return result;
   },
 
-  removeRecord(cache: Cache, op: RemoveRecordOperation): void {
+  removeRecord(cache: Cache, op: RemoveRecordOperation): PatchResultData {
     const { type, id } = op.record;
     const records = cache.records(type);
-    records.remove(id);
+    const result = records.get(id);
+    if (result) {
+      records.remove(id);
+      return result;
+    } else {
+      return null;
+    }
   },
 
-  replaceKey(cache: Cache, op: ReplaceKeyOperation): void {
+  replaceKey(cache: Cache, op: ReplaceKeyOperation): PatchResultData {
     const { type, id } = op.record;
     const records = cache.records(type);
     let record = records.get(id);
@@ -70,9 +78,10 @@ export default {
     }
     deepSet(record, ['keys', op.key], op.value);
     records.set(id, record);
+    return record;
   },
 
-  replaceAttribute(cache: Cache, op: ReplaceAttributeOperation): void {
+  replaceAttribute(cache: Cache, op: ReplaceAttributeOperation): PatchResultData {
     const { type, id } = op.record;
     const records = cache.records(type);
     let record = records.get(id);
@@ -83,9 +92,10 @@ export default {
     }
     deepSet(record, ['attributes', op.attribute], op.value);
     records.set(id, record);
+    return record;
   },
 
-  addToRelatedRecords(cache: Cache, op: AddToRelatedRecordsOperation): void {
+  addToRelatedRecords(cache: Cache, op: AddToRelatedRecordsOperation): PatchResultData {
     const { type, id } = op.record;
     const records = cache.records(type);
     let record = records.get(id);
@@ -99,9 +109,10 @@ export default {
 
     deepSet(record, ['relationships', op.relationship, 'data'], relatedRecords);
     records.set(id, record);
+    return record;
   },
 
-  removeFromRelatedRecords(cache: Cache, op: RemoveFromRelatedRecordsOperation): boolean {
+  removeFromRelatedRecords(cache: Cache, op: RemoveFromRelatedRecordsOperation): PatchResultData {
     const { type, id } = op.record;
     const records = cache.records(type);
     let record = records.get(id);
@@ -113,13 +124,14 @@ export default {
 
         if (deepSet(record, ['relationships', op.relationship, 'data'], relatedRecords)) {
           records.set(id, record);
-          return true;
         }
       }
+      return record;
     }
+    return null;
   },
 
-  replaceRelatedRecords(cache: Cache, op: ReplaceRelatedRecordsOperation): boolean {
+  replaceRelatedRecords(cache: Cache, op: ReplaceRelatedRecordsOperation): PatchResultData {
     const { type, id } = op.record;
     const records = cache.records(type);
     let record = records.get(id);
@@ -130,11 +142,11 @@ export default {
     }
     if (deepSet(record, ['relationships', op.relationship, 'data'], op.relatedRecords)) {
       records.set(id, record);
-      return true;
     }
+    return record;
   },
 
-  replaceRelatedRecord(cache: Cache, op: ReplaceRelatedRecordOperation): boolean {
+  replaceRelatedRecord(cache: Cache, op: ReplaceRelatedRecordOperation): PatchResultData {
     const { type, id } = op.record;
     const records = cache.records(type);
     let record = records.get(id);
@@ -145,7 +157,7 @@ export default {
     }
     if (deepSet(record, ['relationships', op.relationship, 'data'], op.relatedRecord)) {
       records.set(id, record);
-      return true;
     }
+    return record;
   }
 };

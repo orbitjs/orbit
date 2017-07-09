@@ -1,6 +1,7 @@
 import {
   Record,
-  RecordIdentity
+  RecordIdentity,
+  RecordInitializer
 } from './record';
 import {
   AddRecordOperation,
@@ -15,7 +16,21 @@ import {
 } from './operation';
 import { eq } from '@orbit/utils';
 
+export interface TransformBuilderSettings {
+  recordInitializer?: RecordInitializer;
+}
+
 export default class TransformBuilder {
+  private _recordInitializer: RecordInitializer;
+
+  constructor(settings: TransformBuilderSettings = {}) {
+    this._recordInitializer = settings.recordInitializer;
+  }
+
+  get recordInitializer(): RecordInitializer {
+    return this._recordInitializer;
+  }
+
   /**
    * Instantiate a new `addRecord` operation.
    *
@@ -23,6 +38,9 @@ export default class TransformBuilder {
    * @returns {AddRecordOperation}
    */
   addRecord(record: Record): AddRecordOperation {
+    if (this._recordInitializer) {
+      this._recordInitializer.initializeRecord(record);
+    }
     return { op: 'addRecord', record};
   }
 

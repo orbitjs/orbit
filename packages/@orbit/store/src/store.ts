@@ -13,7 +13,7 @@ import Orbit, {
 } from '@orbit/data';
 import { Log } from '@orbit/core';
 import { assert, Dict } from '@orbit/utils';
-import Cache, { CacheSettings } from './cache';
+import Cache, { CacheSettings, PatchResultData } from './cache';
 
 export interface StoreSettings extends SourceSettings {
   cacheSettings?: CacheSettings
@@ -40,7 +40,7 @@ export default class Store extends Source implements Syncable, Queryable, Updata
   query: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<any>;
 
   // Updatable interface stubs
-  update: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => Promise<void>;
+  update: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => Promise<any>;
 
   constructor(settings: StoreSettings = {}) {
     assert('Store\'s `schema` must be specified in `settings.schema` constructor argument', !!settings.schema);
@@ -75,7 +75,7 @@ export default class Store extends Source implements Syncable, Queryable, Updata
   // Syncable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _sync(transform: Transform) {
+  _sync(transform: Transform): Promise<void> {
     this._applyTransform(transform);
     return Orbit.Promise.resolve();
   }
@@ -84,9 +84,9 @@ export default class Store extends Source implements Syncable, Queryable, Updata
   // Updatable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _update(transform: Transform) {
-    this._applyTransform(transform);
-    return Orbit.Promise.resolve();
+  _update(transform: Transform): Promise<any> {
+    let results = this._applyTransform(transform);
+    return Orbit.Promise.resolve(results.length === 1 ? results[0] : results);
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -211,10 +211,11 @@ export default class Store extends Source implements Syncable, Queryable, Updata
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
 
-  protected _applyTransform(transform: Transform): void {
-    const inverse = this.cache.patch(<RecordOperation[]>transform.operations);
+  protected _applyTransform(transform: Transform): PatchResultData[] {
+    const result = this.cache.patch(<RecordOperation[]>transform.operations);
     this._transforms[transform.id] = transform;
-    this._transformInverses[transform.id] = inverse;
+    this._transformInverses[transform.id] = result.inverse;
+    return result.data;
   }
 
   protected _clearTransformFromHistory(transformId: string): void {

@@ -109,7 +109,9 @@ export abstract class Source implements Evented, Performer {
   get transformBuilder(): TransformBuilder {
     let tb = this._transformBuilder;
     if (tb === undefined) {
-      tb = this._transformBuilder = new TransformBuilder();
+      tb = this._transformBuilder = new TransformBuilder({
+        recordInitializer: this._schema
+      });
     }
     return tb;
   }

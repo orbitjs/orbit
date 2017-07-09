@@ -51,7 +51,7 @@ module('@updatable', function(hooks) {
   });
 
   test('#update should trigger `update` event after a successful action in which `_update` returns an array of transforms', function(assert) {
-    assert.expect(9);
+    assert.expect(11);
 
     let order = 0;
 
@@ -65,7 +65,7 @@ module('@updatable', function(hooks) {
     source._update = function(transform) {
       assert.equal(++order, 2, 'action performed after beforeUpdate');
       assert.strictEqual(transform, addRecordTransform, 'transform object matches');
-      return Promise.resolve();
+      return Promise.resolve(':)');
     };
 
     source.on('transform', (transform) => {
@@ -74,16 +74,56 @@ module('@updatable', function(hooks) {
       return Promise.resolve();
     });
 
-    source.on('update', (transform) => {
+    source.on('update', (transform, result) => {
       assert.equal(++order, 4, 'update triggered after action performed successfully');
       assert.strictEqual(transform, addRecordTransform, 'update transform matches');
+      assert.equal(result, ':)', 'result matches');
     });
 
     return source.update(addRecordTransform)
-      .then(() => {
+      .then(result => {
         assert.equal(++order, 5, 'promise resolved last');
+        assert.equal(result, ':)', 'success!');
       });
   });
+
+  test('`update` event should receive results as the last argument, even if they are an array', function(assert) {
+    assert.expect(11);
+
+    let order = 0;
+
+    const addRecordTransform = Transform.from({ op: 'addRecord' });
+
+    source.on('beforeUpdate', (transform) => {
+      assert.equal(++order, 1, 'beforeUpdate triggered first');
+      assert.strictEqual(transform, addRecordTransform, 'transform matches');
+    });
+
+    source._update = function(transform) {
+      assert.equal(++order, 2, 'action performed after beforeUpdate');
+      assert.strictEqual(transform, addRecordTransform, 'transform object matches');
+      return Promise.resolve(['a', 'b', 'c']);
+    };
+
+    source.on('transform', (transform) => {
+      assert.equal(++order, 3, 'transform triggered after action performed successfully');
+      assert.strictEqual(transform, addRecordTransform, 'transform matches');
+      return Promise.resolve();
+    });
+
+    source.on('update', (transform, result) => {
+      assert.equal(++order, 4, 'update triggered after action performed successfully');
+      assert.strictEqual(transform, addRecordTransform, 'update transform matches');
+      assert.deepEqual(result, ['a', 'b', 'c'], 'result matches');
+    });
+
+    return source.update(addRecordTransform)
+      .then(result => {
+        assert.equal(++order, 5, 'promise resolved last');
+        assert.deepEqual(result, ['a', 'b', 'c'], 'success!');
+      });
+  });
+
 
   test('#update should trigger `updateFail` event after an unsuccessful update', function(assert) {
     assert.expect(7);

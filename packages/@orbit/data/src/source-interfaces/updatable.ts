@@ -38,9 +38,9 @@ export interface Updatable {
    *
    * @memberOf Updatable
    */
-  update(transformOrOperations: TransformOrOperations, options?: object, id?: string): Promise<void>;
+  update(transformOrOperations: TransformOrOperations, options?: object, id?: string): Promise<any>;
 
-  _update(transform: Transform): Promise<void>;
+  _update(transform: Transform): Promise<any>;
 }
 
 /**
@@ -99,8 +99,11 @@ export default function updatable(Klass: SourceClass): void {
 
     return fulfillInSeries(this, 'beforeUpdate', transform)
       .then(() => this._update(transform))
-      .then(() => this._transformed([transform]))
-      .then(() => settleInSeries(this, 'update', transform))
+      .then(result => {
+        return this._transformed([transform])
+          .then(() => settleInSeries(this, 'update', transform, result))
+          .then(() => result);
+      })
       .catch(error => {
         return settleInSeries(this, 'updateFail', transform, error)
           .then(() => { throw error; });

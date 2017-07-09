@@ -82,4 +82,21 @@ module('Schema', function() {
 
     assert.equal(schema.generateId('moon'), 'moon-123', 'provides the default value for the ID');
   });
+
+  test('#initializeRecord', function(assert) {
+    const schema = new Schema({
+      generateId: (modelName) => `${modelName}-123`,
+
+      models: {
+        moon: {}
+      }
+    });
+
+    let moon = { type: 'moon', id: undefined };
+    schema.initializeRecord(moon);
+    assert.equal(moon.id, 'moon-123', 'generates an ID if `id` is undefined');
+
+    moon = { type: 'moon', id: '234' };
+    assert.equal(moon.id, '234', 'does not alter an `id` that is already set');
+  });
 });

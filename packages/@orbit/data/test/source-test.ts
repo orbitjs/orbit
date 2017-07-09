@@ -50,6 +50,7 @@ module('Source', function(hooks) {
     const tb = source.transformBuilder;
     assert.ok(tb, 'transformBuilder created');
     assert.strictEqual(tb, source.transformBuilder, 'transformBuilder remains the same');
+    assert.strictEqual(source.transformBuilder.recordInitializer, source.schema, 'transformBuilder uses the schema to initialize records');
   });
 
   test('it can be instantiated with a `queryBuilder` and/or `transformBuilder`', function(assert) {

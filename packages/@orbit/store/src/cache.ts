@@ -36,6 +36,13 @@ export interface CacheSettings {
   transformBuilder?: TransformBuilder;
 }
 
+export type PatchResultData = Record | RecordIdentity | null;
+
+export interface PatchResult {
+  inverse: RecordOperation[],
+  data: PatchResultData[]
+}
+
 /**
  * A `Cache` is an in-memory data store that can be accessed synchronously.
  *
@@ -70,7 +77,9 @@ export default class Cache implements Evented {
     this._keyMap = settings.keyMap;
 
     this._queryBuilder = settings.queryBuilder || new QueryBuilder();
-    this._transformBuilder = settings.transformBuilder || new TransformBuilder();
+    this._transformBuilder = settings.transformBuilder || new TransformBuilder({
+      recordInitializer: this._schema
+    });
 
     const processors: OperationProcessorClass[] = settings.processors ? settings.processors : [SchemaConsistencyProcessor, CacheIntegrityProcessor];
     this._processors = processors.map(Processor => new Processor(this));
@@ -170,41 +179,45 @@ export default class Cache implements Evented {
    * @returns {Operation[]}
    * @memberof Cache
    */
-  patch(operationOrOperations: RecordOperation | RecordOperation[] | TransformBuilderFunc): RecordOperation[] {
+  patch(operationOrOperations: RecordOperation | RecordOperation[] | TransformBuilderFunc): PatchResult {
     if (typeof operationOrOperations === 'function') {
       operationOrOperations = <RecordOperation | RecordOperation[]>operationOrOperations(this._transformBuilder);
     }
 
-    const inverse: RecordOperation[] = [];
-
-    if (isArray(operationOrOperations)) {
-      this._applyOperations(<RecordOperation[]>operationOrOperations, inverse);
-    } else {
-      this._applyOperation(<RecordOperation>operationOrOperations, inverse);
+    const result: PatchResult = {
+      inverse: [],
+      data: []
     }
 
-    return inverse;
+    if (isArray(operationOrOperations)) {
+      this._applyOperations(<RecordOperation[]>operationOrOperations, result, true);
+
+    } else {
+      this._applyOperation(<RecordOperation>operationOrOperations, result, true);
+    }
+
+    return result;
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
 
-  protected _applyOperations(ops: RecordOperation[], inverse: RecordOperation[]) {
-    ops.forEach(op => this._applyOperation(op, inverse));
+  protected _applyOperations(ops: RecordOperation[], result: PatchResult, primary: boolean = false) {
+    ops.forEach(op => this._applyOperation(op, result, primary));
   }
 
-  protected _applyOperation(operation: RecordOperation, inverse: RecordOperation[]) {
+  protected _applyOperation(operation: RecordOperation, result: PatchResult, primary: boolean = false) {
     const inverseTransform: InverseTransformFunc = InverseTransforms[ operation.op ];
     const inverseOp: RecordOperation = inverseTransform(this, operation);
 
     if (inverseOp) {
-      inverse.unshift(inverseOp);
+      result.inverse.unshift(inverseOp);
 
       // Query and perform related `before` operations
       this._processors
           .map(processor => processor.before(operation))
-          .forEach(ops => this._applyOperations(ops, inverse));
+          .forEach(ops => this._applyOperations(ops, result));
 
       // Query related `after` operations before performing
       // the requested operation. These will be applied on success.
@@ -212,22 +225,27 @@ export default class Cache implements Evented {
 
       // Perform the requested operation
       let patchTransform: PatchTransformFunc = PatchTransforms[ operation.op ];
-      patchTransform(this, operation);
+      let data: PatchResultData = patchTransform(this, operation);
+      if (primary) {
+        result.data.push(data);
+      }
 
       // Query and perform related `immediate` operations
       this._processors
           .forEach(processor => processor.immediate(operation));
 
       // Emit event
-      this.emit('patch', operation);
+      this.emit('patch', operation, data);
 
       // Perform prepared operations after performing the requested operation
-      preparedOps.forEach(ops => this._applyOperations(ops, inverse));
+      preparedOps.forEach(ops => this._applyOperations(ops, result));
 
       // Query and perform related `finally` operations
       this._processors
           .map(processor => processor.finally(operation))
-          .forEach(ops => this._applyOperations(ops, inverse));
+          .forEach(ops => this._applyOperations(ops, result));
+    } else if (primary) {
+      result.data.push(null);
     }
   }
 
