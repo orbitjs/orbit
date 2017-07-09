@@ -21,6 +21,10 @@ export interface Record extends RecordIdentity {
   relationships?: Dict<RecordRelationship>;
 }
 
+export interface RecordInitializer {
+  initializeRecord(record: Record): void;
+}
+
 export function cloneRecordIdentity(identity: RecordIdentity): RecordIdentity {
   const { type, id } = identity;
   return { type, id };
