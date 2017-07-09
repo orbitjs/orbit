@@ -27,6 +27,10 @@ export default class TransformBuilder {
     this._recordInitializer = settings.recordInitializer;
   }
 
+  get recordInitializer(): RecordInitializer {
+    return this._recordInitializer;
+  }
+
   /**
    * Instantiate a new `addRecord` operation.
    *
