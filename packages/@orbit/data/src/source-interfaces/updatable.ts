@@ -82,27 +82,33 @@ export default function updatable(Klass: SourceClass): void {
 
   proto[UPDATABLE] = true;
 
-  proto.update = function(transformOrOperations: TransformOrOperations, options?: object, id?: string): Promise<void> {
+  proto.update = function(transformOrOperations: TransformOrOperations, options?: object, id?: string): Promise<any> {
     const transform = Transform.from(transformOrOperations, options, id, this.transformBuilder);
 
     if (this.transformLog.contains(transform.id)) {
-      return Orbit.Promise.resolve([]);
+      return Orbit.Promise.resolve();
     }
 
     return this._enqueueRequest('update', transform);
   }
 
-  proto.__update__ = function(transform: Transform): Promise<void> {
+  proto.__update__ = function(transform: Transform): Promise<any> {
     if (this.transformLog.contains(transform.id)) {
-      return Orbit.Promise.resolve([]);
+      return Orbit.Promise.resolve();
     }
 
     return fulfillInSeries(this, 'beforeUpdate', transform)
-      .then(() => this._update(transform))
-      .then(result => {
-        return this._transformed([transform])
-          .then(() => settleInSeries(this, 'update', transform, result))
-          .then(() => result);
+      .then(() => {
+        if (this.transformLog.contains(transform.id)) {
+          return Orbit.Promise.resolve();
+        } else {
+          return this._update(transform)
+            .then(result => {
+              return this._transformed([transform])
+                .then(() => settleInSeries(this, 'update', transform, result))
+                .then(() => result);
+            })
+        }
       })
       .catch(error => {
         return settleInSeries(this, 'updateFail', transform, error)

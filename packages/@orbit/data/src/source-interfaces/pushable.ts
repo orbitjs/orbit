@@ -99,11 +99,17 @@ export default function pushable(Klass: SourceClass): void {
     }
 
     return fulfillInSeries(this, 'beforePush', transform)
-      .then(() => this._push(transform))
-      .then(result => this._transformed(result))
-      .then(result => {
-        return settleInSeries(this, 'push', transform, result)
-          .then(() => result);
+      .then(() => {
+        if (this.transformLog.contains(transform.id)) {
+          return Orbit.Promise.resolve([]);
+        } else {
+          return this._push(transform)
+            .then(result => {
+              return this._transformed(result)
+                .then(() => settleInSeries(this, 'push', transform, result))
+                .then(() => result);
+            })
+        }
       })
       .catch(error => {
         return settleInSeries(this, 'pushFail', transform, error)

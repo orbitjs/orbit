@@ -1,4 +1,4 @@
-import Orbit, { 
+import Orbit, {
   Source,
   pushable, isPushable,
   Transform
@@ -164,6 +164,36 @@ module('@pushable', function(hooks) {
       .then((result) => {
         assert.equal(++order, 6, 'promise resolved last');
         assert.deepEqual(result, resultingTransforms, 'applied transforms are returned on success');
+      });
+  });
+
+  test('#push should not call `_push` if the transform has been applied as a result of `beforePush` resolution', function(assert) {
+    assert.expect(2);
+
+    let order = 0;
+
+    const addRecordTransform = Transform.from({ op: 'addRecord' });
+
+    source.on('beforePush', () => {
+      assert.equal(++order, 1, 'beforePush triggered first');
+
+      // source transformed
+      source.transformLog.append(addRecordTransform.id);
+
+      return Promise.resolve();
+    });
+
+    source._push = function() {
+      assert.ok(false, '_push should not be reached');
+    };
+
+    source.on('push', () => {
+      assert.ok(false, 'push should not be reached');
+    });
+
+    return source.push(addRecordTransform)
+      .then(() => {
+        assert.equal(++order, 2, 'promise resolved last');
       });
   });
 
