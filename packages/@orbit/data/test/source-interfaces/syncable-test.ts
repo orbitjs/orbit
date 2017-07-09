@@ -131,6 +131,36 @@ module('@syncable', function(hooks) {
       });
   });
 
+  test('#sync should not call `_sync` if the transform has been applied as a result of `beforeSync` resolution', function(assert) {
+    assert.expect(2);
+
+    let order = 0;
+
+    const addRecordTransform = Transform.from({ op: 'addRecord' });
+
+    source.on('beforeSync', () => {
+      assert.equal(++order, 1, 'beforeSync triggered first');
+
+      // source transformed
+      source.transformLog.append(addRecordTransform.id);
+
+      return Promise.resolve();
+    });
+
+    source._sync = function() {
+      assert.ok(false, '_sync should not be reached');
+    };
+
+    source.on('sync', () => {
+      assert.ok(false, 'sync should not be reached');
+    });
+
+    return source.sync(addRecordTransform)
+      .then(() => {
+        assert.equal(++order, 2, 'promise resolved last');
+      });
+  });
+
   test('#sync should resolve all promises returned from `beforeSync` before calling `_sync`', function(assert) {
     assert.expect(6);
 

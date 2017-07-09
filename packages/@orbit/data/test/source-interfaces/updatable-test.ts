@@ -192,6 +192,36 @@ module('@updatable', function(hooks) {
       });
   });
 
+  test('#update should not call `_update` if the transform has been applied as a result of `beforeUpdate` resolution', function(assert) {
+    assert.expect(2);
+
+    let order = 0;
+
+    const addRecordTransform = Transform.from({ op: 'addRecord' });
+
+    source.on('beforeUpdate', () => {
+      assert.equal(++order, 1, 'beforeUpdate triggered first');
+
+      // source transformed
+      source.transformLog.append(addRecordTransform.id);
+
+      return Promise.resolve();
+    });
+
+    source._update = function() {
+      assert.ok(false, '_update should not be reached');
+    };
+
+    source.on('update', () => {
+      assert.ok(false, 'update should not be reached');
+    });
+
+    return source.update(addRecordTransform)
+      .then(() => {
+        assert.equal(++order, 2, 'promise resolved last');
+      });
+  });
+
   test('#update should resolve all promises returned from `beforeUpdate` and fail if any fail', function(assert) {
     assert.expect(5);
 

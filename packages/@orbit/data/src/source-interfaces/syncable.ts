@@ -88,9 +88,15 @@ export default function syncable(Klass: SourceClass): void {
     }
 
     return fulfillInSeries(this, 'beforeSync', transform)
-      .then(() => this._sync(transform))
-      .then(() => this._transformed([transform]))
-      .then(() => settleInSeries(this, 'sync', transform))
+      .then(() => {
+        if (this.transformLog.contains(transform.id)) {
+          return Orbit.Promise.resolve();
+        } else {
+          return this._sync(transform)
+            .then(() => this._transformed([transform]))
+            .then(() => settleInSeries(this, 'sync', transform));
+        }
+      })
       .catch(error => {
         return settleInSeries(this, 'syncFail', transform, error)
           .then(() => { throw error; });
