@@ -75,7 +75,7 @@ module('Store', function(hooks) {
   });
 
   test('#update - transforms the store\'s cache', function(assert) {
-    assert.expect(3);
+    assert.expect(4);
 
     const jupiter = {
       id: 'jupiter',
@@ -86,9 +86,32 @@ module('Store', function(hooks) {
     assert.equal(store.cache.records('planet').size, 0, 'cache should start empty');
 
     return store.update(t => t.addRecord(jupiter))
-      .then(() => {
+      .then((record) => {
         assert.equal(store.cache.records('planet').size, 1, 'cache should contain one planet');
         assert.deepEqual(store.cache.records('planet').get('jupiter'), jupiter, 'planet should be jupiter');
+        assert.strictEqual(record, jupiter, 'result should be returned');
+      });
+  });
+
+  test('#update - can perform multiple operations and return the results', function(assert) {
+    assert.expect(3);
+
+    const jupiter = {
+      type: 'planet',
+      attributes: { name: 'Jupiter', classification: 'gas giant' }
+    };
+
+    const earth = {
+      type: 'planet',
+      attributes: { name: 'Earth', classification: 'terrestrial' }
+    }
+
+    assert.equal(store.cache.records('planet').size, 0, 'cache should start empty');
+
+    return store.update(t => [t.addRecord(jupiter), t.addRecord(earth)])
+      .then((records) => {
+        assert.equal(store.cache.records('planet').size, 2, 'cache should contain two planets');
+        assert.deepEqual(records, [ jupiter, earth ], 'results array should be returned');
       });
   });
 
