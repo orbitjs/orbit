@@ -1,4 +1,4 @@
-import TransformBuilder from '../src/transform-builder';
+import { Record, TransformBuilder } from '../src/index';
 import './test-helper';
 
 const { module, test } = QUnit;
@@ -92,6 +92,25 @@ module('TransformBuilder', function(hooks) {
     assert.deepEqual(
       tb.replaceRelatedRecord(record, 'planet', relatedRecord),
       { op: 'replaceRelatedRecord', record, relationship: 'planet', relatedRecord }
+    );
+  });
+
+  test('#addRecord - when a recordInitializer has been set', function(assert) {
+    const recordInitializer = {
+      initializeRecord(record: Record) {
+        if (record.id === undefined) {
+          record.id = 'abc123';
+        }
+      }
+    }
+
+    tb = new TransformBuilder({ recordInitializer });
+
+    let record = { type: 'planet' };
+
+    assert.deepEqual(
+      tb.addRecord(record),
+      { op: 'addRecord', record: { type: 'planet', id: 'abc123' } }
     );
   });
 });
