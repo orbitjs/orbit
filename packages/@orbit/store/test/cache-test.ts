@@ -41,10 +41,31 @@ module('Cache', function(hooks) {
     assert.ok(cache);
   });
 
+  test('it creates a `queryBuilder` if none is assigned', function(assert) {
+    let cache = new Cache({ schema });
+    assert.ok(cache.queryBuilder, 'queryBuilder has been instantiated');
+  });
+
+  test('creates a `transformBuilder` upon first access', function(assert) {
+    let cache = new Cache({ schema });
+    assert.ok(cache.transformBuilder, 'transformBuilder has been instantiated');
+    assert.strictEqual(cache.transformBuilder.recordInitializer, schema, 'transformBuilder uses the schema to initialize records');
+  });
+
   test('#patch sets data and #records retrieves it', function(assert) {
+    assert.expect(3);
+
     let cache = new Cache({ schema, keyMap });
 
     const earth = { type: 'planet', id: '1', attributes: { name: 'Earth' } };
+
+    cache.on('patch', (operation, data) => {
+      assert.deepEqual(operation, {
+        op: 'addRecord',
+        record: earth
+      });
+      assert.deepEqual(data, earth);
+    });
 
     cache.patch(t => t.addRecord(earth));
 
@@ -81,19 +102,28 @@ module('Cache', function(hooks) {
     assert.strictEqual(cache1.records('planet').get('1').attributes.name, 'Jupiter');
   });
 
-  test('#patch updates the cache and returns an array of inverse ops', function(assert) {
+  test('#patch updates the cache and returns arrays of primary data and inverse ops', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
-    let inverse = cache.patch(t => [
-      t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } }),
-      t.removeRecord({ type: 'planet', id: '2' })
+    let p1 = { type: 'planet', id: '1', attributes: { name: 'Earth' } };
+    let p2 = { type: 'planet', id: '2' };
+
+    let result = cache.patch(t => [
+      t.addRecord(p1),
+      t.removeRecord(p2)
     ]);
 
     assert.deepEqual(
-      inverse,
-      [
-        { op: 'removeRecord', record: { type: 'planet', id: '1' } }
-      ],
+      result,
+      {
+        data: [
+          p1,
+          null // null because p2 didn't exist
+        ],
+        inverse:[
+          { op: 'removeRecord', record: { type: 'planet', id: '1' } }
+        ]
+      },
       'ignores ops that are noops'
     );
   });
@@ -467,7 +497,7 @@ module('Cache', function(hooks) {
       t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' }, relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } } })
     ]);
 
-    let inverse = cache.patch(t => [
+    let result = cache.patch(t => [
       t.replaceRecord({ type: 'planet', id: '1', attributes: { classification: 'terrestrial' } })
     ]);
 
@@ -478,10 +508,26 @@ module('Cache', function(hooks) {
     );
 
     assert.deepEqual(
-      inverse,
-      [
-        tb.replaceRecord({ type: 'planet', id: '1', attributes: { classification: null } })
-      ],
+      result,
+      {
+        data: [
+          {
+            type: 'planet', id: '1',
+            attributes: {
+              name: 'Earth',
+              classification: 'terrestrial'
+            },
+            relationships: {
+              moons: {
+                data: [{ type: 'moon', id: 'm1' }]
+              }
+            }
+          }
+        ],
+        inverse: [
+          tb.replaceRecord({ type: 'planet', id: '1', attributes: { classification: null } })
+        ]
+      },
       'ignores ops that are noops'
     );
   });
@@ -494,17 +540,20 @@ module('Cache', function(hooks) {
       t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' }, relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } } })
     ]);
 
-    let inverse = cache.patch(t => [
+    let result = cache.patch(t => [
       t.replaceRelatedRecords({ type: 'planet', id: '1' }, 'moons', [{ type: 'moon', id: 'm1' }])
     ]);
 
     assert.deepEqual(
-      inverse,
-      [],
+      result,
+      {
+        data: [null],
+        inverse: []
+      },
       'nothing has changed so there are no inverse ops'
     );
 
-    inverse = cache.patch(t => [
+    result = cache.patch(t => [
       t.replaceRelatedRecords({ type: 'planet', id: '1' }, 'moons', [{ type: 'moon', id: 'm2' }])
     ]);
 
@@ -515,29 +564,40 @@ module('Cache', function(hooks) {
     );
 
     assert.deepEqual(
-      inverse,
-      [
-        tb.replaceRelatedRecord(
-          { type: 'moon', id: 'm2' },
-          'planet',
-          null
-        ),
-        tb.addToRelatedRecords(
-          { type: 'planet', id: '1' },
-          'moons',
-          { type: 'moon', id: 'm1' }
-        ),
-        tb.replaceRelatedRecord(
-          { type: 'moon', id: 'm1' },
-          'planet',
-          { type: 'planet', id: '1' }
-        ),
-        tb.replaceRelatedRecords(
-          { type: 'planet', id: '1' },
-          'moons',
-          [{ type: 'moon', id: 'm1' }]
-        )
-      ],
+      result,
+      {
+        data: [
+          {
+            type: 'planet', id: '1',
+            attributes: { name: 'Earth' },
+            relationships: {
+              moons: { data: [{ type: 'moon', id: 'm2' }] }
+            }
+          }
+        ],
+        inverse: [
+          tb.replaceRelatedRecord(
+            { type: 'moon', id: 'm2' },
+            'planet',
+            null
+          ),
+          tb.addToRelatedRecords(
+            { type: 'planet', id: '1' },
+            'moons',
+            { type: 'moon', id: 'm1' }
+          ),
+          tb.replaceRelatedRecord(
+            { type: 'moon', id: 'm1' },
+            'planet',
+            { type: 'planet', id: '1' }
+          ),
+          tb.replaceRelatedRecords(
+            { type: 'planet', id: '1' },
+            'moons',
+            [{ type: 'moon', id: 'm1' }]
+          )
+        ]
+      },
       'ignores ops that are noops'
     );
   });
@@ -546,19 +606,70 @@ module('Cache', function(hooks) {
     let cache = new Cache({ schema, keyMap });
     const tb = cache.transformBuilder;
 
-    cache.patch([
-      tb.addRecord({
-        type: 'planet', id: '1',
-        attributes: { name: 'Earth' },
-        relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } } })
+    let earth = {
+      type: 'planet', id: '1',
+      attributes: { name: 'Earth' },
+      relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
+    };
+
+    let jupiter = {
+      type: 'planet', id: '1',
+      attributes: { name: 'Jupiter', classification: 'terrestrial' },
+      relationships: { moons: { data: [{ type: 'moon', id: 'm2' }] } }
+    };
+
+    let result = cache.patch([
+      tb.addRecord(earth)
     ]);
 
-    let inverse = cache.patch([
-      tb.replaceRecord({
-        type: 'planet', id: '1',
-        attributes: { name: 'Jupiter', classification: 'terrestrial' },
-        relationships: { moons: { data: [{ type: 'moon', id: 'm2' }] } } })
+    assert.deepEqual(
+      result,
+      {
+        data: [
+          earth
+        ],
+        inverse: [
+          tb.replaceRelatedRecord(
+            { type: 'moon', id: 'm1' },
+            'planet',
+            null
+          ),
+          tb.removeRecord({
+            type: 'planet', id: '1'
+          })
+        ]
+      }
+    );
+
+    result = cache.patch([
+      tb.replaceRecord(jupiter)
     ]);
+
+    assert.deepEqual(
+      result,
+      {
+        data: [
+          jupiter
+        ],
+        inverse: [
+            tb.replaceRelatedRecord(
+            { type: 'moon', id: 'm2' },
+            'planet',
+            null
+          ),
+          tb.replaceRelatedRecord(
+            { type: 'moon', id: 'm1' },
+            'planet',
+            { type: 'planet', id: '1' }
+          ),
+          tb.replaceRecord({
+            type: 'planet', id: '1',
+            attributes: { name: 'Earth', classification: null },
+            relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
+          })
+        ]
+      }
+    );
 
     assert.deepEqual(
       cache.query(q => q.findRecord({ type: 'planet', id: '1' })),
@@ -566,26 +677,6 @@ module('Cache', function(hooks) {
       'records have been merged'
     );
 
-    assert.deepEqual(
-      inverse,
-      [
-        tb.replaceRelatedRecord(
-          { type: 'moon', id: 'm2' },
-          'planet',
-          null
-        ),
-        tb.replaceRelatedRecord(
-          { type: 'moon', id: 'm1' },
-          'planet',
-          { type: 'planet', id: '1' }
-        ),
-        tb.replaceRecord({
-          type: 'planet', id: '1',
-          attributes: { name: 'Earth', classification: null },
-          relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
-        })
-      ]
-    )
   });
 
   test('#query can retrieve an individual record with `record`', function(assert) {
