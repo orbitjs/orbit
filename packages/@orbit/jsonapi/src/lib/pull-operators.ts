@@ -11,7 +11,8 @@ import {
   FilterSpecifier,
   SortSpecifier,
   AttributeFilterSpecifier,
-  AttributeSortSpecifier
+  AttributeSortSpecifier,
+  buildTransform
 } from '@orbit/data';
 import JSONAPISource from '../jsonapi-source';
 import { DeserializedDocument } from '../jsonapi-serializer';
@@ -33,7 +34,7 @@ function deserialize(source: JSONAPISource, document: JSONAPIDocument): Transfor
     };
   });
 
-  return [Transform.from(operations)];
+  return [buildTransform(operations)];
 }
 
 export interface PullOperator {

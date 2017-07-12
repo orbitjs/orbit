@@ -5,7 +5,8 @@ import Orbit, {
   Source,
   Transform,
   TransformBuilder,
-  syncable, isSyncable
+  syncable, isSyncable,
+  buildTransform
 } from '@orbit/data';
 import '../test-helper';
 
@@ -15,10 +16,10 @@ const { module, test } = QUnit;
 
 module('SyncStrategy', function(hooks) {
   const t = new TransformBuilder();
-  const tA = new Transform([t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })], null, 'a');
-  const tB = new Transform([t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })], null, 'b');
-  const tC = new Transform([t.addRecord({ type: 'planet', id: 'c', attributes: { name: 'c' } })], null, 'c');
-  const tD = new Transform([t.addRecord({ type: 'planet', id: 'd', attributes: { name: 'd' } })], null, 'd');
+  const tA = buildTransform([t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })], null, 'a');
+  const tB = buildTransform([t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })], null, 'b');
+  const tC = buildTransform([t.addRecord({ type: 'planet', id: 'c', attributes: { name: 'c' } })], null, 'c');
+  const tD = buildTransform([t.addRecord({ type: 'planet', id: 'd', attributes: { name: 'd' } })], null, 'd');
 
   let strategy, coordinator, s1, s2;
 

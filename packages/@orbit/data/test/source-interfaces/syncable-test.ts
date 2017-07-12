@@ -1,7 +1,7 @@
 import Orbit, {
   Source,
   syncable, isSyncable,
-  Transform
+  buildTransform
 } from '../../src/index';
 import '../test-helper';
 
@@ -71,7 +71,7 @@ module('@syncable', function(hooks) {
 
     let order = 0;
 
-    const addRecordTransform = Transform.from({ op: 'addRecord' });
+    const addRecordTransform = buildTransform({ op: 'addRecord' });
 
     source.on('beforeSync', (transform) => {
       assert.equal(++order, 1, 'beforeSync triggered first');
@@ -104,7 +104,7 @@ module('@syncable', function(hooks) {
   test('#sync should trigger `syncFail` event after an unsuccessful sync', function(assert) {
     assert.expect(7);
 
-    const addRecordTransform = Transform.from({ op: 'addRecord' });
+    const addRecordTransform = buildTransform({ op: 'addRecord' });
 
     let order = 0;
 
@@ -136,7 +136,7 @@ module('@syncable', function(hooks) {
 
     let order = 0;
 
-    const addRecordTransform = Transform.from({ op: 'addRecord' });
+    const addRecordTransform = buildTransform({ op: 'addRecord' });
 
     source.on('beforeSync', () => {
       assert.equal(++order, 1, 'beforeSync triggered first');
@@ -166,7 +166,7 @@ module('@syncable', function(hooks) {
 
     let order = 0;
 
-    const addRecordTransform = Transform.from({ op: 'addRecord' });
+    const addRecordTransform = buildTransform({ op: 'addRecord' });
 
     source.on('beforeSync', () => {
       assert.equal(++order, 1, 'beforeSync triggered first');
@@ -203,7 +203,7 @@ module('@syncable', function(hooks) {
 
     let order = 0;
 
-    const addRecordTransform = Transform.from({ op: 'addRecord' });
+    const addRecordTransform = buildTransform({ op: 'addRecord' });
 
     source.on('beforeSync', () => {
       assert.equal(++order, 1, 'beforeSync triggered first');

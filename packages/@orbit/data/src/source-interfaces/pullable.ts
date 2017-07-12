@@ -1,8 +1,8 @@
 import { assert } from '@orbit/utils';
 import { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
-import Query, { QueryOrExpression } from '../query';
-import Transform from '../transform';
+import { Query, QueryOrExpression, buildQuery } from '../query';
+import { Transform } from '../transform';
 
 export const PULLABLE = '__pullable__';
 
@@ -84,7 +84,7 @@ export default function pullable(Klass: SourceClass): void {
   proto[PULLABLE] = true;
 
   proto.pull = function(queryOrExpression: QueryOrExpression, options?: object, id?: string): Promise<Transform[]> {
-    const query = Query.from(queryOrExpression, options, id, this.queryBuilder);
+    const query = buildQuery(queryOrExpression, options, id, this.queryBuilder);
     return this._enqueueRequest('pull', query);
   }
 

@@ -3,7 +3,8 @@ import Orbit, {
   QueryExpression,
   Transform,
   FindRecord,
-  FindRecords
+  FindRecords,
+  buildTransform
 } from '@orbit/data';
 import IndexedDBSource from '../source';
 
@@ -30,7 +31,7 @@ export const PullOperators: Dict<PullOperator> = {
           });
       });
     }, Orbit.Promise.resolve())
-      .then(() => [Transform.from(operations)]);
+      .then(() => [buildTransform(operations)]);
   },
 
   findRecord(source: IndexedDBSource, expression: FindRecord): Promise<Transform[]> {
@@ -40,7 +41,7 @@ export const PullOperators: Dict<PullOperator> = {
           op: 'addRecord',
           record
         }];
-        return [Transform.from(operations)];
+        return [buildTransform(operations)];
       });
   }
 };

@@ -1,40 +1,48 @@
-import Transform from '../src/transform';
+import { Transform, buildTransform } from '../src/transform';
+import TransformBuilder from '../src/transform-builder';
 import './test-helper';
 
 const { module, test } = QUnit;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module('Transform', function() {
-  test('it exists', function(assert) {
-    let transform = new Transform([]);
+module('buildTransform', function() {
+  test('can instantiate a transform from an empty array of operations', function(assert) {
+    let transform = buildTransform([]);
     assert.ok(transform);
   });
 
-  test('it is assigned an `id`', function(assert) {
-    let transform = new Transform([]);
+  test('can instantiate a transform that will be assigned an `id`', function(assert) {
+    let transform = buildTransform([]);
     assert.ok(transform.id, 'transform has an id');
   });
 
-  test('can be created from with operations, options, and an id', function(assert) {
+  test('can instantiate a transform with operations, options, and an id', function(assert) {
     let operations = [{ op: 'addRecord' }];
     let options = { sources: { jsonapi: { include: 'comments' } }}
     let id = 'abc123';
 
-    let transform = new Transform(operations, options, id);
+    let transform = buildTransform(operations, options, id);
 
     assert.strictEqual(transform.id, id, 'id was populated');
-    assert.deepEqual(transform.operations, operations, 'operations was populated');
-    assert.deepEqual(transform.options, options, 'options was populated');
+    assert.strictEqual(transform.operations, operations, 'operations was populated');
+    assert.strictEqual(transform.options, options, 'options was populated');
   });
 
-  test('.from will return a transform passed into it', function(assert) {
-    let transform = new Transform([]);
-    assert.strictEqual(Transform.from(transform), transform);
+  test('will return a transform passed into it', function(assert) {
+    let transform = buildTransform([]);
+    assert.strictEqual(buildTransform(transform), transform);
   });
 
-  test('.from will create a transform from operations passed into it', function(assert) {
-    let transform = Transform.from([{ op: 'addRecord' }, { op: 'removeRecord' }]);
-    assert.ok(transform instanceof Transform);
+  test('will create a transform using a TransformBuilder if a function is passed into it', function(assert) {
+    let tb = new TransformBuilder();
+    let planet = { type: 'planet', id: 'earth' };
+    let operation = {
+      op: 'addRecord',
+      record: planet
+    };
+
+    let query = buildTransform(t => t.addRecord(planet), null, null, tb);
+    assert.deepEqual(query.operations, [operation], 'operations was populated');
   });
 });

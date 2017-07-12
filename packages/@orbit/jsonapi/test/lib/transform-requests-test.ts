@@ -1,7 +1,8 @@
 import {
   Schema,
   Transform,
-  TransformBuilder
+  TransformBuilder,
+  buildTransform
 } from '@orbit/data';
 import { getTransformRequests } from '../../src/lib/transform-requests';
 import JSONAPISource from '../../src/jsonapi-source';
@@ -68,7 +69,7 @@ module('TransformRequests', function(hooks) {
     test('addRecord', function(assert) {
       const jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } };
 
-      const t = Transform.from(tb.addRecord(jupiter));
+      const t = buildTransform(tb.addRecord(jupiter));
 
       assert.deepEqual(getTransformRequests(source, t), [{
         op: 'addRecord',
@@ -79,7 +80,7 @@ module('TransformRequests', function(hooks) {
     test('removeRecord', function(assert) {
       const jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } };
 
-      const t = Transform.from(tb.removeRecord(jupiter));
+      const t = buildTransform(tb.removeRecord(jupiter));
 
       assert.deepEqual(getTransformRequests(source, t), [{
         op: 'removeRecord',
@@ -88,7 +89,7 @@ module('TransformRequests', function(hooks) {
     });
 
     test('replaceAttribute => replaceRecord', function(assert) {
-      const t = Transform.from(tb.replaceAttribute({ type: 'planet', id: 'jupiter' }, 'name', 'Earth'));
+      const t = buildTransform(tb.replaceAttribute({ type: 'planet', id: 'jupiter' }, 'name', 'Earth'));
 
       assert.deepEqual(getTransformRequests(source, t), [{
         op: 'replaceRecord',
@@ -99,7 +100,7 @@ module('TransformRequests', function(hooks) {
     test('replaceRecord', function(assert) {
       const jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter' } };
 
-      const t = Transform.from(tb.replaceRecord(jupiter));
+      const t = buildTransform(tb.replaceRecord(jupiter));
 
       assert.deepEqual(getTransformRequests(source, t), [{
         op: 'replaceRecord',
@@ -111,7 +112,7 @@ module('TransformRequests', function(hooks) {
       const jupiter = { type: 'planet', id: 'jupiter' };
       const io = { type: 'moon', id: 'io' };
 
-      const t = Transform.from(tb.addToRelatedRecords(jupiter, 'moons', io));
+      const t = buildTransform(tb.addToRelatedRecords(jupiter, 'moons', io));
 
       assert.deepEqual(getTransformRequests(source, t), [{
         op: 'addToRelatedRecords',
@@ -125,7 +126,7 @@ module('TransformRequests', function(hooks) {
       const jupiter = { type: 'planet', id: 'jupiter' };
       const io = { type: 'moon', id: 'io' };
 
-      const t = Transform.from(tb.removeFromRelatedRecords(jupiter, 'moons', io));
+      const t = buildTransform(tb.removeFromRelatedRecords(jupiter, 'moons', io));
 
       assert.deepEqual(getTransformRequests(source, t), [{
         op: 'removeFromRelatedRecords',
@@ -139,7 +140,7 @@ module('TransformRequests', function(hooks) {
       const jupiter = { type: 'planet', id: 'jupiter' };
       const io = { type: 'moon', id: 'io' };
 
-      const t = Transform.from(tb.replaceRelatedRecord(io, 'planet', jupiter));
+      const t = buildTransform(tb.replaceRelatedRecord(io, 'planet', jupiter));
 
       assert.deepEqual(getTransformRequests(source, t), [{
         op: 'replaceRecord',
@@ -158,7 +159,7 @@ module('TransformRequests', function(hooks) {
     test('replaceRelatedRecord (with null) => replaceRecord', function(assert) {
       const io = { type: 'moon', id: 'io' };
 
-      const t = Transform.from(tb.replaceRelatedRecord(io, 'planet', null));
+      const t = buildTransform(tb.replaceRelatedRecord(io, 'planet', null));
 
       assert.deepEqual(getTransformRequests(source, t), [{
         op: 'replaceRecord',
@@ -179,7 +180,7 @@ module('TransformRequests', function(hooks) {
       const io = { type: 'moon', id: 'io' };
       const europa = { type: 'moon', id: 'europa' };
 
-      const t = Transform.from(tb.replaceRelatedRecords(jupiter, 'moons', [io, europa]));
+      const t = buildTransform(tb.replaceRelatedRecords(jupiter, 'moons', [io, europa]));
 
       assert.deepEqual(getTransformRequests(source, t), [{
         op: 'replaceRecord',
@@ -199,7 +200,7 @@ module('TransformRequests', function(hooks) {
     });
 
     test('addRecord + removeRecord => []', function(assert) {
-      const t = Transform.from([
+      const t = buildTransform([
         tb.addRecord({ type: 'planet', id: 'jupiter', attributes: { name: 'Earth' } }),
         tb.removeRecord({ type: 'planet', id: 'jupiter' })
       ]);
@@ -208,7 +209,7 @@ module('TransformRequests', function(hooks) {
     });
 
     test('removeRecord + removeRecord => [removeRecord]', function(assert) {
-      const t = Transform.from([
+      const t = buildTransform([
         tb.removeRecord({ type: 'planet', id: 'jupiter' }),
         tb.removeRecord({ type: 'planet', id: 'jupiter' })
       ]);
@@ -220,7 +221,7 @@ module('TransformRequests', function(hooks) {
     });
 
     test('addRecord + replaceAttribute => [addRecord]', function(assert) {
-      const t = Transform.from([
+      const t = buildTransform([
         tb.addRecord({ type: 'planet', id: 'jupiter', attributes: { name: 'Earth' } }),
         tb.replaceAttribute({ type: 'planet', id: 'jupiter' }, 'atmosphere', 'gaseous')
       ]);
@@ -232,7 +233,7 @@ module('TransformRequests', function(hooks) {
     });
 
     test('replaceAttribute + replaceAttribute => [replaceRecord]', function(assert) {
-      const t = Transform.from([
+      const t = buildTransform([
         tb.replaceAttribute({ type: 'planet', id: 'jupiter' }, 'name', 'Earth'),
         tb.replaceAttribute({ type: 'planet', id: 'jupiter' }, 'atmosphere', 'gaseous')
       ]);
@@ -248,7 +249,7 @@ module('TransformRequests', function(hooks) {
       const io = { type: 'moon', id: 'io' };
       const europa = { type: 'moon', id: 'europa' };
 
-      const t = Transform.from([
+      const t = buildTransform([
         tb.addToRelatedRecords(jupiter, 'moons', io),
         tb.addToRelatedRecords(jupiter, 'moons', europa)
       ]);

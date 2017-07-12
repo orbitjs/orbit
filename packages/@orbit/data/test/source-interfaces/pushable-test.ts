@@ -1,7 +1,7 @@
 import Orbit, {
   Source,
   pushable, isPushable,
-  Transform
+  buildTransform
 } from '../../src/index';
 import '../test-helper';
 
@@ -55,8 +55,8 @@ module('@pushable', function(hooks) {
 
     let order = 0;
 
-    const addRecordTransform = Transform.from({ op: 'addRecord' });
-    const replaceAttributeTransform = Transform.from({ op: 'replaceRecordAttribute' });
+    const addRecordTransform = buildTransform({ op: 'addRecord' });
+    const replaceAttributeTransform = buildTransform({ op: 'replaceRecordAttribute' });
 
     const resultingTransforms = [
       addRecordTransform,
@@ -96,7 +96,7 @@ module('@pushable', function(hooks) {
   test('#push should trigger `pushFail` event after an unsuccessful push', function(assert) {
     assert.expect(7);
 
-    const addRecordTransform = Transform.from({ op: 'addRecord' });
+    const addRecordTransform = buildTransform({ op: 'addRecord' });
 
     let order = 0;
 
@@ -128,8 +128,8 @@ module('@pushable', function(hooks) {
 
     let order = 0;
 
-    const addRecordTransform = Transform.from({ op: 'addRecord' });
-    const replaceAttributeTransform = Transform.from({ op: 'replaceRecordAttribute' });
+    const addRecordTransform = buildTransform({ op: 'addRecord' });
+    const replaceAttributeTransform = buildTransform({ op: 'replaceRecordAttribute' });
 
     const resultingTransforms = [
       addRecordTransform,
@@ -172,7 +172,7 @@ module('@pushable', function(hooks) {
 
     let order = 0;
 
-    const addRecordTransform = Transform.from({ op: 'addRecord' });
+    const addRecordTransform = buildTransform({ op: 'addRecord' });
 
     source.on('beforePush', () => {
       assert.equal(++order, 1, 'beforePush triggered first');
@@ -202,7 +202,7 @@ module('@pushable', function(hooks) {
 
     let order = 0;
 
-    const addRecordTransform = Transform.from({ op: 'addRecord' });
+    const addRecordTransform = buildTransform({ op: 'addRecord' });
 
     source.on('beforePush', () => {
       assert.equal(++order, 1, 'beforePush triggered first');

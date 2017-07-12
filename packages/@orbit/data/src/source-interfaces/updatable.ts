@@ -3,7 +3,7 @@ import { assert } from '@orbit/utils';
 import { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Operation } from '../operation';
 import { Source, SourceClass } from '../source';
-import Transform, { TransformOrOperations } from '../transform';
+import { Transform, TransformOrOperations, buildTransform } from '../transform';
 
 export const UPDATABLE = '__updatable__';
 
@@ -83,7 +83,7 @@ export default function updatable(Klass: SourceClass): void {
   proto[UPDATABLE] = true;
 
   proto.update = function(transformOrOperations: TransformOrOperations, options?: object, id?: string): Promise<any> {
-    const transform = Transform.from(transformOrOperations, options, id, this.transformBuilder);
+    const transform = buildTransform(transformOrOperations, options, id, this.transformBuilder);
 
     if (this.transformLog.contains(transform.id)) {
       return Orbit.Promise.resolve();

@@ -1,7 +1,6 @@
 import Orbit, {
   Source,
   queryable, isQueryable,
-  Transform,
   Query
 } from '../../src/index';
 import '../test-helper';

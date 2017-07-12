@@ -1,7 +1,7 @@
 import Orbit, {
   Source,
   updatable, isUpdatable,
-  Transform
+  buildTransform
 } from '../../src/index';
 import '../test-helper';
 
@@ -55,7 +55,7 @@ module('@updatable', function(hooks) {
 
     let order = 0;
 
-    const addRecordTransform = Transform.from({ op: 'addRecord' });
+    const addRecordTransform = buildTransform({ op: 'addRecord' });
 
     source.on('beforeUpdate', (transform) => {
       assert.equal(++order, 1, 'beforeUpdate triggered first');
@@ -92,7 +92,7 @@ module('@updatable', function(hooks) {
 
     let order = 0;
 
-    const addRecordTransform = Transform.from({ op: 'addRecord' });
+    const addRecordTransform = buildTransform({ op: 'addRecord' });
 
     source.on('beforeUpdate', (transform) => {
       assert.equal(++order, 1, 'beforeUpdate triggered first');
@@ -128,7 +128,7 @@ module('@updatable', function(hooks) {
   test('#update should trigger `updateFail` event after an unsuccessful update', function(assert) {
     assert.expect(7);
 
-    const addRecordTransform = Transform.from({ op: 'addRecord' });
+    const addRecordTransform = buildTransform({ op: 'addRecord' });
 
     let order = 0;
 
@@ -160,7 +160,7 @@ module('@updatable', function(hooks) {
 
     let order = 0;
 
-    const addRecordTransform = Transform.from({ op: 'addRecord' });
+    const addRecordTransform = buildTransform({ op: 'addRecord' });
 
     source.on('beforeUpdate', () => {
       assert.equal(++order, 1, 'beforeUpdate triggered first');
@@ -197,7 +197,7 @@ module('@updatable', function(hooks) {
 
     let order = 0;
 
-    const addRecordTransform = Transform.from({ op: 'addRecord' });
+    const addRecordTransform = buildTransform({ op: 'addRecord' });
 
     source.on('beforeUpdate', () => {
       assert.equal(++order, 1, 'beforeUpdate triggered first');
@@ -227,7 +227,7 @@ module('@updatable', function(hooks) {
 
     let order = 0;
 
-    const addRecordTransform = Transform.from({ op: 'addRecord' });
+    const addRecordTransform = buildTransform({ op: 'addRecord' });
 
     source.on('beforeUpdate', () => {
       assert.equal(++order, 1, 'beforeUpdate triggered first');
