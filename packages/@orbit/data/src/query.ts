@@ -2,6 +2,7 @@ import Orbit from './main';
 import { QueryExpression } from './query-expression';
 import { QueryTerm } from './query-term';
 import QueryBuilder from './query-builder';
+import { isObject } from '@orbit/utils';
 
 export type QueryBuilderFunc = (QueryBuilder) => QueryExpression;
 export type QueryOrExpression = Query | QueryExpression | QueryTerm | QueryBuilderFunc;
@@ -9,59 +10,60 @@ export type QueryOrExpression = Query | QueryExpression | QueryTerm | QueryBuild
 /**
  * Queries are used to extract data from a source.
  *
- * Queries will be automatically assigned an `id` if none is specifically
- * assigned.
- *
  * @export
- * @class Query
+ * @interface Query
  */
-export default class Query {
+export interface Query {
   id: string;
   expression: QueryExpression;
-  options: any;
+  options?: any;
+}
 
-  /**
-   * Creates an instance of a `Query`.
-   *
-   * @param {QueryExpression} expression
-   * @param {object} [options]
-   * @param {string} [id=Orbit.uuid()]
-   *
-   * @memberOf Query
-   */
-  constructor(expression: QueryExpression, options?: object, id: string = Orbit.uuid()) {
-    this.expression = expression;
-    this.options = options;
-    this.id = id;
-  }
+/**
+ * A builder function for creating a Query from its constituent parts.
+ *
+ * If a `Query` is passed in with an `id` and `expression`, and no replacement
+ * `id` or `options` are also passed in, then the `Query` will be returned
+ * unchanged.
+ *
+ * For all other cases, a new `Query` object will be created and returned.
+ *
+ * Queries will be assigned the specified `queryId` as `id`. If none is
+ * specified, a UUID will be generated.
+ *
+ * @export
+ * @param {QueryOrExpression} queryOrExpression
+ * @param {object} [queryOptions]
+ * @param {string} [queryId]
+ * @param {QueryBuilder} [queryBuilder]
+ * @returns {Query}
+ */
+export function buildQuery(queryOrExpression: QueryOrExpression, queryOptions?: object, queryId?: string, queryBuilder?: QueryBuilder): Query {
+  if (typeof queryOrExpression === 'function') {
+    return buildQuery(queryOrExpression(queryBuilder), queryOptions, queryId);
 
-  /**
-   * Create a new `Query` from a query or expression, if necessary.
-   *
-   * Accepts optional `options` and `id`.
-   *
-   * @static
-   * @param {QueryOrExpression} queryOrExpression
-   * @param {object} [options]
-   * @param {string} [id]
-   * @returns {Query}
-   *
-   * @memberOf Query
-   */
-  static from(queryOrExpression: QueryOrExpression, options?: object, id?: string, builder?: QueryBuilder): Query {
-    if (queryOrExpression instanceof Query) {
-      if (options && options !== queryOrExpression.options ||
-          id && id !== queryOrExpression.id) {
-        return new Query(queryOrExpression.expression, options || queryOrExpression.options, id);
-      } else {
-        return queryOrExpression;
+  } else {
+    let query = queryOrExpression as Query;
+    let expression: QueryExpression;
+    let options: object;
+
+    if (isObject(query) && query.expression) {
+      if (query.id && !queryOptions && !queryId) {
+        return query;
       }
-    } else if (queryOrExpression instanceof QueryTerm) {
-      return new Query(queryOrExpression.toQueryExpression(), options, id);
-    } else if (typeof queryOrExpression === 'function') {
-      return Query.from(queryOrExpression(builder), options, id);
+      expression = query.expression;
+      options = queryOptions || query.options;
     } else {
-      return new Query(queryOrExpression, options, id);
+      if (queryOrExpression instanceof QueryTerm) {
+        expression = queryOrExpression.toQueryExpression();
+      } else {
+        expression = queryOrExpression as QueryExpression;
+      }
+      options = queryOptions;
     }
+
+    let id: string = queryId || Orbit.uuid();
+
+    return { expression, options, id };
   }
 }

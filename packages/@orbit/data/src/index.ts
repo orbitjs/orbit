@@ -5,7 +5,7 @@ export * from './operation';
 export { default as QueryBuilder } from './query-builder';
 export * from './query-expression';
 export * from './query-term';
-export { default as Query, QueryOrExpression, QueryBuilderFunc } from './query';
+export * from './query';
 export * from './record';
 export { default as Schema, AttributeDefinition, RelationshipDefinition, KeyDefinition, ModelDefinition, SchemaSettings } from './schema';
 export * from './source';

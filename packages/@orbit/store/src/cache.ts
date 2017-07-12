@@ -15,7 +15,8 @@ import {
   QueryBuilder,
   Schema,
   TransformBuilder,
-  TransformBuilderFunc
+  TransformBuilderFunc,
+  buildQuery
 } from '@orbit/data';
 import { OperationProcessor, OperationProcessorClass } from './cache/operation-processors/operation-processor';
 import CacheIntegrityProcessor from './cache/operation-processors/cache-integrity-processor';
@@ -135,7 +136,7 @@ export default class Cache implements Evented {
    @return {Object} result of query (type depends on query)
    */
   query(queryOrExpression: QueryOrExpression, options?: object, id?: string): any {
-    const query = Query.from(queryOrExpression, options, id, this._queryBuilder);
+    const query = buildQuery(queryOrExpression, options, id, this._queryBuilder);
     return this._query(query.expression);
   }
 
