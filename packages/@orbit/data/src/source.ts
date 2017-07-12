@@ -9,7 +9,7 @@ import {
 import KeyMap from './key-map';
 import Schema from './schema';
 import QueryBuilder from './query-builder';
-import Transform from './transform';
+import { Transform } from './transform';
 import TransformBuilder from './transform-builder';
 import { assert } from '@orbit/utils';
 

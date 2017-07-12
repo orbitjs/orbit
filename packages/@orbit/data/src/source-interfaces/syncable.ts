@@ -2,7 +2,7 @@ import Orbit from '../main';
 import { assert, isArray } from '@orbit/utils';
 import { fulfillInSeries, settleInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
-import Transform from '../transform';
+import { Transform } from '../transform';
 
 export const SYNCABLE = '__syncable__';
 

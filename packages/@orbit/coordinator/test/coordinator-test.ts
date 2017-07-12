@@ -2,7 +2,8 @@ import Coordinator, { Strategy } from '../src/index';
 import Orbit, {
   Source,
   Transform,
-  TransformBuilder
+  TransformBuilder,
+  buildTransform
 } from '@orbit/data';
 import './test-helper';
 
@@ -12,9 +13,9 @@ const { module, test } = QUnit;
 
 module('Coordinator', function(hooks) {
   const t = new TransformBuilder();
-  const tA = new Transform([t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })], null, 'a');
-  const tB = new Transform([t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })], null, 'b');
-  const tC = new Transform([t.addRecord({ type: 'planet', id: 'c', attributes: { name: 'c' } })], null, 'c');
+  const tA = buildTransform([t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })], null, 'a');
+  const tB = buildTransform([t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })], null, 'b');
+  const tC = buildTransform([t.addRecord({ type: 'planet', id: 'c', attributes: { name: 'c' } })], null, 'c');
 
   class MySource extends Source {}
   class MyStrategy extends Strategy {}

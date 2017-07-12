@@ -2,7 +2,7 @@ import { assert } from '@orbit/utils';
 import { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import Query, { QueryOrExpression } from '../query';
-import Transform from '../transform';
+import { Transform } from '../transform';
 
 export const PULLABLE = '__pullable__';
 

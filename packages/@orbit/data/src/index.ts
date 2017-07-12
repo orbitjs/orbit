@@ -9,7 +9,7 @@ export { default as Query, QueryOrExpression, QueryBuilderFunc } from './query';
 export * from './record';
 export { default as Schema, AttributeDefinition, RelationshipDefinition, KeyDefinition, ModelDefinition, SchemaSettings } from './schema';
 export * from './source';
-export { default as Transform, TransformOrOperations, TransformBuilderFunc } from './transform';
+export * from './transform';
 export { default as TransformBuilder } from './transform-builder';
 export { default as pullable, Pullable, isPullable } from './source-interfaces/pullable';
 export { default as pushable, Pushable, isPushable } from './source-interfaces/pushable';

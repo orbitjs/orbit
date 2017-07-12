@@ -1,8 +1,8 @@
 import Orbit, {
   Source,
   pullable, isPullable,
-  Transform,
-  Query
+  Query,
+  buildTransform
 } from '../../src/index';
 import '../test-helper';
 
@@ -58,8 +58,8 @@ module('@pullable', function(hooks) {
     let qe = { op: 'findRecords', type: 'planet' };
 
     const resultingTransforms = [
-      Transform.from({ op: 'addRecord' }, { op: 'addRecord' }),
-      Transform.from({ op: 'replaceRecordAttribute' })
+      buildTransform({ op: 'addRecord' }),
+      buildTransform({ op: 'replaceRecordAttribute' })
     ];
 
     source._pull = function(query) {
@@ -94,8 +94,8 @@ module('@pullable', function(hooks) {
     let qe = { op: 'findRecords', type: 'planet' };
 
     const resultingTransforms = [
-      Transform.from({ op: 'addRecord' }, { op: 'addRecord' }),
-      Transform.from({ op: 'replaceRecordAttribute' })
+      buildTransform({ op: 'addRecord' }),
+      buildTransform({ op: 'replaceRecordAttribute' })
     ];
 
     source.on('beforePull', () => {

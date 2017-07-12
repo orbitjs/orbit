@@ -9,7 +9,8 @@ import Orbit, {
   Updatable, updatable,
   Transform,
   TransformOrOperations,
-  coalesceRecordOperations
+  coalesceRecordOperations,
+  buildTransform
 } from '@orbit/data';
 import { Log } from '@orbit/core';
 import { assert, Dict } from '@orbit/utils';
@@ -158,7 +159,7 @@ export default class Store extends Source implements Syncable, Queryable, Updata
       ops = coalesceRecordOperations(ops);
     }
 
-    reducedTransform = new Transform(ops, options.transformOptions);
+    reducedTransform = buildTransform(ops, options.transformOptions);
 
     return this.update(reducedTransform);
   }

@@ -1,48 +1,69 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from './main';
 import { Operation } from './operation';
-import { isArray, toArray } from '@orbit/utils';
+import { isObject, isArray, toArray } from '@orbit/utils';
 import TransformBuilder from './transform-builder';
 
 export type TransformBuilderFunc = (TransformBuilder) => Operation[];
 export type TransformOrOperations = Transform | Operation | Operation[] | TransformBuilderFunc;
 
 /**
- Transforms represent a set of operations that are applied to mutate a
- source.
-
- Transforms are automatically assigned a UUID `id`.
-
- @class Transform
- @param {Array}     [operations] Operations to apply
- @param {String}    [id] Unique id for this transform (will be assigned a uuid by default)
- @constructor
+ * A Transform represents a set of operations that can mutate a source.
+ *
+ * @export
+ * @interface Transform
  */
-export default class Transform {
+export interface Transform {
   id: string;
   operations: Operation[];
-  options: any;
+  options?: any;
+}
 
-  constructor(operations: Operation[], options?: object, id: string = Orbit.uuid()) {
-    this.operations = operations;
-    this.options = options;
-    this.id = id;
-  }
+/**
+ * A builder function for creating a Transform from its constituent parts.
+ *
+ * If a `Transform` is passed in with an `id` and `operations`, and no
+ * replacement `id` or `options` are also passed in, then the `Transform`
+ * will be returned unchanged.
+ *
+ * For all other cases, a new `Transform` object will be created and returned.
+ *
+ * Transforms will be assigned the specified `transformId` as `id`. If none
+ * is specified, a UUID will be generated.
+ *
+ * @export
+ * @param {TransformOrOperations} transformOrOperations
+ * @param {object} [transformOptions]
+ * @param {string} [transformId] Unique id for this transform (otherwise a UUID will be assigned)
+ * @param {TransformBuilder} [transformBuilder]
+ * @returns {Transform}
+ */
+export function buildTransform(transformOrOperations: TransformOrOperations, transformOptions?: object, transformId?: string, transformBuilder?: TransformBuilder): Transform {
+  if (typeof transformOrOperations === 'function') {
+    return buildTransform(transformOrOperations(transformBuilder), transformOptions, transformId);
 
-  static from(transformOrOperations: TransformOrOperations, options?: object, id?: string, builder?: TransformBuilder): Transform {
-    if (transformOrOperations instanceof Transform) {
-      if (options && options !== transformOrOperations.options ||
-          id && id !== transformOrOperations.id) {
-        return new Transform(transformOrOperations.operations, options || transformOrOperations.options, id);
-      } else {
-        return transformOrOperations;
+  } else {
+    let transform = transformOrOperations as Transform;
+    let operations: Operation[];
+    let options: object;
+
+    if (isObject(transform) && transform.operations) {
+      if (transform.id && !transformOptions && !transformId) {
+        return transform;
       }
-    } else if (isArray(transformOrOperations)) {
-      return new Transform(<Operation[]>transformOrOperations, options, id);
-    } else if (typeof transformOrOperations === 'function') {
-      return Transform.from(transformOrOperations(builder), options, id);
-     } else {
-      return new Transform([<Operation>transformOrOperations], options, id);
+      operations = transform.operations;
+      options = transformOptions || transform.options;
+    } else {
+      if (isArray(transformOrOperations)) {
+        operations = transformOrOperations as Operation[];
+      } else {
+        operations = [transformOrOperations as Operation];
+      }
+      options = transformOptions;
     }
+
+    let id: string = transformId || Orbit.uuid();
+
+    return { operations, options, id };
   }
 }

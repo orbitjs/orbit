@@ -3,7 +3,8 @@ import Orbit, {
   QueryExpression,
   Transform,
   FindRecord,
-  FindRecords
+  FindRecords,
+  buildTransform
 } from '@orbit/data';
 import LocalStorageSource from '../source';
 
@@ -38,7 +39,7 @@ export const PullOperators: Dict<PullOperator> = {
       }
     }
 
-    return Orbit.Promise.resolve([Transform.from(operations)]);
+    return Orbit.Promise.resolve([buildTransform(operations)]);
   },
 
   findRecord(source: LocalStorageSource, expression: FindRecord): Promise<Transform[]> {
@@ -65,6 +66,6 @@ export const PullOperators: Dict<PullOperator> = {
       }
     }
 
-    return Orbit.Promise.resolve([Transform.from(operations)]);
+    return Orbit.Promise.resolve([buildTransform(operations)]);
   }
 };

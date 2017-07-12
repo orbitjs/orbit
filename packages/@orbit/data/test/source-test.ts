@@ -1,7 +1,7 @@
 import {
   Source,
   Schema,
-  Transform,
+  buildTransform,
   TransformBuilder,
   QueryBuilder
 } from '../src/index';
@@ -66,7 +66,7 @@ module('Source', function(hooks) {
 
     source = new MySource();
     let order = 0;
-    const appliedTransform = Transform.from({ op: 'addRecord' });
+    const appliedTransform = buildTransform({ op: 'addRecord' });
 
     source.on('transform', (transform) => {
       assert.equal(++order, 1, '`transform` event triggered after action performed successfully');
@@ -83,7 +83,7 @@ module('Source', function(hooks) {
     assert.expect(2);
 
     source = new MySource();
-    const appliedTransform = Transform.from({ op: 'addRecord' });
+    const appliedTransform = buildTransform({ op: 'addRecord' });
 
     assert.ok(!source.transformLog.contains(appliedTransform.id));
 

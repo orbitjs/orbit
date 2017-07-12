@@ -13,7 +13,8 @@ import {
   AddToRelatedRecordsOperation,
   RemoveFromRelatedRecordsOperation,
   ReplaceRelatedRecordOperation,
-  ReplaceRelatedRecordsOperation
+  ReplaceRelatedRecordsOperation,
+  buildTransform
 } from '@orbit/data';
 import { clone, deepSet } from '@orbit/utils';
 import JSONAPISource from '../jsonapi-source';
@@ -35,7 +36,7 @@ export const TransformRequestProcessors = {
 
         let updateOps = recordDiffs(record, updatedRecord);
         if (updateOps.length > 0) {
-          return [Transform.from(updateOps)];
+          return [buildTransform(updateOps)];
         }
       });
   },
