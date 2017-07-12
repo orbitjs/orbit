@@ -48,7 +48,7 @@ be used in ways that go beyond these original use cases.
 Orbit consists of the following core libraries:
 
 * [@orbit/core](./packages/@orbit/core) - A core set of primitives for
-performing, tracking, and responding to asynchronous tasks, including:
+  performing, tracking, and responding to asynchronous tasks, including:
 
   * An event system that allows listeners to engage with the fulfillment of
     events by returning promises.
@@ -61,7 +61,7 @@ performing, tracking, and responding to asynchronous tasks, including:
   * A bucket interface for persisting state. Used by logs and queues.
 
 * [@orbit/data](./packages/@orbit/data) - Applies the core Orbit primitives
-to data sources. Includes the following elements:
+  to data sources. Includes the following elements:
 
   * A schema for defining models, including attributes and relationships.
 
@@ -80,11 +80,14 @@ to data sources. Includes the following elements:
     for transforms and queries to be applied as appropriate.
 
 * [@orbit/coordinator](./packages/@orbit/coordinator) - A coordinator and set of
-coordination strategies for managing data flow and keeping @orbit/data sources
-in sync.
+  coordination strategies for managing data flow and keeping @orbit/data sources
+  in sync.
+
+* [@orbit/immutable](./packages/@orbit/immutable) - A lightweight library of
+  immutable data structures.
 
 * [@orbit/utils](./packages/@orbit/utils) - A common set of utility functions
-used by Orbit libraries.
+  used by Orbit libraries.
 
 ### Standard data sources
 
@@ -102,7 +105,7 @@ Orbit provides the following sources for accessing and persisting data:
 * [@orbit/local-storage](./packages/@orbit/local-storage) -
   Persists records to local storage.
 
-* [@orbit/indexeddb-bucket](./packages/@orbit/indexeddb-bucket) -
+* [@orbit/indexeddb](./packages/@orbit/indexeddb) -
   Persists records to IndexedDB.
 
 These standard sources can provide guidance for building your own custom sources
