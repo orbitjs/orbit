@@ -9,17 +9,24 @@ import { arrayMembershipMatches } from './test-helper';
 const { module, test } = QUnit;
 
 module('Cache', function(hooks) {
-  let schema, keyMap;
+  let schema: Schema,
+      keyMap: KeyMap;
 
   hooks.beforeEach(function() {
     schema = new Schema({
       models: {
         planet: {
+          keys: {
+            remoteId: {}
+          },
           relationships: {
             moons: { type: 'hasMany', model: 'moon', inverse: 'planet' }
           }
         },
         moon: {
+          keys: {
+            remoteId: {}
+          },
           relationships: {
             planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
           }
@@ -53,11 +60,11 @@ module('Cache', function(hooks) {
   });
 
   test('#patch sets data and #records retrieves it', function(assert) {
-    assert.expect(3);
+    assert.expect(4);
 
     let cache = new Cache({ schema, keyMap });
 
-    const earth = { type: 'planet', id: '1', attributes: { name: 'Earth' } };
+    const earth = { type: 'planet', id: '1', attributes: { name: 'Earth' }, keys: { remoteId: 'a' } };
 
     cache.on('patch', (operation, data) => {
       assert.deepEqual(operation, {
@@ -70,6 +77,51 @@ module('Cache', function(hooks) {
     cache.patch(t => t.addRecord(earth));
 
     assert.strictEqual(cache.records('planet').get('1'), earth, 'objects strictly match');
+    assert.equal(keyMap.keyToId('planet', 'remoteId', 'a'), '1', 'key has been mapped');
+  });
+
+  test('#patch can replace records', function(assert) {
+    assert.expect(4);
+
+    let cache = new Cache({ schema, keyMap });
+
+    const earth = { type: 'planet', id: '1', attributes: { name: 'Earth' }, keys: { remoteId: 'a' } };
+
+    cache.on('patch', (operation, data) => {
+      assert.deepEqual(operation, {
+        op: 'replaceRecord',
+        record: earth
+      });
+      assert.deepEqual(data, earth);
+    });
+
+    cache.patch(t => t.replaceRecord(earth));
+
+    assert.strictEqual(cache.records('planet').get('1'), earth, 'objects strictly match');
+    assert.equal(keyMap.keyToId('planet', 'remoteId', 'a'), '1', 'key has been mapped');
+  });
+
+  test('#patch can replace keys', function(assert) {
+    assert.expect(4);
+
+    let cache = new Cache({ schema, keyMap });
+
+    const earth = { type: 'planet', id: '1' };
+
+    cache.on('patch', (operation, data) => {
+      assert.deepEqual(operation, {
+        op: 'replaceKey',
+        record: earth,
+        key: 'remoteId',
+        value: 'a'
+      });
+      assert.deepEqual(data, { type: 'planet', id: '1', keys: { remoteId: 'a' } });
+    });
+
+    cache.patch(t => t.replaceKey(earth, 'remoteId', 'a'));
+
+    assert.deepEqual(cache.records('planet').get('1'), { type: 'planet', id: '1', keys: { remoteId: 'a' } }, 'records match');
+    assert.equal(keyMap.keyToId('planet', 'remoteId', 'a'), '1', 'key has been mapped');
   });
 
   test('#reset clears the cache by default', function(assert) {
