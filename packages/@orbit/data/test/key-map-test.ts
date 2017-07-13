@@ -24,6 +24,16 @@ module('KeyMap', function(hooks) {
     assert.equal(keyMap.idToKey('planet', 'remoteId', 'bogus'), undefined);
   });
 
+  test('#pushRecord with incomplete records', function(assert) {
+    let keyMap = new KeyMap();
+
+    keyMap.pushRecord({ type: 'planet', id: null, keys: { remoteId: 'a' } });
+    assert.strictEqual(keyMap.keyToId('planet', 'remoteId', 'a'), undefined);
+
+    keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: null } });
+    assert.strictEqual(keyMap.idToKey('planet', 'remoteId', '1'), undefined);
+  });
+
   test('#idFromKeys', function(assert) {
     let keyMap = new KeyMap();
 

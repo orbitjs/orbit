@@ -55,14 +55,16 @@ export default class KeyMap {
   pushRecord(record: Record): void {
     const { type, id, keys } = record;
 
-    if (!keys) {
+    if (!keys || !id) {
       return;
     }
 
     Object.keys(keys).forEach(keyName => {
       let keyValue = keys[keyName];
-      deepSet(this._idsToKeys, [type, keyName, id], keyValue);
-      deepSet(this._keysToIds, [type, keyName, keyValue], id);
+      if (keyValue) {
+        deepSet(this._idsToKeys, [type, keyName, id], keyValue);
+        deepSet(this._keysToIds, [type, keyName, keyValue], id);
+      }
     });
   }
 
