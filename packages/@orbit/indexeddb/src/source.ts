@@ -184,9 +184,15 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
         reject(request.error);
       };
 
-      request.onsuccess = function(/* event */) {
+      request.onsuccess = (/* event */) => {
         // console.log('success - getRecord', request.result);
-        resolve(request.result);
+        let record = request.result;
+
+        if (this._keyMap) {
+          this._keyMap.pushRecord(record);
+        }
+
+        resolve(record);
       };
     });
   }
@@ -203,11 +209,17 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
         reject(request.error);
       };
 
-      request.onsuccess = function(event) {
+      request.onsuccess = (event) => {
         // console.log('success - getRecords', request.result);
         const cursor = event.target.result;
         if (cursor) {
-          records.push(cursor.value);
+          let record = cursor.value;
+
+          if (this._keyMap) {
+            this._keyMap.pushRecord(record);
+          }
+
+          records.push(record);
           cursor.continue();
         } else {
           resolve(records);
@@ -239,8 +251,12 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
         reject(request.error);
       };
 
-      request.onsuccess = function(/* event */) {
+      request.onsuccess = (/* event */) => {
         // console.log('success - putRecord');
+        if (this._keyMap) {
+          this._keyMap.pushRecord(record);
+        }
+
         resolve();
       };
     });
