@@ -25,6 +25,11 @@ export default {
     let record = op.record;
     const records = cache.records(record.type);
     records.set(record.id, record);
+
+    if (cache.keyMap) {
+      cache.keyMap.pushRecord(record);
+    }
+
     return record;
   },
 
@@ -33,26 +38,31 @@ export default {
     const { type, id } = replacement;
     const records = cache.records(type);
     const current = records.get(id);
-    let result: Record;
+    let record: Record;
 
     if (current) {
-      result = { type, id };
+      record = { type, id };
 
       ['attributes', 'keys', 'relationships'].forEach(grouping => {
         if (current[grouping] && replacement[grouping]) {
-          result[grouping] = merge({}, current[grouping], replacement[grouping]);
+          record[grouping] = merge({}, current[grouping], replacement[grouping]);
         } else if (current[grouping]) {
-          result[grouping] = merge({}, current[grouping]);
+          record[grouping] = merge({}, current[grouping]);
         } else if (replacement[grouping]) {
-          result[grouping] = merge({}, replacement[grouping]);
+          record[grouping] = merge({}, replacement[grouping]);
         }
       });
     } else {
-      result = replacement;
+      record = replacement;
     }
 
-    records.set(id, result);
-    return result;
+    records.set(id, record);
+
+    if (cache.keyMap) {
+      cache.keyMap.pushRecord(record);
+    }
+
+    return record;
   },
 
   removeRecord(cache: Cache, op: RemoveRecordOperation): PatchResultData {
@@ -78,6 +88,11 @@ export default {
     }
     deepSet(record, ['keys', op.key], op.value);
     records.set(id, record);
+
+    if (cache.keyMap) {
+      cache.keyMap.pushRecord(record);
+    }
+
     return record;
   },
 

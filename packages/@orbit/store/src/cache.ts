@@ -165,9 +165,6 @@ export default class Cache implements Evented {
     this._relationships = new RelationshipAccessor(this, base && base.relationships);
     this._inverseRelationships = new InverseRelationshipAccessor(this, base && base.inverseRelationships);
 
-    // TODO
-    // this.keyMap.pushDocument(data);
-
     this._processors.forEach(processor => processor.reset(base));
 
     this.emit('reset');
