@@ -31,6 +31,10 @@ export const PullOperators: Dict<PullOperator> = {
         if (typesMatch) {
           let record = JSON.parse(Orbit.globals.localStorage.getItem(key));
 
+          if (source.keyMap) {
+            source.keyMap.pushRecord(record);
+          }
+
           operations.push({
             op: 'addRecord',
             record
@@ -55,6 +59,10 @@ export const PullOperators: Dict<PullOperator> = {
         if (type === requestedRecord.type &&
             id === requestedRecord.id) {
           let record = JSON.parse(Orbit.globals.localStorage.getItem(key));
+
+          if (source.keyMap) {
+            source.keyMap.pushRecord(record);
+          }
 
           operations.push({
             op: 'addRecord',

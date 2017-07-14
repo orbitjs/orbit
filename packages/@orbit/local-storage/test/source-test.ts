@@ -6,7 +6,8 @@ import {
 import {
   Transform,
   Schema,
-  Source
+  Source,
+  KeyMap
 } from '@orbit/data';
 import LocalStorageSource from '../src/source';
 import './test-helper';
@@ -14,26 +15,36 @@ import './test-helper';
 const { module, test } = QUnit;
 
 module('LocalStorageSource', function(hooks) {
-  let schema, source;
+  let schema: Schema,
+      source: LocalStorageSource,
+      keyMap: KeyMap;
 
   hooks.beforeEach(() => {
     schema = new Schema({
       models: {
-        planet: {},
-        moon: {}
+        planet: {
+          keys: { remoteId: {} }
+        },
+        moon: {
+          keys: { remoteId: {} }
+        }
       }
     });
 
-    source = new LocalStorageSource({ schema });
+    keyMap = new KeyMap();
+
+    source = new LocalStorageSource({ schema, keyMap });
   });
 
   hooks.afterEach(() => {
-    schema = source = null;
+    schema = source = keyMap = null;
   });
 
   test('it exists', function(assert) {
     assert.ok(source);
-  });
+    assert.strictEqual(source.schema, schema, 'schema has been assigned');
+    assert.strictEqual(source.keyMap, keyMap, 'keyMap has been assigned');
+   });
 
   test('its prototype chain is correct', function(assert) {
     assert.ok(source instanceof Source, 'instanceof Source');
@@ -52,11 +63,14 @@ module('LocalStorageSource', function(hooks) {
   });
 
   test('#push - addRecord', function(assert) {
-    assert.expect(1);
+    assert.expect(2);
 
     let planet = {
       type: 'planet',
       id: 'jupiter',
+      keys: {
+        remoteId: 'j'
+      },
       attributes: {
         name: 'Jupiter',
         classification: 'gas giant'
@@ -64,15 +78,21 @@ module('LocalStorageSource', function(hooks) {
     };
 
     return source.push(t => t.addRecord(planet))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, planet));
-  });
+      .then(() => verifyLocalStorageContainsRecord(assert, source, planet))
+      .then(() => {
+        assert.equal(keyMap.keyToId('planet', 'remoteId', 'j'), 'jupiter', 'key has been mapped');
+      });
+   });
 
   test('#push - replaceRecord', function(assert) {
-    assert.expect(1);
+    assert.expect(2);
 
     let original = {
       type: 'planet',
       id: 'jupiter',
+      keys: {
+        remoteId: 'j'
+      },
       attributes: {
         name: 'Jupiter',
         classification: 'gas giant'
@@ -91,8 +111,11 @@ module('LocalStorageSource', function(hooks) {
 
     return source.push(t => t.addRecord(original))
       .then(() => source.push(t => t.replaceRecord(revised)))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
-  });
+      .then(() => verifyLocalStorageContainsRecord(assert, source, revised))
+      .then(() => {
+        assert.equal(keyMap.keyToId('planet', 'remoteId', 'j'), 'jupiter', 'key has been mapped');
+      });
+   });
 
   test('#push - removeRecord', function(assert) {
     assert.expect(1);
@@ -112,7 +135,7 @@ module('LocalStorageSource', function(hooks) {
   });
 
   test('#push - replaceKey', function(assert) {
-    assert.expect(1);
+    assert.expect(2);
 
     let original = {
       type: 'planet',
@@ -137,7 +160,10 @@ module('LocalStorageSource', function(hooks) {
 
     return source.push(t => t.addRecord(original))
       .then(() => source.push(t => t.replaceKey(original, 'remoteId', '123')))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
+      .then(() => verifyLocalStorageContainsRecord(assert, source, revised))
+      .then(() => {
+        assert.equal(keyMap.keyToId('planet', 'remoteId', '123'), 'jupiter', 'key has been mapped');
+      });
   });
 
   test('#push - replaceAttribute', function(assert) {
@@ -372,11 +398,14 @@ module('LocalStorageSource', function(hooks) {
   });
 
   test('#pull - all records', function(assert) {
-    assert.expect(2);
+    assert.expect(5);
 
     let earth = {
       type: 'planet',
       id: 'earth',
+      keys: {
+        remoteId: 'p1'
+      },
       attributes: {
         name: 'Earth',
         classification: 'terrestrial'
@@ -386,6 +415,9 @@ module('LocalStorageSource', function(hooks) {
     let jupiter = {
       type: 'planet',
       id: 'jupiter',
+      keys: {
+        remoteId: 'p2'
+      },
       attributes: {
         name: 'Jupiter',
         classification: 'gas giant'
@@ -395,11 +427,13 @@ module('LocalStorageSource', function(hooks) {
     let io = {
       type: 'moon',
       id: 'io',
+      keys: {
+        remoteId: 'm1'
+      },
       attributes: {
         name: 'Io'
       }
     };
-
 
     return source.reset()
       .then(() => source.push(t => [
@@ -407,6 +441,10 @@ module('LocalStorageSource', function(hooks) {
         t.addRecord(jupiter),
         t.addRecord(io)
       ]))
+      .then(() => {
+        // reset keyMap to verify that pulling records also adds keys
+        keyMap.reset();
+      })
       .then(() => source.pull(q => q.findRecords()))
       .then(transforms => {
         assert.equal(transforms.length, 1, 'one transform returned');
@@ -415,6 +453,11 @@ module('LocalStorageSource', function(hooks) {
           ['addRecord', 'addRecord', 'addRecord'],
           'operations match expectations'
         );
+      })
+      .then(() => {
+        assert.equal(keyMap.keyToId('planet', 'remoteId', 'p1'), 'earth', 'key has been mapped');
+        assert.equal(keyMap.keyToId('planet', 'remoteId', 'p2'), 'jupiter', 'key has been mapped');
+        assert.equal(keyMap.keyToId('moon', 'remoteId', 'm1'), 'io', 'key has been mapped');
       });
   });
 
@@ -465,7 +508,7 @@ module('LocalStorageSource', function(hooks) {
   });
 
   test('#pull - a specific record', function(assert) {
-    assert.expect(2);
+    assert.expect(3);
 
     let earth = {
       type: 'planet',
@@ -479,6 +522,9 @@ module('LocalStorageSource', function(hooks) {
     let jupiter = {
       type: 'planet',
       id: 'jupiter',
+      keys: {
+        remoteId: 'p2'
+      },
       attributes: {
         name: 'Jupiter',
         classification: 'gas giant'
@@ -499,6 +545,10 @@ module('LocalStorageSource', function(hooks) {
         t.addRecord(jupiter),
         t.addRecord(io)
       ]))
+      .then(() => {
+        // reset keyMap to verify that pulling records also adds keys
+        keyMap.reset();
+      })
       .then(() => source.pull(q => q.findRecord(jupiter)))
       .then(transforms => {
         assert.equal(transforms.length, 1, 'one transform returned');
@@ -507,6 +557,9 @@ module('LocalStorageSource', function(hooks) {
           ['addRecord'],
           'operations match expectations'
         );
+      })
+      .then(() => {
+        assert.equal(keyMap.keyToId('planet', 'remoteId', 'p2'), 'jupiter', 'key has been mapped');
       });
-  });
+   });
 });

@@ -12,6 +12,15 @@ export default class KeyMap {
   private _keysToIds: Dict<Dict<string>>;
 
   constructor() {
+    this.reset();
+  }
+
+  /**
+   * Resets the contents of the key map.
+   *
+   * @memberof KeyMap
+   */
+  reset(): void {
     this._idsToKeys = {};
     this._keysToIds = {};
   }

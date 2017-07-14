@@ -78,13 +78,23 @@ export default class LocalStorageSource extends Source implements Pullable, Push
   getRecord(record: RecordIdentity): Record {
     const key = this.getKeyForRecord(record);
 
-    return JSON.parse(Orbit.globals.localStorage.getItem(key));
+    let result = JSON.parse(Orbit.globals.localStorage.getItem(key));
+
+    if (this._keyMap) {
+      this._keyMap.pushRecord(result);
+    }
+
+    return result;
   }
 
   putRecord(record: Record): void {
     const key = this.getKeyForRecord(record);
 
     // console.log('LocalStorageSource#putRecord', key, JSON.stringify(record));
+
+    if (this._keyMap) {
+      this._keyMap.pushRecord(record);
+    }
 
     Orbit.globals.localStorage.setItem(key, JSON.stringify(record));
   }
