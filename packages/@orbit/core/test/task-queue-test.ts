@@ -11,18 +11,18 @@ const { module, test } = QUnit;
 
 module('TaskQueue', function() {
   test('can be instantiated', function(assert) {
-    const target: Performer = {
+    const performer: Performer = {
       perform(task: Task): Promise<void> { return Promise.resolve(); }
     };
-    const queue = new TaskQueue(target);
+    const queue = new TaskQueue(performer);
     assert.ok(queue);
   });
 
   test('#autoProcess is enabled by default', function(assert) {
-    const target: Performer = {
+    const performer: Performer = {
       perform(task: Task): Promise<void> { return Promise.resolve(); }
     };
-    const queue = new TaskQueue(target);
+    const queue = new TaskQueue(performer);
     assert.equal(queue.autoProcess, true, 'autoProcess === true');
   });
 
@@ -31,8 +31,8 @@ module('TaskQueue', function() {
     const done = assert.async();
     let order = 0;
 
-    const target: Performer = {
-      perform(task: Task): Promise<void> { 
+    const performer: Performer = {
+      perform(task: Task): Promise<void> {
         transformCount++;
         if (transformCount === 1) {
           assert.equal(order++, 1, 'transform - op1 - order');
@@ -45,7 +45,7 @@ module('TaskQueue', function() {
       }
     };
 
-    const queue = new TaskQueue(target);
+    const queue = new TaskQueue(performer);
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -99,8 +99,8 @@ module('TaskQueue', function() {
     assert.expect(5);
     const done = assert.async();
 
-    const target: Performer = {
-      perform(task: Task): Promise<void> { 
+    const performer: Performer = {
+      perform(task: Task): Promise<void> {
         transformCount++;
         if (transformCount === 1) {
           assert.strictEqual(task.data, op1, 'transform - op1 passed as argument');
@@ -111,7 +111,7 @@ module('TaskQueue', function() {
       }
     };
 
-    const queue = new TaskQueue(target);
+    const queue = new TaskQueue(performer);
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -159,8 +159,8 @@ module('TaskQueue', function() {
 
     let trigger = new Trigger;
 
-    const target: Performer = {
-      perform(task: Task): Promise<void> { 
+    const performer: Performer = {
+      perform(task: Task): Promise<void> {
         let promise;
         let op = task.data;
         if (op === op1) {
@@ -182,7 +182,7 @@ module('TaskQueue', function() {
       }
     };
 
-    const queue = new TaskQueue(target);
+    const queue = new TaskQueue(performer);
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -226,8 +226,8 @@ module('TaskQueue', function() {
   test('will stop processing when an task errors', function(assert) {
     assert.expect(7);
 
-    const target: Performer = {
-      perform(task: Task): Promise<void> { 
+    const performer: Performer = {
+      perform(task: Task): Promise<void> {
         transformCount++;
         if (transformCount === 1) {
           assert.strictEqual(task.data, op1, 'transform - op1 passed as argument');
@@ -238,7 +238,7 @@ module('TaskQueue', function() {
       }
     };
 
-    const queue = new TaskQueue(target, { autoProcess: false });
+    const queue = new TaskQueue(performer, { autoProcess: false });
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -282,8 +282,8 @@ module('TaskQueue', function() {
   test('#retry resets the current task in an inactive queue and restarts processing', function(assert) {
     assert.expect(13);
 
-    const target: Performer = {
-      perform(task: Task): Promise<void> { 
+    const performer: Performer = {
+      perform(task: Task): Promise<void> {
         transformCount++;
         let op = task.data;
         if (transformCount === 1) {
@@ -299,7 +299,7 @@ module('TaskQueue', function() {
       }
     };
 
-    const queue = new TaskQueue(target, { autoProcess: false });
+    const queue = new TaskQueue(performer, { autoProcess: false });
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -355,8 +355,8 @@ module('TaskQueue', function() {
   test('#skip removes the current task from an inactive queue and restarts processing', function(assert) {
     assert.expect(9);
 
-    const target: Performer = {
-      perform(task: Task): Promise<void> { 
+    const performer: Performer = {
+      perform(task: Task): Promise<void> {
         transformCount++;
         let op = task.data;
         if (transformCount === 1) {
@@ -370,7 +370,7 @@ module('TaskQueue', function() {
       }
     };
 
-    const queue = new TaskQueue(target, { autoProcess: false });
+    const queue = new TaskQueue(performer, { autoProcess: false });
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -423,8 +423,8 @@ module('TaskQueue', function() {
   test('#shift can remove failed tasks from an inactive queue, allowing processing to be restarted', function(assert) {
     assert.expect(10);
 
-    const target: Performer = {
-      perform(task: Task): Promise<void> { 
+    const performer: Performer = {
+      perform(task: Task): Promise<void> {
         transformCount++;
         let op = task.data;
         if (transformCount === 1) {
@@ -438,7 +438,7 @@ module('TaskQueue', function() {
       }
     };
 
-    const queue = new TaskQueue(target, { autoProcess: false });
+    const queue = new TaskQueue(performer, { autoProcess: false });
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -498,8 +498,8 @@ module('TaskQueue', function() {
     assert.expect(9);
     const done = assert.async();
 
-    const target: Performer = {
-      perform(task: Task): Promise<void> { 
+    const performer: Performer = {
+      perform(task: Task): Promise<void> {
         transformCount++;
         let op = task.data;
         if (transformCount === 1) {
@@ -511,7 +511,7 @@ module('TaskQueue', function() {
       }
     };
 
-    const queue = new TaskQueue(target, { autoProcess: false });
+    const queue = new TaskQueue(performer, { autoProcess: false });
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -563,14 +563,14 @@ module('TaskQueue', function() {
     assert.expect(2);
     const done = assert.async();
 
-    const target: Performer = {
-      perform(task: Task): Promise<void> { 
+    const performer: Performer = {
+      perform(task: Task): Promise<void> {
         assert.ok(false, 'transform should not be called');
         return Promise.resolve();
       }
     };
 
-    const queue = new TaskQueue(target, { autoProcess: false });
+    const queue = new TaskQueue(performer, { autoProcess: false });
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
@@ -617,12 +617,12 @@ module('TaskQueue', function() {
     test('requires a name for lookups in the bucket', function(assert) {
       assert.throws(
         function() {
-          const target: Performer = {
-            perform(task: Task): Promise<void> { 
+          const performer: Performer = {
+            perform(task: Task): Promise<void> {
               return Promise.resolve();
             }
           };
-          let queue = new TaskQueue(target, { bucket });
+          let queue = new TaskQueue(performer, { bucket });
         },
         Error('Assertion failed: TaskQueue requires a name if it has a bucket'),
         'assertion raised');
@@ -632,8 +632,8 @@ module('TaskQueue', function() {
       const done = assert.async();
       assert.expect(3);
 
-      const target: Performer = {
-        perform(task: Task): Promise<void> { 
+      const performer: Performer = {
+        perform(task: Task): Promise<void> {
           return Promise.resolve();
         }
       };
@@ -652,7 +652,7 @@ module('TaskQueue', function() {
       let queue;
       bucket.setItem('queue', serialized)
         .then(() => {
-          queue = new TaskQueue(target, { name: 'queue', bucket });
+          queue = new TaskQueue(performer, { name: 'queue', bucket });
           return queue.reified;
         })
         .then(() => {
@@ -674,13 +674,13 @@ module('TaskQueue', function() {
       const done = assert.async();
       assert.expect(9);
 
-      const target: Performer = {
-        perform(task: Task): Promise<void> { 
+      const performer: Performer = {
+        perform(task: Task): Promise<void> {
           return Promise.resolve();
         }
       };
 
-      const queue = new TaskQueue(target, { name: 'queue', bucket });
+      const queue = new TaskQueue(performer, { name: 'queue', bucket });
 
       let transformCount = 0;
 
