@@ -182,20 +182,17 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
             Orbit.globals.clearTimeout(timer);
 
             if (!timedOut) {
-              return this.handleFetchError(e)
-                .then(response => resolve(response))
-                .catch(e => reject(e));
+              return this.handleFetchError(e);
             }
           })
           .then(response => {
             Orbit.globals.clearTimeout(timer);
 
             if (!timedOut) {
-              return this.handleFetchResponse(response)
-                .then(response => resolve(response))
-                .catch(e => reject(e));
+              return this.handleFetchResponse(response);
             }
-          });
+          })
+          .then(resolve, reject);
       });
     } else {
       return Orbit.fetch(url, settings)
