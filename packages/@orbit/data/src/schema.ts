@@ -108,6 +108,10 @@ export default class Schema implements Evented, RecordInitializer {
       settings.version = 1;
     }
 
+    if (settings.models === undefined) {
+      settings.models = {};
+    }
+
     this._applySettings(settings);
   }
 
