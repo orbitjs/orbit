@@ -104,6 +104,34 @@ export class TransformNotAllowed extends Exception {
 }
 
 /**
+ * An error occured related to the schema.
+ * 
+ * @export
+ * @class SchemaError
+ */
+export class SchemaError extends Exception {
+  public description: string;
+
+  constructor(description: string) {
+    super(`Schema error: ${description}`);
+    this.description = description;
+  }
+}
+
+
+/**
+ * A model could not be found in the schema.
+ * 
+ * @export
+ * @class ModelNotFound
+ */
+export class ModelNotFound extends SchemaError {
+  constructor(type: string) {
+    super(`Model definition for ${type} not found`);
+  }
+}
+
+/**
  * An error occurred related to a particular record.
  * 
  * @export
