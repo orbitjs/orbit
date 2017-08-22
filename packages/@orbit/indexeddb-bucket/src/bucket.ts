@@ -88,7 +88,7 @@ export default class IndexedDBBucket extends Bucket {
   }
 
   openDB() {
-    return new Orbit.Promise((resolve, reject) => {
+    return new Orbit.Promise<void>((resolve, reject) => {
       if (this._db) {
         resolve(this._db);
       } else {
@@ -147,7 +147,7 @@ export default class IndexedDBBucket extends Bucket {
   deleteDB() {
     this.closeDB();
 
-    return new Orbit.Promise((resolve, reject) => {
+    return new Orbit.Promise<void>((resolve, reject) => {
       let request = Orbit.globals.indexedDB.deleteDatabase(this.dbName);
 
       request.onerror = (/* event */) => {
@@ -190,7 +190,7 @@ export default class IndexedDBBucket extends Bucket {
         const transaction = this._db.transaction([this.dbStoreName], 'readwrite');
         const objectStore = transaction.objectStore(this.dbStoreName);
 
-        return new Orbit.Promise((resolve, reject) => {
+        return new Orbit.Promise<void>((resolve, reject) => {
           const request = objectStore.put(value, key);
 
           request.onerror = function(/* event */) {
@@ -209,7 +209,7 @@ export default class IndexedDBBucket extends Bucket {
   removeItem(key: string): Promise<void> {
     return this.openDB()
       .then(() => {
-        return new Orbit.Promise((resolve, reject) => {
+        return new Orbit.Promise<void>((resolve, reject) => {
           const transaction = this._db.transaction([this.dbStoreName], 'readwrite');
           const objectStore = transaction.objectStore(this.dbStoreName);
           const request = objectStore.delete(key);

@@ -17,7 +17,13 @@ const globals = typeof self == 'object' && self.self === self && self ||
                 this ||
                 {};
 
-const Orbit: any = {
+export interface OrbitType {
+  globals: any;
+  Promise: PromiseConstructor;
+  uuid: () => string;
+};
+
+const Orbit: OrbitType = {
   globals,
   Promise: globals.Promise,
   uuid

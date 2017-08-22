@@ -88,7 +88,7 @@ export default class TaskQueue implements Evented {
    * @memberOf TaskQueue
    */
   constructor(target: Performer, settings: TaskQueueSettings = {}) {
-    assert('TaskQueue requires Orbit.Promise to be defined', Orbit.Promise);
+    assert('TaskQueue requires Orbit.Promise to be defined', !!Orbit.Promise);
 
     this._performer = target;
     this._name = settings.name;

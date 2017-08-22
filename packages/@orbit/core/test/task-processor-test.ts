@@ -23,7 +23,7 @@ module('TaskProcessor', function() {
     assert.expect(5);
 
     const target: Performer = {
-      perform(task: Task): Promise<void> { 
+      perform(task: Task): Promise<string> {
         assert.equal(task.type, 'doSomething', 'perform invoked with task');
         assert.ok(processor.started, 'processor started');
         assert.ok(!processor.settled, 'processor not settled');
@@ -49,7 +49,7 @@ module('TaskProcessor', function() {
     assert.expect(6);
 
     const target: Performer = {
-      perform(task: Task): Promise<void> { 
+      perform(task: Task): Promise<void> {
         assert.equal(task.type, 'doSomething', 'perform invoked with task');
         assert.equal(task.data, '1', 'argument matches');
         assert.ok(processor.started, 'processor started');
@@ -73,7 +73,7 @@ module('TaskProcessor', function() {
     assert.expect(5);
 
     const target: Performer = {
-      perform(task: Task): Promise<void> { 
+      perform(task: Task): Promise<void> {
         assert.equal(task.type, 'doSomething', 'perform invoked with task');
         assert.equal(task.data, '1', 'argument matches');
         assert.ok(processor.started, 'processor started');
@@ -96,7 +96,7 @@ module('TaskProcessor', function() {
     assert.expect(8);
 
     const target: Performer = {
-      perform(task: Task): Promise<void> { 
+      perform(task: Task): Promise<string> {
         assert.equal(task.type, 'doSomething', 'perform invoked with task');
         assert.equal(task.data, '1', 'argument matches');
         assert.ok(processor.started, 'processor started');

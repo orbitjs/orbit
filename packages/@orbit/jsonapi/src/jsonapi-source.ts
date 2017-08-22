@@ -1,5 +1,5 @@
 /* eslint-disable valid-jsdoc */
-import Orbit, {
+import {
   KeyMap,
   RecordOperation,
   Schema,
@@ -15,7 +15,7 @@ import Orbit, {
   ServerError,
   NetworkError
 } from '@orbit/data';
-import { Log } from '@orbit/core';
+import Orbit, { Log } from '@orbit/core';
 import { assert } from '@orbit/utils';
 import JSONAPISerializer, { JSONAPISerializerSettings } from './jsonapi-serializer';
 import { encodeQueryParams } from './lib/query-params';
@@ -25,6 +25,12 @@ import { InvalidServerResponse } from './lib/exceptions';
 
 if (typeof Orbit.globals.fetch !== 'undefined' && Orbit.fetch === undefined) {
   Orbit.fetch = Orbit.globals.fetch;
+}
+
+declare module '@orbit/core/dist/types/main' {
+  interface OrbitType {
+    fetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>;
+  }
 }
 
 export interface FetchSettings {
@@ -77,8 +83,8 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
 
   constructor(settings: JSONAPISourceSettings = {}) {
     assert('JSONAPISource\'s `schema` must be specified in `settings.schema` constructor argument', !!settings.schema);
-    assert('JSONAPISource requires Orbit.Promise be defined', Orbit.Promise);
-    assert('JSONAPISource requires Orbit.fetch be defined', Orbit.fetch);
+    assert('JSONAPISource requires Orbit.Promise be defined', !!Orbit.Promise);
+    assert('JSONAPISource requires Orbit.fetch be defined', !!Orbit.fetch);
 
     settings.name = settings.name || 'jsonapi';
 
