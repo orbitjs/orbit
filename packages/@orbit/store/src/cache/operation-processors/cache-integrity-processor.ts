@@ -114,7 +114,7 @@ export default class CacheIntegrityProcessor extends OperationProcessor {
     if (inverseRels.length > 0) {
       const recordIdentity = cloneRecordIdentity(record);
       inverseRels.forEach(rel => {
-        const relationshipDef = this.cache.schema.models[rel.record.type].relationships[rel.relationship];
+        const relationshipDef = this.cache.schema.getModel(rel.record.type).relationships[rel.relationship];
         if (relationshipDef.type === 'hasMany') {
           ops.push({
             op: 'removeFromRelatedRecords',

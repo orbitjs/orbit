@@ -55,7 +55,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
 
   _relatedRecordAdded(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): RecordOperation[] {
     const ops: RecordOperation[] = [];
-    const relationshipDef = this.cache.schema.models[record.type].relationships[relationship];
+    const relationshipDef = this.cache.schema.getModel(record.type).relationships[relationship];
     const inverseRelationship = relationshipDef.inverse;
 
     if (inverseRelationship && relatedRecord) {
@@ -67,7 +67,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
 
   _relatedRecordsAdded(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]): RecordOperation[] {
     const ops: RecordOperation[] = [];
-    const relationshipDef = this.cache.schema.models[record.type].relationships[relationship];
+    const relationshipDef = this.cache.schema.getModel(record.type).relationships[relationship];
     const inverseRelationship = relationshipDef.inverse;
 
     if (inverseRelationship && relatedRecords && relatedRecords.length > 0) {
@@ -81,7 +81,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
 
   _relatedRecordRemoved(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): RecordOperation[] {
     const ops: RecordOperation[] = [];
-    const relationshipDef = this.cache.schema.models[record.type].relationships[relationship];
+    const relationshipDef = this.cache.schema.getModel(record.type).relationships[relationship];
     const inverseRelationship = relationshipDef.inverse;
 
     if (inverseRelationship) {
@@ -100,7 +100,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
 
   _relatedRecordReplaced(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): RecordOperation[] {
     const ops: RecordOperation[] = [];
-    const relationshipDef = this.cache.schema.models[record.type].relationships[relationship];
+    const relationshipDef = this.cache.schema.getModel(record.type).relationships[relationship];
     const inverseRelationship = relationshipDef.inverse;
 
     if (inverseRelationship) {
@@ -122,7 +122,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
 
   _relatedRecordsRemoved(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]): RecordOperation[] {
     const ops: RecordOperation[] = [];
-    const relationshipDef = this.cache.schema.models[record.type].relationships[relationship];
+    const relationshipDef = this.cache.schema.getModel(record.type).relationships[relationship];
     const inverseRelationship = relationshipDef.inverse;
 
     if (inverseRelationship) {
@@ -140,7 +140,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
 
   _relatedRecordsReplaced(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]): RecordOperation[] {
     const ops: RecordOperation[] = [];
-    const relationshipDef = this.cache.schema.models[record.type].relationships[relationship];
+    const relationshipDef = this.cache.schema.getModel(record.type).relationships[relationship];
     const currentRelatedRecordsMap = this.cache.relationships.relatedRecordsMap(record, relationship);
 
     let addedRecords;
@@ -167,7 +167,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
     const relationships = record.relationships;
 
     if (relationships) {
-      const modelDef = this.cache.schema.models[record.type];
+      const modelDef = this.cache.schema.getModel(record.type);
       const recordIdentity = cloneRecordIdentity(record);
 
       Object.keys(relationships).forEach(relationship => {
@@ -190,7 +190,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
     const relationships = currentRecord && currentRecord.relationships;
 
     if (relationships) {
-      const modelDef = this.cache.schema.models[record.type];
+      const modelDef = this.cache.schema.getModel(record.type);
       const recordIdentity = cloneRecordIdentity(record);
 
       Object.keys(relationships).forEach(relationship => {
@@ -210,7 +210,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
     const ops: RecordOperation[] = [];
 
     if (record.relationships) {
-      const modelDef = this.cache.schema.models[record.type];
+      const modelDef = this.cache.schema.getModel(record.type);
       const recordIdentity = cloneRecordIdentity(record);
 
       for (let relationship in record.relationships) {
@@ -247,7 +247,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
   }
 
   _addRelationshipOp(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): RecordOperation {
-    const relationshipDef = this.cache.schema.models[record.type].relationships[relationship];
+    const relationshipDef = this.cache.schema.getModel(record.type).relationships[relationship];
     const isHasMany = relationshipDef.type === 'hasMany';
 
     return <RecordOperation>{
@@ -259,7 +259,7 @@ export default class SchemaConsistencyProcessor extends OperationProcessor {
   }
 
   _removeRelationshipOp(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): RecordOperation {
-    const relationshipDef = this.cache.schema.models[record.type].relationships[relationship];
+    const relationshipDef = this.cache.schema.getModel(record.type).relationships[relationship];
     const isHasMany = relationshipDef.type === 'hasMany';
 
     return <RecordOperation>{
