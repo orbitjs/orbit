@@ -1,5 +1,6 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from './main';
+import { ModelNotFound } from './exception';
 import { assert, clone, Dict } from '@orbit/utils';
 import { evented, Evented } from '@orbit/core';
 import { Record, RecordInitializer } from './record';
@@ -80,7 +81,7 @@ export interface SchemaSettings {
  */
 @evented
 export default class Schema implements Evented, RecordInitializer {
-  models: Dict<ModelDefinition>;
+  private _models: Dict<ModelDefinition>;
 
   private _version: number;
 
@@ -165,7 +166,7 @@ export default class Schema implements Evented, RecordInitializer {
 
     // Register model schemas
     if (settings.models) {
-      this.models = settings.models;
+      this._models = settings.models;
     }
   }
 
@@ -212,6 +213,19 @@ export default class Schema implements Evented, RecordInitializer {
   initializeRecord(record: Record): void {
     if (record.id === undefined) {
       record.id = this.generateId(record.type);
+    }
+  }
+
+  get models(): Dict<ModelDefinition> {
+    return this._models;
+  }
+
+  getModel(type: string): ModelDefinition {
+    let model = this.models[type];
+    if (model) {
+      return model;
+    } else {
+      throw new ModelNotFound(type);
     }
   }
 }
