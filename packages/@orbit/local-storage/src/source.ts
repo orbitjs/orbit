@@ -80,7 +80,7 @@ export default class LocalStorageSource extends Source implements Pullable, Push
 
     let result = JSON.parse(Orbit.globals.localStorage.getItem(key));
 
-    if (this._keyMap) {
+    if (result && this._keyMap) {
       this._keyMap.pushRecord(result);
     }
 

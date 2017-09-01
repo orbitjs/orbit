@@ -58,15 +58,17 @@ export default {
 
   removeFromRelatedRecords(source: Source, operation: RemoveFromRelatedRecordsOperation) {
     let record: Record = source.getRecord(operation.record);
-    let relationships = deepGet(record, ['relationships', operation.relationship, 'data']) as RecordIdentity[];
-    if (relationships) {
-      for (let i = 0, l = relationships.length; i < l; i++) {
-        if (equalRecordIdentities(relationships[i], operation.relatedRecord)) {
-          relationships.splice(i, 1);
-          break;
+    if (record) {
+      let relationships = deepGet(record, ['relationships', operation.relationship, 'data']) as RecordIdentity[];
+      if (relationships) {
+        for (let i = 0, l = relationships.length; i < l; i++) {
+          if (equalRecordIdentities(relationships[i], operation.relatedRecord)) {
+            relationships.splice(i, 1);
+            break;
+          }
         }
+        return source.putRecord(record);
       }
-      return source.putRecord(record);
     }
   },
 
