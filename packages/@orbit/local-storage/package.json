@@ -1,6 +1,6 @@
 {
   "name": "@orbit/local-storage",
-  "version": "0.15.2",
+  "version": "0.15.3",
   "description": "Local storage support for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
