@@ -206,6 +206,8 @@ export default class Cache implements Evented {
   }
 
   protected _applyOperation(operation: RecordOperation, result: PatchResult, primary: boolean = false) {
+    this._processors.forEach(processor => processor.validate(operation));
+
     const inverseTransform: InverseTransformFunc = InverseTransforms[ operation.op ];
     const inverseOp: RecordOperation = inverseTransform(this, operation);
 
