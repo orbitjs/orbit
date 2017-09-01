@@ -8,7 +8,8 @@ import Orbit, {
   Record, RecordIdentity,
   Source, SourceSettings,
   Transform,
-  TransformOrOperations
+  TransformOrOperations,
+  RecordNotFoundException
 } from '@orbit/data';
 import { assert } from '@orbit/utils';
 import transformOperators from './lib/transform-operators';
@@ -186,13 +187,16 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
 
       request.onsuccess = (/* event */) => {
         // console.log('success - getRecord', request.result);
-        let record = request.result;
+        let result = request.result;
 
-        if (this._keyMap) {
-          this._keyMap.pushRecord(record);
+        if (result) {
+          if (this._keyMap) {
+            this._keyMap.pushRecord(result);
+          }
+          resolve(result);
+        } else {
+          reject(new RecordNotFoundException(record.type, record.id));
         }
-
-        resolve(record);
       };
     });
   }
