@@ -21,6 +21,7 @@ import {
 import { OperationProcessor, OperationProcessorClass } from './cache/operation-processors/operation-processor';
 import CacheIntegrityProcessor from './cache/operation-processors/cache-integrity-processor';
 import SchemaConsistencyProcessor from './cache/operation-processors/schema-consistency-processor';
+import SchemaValidationProcessor from './cache/operation-processors/schema-validation-processor';
 import { QueryOperators } from './cache/query-operators';
 import PatchTransforms, { PatchTransformFunc } from './cache/patch-transforms';
 import InverseTransforms, { InverseTransformFunc } from './cache/inverse-transforms';
@@ -82,7 +83,7 @@ export default class Cache implements Evented {
       recordInitializer: this._schema
     });
 
-    const processors: OperationProcessorClass[] = settings.processors ? settings.processors : [SchemaConsistencyProcessor, CacheIntegrityProcessor];
+    const processors: OperationProcessorClass[] = settings.processors ? settings.processors : [SchemaValidationProcessor, SchemaConsistencyProcessor, CacheIntegrityProcessor];
     this._processors = processors.map(Processor => new Processor(this));
 
     this.reset(settings.base);
@@ -206,6 +207,8 @@ export default class Cache implements Evented {
   }
 
   protected _applyOperation(operation: RecordOperation, result: PatchResult, primary: boolean = false) {
+    this._processors.forEach(processor => processor.validate(operation));
+
     const inverseTransform: InverseTransformFunc = InverseTransforms[ operation.op ];
     const inverseOp: RecordOperation = inverseTransform(this, operation);
 

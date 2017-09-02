@@ -51,6 +51,14 @@ export abstract class OperationProcessor {
   reset(base?: Cache): void {}
 
   /**
+   * Validates an operation before processing it.
+   *
+   * @param {RecordOperation} operation
+   * @memberof OperationProcessor
+   */
+  validate(operation: RecordOperation): void {}
+
+  /**
    * Called before an `operation` has been applied.
    *
    * Returns an array of operations to be applied **BEFORE** the `operation`
