@@ -527,5 +527,42 @@ module('JSONAPISerializer', function(hooks) {
         'deserialized document matches'
       );
     });
+
+    test('#deserialize - ignores attributes and relationships not defined in the schema', function(assert) {
+      let result = serializer.deserializeDocument(
+        {
+          data: {
+            id: '12345',
+            type: 'planets',
+            attributes: {
+              name: 'Jupiter',
+              unknownAttribute: 'gas giant'
+            },
+            relationships: {
+              moons: { data: [{ type: 'moons', id: '5' }] },
+              unknownRelationship: { type: 'solarSystem', id: 'ss1' }
+            }
+          }
+        }
+      );
+
+      assert.deepEqual(
+        result,
+        {
+          data: {
+            type: 'planet',
+            id: '12345',
+            attributes: {
+              name: 'Jupiter'
+            },
+            relationships: {
+              moons: {
+                data: [{ type: 'moon', id: '5' }]
+              }
+            }
+          }
+        }
+      );
+    });
   });
 });
