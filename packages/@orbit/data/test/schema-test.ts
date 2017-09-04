@@ -83,6 +83,37 @@ module('Schema', function() {
       schema.getModel('planet');
     }, /Schema error: Model definition for planet not found/)
   });
+  
+  test('#hasAttribute', function(assert) {
+    const schema = new Schema({
+      models: {
+        planet: {
+          attributes: {
+            name: { type: 'string', defaultValue: 'Earth' }
+          }
+        }
+      }
+    });
+
+    assert.equal(schema.hasAttribute('planet', 'name'), true);
+    assert.equal(schema.hasAttribute('planet', 'unknown'), false);
+  });
+
+  test('#hasRelationship', function(assert) {
+    const schema = new Schema({
+      models: {
+        planet: {
+          relationships: {
+            moons: { type: 'hasMany', model: 'moon' },
+          }
+        },
+        moon: {}
+      },
+    });
+
+    assert.equal(schema.hasRelationship('planet', 'moons'), true);
+    assert.equal(schema.hasRelationship('planet', 'unknown'), false);
+  });
 
   test('#pluralize simply adds an `s` to the end of words', function(assert) {
     const schema = new Schema();

@@ -228,4 +228,22 @@ export default class Schema implements Evented, RecordInitializer {
       throw new ModelNotFound(type);
     }
   }
+
+  hasAttribute(type: string, attribute: string): boolean {
+    let model = this.getModel(type);
+    if (model.attributes && model.attributes[attribute]) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  hasRelationship(type: string, relationship: string): boolean {
+    let model = this.getModel(type);
+    if (model.relationships && model.relationships[relationship]) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
