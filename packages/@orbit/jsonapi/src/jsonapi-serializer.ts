@@ -248,10 +248,10 @@ export default class JSONAPISerializer {
   deserializeAttributes(record: Record, resource: Resource): void {
     if (resource.attributes) {
       Object.keys(resource.attributes).forEach(resourceAttribute => {
-        var value = resource.attributes[resourceAttribute];
-        if (value !== undefined) {
-          let attr = this.recordAttribute(record.type, resourceAttribute);
-          this.deserializeAttribute(record, attr, value);
+        let attribute = this.recordAttribute(record.type, resourceAttribute);
+        if (this.schema.hasAttribute(record.type, attribute)) {
+          let value = resource.attributes[resourceAttribute];
+          this.deserializeAttribute(record, attribute, value);
         }
       });
     }
@@ -265,9 +265,9 @@ export default class JSONAPISerializer {
   deserializeRelationships(record: Record, resource: Resource): void {
     if (resource.relationships) {
       Object.keys(resource.relationships).forEach(resourceRel => {
-        let value: ResourceRelationship = resource.relationships[resourceRel];
-        if (value !== undefined) {
-          let relationship = this.recordRelationship(record.type, resourceRel);
+        let relationship = this.recordRelationship(record.type, resourceRel);
+        if (this.schema.hasRelationship(record.type, relationship)) {
+          let value = resource.relationships[resourceRel];
           this.deserializeRelationship(record, relationship, value);
         }
       });
