@@ -1,4 +1,5 @@
 import {
+  mergeRecords,
   cloneRecordIdentity,
   equalRecordIdentities,
   Record, RecordIdentity,
@@ -25,27 +26,9 @@ export default {
   },
 
   replaceRecord(source: Source, operation: ReplaceRecordOperation) {
-    let replacement = operation.record;
-    let current = source.getRecord(replacement);
-
-    let record;
-
-    if (current) {
-      record = cloneRecordIdentity(current);
-
-      ['attributes', 'keys', 'relationships'].forEach(grouping => {
-        if (current[grouping] && replacement[grouping]) {
-          record[grouping] = merge({}, current[grouping], replacement[grouping]);
-        } else if (current[grouping]) {
-          record[grouping] = merge({}, current[grouping]);
-        } else if (replacement[grouping]) {
-          record[grouping] = merge({}, replacement[grouping]);
-        }
-      });
-    } else {
-      record = replacement;
-    }
-
+    let updates = operation.record;
+    let current = source.getRecord(updates);
+    let record = mergeRecords(current, updates);
     source.putRecord(record);
   },
 

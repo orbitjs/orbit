@@ -1,4 +1,4 @@
-import { Dict, isObject, isNone } from '@orbit/utils';
+import { Dict, isObject, isNone, merge } from '@orbit/utils';
 
 export interface RecordIdentity {
   type: string;
@@ -35,4 +35,24 @@ export function equalRecordIdentities(record1: RecordIdentity, record2: RecordId
          (isObject(record1) && isObject(record2) &&
           record1.type === record2.type &&
           record1.id === record2.id);
+}
+
+export function mergeRecords(current: Record | null, updates: Record): Record {
+  if (current) {
+    let record = cloneRecordIdentity(current);
+
+    ['attributes', 'keys', 'relationships'].forEach(grouping => {
+      if (current[grouping] && updates[grouping]) {
+        record[grouping] = merge({}, current[grouping], updates[grouping]);
+      } else if (current[grouping]) {
+        record[grouping] = merge({}, current[grouping]);
+      } else if (updates[grouping]) {
+        record[grouping] = merge({}, updates[grouping]);
+      }
+    });
+
+    return record;
+  } else {
+    return updates;
+  }
 }
