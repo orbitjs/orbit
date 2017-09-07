@@ -14,7 +14,8 @@ import {
 } from '@orbit/data';
 import {
   deepGet,
-  deepSet
+  deepSet,
+  merge
 } from '@orbit/utils';
 import Source from '../source';
 
@@ -24,7 +25,28 @@ export default {
   },
 
   replaceRecord(source: Source, operation: ReplaceRecordOperation) {
-    source.putRecord(operation.record);
+    let replacement = operation.record;
+    let current = source.getRecord(replacement);
+
+    let record;
+
+    if (current) {
+      record = cloneRecordIdentity(current);
+
+      ['attributes', 'keys', 'relationships'].forEach(grouping => {
+        if (current[grouping] && replacement[grouping]) {
+          record[grouping] = merge({}, current[grouping], replacement[grouping]);
+        } else if (current[grouping]) {
+          record[grouping] = merge({}, current[grouping]);
+        } else if (replacement[grouping]) {
+          record[grouping] = merge({}, replacement[grouping]);
+        }
+      });
+    } else {
+      record = replacement;
+    }
+
+    source.putRecord(record);
   },
 
   removeRecord(source: Source, operation: RemoveRecordOperation) {
