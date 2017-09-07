@@ -1,4 +1,5 @@
 import {
+  mergeRecords,
   cloneRecordIdentity,
   equalRecordIdentities,
   Record, RecordIdentity,
@@ -31,7 +32,14 @@ export default {
   },
 
   replaceRecord(source: Source, operation: ReplaceRecordOperation) {
-    return source.putRecord(operation.record);
+    let updates = operation.record;
+
+    return source.getRecord(updates)
+      .catch(() => null)
+      .then(current => {
+        let record = mergeRecords(current, updates);
+        return source.putRecord(record);
+      });
   },
 
   removeRecord(source: Source, operation: RemoveRecordOperation) {

@@ -1,4 +1,6 @@
 import {
+  mergeRecords,
+  equalRecordIdentities,
   Record,
   RecordIdentity,
   RecordOperation,
@@ -10,10 +12,9 @@ import {
   ReplaceRelatedRecordsOperation,
   ReplaceRelatedRecordOperation,
   ReplaceKeyOperation,
-  ReplaceRecordOperation,
-  equalRecordIdentities
+  ReplaceRecordOperation
 } from '@orbit/data';
-import { clone, deepGet, deepSet, merge } from '@orbit/utils';
+import { clone, deepGet, deepSet } from '@orbit/utils';
 import Cache, { PatchResultData } from '../cache';
 
 export interface PatchTransformFunc {
@@ -34,29 +35,11 @@ export default {
   },
 
   replaceRecord(cache: Cache, op: ReplaceRecordOperation): PatchResultData {
-    const replacement = op.record;
-    const { type, id } = replacement;
-    const records = cache.records(type);
-    const current = records.get(id);
-    let record: Record;
-
-    if (current) {
-      record = { type, id };
-
-      ['attributes', 'keys', 'relationships'].forEach(grouping => {
-        if (current[grouping] && replacement[grouping]) {
-          record[grouping] = merge({}, current[grouping], replacement[grouping]);
-        } else if (current[grouping]) {
-          record[grouping] = merge({}, current[grouping]);
-        } else if (replacement[grouping]) {
-          record[grouping] = merge({}, replacement[grouping]);
-        }
-      });
-    } else {
-      record = replacement;
-    }
-
-    records.set(id, record);
+    const updates = op.record;
+    const records = cache.records(updates.type);
+    const current = records.get(updates.id);
+    const record = mergeRecords(current, updates);
+    records.set(record.id, record);
 
     if (cache.keyMap) {
       cache.keyMap.pushRecord(record);
