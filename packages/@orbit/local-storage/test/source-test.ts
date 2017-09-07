@@ -23,9 +23,21 @@ module('LocalStorageSource', function(hooks) {
     schema = new Schema({
       models: {
         planet: {
-          keys: { remoteId: {} }
+          keys: { remoteId: {} },
+          attributes: {
+            name: { type: 'string' },
+            classification: { type: 'string' },
+            revised: { type: 'boolean' }
+          },
+          relationships: {
+            moons: { type: 'hasMany', model: 'moon' },
+            solarSystem: { type: 'hasMany', model: 'solarSystem' }
+          }
         },
         moon: {
+          keys: { remoteId: {} }
+        },
+        solarSystem: {
           keys: { remoteId: {} }
         }
       }
@@ -98,23 +110,50 @@ module('LocalStorageSource', function(hooks) {
       },
       attributes: {
         name: 'Jupiter',
-        classification: 'gas giant'
+      },
+      relationships: {
+        moons: {
+          data: [{ type: 'moon', id: 'moon1' }]
+        }
       }
     };
 
-    let revised = {
+    let updates = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
+        classification: 'gas giant'
+      },
+      relationships: {
+        solarSystem: {
+          data: { type: 'solarSystem', id: 'ss1' }
+        }
+      }
+    };
+
+    let expected = {
+      type: 'planet',
+      id: 'jupiter',
+      keys: {
+        remoteId: 'j'
+      },
+      attributes: {
         name: 'Jupiter',
-        classification: 'gas giant',
-        revised: true
+        classification: 'gas giant'
+      },
+      relationships: {
+        moons: {
+          data: [{ type: 'moon', id: 'moon1' }]
+        },
+        solarSystem: {
+          data: { type: 'solarSystem', id: 'ss1' }
+        }
       }
     };
 
     return source.push(t => t.addRecord(original))
-      .then(() => source.push(t => t.replaceRecord(revised)))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, revised))
+      .then(() => source.push(t => t.replaceRecord(updates)))
+      .then(() => verifyLocalStorageContainsRecord(assert, source, expected))
       .then(() => {
         assert.equal(keyMap.keyToId('planet', 'remoteId', 'j'), 'jupiter', 'key has been mapped');
       });
