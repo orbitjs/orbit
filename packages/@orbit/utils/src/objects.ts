@@ -13,7 +13,7 @@
 export function clone(obj: any): any {
   if (obj === undefined || obj === null || typeof obj !== 'object') { return obj; }
 
-  let dup;
+  let dup: any;
   let type = Object.prototype.toString.call(obj);
 
   if (type === '[object Date]') {
@@ -23,16 +23,16 @@ export function clone(obj: any): any {
     dup = obj.constructor(obj);
   } else if (type === '[object Array]') {
     dup = [];
-    for (var i = 0, len = obj.length; i < len; i++) {
+    for (let i = 0, len = obj.length; i < len; i++) {
       if (obj.hasOwnProperty(i)) {
         dup.push(clone(obj[i]));
       }
     }
   } else {
-    var val;
+    let val;
 
     dup = {};
-    for (var key in obj) {
+    for (let key in obj) {
       if (obj.hasOwnProperty(key)) {
         val = obj[key];
         if (typeof val === 'object') { val = clone(val); }
@@ -49,18 +49,18 @@ export function clone(obj: any): any {
  * Methods will be called on `source` and will maintain `source` as the context.
  *
  * @export
- * @param {object} destination
- * @param {object} source
+ * @param {*} destination
+ * @param {*} source
  */
-export function expose(destination: object, source: object): void {
-  let properties;
+export function expose(destination: any, source: any): void {
+  let properties: string[];
   if (arguments.length > 2) {
     properties = Array.prototype.slice.call(arguments, 2);
   } else {
     properties = Object.keys(source);
   }
 
-  properties.forEach(function(p) {
+  properties.forEach(p => {
     if (typeof source[p] === 'function') {
       destination[p] = function() {
         return source[p].apply(source, arguments);
@@ -75,13 +75,13 @@ export function expose(destination: object, source: object): void {
  * Extend an object with the properties of one or more other objects.
  *
  * @export
- * @param {object} destination
- * @param {any} sources
- * @returns {object}
+ * @param {*} destination
+ * @param {...any[]} sources
+ * @returns {any}
  */
-export function extend(destination: object, ...sources): object {
-  sources.forEach(function(source) {
-    for (var p in source) {
+export function extend(destination: any, ...sources: any[]): any {
+  sources.forEach(source => {
+    for (let p in source) {
       if (source.hasOwnProperty(p)) {
         destination[p] = source[p];
       }
@@ -144,13 +144,13 @@ export function isNone(obj: any): boolean {
  * that already exist.
  *
  * @export
- * @param {object} base
- * @param {...object[]} sources
- * @returns {object}
+ * @param {*} base
+ * @param {...any[]} sources
+ * @returns {*}
  */
-export function merge(object: object, ...sources: object[]): object {
+export function merge(object: any, ...sources: any[]): any {
   sources.forEach(source => {
-    Object.keys(source).forEach(function(field) {
+    Object.keys(source).forEach(field => {
       if (source.hasOwnProperty(field)) {
         let value = source[field];
         if (!(value === undefined && object[field] !== undefined)) {
@@ -168,11 +168,11 @@ export function merge(object: object, ...sources: object[]): object {
  * Returns any falsy value encountered while traversing the path.
  *
  * @export
- * @param {object} obj
+ * @param {*} obj
  * @param {string[]} path
  * @returns {*}
  */
-export function deepGet(obj: object, path: string[]): any {
+export function deepGet(obj: any, path: string[]): any {
   let index = -1;
   let result = obj;
 
@@ -196,12 +196,12 @@ export function deepGet(obj: object, path: string[]): any {
  * requested `value` argument. Otherwise returns `true`.
  *
  * @export
- * @param {object} obj
+ * @param {*} obj
  * @param {string[]} path
  * @param {*} value
  * @returns {boolean} was the value was actually changed?
  */
-export function deepSet(obj: object, path: string[], value: any): boolean {
+export function deepSet(obj: any, path: string[], value: any): boolean {
   let ptr = obj;
   let prop = path.pop();
   let segment;
@@ -212,10 +212,10 @@ export function deepSet(obj: object, path: string[], value: any): boolean {
     }
     ptr = ptr[segment];
   }
-  if (ptr[prop] === value) {
+  if (ptr[prop!] === value) {
     return false;
   } else {
-    ptr[prop] = value;
+    ptr[prop!] = value;
     return true;
   }
 }
@@ -226,10 +226,10 @@ export function deepSet(obj: object, path: string[], value: any): boolean {
  * This is a ponyfill for `Object.values`, which is still experimental.
  *
  * @export
- * @param {object} obj
+ * @param {*} obj
  * @returns {any[]}
  */
-export function objectValues(obj: object): any[] {
+export function objectValues(obj: any): any[] {
   if (Object.values) {
     return Object.values(obj);
   } else {
