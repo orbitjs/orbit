@@ -17,7 +17,8 @@ import { assert, Dict } from '@orbit/utils';
 import Cache, { CacheSettings, PatchResultData } from './cache';
 
 export interface StoreSettings extends SourceSettings {
-  cacheSettings?: CacheSettings
+  base?: Store;
+  cacheSettings?: CacheSettings;
 }
 
 export interface StoreMergeOptions {
@@ -31,6 +32,8 @@ export interface StoreMergeOptions {
 @updatable
 export default class Store extends Source implements Syncable, Queryable, Updatable {
   private _cache: Cache;
+  private _base: Store;
+  private _forkPoint: string;
   private _transforms: Dict<Transform>;
   private _transformInverses: Dict<RecordOperation[]>;
 
@@ -65,11 +68,24 @@ export default class Store extends Source implements Syncable, Queryable, Updata
     cacheSettings.keyMap = keyMap;
     cacheSettings.queryBuilder = cacheSettings.queryBuilder || this.queryBuilder;
     cacheSettings.transformBuilder = cacheSettings.transformBuilder || this.transformBuilder;
+    if (settings.base) {
+      this._base = settings.base;
+      this._forkPoint = this._base.transformLog.head;
+      cacheSettings.base = this._base.cache;
+    }
     this._cache = new Cache(cacheSettings);
   }
 
   get cache(): Cache {
     return this._cache;
+  }
+
+  get base(): Store {
+    return this._base;
+  }
+
+  get forkPoint(): string {
+    return this._forkPoint;
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -115,10 +131,10 @@ export default class Store extends Source implements Syncable, Queryable, Updata
   fork(settings: StoreSettings = {}) {
     settings.schema = this._schema;
     settings.cacheSettings = settings.cacheSettings || {};
-    settings.cacheSettings.base = this._cache;
     settings.keyMap = this._keyMap;
     settings.queryBuilder = this.queryBuilder;
     settings.transformBuilder = this.transformBuilder;
+    settings.base = this;
 
     return new Store(settings);
   }
@@ -140,7 +156,7 @@ export default class Store extends Source implements Syncable, Queryable, Updata
    @param {String}  [options.sinceTransformId = null] Select only transforms since the specified ID.
    @returns {Promise} The result of calling `update()` with the forked transforms.
   */
-  merge(forkedStore: Store, options: StoreMergeOptions = {}) {
+  merge(forkedStore: Store, options: StoreMergeOptions = {}): Promise<any> {
     let transforms: Transform[];
     if (options.sinceTransformId) {
       transforms = forkedStore.transformsSince(options.sinceTransformId);
@@ -172,7 +188,7 @@ export default class Store extends Source implements Syncable, Queryable, Updata
    @param {number} relativePosition - A positive or negative integer to specify a position relative to `transformId`
    @returns {undefined}
   */
-  rollback(transformId: string, relativePosition: number = 0) {
+  rollback(transformId: string, relativePosition: number = 0): Promise<void> {
     return this.transformLog.rollback(transformId, relativePosition);
   }
 

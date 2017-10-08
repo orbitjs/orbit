@@ -294,6 +294,8 @@ module('Store', function(hooks) {
         assert.strictEqual(store.keyMap, fork.keyMap, 'keyMap matches');
         assert.strictEqual(store.transformBuilder, fork.transformBuilder, 'transformBuilder is shared');
         assert.strictEqual(store.queryBuilder, fork.queryBuilder, 'queryBuilder is shared');
+        assert.strictEqual(fork.forkPoint, store.transformLog.head, 'forkPoint is set on the forked store');
+        assert.strictEqual(fork.base, store, 'base store is set on the forked store');
       });
   });
 
