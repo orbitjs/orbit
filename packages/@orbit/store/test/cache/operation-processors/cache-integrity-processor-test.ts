@@ -259,7 +259,7 @@ module('CacheIntegrityProcessor', function(hooks) {
       []
     );
 
-   assert.deepEqual(cache.inverseRelationships.all(europa), [{
+    assert.deepEqual(cache.inverseRelationships.all(europa), [{
       record: { type: 'planet', id: 'jupiter' },
       relationship: 'moons'
     }]);
