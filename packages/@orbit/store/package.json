@@ -1,6 +1,6 @@
 {
   "name": "@orbit/store",
-  "version": "0.15.7",
+  "version": "0.15.8",
   "description": "Orbit source for managing in-memory records.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -25,7 +25,7 @@
   "dependencies": {
     "@orbit/utils": "^0.15.7",
     "@orbit/core": "^0.15.7",
-    "@orbit/data": "^0.15.7",
+    "@orbit/data": "^0.15.8",
     "@orbit/immutable": "^0.15.0"
   },
   "devDependencies": {
