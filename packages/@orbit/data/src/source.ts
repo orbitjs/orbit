@@ -20,6 +20,7 @@ export interface SourceSettings {
   bucket?: Bucket;
   queryBuilder?: QueryBuilder;
   transformBuilder?: TransformBuilder;
+  autoUpgrade?: boolean;
 }
 
 export type SourceClass = (new () => Source);
@@ -68,6 +69,10 @@ export abstract class Source implements Evented, Performer {
     this._transformLog = new Log({ name: name ? `${name}-log` : undefined, bucket });
     this._requestQueue = new TaskQueue(this, { name: name ? `${name}-requests` : undefined, bucket });
     this._syncQueue = new TaskQueue(this, { name: name ? `${name}-sync` : undefined, bucket });
+
+    if (this._schema && (settings.autoUpgrade === undefined || settings.autoUpgrade)) {
+      this._schema.on('upgrade', () => this.upgrade());
+    }
   }
 
   get name(): string {
@@ -121,6 +126,16 @@ export abstract class Source implements Evented, Performer {
     let method = `__${task.type}__`;
     return this[method].call(this, task.data);
   };
+
+  /**
+   * Upgrade source as part of a schema upgrade.
+   *
+   * @returns {Promise<void>}
+   * @memberof Source
+   */
+  upgrade(): Promise<void> {
+    return Orbit.Promise.resolve();
+  }
 
   /////////////////////////////////////////////////////////////////////////////
   // Private methods

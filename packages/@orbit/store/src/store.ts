@@ -88,6 +88,11 @@ export default class Store extends Source implements Syncable, Queryable, Updata
     return this._forkPoint;
   }
 
+  upgrade(): Promise<void> {
+    this._cache.upgrade();
+    return Orbit.Promise.resolve();
+  }
+
   /////////////////////////////////////////////////////////////////////////////
   // Syncable interface implementation
   /////////////////////////////////////////////////////////////////////////////

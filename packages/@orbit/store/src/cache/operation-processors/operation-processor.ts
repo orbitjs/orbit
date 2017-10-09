@@ -51,6 +51,13 @@ export abstract class OperationProcessor {
   reset(base?: Cache): void {}
 
   /**
+   * Allow the processor to perform an upgrade as part of a cache upgrade.
+   *
+   * @memberof OperationProcessor
+   */
+  upgrade(): void {}
+
+  /**
    * Validates an operation before processing it.
    *
    * @param {RecordOperation} operation

@@ -172,6 +172,23 @@ export default class Cache implements Evented {
   }
 
   /**
+   * Upgrade the cache based on the current state of the schema.
+   *
+   * @memberof Cache
+   */
+  upgrade() {
+    Object.keys(this._schema.models).forEach(type => {
+      if (!this._records[type]) {
+        this._records[type] = new ImmutableMap<string, Record>();
+      }
+    });
+
+    this._relationships.upgrade();
+    this._inverseRelationships.upgrade();
+    this._processors.forEach(processor => processor.upgrade());
+  }
+
+  /**
    * Patches the document with an operation.
    *
    * @param {(Operation | Operation[] | TransformBuilderFunc)} operationOrOperations
