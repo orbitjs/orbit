@@ -5,7 +5,7 @@ import {
   TransformBuilder,
   QueryBuilder
 } from '../src/index';
-import { isEvented } from '@orbit/core';
+import Orbit, { isEvented } from '@orbit/core';
 import { FakeBucket } from './test-helper';
 
 const { module, test } = QUnit;
@@ -24,6 +24,36 @@ module('Source', function(hooks) {
     source = new MySource();
     assert.ok(source);
     assert.ok(source.transformLog, 'has a transform log');
+  });
+
+  test('it can be assigned a schema, which will be observed for upgrades by default', function(assert) {
+    assert.expect(2);
+
+    class MyDynamicSource extends Source {
+      upgrade() {
+        assert.ok(true, 'upgrade called');
+        return Orbit.Promise.resolve();
+      }
+    };
+
+    source = new MyDynamicSource({ schema });
+    schema.upgrade({});
+    assert.ok(true, 'after upgrade');
+  });
+
+  test('it will not be auto-upgraded if autoUpgrade: false option is specified', function(assert) {
+    assert.expect(1);
+
+    class MyDynamicSource extends Source {
+      upgrade() {
+        assert.ok(false, 'upgrade should not be called');
+        return Orbit.Promise.resolve();
+      }
+    };
+
+    source = new MyDynamicSource({ schema, autoUpgrade: false });
+    schema.upgrade({});
+    assert.ok(true, 'after upgrade');
   });
 
   test('creates a `transformLog`, `requestQueue`, and `syncQueue`, and assigns each the same bucket as the Source', function(assert) {
