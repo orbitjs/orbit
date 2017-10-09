@@ -7,6 +7,7 @@ import {
   Transform,
   buildTransform
 } from '@orbit/data';
+import { clone } from '@orbit/utils';
 import Store from '../src/store';
 import CacheIntegrityProcessor from '../src/cache/operation-processors/cache-integrity-processor';
 import SchemaConsistencyProcessor from '../src/cache/operation-processors/schema-consistency-processor';
@@ -375,6 +376,21 @@ module('Store', function(hooks) {
         );
 
         assert.equal(store.transformLog.head, addRecordATransform.id, 'rolls back transform log');
+      });
+  });
+
+  test('#upgrade upgrades the cache to include new models introduced in a schema', function(assert) {
+    let person = { type: 'person', id: '1', relationships: { planet: { data: { type: 'planet', id: 'earth' }}} };
+
+    let models = clone(schema.models);
+    models.planet.relationships.inhabitants = { type: 'hasMany', model: 'person', inverse: 'planet' };
+    models.person = { relationships: { planet: { type: 'hasOne', model: 'planet', inverse: 'inhabitants' }} };
+
+    schema.upgrade({ models });
+
+    return store.update(t => t.addRecord(person))
+      .then(record => {
+        assert.deepEqual(store.cache.records('person').get('1'), person, 'records match');
       });
   });
 });
