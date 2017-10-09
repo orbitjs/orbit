@@ -30,6 +30,14 @@ export default class InverseRelationshipAccessor {
     this._relationships = relationships;
   }
 
+  upgrade() {
+    Object.keys(this._cache.schema.models).forEach(type => {
+      if (!this._relationships[type]) {
+        this._relationships[type] = new ImmutableMap();
+      }
+    });
+  }
+
   all(record: RecordIdentity): InverseRelationship[] {
     return this._relationships[record.type].get(record.id) || [];
   }

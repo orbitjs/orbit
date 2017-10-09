@@ -26,6 +26,14 @@ export default class RelationshipAccessor {
     this._relationships = relationships;
   }
 
+  upgrade() {
+    Object.keys(this._cache.schema.models).forEach(type => {
+      if (!this._relationships[type]) {
+        this._relationships[type] = new ImmutableMap();
+      }
+    });
+  }
+
   relationshipExists(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): boolean {
     let rels = this._relationships[record.type].get(record.id);
     if (rels) {

@@ -3,6 +3,7 @@ import {
   RecordNotFoundException,
   Schema
 } from '@orbit/data';
+import { clone } from '@orbit/utils';
 import Cache from '../src/cache';
 import { arrayMembershipMatches } from './test-helper';
 
@@ -152,6 +153,27 @@ module('Cache', function(hooks) {
     cache1.reset(cache2);
 
     assert.strictEqual(cache1.records('planet').get('1').attributes.name, 'Jupiter');
+  });
+
+  test('#upgrade upgrades the cache to include new models introduced in a schema', function(assert) {
+    let cache = new Cache({ schema, keyMap });
+
+    let person = { type: 'person', id: '1', relationships: { planet: { data: { type: 'planet', id: 'earth' }}} };
+
+    assert.throws(
+      () => cache.patch({ op: 'addRecord', record: person })
+    );
+
+    let models = clone(schema.models);
+    models.planet.relationships.inhabitants = { type: 'hasMany', model: 'person', inverse: 'planet' };
+    models.person = { relationships: { planet: { type: 'hasOne', model: 'planet', inverse: 'inhabitants' }} };
+
+    schema.upgrade({ models });
+    cache.upgrade();
+    cache.patch({ op: 'addRecord', record: person });
+    assert.deepEqual(cache.records('person').get('1'), person, 'records match');
+    assert.ok(cache.relationships.relationshipExists(person, 'planet', { type: 'planet', id: 'earth' }), 'relationship exists');
+    assert.equal(cache.inverseRelationships.all({ type: 'planet', id: 'earth' }).length, 1, 'inverse relationship exists');
   });
 
   test('#patch updates the cache and returns arrays of primary data and inverse ops', function(assert) {
