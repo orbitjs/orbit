@@ -62,8 +62,10 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
     super(settings);
 
     this._namespace = settings.namespace || 'orbit';
+  }
 
-    this.schema.on('upgrade', () => this.reopenDB());
+  upgrade(): Promise<void> {
+    return this.reopenDB();
   }
 
   /**
