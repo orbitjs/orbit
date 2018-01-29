@@ -212,6 +212,8 @@ export default class Cache implements Evented {
       this._applyOperation(<RecordOperation>operationOrOperations, result, true);
     }
 
+    result.inverse.reverse();
+
     return result;
   }
 
@@ -230,7 +232,7 @@ export default class Cache implements Evented {
     const inverseOp: RecordOperation = inverseTransform(this, operation);
 
     if (inverseOp) {
-      result.inverse.unshift(inverseOp);
+      result.inverse.push(inverseOp);
 
       // Query and perform related `before` operations
       this._processors
