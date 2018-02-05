@@ -13,8 +13,7 @@ declare const global: any;
 //     (c) 2009-2017 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
 //     Underscore may be freely distributed under the MIT license.
 const globals = typeof self == 'object' && self.self === self && self ||
-                typeof global == 'object' && global.global === global && global ||
-                this ||
+                typeof global == 'object' && global ||
                 {};
 
 const Orbit: any = {
