@@ -1,6 +1,6 @@
 {
   "name": "@orbit/core",
-  "version": "0.15.7",
+  "version": "0.15.10",
   "description": "Core library for Orbit - a flexible data access and synchronization layer.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
