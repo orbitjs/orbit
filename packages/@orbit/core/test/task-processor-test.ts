@@ -6,8 +6,6 @@ import './test-helper';
 const { Promise } = Orbit;
 const { module, test } = QUnit;
 
-declare const setTimeout: any;
-
 ///////////////////////////////////////////////////////////////////////////////
 
 module('TaskProcessor', function() {
@@ -23,7 +21,7 @@ module('TaskProcessor', function() {
     assert.expect(5);
 
     const target: Performer = {
-      perform(task: Task): Promise<void> { 
+      perform(task: Task): Promise<void> {
         assert.equal(task.type, 'doSomething', 'perform invoked with task');
         assert.ok(processor.started, 'processor started');
         assert.ok(!processor.settled, 'processor not settled');
@@ -31,7 +29,7 @@ module('TaskProcessor', function() {
           function respond() {
             resolve(':)');
           }
-          setTimeout(respond, 1);
+          Orbit.globals.setTimeout(respond, 1);
         });
       }
     };
@@ -49,13 +47,13 @@ module('TaskProcessor', function() {
     assert.expect(6);
 
     const target: Performer = {
-      perform(task: Task): Promise<void> { 
+      perform(task: Task): Promise<void> {
         assert.equal(task.type, 'doSomething', 'perform invoked with task');
         assert.equal(task.data, '1', 'argument matches');
         assert.ok(processor.started, 'processor started');
         assert.ok(!processor.settled, 'processor not settled');
         return new Promise(function(resolve, reject) {
-          setTimeout(reject(':('), 1);
+          Orbit.globals.setTimeout(reject(':('), 1);
         });
       }
     };
@@ -73,7 +71,7 @@ module('TaskProcessor', function() {
     assert.expect(5);
 
     const target: Performer = {
-      perform(task: Task): Promise<void> { 
+      perform(task: Task): Promise<void> {
         assert.equal(task.type, 'doSomething', 'perform invoked with task');
         assert.equal(task.data, '1', 'argument matches');
         assert.ok(processor.started, 'processor started');
@@ -96,7 +94,7 @@ module('TaskProcessor', function() {
     assert.expect(8);
 
     const target: Performer = {
-      perform(task: Task): Promise<void> { 
+      perform(task: Task): Promise<void> {
         assert.equal(task.type, 'doSomething', 'perform invoked with task');
         assert.equal(task.data, '1', 'argument matches');
         assert.ok(processor.started, 'processor started');
