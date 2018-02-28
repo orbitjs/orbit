@@ -89,6 +89,25 @@ module('Source', function(hooks) {
     assert.equal(source.requestQueue.bucket, requestQueueBucket, 'requestQueue has been assigned overriden bucket');
   });
 
+  test('overrides default syncQueue settings with injected syncQueueSettings', function(assert) {
+    assert.expect(3)
+
+    const defaultBucket = new FakeBucket();
+    const syncQueueBucket = new FakeBucket();
+
+    const syncQueueSettings = {
+      name: 'my-sync-queue',
+      autoProcess: false,
+      bucket: syncQueueBucket
+    };
+
+    source = new MySource({ name: 'src1', bucket: defaultBucket, syncQueueSettings });
+
+    assert.equal(source.syncQueue.name, 'my-sync-queue', 'syncQueue has been assigned overriden name');
+    assert.equal(source.syncQueue.autoProcess, false, 'syncQueue has been assigned overriden autoProcess');
+    assert.equal(source.syncQueue.bucket, syncQueueBucket, 'syncQueue has been assigned overriden bucket');
+  });
+
   test('creates a `queryBuilder` upon first access', function(assert) {
     const qb = source.queryBuilder;
     assert.ok(qb, 'queryBuilder created');
