@@ -22,6 +22,7 @@ export interface SourceSettings {
   transformBuilder?: TransformBuilder;
   autoUpgrade?: boolean;
   requestQueueSettings?: TaskQueueSettings;
+  syncQueueSettings?: TaskQueueSettings;
 }
 
 export type SourceClass = (new () => Source);
@@ -63,6 +64,7 @@ export abstract class Source implements Evented, Performer {
     this._queryBuilder = settings.queryBuilder;
     this._transformBuilder = settings.transformBuilder;
     const requestQueueSettings = settings.requestQueueSettings || {};
+    const syncQueueSettings = settings.syncQueueSettings || {};
 
     if (bucket) {
       assert('TransformLog requires a name if it has a bucket', !!name);
@@ -78,7 +80,8 @@ export abstract class Source implements Evented, Performer {
 
     this._syncQueue = new TaskQueue(this, {
       name: name ? `${name}-sync` : undefined,
-      bucket
+      bucket,
+      ...syncQueueSettings
     });
 
     if (this._schema && (settings.autoUpgrade === undefined || settings.autoUpgrade)) {
