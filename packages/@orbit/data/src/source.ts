@@ -21,6 +21,8 @@ export interface SourceSettings {
   queryBuilder?: QueryBuilder;
   transformBuilder?: TransformBuilder;
   autoUpgrade?: boolean;
+  requestQueueSettings?: TaskQueueSettings;
+  syncQueueSettings?: TaskQueueSettings;
 }
 
 export type SourceClass = (new () => Source);
@@ -61,14 +63,26 @@ export abstract class Source implements Evented, Performer {
     const bucket = this._bucket = settings.bucket;
     this._queryBuilder = settings.queryBuilder;
     this._transformBuilder = settings.transformBuilder;
+    const requestQueueSettings = settings.requestQueueSettings || {};
+    const syncQueueSettings = settings.syncQueueSettings || {};
 
     if (bucket) {
       assert('TransformLog requires a name if it has a bucket', !!name);
     }
 
     this._transformLog = new Log({ name: name ? `${name}-log` : undefined, bucket });
-    this._requestQueue = new TaskQueue(this, { name: name ? `${name}-requests` : undefined, bucket });
-    this._syncQueue = new TaskQueue(this, { name: name ? `${name}-sync` : undefined, bucket });
+
+    this._requestQueue = new TaskQueue(this, {
+      name: name ? `${name}-requests` : undefined,
+      bucket,
+      ...requestQueueSettings
+    });
+
+    this._syncQueue = new TaskQueue(this, {
+      name: name ? `${name}-sync` : undefined,
+      bucket,
+      ...syncQueueSettings
+    });
 
     if (this._schema && (settings.autoUpgrade === undefined || settings.autoUpgrade)) {
       this._schema.on('upgrade', () => this.upgrade());
