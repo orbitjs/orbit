@@ -10,11 +10,11 @@ export interface RequestOptions {
 }
 
 export function buildFetchSettings(options: RequestOptions, settings: FetchSettings = {}): FetchSettings {
-  for (const param of ['filter', 'include', 'page', 'sort']) {
+  ['filter', 'include', 'page', 'sort'].forEach(param => {
     if (options[param]) {
       deepSet(settings, ['params', param], options[param]);
     }
-  }
+  });
 
   if (options.timeout) {
     settings.timeout = options.timeout;
