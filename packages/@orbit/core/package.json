@@ -26,6 +26,6 @@
     "@orbit/utils": "^0.15.11"
   },
   "devDependencies": {
-    "@glimmer/build": "^0.6.3"
+    "@glimmer/build": "^0.8.5"
   }
 }

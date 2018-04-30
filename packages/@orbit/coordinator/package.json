@@ -23,7 +23,7 @@
     "test": "testem ci"
   },
   "devDependencies": {
-    "@glimmer/build": "^0.6.3",
+    "@glimmer/build": "^0.8.5",
     "@orbit/core": "^0.15.11",
     "@orbit/data": "^0.15.11",
     "@orbit/utils": "^0.15.11"
