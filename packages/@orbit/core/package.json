@@ -1,6 +1,6 @@
 {
   "name": "@orbit/core",
-  "version": "0.15.11",
+  "version": "0.15.12",
   "description": "Core library for Orbit - a flexible data access and synchronization layer.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -23,7 +23,7 @@
     "test": "testem ci"
   },
   "dependencies": {
-    "@orbit/utils": "^0.15.11"
+    "@orbit/utils": "^0.15.12"
   },
   "devDependencies": {
     "@glimmer/build": "^0.8.5"
