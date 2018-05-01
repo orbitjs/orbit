@@ -3,6 +3,7 @@ import {
   evented, Evented, settleInSeries,
   Bucket,
   TaskQueue,
+  TaskQueueSettings,
   Task, Performer,
   Log
 } from '@orbit/core';
