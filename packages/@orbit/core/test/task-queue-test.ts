@@ -223,8 +223,8 @@ module('TaskQueue', function() {
       });
   });
 
-  test('will stop processing when an task errors', function(assert) {
-    assert.expect(7);
+  test('will stop processing when a task errors', function(assert) {
+    assert.expect(9);
 
     const performer: Performer = {
       perform(task: Task): Promise<void> {
@@ -233,6 +233,8 @@ module('TaskQueue', function() {
           assert.strictEqual(task.data, op1, 'transform - op1 passed as argument');
         } else if (transformCount === 2) {
           return Promise.reject(new Error(':('));
+        } else {
+          assert.ok(false, 'additional transforms should not be performed');
         }
         return Promise.resolve();
       }
@@ -242,13 +244,14 @@ module('TaskQueue', function() {
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+    let op3 = { op: 'add', path: ['planets', '345'], value: 'Mars' };
     let transformCount = 0;
 
     queue.on('task', function(task) {
       if (transformCount === 1) {
         assert.strictEqual(task.data, op1, 'task - op1 processed');
-      } else if (transformCount === 2) {
-        assert.ok(false, 'op2 could not be processed');
+      } else {
+        assert.ok(false, 'task - ops after op1 could not be processed');
       }
     });
 
@@ -264,15 +267,98 @@ module('TaskQueue', function() {
     queue.push({
       type: 'transform',
       data: op1
+    }).catch(e => {
+      assert.ok(false, 'successful transform should not error');
     });
 
     queue.push({
       type: 'transform',
       data: op2
+    }).catch(e => {
+      assert.equal(e.message, ':(', 'error can be caught from `push`');
+    });
+
+    queue.push({
+      type: 'transform',
+      data: op3
+    }).catch(e => {
+      assert.ok(false, 'additional transforms should not be performed');
     });
 
     return queue.process()
       .catch((e) => {
+        assert.equal(e.message, ':(', 'error can be caught from `process`');
+        assert.equal(queue.empty, false, 'queue processing encountered a problem');
+        assert.equal(queue.error.message, ':(', 'process error matches expectation');
+        assert.strictEqual(queue.error, e, 'process error matches expectation');
+      });
+  });
+
+  test('when autoprocessing, will stop processing when a task errors', function(assert) {
+    assert.expect(9);
+
+    const performer: Performer = {
+      perform(task: Task): Promise<void> {
+        transformCount++;
+        if (transformCount === 1) {
+          assert.strictEqual(task.data, op1, 'transform - op1 passed as argument');
+      } else if (transformCount === 2) {
+          return Promise.reject(new Error(':('));
+        } else {
+          assert.ok(false, 'additional transforms should not be performed');
+        }
+        return Promise.resolve();
+      }
+    };
+
+    const queue = new TaskQueue(performer, { autoProcess: true });
+
+    let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
+    let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+    let op3 = { op: 'add', path: ['planets', '345'], value: 'Mars' };
+    let transformCount = 0;
+
+    queue.on('task', function(task) {
+      if (transformCount === 1) {
+        assert.strictEqual(task.data, op1, 'task - op1 processed');
+      } else {
+        assert.ok(false, 'task - ops after op1 could not be processed');
+      }
+    });
+
+    queue.on('fail', function(task, err) {
+      assert.strictEqual(task.data, op2, 'fail - op2 failed processing');
+      assert.equal(err.message, ':(', 'fail - error matches expectation');
+    });
+
+    queue.on('complete', function() {
+      assert.ok(false, 'queue should not complete');
+    });
+
+    queue.push({
+      type: 'transform',
+      data: op1
+    }).catch(e => {
+      assert.ok(false, 'successful transform should not error');
+    });
+
+    queue.push({
+      type: 'transform',
+      data: op2
+    }).catch(e => {
+      assert.equal(e.message, ':(', 'error can be caught from `push`');
+    });
+
+    queue.push({
+      type: 'transform',
+      data: op3
+    }).catch(e => {
+      assert.ok(false, 'additional transforms should not be performed');
+    });
+
+    return queue.process()
+      .catch((e) => {
+        assert.equal(e.message, ':(', 'error can be caught from `process`');
         assert.equal(queue.empty, false, 'queue processing encountered a problem');
         assert.equal(queue.error.message, ':(', 'process error matches expectation');
         assert.strictEqual(queue.error, e, 'process error matches expectation');

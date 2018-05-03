@@ -260,11 +260,9 @@ export default class TaskQueue implements Evented {
       })
       .then(() => {
         if (this.autoProcess) {
-          return this.process()
-            .then(() => processor.settle());
-        } else {
-          return processor.settle();
+          this.process();
         }
+        return processor.settle();
       });
   }
 
