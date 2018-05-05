@@ -290,8 +290,10 @@ export default class TaskQueue implements Evented {
   }
 
   /**
-   * Cancels and discards the current task and proceeds to process the next
-   * task.
+   * Cancels and discards the current task.
+   *
+   * If `autoProcess` is enabled, this will automatically trigger processing of
+   * the queue.
    *
    * @returns {Promise<void>}
    *
@@ -328,6 +330,8 @@ export default class TaskQueue implements Evented {
 
   /**
    * Cancels the current task and removes it, but does not continue processing.
+   *
+   * Returns the canceled and removed task.
    *
    * @returns {Promise<Task>}
    *
