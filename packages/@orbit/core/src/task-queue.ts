@@ -274,13 +274,19 @@ export default class TaskQueue implements Evented {
    * @memberOf TaskQueue
    */
   retry(): Promise<void> {
+    let processor;
+
     return this._reified
       .then(() => {
         this._cancel();
-        this.currentProcessor.reset();
+        processor = this.currentProcessor;
+        processor.reset();
         return this._persist();
       })
-      .then(() => this.process());
+      .then(() => {
+        this.process();
+        return processor.settle();
+      });
   }
 
   /**

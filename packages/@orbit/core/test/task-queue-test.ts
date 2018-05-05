@@ -381,7 +381,7 @@ module('TaskQueue', function() {
         } else if (transformCount === 4) {
           assert.strictEqual(op, op3, 'transform - op3 passed as argument');
         }
-        return Promise.resolve();
+        return Promise.resolve(`${transformCount}`);
       }
     };
 
@@ -434,7 +434,10 @@ module('TaskQueue', function() {
         assert.strictEqual(queue.current.data, op2, 'op2 is current failed task');
 
         // skip current task and continue processing
-        return queue.retry();
+        return queue.retry()
+          .then(result => {
+            assert.equal(result, '3', 'the result of the retried task should be returned');
+          });
       });
   });
 
