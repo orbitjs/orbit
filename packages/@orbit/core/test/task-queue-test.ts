@@ -302,7 +302,7 @@ module('TaskQueue', function() {
         transformCount++;
         if (transformCount === 1) {
           assert.strictEqual(task.data, op1, 'transform - op1 passed as argument');
-      } else if (transformCount === 2) {
+        } else if (transformCount === 2) {
           return Promise.reject(new Error(':('));
         } else {
           assert.ok(false, 'additional transforms should not be performed');
