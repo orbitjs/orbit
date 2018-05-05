@@ -307,7 +307,11 @@ export default class TaskQueue implements Evented {
         this._processors.shift();
         return this._persist();
       })
-      .then(() => this.process());
+      .then(() => {
+        if (this.autoProcess) {
+          this.process();
+        }
+      });
   }
 
   /**
