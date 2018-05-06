@@ -302,7 +302,7 @@ module('TaskQueue', function() {
         transformCount++;
         if (transformCount === 1) {
           assert.strictEqual(task.data, op1, 'transform - op1 passed as argument');
-      } else if (transformCount === 2) {
+        } else if (transformCount === 2) {
           return Promise.reject(new Error(':('));
         } else {
           assert.ok(false, 'additional transforms should not be performed');
@@ -366,7 +366,7 @@ module('TaskQueue', function() {
   });
 
   test('#retry resets the current task in an inactive queue and restarts processing', function(assert) {
-    assert.expect(13);
+    assert.expect(14);
 
     const performer: Performer = {
       perform(task: Task): Promise<void> {
@@ -381,7 +381,7 @@ module('TaskQueue', function() {
         } else if (transformCount === 4) {
           assert.strictEqual(op, op3, 'transform - op3 passed as argument');
         }
-        return Promise.resolve();
+        return Promise.resolve(`${transformCount}`);
       }
     };
 
@@ -434,11 +434,94 @@ module('TaskQueue', function() {
         assert.strictEqual(queue.current.data, op2, 'op2 is current failed task');
 
         // skip current task and continue processing
-        return queue.retry();
+        return queue.retry()
+          .then(result => {
+            assert.equal(result, '3', 'the result of the retried task should be returned');
+          });
       });
   });
 
-  test('#skip removes the current task from an inactive queue and restarts processing', function(assert) {
+  test('#skip removes the current task from an inactive queue', function(assert) {
+    assert.expect(9);
+
+    const performer: Performer = {
+      perform(task: Task): Promise<void> {
+        transformCount++;
+        let op = task.data;
+        if (transformCount === 1) {
+          assert.strictEqual(op, op1, 'transform - op1 passed as argument');
+        } else if (transformCount === 2) {
+          return Promise.reject(new Error(':('));
+        } else if (transformCount === 3) {
+          assert.ok(false, 'processing should not be restarted');
+        }
+        return Promise.resolve();
+      }
+    };
+
+    const queue = new TaskQueue(performer, { autoProcess: false });
+
+    let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
+    let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+    let op3 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+    let transformCount = 0;
+
+    queue.on('task', function(task) {
+      if (transformCount === 1) {
+        assert.strictEqual(task.data, op1, 'task - op1 processed');
+      } else if (transformCount === 2) {
+        assert.ok(false, 'processing should not be restarted');
+      }
+    });
+
+    queue.on('fail', function(task, err) {
+      assert.strictEqual(task.data, op2, 'fail - op2 failed processing');
+      assert.equal(err.message, ':(', 'fail - error matches expectation');
+    });
+
+    queue.on('complete', function() {
+      assert.ok(true, 'queue should complete after processing has restarted');
+    });
+
+    queue.push({
+      type: 'transform',
+      data: op1
+    })
+      .then(() => {
+        assert.ok(true, 'op1 should be processed');
+      });
+
+    queue.push({
+      type: 'transform',
+      data: op2
+    })
+      .then(() => {
+        assert.ok(false, 'op2 should fail');
+      })
+      .catch((e) => {
+        assert.ok(true, 'op2 should fail');
+      });
+
+    queue.push({
+      type: 'transform',
+      data: op3
+    })
+      .then(() => {
+        assert.ok(false, 'op3 should not be processed because processing should not be restarted');
+      });
+
+    return queue.process()
+      .catch((e) => {
+        assert.equal(queue.empty, false, 'queue processing encountered a problem');
+        assert.equal(queue.error.message, ':(', 'process error matches expectation');
+        assert.strictEqual(queue.error, e, 'process error matches expectation');
+
+        // skip current task and continue processing
+        return queue.skip();
+      });
+  });
+
+  test('#skip removes the current task from an inactive queue and restarts processing if autoProcess=true', function(assert) {
     assert.expect(9);
 
     const performer: Performer = {
@@ -456,7 +539,7 @@ module('TaskQueue', function() {
       }
     };
 
-    const queue = new TaskQueue(performer, { autoProcess: false });
+    const queue = new TaskQueue(performer, { autoProcess: true });
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
