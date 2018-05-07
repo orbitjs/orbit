@@ -252,22 +252,20 @@ export default class TaskQueue implements Evented {
    */
   push(task: Task): Promise<void> {
     let processor = new TaskProcessor(this._performer, task);
+
     return this._reified
       .then(() => {
         this._tasks.push(task);
         this._processors.push(processor);
         return this._persist();
       })
-      .then(() => {
-        if (this.autoProcess) {
-          this.process();
-        }
-        return processor.settle();
-      });
+      .then(() => this._settle(processor));
   }
 
   /**
    * Cancels and re-tries processing the current task.
+   *
+   * Returns a promise that resolves when the pushed task has been processed.
    *
    * @returns {Promise<void>}
    *
@@ -283,10 +281,7 @@ export default class TaskQueue implements Evented {
         processor.reset();
         return this._persist();
       })
-      .then(() => {
-        this.process();
-        return processor.settle();
-      });
+      .then(() => this._settle(processor, true));
   }
 
   /**
@@ -307,11 +302,7 @@ export default class TaskQueue implements Evented {
         this._processors.shift();
         return this._persist();
       })
-      .then(() => {
-        if (this.autoProcess) {
-          this.process();
-        }
-      });
+      .then(() => this._settle());
   }
 
   /**
@@ -329,7 +320,7 @@ export default class TaskQueue implements Evented {
         this._processors = [];
         return this._persist();
       })
-      .then(() => this.process());
+      .then(() => this._settle(null, true));
   }
 
   /**
@@ -401,6 +392,17 @@ export default class TaskQueue implements Evented {
 
         return resolution;
       });
+  }
+
+  private _settle(processor?: TaskProcessor, alwaysProcess?: boolean): Promise<void> {
+    if (this.autoProcess || alwaysProcess) {
+      let settle = processor ? () => processor.settle() : () => {};
+      return this.process().then(settle, settle);
+    } else if (processor) {
+      return processor.settle();
+    } else {
+      return Orbit.Promise.resolve();
+    }
   }
 
   private _complete(): void {
