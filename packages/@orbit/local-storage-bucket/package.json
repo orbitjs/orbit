@@ -1,6 +1,6 @@
 {
   "name": "@orbit/local-storage-bucket",
-  "version": "0.15.12",
+  "version": "0.15.13",
   "description": "A local storage bucket implementation for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -22,8 +22,8 @@
     "test": "testem ci"
   },
   "dependencies": {
-    "@orbit/utils": "^0.15.12",
-    "@orbit/core": "^0.15.12"
+    "@orbit/utils": "^0.15.13",
+    "@orbit/core": "^0.15.13"
   },
   "devDependencies": {
     "@glimmer/build": "^0.8.5"
