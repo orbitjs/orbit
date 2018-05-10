@@ -2,7 +2,7 @@ import Orbit from './main';
 import { Task, Performer } from './task';
 import TaskProcessor from './task-processor';
 import { Bucket } from './bucket';
-import evented, { Evented } from './evented';
+import evented, { Evented, settleInSeries } from './evented';
 import { assert } from '@orbit/utils';
 
 /**
@@ -349,19 +349,24 @@ export default class TaskQueue implements Evented {
    * Cancels processing the current task and inserts a new task at the beginning
    * of the queue. This new task will be processed next.
    *
+   * Returns a promise that resolves when the new task has been processed.
+   *
    * @param {Task} task
    * @returns {Promise<void>}
    *
    * @memberOf TaskQueue
    */
   unshift(task: Task): Promise<void> {
+    let processor = new TaskProcessor(this._performer, task);
+
     return this._reified
       .then(() => {
         this._cancel();
         this._tasks.unshift(task);
-        this._processors.unshift(new TaskProcessor(this._performer, task));
+        this._processors.unshift(processor);
         return this._persist();
-      });
+      })
+      .then(() => this._settle(processor));
   }
 
   /**
@@ -378,8 +383,7 @@ export default class TaskQueue implements Evented {
 
         if (!resolution) {
           if (this._tasks.length === 0) {
-            resolution = Orbit.Promise.resolve();
-            this._complete();
+            resolution = this._complete();
           } else {
             this._error = null;
             this._resolution = resolution = new Orbit.Promise((resolve, reject) => {
@@ -405,7 +409,7 @@ export default class TaskQueue implements Evented {
     }
   }
 
-  private _complete(): void {
+  private _complete(): Promise<void> {
     if (this._resolve) {
       this._resolve();
     }
@@ -413,10 +417,10 @@ export default class TaskQueue implements Evented {
     this._reject = null;
     this._error = null;
     this._resolution = null;
-    this.emit('complete');
+    return settleInSeries(this, 'complete');
   }
 
-  private _fail(task, e): void {
+  private _fail(task, e): Promise<void> {
     if (this._reject) {
       this._reject(e);
     }
@@ -424,7 +428,7 @@ export default class TaskQueue implements Evented {
     this._reject = null;
     this._error = e;
     this._resolution = null;
-    this.emit('fail', task, e);
+    return settleInSeries(this, 'fail', task, e);
   }
 
   private _cancel(): void {
@@ -432,31 +436,28 @@ export default class TaskQueue implements Evented {
     this._resolution = null;
   }
 
-  private _settleEach(resolution): void {
+  private _settleEach(resolution): Promise<void> {
     if (this._tasks.length === 0) {
-      this._complete();
+      return this._complete();
     } else {
       let task = this._tasks[0];
       let processor = this._processors[0];
 
-      this.emit('beforeTask', task);
-
-      processor.process()
+      return settleInSeries(this, 'beforeTask', task)
+        .then(() => processor.process())
         .then((result) => {
           if (resolution === this._resolution) {
             this._tasks.shift();
             this._processors.shift();
 
-            this._persist()
-              .then(() => {
-                this.emit('task', task);
-                this._settleEach(resolution);
-              });
+            return this._persist()
+              .then(() => settleInSeries(this, 'task', task))
+              .then(() => this._settleEach(resolution));
           }
         })
         .catch((e) => {
           if (resolution === this._resolution) {
-            this._fail(task, e);
+            return this._fail(task, e);
           }
         });
     }
