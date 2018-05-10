@@ -97,7 +97,6 @@ module('TaskQueue', function() {
 
   test('with `autoProcess` disabled, will process pushed functions sequentially when `process` is called', function(assert) {
     assert.expect(5);
-    const done = assert.async();
 
     const performer: Performer = {
       perform(task: Task): Promise<void> {
@@ -127,7 +126,6 @@ module('TaskQueue', function() {
 
     queue.on('complete', function() {
       assert.ok(true, 'queue completed');
-      done();
     });
 
     queue.push({
@@ -140,45 +138,22 @@ module('TaskQueue', function() {
       data: op2
     });
 
-    queue.process();
+    return queue.process();
   });
 
   test('can enqueue tasks while another task is being processed', function(assert) {
-    assert.expect(9);
-    const done = assert.async();
-
-    @evented
-    class Trigger implements Evented {
-      // Evented interface stubs
-      on: (event: string, callback: Function, binding?: object) => void;
-      off: (event: string, callback: Function, binding?: object) => void;
-      one: (event: string, callback: Function, binding?: object) => void;
-      emit: (event: string, ...args) => void;
-      listeners: (event: string) => any[];
-    }
-
-    let trigger = new Trigger;
+    assert.expect(7);
 
     const performer: Performer = {
       perform(task: Task): Promise<void> {
-        let promise;
         let op = task.data;
         if (op === op1) {
           assert.equal(++order, 1, 'transform with op1');
-          promise = new Promise(function(resolve) {
-            trigger.on('start1', function() {
-              assert.equal(++order, 2, 'transform with op1 resolved');
-              resolve();
-            });
-          });
+          return Promise.resolve();
         } else if (op === op2) {
-          assert.equal(++order, 4, 'transform with op2');
-          promise = new Promise(function(resolve) {
-            assert.equal(++order, 5, 'transform with op2 resolved');
-            resolve();
-          });
+          assert.equal(++order, 3, 'transform with op2');
+          return Promise.resolve();
         }
-        return promise;
       }
     };
 
@@ -190,14 +165,14 @@ module('TaskQueue', function() {
 
     queue.on('task', function(task) {
       if (task.data === op1) {
-        assert.equal(++order, 3, 'op1 completed');
+        assert.equal(++order, 2, 'op1 completed');
       } else if (task.data === op2) {
-        assert.equal(++order, 6, 'op2 completed');
+        assert.equal(++order, 4, 'op2 completed');
       }
     });
 
     queue.on('complete', function() {
-      assert.equal(++order, 7, 'queue completed');
+      assert.equal(++order, 5, 'queue completed');
     });
 
     queue.push({
@@ -210,16 +185,10 @@ module('TaskQueue', function() {
       data: op2
     });
 
-    queue.process()
+    return queue.process()
       .then(function() {
         assert.equal(queue.empty, true, 'queue processing complete');
-        assert.equal(++order, 8, 'queue resolves last');
-        done();
-      });
-
-    queue.reified
-      .then(function() {
-        trigger.emit('start1');
+        assert.equal(++order, 6, 'queue resolves last');
       });
   });
 
@@ -665,7 +634,6 @@ module('TaskQueue', function() {
 
   test('#unshift can add a new task to the beginning of an inactive queue', function(assert) {
     assert.expect(9);
-    const done = assert.async();
 
     const performer: Performer = {
       perform(task: Task): Promise<void> {
@@ -712,25 +680,17 @@ module('TaskQueue', function() {
 
     queue.on('complete', function() {
       assert.ok(true, 'queue completed');
-      done();
     });
 
-    queue.push({
-      type: 'transform',
-      data: op1
-    });
+    queue.push({ type: 'transform', data: op1 });
 
-    queue.unshift({
-      type: 'transform',
-      data: op2
-    });
+    queue.unshift({ type: 'transform', data: op2 });
 
-    queue.process();
+    return queue.process();
   });
 
   test('#clear removes all tasks from an inactive queue', function(assert) {
     assert.expect(2);
-    const done = assert.async();
 
     const performer: Performer = {
       perform(task: Task): Promise<void> {
@@ -762,10 +722,9 @@ module('TaskQueue', function() {
       data: op2
     });
 
-    queue.clear()
+    return queue.clear()
       .then(() => {
         assert.ok(true, 'queue was cleared');
-        done();
       });
   });
 
