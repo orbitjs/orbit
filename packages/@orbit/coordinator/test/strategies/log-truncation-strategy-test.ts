@@ -37,7 +37,7 @@ module('LogTruncationStrategy', function(hooks) {
   });
 
   test('installs listeners on activate and removes them on deactivate', function(assert) {
-    assert.expect(9);
+    assert.expect(18);
 
     logTruncationStrategy = new LogTruncationStrategy();
 
@@ -46,26 +46,36 @@ module('LogTruncationStrategy', function(hooks) {
       strategies: [logTruncationStrategy]
     });
 
-    assert.equal(s1.listeners('transform').length, 0, 'no listeners installed yet');
-    assert.equal(s2.listeners('transform').length, 0, 'no listeners installed yet');
-    assert.equal(s3.listeners('transform').length, 0, 'no listeners installed yet');
+    assert.equal(s1.requestQueue.listeners('complete').length, 0, 'no listeners installed yet');
+    assert.equal(s2.requestQueue.listeners('complete').length, 0, 'no listeners installed yet');
+    assert.equal(s3.requestQueue.listeners('complete').length, 0, 'no listeners installed yet');
+    assert.equal(s1.syncQueue.listeners('complete').length, 0, 'no listeners installed yet');
+    assert.equal(s2.syncQueue.listeners('complete').length, 0, 'no listeners installed yet');
+    assert.equal(s3.syncQueue.listeners('complete').length, 0, 'no listeners installed yet');
 
     return coordinator.activate()
       .then(() => {
-        assert.equal(s1.listeners('transform').length, 1, 'listeners installed');
-        assert.equal(s2.listeners('transform').length, 1, 'listeners installed');
-        assert.equal(s3.listeners('transform').length, 1, 'listeners installed');
+        assert.equal(s1.requestQueue.listeners('complete').length, 1, 'listeners installed');
+        assert.equal(s2.requestQueue.listeners('complete').length, 1, 'listeners installed');
+        assert.equal(s3.requestQueue.listeners('complete').length, 1, 'listeners installed');
+        assert.equal(s1.syncQueue.listeners('complete').length, 1, 'listeners installed');
+        assert.equal(s2.syncQueue.listeners('complete').length, 1, 'listeners installed');
+        assert.equal(s3.syncQueue.listeners('complete').length, 1, 'listeners installed');
 
         return coordinator.deactivate();
       })
       .then(() => {
-        assert.equal(s1.listeners('transform').length, 0, 'listeners removed');
-        assert.equal(s2.listeners('transform').length, 0, 'listeners removed');
-        assert.equal(s3.listeners('transform').length, 0, 'listeners removed');
+        assert.equal(s1.requestQueue.listeners('complete').length, 0, 'listeners removed');
+        assert.equal(s2.requestQueue.listeners('complete').length, 0, 'listeners removed');
+        assert.equal(s3.requestQueue.listeners('complete').length, 0, 'listeners removed');
+        assert.equal(s1.syncQueue.listeners('complete').length, 0, 'no listeners installed yet');
+        assert.equal(s2.syncQueue.listeners('complete').length, 0, 'no listeners installed yet');
+        assert.equal(s3.syncQueue.listeners('complete').length, 0, 'no listeners installed yet');
       });
   });
 
   test('observes source transforms and truncates any common history up to the most recent match', function(assert) {
+    // let done = assert.async();
     assert.expect(3);
 
     logTruncationStrategy = new LogTruncationStrategy();
@@ -79,11 +89,14 @@ module('LogTruncationStrategy', function(hooks) {
       .then(() => s1._transformed([tA, tB]))
       .then(() => s2._transformed([tA, tB]))
       .then(() => s3._transformed([tA, tB]))
+      .then(() => s1.syncQueue.clear())
+      .then(() => s2.syncQueue.clear())
+      .then(() => s3.syncQueue.clear())
       .then(() => {
         assert.ok(!s1.transformLog.contains('a'), 's1 has removed a');
         assert.ok(!s2.transformLog.contains('a'), 's2 has removed a');
         assert.ok(!s3.transformLog.contains('a'), 's3 has removed a');
-     });
+      });
   });
 
   test('observes source transforms and truncates their history to after the most recent common entry', function(assert) {
@@ -102,6 +115,9 @@ module('LogTruncationStrategy', function(hooks) {
         s2._transformed([tA, tB, tC]),
         s3._transformed([tA, tB, tC])
       ]))
+      .then(() => s1.syncQueue.clear())
+      .then(() => s2.syncQueue.clear())
+      .then(() => s3.syncQueue.clear())
       .then(() => {
         assert.ok(!s1.transformLog.contains('a'), 's1 has removed a');
         assert.ok(!s2.transformLog.contains('a'), 's2 has removed a');

@@ -42,26 +42,27 @@ export class LogTruncationStrategy extends Strategy {
       }, Orbit.Promise.resolve());
   }
 
-  _review(source: Source, transformId: string): Promise<void> {
+  _review(source: Source): Promise<void> {
     let sources = this._sources;
-    let match = true;
+    let transformId = source.transformLog.head;
 
-    if (sources.length > 1) {
+    if (transformId && sources.length > 1) {
+      let match = true;
+
       for (let i = 0; i < sources.length; i++) {
         let s = sources[i];
         if (s !== source) {
-          if (!s.transformLog.contains(transformId)) {
+          if (!s.requestQueue.empty ||
+              !s.syncQueue.empty ||
+              !s.transformLog.contains(transformId)) {
             match = false;
             break;
           }
         }
       }
-    }
-
-    if (match) {
-      return this._truncateSources(transformId, 0);
-    } else {
-      return Orbit.Promise.resolve();
+      if (match) {
+        return this._truncateSources(transformId, 0);
+      }
     }
   }
 
@@ -73,16 +74,21 @@ export class LogTruncationStrategy extends Strategy {
   }
 
   _activateSource(source: Source) {
-    const listener = this._transformListeners[source.name] = (transform: Transform): Promise<void> => {
-      return this._review(source, transform.id);
+    const listener = this._transformListeners[source.name] = (): Promise<void> => {
+      if (source.requestQueue.empty &&
+          source.syncQueue.empty) {
+        return this._review(source);
+      }
     };
 
-    source.on('transform', listener);
+    source.syncQueue.on('complete', listener);
+    source.requestQueue.on('complete', listener);
   }
 
   _deactivateSource(source: Source) {
     const listener = this._transformListeners[source.name];
-    source.off('transform', listener);
+    source.syncQueue.off('complete', listener);
+    source.requestQueue.off('complete', listener);
     delete this._transformListeners[source.name];
   }
 }
