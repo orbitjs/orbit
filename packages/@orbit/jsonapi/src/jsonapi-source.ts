@@ -24,7 +24,7 @@ import { getTransformRequests, TransformRequestProcessors } from './lib/transfor
 import { InvalidServerResponse } from './lib/exceptions';
 
 if (typeof Orbit.globals.fetch !== 'undefined' && Orbit.fetch === undefined) {
-  Orbit.fetch = Orbit.globals.fetch;
+  Orbit.fetch = Orbit.globals.fetch.bind(Orbit.globals);
 }
 
 export interface FetchSettings {
