@@ -154,7 +154,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
     }
 
     if (settings.body && method !== 'GET') {
-      headers['Content-Type'] = headers['Content-Type'] || 'application/vnd.api+json; charset=utf-8';
+      headers['Content-Type'] = headers['Content-Type'] || 'application/vnd.api+json';
     }
 
     if (settings.params) {

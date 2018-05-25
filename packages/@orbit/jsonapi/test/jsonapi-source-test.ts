@@ -146,7 +146,7 @@ module('JSONAPISource', function(hooks) {
     });
 
     test('#push - can add records', function(assert) {
-      assert.expect(6);
+      assert.expect(7);
 
       let transformCount = 0;
 
@@ -202,6 +202,7 @@ module('JSONAPISource', function(hooks) {
 
           assert.equal(fetchStub.callCount, 1, 'fetch called once');
           assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
+          assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
           assert.deepEqual(
             JSON.parse(fetchStub.getCall(0).args[1].body),
             {
@@ -219,7 +220,7 @@ module('JSONAPISource', function(hooks) {
     });
 
     test('#push - can transform records', function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       let transformCount = 0;
 
@@ -274,6 +275,7 @@ module('JSONAPISource', function(hooks) {
 
           assert.equal(fetchStub.callCount, 1, 'fetch called once');
           assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
+          assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
           assert.deepEqual(
             JSON.parse(fetchStub.getCall(0).args[1].body),
             {
@@ -292,7 +294,7 @@ module('JSONAPISource', function(hooks) {
     });
 
     test('#push - can replace a single attribute', function(assert) {
-      assert.expect(4);
+      assert.expect(5);
 
       let planet = source.serializer.deserializeResource({
         type: 'planet',
@@ -313,6 +315,7 @@ module('JSONAPISource', function(hooks) {
 
           assert.equal(fetchStub.callCount, 1, 'fetch called once');
           assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
+          assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
           assert.deepEqual(
             JSON.parse(fetchStub.getCall(0).args[1].body),
             {
@@ -352,7 +355,7 @@ module('JSONAPISource', function(hooks) {
     });
 
     test('#push - can add a hasMany relationship with POST', function(assert) {
-      assert.expect(4);
+      assert.expect(5);
 
       let planet = source.serializer.deserializeResource({
         type: 'planet',
@@ -374,6 +377,7 @@ module('JSONAPISource', function(hooks) {
 
           assert.equal(fetchStub.callCount, 1, 'fetch called once');
           assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
+          assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
           assert.deepEqual(
             JSON.parse(fetchStub.getCall(0).args[1].body),
             { data: [{ type: 'moons', id: '987' }] },
@@ -414,7 +418,7 @@ module('JSONAPISource', function(hooks) {
     });
 
     test('#push - can update a hasOne relationship with PATCH', function(assert) {
-      assert.expect(4);
+      assert.expect(5);
 
       let planet = source.serializer.deserializeResource({
         type: 'planet',
@@ -436,6 +440,7 @@ module('JSONAPISource', function(hooks) {
 
           assert.equal(fetchStub.callCount, 1, 'fetch called once');
           assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
+          assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
           assert.deepEqual(
             JSON.parse(fetchStub.getCall(0).args[1].body),
             { data: { type: 'moons', id: '987', relationships: { planet: { data: { type: 'planets', id: '12345' } } } } },
@@ -445,7 +450,7 @@ module('JSONAPISource', function(hooks) {
     });
 
     test('#push - can clear a hasOne relationship with PATCH', function(assert) {
-      assert.expect(4);
+      assert.expect(5);
 
       let moon = source.serializer.deserializeResource({
         type: 'moon',
@@ -462,6 +467,7 @@ module('JSONAPISource', function(hooks) {
 
           assert.equal(fetchStub.callCount, 1, 'fetch called once');
           assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
+          assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
           assert.deepEqual(
             JSON.parse(fetchStub.getCall(0).args[1].body),
             { data: { type: 'moons', id: '987', relationships: { planet: { data: null } } } },
@@ -471,7 +477,7 @@ module('JSONAPISource', function(hooks) {
     });
 
     test('#push - can replace a hasMany relationship with PATCH', function(assert) {
-      assert.expect(4);
+      assert.expect(5);
 
       let planet = source.serializer.deserializeResource({
         type: 'planet',
@@ -493,6 +499,7 @@ module('JSONAPISource', function(hooks) {
 
           assert.equal(fetchStub.callCount, 1, 'fetch called once');
           assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
+          assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
           assert.deepEqual(
             JSON.parse(fetchStub.getCall(0).args[1].body),
             { data: { type: 'planets', id: '12345', relationships: { moons: { data: [{ type: 'moons', id: '987' }] } } } },
