@@ -1,16 +1,25 @@
 import { Dict, isObject, isNone, merge } from '@orbit/utils';
 
+export interface LinkObject {
+  href: string;
+  meta?: any;
+}
+
+export type Link = string | LinkObject;
+
 export interface RecordIdentity {
   type: string;
   id: string;
 }
 
 export interface RecordHasOneRelationship {
-  data: RecordIdentity | null;
+  data?: RecordIdentity | null;
+  links?: Dict<Link>;
 }
 
 export interface RecordHasManyRelationship {
-  data: RecordIdentity[];
+  data?: RecordIdentity[];
+  links?: Dict<Link>;
 }
 
 export type RecordRelationship = RecordHasOneRelationship | RecordHasManyRelationship;
@@ -19,6 +28,7 @@ export interface Record extends RecordIdentity {
   keys?: Dict<string>;
   attributes?: Dict<any>;
   relationships?: Dict<RecordRelationship>;
+  links?: Dict<Link>;
 }
 
 export interface RecordInitializer {

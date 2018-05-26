@@ -245,6 +245,7 @@ export default class JSONAPISerializer {
 
     this.deserializeAttributes(record, resource);
     this.deserializeRelationships(record, resource);
+    this.deserializeLinks(record, resource);
 
     if (this.keyMap) {
       this.keyMap.pushRecord(record);
@@ -296,8 +297,19 @@ export default class JSONAPISerializer {
         data = this.recordIdentity(resourceData as ResourceIdentity);
       }
 
-      record.relationships = record.relationships || {};
-      (record.relationships as any)[relationship] = { data };
+      deepSet(record, ['relationships', relationship, 'data'], data);
+    }
+
+    let resourceLinks = value.links;
+
+    if (resourceLinks !== undefined) {
+      deepSet(record, ['relationships', relationship, 'links'], resourceLinks);
+    }
+  }
+
+  deserializeLinks(record: Record, resource: Resource) {
+    if (resource.links) {
+      record.links = resource.links;
     }
   }
 
