@@ -4,7 +4,8 @@ import {
   KeyMap,
   Record,
   RecordIdentity,
-  RecordRelationship
+  RecordRelationship,
+  RecordRelationshipLinks
 } from '@orbit/data';
 import {
   Resource,
@@ -223,7 +224,7 @@ export default class JSONAPISerializer {
         };
 
         id = this.keyMap.idFromKeys(type, keys) ||
-             this.schema.generateId(type);
+          this.schema.generateId(type);
       } else {
         id = this.schema.generateId(type);
       }
@@ -237,6 +238,8 @@ export default class JSONAPISerializer {
 
     this.deserializeAttributes(record, resource);
     this.deserializeRelationships(record, resource);
+    this.deserializeResourceLinks(record, resource);
+
 
     if (this.keyMap) {
       this.keyMap.pushRecord(record);
@@ -290,6 +293,22 @@ export default class JSONAPISerializer {
 
       record.relationships = record.relationships || {};
       record.relationships[relationship] = { data };
+    }
+
+    let resourceLinks = value.links;
+
+    if (resourceLinks !== undefined) {
+      let links = resourceLinks as RecordRelationshipLinks;
+
+      record.relationships = record.relationships || {};
+      record.relationships[relationship] = record.relationships[relationship] || { links };
+      record.relationships[relationship].links = links;
+    }
+  }
+
+  deserializeResourceLinks(record: Record, resource: Resource) {
+    if (resource.links) {
+      record.links = resource.links;
     }
   }
 

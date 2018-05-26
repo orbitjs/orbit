@@ -565,4 +565,276 @@ module('JSONAPISerializer', function(hooks) {
       );
     });
   });
+  
+  module('Deserialize links',function(hooks){
+    let serializer;
+
+    hooks.beforeEach(function() {
+      let schema = new Schema({ models: modelDefinitions });
+      serializer = new JSONAPISerializer({ schema });
+    })
+
+    hooks.afterEach(function() {
+      serializer = null;
+    });
+
+    test('it exists', function(assert) {
+      assert.ok(serializer);
+    });
+
+    test('it deserializes links in records', function (assert) {
+      let result = serializer.deserializeDocument(
+        {
+          data: {
+            id: '12345',
+            type: 'planets',
+            attributes: {
+              name: 'Jupiter',
+              classification: 'gas giant'
+            },
+            links: {
+              self: "https://example.com/api/planets/12345"
+            },
+            relationships: {
+              moons: { data: [{ type: 'moons', id: '5' }] },
+              'solar-system': { data: { type: 'solar-systems', id: '6' } }
+            }
+          }
+        });
+      let planet = result.data;
+      assert.deepEqual(result, {
+        data: {
+          type: 'planet',
+          id: planet.id,
+          attributes: {
+            classification: 'gas giant',
+            name: 'Jupiter'
+          },
+          links: {
+            self: "https://example.com/api/planets/12345"
+          },
+          relationships: {
+            moons: {
+              data: [
+                { type: 'moon', id: '5' }
+              ]
+            },
+            solarSystem: {
+              data: { type: 'solarSystem', id: '6' }
+            }
+          }
+        }
+      })
+    });
+
+    test('it deserializes links in hasOne relationship', function (assert) {
+      let result = serializer.deserializeDocument(
+        {
+          data: {
+            id: '12345',
+            type: 'planets',
+            attributes: {
+              name: 'Jupiter',
+              classification: 'gas giant'
+            },
+            links: {
+              self: "https://example.com/api/planets/12345"
+            },
+            relationships: {
+              moons: { data: [{ type: 'moons', id: '5' }] },
+              'solar-system': { data: { type: 'solar-systems', id: '6' }, links: {
+                self: "https://example.com/api/planets/12345/relationships/solarsystem",
+                related: "https://example.com/api/planets/12345/solarsystem"
+              } }
+            }
+          }
+        });
+      let planet = result.data;
+      assert.deepEqual(result, {
+        data: {
+          type: 'planet',
+          id: planet.id,
+          attributes: {
+            classification: 'gas giant',
+            name: 'Jupiter'
+          },
+          links: {
+            self: "https://example.com/api/planets/12345"
+          },
+          relationships: {
+            moons: {
+              data: [
+                { type: 'moon', id: '5' }
+              ]
+            },
+            solarSystem: {
+              data: { type: 'solarSystem', id: '6' },
+              links: {
+                self: "https://example.com/api/planets/12345/relationships/solarsystem",
+                related: "https://example.com/api/planets/12345/solarsystem"
+              }
+            }
+          }
+        }
+      })
+    });
+
+    test('it deserializes links in hasMany relationship', function (assert) {
+      let result = serializer.deserializeDocument(
+        {
+          data: {
+            id: '12345',
+            type: 'planets',
+            attributes: {
+              name: 'Jupiter',
+              classification: 'gas giant'
+            },
+            links: {
+              self: "https://example.com/api/planets/12345"
+            },
+            relationships: {
+              moons: { data: [{ type: 'moons', id: '5' }],
+               links: {
+                self: "https://example.com/api/planets/12345/relationships/moons",
+                related: "https://example.com/api/planets/12345/moons"
+              } 
+            },
+              'solar-system': { data: { type: 'solar-systems', id: '6' }
+            
+            }}
+          }
+        });
+      let planet = result.data;
+      assert.deepEqual(result, {
+        data: {
+          type: 'planet',
+          id: planet.id,
+          attributes: {
+            classification: 'gas giant',
+            name: 'Jupiter'
+          },
+          links: {
+            self: "https://example.com/api/planets/12345"
+          },
+          relationships: {
+            moons: {
+              data: [
+                { type: 'moon', id: '5' }
+              ],
+              links: {
+                self: "https://example.com/api/planets/12345/relationships/moons",
+                related: "https://example.com/api/planets/12345/moons"
+              }
+            },
+            solarSystem: {
+              data: { type: 'solarSystem', id: '6' }
+            }
+          }
+        }
+      })
+    });
+
+    test('it deserializes links in hasOne relationship without data', function (assert) {
+      let result = serializer.deserializeDocument(
+        {
+          data: {
+            id: '12345',
+            type: 'planets',
+            attributes: {
+              name: 'Jupiter',
+              classification: 'gas giant'
+            },
+            links: {
+              self: "https://example.com/api/planets/12345"
+            },
+            relationships: {
+              moons: { data: [{ type: 'moons', id: '5' }] },
+              'solar-system': {  links: {
+                self: "https://example.com/api/planets/12345/relationships/solarsystem",
+                related: "https://example.com/api/planets/12345/solarsystem"
+              } }
+            }
+          }
+        });
+      let planet = result.data;
+      assert.deepEqual(result, {
+        data: {
+          type: 'planet',
+          id: planet.id,
+          attributes: {
+            classification: 'gas giant',
+            name: 'Jupiter'
+          },
+          links: {
+            self: "https://example.com/api/planets/12345"
+          },
+          relationships: {
+            moons: {
+              data: [
+                { type: 'moon', id: '5' }
+              ]
+            },
+            solarSystem: {
+              links: {
+                self: "https://example.com/api/planets/12345/relationships/solarsystem",
+                related: "https://example.com/api/planets/12345/solarsystem"
+              }
+            }
+          }
+        }
+      })
+    });
+
+    test('it deserializes links in hasMany relationship without data', function (assert) {
+      let result = serializer.deserializeDocument(
+        {
+          data: {
+            id: '12345',
+            type: 'planets',
+            attributes: {
+              name: 'Jupiter',
+              classification: 'gas giant'
+            },
+            links: {
+              self: "https://example.com/api/planets/12345"
+            },
+            relationships: {
+              moons: {
+               links: {
+                self: "https://example.com/api/planets/12345/relationships/moons",
+                related: "https://example.com/api/planets/12345/moons"
+              } 
+            },
+              'solar-system': { data: { type: 'solar-systems', id: '6' }
+            
+            }}
+          }
+        });
+      let planet = result.data;
+      assert.deepEqual(result, {
+        data: {
+          type: 'planet',
+          id: planet.id,
+          attributes: {
+            classification: 'gas giant',
+            name: 'Jupiter'
+          },
+          links: {
+            self: "https://example.com/api/planets/12345"
+          },
+          relationships: {
+            moons: {
+              links: {
+                self: "https://example.com/api/planets/12345/relationships/moons",
+                related: "https://example.com/api/planets/12345/moons"
+              }
+            },
+            solarSystem: {
+              data: { type: 'solarSystem', id: '6' }
+            }
+          }
+        }
+      })
+    });
+  })
 });

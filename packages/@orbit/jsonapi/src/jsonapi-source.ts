@@ -68,7 +68,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
   defaultFetchHeaders: object;
   defaultFetchTimeout: number;
   serializer: JSONAPISerializer;
-
+  
   // Pullable interface stubs
   pull: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<Transform[]>;
 
@@ -88,6 +88,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
     this.host                = settings.host;
     this.defaultFetchHeaders = settings.defaultFetchHeaders || { Accept: 'application/vnd.api+json' };
     this.defaultFetchTimeout = settings.defaultFetchTimeout || 5000;
+
 
     this.maxRequestsPerTransform = settings.maxRequestsPerTransform;
 

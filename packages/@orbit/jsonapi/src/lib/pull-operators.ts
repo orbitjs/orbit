@@ -12,16 +12,34 @@ import {
   SortSpecifier,
   AttributeFilterSpecifier,
   AttributeSortSpecifier,
-  buildTransform
+  buildTransform,
+  Record,
+  RecordRelationship,
+  LinkObject
 } from '@orbit/data';
-import JSONAPISource from '../jsonapi-source';
+import JSONAPISource, { FetchSettings } from '../jsonapi-source';
 import { DeserializedDocument } from '../jsonapi-serializer';
-import { JSONAPIDocument } from '../jsonapi-document';
+import { JSONAPIDocument, ResourceRelationship } from '../jsonapi-document';
 import { RequestOptions, buildFetchSettings } from './request-settings';
+import DeserializeOptions from './deserialize-options';
 
-function deserialize(source: JSONAPISource, document: JSONAPIDocument): Transform[] {
+function deserialize(source: JSONAPISource, document: JSONAPIDocument, options: DeserializeOptions,settings:FetchSettings): Transform[] {
   const deserialized = source.serializer.deserializeDocument(document);
   const records = toArray(deserialized.data);
+
+  if (options.autoFetchRelationshipLinks) {
+    records.forEach((record: Record) => {
+      if (record.relationships) {
+          Object.keys(record.relationships).forEach(async relationship => {
+            let relation = record.relationships[relationship];
+            if(!relation.data){
+              let url = ((<LinkObject>relation.links.self).href!==undefined)?(<LinkObject> relation.links.self).href:<string>relation.links.self;
+              relation.data= (<ResourceRelationship>(await source.fetch(url,settings))).data;
+            }
+          });
+      }
+    })
+  }
 
   if (deserialized.included) {
     Array.prototype.push.apply(records, deserialized.included);
@@ -47,10 +65,11 @@ export const PullOperators: Dict<PullOperator> = {
     const { record } = expression;
 
     const requestOptions = customRequestOptions(source, query);
+    const deserializeOptions = customDeserializeOptions(source,query);
     const settings = buildFetchSettings(requestOptions);
 
     return source.fetch(source.resourceURL(record.type, record.id), settings)
-      .then(data => deserialize(source, data));
+      .then(data => deserialize(source, data,deserializeOptions,settings));
   },
 
   findRecords(source: JSONAPISource, query: Query) {
@@ -71,6 +90,8 @@ export const PullOperators: Dict<PullOperator> = {
       requestOptions.page = expression.page;
     }
 
+    const deserializeOptions = customDeserializeOptions(source,query);
+
     requestOptions = merge(
       requestOptions,
       customRequestOptions(source, query));
@@ -78,7 +99,7 @@ export const PullOperators: Dict<PullOperator> = {
     const settings = buildFetchSettings(requestOptions);
 
     return source.fetch(source.resourceURL(type), settings)
-      .then(data => deserialize(source, data));
+      .then(data => deserialize(source, data,deserializeOptions,settings));
   },
 
   findRelatedRecord(source: JSONAPISource, query: Query) {
@@ -86,10 +107,11 @@ export const PullOperators: Dict<PullOperator> = {
     const { record, relationship } = expression;
 
     const requestOptions = customRequestOptions(source, query);
+    const deserializeOptions = customDeserializeOptions(source,query);
     const settings = buildFetchSettings(requestOptions);
 
     return source.fetch(source.relatedResourceURL(record.type, record.id, relationship), settings)
-      .then(data => deserialize(source, data));
+      .then(data => deserialize(source, data,deserializeOptions,settings));
   },
 
   findRelatedRecords(source: JSONAPISource, query: Query) {
@@ -98,10 +120,11 @@ export const PullOperators: Dict<PullOperator> = {
 
     let requestOptions = customRequestOptions(source, query);
 
+    const deserializeOptions = customDeserializeOptions(source,query);
     const settings = buildFetchSettings(requestOptions);
 
     return source.fetch(source.relatedResourceURL(record.type, record.id, relationship), settings)
-      .then(data => deserialize(source, data));
+      .then(data => deserialize(source, data,deserializeOptions,settings));
   }
 };
 
@@ -119,6 +142,18 @@ function customRequestOptions(source: JSONAPISource, query: Query): RequestOptio
   }
 
   return requestOptions;
+}
+
+function customDeserializeOptions(source: JSONAPISource, query: Query): DeserializeOptions {
+  const deserializeOptions: DeserializeOptions = {};
+
+  const queryOptions = deepGet(query, ['options', 'sources', source.name]) || {};
+
+  if (queryOptions.autoFetchRelationshipLinks) {
+    deserializeOptions.autoFetchRelationshipLinks = queryOptions.autoFetchRelationshipLinks;
+  }
+
+  return deserializeOptions;
 }
 
 function buildFilterParam(source: JSONAPISource, filterSpecifiers: FilterSpecifier[]) {
