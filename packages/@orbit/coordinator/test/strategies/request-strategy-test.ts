@@ -143,5 +143,41 @@ module('RequestStrategy', function(hooks) {
       .then(() => s1.update(tB));
   });
 
+  test('if `blocking` is a function it gets invoked with the query', function(assert) {
+    const done = assert.async();
+    assert.expect(5);
+
+    strategy = new RequestStrategy({
+      source: 's1',
+      target: 's2',
+      on: 'update',
+      action: 'push',
+      blocking(query) {
+        assert.ok(this instanceof RequestStrategy, 'it is bound to the strategy');
+        assert.strictEqual(query, tA, "argument to _update is expected Transform");
+        return;
+      }
+    });
+
+    coordinator = new Coordinator({
+      sources: [s1, s2],
+      strategies: [strategy]
+    });
+
+    s1._update = function(transform) {
+      assert.strictEqual(transform, tA, 'argument to _update is expected Transform');
+      return Promise.resolve();
+    };
+
+    s2._push = function(transform) {
+      assert.strictEqual(transform, tA, 'argument to _push is expected Transform');
+      assert.strictEqual(this, s2, 'context is that of the target');
+      done();
+    };
+
+    coordinator.activate()
+      .then(() => s1.update(tA));
+  });
+
   // TODO - test blocking option
 });
