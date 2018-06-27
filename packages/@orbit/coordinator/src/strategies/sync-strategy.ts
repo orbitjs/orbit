@@ -47,10 +47,10 @@ export interface SyncStrategyOptions extends StrategyOptions {
    *
    * By default, `blocking` is false.
    *
-   * @type {boolean}
+   * @type {(boolean | Function)}
    * @memberOf SyncStrategyOptionss
    */
-  blocking?: boolean;
+  blocking?: boolean | Function;
 }
 
 export class SyncStrategy extends ConnectionStrategy {
