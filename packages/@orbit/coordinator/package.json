@@ -1,6 +1,6 @@
 {
   "name": "@orbit/coordinator",
-  "version": "0.15.14",
+  "version": "0.15.15",
   "description": "A coordinator and set of coordination strategies for managing data flow and keeping @orbit/data sources in sync.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
