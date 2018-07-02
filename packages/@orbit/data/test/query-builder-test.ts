@@ -33,7 +33,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRecords + filter', function(assert) {
+  test('findRecords + attribute filter', function(assert) {
     assert.deepEqual(
       oqb
         .findRecords('planet')
@@ -54,7 +54,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRecords + filters', function(assert) {
+  test('findRecords + attribute filters', function(assert) {
     assert.deepEqual(
       oqb
         .findRecords('planet')
@@ -76,6 +76,52 @@ module('QueryBuilder', function(hooks) {
             kind: 'attribute',
             attribute: 'classification',
             value: 'terrestrial'
+          }
+        ]
+      }
+    );
+  });
+
+  test('findRecords + hasOne filter', function (assert) {
+    assert.deepEqual(
+      oqb
+        .findRecords('planet')
+        .filter({ relation: 'star', record: { id: '1', type: 'star' } })
+        .toQueryExpression(),
+      {
+        op: 'findRecords',
+        type: 'planet',
+        filter: [
+          {
+            op: 'equal',
+            kind: 'relatedRecord',
+            relation: 'star',
+            record: { id: '1', type: 'star' }
+          }
+        ]
+      }
+    );
+  });
+
+  test('findRecords + hasMany filter', function (assert) {
+    assert.deepEqual(
+      oqb
+        .findRecords('planet')
+        .filter({
+          relation: 'moons',
+          records: [{ id: '1', type: 'moon' }, { id: '2', type: 'moon' }],
+          op: 'equal'
+        })
+        .toQueryExpression(),
+      {
+        op: 'findRecords',
+        type: 'planet',
+        filter: [
+          {
+            op: 'equal',
+            kind: 'relatedRecords',
+            relation: 'moons',
+            records: [{ id: '1', type: 'moon' }, { id: '2', type: 'moon' }]
           }
         ]
       }
