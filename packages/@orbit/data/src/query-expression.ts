@@ -38,7 +38,7 @@ export interface RelatedRecordsFilterSpecifier extends FilterSpecifier {
   op: SetComparisonOperator,
   kind: 'relatedRecords';
   relation: string;
-  data: RecordIdentity[];
+  records: RecordIdentity[];
 }
 
 export interface PageSpecifier {
