@@ -11,8 +11,10 @@ import {
   FilterSpecifier,
   SortSpecifier,
   AttributeFilterSpecifier,
+  RelatedRecordFilterSpecifier,
   AttributeSortSpecifier,
-  buildTransform
+  buildTransform,
+  RelatedRecordsFilterSpecifier
 } from '@orbit/data';
 import JSONAPISource from '../jsonapi-source';
 import { DeserializedDocument } from '../jsonapi-serializer';
@@ -131,6 +133,19 @@ function buildFilterParam(source: JSONAPISource, filterSpecifiers: FilterSpecifi
       // Note: We don't know the `type` of the attribute here, so passing `null`
       const resourceAttribute = source.serializer.resourceAttribute(null, attributeFilter.attribute);
       filters[resourceAttribute] = attributeFilter.value;
+    } else if (filterSpecifier.kind === 'relatedRecord') {
+      const relatedRecordFilter = filterSpecifier as RelatedRecordFilterSpecifier;
+      if (Array.isArray(relatedRecordFilter.record)) {
+        filters[relatedRecordFilter.relation] = relatedRecordFilter.record.map(e => e.id).join(',');
+      } else {
+        filters[relatedRecordFilter.relation] = relatedRecordFilter.record.id;
+      }
+    } else if (filterSpecifier.kind === 'relatedRecords') {
+      if (filterSpecifier.op !== 'equal') {
+        throw new Error(`Operation "${filterSpecifier.op}" is not supported in JSONAPI for relatedRecords filtering`);
+      }
+      const relatedRecordsFilter = filterSpecifier as RelatedRecordsFilterSpecifier;
+      filters[relatedRecordsFilter.relation] = relatedRecordsFilter.records.map(e => e.id).join(',');
     } else {
       throw new QueryExpressionParseError('Filter operation ${specifier.op} not recognized for JSONAPISource.', filterSpecifier);
     }

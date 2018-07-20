@@ -858,7 +858,7 @@ module('JSONAPISource', function(hooks) {
         });
     });
 
-    test('#pull - records with filter', function(assert) {
+    test('#pull - records with attribute filter', function(assert) {
       assert.expect(5);
 
       const data = [
@@ -875,6 +875,120 @@ module('JSONAPISource', function(hooks) {
           assert.equal(transforms.length, 1, 'one transform returned');
           assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
           assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Earth']);
+
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
+    test('#pull - records with relatedRecord filter (single value)', function(assert) {
+      assert.expect(5);
+
+      const data = [
+        {
+          id: 'moon',
+          type: 'moons',
+          attributes: { name: 'Moon' },
+          relationships: {
+            planet: { data: { id: 'earth', type: 'planets' } }
+          }
+        }
+      ];
+
+      fetchStub
+        .withArgs(`/moons?${encodeURIComponent('filter[planet]')}=earth`)
+        .returns(jsonapiResponse(200, { data }));
+
+      return source.pull(q => q.findRecords('moon')
+                               .filter({ relation: 'planet', record: { id: 'earth', type: 'planets' } }))
+        .then(transforms => {
+          assert.equal(transforms.length, 1, 'one transform returned');
+          assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
+          assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Moon']);
+
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
+    test('#pull - records with relatedRecord filter (multiple values)', function(assert) {
+      assert.expect(5);
+
+      const data = [
+        {
+          id: 'moon',
+          type: 'moons',
+          attributes: { name: 'Moon' },
+          relationships: {
+            planet: { data: { id: 'earth', type: 'planets' } }
+          }
+        },
+        {
+          id: 'phobos',
+          type: 'moons',
+          attributes: { name: 'Phobos' },
+          relationships: {
+            planet: { data: { id: 'mars', type: 'planets' } }
+          }
+        },
+        {
+          id: 'deimos',
+          type: 'moons',
+          attributes: { name: 'Deimos' },
+          relationships: {
+            planet: { data: { id: 'mars', type: 'planets' } }
+          }
+        }
+      ];
+
+      fetchStub
+        .withArgs(`/moons?${encodeURIComponent('filter[planet]')}=${encodeURIComponent('earth,mars')}`)
+        .returns(jsonapiResponse(200, { data }));
+
+      return source.pull(q => q.findRecords('moon')
+                               .filter({ relation: 'planet', record: [{ id: 'earth', type: 'planets' }, { id: 'mars', type: 'planets' }] }))
+        .then(transforms => {
+          assert.equal(transforms.length, 1, 'one transform returned');
+          assert.deepEqual(transforms[0].operations.map(o => o.op), [
+            'replaceRecord',
+            'replaceRecord',
+            'replaceRecord'
+          ]);
+          assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Moon', 'Phobos', 'Deimos']);
+
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
+    test('#pull - records with relatedRecords filter', function(assert) {
+      assert.expect(5);
+
+      const data = [
+        {
+          id: 'mars',
+          type: 'planets',
+          attributes: { name: 'Mars' },
+          relationships: {
+            moons: { data: [{ id: 'phobos', type: 'moons' }, { id: 'deimos', type: 'moons' }] }
+          }
+        }
+      ];
+
+      fetchStub
+        .withArgs(`/planets?${encodeURIComponent('filter[moons]')}=${encodeURIComponent('phobos,deimos')}`)
+        .returns(jsonapiResponse(200, { data }));
+
+      return source.pull(q => q.findRecords('planet')
+        .filter({
+          relation: 'moons',
+          records: [{ id: 'phobos', type: 'moons' }, { id: 'deimos', type: 'moons' }],
+          op: 'equal'
+        }))
+        .then(transforms => {
+          assert.equal(transforms.length, 1, 'one transform returned');
+          assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
+          assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Mars']);
 
           assert.equal(fetchStub.callCount, 1, 'fetch called once');
           assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
