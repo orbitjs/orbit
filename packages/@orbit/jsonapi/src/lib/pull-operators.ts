@@ -145,7 +145,7 @@ function buildFilterParam(source: JSONAPISource, filterSpecifiers: FilterSpecifi
         throw new Error(`Operation "${filterSpecifier.op}" is not supported in JSONAPI for relatedRecords filtering`);
       }
       const relatedRecordsFilter = filterSpecifier as RelatedRecordsFilterSpecifier;
-      filters[relatedRecordsFilter.relation] = relatedRecordsFilter.records.map(e => e.id);
+      filters[relatedRecordsFilter.relation] = relatedRecordsFilter.records.map(e => e.id).join(',');
     } else {
       throw new QueryExpressionParseError('Filter operation ${specifier.op} not recognized for JSONAPISource.', filterSpecifier);
     }

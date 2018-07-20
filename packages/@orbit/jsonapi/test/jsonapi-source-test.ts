@@ -976,9 +976,8 @@ module('JSONAPISource', function(hooks) {
       ];
 
       fetchStub
-        .withArgs(
-          `/planets?${encodeURIComponent('filter[moons][0]')}=phobos&${encodeURIComponent('filter[moons][1]')}=deimos`
-        ).returns(jsonapiResponse(200, { data }));
+        .withArgs(`/planets?${encodeURIComponent('filter[moons]')}=${encodeURIComponent('phobos,deimos')}`)
+        .returns(jsonapiResponse(200, { data }));
 
       return source.pull(q => q.findRecords('planet')
         .filter({
