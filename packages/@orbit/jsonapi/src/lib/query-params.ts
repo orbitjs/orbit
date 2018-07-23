@@ -35,3 +35,17 @@ export function encodeQueryParams(obj) {
     .map(param => encodeURIComponent(param.path) + '=' + encodeURIComponent(param.val))
     .join('&');
 }
+
+export function appendQueryParams(url: string, obj: object): string {
+  let fullUrl = url;
+  let queryParams = encodeQueryParams(obj);
+  if (queryParams.length > 0) {
+    if (fullUrl.indexOf('?') === -1) {
+      fullUrl += '?';
+    } else {
+      fullUrl += '&';
+    }
+    fullUrl += queryParams;
+  }
+  return fullUrl;
+}

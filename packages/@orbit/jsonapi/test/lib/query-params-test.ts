@@ -1,4 +1,4 @@
-import { encodeQueryParams } from '../../src/lib/query-params';
+import { encodeQueryParams, appendQueryParams } from '../../src/lib/query-params';
 
 const { module, test } = QUnit;
 
@@ -61,6 +61,38 @@ module('QueryParams', function() {
         encodeURIComponent('d[e]') + '=f&' +
         encodeURIComponent('d[g][h]') + '=' + encodeURIComponent('long sentence here') + '&' +
         encodeURIComponent('d[g][i]') + '=null'
+      );
+    });
+  });
+
+  module('appendQueryParams', function() {
+    test('empty', function(assert) {
+      assert.strictEqual(
+        appendQueryParams(
+          'http://example.com',
+          { }
+        ),
+        'http://example.com'
+      );
+    });
+
+    test('simple', function(assert) {
+      assert.strictEqual(
+        appendQueryParams(
+          'http://example.com',
+          { a: 'b' }
+        ),
+        'http://example.com?a=b'
+      );
+    });
+
+    test('appended to existing query params', function(assert) {
+      assert.strictEqual(
+        appendQueryParams(
+          'http://example.com?c=d',
+          { a: 'b' }
+        ),
+        'http://example.com?c=d&a=b'
       );
     });
   });
