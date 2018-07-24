@@ -153,8 +153,38 @@ export function merge(object: any, ...sources: any[]): any {
     Object.keys(source).forEach(field => {
       if (source.hasOwnProperty(field)) {
         let value = source[field];
-        if (!(value === undefined && object[field] !== undefined)) {
+        if (value !== undefined) {
           object[field] = value;
+        }
+      }
+    });
+  });
+  return object;
+}
+
+/**
+ * Merges properties from other objects into a base object, traversing and
+ * merging any objects that are encountered.
+ *
+ * Properties that resolve to `undefined` will not overwrite properties on the
+ * base object that already exist.
+ *
+ * @export
+ * @param {*} base
+ * @param {...any[]} sources
+ * @returns {*}
+ */
+export function deepMerge(object: any, ...sources: any[]): any {
+  sources.forEach(source => {
+    Object.keys(source).forEach(field => {
+      if (source.hasOwnProperty(field)) {
+        let a = object[field];
+        let b = source[field];
+        if (isObject(a) && isObject(b) &&
+            !isArray(a) && !isArray(b)) {
+          deepMerge(a, b);
+        } else if (b !== undefined) {
+          object[field] = b;
         }
       }
     });
