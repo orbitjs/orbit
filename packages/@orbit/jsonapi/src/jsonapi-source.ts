@@ -1,24 +1,19 @@
 /* eslint-disable valid-jsdoc */
 import Orbit, {
-  KeyMap,
-  RecordOperation,
-  Schema,
   Source, SourceSettings,
   Query, QueryOrExpression,
   Pullable, pullable,
   Pushable, pushable,
   Transform,
   TransformOrOperations,
-  coalesceRecordOperations,
-  QueryNotAllowed, TransformNotAllowed,
+  TransformNotAllowed,
   ClientError,
   ServerError,
   NetworkError
 } from '@orbit/data';
-import { Log } from '@orbit/core';
-import { assert } from '@orbit/utils';
+import { assert, merge, deepMerge, deprecate } from '@orbit/utils';
 import JSONAPISerializer, { JSONAPISerializerSettings } from './jsonapi-serializer';
-import { encodeQueryParams } from './lib/query-params';
+import { appendQueryParams } from './lib/query-params';
 import { PullOperator, PullOperators } from './lib/pull-operators';
 import { getTransformRequests, TransformRequestProcessors } from './lib/transform-requests';
 import { InvalidServerResponse } from './lib/exceptions';
@@ -34,6 +29,12 @@ export interface FetchSettings {
   body?: string;
   params?: any;
   timeout?: number;
+  credentials?: string;
+  cache?: string;
+  redirect?: string;
+  referrer?: string;
+  referrerPolicy?: string;
+  integrity?: string;
 }
 
 export interface JSONAPISourceSettings extends SourceSettings {
@@ -42,6 +43,7 @@ export interface JSONAPISourceSettings extends SourceSettings {
   host?: string;
   defaultFetchHeaders?: object;
   defaultFetchTimeout?: number;
+  defaultFetchSettings?: FetchSettings;
   SerializerClass?: (new (settings: JSONAPISerializerSettings) => JSONAPISerializer);
 }
 
@@ -65,8 +67,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
   maxRequestsPerTransform: number;
   namespace: string;
   host: string;
-  defaultFetchHeaders: object;
-  defaultFetchTimeout: number;
+  defaultFetchSettings: FetchSettings;
   serializer: JSONAPISerializer;
 
   // Pullable interface stubs
@@ -86,13 +87,33 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
 
     this.namespace           = settings.namespace;
     this.host                = settings.host;
-    this.defaultFetchHeaders = settings.defaultFetchHeaders || { Accept: 'application/vnd.api+json' };
-    this.defaultFetchTimeout = settings.defaultFetchTimeout || 5000;
+
+    this.initDefaultFetchSettings(settings);
 
     this.maxRequestsPerTransform = settings.maxRequestsPerTransform;
 
     const SerializerClass = settings.SerializerClass || JSONAPISerializer;
     this.serializer       = new SerializerClass({ schema: settings.schema, keyMap: settings.keyMap });
+  }
+
+  get defaultFetchHeaders(): object {
+    deprecate('JSONAPISource: Access `defaultFetchSettings.headers` instead of `defaultFetchHeaders`');
+    return this.defaultFetchSettings.headers;
+  }
+
+  set defaultFetchHeaders(headers: object) {
+    deprecate('JSONAPISource: Access `defaultFetchSettings.headers` instead of `defaultFetchHeaders`');
+    this.defaultFetchSettings.headers = headers;
+  }
+
+  get defaultFetchTimeout() {
+    deprecate('JSONAPISource: Access `defaultFetchSettings.timeout` instead of `defaultFetchTimeout`');
+    return this.defaultFetchSettings.timeout;
+  }
+
+  set defaultFetchTimeout(timeout: number) {
+    deprecate('JSONAPISource: Access `defaultFetchSettings.timeout` instead of `defaultFetchTimeout`');
+    this.defaultFetchSettings.timeout = timeout;
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -134,41 +155,21 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
   // Publicly accessible methods particular to JSONAPISource
   /////////////////////////////////////////////////////////////////////////////
 
-  fetch(url: string, settings: FetchSettings = {}): Promise<any> {
-    settings.headers = settings.headers || this.defaultFetchHeaders;
+  fetch(url: string, customSettings?: FetchSettings): Promise<any> {
+    let settings = this.initFetchSettings(customSettings);
 
-    let headers = settings.headers;
-    let method = settings.method || 'GET';
-
-    // console.log('fetch', url, settings, 'polyfill', fetch.polyfill);
-
-    let timeout = settings.timeout || this.defaultFetchTimeout;
-    if (settings.timeout) {
-      delete settings.timeout;
-    }
-
-    if (settings.json) {
-      assert('`json` and `body` can\'t both be set for fetch requests.', !settings.body);
-      settings.body = JSON.stringify(settings.json);
-      delete settings.json;
-    }
-
-    if (settings.body && method !== 'GET') {
-      headers['Content-Type'] = headers['Content-Type'] || 'application/vnd.api+json';
-    }
-
+    let fullUrl = url;
     if (settings.params) {
-      if (url.indexOf('?') === -1) {
-        url += '?';
-      } else {
-        url += '&';
-      }
-      url += encodeQueryParams(settings.params);
-
+      fullUrl = appendQueryParams(fullUrl, settings.params);
       delete settings.params;
     }
 
-    if (timeout) {
+    // console.log('fetch', fullUrl, mergedSettings, 'polyfill', fetch.polyfill);
+
+    if (settings.timeout) {
+      let timeout = settings.timeout;
+      delete settings.timeout;
+
       return new Orbit.Promise((resolve, reject) => {
         let timedOut;
 
@@ -177,7 +178,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
           reject(new NetworkError(`No fetch response within ${timeout}ms.`));
         }, timeout);
 
-        Orbit.fetch(url, settings)
+        Orbit.fetch(fullUrl, settings)
           .catch(e => {
             Orbit.globals.clearTimeout(timer);
 
@@ -195,10 +196,26 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
           .then(resolve, reject);
       });
     } else {
-      return Orbit.fetch(url, settings)
+      return Orbit.fetch(fullUrl, settings)
         .catch(e => this.handleFetchError(e))
         .then(response => this.handleFetchResponse(response));
     }
+  }
+
+  initFetchSettings(customSettings: FetchSettings = {}): FetchSettings {
+    let settings: FetchSettings = deepMerge({}, this.defaultFetchSettings, customSettings);
+
+    if (settings.json) {
+      assert('`json` and `body` can\'t both be set for fetch requests.', !settings.body);
+      settings.body = JSON.stringify(settings.json);
+      delete settings.json;
+    }
+
+    if (settings.headers && !settings.body) {
+      delete settings.headers['Content-Type'];
+    }
+
+    return settings;
   }
 
   protected handleFetchResponse(response: any): Promise<any> {
@@ -291,6 +308,30 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
   /////////////////////////////////////////////////////////////////////////////
   // Private methods
   /////////////////////////////////////////////////////////////////////////////
+
+  private initDefaultFetchSettings(settings: JSONAPISourceSettings): void {
+    this.defaultFetchSettings = {
+      headers: {
+        Accept: 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json'
+      },
+      timeout: 5000
+    };
+
+    if (settings.defaultFetchHeaders || settings.defaultFetchTimeout) {
+      deprecate('JSONAPISource: Pass `defaultFetchSettings` with `headers` instead of `defaultFetchHeaders` to initialize source', settings.defaultFetchHeaders === undefined);
+      deprecate('JSONAPISource: Pass `defaultFetchSettings` with `timeout` instead of `defaultFetchTimeout` to initialize source', settings.defaultFetchTimeout === undefined);
+
+      deepMerge(this.defaultFetchSettings, {
+        headers: settings.defaultFetchHeaders,
+        timeout: settings.defaultFetchTimeout
+      });
+    }
+
+    if (settings.defaultFetchSettings) {
+      deepMerge(this.defaultFetchSettings, settings.defaultFetchSettings);
+    }
+  }
 
   protected _processRequests(requests, processors): Promise<Transform[]> {
     let transforms: Transform[] = [];

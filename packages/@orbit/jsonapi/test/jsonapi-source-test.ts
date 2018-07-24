@@ -29,7 +29,7 @@ module('JSONAPISource', function(hooks) {
     hooks.beforeEach(() => {
       fetchStub = sinon.stub(Orbit, 'fetch');
 
-      let schema = new Schema({
+      schema = new Schema({
         models: {
           planet: {
             keys: {
@@ -93,10 +93,10 @@ module('JSONAPISource', function(hooks) {
     test('source saves options', function(assert) {
       assert.expect(5);
       let schema = new Schema({});
-      source = new JSONAPISource({ schema, keyMap, host: '127.0.0.1:8888', namespace: 'api', defaultFetchHeaders: { 'User-Agent': 'CERN-LineMode/2.15 libwww/2.17b3' } });
+      source = new JSONAPISource({ schema, keyMap, host: '127.0.0.1:8888', namespace: 'api', defaultFetchSettings: { headers: { 'User-Agent': 'CERN-LineMode/2.15 libwww/2.17b3' } } });
       assert.equal(source.namespace, 'api', 'Namespace should be defined');
       assert.equal(source.host, '127.0.0.1:8888', 'Host should be defined');
-      assert.equal(source.defaultFetchHeaders['User-Agent'], 'CERN-LineMode/2.15 libwww/2.17b3', 'Headers should be defined');
+      assert.equal(source.defaultFetchSettings.headers['User-Agent'], 'CERN-LineMode/2.15 libwww/2.17b3', 'Headers should be defined');
       assert.equal(source.resourceNamespace(), source.namespace, 'Default namespace should be used by default');
       assert.equal(source.resourceHost(), source.host, 'Default host should be used by default');
     });
@@ -126,12 +126,91 @@ module('JSONAPISource', function(hooks) {
       assert.equal(source.resourceRelationshipURL('planet', '1', 'moons'), '/planets/a/relationships/moons', 'resourceRelationshipURL appends /relationships/[relationship] to resourceURL');
     });
 
-    test('#defaultFetchHeaders - include JSONAPI Accept header by default', function(assert) {
-      assert.deepEqual(source.defaultFetchHeaders, { Accept: 'application/vnd.api+json' }, 'Default headers should include JSONAPI Accept header');
+    test('#defaultFetchSettings - include JSONAPI Accept and Content-Type headers and a 5000ms timeout by default', function(assert) {
+      assert.deepEqual(source.defaultFetchSettings,
+        {
+          headers: {
+            Accept: 'application/vnd.api+json',
+            'Content-Type': 'application/vnd.api+json'
+          },
+          timeout: 5000
+        });
     });
 
-    test('#defaultFetchTimeout - is 5000ms by default', function(assert) {
-      assert.equal(source.defaultFetchTimeout, 5000, 'By default fetches will timeout after 5s');
+    test('#defaultFetchSettings can be passed and will override any defaults set', function(assert) {
+      let customSource = new JSONAPISource({
+        schema,
+        defaultFetchSettings: {
+          headers: {
+            Accept: 'application/json'
+          },
+          timeout: null
+        }
+      });
+      assert.deepEqual(customSource.defaultFetchSettings,
+        {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/vnd.api+json'
+          },
+          timeout: null
+        });
+    });
+
+    test('#initFetchSettings will override defaults with custom settings provided', function(assert) {
+      assert.deepEqual(
+        source.initFetchSettings({
+          headers: {
+            Accept: 'application/json'
+          },
+          method: 'POST',
+          body: '{"data": {}}',
+          timeout: 10000
+        }),
+        {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/vnd.api+json'
+          },
+          method: 'POST',
+          body: '{"data": {}}',
+          timeout: 10000
+        });
+    });
+
+    test('#initFetchSettings will convert json to a stringified body', function(assert) {
+      assert.deepEqual(
+        source.initFetchSettings({
+          headers: {
+            Accept: 'application/json'
+          },
+          method: 'POST',
+          json: { data: { a: 123 } },
+          timeout: 10000
+        }),
+        {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/vnd.api+json'
+          },
+          method: 'POST',
+          body: '{"data":{"a":123}}',
+          timeout: 10000
+        });
+    });
+
+    test('#initFetchSettings will not include a `Content-Type` header with no body', function(assert) {
+      assert.deepEqual(
+        source.initFetchSettings({
+          method: 'GET'
+        }),
+        {
+          headers: {
+            Accept: 'application/vnd.api+json'
+          },
+          method: 'GET',
+          timeout: 5000
+        });
     });
 
     test('#responseHasContent - returns true if JSONAPI media type appears anywhere in Content-Type header', function(assert) {
@@ -569,7 +648,7 @@ module('JSONAPISource', function(hooks) {
       });
 
       // 10ms timeout
-      source.defaultFetchTimeout = 10;
+      source.defaultFetchSettings.timeout = 10;
 
       fetchStub
         .withArgs('/planets/12345')
@@ -718,7 +797,7 @@ module('JSONAPISource', function(hooks) {
       });
 
       // 10ms timeout
-      source.defaultFetchTimeout = 10;
+      source.defaultFetchSettings.timeout = 10;
 
       fetchStub
         .withArgs('/planets/12345')
