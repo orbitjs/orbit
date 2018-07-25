@@ -1,6 +1,6 @@
 {
   "name": "@orbit/local-storage",
-  "version": "0.15.17",
+  "version": "0.15.18",
   "description": "Local storage support for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -22,9 +22,9 @@
     "test": "testem ci"
   },
   "dependencies": {
-    "@orbit/core": "^0.15.14",
-    "@orbit/data": "^0.15.17",
-    "@orbit/utils": "^0.15.14"
+    "@orbit/core": "^0.15.18",
+    "@orbit/data": "^0.15.18",
+    "@orbit/utils": "^0.15.18"
   },
   "devDependencies": {
     "@glimmer/build": "^0.8.5"
