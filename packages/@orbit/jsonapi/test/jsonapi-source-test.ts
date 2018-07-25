@@ -4,9 +4,7 @@ import Orbit, {
   NetworkError,
   Record,
   RecordIdentity,
-  RecordOperation,
   ReplaceRecordOperation,
-  Transform,
   TransformNotAllowed,
   Schema,
   Source
@@ -679,7 +677,9 @@ module('JSONAPISource', function(hooks) {
       const options = {
         sources: {
           jsonapi: {
-            timeout: 10 // 10ms timeout
+            settings: {
+              timeout: 10 // 10ms timeout
+            }
           }
         }
       };
@@ -831,7 +831,9 @@ module('JSONAPISource', function(hooks) {
       const options = {
         sources: {
           jsonapi: {
-            timeout: 10 // 10ms timeout
+            settings: {
+              timeout: 10 // 10ms timeout
+            }
           }
         }
       };

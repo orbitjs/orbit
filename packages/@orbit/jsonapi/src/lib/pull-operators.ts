@@ -1,7 +1,6 @@
-import { Dict, toArray, merge, deepGet } from '@orbit/utils';
+import { Dict, toArray, merge } from '@orbit/utils';
 import {
   Query,
-  QueryExpression,
   QueryExpressionParseError,
   Transform,
   FindRecord,
@@ -17,9 +16,8 @@ import {
   RelatedRecordsFilterSpecifier
 } from '@orbit/data';
 import JSONAPISource from '../jsonapi-source';
-import { DeserializedDocument } from '../jsonapi-serializer';
 import { JSONAPIDocument } from '../jsonapi-document';
-import { RequestOptions, buildFetchSettings } from './request-settings';
+import { RequestOptions, buildFetchSettings, customRequestOptions } from './request-settings';
 
 function deserialize(source: JSONAPISource, document: JSONAPIDocument): Transform[] {
   const deserialized = source.serializer.deserializeDocument(document);
@@ -73,9 +71,10 @@ export const PullOperators: Dict<PullOperator> = {
       requestOptions.page = expression.page;
     }
 
-    requestOptions = merge(
-      requestOptions,
-      customRequestOptions(source, query));
+    let customOptions = customRequestOptions(source, query);
+    if (customOptions) {
+      merge(requestOptions, customOptions);
+    }
 
     const settings = buildFetchSettings(requestOptions);
 
@@ -106,22 +105,6 @@ export const PullOperators: Dict<PullOperator> = {
       .then(data => deserialize(source, data));
   }
 };
-
-function customRequestOptions(source: JSONAPISource, query: Query): RequestOptions {
-  const requestOptions: RequestOptions = {};
-
-  const queryOptions = deepGet(query, ['options', 'sources', source.name]) || {};
-
-  if (queryOptions.include) {
-    requestOptions.include = queryOptions.include.join(',');
-  }
-
-  if (queryOptions.timeout) {
-    requestOptions.timeout = queryOptions.timeout;
-  }
-
-  return requestOptions;
-}
 
 function buildFilterParam(source: JSONAPISource, filterSpecifiers: FilterSpecifier[]) {
   const filters = {};
