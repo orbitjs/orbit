@@ -526,6 +526,47 @@ module('JSONAPISource', function(hooks) {
         });
     });
 
+    test('#push - can update a hasOne relationship with PATCH with newly created record', function(assert) {
+      assert.expect(5);
+
+      let planet = {
+        type: 'planet',
+        id: 'jupiter',
+        attributes: { name: 'Jupiter', classification: 'gas giant' }
+      };
+
+      let moon = source.serializer.deserializeResource({
+        type: 'moon',
+        id: '987'
+      });
+
+      fetchStub
+        .withArgs('/planets')
+        .returns(jsonapiResponse(201, {
+          data: { id: 'planet-remote-id', type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
+        }));
+
+      fetchStub
+        .withArgs('/moons/987')
+        .returns(jsonapiResponse(200));
+
+      return source.push(t => [
+        t.addRecord(planet),
+        t.replaceRelatedRecord(moon, 'planet', planet)
+      ]).then(function() {
+          assert.ok(true, 'relationship replaced');
+
+          assert.equal(fetchStub.callCount, 2, 'fetch called twice');
+          assert.equal(fetchStub.getCall(1).args[1].method, 'PATCH', 'fetch called with expected method');
+          assert.equal(fetchStub.getCall(1).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
+          assert.deepEqual(
+            JSON.parse(fetchStub.getCall(1).args[1].body),
+            { data: { type: 'moons', id: '987', relationships: { planet: { data: { type: 'planets', id: 'planet-remote-id' } } } } },
+            'fetch called with expected data'
+          );
+        });
+    });
+
     test('#push - can clear a hasOne relationship with PATCH', function(assert) {
       assert.expect(5);
 
