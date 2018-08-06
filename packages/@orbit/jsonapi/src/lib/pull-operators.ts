@@ -27,20 +27,6 @@ function deserialize(source: JSONAPISource, document: JSONAPIDocument, options: 
   const deserialized = source.serializer.deserializeDocument(document);
   const records = toArray(deserialized.data);
 
-  if (options.autoFetchRelationshipLinks) {
-    records.forEach((record: Record) => {
-      if (record.relationships) {
-          Object.keys(record.relationships).forEach(async relationship => {
-            let relation = record.relationships[relationship];
-            if(!relation.data){
-              let url = ((<LinkObject>relation.links.self).href!==undefined)?(<LinkObject> relation.links.self).href:<string>relation.links.self;
-              relation.data= (<ResourceRelationship>(await source.fetch(url,settings))).data;
-            }
-          });
-      }
-    })
-  }
-
   if (deserialized.included) {
     Array.prototype.push.apply(records, deserialized.included);
   }
@@ -149,9 +135,6 @@ function customDeserializeOptions(source: JSONAPISource, query: Query): Deserial
 
   const queryOptions = deepGet(query, ['options', 'sources', source.name]) || {};
 
-  if (queryOptions.autoFetchRelationshipLinks) {
-    deserializeOptions.autoFetchRelationshipLinks = queryOptions.autoFetchRelationshipLinks;
-  }
 
   return deserializeOptions;
 }
