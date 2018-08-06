@@ -98,6 +98,37 @@ function applyFilter(record, filter) {
       default:
         throw new QueryExpressionParseError('Filter operation ${filter.op} not recognized for Store.', filter);
     }
+  } else if (filter.kind === 'relatedRecords') {
+    let relation = deepGet(record, ['relationships', filter.relation]);
+    let actual = relation === undefined ? [] : relation.data;
+    let expected = filter.records;
+    switch (filter.op) {
+      case 'equal':
+        return actual.length === expected.length
+          && expected.every(e => actual.some(a => a.id === e.id && a.type === e.type));
+      case 'all':
+        return expected.every(e => actual.some(a => a.id === e.id && a.type === e.type));
+      case 'some':
+        return expected.some(e => actual.some(a => a.id === e.id && a.type === e.type));
+      case 'none':
+        return !expected.some(e => actual.some(a => a.id === e.id && a.type === e.type));
+      default:
+        throw new QueryExpressionParseError('Filter operation ${filter.op} not recognized for Store.', filter);
+    }
+  } else if (filter.kind === 'relatedRecord') {
+    let relation = deepGet(record, ["relationships", filter.relation]);
+    let actual = relation === undefined ? undefined : relation.data;
+    let expected = filter.record;
+    switch (filter.op) {
+      case 'equal':
+        if (Array.isArray(expected)) {
+          return actual !== undefined && expected.some(e => actual.type === e.type && actual.id === e.id);
+        } else {
+          return actual !== undefined && actual.type === expected.type && actual.id === expected.id;
+        }
+      default:
+        throw new QueryExpressionParseError('Filter operation ${filter.op} not recognized for Store.', filter);
+    }
   }
   return false;
 }

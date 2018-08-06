@@ -1,6 +1,6 @@
 {
   "name": "@orbit/indexeddb-bucket",
-  "version": "0.15.14",
+  "version": "0.15.18",
   "description": "An IndexedDB bucket implementation for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -22,8 +22,8 @@
     "test": "testem ci"
   },
   "dependencies": {
-    "@orbit/utils": "^0.15.14",
-    "@orbit/core": "^0.15.14"
+    "@orbit/core": "^0.15.18",
+    "@orbit/utils": "^0.15.18"
   },
   "devDependencies": {
     "@glimmer/build": "^0.8.5"

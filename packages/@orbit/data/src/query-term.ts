@@ -155,7 +155,17 @@ export class FindRecordsTerm extends QueryTerm {
 function parseFilterSpecifier(filterSpecifier: FilterSpecifier): FilterSpecifier {
   if (isObject(filterSpecifier)) {
     let s = filterSpecifier as FilterSpecifier;
-    s.kind = s.kind || 'attribute';
+    if (!s.kind) {
+      if (s.hasOwnProperty('relation')) {
+        if (s.hasOwnProperty('record')) {
+          s.kind = 'relatedRecord';
+        } else if (s.hasOwnProperty('records')) {
+          s.kind = 'relatedRecords';
+        }
+      } else {
+        s.kind = 'attribute';
+      }
+    }
     s.op = s.op || 'equal';
     return s;
   }

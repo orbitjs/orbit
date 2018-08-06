@@ -1,4 +1,4 @@
-import { clone, expose, extend, isArray, toArray, isObject, isNone, merge, deepGet, deepSet, objectValues } from '../src/objects';
+import { clone, expose, extend, isArray, toArray, isObject, isNone, merge, deepMerge, deepGet, deepSet, objectValues } from '../src/objects';
 
 const { module, test } = QUnit;
 
@@ -175,6 +175,56 @@ module('Lib / Object', function() {
     assert.strictEqual(actual, a, 'Passed object is mutated and returned');
   });
 
+  test('`deepMerge` can combine multiple objects at every level', function(assert) {
+    let a = { firstName: 'Bob',
+              underling: false,
+              details: {
+                address: '123 Main St.',
+                family: {
+                  spouse: 'Jane'
+                }
+              } };
+    let b = { lastName: 'Dobbs',
+              'title': 'Mr.',
+              underlings: null,
+              details: {
+                city: 'Boston',
+                state: 'Massachussetts',
+                family: {
+                  children: [
+                    'Bob, Jr.',
+                    'Sally'
+                  ]
+                }
+              } };
+    let c = { lastName: 'Johnson',
+              underlings: undefined,
+              details: {
+                state: 'MA',
+                family: {
+                  children: [
+                    'Joe'
+                  ]
+                }
+              } };
+    let expected = { title: 'Mr.', firstName: 'Bob', lastName: 'Johnson',
+                     underling: false, underlings: null,
+                     details: {
+                       address: '123 Main St.',
+                       city: 'Boston',
+                       state: 'MA',
+                       family: {
+                         spouse: 'Jane',
+                         children: [
+                           'Joe'
+                         ]
+                       }
+                     } };
+    let actual = deepMerge(a, b, c);
+
+    assert.deepEqual(actual, expected, 'Objects are merged');
+    assert.strictEqual(actual, a, 'Passed object is mutated and returned');
+  });
 
   test('`deepGet` retrieves a value from a nested object', function(assert) {
     let obj = {

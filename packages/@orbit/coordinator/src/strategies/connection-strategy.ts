@@ -72,14 +72,14 @@ export interface ConnectionStrategyOptions extends StrategyOptions {
    *
    * By default, `blocking` is false.
    *
-   * @type {boolean}
+   * @type {(boolean | Function)}
    * @memberOf ConnectionStrategyOptionss
    */
-  blocking?: boolean;
+  blocking?: boolean | Function;
 }
 
 export class ConnectionStrategy extends Strategy {
-  protected _blocking: boolean;
+  protected _blocking: boolean | Function;
   protected _event: string;
   protected _action: string | Function;
   protected _catch: Function;
@@ -109,7 +109,7 @@ export class ConnectionStrategy extends Strategy {
     this._action = options.action;
     this._catch = options.catch;
     this._filter = options.filter;
-    this._blocking = !!options.blocking;
+    this._blocking = typeof options.blocking === 'function' ? options.blocking : !!options.blocking;
   }
 
   get source(): Source {
@@ -120,7 +120,7 @@ export class ConnectionStrategy extends Strategy {
     return this._sources[1];
   }
 
-  get blocking(): boolean {
+  get blocking(): boolean | Function {
     return this._blocking;
   }
 
@@ -165,7 +165,11 @@ export class ConnectionStrategy extends Strategy {
         });
       }
 
-      if (this._blocking) {
+      if (typeof this._blocking === 'function') {
+        if (this._blocking.apply(this, args)) {
+          return result;
+        }
+      } else if (this._blocking) {
         return result;
       }
     };

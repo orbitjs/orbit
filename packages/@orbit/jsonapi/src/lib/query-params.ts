@@ -7,7 +7,7 @@ function flattenObjectToParams(obj, path = []) {
     let newPath = path.slice();
     newPath.push(key);
 
-    if (typeof obj[key] === 'object') {
+    if (obj[key] !== null && typeof obj[key] === 'object') {
       Array.prototype.push.apply(params, flattenObjectToParams(obj[key], newPath));
     } else {
       params.push({
@@ -34,4 +34,18 @@ export function encodeQueryParams(obj) {
     })
     .map(param => encodeURIComponent(param.path) + '=' + encodeURIComponent(param.val))
     .join('&');
+}
+
+export function appendQueryParams(url: string, obj: object): string {
+  let fullUrl = url;
+  let queryParams = encodeQueryParams(obj);
+  if (queryParams.length > 0) {
+    if (fullUrl.indexOf('?') === -1) {
+      fullUrl += '?';
+    } else {
+      fullUrl += '&';
+    }
+    fullUrl += queryParams;
+  }
+  return fullUrl;
 }

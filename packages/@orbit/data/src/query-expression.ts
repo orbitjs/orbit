@@ -12,17 +12,33 @@ export interface AttributeSortSpecifier extends SortSpecifier {
   attribute: string;
 }
 
-export type ComparisonOperator = 'equal' | 'gt' | 'lt' | 'gte' | 'lte';
+export type ValueComparisonOperator = 'equal' | 'gt' | 'lt' | 'gte' | 'lte';
+export type SetComparisonOperator = 'equal' | 'all' | 'some' | 'none';
 
 export interface FilterSpecifier {
-  op: ComparisonOperator;
+  op: ValueComparisonOperator | SetComparisonOperator;
   kind: string;
 }
 
 export interface AttributeFilterSpecifier extends FilterSpecifier {
-  kind: 'attribute';
+  op: ValueComparisonOperator,
+  kind: "attribute";
   attribute: string;
   value: any;
+}
+
+export interface RelatedRecordFilterSpecifier extends FilterSpecifier {
+  op: SetComparisonOperator,
+  kind: 'relatedRecord';
+  relation: string;
+  record: RecordIdentity | RecordIdentity[] | null;
+}
+
+export interface RelatedRecordsFilterSpecifier extends FilterSpecifier {
+  op: SetComparisonOperator,
+  kind: 'relatedRecords';
+  relation: string;
+  records: RecordIdentity[];
 }
 
 export interface PageSpecifier {

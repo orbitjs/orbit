@@ -1,4 +1,4 @@
-import { encodeQueryParams } from '../../src/lib/query-params';
+import { encodeQueryParams, appendQueryParams } from '../../src/lib/query-params';
 
 const { module, test } = QUnit;
 
@@ -22,6 +22,15 @@ module('QueryParams', function() {
       );
     });
 
+    test('null value', function(assert) {
+      assert.deepEqual(
+        encodeQueryParams(
+          { a: null }
+        ),
+        'a=null'
+      );
+    });
+
     test('multiple', function(assert) {
       assert.deepEqual(
         encodeQueryParams(
@@ -41,7 +50,8 @@ module('QueryParams', function() {
             d: {
               e: 'f',
               g: {
-                h: 'long sentence here'
+                h: 'long sentence here',
+                i: null
               }
             }
           }
@@ -49,7 +59,40 @@ module('QueryParams', function() {
         'a=b&' +
         'b=c&' +
         encodeURIComponent('d[e]') + '=f&' +
-        encodeURIComponent('d[g][h]') + '=' + encodeURIComponent('long sentence here')
+        encodeURIComponent('d[g][h]') + '=' + encodeURIComponent('long sentence here') + '&' +
+        encodeURIComponent('d[g][i]') + '=null'
+      );
+    });
+  });
+
+  module('appendQueryParams', function() {
+    test('empty', function(assert) {
+      assert.strictEqual(
+        appendQueryParams(
+          'http://example.com',
+          { }
+        ),
+        'http://example.com'
+      );
+    });
+
+    test('simple', function(assert) {
+      assert.strictEqual(
+        appendQueryParams(
+          'http://example.com',
+          { a: 'b' }
+        ),
+        'http://example.com?a=b'
+      );
+    });
+
+    test('appended to existing query params', function(assert) {
+      assert.strictEqual(
+        appendQueryParams(
+          'http://example.com?c=d',
+          { a: 'b' }
+        ),
+        'http://example.com?c=d&a=b'
       );
     });
   });

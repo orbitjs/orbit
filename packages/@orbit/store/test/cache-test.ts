@@ -765,7 +765,7 @@ module('Cache', function(hooks) {
     );
   });
 
-  test('#query can perform a simple matching filter', function(assert) {
+  test('#query can perform a simple attribute filter by value equality', function(assert) {
     let cache = new Cache({ schema, keyMap });
     const tb = cache.transformBuilder;
 
@@ -789,7 +789,294 @@ module('Cache', function(hooks) {
     );
   });
 
-  test('#query can perform a complex filter', function(assert) {
+  test('#query can perform a simple attribute filter by value comparison (gt, lt, gte & lte)', function (assert) {
+    let cache = new Cache({ schema, keyMap });
+    const tb = cache.transformBuilder;
+
+    let jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', sequence: 5, classification: 'gas giant', atmosphere: true } };
+    let earth = { type: 'planet', id: 'earth', attributes: { name: 'Earth', sequence: 3, classification: 'terrestrial', atmosphere: true } };
+    let venus = { type: 'planet', id: 'venus', attributes: { name: 'Venus', sequence: 2, classification: 'terrestrial', atmosphere: true } };
+    let mercury = { type: 'planet', id: 'mercury', attributes: { name: 'Mercury', sequence: 1, classification: 'terrestrial', atmosphere: false } };
+
+    cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
+    ]);
+    arrayMembershipMatches(
+      assert,
+      cache.query(q => {
+        let tmp = q.findRecords('planet')
+        return tmp.filter({ attribute: 'sequence', value: 2, op: 'gt' })
+      }),
+      [earth, jupiter]
+    );
+    arrayMembershipMatches(
+      assert,
+      cache.query(q => {
+        let tmp = q.findRecords('planet')
+        return tmp.filter({ attribute: 'sequence', value: 2, op: 'gte' })
+      }),
+      [venus, earth, jupiter]
+    );
+    arrayMembershipMatches(
+      assert,
+      cache.query(q => {
+        let tmp = q.findRecords("planet");
+        return tmp.filter({ attribute: "sequence", value: 2, op: "lt" });
+      }),
+      [mercury]
+    );
+    arrayMembershipMatches(
+      assert,
+      cache.query(q => {
+        let tmp = q.findRecords("planet");
+        return tmp.filter({ attribute: "sequence", value: 2, op: "lte" });
+      }),
+      [venus, mercury]
+    );
+  });
+
+  test('#query can perform relatedRecords filters with operators `equal`, `all`, `some` and `none`', function (assert) {
+    let cache = new Cache({ schema, keyMap });
+    const tb = cache.transformBuilder;
+
+    let jupiter = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: { name: 'Jupiter', sequence: 5, classification: 'gas giant', atmosphere: true },
+      relationships: {
+        moons: {
+          data: [
+            { type: 'moon', id: 'europa' },
+            { type: 'moon', id: 'ganymede' },
+            { type: 'moon', id: 'callisto' }
+          ]
+        }
+      }
+    };
+    let earth = {
+      type: 'planet',
+      id: 'earth',
+      attributes: { name: 'Earth', sequence: 3, classification: 'terrestrial', atmosphere: true },
+      relationships: { moons: { data: [{ type: 'moon', id: 'moon' }] } }
+    };
+    let mars = {
+      type: 'planet',
+      id: 'mars',
+      attributes: { name: 'Mars', sequence: 4, classification: 'terrestrial', atmosphere: true },
+      relationships: { moons: { data: [{ type: 'moon', id: 'phobos' }, { type: 'moon', id: 'deimos' }] } }
+    };
+    let mercury = {
+      type: 'planet',
+      id: 'mercury',
+      attributes: { name: 'Mercury', sequence: 1, classification: 'terrestrial', atmosphere: false }
+    };
+    let theMoon = {
+      id: 'moon', type: 'moon',
+      attributes: { name: 'The moon' },
+      relationships: { planet: { data: { type: 'planet', id: 'earth' } } }
+    };
+    let europa = {
+      id: 'europa', type: 'moon',
+      attributes: { name: 'Europa' },
+      relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
+    };
+    let ganymede = {
+      id: 'ganymede', type: 'moon',
+      attributes: { name: 'Ganymede' },
+      relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
+    };
+    let callisto = {
+      id: 'callisto', type: 'moon',
+      attributes: { name: 'Callisto' },
+      relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
+    };
+    let phobos = {
+      id: 'phobos', type: 'moon',
+      attributes: { name: 'Phobos' },
+      relationships: { planet: { data: { type: 'planet', id: 'mars' } } }
+    };
+    let deimos = {
+      id: 'deimos', type: 'moon',
+      attributes: { name: 'Deimos' },
+      relationships: { planet: { data: { type: 'planet', id: 'mars' } } }
+    };
+    let titan = {
+      id: 'titan', type: 'moon',
+      attributes: { name: 'titan' },
+      relationships: {}
+    };
+
+    cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(mars),
+      t.addRecord(mercury),
+      t.addRecord(theMoon),
+      t.addRecord(europa),
+      t.addRecord(ganymede),
+      t.addRecord(callisto),
+      t.addRecord(phobos),
+      t.addRecord(deimos),
+      t.addRecord(titan),
+    ]);
+    arrayMembershipMatches(
+      assert,
+      cache.query(q => q.findRecords('planet')
+                        .filter({ relation: 'moons', records: [theMoon], op: 'equal' })),
+      [earth]
+    );
+    arrayMembershipMatches(
+      assert,
+      cache.query(q => q.findRecords("planet")
+                        .filter({ relation: 'moons', records: [phobos], op: 'equal' })),
+      []
+    );
+    arrayMembershipMatches(
+      assert,
+      cache.query(q => q.findRecords("planet")
+                        .filter({ relation: 'moons', records: [phobos], op: 'all' })),
+      [mars]
+    );
+    arrayMembershipMatches(
+      assert,
+      cache.query(q => q.findRecords("planet")
+                        .filter({ relation: 'moons', records: [phobos, callisto], op: 'all' })),
+      []
+    );
+    arrayMembershipMatches(
+      assert,
+      cache.query(q => q.findRecords("planet")
+                        .filter({ relation: 'moons', records: [phobos, callisto], op: 'some' })),
+      [mars, jupiter]
+    );
+    arrayMembershipMatches(
+      assert,
+      cache.query(q => q.findRecords("planet")
+                        .filter({ relation: 'moons', records: [titan], op: 'some' })),
+      []
+    );
+    arrayMembershipMatches(
+      assert,
+      cache.query(q => q.findRecords("planet")
+                        .filter({ relation: 'moons', records: [ganymede], op: 'none' })),
+      [earth, mars, mercury]
+    );
+  });
+
+  test('#query can perform relatedRecord filters', function (assert) {
+    let cache = new Cache({ schema, keyMap });
+    const tb = cache.transformBuilder;
+
+    let jupiter = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: { name: 'Jupiter', sequence: 5, classification: 'gas giant', atmosphere: true },
+      relationships: {
+        moons: {
+          data: [
+            { type: 'moon', id: 'europa' },
+            { type: 'moon', id: 'ganymede' },
+            { type: 'moon', id: 'callisto' }
+          ]
+        }
+      }
+    };
+    let earth = {
+      type: 'planet',
+      id: 'earth',
+      attributes: { name: 'Earth', sequence: 3, classification: 'terrestrial', atmosphere: true },
+      relationships: { moons: { data: [{ type: 'moon', id: 'moon' }] } }
+    };
+    let mars = {
+      type: 'planet',
+      id: 'mars',
+      attributes: { name: 'Mars', sequence: 4, classification: 'terrestrial', atmosphere: true },
+      relationships: { moons: { data: [{ type: 'moon', id: 'phobos' }, { type: 'moon', id: 'deimos' }] } }
+    };
+    let mercury = {
+      type: 'planet',
+      id: 'mercury',
+      attributes: { name: 'Mercury', sequence: 1, classification: 'terrestrial', atmosphere: false }
+    };
+    let theMoon = {
+      id: 'moon', type: 'moon',
+      attributes: { name: 'The moon' },
+      relationships: { planet: { data: { type: 'planet', id: 'earth' } } }
+    };
+    let europa = {
+      id: 'europa', type: 'moon',
+      attributes: { name: 'Europa' },
+      relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
+    };
+    let ganymede = {
+      id: 'ganymede', type: 'moon',
+      attributes: { name: 'Ganymede' },
+      relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
+    };
+    let callisto = {
+      id: 'callisto', type: 'moon',
+      attributes: { name: 'Callisto' },
+      relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
+    };
+    let phobos = {
+      id: 'phobos', type: 'moon',
+      attributes: { name: 'Phobos' },
+      relationships: { planet: { data: { type: 'planet', id: 'mars' } } }
+    };
+    let deimos = {
+      id: 'deimos', type: 'moon',
+      attributes: { name: 'Deimos' },
+      relationships: { planet: { data: { type: 'planet', id: 'mars' } } }
+    };
+    let titan = {
+      id: 'titan', type: 'moon',
+      attributes: { name: 'titan' },
+      relationships: {}
+    };
+
+    cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(mars),
+      t.addRecord(mercury),
+      t.addRecord(theMoon),
+      t.addRecord(europa),
+      t.addRecord(ganymede),
+      t.addRecord(callisto),
+      t.addRecord(phobos),
+      t.addRecord(deimos),
+      t.addRecord(titan),
+    ]);
+    arrayMembershipMatches(
+      assert,
+      cache.query(q => q.findRecords('moon')
+                        .filter({ relation: 'planet', record: earth })),
+      [theMoon]
+    );
+    arrayMembershipMatches(
+      assert,
+      cache.query(q => q.findRecords('moon')
+                        .filter({ relation: 'planet', record: jupiter })),
+      [europa, ganymede, callisto]
+    );
+    arrayMembershipMatches(
+      assert,
+      cache.query(q => q.findRecords('moon')
+                        .filter({ relation: 'planet', record: mercury })),
+      []
+    );
+    arrayMembershipMatches(
+      assert,
+      cache.query(q => q.findRecords('moon')
+                        .filter({ relation: 'planet', record: [earth, mars] })),
+      [theMoon, phobos, deimos]
+    );
+  });
+
+  test('#query can perform a complex attribute filter by value', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
     let jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', classification: 'gas giant', atmosphere: true } };
