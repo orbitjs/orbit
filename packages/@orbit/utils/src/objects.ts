@@ -154,7 +154,7 @@ export function merge(object: any, ...sources: any[]): any {
       if (source.hasOwnProperty(field)) {
         let value = source[field];
         if (value !== undefined) {
-          object[field] = value;
+          object[field] = clone(value);
         }
       }
     });
@@ -184,7 +184,7 @@ export function deepMerge(object: any, ...sources: any[]): any {
             !isArray(a) && !isArray(b)) {
           deepMerge(a, b);
         } else if (b !== undefined) {
-          object[field] = b;
+          object[field] = clone(b);
         }
       }
     });
