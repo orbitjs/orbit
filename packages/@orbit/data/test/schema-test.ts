@@ -47,7 +47,7 @@ module('Schema', function() {
   test('#models provides access to model definitions', function(assert) {
     const planetDefinition = {
       attributes: {
-        name: { type: 'string', defaultValue: 'Earth' }
+        name: { type: 'string' }
       }
     };
 
@@ -63,7 +63,7 @@ module('Schema', function() {
   test('#getModel provides access to a model definition', function(assert) {
     const planetDefinition = {
       attributes: {
-        name: { type: 'string', defaultValue: 'Earth' }
+        name: { type: 'string' }
       }
     };
 
@@ -83,13 +83,13 @@ module('Schema', function() {
       schema.getModel('planet');
     }, /Schema error: Model definition for planet not found/)
   });
-  
+
   test('#hasAttribute', function(assert) {
     const schema = new Schema({
       models: {
         planet: {
           attributes: {
-            name: { type: 'string', defaultValue: 'Earth' }
+            name: { type: 'string' }
           }
         }
       }
