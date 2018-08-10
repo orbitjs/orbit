@@ -130,7 +130,7 @@ function buildFilterParam(source: JSONAPISource, filterSpecifiers: FilterSpecifi
       const relatedRecordsFilter = filterSpecifier as RelatedRecordsFilterSpecifier;
       filters[relatedRecordsFilter.relation] = relatedRecordsFilter.records.map(e => e.id).join(',');
     } else {
-      throw new QueryExpressionParseError('Filter operation ${specifier.op} not recognized for JSONAPISource.', filterSpecifier);
+      throw new QueryExpressionParseError(`Filter operation ${filterSpecifier.op} not recognized for JSONAPISource.`, filterSpecifier);
     }
   });
 
@@ -146,6 +146,6 @@ function buildSortParam(source: JSONAPISource, sortSpecifiers: SortSpecifier[]) 
       const resourceAttribute = source.serializer.resourceAttribute(null, attributeSort.attribute);
       return (sortSpecifier.order === 'descending' ? '-' : '') + resourceAttribute;
     }
-    throw new QueryExpressionParseError('Sort specifier ${sortSpecifier.kind} not recognized for JSONAPISource.', sortSpecifier);
+    throw new QueryExpressionParseError(`Sort specifier ${sortSpecifier.kind} not recognized for JSONAPISource.`, sortSpecifier);
   }).join(',');
 }
