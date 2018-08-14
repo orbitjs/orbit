@@ -18,10 +18,6 @@ import { PullOperator, PullOperators } from './lib/pull-operators';
 import { getTransformRequests, TransformRequestProcessors } from './lib/transform-requests';
 import { InvalidServerResponse } from './lib/exceptions';
 
-if (typeof Orbit.globals.fetch !== 'undefined' && Orbit.fetch === undefined) {
-  Orbit.fetch = Orbit.globals.fetch.bind(Orbit.globals);
-}
-
 export interface FetchSettings {
   headers?: object;
   method?: string;
@@ -165,7 +161,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
     }
 
     // console.log('fetch', fullUrl, mergedSettings, 'polyfill', fetch.polyfill);
-
+    let fetchFn = Orbit.fetch || fetch;
     if (settings.timeout) {
       let timeout = settings.timeout;
       delete settings.timeout;
@@ -178,7 +174,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
           reject(new NetworkError(`No fetch response within ${timeout}ms.`));
         }, timeout);
 
-        Orbit.fetch(fullUrl, settings)
+        fetchFn(fullUrl, settings)
           .catch(e => {
             Orbit.globals.clearTimeout(timer);
 
@@ -196,7 +192,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
           .then(resolve, reject);
       });
     } else {
-      return Orbit.fetch(fullUrl, settings)
+      return fetchFn(fullUrl, settings)
         .catch(e => this.handleFetchError(e))
         .then(response => this.handleFetchResponse(response));
     }
