@@ -382,6 +382,18 @@ module('JSONAPISerializer', function(hooks) {
         'deserialized document matches'
       );
     });
+
+    test('#deserialize - can deserialize null as primary data', function(assert) {
+      let result = serializer.deserializeDocument(
+        {
+          data: null
+        }
+      );
+      let record = result.data;
+
+      assert.equal(record, null, 'deserialized document matches');
+    });
+
   });
 
   module('Using shared UUIDs', function(hooks) {

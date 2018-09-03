@@ -193,10 +193,12 @@ export default class JSONAPISerializer {
       result = {
         data: (<Resource[]>data).map(this.deserializeResource, this)
       };
-    } else {
+    } else if(data !== null) {
       result = {
         data: this.deserializeResource(<Resource>data)
       };
+    } else {
+      result = { data: null };
     }
 
     if (document.included) {
