@@ -14,7 +14,7 @@ import Orbit, {
   Record
 } from '@orbit/data';
 import { assert, merge, deepMerge, deprecate } from '@orbit/utils';
-import JSONAPISerializer, { JSONAPISerializerSettings } from './jsonapi-serializer';
+import JSONAPISerializer, { DeserializedDocument, JSONAPISerializerSettings } from './jsonapi-serializer';
 import { appendQueryParams } from './lib/query-params';
 import { PullOperator, PullOperators } from './lib/pull-operators';
 import { getTransformRequests, TransformRequestProcessors } from './lib/transform-requests';
@@ -77,7 +77,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   push: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => Promise<Transform[]>;
 
   // Queryable interface stubs
-  query: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<Record[]>;
+  query: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<DeserializedDocument>;
 
   constructor(settings: JSONAPISourceSettings = {}) {
     assert('JSONAPISource\'s `schema` must be specified in `settings.schema` constructor argument', !!settings.schema);
@@ -158,7 +158,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   // Pullable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _query(query: Query): Promise<Record[]> {
+  _query(query: Query): Promise<DeserializedDocument> {
     const operator: PullOperator = QueryOperators[query.expression.op];
     if (!operator) {
       throw new Error('JSONAPISource does not support the `${query.expression.op}` operator for queries.');
