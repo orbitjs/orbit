@@ -6,7 +6,7 @@ import {
 } from '@orbit/data';
 import JSONAPISource from '../jsonapi-source';
 import { JSONAPIDocument } from '../jsonapi-document';
-import { AbstractOperators } from "./abstract-operators";
+import { GetOperators } from "./get-operators";
 
 function deserialize(source: JSONAPISource, document: JSONAPIDocument): Transform[] {
   const deserialized = source.serializer.deserializeDocument(document);
@@ -32,22 +32,22 @@ export interface PullOperator {
 
 export const PullOperators: Dict<PullOperator> = {
   findRecord(source: JSONAPISource, query: Query) {
-    return AbstractOperators.findRecord(source, query)
+    return GetOperators.findRecord(source, query)
       .then(data => deserialize(source, data));
   },
 
   findRecords(source: JSONAPISource, query: Query) {
-    return AbstractOperators.findRecords(source, query)
+    return GetOperators.findRecords(source, query)
       .then(data => deserialize(source, data));
   },
 
   findRelatedRecord(source: JSONAPISource, query: Query) {
-    return AbstractOperators.findRelatedRecord(source, query)
+    return GetOperators.findRelatedRecord(source, query)
       .then(data => deserialize(source, data));
   },
 
   findRelatedRecords(source: JSONAPISource, query: Query) {
-    return AbstractOperators.findRelatedRecords(source, query)
+    return GetOperators.findRelatedRecords(source, query)
       .then(data => deserialize(source, data));
   }
 };
