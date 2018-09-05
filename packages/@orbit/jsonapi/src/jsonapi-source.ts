@@ -77,7 +77,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   push: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => Promise<Transform[]>;
 
   // Queryable interface stubs
-  query: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<DeserializedDocument>;
+  query: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<any>;
 
   constructor(settings: JSONAPISourceSettings = {}) {
     assert('JSONAPISource\'s `schema` must be specified in `settings.schema` constructor argument', !!settings.schema);
