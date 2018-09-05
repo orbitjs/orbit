@@ -82,7 +82,6 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   constructor(settings: JSONAPISourceSettings = {}) {
     assert('JSONAPISource\'s `schema` must be specified in `settings.schema` constructor argument', !!settings.schema);
     assert('JSONAPISource requires Orbit.Promise be defined', Orbit.Promise);
-    assert('JSONAPISource requires Orbit.fetch be defined', Orbit.fetch || fetch);
 
     settings.name = settings.name || 'jsonapi';
 
