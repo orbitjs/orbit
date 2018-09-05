@@ -18,7 +18,7 @@ import { JSONAPIDocument } from '../jsonapi-document';
 import { RequestOptions, buildFetchSettings, customRequestOptions } from './request-settings';
 
 
-export const AbstractOperators = {
+export const GetOperators = {
   findRecord(source: JSONAPISource, query: Query): Promise<JSONAPIDocument> {
     const expression = query.expression as FindRecord;
     const { record } = expression;
