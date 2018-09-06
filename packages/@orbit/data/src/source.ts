@@ -164,12 +164,12 @@ export abstract class Source implements Evented, Performer {
 
    Also, adds an entry to the Source's `transformLog` for each transform.
 
-   @private
+   @protected
    @method _transformed
    @param {Array} transforms - Transforms that have occurred.
    @returns {Promise} Promise that resolves to transforms.
   */
-  private _transformed(transforms: Transform[]): Promise<Transform[]> {
+  protected _transformed(transforms: Transform[]): Promise<Transform[]> {
     return transforms
       .reduce((chain, transform) => {
         return chain.then(() => {

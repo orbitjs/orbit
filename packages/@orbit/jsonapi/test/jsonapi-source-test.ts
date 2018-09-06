@@ -1293,9 +1293,9 @@ module('JSONAPISource', function(hooks) {
         .returns(jsonapiResponse(200, { data }));
 
       return source.query(q => q.findRecord({ type: 'planet', id: planet.id }))
-        .then(document => {
-          assert.ok(!Array.isArray(document.data), 'only a single primary recored returned');
-          assert.equal((document.data as Record).attributes.name, 'Jupiter');
+        .then(data => {
+          assert.ok(!Array.isArray(data), 'only a single primary recored returned');
+          assert.equal((data as Record).attributes.name, 'Jupiter');
 
           assert.equal(fetchStub.callCount, 1, 'fetch called once');
           assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -1443,9 +1443,8 @@ module('JSONAPISource', function(hooks) {
         .returns(jsonapiResponse(200, { data }));
 
       return source.query(q => q.findRecords('planet'))
-        .then(document => {
-          assert.ok(Array.isArray(document.data), 'returned an array of data');
-          let data = document.data as Record[];
+        .then((data) => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
           assert.equal(data.length, 3, 'three objects in data returned');
           assert.deepEqual(data.map((o) => o.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
 
@@ -1467,9 +1466,8 @@ module('JSONAPISource', function(hooks) {
 
       return source.query(q => q.findRecords('planet')
                                .filter({ attribute: 'lengthOfDay', value: 24 }))
-        .then(document => {
-          assert.ok(Array.isArray(document.data), 'returned an array of data');
-          let data = document.data as Record[];
+        .then(data => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
           assert.equal(data.length, 1, 'one objects in data returned');
           assert.deepEqual(data.map((o) => o.attributes.name), ['Earth']);
 
@@ -1498,9 +1496,8 @@ module('JSONAPISource', function(hooks) {
 
       return source.query(q => q.findRecords('moon')
                                .filter({ relation: 'planet', record: { id: 'earth', type: 'planets' } }))
-        .then(document => {
-          assert.ok(Array.isArray(document.data), 'returned an array of data');
-          let data = document.data as Record[];
+        .then(data => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
           assert.equal(data.length, 1, 'one objects in data returned');
           assert.deepEqual(data.map((o) => o.attributes.name), ['Moon']);
 
@@ -1545,9 +1542,8 @@ module('JSONAPISource', function(hooks) {
 
       return source.query(q => q.findRecords('moon')
                                .filter({ relation: 'planet', record: [{ id: 'earth', type: 'planets' }, { id: 'mars', type: 'planets' }] }))
-        .then(document => {
-          assert.ok(Array.isArray(document.data), 'returned an array of data');
-          let data = document.data as Record[];
+        .then(data => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
           assert.equal(data.length, 3, 'three objects in data returned');
           assert.deepEqual(data.map((o) => o.attributes.name), ['Moon', 'Phobos', 'Deimos']);
 
@@ -1580,9 +1576,8 @@ module('JSONAPISource', function(hooks) {
           records: [{ id: 'phobos', type: 'moons' }, { id: 'deimos', type: 'moons' }],
           op: 'equal'
         }))
-        .then(document => {
-          assert.ok(Array.isArray(document.data), 'returned an array of data');
-          let data = document.data as Record[];
+        .then(data => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
           assert.equal(data.length, 1, 'one objects in data returned');
           assert.deepEqual(data.map((o) => o.attributes.name), ['Mars']);
 
@@ -1605,9 +1600,8 @@ module('JSONAPISource', function(hooks) {
         .returns(jsonapiResponse(200, { data }));
 
       return source.query(q => q.findRecords('planet').sort('name'))
-        .then(document => {
-          assert.ok(Array.isArray(document.data), 'returned an array of data');
-          let data = document.data as Record[];
+        .then(data => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
           assert.equal(data.length, 3, 'three objects in data returned');
           assert.deepEqual(data.map((o) => o.attributes.name), ['Earth', 'Jupiter', 'Saturn']);
 
@@ -1630,9 +1624,8 @@ module('JSONAPISource', function(hooks) {
         .returns(jsonapiResponse(200, { data }));
 
       return source.query(q => q.findRecords('planet').sort('-name'))
-        .then(document => {
-          assert.ok(Array.isArray(document.data), 'returned an array of data');
-          let data = document.data as Record[];
+        .then(data => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
           assert.equal(data.length, 3, 'three objects in data returned');
           assert.deepEqual(data.map((o) => o.attributes.name), ['Saturn', 'Jupiter', 'Earth']);
 
@@ -1655,9 +1648,8 @@ module('JSONAPISource', function(hooks) {
         .returns(jsonapiResponse(200, { data }));
 
       return source.query(q => q.findRecords('planet').sort('lengthOfDay', 'name'))
-        .then(document => {
-          assert.ok(Array.isArray(document.data), 'returned an array of data');
-          let data = document.data as Record[];
+        .then(data => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
           assert.equal(data.length, 3, 'three objects in data returned');
           assert.deepEqual(data.map((o) => o.attributes.name), ['Jupiter', 'Saturn', 'Earth']);
 
@@ -1681,9 +1673,8 @@ module('JSONAPISource', function(hooks) {
 
       return source.query(q => q.findRecords('planet')
                                .page({ offset: 1, limit: 10 }))
-        .then(document => {
-          assert.ok(Array.isArray(document.data), 'returned an array of data');
-          let data = document.data as Record[];
+        .then(data => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
           assert.equal(data.length, 3, 'three objects in data returned');
           assert.deepEqual(data.map((o) => o.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
 
@@ -1759,9 +1750,8 @@ module('JSONAPISource', function(hooks) {
         .returns(jsonapiResponse(200, { data }));
 
       return source.query(q => q.findRelatedRecords(planetRecord, 'moons'))
-        .then((document) => {
-          assert.ok(Array.isArray(document.data), 'returned an array of data');
-          let data = document.data as Record[];
+        .then((data) => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
           assert.equal(data.length, 1, 'one objects in data returned');
           assert.deepEqual(data.map((o) => o.attributes.name), ['Io']);
 

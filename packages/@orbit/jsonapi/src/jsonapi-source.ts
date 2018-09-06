@@ -19,7 +19,7 @@ import { appendQueryParams } from './lib/query-params';
 import { PullOperator, PullOperators } from './lib/pull-operators';
 import { getTransformRequests, TransformRequestProcessors } from './lib/transform-requests';
 import { InvalidServerResponse } from './lib/exceptions';
-import { QueryOperators } from "./lib/query-operators";
+import { QueryOperator, QueryOperators } from "./lib/query-operators";
 
 export interface FetchSettings {
   headers?: object;
@@ -157,12 +157,15 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   // Pullable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _query(query: Query): Promise<DeserializedDocument> {
-    const operator: PullOperator = QueryOperators[query.expression.op];
+  _query(query: Query): Promise<Record|Record[]> {
+    const operator: QueryOperator = QueryOperators[query.expression.op];
     if (!operator) {
       throw new Error('JSONAPISource does not support the `${query.expression.op}` operator for queries.');
     }
-    return operator(this, query);
+    return operator(this, query).then(response => {
+      return this._transformed(response.transforms)
+        .then(()=> response.primaryData);
+    });
   }
 
   /////////////////////////////////////////////////////////////////////////////
