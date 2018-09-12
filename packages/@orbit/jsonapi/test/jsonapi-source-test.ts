@@ -296,6 +296,117 @@ module('JSONAPISource', function(hooks) {
         });
     });
 
+    test('#push - can add sideloaded records', function (assert) {
+      assert.expect(8);
+
+      let transformCount = 0;
+
+      let planet: Record = source.serializer.deserializeResource({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
+      let moon: Record = source.serializer.deserializeResource({ type: 'moon', attributes: { name: 'Europa' } });
+
+      let addPlanetOp = {
+        op: 'addRecord',
+        record: {
+          type: 'planet',
+          id: planet.id,
+          attributes: {
+            name: 'Jupiter',
+            classification: 'gas giant'
+          }
+        }
+      };
+
+      let addPlanetRemoteIdOp = {
+        op: 'replaceKey',
+        record: { type: 'planet', id: planet.id },
+        key: 'remoteId',
+        value: '12345'
+      };
+
+      let addMoonOp = {
+        op: 'replaceRecord',
+        record: {
+          type: 'moon',
+          keys: {
+            remoteId: '321'
+          },
+          attributes: {
+            name: 'Europa'
+          }
+        }
+      };
+
+      source.on('transform', <() => void>function (transform) {
+        transformCount++;
+
+        if (transformCount === 1) {
+          assert.deepEqual(
+            transform.operations,
+            [addPlanetOp],
+            'transform event initially returns add-record op'
+          );
+        } else if (transformCount === 2) {
+          // Remote ID is added as a separate operation
+          assert.deepEqual(
+            transform.operations,
+            [addPlanetRemoteIdOp],
+            'transform event then returns add-remote-id op'
+          );
+        } else if (transformCount === 3) {
+          let operationsWithoutId = transform.operations.map(op => {
+            let clonedOp = Object.assign({}, op);
+            delete clonedOp.record.id;
+            return clonedOp;
+          });
+          assert.deepEqual(
+            operationsWithoutId,
+            [addMoonOp],
+            'transform event to add included records'
+          );
+        }
+      });
+
+      fetchStub
+        .withArgs('/planets')
+        .returns(jsonapiResponse(201, {
+          data: {
+            id: '12345',
+            type: 'planets',
+            attributes: { name: 'Jupiter', classification: 'gas giant' },
+            relationships: { moons: [{ id: '321', type: 'moons' }] }
+          },
+          included: [{
+            id: '321',
+            type: 'moons',
+            attributes: {
+              name: 'Europa'
+            }
+          }]
+        }));
+
+      return source.push(t => t.addRecord(planet))
+        .then(function () {
+          assert.ok(true, 'transform resolves successfully');
+
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
+          assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
+          assert.deepEqual(
+            JSON.parse(fetchStub.getCall(0).args[1].body),
+            {
+              data: {
+                type: 'planets',
+                attributes: {
+                  name: 'Jupiter',
+                  classification: 'gas giant'
+                }
+              }
+            },
+            'fetch called with expected data'
+          );
+        });
+    });
+
     test('#push - can transform records', function(assert) {
       assert.expect(6);
 
