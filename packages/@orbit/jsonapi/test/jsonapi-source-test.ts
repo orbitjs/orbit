@@ -1277,6 +1277,517 @@ module('JSONAPISource', function(hooks) {
           assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
         });
     });
+
+    test('#query - record', function(assert) {
+      assert.expect(4);
+
+      const data = { type: 'planets', id: '12345', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+
+      const planet = source.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345'
+      });
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(jsonapiResponse(200, { data }));
+
+      return source.query(q => q.findRecord({ type: 'planet', id: planet.id }))
+        .then(data => {
+          assert.ok(!Array.isArray(data), 'only a single primary recored returned');
+          assert.equal((data as Record).attributes.name, 'Jupiter');
+
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
+    test('#query - request can timeout', function(assert) {
+      assert.expect(2);
+
+      const data = {
+        type: 'planets',
+        id: '12345',
+        attributes: { name: 'Jupiter', classification: 'gas giant' } ,
+        relationships: { moons: { data: [] } }
+      };
+
+      const planet = source.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345'
+      });
+
+      // 10ms timeout
+      source.defaultFetchSettings.timeout = 10;
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(jsonapiResponse(200, { data }, 20)); // 20ms delay
+
+      return source.query(q => q.findRecord({ type: 'planet', id: planet.id }))
+        .then(() => {
+          assert.ok(false, 'should not be reached');
+        })
+        .catch(e => {
+          assert.ok(e instanceof NetworkError, 'Network error raised');
+          assert.equal(e.description, 'No fetch response within 10ms.')
+        });
+    });
+
+    test('#query - allowed timeout can be specified per-request', function(assert) {
+      assert.expect(2);
+
+      const data = {
+        type: 'planets',
+        id: '12345',
+        attributes: { name: 'Jupiter', classification: 'gas giant' } ,
+        relationships: { moons: { data: [] } }
+      };
+
+      const planet = source.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345'
+      });
+
+      const options = {
+        sources: {
+          jsonapi: {
+            settings: {
+              timeout: 10 // 10ms timeout
+            }
+          }
+        }
+      };
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(jsonapiResponse(200, { data }, 20)); // 20ms delay
+
+      return source.query(q => q.findRecord({ type: 'planet', id: planet.id }), options)
+        .then(() => {
+          assert.ok(false, 'should not be reached');
+        })
+        .catch(e => {
+          assert.ok(e instanceof NetworkError, 'Network error raised');
+          assert.equal(e.description, 'No fetch response within 10ms.')
+        });
+    });
+
+    test('#query - fetch can reject with a NetworkError', function(assert) {
+      assert.expect(2);
+
+      const planet = source.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345'
+      });
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(Orbit.Promise.reject(':('));
+
+      return source.query(q => q.findRecord({ type: 'planet', id: planet.id }))
+        .then(() => {
+          assert.ok(false, 'should not be reached');
+        })
+        .catch(e => {
+          assert.ok(e instanceof NetworkError, 'Network error raised');
+          assert.equal(e.description, ':(')
+        });
+    });
+
+    test('#query - record with include', function(assert) {
+      assert.expect(2);
+
+      const data = {
+        type: 'planets',
+        id: '12345',
+        attributes: { name: 'Jupiter', classification: 'gas giant' } ,
+        relationships: { moons: { data: [] } }
+      };
+
+      const planet = source.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345'
+      });
+
+      const options = {
+        sources: {
+          jsonapi: {
+            include: ['moons']
+          }
+        }
+      };
+
+      fetchStub
+        .withArgs('/planets/12345?include=moons')
+        .returns(jsonapiResponse(200, { data }));
+
+      return source.query(q => q.findRecord({ type: 'planet', id: planet.id }), options)
+        .then(() => {
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
+    test('#query - records', function(assert) {
+      assert.expect(5);
+
+      const data = [
+        { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } },
+        { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial' } },
+        { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant' } }
+      ];
+
+      fetchStub
+        .withArgs('/planets')
+        .returns(jsonapiResponse(200, { data }));
+
+      return source.query(q => q.findRecords('planet'))
+        .then((data) => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
+          assert.equal(data.length, 3, 'three objects in data returned');
+          assert.deepEqual(data.map((o) => o.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
+
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
+    test('#query - records with attribute filter', function(assert) {
+      assert.expect(5);
+
+      const data = [
+        { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial', lengthOfDay: 24 } }
+      ];
+
+      fetchStub
+        .withArgs(`/planets?${encodeURIComponent('filter[length-of-day]')}=24`)
+        .returns(jsonapiResponse(200, { data }));
+
+      return source.query(q => q.findRecords('planet')
+                               .filter({ attribute: 'lengthOfDay', value: 24 }))
+        .then(data => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
+          assert.equal(data.length, 1, 'one objects in data returned');
+          assert.deepEqual(data.map((o) => o.attributes.name), ['Earth']);
+
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
+    test('#query - records with relatedRecord filter (single value)', function(assert) {
+      assert.expect(5);
+
+      const data = [
+        {
+          id: 'moon',
+          type: 'moons',
+          attributes: { name: 'Moon' },
+          relationships: {
+            planet: { data: { id: 'earth', type: 'planets' } }
+          }
+        }
+      ];
+
+      fetchStub
+        .withArgs(`/moons?${encodeURIComponent('filter[planet]')}=earth`)
+        .returns(jsonapiResponse(200, { data }));
+
+      return source.query(q => q.findRecords('moon')
+                               .filter({ relation: 'planet', record: { id: 'earth', type: 'planets' } }))
+        .then(data => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
+          assert.equal(data.length, 1, 'one objects in data returned');
+          assert.deepEqual(data.map((o) => o.attributes.name), ['Moon']);
+
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
+    test('#query - records with relatedRecord filter (multiple values)', function(assert) {
+      assert.expect(5);
+
+      const data = [
+        {
+          id: 'moon',
+          type: 'moons',
+          attributes: { name: 'Moon' },
+          relationships: {
+            planet: { data: { id: 'earth', type: 'planets' } }
+          }
+        },
+        {
+          id: 'phobos',
+          type: 'moons',
+          attributes: { name: 'Phobos' },
+          relationships: {
+            planet: { data: { id: 'mars', type: 'planets' } }
+          }
+        },
+        {
+          id: 'deimos',
+          type: 'moons',
+          attributes: { name: 'Deimos' },
+          relationships: {
+            planet: { data: { id: 'mars', type: 'planets' } }
+          }
+        }
+      ];
+
+      fetchStub
+        .withArgs(`/moons?${encodeURIComponent('filter[planet]')}=${encodeURIComponent('earth,mars')}`)
+        .returns(jsonapiResponse(200, { data }));
+
+      return source.query(q => q.findRecords('moon')
+                               .filter({ relation: 'planet', record: [{ id: 'earth', type: 'planets' }, { id: 'mars', type: 'planets' }] }))
+        .then(data => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
+          assert.equal(data.length, 3, 'three objects in data returned');
+          assert.deepEqual(data.map((o) => o.attributes.name), ['Moon', 'Phobos', 'Deimos']);
+
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
+    test('#query - records with relatedRecords filter', function(assert) {
+      assert.expect(5);
+
+      const data = [
+        {
+          id: 'mars',
+          type: 'planets',
+          attributes: { name: 'Mars' },
+          relationships: {
+            moons: { data: [{ id: 'phobos', type: 'moons' }, { id: 'deimos', type: 'moons' }] }
+          }
+        }
+      ];
+
+      fetchStub
+        .withArgs(`/planets?${encodeURIComponent('filter[moons]')}=${encodeURIComponent('phobos,deimos')}`)
+        .returns(jsonapiResponse(200, { data }));
+
+      return source.query(q => q.findRecords('planet')
+        .filter({
+          relation: 'moons',
+          records: [{ id: 'phobos', type: 'moons' }, { id: 'deimos', type: 'moons' }],
+          op: 'equal'
+        }))
+        .then(data => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
+          assert.equal(data.length, 1, 'one objects in data returned');
+          assert.deepEqual(data.map((o) => o.attributes.name), ['Mars']);
+
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
+    test('#query - records with sort by an attribute in ascending order', function(assert) {
+      assert.expect(5);
+
+      const data = [
+        { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial' } },
+        { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } },
+        { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant' } }
+      ];
+
+      fetchStub
+        .withArgs('/planets?sort=name')
+        .returns(jsonapiResponse(200, { data }));
+
+      return source.query(q => q.findRecords('planet').sort('name'))
+        .then(data => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
+          assert.equal(data.length, 3, 'three objects in data returned');
+          assert.deepEqual(data.map((o) => o.attributes.name), ['Earth', 'Jupiter', 'Saturn']);
+
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
+    test('#query - records with sort by an attribute in descending order', function(assert) {
+      assert.expect(5);
+
+      const data = [
+        { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant' } },
+        { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } },
+        { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial' } }
+      ];
+
+      fetchStub
+        .withArgs('/planets?sort=-name')
+        .returns(jsonapiResponse(200, { data }));
+
+      return source.query(q => q.findRecords('planet').sort('-name'))
+        .then(data => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
+          assert.equal(data.length, 3, 'three objects in data returned');
+          assert.deepEqual(data.map((o) => o.attributes.name), ['Saturn', 'Jupiter', 'Earth']);
+
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
+    test('#query - records with sort by multiple fields', function(assert) {
+      assert.expect(5);
+
+      const data = [
+        { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant', lengthOfDay: 9.9 } },
+        { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant', lengthOfDay: 10.7 } },
+        { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial', lengthOfDay: 24.0 } }
+      ];
+
+      fetchStub
+        .withArgs(`/planets?sort=${encodeURIComponent('length-of-day,name')}`)
+        .returns(jsonapiResponse(200, { data }));
+
+      return source.query(q => q.findRecords('planet').sort('lengthOfDay', 'name'))
+        .then(data => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
+          assert.equal(data.length, 3, 'three objects in data returned');
+          assert.deepEqual(data.map((o) => o.attributes.name), ['Jupiter', 'Saturn', 'Earth']);
+
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
+    test('#query - records with pagination', function(assert) {
+      assert.expect(5);
+
+      const data = [
+        { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } },
+        { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial' } },
+        { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant' } }
+      ];
+
+      fetchStub
+        .withArgs(`/planets?${encodeURIComponent('page[offset]')}=1&${encodeURIComponent('page[limit]')}=10`)
+        .returns(jsonapiResponse(200, { data }));
+
+      return source.query(q => q.findRecords('planet')
+                               .page({ offset: 1, limit: 10 }))
+        .then(data => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
+          assert.equal(data.length, 3, 'three objects in data returned');
+          assert.deepEqual(data.map((o) => o.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
+
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
+    test('#query - records with include', function(assert) {
+      assert.expect(2);
+
+      const options = {
+        sources: {
+          jsonapi: {
+            include: ['moons']
+          }
+        }
+      };
+
+      fetchStub
+        .withArgs('/planets?include=moons')
+        .returns(jsonapiResponse(200, { data: [] }));
+
+      return source.query(q => q.findRecords('planet'), options)
+        .then(() => {
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
+    test('#query - records with include many relationships', function(assert) {
+      assert.expect(2);
+
+      const options = {
+        sources: {
+          jsonapi: {
+            include: ['moons', 'solar-systems']
+          }
+        }
+      };
+
+      fetchStub
+        .withArgs(`/planets?include=${encodeURIComponent('moons,solar-systems')}`)
+        .returns(jsonapiResponse(200, { data: [] }));
+
+      return source.query(q => q.findRecords('planet'), options)
+        .then(() => {
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
+    test('#query - relatedRecords', function(assert) {
+      assert.expect(5);
+
+      let planetRecord: Record = <Record>source.serializer.deserializeDocument({
+        data: {
+          type: 'planets',
+          id: 'jupiter'
+        }
+      }).data;
+
+      let data = [{
+        type: 'moons',
+        id: 'io',
+        attributes: {
+          name: 'Io'
+        }
+      }];
+
+      fetchStub
+        .withArgs('/planets/jupiter/moons')
+        .returns(jsonapiResponse(200, { data }));
+
+      return source.query(q => q.findRelatedRecords(planetRecord, 'moons'))
+        .then((data) => {
+          assert.ok(Array.isArray(data), 'returned an array of data');
+          assert.equal(data.length, 1, 'one objects in data returned');
+          assert.deepEqual(data.map((o) => o.attributes.name), ['Io']);
+
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
+    test('#query - relatedRecords with include', function(assert) {
+      assert.expect(2);
+
+      const planetRecord = source.serializer.deserializeDocument({
+        data: {
+          type: 'planets',
+          id: 'jupiter'
+        }
+      }).data;
+
+      const options = {
+        sources: {
+          jsonapi: {
+            include: ['planet']
+          }
+        }
+      };
+
+      fetchStub
+        .withArgs('/planets/jupiter/moons?include=planet')
+        .returns(jsonapiResponse(200, { data: [] }));
+
+      return source.query(q => q.findRelatedRecords(<RecordIdentity>planetRecord, 'moons'), options)
+        .then(() => {
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
   });
 
   module('with no secondary keys', function(hooks) {
