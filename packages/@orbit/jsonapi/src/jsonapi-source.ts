@@ -154,7 +154,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  // Pullable interface implementation
+  // Queryable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
   _query(query: Query): Promise<Record|Record[]> {
