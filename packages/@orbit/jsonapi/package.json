@@ -22,6 +22,7 @@
     "build": "rm -rf dist && BROCCOLI_ENV=dist broccoli build dist",
     "build:tests": "rm -rf tests && BROCCOLI_ENV=tests broccoli build tests",
     "prepublish": "npm run build",
+    "release": "npm publish",
     "test": "testem ci"
   },
   "dependencies": {
