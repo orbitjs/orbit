@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "@types/qunit": "^2.5.0",
-    "lerna": "2.11.0",
+    "lerna": "3.3.2",
     "broccoli-cli": "^1.0.0"
   }
 }
