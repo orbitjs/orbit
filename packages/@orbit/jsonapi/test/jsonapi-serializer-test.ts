@@ -281,6 +281,32 @@ module('JSONAPISerializer', function(hooks) {
       );
     });
 
+    test('#deserialize - can deserialize a simple resource and associate it with a local record', function (assert) {
+      let localRecord = { id: '1a2b3c' };
+      let result = serializer.deserializeDocument(
+        {
+          data: {
+            type: 'planets',
+            id: '123'
+          }
+        },
+        localRecord
+      );
+      let record = result.data;
+
+      assert.deepEqual(
+        record,
+        {
+          id: '1a2b3c',
+          type: 'planet',
+          keys: {
+            remoteId: '123'
+          }
+        },
+        'deserialized document has the id of the local record'
+      );
+    });
+
     test('#deserialize - can deserialize a compound document', function(assert) {
       let result = serializer.deserializeDocument(
         {
@@ -394,6 +420,65 @@ module('JSONAPISerializer', function(hooks) {
       assert.equal(record, null, 'deserialized document matches');
     });
 
+    test('#deserialize - can deserialize an array of records', function (assert) {
+      let result = serializer.deserializeDocument(
+        {
+          data: [
+            { type: 'planets', id: '123' },
+            { type: 'planets', id: '234' }
+          ]
+        }
+      );
+      let records = result.data;
+
+      assert.deepEqual(
+        records,
+        [
+          {
+            id: records[0].id,
+            type: 'planet',
+            keys: { remoteId: '123' }
+          },
+          {
+            id: records[1].id,
+            type: 'planet',
+            keys: { remoteId: '234' }
+          }
+        ],
+        'deserialized document matches'
+      );
+    });
+
+    test('#deserialize - can deserialize an array of records and associate them with local records', function (assert) {
+      let localRecords = [{ id: '1a2b3c' }, { id: '4d5e6f' }];
+      let result = serializer.deserializeDocument(
+        {
+          data: [
+            { type: 'planets', id: '123' },
+            { type: 'planets', id: '234' }
+          ]
+        },
+        localRecords
+      );
+      let records = result.data;
+
+      assert.deepEqual(
+        records,
+        [
+          {
+            id: localRecords[0].id,
+            type: 'planet',
+            keys: { remoteId: '123' }
+          },
+          {
+            id: localRecords[1].id,
+            type: 'planet',
+            keys: { remoteId: '234' }
+          }
+        ],
+        'deserialized document matches'
+      );
+    });
   });
 
   module('Using shared UUIDs', function(hooks) {
