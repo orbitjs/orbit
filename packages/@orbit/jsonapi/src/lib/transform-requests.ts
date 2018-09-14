@@ -31,7 +31,7 @@ export const TransformRequestProcessors = {
 
     return source.fetch(source.resourceURL(record.type), settings)
       .then((raw: JSONAPIDocument) => {
-        let responseDoc: DeserializedDocument = serializer.deserializeDocument(raw);
+        let responseDoc: DeserializedDocument = serializer.deserializeDocument(raw, record);
         let updatedRecord: Record = <Record>responseDoc.data;
         let transforms = [];
         let updateOps = recordDiffs(record, updatedRecord);
