@@ -11,7 +11,7 @@ export interface AttributeDefinition {
 
 export interface RelationshipDefinition {
   type: 'hasMany' | 'hasOne';
-  model?: string;
+  model?: string | string[];
   inverse?: string;
   dependent?: 'remove';
 }
