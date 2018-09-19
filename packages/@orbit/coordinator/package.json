@@ -1,6 +1,6 @@
 {
   "name": "@orbit/coordinator",
-  "version": "0.15.18",
+  "version": "0.15.21",
   "description": "A coordinator and set of coordination strategies for managing data flow and keeping @orbit/data sources in sync.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -20,12 +20,13 @@
     "build": "rm -rf dist && BROCCOLI_ENV=dist broccoli build dist",
     "build:tests": "rm -rf tests && BROCCOLI_ENV=tests broccoli build tests",
     "prepublish": "npm run build",
+    "release": "npm publish",
     "test": "testem ci"
   },
   "devDependencies": {
-    "@glimmer/build": "^0.8.5",
-    "@orbit/core": "^0.15.18",
-    "@orbit/data": "^0.15.18",
-    "@orbit/utils": "^0.15.18"
+    "@glimmer/build": "^0.9.0",
+    "@orbit/core": "^0.15.21",
+    "@orbit/data": "^0.15.21",
+    "@orbit/utils": "^0.15.21"
   }
 }

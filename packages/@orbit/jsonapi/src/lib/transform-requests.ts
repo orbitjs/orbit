@@ -31,9 +31,9 @@ export const TransformRequestProcessors = {
 
     return source.fetch(source.resourceURL(record.type), settings)
       .then((raw: JSONAPIDocument) => {
-        let responseDoc: DeserializedDocument = serializer.deserializeDocument(raw);
+        let responseDoc: DeserializedDocument = serializer.deserializeDocument(raw, record);
         let updatedRecord: Record = <Record>responseDoc.data;
-
+        let transforms = [];
         let updateOps = recordDiffs(record, updatedRecord);
         updateOps.forEach(operation => {
           if (operation.op === 'replaceKey') {
@@ -41,8 +41,15 @@ export const TransformRequestProcessors = {
           }
         });
         if (updateOps.length > 0) {
-          return [buildTransform(updateOps)];
+          transforms.push(buildTransform(updateOps));
         }
+        if (responseDoc.included && responseDoc.included.length > 0) {
+          let includedOps = responseDoc.included.map(record => {
+            return { op: 'replaceRecord', record };
+          });
+          transforms.push(buildTransform(includedOps));
+        }
+        return transforms;
       });
   },
 

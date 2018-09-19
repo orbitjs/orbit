@@ -1,6 +1,6 @@
 {
   "name": "@orbit/data",
-  "version": "0.15.18",
+  "version": "0.15.21",
   "description": "A flexible data access and synchronization layer.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -20,13 +20,14 @@
     "build": "rm -rf dist && BROCCOLI_ENV=dist broccoli build dist",
     "build:tests": "rm -rf tests && BROCCOLI_ENV=tests broccoli build tests",
     "prepublish": "npm run build",
+    "release": "npm publish",
     "test": "testem ci"
   },
   "dependencies": {
-    "@orbit/core": "^0.15.18",
-    "@orbit/utils": "^0.15.18"
+    "@orbit/core": "^0.15.21",
+    "@orbit/utils": "^0.15.21"
   },
   "devDependencies": {
-    "@glimmer/build": "^0.8.5"
+    "@glimmer/build": "^0.9.0"
   }
 }

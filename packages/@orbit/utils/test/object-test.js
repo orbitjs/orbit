@@ -165,14 +165,20 @@ module('Lib / Object', function() {
 
   test('`merge` can combine multiple objects', function(assert) {
     let a = { firstName: 'Bob', underling: false };
-    let b = { lastName: 'Dobbs', 'title': 'Mr.', underlings: null };
+    let b = { lastName: 'Dobbs', 'title': 'Mr.', underlings: null,
+              identity: { ssn: '123-456-7890' },
+              children: [ 'Bob, Jr.', 'Sally' ] };
     let c = { lastName: 'Johnson', underlings: undefined };
     let expected = { title: 'Mr.', firstName: 'Bob',
-                     lastName: 'Johnson', underling: false, underlings: null };
+                     lastName: 'Johnson', underling: false, underlings: null,
+                     identity: { ssn: '123-456-7890' },
+                     children: [ 'Bob, Jr.', 'Sally' ] };
     let actual = merge(a, b, c);
 
     assert.deepEqual(actual, expected, 'Objects are merged');
     assert.strictEqual(actual, a, 'Passed object is mutated and returned');
+    assert.notStrictEqual(actual.identity, b.identity, 'object properties are cloned, not copied');
+    assert.notStrictEqual(actual.children, b.children, 'array properties are cloned, not copied');
   });
 
   test('`deepMerge` can combine multiple objects at every level', function(assert) {
@@ -196,6 +202,9 @@ module('Lib / Object', function() {
                     'Sally'
                   ]
                 }
+              },
+              identity: {
+                ssn: '123-456-7890'
               } };
     let c = { lastName: 'Johnson',
               underlings: undefined,
@@ -219,11 +228,16 @@ module('Lib / Object', function() {
                            'Joe'
                          ]
                        }
-                     } };
-    let actual = deepMerge(a, b, c);
+                      },
+                      identity: {
+                        ssn: '123-456-7890'
+                      } };
+            let actual = deepMerge(a, b, c);
 
     assert.deepEqual(actual, expected, 'Objects are merged');
     assert.strictEqual(actual, a, 'Passed object is mutated and returned');
+    assert.notStrictEqual(actual.identity, b.identity, 'object properties are cloned, not copied');
+    assert.notStrictEqual(actual.details.family.children, c.details.family.children, 'array properties are cloned, not copied');
   });
 
   test('`deepGet` retrieves a value from a nested object', function(assert) {
