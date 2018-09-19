@@ -1,4 +1,4 @@
-import { isArray, isObject, dasherize, camelize, deepSet, Dict } from '@orbit/utils';
+import { isArray, isObject, dasherize, camelize, clone, deepSet, Dict } from '@orbit/utils';
 import {
   Schema,
   KeyMap,
@@ -290,6 +290,19 @@ export default class JSONAPISerializer {
 
       record.relationships = record.relationships || {};
       record.relationships[relationship] = { data };
+    }
+  }
+
+  storeKey(record: Record, key: String, value: String): void {
+    if (this.keyMap) {
+      this.keyMap.pushRecord({
+        type: record.type,
+        id: record.id,
+        keys: {
+          ...clone(record.keys || {}),
+          [key]: value
+        }
+      });
     }
   }
 

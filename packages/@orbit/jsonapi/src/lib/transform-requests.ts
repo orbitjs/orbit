@@ -35,6 +35,11 @@ export const TransformRequestProcessors = {
         let updatedRecord: Record = <Record>responseDoc.data;
 
         let updateOps = recordDiffs(record, updatedRecord);
+        updateOps.forEach(operation => {
+          if (operation.op === 'replaceKey') {
+            serializer.storeKey(record, operation.key, operation.value);
+          }
+        });
         if (updateOps.length > 0) {
           return [buildTransform(updateOps)];
         }
