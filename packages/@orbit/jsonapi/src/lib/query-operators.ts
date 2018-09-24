@@ -3,14 +3,14 @@ import { Query, Transform, buildTransform, Record } from '@orbit/data';
 import JSONAPISource from '../jsonapi-source';
 import { JSONAPIDocument } from '../jsonapi-document';
 import { GetOperators } from "./get-operators";
-import { DeserializedDocument } from "../jsonapi-serializer";
 
 
 
 function deserialize(source: JSONAPISource, document: JSONAPIDocument): QueryOperatorResponse {
 
   const deserialized = source.serializer.deserializeDocument(document);
-  const records = toArray(deserialized.data);
+  const records = [];
+  Array.prototype.push.apply(records, toArray(deserialized.data));
 
   if (deserialized.included) {
     Array.prototype.push.apply(records, deserialized.included);
