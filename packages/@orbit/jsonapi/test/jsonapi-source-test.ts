@@ -1857,6 +1857,36 @@ module('JSONAPISource', function(hooks) {
         });
     });
 
+    test('#query - records with include: verify only primary data array is returned', function(assert) {
+      assert.expect(6);
+
+      const options = {
+        sources: {
+          jsonapi: {
+            include: ['moons']
+          }
+        }
+      };
+
+      fetchStub
+        .withArgs('/planets?include=moons')
+        .returns(jsonapiResponse(200, {
+          data: [{ type: "planets", id: 1 }, { type: "planets", id: 2 }],
+          inclues: [{ type: "moons", id: 1 }, { type: "moons", id: 2 }]
+        }));
+
+      return source.query(q => q.findRecords('planet'), options)
+        .then((result) => {
+          assert.ok(Array.isArray(result), 'query result is an array, like primary data');
+          assert.equal(result.length, 2, 'query result length equals primary data length');
+          assert.deepEqual(result.map(planet => planet.type), ["planet", "planet"]);
+          assert.deepEqual(result.map(planet => planet.keys.remoteId), [1, 2], "returned IDs match primary data (including sorting)");
+
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
     test('#query - records with include many relationships', function(assert) {
       assert.expect(2);
 
