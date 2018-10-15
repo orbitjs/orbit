@@ -113,7 +113,7 @@ export default class LocalStorageSource extends Source implements Pullable, Push
 
   reset(): Promise<void> {
     for (let key in Orbit.globals.localStorage) {
-      if (key.indexOf(this.namespace) === 0) {
+      if (key.indexOf(this.namespace + this.delimiter) === 0) {
         Orbit.globals.localStorage.removeItem(key);
       }
     }

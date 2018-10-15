@@ -19,7 +19,7 @@ export const PullOperators: Dict<PullOperator> = {
     const typeFilter = expression.type;
 
     for (let key in Orbit.globals.localStorage) {
-      if (key.indexOf(source.namespace) === 0) {
+      if (key.indexOf(source.namespace + source.delimiter) === 0) {
         let typesMatch = isNone(typeFilter);
 
         if (!typesMatch) {
@@ -51,7 +51,7 @@ export const PullOperators: Dict<PullOperator> = {
     const requestedRecord = expression.record;
 
     for (let key in Orbit.globals.localStorage) {
-      if (key.indexOf(source.namespace) === 0) {
+      if (key.indexOf(source.namespace + source.delimiter) === 0) {
         let fragments = key.split(source.delimiter);
         let type = fragments[1];
         let id = fragments[2];

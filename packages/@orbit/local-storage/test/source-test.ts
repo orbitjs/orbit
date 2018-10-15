@@ -9,6 +9,7 @@ import {
   Source,
   KeyMap
 } from '@orbit/data';
+import Orbit from '@orbit/core';
 import LocalStorageSource from '../src/source';
 import './test-helper';
 
@@ -52,6 +53,7 @@ module('LocalStorageSource', function(hooks) {
     return source.reset()
       .then(() => {
         schema = source = keyMap = null;
+        Orbit.globals.localStorage.removeItem('orbit-bucket/foo');
       });
   });
 
@@ -590,6 +592,21 @@ module('LocalStorageSource', function(hooks) {
       .then(() => verifyLocalStorageIsEmpty(assert, source));
   });
 
+  test('#reset - ignores local-storage-bucket entries', function(assert) {
+    assert.expect(2);
+
+    let planet = {
+      type: 'planet',
+      id: 'jupiter'
+    };
+
+    return source.push(t => t.addRecord(planet))
+      .then(() => Orbit.globals.localStorage.setItem('orbit-bucket/foo', '{}'))
+      .then(() => source.reset())
+      .then(() => verifyLocalStorageIsEmpty(assert, source))
+      .then(() => assert.equal(Orbit.globals.localStorage.getItem('orbit-bucket/foo'), '{}'));
+  });
+
   test('#pull - all records', function(assert) {
     assert.expect(5);
 
@@ -755,4 +772,16 @@ module('LocalStorageSource', function(hooks) {
         assert.equal(keyMap.keyToId('planet', 'remoteId', 'p2'), 'jupiter', 'key has been mapped');
       });
    });
+
+  test('#pull - ignores local-storage-bucket entries', function(assert) {
+    assert.expect(2);
+
+    return source.reset()
+      .then(() => Orbit.globals.localStorage.setItem('orbit-bucket/foo', '{}'))
+      .then(() => source.pull(q => q.findRecords()))
+      .then(transforms => {
+        assert.equal(transforms.length, 1, 'one transform returned');
+        assert.equal(transforms[0].operations.length, 0, 'no operations returned');
+      });
+  });
 });
