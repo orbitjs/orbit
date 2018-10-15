@@ -28,7 +28,7 @@ export function verifyLocalStorageDoesNotContainRecord(assert, source, record) {
 export function verifyLocalStorageIsEmpty(assert, source) {
   let isEmpty = true;
   for (let key in Orbit.globals.localStorage) {
-    if (key.indexOf(source.namespace) === 0) {
+    if (key.indexOf(source.namespace + source.delimiter) === 0) {
       isEmpty = false;
       break;
     }
