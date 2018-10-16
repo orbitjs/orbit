@@ -3,5 +3,5 @@
   "packages": [
     "packages/@orbit/*"
   ],
-  "version": "0.15.21"
+  "version": "0.15.22"
 }
