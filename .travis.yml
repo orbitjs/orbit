@@ -1,16 +1,12 @@
 sudo: false
 dist: trusty
 
-env:
-  - MOZ_HEADLESS=1
-
-addons:
-  firefox: latest
-
 language: node_js
-
 node_js:
   - "6"
+
+addons:
+  chrome: stable
 
 install:
   - npm install
