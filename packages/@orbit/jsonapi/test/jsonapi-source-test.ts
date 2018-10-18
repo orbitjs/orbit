@@ -1872,7 +1872,7 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets?include=moons')
         .returns(jsonapiResponse(200, {
           data: [{ type: "planets", id: 1 }, { type: "planets", id: 2 }],
-          inclues: [{ type: "moons", id: 1 }, { type: "moons", id: 2 }]
+          included: [{ type: "moons", id: 1 }, { type: "moons", id: 2 }]
         }));
 
       return source.query(q => q.findRecords('planet'), options)
