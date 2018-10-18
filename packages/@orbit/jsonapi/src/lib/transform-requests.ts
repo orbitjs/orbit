@@ -52,6 +52,8 @@ export const TransformRequestProcessors = {
       .then((raw: JSONAPIDocument) => {
         if (raw) {
           return handleChanges(record, serializer.deserializeDocument(raw, record));
+        } else {
+          return [];
         }
       });
   },
