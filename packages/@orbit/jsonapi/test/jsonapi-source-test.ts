@@ -520,6 +520,38 @@ module('JSONAPISource', function(hooks) {
         });
     });
 
+    test('#push - can accept remote changes', function(assert) {
+      assert.expect(2);
+
+      let planet = source.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345',
+        attributes: {
+          name: 'Jupiter',
+          classification: 'gas giant'
+        }
+      });
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(jsonapiResponse(200, {
+          data: {
+            type: 'planets',
+            id: 'remote-id-123',
+            attributes: {
+              name: 'Mars',
+              classification: 'terrestrial'
+            }
+          }
+        }));
+
+      return source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'))
+        .then((transforms) => {
+          assert.deepEqual(transforms[1].operations.map(o => o.op), ['replaceAttribute', 'replaceKey']);
+          assert.deepEqual(transforms[1].operations.map((o: ReplaceRecordOperation) => o.value), ['Mars', 'remote-id-123']);
+        });
+    });
+
     test('#push - can delete records', function(assert) {
       assert.expect(4);
 

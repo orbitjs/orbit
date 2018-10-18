@@ -30,22 +30,7 @@ export const TransformRequestProcessors = {
     const settings = buildFetchSettings(request.options, { method: 'POST', json: requestDoc });
 
     return source.fetch(source.resourceURL(record.type), settings)
-      .then((raw: JSONAPIDocument) => {
-        let responseDoc: DeserializedDocument = serializer.deserializeDocument(raw, record);
-        let updatedRecord: Record = <Record>responseDoc.data;
-        let transforms = [];
-        let updateOps = recordDiffs(record, updatedRecord);
-        if (updateOps.length > 0) {
-          transforms.push(buildTransform(updateOps));
-        }
-        if (responseDoc.included && responseDoc.included.length > 0) {
-          let includedOps = responseDoc.included.map(record => {
-            return { op: 'replaceRecord', record };
-          });
-          transforms.push(buildTransform(includedOps));
-        }
-        return transforms;
-      });
+      .then((raw: JSONAPIDocument) => handleChanges(record, serializer.deserializeDocument(raw, record)));
   },
 
   removeRecord(source: JSONAPISource, request) {
@@ -57,13 +42,20 @@ export const TransformRequestProcessors = {
   },
 
   replaceRecord(source: JSONAPISource, request) {
+    const { serializer } = source;
     const record = request.record;
     const { type, id } = record;
-    const requestDoc: JSONAPIDocument = source.serializer.serializeDocument(record);
+    const requestDoc: JSONAPIDocument = serializer.serializeDocument(record);
     const settings = buildFetchSettings(request.options, { method: 'PATCH', json: requestDoc });
 
     return source.fetch(source.resourceURL(type, id), settings)
-      .then(() => []);
+      .then((raw: JSONAPIDocument) => {
+        if (raw) {
+          return handleChanges(record, serializer.deserializeDocument(raw, record));
+        } else {
+          return [];
+        }
+      });
   },
 
   addToRelatedRecords(source: JSONAPISource, request) {
@@ -253,4 +245,20 @@ function replaceRecordHasOne(record: RecordIdentity, relationship: string, relat
 
 function replaceRecordHasMany(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]) {
   deepSet(record, ['relationships', relationship, 'data'], relatedRecords.map(r => cloneRecordIdentity(r)));
+}
+
+function handleChanges(record: Record, responseDoc: DeserializedDocument) {
+  let updatedRecord: Record = <Record>responseDoc.data;
+  let transforms = [];
+  let updateOps = recordDiffs(record, updatedRecord);
+  if (updateOps.length > 0) {
+    transforms.push(buildTransform(updateOps));
+  }
+  if (responseDoc.included && responseDoc.included.length > 0) {
+    let includedOps = responseDoc.included.map(record => {
+      return { op: 'replaceRecord', record };
+    });
+    transforms.push(buildTransform(includedOps));
+  }
+  return transforms;
 }
