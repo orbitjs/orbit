@@ -195,7 +195,6 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
           reject(new NetworkError(`No fetch response within ${timeout}ms.`));
         }, timeout);
 
-        // fetchFn is returning undefined?????
         fetchFn(fullUrl, settings)
           .catch(e => {
             Orbit.globals.clearTimeout(timer);

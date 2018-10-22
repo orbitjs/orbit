@@ -44,7 +44,7 @@ export function appendQueryParams(url: string, obj: any): string {
     delete obj.filter;
 
     filter.forEach(filterOption => {
-      fullUrl += appendQueryParams(fullUrl, { filter: filterOption });
+      fullUrl += appendQueryParams('', { filter: filterOption });
     });
   }
 
