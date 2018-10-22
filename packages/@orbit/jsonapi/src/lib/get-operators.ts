@@ -15,7 +15,7 @@ import {
 } from '@orbit/data';
 import JSONAPISource from '../jsonapi-source';
 import { JSONAPIDocument } from '../jsonapi-document';
-import { RequestOptions, buildFetchSettings, customRequestOptions } from './request-settings';
+import { Filter, RequestOptions, buildFetchSettings, customRequestOptions } from './request-settings';
 
 
 export const GetOperators = {
@@ -80,7 +80,7 @@ export const GetOperators = {
 };
 
 function buildFilterParam(source: JSONAPISource, filterSpecifiers: FilterSpecifier[]) {
-  const filters = {};
+  const filters: Filter[] = [];
 
   filterSpecifiers.forEach(filterSpecifier => {
     if (filterSpecifier.kind === 'attribute' && filterSpecifier.op === 'equal') {
@@ -88,20 +88,20 @@ function buildFilterParam(source: JSONAPISource, filterSpecifiers: FilterSpecifi
 
       // Note: We don't know the `type` of the attribute here, so passing `null`
       const resourceAttribute = source.serializer.resourceAttribute(null, attributeFilter.attribute);
-      filters[resourceAttribute] = attributeFilter.value;
+      filters.push({ [resourceAttribute]: attributeFilter.value });
     } else if (filterSpecifier.kind === 'relatedRecord') {
       const relatedRecordFilter = filterSpecifier as RelatedRecordFilterSpecifier;
       if (Array.isArray(relatedRecordFilter.record)) {
-        filters[relatedRecordFilter.relation] = relatedRecordFilter.record.map(e => e.id).join(',');
+        filters.push({ [relatedRecordFilter.relation]: relatedRecordFilter.record.map(e => e.id).join(',') });
       } else {
-        filters[relatedRecordFilter.relation] = relatedRecordFilter.record.id;
+        filters.push({ [relatedRecordFilter.relation]: relatedRecordFilter.record.id });
       }
     } else if (filterSpecifier.kind === 'relatedRecords') {
       if (filterSpecifier.op !== 'equal') {
         throw new Error(`Operation "${filterSpecifier.op}" is not supported in JSONAPI for relatedRecords filtering`);
       }
       const relatedRecordsFilter = filterSpecifier as RelatedRecordsFilterSpecifier;
-      filters[relatedRecordsFilter.relation] = relatedRecordsFilter.records.map(e => e.id).join(',');
+      filters.push({ [relatedRecordsFilter.relation]: relatedRecordsFilter.records.map(e => e.id).join(',') });
     } else {
       throw new QueryExpressionParseError(`Filter operation ${filterSpecifier.op} not recognized for JSONAPISource.`, filterSpecifier);
     }
