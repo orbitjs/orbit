@@ -36,16 +36,30 @@ export function encodeQueryParams(obj) {
     .join('&');
 }
 
-export function appendQueryParams(url: string, obj: object): string {
+export function appendQueryParams(url: string, obj: any): string {
   let fullUrl = url;
+
+  if (obj.filter && Array.isArray(obj.filter)) {
+    let filter = obj.filter;
+    delete obj.filter;
+
+    filter.forEach(filterOption => {
+      fullUrl = appendQueryParams(fullUrl, { filter: filterOption });
+    });
+  }
+
   let queryParams = encodeQueryParams(obj);
   if (queryParams.length > 0) {
-    if (fullUrl.indexOf('?') === -1) {
-      fullUrl += '?';
-    } else {
-      fullUrl += '&';
-    }
+    fullUrl += nextQueryParamIndicator(fullUrl);
     fullUrl += queryParams;
   }
   return fullUrl;
+}
+
+function nextQueryParamIndicator(url: string): string {
+  if (url.indexOf('?') === -1) {
+    return '?';
+  }
+
+  return '&';
 }

@@ -1146,6 +1146,35 @@ module('JSONAPISource', function(hooks) {
         });
     });
 
+
+    test('#pull - records with attribute filters', function(assert) {
+      assert.expect(5);
+
+      const data = [
+        { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial', lengthOfDay: 24 } }
+      ];
+
+      const value1 = encodeURIComponent('le:24');
+      const value2 = encodeURIComponent('ge:24');
+      const attribute = encodeURIComponent('filter[length-of-day]');
+      const expectedUrl = `/planets?${attribute}=${value1}&${attribute}=${value2}`;
+
+      fetchStub
+        .withArgs(expectedUrl)
+        .returns(jsonapiResponse(200, { data }));
+
+      return source.pull(q => q.findRecords('planet')
+                               .filter({ attribute: 'lengthOfDay', value: 'le:24' }, { attribute: 'lengthOfDay', value: 'ge:24' }))
+        .then(transforms => {
+          assert.equal(transforms.length, 1, 'one transform returned');
+          assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
+          assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Earth']);
+
+          assert.equal(fetchStub.callCount, 1, 'fetch called once');
+          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+        });
+    });
+
     test('#pull - records with relatedRecord filter (single value)', function(assert) {
       assert.expect(5);
 
