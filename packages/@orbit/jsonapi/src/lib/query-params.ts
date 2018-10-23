@@ -44,20 +44,22 @@ export function appendQueryParams(url: string, obj: any): string {
     delete obj.filter;
 
     filter.forEach(filterOption => {
-      let filterQuery = appendQueryParams('?', { filter: filterOption });
-
-      fullUrl += filterQuery.slice(1);
+      fullUrl = appendQueryParams(fullUrl, { filter: filterOption });
     });
   }
 
   let queryParams = encodeQueryParams(obj);
   if (queryParams.length > 0) {
-    if (fullUrl.indexOf('?') === -1) {
-      fullUrl += '?';
-    } else {
-      fullUrl += '&';
-    }
+    fullUrl += nextQueryParamIndicator(fullUrl);
     fullUrl += queryParams;
   }
   return fullUrl;
+}
+
+function nextQueryParamIndicator(url: string): string {
+  if (url.indexOf('?') === -1) {
+    return '?';
+  }
+
+  return '&';
 }

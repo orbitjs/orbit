@@ -1154,8 +1154,13 @@ module('JSONAPISource', function(hooks) {
         { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial', lengthOfDay: 24 } }
       ];
 
+      const value1 = encodeURIComponent('le:24');
+      const value2 = encodeURIComponent('ge:24');
+      const attribute = encodeURIComponent('filter[length-of-day]');
+      const expectedUrl = `/planets?${attribute}=${value1}&${attribute}=${value2}`;
+
       fetchStub
-        .withArgs(`/planets?${encodeURIComponent('filter[length-of-day]')}=le:24&${encodeURIComponent('filter[length-of-day]')}=ge:24`)
+        .withArgs(expectedUrl)
         .returns(jsonapiResponse(200, { data }));
 
       return source.pull(q => q.findRecords('planet')
