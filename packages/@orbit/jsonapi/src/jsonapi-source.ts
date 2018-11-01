@@ -9,18 +9,17 @@ import Orbit, {
   TransformNotAllowed,
   ClientError,
   ServerError,
-  NetworkError
+  NetworkError,
+  Queryable, queryable,
+  Record
 } from '@orbit/data';
 import { assert, merge, deepMerge, deprecate } from '@orbit/utils';
-import JSONAPISerializer, { JSONAPISerializerSettings } from './jsonapi-serializer';
+import JSONAPISerializer, { DeserializedDocument, JSONAPISerializerSettings } from './jsonapi-serializer';
 import { appendQueryParams } from './lib/query-params';
 import { PullOperator, PullOperators } from './lib/pull-operators';
 import { getTransformRequests, TransformRequestProcessors } from './lib/transform-requests';
 import { InvalidServerResponse } from './lib/exceptions';
-
-if (typeof Orbit.globals.fetch !== 'undefined' && Orbit.fetch === undefined) {
-  Orbit.fetch = Orbit.globals.fetch.bind(Orbit.globals);
-}
+import { QueryOperator, QueryOperators } from "./lib/query-operators";
 
 export interface FetchSettings {
   headers?: object;
@@ -63,7 +62,8 @@ export interface JSONAPISourceSettings extends SourceSettings {
  */
 @pullable
 @pushable
-export default class JSONAPISource extends Source implements Pullable, Pushable {
+@queryable
+export default class JSONAPISource extends Source implements Pullable, Pushable, Queryable {
   maxRequestsPerTransform: number;
   namespace: string;
   host: string;
@@ -76,17 +76,19 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
   // Pushable interface stubs
   push: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => Promise<Transform[]>;
 
+  // Queryable interface stubs
+  query: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<any>;
+
   constructor(settings: JSONAPISourceSettings = {}) {
     assert('JSONAPISource\'s `schema` must be specified in `settings.schema` constructor argument', !!settings.schema);
     assert('JSONAPISource requires Orbit.Promise be defined', Orbit.Promise);
-    assert('JSONAPISource requires Orbit.fetch be defined', Orbit.fetch);
 
     settings.name = settings.name || 'jsonapi';
 
     super(settings);
 
-    this.namespace           = settings.namespace;
-    this.host                = settings.host;
+    this.namespace = settings.namespace;
+    this.host = settings.host;
 
     this.initDefaultFetchSettings(settings);
 
@@ -94,7 +96,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
     this.maxRequestsPerTransform = settings.maxRequestsPerTransform;
 
     const SerializerClass = settings.SerializerClass || JSONAPISerializer;
-    this.serializer       = new SerializerClass({ schema: settings.schema, keyMap: settings.keyMap });
+    this.serializer = new SerializerClass({ schema: settings.schema, keyMap: settings.keyMap });
   }
 
   get defaultFetchHeaders(): object {
@@ -153,6 +155,21 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
   }
 
   /////////////////////////////////////////////////////////////////////////////
+  // Queryable interface implementation
+  /////////////////////////////////////////////////////////////////////////////
+
+  _query(query: Query): Promise<Record|Record[]> {
+    const operator: QueryOperator = QueryOperators[query.expression.op];
+    if (!operator) {
+      throw new Error('JSONAPISource does not support the `${query.expression.op}` operator for queries.');
+    }
+    return operator(this, query).then(response => {
+      return this._transformed(response.transforms)
+        .then(()=> response.primaryData);
+    });
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
   // Publicly accessible methods particular to JSONAPISource
   /////////////////////////////////////////////////////////////////////////////
 
@@ -166,7 +183,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
     }
 
     // console.log('fetch', fullUrl, mergedSettings, 'polyfill', fetch.polyfill);
-
+    let fetchFn = Orbit.fetch || fetch;
     if (settings.timeout) {
       let timeout = settings.timeout;
       delete settings.timeout;
@@ -179,7 +196,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
           reject(new NetworkError(`No fetch response within ${timeout}ms.`));
         }, timeout);
 
-        Orbit.fetch(fullUrl, settings)
+        fetchFn(fullUrl, settings)
           .catch(e => {
             Orbit.globals.clearTimeout(timer);
 
@@ -197,7 +214,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable 
           .then(resolve, reject);
       });
     } else {
-      return Orbit.fetch(fullUrl, settings)
+      return fetchFn(fullUrl, settings)
         .catch(e => this.handleFetchError(e))
         .then(response => this.handleFetchResponse(response));
     }

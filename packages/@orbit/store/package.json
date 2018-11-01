@@ -1,6 +1,6 @@
 {
   "name": "@orbit/store",
-  "version": "0.15.18",
+  "version": "0.15.23",
   "description": "Orbit source for managing in-memory records.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -20,15 +20,16 @@
     "build": "rm -rf dist && BROCCOLI_ENV=dist broccoli build dist",
     "build:tests": "rm -rf tests && BROCCOLI_ENV=tests broccoli build tests",
     "prepublish": "npm run build",
+    "release": "npm publish",
     "test": "testem ci"
   },
   "dependencies": {
-    "@orbit/core": "^0.15.18",
-    "@orbit/data": "^0.15.18",
-    "@orbit/immutable": "^0.15.14",
-    "@orbit/utils": "^0.15.18"
+    "@orbit/core": "^0.15.23",
+    "@orbit/data": "^0.15.23",
+    "@orbit/immutable": "^0.15.23",
+    "@orbit/utils": "^0.15.23"
   },
   "devDependencies": {
-    "@glimmer/build": "^0.8.5"
+    "@glimmer/build": "^0.9.0"
   }
 }

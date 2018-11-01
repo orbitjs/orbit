@@ -186,28 +186,37 @@ export default class JSONAPISerializer {
     }
   }
 
-  deserializeDocument(document: JSONAPIDocument): DeserializedDocument {
+  deserializeDocument(document: JSONAPIDocument, primaryRecordData?: Record | Record[]): DeserializedDocument {
     let result: DeserializedDocument;
 
-    let data = document.data;
-    if (isArray(data)) {
-      result = {
-        data: (<Resource[]>data).map(this.deserializeResource, this)
-      };
+    let data;
+    if (isArray(document.data)) {
+      if (primaryRecordData !== undefined) {
+        data = (<Resource[]>document.data).map((entry, i) => {
+          return this.deserializeResource(entry, primaryRecordData[i]);
+        });
+      } else {
+        data = (<Resource[]>document.data).map((entry, i) => this.deserializeResource(entry));
+      }
+    } else if (document.data !== null) {
+      if (primaryRecordData !== undefined) {
+        data = this.deserializeResource(<Resource>document.data, (<Record>primaryRecordData));
+      } else {
+        data = this.deserializeResource(<Resource>document.data);
+      }
     } else {
-      result = {
-        data: this.deserializeResource(<Resource>data)
-      };
+      data = null;
     }
+    result = { data };
 
     if (document.included) {
-      result.included = document.included.map(this.deserializeResource, this);
+      result.included = document.included.map(e => this.deserializeResource(e));
     }
 
     return result;
   }
 
-  deserializeResource(resource: Resource): Record {
+  deserializeResource(resource: Resource, primaryRecord?: Record): Record {
     let record: Record;
     let type: string = this.recordType(resource.type);
     let resourceKey = this.resourceKey(type);
@@ -223,10 +232,12 @@ export default class JSONAPISerializer {
           [resourceKey]: resource.id
         };
 
-        id = this.keyMap.idFromKeys(type, keys) ||
-          this.schema.generateId(type);
+        id = (primaryRecord && primaryRecord.id) ||
+             this.keyMap.idFromKeys(type, keys) ||
+             this.schema.generateId(type);
       } else {
-        id = this.schema.generateId(type);
+        id = (primaryRecord && primaryRecord.id) ||
+             this.schema.generateId(type);
       }
 
       record = { type, id };

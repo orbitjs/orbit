@@ -1,9 +1,17 @@
 {
   "framework": "qunit",
   "test_page": "tests/index.html",
-  "before_tests": "npm run build:tests",
+  "on_start": "npm run build:tests",
+  "on_change": "npm run build:tests",
   "src_files": ["src/**/*", "test/**/*"],
-  "launch_in_ci": ["Firefox"],
-  "debug": true,
-  "port": 0
+  "launch_in_ci": ["Chrome"],
+  "browser_args": {
+    "mode": "ci",
+    "Chrome": [
+      "--headless",
+      "--disable-gpu",
+      "--remote-debugging-port=9222",
+      "--no-sandbox"
+    ]
+  }
 }

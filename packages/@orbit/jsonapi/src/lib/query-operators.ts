@@ -1,17 +1,16 @@
 import { Dict, toArray } from '@orbit/utils';
-import {
-  Query,
-  Transform,
-  buildTransform
-} from '@orbit/data';
+import { Query, Transform, buildTransform, Record } from '@orbit/data';
 import JSONAPISource from '../jsonapi-source';
 import { JSONAPIDocument } from '../jsonapi-document';
 import { GetOperators } from "./get-operators";
 
 
-function deserialize(source: JSONAPISource, document: JSONAPIDocument, options: DeserializeOptions,settings:FetchSettings): Transform[] {
+
+function deserialize(source: JSONAPISource, document: JSONAPIDocument): QueryOperatorResponse {
+
   const deserialized = source.serializer.deserializeDocument(document);
-  const records = toArray(deserialized.data);
+  const records = [];
+  Array.prototype.push.apply(records, toArray(deserialized.data));
 
   if (deserialized.included) {
     Array.prototype.push.apply(records, deserialized.included);
@@ -24,14 +23,22 @@ function deserialize(source: JSONAPISource, document: JSONAPIDocument, options: 
     };
   });
 
-  return [buildTransform(operations)];
+  let transforms = [buildTransform(operations)];
+  let primaryData = deserialized.data;
+
+  return { transforms, primaryData };
 }
 
-export interface PullOperator {
-  (source: JSONAPISource, query: Query): any;
+export interface QueryOperatorResponse {
+  transforms: Transform[];
+  primaryData: Record|Record[];
 }
 
-export const PullOperators: Dict<PullOperator> = {
+export interface QueryOperator {
+  (source: JSONAPISource, query: Query): Promise<QueryOperatorResponse>;
+}
+
+export const QueryOperators: Dict<QueryOperator> = {
   findRecord(source: JSONAPISource, query: Query) {
     return GetOperators.findRecord(source, query)
       .then(data => deserialize(source, data));
