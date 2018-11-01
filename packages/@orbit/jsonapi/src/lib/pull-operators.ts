@@ -9,7 +9,7 @@ import { JSONAPIDocument } from '../jsonapi-document';
 import { GetOperators } from "./get-operators";
 
 
-function deserialize(source: JSONAPISource, document: JSONAPIDocument, options: DeserializeOptions,settings:FetchSettings): Transform[] {
+function deserialize(source: JSONAPISource, document: JSONAPIDocument): Transform[] {
   const deserialized = source.serializer.deserializeDocument(document);
   const records = toArray(deserialized.data);
 
