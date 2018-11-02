@@ -51,11 +51,11 @@ export const QueryOperators: Dict<QueryOperator> = {
 
   findRelatedRecord(source: JSONAPISource, query: Query) {
     return GetOperators.findRelatedRecord(source, query)
-      .then(data => deserialize(source, data));
+      .then((data) => deserialize(source, data));
   },
 
   findRelatedRecords(source: JSONAPISource, query: Query) {
     return GetOperators.findRelatedRecords(source, query)
-      .then(data => deserialize(source, data));
+      .then((data) => deserialize(source, data));
   }
 };
