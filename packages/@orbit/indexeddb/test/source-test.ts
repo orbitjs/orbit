@@ -30,7 +30,7 @@ module('IndexedDBSource', function(hooks) {
           },
           relationships: {
             moons: { type: 'hasMany', model: 'moon' },
-            solarSystem: { type: 'hasMany', model: 'solarSystem' }
+            solarSystem: { type: 'hasOne', model: 'solarSystem' }
           }
         },
         moon: {

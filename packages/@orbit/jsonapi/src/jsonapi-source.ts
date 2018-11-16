@@ -13,10 +13,9 @@ import Orbit, {
   Queryable, queryable,
   Record
 } from '@orbit/data';
-import { assert, merge, deepMerge, deprecate } from '@orbit/utils';
-import JSONAPISerializer, { DeserializedDocument, JSONAPISerializerSettings } from './jsonapi-serializer';
+import { assert, deepMerge, deprecate } from '@orbit/utils';
+import JSONAPISerializer, { JSONAPISerializerSettings } from './jsonapi-serializer';
 import { appendQueryParams } from './lib/query-params';
-import { PullOperator, PullOperators } from './lib/pull-operators';
 import { getTransformRequests, TransformRequestProcessors } from './lib/transform-requests';
 import { InvalidServerResponse } from './lib/exceptions';
 import { QueryOperator, QueryOperators } from "./lib/query-operators";
@@ -145,27 +144,27 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   // Pullable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _pull(query: Query): Promise<Transform[]> {
-    const operator: PullOperator = PullOperators[query.expression.op];
+  async _pull(query: Query): Promise<Transform[]> {
+    const operator: QueryOperator = QueryOperators[query.expression.op];
     if (!operator) {
       throw new Error('JSONAPISource does not support the `${query.expression.op}` operator for queries.');
     }
-    return operator(this, query);
+    const response = await operator(this, query);
+    return response.transforms;
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Queryable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _query(query: Query): Promise<Record|Record[]> {
+  async _query(query: Query): Promise<Record|Record[]> {
     const operator: QueryOperator = QueryOperators[query.expression.op];
     if (!operator) {
       throw new Error('JSONAPISource does not support the `${query.expression.op}` operator for queries.');
     }
-    return operator(this, query).then(response => {
-      return this._transformed(response.transforms)
-        .then(()=> response.primaryData);
-    });
+    const response = await operator(this, query);
+    await this._transformed(response.transforms);
+    return response.primaryData;
   }
 
   /////////////////////////////////////////////////////////////////////////////

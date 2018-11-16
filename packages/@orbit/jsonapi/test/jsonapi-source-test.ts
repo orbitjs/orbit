@@ -1430,8 +1430,54 @@ module('JSONAPISource', function(hooks) {
         });
     });
 
+    test('#pull - relatedRecord', function(assert) {
+      assert.expect(12);
+
+      const planetRecord: Record = <Record>source.serializer.deserializeDocument({
+        data: {
+          type: 'planets',
+          id: 'jupiter'
+        }
+      }).data;
+
+      const data = {
+        type: 'solar-systems',
+        id: 'ours',
+        attributes: {
+          name: 'Our Solar System'
+        }
+      };
+
+      fetchStub
+        .withArgs('/planets/jupiter/solar-system')
+        .returns(jsonapiResponse(200, { data }));
+
+      return source.pull(q => q.findRelatedRecord(planetRecord, 'solarSystem')).then((transforms) => {
+        assert.equal(transforms.length, 1, 'one transform returned');
+        const operations = transforms[0].operations;
+
+        const planetId = keyMap.keyToId('planet', 'remoteId', 'jupiter');
+        const ssId = keyMap.keyToId('solarSystem', 'remoteId', 'ours');
+
+        assert.deepEqual(operations.map(o => o.op), ['replaceRecord', 'replaceRelatedRecord']);
+
+        assert.equal(operations[0].record.type, 'solarSystem');
+        assert.equal(operations[0].record.id, ssId);
+        assert.equal(operations[0].record.attributes.name, 'Our Solar System');
+
+        assert.equal(operations[1].record.type, 'planet');
+        assert.equal(operations[1].record.id, planetId);
+        assert.equal(operations[1].relationship, 'solarSystem');
+        assert.equal(operations[1].relatedRecord.type, 'solarSystem');
+        assert.equal(operations[1].relatedRecord.id, ssId);
+
+        assert.equal(fetchStub.callCount, 1, 'fetch called once');
+        assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+      });
+    });
+
     test('#pull - relatedRecords', function(assert) {
-      assert.expect(5);
+      assert.expect(8);
 
       let planetRecord: Record = <Record>source.serializer.deserializeDocument({
         data: {
@@ -1454,8 +1500,12 @@ module('JSONAPISource', function(hooks) {
 
       return source.pull(q => q.findRelatedRecords(planetRecord, 'moons')).then((transforms) => {
         assert.equal(transforms.length, 1, 'one transform returned');
-        assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
-        assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Io']);
+        assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRelatedRecords']);
+
+        assert.equal(transforms[0].operations[0].record.attributes.name, 'Io');
+        assert.equal(transforms[0].operations[1].record.id, planetRecord.id);
+        assert.equal(transforms[0].operations[1].relationship, 'moons');
+        assert.deepEqual(transforms[0].operations[1].relatedRecords.map(r => r.id),  [transforms[0].operations[0].record.id]);
 
         assert.equal(fetchStub.callCount, 1, 'fetch called once');
         assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
