@@ -6,15 +6,13 @@ import {
   ReplaceRelatedRecordsOperation,
   buildTransform,
   FindRelatedRecords,
-  FindRelatedRecord,
-  Record
+  FindRelatedRecord
 } from '@orbit/data';
 import JSONAPISource from '../jsonapi-source';
-import { JSONAPIDocument } from '../jsonapi-document';
 import { GetOperators } from "./get-operators";
+import { DeserializedDocument } from '../jsonapi-serializer';
 
-function deserialize(source: JSONAPISource, document: JSONAPIDocument): Operation[] {
-  const deserialized = source.serializer.deserializeDocument(document);
+function operationsFromDeserializedDocument(deserialized: DeserializedDocument): Operation[] {
   const records = toArray(deserialized.data);
 
   if (deserialized.included) {
@@ -29,65 +27,60 @@ function deserialize(source: JSONAPISource, document: JSONAPIDocument): Operatio
   });
 }
 
-function extractRecords(source: JSONAPISource, document: JSONAPIDocument): Record[] {
-  const deserialized = source.serializer.deserializeDocument(document);
-  return toArray(deserialized.data);
-}
-
 export interface PullOperator {
   (source: JSONAPISource, query: Query): any;
 }
 
 export const PullOperators: Dict<PullOperator> = {
-  findRecord(source: JSONAPISource, query: Query) {
-    return GetOperators.findRecord(source, query)
-      .then(data => [buildTransform(deserialize(source, data))]);
+  async findRecord(source: JSONAPISource, query: Query) {
+    const document = await GetOperators.findRecord(source, query);
+    const deserialized = source.serializer.deserializeDocument(document);
+    const operations = operationsFromDeserializedDocument(deserialized);
+    return [buildTransform(operations)];
   },
 
-  findRecords(source: JSONAPISource, query: Query) {
-    return GetOperators.findRecords(source, query)
-      .then(data => [buildTransform(deserialize(source, data))]);
+  async findRecords(source: JSONAPISource, query: Query) {
+    const document = await GetOperators.findRecords(source, query);
+    const deserialized = source.serializer.deserializeDocument(document);
+    const operations = operationsFromDeserializedDocument(deserialized);
+    return [buildTransform(operations)];
   },
 
-  findRelatedRecord(source: JSONAPISource, query: Query) {
+  async findRelatedRecord(source: JSONAPISource, query: Query) {
     const expression = query.expression as FindRelatedRecord;
     const { record, relationship } = expression;
 
-    return GetOperators.findRelatedRecord(source, query)
-      .then((data) => {
-        const operations = deserialize(source, data);
-        const records = extractRecords(source, data);
-        operations.push({
-          op: 'replaceRelatedRecord',
-          record,
-          relationship,
-          relatedRecord: {
-            type: records[0].type,
-            id:   records[0].id
-          }
-        } as ReplaceRelatedRecordOperation);
-        return [buildTransform(operations)];
-      });
+    const document = await GetOperators.findRelatedRecord(source, query);
+    const deserialized = source.serializer.deserializeDocument(document);
+    const relatedRecord = deserialized.data;
+
+    const operations = operationsFromDeserializedDocument(deserialized);
+    operations.push({
+      op: 'replaceRelatedRecord',
+      record,
+      relationship,
+      relatedRecord
+    } as ReplaceRelatedRecordOperation);
+
+    return [buildTransform(operations)];
   },
 
-  findRelatedRecords(source: JSONAPISource, query: Query) {
+  async findRelatedRecords(source: JSONAPISource, query: Query) {
     const expression = query.expression as FindRelatedRecords;
     const { record, relationship } = expression;
 
-    return GetOperators.findRelatedRecords(source, query)
-      .then((data) => {
-        const operations = deserialize(source, data);
-        const records = extractRecords(source, data);
-        operations.push({
-          op: 'replaceRelatedRecords',
-          record,
-          relationship,
-          relatedRecords: records.map(r => ({
-            type: r.type,
-            id:   r.id
-          }))
-        } as ReplaceRelatedRecordsOperation);
-        return [buildTransform(operations)];
-      });
+    const document = await GetOperators.findRelatedRecords(source, query);
+    const deserialized = source.serializer.deserializeDocument(document);
+    const relatedRecords = deserialized.data;
+
+    const operations = operationsFromDeserializedDocument(deserialized);
+    operations.push({
+      op: 'replaceRelatedRecords',
+      record,
+      relationship,
+      relatedRecords
+    } as ReplaceRelatedRecordsOperation);
+
+    return [buildTransform(operations)];
   }
 };
