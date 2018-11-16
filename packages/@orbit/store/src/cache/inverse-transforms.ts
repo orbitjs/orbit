@@ -101,7 +101,7 @@ const InverseTransforms = {
 
     if (current !== undefined) {
       return {
-        op: 'replaceRecord',
+        op: 'addRecord',
         record: current
       };
     }
