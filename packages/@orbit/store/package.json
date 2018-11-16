@@ -1,6 +1,6 @@
 {
   "name": "@orbit/store",
-  "version": "0.15.23",
+  "version": "0.15.25",
   "description": "Orbit source for managing in-memory records.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
