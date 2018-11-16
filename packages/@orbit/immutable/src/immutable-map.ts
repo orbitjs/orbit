@@ -39,6 +39,10 @@ export default class ImmutableMap<K, V> {
     return this._data.values();
   }
 
+  entries(): IterableIterator<[number, V]> {
+    return this._data.entries();
+  }
+
   protected get data(): HAMTMap {
     return this._data;
   }

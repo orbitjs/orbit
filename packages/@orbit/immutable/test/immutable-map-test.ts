@@ -33,6 +33,7 @@ module('ImmutableMap', function() {
     assert.equal(map.size, 2, 'size matches expectations');
     assert.deepEqual(Array.from(map.keys()), ['pluto', 'jupiter'], 'keys match expectations');
     assert.deepEqual(Array.from(map.values()), [pluto, jupiter2], 'values match expectations');
+    assert.deepEqual(Array.from(map.entries()), [['pluto', pluto], ['jupiter', jupiter2]], 'entries match expectations');
 
     map.remove('jupiter');
     map.remove('pluto');
