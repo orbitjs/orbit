@@ -15,6 +15,10 @@ export default class ImmutableMap<K, V> {
     return this._data.size;
   }
 
+  clear() {
+    this._data = new HAMTMap();
+  }
+
   get(key: K): V {
     return this._data.get(key);
   }
@@ -23,8 +27,24 @@ export default class ImmutableMap<K, V> {
     this._data = this._data.set(key, value);
   }
 
+  setMany(entries: [K, V][]): void {
+    let data = this._data.beginMutation();
+    entries.forEach(entry => {
+      data.set(entry[0], entry[1]);
+    });
+    this._data = data.endMutation();
+  }
+
   remove(key: K): void {
     this._data = this._data.remove(key);
+  }
+
+  removeMany(keys: K[]): void {
+    let data = this._data.beginMutation();
+    keys.forEach(key => {
+      data.remove(key);
+    });
+    this._data = data.endMutation();
   }
 
   has(key: K): boolean {
@@ -37,6 +57,10 @@ export default class ImmutableMap<K, V> {
 
   values(): IterableIterator<V> {
     return this._data.values();
+  }
+
+  entries(): IterableIterator<[number, V]> {
+    return this._data.entries();
   }
 
   protected get data(): HAMTMap {
