@@ -15,6 +15,10 @@ export default class ImmutableMap<K, V> {
     return this._data.size;
   }
 
+  clear() {
+    this._data = new HAMTMap();
+  }
+
   get(key: K): V {
     return this._data.get(key);
   }
