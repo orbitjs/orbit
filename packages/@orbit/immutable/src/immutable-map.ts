@@ -39,6 +39,14 @@ export default class ImmutableMap<K, V> {
     this._data = this._data.remove(key);
   }
 
+  removeMany(keys: K[]): void {
+    let data = this._data.beginMutation();
+    keys.forEach(key => {
+      data.remove(key);
+    });
+    this._data = data.endMutation();
+  }
+
   has(key: K): boolean {
     return this.get(key) !== undefined;
   }
