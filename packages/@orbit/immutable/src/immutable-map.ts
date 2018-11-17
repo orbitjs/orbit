@@ -27,6 +27,14 @@ export default class ImmutableMap<K, V> {
     this._data = this._data.set(key, value);
   }
 
+  setMany(entries: [K, V][]): void {
+    let data = this._data.beginMutation();
+    entries.forEach(entry => {
+      data.set(entry[0], entry[1]);
+    });
+    this._data = data.endMutation();
+  }
+
   remove(key: K): void {
     this._data = this._data.remove(key);
   }
