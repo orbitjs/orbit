@@ -4,10 +4,9 @@ import {
   Schema,
   SchemaSettings
 } from '@orbit/data';
-import Cache from '../../../src/cache';
-import CacheIntegrityProcessor from '../../../src/cache/operation-processors/cache-integrity-processor';
-import SchemaConsistencyProcessor from '../../../src/cache/operation-processors/schema-consistency-processor';
-import '../../test-helper';
+import { SyncCacheIntegrityProcessor, SyncSchemaConsistencyProcessor } from '../../src/index';
+import Cache from '../support/example-sync-record-cache';
+import '../test-helper';
 
 const { module, test } = QUnit;
 
@@ -50,7 +49,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
   hooks.beforeEach(function() {
     let keyMap = new KeyMap();
     schema = new Schema(schemaDefinition);
-    cache = new Cache({ schema, keyMap, processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor] });
+    cache = new Cache({ schema, keyMap, processors: [SyncCacheIntegrityProcessor, SyncSchemaConsistencyProcessor] });
     processor = cache._processors[1];
   });
 

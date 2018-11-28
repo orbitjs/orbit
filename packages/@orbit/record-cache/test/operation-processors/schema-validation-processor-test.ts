@@ -4,14 +4,14 @@ import {
   SchemaSettings,
   ModelNotFound
 } from '@orbit/data';
-import Cache from '../../../src/cache';
-import SchemaValidationProcessor from '../../../src/cache/operation-processors/schema-validation-processor';
-import '../../test-helper';
+import Cache from '../support/example-sync-record-cache';
+import { SyncSchemaValidationProcessor } from '../../src/index';
+import '../test-helper';
 
 const { module, test } = QUnit;
 
 module('SchemaValidationProcessor', function(hooks) {
-  let schema, cache, processor;
+  let schema, cache;
 
   const schemaDefinition: SchemaSettings = {
     models: {
@@ -34,14 +34,12 @@ module('SchemaValidationProcessor', function(hooks) {
   hooks.beforeEach(function() {
     let keyMap = new KeyMap();
     schema = new Schema(schemaDefinition);
-    cache = new Cache({ schema, keyMap, processors: [SchemaValidationProcessor] });
-    processor = cache._processors[0];
+    cache = new Cache({ schema, keyMap, processors: [SyncSchemaValidationProcessor] });
   });
 
   hooks.afterEach(function() {
     schema = null;
     cache = null;
-    processor = null;
   });
 
   test('addRecord with an unknown model type', assert => {

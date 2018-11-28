@@ -4,13 +4,14 @@ import {
   Schema,
   SchemaSettings,
   Source,
-  Transform,
   buildTransform
 } from '@orbit/data';
 import { clone } from '@orbit/utils';
-import Store from '../src/store';
-import CacheIntegrityProcessor from '../src/cache/operation-processors/cache-integrity-processor';
-import SchemaConsistencyProcessor from '../src/cache/operation-processors/schema-consistency-processor';
+import {
+  SyncCacheIntegrityProcessor,
+  SyncSchemaConsistencyProcessor
+} from '@orbit/record-cache';
+import Store from '../src/index';
 import './test-helper';
 
 declare const RSVP: any;
@@ -64,7 +65,7 @@ module('Store', function(hooks) {
   });
 
   test('internal cache\'s settings can be specified with `cacheSettings`', function(assert) {
-    let store = new Store({ schema, keyMap, cacheSettings: { processors: [CacheIntegrityProcessor, SchemaConsistencyProcessor] } });
+    let store = new Store({ schema, keyMap, cacheSettings: { processors: [SyncCacheIntegrityProcessor, SyncSchemaConsistencyProcessor] } });
     let cache = store.cache as any;
 
     assert.ok(cache, 'cache exists');
@@ -85,12 +86,12 @@ module('Store', function(hooks) {
       attributes: { name: 'Jupiter', classification: 'gas giant' }
     };
 
-    assert.equal(store.cache.records('planet').size, 0, 'cache should start empty');
+    assert.equal(store.cache.getRecordsSync('planet').length, 0, 'cache should start empty');
 
     return store.update(t => t.addRecord(jupiter))
       .then((record) => {
-        assert.equal(store.cache.records('planet').size, 1, 'cache should contain one planet');
-        assert.deepEqual(store.cache.records('planet').get('jupiter'), jupiter, 'planet should be jupiter');
+        assert.equal(store.cache.getRecordsSync('planet').length, 1, 'cache should contain one planet');
+        assert.deepEqual(store.cache.getRecordSync({ type: 'planet', id: 'jupiter' }), jupiter, 'planet should be jupiter');
         assert.strictEqual(record, jupiter, 'result should be returned');
       });
   });
@@ -108,11 +109,11 @@ module('Store', function(hooks) {
       attributes: { name: 'Earth', classification: 'terrestrial' }
     }
 
-    assert.equal(store.cache.records('planet').size, 0, 'cache should start empty');
+    assert.equal(store.cache.getRecordsSync('planet').length, 0, 'cache should start empty');
 
     return store.update(t => [t.addRecord(jupiter), t.addRecord(earth)])
       .then((records) => {
-        assert.equal(store.cache.records('planet').size, 2, 'cache should contain two planets');
+        assert.equal(store.cache.getRecordsSync('planet').length, 2, 'cache should contain two planets');
         assert.deepEqual(records, [ jupiter, earth ], 'results array should be returned');
       });
   });
@@ -128,7 +129,7 @@ module('Store', function(hooks) {
 
     store.cache.patch(t => t.addRecord(jupiter));
 
-    assert.equal(store.cache.records('planet').size, 1, 'cache should contain one planet');
+    assert.equal(store.cache.getRecordsSync('planet').length, 1, 'cache should contain one planet');
 
     return store.query(q => q.findRecord({ type: 'planet', id: 'jupiter' }))
       .then(foundPlanet => {
@@ -141,7 +142,7 @@ module('Store', function(hooks) {
 
     store.cache.reset();
 
-    assert.equal(store.cache.records('planet').size, 0, 'cache should contain no planets');
+    assert.equal(store.cache.getRecordsSync('planet').length, 0, 'cache should contain no planets');
 
     return store.query(q => q.findRecord({ type: 'planet', id: 'jupiter' }))
       .catch(e => {
@@ -286,11 +287,11 @@ module('Store', function(hooks) {
 
     return store.update(t => t.addRecord(jupiter))
       .then(() => {
-        assert.deepEqual(store.cache.records('planet').get('jupiter-id'), jupiter, 'verify store data');
+        assert.deepEqual(store.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'verify store data');
 
         const fork = store.fork();
 
-        assert.deepEqual(fork.cache.records('planet').get('jupiter-id'), jupiter, 'data in fork matches data in store');
+        assert.deepEqual(fork.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'data in fork matches data in store');
         assert.strictEqual(store.schema, fork.schema, 'schema matches');
         assert.strictEqual(store.keyMap, fork.keyMap, 'keyMap matches');
         assert.strictEqual(store.transformBuilder, fork.transformBuilder, 'transformBuilder is shared');
@@ -307,11 +308,11 @@ module('Store', function(hooks) {
 
     return fork.update(t => t.addRecord(jupiter))
       .then(() => {
-        assert.deepEqual(fork.cache.records('planet').get('jupiter-id'), jupiter, 'verify fork data');
+        assert.deepEqual(fork.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'verify fork data');
         return store.merge(fork);
       })
       .then(() => {
-        assert.deepEqual(store.cache.records('planet').get('jupiter-id'), jupiter, 'data in store matches data in fork');
+        assert.deepEqual(store.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'data in store matches data in fork');
       });
   });
 
@@ -328,11 +329,11 @@ module('Store', function(hooks) {
 
     return fork.update(t => t.addRecord(jupiter))
       .then(() => {
-        assert.deepEqual(fork.cache.records('planet').get('jupiter-id'), jupiter, 'verify fork data');
+        assert.deepEqual(fork.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'verify fork data');
         return store.merge(fork, { transformOptions: { label: 'Create Jupiter' }});
       })
       .then(() => {
-        assert.deepEqual(store.cache.records('planet').get('jupiter-id'), jupiter, 'data in store matches data in fork');
+        assert.deepEqual(store.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'data in store matches data in fork');
       });
   });
 
@@ -390,7 +391,7 @@ module('Store', function(hooks) {
 
     return store.update(t => t.addRecord(person))
       .then(record => {
-        assert.deepEqual(store.cache.records('person').get('1'), person, 'records match');
+        assert.deepEqual(store.cache.getRecordSync({ type: 'person', id: '1' }), person, 'records match');
       });
   });
 });

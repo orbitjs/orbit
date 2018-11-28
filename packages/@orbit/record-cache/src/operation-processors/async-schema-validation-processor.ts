@@ -3,18 +3,14 @@ import {
   RecordIdentity,
   RecordOperation,
 } from '@orbit/data';
-import { OperationProcessor } from './operation-processor';
+import { AsyncOperationProcessor } from '../async-operation-processor';
 
 /**
  * An operation processor that ensures that an operation is compatible with
  * its associated schema.
- *
- * @export
- * @class SchemaValidationProcessor
- * @extends {OperationProcessor}
  */
-export default class SchemaValidationProcessor extends OperationProcessor {
-  validate(operation: RecordOperation) {
+export default class AsyncSchemaValidationProcessor extends AsyncOperationProcessor {
+  async validate(operation: RecordOperation): Promise<void> {
     switch (operation.op) {
       case 'addRecord':
         return this._recordAdded(operation.record);
@@ -48,37 +44,37 @@ export default class SchemaValidationProcessor extends OperationProcessor {
     }
   }
 
-  _recordAdded(record: Record) {
+  protected _recordAdded(record: Record) {
     this._validateRecord(record);
   }
 
-  _recordReplaced(record: Record) {
+  protected _recordReplaced(record: Record) {
     this._validateRecord(record);
   }
 
-  _recordRemoved(record: RecordIdentity) {
+  protected _recordRemoved(record: RecordIdentity) {
     this._validateRecordIdentity(record);
   }
 
-  _keyReplaced(record: RecordIdentity) {
+  protected _keyReplaced(record: RecordIdentity) {
     this._validateRecordIdentity(record);
   }
 
-  _attributeReplaced(record: RecordIdentity) {
+  protected _attributeReplaced(record: RecordIdentity) {
     this._validateRecordIdentity(record);
   }
 
-  _relatedRecordAdded(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity) {
+  protected _relatedRecordAdded(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity) {
     this._validateRecordIdentity(record);
     this._validateRecordIdentity(relatedRecord);
   }
 
-  _relatedRecordRemoved(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity) {
+  protected _relatedRecordRemoved(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity) {
     this._validateRecordIdentity(record);
     this._validateRecordIdentity(relatedRecord);
   }
 
-  _relatedRecordsReplaced(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]) {
+  protected _relatedRecordsReplaced(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]) {
     this._validateRecordIdentity(record);
 
     relatedRecords.forEach(record => {
@@ -86,7 +82,7 @@ export default class SchemaValidationProcessor extends OperationProcessor {
     });
   }
 
-  _relatedRecordReplaced(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity | null) {
+  protected _relatedRecordReplaced(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity | null) {
     this._validateRecordIdentity(record);
 
     if (relatedRecord) {
@@ -94,11 +90,11 @@ export default class SchemaValidationProcessor extends OperationProcessor {
     }
   }
 
-  _validateRecord(record: Record) {
+  protected _validateRecord(record: Record) {
     this._validateRecordIdentity(record);
   }
 
-  _validateRecordIdentity(record: RecordIdentity) {
-    this.cache.schema.getModel(record.type);
+  protected _validateRecordIdentity(record: RecordIdentity) {
+    this.accessor.schema.getModel(record.type);
   }
 }

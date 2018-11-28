@@ -1,8 +1,8 @@
-import Cache from '../../cache';
+import { SyncRecordAccessor } from './record-accessor';
 import { RecordOperation } from '@orbit/data';
 
-export interface OperationProcessorClass {
-  new (cache: Cache): OperationProcessor;
+export interface SyncOperationProcessorClass {
+  new (cache: SyncRecordAccessor): SyncOperationProcessor;
 }
 
 /**
@@ -12,56 +12,35 @@ export interface OperationProcessorClass {
  *
  * `OperationProcessor` is an abstract base class to be extended by specific
  * operation processors.
- *
- * @export
- * @abstract
- * @class OperationProcessor
  */
-export abstract class OperationProcessor {
-  private _cache: Cache;
+export abstract class SyncOperationProcessor {
+  private _accessor: SyncRecordAccessor;
 
   /**
-   * The `Cache` that is monitored.
-   *
-   * @readonly
-   * @memberof OperationProcessor
+   * The `SyncRecordAccessor` that is monitored.
    */
-  get cache() {
-    return this._cache;
+  get accessor() {
+    return this._accessor;
   }
 
-  /**
-   * Creates an instance of OperationProcessor.
-   *
-   * @param {Cache} cache
-   * @memberof OperationProcessor
-   */
-  constructor(cache: Cache) {
-    this._cache = cache;
+  constructor(accessor: SyncRecordAccessor) {
+    this._accessor = accessor;
   }
 
   /**
    * Called when all the data in a cache has been reset.
    *
    * If `base` is included, the cache is being reset to match a base cache.
-   *
-   * @param {Cache} [base]
-   * @memberof OperationProcessor
    */
-  reset(base?: Cache): void {}
+  reset(base?: SyncRecordAccessor): void {}
 
   /**
    * Allow the processor to perform an upgrade as part of a cache upgrade.
-   *
-   * @memberof OperationProcessor
    */
   upgrade(): void {}
 
   /**
    * Validates an operation before processing it.
-   *
-   * @param {RecordOperation} operation
-   * @memberof OperationProcessor
    */
   validate(operation: RecordOperation): void {}
 
@@ -70,10 +49,6 @@ export abstract class OperationProcessor {
    *
    * Returns an array of operations to be applied **BEFORE** the `operation`
    * itself is applied.
-   *
-   * @param {RecordOperation} operation
-   * @returns {RecordOperation[]}
-   * @memberof OperationProcessor
    */
   before(operation: RecordOperation): RecordOperation[] {
     return [];
@@ -84,10 +59,6 @@ export abstract class OperationProcessor {
    *
    * Returns an array of operations to be applied **AFTER** the `operation`
    * has been applied successfully.
-   *
-   * @param {RecordOperation} operation
-   * @returns {RecordOperation[]}
-   * @memberof OperationProcessor
    */
   after(operation: RecordOperation): RecordOperation[] {
     return [];
@@ -99,9 +70,6 @@ export abstract class OperationProcessor {
    * notified that the operation was applied).
    *
    * No operations may be returned.
-   *
-   * @param {RecordOperation} operation
-   * @memberof OperationProcessor
    */
   immediate(operation: RecordOperation): void {
   }
@@ -111,10 +79,6 @@ export abstract class OperationProcessor {
    *
    * Returns an array of operations to be applied **AFTER** the `operation`
    * itself and any operations returned from the `after` hook have been applied.
-   *
-   * @param {RecordOperation} operation
-   * @returns {RecordOperation[]}
-   * @memberof OperationProcessor
    */
   finally(operation: RecordOperation): RecordOperation[] {
     return [];

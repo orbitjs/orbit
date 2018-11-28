@@ -6,13 +6,15 @@ import {
   recordsInclude,
   recordsIncludeAll
 } from '@orbit/data';
-import { clone } from '@orbit/utils';
-import { Cache } from '../src/index';
+import {
+  SyncSchemaValidationProcessor
+} from '../src/index';
+import Cache from './support/example-sync-record-cache';
 import { arrayMembershipMatches } from './test-helper';
 
 const { module, test } = QUnit;
 
-module('Cache', function(hooks) {
+module('SyncRecordCache', function(hooks) {
   let schema: Schema,
       keyMap: KeyMap;
 
@@ -50,17 +52,18 @@ module('Cache', function(hooks) {
     let cache = new Cache({ schema });
 
     assert.ok(cache);
+    assert.equal(cache.processors.length, 3, 'processors are assigned by default');
   });
 
-  test('it creates a `queryBuilder` if none is assigned', function(assert) {
-    let cache = new Cache({ schema });
-    assert.ok(cache.queryBuilder, 'queryBuilder has been instantiated');
-  });
+  test('can be assigned processors', function(assert) {
+    let cache = new Cache({ schema, processors: [SyncSchemaValidationProcessor] });
+    assert.ok(cache);
 
-  test('creates a `transformBuilder` upon first access', function(assert) {
-    let cache = new Cache({ schema });
-    assert.ok(cache.transformBuilder, 'transformBuilder has been instantiated');
-    assert.strictEqual(cache.transformBuilder.recordInitializer, schema, 'transformBuilder uses the schema to initialize records');
+    class FakeProcessor {};
+    assert.throws(
+      //@ts-ignore
+      () => cache = new Cache({ schema, processors: [FakeProcessor] })
+    );
   });
 
   test('#patch sets data and #records retrieves it', function(assert) {
@@ -126,57 +129,6 @@ module('Cache', function(hooks) {
 
     assert.deepEqual(cache.getRecordSync({ type: 'planet', id: '1' }), { type: 'planet', id: '1', keys: { remoteId: 'a' } }, 'records match');
     assert.equal(keyMap.keyToId('planet', 'remoteId', 'a'), '1', 'key has been mapped');
-  });
-
-  test('#reset clears the cache by default', function(assert) {
-    assert.expect(3);
-
-    let cache = new Cache({ schema, keyMap });
-
-    cache.patch(t => t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } }));
-
-    assert.equal(cache.getRecordsSync('planet').length, 1);
-
-    cache.on('reset', () => {
-      assert.ok(true, 'reset event emitted');
-    });
-
-    cache.reset();
-
-    assert.equal(cache.getRecordsSync('planet').length, 0);
-  });
-
-  test('#reset overrides the cache completely with data from another cache', function(assert) {
-    let cache1 = new Cache({ schema, keyMap });
-    let cache2 = new Cache({ schema, keyMap });
-
-    cache1.patch(t => t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } }));
-    cache2.patch(t => t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Jupiter' } }));
-
-    cache1.reset(cache2);
-
-    assert.strictEqual(cache1.getRecordSync({ type: 'planet', id: '1' }).attributes.name, 'Jupiter');
-  });
-
-  test('#upgrade upgrades the cache to include new models introduced in a schema', function(assert) {
-    let cache = new Cache({ schema, keyMap });
-
-    let person = { type: 'person', id: '1', relationships: { planet: { data: { type: 'planet', id: 'earth' }}} };
-
-    assert.throws(
-      () => cache.patch({ op: 'addRecord', record: person })
-    );
-
-    let models = clone(schema.models);
-    models.planet.relationships.inhabitants = { type: 'hasMany', model: 'person', inverse: 'planet' };
-    models.person = { relationships: { planet: { type: 'hasOne', model: 'planet', inverse: 'inhabitants' }} };
-
-    schema.upgrade({ models });
-    cache.upgrade();
-    cache.patch({ op: 'addRecord', record: person });
-    assert.deepEqual(cache.getRecordSync({ type: 'person', id: '1' }), person, 'records match');
-    assert.deepEqual(cache.getRelatedRecordSync(person, 'planet'), { type: 'planet', id: 'earth' }, 'relationship exists');
-    assert.equal(cache.getInverseRelationshipsSync({ type: 'planet', id: 'earth' }).length, 1, 'inverse relationship exists');
   });
 
   test('#patch updates the cache and returns arrays of primary data and inverse ops', function(assert) {
@@ -792,9 +744,8 @@ module('Cache', function(hooks) {
     );
   });
 
-  test('#query can perform a simple attribute filter by value comparison (gt, lt, gte & lte)', function (assert) {
+  test('#query can perform a simple attribute filter by value comparison (gt, lt, gte & lte)', function(assert) {
     let cache = new Cache({ schema, keyMap });
-    const tb = cache.transformBuilder;
 
     let jupiter = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', sequence: 5, classification: 'gas giant', atmosphere: true } };
     let earth = { type: 'planet', id: 'earth', attributes: { name: 'Earth', sequence: 3, classification: 'terrestrial', atmosphere: true } };
@@ -841,9 +792,8 @@ module('Cache', function(hooks) {
     );
   });
 
-  test('#query can perform relatedRecords filters with operators `equal`, `all`, `some` and `none`', function (assert) {
+  test('#query can perform relatedRecords filters with operators `equal`, `all`, `some` and `none`', function(assert) {
     let cache = new Cache({ schema, keyMap });
-    const tb = cache.transformBuilder;
 
     let jupiter = {
       type: 'planet',
@@ -969,9 +919,8 @@ module('Cache', function(hooks) {
     );
   });
 
-  test('#query can perform relatedRecord filters', function (assert) {
+  test('#query can perform relatedRecord filters', function(assert) {
     let cache = new Cache({ schema, keyMap });
-    const tb = cache.transformBuilder;
 
     let jupiter = {
       type: 'planet',

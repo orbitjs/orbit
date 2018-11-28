@@ -1,4 +1,4 @@
-import { Dict, deepGet, merge, every, some, isNone } from '@orbit/utils';
+import { Dict, deepGet, isNone } from '@orbit/utils';
 import {
   QueryExpression,
   RecordNotFoundException,
@@ -9,35 +9,29 @@ import {
   FindRelatedRecords,
   SortSpecifier,
   AttributeSortSpecifier,
-  Record,
-  RecordIdentity
+  Record
 } from '@orbit/data';
-import Cache from '../cache';
+import { SyncRecordAccessor } from '../record-accessor';
+import { QueryResultData } from '../query-result';
 
-const EMPTY = () => {};
-
-/**
- * @export
- * @interface QueryOperator
- */
-export interface QueryOperator {
-  (cache: Cache, expression: QueryExpression): any;
+export interface SyncQueryOperator {
+  (cache: SyncRecordAccessor, expression: QueryExpression): QueryResultData;
 }
 
-export const QueryOperators: Dict<QueryOperator> = {
-  findRecord(cache: Cache, expression: FindRecord) {
-    const { type, id } = expression.record;
-    const record = cache.records(type).get(id);
+export const SyncQueryOperators: Dict<SyncQueryOperator> = {
+  findRecord(cache: SyncRecordAccessor, expression: FindRecord): Record {
+    const { record } = expression;
+    const currentRecord = cache.getRecordSync(record);
 
-    if (!record) {
-      throw new RecordNotFoundException(type, id);
+    if (!currentRecord) {
+      throw new RecordNotFoundException(record.type, record.id);
     }
 
-    return record;
+    return currentRecord;
   },
 
-  findRecords(cache: Cache, expression: FindRecords) {
-    let results = Array.from(cache.records(expression.type).values());
+  findRecords(cache: SyncRecordAccessor, expression: FindRecords): Record[] {
+    let results = cache.getRecordsSync(expression.type);
     if (expression.filter) {
       results = filterRecords(results, expression.filter);
     }
@@ -50,27 +44,20 @@ export const QueryOperators: Dict<QueryOperator> = {
     return results;
   },
 
-  findRelatedRecords(cache: Cache, expression: FindRelatedRecords) {
+  findRelatedRecords(cache: SyncRecordAccessor, expression: FindRelatedRecords): Record[] {
     const { record, relationship } = expression;
-    const { type, id } = record;
-    const currentRecord = cache.records(type).get(id);
-    const data = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
-
-    if (!data) { return []; }
-
-    return (data as RecordIdentity[]).map(r => cache.records(r.type).get(r.id));
+    const relatedIds = cache.getRelatedRecordsSync(record, relationship);
+    return relatedIds.map(id => cache.getRecordSync(id));
   },
 
-  findRelatedRecord(cache: Cache, expression: FindRelatedRecord) {
+  findRelatedRecord(cache: SyncRecordAccessor, expression: FindRelatedRecord): Record {
     const { record, relationship } = expression;
-    const { type, id } = record;
-    const currentRecord = cache.records(type).get(id);
-    const data = currentRecord && deepGet(currentRecord, ['relationships', relationship, 'data']);
-
-    if (!data) { return null; }
-
-    const r = data as RecordIdentity;
-    return cache.records(r.type).get(r.id);
+    const relatedId = cache.getRelatedRecordSync(record, relationship);
+    if (relatedId) {
+      return cache.getRecordSync(relatedId);
+    } else {
+      return null;
+    }
   }
 };
 

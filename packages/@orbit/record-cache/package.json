@@ -1,7 +1,7 @@
 {
-  "name": "@orbit/store",
+  "name": "@orbit/record-cache",
   "version": "0.15.25",
-  "description": "Orbit source for managing in-memory records.",
+  "description": "Orbit base classes used to access and maintain a set of records.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
   ],
@@ -26,9 +26,7 @@
   "dependencies": {
     "@orbit/core": "^0.15.23",
     "@orbit/data": "^0.15.23",
-    "@orbit/utils": "^0.15.23",
-    "@orbit/immutable": "^0.15.23",
-    "@orbit/record-cache": "^0.15.25"
+    "@orbit/utils": "^0.15.23"
   },
   "devDependencies": {
     "@glimmer/build": "^0.9.0"

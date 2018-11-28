@@ -1,144 +1,110 @@
 /* eslint-disable valid-jsdoc */
-import { isArray, Dict } from '@orbit/utils';
-import {
-  evented, Evented
-} from '@orbit/core';
+import { clone, Dict } from '@orbit/utils';
 import {
   Record,
   RecordIdentity,
-  KeyMap,
-  Operation,
-  RecordOperation,
-  Query,
-  QueryOrExpression,
-  QueryExpression,
-  QueryBuilder,
-  Schema,
-  TransformBuilder,
-  TransformBuilderFunc,
-  buildQuery
+  equalRecordIdentities
 } from '@orbit/data';
-import { OperationProcessor, OperationProcessorClass } from './cache/operation-processors/operation-processor';
-import CacheIntegrityProcessor from './cache/operation-processors/cache-integrity-processor';
-import SchemaConsistencyProcessor from './cache/operation-processors/schema-consistency-processor';
-import SchemaValidationProcessor from './cache/operation-processors/schema-validation-processor';
-import { QueryOperators } from './cache/query-operators';
-import PatchTransforms, { PatchTransformFunc } from './cache/patch-transforms';
-import InverseTransforms, { InverseTransformFunc } from './cache/inverse-transforms';
+import {
+  RecordRelationshipIdentity,
+  SyncRecordCache,
+  SyncRecordCacheSettings
+} from '@orbit/record-cache';
 import { ImmutableMap } from '@orbit/immutable';
-import RelationshipAccessor from './cache/relationship-accessor';
-import InverseRelationshipAccessor from './cache/inverse-relationship-accessor';
 
-export interface CacheSettings {
-  schema?: Schema;
-  keyMap?: KeyMap;
-  processors?: OperationProcessorClass[];
+export interface CacheSettings extends SyncRecordCacheSettings {
   base?: Cache;
-  queryBuilder?: QueryBuilder;
-  transformBuilder?: TransformBuilder;
-}
-
-export type PatchResultData = Record | RecordIdentity | null;
-
-export interface PatchResult {
-  inverse: RecordOperation[],
-  data: PatchResultData[]
 }
 
 /**
- * A `Cache` is an in-memory data store that can be accessed synchronously.
+ * A cache used to access records in memory.
  *
- * Caches use operation processors to maintain internal consistency.
- *
- * Because data is stored in immutable maps, caches can be forked efficiently.
- *
- * @export
- * @class Cache
- * @implements {Evented}
+ * Because data is stored in immutable maps, this type of cache can be forked
+ * efficiently.
  */
-@evented
-export default class Cache implements Evented {
-  private _keyMap: KeyMap;
-  private _schema: Schema;
-  private _queryBuilder: QueryBuilder;
-  private _transformBuilder: TransformBuilder;
-  private _processors: OperationProcessor[];
-  private _records: Dict<ImmutableMap<string, Record>>;
-  private _relationships: RelationshipAccessor;
-  private _inverseRelationships: InverseRelationshipAccessor;
+export default class Cache extends SyncRecordCache {
+  protected _records: Dict<ImmutableMap<string, Record>>;
+  protected _inverseRelationships: Dict<ImmutableMap<string, RecordRelationshipIdentity[]>>;
 
-  // Evented interface stubs
-  on: (event: string, callback: Function, binding?: object) => void;
-  off: (event: string, callback: Function, binding?: object) => void;
-  one: (event: string, callback: Function, binding?: object) => void;
-  emit: (event: string, ...args: any[]) => void;
-  listeners: (event: string) => any[];
-
-  constructor(settings: CacheSettings = {}) {
-    this._schema = settings.schema;
-    this._keyMap = settings.keyMap;
-
-    this._queryBuilder = settings.queryBuilder || new QueryBuilder();
-    this._transformBuilder = settings.transformBuilder || new TransformBuilder({
-      recordInitializer: this._schema
-    });
-
-    const processors: OperationProcessorClass[] = settings.processors ? settings.processors : [SchemaValidationProcessor, SchemaConsistencyProcessor, CacheIntegrityProcessor];
-    this._processors = processors.map(Processor => new Processor(this));
+  constructor(settings: CacheSettings) {
+    super(settings);
 
     this.reset(settings.base);
   }
 
-  get keyMap(): KeyMap {
-    return this._keyMap;
+  getRecordSync(identity: RecordIdentity): Record | null {
+    return this._records[identity.type].get(identity.id) || null;
   }
 
-  get schema(): Schema {
-    return this._schema;
+  getRecordsSync(type: string): Record[] {
+    return Array.from(this._records[type].values());
   }
 
-  get queryBuilder(): QueryBuilder {
-    return this._queryBuilder;
+  setRecordSync(record: Record): void {
+    this._records[record.type].set(record.id, record);
   }
 
-  get transformBuilder(): TransformBuilder {
-    return this._transformBuilder;
+  setRecordsSync(records: Record[]): void {
+    let typedMap = {};
+    for (let record of records) {
+      typedMap[record.type] = typedMap[record.type] || [];
+      typedMap[record.type].push([record.id, record]);
+    }
+    for (let type in typedMap) {
+      this._records[type].setMany(typedMap[type]);
+    }
   }
 
-  records(type: string): ImmutableMap<string, Record> {
-    return this._records[type];
+  removeRecordSync(recordIdentity: RecordIdentity): Record | null {
+    const recordMap = this._records[recordIdentity.type];
+    const record = recordMap.get(recordIdentity.id);
+    if (record) {
+      recordMap.remove(recordIdentity.id);
+      return record;
+    } else {
+      return null;
+    }
   }
 
-  get relationships(): RelationshipAccessor {
-    return this._relationships;
+  removeRecordsSync(recordIdentities: RecordIdentity[]): Record[] {
+    const records = [];
+    const typedIds = {};
+    for (let recordIdentity of recordIdentities) {
+      let record = this.getRecordSync(recordIdentity);
+      if (record) {
+        records.push(record);
+        typedIds[record.type] = typedIds[record.type] || [];
+        typedIds[record.type].push(recordIdentity.id);
+      }
+    }
+    for (let type in typedIds) {
+      this._records[type].removeMany(typedIds[type]);
+    }
+    return records;
   }
 
-  get inverseRelationships(): InverseRelationshipAccessor {
-    return this._inverseRelationships;
+  getInverseRelationshipsSync(recordIdentity: RecordIdentity): RecordRelationshipIdentity[] {
+    return this._inverseRelationships[recordIdentity.type].get(recordIdentity.id) || [];
   }
 
-  /**
-   Allows a client to run queries against the cache.
+  addInverseRelationshipsSync(relationships: RecordRelationshipIdentity[]): void {
+    relationships.forEach(r => {
+      let rels = this._inverseRelationships[r.relatedRecord.type].get(r.relatedRecord.id);
+      rels = rels ? clone(rels) : [];
+      rels.push(r);
+      this._inverseRelationships[r.relatedRecord.type].set(r.relatedRecord.id, rels);
+    });
+  }
 
-   @example
-   ``` javascript
-   // using a query builder callback
-   cache.query(qb.record('planet', 'idabc123')).then(results => {});
-   ```
-
-   @example
-   ``` javascript
-   // using an expression
-   cache.query(oqe('record', 'planet', 'idabc123')).then(results => {});
-   ```
-
-   @method query
-   @param {Expression} query
-   @return {Object} result of query (type depends on query)
-   */
-  query(queryOrExpression: QueryOrExpression, options?: object, id?: string): any {
-    const query = buildQuery(queryOrExpression, options, id, this._queryBuilder);
-    return this._query(query.expression);
+  removeInverseRelationshipsSync(relationships: RecordRelationshipIdentity[]): void {
+    relationships.forEach(r => {
+      let rels = this._inverseRelationships[r.relatedRecord.type].get(r.relatedRecord.id);
+      if (rels) {
+        let newRels = rels.filter(rel => !(equalRecordIdentities(rel.record, r.record) &&
+                                           rel.relationship === r.relationship));
+        this._inverseRelationships[r.relatedRecord.type].set(r.relatedRecord.id, newRels);
+      }
+    });
   }
 
   /**
@@ -150,21 +116,17 @@ export default class Cache implements Evented {
    * cache.reset(); // empties cache
    * cache.reset(cache2); // clones the state of cache2
    * ```
-   *
-   * @param {Cache} [base]
-   * @memberof Cache
    */
-  reset(base?: Cache) {
+  reset(base?: Cache): void {
     this._records = {};
 
     Object.keys(this._schema.models).forEach(type => {
-      let baseRecords = base && base.records(type);
+      let baseRecords = base && base._records[type];
 
       this._records[type] = new ImmutableMap<string, Record>(baseRecords);
     });
 
-    this._relationships = new RelationshipAccessor(this, base && base.relationships);
-    this._inverseRelationships = new InverseRelationshipAccessor(this, base && base.inverseRelationships);
+    this._resetInverseRelationships(base);
 
     this._processors.forEach(processor => processor.reset(base));
 
@@ -173,8 +135,6 @@ export default class Cache implements Evented {
 
   /**
    * Upgrade the cache based on the current state of the schema.
-   *
-   * @memberof Cache
    */
   upgrade() {
     Object.keys(this._schema.models).forEach(type => {
@@ -183,97 +143,20 @@ export default class Cache implements Evented {
       }
     });
 
-    this._relationships.upgrade();
-    this._inverseRelationships.upgrade();
+    this._resetInverseRelationships();
     this._processors.forEach(processor => processor.upgrade());
-  }
-
-  /**
-   * Patches the document with an operation.
-   *
-   * @param {(Operation | Operation[] | TransformBuilderFunc)} operationOrOperations
-   * @returns {Operation[]}
-   * @memberof Cache
-   */
-  patch(operationOrOperations: RecordOperation | RecordOperation[] | TransformBuilderFunc): PatchResult {
-    if (typeof operationOrOperations === 'function') {
-      operationOrOperations = <RecordOperation | RecordOperation[]>operationOrOperations(this._transformBuilder);
-    }
-
-    const result: PatchResult = {
-      inverse: [],
-      data: []
-    }
-
-    if (isArray(operationOrOperations)) {
-      this._applyOperations(<RecordOperation[]>operationOrOperations, result, true);
-
-    } else {
-      this._applyOperation(<RecordOperation>operationOrOperations, result, true);
-    }
-
-    result.inverse.reverse();
-
-    return result;
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
 
-  protected _applyOperations(ops: RecordOperation[], result: PatchResult, primary: boolean = false) {
-    ops.forEach(op => this._applyOperation(op, result, primary));
-  }
-
-  protected _applyOperation(operation: RecordOperation, result: PatchResult, primary: boolean = false) {
-    this._processors.forEach(processor => processor.validate(operation));
-
-    const inverseTransform: InverseTransformFunc = InverseTransforms[ operation.op ];
-    const inverseOp: RecordOperation = inverseTransform(this, operation);
-
-    if (inverseOp) {
-      result.inverse.push(inverseOp);
-
-      // Query and perform related `before` operations
-      this._processors
-          .map(processor => processor.before(operation))
-          .forEach(ops => this._applyOperations(ops, result));
-
-      // Query related `after` operations before performing
-      // the requested operation. These will be applied on success.
-      let preparedOps = this._processors.map(processor => processor.after(operation));
-
-      // Perform the requested operation
-      let patchTransform: PatchTransformFunc = PatchTransforms[ operation.op ];
-      let data: PatchResultData = patchTransform(this, operation);
-      if (primary) {
-        result.data.push(data);
-      }
-
-      // Query and perform related `immediate` operations
-      this._processors
-          .forEach(processor => processor.immediate(operation));
-
-      // Emit event
-      this.emit('patch', operation, data);
-
-      // Perform prepared operations after performing the requested operation
-      preparedOps.forEach(ops => this._applyOperations(ops, result));
-
-      // Query and perform related `finally` operations
-      this._processors
-          .map(processor => processor.finally(operation))
-          .forEach(ops => this._applyOperations(ops, result));
-    } else if (primary) {
-      result.data.push(null);
-    }
-  }
-
-  protected _query(expression: QueryExpression): any {
-    const operator = QueryOperators[expression.op];
-    if (!operator) {
-      throw new Error('Unable to find operator: ' + expression.op);
-    }
-    return operator(this, expression);
+  protected _resetInverseRelationships(base?: Cache) {
+    const inverseRelationships = {};
+    Object.keys(this._schema.models).forEach(type => {
+      let baseRelationships = base && base._inverseRelationships[type];
+      inverseRelationships[type] = new ImmutableMap(baseRelationships);
+    });
+    this._inverseRelationships = inverseRelationships;
   }
 }
