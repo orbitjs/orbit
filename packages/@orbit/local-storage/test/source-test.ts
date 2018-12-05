@@ -660,7 +660,7 @@ module('LocalStorageSource', function(hooks) {
         assert.equal(transforms.length, 1, 'one transform returned');
         assert.deepEqual(
           transforms[0].operations.map(o => o.op),
-          ['addRecord', 'addRecord', 'addRecord'],
+          ['replaceRecord', 'replaceRecord', 'replaceRecord'],
           'operations match expectations'
         );
       })
@@ -711,7 +711,7 @@ module('LocalStorageSource', function(hooks) {
         assert.equal(transforms.length, 1, 'one transform returned');
         assert.deepEqual(
           transforms[0].operations.map(o => o.op),
-          ['addRecord', 'addRecord'],
+          ['replaceRecord', 'replaceRecord'],
           'operations match expectations'
         );
       });
@@ -764,7 +764,7 @@ module('LocalStorageSource', function(hooks) {
         assert.equal(transforms.length, 1, 'one transform returned');
         assert.deepEqual(
           transforms[0].operations.map(o => o.op),
-          ['addRecord'],
+          ['replaceRecord'],
           'operations match expectations'
         );
       })
