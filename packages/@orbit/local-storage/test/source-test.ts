@@ -559,7 +559,7 @@ module('LocalStorageSource', function(hooks) {
       .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
   });
 
-  test('#push - replaceRelatedRecord - with null - when base record does not exist', function(assert) {
+  test('#push - replaceRelatedRecord - with null - when base record does not exist', async function(assert) {
     assert.expect(1);
 
     let revised = {
@@ -572,8 +572,8 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.replaceRelatedRecord({ type: 'planet', id: 'jupiter' }, 'solarSystem', null))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
+    await source.push(t => t.replaceRelatedRecord({ type: 'planet', id: 'jupiter' }, 'solarSystem', null));
+    verifyLocalStorageContainsRecord(assert, source, revised);
   });
 
   test('#reset - clears records for source', function(assert) {

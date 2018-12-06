@@ -110,7 +110,7 @@ export default class LocalStorageSource extends Source implements Pullable, Push
   // Pullable implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _pull(query: Query): Promise<Transform[]> {
+  async _pull(query: Query): Promise<Transform[]> {
     let operations;
     const results = this._cache.query(query);
 
@@ -130,6 +130,6 @@ export default class LocalStorageSource extends Source implements Pullable, Push
       operations = [];
     }
 
-    return Orbit.Promise.resolve([buildTransform(operations)]);
+    return [buildTransform(operations)];
   }
 }
