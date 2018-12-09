@@ -91,11 +91,11 @@ export function mergeRecords(current: Record | null, updates: Record): Record {
   }
 }
 
-function serializeRecordIdentity(record: RecordIdentity): string {
+export function serializeRecordIdentity(record: RecordIdentity): string {
   return `${record.type}:${record.id}`;
 }
 
-function deserializeRecordIdentity(identity: string): RecordIdentity {
+export function deserializeRecordIdentity(identity: string): RecordIdentity {
   const [type, id] = identity.split(':');
   return { type, id };
 }

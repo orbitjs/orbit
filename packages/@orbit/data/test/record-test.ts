@@ -1,4 +1,4 @@
-import { cloneRecordIdentity, equalRecordIdentities, equalRecordIdentitySets, uniqueRecordIdentities, recordsInclude, recordsIncludeAll } from '../src/record';
+import { cloneRecordIdentity, equalRecordIdentities, equalRecordIdentitySets, uniqueRecordIdentities, recordsInclude, recordsIncludeAll, deserializeRecordIdentity, serializeRecordIdentity } from '../src/record';
 import './test-helper';
 
 const { module, test } = QUnit;
@@ -6,6 +6,14 @@ const { module, test } = QUnit;
 module('Record', function() {
   test('`cloneRecordIdentity` returns a simple { type, id } identity object from any object with a `type` and `id`', function(assert) {
     assert.deepEqual(cloneRecordIdentity({ type: 'planet', id: '1' }), { type: 'planet', id: '1' });
+  });
+
+  test('`serializeRecordIdentity` - serializes type:id of a record into a string', function(assert) {
+    assert.equal(serializeRecordIdentity({ type: 'planet', id: '1' }), 'planet:1');
+  });
+
+  test('`deserializeRecordIdentity` - deserializes type:id string into an identity object', function(assert) {
+    assert.deepEqual(deserializeRecordIdentity('planet:1'), { type: 'planet', id: '1' }));
   });
 
   test('`equalRecordIdentities` compares the type/id identity of two objects', function(assert) {
