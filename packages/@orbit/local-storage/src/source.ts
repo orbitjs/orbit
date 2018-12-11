@@ -41,15 +41,6 @@ export default class LocalStorageSource extends Source implements Pullable, Push
   // Pushable interface stubs
   push: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => Promise<Transform[]>;
 
-  /**
-   * Create a new LocalStorageSource.
-   *
-   * @constructor
-   * @param {Object} [settings]           Settings.
-   * @param {Schema} [settings.schema]    Schema for source.
-   * @param {String} [settings.namespace] Optional. Prefix for keys used in localStorage. Defaults to 'orbit'.
-   * @param {String} [settings.delimiter] Optional. Delimiter used to separate key segments in localStorage. Defaults to '/'.
-   */
   constructor(settings: LocalStorageSourceSettings = {}) {
     assert('LocalStorageSource\'s `schema` must be specified in `settings.schema` constructor argument', !!settings.schema);
     assert('Your browser does not support local storage!', supportsLocalStorage());
