@@ -1,6 +1,11 @@
 export { default, StoreSettings, StoreMergeOptions } from './store';
-export { default as Cache, CacheSettings, PatchResult, PatchResultData } from './cache';
-export { OperationProcessorClass, OperationProcessor } from './cache/operation-processors/operation-processor';
-export { default as CacheIntegrityProcessor } from './cache/operation-processors/cache-integrity-processor';
-export { default as SchemaConsistencyProcessor } from './cache/operation-processors/schema-consistency-processor';
-export { default as SchemaValidationProcessor } from './cache/operation-processors/schema-validation-processor';
+export { default as Cache, CacheSettings } from './cache';
+
+// LEGACY EXPORTS
+export {
+  SyncOperationProcessorClass as OperationProcessorClass,
+  SyncOperationProcessor as OperationProcessor,
+  SyncCacheIntegrityProcessor as CacheIntegrityProcessor,
+  SyncSchemaConsistencyProcessor as SchemaConsistencyProcessor,
+  SyncSchemaValidationProcessor as SchemaValidationProcessor
+} from '@orbit/record-cache';

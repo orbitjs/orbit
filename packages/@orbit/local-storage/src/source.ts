@@ -1,37 +1,36 @@
 import Orbit, {
+  buildTransform,
   pullable, Pullable,
   pushable, Pushable,
   Resettable,
   syncable, Syncable,
   Query,
   QueryOrExpression,
-  Record, RecordIdentity,
   Source, SourceSettings,
   Transform,
-  TransformOrOperations
+  TransformOrOperations,
+  Record,
+  RecordIdentity,
+  RecordOperation
 } from '@orbit/data';
 import { assert } from '@orbit/utils';
-import transformOperators from './lib/transform-operators';
-import { PullOperator, PullOperators } from './lib/pull-operators';
 import { supportsLocalStorage } from './lib/local-storage';
+import LocalStorageCache, { LocalStorageCacheSettings } from './cache';
 
 export interface LocalStorageSourceSettings extends SourceSettings {
   delimiter?: string;
   namespace?: string;
+  cacheSettings?: LocalStorageCacheSettings;
 }
 
 /**
  * Source for storing data in localStorage.
- *
- * @class LocalStorageSource
- * @extends Source
  */
 @pullable
 @pushable
 @syncable
 export default class LocalStorageSource extends Source implements Pullable, Pushable, Resettable, Syncable {
-  protected _namespace: string;
-  protected _delimiter: string;
+  protected _cache: LocalStorageCache;
 
   // Syncable interface stubs
   sync: (transformOrTransforms: Transform | Transform[]) => Promise<void>;
@@ -42,15 +41,6 @@ export default class LocalStorageSource extends Source implements Pullable, Push
   // Pushable interface stubs
   push: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => Promise<Transform[]>;
 
-  /**
-   * Create a new LocalStorageSource.
-   *
-   * @constructor
-   * @param {Object} [settings]           Settings.
-   * @param {Schema} [settings.schema]    Schema for source.
-   * @param {String} [settings.namespace] Optional. Prefix for keys used in localStorage. Defaults to 'orbit'.
-   * @param {String} [settings.delimiter] Optional. Delimiter used to separate key segments in localStorage. Defaults to '/'.
-   */
   constructor(settings: LocalStorageSourceSettings = {}) {
     assert('LocalStorageSource\'s `schema` must be specified in `settings.schema` constructor argument', !!settings.schema);
     assert('Your browser does not support local storage!', supportsLocalStorage());
@@ -59,105 +49,78 @@ export default class LocalStorageSource extends Source implements Pullable, Push
 
     super(settings);
 
-    this._namespace = settings.namespace || 'orbit';
-    this._delimiter = settings.delimiter || '/';
+    let cacheSettings: LocalStorageCacheSettings = settings.cacheSettings || {};
+    cacheSettings.schema = settings.schema;
+    cacheSettings.keyMap = settings.keyMap;
+    cacheSettings.queryBuilder = cacheSettings.queryBuilder || this.queryBuilder;
+    cacheSettings.transformBuilder = cacheSettings.transformBuilder || this.transformBuilder;
+    cacheSettings.namespace = cacheSettings.namespace || settings.namespace;
+    cacheSettings.delimiter = cacheSettings.delimiter || settings.delimiter;
+
+    this._cache = new LocalStorageCache(cacheSettings);
   }
 
   get namespace(): string {
-    return this._namespace;
+    return this._cache.namespace;
   }
 
   get delimiter(): string {
-    return this._delimiter;
+    return this._cache.delimiter;
   }
 
   getKeyForRecord(record: RecordIdentity | Record): string {
-    return [this.namespace, record.type, record.id].join(this.delimiter);
-  }
-
-  getRecord(record: RecordIdentity): Record {
-    const key = this.getKeyForRecord(record);
-
-    let result = JSON.parse(Orbit.globals.localStorage.getItem(key));
-
-    if (result && this._keyMap) {
-      this._keyMap.pushRecord(result);
-    }
-
-    return result;
-  }
-
-  putRecord(record: Record): void {
-    const key = this.getKeyForRecord(record);
-
-    // console.log('LocalStorageSource#putRecord', key, JSON.stringify(record));
-
-    if (this._keyMap) {
-      this._keyMap.pushRecord(record);
-    }
-
-    Orbit.globals.localStorage.setItem(key, JSON.stringify(record));
-  }
-
-  removeRecord(record: RecordIdentity): void {
-    const key = this.getKeyForRecord(record);
-
-    // console.log('LocalStorageSource#removeRecord', key, JSON.stringify(record));
-
-    Orbit.globals.localStorage.removeItem(key);
+    return this._cache.getKeyForRecord(record);
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Resettable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  reset(): Promise<void> {
-    for (let key in Orbit.globals.localStorage) {
-      if (key.indexOf(this.namespace + this.delimiter) === 0) {
-        Orbit.globals.localStorage.removeItem(key);
-      }
-    }
-    return Orbit.Promise.resolve();
+  async reset(): Promise<void> {
+    this._cache.reset();
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Syncable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _sync(transform: Transform): Promise<void> {
-    this._applyTransform(transform);
-    return Orbit.Promise.resolve();
+  async _sync(transform: Transform): Promise<void> {
+    this._cache.patch(transform.operations as RecordOperation[]);
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Pushable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _push(transform: Transform): Promise<Transform[]> {
-    this._applyTransform(transform);
-    return Orbit.Promise.resolve([transform]);
+  async _push(transform: Transform): Promise<Transform[]> {
+    this._cache.patch(transform.operations as RecordOperation[]);
+    return [transform];
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Pullable implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _pull(query: Query): Promise<Transform[]> {
-    const operator: PullOperator = PullOperators[query.expression.op];
-    if (!operator) {
-      throw new Error('LocalStorageSource does not support the `${query.expression.op}` operator for queries.');
+  async _pull(query: Query): Promise<Transform[]> {
+    let operations;
+    const results = this._cache.query(query);
+
+    if (Array.isArray(results)) {
+      operations = results.map(r => {
+        return {
+          op: 'replaceRecord',
+          record: r
+        };
+      });
+    } else if (results) {
+      operations = [{
+        op: 'replaceRecord',
+        record: results
+      }];
+    } else {
+      operations = [];
     }
 
-    return operator(this, query.expression);
-  }
-
-  /////////////////////////////////////////////////////////////////////////////
-  // Protected
-  /////////////////////////////////////////////////////////////////////////////
-
-  protected _applyTransform(transform: Transform): void {
-    transform.operations.forEach(operation => {
-      transformOperators[operation.op](this, operation);
-    });
+    return [buildTransform(operations)];
   }
 }

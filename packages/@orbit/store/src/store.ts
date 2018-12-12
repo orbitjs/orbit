@@ -4,7 +4,7 @@ import Orbit, {
   Schema,
   Source, SourceSettings,
   Syncable, syncable,
-  Query, QueryOrExpression,
+  QueryOrExpression,
   Queryable, queryable,
   Updatable, updatable,
   Transform,
@@ -12,9 +12,9 @@ import Orbit, {
   coalesceRecordOperations,
   buildTransform
 } from '@orbit/data';
-import { Log } from '@orbit/core';
 import { assert, Dict } from '@orbit/utils';
-import Cache, { CacheSettings, PatchResultData } from './cache';
+import Cache, { CacheSettings } from './cache';
+import { PatchResultData } from '@orbit/record-cache';
 
 export interface StoreSettings extends SourceSettings {
   base?: Store;

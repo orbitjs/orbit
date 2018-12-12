@@ -559,7 +559,7 @@ module('LocalStorageSource', function(hooks) {
       .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
   });
 
-  test('#push - replaceRelatedRecord - with null - when base record does not exist', function(assert) {
+  test('#push - replaceRelatedRecord - with null - when base record does not exist', async function(assert) {
     assert.expect(1);
 
     let revised = {
@@ -572,8 +572,8 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.replaceRelatedRecord({ type: 'planet', id: 'jupiter' }, 'solarSystem', null))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
+    await source.push(t => t.replaceRelatedRecord({ type: 'planet', id: 'jupiter' }, 'solarSystem', null));
+    verifyLocalStorageContainsRecord(assert, source, revised);
   });
 
   test('#reset - clears records for source', function(assert) {
@@ -660,7 +660,7 @@ module('LocalStorageSource', function(hooks) {
         assert.equal(transforms.length, 1, 'one transform returned');
         assert.deepEqual(
           transforms[0].operations.map(o => o.op),
-          ['addRecord', 'addRecord', 'addRecord'],
+          ['replaceRecord', 'replaceRecord', 'replaceRecord'],
           'operations match expectations'
         );
       })
@@ -711,7 +711,7 @@ module('LocalStorageSource', function(hooks) {
         assert.equal(transforms.length, 1, 'one transform returned');
         assert.deepEqual(
           transforms[0].operations.map(o => o.op),
-          ['addRecord', 'addRecord'],
+          ['replaceRecord', 'replaceRecord'],
           'operations match expectations'
         );
       });
@@ -764,7 +764,7 @@ module('LocalStorageSource', function(hooks) {
         assert.equal(transforms.length, 1, 'one transform returned');
         assert.deepEqual(
           transforms[0].operations.map(o => o.op),
-          ['addRecord'],
+          ['replaceRecord'],
           'operations match expectations'
         );
       })
