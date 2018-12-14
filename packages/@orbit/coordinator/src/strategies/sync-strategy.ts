@@ -1,9 +1,6 @@
-import Coordinator, { ActivationOptions, LogLevel } from '../coordinator';
 import { StrategyOptions } from '../strategy';
 import { ConnectionStrategy, ConnectionStrategyOptions } from './connection-strategy';
 import { assert } from '@orbit/utils';
-
-declare const console: any;
 
 export interface SyncStrategyOptions extends StrategyOptions {
   /**

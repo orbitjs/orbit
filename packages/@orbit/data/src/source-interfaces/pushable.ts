@@ -1,4 +1,3 @@
-import Orbit from '../main';
 import { assert } from '@orbit/utils';
 import { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
@@ -13,16 +12,13 @@ export const PUSHABLE = '__pushable__';
  * @param {Source} source
  * @returns
  */
-export function isPushable(source: Source) {
+export function isPushable(source: any) {
   return !!source[PUSHABLE];
 }
 
 /**
  * A source decorated as `@pushable` must also implement the `Pushable`
  * interface.
- *
- * @export
- * @interface Pushable
  */
 export interface Pushable {
   /**
@@ -30,13 +26,6 @@ export interface Pushable {
    * a promise that resolves to an array of `Transform` instances that are
    * applied as a result. In other words, `push` captures the direct results
    * _and_ side effects of applying a `Transform` to a source.
-   *
-   * @param {TransformOrOperations} transformOrOperations
-   * @param {object} [options]
-   * @param {string} [id]
-   * @returns {Promise<Transform[]>}
-   *
-   * @memberOf Pushable
    */
   push(transformOrOperations: TransformOrOperations, options?: object, id?: string): Promise<Transform[]>;
 
@@ -66,11 +55,6 @@ export interface Pushable {
  * A pushable source must implement a private method `_push`, which performs
  * the processing required for `push` and returns a promise that resolves to an
  * array of `Transform` instances.
- *
- * @export
- * @decorator
- * @param {SourceClass} Klass
- * @returns {void}
  */
 export default function pushable(Klass: SourceClass): void {
   let proto = Klass.prototype;
@@ -87,7 +71,7 @@ export default function pushable(Klass: SourceClass): void {
     const transform = buildTransform(transformOrOperations, options, id, this.transformBuilder);
 
     if (this.transformLog.contains(transform.id)) {
-      return Orbit.Promise.resolve([]);
+      return Promise.resolve([]);
     }
 
     return this._enqueueRequest('push', transform);
@@ -95,16 +79,16 @@ export default function pushable(Klass: SourceClass): void {
 
   proto.__push__ = function(transform: Transform): Promise<Transform[]> {
     if (this.transformLog.contains(transform.id)) {
-      return Orbit.Promise.resolve([]);
+      return Promise.resolve([]);
     }
 
     return fulfillInSeries(this, 'beforePush', transform)
       .then(() => {
         if (this.transformLog.contains(transform.id)) {
-          return Orbit.Promise.resolve([]);
+          return Promise.resolve([]);
         } else {
           return this._push(transform)
-            .then(result => {
+            .then((result: Transform[]) => {
               return this._transformed(result)
                 .then(() => settleInSeries(this, 'push', transform, result))
                 .then(() => result);

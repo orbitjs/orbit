@@ -4,14 +4,11 @@ import { QueryTerm } from './query-term';
 import QueryBuilder from './query-builder';
 import { isObject } from '@orbit/utils';
 
-export type QueryBuilderFunc = (QueryBuilder) => QueryExpression;
+export type QueryBuilderFunc = (QueryBuilder: QueryBuilder) => QueryExpression;
 export type QueryOrExpression = Query | QueryExpression | QueryTerm | QueryBuilderFunc;
 
 /**
  * Queries are used to extract data from a source.
- *
- * @export
- * @interface Query
  */
 export interface Query {
   id: string;
@@ -30,13 +27,6 @@ export interface Query {
  *
  * Queries will be assigned the specified `queryId` as `id`. If none is
  * specified, a UUID will be generated.
- *
- * @export
- * @param {QueryOrExpression} queryOrExpression
- * @param {object} [queryOptions]
- * @param {string} [queryId]
- * @param {QueryBuilder} [queryBuilder]
- * @returns {Query}
  */
 export function buildQuery(queryOrExpression: QueryOrExpression, queryOptions?: object, queryId?: string, queryBuilder?: QueryBuilder): Query {
   if (typeof queryOrExpression === 'function') {

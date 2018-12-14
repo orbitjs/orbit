@@ -1,26 +1,18 @@
-import Orbit from './main';
 import Notifier from './notifier';
-import { assert } from '@orbit/utils';
-
-declare const console: any;
 
 export const EVENTED = '__evented__';
 
 /**
  * Has a class been decorated as `@evented`?
- * 
- * @export
- * @param {object} obj 
- * @returns {boolean} 
  */
-export function isEvented(obj: object): boolean {
+export function isEvented(obj: any): boolean {
   return !!obj[EVENTED];
 }
 
 /**
- * A class decorated as `@evented` should also implement the `Evented` 
+ * A class decorated as `@evented` should also implement the `Evented`
  * interface.
- * 
+ *
  * ```ts
  * import { evented, Evented } from '@orbit/core';
  *
@@ -29,21 +21,18 @@ export function isEvented(obj: object): boolean {
  *   // ... Evented implementation
  * }
  * ```
- * 
- * @export
- * @interface Evented
  */
 export interface Evented {
   on: (event: string, callback: Function, binding?: object) => void;
   off: (event: string, callback: Function, binding?: object) => void;
   one: (event: string, callback: Function, binding?: object) => void;
-  emit: (event: string, ...args) => void;
+  emit: (event: string, ...args: any[]) => void;
   listeners: (event: string) => any[];
 }
 
 /**
  * Marks a class as evented.
- * 
+ *
  * An evented class should also implement the `Evented` interface.
  *
  * ```ts
@@ -54,12 +43,12 @@ export interface Evented {
  *   ...
  * }
  * ```
- * 
+ *
  * Listeners can then register themselves for particular events with `on`:
  *
  * ```ts
  * let source = new Source();
- * 
+ *
  * function listener1(message: string) {
  *   console.log('listener1 heard ' + message);
  * };
@@ -79,10 +68,6 @@ export interface Evented {
  * ```ts
  * source.off('greeting', listener2);
  * ```
- * 
- * @decorator
- * @export
- * @param {*} Klass 
  */
 export default function evented(Klass: any): void {
   let proto = Klass.prototype;
@@ -93,13 +78,13 @@ export default function evented(Klass: any): void {
 
   proto[EVENTED] = true;
 
-  proto.on = function(eventName, callback, _binding) {
+  proto.on = function(eventName: string, callback: Function, _binding: object) {
     const binding = _binding || this;
 
     notifierForEvent(this, eventName, true).addListener(callback, binding);
   };
 
-  proto.off = function(eventName, callback, _binding) {
+  proto.off = function(eventName: string, callback: Function, _binding: object) {
     const binding = _binding || this;
     const notifier = notifierForEvent(this, eventName);
 
@@ -112,14 +97,11 @@ export default function evented(Klass: any): void {
     }
   };
 
-  proto.one = function(eventName, callback, _binding) {
-    let callOnce;
-    let notifier;
+  proto.one = function(eventName: string, callback: Function, _binding: object) {
     let binding = _binding || this;
+    let notifier = notifierForEvent(this, eventName, true);
 
-    notifier = notifierForEvent(this, eventName, true);
-
-    callOnce = function() {
+    let callOnce = function() {
       callback.apply(binding, arguments);
       notifier.removeListener(callOnce, binding);
     };
@@ -127,7 +109,7 @@ export default function evented(Klass: any): void {
     notifier.addListener(callOnce, binding);
   };
 
-  proto.emit = function(eventName, ...args) {
+  proto.emit = function(eventName: string, ...args: any[]) {
     let notifier = notifierForEvent(this, eventName);
 
     if (notifier) {
@@ -135,7 +117,7 @@ export default function evented(Klass: any): void {
     }
   };
 
-  proto.listeners = function(eventName) {
+  proto.listeners = function(eventName: string) {
     let notifier = notifierForEvent(this, eventName);
     return notifier ? notifier.listeners : [];
   };
@@ -143,46 +125,34 @@ export default function evented(Klass: any): void {
 
 /**
  * Settle any promises returned by event listeners in series.
- * 
+ *
  * If any errors are encountered during processing, they will be ignored.
- * 
- * @export
- * @param {Evented} obj 
- * @param {any} eventName 
- * @param {any} args 
- * @returns {Promise<void>}
  */
-export function settleInSeries(obj: Evented, eventName, ...args): Promise<void> {
+export function settleInSeries(obj: Evented, eventName: string, ...args: any[]): Promise<void> {
   const listeners = obj.listeners(eventName);
 
   return listeners.reduce((chain, [callback, binding]) => {
     return chain
       .then(() => callback.apply(binding, args))
-      .catch(e => {});
-  }, Orbit.Promise.resolve());
+      .catch(() => {});
+  }, Promise.resolve());
 }
 
 /**
  * Fulfill any promises returned by event listeners in series.
- * 
+ *
  * Processing will stop if an error is encountered and the returned promise will
  * be rejected.
- * 
- * @export
- * @param {Evented} obj 
- * @param {any} eventName 
- * @param {any} args 
- * @returns {Promise<void>}
  */
-export function fulfillInSeries(obj: Evented, eventName, ...args): Promise<void> {
+export function fulfillInSeries(obj: Evented, eventName: string, ...args: any[]): Promise<void> {
   const listeners = obj.listeners(eventName);
 
-  return new Orbit.Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     fulfillEach(listeners, args, resolve, reject);
   });
 }
 
-function notifierForEvent(object, eventName, createIfUndefined = false) {
+function notifierForEvent(object: any, eventName: string, createIfUndefined = false) {
   if (object._eventedNotifiers === undefined) {
     object._eventedNotifiers = {};
   }
@@ -193,13 +163,13 @@ function notifierForEvent(object, eventName, createIfUndefined = false) {
   return notifier;
 }
 
-function removeNotifierForEvent(object, eventName) {
+function removeNotifierForEvent(object: any, eventName: string) {
   if (object._eventedNotifiers && object._eventedNotifiers[eventName]) {
     delete object._eventedNotifiers[eventName];
   }
 }
 
-function fulfillEach(listeners, args, resolve, reject) {
+function fulfillEach(listeners: [Function, object][], args: any[], resolve: Function, reject: Function): Promise<any> {
   if (listeners.length === 0) {
     resolve();
   } else {
@@ -209,9 +179,9 @@ function fulfillEach(listeners, args, resolve, reject) {
     let response = callback.apply(binding, args);
 
     if (response) {
-      return Orbit.Promise.resolve(response)
+      return Promise.resolve(response)
         .then(() => fulfillEach(listeners, args, resolve, reject))
-        .catch(error => reject(error));
+        .catch((error: Error) => reject(error));
     } else {
       fulfillEach(listeners, args, resolve, reject);
     }

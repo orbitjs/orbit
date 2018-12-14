@@ -7,7 +7,7 @@
  */
 
 /* eslint-disable */
-function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
+function _typeof(obj: any) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
 
 /* Configuration
  ******************************************************************************/
@@ -25,7 +25,7 @@ const MIN_ARRAY_NODE = BUCKET_SIZE / 4;
  ******************************************************************************/
 const nothing = {};
 
-function constant(x) {
+function constant(x: any) {
   return function () {
     return x;
   };
@@ -37,7 +37,7 @@ function constant(x) {
   Based on:
   http://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript-jquery
 */
-function hash(str) {
+function hash(str: any) {
   const type = typeof str === 'undefined' ? 'undefined' : _typeof(str);
   if (type === 'number') return str;
   if (type !== 'string') str += '';
@@ -57,7 +57,7 @@ function hash(str) {
 
   Taken from: http://jsperf.com/hamming-weight
 */
-function popcount(x) {
+function popcount(x: any): any {
   x -= x >> 1 & 0x55555555;
   x = (x & 0x33333333) + (x >> 2 & 0x33333333);
   x = x + (x >> 4) & 0x0f0f0f0f;
@@ -66,15 +66,15 @@ function popcount(x) {
   return x & 0x7f;
 }
 
-function hashFragment(shift, h) {
+function hashFragment(shift: any, h: any): any {
   return h >>> shift & MASK;
 }
 
-function toBitmap(x) {
+function toBitmap(x: any): any {
   return 1 << x;
 }
 
-function fromBitmap(bitmap, bit) {
+function fromBitmap(bitmap: any, bit: any): any {
   return popcount(bitmap & bit - 1);
 }
 
@@ -88,7 +88,7 @@ function fromBitmap(bitmap, bit) {
   @param v New value
   @param arr Array.
 */
-function arrayUpdate(mutate, at, v, arr) {
+function arrayUpdate(mutate: boolean, at: number, v: any, arr: any[]): any[] {
   var out = arr;
   if (!mutate) {
     var len = arr.length;
@@ -108,7 +108,7 @@ function arrayUpdate(mutate, at, v, arr) {
   @param at Index to remove.
   @param arr Array.
 */
-function arraySpliceOut(mutate, at, arr) {
+function arraySpliceOut(mutate: boolean, at: number, arr: any[]): any[] {
   var len = arr.length;
   var i = 0,
       g = 0;
@@ -134,7 +134,7 @@ function arraySpliceOut(mutate, at, arr) {
   @param v Value to insert,
   @param arr Array.
 */
-function arraySpliceIn(mutate, at, v, arr) {
+function arraySpliceIn(mutate: boolean, at: number, v: any, arr: any[]): any[] {
   var len = arr.length;
   if (mutate) {
     var _i = len;
@@ -167,7 +167,7 @@ const ARRAY = 4;
 const empty = {
   __hamt_isEmpty: true,
 
-  _modify(edit, keyEq, shift, f, h, k, size) {
+  _modify(edit: any, keyEq: any, shift: any, f: any, h: any, k: any, size: any): any {
     var v = f();
     if (v === nothing) return empty;
     ++size.value;
@@ -175,7 +175,7 @@ const empty = {
   }
 };
 
-function isEmptyNode(x) {
+function isEmptyNode(x: any): boolean {
   return x === empty || x && x.__hamt_isEmpty;
 }
 
@@ -187,7 +187,7 @@ function isEmptyNode(x) {
   @member key Key.
   @member value Value stored.
 */
-function Leaf(edit, hash, key, value) {
+function Leaf(edit: any, hash: any, key: any, value: any) {
   return {
     type: LEAF,
     edit: edit,
@@ -205,7 +205,7 @@ function Leaf(edit, hash, key, value) {
   @member hash Hash of key.
   @member children Array of collision children node.
 */
-function Collision(edit, hash, children) {
+function Collision(edit: any, hash: any, children: any) {
   return {
     type: COLLISION,
     edit: edit,
@@ -224,7 +224,7 @@ function Collision(edit, hash, children) {
   @member mask Bitmap that encode the positions of children in the array.
   @member children Array of child nodes.
 */
-function IndexedNode(edit, mask, children) {
+function IndexedNode(edit: any, mask: any, children: any) {
   return {
     type: INDEX,
     edit: edit,
@@ -241,7 +241,7 @@ function IndexedNode(edit, mask, children) {
   @member size Number of children.
   @member children Array of child nodes.
 */
-function ArrayNode(edit, size, children) {
+function ArrayNode(edit: any, size: any, children: any) {
   return {
     type: ARRAY,
     edit: edit,
@@ -254,7 +254,7 @@ function ArrayNode(edit, size, children) {
 /**
     Is `node` a leaf node?
 */
-function isLeaf(node) {
+function isLeaf(node: any): boolean {
   return node === empty || node.type === LEAF || node.type === COLLISION;
 }
 
@@ -269,7 +269,7 @@ function isLeaf(node) {
   @param mask Index node mask before child added.
   @param subNodes Index node children before child added.
 */
-function expand(edit, frag, child, bitmap, subNodes) {
+function expand(edit: any, frag: any, child: any, bitmap: any, subNodes: any): any {
   var arr = [];
   var bit = bitmap;
   var count = 0;
@@ -289,7 +289,7 @@ function expand(edit, frag, child, bitmap, subNodes) {
   @param removed Index of removed element.
   @param elements Array node children before remove.
 */
-function pack(edit, count, removed, elements) {
+function pack(edit: any, count: any, removed: any, elements: any): any {
   var children = new Array(count - 1);
   var g = 0;
   var bitmap = 0;
@@ -314,7 +314,7 @@ function pack(edit, count, removed, elements) {
   @param h2 Node 2 hash.
   @param n2 Node 2.
 */
-function mergeLeaves(edit, shift, h1, n1, h2, n2) {
+function mergeLeaves(edit: any, shift: any, h1: any, n1: any, h2: any, n2: any): any {
   if (h1 === h2) return Collision(edit, h1, [n2, n1]);
 
   var subH1 = hashFragment(shift, h1);
@@ -334,7 +334,7 @@ function mergeLeaves(edit, shift, h1, n1, h2, n2) {
   @param k Key to update.
   @param size Size ref.
 */
-function updateCollisionList(mutate, edit, keyEq, h, list, f, k, size) {
+function updateCollisionList(mutate: boolean, edit: any, keyEq: any, h: any, list: any, f: any, k: any, size: any): any {
   var len = list.length;
   for (var i = 0; i < len; ++i) {
     var child = list[i];
@@ -357,13 +357,13 @@ function updateCollisionList(mutate, edit, keyEq, h, list, f, k, size) {
   return arrayUpdate(mutate, len, Leaf(edit, h, k, newValue), list);
 }
 
-function canEditNode(edit, node) {
+function canEditNode(edit: any, node: any): boolean {
   return edit === node.edit;
 }
 
 /* Editing
  ******************************************************************************/
-function Leaf__modify(edit, keyEq, shift, f, h, k, size) {
+function Leaf__modify(edit: any, keyEq: any, shift: any, f: any, h: any, k: any, size: any): any {
   if (keyEq(k, this.key)) {
     var _v = f(this.value);
     if (_v === this.value) return this;else if (_v === nothing) {
@@ -382,7 +382,7 @@ function Leaf__modify(edit, keyEq, shift, f, h, k, size) {
   return mergeLeaves(edit, shift, this.hash, this, h, Leaf(edit, h, k, v));
 }
 
-function Collision__modify(edit, keyEq, shift, f, h, k, size) {
+function Collision__modify(edit: any, keyEq: any, shift: any, f: any, h: any, k: any, size: any): any {
   if (h === this.hash) {
     var canEdit = canEditNode(edit, this);
     var list = updateCollisionList(canEdit, edit, keyEq, this.hash, this.children, f, k, size);
@@ -396,7 +396,7 @@ function Collision__modify(edit, keyEq, shift, f, h, k, size) {
   return mergeLeaves(edit, shift, this.hash, this, h, Leaf(edit, h, k, v));
 }
 
-function IndexedNode__modify(edit, keyEq, shift, f, h, k, size) {
+function IndexedNode__modify(edit: any, keyEq: any, shift: any, f: any, h: any, k: any, size: any): any {
   var mask = this.mask;
   var children = this.children;
   var frag = hashFragment(shift, h);
@@ -437,7 +437,7 @@ function IndexedNode__modify(edit, keyEq, shift, f, h, k, size) {
   return IndexedNode(edit, bitmap, newChildren);
 }
 
-function ArrayNode__modify(edit, keyEq, shift, f, h, k, size) {
+function ArrayNode__modify(edit: any, keyEq: any, shift: any, f: any, h: any, k: any, size: any): any {
   var count = this.size;
   var children = this.children;
   var frag = hashFragment(shift, h);
@@ -477,7 +477,7 @@ function ArrayNode__modify(edit, keyEq, shift, f, h, k, size) {
 
     Returns the value or `alt` if none.
 */
-function tryGetHash(alt, hash, key, map) {
+function tryGetHash(alt: any, hash: any, key: any, map: any): any {
   var node = map._root;
   var shift = 0;
   var keyEq = map._config.keyEq;
@@ -529,7 +529,7 @@ function tryGetHash(alt, hash, key, map) {
 
   @see `tryGetHash`
 */
-function tryGet(alt, key, map) {
+function tryGet(alt: any, key: any, map: any): any {
   return tryGetHash(alt, map._config.hash(key), key, map);
 }
 
@@ -538,41 +538,32 @@ function tryGet(alt, key, map) {
 
   Returns the value or `undefined` if none.
 */
-function getHash(hash, key, map) {
+function getHash(hash: any, key: any, map: any): any {
   return tryGetHash(undefined, hash, key, map);
-}
-
-/**
-  Lookup the value for `key` in `map` using internal hash function.
-
-  @see `get`
-*/
-function get(key, map) {
-  return tryGetHash(undefined, map._config.hash(key), key, map);
 }
 
 /**
     Does an entry exist for `key` in `map`? Uses custom `hash`.
 */
-function hasHash(hash, key, map) {
+function hasHash(hash: any, key: any, map: any): boolean {
   return tryGetHash(nothing, hash, key, map) !== nothing;
 }
 
 /**
   Does an entry exist for `key` in `map`? Uses internal hash function.
 */
-function has(key, map) {
+function has(key: any, map: any): boolean {
   return hasHash(map._config.hash(key), key, map);
 }
 
-function defKeyCompare(x, y) {
+function defKeyCompare(x: any, y: any): boolean {
   return x === y;
 }
 
 /**
   Does `map` contain any elements?
 */
-function isEmpty(map) {
+function isEmpty(map: any): boolean {
   return map && !!isEmptyNode(map._root);
 }
 
@@ -588,7 +579,7 @@ function isEmpty(map) {
 
     Returns a map with the modified value. Does not alter `map`.
 */
-function modifyHash(f, hash, key, map) {
+function modifyHash(f: any, hash: any, key: any, map: any): any {
   var size = { value: map._size };
   var newRoot = map._root._modify(map._editable ? map._edit : NaN, map._config.keyEq, 0, f, hash, key, size);
   return map.setTree(newRoot, size.value);
@@ -600,7 +591,7 @@ function modifyHash(f, hash, key, map) {
 
   @see `modifyHash`
 */
-function modify(f, key, map) {
+function modify(f: any, key: any, map: any): any {
   return modifyHash(f, map._config.hash(key), key, map);
 }
 
@@ -609,7 +600,7 @@ function modify(f, key, map) {
 
   Returns a map with the modified value. Does not alter `map`.
 */
-function setHash(hash, key, value, map) {
+function setHash(hash: any, key: any, value: any, map: any): any {
   return modifyHash(constant(value), hash, key, map);
 }
 
@@ -619,7 +610,7 @@ function setHash(hash, key, value, map) {
 
   @see `setHash`
 */
-function set(key, value, map) {
+function set(key: any, value: any, map: any): any {
   return setHash(map._config.hash(key), key, value, map);
 }
 
@@ -629,7 +620,7 @@ function set(key, value, map) {
   Returns a map with the value removed. Does not alter `map`.
 */
 const del = constant(nothing);
-function removeHash(hash, key, map) {
+function removeHash(hash: any, key: any, map: any): any {
   return modifyHash(del, hash, key, map);
 }
 
@@ -638,7 +629,7 @@ function removeHash(hash, key, map) {
 
   @see `removeHash`
 */
-function remove(key, map) {
+function remove(key: any, map: any): any {
   return removeHash(map._config.hash(key), key, map);
 }
 
@@ -647,14 +638,14 @@ function remove(key, map) {
 /**
   Mark `map` as mutable.
  */
-function beginMutation(map) {
+function beginMutation(map: any): any {
   return new HAMTMap(map._editable + 1, map._edit + 1, map._config, map._root, map._size);
 }
 
 /**
   Mark `map` as immutable.
  */
-function endMutation(map) {
+function endMutation(map: any): any {
   map._editable = map._editable && map._editable - 1;
   return map;
 }
@@ -664,7 +655,7 @@ function endMutation(map) {
   @param f
   @param map HAMT
 */
-function mutate(f, map) {
+function mutate(f: any, map: any): any {
   var transient = beginMutation(map);
   f(transient);
   return endMutation(transient);
@@ -675,14 +666,14 @@ function mutate(f, map) {
 /**
   Apply a continuation.
 */
-function appk(k) {
+function appk(k: any): any {
   return k && lazyVisitChildren(k[0], k[1], k[2], k[3], k[4]);
 }
 
 /**
   Recursively visit all values stored in an array of nodes lazily.
 */
-function lazyVisitChildren(len, children, i, f, k) {
+function lazyVisitChildren(len: any, children: any, i: any, f: any, k: any): any {
   while (i < len) {
     var child = children[i++];
     if (child && !isEmptyNode(child)) return lazyVisit(child, f, [len, children, i, f, k]);
@@ -693,7 +684,7 @@ function lazyVisitChildren(len, children, i, f, k) {
 /**
   Recursively visit all values stored in `node` lazily.
 */
-function lazyVisit(node, f, k?) {
+function lazyVisit(node: any, f: any, k?: any): any {
   switch (node.type) {
     case LEAF:
       return {
@@ -719,7 +710,7 @@ const DONE = {
 /**
   Lazily visit each value in map with function `f`.
 */
-function visit(map, f) {
+function visit(map: any, f: any): any {
   return new HAMTMapIterator(lazyVisit(map._root, f));
 }
 
@@ -728,11 +719,11 @@ function visit(map, f) {
 
   Iterates over `[key, value]` arrays.
 */
-function buildPairs(x) {
+function buildPairs(x: any): any {
   return [x.key, x.value];
 }
 
-function entries(map) {
+function entries(map: any): any {
   return visit(map, buildPairs);
 };
 
@@ -741,10 +732,10 @@ function entries(map) {
 
   Order is not guaranteed.
 */
-function buildKeys(x) {
+function buildKeys(x: any): any {
   return x.key;
 }
-function keys(map) {
+function keys(map: any): any {
   return visit(map, buildKeys);
 }
 
@@ -753,10 +744,10 @@ function keys(map) {
 
   Order is not guaranteed, duplicates are preserved.
 */
-function buildValues(x) {
+function buildValues(x: any): any {
   return x.value;
 }
-function values(map) {
+function values(map: any): any {
   return visit(map, buildValues);
 }
 
@@ -771,7 +762,7 @@ function values(map) {
   @param z Starting value.
   @param m HAMT
 */
-function fold(f, z, m) {
+function fold(f: any, z: any, m: any): any {
   var root = m._root;
   if (root.type === LEAF) return f(z, root.value, root.key);
 
@@ -796,8 +787,8 @@ function fold(f, z, m) {
   @param f Function invoked with value and key
   @param map HAMT
 */
-function forEach(f, map) {
-  return fold(function (_, value, key) {
+function forEach(f: any, map: any): any {
+  return fold(function(_: any, value: any, key: any): any {
     return f(value, key, map);
   }, null, map);
 }
@@ -805,9 +796,9 @@ function forEach(f, map) {
 /* Export
  ******************************************************************************/
 export class HAMTMapIterator<T> implements IterableIterator<T> {
-  private v;
+  private v: any;
 
-  constructor(v) {
+  constructor(v: any) {
     this.v = v;
   }
 
@@ -829,14 +820,14 @@ export interface HAMTMapConfig {
 }
 
 export default class HAMTMap {
-  private _map;
-  private _editable;
-  private _edit;
+  private _map: any;
+  private _editable: boolean;
+  private _edit: any;
   private _config: HAMTMapConfig;
-  private _root; // TODO
+  private _root: any;
   private _size: number;
 
-  constructor(editable = 0, edit = 0, config: HAMTMapConfig = {}, root = empty, size: number = 0) {
+  constructor(editable = false, edit = 0, config: HAMTMapConfig = {}, root = empty, size: number = 0) {
     this._editable = editable;
     this._edit = edit;
     this._config = {
@@ -847,11 +838,11 @@ export default class HAMTMap {
     this._size = size;
   }
 
-  get size() {
+  get size(): number {
     return this._size;
   }
 
-  setTree(newRoot, newSize) {
+  setTree(newRoot: any, newSize: number): any {
     if (this._editable) {
       this._root = newRoot;
       this._size = newSize;
@@ -860,95 +851,95 @@ export default class HAMTMap {
     return newRoot === this._root ? this : new HAMTMap(this._editable, this._edit, this._config, newRoot, newSize);
   }
 
-  tryGetHash(alt, hash, key) {
+  tryGetHash(alt: any, hash: any, key: any): any {
     return tryGetHash(alt, hash, key, this);
   }
 
-  tryGet(alt, key) {
+  tryGet(alt: any, key: any): any {
     return tryGet(alt, key, this);
   }
 
-  getHash(hash, key) {
+  getHash(hash: any, key: any): any {
     return getHash(hash, key, this);
   }
 
-  get(key, alt?) {
+  get(key: any, alt?: any): any {
     return tryGet(alt, key, this);
   }
 
-  hasHash(hash, key) {
+  hasHash(hash: any, key: any): boolean {
     return hasHash(hash, key, this);
   }
 
-  has(key) {
+  has(key: any): boolean {
     return has(key, this);
   }
 
-  isEmpty = function () {
+  isEmpty(): boolean {
     return isEmpty(this);
   }
 
-  modifyHash(hash, key, f) {
+  modifyHash(hash: any, key: any, f: any): any {
     return modifyHash(f, hash, key, this);
   }
 
-  modify(key, f) {
+  modify(key: any, f: any): any {
     return modify(f, key, this);
   }
 
-  setHash(hash, key, value) {
+  setHash(hash: any, key: any, value: any): any {
     return setHash(hash, key, value, this);
   }
 
-  set(key, value) {
+  set(key: any, value: any): any {
     return set(key, value, this);
   }
 
-  deleteHash(hash, key) {
+  deleteHash(hash: any, key: any): any {
     return removeHash(hash, key, this);
   }
 
-  removeHash(hash, key) {
+  removeHash(hash: any, key: any): any {
     return removeHash(hash, key, this);
   }
 
-  remove(key) {
+  remove(key: any): any {
     return remove(key, this);
   }
 
-  beginMutation() {
+  beginMutation(): any {
     return beginMutation(this);
   }
 
-  endMutation() {
+  endMutation(): any {
     return endMutation(this);
   }
 
-  mutate(f) {
+  mutate(f: any): any {
     return mutate(f, this);
   }
 
-  entries() {
+  entries(): any {
     return entries(this);
   }
 
-  keys() {
+  keys(): any {
     return keys(this);
   }
 
-  values() {
+  values(): any {
     return values(this);
   }
 
-  fold(f, z) {
+  fold(f: any, z: any): any {
     return fold(f, z, this);
   }
 
-  forEach(f) {
+  forEach(f: any): any {
     return forEach(f, this);
   }
 
-  [Symbol.iterator] = function () {
+  [Symbol.iterator] = function() {
     return entries(this);
   }
 }

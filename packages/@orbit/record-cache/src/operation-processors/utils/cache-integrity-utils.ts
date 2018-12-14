@@ -42,7 +42,7 @@ export function getAllInverseRelationships(record: Record): RecordRelationshipId
   const relationships = record && record.relationships;
   if (relationships) {
     const recordIdentity = cloneRecordIdentity(record);
-    const inverseRelationships = [];
+    const inverseRelationships: RecordRelationshipIdentity[] = [];
 
     Object.keys(relationships).forEach(relationship => {
       const relationshipData = relationships[relationship] && relationships[relationship].data;

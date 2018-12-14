@@ -7,7 +7,6 @@ import {
   KeyMap
 } from '@orbit/data';
 import Cache from '../src/cache';
-import './test-helper';
 
 const { module, test } = QUnit;
 

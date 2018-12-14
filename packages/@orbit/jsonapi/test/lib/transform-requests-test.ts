@@ -1,6 +1,5 @@
 import {
   Schema,
-  Transform,
   TransformBuilder,
   buildTransform
 } from '@orbit/data';

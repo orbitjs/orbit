@@ -1,6 +1,5 @@
 import { Bucket } from '@orbit/core';
 import LocalStorageBucket from '../src/bucket';
-import './test-helper';
 
 const { module, test } = QUnit;
 

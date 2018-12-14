@@ -1,4 +1,4 @@
-export { default } from './main';
+export { default, OrbitGlobal } from './main';
 export { default as TaskQueue, TaskQueueSettings, TASK_QUEUE_EVENTS } from './task-queue';
 export * from './task';
 export { default as TaskProcessor } from './task-processor';

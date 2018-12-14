@@ -11,7 +11,6 @@ import Orbit, {
 } from '@orbit/data';
 import JSONAPISource from '../src/jsonapi-source';
 import { jsonapiResponse } from './support/jsonapi';
-import './test-helper';
 
 declare const sinon: any;
 
@@ -25,7 +24,7 @@ module('JSONAPISource', function(hooks) {
 
   module('with a secondary key', function(hooks) {
     hooks.beforeEach(() => {
-      fetchStub = sinon.stub(Orbit, 'fetch');
+      fetchStub = sinon.stub(self, 'fetch');
 
       schema = new Schema({
         models: {
@@ -222,7 +221,7 @@ module('JSONAPISource', function(hooks) {
       assert.equal(source.responseHasContent(response), false, 'Plain json can not be parsed by default.');
     });
 
-    test('#push - can add records', function(assert) {
+    test('#push - can add records', async function(assert) {
       assert.expect(7);
 
       let transformCount = 0;
@@ -248,7 +247,7 @@ module('JSONAPISource', function(hooks) {
         value: '12345'
       };
 
-      source.on('transform', <() => void>function(transform) {
+      source.on('transform', function(transform) {
         transformCount++;
 
         if (transformCount === 1) {
@@ -273,27 +272,26 @@ module('JSONAPISource', function(hooks) {
           data: { id: '12345', type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
         }));
 
-      return source.push(t => t.addRecord(planet))
-        .then(function() {
-          assert.ok(true, 'transform resolves successfully');
+      await source.push(t => t.addRecord(planet));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
-          assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
-          assert.deepEqual(
-            JSON.parse(fetchStub.getCall(0).args[1].body),
-            {
-              data: {
-                type: 'planets',
-                attributes: {
-                  name: 'Jupiter',
-                  classification: 'gas giant'
-                }
-              }
-            },
-            'fetch called with expected data'
-          );
-        });
+      assert.ok(true, 'transform resolves successfully');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
+      assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        {
+          data: {
+            type: 'planets',
+            attributes: {
+              name: 'Jupiter',
+              classification: 'gas giant'
+            }
+          }
+        },
+        'fetch called with expected data'
+      );
     });
 
     test('#push - can add sideloaded records', function (assert) {
@@ -896,7 +894,7 @@ module('JSONAPISource', function(hooks) {
 
       fetchStub
         .withArgs('/planets/12345')
-        .returns(Orbit.Promise.reject(':('));
+        .returns(Promise.reject(':('));
 
       return source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'))
         .then(() => {
@@ -1053,7 +1051,7 @@ module('JSONAPISource', function(hooks) {
 
       fetchStub
         .withArgs('/planets/12345')
-        .returns(Orbit.Promise.reject(':('));
+        .returns(Promise.reject(':('));
 
       return source.pull(q => q.findRecord({ type: 'planet', id: planet.id }))
         .then(() => {
@@ -1646,7 +1644,7 @@ module('JSONAPISource', function(hooks) {
 
       fetchStub
         .withArgs('/planets/12345')
-        .returns(Orbit.Promise.reject(':('));
+        .returns(Promise.reject(':('));
 
       return source.query(q => q.findRecord({ type: 'planet', id: planet.id }))
         .then(() => {
@@ -2085,7 +2083,7 @@ module('JSONAPISource', function(hooks) {
 
   module('with no secondary keys', function(hooks) {
     hooks.beforeEach(function() {
-      fetchStub = sinon.stub(Orbit, 'fetch');
+      fetchStub = sinon.stub(self, 'fetch');
 
       let schema = new Schema({
         models: {
@@ -2117,7 +2115,7 @@ module('JSONAPISource', function(hooks) {
       fetchStub.restore();
     });
 
-    test('#push - can add records', function(assert) {
+    test('#push - can add records', async function(assert) {
       assert.expect(5);
 
       let transformCount = 0;
@@ -2158,27 +2156,26 @@ module('JSONAPISource', function(hooks) {
           data: { id: planet.id, type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
         }));
 
-      return source.push(t => t.addRecord(planet))
-        .then(function() {
-          assert.ok(true, 'transform resolves successfully');
+      await source.push(t => t.addRecord(planet));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
-          assert.deepEqual(
-            JSON.parse(fetchStub.getCall(0).args[1].body),
-            {
-              data: {
-                type: 'planets',
-                id: planet.id,
-                attributes: {
-                  name: 'Jupiter',
-                  classification: 'gas giant'
-                }
-              }
-            },
-            'fetch called with expected data'
-          );
-        });
+      assert.ok(true, 'transform resolves successfully');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        {
+          data: {
+            type: 'planets',
+            id: planet.id,
+            attributes: {
+              name: 'Jupiter',
+              classification: 'gas giant'
+            }
+          }
+        },
+        'fetch called with expected data'
+      );
     });
   });
 });

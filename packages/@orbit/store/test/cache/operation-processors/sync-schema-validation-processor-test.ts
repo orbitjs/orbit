@@ -6,7 +6,6 @@ import {
 } from '@orbit/data';
 import Cache from '../../../src/cache';
 import { SyncSchemaValidationProcessor } from '@orbit/record-cache';
-import '../../test-helper';
 
 const { module, test } = QUnit;
 

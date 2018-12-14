@@ -12,7 +12,6 @@ import {
   SyncSchemaConsistencyProcessor
 } from '@orbit/record-cache';
 import Store from '../src/index';
-import './test-helper';
 
 declare const RSVP: any;
 

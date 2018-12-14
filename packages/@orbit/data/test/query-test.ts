@@ -1,4 +1,4 @@
-import { Query, buildQuery } from '../src/query';
+import { buildQuery } from '../src/query';
 import { QueryTerm } from '../src/query-term';
 import { FindRecords } from '../src/query-expression';
 import QueryBuilder from '../src/query-builder';

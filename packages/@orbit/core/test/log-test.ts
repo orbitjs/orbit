@@ -1,7 +1,6 @@
 import Log from '../src/log';
 import { NotLoggedException, OutOfRangeException } from '../src/exception';
-import { FakeBucket } from './test-helper';
-import './test-helper';
+import FakeBucket from './support/fake-bucket';
 
 const { module, test } = QUnit;
 

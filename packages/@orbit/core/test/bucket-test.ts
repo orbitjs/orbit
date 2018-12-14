@@ -1,8 +1,5 @@
-import Orbit from '../src/main';
 import { Bucket } from '../src/bucket';
-import './test-helper';
 
-const { Promise } = Orbit;
 const { module, test } = QUnit;
 
 module('Bucket', function() {

@@ -4,14 +4,12 @@ import {
   verifyLocalStorageIsEmpty
 } from './support/local-storage';
 import {
-  Transform,
   Schema,
   Source,
   KeyMap
 } from '@orbit/data';
 import Orbit from '@orbit/core';
 import LocalStorageSource from '../src/source';
-import './test-helper';
 
 const { module, test } = QUnit;
 

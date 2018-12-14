@@ -64,7 +64,7 @@ export abstract class Strategy {
     this._logLevel = this._customLogLevel = options.logLevel;
   }
 
-  activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
+  async activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<void> {
     this._coordinator = coordinator;
 
     if (this._customLogLevel === undefined) {
@@ -76,14 +76,10 @@ export abstract class Strategy {
     } else {
       this._sources = coordinator.sources;
     }
-
-    return Orbit.Promise.resolve();
   }
 
-  deactivate(): Promise<any> {
+  async deactivate(): Promise<void> {
     this._coordinator = null;
-
-    return Orbit.Promise.resolve();
   }
 
   get name(): string {

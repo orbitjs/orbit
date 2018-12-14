@@ -9,7 +9,10 @@ import Orbit, {
   Source, SourceSettings,
   Transform,
   TransformOrOperations,
-  RecordOperation
+  RecordOperation,
+  Operation,
+  ReplaceRecordOperation,
+  Record
 } from '@orbit/data';
 import { assert } from '@orbit/utils';
 import { supportsIndexedDB } from './lib/indexeddb';
@@ -94,7 +97,7 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
   /////////////////////////////////////////////////////////////////////////////
 
   async _pull(query: Query): Promise<Transform[]> {
-    let operations;
+    let operations: Operation[];
 
     const results = await this._cache.query(query);
 
@@ -106,10 +109,11 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
         };
       });
     } else if (results) {
+      let record = results as Record;
       operations = [{
         op: 'replaceRecord',
-        record: results
-      }];
+        record
+      } as ReplaceRecordOperation];
     } else {
       operations = [];
     }

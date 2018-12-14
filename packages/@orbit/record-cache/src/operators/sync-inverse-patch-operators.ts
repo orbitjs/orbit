@@ -1,5 +1,6 @@
 import { Dict, deepGet, deepSet, eq, isArray } from '@orbit/utils';
 import {
+  Record,
   RecordOperation,
   AddRecordOperation,
   AddToRelatedRecordsOperation,
@@ -44,7 +45,7 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
 
   replaceRecord(cache: SyncRecordAccessor, op: ReplaceRecordOperation): RecordOperation {
     const current = cache.getRecordSync(op.record);
-    const replacement = op.record;
+    const replacement: Record = op.record;
     const { type, id } = replacement;
 
     if (current) {
@@ -52,9 +53,9 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
       let changed = false;
 
       ['attributes', 'keys'].forEach(grouping => {
-        if (replacement[grouping]) {
-          Object.keys(replacement[grouping]).forEach(field => {
-            let value = replacement[grouping][field];
+        if ((replacement as any)[grouping]) {
+          Object.keys((replacement as any)[grouping]).forEach(field => {
+            let value = (replacement as any)[grouping][field];
             let currentValue = deepGet(current, [grouping, field]);
             if (!eq(value, currentValue)) {
               changed = true;

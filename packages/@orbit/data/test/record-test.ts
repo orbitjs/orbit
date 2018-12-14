@@ -1,4 +1,13 @@
-import { cloneRecordIdentity, equalRecordIdentities, equalRecordIdentitySets, uniqueRecordIdentities, recordsInclude, recordsIncludeAll, deserializeRecordIdentity, serializeRecordIdentity } from '../src/record';
+import {
+  cloneRecordIdentity,
+  equalRecordIdentities,
+  equalRecordIdentitySets,
+  uniqueRecordIdentities,
+  recordsInclude,
+  recordsIncludeAll,
+  deserializeRecordIdentity,
+  serializeRecordIdentity
+} from '../src/index';
 import './test-helper';
 
 const { module, test } = QUnit;

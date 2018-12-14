@@ -1,12 +1,10 @@
-import Orbit, {
+import {
   Source,
   pullable, isPullable,
-  Query,
   buildTransform
 } from '../../src/index';
 import '../test-helper';
 
-const { Promise } = Orbit;
 const { module, test } = QUnit;
 
 module('@pullable', function(hooks) {

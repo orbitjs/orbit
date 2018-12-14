@@ -60,7 +60,7 @@ export default class SyncCacheIntegrityProcessor extends SyncOperationProcessor 
     }
   }
 
-  finally(operation): RecordOperation[] {
+  finally(operation: RecordOperation): RecordOperation[] {
     switch (operation.op) {
       case 'replaceRelatedRecord':
         this.addInverseRelationship(operation.record, operation.relationship, operation.relatedRecord);

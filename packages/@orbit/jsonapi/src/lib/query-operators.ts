@@ -24,7 +24,7 @@ import { DeserializedDocument } from '../jsonapi-serializer';
 import { Filter, RequestOptions, buildFetchSettings, customRequestOptions } from './request-settings';
 
 function operationsFromDeserializedDocument(deserialized: DeserializedDocument): Operation[] {
-  const records = [];
+  const records: Record[] = [];
   Array.prototype.push.apply(records, toArray(deserialized.data));
 
   if (deserialized.included) {
@@ -152,7 +152,7 @@ export const QueryOperators: Dict<QueryOperator> = {
   }
 };
 
-function buildFilterParam(source: JSONAPISource, filterSpecifiers: FilterSpecifier[]) {
+function buildFilterParam(source: JSONAPISource, filterSpecifiers: FilterSpecifier[]): Filter[] {
   const filters: Filter[] = [];
 
   filterSpecifiers.forEach(filterSpecifier => {
@@ -183,7 +183,7 @@ function buildFilterParam(source: JSONAPISource, filterSpecifiers: FilterSpecifi
   return filters;
 }
 
-function buildSortParam(source: JSONAPISource, sortSpecifiers: SortSpecifier[]) {
+function buildSortParam(source: JSONAPISource, sortSpecifiers: SortSpecifier[]): string {
   return sortSpecifiers.map(sortSpecifier => {
     if (sortSpecifier.kind === 'attribute') {
       const attributeSort = sortSpecifier as AttributeSortSpecifier;

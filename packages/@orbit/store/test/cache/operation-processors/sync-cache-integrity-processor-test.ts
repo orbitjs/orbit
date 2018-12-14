@@ -5,7 +5,6 @@ import {
 } from '@orbit/data';
 import { SyncCacheIntegrityProcessor } from '@orbit/record-cache';
 import Cache from '../../../src/cache';
-import '../../test-helper';
 
 const { module, test } = QUnit;
 

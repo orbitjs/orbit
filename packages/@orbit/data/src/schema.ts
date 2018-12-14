@@ -1,7 +1,7 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from './main';
 import { ModelNotFound } from './exception';
-import { assert, clone, Dict } from '@orbit/utils';
+import { Dict } from '@orbit/utils';
 import { evented, Evented } from '@orbit/core';
 import { Record, RecordInitializer } from './record';
 
@@ -86,23 +86,11 @@ export default class Schema implements Evented, RecordInitializer {
   private _version: number;
 
   // Evented interface stubs
-  on: (event: string, callback: (any) => void, binding?: any) => void;
-  off: (event: string, callback: (any) => void, binding?: any) => void;
-  one: (event: string, callback: (any) => void, binding?: any) => void;
-  emit: (event: string, ...args) => void;
+  on: (event: string, callback: () => void, binding?: any) => void;
+  off: (event: string, callback: () => void, binding?: any) => void;
+  one: (event: string, callback: () => void, binding?: any) => void;
+  emit: (event: string, ...args: any[]) => void;
   listeners: (event: string) => any[];
-
-  /**
-   * Create a new Schema.
-   *
-   * @constructor
-   * @param {SchemaSettings} [settings={}] Optional. Configuration settings.
-   * @param {Integer}        [settings.version]       Optional. Schema version. Defaults to 1.
-   * @param {Object}   [settings.models]        Optional. Schemas for individual models supported by this schema.
-   * @param {Function} [settings.generateId]    Optional. Function used to generate IDs.
-   * @param {Function} [settings.pluralize]     Optional. Function used to pluralize names.
-   * @param {Function} [settings.singularize]   Optional. Function used to singularize names.
-   */
 
   constructor(settings: SchemaSettings = {}) {
     if (settings.version === undefined) {
@@ -118,7 +106,6 @@ export default class Schema implements Evented, RecordInitializer {
 
   /**
    * Version
-   * @return {Integer} Version of schema.
    */
   get version(): number {
     return this._version;
@@ -128,12 +115,6 @@ export default class Schema implements Evented, RecordInitializer {
    * Upgrades Schema to a new version with new settings.
    *
    * Emits the `upgrade` event to cue sources to upgrade their data.
-   *
-   * @param {SchemaSettings} [settings={}]          Settings.
-   * @param {Integer}        [settings.version]     Optional. Schema version. Defaults to the current version + 1.
-   * @param {Object}         [settings.models]      Schemas for individual models supported by this schema.
-   * @param {Function}       [settings.pluralize]   Optional. Function used to pluralize names.
-   * @param {Function}       [settings.singularize] Optional. Function used to singularize names.
    */
   upgrade(settings: SchemaSettings = {}): void {
     if (settings.version === undefined) {
@@ -145,11 +126,8 @@ export default class Schema implements Evented, RecordInitializer {
 
   /**
    * Registers a complete set of settings
-   *
-   * @private
-   * @param {Object} settings Settings passed into `constructor` or `upgrade`.
    */
-  _applySettings(settings: SchemaSettings): void {
+  protected _applySettings(settings: SchemaSettings): void {
     // Version
     this._version = settings.version;
 
@@ -172,9 +150,6 @@ export default class Schema implements Evented, RecordInitializer {
 
   /**
    * Generate an id for a given model type.
-   *
-   * @param {String} type Optional. Type of the model for which the ID is being generated.
-   * @return {String} Generated model ID
    */
   generateId(type?: string): string {
     return Orbit.uuid();
@@ -185,9 +160,6 @@ export default class Schema implements Evented, RecordInitializer {
    *
    * Override with a more robust general purpose inflector or provide an
    * inflector tailored to the vocabularly of your application.
-   *
-   * @param  {String} word
-   * @return {String} plural form of `word`
    */
   pluralize(word: string): string {
     return word + 's';
@@ -198,9 +170,6 @@ export default class Schema implements Evented, RecordInitializer {
    *
    * Override with a more robust general purpose inflector or provide an
    * inflector tailored to the vocabularly of your application.
-   *
-   * @param  {String} word
-   * @return {String} singular form of `word`
    */
   singularize(word: string): string {
     if (word.lastIndexOf('s') === word.length - 1) {

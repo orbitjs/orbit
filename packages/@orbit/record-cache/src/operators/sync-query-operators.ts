@@ -9,7 +9,8 @@ import {
   FindRelatedRecords,
   SortSpecifier,
   AttributeSortSpecifier,
-  Record
+  Record,
+  RecordIdentity
 } from '@orbit/data';
 import { SyncRecordAccessor } from '../record-accessor';
 import { QueryResultData } from '../query-result';
@@ -61,7 +62,7 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
   }
 };
 
-function filterRecords(records, filters) {
+function filterRecords(records: Record[], filters: any[]) {
   return records.filter(record => {
     for (let i = 0, l = filters.length; i < l; i++) {
       if (!applyFilter(record, filters[i])) {
@@ -72,7 +73,7 @@ function filterRecords(records, filters) {
   });
 }
 
-function applyFilter(record, filter) {
+function applyFilter(record: Record, filter: any) {
   if (filter.kind === 'attribute') {
     let actual = deepGet(record, ['attributes', filter.attribute]);
     let expected = filter.value;
@@ -87,8 +88,8 @@ function applyFilter(record, filter) {
     }
   } else if (filter.kind === 'relatedRecords') {
     let relation = deepGet(record, ['relationships', filter.relation]);
-    let actual = relation === undefined ? [] : relation.data;
-    let expected = filter.records;
+    let actual: RecordIdentity[] = relation === undefined ? [] : relation.data;
+    let expected: RecordIdentity[] = filter.records;
     switch (filter.op) {
       case 'equal':
         return actual.length === expected.length
@@ -157,7 +158,7 @@ function sortRecords(records: Record[], sortSpecifiers: SortSpecifier[]) {
   });
 }
 
-function paginateRecords(records, paginationOptions) {
+function paginateRecords(records: Record[], paginationOptions: any) {
   if (paginationOptions.limit !== undefined) {
     let offset = paginationOptions.offset === undefined ? 0 : paginationOptions.offset;
     let limit = paginationOptions.limit;

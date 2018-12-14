@@ -1,5 +1,4 @@
 import Notifier from '../src/notifier';
-import './test-helper';
 
 const { module, test } = QUnit;
 
