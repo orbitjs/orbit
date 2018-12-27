@@ -1,10 +1,10 @@
 import Orbit from './main';
 import { QueryExpression } from './query-expression';
-import { QueryTerm } from './query-term';
+import { QueryTerm, FindRecordsTerm } from './query-term';
 import QueryBuilder from './query-builder';
 import { isObject } from '@orbit/utils';
 
-export type QueryBuilderFunc = (QueryBuilder: QueryBuilder) => QueryExpression;
+export type QueryBuilderFunc = (QueryBuilder: QueryBuilder) => FindRecordsTerm;
 export type QueryOrExpression = Query | QueryExpression | QueryTerm | QueryBuilderFunc;
 
 /**
