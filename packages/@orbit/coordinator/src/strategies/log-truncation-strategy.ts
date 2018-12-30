@@ -1,10 +1,10 @@
 import Coordinator, { ActivationOptions } from '../coordinator';
 import { Strategy, StrategyOptions } from '../strategy';
-import Orbit, {
+import {
   Source,
   Transform
 } from '@orbit/data';
-import { Dict, assert, objectValues } from '@orbit/utils';
+import { Dict } from '@orbit/utils';
 
 export class LogTruncationStrategy extends Strategy {
   protected _reviewing: Promise<void>;
@@ -16,30 +16,24 @@ export class LogTruncationStrategy extends Strategy {
     super(options);
   }
 
-  activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
-    return super.activate(coordinator, options)
-      .then(() => {
-        return this._reifySources();
-      })
-      .then(() => {
-        this._transformListeners = {};
-        this._sources.forEach(source => this._activateSource(source));
-      });
+  async activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<void> {
+    await super.activate(coordinator, options);
+    await this._reifySources();
+    this._transformListeners = {};
+    this._sources.forEach(source => this._activateSource(source));
   }
 
-  deactivate(): Promise<any> {
-    return super.deactivate()
-      .then(() => {
-        this._sources.forEach(source => this._deactivateSource(source));
-        this._transformListeners = null;
-      });
+  async deactivate(): Promise<void> {
+    await super.deactivate()
+    this._sources.forEach(source => this._deactivateSource(source));
+    this._transformListeners = null;
   }
 
   _reifySources(): Promise<void> {
     return this._sources
       .reduce((chain, source) => {
         return chain.then(() => source.transformLog.reified);
-      }, Orbit.Promise.resolve());
+      }, Promise.resolve());
   }
 
   _review(source: Source): Promise<void> {
@@ -70,7 +64,7 @@ export class LogTruncationStrategy extends Strategy {
     return this._sources
       .reduce((chain, source) => {
         return chain.then(() => source.transformLog.truncate(transformId, relativePosition));
-      }, Orbit.Promise.resolve());
+      }, Promise.resolve());
   }
 
   _activateSource(source: Source) {

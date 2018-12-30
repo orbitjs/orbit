@@ -1,5 +1,6 @@
-import Orbit, {
+import {
   buildTransform,
+  Operation,
   pullable, Pullable,
   pushable, Pushable,
   Resettable,
@@ -11,7 +12,8 @@ import Orbit, {
   TransformOrOperations,
   Record,
   RecordIdentity,
-  RecordOperation
+  RecordOperation,
+  ReplaceRecordOperation
 } from '@orbit/data';
 import { assert } from '@orbit/utils';
 import { supportsLocalStorage } from './lib/local-storage';
@@ -102,7 +104,8 @@ export default class LocalStorageSource extends Source implements Pullable, Push
   /////////////////////////////////////////////////////////////////////////////
 
   async _pull(query: Query): Promise<Transform[]> {
-    let operations;
+    let operations: Operation[];
+
     const results = this._cache.query(query);
 
     if (Array.isArray(results)) {
@@ -116,7 +119,7 @@ export default class LocalStorageSource extends Source implements Pullable, Push
       operations = [{
         op: 'replaceRecord',
         record: results
-      }];
+      } as ReplaceRecordOperation];
     } else {
       operations = [];
     }

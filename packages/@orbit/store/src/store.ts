@@ -90,7 +90,7 @@ export default class Store extends Source implements Syncable, Queryable, Updata
 
   upgrade(): Promise<void> {
     this._cache.upgrade();
-    return Orbit.Promise.resolve();
+    return Promise.resolve();
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -99,7 +99,7 @@ export default class Store extends Source implements Syncable, Queryable, Updata
 
   _sync(transform: Transform): Promise<void> {
     this._applyTransform(transform);
-    return Orbit.Promise.resolve();
+    return Promise.resolve();
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -108,7 +108,7 @@ export default class Store extends Source implements Syncable, Queryable, Updata
 
   _update(transform: Transform): Promise<any> {
     let results = this._applyTransform(transform);
-    return Orbit.Promise.resolve(results.length === 1 ? results[0] : results);
+    return Promise.resolve(results.length === 1 ? results[0] : results);
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -116,7 +116,7 @@ export default class Store extends Source implements Syncable, Queryable, Updata
   /////////////////////////////////////////////////////////////////////////////
 
   _query(query: QueryOrExpression) {
-    return Orbit.Promise.resolve(this._cache.query(query));
+    return Promise.resolve(this._cache.query(query));
   }
 
   /////////////////////////////////////////////////////////////////////////////

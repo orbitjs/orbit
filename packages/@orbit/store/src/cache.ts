@@ -45,7 +45,7 @@ export default class Cache extends SyncRecordCache {
   }
 
   setRecordsSync(records: Record[]): void {
-    let typedMap = {};
+    let typedMap: any = {};
     for (let record of records) {
       typedMap[record.type] = typedMap[record.type] || [];
       typedMap[record.type].push([record.id, record]);
@@ -68,7 +68,7 @@ export default class Cache extends SyncRecordCache {
 
   removeRecordsSync(recordIdentities: RecordIdentity[]): Record[] {
     const records = [];
-    const typedIds = {};
+    const typedIds: any = {};
     for (let recordIdentity of recordIdentities) {
       let record = this.getRecordSync(recordIdentity);
       if (record) {
@@ -152,7 +152,7 @@ export default class Cache extends SyncRecordCache {
   /////////////////////////////////////////////////////////////////////////////
 
   protected _resetInverseRelationships(base?: Cache) {
-    const inverseRelationships = {};
+    const inverseRelationships: Dict<ImmutableMap<string, RecordRelationshipIdentity[]>> = {};
     Object.keys(this._schema.models).forEach(type => {
       let baseRelationships = base && base._inverseRelationships[type];
       inverseRelationships[type] = new ImmutableMap(baseRelationships);

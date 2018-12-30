@@ -9,7 +9,8 @@ let buildOptions = {
   external: [
     '@orbit/utils',
     '@orbit/core',
-    '@orbit/data'
+    '@orbit/data',
+    '@orbit/record-cache'
   ]
 };
 

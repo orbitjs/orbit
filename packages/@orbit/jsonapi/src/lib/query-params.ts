@@ -1,5 +1,15 @@
-function flattenObjectToParams(obj, path = []) {
-  let params = [];
+interface RawParam {
+  path: string[],
+  val: string
+}
+
+export interface Param {
+  path: string,
+  val: string
+}
+
+function flattenObjectToParams(obj: any, path: string[] = []): RawParam[] {
+  let params: RawParam[] = [];
 
   Object.keys(obj).forEach(key => {
     if (!obj.hasOwnProperty(key)) { return; }
@@ -20,17 +30,20 @@ function flattenObjectToParams(obj, path = []) {
   return params;
 }
 
-export function encodeQueryParams(obj) {
+export function encodeQueryParams(obj: any) {
   return flattenObjectToParams(obj)
-    .map(param => {
-      if (param.path.length === 1) {
-        param.path = param.path[0];
+    .map(rawParam => {
+      let path: string;
+      let val = rawParam.val;
+
+      if (rawParam.path.length === 1) {
+        path = rawParam.path[0];
       } else {
-        let firstSegment = param.path[0];
-        let remainingSegments = param.path.slice(1);
-        param.path = firstSegment + '[' + remainingSegments.join('][') + ']';
+        let firstSegment = rawParam.path[0];
+        let remainingSegments = rawParam.path.slice(1);
+        path = firstSegment + '[' + remainingSegments.join('][') + ']';
       }
-      return param;
+      return { path, val };
     })
     .map(param => encodeURIComponent(param.path) + '=' + encodeURIComponent(param.val))
     .join('&');
@@ -43,7 +56,7 @@ export function appendQueryParams(url: string, obj: any): string {
     let filter = obj.filter;
     delete obj.filter;
 
-    filter.forEach(filterOption => {
+    filter.forEach((filterOption: any) => {
       fullUrl = appendQueryParams(fullUrl, { filter: filterOption });
     });
   }

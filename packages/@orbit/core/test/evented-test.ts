@@ -1,8 +1,5 @@
-import Orbit from '../src/main';
 import evented, { isEvented, fulfillInSeries, settleInSeries } from '../src/evented';
-import './test-helper';
 
-const { Promise } = Orbit;
 const { module, test } = QUnit;
 
 function successfulOperation() {

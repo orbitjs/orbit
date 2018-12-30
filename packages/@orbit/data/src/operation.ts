@@ -3,9 +3,6 @@ import { eq, deepGet, deepSet } from '@orbit/utils';
 
 /**
  * Base Operation interface, which requires just an `op` string.
- *
- * @export
- * @interface Operation
  */
 export interface Operation {
   op: string;
@@ -13,10 +10,6 @@ export interface Operation {
 
 /**
  * Add record operation.
- *
- * @export
- * @interface AddRecordOperation
- * @extends {Operation}
  */
 export interface AddRecordOperation extends Operation {
   op: 'addRecord';
@@ -25,10 +18,6 @@ export interface AddRecordOperation extends Operation {
 
 /**
  * Replace record operation.
- *
- * @export
- * @interface ReplaceRecordOperation
- * @extends {Operation}
  */
 export interface ReplaceRecordOperation extends Operation {
   op: 'replaceRecord';
@@ -37,10 +26,6 @@ export interface ReplaceRecordOperation extends Operation {
 
 /**
  * Remove record operation.
- *
- * @export
- * @interface RemoveRecordOperation
- * @extends {Operation}
  */
 export interface RemoveRecordOperation extends Operation {
   op: 'removeRecord';
@@ -49,10 +34,6 @@ export interface RemoveRecordOperation extends Operation {
 
 /**
  * Replace key operation.
- *
- * @export
- * @interface ReplaceKeyOperation
- * @extends {Operation}
  */
 export interface ReplaceKeyOperation extends Operation {
   op: 'replaceKey';
@@ -63,10 +44,6 @@ export interface ReplaceKeyOperation extends Operation {
 
 /**
  * Replace attribute operation.
- *
- * @export
- * @interface ReplaceAttributeOperation
- * @extends {Operation}
  */
 export interface ReplaceAttributeOperation extends Operation {
   op: 'replaceAttribute';
@@ -77,10 +54,6 @@ export interface ReplaceAttributeOperation extends Operation {
 
 /**
  * Add to has-many relationship operation.
- *
- * @export
- * @interface AddToRelatedRecordsOperation
- * @extends {Operation}
  */
 export interface AddToRelatedRecordsOperation extends Operation {
   op: 'addToRelatedRecords';
@@ -91,10 +64,6 @@ export interface AddToRelatedRecordsOperation extends Operation {
 
 /**
  * Remove from has-many relationship operation.
- *
- * @export
- * @interface RemoveFromRelatedRecordsOperation
- * @extends {Operation}
  */
 export interface RemoveFromRelatedRecordsOperation extends Operation {
   op: 'removeFromRelatedRecords';
@@ -105,10 +74,6 @@ export interface RemoveFromRelatedRecordsOperation extends Operation {
 
 /**
  * Replace has-many relationship operation.
- *
- * @export
- * @interface ReplaceRelatedRecordsOperation
- * @extends {Operation}
  */
 export interface ReplaceRelatedRecordsOperation extends Operation {
   op: 'replaceRelatedRecords';
@@ -119,10 +84,6 @@ export interface ReplaceRelatedRecordsOperation extends Operation {
 
 /**
  * Replace has-one relationship operation.
- *
- * @export
- * @interface ReplaceRelatedRecordOperation
- * @extends {Operation}
  */
 export interface ReplaceRelatedRecordOperation extends Operation {
   op: 'replaceRelatedRecord';
@@ -133,8 +94,6 @@ export interface ReplaceRelatedRecordOperation extends Operation {
 
 /**
  * Union of all record-related operations.
- *
- * @export
  */
 export type RecordOperation = AddRecordOperation |
   ReplaceRecordOperation |
@@ -285,10 +244,6 @@ function updateRecordRemoveFromHasMany(record: Record, relationship: string, rel
  *
  * This method respects the order of the operations array and does not allow
  * reordering of operations that affect relationships.
- *
- * @export
- * @param {RecordOperation[]} operations
- * @returns {RecordOperation[]}
  */
 export function coalesceRecordOperations(operations: RecordOperation[]): RecordOperation[] {
   for (let i = 0, l = operations.length; i < l; i++) {
@@ -314,11 +269,6 @@ export function coalesceRecordOperations(operations: RecordOperation[]): RecordO
 /**
  * Determine the differences between a record and its updated version in terms
  * of a set of operations.
- *
- * @export
- * @param {Record} record
- * @param {Record} updatedRecord
- * @returns {RecordOperation[]}
  */
 export function recordDiffs(record: Record, updatedRecord: Record): RecordOperation[] {
   const diffs: RecordOperation[] = [];

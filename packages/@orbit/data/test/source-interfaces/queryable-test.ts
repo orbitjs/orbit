@@ -1,11 +1,9 @@
-import Orbit, {
+import {
   Source,
-  queryable, isQueryable,
-  Query
+  queryable, isQueryable
 } from '../../src/index';
 import '../test-helper';
 
-const { Promise } = Orbit;
 const { module, test } = QUnit;
 
 module('@queryable', function(hooks) {

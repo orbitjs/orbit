@@ -26,8 +26,8 @@ export function buildFetchSettings(options: RequestOptions = {}, customSettings?
   }
 
   ['filter', 'include', 'page', 'sort'].forEach(param => {
-    if (options[param]) {
-      let value = options[param];
+    let value = (options as any)[param];
+    if (value) {
       if (param === 'include' && isArray(value)) {
         value = value.join(',');
       }
@@ -36,9 +36,10 @@ export function buildFetchSettings(options: RequestOptions = {}, customSettings?
     }
   });
 
-  if (options['timeout']) {
+  let timeout = (options as any)['timeout'];
+  if (timeout) {
     deprecate("JSONAPI: Specify `timeout` option inside a `settings` object.")
-    settings.timeout = options['timeout'];
+    settings.timeout = timeout;
   }
 
   return settings;

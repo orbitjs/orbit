@@ -1,11 +1,10 @@
-import Orbit, {
+import {
   Source,
   updatable, isUpdatable,
   buildTransform
 } from '../../src/index';
 import '../test-helper';
 
-const { Promise } = Orbit;
 const { module, test } = QUnit;
 
 module('@updatable', function(hooks) {

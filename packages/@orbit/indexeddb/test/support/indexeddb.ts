@@ -1,11 +1,9 @@
-import Orbit from '@orbit/data';
-
 async function getRecord(cache, record) {
   const db = await cache.openDB();
   const transaction = db.transaction([record.type]);
   const objectStore = transaction.objectStore(record.type);
 
-  return new Orbit.Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     const request = objectStore.get(record.id);
 
     request.onerror = function(/* event */) {

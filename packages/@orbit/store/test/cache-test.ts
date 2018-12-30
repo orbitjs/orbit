@@ -8,7 +8,7 @@ import {
 } from '@orbit/data';
 import { clone } from '@orbit/utils';
 import { Cache } from '../src/index';
-import { arrayMembershipMatches } from './test-helper';
+import { arrayMembershipMatches } from './support/matchers';
 
 const { module, test } = QUnit;
 

@@ -22,14 +22,14 @@ export function jsonapiResponse(_options, body?, timeout?) {
   // console.log('jsonapiResponse', body, options, response.headers.get('Content-Type'));
 
   if (timeout) {
-    return new Orbit.Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         let timer = Orbit.globals.setTimeout(() => {
           Orbit.globals.clearTimeout(timer);
           resolve(response);
         }, timeout);
       });
   } else {
-    return Orbit.Promise.resolve(response);
+    return Promise.resolve(response);
   }
 }
 

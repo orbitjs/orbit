@@ -5,7 +5,6 @@ import {
   TransformBuilder,
   QueryBuilder
 } from '../src/index';
-import Orbit, { isEvented } from '@orbit/core';
 import { FakeBucket } from './test-helper';
 
 const { module, test } = QUnit;
@@ -32,7 +31,7 @@ module('Source', function(hooks) {
     class MyDynamicSource extends Source {
       upgrade() {
         assert.ok(true, 'upgrade called');
-        return Orbit.Promise.resolve();
+        return Promise.resolve();
       }
     };
 
@@ -47,7 +46,7 @@ module('Source', function(hooks) {
     class MyDynamicSource extends Source {
       upgrade() {
         assert.ok(false, 'upgrade should not be called');
-        return Orbit.Promise.resolve();
+        return Promise.resolve();
       }
     };
 

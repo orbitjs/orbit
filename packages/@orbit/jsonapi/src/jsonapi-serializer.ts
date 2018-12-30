@@ -1,4 +1,4 @@
-import { isArray, isObject, dasherize, camelize, deepSet, Dict } from '@orbit/utils';
+import { isArray, dasherize, camelize, deepSet, Dict } from '@orbit/utils';
 import {
   Schema,
   KeyMap,
@@ -9,8 +9,6 @@ import {
 import {
   Resource,
   ResourceIdentity,
-  ResourceHasManyRelationship,
-  ResourceHasOneRelationship,
   ResourceRelationship,
   JSONAPIDocument
 } from './jsonapi-document';
@@ -191,17 +189,17 @@ export default class JSONAPISerializer {
     let data;
     if (isArray(document.data)) {
       if (primaryRecordData !== undefined) {
-        data = (<Resource[]>document.data).map((entry, i) => {
-          return this.deserializeResource(entry, primaryRecordData[i]);
+        data = (document.data as Resource[]).map((entry, i) => {
+          return this.deserializeResource(entry, (primaryRecordData as Record[])[i]);
         });
       } else {
-        data = (<Resource[]>document.data).map((entry, i) => this.deserializeResource(entry));
+        data = (document.data as Resource[]).map((entry, i) => this.deserializeResource(entry));
       }
     } else if (document.data !== null) {
       if (primaryRecordData !== undefined) {
-        data = this.deserializeResource(<Resource>document.data, (<Record>primaryRecordData));
+        data = this.deserializeResource(document.data as Resource, primaryRecordData as Record);
       } else {
-        data = this.deserializeResource(<Resource>document.data);
+        data = this.deserializeResource(document.data as Resource);
       }
     } else {
       data = null;
@@ -300,7 +298,7 @@ export default class JSONAPISerializer {
       }
 
       record.relationships = record.relationships || {};
-      record.relationships[relationship] = { data };
+      (record.relationships as any)[relationship] = { data };
     }
   }
 

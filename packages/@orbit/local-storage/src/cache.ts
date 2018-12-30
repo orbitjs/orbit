@@ -154,7 +154,7 @@ export default class LocalStorageCache extends SyncRecordCache {
       const key = this.getKeyForRecordInverses(relationship.relatedRecord);
       const item = Orbit.globals.localStorage.getItem(key);
       if (item) {
-        let rels = item ? JSON.parse(item) : [];
+        let rels: RecordRelationshipIdentity[] = item ? JSON.parse(item) : [];
         let newRels = rels.filter(rel => !(equalRecordIdentities(rel.record, relationship.record) &&
                                            rel.relationship === relationship.relationship));
         Orbit.globals.localStorage.setItem(key, JSON.stringify(newRels));

@@ -3,6 +3,11 @@ import { uuid } from '@orbit/utils';
 declare const self: any;
 declare const global: any;
 
+export interface OrbitGlobal {
+  globals: any;
+  uuid: () => string;
+}
+
 // Establish the root object, `window` (`self`) in the browser, `global`
 // on the server, or `this` in some virtual machines. We use `self`
 // instead of `window` for `WebWorker` support.
@@ -16,9 +21,8 @@ const globals = typeof self == 'object' && self.self === self && self ||
                 typeof global == 'object' && global ||
                 {};
 
-const Orbit: any = {
+const Orbit: OrbitGlobal = {
   globals,
-  Promise: globals.Promise,
   uuid
 };
 

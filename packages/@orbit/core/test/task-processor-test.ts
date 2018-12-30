@@ -1,9 +1,7 @@
 import Orbit from '../src/main';
 import { Task, Performer } from '../src/task';
 import TaskProcessor from '../src/task-processor';
-import './test-helper';
 
-const { Promise } = Orbit;
 const { module, test } = QUnit;
 
 ///////////////////////////////////////////////////////////////////////////////

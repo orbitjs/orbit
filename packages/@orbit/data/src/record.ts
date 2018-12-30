@@ -73,15 +73,17 @@ export function recordsIncludeAll(records: RecordIdentity[], match: RecordIdenti
 
 export function mergeRecords(current: Record | null, updates: Record): Record {
   if (current) {
-    let record = cloneRecordIdentity(current);
+    let record: any = cloneRecordIdentity(current);
+    let currentRecord: any = current;
+    let updatedRecord: any = updates;
 
     ['attributes', 'keys', 'relationships'].forEach(grouping => {
-      if (current[grouping] && updates[grouping]) {
-        record[grouping] = merge({}, current[grouping], updates[grouping]);
-      } else if (current[grouping]) {
-        record[grouping] = merge({}, current[grouping]);
-      } else if (updates[grouping]) {
-        record[grouping] = merge({}, updates[grouping]);
+      if (currentRecord[grouping] && updatedRecord[grouping]) {
+        record[grouping] = merge({}, currentRecord[grouping], updatedRecord[grouping]);
+      } else if (currentRecord[grouping]) {
+        record[grouping] = merge({}, currentRecord[grouping]);
+      } else if (updatedRecord[grouping]) {
+        record[grouping] = merge({}, updatedRecord[grouping]);
       }
     });
 

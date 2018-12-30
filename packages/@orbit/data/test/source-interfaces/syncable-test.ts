@@ -1,4 +1,4 @@
-import Orbit, {
+import {
   Source,
   syncable, isSyncable,
   buildTransform
@@ -42,7 +42,7 @@ module('@syncable', function(hooks) {
 
     source._sync = function(transform) {
       assert.strictEqual(transform, addPlanet, 'argument to _sync is a Transform');
-      return Orbit.Promise.resolve();
+      return Promise.resolve();
     };
 
     return source.sync(addPlanet)

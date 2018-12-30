@@ -40,7 +40,7 @@ export interface IndexedDBCacheSettings extends AsyncRecordCacheSettings {
  */
 export default class IndexedDBCache extends AsyncRecordCache {
   protected _namespace: string;
-  protected _db: any;
+  protected _db: IDBDatabase;
 
   constructor(settings: IndexedDBCacheSettings) {
     assert('Your browser does not support IndexedDB!', supportsIndexedDB());
@@ -102,7 +102,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
   }
 
   openDB(): Promise<IDBDatabase> {
-    return new Orbit.Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       if (this._db) {
         resolve(this._db);
       } else {
@@ -119,7 +119,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
           resolve(db);
         };
 
-        request.onupgradeneeded = (event) => {
+        request.onupgradeneeded = (event: any) => {
           // console.log('indexedDB upgrade needed');
           const db = this._db = event.target.result;
           if (event && event.oldVersion > 0) {
@@ -163,14 +163,14 @@ export default class IndexedDBCache extends AsyncRecordCache {
   /**
    * Migrate database.
    */
-  migrateDB(db: IDBDatabase, event: IDBVersionChangeEvent) {
+  migrateDB(db: IDBDatabase, event: IDBVersionChangeEvent): void {
     console.error('IndexedDBSource#migrateDB - should be overridden to upgrade IDBDatabase from: ', event.oldVersion, ' -> ', event.newVersion);
   }
 
   deleteDB(): Promise<void> {
     this.closeDB();
 
-    return new Orbit.Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let request = Orbit.globals.indexedDB.deleteDatabase(this.dbName);
 
       request.onerror = (/* event */) => {
@@ -185,16 +185,16 @@ export default class IndexedDBCache extends AsyncRecordCache {
     });
   }
 
-  registerModel(db, type) {
+  registerModel(db: IDBDatabase, type: string) {
     // console.log('registerModel', type);
     db.createObjectStore(type, { keyPath: 'id' });
     // TODO - create indices
   }
 
-  async clearRecords(type: string): Promise<void> {
+  clearRecords(type: string): Promise<void> {
     // console.log('clearRecords', type);
 
-    return new Orbit.Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const transaction = this._db.transaction([type], 'readwrite');
       const objectStore = transaction.objectStore(type);
       const request = objectStore.clear();
@@ -211,10 +211,10 @@ export default class IndexedDBCache extends AsyncRecordCache {
     });
   }
 
-  async getRecordAsync(record: RecordIdentity): Promise<Record> {
+  getRecordAsync(record: RecordIdentity): Promise<Record> {
     // console.log('getRecordAsync', record);
 
-    return new Orbit.Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const transaction = this._db.transaction([record.type]);
       const objectStore = transaction.objectStore(record.type);
       const request = objectStore.get(record.id);
@@ -240,24 +240,24 @@ export default class IndexedDBCache extends AsyncRecordCache {
     });
   }
 
-  async getRecordsAsync(type: string): Promise<Record[]> {
+  getRecordsAsync(type: string): Promise<Record[]> {
     // console.log('getRecordsAsync', type);
 
     if (!type) {
       return this._getAllRecords();
     } else {
-      return new Orbit.Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
         const transaction = this._db.transaction([type]);
         const objectStore = transaction.objectStore(type);
         const request = objectStore.openCursor();
-        const records = [];
+        const records: Record[] = [];
 
         request.onerror = function(/* event */) {
           // console.error('error - getRecords', request.error);
           reject(request.error);
         };
 
-        request.onsuccess = (event) => {
+        request.onsuccess = (event: any) => { // TODO: typing
           // console.log('success - getRecords', request.result);
           const cursor = event.target.result;
           if (cursor) {
@@ -277,11 +277,11 @@ export default class IndexedDBCache extends AsyncRecordCache {
     }
   }
 
-  async setRecordAsync(record: Record): Promise<void> {
+  setRecordAsync(record: Record): Promise<void> {
     const transaction = this._db.transaction([record.type], 'readwrite');
     const objectStore = transaction.objectStore(record.type);
 
-    return new Orbit.Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const request = objectStore.put(record);
 
       request.onerror = function(/* event */) {
@@ -300,9 +300,9 @@ export default class IndexedDBCache extends AsyncRecordCache {
     });
   }
 
-  async setRecordsAsync(records: Record[]): Promise<void> {
+  setRecordsAsync(records: Record[]): Promise<void> {
     if (records.length > 0) {
-      const types = [];
+      const types: string[] = [];
       for (let record of records) {
         if (!types.includes(record.type)) {
           types.push(record.type);
@@ -310,10 +310,10 @@ export default class IndexedDBCache extends AsyncRecordCache {
       }
       const transaction = this._db.transaction(types, 'readwrite');
 
-      return new Orbit.Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
         let i = 0;
 
-        let putNext = () => {
+        let putNext = (): any => {
           if (i < records.length) {
             let record = records[i++];
             let objectStore = transaction.objectStore(record.type);
@@ -334,8 +334,8 @@ export default class IndexedDBCache extends AsyncRecordCache {
     }
   }
 
-  async removeRecordAsync(recordIdentity: RecordIdentity): Promise<Record> {
-    return new Orbit.Promise((resolve, reject) => {
+  removeRecordAsync(recordIdentity: RecordIdentity): Promise<Record> {
+    return new Promise((resolve, reject) => {
       const transaction = this._db.transaction([recordIdentity.type], 'readwrite');
       const objectStore = transaction.objectStore(recordIdentity.type);
       const request = objectStore.delete(recordIdentity.id);
@@ -352,9 +352,9 @@ export default class IndexedDBCache extends AsyncRecordCache {
     });
   }
 
-  async removeRecordsAsync(records: RecordIdentity[]): Promise<Record[]> {
+  removeRecordsAsync(records: RecordIdentity[]): Promise<Record[]> {
     if (records.length > 0) {
-      const types = [];
+      const types: string[] = [];
       for (let record of records) {
         if (!types.includes(record.type)) {
           types.push(record.type);
@@ -362,10 +362,10 @@ export default class IndexedDBCache extends AsyncRecordCache {
       }
       const transaction = this._db.transaction(types, 'readwrite');
 
-      return new Orbit.Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
         let i = 0;
 
-        let removeNext = () => {
+        let removeNext = (): any => {
           if (i < records.length) {
             let record = records[i++];
             let objectStore = transaction.objectStore(record.type);
@@ -386,45 +386,45 @@ export default class IndexedDBCache extends AsyncRecordCache {
     }
   }
 
-  async getInverseRelationshipsAsync(recordIdentity: RecordIdentity): Promise<RecordRelationshipIdentity[]> {
+  getInverseRelationshipsAsync(recordIdentity: RecordIdentity): Promise<RecordRelationshipIdentity[]> {
     // console.log('getInverseRelationshipsAsync', recordIdentity);
 
-    return new Orbit.Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const transaction = this._db.transaction([INVERSE_RELS]);
       const objectStore = transaction.objectStore(INVERSE_RELS);
+      const results: RecordRelationshipIdentity[] = [];
       const request = objectStore.openCursor();
-      const records = [];
 
       request.onerror = function(/* event */) {
         // console.error('error - getRecords', request.error);
         reject(request.error);
       };
 
-      request.onsuccess = (event) => {
+      request.onsuccess = (event: any) => {
         // console.log('success - getInverseRelationshipsAsync', request.result);
         const cursor = event.target.result;
         if (cursor) {
-          let record = this._fromInverseRelationshipForIDB(cursor.value);
-          records.push(record);
+          let result = this._fromInverseRelationshipForIDB(cursor.value);
+          results.push(result);
           cursor.continue();
         } else {
-          resolve(records);
+          resolve(results);
         }
       };
     });
   }
 
-  async addInverseRelationshipsAsync(relationships: RecordRelationshipIdentity[]): Promise<void> {
+  addInverseRelationshipsAsync(relationships: RecordRelationshipIdentity[]): Promise<void> {
     // console.log('addInverseRelationshipsAsync', relationships);
 
     if (relationships.length > 0) {
       const transaction = this._db.transaction([INVERSE_RELS], 'readwrite');
       const objectStore = transaction.objectStore(INVERSE_RELS);
 
-      return new Orbit.Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
         let i = 0;
 
-        let putNext = () => {
+        let putNext = (): any => {
           if (i < relationships.length) {
             let relationship = relationships[i++];
             let ir = this._toInverseRelationshipForIDB(relationship);
@@ -442,20 +442,22 @@ export default class IndexedDBCache extends AsyncRecordCache {
 
         putNext();
       });
+    } else {
+      return Promise.resolve();
     }
   }
 
-  async removeInverseRelationshipsAsync(relationships: RecordRelationshipIdentity[]): Promise<void> {
+  removeInverseRelationshipsAsync(relationships: RecordRelationshipIdentity[]): Promise<void> {
     // console.log('removeInverseRelationshipsAsync', relationships);
 
     if (relationships.length > 0) {
       const transaction = this._db.transaction([INVERSE_RELS], 'readwrite');
       const objectStore = transaction.objectStore(INVERSE_RELS);
 
-      return new Orbit.Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
         let i = 0;
 
-        let removeNext = () => {
+        let removeNext = (): any => {
           if (i < relationships.length) {
             let relationship = relationships[i++];
             let id = this._serializeInverseRelationshipIdentity(relationship);
@@ -473,6 +475,8 @@ export default class IndexedDBCache extends AsyncRecordCache {
 
         removeNext();
       });
+    } else {
+      return Promise.resolve();
     }
   }
 
@@ -481,7 +485,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
   /////////////////////////////////////////////////////////////////////////////
 
   protected _getAllRecords(): Promise<Record[]> {
-    const allRecords = [];
+    const allRecords: Record[] = [];
 
     const objectStoreNames = this._db.objectStoreNames;
     const types: string[] = [];
@@ -499,7 +503,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
             Array.prototype.push.apply(allRecords, records);
           });
       });
-    }, Orbit.Promise.resolve())
+    }, Promise.resolve())
       .then(() => allRecords);
   }
 

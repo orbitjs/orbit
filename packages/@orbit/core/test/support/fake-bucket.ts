@@ -1,4 +1,3 @@
-import Orbit from '../../src/main';
 import { Bucket } from '../../src/bucket';
 import { Dict } from '@orbit/utils';
 
@@ -16,16 +15,16 @@ export default class FakeBucket extends Bucket {
   }
 
   getItem(key) {
-    return Orbit.Promise.resolve(this.data[key]);
+    return Promise.resolve(this.data[key]);
   }
 
   setItem(key, value) {
     this.data[key] = value;
-    return Orbit.Promise.resolve();
+    return Promise.resolve();
   }
 
   removeItem(key) {
     delete this.data[key];
-    return Orbit.Promise.resolve();
+    return Promise.resolve();
   }
 }

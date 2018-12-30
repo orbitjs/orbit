@@ -39,15 +39,15 @@ export default class IndexedDBBucket extends Bucket {
     super(settings);
   }
 
-  upgrade(settings: IndexedDBBucketSettings) {
+  async upgrade(settings: IndexedDBBucketSettings): Promise<void> {
     this.closeDB();
-    return super.upgrade(settings)
-      .then(() => this.openDB());
+    await super.upgrade(settings);
+    await this.openDB();
   }
 
-  _applySettings(settings: IndexedDBBucketSettings) {
+  async _applySettings(settings: IndexedDBBucketSettings): Promise<void> {
     this._storeName = settings.storeName;
-    return super._applySettings(settings);
+    await super._applySettings(settings);
   }
 
   /**
@@ -57,7 +57,7 @@ export default class IndexedDBBucket extends Bucket {
    *
    * @return {Integer} Version number.
    */
-  get dbVersion() {
+  get dbVersion(): number {
     return this.version;
   }
 
@@ -68,7 +68,7 @@ export default class IndexedDBBucket extends Bucket {
    *
    * @return {String} Database name.
    */
-  get dbName() {
+  get dbName(): string {
     return this.namespace;
   }
 
@@ -79,16 +79,16 @@ export default class IndexedDBBucket extends Bucket {
    *
    * @return {String} Database name.
    */
-  get dbStoreName() {
+  get dbStoreName(): string {
     return this._storeName;
   }
 
-  get isDBOpen() {
+  get isDBOpen(): boolean {
     return !!this._db;
   }
 
-  openDB() {
-    return new Orbit.Promise((resolve, reject) => {
+  openDB(): Promise<IDBDatabase> {
+    return new Promise((resolve, reject) => {
       if (this._db) {
         resolve(this._db);
       } else {
@@ -105,7 +105,7 @@ export default class IndexedDBBucket extends Bucket {
           resolve(db);
         };
 
-        request.onupgradeneeded = (event) => {
+        request.onupgradeneeded = (event: any) => {
           // console.log('indexedDB upgrade needed');
           const db = this._db = event.target.result;
           if (event && event.oldVersion > 0) {
@@ -118,36 +118,33 @@ export default class IndexedDBBucket extends Bucket {
     });
   }
 
-  closeDB() {
+  closeDB(): void {
     if (this.isDBOpen) {
       this._db.close();
       this._db = null;
     }
   }
 
-  reopenDB() {
+  reopenDB(): Promise<IDBDatabase> {
     this.closeDB();
     return this.openDB();
   }
 
-  createDB(db) {
+  createDB(db: IDBDatabase): void {
     db.createObjectStore(this.dbStoreName); //, { keyPath: 'key' });
   }
 
   /**
    * Migrate database.
-   *
-   * @param  {IDBDatabase} db              Database to upgrade.
-   * @param  {IDBVersionChangeEvent} event Event resulting from version change.
    */
-  migrateDB(db, event) {
+  migrateDB(db: IDBDatabase, event: IDBVersionChangeEvent): void {
     console.error('IndexedDBBucket#migrateDB - should be overridden to upgrade IDBDatabase from: ', event.oldVersion, ' -> ', event.newVersion);
   }
 
-  deleteDB() {
+  deleteDB(): Promise<void> {
     this.closeDB();
 
-    return new Orbit.Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       let request = Orbit.globals.indexedDB.deleteDatabase(this.dbName);
 
       request.onerror = (/* event */) => {
@@ -166,7 +163,7 @@ export default class IndexedDBBucket extends Bucket {
   getItem(key: string): Promise<any> {
     return this.openDB()
       .then(() => {
-        return new Orbit.Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
           const transaction = this._db.transaction([this.dbStoreName]);
           const objectStore = transaction.objectStore(this.dbStoreName);
           const request = objectStore.get(key);
@@ -184,46 +181,43 @@ export default class IndexedDBBucket extends Bucket {
       });
   }
 
-  setItem(key: string, value: any): Promise<void> {
-    return this.openDB()
-      .then(() => {
-        const transaction = this._db.transaction([this.dbStoreName], 'readwrite');
-        const objectStore = transaction.objectStore(this.dbStoreName);
+  async setItem(key: string, value: any): Promise<void> {
+    await this.openDB();
 
-        return new Orbit.Promise((resolve, reject) => {
-          const request = objectStore.put(value, key);
+    const transaction = this._db.transaction([this.dbStoreName], 'readwrite');
+    const objectStore = transaction.objectStore(this.dbStoreName);
 
-          request.onerror = function(/* event */) {
-            console.error('error - setItem', request.error);
-            reject(request.error);
-          };
+    await new Promise((resolve, reject) => {
+      const request = objectStore.put(value, key);
 
-          request.onsuccess = function(/* event */) {
-            // console.log('success - setItem');
-            resolve();
-          };
-        });
-      });
+      request.onerror = function(/* event */) {
+        console.error('error - setItem', request.error);
+        reject(request.error);
+      };
+
+      request.onsuccess = function(/* event */) {
+        // console.log('success - setItem');
+        resolve();
+      };
+    });
   }
 
-  removeItem(key: string): Promise<void> {
-    return this.openDB()
-      .then(() => {
-        return new Orbit.Promise((resolve, reject) => {
-          const transaction = this._db.transaction([this.dbStoreName], 'readwrite');
-          const objectStore = transaction.objectStore(this.dbStoreName);
-          const request = objectStore.delete(key);
+  async removeItem(key: string): Promise<void> {
+    await this.openDB();
+    await new Promise((resolve, reject) => {
+      const transaction = this._db.transaction([this.dbStoreName], 'readwrite');
+      const objectStore = transaction.objectStore(this.dbStoreName);
+      const request = objectStore.delete(key);
 
-          request.onerror = function(/* event */) {
-            console.error('error - removeItem', request.error);
-            reject(request.error);
-          };
+      request.onerror = function(/* event */) {
+        console.error('error - removeItem', request.error);
+        reject(request.error);
+      };
 
-          request.onsuccess = function(/* event */) {
-            // console.log('success - removeItem');
-            resolve();
-          };
-        });
-      });
+      request.onsuccess = function(/* event */) {
+        // console.log('success - removeItem');
+        resolve();
+      };
+    });
   }
 }

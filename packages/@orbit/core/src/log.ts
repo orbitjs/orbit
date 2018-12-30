@@ -1,5 +1,4 @@
 import { assert } from '@orbit/utils';
-import Orbit from './main';
 import evented, { Evented } from './evented';
 import { Bucket } from './bucket';
 import { NotLoggedException, OutOfRangeException } from './exception';
@@ -16,10 +15,6 @@ export interface LogOptions {
  * does not track any details.
  *
  * Logs can automatically be persisted by assigning them a bucket.
- * 
- * @export
- * @class Log
- * @implements {Evented}
  */
 @evented
 export default class Log implements Evented {
@@ -33,7 +28,7 @@ export default class Log implements Evented {
   on: (event: string, callback: () => void, binding?: any) => void;
   off: (event: string, callback: () => void, binding?: any) => void;
   one: (event: string, callback: () => void, binding?: any) => void;
-  emit: (event: string, ...args) => void;
+  emit: (event: string, ...args: any[]) => void;
   listeners: (event: string) => any[];
 
   constructor(options: LogOptions = {}) {
@@ -163,7 +158,7 @@ export default class Log implements Evented {
   }
 
   clear(): Promise<void> {
-    let clearedData;
+    let clearedData: string[];
 
     return this.reified
       .then(() => {
@@ -183,7 +178,7 @@ export default class Log implements Evented {
     if (this.bucket) {
       return this._bucket.setItem(this.name, this._data);
     } else {
-      return Orbit.Promise.resolve();
+      return Promise.resolve();
     }
   }
 
@@ -193,7 +188,7 @@ export default class Log implements Evented {
         .then(bucketData => this._initData(bucketData));
     } else {
       this._initData(data);
-      this.reified = Orbit.Promise.resolve();
+      this.reified = Promise.resolve();
     }
   }
 

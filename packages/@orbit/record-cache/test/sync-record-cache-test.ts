@@ -10,7 +10,7 @@ import {
   SyncSchemaValidationProcessor
 } from '../src/index';
 import Cache from './support/example-sync-record-cache';
-import { arrayMembershipMatches } from './test-helper';
+import { arrayMembershipMatches } from './support/matchers';
 
 const { module, test } = QUnit;
 

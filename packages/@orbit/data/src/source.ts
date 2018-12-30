@@ -29,14 +29,7 @@ export interface SourceSettings {
 export type SourceClass = (new () => Source);
 
 /**
- Base class for sources.
-
- @class Source
- @namespace Orbit
- @param {Object} [settings] - settings for source
- @param {String} [settings.name] - Name for source
- @param {Schema} [settings.schema] - Schema for source
- @constructor
+ * Base class for sources.
  */
 @evented
 export abstract class Source implements Evented, Performer {
@@ -54,7 +47,7 @@ export abstract class Source implements Evented, Performer {
   on: (event: string, callback: Function, binding?: object) => void;
   off: (event: string, callback: Function, binding?: object) => void;
   one: (event: string, callback: Function, binding?: object) => void;
-  emit: (event: string, ...args) => void;
+  emit: (event: string, ...args: any[]) => void;
   listeners: (event: string) => any[];
 
   constructor(settings: SourceSettings = {}) {
@@ -138,8 +131,9 @@ export abstract class Source implements Evented, Performer {
 
   // Performer interface
   perform(task: Task): Promise<any> {
-    let method = `__${task.type}__`;
-    return this[method].call(this, task.data);
+    let obj: any = this;
+    let method = obj[`__${task.type}__`] as Function;
+    return method.call(this, task.data);
   };
 
   /**
@@ -149,7 +143,7 @@ export abstract class Source implements Evented, Performer {
    * @memberof Source
    */
   upgrade(): Promise<void> {
-    return Orbit.Promise.resolve();
+    return Promise.resolve();
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -157,30 +151,25 @@ export abstract class Source implements Evented, Performer {
   /////////////////////////////////////////////////////////////////////////////
 
   /**
-   Notifies listeners that this source has been transformed by emitting the
-   `transform` event.
-
-   Resolves when any promises returned to event listeners are resolved.
-
-   Also, adds an entry to the Source's `transformLog` for each transform.
-
-   @protected
-   @method _transformed
-   @param {Array} transforms - Transforms that have occurred.
-   @returns {Promise} Promise that resolves to transforms.
-  */
+   * Notifies listeners that this source has been transformed by emitting the
+   * `transform` event.
+   *
+   * Resolves when any promises returned to event listeners are resolved.
+   *
+   * Also, adds an entry to the Source's `transformLog` for each transform.
+   */
   protected _transformed(transforms: Transform[]): Promise<Transform[]> {
     return transforms
       .reduce((chain, transform) => {
         return chain.then(() => {
           if (this._transformLog.contains(transform.id)) {
-            return Orbit.Promise.resolve();
+            return Promise.resolve();
           }
 
           return this._transformLog.append(transform.id)
             .then(() => settleInSeries(this, 'transform', transform));
         });
-      }, Orbit.Promise.resolve())
+      }, Promise.resolve())
       .then(() => transforms);
   }
 

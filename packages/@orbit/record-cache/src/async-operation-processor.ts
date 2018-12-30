@@ -33,21 +33,21 @@ export abstract class AsyncOperationProcessor {
    * If `base` is included, the cache is being reset to match a base cache.
    */
   reset(base?: AsyncRecordAccessor): Promise<void> {
-    return Orbit.Promise.resolve();
+    return Promise.resolve();
   }
 
   /**
    * Allow the processor to perform an upgrade as part of a cache upgrade.
    */
   upgrade(): Promise<void> {
-    return Orbit.Promise.resolve();
+    return Promise.resolve();
   }
 
   /**
    * Validates an operation before processing it.
    */
   validate(operation: RecordOperation): Promise<void> {
-    return Orbit.Promise.resolve();
+    return Promise.resolve();
   }
 
   /**
@@ -57,7 +57,7 @@ export abstract class AsyncOperationProcessor {
    * itself is applied.
    */
   before(operation: RecordOperation): Promise<RecordOperation[]> {
-    return Orbit.Promise.resolve([]);
+    return Promise.resolve([]);
   }
 
   /**
@@ -67,7 +67,7 @@ export abstract class AsyncOperationProcessor {
    * has been applied successfully.
    */
   after(operation: RecordOperation): Promise<RecordOperation[]> {
-    return Orbit.Promise.resolve([]);
+    return Promise.resolve([]);
   }
 
   /**
@@ -78,7 +78,7 @@ export abstract class AsyncOperationProcessor {
    * No operations may be returned.
    */
   immediate(operation: RecordOperation): Promise<void> {
-    return Orbit.Promise.resolve();
+    return Promise.resolve();
   }
 
   /**
@@ -88,6 +88,6 @@ export abstract class AsyncOperationProcessor {
    * itself and any operations returned from the `after` hook have been applied.
    */
   finally(operation: RecordOperation): Promise<RecordOperation[]> {
-    return Orbit.Promise.resolve([]);
+    return Promise.resolve([]);
   }
 }

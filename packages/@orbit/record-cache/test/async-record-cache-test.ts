@@ -10,7 +10,7 @@ import {
   AsyncSchemaValidationProcessor
 } from '../src/index';
 import Cache from './support/example-async-record-cache';
-import { arrayMembershipMatches } from './test-helper';
+import { arrayMembershipMatches } from './support/matchers';
 
 const { module, test } = QUnit;
 

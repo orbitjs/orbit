@@ -53,7 +53,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   on: (event: string, callback: Function, binding?: object) => void;
   off: (event: string, callback: Function, binding?: object) => void;
   one: (event: string, callback: Function, binding?: object) => void;
-  emit: (event: string, ...args) => void;
+  emit: (event: string, ...args: any[]) => void;
   listeners: (event: string) => any[];
 
   constructor(settings: SyncRecordCacheSettings) {

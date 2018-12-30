@@ -8,7 +8,6 @@ import {
   AddRecordOperation
 } from '@orbit/data';
 import IndexedDBSource from '../src/source';
-import './test-helper';
 
 const { module, test, skip } = QUnit;
 

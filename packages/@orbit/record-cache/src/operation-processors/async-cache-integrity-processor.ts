@@ -60,7 +60,7 @@ export default class AsyncCacheIntegrityProcessor extends AsyncOperationProcesso
     }
   }
 
-  async finally(operation): Promise<RecordOperation[]> {
+  async finally(operation: RecordOperation): Promise<RecordOperation[]> {
     switch (operation.op) {
       case 'replaceRelatedRecord':
         await this.addInverseRelationship(operation.record, operation.relationship, operation.relatedRecord);

@@ -9,7 +9,8 @@
     "inlineSourceMap": true,
     "declaration": true,
     "newLine": "LF",
-    "outDir": "dist"
+    "outDir": "dist",
+    "noImplicitAny": true
   },
   "include": [
     "src/**/*.ts"
