@@ -1,5 +1,6 @@
 import Coordinator, { ActivationOptions } from '../coordinator';
 import { Strategy, StrategyOptions } from '../strategy';
+import { Listener } from '@orbit/core';
 import { Source } from '@orbit/data';
 import { assert } from '@orbit/utils';
 
@@ -55,7 +56,7 @@ export class ConnectionStrategy extends Strategy {
   protected _event: string;
   protected _action: string | Function;
   protected _catch: Function;
-  protected _listener: Function;
+  protected _listener: Listener;
   protected _filter: Function;
 
   constructor(options: ConnectionStrategyOptions) {
@@ -99,16 +100,16 @@ export class ConnectionStrategy extends Strategy {
   async activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<void> {
     await super.activate(coordinator, options);
     this._listener = this._generateListener();
-    this.source.on(this._event, this._listener, this);
+    this.source.on(this._event, this._listener);
   }
 
   async deactivate(): Promise<void> {
     await super.deactivate()
-    this.source.off(this._event, this._listener, this);
+    this.source.off(this._event, this._listener);
     this._listener = null;
   }
 
-  protected _generateListener(): Function {
+  protected _generateListener(): Listener {
     const target = this.target as any;
 
     return (...args: any[]) => {

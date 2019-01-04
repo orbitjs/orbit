@@ -1,5 +1,6 @@
 import Coordinator, { ActivationOptions, LogLevel } from '../coordinator';
 import { Strategy, StrategyOptions } from '../strategy';
+import { Listener } from '@orbit/core';
 import {
   Source,
   isPullable,
@@ -20,7 +21,7 @@ export interface EventLoggingStrategyOptions extends StrategyOptions {
 export class EventLoggingStrategy extends Strategy {
   protected _events?: string[];
   protected _interfaces?: string[];
-  protected _eventListeners: Dict<Dict<Function>>;
+  protected _eventListeners: Dict<Dict<Listener>>;
 
   constructor(options: EventLoggingStrategyOptions = {}) {
     options.name = options.name || 'event-logging';
@@ -115,17 +116,17 @@ export class EventLoggingStrategy extends Strategy {
   protected _addListener(source: Source, event: string): void {
     const listener = this._generateListener(source, event);
     deepSet(this._eventListeners, [source.name, event], listener);
-    source.on(event, listener, this);
+    source.on(event, listener);
   }
 
   protected _removeListener(source: Source, event: string): void {
     const listener = deepGet(this._eventListeners, [source.name, event]);
-    source.off(event, listener, this);
+    source.off(event, listener);
     this._eventListeners[source.name][event] = null;
   }
 
-  protected _generateListener(source: Source, event: string): Function {
-    return (...args: any[]): void => {
+  protected _generateListener(source: Source, event: string): Listener {
+    return (...args: any[]) => {
       console.log(this._logPrefix, source.name, event, ...args);
     };
   }

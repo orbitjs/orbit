@@ -1,3 +1,7 @@
+import { deprecate } from '@orbit/utils';
+
+export type Listener = (...args: any[]) => any;
+
 /**
  *  The `Notifier` class can emit messages to an array of subscribed listeners.
  * Here's a simple example:
@@ -19,7 +23,7 @@
  * Calls to `emit` will send along all of their arguments.
  */
 export default class Notifier {
-  public listeners: [Function, object][];
+  public listeners: Listener[];
 
   constructor() {
     this.listeners = [];
@@ -29,22 +33,26 @@ export default class Notifier {
    * Add a callback as a listener, which will be triggered when sending
    * notifications.
    */
-  addListener(callback: Function, binding: object) {
-    binding = binding || this;
-    this.listeners.push([callback, binding]);
+  addListener(listener: Listener) {
+    if (arguments.length > 1) {
+      deprecate('`binding` argument is no longer supported for individual `Notifier` listeners. Please pre-bind listeners before calling `addListener`.');
+    }
+
+    this.listeners.push(listener);
   }
 
   /**
    * Remove a listener so that it will no longer receive notifications.
    */
-  removeListener(callback: Function, binding: object) {
-    let listeners = this.listeners;
-    let listener;
+  removeListener(listener: Listener) {
+    if (arguments.length > 1) {
+      deprecate('`binding` argument is no longer supported for individual `Notifier` listeners. Please pre-bind listeners before calling `removeListener`.');
+    }
 
-    binding = binding || this;
-    for (var i = 0, len = listeners.length; i < len; i++) {
-      listener = listeners[i];
-      if (listener && listener[0] === callback && listener[1] === binding) {
+    const listeners = this.listeners;
+
+    for (let i = 0, len = listeners.length; i < len; i++) {
+      if (listeners[i] === listener) {
         listeners.splice(i, 1);
         return;
       }
@@ -55,8 +63,6 @@ export default class Notifier {
    * Notify registered listeners.
    */
   emit(...args: any[]) {
-    this.listeners.slice(0).forEach((listener) => {
-      listener[0].apply(listener[1], args);
-    });
+    this.listeners.slice(0).forEach(listener => listener(...args));
   }
 }

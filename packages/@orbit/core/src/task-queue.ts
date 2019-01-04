@@ -2,6 +2,7 @@ import { Task, Performer } from './task';
 import TaskProcessor from './task-processor';
 import { Bucket } from './bucket';
 import evented, { Evented, settleInSeries } from './evented';
+import { Listener } from './notifier';
 import { assert } from '@orbit/utils';
 
 /**
@@ -56,11 +57,11 @@ export default class TaskQueue implements Evented {
   private _reified: Promise<any>;
 
   // Evented interface stubs
-  on: (event: TASK_QUEUE_EVENTS, callback: Function, binding?: object) => void;
-  off: (event: TASK_QUEUE_EVENTS, callback: Function, binding?: object) => void;
-  one: (event: TASK_QUEUE_EVENTS, callback: Function, binding?: object) => void;
+  on: (event: TASK_QUEUE_EVENTS, listener: Listener) => void;
+  off: (event: TASK_QUEUE_EVENTS, listener: Listener) => void;
+  one: (event: TASK_QUEUE_EVENTS, listener: Listener) => void;
   emit: (event: TASK_QUEUE_EVENTS, ...args: any[]) => void;
-  listeners: (event: TASK_QUEUE_EVENTS) => [Function, object][];
+  listeners: (event: TASK_QUEUE_EVENTS) => Listener[];
 
   /**
    * Creates an instance of `TaskQueue`.

@@ -3,17 +3,13 @@ import Coordinator, {
 } from '../../src/index';
 import {
   Source,
-  TransformBuilder,
-  buildTransform
+  TransformBuilder
 } from '@orbit/data';
 
 const { module, test } = QUnit;
 
 module('EventLoggingStrategy', function(hooks) {
   const t = new TransformBuilder();
-  const tA = buildTransform([t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })], null, 'a');
-  const tB = buildTransform([t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })], null, 'b');
-  const tC = buildTransform([t.addRecord({ type: 'planet', id: 'c', attributes: { name: 'c' } })], null, 'c');
 
   let eventLoggingStrategy;
 

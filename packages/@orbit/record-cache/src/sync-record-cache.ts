@@ -1,6 +1,7 @@
 import {
   evented,
-  Evented
+  Evented,
+  Listener
 } from '@orbit/core';
 import { assert, isArray, deepGet, Dict } from '@orbit/utils';
 import {
@@ -50,11 +51,11 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   protected _inversePatchOperators: Dict<SyncInversePatchOperator>;
 
   // Evented interface stubs
-  on: (event: string, callback: Function, binding?: object) => void;
-  off: (event: string, callback: Function, binding?: object) => void;
-  one: (event: string, callback: Function, binding?: object) => void;
+  on: (event: string, listener: Listener) => void;
+  off: (event: string, listener: Listener) => void;
+  one: (event: string, listener: Listener) => void;
   emit: (event: string, ...args: any[]) => void;
-  listeners: (event: string) => any[];
+  listeners: (event: string) => Listener[];
 
   constructor(settings: SyncRecordCacheSettings) {
     this._schema = settings.schema;

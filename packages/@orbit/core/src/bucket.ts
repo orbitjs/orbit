@@ -1,4 +1,5 @@
 import evented, { Evented } from './evented';
+import { Listener } from './notifier';
 
 /**
  * Settings used to instantiate and/or upgrade a `Bucket`.
@@ -47,11 +48,11 @@ export abstract class Bucket implements Evented {
   private _version: number;
 
   // Evented interface stubs
-  on: (event: BUCKET_EVENTS, callback: Function, binding?: object) => void;
-  off: (event: BUCKET_EVENTS, callback: Function, binding?: object) => void;
-  one: (event: BUCKET_EVENTS, callback: Function, binding?: object) => void;
+  on: (event: BUCKET_EVENTS, listener: Listener) => void;
+  off: (event: BUCKET_EVENTS, listener: Listener) => void;
+  one: (event: BUCKET_EVENTS, listener: Listener) => void;
   emit: (event: BUCKET_EVENTS, ...args: any[]) => void;
-  listeners: (event: BUCKET_EVENTS) => any[];
+  listeners: (event: BUCKET_EVENTS) => Listener[];
 
   constructor(settings: BucketSettings = {}) {
     if (settings.version === undefined) {
