@@ -2,7 +2,7 @@
 import Orbit from './main';
 import { ModelNotFound } from './exception';
 import { Dict } from '@orbit/utils';
-import { evented, Evented } from '@orbit/core';
+import { evented, Evented, Listener } from '@orbit/core';
 import { Record, RecordInitializer } from './record';
 
 export interface AttributeDefinition {
@@ -86,11 +86,11 @@ export default class Schema implements Evented, RecordInitializer {
   private _version: number;
 
   // Evented interface stubs
-  on: (event: string, callback: () => void, binding?: any) => void;
-  off: (event: string, callback: () => void, binding?: any) => void;
-  one: (event: string, callback: () => void, binding?: any) => void;
+  on: (event: string, listener: Listener) => void;
+  off: (event: string, listener: Listener) => void;
+  one: (event: string, listener: Listener) => void;
   emit: (event: string, ...args: any[]) => void;
-  listeners: (event: string) => any[];
+  listeners: (event: string) => Listener[];
 
   constructor(settings: SchemaSettings = {}) {
     if (settings.version === undefined) {

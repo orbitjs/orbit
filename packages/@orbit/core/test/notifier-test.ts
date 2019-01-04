@@ -50,26 +50,6 @@ module('Notifier', function(hooks) {
     notifier.emit('hello');
   });
 
-  test('it notifies listeners using custom bindings, if specified', function(assert) {
-    assert.expect(4);
-
-    let binding1 = {};
-    let binding2 = {};
-    let listener1 = function(message) {
-      assert.equal(this, binding1, 'custom binding should match');
-      assert.equal(message, 'hello', 'notification message should match');
-    };
-    let listener2 = function(message) {
-      assert.equal(this, binding2, 'custom binding should match');
-      assert.equal(message, 'hello', 'notification message should match');
-    };
-
-    notifier.addListener(listener1, binding1);
-    notifier.addListener(listener2, binding2);
-
-    notifier.emit('hello');
-  });
-
   test('it notifies listeners when publishing any number of arguments', function(assert) {
     assert.expect(4);
 

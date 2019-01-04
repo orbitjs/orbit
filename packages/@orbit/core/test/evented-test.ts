@@ -125,26 +125,6 @@ module('Evented', function(hooks) {
     obj.emit('salutation', 'hello');
   });
 
-  test('#emit - notifies listeners using custom bindings, if specified', function(assert) {
-    assert.expect(4);
-
-    let binding1 = {};
-    let binding2 = {};
-    let listener1 = function(message) {
-      assert.equal(this, binding1, 'custom binding should match');
-      assert.equal(message, 'hello', 'notification message should match');
-    };
-    let listener2 = function(message) {
-      assert.equal(this, binding2, 'custom binding should match');
-      assert.equal(message, 'hello', 'notification message should match');
-    };
-
-    obj.on('greeting', listener1, binding1);
-    obj.on('greeting', listener2, binding2);
-
-    obj.emit('greeting', 'hello');
-  });
-
   test('#emit - notifies listeners when emitting events with any number of arguments', function(assert) {
     assert.expect(4);
 
@@ -163,22 +143,21 @@ module('Evented', function(hooks) {
     obj.emit('greeting', 'hello', 'world');
   });
 
-  test('#listeners - can return all the listeners (and bindings) for an event', function(assert) {
+  test('#listeners - can return all the listeners for an event', function(assert) {
     assert.expect(1);
 
-    let binding1 = {};
-    let binding2 = {};
     let greeting1 = function() {
       return 'Hello';
     };
+
     let greeting2 = function() {
       return 'Bon jour';
     };
 
-    obj.on('greeting', greeting1, binding1);
-    obj.on('greeting', greeting2, binding2);
+    obj.on('greeting', greeting1);
+    obj.on('greeting', greeting2);
 
-    assert.deepEqual(obj.listeners('greeting'), [[greeting1, binding1], [greeting2, binding2]], 'listeners include nested arrays of functions and bindings');
+    assert.deepEqual(obj.listeners('greeting'), [greeting1, greeting2], 'listeners match');
   });
 
   test('settleInSeries - can fulfill all promises returned by listeners to an event, in order, until all are settled', function(assert) {
@@ -206,10 +185,10 @@ module('Evented', function(hooks) {
       return failedOperation();
     };
 
-    obj.on('greeting', listener1, this);
-    obj.on('greeting', listener2, this);
-    obj.on('greeting', listener3, this);
-    obj.on('greeting', listener4, this);
+    obj.on('greeting', listener1);
+    obj.on('greeting', listener2);
+    obj.on('greeting', listener3);
+    obj.on('greeting', listener4);
 
     return settleInSeries(obj, 'greeting', 'hello')
       .then(result => {
@@ -247,8 +226,8 @@ module('Evented', function(hooks) {
       return successfulOperation();
     };
 
-    obj.on('greeting', listener1, this);
-    obj.on('greeting', listener2, this);
+    obj.on('greeting', listener1);
+    obj.on('greeting', listener2);
 
     return fulfillInSeries(obj, 'greeting', 'hello').then(
       function(result) {
@@ -283,10 +262,10 @@ module('Evented', function(hooks) {
       assert.ok(false, 'listener4 should not be triggered');
     };
 
-    obj.on('greeting', listener1, this);
-    obj.on('greeting', listener2, this);
-    obj.on('greeting', listener3, this);
-    obj.on('greeting', listener4, this);
+    obj.on('greeting', listener1);
+    obj.on('greeting', listener2);
+    obj.on('greeting', listener3);
+    obj.on('greeting', listener4);
 
     return fulfillInSeries(obj, 'greeting', 'hello')
       .then(() => {

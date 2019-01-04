@@ -5,6 +5,7 @@ import {
   TaskQueue,
   TaskQueueSettings,
   Task, Performer,
+  Listener,
   Log
 } from '@orbit/core';
 import KeyMap from './key-map';
@@ -44,11 +45,11 @@ export abstract class Source implements Evented, Performer {
   protected _transformBuilder: TransformBuilder;
 
   // Evented interface stubs
-  on: (event: string, callback: Function, binding?: object) => void;
-  off: (event: string, callback: Function, binding?: object) => void;
-  one: (event: string, callback: Function, binding?: object) => void;
+  on: (event: string, listener: Listener) => void;
+  off: (event: string, listener: Listener) => void;
+  one: (event: string, listener: Listener) => void;
   emit: (event: string, ...args: any[]) => void;
-  listeners: (event: string) => any[];
+  listeners: (event: string) => Listener[];
 
   constructor(settings: SourceSettings = {}) {
     this._schema = settings.schema;

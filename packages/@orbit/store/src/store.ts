@@ -59,9 +59,9 @@ export default class Store extends Source implements Syncable, Queryable, Updata
     this._transforms = {};
     this._transformInverses = {};
 
-    this.transformLog.on('clear', <() => void>this._logCleared, this);
-    this.transformLog.on('truncate', <() => void>this._logTruncated, this);
-    this.transformLog.on('rollback', <() => void>this._logRolledback, this);
+    this.transformLog.on('clear', this._logCleared.bind(this));
+    this.transformLog.on('truncate', this._logTruncated.bind(this));
+    this.transformLog.on('rollback', this._logRolledback.bind(this));
 
     let cacheSettings: CacheSettings = settings.cacheSettings || {};
     cacheSettings.schema = schema;

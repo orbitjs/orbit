@@ -1,4 +1,5 @@
-import Notifier from './notifier';
+import Notifier, { Listener } from './notifier';
+import { deprecate } from '@orbit/utils';
 
 export const EVENTED = '__evented__';
 
@@ -23,11 +24,11 @@ export function isEvented(obj: any): boolean {
  * ```
  */
 export interface Evented {
-  on: (event: string, callback: Function, binding?: object) => void;
-  off: (event: string, callback: Function, binding?: object) => void;
-  one: (event: string, callback: Function, binding?: object) => void;
+  on: (event: string, listener: Listener) => void;
+  off: (event: string, listener: Listener) => void;
+  one: (event: string, listener: Listener) => void;
   emit: (event: string, ...args: any[]) => void;
-  listeners: (event: string) => any[];
+  listeners: (event: string) => Listener[];
 }
 
 /**
@@ -78,35 +79,43 @@ export default function evented(Klass: any): void {
 
   proto[EVENTED] = true;
 
-  proto.on = function(eventName: string, callback: Function, _binding: object) {
-    const binding = _binding || this;
+  proto.on = function(eventName: string, listener: Listener) {
+    if (arguments.length > 2) {
+      deprecate('`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `on`.');
+    }
 
-    notifierForEvent(this, eventName, true).addListener(callback, binding);
+    notifierForEvent(this, eventName, true).addListener(listener);
   };
 
-  proto.off = function(eventName: string, callback: Function, _binding: object) {
-    const binding = _binding || this;
+  proto.off = function(eventName: string, listener: Listener) {
+    if (arguments.length > 2) {
+      deprecate('`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `off`.');
+    }
+
     const notifier = notifierForEvent(this, eventName);
 
     if (notifier) {
-      if (callback) {
-        notifier.removeListener(callback, binding);
+      if (listener) {
+        notifier.removeListener(listener);
       } else {
         removeNotifierForEvent(this, eventName);
       }
     }
   };
 
-  proto.one = function(eventName: string, callback: Function, _binding: object) {
-    let binding = _binding || this;
-    let notifier = notifierForEvent(this, eventName, true);
+  proto.one = function(eventName: string, listener: Listener) {
+    if (arguments.length > 2) {
+      deprecate('`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `off`.');
+    }
 
-    let callOnce = function() {
-      callback.apply(binding, arguments);
-      notifier.removeListener(callOnce, binding);
+    const notifier = notifierForEvent(this, eventName, true);
+
+    const callOnce = function() {
+      listener(...arguments);
+      notifier.removeListener(callOnce);
     };
 
-    notifier.addListener(callOnce, binding);
+    notifier.addListener(callOnce);
   };
 
   proto.emit = function(eventName: string, ...args: any[]) {
@@ -131,9 +140,9 @@ export default function evented(Klass: any): void {
 export function settleInSeries(obj: Evented, eventName: string, ...args: any[]): Promise<void> {
   const listeners = obj.listeners(eventName);
 
-  return listeners.reduce((chain, [callback, binding]) => {
+  return listeners.reduce((chain, listener) => {
     return chain
-      .then(() => callback.apply(binding, args))
+      .then(() => listener(...args))
       .catch(() => {});
   }, Promise.resolve());
 }
@@ -158,7 +167,7 @@ function notifierForEvent(object: any, eventName: string, createIfUndefined = fa
   }
   let notifier = object._eventedNotifiers[eventName];
   if (!notifier && createIfUndefined) {
-    notifier = object._eventedNotifiers[eventName] = new Notifier();
+    notifier = object._eventedNotifiers[eventName] = new Notifier(object);
   }
   return notifier;
 }
@@ -169,14 +178,13 @@ function removeNotifierForEvent(object: any, eventName: string) {
   }
 }
 
-function fulfillEach(listeners: [Function, object][], args: any[], resolve: Function, reject: Function): Promise<any> {
+function fulfillEach(listeners: Listener[], args: any[], resolve: Function, reject: Function): Promise<any> {
   if (listeners.length === 0) {
     resolve();
   } else {
     let listener;
     [listener, ...listeners] = listeners;
-    let [callback, binding] = listener;
-    let response = callback.apply(binding, args);
+    let response = listener(...args);
 
     if (response) {
       return Promise.resolve(response)

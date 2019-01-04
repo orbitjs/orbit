@@ -1,5 +1,6 @@
 import { assert } from '@orbit/utils';
 import evented, { Evented } from './evented';
+import { Listener } from './notifier';
 import { Bucket } from './bucket';
 import { NotLoggedException, OutOfRangeException } from './exception';
 
@@ -25,11 +26,11 @@ export default class Log implements Evented {
   public reified: Promise<void>;
 
   // Evented interface stubs
-  on: (event: string, callback: () => void, binding?: any) => void;
-  off: (event: string, callback: () => void, binding?: any) => void;
-  one: (event: string, callback: () => void, binding?: any) => void;
+  on: (event: string, listener: Listener) => void;
+  off: (event: string, listener: Listener) => void;
+  one: (event: string, listener: Listener) => void;
   emit: (event: string, ...args: any[]) => void;
-  listeners: (event: string) => any[];
+  listeners: (event: string) => Listener[];
 
   constructor(options: LogOptions = {}) {
     this._name = options.name;
