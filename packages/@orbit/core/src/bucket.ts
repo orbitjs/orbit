@@ -49,7 +49,7 @@ export abstract class Bucket implements Evented {
 
   // Evented interface stubs
   on: (event: BUCKET_EVENTS, listener: Listener) => void;
-  off: (event: BUCKET_EVENTS, listener: Listener) => void;
+  off: (event: BUCKET_EVENTS, listener?: Listener) => void;
   one: (event: BUCKET_EVENTS, listener: Listener) => void;
   emit: (event: BUCKET_EVENTS, ...args: any[]) => void;
   listeners: (event: BUCKET_EVENTS) => Listener[];

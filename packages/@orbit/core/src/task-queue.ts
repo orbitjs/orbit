@@ -58,7 +58,7 @@ export default class TaskQueue implements Evented {
 
   // Evented interface stubs
   on: (event: TASK_QUEUE_EVENTS, listener: Listener) => void;
-  off: (event: TASK_QUEUE_EVENTS, listener: Listener) => void;
+  off: (event: TASK_QUEUE_EVENTS, listener?: Listener) => void;
   one: (event: TASK_QUEUE_EVENTS, listener: Listener) => void;
   emit: (event: TASK_QUEUE_EVENTS, ...args: any[]) => void;
   listeners: (event: TASK_QUEUE_EVENTS) => Listener[];
