@@ -4,7 +4,7 @@ import { Operation } from './operation';
 import { isObject, isArray, toArray } from '@orbit/utils';
 import TransformBuilder from './transform-builder';
 
-export type TransformBuilderFunc = (TransformBuilder: TransformBuilder) => Operation[];
+export type TransformBuilderFunc = (TransformBuilder: TransformBuilder) => Operation | Operation[];
 export type TransformOrOperations = Transform | Operation | Operation[] | TransformBuilderFunc;
 
 /**

@@ -4,7 +4,7 @@ import { QueryTerm } from './query-term';
 import QueryBuilder from './query-builder';
 import { isObject } from '@orbit/utils';
 
-export type QueryBuilderFunc = (QueryBuilder: QueryBuilder) => QueryExpression;
+export type QueryBuilderFunc = (QueryBuilder: QueryBuilder) => QueryExpression | QueryTerm;
 export type QueryOrExpression = Query | QueryExpression | QueryTerm | QueryBuilderFunc;
 
 /**
