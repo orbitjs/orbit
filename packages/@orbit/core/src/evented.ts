@@ -167,7 +167,7 @@ function notifierForEvent(object: any, eventName: string, createIfUndefined = fa
   }
   let notifier = object._eventedNotifiers[eventName];
   if (!notifier && createIfUndefined) {
-    notifier = object._eventedNotifiers[eventName] = new Notifier(object);
+    notifier = object._eventedNotifiers[eventName] = new Notifier();
   }
   return notifier;
 }
