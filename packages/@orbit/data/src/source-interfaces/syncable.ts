@@ -22,6 +22,8 @@ export interface Syncable {
    * of `Transform`s as an argument and applies it to the source.
    */
   sync(transformOrTransforms: Transform | Transform[]): Promise<void>;
+
+  _sync(transform: Transform): Promise<void>;
 }
 
 /**
