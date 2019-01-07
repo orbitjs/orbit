@@ -10,7 +10,8 @@ import { SyncSchemaValidationProcessor } from '@orbit/record-cache';
 const { module, test } = QUnit;
 
 module('SyncSchemaValidationProcessor', function(hooks) {
-  let schema, cache;
+  let schema: Schema;
+  let cache: Cache;
 
   const schemaDefinition: SchemaSettings = {
     models: {

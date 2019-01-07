@@ -2,7 +2,12 @@ import {
   cloneRecordIdentity as identity,
   KeyMap,
   Schema,
-  SchemaSettings
+  SchemaSettings,
+  AddToRelatedRecordsOperation,
+  ReplaceRelatedRecordOperation,
+  ReplaceRelatedRecordsOperation,
+  RemoveFromRelatedRecordsOperation,
+  ReplaceRecordOperation
 } from '@orbit/data';
 import { SyncCacheIntegrityProcessor, SyncSchemaConsistencyProcessor } from '../../src/index';
 import Cache from '../support/example-sync-record-cache';
@@ -10,7 +15,9 @@ import Cache from '../support/example-sync-record-cache';
 const { module, test } = QUnit;
 
 module('SchemaConsistencyProcessor', function(hooks) {
-  let schema, cache, processor;
+  let schema: Schema;
+  let cache: Cache;
+  let processor: SyncSchemaConsistencyProcessor;
 
   const schemaDefinition: SchemaSettings = {
     models: {
@@ -49,7 +56,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
     let keyMap = new KeyMap();
     schema = new Schema(schemaDefinition);
     cache = new Cache({ schema, keyMap, processors: [SyncCacheIntegrityProcessor, SyncSchemaConsistencyProcessor] });
-    processor = cache._processors[1];
+    processor = cache.processors[1] as SyncSchemaConsistencyProcessor;
   });
 
   hooks.afterEach(function() {
@@ -82,7 +89,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
       t.addRecord(europa)
     ]);
 
-    const addPlanetOp = {
+    const addPlanetOp: AddToRelatedRecordsOperation = {
       op: 'addToRelatedRecords',
       record: { type: 'moon', id: europa.id },
       relationship: 'planet',
@@ -136,7 +143,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
       t.addRecord(europa)
     ]);
 
-    const replacePlanetOp = {
+    const replacePlanetOp: ReplaceRelatedRecordOperation = {
       op: 'replaceRelatedRecord',
       record: identity(europa),
       relationship: 'planet',
@@ -187,7 +194,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
       t.addRecord(titan)
     ]);
 
-    const clearMoonsOp = {
+    const clearMoonsOp: ReplaceRelatedRecordsOperation = {
       op: 'replaceRelatedRecords',
       record: identity(saturn),
       relationship: 'moons',
@@ -235,7 +242,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
       t.addRecord(titan)
     ]);
 
-    const replaceMoonsOp = {
+    const replaceMoonsOp: ReplaceRelatedRecordsOperation = {
       op: 'replaceRelatedRecords',
       record: identity(jupiter),
       relationship: 'moons',
@@ -289,7 +296,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
       t.addRecord(europa)
     ]);
 
-    const replaceMoonsOp = {
+    const replaceMoonsOp: ReplaceRelatedRecordsOperation = {
       op: 'replaceRelatedRecords',
       record: identity(saturn),
       relationship: 'moons',
@@ -334,7 +341,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
       t.addRecord(human)
     ]);
 
-    const clearInhabitantsOp = {
+    const clearInhabitantsOp: ReplaceRelatedRecordsOperation = {
       op: 'replaceRelatedRecords',
       record: identity(earth),
       relationship: 'inhabitants',
@@ -372,7 +379,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
       t.addRecord(dog)
     ]);
 
-    const clearInhabitantsOp = {
+    const clearInhabitantsOp: ReplaceRelatedRecordsOperation = {
       op: 'replaceRelatedRecords',
       record: identity(earth),
       relationship: 'inhabitants',
@@ -427,7 +434,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
       t.addRecord(europa)
     ]);
 
-    const removePlanetOp = {
+    const removePlanetOp: ReplaceRelatedRecordOperation = {
       op: 'replaceRelatedRecord',
       record: identity(europa),
       relationship: 'planet',
@@ -475,7 +482,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
       t.addRecord(earth)
     ]);
 
-    const changePlanetOp = {
+    const changePlanetOp: ReplaceRelatedRecordOperation = {
       op: 'replaceRelatedRecord',
       record: identity(earth),
       relationship: 'next',
@@ -523,7 +530,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
       t.addRecord(earth)
     ]);
 
-    const changePlanetOp = {
+    const changePlanetOp: ReplaceRelatedRecordOperation = {
       op: 'replaceRelatedRecord',
       record: identity(earth),
       relationship: 'next',
@@ -571,7 +578,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
       t.addRecord(earth)
     ]);
 
-    const changePlanetOp = {
+    const changePlanetOp: ReplaceRelatedRecordOperation = {
       op: 'replaceRelatedRecord',
       record: identity(saturn),
       relationship: 'next',
@@ -603,7 +610,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
       t.addRecord(human)
     ]);
 
-    const addPlanetOp = {
+    const addPlanetOp: AddToRelatedRecordsOperation = {
       op: 'addToRelatedRecords',
       record: identity(human),
       relationship: 'planets',
@@ -642,7 +649,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
       t.addRecord(human)
     ]);
 
-    const removePlanetOp = {
+    const removePlanetOp: RemoveFromRelatedRecordsOperation = {
       op: 'removeFromRelatedRecords',
       record: identity(human),
       relationship: 'planets',
@@ -723,7 +730,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
       t.addRecord(dog)
     ]);
 
-    const clearInhabitantsOp = {
+    const clearInhabitantsOp: ReplaceRecordOperation = {
       op: 'replaceRecord',
       record: earth2
     };

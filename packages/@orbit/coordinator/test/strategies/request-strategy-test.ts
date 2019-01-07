@@ -16,10 +16,11 @@ module('RequestStrategy', function(hooks) {
   const t = new TransformBuilder();
   const tA = buildTransform([t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })], null, 'a');
   const tB = buildTransform([t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })], null, 'b');
-  const tC = buildTransform([t.addRecord({ type: 'planet', id: 'c', attributes: { name: 'c' } })], null, 'c');
-  const tD = buildTransform([t.addRecord({ type: 'planet', id: 'd', attributes: { name: 'd' } })], null, 'd');
 
-  let strategy, coordinator, s1, s2;
+  let strategy: RequestStrategy;
+  let coordinator: Coordinator;
+  let s1: any;
+  let s2: any;
 
   hooks.beforeEach(function() {
     @pushable
@@ -85,11 +86,11 @@ module('RequestStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function(transform) {
+    s1._update = async function(transform: Transform): Promise<any> {
       assert.strictEqual(transform, tA, 'argument to _update is expected Transform');
     };
 
-    s2._push = async function(transform) {
+    s2._push = async function(transform: Transform): Promise<Transform[]> {
       assert.strictEqual(transform, tA, 'argument to _push is expected Transform');
       assert.strictEqual(this, s2, 'context is that of the target');
       return [];
@@ -107,7 +108,7 @@ module('RequestStrategy', function(hooks) {
       target: 's2',
       on: 'update',
       action: 'push',
-      filter(transform: Transform) {
+      filter(transform: Transform): boolean {
         assert.strictEqual(this, strategy, 'context is the strategy');
         return (transform === tB);
       }
@@ -118,10 +119,10 @@ module('RequestStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function() {
+    s1._update = async function(): Promise<any> {
     };
 
-    s2._push = async function(transform) {
+    s2._push = async function(transform: Transform): Promise<Transform[]> {
       assert.strictEqual(transform, tB, 'argument to _push is expected Transform');
       assert.strictEqual(this, s2, 'context is that of the target');
       return [];
@@ -140,10 +141,10 @@ module('RequestStrategy', function(hooks) {
       target: 's2',
       on: 'update',
       action: 'push',
-      blocking(query) {
+      blocking(transform: Transform): boolean {
         assert.ok(this instanceof RequestStrategy, 'it is bound to the strategy');
-        assert.strictEqual(query, tA, "argument to _update is expected Transform");
-        return;
+        assert.strictEqual(transform, tA, "argument to _update is expected Transform");
+        return false;
       }
     });
 
@@ -152,11 +153,11 @@ module('RequestStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function(transform) {
+    s1._update = async function(transform: Transform): Promise<any> {
       assert.strictEqual(transform, tA, 'argument to _update is expected Transform');
     };
 
-    s2._push = async function(transform) {
+    s2._push = async function(transform: Transform): Promise<Transform[]> {
       assert.strictEqual(transform, tA, 'argument to _push is expected Transform');
       assert.strictEqual(this, s2, 'context is that of the target');
       return [];

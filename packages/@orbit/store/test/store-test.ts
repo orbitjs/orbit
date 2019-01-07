@@ -1,10 +1,12 @@
 import {
   cloneRecordIdentity as identity,
   KeyMap,
+  Record,
   Schema,
   SchemaSettings,
   Source,
-  buildTransform
+  buildTransform,
+  RecordOperation
 } from '@orbit/data';
 import { clone } from '@orbit/utils';
 import {
@@ -52,7 +54,8 @@ module('Store', function(hooks) {
 
   const schema = new Schema(schemaDefinition);
 
-  let store, keyMap;
+  let store: Store;
+  let keyMap: KeyMap;
 
   hooks.beforeEach(function() {
     keyMap = new KeyMap();
@@ -79,7 +82,7 @@ module('Store', function(hooks) {
   test('#update - transforms the store\'s cache', function(assert) {
     assert.expect(4);
 
-    const jupiter = {
+    const jupiter: Record = {
       id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter', classification: 'gas giant' }
@@ -98,13 +101,15 @@ module('Store', function(hooks) {
   test('#update - can perform multiple operations and return the results', function(assert) {
     assert.expect(3);
 
-    const jupiter = {
+    const jupiter: Record = {
       type: 'planet',
+      id: 'jupiter',
       attributes: { name: 'Jupiter', classification: 'gas giant' }
     };
 
-    const earth = {
+    const earth: Record = {
       type: 'planet',
+      id: 'earth',
       attributes: { name: 'Earth', classification: 'terrestrial' }
     }
 
@@ -282,7 +287,7 @@ module('Store', function(hooks) {
   });
 
   test('#fork - creates a new store that starts with the same schema, keyMap, and cache contents as the base store', function(assert) {
-    const jupiter = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+    const jupiter: Record = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
 
     return store.update(t => t.addRecord(jupiter))
       .then(() => {
@@ -301,7 +306,7 @@ module('Store', function(hooks) {
   });
 
   test('#merge - merges transforms from a forked store back into a base store', function(assert) {
-    const jupiter = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+    const jupiter: Record = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
 
     let fork = store.fork();
 
@@ -318,7 +323,7 @@ module('Store', function(hooks) {
   test('#merge - can accept options that will be assigned to the resulting transform', function(assert) {
     assert.expect(3);
 
-    const jupiter = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+    const jupiter: Record = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
 
     let fork = store.fork();
 
@@ -336,7 +341,7 @@ module('Store', function(hooks) {
       });
   });
 
-  test('#rollback - rolls back transform log and replays transform inverses against the cache', function(assert) {
+  test('#rollback - rolls back transform log and replays transform inverses against the cache', async function(assert) {
     const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
     const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
@@ -348,9 +353,9 @@ module('Store', function(hooks) {
     const addRecordBTransform = buildTransform(tb.addRecord(recordB));
     const addRecordCTransform = buildTransform(tb.addRecord(recordC));
 
-    const rollbackOperations = [];
+    const rollbackOperations: RecordOperation[] = [];
 
-    return all([
+    await all([
       store.sync(addRecordATransform),
       store.sync(addRecordBTransform),
       store.sync(addRecordCTransform),
@@ -358,28 +363,26 @@ module('Store', function(hooks) {
         tb.addRecord(recordD),
         tb.addRecord(recordE)
       ]))
-    ])
-      .then(() => {
-        store.cache.on('patch', (operation) => rollbackOperations.push(operation));
-        return store.rollback(addRecordATransform.id);
-      })
-      .then(() => {
-        assert.deepEqual(
-          rollbackOperations,
-          [
-            { op: 'removeRecord', record: identity(recordE) },
-            { op: 'removeRecord', record: identity(recordD) },
-            { op: 'removeRecord', record: identity(recordC) },
-            { op: 'removeRecord', record: identity(recordB) }
-          ],
-          'emits inverse operations in correct order'
-        );
+    ]);
 
-        assert.equal(store.transformLog.head, addRecordATransform.id, 'rolls back transform log');
-      });
+    store.cache.on('patch', (operation: RecordOperation) => rollbackOperations.push(operation));
+    await store.rollback(addRecordATransform.id);
+
+    assert.deepEqual(
+      rollbackOperations,
+      [
+        { op: 'removeRecord', record: identity(recordE) },
+        { op: 'removeRecord', record: identity(recordD) },
+        { op: 'removeRecord', record: identity(recordC) },
+        { op: 'removeRecord', record: identity(recordB) }
+      ],
+      'emits inverse operations in correct order'
+    );
+
+    assert.equal(store.transformLog.head, addRecordATransform.id, 'rolls back transform log');
   });
 
-  test('#upgrade upgrades the cache to include new models introduced in a schema', function(assert) {
+  test('#upgrade upgrades the cache to include new models introduced in a schema', async function(assert) {
     let person = { type: 'person', id: '1', relationships: { planet: { data: { type: 'planet', id: 'earth' }}} };
 
     let models = clone(schema.models);
@@ -388,9 +391,8 @@ module('Store', function(hooks) {
 
     schema.upgrade({ models });
 
-    return store.update(t => t.addRecord(person))
-      .then(record => {
-        assert.deepEqual(store.cache.getRecordSync({ type: 'person', id: '1' }), person, 'records match');
-      });
+    await store.update(t => t.addRecord(person));
+
+    assert.deepEqual(store.cache.getRecordSync({ type: 'person', id: '1' }), person, 'records match');
   });
 });

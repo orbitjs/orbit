@@ -1,5 +1,6 @@
 import Schema from '../src/schema';
 import './test-helper';
+import { Record } from '../src';
 
 const { module, test } = QUnit;
 
@@ -147,7 +148,7 @@ module('Schema', function() {
       }
     });
 
-    let moon = { type: 'moon', id: undefined };
+    let moon: Record = { type: 'moon', id: undefined };
     schema.initializeRecord(moon);
     assert.equal(moon.id, 'moon-123', 'generates an ID if `id` is undefined');
 

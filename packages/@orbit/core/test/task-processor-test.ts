@@ -15,15 +15,15 @@ module('TaskProcessor', function() {
     assert.ok(processor);
   });
 
-  test('processes asynchronous tasks by calling `perform` on a target', function(assert) {
+  test('processes asynchronous tasks by calling `perform` on a target', async function(assert) {
     assert.expect(5);
 
     const target: Performer = {
-      perform(task: Task): Promise<void> {
+      perform(task: Task): Promise<string> {
         assert.equal(task.type, 'doSomething', 'perform invoked with task');
         assert.ok(processor.started, 'processor started');
         assert.ok(!processor.settled, 'processor not settled');
-        return new Promise(function(resolve) {
+        return new Promise(function(resolve: (value?: string) => void) {
           function respond() {
             resolve(':)');
           }
@@ -34,14 +34,13 @@ module('TaskProcessor', function() {
 
     let processor = new TaskProcessor(target, { type: 'doSomething' });
 
-    return processor.process()
-      .then(function(response) {
-        assert.ok(processor.settled, 'processor settled');
-        assert.equal(response, ':)', 'response is returned');
-      });
+    let response = await processor.process();
+
+    assert.ok(processor.settled, 'processor settled');
+    assert.equal(response, ':)', 'response is returned');
   });
 
-  test('can be assigned an asynchronous function that rejects', function(assert) {
+  test('can be assigned an asynchronous function that rejects', async function(assert) {
     assert.expect(6);
 
     const target: Performer = {
@@ -58,23 +57,23 @@ module('TaskProcessor', function() {
 
     let processor = new TaskProcessor(target, { type: 'doSomething', data: '1' });
 
-    return processor.process()
-      .catch((e) => {
-        assert.ok(processor.settled, 'processor settled');
-        assert.equal(e, ':(', 'process resolved');
-      });
+    try {
+      await processor.process();
+    } catch(e) {
+      assert.ok(processor.settled, 'processor settled');
+      assert.equal(e, ':(', 'process resolved');
+    }
   });
 
   test('it creates a promise immediately that won\'t be resolved until process is called', function(assert) {
     assert.expect(5);
 
     const target: Performer = {
-      perform(task: Task): Promise<void> {
+      async perform(task: Task): Promise<void> {
         assert.equal(task.type, 'doSomething', 'perform invoked with task');
         assert.equal(task.data, '1', 'argument matches');
         assert.ok(processor.started, 'processor started');
         assert.ok(!processor.settled, 'processor not settled');
-        return Promise.resolve();
       }
     };
 
@@ -88,30 +87,29 @@ module('TaskProcessor', function() {
     return processor.process();
   });
 
-  test('#reset returns to an unstarted, unsettled state', function(assert) {
+  test('#reset returns to an unstarted, unsettled state', async function(assert) {
     assert.expect(8);
 
     const target: Performer = {
-      perform(task: Task): Promise<void> {
+      async perform(task: Task): Promise<string> {
         assert.equal(task.type, 'doSomething', 'perform invoked with task');
         assert.equal(task.data, '1', 'argument matches');
         assert.ok(processor.started, 'processor started');
         assert.ok(!processor.settled, 'processor not settled');
-        return Promise.resolve(':)');
+        return ':)';
       }
     };
 
     let processor = new TaskProcessor(target, { type: 'doSomething', data: '1' });
 
-    return processor.process()
-      .then(function(response) {
-        assert.ok(processor.settled, 'task settled');
-        assert.equal(response, ':)', 'response is returned');
+    let response = await processor.process();
 
-        processor.reset();
+    assert.ok(processor.settled, 'task settled');
+    assert.equal(response, ':)', 'response is returned');
 
-        assert.ok(!processor.started, 'after reset, task has not started');
-        assert.ok(!processor.settled, 'after reset, task has not settled');
-      });
+    processor.reset();
+
+    assert.ok(!processor.started, 'after reset, task has not started');
+    assert.ok(!processor.settled, 'after reset, task has not settled');
   });
 });

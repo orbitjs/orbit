@@ -1,4 +1,4 @@
-import evented, { isEvented, fulfillInSeries, settleInSeries } from '../src/evented';
+import { evented, isEvented, fulfillInSeries, settleInSeries, Evented, Listener } from '../src/index';
 
 const { module, test } = QUnit;
 
@@ -15,12 +15,18 @@ function failedOperation() {
 }
 
 module('Evented', function(hooks) {
-  let obj;
+  @evented
+  class Foo implements Evented {
+    on: (event: string, listener: Listener) => void;
+    off: (event: string, listener?: Listener) => void;
+    one: (event: string, listener: Listener) => void;
+    emit: (event: string, ...args: any[]) => void;
+    listeners: (event: string) => Listener[];
+  }
+
+  let obj: Foo;
 
   hooks.beforeEach(function() {
-    @evented
-    class Foo {}
-
     obj = new Foo();
   });
 
@@ -35,10 +41,10 @@ module('Evented', function(hooks) {
   test('#emit - notifies listeners when emitting a simple message', function(assert) {
     assert.expect(2);
 
-    let listener1 = function(message) {
+    let listener1: Listener = function(message: string): void {
       assert.equal(message, 'hello', 'notification message should match');
     };
-    let listener2 = function(message) {
+    let listener2: Listener = function(message: string): void {
       assert.equal(message, 'hello', 'notification message should match');
     };
 
@@ -51,10 +57,10 @@ module('Evented', function(hooks) {
   test('#emit - notifies listeners registered with `one` only once each', function(assert) {
     assert.expect(2);
 
-    let listener1 = function(message) {
+    let listener1: Listener = function(message: string): void {
       assert.equal(message, 'hello', 'notification message should match');
     };
-    let listener2 = function(message) {
+    let listener2: Listener = function(message: string): void {
       assert.equal(message, 'hello', 'notification message should match');
     };
 
@@ -69,10 +75,10 @@ module('Evented', function(hooks) {
   test('#off can unregister individual listeners from an event', function(assert) {
     assert.expect(1);
 
-    let listener1 = function() {
+    let listener1: Listener = function(): void {
       assert.ok(false, 'this listener should not be triggered');
     };
-    let listener2 = function(message) {
+    let listener2: Listener = function(message: string): void {
       assert.equal(message, 'hello', 'notification message should match');
     };
 
@@ -110,10 +116,10 @@ module('Evented', function(hooks) {
   test('#emit - allows listeners to be registered for multiple events', function(assert) {
     assert.expect(3);
 
-    let listener1 = function(message) {
+    let listener1 = function(message: string) {
       assert.equal(message, 'hello', 'notification message should match');
     };
-    let listener2 = function(message) {
+    let listener2 = function(message: string) {
       assert.equal(message, 'hello', 'notification message should match');
     };
 
@@ -164,22 +170,22 @@ module('Evented', function(hooks) {
     assert.expect(10);
 
     let order = 0;
-    let listener1 = function(message) {
+    let listener1 = function(message: string) {
       assert.equal(message, 'hello', 'notification message should match');
       assert.equal(++order, 1, 'listener1 triggered first');
       // doesn't return anything
     };
-    let listener2 = function(message) {
+    let listener2 = function(message: string) {
       assert.equal(message, 'hello', 'notification message should match');
       assert.equal(++order, 2, 'listener2 triggered second');
       return failedOperation();
     };
-    let listener3 = function(message) {
+    let listener3 = function(message: string) {
       assert.equal(message, 'hello', 'notification message should match');
       assert.equal(++order, 3, 'listener3 triggered third');
       return successfulOperation();
     };
-    let listener4 = function(message) {
+    let listener4 = function(message: string) {
       assert.equal(message, 'hello', 'notification message should match');
       assert.equal(++order, 4, 'listener4 triggered fourth');
       return failedOperation();
@@ -215,12 +221,12 @@ module('Evented', function(hooks) {
     assert.expect(7);
 
     let order = 0;
-    let listener1 = function(message) {
+    let listener1 = function(message: string) {
       assert.equal(message, 'hello', 'notification message should match');
       assert.equal(++order, 1, 'listener1 triggered first');
       // doesn't return anything
     };
-    let listener2 = function(message) {
+    let listener2 = function(message: string) {
       assert.equal(message, 'hello', 'notification message should match');
       assert.equal(++order, 2, 'listener2 triggered third');
       return successfulOperation();
@@ -243,17 +249,17 @@ module('Evented', function(hooks) {
     assert.expect(8);
 
     let order = 0;
-    let listener1 = function(message) {
+    let listener1 = function(message: string) {
       assert.equal(message, 'hello', 'notification message should match');
       assert.equal(++order, 1, 'listener1 triggered first');
       // doesn't return anything
     };
-    let listener2 = function(message) {
+    let listener2 = function(message: string) {
       assert.equal(message, 'hello', 'notification message should match');
       assert.equal(++order, 2, 'listener2 triggered third');
       return successfulOperation();
     };
-    let listener3 = function(message) {
+    let listener3 = function(message: string) {
       assert.equal(message, 'hello', 'notification message should match');
       assert.equal(++order, 3, 'listener3 triggered second');
       return failedOperation();

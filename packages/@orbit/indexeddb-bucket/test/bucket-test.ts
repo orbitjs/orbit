@@ -4,7 +4,7 @@ import IndexedDBBucket from '../src/bucket';
 const { module, test } = QUnit;
 
 module('IndexedDBBucket', function(hooks) {
-  let bucket;
+  let bucket: IndexedDBBucket;
 
   hooks.beforeEach(() => {
     bucket = new IndexedDBBucket();

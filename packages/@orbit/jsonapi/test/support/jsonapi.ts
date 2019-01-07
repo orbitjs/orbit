@@ -1,8 +1,8 @@
 import Orbit from '@orbit/core';
 
-export function jsonapiResponse(_options, body?, timeout?) {
-  let options;
-  let response;
+export function jsonapiResponse(_options: any, body?: any, timeout?: number): Promise<Response> {
+  let options: any;
+  let response: Response;
 
   if (typeof _options === 'number') {
     options = { status: _options };
@@ -22,7 +22,7 @@ export function jsonapiResponse(_options, body?, timeout?) {
   // console.log('jsonapiResponse', body, options, response.headers.get('Content-Type'));
 
   if (timeout) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve: (response: Response) => void) => {
         let timer = Orbit.globals.setTimeout(() => {
           Orbit.globals.clearTimeout(timer);
           resolve(response);
@@ -33,7 +33,7 @@ export function jsonapiResponse(_options, body?, timeout?) {
   }
 }
 
-function statusText(code) {
+function statusText(code: number): string {
   switch (code) {
     case 200:
       return 'OK';

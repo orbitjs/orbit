@@ -1,5 +1,4 @@
-import TaskQueue from '../src/task-queue';
-import { Task, Performer } from '../src/task';
+import { Bucket, Performer, Task, TaskQueue } from '../src/index';
 import FakeBucket from './support/fake-bucket';
 
 const { module, test } = QUnit;
@@ -737,7 +736,7 @@ module('TaskQueue', function() {
     const op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     const op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
 
-    let bucket;
+    let bucket: Bucket;
 
     hooks.beforeEach(function() {
       bucket = new FakeBucket({ name: 'fake-bucket' });
@@ -761,8 +760,7 @@ module('TaskQueue', function() {
         'assertion raised');
     });
 
-    test('will be reified with the tasks serialized in its bucket and immediately process them', function(assert) {
-      const done = assert.async();
+    test('will be reified with the tasks serialized in its bucket and immediately process them', async function(assert) {
       assert.expect(3);
 
       const performer: Performer = {
@@ -782,25 +780,22 @@ module('TaskQueue', function() {
         }
       ];
 
-      let queue;
-      bucket.setItem('queue', serialized)
-        .then(() => {
-          queue = new TaskQueue(performer, { name: 'queue', bucket });
-          return queue.reified;
-        })
-        .then(() => {
-          assert.equal(queue.length, 2, 'queue has two tasks');
+      let queue: TaskQueue;
 
-          queue.on('complete', function() {
-            assert.ok(true, 'queue completed');
+      await bucket.setItem('queue', serialized);
 
-            bucket.getItem('queue')
-              .then(serialized => {
-                assert.deepEqual(serialized, [], 'no serialized ops remain');
-                done();
-              });
-          });
-        });
+      queue = new TaskQueue(performer, { name: 'queue', bucket });
+      await queue.reified;
+
+      assert.equal(queue.length, 2, 'queue has two tasks');
+
+      queue.on('complete', async function() {
+        assert.ok(true, 'queue completed');
+
+        let serialized = await bucket.getItem('queue')
+
+        assert.deepEqual(serialized, [], 'no serialized ops remain');
+      });
     });
 
     test('#push - tasks pushed to a queue are persisted to its bucket', function(assert) {

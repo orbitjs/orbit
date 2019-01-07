@@ -16,7 +16,11 @@ module('LogTruncationStrategy', function(hooks) {
   const tC = buildTransform([t.addRecord({ type: 'planet', id: 'c', attributes: { name: 'c' } })], null, 'c');
   const tD = buildTransform([t.addRecord({ type: 'planet', id: 'd', attributes: { name: 'd' } })], null, 'd');
 
-  let logTruncationStrategy, coordinator, s1, s2, s3;
+  let logTruncationStrategy: LogTruncationStrategy;
+  let coordinator: Coordinator;
+  let s1: any;
+  let s2: any;
+  let s3: any;
 
   hooks.beforeEach(function() {
     class MySource extends Source {}

@@ -1,19 +1,25 @@
 import {
   Source,
   updatable, isUpdatable,
-  buildTransform
+  Updatable,
+  buildTransform,
+  Transform,
+  TransformOrOperations
 } from '../../src/index';
 import '../test-helper';
 
 const { module, test } = QUnit;
 
 module('@updatable', function(hooks) {
-  let source;
+  @updatable
+  class MySource extends Source implements Updatable {
+    update: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => Promise<any>;
+    _update: (transform: Transform) => Promise<any>;
+  }
+
+  let source: MySource;
 
   hooks.beforeEach(function() {
-    @updatable
-    class MySource extends Source {}
-
     source = new MySource({ name: 'src1' });
   });
 
@@ -35,21 +41,22 @@ module('@updatable', function(hooks) {
   //   'assertion raised');
   // });
 
-  test('#update should resolve as a failure when `transform` fails', function(assert) {
+  test('#update should resolve as a failure when `transform` fails', async function(assert) {
     assert.expect(2);
 
     source._update = function() {
       return Promise.reject(':(');
     };
 
-    return source.update({ addRecord: {} })
-      .catch((error) => {
-        assert.ok(true, 'update promise resolved as a failure');
-        assert.equal(error, ':(', 'failure');
-      });
+    try {
+      await source.update({ op: 'addRecord' });
+    } catch(error) {
+      assert.ok(true, 'update promise resolved as a failure');
+      assert.equal(error, ':(', 'failure');
+    }
   });
 
-  test('#update should trigger `update` event after a successful action in which `_update` returns an array of transforms', function(assert) {
+  test('#update should trigger `update` event after a successful action in which `_update` returns an array of transforms', async function(assert) {
     assert.expect(11);
 
     let order = 0;
@@ -61,10 +68,10 @@ module('@updatable', function(hooks) {
       assert.strictEqual(transform, addRecordTransform, 'transform matches');
     });
 
-    source._update = function(transform) {
+    source._update = async function(transform) {
       assert.equal(++order, 2, 'action performed after beforeUpdate');
       assert.strictEqual(transform, addRecordTransform, 'transform object matches');
-      return Promise.resolve(':)');
+      return ':)';
     };
 
     source.on('transform', (transform) => {
@@ -79,14 +86,13 @@ module('@updatable', function(hooks) {
       assert.equal(result, ':)', 'result matches');
     });
 
-    return source.update(addRecordTransform)
-      .then(result => {
-        assert.equal(++order, 5, 'promise resolved last');
-        assert.equal(result, ':)', 'success!');
-      });
+    let result = await source.update(addRecordTransform);
+
+    assert.equal(++order, 5, 'promise resolved last');
+    assert.equal(result, ':)', 'success!');
   });
 
-  test('`update` event should receive results as the last argument, even if they are an array', function(assert) {
+  test('`update` event should receive results as the last argument, even if they are an array', async function(assert) {
     assert.expect(11);
 
     let order = 0;
@@ -116,15 +122,13 @@ module('@updatable', function(hooks) {
       assert.deepEqual(result, ['a', 'b', 'c'], 'result matches');
     });
 
-    return source.update(addRecordTransform)
-      .then(result => {
-        assert.equal(++order, 5, 'promise resolved last');
-        assert.deepEqual(result, ['a', 'b', 'c'], 'success!');
-      });
+    let result = await source.update(addRecordTransform);
+
+    assert.equal(++order, 5, 'promise resolved last');
+    assert.deepEqual(result, ['a', 'b', 'c'], 'success!');
   });
 
-
-  test('#update should trigger `updateFail` event after an unsuccessful update', function(assert) {
+  test('#update should trigger `updateFail` event after an unsuccessful update', async function(assert) {
     assert.expect(7);
 
     const addRecordTransform = buildTransform({ op: 'addRecord' });
@@ -147,14 +151,15 @@ module('@updatable', function(hooks) {
       assert.equal(error, ':(', 'error matches');
     });
 
-    return source.update(addRecordTransform)
-      .catch((error) => {
-        assert.equal(++order, 3, 'promise resolved last');
-        assert.equal(error, ':(', 'failure');
-      });
+    try {
+      await source.update(addRecordTransform);
+    } catch(error) {
+      assert.equal(++order, 3, 'promise resolved last');
+      assert.equal(error, ':(', 'failure');
+    }
   });
 
-  test('#update should resolve all promises returned from `beforeUpdate` before calling `_update`', function(assert) {
+  test('#update should resolve all promises returned from `beforeUpdate` before calling `_update`', async function(assert) {
     assert.expect(6);
 
     let order = 0;
@@ -176,22 +181,20 @@ module('@updatable', function(hooks) {
       return Promise.resolve();
     });
 
-    source._update = function() {
+    source._update = async function() {
       assert.equal(++order, 4, '_update invoked after all `beforeUpdate` handlers');
-      return Promise.resolve();
     };
 
     source.on('update', () => {
       assert.equal(++order, 5, 'update triggered after action performed successfully');
     });
 
-    return source.update(addRecordTransform)
-      .then(() => {
-        assert.equal(++order, 6, 'promise resolved last');
-      });
+    await source.update(addRecordTransform);
+
+    assert.equal(++order, 6, 'promise resolved last');
   });
 
-  test('#update should not call `_update` if the transform has been applied as a result of `beforeUpdate` resolution', function(assert) {
+  test('#update should not call `_update` if the transform has been applied as a result of `beforeUpdate` resolution', async function(assert) {
     assert.expect(2);
 
     let order = 0;
@@ -207,7 +210,7 @@ module('@updatable', function(hooks) {
       return Promise.resolve();
     });
 
-    source._update = function() {
+    source._update = async function() {
       assert.ok(false, '_update should not be reached');
     };
 
@@ -215,13 +218,12 @@ module('@updatable', function(hooks) {
       assert.ok(false, 'update should not be reached');
     });
 
-    return source.update(addRecordTransform)
-      .then(() => {
-        assert.equal(++order, 2, 'promise resolved last');
-      });
+    await source.update(addRecordTransform);
+
+    assert.equal(++order, 2, 'promise resolved last');
   });
 
-  test('#update should resolve all promises returned from `beforeUpdate` and fail if any fail', function(assert) {
+  test('#update should resolve all promises returned from `beforeUpdate` and fail if any fail', async function(assert) {
     assert.expect(5);
 
     let order = 0;
@@ -238,7 +240,7 @@ module('@updatable', function(hooks) {
       return Promise.reject(':(');
     });
 
-    source._update = function() {
+    source._update = async function() {
       assert.ok(false, '_update should not be invoked');
     };
 
@@ -250,10 +252,11 @@ module('@updatable', function(hooks) {
       assert.equal(++order, 3, 'updateFail triggered after action failed');
     });
 
-    return source.update(addRecordTransform)
-      .catch((error) => {
-        assert.equal(++order, 4, 'promise failed because no actions succeeded');
-        assert.equal(error, ':(', 'failure');
-      });
+    try {
+      await source.update(addRecordTransform);
+    } catch(error) {
+      assert.equal(++order, 4, 'promise failed because no actions succeeded');
+      assert.equal(error, ':(', 'failure');
+    }
   });
 });

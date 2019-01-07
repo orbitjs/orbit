@@ -9,9 +9,7 @@ import {
 const { module, test } = QUnit;
 
 module('EventLoggingStrategy', function(hooks) {
-  const t = new TransformBuilder();
-
-  let eventLoggingStrategy;
+  let eventLoggingStrategy: EventLoggingStrategy;
 
   test('can be instantiated', function(assert) {
     eventLoggingStrategy = new EventLoggingStrategy();

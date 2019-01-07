@@ -1,12 +1,11 @@
+import { getRecordFromIndexedDB } from './support/indexeddb';
 import {
-  verifyIndexedDBContainsRecord,
-  verifyIndexedDBDoesNotContainRecord
-} from './support/indexeddb';
-import {
+  Record,
   Schema,
   KeyMap
 } from '@orbit/data';
 import Cache from '../src/cache';
+import { RelatedRecordIdentity } from '../../record-cache/dist/types';
 
 const { module, test } = QUnit;
 
@@ -148,7 +147,7 @@ module('Cache', function(hooks) {
   test('#patch - addRecord', async function(assert) {
     assert.expect(2);
 
-    let planet = {
+    let planet: Record = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -161,7 +160,8 @@ module('Cache', function(hooks) {
     };
 
     await cache.patch(t => t.addRecord(planet));
-    await verifyIndexedDBContainsRecord(assert, cache, planet);
+
+    assert.deepEqual(await getRecordFromIndexedDB(cache, planet), planet, 'indexeddb contains record');
 
     assert.equal(keyMap.keyToId('planet', 'remoteId', 'j'), 'jupiter', 'key has been mapped');
   });
@@ -169,7 +169,7 @@ module('Cache', function(hooks) {
   test('#patch - replaceRecord', async function(assert) {
     assert.expect(2);
 
-    let original = {
+    let original: Record = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -185,7 +185,7 @@ module('Cache', function(hooks) {
       }
     };
 
-    let updates = {
+    let updates: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -198,7 +198,7 @@ module('Cache', function(hooks) {
       }
     };
 
-    let expected = {
+    let expected: Record = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -220,7 +220,7 @@ module('Cache', function(hooks) {
 
     await cache.patch(t => t.addRecord(original));
     await cache.patch(t => t.replaceRecord(updates));
-    await verifyIndexedDBContainsRecord(assert, cache, expected);
+    assert.deepEqual(await getRecordFromIndexedDB(cache, expected), expected, 'indexeddb contains record');
     assert.equal(keyMap.keyToId('planet', 'remoteId', 'j'), 'jupiter', 'key has been mapped');
   });
 
@@ -238,13 +238,13 @@ module('Cache', function(hooks) {
     };
 
     await cache.patch(t => t.replaceRecord(revised));
-    await verifyIndexedDBContainsRecord(assert, cache, revised);
+    assert.deepEqual(await getRecordFromIndexedDB(cache, revised), revised, 'indexeddb contains record');
   });
 
   test('#patch - removeRecord', async function(assert) {
     assert.expect(1);
 
-    let planet = {
+    let planet: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -255,7 +255,7 @@ module('Cache', function(hooks) {
 
     await cache.patch(t => t.addRecord(planet));
     await cache.patch(t => t.removeRecord(planet));
-    await verifyIndexedDBDoesNotContainRecord(assert, cache, planet);
+    assert.equal(await getRecordFromIndexedDB(cache, planet), null, 'indexeddb does not contain record');
   });
 
   test('#patch - removeRecord - when record does not exist', async function(assert) {
@@ -267,13 +267,13 @@ module('Cache', function(hooks) {
     };
 
     await cache.patch(t => t.removeRecord(planet));
-    await verifyIndexedDBDoesNotContainRecord(assert, cache, planet);
+    assert.equal(await getRecordFromIndexedDB(cache, planet), null, 'indexeddb does not contain record');
   });
 
   test('#patch - replaceKey', async function(assert) {
     assert.expect(2);
 
-    let original = {
+    let original: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -282,7 +282,7 @@ module('Cache', function(hooks) {
       }
     };
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -296,7 +296,7 @@ module('Cache', function(hooks) {
 
     await cache.patch(t => t.addRecord(original));
     await cache.patch(t => t.replaceKey(original, 'remoteId', '123'));
-    await verifyIndexedDBContainsRecord(assert, cache, revised);
+    assert.deepEqual(await getRecordFromIndexedDB(cache, revised), revised, 'indexeddb contains record');
 
     assert.equal(keyMap.keyToId('planet', 'remoteId', '123'), 'jupiter', 'key has been mapped');
   });
@@ -304,7 +304,7 @@ module('Cache', function(hooks) {
   test('#patch - replaceKey - when base record does not exist', async function(assert) {
     assert.expect(2);
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -313,7 +313,7 @@ module('Cache', function(hooks) {
     };
 
     await cache.patch(t => t.replaceKey({ type: 'planet', id: 'jupiter' }, 'remoteId', '123'));
-    await verifyIndexedDBContainsRecord(assert, cache, revised);
+    assert.deepEqual(await getRecordFromIndexedDB(cache, revised), revised, 'indexeddb contains record');
 
     assert.equal(keyMap.keyToId('planet', 'remoteId', '123'), 'jupiter', 'key has been mapped');
   });
@@ -321,7 +321,7 @@ module('Cache', function(hooks) {
   test('#patch - replaceAttribute', async function(assert) {
     assert.expect(1);
 
-    let original = {
+    let original: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -330,7 +330,7 @@ module('Cache', function(hooks) {
       }
     };
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -342,13 +342,13 @@ module('Cache', function(hooks) {
 
     await cache.patch(t => t.addRecord(original));
     await cache.patch(t => t.replaceAttribute(original, 'order', 5));
-    await verifyIndexedDBContainsRecord(assert, cache, revised);
+    assert.deepEqual(await getRecordFromIndexedDB(cache, revised), revised, 'indexeddb contains record');
   });
 
   test('#patch - replaceAttribute - when base record does not exist', async function(assert) {
     assert.expect(1);
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -357,13 +357,13 @@ module('Cache', function(hooks) {
     };
 
     await cache.patch(t => t.replaceAttribute({ type: 'planet', id: 'jupiter' }, 'order', 5));
-    await verifyIndexedDBContainsRecord(assert, cache, revised);
+    assert.deepEqual(await getRecordFromIndexedDB(cache, revised), revised, 'indexeddb contains record');
   });
 
   test('#patch - addToRelatedRecords', async function(assert) {
     assert.expect(1);
 
-    let original = {
+    let original: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -377,7 +377,7 @@ module('Cache', function(hooks) {
       }
     };
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -393,13 +393,13 @@ module('Cache', function(hooks) {
 
     await cache.patch(t => t.addRecord(original));
     await cache.patch(t => t.addToRelatedRecords(original, 'moons', { type: 'moon', id: 'moon1' }));
-    await verifyIndexedDBContainsRecord(assert, cache, revised);
+    assert.deepEqual(await getRecordFromIndexedDB(cache, revised), revised, 'indexeddb contains record');
   });
 
   test('#patch - addToRelatedRecords - when base record does not exist', async function(assert) {
     assert.expect(1);
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -410,13 +410,13 @@ module('Cache', function(hooks) {
     };
 
     await cache.patch(t => t.addToRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', { type: 'moon', id: 'moon1' }));
-    await verifyIndexedDBContainsRecord(assert, cache, revised);
+    assert.deepEqual(await getRecordFromIndexedDB(cache, revised), revised, 'indexeddb contains record');
   });
 
   test('#patch - removeFromRelatedRecords', async function(assert) {
     assert.expect(1);
 
-    let original = {
+    let original: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -433,7 +433,7 @@ module('Cache', function(hooks) {
       }
     };
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -451,13 +451,13 @@ module('Cache', function(hooks) {
 
     await cache.patch(t => t.addRecord(original));
     await cache.patch(t => t.removeFromRelatedRecords(original, 'moons', { type: 'moon', id: 'moon2' }));
-    await verifyIndexedDBContainsRecord(assert, cache, revised);
+    assert.deepEqual(await getRecordFromIndexedDB(cache, revised), revised, 'indexeddb contains record');
   });
 
   test('#patch - removeFromRelatedRecords - when base record does not exist', async function(assert) {
     assert.expect(1);
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -469,13 +469,13 @@ module('Cache', function(hooks) {
     };
 
     await cache.patch(t => t.removeFromRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', { type: 'moon', id: 'moon2' }));
-    await verifyIndexedDBDoesNotContainRecord(assert, cache, revised);
+    assert.equal(await getRecordFromIndexedDB(cache, revised), null, 'indexeddb does not contain record');
   });
 
   test('#patch - replaceRelatedRecords', async function(assert) {
     assert.expect(1);
 
-    let original = {
+    let original: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -491,7 +491,7 @@ module('Cache', function(hooks) {
       }
     };
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -510,13 +510,13 @@ module('Cache', function(hooks) {
 
     await cache.patch(t => t.addRecord(original))
     await cache.patch(t => t.replaceRelatedRecords(original, 'moons', [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }]));
-    await verifyIndexedDBContainsRecord(assert, cache, revised);
+    assert.deepEqual(await getRecordFromIndexedDB(cache, revised), revised, 'indexeddb contains record');
   });
 
   test('#patch - replaceRelatedRecords - when base record does not exist', async function(assert) {
     assert.expect(1);
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -530,13 +530,13 @@ module('Cache', function(hooks) {
     };
 
     await cache.patch(t => t.replaceRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }]));
-    await verifyIndexedDBContainsRecord(assert, cache, revised);
+    assert.deepEqual(await getRecordFromIndexedDB(cache, revised), revised, 'indexeddb contains record');
   });
 
   test('#patch - replaceRelatedRecord - with record', async function(assert) {
     assert.expect(1);
 
-    let original = {
+    let original: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -550,7 +550,7 @@ module('Cache', function(hooks) {
       }
     };
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -566,13 +566,13 @@ module('Cache', function(hooks) {
 
     await cache.patch(t => t.addRecord(original));
     await cache.patch(t => t.replaceRelatedRecord(original, 'solarSystem', { type: 'solarSystem', id: 'ss1' }));
-    await verifyIndexedDBContainsRecord(assert, cache, revised);
+    assert.deepEqual(await getRecordFromIndexedDB(cache, revised), revised, 'indexeddb contains record');
   });
 
   test('#patch - replaceRelatedRecord - with record - when base record does not exist', async function(assert) {
     assert.expect(1);
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -583,13 +583,13 @@ module('Cache', function(hooks) {
     };
 
     await cache.patch(t => t.replaceRelatedRecord({ type: 'planet', id: 'jupiter' }, 'solarSystem', { type: 'solarSystem', id: 'ss1' }));
-    await verifyIndexedDBContainsRecord(assert, cache, revised);
+    assert.deepEqual(await getRecordFromIndexedDB(cache, revised), revised, 'indexeddb contains record');
   });
 
   test('#patch - replaceRelatedRecord - with null', async function(assert) {
     assert.expect(1);
 
-    let original = {
+    let original: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -603,7 +603,7 @@ module('Cache', function(hooks) {
       }
     };
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -619,13 +619,13 @@ module('Cache', function(hooks) {
 
     await cache.patch(t => t.addRecord(original));
     await cache.patch(t => t.replaceRelatedRecord(original, 'solarSystem', null));
-    await verifyIndexedDBContainsRecord(assert, cache, revised);
+    assert.deepEqual(await getRecordFromIndexedDB(cache, revised), revised, 'indexeddb contains record');
   });
 
   test('#patch - replaceRelatedRecord - with null - when base record does not exist', async function(assert) {
     assert.expect(1);
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -636,13 +636,13 @@ module('Cache', function(hooks) {
     };
 
     await cache.patch(t => t.replaceRelatedRecord({ type: 'planet', id: 'jupiter' }, 'solarSystem', null));
-    await verifyIndexedDBContainsRecord(assert, cache, revised);
+    assert.deepEqual(await getRecordFromIndexedDB(cache, revised), revised, 'indexeddb contains record');
   });
 
   test('#query - all records', async function(assert) {
     assert.expect(4);
 
-    let earth = {
+    let earth: Record = {
       type: 'planet',
       id: 'earth',
       keys: {
@@ -654,7 +654,7 @@ module('Cache', function(hooks) {
       }
     };
 
-    let jupiter = {
+    let jupiter: Record = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -666,7 +666,7 @@ module('Cache', function(hooks) {
       }
     };
 
-    let io = {
+    let io: Record = {
       type: 'moon',
       id: 'io',
       keys: {
@@ -697,7 +697,7 @@ module('Cache', function(hooks) {
   test('#query - records of one type', async function(assert) {
     assert.expect(1);
 
-    let earth = {
+    let earth: Record = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -706,7 +706,7 @@ module('Cache', function(hooks) {
       }
     };
 
-    let jupiter = {
+    let jupiter: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -715,7 +715,7 @@ module('Cache', function(hooks) {
       }
     };
 
-    let io = {
+    let io: Record = {
       type: 'moon',
       id: 'io',
       attributes: {
@@ -736,7 +736,7 @@ module('Cache', function(hooks) {
   test('#query - a specific record', async function(assert) {
     assert.expect(2);
 
-    let earth = {
+    let earth: Record = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -745,7 +745,7 @@ module('Cache', function(hooks) {
       }
     };
 
-    let jupiter = {
+    let jupiter: Record = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -757,7 +757,7 @@ module('Cache', function(hooks) {
       }
     };
 
-    let io = {
+    let io: Record = {
       type: 'moon',
       id: 'io',
       attributes: {
