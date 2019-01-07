@@ -1,6 +1,57 @@
 import { isObject } from '@orbit/utils';
-import { QueryExpression, FindRecord, FindRelatedRecord, FindRelatedRecords, FindRecords, SortSpecifier, AttributeSortSpecifier, PageSpecifier, FilterSpecifier, SortOrder } from './query-expression';
+import {
+  QueryExpression,
+  FindRecord,
+  FindRelatedRecord,
+  FindRelatedRecords,
+  FindRecords,
+  SortOrder,
+  SortSpecifier,
+  AttributeSortSpecifier,
+  PageSpecifier,
+  SetComparisonOperator,
+  ValueComparisonOperator,
+  FilterSpecifier,
+  AttributeFilterSpecifier,
+  RelatedRecordFilterSpecifier,
+  RelatedRecordsFilterSpecifier
+} from './query-expression';
 import { RecordIdentity } from './record';
+
+export interface AttributeSortQBParam {
+  attribute: string;
+  order?: SortOrder;
+}
+
+export type SortQBParam = SortSpecifier | AttributeSortQBParam | string;
+
+export interface PageQBParam {
+  offset?: number;
+  limit?: number;
+}
+
+export interface AttributeFilterQBParam {
+  op?: ValueComparisonOperator,
+  attribute: string;
+  value: any;
+}
+
+export interface RelatedRecordFilterQBParam {
+  op?: SetComparisonOperator,
+  relation: string;
+  record: RecordIdentity | RecordIdentity[] | null;
+}
+
+export interface RelatedRecordsFilterQBParam {
+  op?: SetComparisonOperator,
+  relation: string;
+  records: RecordIdentity[];
+}
+
+export type FilterQBParam = FilterSpecifier |
+  AttributeFilterQBParam |
+  RelatedRecordFilterQBParam |
+  RelatedRecordsFilterQBParam;
 
 /**
  * Query terms are used by query builders to allow for the construction of
@@ -91,78 +142,100 @@ export class FindRecordsTerm extends QueryTerm {
    * 'name'  // ascending order
    * ```
    */
-  sort(...sortSpecifiers: SortSpecifier[]): FindRecordsTerm {
-    const specifiers = sortSpecifiers.map(parseSortSpecifier);
+  sort(...params: SortQBParam[]): FindRecordsTerm {
+    const specifiers = params.map(sortParamToSpecifier);
     this.expression.sort = (this.expression.sort || []).concat(specifiers);
     return this;
   }
 
   /**
    * Applies pagination to a collection query.
-   *
-   * Note: Options are currently an opaque pass-through to remote sources.
    */
-  page(options: PageSpecifier): FindRecordsTerm {
-    this.expression.page = options;
+  page(param: PageQBParam): FindRecordsTerm {
+    this.expression.page = pageParamToSpecifier(param);
     return this;
   }
 
   /**
-   * Apply an advanced filter expression based on a `RecordCursor`.
+   * Apply a filter expression.
    *
    * For example:
    *
    * ```ts
    * oqb
    *   .records('planet')
-   *   .filter(record =>
-   *     oqb.or(
-   *       record.attribute('name').equal('Jupiter'),
-   *       record.attribute('name').equal('Pluto')
-   *     )
-   *   )
+   *   .filter({ attribute: 'atmosphere', value: true },
+   *           { attribute: 'classification', value: 'terrestrial' });
    * ```
-   *
-   * @param {(RecordCursor) => void} predicateExpression
-   * @returns {RecordsTerm}
-   *
-   * @memberOf RecordsTerm
    */
-  filter(...filterSpecifiers: any[]): FindRecordsTerm {
-    filterSpecifiers.forEach(normalizeFilterSpecifier);
-    this.expression.filter = (this.expression.filter || []).concat(filterSpecifiers);
+  filter(...params: FilterQBParam[]): FindRecordsTerm {
+    const specifiers = params.map(filterParamToSpecifier);
+    this.expression.filter = (this.expression.filter || []).concat(specifiers);
     return this;
   }
 }
 
-function normalizeFilterSpecifier(specifier: FilterSpecifier): void {
-  if (!specifier.kind) {
-    if (specifier.hasOwnProperty('relation')) {
-      if (specifier.hasOwnProperty('record')) {
-        specifier.kind = 'relatedRecord';
-      } else if (specifier.hasOwnProperty('records')) {
-        specifier.kind = 'relatedRecords';
-      }
-    } else {
-      specifier.kind = 'attribute';
+function filterParamToSpecifier(param: FilterQBParam): FilterSpecifier {
+  if (param.hasOwnProperty('kind')) {
+    return param as FilterSpecifier;
+  }
+  const op = param.op || 'equal';
+  if (param.hasOwnProperty('relation')) {
+    if (param.hasOwnProperty('record')) {
+      return {
+        kind: 'relatedRecord',
+        op,
+        relation: (param as RelatedRecordFilterQBParam).relation,
+        record: (param as RelatedRecordFilterQBParam).record
+      } as RelatedRecordFilterSpecifier;
+    } else if (param.hasOwnProperty('records')) {
+      return {
+        kind: 'relatedRecords',
+        op,
+        relation: (param as RelatedRecordsFilterQBParam).relation,
+        records: (param as RelatedRecordsFilterQBParam).records
+      } as RelatedRecordsFilterSpecifier;
     }
+  } else {
+    return {
+      kind: 'attribute',
+      op,
+      attribute: (param as AttributeFilterQBParam).attribute,
+      value: (param as AttributeFilterQBParam).value
+    } as AttributeFilterSpecifier;
   }
-  specifier.op = specifier.op || 'equal';
+  throw new Error('Unrecognized filter param.');
 }
 
-function parseSortSpecifier(sortSpecifier: SortSpecifier | string): SortSpecifier {
-  if (isObject(sortSpecifier)) {
-    let s = sortSpecifier as SortSpecifier;
-    s.kind = s.kind || 'attribute';
-    s.order = s.order || 'ascending';
-    return s;
-  } else if (typeof sortSpecifier === 'string') {
-    return parseSortSpecifierString(sortSpecifier);
+function pageParamToSpecifier(param: PageQBParam): PageSpecifier {
+  if (param.hasOwnProperty('offset') || param.hasOwnProperty('limit')) {
+    return {
+      kind: 'offsetLimit',
+      offset: param.offset,
+      limit: param.limit
+    };
   }
-  throw new Error('Sort expression must be either an object or a string.');
+  throw new Error('Unrecognized page param.');
 }
 
-function parseSortSpecifierString(sortSpecifier: string): AttributeSortSpecifier  {
+function sortParamToSpecifier(param: SortQBParam): SortSpecifier {
+  if (isObject(param)) {
+    if (param.hasOwnProperty('kind')) {
+      return param as SortSpecifier;
+    } else if (param.hasOwnProperty('attribute')) {
+      return {
+        kind: 'attribute',
+        attribute: (param as AttributeSortQBParam).attribute,
+        order: (param as AttributeSortQBParam).order || 'ascending'
+      } as AttributeSortSpecifier;
+    }
+  } else if (typeof param === 'string') {
+    return parseSortParamString(param);
+  }
+  throw new Error('Unrecognized sort param.');
+}
+
+function parseSortParamString(sortSpecifier: string): AttributeSortSpecifier  {
   let attribute: string;
   let order: SortOrder;
 
