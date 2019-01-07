@@ -25,7 +25,7 @@ export function isEvented(obj: any): boolean {
  */
 export interface Evented {
   on: (event: string, listener: Listener) => void;
-  off: (event: string, listener: Listener) => void;
+  off: (event: string, listener?: Listener) => void;
   one: (event: string, listener: Listener) => void;
   emit: (event: string, ...args: any[]) => void;
   listeners: (event: string) => Listener[];
@@ -167,7 +167,7 @@ function notifierForEvent(object: any, eventName: string, createIfUndefined = fa
   }
   let notifier = object._eventedNotifiers[eventName];
   if (!notifier && createIfUndefined) {
-    notifier = object._eventedNotifiers[eventName] = new Notifier(object);
+    notifier = object._eventedNotifiers[eventName] = new Notifier();
   }
   return notifier;
 }

@@ -1,6 +1,7 @@
 import Log from '../src/log';
 import { NotLoggedException, OutOfRangeException } from '../src/exception';
 import FakeBucket from './support/fake-bucket';
+import { Bucket } from '../src/bucket';
 
 const { module, test } = QUnit;
 
@@ -9,7 +10,7 @@ module('Log', function() {
   const transformBId = '1d12dc84-0d03-4875-a4a6-0e389737d891';
   const transformCId = 'ea054670-8901-45c2-b908-4db2c5bb9c7d';
   const transformDId = '771b25ff-b971-42e0-aac3-c285aef75326';
-  let log;
+  let log: Log;
 
   test('can be instantiated with no params', function(assert) {
     log = new Log();
@@ -125,7 +126,7 @@ module('Log', function() {
     test('#clear', function(assert) {
       assert.expect(3);
 
-      log.on('clear', (removed) => {
+      log.on('clear', (removed: string[]) => {
         assert.deepEqual(removed, [transformAId, transformBId, transformCId], 'clear event emitted');
       });
 
@@ -257,7 +258,7 @@ module('Log', function() {
   });
 
   module('using a bucket', function(hooks) {
-    let bucket;
+    let bucket: Bucket;
 
     hooks.beforeEach(function() {
       bucket = new FakeBucket({ name: 'fake-bucket' });

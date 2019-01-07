@@ -1,4 +1,4 @@
-import { Dict, toArray, merge } from '@orbit/utils';
+import { Dict, toArray, merge, clone } from '@orbit/utils';
 import {
   Query,
   QueryExpressionParseError,
@@ -17,7 +17,8 @@ import {
   AttributeFilterSpecifier,
   RelatedRecordFilterSpecifier,
   AttributeSortSpecifier,
-  RelatedRecordsFilterSpecifier
+  RelatedRecordsFilterSpecifier,
+  PageSpecifier
 } from '@orbit/data';
 import JSONAPISource from '../jsonapi-source';
 import { DeserializedDocument } from '../jsonapi-serializer';
@@ -81,7 +82,7 @@ export const QueryOperators: Dict<QueryOperator> = {
     }
 
     if (expression.page) {
-      requestOptions.page = expression.page;
+      requestOptions.page = buildPageParam(source, expression.page);
     }
 
     let customOptions = customRequestOptions(source, query);
@@ -194,4 +195,10 @@ function buildSortParam(source: JSONAPISource, sortSpecifiers: SortSpecifier[]):
     }
     throw new QueryExpressionParseError(`Sort specifier ${sortSpecifier.kind} not recognized for JSONAPISource.`, sortSpecifier);
   }).join(',');
+}
+
+function buildPageParam(source: JSONAPISource, pageSpecifier: PageSpecifier): object {
+  let pageParam = clone(pageSpecifier);
+  delete pageParam.kind;
+  return pageParam;
 }

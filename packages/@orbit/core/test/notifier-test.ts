@@ -3,7 +3,7 @@ import Notifier from '../src/notifier';
 const { module, test } = QUnit;
 
 module('Notifier', function(hooks) {
-  let notifier;
+  let notifier: Notifier;
 
   hooks.beforeEach(function() {
     notifier = new Notifier();
@@ -37,10 +37,10 @@ module('Notifier', function(hooks) {
   test('it notifies listeners when emitting a simple message', function(assert) {
     assert.expect(2);
 
-    let listener1 = function(message) {
+    let listener1 = function(message: string) {
       assert.equal(message, 'hello', 'notification message should match');
     };
-    let listener2 = function(message) {
+    let listener2 = function(message: string) {
       assert.equal(message, 'hello', 'notification message should match');
     };
 

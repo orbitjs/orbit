@@ -10,7 +10,8 @@ import { SyncSchemaValidationProcessor } from '../../src/index';
 const { module, test } = QUnit;
 
 module('SchemaValidationProcessor', function(hooks) {
-  let schema, cache;
+  let schema: Schema;
+  let cache: Cache;
 
   const schemaDefinition: SchemaSettings = {
     models: {

@@ -3,8 +3,7 @@ import {
   Schema,
   KeyMap,
   Record,
-  RecordIdentity,
-  RecordRelationship
+  RecordIdentity
 } from '@orbit/data';
 import {
   Resource,

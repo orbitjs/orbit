@@ -1,9 +1,9 @@
 import {
-  verifyLocalStorageContainsRecord,
-  verifyLocalStorageDoesNotContainRecord,
-  verifyLocalStorageIsEmpty
+  getRecordFromLocalStorage,
+  isLocalStorageEmpty
 } from './support/local-storage';
 import {
+  Record,
   Schema,
   Source,
   KeyMap
@@ -77,7 +77,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - addRecord', function(assert) {
+  test('#push - addRecord', async function(assert) {
     assert.expect(2);
 
     let planet = {
@@ -92,17 +92,16 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.addRecord(planet))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, planet))
-      .then(() => {
-        assert.equal(keyMap.keyToId('planet', 'remoteId', 'j'), 'jupiter', 'key has been mapped');
-      });
+    await source.push(t => t.addRecord(planet));
+
+    assert.deepEqual(getRecordFromLocalStorage(source, planet), planet, 'local storage contains record');
+    assert.equal(keyMap.keyToId('planet', 'remoteId', 'j'), 'jupiter', 'key has been mapped');
    });
 
-  test('#push - replaceRecord', function(assert) {
+  test('#push - replaceRecord', async function(assert) {
     assert.expect(2);
 
-    let original = {
+    let original: Record = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -151,18 +150,17 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.addRecord(original))
-      .then(() => source.push(t => t.replaceRecord(updates)))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, expected))
-      .then(() => {
-        assert.equal(keyMap.keyToId('planet', 'remoteId', 'j'), 'jupiter', 'key has been mapped');
-      });
+    await source.push(t => t.addRecord(original));
+    await source.push(t => t.replaceRecord(updates));
+
+    assert.deepEqual(getRecordFromLocalStorage(source, expected), expected, 'local storage contains record');
+    assert.equal(keyMap.keyToId('planet', 'remoteId', 'j'), 'jupiter', 'key has been mapped');
   });
 
-  test('#push - replaceRecord - when record does not exist', function(assert) {
+  test('#push - replaceRecord - when record does not exist', async function(assert) {
     assert.expect(1);
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -172,11 +170,12 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.replaceRecord(revised))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
+    await source.push(t => t.replaceRecord(revised));
+
+    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
   });
 
-  test('#push - removeRecord', function(assert) {
+  test('#push - removeRecord', async function(assert) {
     assert.expect(1);
 
     let planet = {
@@ -188,12 +187,13 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.addRecord(planet))
-      .then(() => source.push(t => t.removeRecord(planet)))
-      .then(() => verifyLocalStorageDoesNotContainRecord(assert, source, planet));
+    await source.push(t => t.addRecord(planet));
+    await source.push(t => t.removeRecord(planet));
+
+    assert.deepEqual(getRecordFromLocalStorage(source, planet), null, 'local storage does not contain record');
   });
 
-  test('#push - removeRecord - when record does not exist', function(assert) {
+  test('#push - removeRecord - when record does not exist', async function(assert) {
     assert.expect(1);
 
     let planet = {
@@ -201,14 +201,15 @@ module('LocalStorageSource', function(hooks) {
       id: 'jupiter'
     };
 
-    return source.push(t => t.removeRecord(planet))
-      .then(() => verifyLocalStorageDoesNotContainRecord(assert, source, planet));
+    await source.push(t => t.removeRecord(planet));
+
+    assert.equal(getRecordFromLocalStorage(source, planet), undefined, 'local storage does not contain record');
   });
 
-  test('#push - replaceKey', function(assert) {
+  test('#push - replaceKey', async function(assert) {
     assert.expect(2);
 
-    let original = {
+    let original: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -217,7 +218,7 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -229,18 +230,17 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.addRecord(original))
-      .then(() => source.push(t => t.replaceKey(original, 'remoteId', '123')))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, revised))
-      .then(() => {
-        assert.equal(keyMap.keyToId('planet', 'remoteId', '123'), 'jupiter', 'key has been mapped');
-      });
+    await source.push(t => t.addRecord(original));
+    await source.push(t => t.replaceKey(original, 'remoteId', '123'));
+
+    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
+    assert.equal(keyMap.keyToId('planet', 'remoteId', '123'), 'jupiter', 'key has been mapped');
   });
 
-  test('#push - replaceKey - when base record does not exist', function(assert) {
+  test('#push - replaceKey - when base record does not exist', async function(assert) {
     assert.expect(2);
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -248,17 +248,16 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.replaceKey({ type: 'planet', id: 'jupiter' }, 'remoteId', '123'))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, revised))
-      .then(() => {
-        assert.equal(keyMap.keyToId('planet', 'remoteId', '123'), 'jupiter', 'key has been mapped');
-      });
+    await source.push(t => t.replaceKey({ type: 'planet', id: 'jupiter' }, 'remoteId', '123'));
+
+    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
+    assert.equal(keyMap.keyToId('planet', 'remoteId', '123'), 'jupiter', 'key has been mapped');
   });
 
-  test('#push - replaceAttribute', function(assert) {
+  test('#push - replaceAttribute', async function(assert) {
     assert.expect(1);
 
-    let original = {
+    let original: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -267,7 +266,7 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -277,15 +276,16 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.addRecord(original))
-      .then(() => source.push(t => t.replaceAttribute(original, 'order', 5)))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
+    await source.push(t => t.addRecord(original));
+    await source.push(t => t.replaceAttribute(original, 'order', 5));
+
+    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
   });
 
-  test('#push - replaceAttribute - when base record does not exist', function(assert) {
+  test('#push - replaceAttribute - when base record does not exist', async function(assert) {
     assert.expect(1);
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -293,14 +293,15 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.replaceAttribute({ type: 'planet', id: 'jupiter' }, 'order', 5))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
+    await source.push(t => t.replaceAttribute({ type: 'planet', id: 'jupiter' }, 'order', 5));
+
+    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
   });
 
-  test('#push - addToRelatedRecords', function(assert) {
+  test('#push - addToRelatedRecords', async function(assert) {
     assert.expect(1);
 
-    let original = {
+    let original: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -314,7 +315,7 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -328,15 +329,16 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.addRecord(original))
-      .then(() => source.push(t => t.addToRelatedRecords(original, 'moons', { type: 'moon', id: 'moon1' })))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
+    await source.push(t => t.addRecord(original));
+    await source.push(t => t.addToRelatedRecords(original, 'moons', { type: 'moon', id: 'moon1' }));
+
+    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
   });
 
-  test('#push - addToRelatedRecords - when base record does not exist', function(assert) {
+  test('#push - addToRelatedRecords - when base record does not exist', async function(assert) {
     assert.expect(1);
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -346,14 +348,15 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.addToRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', { type: 'moon', id: 'moon1' }))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
+    await source.push(t => t.addToRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', { type: 'moon', id: 'moon1' }));
+
+    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
   });
 
-  test('#push - removeFromRelatedRecords', function(assert) {
+  test('#push - removeFromRelatedRecords', async function(assert) {
     assert.expect(1);
 
-    let original = {
+    let original: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -370,7 +373,7 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -384,15 +387,16 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.addRecord(original))
-      .then(() => source.push(t => t.removeFromRelatedRecords(original, 'moons', { type: 'moon', id: 'moon2' })))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
+    await source.push(t => t.addRecord(original));
+    await source.push(t => t.removeFromRelatedRecords(original, 'moons', { type: 'moon', id: 'moon2' }));
+
+    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
   });
 
-  test('#push - removeFromRelatedRecords - when base record does not exist', function(assert) {
+  test('#push - removeFromRelatedRecords - when base record does not exist', async function(assert) {
     assert.expect(1);
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -403,14 +407,15 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.removeFromRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', { type: 'moon', id: 'moon2' }))
-      .then(() => verifyLocalStorageDoesNotContainRecord(assert, source, revised));
+    await source.push(t => t.removeFromRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', { type: 'moon', id: 'moon2' }));
+
+    assert.equal(getRecordFromLocalStorage(source, revised), undefined, 'local storage does not contain record');
   });
 
-  test('#push - replaceRelatedRecords', function(assert) {
+  test('#push - replaceRelatedRecords', async function(assert) {
     assert.expect(1);
 
-    let original = {
+    let original: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -426,7 +431,7 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -443,15 +448,16 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.addRecord(original))
-      .then(() => source.push(t => t.replaceRelatedRecords(original, 'moons', [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }])))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
+    await source.push(t => t.addRecord(original));
+    await source.push(t => t.replaceRelatedRecords(original, 'moons', [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }]));
+
+    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
   });
 
-  test('#push - replaceRelatedRecords - when base record does not exist', function(assert) {
+  test('#push - replaceRelatedRecords - when base record does not exist', async function(assert) {
     assert.expect(1);
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -464,14 +470,15 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.replaceRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }]))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
+    await source.push(t => t.replaceRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }]));
+
+    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
   });
 
-  test('#push - replaceRelatedRecord - with record', function(assert) {
+  test('#push - replaceRelatedRecord - with record', async function(assert) {
     assert.expect(1);
 
-    let original = {
+    let original: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -485,7 +492,7 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -499,15 +506,16 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.addRecord(original))
-      .then(() => source.push(t => t.replaceRelatedRecord(original, 'solarSystem', { type: 'solarSystem', id: 'ss1' })))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
+    await source.push(t => t.addRecord(original));
+    await source.push(t => t.replaceRelatedRecord(original, 'solarSystem', { type: 'solarSystem', id: 'ss1' }));
+
+    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
   });
 
-  test('#push - replaceRelatedRecord - with record - when base record does not exist', function(assert) {
+  test('#push - replaceRelatedRecord - with record - when base record does not exist', async function(assert) {
     assert.expect(1);
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -517,14 +525,14 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.replaceRelatedRecord({ type: 'planet', id: 'jupiter' }, 'solarSystem', { type: 'solarSystem', id: 'ss1' }))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
+    await source.push(t => t.replaceRelatedRecord({ type: 'planet', id: 'jupiter' }, 'solarSystem', { type: 'solarSystem', id: 'ss1' }));
+    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
   });
 
-  test('#push - replaceRelatedRecord - with null', function(assert) {
+  test('#push - replaceRelatedRecord - with null', async function(assert) {
     assert.expect(1);
 
-    let original = {
+    let original: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -538,7 +546,7 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -552,15 +560,15 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.push(t => t.addRecord(original))
-      .then(() => source.push(t => t.replaceRelatedRecord(original, 'solarSystem', null)))
-      .then(() => verifyLocalStorageContainsRecord(assert, source, revised));
+    await source.push(t => t.addRecord(original));
+    await source.push(t => t.replaceRelatedRecord(original, 'solarSystem', null));
+    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
   });
 
   test('#push - replaceRelatedRecord - with null - when base record does not exist', async function(assert) {
     assert.expect(1);
 
-    let revised = {
+    let revised: Record = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -571,10 +579,10 @@ module('LocalStorageSource', function(hooks) {
     };
 
     await source.push(t => t.replaceRelatedRecord({ type: 'planet', id: 'jupiter' }, 'solarSystem', null));
-    verifyLocalStorageContainsRecord(assert, source, revised);
+    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
   });
 
-  test('#reset - clears records for source', function(assert) {
+  test('#reset - clears records for source', async function(assert) {
     assert.expect(2);
 
     let planet = {
@@ -582,15 +590,16 @@ module('LocalStorageSource', function(hooks) {
       id: 'jupiter'
     };
 
-    return source.push(t => t.addRecord(planet))
-      .then(() => {
-        verifyLocalStorageContainsRecord(assert, source, planet);
-        return source.reset();
-      })
-      .then(() => verifyLocalStorageIsEmpty(assert, source));
+    await source.push(t => t.addRecord(planet));
+
+    assert.deepEqual(getRecordFromLocalStorage(source, planet), planet, 'local storage contains record');
+
+    await source.reset();
+
+    assert.ok(isLocalStorageEmpty(source), 'local storage is empty');
   });
 
-  test('#reset - ignores local-storage-bucket entries', function(assert) {
+  test('#reset - ignores local-storage-bucket entries', async function(assert) {
     assert.expect(2);
 
     let planet = {
@@ -598,11 +607,15 @@ module('LocalStorageSource', function(hooks) {
       id: 'jupiter'
     };
 
-    return source.push(t => t.addRecord(planet))
-      .then(() => Orbit.globals.localStorage.setItem('orbit-bucket/foo', '{}'))
-      .then(() => source.reset())
-      .then(() => verifyLocalStorageIsEmpty(assert, source))
-      .then(() => assert.equal(Orbit.globals.localStorage.getItem('orbit-bucket/foo'), '{}'));
+    await source.push(t => t.addRecord(planet));
+
+    Orbit.globals.localStorage.setItem('orbit-bucket/foo', '{}');
+
+    await source.reset();
+
+    assert.ok(isLocalStorageEmpty(source), 'local storage is empty');
+
+    assert.equal(Orbit.globals.localStorage.getItem('orbit-bucket/foo'), '{}');
   });
 
   test('#pull - all records', function(assert) {

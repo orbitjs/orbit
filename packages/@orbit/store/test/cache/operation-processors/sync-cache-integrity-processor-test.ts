@@ -1,7 +1,14 @@
 import {
+  Record,
   Schema,
   SchemaSettings,
-  KeyMap
+  KeyMap,
+  ReplaceRelatedRecordOperation,
+  ReplaceRelatedRecordsOperation,
+  AddToRelatedRecordsOperation,
+  RemoveFromRelatedRecordsOperation,
+  RemoveRecordOperation,
+  ReplaceRecordOperation
 } from '@orbit/data';
 import { SyncCacheIntegrityProcessor } from '@orbit/record-cache';
 import Cache from '../../../src/cache';
@@ -9,7 +16,9 @@ import Cache from '../../../src/cache';
 const { module, test } = QUnit;
 
 module('SyncCacheIntegrityProcessor', function(hooks) {
-  let schema, cache, processor;
+  let schema: Schema;
+  let cache: Cache;
+  let processor: SyncCacheIntegrityProcessor;
 
   const schemaDefinition: SchemaSettings = {
     models: {
@@ -55,7 +64,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
     let keyMap = new KeyMap();
     schema = new Schema(schemaDefinition);
     cache = new Cache({ schema, keyMap, processors: [SyncCacheIntegrityProcessor] });
-    processor = cache._processors[0];
+    processor = cache.processors[0] as SyncCacheIntegrityProcessor;
   });
 
   hooks.afterEach(function() {
@@ -65,19 +74,19 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
   });
 
   test('reset empty cache', function(assert) {
-    const saturn = { type: 'planet', id: 'saturn',
+    const saturn: Record = { type: 'planet', id: 'saturn',
                     attributes: { name: 'Saturn' },
                     relationships: { moons: { data: [titanId] } } };
 
-    const jupiter = { type: 'planet', id: 'jupiter',
+    const jupiter: Record = { type: 'planet', id: 'jupiter',
                       attributes: { name: 'Jupiter' },
                       relationships: { moons: { data: [europaId] } } };
 
-    const titan = { type: 'moon', id: 'titan',
+    const titan: Record = { type: 'moon', id: 'titan',
                     attributes: { name: 'Titan' },
                     relationships: { planet: { data: saturnId } } };
 
-    const europa = { type: 'moon', id: 'europa',
+    const europa: Record = { type: 'moon', id: 'europa',
                     attributes: { name: 'Europa' },
                     relationships: { planet: { data: jupiterId } } };
 
@@ -114,19 +123,19 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
   });
 
   test('add to hasOne => hasMany', function(assert) {
-    const saturn = { type: 'planet', id: 'saturn',
+    const saturn: Record = { type: 'planet', id: 'saturn',
                     attributes: { name: 'Saturn' },
                     relationships: { moons: { data: [titanId] } } };
 
-    const jupiter = { type: 'planet', id: 'jupiter',
+    const jupiter: Record = { type: 'planet', id: 'jupiter',
                       attributes: { name: 'Jupiter' },
                       relationships: { moons: { data: [europaId] } } };
 
-    const titan = { type: 'moon', id: 'titan',
+    const titan: Record = { type: 'moon', id: 'titan',
                     attributes: { name: 'Titan' },
                     relationships: { planet: { data: saturnId} } };
 
-    const europa = { type: 'moon', id: 'europa',
+    const europa: Record = { type: 'moon', id: 'europa',
                     attributes: { name: 'Europa' },
                     relationships: { planet: { data: jupiterId } } };
 
@@ -161,7 +170,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
       relatedRecord: saturnId
     }]);
 
-    const addPlanetOp = {
+    const addPlanetOp: ReplaceRelatedRecordOperation = {
       op: 'replaceRelatedRecord',
       record: europaId,
       relationship: 'planet',
@@ -209,19 +218,19 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
   });
 
   test('replace hasOne => hasMany', function(assert) {
-    const saturn = { type: 'planet', id: 'saturn',
+    const saturn: Record = { type: 'planet', id: 'saturn',
                     attributes: { name: 'Saturn' },
                     relationships: { moons: { data: [titanId] } } };
 
-    const jupiter = { type: 'planet', id: 'jupiter',
+    const jupiter: Record = { type: 'planet', id: 'jupiter',
                       attributes: { name: 'Jupiter' },
                       relationships: { moons: { data: [europaId] } } };
 
-    const titan = { type: 'moon', id: 'titan',
+    const titan: Record = { type: 'moon', id: 'titan',
                     attributes: { name: 'Titan' },
                     relationships: { planet: { data: saturnId} } };
 
-    const europa = { type: 'moon', id: 'europa',
+    const europa: Record = { type: 'moon', id: 'europa',
                     attributes: { name: 'Europa' },
                     relationships: { planet: { data: jupiterId } } };
 
@@ -256,7 +265,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
       relatedRecord: saturnId
     }]);
 
-    const replacePlanetOp = {
+    const replacePlanetOp: ReplaceRelatedRecordOperation = {
       op: 'replaceRelatedRecord',
       record: europaId,
       relationship: 'planet',
@@ -306,11 +315,11 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
   });
 
   test('replace hasMany => hasOne with empty array', function(assert) {
-    const saturn = { type: 'planet', id: 'saturn',
+    const saturn: Record = { type: 'planet', id: 'saturn',
                     attributes: { name: 'Saturn' },
                     relationships: { moons: { data: [titanId] } } };
 
-    const titan = { type: 'moon', id: 'titan',
+    const titan: Record = { type: 'moon', id: 'titan',
                     attributes: { name: 'Titan' },
                     relationships: { planet: { data: saturnId} } };
 
@@ -331,7 +340,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
       relatedRecord: saturnId
     }]);
 
-    const clearMoonsOp = {
+    const clearMoonsOp: ReplaceRelatedRecordsOperation = {
       op: 'replaceRelatedRecords',
       record: saturn,
       relationship: 'moons',
@@ -363,14 +372,14 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
   });
 
   test('replace hasMany => hasOne with populated array', function(assert) {
-    const saturn = { type: 'planet', id: 'saturn',
+    const saturn: Record = { type: 'planet', id: 'saturn',
                     attributes: { name: 'Saturn' },
                     relationships: { moons: { data: [titanId] } } };
 
-    const jupiter = { type: 'planet', id: 'jupiter',
+    const jupiter: Record = { type: 'planet', id: 'jupiter',
                       attributes: { name: 'Jupiter' } };
 
-    const titan = { type: 'moon', id: 'titan',
+    const titan: Record = { type: 'moon', id: 'titan',
                     attributes: { name: 'Titan' },
                     relationships: { planet: { data: saturnId} } };
 
@@ -392,7 +401,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
       relatedRecord: saturnId
     }]);
 
-    const replaceMoonsOp = {
+    const replaceMoonsOp: ReplaceRelatedRecordsOperation = {
       op: 'replaceRelatedRecords',
       record: saturn,
       relationship: 'moons',
@@ -428,19 +437,19 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
   });
 
   test('replace hasMany => hasOne with populated array, when already populated', function(assert) {
-    const saturn = { type: 'planet', id: 'saturn',
+    const saturn: Record = { type: 'planet', id: 'saturn',
                     attributes: { name: 'Saturn' },
                     relationships: { moons: { data: [titanId] } } };
 
-    const jupiter = { type: 'planet', id: 'jupiter',
+    const jupiter: Record = { type: 'planet', id: 'jupiter',
                       attributes: { name: 'Jupiter' },
                       relationships: { moons: { data: [europaId] } } };
 
-    const titan = { type: 'moon', id: 'titan',
+    const titan: Record = { type: 'moon', id: 'titan',
                     attributes: { name: 'Titan' },
                     relationships: { planet: { data: saturnId } } };
 
-    const europa = { type: 'moon', id: 'europa',
+    const europa: Record = { type: 'moon', id: 'europa',
                     attributes: { name: 'Europa' },
                     relationships: { planet: { data: jupiterId } } };
 
@@ -475,7 +484,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
       relatedRecord: saturnId
     }]);
 
-    const replaceMoonsOp = {
+    const replaceMoonsOp: ReplaceRelatedRecordsOperation = {
       op: 'replaceRelatedRecords',
       record: saturn,
       relationship: 'moons',
@@ -524,7 +533,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
 
   test('replace hasMany => hasMany', function(assert) {
     const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: [earthId] } } };
-    const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: [humanId] } } };
+    const earth: Record = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: [humanId] } } };
 
     cache.patch(t => [
       t.addRecord(human),
@@ -543,7 +552,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
       relatedRecord: humanId
     }]);
 
-    const clearInhabitantsOp = {
+    const clearInhabitantsOp: ReplaceRelatedRecordsOperation = {
       op: 'replaceRelatedRecords',
       record: earth,
       relationship: 'inhabitants',
@@ -570,19 +579,19 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
   });
 
   test('remove hasOne => hasMany', function(assert) {
-    const saturn = { type: 'planet', id: 'saturn',
+    const saturn: Record = { type: 'planet', id: 'saturn',
                     attributes: { name: 'Saturn' },
                     relationships: { moons: { data: [titanId] } } };
 
-    const jupiter = { type: 'planet', id: 'jupiter',
+    const jupiter: Record = { type: 'planet', id: 'jupiter',
                     attributes: { name: 'Jupiter' },
                     relationships: { moons: { data: [europaId] } } };
 
-    const titan = { type: 'moon', id: 'titan',
+    const titan: Record = { type: 'moon', id: 'titan',
                   attributes: { name: 'Titan' },
                   relationships: { planet: { data: saturnId} } };
 
-    const europa = { type: 'moon', id: 'europa',
+    const europa: Record = { type: 'moon', id: 'europa',
                     attributes: { name: 'Europa' },
                     relationships: { planet: { data: jupiterId } } };
 
@@ -617,7 +626,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
       relatedRecord: saturnId
     }]);
 
-    const removePlanetOp = {
+    const removePlanetOp: ReplaceRelatedRecordOperation = {
       op: 'replaceRelatedRecord',
       record: europa,
       relationship: 'planet',
@@ -661,15 +670,15 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
   });
 
   test('add to hasOne => hasOne', function(assert) {
-    const saturn = { type: 'planet', id: 'saturn',
+    const saturn: Record = { type: 'planet', id: 'saturn',
                     attributes: { name: 'Saturn' },
                     relationships: { next: { data: jupiterId } } };
 
-    const jupiter = { type: 'planet', id: 'jupiter',
+    const jupiter: Record = { type: 'planet', id: 'jupiter',
                       attributes: { name: 'Jupiter' },
                       relationships: { previous: { data: saturnId} } };
 
-    const earth = { type: 'planet', id: 'earth',
+    const earth: Record = { type: 'planet', id: 'earth',
                     attributes: { name: 'Earth' } };
 
     cache.patch(t => [
@@ -690,7 +699,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
       relatedRecord: saturnId
     }]);
 
-    const changePlanetOp = {
+    const changePlanetOp: ReplaceRelatedRecordOperation = {
       op: 'replaceRelatedRecord',
       record: earthId,
       relationship: 'next',
@@ -731,15 +740,15 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
   });
 
   test('replace hasOne => hasOne with existing value', function(assert) {
-    const saturn = { type: 'planet', id: 'saturn',
+    const saturn: Record = { type: 'planet', id: 'saturn',
                     attributes: { name: 'Saturn' },
                     relationships: { next: { data: jupiterId } } };
 
-    const jupiter = { type: 'planet', id: 'jupiter',
+    const jupiter: Record = { type: 'planet', id: 'jupiter',
                       attributes: { name: 'Jupiter' },
                       relationships: { previous: { data: saturnId} } };
 
-    const earth = { type: 'planet', id: 'earth',
+    const earth: Record = { type: 'planet', id: 'earth',
                     attributes: { name: 'Earth' } };
 
     cache.patch(t => [
@@ -760,7 +769,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
       relatedRecord: saturnId
     }]);
 
-    const changePlanetOp = {
+    const changePlanetOp: ReplaceRelatedRecordOperation = {
       op: 'replaceRelatedRecord',
       record: earthId,
       relationship: 'next',
@@ -811,7 +820,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
     assert.deepEqual(cache.getInverseRelationshipsSync(earth), []);
     assert.deepEqual(cache.getInverseRelationshipsSync(human), []);
 
-    const addPlanetOp = {
+    const addPlanetOp: AddToRelatedRecordsOperation = {
       op: 'addToRelatedRecords',
       record: humanId,
       relationship: 'planets',
@@ -841,7 +850,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
   });
 
   test('remove from hasMany => hasMany', function(assert) {
-    const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: [humanId] } } };
+    const earth: Record = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: [humanId] } } };
     const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: [earthId] } } };
 
     cache.patch(t => [
@@ -861,7 +870,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
       relatedRecord: humanId
     }]);
 
-    const removePlanetOp = {
+    const removePlanetOp: RemoveFromRelatedRecordsOperation = {
       op: 'removeFromRelatedRecords',
       record: human,
       relationship: 'planets',
@@ -893,7 +902,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
   });
 
   test('remove record with hasMany relationships - verify processor', function(assert) {
-    const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: [humanId] } } };
+    const earth: Record = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: [humanId] } } };
     const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: [earthId] } } };
 
     cache.patch(t => [
@@ -913,7 +922,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
       relatedRecord: humanId
     }]);
 
-    const removeInhabitantOp = {
+    const removeInhabitantOp: RemoveRecordOperation = {
       op: 'removeRecord',
       record: human
     };
@@ -942,7 +951,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
   });
 
   test('remove record with hasMany relationships - verify inverse relationships are cleared', function(assert) {
-    const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: [humanId] } } };
+    const earth: Record = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: [humanId] } } };
     const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: [earthId] } } };
 
     cache.patch(t => [
@@ -988,7 +997,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
       }
     };
 
-    const replaceHumanOp = {
+    const replaceHumanOp: ReplaceRecordOperation = {
       op: 'replaceRecord',
       record: humanOnEarth
     };

@@ -14,17 +14,15 @@ export default class FakeBucket extends Bucket {
     this.data = {};
   }
 
-  getItem(key) {
-    return Promise.resolve(this.data[key]);
+  async getItem(key: string): Promise<any> {
+    return this.data[key];
   }
 
-  setItem(key, value) {
+  async setItem(key: string, value: any): Promise<void> {
     this.data[key] = value;
-    return Promise.resolve();
   }
 
-  removeItem(key) {
+  async removeItem(key: string): Promise<void> {
     delete this.data[key];
-    return Promise.resolve();
   }
 }

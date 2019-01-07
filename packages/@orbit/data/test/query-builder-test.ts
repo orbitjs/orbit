@@ -4,7 +4,7 @@ import './test-helper';
 const { module, test } = QUnit;
 
 module('QueryBuilder', function(hooks) {
-  let oqb;
+  let oqb: QueryBuilder;
 
   hooks.beforeEach(function() {
     oqb = new QueryBuilder();
@@ -266,7 +266,7 @@ module('QueryBuilder', function(hooks) {
           .findRecords('planet')
           .sort(null);
       },
-      new Error('Sort expression must be either an object or a string.')
+      new Error('Unrecognized sort param.')
     );
   });
 
@@ -279,7 +279,11 @@ module('QueryBuilder', function(hooks) {
       {
         op: 'findRecords',
         type: 'planet',
-        page: { offset: 1, limit: 10 }
+        page: {
+          kind: 'offsetLimit',
+          offset: 1,
+          limit: 10
+        }
       }
     );
   });
@@ -310,7 +314,11 @@ module('QueryBuilder', function(hooks) {
             value: 23000000
           }
         ],
-        page: { offset: 1, limit: 10 },
+        page: {
+          kind: 'offsetLimit',
+          offset: 1,
+          limit: 10
+        },
         sort: [
           {
             kind: 'attribute',

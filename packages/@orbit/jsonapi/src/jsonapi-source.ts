@@ -184,8 +184,10 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
       delete settings.params;
     }
 
-    // console.log('fetch', fullUrl, mergedSettings, 'polyfill', fetch.polyfill);
-    let fetchFn = (Orbit as any).fetch || fetch;
+    let fetchFn = (Orbit as any).fetch || Orbit.globals.fetch;
+
+    // console.log('fetch', fullUrl, settings, 'polyfill', fetchFn.polyfill);
+
     if (settings.timeout) {
       let timeout = settings.timeout;
       delete settings.timeout;

@@ -1,5 +1,6 @@
 import {
   KeyMap,
+  Record,
   RecordNotFoundException,
   Schema,
   equalRecordIdentities,
@@ -13,8 +14,8 @@ import { arrayMembershipMatches } from './support/matchers';
 const { module, test } = QUnit;
 
 module('Cache', function(hooks) {
-  let schema: Schema,
-      keyMap: KeyMap;
+  let schema: Schema;
+  let keyMap: KeyMap;
 
   hooks.beforeEach(function() {
     schema = new Schema({
@@ -68,7 +69,7 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema, keyMap });
 
-    const earth = { type: 'planet', id: '1', attributes: { name: 'Earth' }, keys: { remoteId: 'a' } };
+    const earth: Record = { type: 'planet', id: '1', attributes: { name: 'Earth' }, keys: { remoteId: 'a' } };
 
     cache.on('patch', (operation, data) => {
       assert.deepEqual(operation, {
@@ -89,7 +90,7 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema, keyMap });
 
-    const earth = { type: 'planet', id: '1', attributes: { name: 'Earth' }, keys: { remoteId: 'a' } };
+    const earth: Record = { type: 'planet', id: '1', attributes: { name: 'Earth' }, keys: { remoteId: 'a' } };
 
     cache.on('patch', (operation, data) => {
       assert.deepEqual(operation, {
@@ -110,7 +111,7 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema, keyMap });
 
-    const earth = { type: 'planet', id: '1' };
+    const earth: Record = { type: 'planet', id: '1' };
 
     cache.on('patch', (operation, data) => {
       assert.deepEqual(operation, {
@@ -208,9 +209,9 @@ module('Cache', function(hooks) {
   test('#patch tracks refs and clears them from hasOne relationships when a referenced record is removed', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
-    const jupiter = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: { data: undefined } } };
+    const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: { data: undefined } } };
     const io = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: { type: 'planet', id: 'p1'} } } };
-    const europa = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: { type: 'planet', id: 'p1'} } } };
+    const europa: Record = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: { type: 'planet', id: 'p1'} } } };
 
     cache.patch(t => [
       t.addRecord(jupiter),
@@ -232,9 +233,9 @@ module('Cache', function(hooks) {
   test('#patch tracks refs and clears them from hasMany relationships when a referenced record is removed', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
-    var io = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: null } } };
-    var europa = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: null } } };
-    var jupiter = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: { data: [{ type: 'moon', id: 'm1' }, { type: 'moon', id: 'm2' }] } } };
+    const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: null } } };
+    const europa: Record = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: null } } };
+    const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: { data: [{ type: 'moon', id: 'm1' }, { type: 'moon', id: 'm2' }] } } };
 
     cache.patch(t => [
       t.addRecord(io),
@@ -252,8 +253,7 @@ module('Cache', function(hooks) {
 
     assert.equal(cache.getRecordSync({ type: 'moon', id: 'm2' }), null, 'Europa is GONE');
 
-    assert.equal(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data['moon:m1'], null, 'Io has been cleared from Jupiter');
-    assert.equal(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data['moon:m2'], null, 'Europa has been cleared from Jupiter');
+    assert.deepEqual(cache.getRelatedRecordsSync({ type: 'planet', id: 'p1' }, 'moons'), [], 'Europa and Io have been cleared from Jupiter');
   });
 
   test('#patch adds link to hasMany if record doesn\'t exist', function(assert) {
@@ -261,7 +261,7 @@ module('Cache', function(hooks) {
 
     cache.patch(t => t.addToRelatedRecords({ type: 'planet', id: 'p1' }, 'moons', { type: 'moon', id: 'm1' }));
 
-    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'relationship was added');
+    assert.deepEqual(cache.getRelatedRecordsSync({ type: 'planet', id: 'p1' }, 'moons'), [{ type: 'moon', id: 'm1' }], 'relationship was added');
   });
 
   test('#patch does not remove hasMany relationship if record doesn\'t exist', function(assert) {
@@ -340,7 +340,7 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema, keyMap });
 
-    const jupiter = { id: 'p1', type: 'planet', attributes: { name: 'Jupiter' }, relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } } };
+    const jupiter: Record = { id: 'p1', type: 'planet', attributes: { name: 'Jupiter' }, relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } } };
 
     cache.patch(t => t.addRecord(jupiter));
 
@@ -358,7 +358,7 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema, keyMap });
 
-    const jupiter = { id: 'p1', type: 'planet', attributes: { name: 'Jupiter' } };
+    const jupiter: Record = { id: 'p1', type: 'planet', attributes: { name: 'Jupiter' } };
 
     cache.patch(t => t.addRecord(jupiter));
 
@@ -376,7 +376,7 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema, keyMap });
 
-    const jupiter = { id: 'jupiter', type: 'planet' };
+    const jupiter: Record = { id: 'jupiter', type: 'planet' };
     cache.patch(t => t.addRecord(jupiter));
 
     const callisto = { id: 'callisto', type: 'moon' };
@@ -396,7 +396,7 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema, keyMap });
 
-    const jupiter = { id: 'jupiter', type: 'planet' };
+    const jupiter: Record = { id: 'jupiter', type: 'planet' };
     cache.patch(t => t.addRecord(jupiter));
 
     const callisto = { id: 'callisto', type: 'moon' };
@@ -416,7 +416,7 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema, keyMap });
 
-    const europa = { id: 'm1', type: 'moon', attributes: { name: 'Europa' }, relationships: { planet: { data: { type: 'planet', id: 'p1'} } } };
+    const europa: Record = { id: 'm1', type: 'moon', attributes: { name: 'Europa' }, relationships: { planet: { data: { type: 'planet', id: 'p1'} } } };
 
     cache.patch(t => t.addRecord(europa));
 
@@ -434,7 +434,7 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema, keyMap });
 
-    const europa = { type: 'moon', id: 'm1', attributes: { name: 'Europa' }, relationships: { planet: { data: null } } };
+    const europa: Record = { type: 'moon', id: 'm1', attributes: { name: 'Europa' }, relationships: { planet: { data: null } } };
 
     cache.patch(t => t.addRecord(europa));
 
@@ -514,9 +514,9 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema: dependentSchema, keyMap });
 
-    const jupiter = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' } };
+    const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' } };
     const io = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: { type: 'planet', id: 'p1'} } } };
-    const europa = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: { type: 'planet', id: 'p1'} } } };
+    const europa: Record = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: { type: 'planet', id: 'p1'} } } };
 
     cache.patch(t => [
       t.addRecord(jupiter),
@@ -551,9 +551,9 @@ module('Cache', function(hooks) {
 
     let cache = new Cache({ schema: dependentSchema, keyMap });
 
-    const jupiter = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' } };
+    const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' } };
     const io = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: { type: 'planet', id: 'p1' } } } };
-    const europa = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: { type: 'planet', id: 'p1' } } } };
+    const europa: Record = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: { type: 'planet', id: 'p1' } } } };
 
     cache.patch(t => [
       t.addRecord(jupiter),
@@ -1271,7 +1271,7 @@ module('Cache', function(hooks) {
   test('#query - findRecord - finds record', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
-    const jupiter = {
+    const jupiter: Record = {
       id: 'jupiter', type: 'planet',
       attributes: { name: 'Jupiter' },
       relationships: { moons: { data: [{ type: 'moon', id: 'callisto' }] } } };
@@ -1298,7 +1298,7 @@ module('Cache', function(hooks) {
   test('#query - findRecords - finds matching records', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
-    const jupiter = {
+    const jupiter: Record = {
       id: 'jupiter', type: 'planet',
       attributes: { name: 'Jupiter' },
       relationships: { moons: { data: [{ type: 'moon', id: 'callisto' }] } } };
@@ -1322,11 +1322,11 @@ module('Cache', function(hooks) {
   test('#query - page - can paginate records by offset and limit', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
-    const jupiter = {
+    const jupiter: Record = {
       id: 'jupiter', type: 'planet',
       attributes: { name: 'Jupiter' } };
 
-    const earth = {
+    const earth: Record = {
       id: 'earth', type: 'planet',
       attributes: { name: 'Earth' } };
 
@@ -1364,7 +1364,7 @@ module('Cache', function(hooks) {
   test('#query - findRelatedRecords', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
-    const jupiter = {
+    const jupiter: Record = {
       id: 'jupiter', type: 'planet',
       attributes: { name: 'Jupiter' },
       relationships: { moons: { data: [{ type: 'moon', id: 'callisto' }] } } };
@@ -1388,7 +1388,7 @@ module('Cache', function(hooks) {
   test('#query - findRelatedRecord', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
-    const jupiter = {
+    const jupiter: Record = {
       id: 'jupiter', type: 'planet',
       attributes: { name: 'Jupiter' },
       relationships: { moons: { data: [{ type: 'moon', id: 'callisto' }] } } };

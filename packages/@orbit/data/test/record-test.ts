@@ -22,7 +22,7 @@ module('Record', function() {
   });
 
   test('`deserializeRecordIdentity` - deserializes type:id string into an identity object', function(assert) {
-    assert.deepEqual(deserializeRecordIdentity('planet:1'), { type: 'planet', id: '1' }));
+    assert.deepEqual(deserializeRecordIdentity('planet:1'), { type: 'planet', id: '1' });
   });
 
   test('`equalRecordIdentities` compares the type/id identity of two objects', function(assert) {
@@ -78,5 +78,4 @@ module('Record', function() {
     assert.notOk(recordsIncludeAll([{ type: 'planet', id: 'p1' }],
                                    [{ type: 'moon', id: 'm1' }, { type: 'planet', id: 'p1' }]), 'unequal sets 2');
   });
-
 });

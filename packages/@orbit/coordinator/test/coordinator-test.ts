@@ -1,4 +1,4 @@
-import Coordinator, { Strategy } from '../src/index';
+import Coordinator, { Strategy, CoordinatorOptions, ActivationOptions } from '../src/index';
 import { Source } from '@orbit/data';
 
 const { module, test } = QUnit;
@@ -7,7 +7,7 @@ module('Coordinator', function(hooks) {
   class MySource extends Source {}
   class MyStrategy extends Strategy {}
 
-  let coordinator;
+  let coordinator: Coordinator;
 
   test('can be instantiated', function(assert) {
     coordinator = new Coordinator();
@@ -204,7 +204,7 @@ module('Coordinator', function(hooks) {
     let deactivatedCount = 0;
 
     class CustomStrategy extends Strategy {
-      async activate(coordinator, options): Promise<void> {
+      async activate(coordinator: Coordinator, options: ActivationOptions): Promise<void> {
         activatedCount++;
         if (activatedCount === 1) {
           assert.strictEqual(this.name, 's2', 'expected order');
@@ -249,7 +249,7 @@ module('Coordinator', function(hooks) {
     assert.expect(2);
 
     class CustomStrategy extends Strategy {
-      async activate(coordinator, options): Promise<void> {
+      async activate(coordinator: Coordinator, options: ActivationOptions): Promise<void> {
         assert.ok(false, 'strategies should not be activated');
       }
 

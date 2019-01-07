@@ -52,7 +52,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
 
   // Evented interface stubs
   on: (event: string, listener: Listener) => void;
-  off: (event: string, listener: Listener) => void;
+  off: (event: string, listener?: Listener) => void;
   one: (event: string, listener: Listener) => void;
   emit: (event: string, ...args: any[]) => void;
   listeners: (event: string) => Listener[];

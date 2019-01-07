@@ -8,7 +8,8 @@
     "inlineSourceMap": true,
     "declaration": false,
     "newLine": "LF",
-    "types": ["qunit"]
+    "types": ["qunit"],
+    "noImplicitAny": true
   },
   "include": [
     "src/**/*.ts",
