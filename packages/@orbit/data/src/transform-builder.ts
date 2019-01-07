@@ -14,7 +14,6 @@ import {
   ReplaceRelatedRecordsOperation,
   ReplaceRelatedRecordOperation
 } from './operation';
-import { eq } from '@orbit/utils';
 
 export interface TransformBuilderSettings {
   recordInitializer?: RecordInitializer;
