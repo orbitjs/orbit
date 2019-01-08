@@ -42,6 +42,7 @@ export interface JSONAPISourceSettings extends SourceSettings {
   defaultFetchHeaders?: object;
   defaultFetchTimeout?: number;
   defaultFetchSettings?: FetchSettings;
+  allowedContentTypes?: string[];
   SerializerClass?: (new (settings: JSONAPISerializerSettings) => JSONAPISerializer);
 }
 
@@ -66,6 +67,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   maxRequestsPerTransform: number;
   namespace: string;
   host: string;
+  allowedContentTypes: string[];
   defaultFetchSettings: FetchSettings;
   serializer: JSONAPISerializer;
 
@@ -87,6 +89,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
 
     this.namespace = settings.namespace;
     this.host = settings.host;
+    this.allowedContentTypes = settings.allowedContentTypes || ['application/vnd.api+json', 'application/json'];
 
     this.initDefaultFetchSettings(settings);
 
@@ -240,12 +243,12 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
     return settings;
   }
 
-  protected async handleFetchResponse(response: any): Promise<any> {
+  protected async handleFetchResponse(response: Response): Promise<any> {
     if (response.status === 201) {
       if (this.responseHasContent(response)) {
         return response.json();
       } else {
-        throw new InvalidServerResponse(`Server responses with a ${response.status} status should return content with a Content-Type that includes 'application/vnd.api+json'.`);
+        throw new InvalidServerResponse(`Server responses with a ${response.status} status should return content with one of the following content types: ${this.allowedContentTypes.join(', ')}.`);
       }
     } else if (response.status >= 200 && response.status < 300) {
       if (this.responseHasContent(response)) {
@@ -261,7 +264,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
     }
   }
 
-  protected async handleFetchResponseError(response: any, data?: any): Promise<any> {
+  protected async handleFetchResponseError(response: Response, data?: any): Promise<any> {
     let error: any;
     if (response.status >= 400 && response.status < 500) {
       error = new ClientError(response.statusText);
@@ -277,11 +280,16 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
     throw new NetworkError(e);
   }
 
-  responseHasContent(response: any): boolean {
+  responseHasContent(response: Response): boolean {
     let contentType = response.headers.get('Content-Type');
-    return contentType &&
-           (contentType.indexOf('application/vnd.api+json') > -1 ||
-            contentType.indexOf('application/json') > -1);
+    if (contentType) {
+      for (let allowedContentType of this.allowedContentTypes) {
+        if (contentType.indexOf(allowedContentType) > -1) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   resourceNamespace(type?: string): string {

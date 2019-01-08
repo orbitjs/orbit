@@ -94,10 +94,30 @@ module('JSONAPISource', function() {
       assert.ok(source instanceof Source, 'instanceof Source');
     });
 
-    test('source saves options', function(assert) {
-      assert.expect(5);
+    test('source has default settings', function(assert) {
+      assert.expect(2);
+
       let schema = new Schema({} as SchemaSettings);
-      source = new JSONAPISource({ schema, keyMap, host: '127.0.0.1:8888', namespace: 'api', defaultFetchSettings: { headers: { 'User-Agent': 'CERN-LineMode/2.15 libwww/2.17b3' } } });
+      source = new JSONAPISource({ schema });
+      assert.equal(source.name, 'jsonapi', 'name is set to default');
+      assert.deepEqual(source.allowedContentTypes, ['application/vnd.api+json', 'application/json'], 'allowedContentTypes are set to default');
+    });
+
+    test('source saves options', function(assert) {
+      assert.expect(7);
+
+      let schema = new Schema({} as SchemaSettings);
+      source = new JSONAPISource({
+        schema,
+        keyMap,
+        host: '127.0.0.1:8888',
+        name: 'custom',
+        namespace: 'api',
+        allowedContentTypes: ['application/custom'],
+        defaultFetchSettings: { headers: { 'User-Agent': 'CERN-LineMode/2.15 libwww/2.17b3' } }
+      });
+      assert.equal(source.name, 'custom', 'name is custom');
+      assert.deepEqual(source.allowedContentTypes, ['application/custom'], 'allowedContentTypes are custom');
       assert.equal(source.namespace, 'api', 'Namespace should be defined');
       assert.equal(source.host, '127.0.0.1:8888', 'Host should be defined');
 
@@ -219,7 +239,7 @@ module('JSONAPISource', function() {
         });
     });
 
-    test('#responseHasContent - returns true if application/json OR application/vnd.api+json appears anywhere in Content-Type header', function(assert) {
+    test('#responseHasContent - returns true if one of the `allowedContentTypes` appears anywhere in `Content-Type` header', function(assert) {
       let response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/vnd.api+json' } });
       assert.equal(source.responseHasContent(response), true, 'Accepts content that is _only_ the JSONAPI media type.');
 
@@ -231,6 +251,10 @@ module('JSONAPISource', function() {
 
       response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/xml' } });
       assert.equal(source.responseHasContent(response), false, 'XML is not acceptable.');
+
+      source.allowedContentTypes = ['application/custom'];
+      response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/custom' } });
+      assert.equal(source.responseHasContent(response), true, 'Source will accept custom content type if specifically allowed.');
     });
 
     test('#push - can add records', async function(assert) {
@@ -501,7 +525,7 @@ module('JSONAPISource', function() {
 
       fetchStub
         .withArgs('/planets/12345')
-        .returns(jsonapiResponse(200));
+        .returns(jsonapiResponse(204));
 
       await source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'));
 
