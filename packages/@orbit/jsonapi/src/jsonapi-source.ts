@@ -279,7 +279,9 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
 
   responseHasContent(response: any): boolean {
     let contentType = response.headers.get('Content-Type');
-    return contentType && contentType.indexOf('application/vnd.api+json') > -1;
+    return contentType &&
+           (contentType.indexOf('application/vnd.api+json') > -1 ||
+            contentType.indexOf('application/json') > -1);
   }
 
   resourceNamespace(type?: string): string {
