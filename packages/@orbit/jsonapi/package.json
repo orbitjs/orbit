@@ -34,6 +34,8 @@
     "@glimmer/build": "^0.9.0",
     "sinon": "^7.2.2",
     "@types/sinon": "7.0.3",
-    "whatwg-fetch": "^2.0.3"
+    "whatwg-fetch": "^2.0.3",
+    "merge": ">=1.2.1",
+    "randomatic": ">=3.0.0"
   }
 }
