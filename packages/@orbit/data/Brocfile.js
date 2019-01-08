@@ -12,8 +12,7 @@ let buildOptions = {
 if (process.env.BROCCOLI_ENV === 'tests') {
   buildOptions.vendorTrees = [
     packageDist('@orbit/utils'),
-    packageDist('@orbit/core'),
-    funnel(path.join(require.resolve('rsvp'), '..'), { include: ['rsvp.js'] })
+    packageDist('@orbit/core')
   ];
 }
 
