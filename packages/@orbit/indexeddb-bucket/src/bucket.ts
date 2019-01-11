@@ -1,8 +1,9 @@
 import Orbit, {
   Bucket, BucketSettings
 } from '@orbit/core';
-import { assert } from '@orbit/utils';
 import { supportsIndexedDB } from './lib/indexeddb';
+
+const { assert } = Orbit;
 
 declare const console: any;
 

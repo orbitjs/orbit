@@ -1,9 +1,11 @@
+import Orbit from './main';
 import { Task, Performer } from './task';
 import TaskProcessor from './task-processor';
 import { Bucket } from './bucket';
 import evented, { Evented, settleInSeries } from './evented';
 import { Listener } from './notifier';
-import { assert } from '@orbit/utils';
+
+const { assert } = Orbit;
 
 /**
  * Settings for a `TaskQueue`.

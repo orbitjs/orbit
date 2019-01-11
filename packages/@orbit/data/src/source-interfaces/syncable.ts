@@ -1,7 +1,9 @@
-import { assert, isArray } from '@orbit/utils';
-import { fulfillInSeries, settleInSeries } from '@orbit/core';
+import { isArray } from '@orbit/utils';
+import Orbit, { fulfillInSeries, settleInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Transform } from '../transform';
+
+const { assert } = Orbit;
 
 export const SYNCABLE = '__syncable__';
 

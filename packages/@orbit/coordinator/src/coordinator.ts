@@ -1,6 +1,8 @@
-import { Source } from '@orbit/data';
-import { Dict, assert, objectValues } from '@orbit/utils';
+import Orbit, { Source } from '@orbit/data';
+import { Dict, objectValues } from '@orbit/utils';
 import { Strategy } from './strategy';
+
+const { assert } = Orbit;
 
 export interface CoordinatorOptions {
   sources?: Source[];

@@ -1,8 +1,10 @@
-import { assert } from '@orbit/utils';
+import Orbit from './main';
 import evented, { Evented } from './evented';
 import { Listener } from './notifier';
 import { Bucket } from './bucket';
 import { NotLoggedException, OutOfRangeException } from './exception';
+
+const { assert } = Orbit;
 
 export interface LogOptions {
   name?: string;

@@ -1,8 +1,9 @@
-import { assert } from '@orbit/utils';
-import { settleInSeries, fulfillInSeries } from '@orbit/core';
+import Orbit, { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Query, QueryOrExpression, buildQuery } from '../query';
 import { Transform } from '../transform';
+
+const { assert } = Orbit;
 
 export const PULLABLE = '__pullable__';
 

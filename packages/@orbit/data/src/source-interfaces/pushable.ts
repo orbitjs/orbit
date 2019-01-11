@@ -1,7 +1,8 @@
-import { assert } from '@orbit/utils';
-import { settleInSeries, fulfillInSeries } from '@orbit/core';
+import Orbit, { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Transform, TransformOrOperations, buildTransform } from '../transform';
+
+const { assert } = Orbit;
 
 export const PUSHABLE = '__pushable__';
 

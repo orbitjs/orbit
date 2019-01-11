@@ -1,6 +1,8 @@
-import { clone, deepGet, deepMerge, deepSet, deprecate, isArray } from '@orbit/utils';
+import { clone, deepGet, deepMerge, deepSet, isArray } from '@orbit/utils';
 import { FetchSettings } from '../jsonapi-source';
-import { Source, Query, Transform } from '@orbit/data';
+import Orbit, { Source, Query, Transform } from '@orbit/data';
+
+const { deprecate } = Orbit;
 
 export interface Filter {
   [filterOn: string]: any;

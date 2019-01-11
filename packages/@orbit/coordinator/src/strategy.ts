@@ -2,7 +2,8 @@ import Coordinator, { ActivationOptions, LogLevel } from './coordinator';
 import Orbit, {
   Source
 } from '@orbit/data';
-import { assert } from '@orbit/utils';
+
+const { assert } = Orbit;
 
 export interface StrategyOptions {
   /**
