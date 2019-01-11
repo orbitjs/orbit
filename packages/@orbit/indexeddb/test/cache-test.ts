@@ -5,7 +5,6 @@ import {
   KeyMap
 } from '@orbit/data';
 import Cache from '../src/cache';
-import { RelatedRecordIdentity } from '../../record-cache/dist/types';
 
 const { module, test } = QUnit;
 
@@ -166,7 +165,7 @@ module('Cache', function(hooks) {
     assert.equal(keyMap.keyToId('planet', 'remoteId', 'j'), 'jupiter', 'key has been mapped');
   });
 
-  test('#patch - replaceRecord', async function(assert) {
+  test('#patch - updateRecord', async function(assert) {
     assert.expect(2);
 
     let original: Record = {
@@ -219,12 +218,12 @@ module('Cache', function(hooks) {
     };
 
     await cache.patch(t => t.addRecord(original));
-    await cache.patch(t => t.replaceRecord(updates));
+    await cache.patch(t => t.updateRecord(updates));
     assert.deepEqual(await getRecordFromIndexedDB(cache, expected), expected, 'indexeddb contains record');
     assert.equal(keyMap.keyToId('planet', 'remoteId', 'j'), 'jupiter', 'key has been mapped');
   });
 
-  test('#patch - replaceRecord - when record does not exist', async function(assert) {
+  test('#patch - updateRecord - when record does not exist', async function(assert) {
     assert.expect(1);
 
     let revised = {
@@ -237,7 +236,7 @@ module('Cache', function(hooks) {
       }
     };
 
-    await cache.patch(t => t.replaceRecord(revised));
+    await cache.patch(t => t.updateRecord(revised));
     assert.deepEqual(await getRecordFromIndexedDB(cache, revised), revised, 'indexeddb contains record');
   });
 

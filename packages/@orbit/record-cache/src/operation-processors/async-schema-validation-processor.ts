@@ -15,7 +15,7 @@ export default class AsyncSchemaValidationProcessor extends AsyncOperationProces
       case 'addRecord':
         return this._recordAdded(operation.record);
 
-      case 'replaceRecord':
+      case 'updateRecord':
         return this._recordReplaced(operation.record);
 
       case 'removeRecord':

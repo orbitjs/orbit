@@ -15,7 +15,7 @@ export default class SyncSchemaValidationProcessor extends SyncOperationProcesso
       case 'addRecord':
         return this._recordAdded(operation.record);
 
-      case 'replaceRecord':
+      case 'updateRecord':
         return this._recordReplaced(operation.record);
 
       case 'removeRecord':

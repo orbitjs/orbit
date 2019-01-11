@@ -187,6 +187,14 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   }
 
   protected _applyPatchOperation(operation: RecordOperation, result: PatchResult, primary: boolean = false) {
+    if ((operation.op as string) === 'replaceRecord') {
+      Orbit.deprecate('The `replaceRecord` operation has been deprecated - use `updateRecord` instead.');
+      operation = {
+        op: 'updateRecord',
+        record: operation.record
+      };
+    }
+
     this._processors.forEach(processor => processor.validate(operation));
 
     const inversePatchOperator = this.getInversePatchOperator(operation.op);

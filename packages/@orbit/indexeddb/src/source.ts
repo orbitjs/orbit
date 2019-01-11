@@ -11,7 +11,7 @@ import Orbit, {
   TransformOrOperations,
   RecordOperation,
   Operation,
-  ReplaceRecordOperation,
+  UpdateRecordOperation,
   Record
 } from '@orbit/data';
 import { supportsIndexedDB } from './lib/indexeddb';
@@ -105,16 +105,16 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
     if (Array.isArray(results)) {
       operations = results.map(r => {
         return {
-          op: 'replaceRecord',
+          op: 'updateRecord',
           record: r
         };
       });
     } else if (results) {
       let record = results as Record;
       operations = [{
-        op: 'replaceRecord',
+        op: 'updateRecord',
         record
-      } as ReplaceRecordOperation];
+      } as UpdateRecordOperation];
     } else {
       operations = [];
     }

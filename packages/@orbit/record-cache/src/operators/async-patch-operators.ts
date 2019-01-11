@@ -6,7 +6,7 @@ import {
   RecordIdentity,
   RecordOperation,
   AddRecordOperation,
-  ReplaceRecordOperation,
+  UpdateRecordOperation,
   RemoveRecordOperation,
   ReplaceKeyOperation,
   ReplaceAttributeOperation,
@@ -34,7 +34,7 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
     return record;
   },
 
-  async replaceRecord(cache: AsyncRecordAccessor, op: ReplaceRecordOperation): Promise<PatchResultData> {
+  async updateRecord(cache: AsyncRecordAccessor, op: UpdateRecordOperation): Promise<PatchResultData> {
     const { record } = op;
     const currentRecord = await cache.getRecordAsync(record);
     const mergedRecord = mergeRecords(currentRecord, record);

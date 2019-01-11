@@ -97,13 +97,13 @@ module('AsyncRecordCache', function(hooks) {
 
     cache.on('patch', (operation, data) => {
       assert.deepEqual(operation, {
-        op: 'replaceRecord',
+        op: 'updateRecord',
         record: earth
       });
       assert.deepEqual(data, earth);
     });
 
-    await cache.patch(t => t.replaceRecord(earth));
+    await cache.patch(t => t.updateRecord(earth));
 
     assert.strictEqual(await cache.getRecordAsync({ type: 'planet', id: '1' }), earth, 'objects strictly match');
     assert.equal(keyMap.keyToId('planet', 'remoteId', 'a'), '1', 'key has been mapped');
@@ -532,7 +532,7 @@ module('AsyncRecordCache', function(hooks) {
     ]);
 
     let result = await cache.patch(t => [
-      t.replaceRecord({ type: 'planet', id: '1', attributes: { classification: 'terrestrial' } })
+      t.updateRecord({ type: 'planet', id: '1', attributes: { classification: 'terrestrial' } })
     ]);
 
     assert.deepEqual(
@@ -559,7 +559,7 @@ module('AsyncRecordCache', function(hooks) {
           }
         ],
         inverse: [
-          tb.replaceRecord({ type: 'planet', id: '1', attributes: { classification: null } })
+          tb.updateRecord({ type: 'planet', id: '1', attributes: { classification: null } })
         ]
       },
       'ignores ops that are noops'
@@ -631,7 +631,7 @@ module('AsyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch merges records when "replacing" and _will_ replace specified attributes and relationships', async function(assert) {
+  test('#patch merges records when updating and _will_ replace only specified attributes and relationships', async function(assert) {
     const cache = new Cache({ schema, keyMap });
     const tb = cache.transformBuilder;
 
@@ -671,7 +671,7 @@ module('AsyncRecordCache', function(hooks) {
     );
 
     result = await cache.patch([
-      tb.replaceRecord(jupiter)
+      tb.updateRecord(jupiter)
     ]);
 
     assert.deepEqual(
@@ -691,7 +691,7 @@ module('AsyncRecordCache', function(hooks) {
             'planet',
             { type: 'planet', id: '1' }
           ),
-          tb.replaceRecord({
+          tb.updateRecord({
             type: 'planet', id: '1',
             attributes: { name: 'Earth', classification: null },
             relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }

@@ -6,7 +6,7 @@ import {
   RecordIdentity,
   RecordOperation,
   AddRecordOperation,
-  ReplaceRecordOperation,
+  UpdateRecordOperation,
   RemoveRecordOperation,
   ReplaceKeyOperation,
   ReplaceAttributeOperation,
@@ -34,7 +34,7 @@ export const SyncPatchOperators: Dict<SyncPatchOperator> = {
     return record;
   },
 
-  replaceRecord(cache: SyncRecordAccessor, op: ReplaceRecordOperation): PatchResultData {
+  updateRecord(cache: SyncRecordAccessor, op: UpdateRecordOperation): PatchResultData {
     const { record } = op;
     const currentRecord = cache.getRecordSync(record);
     const mergedRecord = mergeRecords(currentRecord, record);

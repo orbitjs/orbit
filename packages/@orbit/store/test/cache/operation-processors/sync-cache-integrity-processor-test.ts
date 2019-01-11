@@ -8,7 +8,7 @@ import {
   AddToRelatedRecordsOperation,
   RemoveFromRelatedRecordsOperation,
   RemoveRecordOperation,
-  ReplaceRecordOperation
+  UpdateRecordOperation
 } from '@orbit/data';
 import { SyncCacheIntegrityProcessor } from '@orbit/record-cache';
 import Cache from '../../../src/cache';
@@ -977,7 +977,7 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
     assert.deepEqual(cache.getInverseRelationshipsSync(human), []);
   });
 
-  test('replaceRecord', function(assert) {
+  test('updateRecord', function(assert) {
     const earth = earthId;
     const human = humanId;
 
@@ -997,23 +997,23 @@ module('SyncCacheIntegrityProcessor', function(hooks) {
       }
     };
 
-    const replaceHumanOp: ReplaceRecordOperation = {
-      op: 'replaceRecord',
+    const updateHumanOp: UpdateRecordOperation = {
+      op: 'updateRecord',
       record: humanOnEarth
     };
 
     assert.deepEqual(
-      processor.before(replaceHumanOp),
+      processor.before(updateHumanOp),
       []
     );
 
     assert.deepEqual(
-      processor.after(replaceHumanOp),
+      processor.after(updateHumanOp),
       []
     );
 
     assert.deepEqual(
-      processor.finally(replaceHumanOp),
+      processor.finally(updateHumanOp),
       []
     );
 

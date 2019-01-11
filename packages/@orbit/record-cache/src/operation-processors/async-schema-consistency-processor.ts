@@ -67,7 +67,7 @@ export default class AsyncSchemaConsistencyProcessor extends AsyncOperationProce
           await this.accessor.getRecordAsync(operation.record)
         );
 
-      case 'replaceRecord':
+      case 'updateRecord':
         return recordReplaced(
           this.accessor.schema,
           await this.accessor.getRecordAsync(operation.record),

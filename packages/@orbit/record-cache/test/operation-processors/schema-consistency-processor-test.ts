@@ -7,7 +7,7 @@ import {
   ReplaceRelatedRecordOperation,
   ReplaceRelatedRecordsOperation,
   RemoveFromRelatedRecordsOperation,
-  ReplaceRecordOperation
+  UpdateRecordOperation
 } from '@orbit/data';
 import { SyncCacheIntegrityProcessor, SyncSchemaConsistencyProcessor } from '../../src/index';
 import Cache from '../support/example-sync-record-cache';
@@ -679,7 +679,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
     );
   });
 
-  test('replaceRecord', function(assert) {
+  test('updateRecord', function(assert) {
     const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: [{ type: 'planet', id: 'earth' }] } } };
     const cat = { type: 'inhabitant', id: 'cat' };
     const dog = { type: 'inhabitant', id: 'dog' };
@@ -730,8 +730,8 @@ module('SchemaConsistencyProcessor', function(hooks) {
       t.addRecord(dog)
     ]);
 
-    const clearInhabitantsOp: ReplaceRecordOperation = {
-      op: 'replaceRecord',
+    const clearInhabitantsOp: UpdateRecordOperation = {
+      op: 'updateRecord',
       record: earth2
     };
 

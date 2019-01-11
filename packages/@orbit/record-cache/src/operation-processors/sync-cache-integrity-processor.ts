@@ -51,7 +51,7 @@ export default class SyncCacheIntegrityProcessor extends SyncOperationProcessor 
         this.removeAllInverseRelationships(operation.record);
         return ops;
 
-      case 'replaceRecord':
+      case 'updateRecord':
         this.removeAllInverseRelationships(operation.record);
         return [];
 
@@ -78,7 +78,7 @@ export default class SyncCacheIntegrityProcessor extends SyncOperationProcessor 
         this.addAllInverseRelationships(operation.record);
         return [];
 
-      case 'replaceRecord':
+      case 'updateRecord':
         this.addAllInverseRelationships(operation.record);
         return [];
 

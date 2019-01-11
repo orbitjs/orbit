@@ -97,13 +97,13 @@ module('SyncRecordCache', function(hooks) {
 
     cache.on('patch', (operation, data) => {
       assert.deepEqual(operation, {
-        op: 'replaceRecord',
+        op: 'updateRecord',
         record: earth
       });
       assert.deepEqual(data, earth);
     });
 
-    cache.patch(t => t.replaceRecord(earth));
+    cache.patch(t => t.updateRecord(earth));
 
     assert.strictEqual(cache.getRecordSync({ type: 'planet', id: '1' }), earth, 'objects strictly match');
     assert.equal(keyMap.keyToId('planet', 'remoteId', 'a'), '1', 'key has been mapped');
@@ -532,7 +532,7 @@ module('SyncRecordCache', function(hooks) {
     ]);
 
     let result = cache.patch(t => [
-      t.replaceRecord({ type: 'planet', id: '1', attributes: { classification: 'terrestrial' } })
+      t.updateRecord({ type: 'planet', id: '1', attributes: { classification: 'terrestrial' } })
     ]);
 
     assert.deepEqual(
@@ -559,7 +559,7 @@ module('SyncRecordCache', function(hooks) {
           }
         ],
         inverse: [
-          tb.replaceRecord({ type: 'planet', id: '1', attributes: { classification: null } })
+          tb.updateRecord({ type: 'planet', id: '1', attributes: { classification: null } })
         ]
       },
       'ignores ops that are noops'
@@ -671,7 +671,7 @@ module('SyncRecordCache', function(hooks) {
     );
 
     result = cache.patch([
-      tb.replaceRecord(jupiter)
+      tb.updateRecord(jupiter)
     ]);
 
     assert.deepEqual(
@@ -691,7 +691,7 @@ module('SyncRecordCache', function(hooks) {
             'planet',
             { type: 'planet', id: '1' }
           ),
-          tb.replaceRecord({
+          tb.updateRecord({
             type: 'planet', id: '1',
             attributes: { name: 'Earth', classification: null },
             relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }

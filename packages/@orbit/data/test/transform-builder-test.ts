@@ -19,12 +19,12 @@ module('TransformBuilder', function(hooks) {
     );
   });
 
-  test('#replaceRecord', function(assert) {
+  test('#updateRecord', function(assert) {
     let record = { type: 'planet', id: 'jupiter' };
 
     assert.deepEqual(
-      tb.replaceRecord(record),
-      { op: 'replaceRecord', record }
+      tb.updateRecord(record),
+      { op: 'updateRecord', record }
     );
   });
 

@@ -1,3 +1,4 @@
+import Orbit from '@orbit/core';
 import {
   Record,
   RecordIdentity,
@@ -5,7 +6,7 @@ import {
 } from './record';
 import {
   AddRecordOperation,
-  ReplaceRecordOperation,
+  UpdateRecordOperation,
   RemoveRecordOperation,
   ReplaceKeyOperation,
   ReplaceAttributeOperation,
@@ -41,10 +42,20 @@ export default class TransformBuilder {
   }
 
   /**
-   * Instantiate a new `replaceRecord` operation.
+   * Instantiate a new `updateRecord` operation.
+   *
+   * @deprecated
    */
-  replaceRecord(record: Record): ReplaceRecordOperation {
-    return { op: 'replaceRecord', record};
+  replaceRecord(record: Record): UpdateRecordOperation {
+    Orbit.deprecate('The `replaceRecord` operation is deprecated in favor of `updateRecord`');
+    return { op: 'updateRecord', record};
+  }
+
+  /**
+   * Instantiate a new `updateRecord` operation.
+   */
+  updateRecord(record: Record): UpdateRecordOperation {
+    return { op: 'updateRecord', record};
   }
 
   /**

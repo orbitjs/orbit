@@ -1,4 +1,4 @@
-import {
+import Orbit, {
   cloneRecordIdentity,
   equalRecordIdentities,
   recordDiffs,
@@ -9,7 +9,7 @@ import {
   AddRecordOperation,
   RemoveRecordOperation,
   ReplaceAttributeOperation,
-  ReplaceRecordOperation,
+  UpdateRecordOperation,
   AddToRelatedRecordsOperation,
   RemoveFromRelatedRecordsOperation,
   ReplaceRelatedRecordOperation,
@@ -41,8 +41,8 @@ export interface RemoveRecordRequest extends TransformRecordRequest {
   op: 'removeRecord';
 }
 
-export interface ReplaceRecordRequest extends TransformRecordRequest {
-  op: 'replaceRecord';
+export interface UpdateRecordRequest extends TransformRecordRequest {
+  op: 'updateRecord';
   record: Record;
 }
 
@@ -89,7 +89,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     return [];
   },
 
-  async replaceRecord(source: JSONAPISource, request: ReplaceRecordRequest): Promise<Transform[]> {
+  async updateRecord(source: JSONAPISource, request: UpdateRecordRequest): Promise<Transform[]> {
     const { serializer } = source;
     const record = request.record;
     const { type, id } = record;
@@ -169,7 +169,7 @@ export function getTransformRequests(source: JSONAPISource, transform: Transform
           prevRequest = null;
           requests.pop();
         }
-      } else if (prevRequest.op === 'addRecord' || prevRequest.op === 'replaceRecord') {
+      } else if (prevRequest.op === 'addRecord' || prevRequest.op === 'updateRecord') {
         if (operation.op === 'replaceAttribute') {
           newRequestNeeded = false;
           replaceRecordAttribute(prevRequest.record, operation.attribute, operation.value);
@@ -230,14 +230,22 @@ const OperationToRequestMap: Dict<OperationToRequestConverter> = {
     replaceRecordAttribute(record, operation.attribute, operation.value);
 
     return {
-      op: 'replaceRecord',
+      op: 'updateRecord',
       record
     };
   },
 
-  replaceRecord(operation: ReplaceRecordOperation): TransformRecordRequest {
+  updateRecord(operation: UpdateRecordOperation): TransformRecordRequest {
     return {
-      op: 'replaceRecord',
+      op: 'updateRecord',
+      record: clone(operation.record)
+    };
+  },
+
+  replaceRecord(operation: UpdateRecordOperation): TransformRecordRequest {
+    Orbit.deprecate('The `replaceRecord` operation has been deprecated - use `updateRecord` instead.');
+    return {
+      op: 'updateRecord',
       record: clone(operation.record)
     };
   },
@@ -269,9 +277,9 @@ const OperationToRequestMap: Dict<OperationToRequestConverter> = {
     deepSet(record, ['relationships', operation.relationship, 'data'], operation.relatedRecord);
 
     return {
-      op: 'replaceRecord',
+      op: 'updateRecord',
       record
-    } as ReplaceRecordRequest;
+    } as UpdateRecordRequest;
   },
 
   replaceRelatedRecords(operation: ReplaceRelatedRecordsOperation): TransformRecordRequest {
@@ -279,9 +287,9 @@ const OperationToRequestMap: Dict<OperationToRequestConverter> = {
     deepSet(record, ['relationships', operation.relationship, 'data'], operation.relatedRecords);
 
     return {
-      op: 'replaceRecord',
+      op: 'updateRecord',
       record
-    } as ReplaceRecordRequest;
+    } as UpdateRecordRequest;
   }
 };
 
@@ -306,7 +314,7 @@ function handleChanges(record: Record, responseDoc: DeserializedDocument): Trans
   }
   if (responseDoc.included && responseDoc.included.length > 0) {
     let includedOps = responseDoc.included.map(record => {
-      return { op: 'replaceRecord', record };
+      return { op: 'updateRecord', record };
     });
     transforms.push(buildTransform(includedOps));
   }

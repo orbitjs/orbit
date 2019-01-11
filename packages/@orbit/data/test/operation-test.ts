@@ -543,11 +543,11 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce replaceRecord + addToRelatedRecords for the same record', function(assert) {
+    test('can coalesce updateRecord + addToRelatedRecords for the same record', function(assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
-            op: 'replaceRecord',
+            op: 'updateRecord',
             record: {
               type: 'address',
               id: 'def789',
@@ -568,7 +568,7 @@ module('Operation', function() {
         ]),
         [
           {
-            op: 'replaceRecord',
+            op: 'updateRecord',
             record: {
               type: 'address',
               id: 'def789',

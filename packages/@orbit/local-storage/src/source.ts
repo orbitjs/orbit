@@ -13,7 +13,7 @@ import Orbit, {
   Record,
   RecordIdentity,
   RecordOperation,
-  ReplaceRecordOperation
+  UpdateRecordOperation
 } from '@orbit/data';
 import { supportsLocalStorage } from './lib/local-storage';
 import LocalStorageCache, { LocalStorageCacheSettings } from './cache';
@@ -112,15 +112,15 @@ export default class LocalStorageSource extends Source implements Pullable, Push
     if (Array.isArray(results)) {
       operations = results.map(r => {
         return {
-          op: 'replaceRecord',
+          op: 'updateRecord',
           record: r
         };
       });
     } else if (results) {
       operations = [{
-        op: 'replaceRecord',
+        op: 'updateRecord',
         record: results
-      } as ReplaceRecordOperation];
+      } as UpdateRecordOperation];
     } else {
       operations = [];
     }

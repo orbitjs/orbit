@@ -10,7 +10,7 @@ import {
   ReplaceRelatedRecordsOperation,
   ReplaceRelatedRecordOperation,
   ReplaceKeyOperation,
-  ReplaceRecordOperation,
+  UpdateRecordOperation,
   equalRecordIdentities,
   equalRecordIdentitySets,
   recordsInclude
@@ -31,7 +31,7 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
         return;
       } else {
         return {
-          op: 'replaceRecord',
+          op: 'updateRecord',
           record: current
         };
       }
@@ -43,7 +43,7 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
     }
   },
 
-  async replaceRecord(cache: AsyncRecordAccessor, op: ReplaceRecordOperation): Promise<RecordOperation> {
+  async updateRecord(cache: AsyncRecordAccessor, op: UpdateRecordOperation): Promise<RecordOperation> {
     const current = await cache.getRecordAsync(op.record);
     const replacement: Record = op.record;
     const { type, id } = replacement;
@@ -86,7 +86,7 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
 
       if (changed) {
         return {
-          op: 'replaceRecord',
+          op: 'updateRecord',
           record: result
         };
       }
