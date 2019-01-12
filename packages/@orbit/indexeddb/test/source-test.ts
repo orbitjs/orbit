@@ -136,7 +136,7 @@ module('IndexedDBSource', function(hooks) {
     assert.equal(keyMap.keyToId('planet', 'remoteId', 'j'), 'jupiter', 'key has been mapped');
   });
 
-  test('#push - replaceRecord', async function(assert) {
+  test('#push - updateRecord', async function(assert) {
     assert.expect(2);
 
     let original: Record = {
@@ -189,12 +189,12 @@ module('IndexedDBSource', function(hooks) {
     };
 
     await source.push(t => t.addRecord(original));
-    await source.push(t => t.replaceRecord(updates));
+    await source.push(t => t.updateRecord(updates));
     assert.deepEqual(await getRecordFromIndexedDB(source.cache, expected), expected, 'indexeddb contains record');
     assert.equal(keyMap.keyToId('planet', 'remoteId', 'j'), 'jupiter', 'key has been mapped');
   });
 
-  test('#push - replaceRecord - when record does not exist', async function(assert) {
+  test('#push - updateRecord - when record does not exist', async function(assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -207,7 +207,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.replaceRecord(revised));
+    await source.push(t => t.updateRecord(revised));
     assert.deepEqual(await getRecordFromIndexedDB(source.cache, revised), revised, 'indexeddb contains record');
   });
 
@@ -754,7 +754,7 @@ module('IndexedDBSource', function(hooks) {
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.deepEqual(
       transforms[0].operations.map(o => o.op),
-      ['replaceRecord', 'replaceRecord', 'replaceRecord'],
+      ['updateRecord', 'updateRecord', 'updateRecord'],
        'operations match expectations'
     );
     assert.equal(keyMap.keyToId('planet', 'remoteId', 'p1'), 'earth', 'key has been mapped');
@@ -802,7 +802,7 @@ module('IndexedDBSource', function(hooks) {
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.deepEqual(
       transforms[0].operations.map(o => o.op),
-      ['replaceRecord', 'replaceRecord'],
+      ['updateRecord', 'updateRecord'],
       'operations match expectations'
     );
     assert.deepEqual(
@@ -858,7 +858,7 @@ module('IndexedDBSource', function(hooks) {
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.deepEqual(
       transforms[0].operations.map(o => o.op),
-      ['replaceRecord'],
+      ['updateRecord'],
       'operations match expectations'
     );
 

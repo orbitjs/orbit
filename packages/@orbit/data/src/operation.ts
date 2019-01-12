@@ -17,10 +17,10 @@ export interface AddRecordOperation extends Operation {
 }
 
 /**
- * Replace record operation.
+ * Update record operation.
  */
-export interface ReplaceRecordOperation extends Operation {
-  op: 'replaceRecord';
+export interface UpdateRecordOperation extends Operation {
+  op: 'updateRecord';
   record: Record;
 }
 
@@ -96,7 +96,7 @@ export interface ReplaceRelatedRecordOperation extends Operation {
  * Union of all record-related operations.
  */
 export type RecordOperation = AddRecordOperation |
-  ReplaceRecordOperation |
+  UpdateRecordOperation |
   RemoveRecordOperation |
   ReplaceKeyOperation |
   ReplaceAttributeOperation |
@@ -157,10 +157,10 @@ function mergeOperations(superceded: RecordOperation, superceding: RecordOperati
           } else if (superceding.op === 'replaceRelatedRecords') {
             updateRecordReplaceHasMany(superceded.record, superceding.relationship, superceding.relatedRecords);
           }
-          superceded.op = 'replaceRecord';
+          superceded.op = 'updateRecord';
           markOperationToDelete(superceding);
         }
-      } else if ((superceded.op === 'addRecord' || superceded.op === 'replaceRecord') &&
+      } else if ((superceded.op === 'addRecord' || superceded.op === 'updateRecord' || (superceded as any).op === 'replaceRecord') &&
                  isReplaceFieldOp(superceding.op)) {
         if (superceding.op === 'replaceAttribute') {
           updateRecordReplaceAttribute(superceded.record, superceding.attribute, superceding.value);
@@ -174,10 +174,11 @@ function mergeOperations(superceded: RecordOperation, superceding: RecordOperati
         if (superceded.op === 'addRecord') {
           updateRecordAddToHasMany(superceded.record, superceding.relationship, superceding.relatedRecord);
           markOperationToDelete(superceding);
-        } else if (superceded.op === 'replaceRecord') {
-          if (superceded.record.relationships &&
-              superceded.record.relationships[superceding.relationship] &&
-              superceded.record.relationships[superceding.relationship].data) {
+        } else if (superceded.op === 'updateRecord' || (superceded as any).op === 'replaceRecord') {
+          let record: Record = superceded.record;
+          if (record.relationships &&
+              record.relationships[superceding.relationship] &&
+              record.relationships[superceding.relationship].data) {
             updateRecordAddToHasMany(superceded.record, superceding.relationship, superceding.relatedRecord);
             markOperationToDelete(superceding);
           }
@@ -188,10 +189,11 @@ function mergeOperations(superceded: RecordOperation, superceding: RecordOperati
             equalRecordIdentities(superceded.relatedRecord, superceding.relatedRecord)) {
           markOperationToDelete(superceded);
           markOperationToDelete(superceding);
-        } else if (superceded.op === 'addRecord' || superceded.op === 'replaceRecord') {
-          if (superceded.record.relationships &&
-              superceded.record.relationships[superceding.relationship] &&
-              superceded.record.relationships[superceding.relationship].data) {
+        } else if (superceded.op === 'addRecord' || superceded.op === 'updateRecord' || (superceded as any).op === 'replaceRecord') {
+          let record: Record = superceded.record;
+          if (record.relationships &&
+              record.relationships[superceding.relationship] &&
+              record.relationships[superceding.relationship].data) {
             updateRecordRemoveFromHasMany(superceded.record, superceding.relationship, superceding.relatedRecord);
             markOperationToDelete(superceding);
           }

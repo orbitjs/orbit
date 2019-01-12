@@ -4,7 +4,7 @@ import Orbit, {
   NetworkError,
   Record,
   RecordIdentity,
-  ReplaceRecordOperation,
+  UpdateRecordOperation,
   TransformNotAllowed,
   Schema,
   Source,
@@ -357,7 +357,7 @@ module('JSONAPISource', function() {
       };
 
       let addMoonOp = {
-        op: 'replaceRecord',
+        op: 'updateRecord',
         record: {
           type: 'moon',
           keys: {
@@ -453,7 +453,7 @@ module('JSONAPISource', function() {
       });
 
       let replacePlanetOp = {
-        op: 'replaceRecord',
+        op: 'updateRecord',
         record: {
           type: 'planet',
           id: planet.id,
@@ -488,7 +488,7 @@ module('JSONAPISource', function() {
           )
         );
 
-      await source.push(t => t.replaceRecord(planet));
+      await source.push(t => t.updateRecord(planet));
 
       assert.ok(true, 'transform resolves successfully');
 
@@ -972,8 +972,8 @@ module('JSONAPISource', function() {
       let transforms = await source.pull(q => q.findRecord({ type: 'planet', id: planet.id }));
 
       assert.equal(transforms.length, 1, 'one transform returned');
-      assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
-      assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Jupiter']);
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Jupiter']);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -1119,8 +1119,8 @@ module('JSONAPISource', function() {
       let transforms = await source.pull(q => q.findRecords('planet'));
 
       assert.equal(transforms.length, 1, 'one transform returned');
-      assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
-      assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord', 'updateRecord', 'updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -1141,8 +1141,8 @@ module('JSONAPISource', function() {
                                    .filter({ attribute: 'lengthOfDay', value: 24 }));
 
       assert.equal(transforms.length, 1, 'one transform returned');
-      assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
-      assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Earth']);
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Earth']);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -1168,8 +1168,8 @@ module('JSONAPISource', function() {
                                    .filter({ attribute: 'lengthOfDay', value: 'le:24' }, { attribute: 'lengthOfDay', value: 'ge:24' }));
 
       assert.equal(transforms.length, 1, 'one transform returned');
-      assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
-      assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Earth']);
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Earth']);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -1197,8 +1197,8 @@ module('JSONAPISource', function() {
                                    .filter({ relation: 'planet', record: { id: 'earth', type: 'planets' } }));
 
       assert.equal(transforms.length, 1, 'one transform returned');
-      assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
-      assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Moon']);
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Moon']);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -1243,11 +1243,11 @@ module('JSONAPISource', function() {
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'replaceRecord',
-        'replaceRecord',
-        'replaceRecord'
+        'updateRecord',
+        'updateRecord',
+        'updateRecord'
       ]);
-      assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Moon', 'Phobos', 'Deimos']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Moon', 'Phobos', 'Deimos']);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -1279,8 +1279,8 @@ module('JSONAPISource', function() {
         }));
 
       assert.equal(transforms.length, 1, 'one transform returned');
-      assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
-      assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Mars']);
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Mars']);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -1302,8 +1302,8 @@ module('JSONAPISource', function() {
       let transforms = await source.pull(q => q.findRecords('planet').sort('name'));
 
       assert.equal(transforms.length, 1, 'one transform returned');
-      assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
-      assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Earth', 'Jupiter', 'Saturn']);
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord', 'updateRecord', 'updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Earth', 'Jupiter', 'Saturn']);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -1325,8 +1325,8 @@ module('JSONAPISource', function() {
       let transforms = await source.pull(q => q.findRecords('planet').sort('-name'))
 
       assert.equal(transforms.length, 1, 'one transform returned');
-      assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
-      assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Saturn', 'Jupiter', 'Earth']);
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord', 'updateRecord', 'updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Saturn', 'Jupiter', 'Earth']);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -1348,8 +1348,8 @@ module('JSONAPISource', function() {
       let transforms = await source.pull(q => q.findRecords('planet').sort('lengthOfDay', 'name'))
 
       assert.equal(transforms.length, 1, 'one transform returned');
-      assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
-      assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Jupiter', 'Saturn', 'Earth']);
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord', 'updateRecord', 'updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Jupiter', 'Saturn', 'Earth']);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -1372,8 +1372,8 @@ module('JSONAPISource', function() {
                                                .page({ offset: 1, limit: 10 }));
 
       assert.equal(transforms.length, 1, 'one transform returned');
-      assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
-      assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord', 'updateRecord', 'updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -1451,9 +1451,9 @@ module('JSONAPISource', function() {
       const planetId = keyMap.keyToId('planet', 'remoteId', 'jupiter');
       const ssId = keyMap.keyToId('solarSystem', 'remoteId', 'ours');
 
-      assert.deepEqual(operations.map(o => o.op), ['replaceRecord', 'replaceRelatedRecord']);
+      assert.deepEqual(operations.map(o => o.op), ['updateRecord', 'replaceRelatedRecord']);
 
-      const op1 = operations[0] as ReplaceRecordOperation;
+      const op1 = operations[0] as UpdateRecordOperation;
       assert.equal(op1.record.type, 'solarSystem');
       assert.equal(op1.record.id, ssId);
       assert.equal(op1.record.attributes.name, 'Our Solar System');
@@ -1494,9 +1494,9 @@ module('JSONAPISource', function() {
       let transforms = await source.pull(q => q.findRelatedRecords(planetRecord, 'moons'));
 
       assert.equal(transforms.length, 1, 'one transform returned');
-      assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRelatedRecords']);
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord', 'replaceRelatedRecords']);
 
-      const op1 = transforms[0].operations[0] as ReplaceRecordOperation;
+      const op1 = transforms[0].operations[0] as UpdateRecordOperation;
       assert.equal(op1.record.attributes.name, 'Io');
 
       const op2 = transforms[0].operations[1] as ReplaceRelatedRecordsOperation;

@@ -67,7 +67,7 @@ export default class SyncSchemaConsistencyProcessor extends SyncOperationProcess
           this.accessor.getRecordSync(operation.record)
         );
 
-      case 'replaceRecord':
+      case 'updateRecord':
         return recordReplaced(
           this.accessor.schema,
           this.accessor.getRecordSync(operation.record),

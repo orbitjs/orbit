@@ -48,9 +48,9 @@ module('SyncSchemaValidationProcessor', function(hooks) {
     }, unknownError);
   });
 
-  test('replaceRecord with an unknown model type', assert => {
+  test('updateRecord with an unknown model type', assert => {
     assert.throws(() => {
-      cache.patch(t => t.replaceRecord(unknown));
+      cache.patch(t => t.updateRecord(unknown));
     }, unknownError);
   });
 

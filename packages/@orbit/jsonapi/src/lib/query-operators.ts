@@ -34,7 +34,7 @@ function operationsFromDeserializedDocument(deserialized: DeserializedDocument):
 
   return records.map(record => {
     return {
-      op: 'replaceRecord',
+      op: 'updateRecord',
       record
     };
   });
