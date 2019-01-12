@@ -1,4 +1,4 @@
-import {
+import Orbit, {
   buildTransform,
   Operation,
   pullable, Pullable,
@@ -15,9 +15,10 @@ import {
   RecordOperation,
   ReplaceRecordOperation
 } from '@orbit/data';
-import { assert } from '@orbit/utils';
 import { supportsLocalStorage } from './lib/local-storage';
 import LocalStorageCache, { LocalStorageCacheSettings } from './cache';
+
+const { assert } = Orbit;
 
 export interface LocalStorageSourceSettings extends SourceSettings {
   delimiter?: string;

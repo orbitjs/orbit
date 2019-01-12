@@ -1,5 +1,7 @@
+import Orbit from './main';
 import Notifier, { Listener } from './notifier';
-import { deprecate } from '@orbit/utils';
+
+const { deprecate } = Orbit;
 
 export const EVENTED = '__evented__';
 

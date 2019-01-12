@@ -1,6 +1,8 @@
 import { StrategyOptions } from '../strategy';
 import { ConnectionStrategy, ConnectionStrategyOptions } from './connection-strategy';
-import { assert } from '@orbit/utils';
+import Orbit from '@orbit/core';
+
+const { assert } = Orbit;
 
 export interface SyncStrategyOptions extends StrategyOptions {
   /**

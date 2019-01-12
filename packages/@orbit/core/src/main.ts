@@ -1,3 +1,5 @@
+import { assert } from './assert';
+import { deprecate } from './deprecate';
 import { uuid } from '@orbit/utils';
 
 declare const self: any;
@@ -5,6 +7,8 @@ declare const global: any;
 
 export interface OrbitGlobal {
   globals: any;
+  assert: (description: string, test: boolean) => void;
+  deprecate: (message: string, test?: boolean | (() => boolean) ) => void;
   uuid: () => string;
 }
 
@@ -23,6 +27,8 @@ const globals = typeof self == 'object' && self.self === self && self ||
 
 const Orbit: OrbitGlobal = {
   globals,
+  assert,
+  deprecate,
   uuid
 };
 

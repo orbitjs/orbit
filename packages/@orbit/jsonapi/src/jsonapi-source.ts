@@ -13,12 +13,14 @@ import Orbit, {
   Queryable, queryable,
   Record
 } from '@orbit/data';
-import { assert, deepMerge, deprecate } from '@orbit/utils';
+import { deepMerge } from '@orbit/utils';
 import JSONAPISerializer, { JSONAPISerializerSettings } from './jsonapi-serializer';
 import { appendQueryParams } from './lib/query-params';
 import { getTransformRequests, TransformRequestProcessors } from './lib/transform-requests';
 import { InvalidServerResponse } from './lib/exceptions';
 import { QueryOperator, QueryOperators } from "./lib/query-operators";
+
+const { assert, deprecate } = Orbit;
 
 export interface FetchSettings {
   headers?: object;

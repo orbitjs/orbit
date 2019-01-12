@@ -14,9 +14,10 @@ import Orbit, {
   ReplaceRecordOperation,
   Record
 } from '@orbit/data';
-import { assert } from '@orbit/utils';
 import { supportsIndexedDB } from './lib/indexeddb';
 import IndexedDBCache, { IndexedDBCacheSettings } from './cache';
+
+const { assert } = Orbit;
 
 export interface IndexedDBSourceSettings extends SourceSettings {
   namespace?: string;

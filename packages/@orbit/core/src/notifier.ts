@@ -1,4 +1,6 @@
-import { deprecate } from '@orbit/utils';
+import Orbit from './main';
+
+const { deprecate } = Orbit;
 
 export type Listener = (...args: any[]) => any;
 

@@ -12,9 +12,11 @@ import Orbit, {
   coalesceRecordOperations,
   buildTransform
 } from '@orbit/data';
-import { assert, Dict } from '@orbit/utils';
+import { Dict } from '@orbit/utils';
 import Cache, { CacheSettings } from './cache';
 import { PatchResultData } from '@orbit/record-cache';
+
+const { assert } = Orbit;
 
 export interface StoreSettings extends SourceSettings {
   base?: Store;

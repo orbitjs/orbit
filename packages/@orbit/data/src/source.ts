@@ -1,5 +1,4 @@
-import Orbit from './main';
-import {
+import Orbit, {
   evented, Evented, settleInSeries,
   Bucket,
   TaskQueue,
@@ -13,7 +12,8 @@ import Schema from './schema';
 import QueryBuilder from './query-builder';
 import { Transform } from './transform';
 import TransformBuilder from './transform-builder';
-import { assert } from '@orbit/utils';
+
+const { assert } = Orbit;
 
 export interface SourceSettings {
   name?: string;

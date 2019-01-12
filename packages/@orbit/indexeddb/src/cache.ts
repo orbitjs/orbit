@@ -1,5 +1,3 @@
-/* eslint-disable valid-jsdoc */
-import { assert } from '@orbit/utils';
 import Orbit, {
   serializeRecordIdentity,
   deserializeRecordIdentity,
@@ -17,6 +15,8 @@ import {
   QueryResultData
 } from '@orbit/record-cache';
 import { supportsIndexedDB } from './lib/indexeddb';
+
+const { assert } = Orbit;
 
 const INVERSE_RELS = '__inverseRels__';
 

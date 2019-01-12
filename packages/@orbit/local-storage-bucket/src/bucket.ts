@@ -1,8 +1,9 @@
 import Orbit, {
   Bucket, BucketSettings
 } from '@orbit/core';
-import { assert } from '@orbit/utils';
 import { supportsLocalStorage } from './lib/local-storage';
+
+const { assert } = Orbit;
 
 export interface LocalStorageBucketSettings extends BucketSettings {
   delimiter?: string;

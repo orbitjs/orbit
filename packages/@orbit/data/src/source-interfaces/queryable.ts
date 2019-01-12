@@ -1,7 +1,8 @@
-import { assert } from '@orbit/utils';
-import { settleInSeries, fulfillInSeries } from '@orbit/core';
+import Orbit, { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Query, QueryOrExpression, buildQuery } from '../query';
 import { Source, SourceClass } from '../source';
+
+const { assert } = Orbit;
 
 export const QUERYABLE = '__queryable__';
 

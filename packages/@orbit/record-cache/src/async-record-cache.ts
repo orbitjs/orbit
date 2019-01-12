@@ -1,9 +1,9 @@
-import {
+import Orbit, {
   evented,
   Evented,
   Listener
 } from '@orbit/core';
-import { assert, isArray, deepGet, Dict } from '@orbit/utils';
+import { isArray, deepGet, Dict } from '@orbit/utils';
 import {
   KeyMap,
   Record,
@@ -27,6 +27,8 @@ import { AsyncInversePatchOperators, AsyncInversePatchOperator } from './operato
 import { AsyncRecordAccessor, RecordRelationshipIdentity } from './record-accessor';
 import { PatchResult } from './patch-result';
 import { QueryResultData } from './query-result';
+
+const { assert } = Orbit;
 
 export interface AsyncRecordCacheSettings {
   schema?: Schema;
