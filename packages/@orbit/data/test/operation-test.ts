@@ -398,6 +398,29 @@ module('Operation', function() {
       );
     });
 
+    test('can coalesce addRecord + addToRelatedRecords + removeRecord for the same record', function(assert) {
+      assert.deepEqual(
+        coalesceRecordOperations([
+          {
+            op: 'addRecord',
+            record: { type: 'phoneNumber', id: 'abc' }
+          },
+          {
+            op: 'addToRelatedRecords',
+            record: { type: 'contact', id: '1234' },
+            relationship: 'phoneNumbers',
+            relatedRecord: { type: 'phoneNumber', id: 'abc' }
+          }
+          {
+            op: 'removeRecord',
+            record: { type: 'phoneNumber', id: 'abc' }
+          }
+        ]),
+        [
+        ]
+      );
+    });
+
     test('can coalesce removeRecord + removeRecord for the same record', function(assert) {
       assert.deepEqual(
         coalesceRecordOperations([
