@@ -200,6 +200,10 @@ function mergeOperations(superceded: RecordOperation, superceding: RecordOperati
         }
       }
     }
+  } else if (equalRecordIdentities(superceded.relatedRecord, superceding.record)) {
+    if (superceding.op === 'removeRecord') {
+      markOperationToDelete(superceded);
+    }
   }
 }
 
