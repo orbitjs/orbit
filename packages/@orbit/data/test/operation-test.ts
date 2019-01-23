@@ -410,7 +410,7 @@ module('Operation', function() {
             record: { type: 'contact', id: '1234' },
             relationship: 'phoneNumbers',
             relatedRecord: { type: 'phoneNumber', id: 'abc' }
-          }
+          },
           {
             op: 'removeRecord',
             record: { type: 'phoneNumber', id: 'abc' }
