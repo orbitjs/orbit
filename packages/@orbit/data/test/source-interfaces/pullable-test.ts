@@ -15,7 +15,7 @@ module('@pullable', function(hooks) {
   @pullable
   class MySource extends Source implements Pullable {
     pull: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<Transform[]>;
-    _pull: (query: Query) => Promise<Transform[]>;
+    _pull: (query: Query, hints?: any) => Promise<Transform[]>;
   }
 
   let source: MySource;
@@ -210,4 +210,55 @@ module('@pullable', function(hooks) {
       assert.equal(error, ':(', 'failure');
     }
   });
+
+  test('#pull should pass a common `hints` object to all `beforePull` events and forward it to `_pull`', async function(assert) {
+    assert.expect(16);
+
+    let order = 0;
+    let qe = { op: 'findRecords', type: 'planet' };
+    let h: any;
+    const resultingTransforms = [
+      buildTransform({ op: 'addRecord' }),
+      buildTransform({ op: 'replaceRecordAttribute' })
+    ];
+
+    source.on('beforePull', async function(query: Query, hints: any) {
+      assert.equal(++order, 1, 'beforePull triggered first');
+      assert.deepEqual(hints, {}, 'beforePull is passed empty `hints` object')
+      h = hints;
+      hints.data = resultingTransforms;
+    });
+
+    source.on('beforePull', async function(query: Query, hints: any) {
+      assert.equal(++order, 2, 'beforePull triggered second');
+      assert.strictEqual(hints, h, 'beforePull is passed same hints instance');
+    });
+
+    source.on('beforePull', async function(query: Query, hints: any) {
+      assert.equal(++order, 3, 'beforePull triggered third');
+      assert.strictEqual(hints, h, 'beforePull is passed same hints instance');
+    });
+
+    source._pull = async function(query: Query, hints: any) {
+      assert.equal(++order, 4, 'action performed after willPull');
+      assert.strictEqual(query.expression, qe, 'query object matches');
+      assert.strictEqual(hints, h, '_pull is passed same hints instance');
+      return hints.data;
+    };
+
+    let transformCount = 0;
+    source.on('transform', async function(transform) {
+      assert.strictEqual(transform, resultingTransforms[transformCount++], 'transform matches');
+    });
+
+    source.on('pull', (query, result) => {
+      assert.equal(++order, 5, 'pull triggered after action performed successfully');
+      assert.strictEqual(query.expression, qe, 'query matches');
+      assert.strictEqual(result, resultingTransforms, 'result matches');
+    });
+
+    let result = await source.pull(qe);
+
+    assert.equal(++order, 6, 'promise resolved last');
+    assert.strictEqual(result, resultingTransforms, 'success!');  });
 });

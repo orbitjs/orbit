@@ -14,7 +14,7 @@ module('@updatable', function(hooks) {
   @updatable
   class MySource extends Source implements Updatable {
     update: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => Promise<any>;
-    _update: (transform: Transform) => Promise<any>;
+    _update: (transform: Transform, hints?: any) => Promise<any>;
   }
 
   let source: MySource;
@@ -258,5 +258,51 @@ module('@updatable', function(hooks) {
       assert.equal(++order, 4, 'promise failed because no actions succeeded');
       assert.equal(error, ':(', 'failure');
     }
+  });
+
+  test('#update should pass a common `hints` object to all `beforeUpdate` events and forward it to `_update`', async function(assert) {
+    assert.expect(11);
+
+    let order = 0;
+
+    const addRecordTransform = buildTransform({ op: 'addRecord' });
+    const replaceAttributeTransform = buildTransform({ op: 'replaceRecordAttribute' });
+    let h: any;
+    const resultingTransforms = [
+      addRecordTransform,
+      replaceAttributeTransform
+    ];
+
+    source.on('beforeUpdate', async function(transform: Transform, hints: any) {
+      assert.equal(++order, 1, 'beforeUpdate triggered first');
+      assert.deepEqual(hints, {}, 'beforeUpdate is passed empty `hints` object')
+      h = hints;
+      hints.foo = 'bar';
+     });
+
+    source.on('beforeUpdate', async function(transform: Transform, hints: any) {
+      assert.equal(++order, 2, 'beforeUpdate triggered second');
+      assert.strictEqual(hints, h, 'beforeUpdate is passed same hints instance');
+    });
+
+    source.on('beforeUpdate', async function(transform: Transform, hints: any) {
+      assert.equal(++order, 3, 'beforeUpdate triggered third');
+      assert.strictEqual(hints, h, 'beforeUpdate is passed same hints instance');
+    });
+
+    source._update = async function(transform: Transform, hints: any) {
+      assert.equal(++order, 4, '_update invoked after all `beforeUpdate` handlers');
+      assert.strictEqual(hints, h, '_update is passed same hints instance');
+      return resultingTransforms;
+    };
+
+    source.on('update', () => {
+      assert.equal(++order, 5, 'update triggered after action performed successfully');
+    });
+
+    let result = await source.update(addRecordTransform);
+
+    assert.equal(++order, 6, 'promise resolved last');
+    assert.deepEqual(result, resultingTransforms, 'applied transforms are returned on success');
   });
 });

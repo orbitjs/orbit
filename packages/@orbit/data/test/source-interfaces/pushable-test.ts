@@ -14,7 +14,7 @@ module('@pushable', function(hooks) {
   @pushable
   class MySource extends Source implements Pushable {
     push: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => Promise<Transform[]>;
-    _push: (transform: Transform) => Promise<Transform[]>;
+    _push: (transform: Transform, hints?: any) => Promise<Transform[]>;
   }
 
   let source: MySource;
@@ -238,5 +238,51 @@ module('@pushable', function(hooks) {
       assert.equal(++order, 4, 'promise failed because no actions succeeded');
       assert.equal(error, ':(', 'failure');
     }
+  });
+
+  test('#push should pass a common `hints` object to all `beforePush` events and forward it to `_push`', async function(assert) {
+    assert.expect(11);
+
+    let order = 0;
+
+    const addRecordTransform = buildTransform({ op: 'addRecord' });
+    const replaceAttributeTransform = buildTransform({ op: 'replaceRecordAttribute' });
+    let h: any;
+    const resultingTransforms = [
+      addRecordTransform,
+      replaceAttributeTransform
+    ];
+
+    source.on('beforePush', async function(transform: Transform, hints: any) {
+      assert.equal(++order, 1, 'beforePush triggered first');
+      assert.deepEqual(hints, {}, 'beforePush is passed empty `hints` object')
+      h = hints;
+      hints.foo = 'bar';
+     });
+
+    source.on('beforePush', async function(transform: Transform, hints: any) {
+      assert.equal(++order, 2, 'beforePush triggered second');
+      assert.strictEqual(hints, h, 'beforePush is passed same hints instance');
+    });
+
+    source.on('beforePush', async function(transform: Transform, hints: any) {
+      assert.equal(++order, 3, 'beforePush triggered third');
+      assert.strictEqual(hints, h, 'beforePush is passed same hints instance');
+    });
+
+    source._push = async function(transform: Transform, hints: any) {
+      assert.equal(++order, 4, '_push invoked after all `beforePush` handlers');
+      assert.strictEqual(hints, h, '_push is passed same hints instance');
+      return resultingTransforms;
+    };
+
+    source.on('push', () => {
+      assert.equal(++order, 5, 'push triggered after action performed successfully');
+    });
+
+    let result = await source.push(addRecordTransform);
+
+    assert.equal(++order, 6, 'promise resolved last');
+    assert.deepEqual(result, resultingTransforms, 'applied transforms are returned on success');
   });
 });
