@@ -100,7 +100,7 @@ export class ConnectionStrategy extends Strategy {
 
   async activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<void> {
     await super.activate(coordinator, options);
-    this._listener = this._generateListener();
+    this._listener = this.generateListener();
     this.source.on(this._event, this._listener);
   }
 
@@ -110,7 +110,7 @@ export class ConnectionStrategy extends Strategy {
     this._listener = null;
   }
 
-  protected _generateListener(): Listener {
+  protected generateListener(): Listener {
     const target = this.target as any;
 
     return (...args: any[]) => {
