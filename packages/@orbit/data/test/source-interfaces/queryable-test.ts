@@ -14,7 +14,7 @@ module('@queryable', function(hooks) {
   @queryable
   class MySource extends Source implements Queryable {
     query: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<any>;
-    _query: (query: Query) => Promise<any>;
+    _query: (query: Query, hints?: any) => Promise<any>;
   }
 
   let source: MySource;
@@ -227,5 +227,45 @@ module('@queryable', function(hooks) {
       assert.equal(++order, 4, 'promise failed because no actions succeeded');
       assert.equal(error, ':(', 'failure');
     }
+  });
+
+  test('#query should pass a common `hints` object to all `beforeQuery` events and forward it to `_query`', async function(assert) {
+    assert.expect(11);
+
+    let order = 0;
+    let qe = { op: 'findRecords', type: 'planet' };
+    let h: any;
+
+    source.on('beforeQuery', async function(query: Query, hints: any) {
+      assert.equal(++order, 1, 'beforeQuery triggered first');
+      assert.deepEqual(hints, {}, 'beforeQuery is passed empty `hints` object')
+      h = hints;
+      hints.data = [{ type: 'planet', id: 'venus' }, { type: 'planet', id: 'mars' }];
+    });
+
+    source.on('beforeQuery', async function (query: Query, hints: any) {
+      assert.equal(++order, 2, 'beforeQuery triggered second');
+      assert.strictEqual(hints, h, 'beforeQuery is passed same hints instance');
+    });
+
+    source.on('beforeQuery', async function(query: Query, hints: any) {
+      assert.equal(++order, 3, 'beforeQuery triggered third');
+      assert.strictEqual(hints, h, 'beforeQuery is passed same hints instance');
+    });
+
+    source._query = async function(query: Query, hints: any) {
+      assert.equal(++order, 4, '_query invoked after all `beforeQuery` handlers');
+      assert.strictEqual(hints, h, '_query is passed same hints instance');
+      return hints.data;
+    };
+
+    source.on('query', async function() {
+      assert.equal(++order, 5, 'query triggered after action performed successfully');
+    });
+
+    let result = await source.query(qe);
+
+    assert.equal(++order, 6, 'promise resolved last');
+    assert.deepEqual(result, [{ type: 'planet', id: 'venus' }, { type: 'planet', id: 'mars' }], 'success!');
   });
 });

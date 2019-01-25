@@ -25,7 +25,7 @@ export interface Updatable {
    */
   update(transformOrOperations: TransformOrOperations, options?: object, id?: string): Promise<any>;
 
-  _update(transform: Transform): Promise<any>;
+  _update(transform: Transform, hints?: any): Promise<any>;
 }
 
 /**
@@ -77,12 +77,13 @@ export default function updatable(Klass: SourceClass): void {
       return Promise.resolve();
     }
 
-    return fulfillInSeries(this, 'beforeUpdate', transform)
+    const hints: any = {};
+    return fulfillInSeries(this, 'beforeUpdate', transform, hints)
       .then(() => {
         if (this.transformLog.contains(transform.id)) {
           return Promise.resolve();
         } else {
-          return this._update(transform)
+          return this._update(transform, hints)
             .then((result: any) => {
               return this._transformed([transform])
                 .then(() => settleInSeries(this, 'update', transform, result))

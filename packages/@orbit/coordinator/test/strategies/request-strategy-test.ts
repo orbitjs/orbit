@@ -100,6 +100,39 @@ module('RequestStrategy', function(hooks) {
     await s1.update(tA);
   });
 
+  test('with `passHints: true` and `blocking: true`, will pass `hints` that result from applying the target action', async function(assert) {
+    assert.expect(5);
+
+    strategy = new RequestStrategy({
+      source: 's1',
+      target: 's2',
+      on: 'beforeUpdate',
+      action: 'push',
+      blocking: true,
+      passHints: true
+    });
+
+    coordinator = new Coordinator({
+      sources: [s1, s2],
+      strategies: [strategy]
+    });
+
+    s1._update = async function(transform: Transform, hints: any): Promise<any> {
+      assert.strictEqual(transform, tA, 'argument to _update is expected Transform');
+      assert.deepEqual(hints.data, [tA], 'result is passed as a hint');
+    };
+
+    s2._push = async function(transform: Transform, hints: any): Promise<Transform[]> {
+      assert.deepEqual(hints, {}, 'no hints are passed to `push`');
+      assert.strictEqual(transform, tA, 'argument to _push is expected Transform');
+      assert.strictEqual(this, s2, 'context is that of the target');
+      return [tA];
+    };
+
+    await coordinator.activate()
+    await s1.update(tA);
+  });
+
   test('can apply a `filter` function', async function(assert) {
     assert.expect(4);
 

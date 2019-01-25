@@ -27,7 +27,7 @@ export interface Pullable {
    */
   pull(queryOrExpression: QueryOrExpression, options?: object, id?: string): Promise<Transform[]>;
 
-  _pull(query: Query): Promise<Transform[]>;
+  _pull(query: Query, hints?: any): Promise<Transform[]>;
 }
 
 /**
@@ -71,8 +71,9 @@ export default function pullable(Klass: SourceClass): void {
   }
 
   proto.__pull__ = function(query: Query): Promise<Transform[]> {
-    return fulfillInSeries(this, 'beforePull', query)
-      .then(() => this._pull(query))
+    const hints: any = {};
+    return fulfillInSeries(this, 'beforePull', query, hints)
+      .then(() => this._pull(query, hints))
       .then(result => this._transformed(result))
       .then(result => {
         return settleInSeries(this, 'pull', query, result)

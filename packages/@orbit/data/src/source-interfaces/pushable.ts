@@ -30,7 +30,7 @@ export interface Pushable {
    */
   push(transformOrOperations: TransformOrOperations, options?: object, id?: string): Promise<Transform[]>;
 
-  _push(transform: Transform): Promise<Transform[]>;
+  _push(transform: Transform, hints?: any): Promise<Transform[]>;
 }
 
 /**
@@ -83,12 +83,13 @@ export default function pushable(Klass: SourceClass): void {
       return Promise.resolve([]);
     }
 
-    return fulfillInSeries(this, 'beforePush', transform)
+    const hints: any = {};
+    return fulfillInSeries(this, 'beforePush', transform, hints)
       .then(() => {
         if (this.transformLog.contains(transform.id)) {
           return Promise.resolve([]);
         } else {
-          return this._push(transform)
+          return this._push(transform, hints)
             .then((result: Transform[]) => {
               return this._transformed(result)
                 .then(() => settleInSeries(this, 'push', transform, result))

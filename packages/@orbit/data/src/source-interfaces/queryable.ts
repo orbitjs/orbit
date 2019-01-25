@@ -24,7 +24,7 @@ export interface Queryable {
    */
   query(queryOrExpression: QueryOrExpression, options?: object, id?: string): Promise<any>;
 
-  _query(query: Query): Promise<any>;
+  _query(query: Query, hints?: any): Promise<any>;
 }
 
 /**
@@ -67,8 +67,9 @@ export default function queryable(Klass: SourceClass): void {
   }
 
   proto.__query__ = function(query: Query): Promise<any> {
-    return fulfillInSeries(this, 'beforeQuery', query)
-      .then(() => this._query(query))
+    const hints: any = {};
+    return fulfillInSeries(this, 'beforeQuery', query, hints)
+      .then(() => this._query(query, hints))
       .then((result: any) => {
         return settleInSeries(this, 'query', query, result)
           .then(() => result);
