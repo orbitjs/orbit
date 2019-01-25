@@ -99,26 +99,25 @@ export default class Store extends Source implements Syncable, Queryable, Updata
   // Syncable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _sync(transform: Transform): Promise<void> {
+  async _sync(transform: Transform): Promise<void> {
     this._applyTransform(transform);
-    return Promise.resolve();
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Updatable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _update(transform: Transform): Promise<any> {
+  async _update(transform: Transform): Promise<any> {
     let results = this._applyTransform(transform);
-    return Promise.resolve(results.length === 1 ? results[0] : results);
+    return results.length === 1 ? results[0] : results;
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Queryable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _query(query: QueryOrExpression) {
-    return Promise.resolve(this._cache.query(query));
+  async _query(query: QueryOrExpression): Promise<any> {
+    return this._cache.query(query);
   }
 
   /////////////////////////////////////////////////////////////////////////////
