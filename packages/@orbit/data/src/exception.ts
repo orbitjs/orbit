@@ -136,15 +136,6 @@ export class RecordNotFoundException extends RecordException {
 }
 
 /**
- * A relationship could not be found.
- */
-export class RelationshipNotFoundException extends RecordException {
-  constructor(type: string, id: string, relationship: string) {
-    super('Relationship not found', type, id, relationship);
-  }
-}
-
-/**
  * The record already exists.
  */
 export class RecordAlreadyExistsException extends RecordException {
