@@ -134,12 +134,3 @@ export class RecordNotFoundException extends RecordException {
     super('Record not found', type, id);
   }
 }
-
-/**
- * The record already exists.
- */
-export class RecordAlreadyExistsException extends RecordException {
-  constructor(type: string, id: string) {
-    super('Record already exists', type, id);
-  }
-}
