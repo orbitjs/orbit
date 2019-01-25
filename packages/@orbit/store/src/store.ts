@@ -134,7 +134,7 @@ export default class Store extends Source implements Syncable, Queryable, Updata
    @method fork
    @returns {Store} The forked store.
   */
-  fork(settings: StoreSettings = {}) {
+  fork(settings: StoreSettings = {}): Store {
     settings.schema = this._schema;
     settings.cacheSettings = settings.cacheSettings || {};
     settings.keyMap = this._keyMap;
