@@ -62,29 +62,43 @@ export default class LocalStorageCache extends SyncRecordCache {
     return result;
   }
 
-  getRecordsSync(type: string): Record[] {
-    const records = [];
-    for (let key in Orbit.globals.localStorage) {
-      if (key.indexOf(this.namespace + this.delimiter) === 0) {
-        let typesMatch = isNone(type);
+  getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[] {
+    const records: Record[] = [];
 
-        if (!typesMatch) {
-          let fragments = key.split(this.delimiter);
-          let recordType = fragments[1];
-          typesMatch = (recordType === type);
-        }
-
-        if (typesMatch) {
-          let record = JSON.parse(Orbit.globals.localStorage.getItem(key));
-
-          if (this.keyMap) {
-            this.keyMap.pushRecord(record);
-          }
-
+    if (Array.isArray(typeOrIdentities)) {
+      const identities: RecordIdentity[] = typeOrIdentities;
+      for (let identity of identities) {
+        let record: Record = this.getRecordSync(identity);
+        if (record) {
           records.push(record);
         }
       }
+    } else {
+      const type: string = typeOrIdentities;
+
+      for (let key in Orbit.globals.localStorage) {
+        if (key.indexOf(this.namespace + this.delimiter) === 0) {
+          let typesMatch = isNone(type);
+
+          if (!typesMatch) {
+            let fragments = key.split(this.delimiter);
+            let recordType = fragments[1];
+            typesMatch = (recordType === type);
+          }
+
+          if (typesMatch) {
+            let record = JSON.parse(Orbit.globals.localStorage.getItem(key));
+
+            if (this.keyMap) {
+              this.keyMap.pushRecord(record);
+            }
+
+            records.push(record);
+          }
+        }
+      }
     }
+
     return records;
   }
 
