@@ -8,8 +8,7 @@ import {
 import {
   RecordRelationshipIdentity,
   SyncRecordCache,
-  SyncRecordCacheSettings,
-  SyncOperationProcessor
+  SyncRecordCacheSettings
 } from '../../src/index';
 
 /**
@@ -35,8 +34,20 @@ export default class ExampleSyncRecordCache extends SyncRecordCache {
     return deepGet(this._records, [identity.type, identity.id]) || null;
   }
 
-  getRecordsSync(type: string): Record[] {
-    return objectValues(this._records[type]);
+  getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[] {
+    if (typeof typeOrIdentities === 'string') {
+      return objectValues(this._records[typeOrIdentities]);
+    } else if (Array.isArray(typeOrIdentities)) {
+      const records: Record[] = [];
+      const identities: RecordIdentity[] = typeOrIdentities;
+      for (let i of identities) {
+        let record = this.getRecordSync(i);
+        if (record) {
+          records.push(record);
+        }
+      }
+      return records;
+    }
   }
 
   setRecordSync(record: Record): void {

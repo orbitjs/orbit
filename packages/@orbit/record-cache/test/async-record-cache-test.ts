@@ -708,7 +708,7 @@ module('AsyncRecordCache', function(hooks) {
 
   });
 
-  test('#query can retrieve an individual record with `record`', async function(assert) {
+  test('#query can retrieve an individual record', async function(assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', classification: 'gas giant', atmosphere: true } };
@@ -717,6 +717,54 @@ module('AsyncRecordCache', function(hooks) {
     assert.deepEqual(
       await cache.query(q => q.findRecord({ type: 'planet', id: 'jupiter' })),
       jupiter
+    );
+  });
+
+  test('#query can find records by type', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const jupiter: Record = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', classification: 'gas giant', atmosphere: true } };
+    const earth: Record = { type: 'planet', id: 'earth', attributes: { name: 'Earth', classification: 'terrestrial', atmosphere: true } };
+    const venus: Record = { type: 'planet', id: 'venus', attributes: { name: 'Venus', classification: 'terrestrial', atmosphere: true } };
+    const mercury: Record = { type: 'planet', id: 'mercury', attributes: { name: 'Mercury', classification: 'terrestrial', atmosphere: false } };
+
+    await cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
+    ]);
+
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q => q.findRecords('planet')),
+      [ jupiter, earth, venus, mercury ]
+    );
+  });
+
+  test('#query can find records by identities', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const jupiter: Record = { type: 'planet', id: 'jupiter', attributes: { name: 'Jupiter', classification: 'gas giant', atmosphere: true } };
+    const earth: Record = { type: 'planet', id: 'earth', attributes: { name: 'Earth', classification: 'terrestrial', atmosphere: true } };
+    const venus: Record = { type: 'planet', id: 'venus', attributes: { name: 'Venus', classification: 'terrestrial', atmosphere: true } };
+    const mercury: Record = { type: 'planet', id: 'mercury', attributes: { name: 'Mercury', classification: 'terrestrial', atmosphere: false } };
+
+    await cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
+    ]);
+
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q => q.findRecords([
+        { type: 'planet', id: 'jupiter' },
+        { type: 'planet', id: 'venus' },
+        { type: 'planet', id: 'FAKE'}
+      ])),
+      [ jupiter, venus ]
     );
   });
 

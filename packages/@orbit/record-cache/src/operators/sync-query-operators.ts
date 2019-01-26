@@ -32,7 +32,7 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
   },
 
   findRecords(cache: SyncRecordAccessor, expression: FindRecords): Record[] {
-    let results = cache.getRecordsSync(expression.type);
+    let results = cache.getRecordsSync(expression.records || expression.type);
     if (expression.filter) {
       results = filterRecords(results, expression.filter);
     }
@@ -48,7 +48,7 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
   findRelatedRecords(cache: SyncRecordAccessor, expression: FindRelatedRecords): Record[] {
     const { record, relationship } = expression;
     const relatedIds = cache.getRelatedRecordsSync(record, relationship);
-    return relatedIds.map(id => cache.getRecordSync(id));
+    return cache.getRecordsSync(relatedIds);
   },
 
   findRelatedRecord(cache: SyncRecordAccessor, expression: FindRelatedRecord): Record {
