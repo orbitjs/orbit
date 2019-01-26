@@ -1295,7 +1295,7 @@ module('Cache', function(hooks) {
     );
   });
 
-  test('#query - findRecords - finds matching records', function(assert) {
+  test('#query - findRecords - records by type', function(assert) {
     let cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -1317,6 +1317,51 @@ module('Cache', function(hooks) {
       cache.query(q => q.findRecords('planet')),
       [ jupiter ]
     );
+  });
+
+  test('#query - findRecords - records by identity', async function(assert) {
+    assert.expect(1);
+
+    let cache = new Cache({ schema, keyMap });
+
+    let earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth',
+        classification: 'terrestrial'
+      }
+    };
+
+    let jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant'
+      }
+    };
+
+    let io: Record = {
+      type: 'moon',
+      id: 'io',
+      attributes: {
+        name: 'Io'
+      }
+    };
+
+    await cache.patch(t => [
+      t.addRecord(earth),
+      t.addRecord(jupiter),
+      t.addRecord(io)
+    ]);
+
+    let records = await cache.query(q => q.findRecords([
+      earth,
+      io,
+      { type: 'moon', id: 'FAKE' }
+    ]));
+    assert.deepEqual(records, [earth, io], 'query results are expected');
   });
 
   test('#query - page - can paginate records by offset and limit', function(assert) {
