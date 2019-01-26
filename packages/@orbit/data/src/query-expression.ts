@@ -89,6 +89,7 @@ export interface FindRelatedRecords extends QueryExpression {
 
 export interface FindRecords extends QueryExpression {
   op: 'findRecords';
+  records?: RecordIdentity[];
   type?: string;
   sort?: SortSpecifier[];
   filter?: FilterSpecifier[];
