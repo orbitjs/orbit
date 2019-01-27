@@ -112,7 +112,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
 
   // Abstract methods for getting records and relationships
   abstract getRecordAsync(recordIdentity: RecordIdentity): Promise<Record>;
-  abstract getRecordsAsync(type: string): Promise<Record[]>;
+  abstract getRecordsAsync(typeOrIdentities?: string | RecordIdentity[]): Promise<Record[]>;
   abstract getInverseRelationshipsAsync(record: RecordIdentity): Promise<RecordRelationshipIdentity[]>;
 
   // Abstract methods for setting records and relationships

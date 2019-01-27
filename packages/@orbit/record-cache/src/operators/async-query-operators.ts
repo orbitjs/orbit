@@ -32,7 +32,7 @@ export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
   },
 
   async findRecords(cache: AsyncRecordAccessor, expression: FindRecords): Promise<Record[]> {
-    let results = await cache.getRecordsAsync(expression.type);
+    let results = await cache.getRecordsAsync(expression.records || expression.type);
     if (expression.filter) {
       results = filterRecords(results, expression.filter);
     }
@@ -48,14 +48,7 @@ export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
   async findRelatedRecords(cache: AsyncRecordAccessor, expression: FindRelatedRecords): Promise<Record[]> {
     const { record, relationship } = expression;
     const relatedIds = await cache.getRelatedRecordsAsync(record, relationship);
-
-    // TODO - get all records together - perhaps: `return cache.getMatchingRecordsAsync(relatedIds)`
-    const records = [];
-    for (let id of relatedIds) {
-      records.push(await cache.getRecordAsync(id));
-    }
-
-    return records;
+    return cache.getRecordsAsync(relatedIds);
   },
 
   async findRelatedRecord(cache: AsyncRecordAccessor, expression: FindRelatedRecord): Promise<Record> {

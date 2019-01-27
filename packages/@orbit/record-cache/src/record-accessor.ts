@@ -24,7 +24,7 @@ export interface BaseRecordAccessor {
 export interface SyncRecordAccessor extends BaseRecordAccessor {
   // Getters
   getRecordSync(recordIdentity: RecordIdentity): Record;
-  getRecordsSync(type: string): Record[];
+  getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[];
   getRelatedRecordSync(identity: RecordIdentity, relationship: string): RecordIdentity;
   getRelatedRecordsSync(identity: RecordIdentity, relationship: string): RecordIdentity[];
   getInverseRelationshipsSync(record: RecordIdentity): RecordRelationshipIdentity[];
@@ -41,7 +41,7 @@ export interface SyncRecordAccessor extends BaseRecordAccessor {
 export interface AsyncRecordAccessor extends BaseRecordAccessor {
   // Getters
   getRecordAsync(recordIdentity: RecordIdentity): Promise<Record>;
-  getRecordsAsync(type: string): Promise<Record[]>;
+  getRecordsAsync(typeOrIdentities?: string | RecordIdentity[]): Promise<Record[]>;
   getRelatedRecordAsync(identity: RecordIdentity, relationship: string): Promise<RecordIdentity>;
   getRelatedRecordsAsync(identity: RecordIdentity, relationship: string): Promise<RecordIdentity[]>;
   getInverseRelationshipsAsync(recordIdentity: RecordIdentity): Promise<RecordRelationshipIdentity[]>;

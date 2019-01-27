@@ -812,6 +812,60 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
+  test('#pull - specific records', async function(assert) {
+    assert.expect(3);
+
+    let earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth',
+        classification: 'terrestrial'
+      }
+    };
+
+    let jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant'
+      }
+    };
+
+    let io: Record = {
+      type: 'moon',
+      id: 'io',
+      attributes: {
+        name: 'Io'
+      }
+    };
+
+    await source.push(t => [
+      t.addRecord(earth),
+      t.addRecord(jupiter),
+      t.addRecord(io)
+    ]);
+
+    let transforms = await source.pull(q => q.findRecords([
+      earth,
+      io,
+      { type: 'moon', id: 'FAKE' }
+    ]));
+
+    assert.equal(transforms.length, 1, 'one transform returned');
+    assert.deepEqual(
+      transforms[0].operations.map(o => o.op),
+      ['updateRecord', 'updateRecord'],
+      'operations match expectations'
+    );
+    assert.deepEqual(
+      transforms[0].operations.map((o: AddRecordOperation) => o.record.type),
+      ['planet', 'moon'],
+      'operations match expectations'
+    );
+  });
+
   test('#pull - a specific record', async function(assert) {
     assert.expect(3);
 

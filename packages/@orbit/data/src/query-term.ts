@@ -116,11 +116,16 @@ export class FindRelatedRecordsTerm extends QueryTerm {
 export class FindRecordsTerm extends QueryTerm {
   expression: FindRecords;
 
-  constructor(type?: string) {
+  constructor(typeOrIdentities?: string | RecordIdentity[]) {
     let expression: FindRecords = {
-      op: 'findRecords',
-      type
+      op: 'findRecords'
     };
+
+    if (typeof typeOrIdentities === 'string') {
+      expression.type = typeOrIdentities;
+    } else if (Array.isArray(typeOrIdentities)) {
+      expression.records = typeOrIdentities;
+    }
 
     super(expression);
   }

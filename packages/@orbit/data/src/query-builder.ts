@@ -19,8 +19,8 @@ export default class QueryBuilder {
    *
    * If `type` is unspecified, find all records unfiltered by type.
    */
-  findRecords(type?: string): FindRecordsTerm {
-    return new FindRecordsTerm(type);
+  findRecords(typeOrIdentities?: string | RecordIdentity[]): FindRecordsTerm {
+    return new FindRecordsTerm(typeOrIdentities);
   }
 
   /**

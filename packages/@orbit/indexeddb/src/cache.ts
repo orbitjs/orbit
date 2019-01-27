@@ -5,7 +5,8 @@ import Orbit, {
   Record,
   RecordIdentity,
   RecordOperation,
-  TransformBuilderFunc
+  TransformBuilderFunc,
+  recordsInclude
 } from '@orbit/data';
 import {
   RecordRelationshipIdentity,
@@ -240,12 +241,14 @@ export default class IndexedDBCache extends AsyncRecordCache {
     });
   }
 
-  getRecordsAsync(type: string): Promise<Record[]> {
-    // console.log('getRecordsAsync', type);
+  getRecordsAsync(typeOrIdentities?: string | RecordIdentity[]): Promise<Record[]> {
+    // console.log('getRecordsAsync', typeOrIdentities);
 
-    if (!type) {
+    if (!typeOrIdentities) {
       return this._getAllRecords();
-    } else {
+    } else if (typeof typeOrIdentities === 'string') {
+      const type: string = typeOrIdentities;
+
       return new Promise((resolve, reject) => {
         const transaction = this._db.transaction([type]);
         const objectStore = transaction.objectStore(type);
@@ -274,6 +277,55 @@ export default class IndexedDBCache extends AsyncRecordCache {
           }
         };
       });
+    } else if (Array.isArray(typeOrIdentities)) {
+      const identities: RecordIdentity[] = typeOrIdentities;
+      const records: Record[] = [];
+
+      if (identities.length > 0) {
+        const types: string[] = [];
+        for (let identity of identities) {
+          if (!types.includes(identity.type)) {
+            types.push(identity.type);
+          }
+        }
+        const transaction = this._db.transaction(types);
+
+        return new Promise((resolve, reject) => {
+          let i = 0;
+
+          let getNext = (): any => {
+            if (i < identities.length) {
+              let identity = identities[i++];
+              let objectStore = transaction.objectStore(identity.type);
+              let request = objectStore.get(identity.id);
+
+              request.onsuccess = (/* event */) => {
+                // console.log('success - getRecords', request.result);
+                let result = request.result;
+
+                if (result) {
+                  if (this._keyMap) {
+                    this._keyMap.pushRecord(result);
+                  }
+                  records.push(result);
+                }
+                getNext();
+              };
+              request.onerror = function(/* event */) {
+                // console.error('error - getRecords', request.error);
+                reject(request.error);
+              };
+
+            } else {
+              resolve(records);
+            }
+          }
+
+          getNext();
+        });
+      } else {
+        return Promise.resolve(records);
+      }
     }
   }
 
@@ -320,7 +372,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
             let request = objectStore.put(record);
             request.onsuccess = putNext();
             request.onerror = function(/* event */) {
-              // console.error('error - addInverseRelationshipsAsync', request.error);
+              // console.error('error - setRecordsAsync', request.error);
               reject(request.error);
             };
 

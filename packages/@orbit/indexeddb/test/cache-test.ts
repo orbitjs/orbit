@@ -101,15 +101,17 @@ module('Cache', function(hooks) {
 
     await cache.setRecordsAsync([jupiter, io, europa]);
 
-    assert.deepEqual(await cache.getRecordAsync(jupiter), jupiter);
-    assert.deepEqual(await cache.getRecordAsync(io), io);
-    assert.deepEqual(await cache.getRecordAsync(europa), europa);
+    assert.deepEqual(
+      await cache.getRecordsAsync([jupiter, io, europa]),
+      [jupiter, io, europa]
+    );
 
     await cache.removeRecordsAsync([jupiter, io, europa]);
 
-    assert.deepEqual(await cache.getRecordAsync(jupiter), undefined);
-    assert.deepEqual(await cache.getRecordAsync(io), undefined);
-    assert.deepEqual(await cache.getRecordAsync(europa), undefined);
+    assert.deepEqual(
+      await cache.getRecordsAsync([jupiter, io, europa]),
+      []
+    );
   });
 
   test('sets/gets inverse relationships', async function(assert) {
@@ -730,6 +732,49 @@ module('Cache', function(hooks) {
 
     let records = await cache.query(q => q.findRecords('planet'));
     assert.deepEqual(records, [earth, jupiter], 'query results are expected');
+  });
+
+  test('#query - records by identity', async function(assert) {
+    assert.expect(1);
+
+    let earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth',
+        classification: 'terrestrial'
+      }
+    };
+
+    let jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant'
+      }
+    };
+
+    let io: Record = {
+      type: 'moon',
+      id: 'io',
+      attributes: {
+        name: 'Io'
+      }
+    };
+
+    await cache.patch(t => [
+      t.addRecord(earth),
+      t.addRecord(jupiter),
+      t.addRecord(io)
+    ]);
+
+    let records = await cache.query(q => q.findRecords([
+      earth,
+      io,
+      { type: 'planet', id: 'FAKE' }
+    ]));
+    assert.deepEqual(records, [earth, io], 'only matches are returned');
   });
 
   test('#query - a specific record', async function(assert) {

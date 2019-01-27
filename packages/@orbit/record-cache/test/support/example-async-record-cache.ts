@@ -34,8 +34,20 @@ export default class ExampleAsyncRecordCache extends AsyncRecordCache {
     return deepGet(this._records, [identity.type, identity.id]) || null;
   }
 
-  async getRecordsAsync(type: string): Promise<Record[]> {
-    return objectValues(this._records[type]);
+  async getRecordsAsync(typeOrIdentities?: string | RecordIdentity[]): Promise<Record[]> {
+    if (typeof typeOrIdentities === 'string') {
+      return objectValues(this._records[typeOrIdentities]);
+    } else if (Array.isArray(typeOrIdentities)) {
+      const records: Record[] = [];
+      const identities: RecordIdentity[] = typeOrIdentities;
+      for (let i of identities) {
+        let record = await this.getRecordAsync(i);
+        if (record) {
+          records.push(record);
+        }
+      }
+      return records;
+    }
   }
 
   async setRecordAsync(record: Record): Promise<void> {

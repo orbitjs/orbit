@@ -36,8 +36,23 @@ export default class Cache extends SyncRecordCache {
     return this._records[identity.type].get(identity.id) || null;
   }
 
-  getRecordsSync(type: string): Record[] {
-    return Array.from(this._records[type].values());
+  getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[] {
+    if (Array.isArray(typeOrIdentities)) {
+      const records: Record[] = [];
+      const identities: RecordIdentity[] = typeOrIdentities;
+      for (let identity of identities) {
+        let record: Record = this.getRecordSync(identity);
+        if (record) {
+          records.push(record);
+        }
+      }
+      return records;
+
+    } else {
+      const type: string = typeOrIdentities;
+
+      return Array.from(this._records[type].values());
+    }
   }
 
   setRecordSync(record: Record): void {
