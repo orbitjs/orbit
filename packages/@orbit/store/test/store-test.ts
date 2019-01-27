@@ -1,6 +1,7 @@
 import {
   cloneRecordIdentity as identity,
   KeyMap,
+  Query,
   Record,
   Schema,
   SchemaSettings,
@@ -139,6 +140,78 @@ module('Store', function(hooks) {
       .then(foundPlanet => {
         assert.deepEqual(foundPlanet, jupiter, 'found planet matches original');
       });
+  });
+
+  test('#query - findRecord accepts hints that can influence results', function(assert) {
+    assert.expect(2);
+
+    let jupiter2 = {
+      id: 'jupiter2',
+      type: 'planet',
+      attributes: { name: 'Jupiter2', classification: 'gas giant' }
+    };
+
+    store.on('beforeQuery', (query: Query, hints: any) => {
+      if (query.expression.op === 'findRecord') {
+        hints.data = jupiter2;
+      }
+    });
+
+    store.cache.patch(t => t.addRecord(jupiter2));
+
+    assert.equal(store.cache.getRecordsSync('planet').length, 1, 'cache should contain one planet');
+
+    return store.query(q => q.findRecord({ type: 'planet', id: 'jupiter' }))
+      .then(foundPlanet => {
+        assert.deepEqual(foundPlanet, jupiter2, 'found planet matches hinted record');
+      });
+  });
+
+  test('#query - findRecords accepts hints that can influence results', async function(assert) {
+    assert.expect(2);
+
+    let jupiter = {
+      id: 'jupiter',
+      type: 'planet',
+      attributes: { name: 'Jupiter' }
+    };
+
+    let earth = {
+      id: 'earth',
+      type: 'planet',
+      attributes: { name: 'Earth' }
+    };
+
+    let uranus = {
+      id: 'uranus',
+      type: 'planet',
+      attributes: { name: 'Uranus' }
+    }
+
+    store.on('beforeQuery', (query: Query, hints: any) => {
+      if (query.expression.op === 'findRecords' &&
+          query.options.sources.remote.customFilter === 'distantPlanets') {
+        hints.data = [{ type: 'planet', id: 'uranus' }, { type: 'planet', id: 'jupiter'}];
+      }
+    });
+
+    store.cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(uranus)
+    ]);
+
+    assert.equal(store.cache.getRecordsSync('planet').length, 3, 'cache should contain three planets');
+
+    let distantPlanets = await store.query(q => q.findRecords('planet'), {
+      sources: {
+        remote: {
+          customFilter: 'distantPlanets' // custom remote-only filter
+        }
+      }
+    });
+
+    assert.deepEqual(distantPlanets, [uranus, jupiter] , 'planets match hinted records');
   });
 
   test('#query - catches errors', function(assert) {

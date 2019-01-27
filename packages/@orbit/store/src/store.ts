@@ -4,6 +4,7 @@ import Orbit, {
   Schema,
   Source, SourceSettings,
   Syncable, syncable,
+  Query,
   QueryOrExpression,
   Queryable, queryable,
   Updatable, updatable,
@@ -116,7 +117,14 @@ export default class Store extends Source implements Syncable, Queryable, Updata
   // Queryable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _query(query: QueryOrExpression): Promise<any> {
+  async _query(query: Query, hints?: any): Promise<any> {
+    if (hints && hints.data) {
+      if (Array.isArray(hints.data)) {
+        return this._cache.query(q => q.findRecords(hints.data));
+      } else if (hints.data) {
+        return this._cache.query(q => q.findRecord(hints.data));
+      }
+    }
     return this._cache.query(query);
   }
 
