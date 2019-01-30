@@ -1,10 +1,6 @@
-import Orbit from '../src/main';
-import TaskQueue from '../src/task-queue';
-import { Task, Performer } from '../src/task';
-import evented, { Evented } from '../src/evented';
-import { FakeBucket } from './test-helper';
+import { Bucket, Performer, Task, TaskQueue } from '../src/index';
+import FakeBucket from './support/fake-bucket';
 
-const { Promise } = Orbit;
 const { module, test } = QUnit;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -334,11 +330,11 @@ module('TaskQueue', function() {
       });
   });
 
-  test('#retry resets the current task in an inactive queue and restarts processing', function(assert) {
+  test('#retry resets the current task in an inactive queue and restarts processing', async function(assert) {
     assert.expect(14);
 
     const performer: Performer = {
-      perform(task: Task): Promise<void> {
+      perform(task: Task): Promise<string> {
         transformCount++;
         let op = task.data;
         if (transformCount === 1) {
@@ -385,7 +381,7 @@ module('TaskQueue', function() {
       data: op1
     });
 
-    queue.push({
+    const failedPush = queue.push({
       type: 'transform',
       data: op2
     });
@@ -395,36 +391,37 @@ module('TaskQueue', function() {
       data: op3
     });
 
-    return queue.process()
-      .catch((e) => {
-        assert.equal(queue.empty, false, 'queue processing encountered a problem');
-        assert.equal(queue.error.message, ':(', 'process error matches expectation');
-        assert.strictEqual(queue.error, e, 'process error matches expectation');
-        assert.strictEqual(queue.current.data, op2, 'op2 is current failed task');
+    try {
+      await queue.process();
+    } catch(e) {
+      assert.equal(queue.empty, false, 'queue processing encountered a problem');
+      assert.equal(queue.error.message, ':(', 'process error matches expectation');
+      assert.strictEqual(queue.error, e, 'process error matches expectation');
+      assert.strictEqual(queue.current.data, op2, 'op2 is current failed task');
+    }
 
-        // skip current task and continue processing
-        return queue.retry()
-          .then(result => {
-            assert.equal(result, '3', 'the result of the retried task should be returned');
-          });
-      });
+    // retry current task and continue processing
+    let result = await queue.retry();
+    assert.equal(result, '3', 'the result of the retried task should be returned');
+
+    // prevent failed promise from leaking into test harness
+    try { await failedPush; } catch {}
   });
 
-  test('#skip removes the current task from an inactive queue', function(assert) {
+  test('#skip removes the current task from an inactive queue', async function(assert) {
     assert.expect(9);
 
     const performer: Performer = {
-      perform(task: Task): Promise<void> {
+      async perform(task: Task): Promise<void> {
         transformCount++;
         let op = task.data;
         if (transformCount === 1) {
           assert.strictEqual(op, op1, 'transform - op1 passed as argument');
         } else if (transformCount === 2) {
-          return Promise.reject(new Error(':('));
+          throw new Error(':(');
         } else if (transformCount === 3) {
           assert.ok(false, 'processing should not be restarted');
         }
-        return Promise.resolve();
       }
     };
 
@@ -460,7 +457,7 @@ module('TaskQueue', function() {
         assert.ok(true, 'op1 should be processed');
       });
 
-    queue.push({
+    const failedPush = queue.push({
       type: 'transform',
       data: op2
     })
@@ -479,32 +476,35 @@ module('TaskQueue', function() {
         assert.ok(false, 'op3 should not be processed because processing should not be restarted');
       });
 
-    return queue.process()
-      .catch((e) => {
-        assert.equal(queue.empty, false, 'queue processing encountered a problem');
-        assert.equal(queue.error.message, ':(', 'process error matches expectation');
-        assert.strictEqual(queue.error, e, 'process error matches expectation');
+    try {
+      await queue.process();
+    } catch(e) {
+      assert.equal(queue.empty, false, 'queue processing encountered a problem');
+      assert.equal(queue.error.message, ':(', 'process error matches expectation');
+      assert.strictEqual(queue.error, e, 'process error matches expectation');
+    }
 
-        // skip current task and continue processing
-        return queue.skip();
-      });
+    // skip current task and continue processing
+    await queue.skip();
+
+    // prevent failed promise from leaking into test harness
+    try { await failedPush; } catch {}
   });
 
-  test('#skip removes the current task from an inactive queue and restarts processing if autoProcess=true', function(assert) {
+  test('#skip removes the current task from an inactive queue and restarts processing if autoProcess=true', async function(assert) {
     assert.expect(9);
 
     const performer: Performer = {
-      perform(task: Task): Promise<void> {
+      async perform(task: Task): Promise<void> {
         transformCount++;
         let op = task.data;
         if (transformCount === 1) {
           assert.strictEqual(op, op1, 'transform - op1 passed as argument');
         } else if (transformCount === 2) {
-          return Promise.reject(new Error(':('));
+          throw new Error(':(');
         } else if (transformCount === 3) {
           assert.strictEqual(op, op3, 'transform - op3 passed as argument');
         }
-        return Promise.resolve();
       }
     };
 
@@ -537,7 +537,7 @@ module('TaskQueue', function() {
       data: op1
     });
 
-    queue.push({
+    const failedPush = queue.push({
       type: 'transform',
       data: op2
     });
@@ -547,32 +547,35 @@ module('TaskQueue', function() {
       data: op3
     });
 
-    return queue.process()
-      .catch((e) => {
-        assert.equal(queue.empty, false, 'queue processing encountered a problem');
-        assert.equal(queue.error.message, ':(', 'process error matches expectation');
-        assert.strictEqual(queue.error, e, 'process error matches expectation');
+    try {
+      await queue.process();
+    } catch(e) {
+      assert.equal(queue.empty, false, 'queue processing encountered a problem');
+      assert.equal(queue.error.message, ':(', 'process error matches expectation');
+      assert.strictEqual(queue.error, e, 'process error matches expectation');
+    }
 
-        // skip current task and continue processing
-        return queue.skip();
-      });
+    // skip current task and continue processing
+    await queue.skip();
+
+    // prevent failed promise from leaking into test harness
+    try { await failedPush; } catch {}
   });
 
-  test('#shift can remove failed tasks from an inactive queue, allowing processing to be restarted', function(assert) {
+  test('#shift can remove failed tasks from an inactive queue, allowing processing to be restarted', async function(assert) {
     assert.expect(10);
 
     const performer: Performer = {
-      perform(task: Task): Promise<void> {
+      async perform(task: Task): Promise<void> {
         transformCount++;
         let op = task.data;
         if (transformCount === 1) {
           assert.strictEqual(op, op1, 'transform - op1 passed as argument');
         } else if (transformCount === 2) {
-          return Promise.reject(new Error(':('));
+          throw new Error(':(');
         } else if (transformCount === 3) {
           assert.strictEqual(op, op3, 'transform - op3 passed as argument');
         }
-        return Promise.resolve();
       }
     };
 
@@ -605,7 +608,7 @@ module('TaskQueue', function() {
       data: op1
     });
 
-    queue.push({
+    const failedPush = queue.push({
       type: 'transform',
       data: op2
     });
@@ -615,21 +618,22 @@ module('TaskQueue', function() {
       data: op3
     });
 
-    return queue.process()
-      .catch((e) => {
-        assert.equal(queue.empty, false, 'queue processing encountered a problem');
-        assert.equal(queue.error.message, ':(', 'process error matches expectation');
-        assert.strictEqual(queue.error, e, 'process error matches expectation');
+    try {
+      await queue.process();
+    } catch(e) {
+      assert.equal(queue.empty, false, 'queue processing encountered a problem');
+      assert.equal(queue.error.message, ':(', 'process error matches expectation');
+      assert.strictEqual(queue.error, e, 'process error matches expectation');
+    }
 
-        return queue.shift()
-          .then(failedTask => {
-            assert.strictEqual(failedTask.data, op2, 'op2, which failed, is returned from `shift`');
-          })
-          .then(function() {
-            // continue processing
-            return queue.process();
-          });
-      });
+    const failedTask = await queue.shift();
+    assert.strictEqual(failedTask.data, op2, 'op2, which failed, is returned from `shift`');
+
+    // continue processing
+    await queue.process();
+
+    // prevent failed promise from leaking into test harness
+    try { await failedPush; } catch {}
   });
 
   test('#unshift can add a new task to the beginning of an inactive queue', function(assert) {
@@ -732,7 +736,7 @@ module('TaskQueue', function() {
     const op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     const op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
 
-    let bucket;
+    let bucket: Bucket;
 
     hooks.beforeEach(function() {
       bucket = new FakeBucket({ name: 'fake-bucket' });
@@ -756,8 +760,7 @@ module('TaskQueue', function() {
         'assertion raised');
     });
 
-    test('will be reified with the tasks serialized in its bucket and immediately process them', function(assert) {
-      const done = assert.async();
+    test('will be reified with the tasks serialized in its bucket and immediately process them', async function(assert) {
       assert.expect(3);
 
       const performer: Performer = {
@@ -777,25 +780,22 @@ module('TaskQueue', function() {
         }
       ];
 
-      let queue;
-      bucket.setItem('queue', serialized)
-        .then(() => {
-          queue = new TaskQueue(performer, { name: 'queue', bucket });
-          return queue.reified;
-        })
-        .then(() => {
-          assert.equal(queue.length, 2, 'queue has two tasks');
+      let queue: TaskQueue;
 
-          queue.on('complete', function() {
-            assert.ok(true, 'queue completed');
+      await bucket.setItem('queue', serialized);
 
-            bucket.getItem('queue')
-              .then(serialized => {
-                assert.deepEqual(serialized, [], 'no serialized ops remain');
-                done();
-              });
-          });
-        });
+      queue = new TaskQueue(performer, { name: 'queue', bucket });
+      await queue.reified;
+
+      assert.equal(queue.length, 2, 'queue has two tasks');
+
+      queue.on('complete', async function() {
+        assert.ok(true, 'queue completed');
+
+        let serialized = await bucket.getItem('queue')
+
+        assert.deepEqual(serialized, [], 'no serialized ops remain');
+      });
     });
 
     test('#push - tasks pushed to a queue are persisted to its bucket', function(assert) {

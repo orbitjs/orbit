@@ -3,28 +3,21 @@ import { Task, Performer } from './task';
 import TaskProcessor from './task-processor';
 import { Bucket } from './bucket';
 import evented, { Evented, settleInSeries } from './evented';
-import { assert } from '@orbit/utils';
+import { Listener } from './notifier';
+
+const { assert } = Orbit;
 
 /**
  * Settings for a `TaskQueue`.
- *
- * @export
- * @interface TaskQueueSettings
  */
 export interface TaskQueueSettings {
   /**
    * Name used for tracking and debugging a task queue.
-   *
-   * @type {string}
-   * @memberOf TaskQueueSettings
    */
   name?: string;
 
   /**
    * A bucket in which to persist queue state.
-   *
-   * @type {Bucket}
-   * @memberOf TaskQueueSettings
    */
   bucket?: Bucket;
 
@@ -32,9 +25,6 @@ export interface TaskQueueSettings {
    * A flag indicating whether tasks should be processed as soon as they are
    * pushed into a queue. Set to `false` to override the default `true`
    * behavior.
-   *
-   * @type {boolean}
-   * @memberOf TaskQueueSettings
    */
   autoProcess?: boolean;
 }
@@ -52,10 +42,6 @@ export type TASK_QUEUE_EVENTS = 'complete' | 'fail' | 'beforeTask' | 'task' | 'c
  * are pushed to them. This can be overridden by setting the `autoProcess`
  * setting to `false` and calling `process` when you'd like to start
  * processing.
- *
- * @export
- * @class TaskQueue
- * @implements {Evented}
  */
 @evented
 export default class TaskQueue implements Evented {
@@ -73,23 +59,16 @@ export default class TaskQueue implements Evented {
   private _reified: Promise<any>;
 
   // Evented interface stubs
-  on: (event: TASK_QUEUE_EVENTS, callback: Function, binding?: object) => void;
-  off: (event: TASK_QUEUE_EVENTS, callback: Function, binding?: object) => void;
-  one: (event: TASK_QUEUE_EVENTS, callback: Function, binding?: object) => void;
-  emit: (event: TASK_QUEUE_EVENTS, ...args) => void;
-  listeners: (event: TASK_QUEUE_EVENTS) => any[];
+  on: (event: TASK_QUEUE_EVENTS, listener: Listener) => void;
+  off: (event: TASK_QUEUE_EVENTS, listener?: Listener) => void;
+  one: (event: TASK_QUEUE_EVENTS, listener: Listener) => void;
+  emit: (event: TASK_QUEUE_EVENTS, ...args: any[]) => void;
+  listeners: (event: TASK_QUEUE_EVENTS) => Listener[];
 
   /**
    * Creates an instance of `TaskQueue`.
-   *
-   * @param {Performer} target
-   * @param {TaskQueueOptions} [options={}]
-   *
-   * @memberOf TaskQueue
    */
   constructor(target: Performer, settings: TaskQueueSettings = {}) {
-    assert('TaskQueue requires Orbit.Promise to be defined', Orbit.Promise);
-
     this._performer = target;
     this._name = settings.name;
     this._bucket = settings.bucket;
@@ -109,10 +88,6 @@ export default class TaskQueue implements Evented {
 
   /**
    * Name used for tracking / debugging this queue.
-   *
-   * @readonly
-   * @type {string}
-   * @memberOf TaskQueue
    */
   get name(): string {
     return this._name;
@@ -120,10 +95,6 @@ export default class TaskQueue implements Evented {
 
   /**
    * The object which will `perform` the tasks in this queue.
-   *
-   * @readonly
-   * @type {Performer}
-   * @memberOf TaskQueue
    */
   get performer(): Performer {
     return this._performer;
@@ -131,10 +102,6 @@ export default class TaskQueue implements Evented {
 
   /**
    * A bucket used to persist the state of this queue.
-   *
-   * @readonly
-   * @type {Bucket}
-   * @memberOf TaskQueue
    */
   get bucket(): Bucket {
     return this._bucket;
@@ -142,10 +109,6 @@ export default class TaskQueue implements Evented {
 
   /**
    * The number of tasks in the queue.
-   *
-   * @readonly
-   * @type {number}
-   * @memberOf TaskQueue
    */
   get length(): number {
     return this._tasks ? this._tasks.length : 0;
@@ -153,10 +116,6 @@ export default class TaskQueue implements Evented {
 
   /**
    * The tasks in the queue.
-   *
-   * @readonly
-   * @type {Task[]}
-   * @memberOf TaskQueue
    */
   get entries(): Task[] {
     return this._tasks;
@@ -165,10 +124,6 @@ export default class TaskQueue implements Evented {
   /**
    * The current task being processed (if actively processing), or the next
    * task to be processed (if not actively processing).
-   *
-   * @readonly
-   * @type {Task}
-   * @memberOf TaskQueue
    */
   get current(): Task {
     return this._tasks && this._tasks[0];
@@ -177,10 +132,6 @@ export default class TaskQueue implements Evented {
   /**
    * The processor wrapper that is processing the current task (or next task,
    * if none are being processed).
-   *
-   * @readonly
-   * @type {TaskProcessor}
-   * @memberOf TaskQueue
    */
   get currentProcessor(): TaskProcessor {
     return this._processors && this._processors[0];
@@ -190,10 +141,6 @@ export default class TaskQueue implements Evented {
    * If an error occurs while processing a task, processing will be halted, the
    * `fail` event will be emitted, and this property will reflect the error
    * encountered.
-   *
-   * @readonly
-   * @type {Error}
-   * @memberOf TaskQueue
    */
   get error(): Error {
     return this._error;
@@ -201,10 +148,6 @@ export default class TaskQueue implements Evented {
 
   /**
    * Is the queue empty?
-   *
-   * @readonly
-   * @type {boolean}
-   * @memberOf TaskQueue
    */
   get empty(): boolean {
     return this.length === 0;
@@ -212,10 +155,6 @@ export default class TaskQueue implements Evented {
 
   /**
    * Is the queue actively processing a task?
-   *
-   * @readonly
-   * @type {boolean}
-   * @memberOf TaskQueue
    */
   get processing(): boolean {
     const processor = this.currentProcessor;
@@ -228,10 +167,6 @@ export default class TaskQueue implements Evented {
   /**
    * Resolves when the queue has been fully reified from its associated bucket,
    * if applicable.
-   *
-   * @readonly
-   * @type {Promise<void>}
-   * @memberOf TaskQueue
    */
   get reified(): Promise<void> {
     return this._reified;
@@ -244,11 +179,6 @@ export default class TaskQueue implements Evented {
    * the queue.
    *
    * Returns a promise that resolves when the pushed task has been processed.
-   *
-   * @param {Task} task
-   * @returns {Promise<void>}
-   *
-   * @memberOf TaskQueue
    */
   push(task: Task): Promise<void> {
     let processor = new TaskProcessor(this._performer, task);
@@ -266,13 +196,9 @@ export default class TaskQueue implements Evented {
    * Cancels and re-tries processing the current task.
    *
    * Returns a promise that resolves when the pushed task has been processed.
-   *
-   * @returns {Promise<void>}
-   *
-   * @memberOf TaskQueue
    */
   retry(): Promise<void> {
-    let processor;
+    let processor: TaskProcessor;
 
     return this._reified
       .then(() => {
@@ -289,10 +215,6 @@ export default class TaskQueue implements Evented {
    *
    * If `autoProcess` is enabled, this will automatically trigger processing of
    * the queue.
-   *
-   * @returns {Promise<void>}
-   *
-   * @memberOf TaskQueue
    */
   skip(): Promise<void> {
     return this._reified
@@ -307,10 +229,6 @@ export default class TaskQueue implements Evented {
 
   /**
    * Cancels the current task and completely clears the queue.
-   *
-   * @returns {Promise<void>}
-   *
-   * @memberOf TaskQueue
    */
   clear(): Promise<void> {
     return this._reified
@@ -327,10 +245,6 @@ export default class TaskQueue implements Evented {
    * Cancels the current task and removes it, but does not continue processing.
    *
    * Returns the canceled and removed task.
-   *
-   * @returns {Promise<Task>}
-   *
-   * @memberOf TaskQueue
    */
   shift(): Promise<Task> {
     let task: Task;
@@ -350,11 +264,6 @@ export default class TaskQueue implements Evented {
    * of the queue. This new task will be processed next.
    *
    * Returns a promise that resolves when the new task has been processed.
-   *
-   * @param {Task} task
-   * @returns {Promise<void>}
-   *
-   * @memberOf TaskQueue
    */
   unshift(task: Task): Promise<void> {
     let processor = new TaskProcessor(this._performer, task);
@@ -371,10 +280,6 @@ export default class TaskQueue implements Evented {
 
   /**
    * Processes all the tasks in the queue. Resolves when the queue is empty.
-   *
-   * @returns {Promise<any>}
-   *
-   * @memberOf TaskQueue
    */
   process(): Promise<any> {
     return this._reified
@@ -386,7 +291,7 @@ export default class TaskQueue implements Evented {
             resolution = this._complete();
           } else {
             this._error = null;
-            this._resolution = resolution = new Orbit.Promise((resolve, reject) => {
+            this._resolution = resolution = new Promise((resolve, reject) => {
               this._resolve = resolve;
               this._reject = reject;
             });
@@ -405,7 +310,7 @@ export default class TaskQueue implements Evented {
     } else if (processor) {
       return processor.settle();
     } else {
-      return Orbit.Promise.resolve();
+      return Promise.resolve();
     }
   }
 
@@ -420,7 +325,7 @@ export default class TaskQueue implements Evented {
     return settleInSeries(this, 'complete');
   }
 
-  private _fail(task, e): Promise<void> {
+  private _fail(task: Task, e: Error): Promise<void> {
     if (this._reject) {
       this._reject(e);
     }
@@ -436,7 +341,7 @@ export default class TaskQueue implements Evented {
     this._resolution = null;
   }
 
-  private _settleEach(resolution): Promise<void> {
+  private _settleEach(resolution: any): Promise<void> {
     if (this._tasks.length === 0) {
       return this._complete();
     } else {
@@ -469,14 +374,14 @@ export default class TaskQueue implements Evented {
 
     if (this._bucket) {
       this._reified = this._bucket.getItem(this._name)
-        .then(tasks => {
+        .then((tasks: Task[]) => {
           if (tasks) {
             this._tasks = tasks;
             this._processors = tasks.map(task => new TaskProcessor(this._performer, task));
           }
         });
     } else {
-      this._reified = Orbit.Promise.resolve();
+      this._reified = Promise.resolve();
     }
 
     return this._reified;
@@ -487,7 +392,7 @@ export default class TaskQueue implements Evented {
     if (this._bucket) {
       return this._bucket.setItem(this._name, this._tasks);
     } else {
-      return Orbit.Promise.resolve();
+      return Promise.resolve();
     }
   }
 }

@@ -1,11 +1,10 @@
 import { Bucket } from '@orbit/core';
 import IndexedDBBucket from '../src/bucket';
-import './test-helper';
 
 const { module, test } = QUnit;
 
 module('IndexedDBBucket', function(hooks) {
-  let bucket;
+  let bucket: IndexedDBBucket;
 
   hooks.beforeEach(() => {
     bucket = new IndexedDBBucket();

@@ -1,40 +1,31 @@
-import Orbit from '../main';
-import { assert, isArray } from '@orbit/utils';
-import { fulfillInSeries, settleInSeries } from '@orbit/core';
+import { isArray } from '@orbit/utils';
+import Orbit, { fulfillInSeries, settleInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Transform } from '../transform';
+
+const { assert } = Orbit;
 
 export const SYNCABLE = '__syncable__';
 
 /**
  * Has a source been decorated as `@syncable`?
- *
- * @export
- * @param {SourceClass} source
- * @returns
  */
-export function isSyncable(source: Source) {
+export function isSyncable(source: any) {
   return !!source[SYNCABLE];
 }
 
 /**
  * A source decorated as `@syncable` must also implement the `Syncable`
  * interface.
- *
- * @export
- * @interface Syncable
  */
 export interface Syncable {
   /**
    * The `sync` method to a source. This method accepts a `Transform` or array
    * of `Transform`s as an argument and applies it to the source.
-   *
-   * @param {(Transform | Transform[])} transformOrTransforms
-   * @returns {Promise<void>}
-   *
-   * @memberOf Syncable
    */
   sync(transformOrTransforms: Transform | Transform[]): Promise<void>;
+
+  _sync(transform: Transform): Promise<void>;
 }
 
 /**
@@ -47,11 +38,6 @@ export interface Syncable {
  * Other sources can participate in the resolution of a `sync` by observing the
  * `transform` event, which is emitted whenever a new `Transform` is applied to
  * a source.
- *
- * @export
- * @decorator
- * @param {SourceClass} Klass
- * @returns {void}
  */
 export default function syncable(Klass: SourceClass): void {
   let proto = Klass.prototype;
@@ -70,12 +56,12 @@ export default function syncable(Klass: SourceClass): void {
 
       return transforms.reduce((chain, transform) => {
         return chain.then(() => this.sync(transform));
-      }, Orbit.Promise.resolve());
+      }, Promise.resolve());
     } else {
       const transform = <Transform>transformOrTransforms;
 
       if (this.transformLog.contains(transform.id)) {
-        return Orbit.Promise.resolve();
+        return Promise.resolve();
       }
 
       return this._enqueueSync('sync', transform);
@@ -84,20 +70,20 @@ export default function syncable(Klass: SourceClass): void {
 
   proto.__sync__ = function(transform: Transform): Promise<void> {
     if (this.transformLog.contains(transform.id)) {
-      return Orbit.Promise.resolve();
+      return Promise.resolve();
     }
 
     return fulfillInSeries(this, 'beforeSync', transform)
       .then(() => {
         if (this.transformLog.contains(transform.id)) {
-          return Orbit.Promise.resolve();
+          return Promise.resolve();
         } else {
           return this._sync(transform)
             .then(() => this._transformed([transform]))
             .then(() => settleInSeries(this, 'sync', transform));
         }
       })
-      .catch(error => {
+      .catch((error: Error) => {
         return settleInSeries(this, 'syncFail', transform, error)
           .then(() => { throw error; });
       });

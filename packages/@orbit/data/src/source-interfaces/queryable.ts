@@ -1,43 +1,30 @@
-import { assert } from '@orbit/utils';
-import { settleInSeries, fulfillInSeries } from '@orbit/core';
+import Orbit, { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Query, QueryOrExpression, buildQuery } from '../query';
 import { Source, SourceClass } from '../source';
+
+const { assert } = Orbit;
 
 export const QUERYABLE = '__queryable__';
 
 /**
  * Has a source been decorated as `@queryable`?
- *
- * @export
- * @param {object} obj
- * @returns
  */
-export function isQueryable(source: Source) {
+export function isQueryable(source: any) {
   return !!source[QUERYABLE];
 }
 
 /**
  * A source decorated as `@queryable` must also implement the `Queryable`
  * interface.
- *
- * @export
- * @interface Queryable
  */
 export interface Queryable {
   /**
    * The `query` method accepts a `Query` instance. It evaluates the query and
    * returns a promise that resolves to a static set of results.
-   *
-   * @param {QueryOrExpression} queryOrExpression
-   * @param {object} [options]
-   * @param {string} [id]
-   * @returns {Promise<any>}
-   *
-   * @memberOf Queryable
    */
   query(queryOrExpression: QueryOrExpression, options?: object, id?: string): Promise<any>;
 
-  _query(query: Query): Promise<any>;
+  _query(query: Query, hints?: any): Promise<any>;
 }
 
 /**
@@ -62,11 +49,6 @@ export interface Queryable {
  * A queryable source must implement a private method `_query`, which performs
  * the processing required for `query` and returns a promise that resolves to a
  * set of results.
- *
- * @export
- * @decorator
- * @param {SourceClass} Klass
- * @returns {void}
  */
 export default function queryable(Klass: SourceClass): void {
   let proto = Klass.prototype;
@@ -85,13 +67,14 @@ export default function queryable(Klass: SourceClass): void {
   }
 
   proto.__query__ = function(query: Query): Promise<any> {
-    return fulfillInSeries(this, 'beforeQuery', query)
-      .then(() => this._query(query))
-      .then((result) => {
+    const hints: any = {};
+    return fulfillInSeries(this, 'beforeQuery', query, hints)
+      .then(() => this._query(query, hints))
+      .then((result: any) => {
         return settleInSeries(this, 'query', query, result)
           .then(() => result);
       })
-      .catch((error) => {
+      .catch((error: Error) => {
         return settleInSeries(this, 'queryFail', query, error)
           .then(() => { throw error; });
       });

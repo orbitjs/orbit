@@ -1,15 +1,15 @@
 import Coordinator, { ActivationOptions, LogLevel } from '../coordinator';
 import { Strategy, StrategyOptions } from '../strategy';
-import Orbit, {
+import { Listener } from '@orbit/core';
+import {
   Source,
-  Transform,
   isPullable,
   isPushable,
   isQueryable,
   isSyncable,
   isUpdatable
 } from '@orbit/data';
-import { Dict, assert, objectValues, deepGet, deepSet } from '@orbit/utils';
+import { Dict, deepGet, deepSet } from '@orbit/utils';
 
 declare const console: any;
 
@@ -21,7 +21,7 @@ export interface EventLoggingStrategyOptions extends StrategyOptions {
 export class EventLoggingStrategy extends Strategy {
   protected _events?: string[];
   protected _interfaces?: string[];
-  protected _eventListeners: Dict<Dict<Function>>;
+  protected _eventListeners: Dict<Dict<Listener>>;
 
   constructor(options: EventLoggingStrategyOptions = {}) {
     options.name = options.name || 'event-logging';
@@ -32,39 +32,35 @@ export class EventLoggingStrategy extends Strategy {
     this._logPrefix = options.logPrefix || '[source-event]';
   }
 
-  activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
-    return super.activate(coordinator, options)
-      .then(() => {
-        this._eventListeners = {};
-        this._sources.forEach(source => this._activateSource(source));
-      });
+  async activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<void> {
+    await super.activate(coordinator, options);
+    this._eventListeners = {};
+    this._sources.forEach(source => this._activateSource(source));
   }
 
-  deactivate(): Promise<any> {
-    return super.deactivate()
-      .then(() => {
-        this._sources.forEach(source => this._deactivateSource(source));
-        this._eventListeners = null;
-      });
+  async deactivate(): Promise<void> {
+    await super.deactivate();
+    this._sources.forEach(source => this._deactivateSource(source));
+    this._eventListeners = null;
   }
 
-  protected _activateSource(source: Source) {
+  protected _activateSource(source: Source): void {
     this._sourceEvents(source).forEach(event => {
       this._addListener(source, event);
     });
   }
 
-  protected _deactivateSource(source: Source) {
+  protected _deactivateSource(source: Source): void {
     this._sourceEvents(source).forEach(event => {
       this._removeListener(source, event);
     });
   }
 
-  protected _sourceEvents(source: Source) {
+  protected _sourceEvents(source: Source): string[] {
     if (this._events) {
       return this._events;
     } else {
-      let events = [];
+      let events: string[] = [];
       let interfaces = this._interfaces || this._sourceInterfaces(source);
 
       interfaces.forEach(i => {
@@ -75,7 +71,7 @@ export class EventLoggingStrategy extends Strategy {
     }
   }
 
-  protected _sourceInterfaces(source: Source) {
+  protected _sourceInterfaces(source: Source): string[] {
     let interfaces = ['transformable'];
     if (isPullable(source)) { interfaces.push('pullable'); }
     if (isPushable(source)) { interfaces.push('pushable'); }
@@ -117,20 +113,20 @@ export class EventLoggingStrategy extends Strategy {
     }
   }
 
-  protected _addListener(source: Source, event: string) {
+  protected _addListener(source: Source, event: string): void {
     const listener = this._generateListener(source, event);
     deepSet(this._eventListeners, [source.name, event], listener);
-    source.on(event, listener, this);
+    source.on(event, listener);
   }
 
-  protected _removeListener(source: Source, event: string) {
+  protected _removeListener(source: Source, event: string): void {
     const listener = deepGet(this._eventListeners, [source.name, event]);
-    source.off(event, listener, this);
+    source.off(event, listener);
     this._eventListeners[source.name][event] = null;
   }
 
-  protected _generateListener(source: Source, event: string) {
-    return (...args): void => {
+  protected _generateListener(source: Source, event: string): Listener {
+    return (...args: any[]) => {
       console.log(this._logPrefix, source.name, event, ...args);
     };
   }

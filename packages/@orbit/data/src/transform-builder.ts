@@ -1,3 +1,4 @@
+import Orbit from '@orbit/core';
 import {
   Record,
   RecordIdentity,
@@ -5,7 +6,7 @@ import {
 } from './record';
 import {
   AddRecordOperation,
-  ReplaceRecordOperation,
+  UpdateRecordOperation,
   RemoveRecordOperation,
   ReplaceKeyOperation,
   ReplaceAttributeOperation,
@@ -14,7 +15,6 @@ import {
   ReplaceRelatedRecordsOperation,
   ReplaceRelatedRecordOperation
 } from './operation';
-import { eq } from '@orbit/utils';
 
 export interface TransformBuilderSettings {
   recordInitializer?: RecordInitializer;
@@ -33,9 +33,6 @@ export default class TransformBuilder {
 
   /**
    * Instantiate a new `addRecord` operation.
-   *
-   * @param {Record} record
-   * @returns {AddRecordOperation}
    */
   addRecord(record: Record): AddRecordOperation {
     if (this._recordInitializer) {
@@ -45,20 +42,24 @@ export default class TransformBuilder {
   }
 
   /**
-   * Instantiate a new `replaceRecord` operation.
+   * Instantiate a new `updateRecord` operation.
    *
-   * @param {Record} record
-   * @returns {ReplaceRecordOperation}
+   * @deprecated
    */
-  replaceRecord(record: Record): ReplaceRecordOperation {
-    return { op: 'replaceRecord', record};
+  replaceRecord(record: Record): UpdateRecordOperation {
+    Orbit.deprecate('The `replaceRecord` operation is deprecated in favor of `updateRecord`');
+    return { op: 'updateRecord', record};
+  }
+
+  /**
+   * Instantiate a new `updateRecord` operation.
+   */
+  updateRecord(record: Record): UpdateRecordOperation {
+    return { op: 'updateRecord', record};
   }
 
   /**
    * Instantiate a new `removeRecord` operation.
-   *
-   * @param {RecordIdentity} record
-   * @returns {RemoveRecordOperation}
    */
   removeRecord(record: RecordIdentity): RemoveRecordOperation {
     return { op: 'removeRecord', record};
@@ -66,11 +67,6 @@ export default class TransformBuilder {
 
   /**
    * Instantiate a new `replaceKey` operation.
-   *
-   * @param {RecordIdentity} record
-   * @param {string} key
-   * @param {string} value
-   * @returns {ReplaceKeyOperation}
    */
   replaceKey(record: RecordIdentity, key: string, value: string): ReplaceKeyOperation {
     return { op: 'replaceKey', record, key, value };
@@ -78,11 +74,6 @@ export default class TransformBuilder {
 
   /**
    * Instantiate a new `replaceAttribute` operation.
-   *
-   * @param {RecordIdentity} record
-   * @param {string} attribute
-   * @param {*} value
-   * @returns {ReplaceAttributeOperation}
    */
   replaceAttribute(record: RecordIdentity, attribute: string, value: any): ReplaceAttributeOperation {
     return { op: 'replaceAttribute', record, attribute, value };
@@ -90,11 +81,6 @@ export default class TransformBuilder {
 
   /**
    * Instantiate a new `addToRelatedRecords` operation.
-   *
-   * @param {RecordIdentity} record
-   * @param {string} relationship
-   * @param {RecordIdentity} relatedRecord
-   * @returns {AddToRelatedRecordsOperation}
    */
   addToRelatedRecords(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): AddToRelatedRecordsOperation {
     return { op: 'addToRelatedRecords', record, relationship, relatedRecord };
@@ -102,11 +88,6 @@ export default class TransformBuilder {
 
   /**
    * Instantiate a new `removeFromRelatedRecords` operation.
-   *
-   * @param {RecordIdentity} record
-   * @param {string} relationship
-   * @param {RecordIdentity} relatedRecord
-   * @returns {RemoveFromRelatedRecordsOperation}
    */
   removeFromRelatedRecords(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): RemoveFromRelatedRecordsOperation {
     return { op: 'removeFromRelatedRecords', record, relationship, relatedRecord };
@@ -114,11 +95,6 @@ export default class TransformBuilder {
 
   /**
    * Instantiate a new `replaceRelatedRecords` operation.
-   *
-   * @param {RecordIdentity} record
-   * @param {string} relationship
-   * @param {RecordIdentity[]} relatedRecords
-   * @returns {ReplaceRelatedRecordsOperation}
    */
   replaceRelatedRecords(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]): ReplaceRelatedRecordsOperation {
     return { op: 'replaceRelatedRecords', record, relationship, relatedRecords };
@@ -126,11 +102,6 @@ export default class TransformBuilder {
 
   /**
    * Instantiate a new `replaceRelatedRecord` operation.
-   *
-   * @param {RecordIdentity} record
-   * @param {string} relationship
-   * @param {RecordIdentity} relatedRecord
-   * @returns {ReplaceRelatedRecordOperation}
    */
   replaceRelatedRecord(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): ReplaceRelatedRecordOperation {
     return { op: 'replaceRelatedRecord', record, relationship, relatedRecord };

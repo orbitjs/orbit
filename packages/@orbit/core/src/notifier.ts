@@ -1,10 +1,16 @@
+import Orbit from './main';
+
+const { deprecate } = Orbit;
+
+export type Listener = (...args: any[]) => any;
+
 /**
  *  The `Notifier` class can emit messages to an array of subscribed listeners.
  * Here's a simple example:
  *
  * ```ts
  * import { Notifier } from '@orbit/core';
- * 
+ *
  * let notifier = new Notifier();
  * notifier.addListener((message: string) => {
  *   console.log("I heard " + message);
@@ -17,12 +23,9 @@
  * ```
  *
  * Calls to `emit` will send along all of their arguments.
- *
- * @export
- * @class Notifier
  */
 export default class Notifier {
-  public listeners: any[]; // TODO - define Listener interface
+  public listeners: Listener[];
 
   constructor() {
     this.listeners = [];
@@ -31,34 +34,27 @@ export default class Notifier {
   /**
    * Add a callback as a listener, which will be triggered when sending
    * notifications.
-   * 
-   * @param {Function} callback Function to call as a notification
-   * @param {object} binding Context in which to call `callback`
-   * 
-   * @memberOf Notifier
    */
-  addListener(callback: Function, binding: object) {
-    binding = binding || this;
-    this.listeners.push([callback, binding]);
+  addListener(listener: Listener) {
+    if (arguments.length > 1) {
+      deprecate('`binding` argument is no longer supported for individual `Notifier` listeners. Please pre-bind listeners before calling `addListener`.');
+    }
+
+    this.listeners.push(listener);
   }
 
   /**
    * Remove a listener so that it will no longer receive notifications.
-   * 
-   * @param {Function} callback Function registered as a callback
-   * @param {object} binding Context in which `callback` was registered 
-   * @returns 
-   * 
-   * @memberOf Notifier
    */
-  removeListener(callback: Function, binding: object) {
-    let listeners = this.listeners;
-    let listener;
+  removeListener(listener: Listener) {
+    if (arguments.length > 1) {
+      deprecate('`binding` argument is no longer supported for individual `Notifier` listeners. Please pre-bind listeners before calling `removeListener`.');
+    }
 
-    binding = binding || this;
-    for (var i = 0, len = listeners.length; i < len; i++) {
-      listener = listeners[i];
-      if (listener && listener[0] === callback && listener[1] === binding) {
+    const listeners = this.listeners;
+
+    for (let i = 0, len = listeners.length; i < len; i++) {
+      if (listeners[i] === listener) {
         listeners.splice(i, 1);
         return;
       }
@@ -67,14 +63,8 @@ export default class Notifier {
 
   /**
    * Notify registered listeners.
-   * 
-   * @param {any} args Params to be sent to listeners
-   * 
-   * @memberOf Notifier
    */
-  emit(...args) {
-    this.listeners.slice(0).forEach((listener) => {
-      listener[0].apply(listener[1], args);
-    });
+  emit(...args: any[]) {
+    this.listeners.slice(0).forEach(listener => listener(...args));
   }
 }

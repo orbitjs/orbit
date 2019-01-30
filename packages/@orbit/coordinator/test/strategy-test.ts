@@ -4,11 +4,7 @@ import Coordinator, {
   Strategy,
   StrategyOptions
 } from '../src/index';
-import Orbit, {
-  Source,
-  Transform
-} from '@orbit/data';
-import './test-helper';
+import { Source } from '@orbit/data';
 
 const { module, test } = QUnit;
 
@@ -77,7 +73,7 @@ module('Strategy', function(hooks) {
     assert.equal(strategy.logPrefix, '[foo-bar]');
   });
 
-  test('applies to all sources by default', function(assert) {
+  test('applies to all sources by default', async function(assert) {
     assert.expect(1);
 
     class CustomStrategy extends Strategy {
@@ -86,20 +82,18 @@ module('Strategy', function(hooks) {
         super(options);
       }
 
-      activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
-        return super.activate(coordinator, options)
-          .then(() => {
-            assert.deepEqual(this._sources, [s1, s2, s3]);
-          });
+      async activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<void> {
+        await super.activate(coordinator, options);
+        assert.deepEqual(this._sources, [s1, s2, s3]);
       }
     }
 
     strategy = new CustomStrategy();
 
-    return strategy.activate(coordinator);
+    await strategy.activate(coordinator);
   });
 
-  test('can include only specific sources', function(assert) {
+  test('can include only specific sources', async function(assert) {
     assert.expect(1);
 
     class CustomStrategy extends Strategy {
@@ -108,20 +102,18 @@ module('Strategy', function(hooks) {
         super(options);
       }
 
-      activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
-        return super.activate(coordinator, options)
-          .then(() => {
-            assert.deepEqual(this._sources, [s1, s2]);
-          });
+      async activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<void> {
+        await super.activate(coordinator, options);
+        assert.deepEqual(this._sources, [s1, s2]);
       }
     }
 
     strategy = new CustomStrategy({ sources: ['s1', 's2'] });
 
-    return strategy.activate(coordinator);
+    await strategy.activate(coordinator);
   });
 
-  test('#activate - receives the `logLevel` from the coordinator', function(assert) {
+  test('#activate - receives the `logLevel` from the coordinator', async function(assert) {
     assert.expect(2);
 
     class CustomStrategy extends Strategy {
@@ -132,21 +124,19 @@ module('Strategy', function(hooks) {
         assert.equal(this.logLevel, undefined, '_logLevel is initially undefined');
       }
 
-      activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
-        return super.activate(coordinator, options)
-          .then(() => {
-            assert.equal(this.logLevel, LogLevel.Warnings, '_logLevel is set by activate');
-          });
+      async activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<void> {
+        await super.activate(coordinator, options);
+        assert.equal(this.logLevel, LogLevel.Warnings, '_logLevel is set by activate');
       }
     }
 
     strategy = new CustomStrategy();
     coordinator.addStrategy(strategy);
 
-    return coordinator.activate({ logLevel: LogLevel.Warnings });
+    await coordinator.activate({ logLevel: LogLevel.Warnings });
   });
 
-  test('a custom `logLevel` will override the level from the coordinator', function(assert) {
+  test('a custom `logLevel` will override the level from the coordinator', async function(assert) {
     assert.expect(2);
 
     class CustomStrategy extends Strategy {
@@ -157,17 +147,15 @@ module('Strategy', function(hooks) {
         assert.equal(this.logLevel, LogLevel.Errors, '_logLevel is custom');
       }
 
-      activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
-        return super.activate(coordinator, options)
-          .then(() => {
-            assert.equal(this.logLevel, LogLevel.Errors, '_logLevel is custom even after activate');
-          });
+      async activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<void> {
+        await super.activate(coordinator, options);
+        assert.equal(this.logLevel, LogLevel.Errors, '_logLevel is custom even after activate');
       }
     }
 
     strategy = new CustomStrategy({ logLevel: LogLevel.Errors });
     coordinator.addStrategy(strategy);
 
-    return coordinator.activate({ logLevel: LogLevel.Warnings });
+    await coordinator.activate({ logLevel: LogLevel.Warnings });
   });
 });

@@ -19,14 +19,18 @@
   "scripts": {
     "build": "rm -rf dist && BROCCOLI_ENV=dist broccoli build dist",
     "build:tests": "rm -rf tests && BROCCOLI_ENV=tests broccoli build tests",
-    "prepublish": "npm run build",
+    "prepare": "npm run build",
     "release": "npm publish",
     "test": "testem ci"
   },
-  "devDependencies": {
-    "@glimmer/build": "^0.9.0",
+  "dependencies": {
     "@orbit/core": "^0.15.23",
     "@orbit/data": "^0.15.23",
     "@orbit/utils": "^0.15.23"
+  },
+  "devDependencies": {
+    "@glimmer/build": "^0.9.0",
+    "merge": ">=1.2.1",
+    "randomatic": ">=3.0.0"
   }
 }

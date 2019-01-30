@@ -2,10 +2,10 @@ import { Dict } from '@orbit/utils';
 import {
   KeyMap,
   ModelDefinition,
-  Schema, SchemaSettings
+  Record,
+  Schema
 } from '@orbit/data';
 import JSONAPISerializer from '../src/jsonapi-serializer';
-import './test-helper';
 
 const { module, test } = QUnit;
 
@@ -49,7 +49,7 @@ module('JSONAPISerializer', function(hooks) {
   };
 
   module('Using local ids', function(hooks) {
-    let serializer;
+    let serializer: JSONAPISerializer;
     let keyMap: KeyMap;
 
     hooks.beforeEach(function() {
@@ -120,6 +120,7 @@ module('JSONAPISerializer', function(hooks) {
         serializer.serializeDocument(
           {
             type: 'planet',
+            id: 'jupiter',
             attributes: {
               name: 'Jupiter',
               classification: 'gas giant'
@@ -266,7 +267,7 @@ module('JSONAPISerializer', function(hooks) {
           }
         }
       );
-      let record = result.data;
+      let record = result.data as Record;
 
       assert.deepEqual(
         record,
@@ -282,7 +283,11 @@ module('JSONAPISerializer', function(hooks) {
     });
 
     test('#deserialize - can deserialize a simple resource and associate it with a local record', function (assert) {
-      let localRecord = { id: '1a2b3c' };
+      let localRecord = {
+        id: '1a2b3c',
+        type: 'planet'
+      };
+
       let result = serializer.deserializeDocument(
         {
           data: {
@@ -292,6 +297,7 @@ module('JSONAPISerializer', function(hooks) {
         },
         localRecord
       );
+
       let record = result.data;
 
       assert.deepEqual(
@@ -344,7 +350,7 @@ module('JSONAPISerializer', function(hooks) {
         }
       );
 
-      let planet = result.data;
+      let planet = result.data as Record;
       let moon = result.included[0];
       let solarSystem = result.included[1];
 
@@ -429,7 +435,7 @@ module('JSONAPISerializer', function(hooks) {
           ]
         }
       );
-      let records = result.data;
+      let records = result.data as Record[];
 
       assert.deepEqual(
         records,
@@ -458,9 +464,9 @@ module('JSONAPISerializer', function(hooks) {
             { type: 'planets', id: '234' }
           ]
         },
-        localRecords
+        localRecords as Record[]
       );
-      let records = result.data;
+      let records = result.data as Record[];
 
       assert.deepEqual(
         records,
@@ -482,7 +488,7 @@ module('JSONAPISerializer', function(hooks) {
   });
 
   module('Using shared UUIDs', function(hooks) {
-    let serializer;
+    let serializer: JSONAPISerializer;
 
     hooks.beforeEach(function() {
       let schema = new Schema({ models: modelDefinitions });

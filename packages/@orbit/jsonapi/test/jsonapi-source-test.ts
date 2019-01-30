@@ -4,28 +4,34 @@ import Orbit, {
   NetworkError,
   Record,
   RecordIdentity,
-  ReplaceRecordOperation,
+  UpdateRecordOperation,
   TransformNotAllowed,
   Schema,
-  Source
+  Source,
+  SchemaSettings,
+  ReplaceKeyOperation,
+  RecordOperation,
+  ReplaceRelatedRecordOperation,
+  ReplaceRelatedRecordsOperation,
+  Transform
 } from '@orbit/data';
 import JSONAPISource from '../src/jsonapi-source';
 import { jsonapiResponse } from './support/jsonapi';
-import './test-helper';
+import { Resource } from '../src/jsonapi-document';
+import { SinonStatic, SinonStub} from 'sinon';
 
-declare const sinon: any;
-
+declare const sinon: SinonStatic;
 const { module, test } = QUnit;
 
-module('JSONAPISource', function(hooks) {
-  let fetchStub;
+module('JSONAPISource', function() {
+  let fetchStub: SinonStub;
   let keyMap: KeyMap;
   let schema: Schema;
   let source: JSONAPISource;
 
   module('with a secondary key', function(hooks) {
     hooks.beforeEach(() => {
-      fetchStub = sinon.stub(Orbit, 'fetch');
+      fetchStub = sinon.stub(self, 'fetch');
 
       schema = new Schema({
         models: {
@@ -88,13 +94,35 @@ module('JSONAPISource', function(hooks) {
       assert.ok(source instanceof Source, 'instanceof Source');
     });
 
+    test('source has default settings', function(assert) {
+      assert.expect(2);
+
+      let schema = new Schema({} as SchemaSettings);
+      source = new JSONAPISource({ schema });
+      assert.equal(source.name, 'jsonapi', 'name is set to default');
+      assert.deepEqual(source.allowedContentTypes, ['application/vnd.api+json', 'application/json'], 'allowedContentTypes are set to default');
+    });
+
     test('source saves options', function(assert) {
-      assert.expect(5);
-      let schema = new Schema({});
-      source = new JSONAPISource({ schema, keyMap, host: '127.0.0.1:8888', namespace: 'api', defaultFetchSettings: { headers: { 'User-Agent': 'CERN-LineMode/2.15 libwww/2.17b3' } } });
+      assert.expect(7);
+
+      let schema = new Schema({} as SchemaSettings);
+      source = new JSONAPISource({
+        schema,
+        keyMap,
+        host: '127.0.0.1:8888',
+        name: 'custom',
+        namespace: 'api',
+        allowedContentTypes: ['application/custom'],
+        defaultFetchSettings: { headers: { 'User-Agent': 'CERN-LineMode/2.15 libwww/2.17b3' } }
+      });
+      assert.equal(source.name, 'custom', 'name is custom');
+      assert.deepEqual(source.allowedContentTypes, ['application/custom'], 'allowedContentTypes are custom');
       assert.equal(source.namespace, 'api', 'Namespace should be defined');
       assert.equal(source.host, '127.0.0.1:8888', 'Host should be defined');
-      assert.equal(source.defaultFetchSettings.headers['User-Agent'], 'CERN-LineMode/2.15 libwww/2.17b3', 'Headers should be defined');
+
+      const headers = source.defaultFetchSettings.headers as any;
+      assert.equal(headers['User-Agent'], 'CERN-LineMode/2.15 libwww/2.17b3', 'Headers should be defined');
       assert.equal(source.resourceNamespace(), source.namespace, 'Default namespace should be used by default');
       assert.equal(source.resourceHost(), source.host, 'Default host should be used by default');
     });
@@ -211,18 +239,25 @@ module('JSONAPISource', function(hooks) {
         });
     });
 
-    test('#responseHasContent - returns true if JSONAPI media type appears anywhere in Content-Type header', function(assert) {
+    test('#responseHasContent - returns true if one of the `allowedContentTypes` appears anywhere in `Content-Type` header', function(assert) {
       let response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/vnd.api+json' } });
       assert.equal(source.responseHasContent(response), true, 'Accepts content that is _only_ the JSONAPI media type.');
 
-      response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/json,application/vnd.api+json; charset=utf-8' } });
+      response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'multipart,application/vnd.api+json; charset=utf-8' } });
       assert.equal(source.responseHasContent(response), true, 'Position of JSONAPI media type is not important.');
 
       response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/json' } });
-      assert.equal(source.responseHasContent(response), false, 'Plain json can not be parsed by default.');
+      assert.equal(source.responseHasContent(response), true, 'Source will attempt to parse plain json.');
+
+      response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/xml' } });
+      assert.equal(source.responseHasContent(response), false, 'XML is not acceptable.');
+
+      source.allowedContentTypes = ['application/custom'];
+      response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/custom' } });
+      assert.equal(source.responseHasContent(response), true, 'Source will accept custom content type if specifically allowed.');
     });
 
-    test('#push - can add records', function(assert) {
+    test('#push - can add records', async function(assert) {
       assert.expect(7);
 
       let transformCount = 0;
@@ -246,9 +281,9 @@ module('JSONAPISource', function(hooks) {
         record: { type: 'planet', id: planet.id },
         key: 'remoteId',
         value: '12345'
-      };
+      } as ReplaceKeyOperation;
 
-      source.on('transform', <() => void>function(transform) {
+      source.on('transform', function(transform: Transform) {
         transformCount++;
 
         if (transformCount === 1) {
@@ -273,36 +308,34 @@ module('JSONAPISource', function(hooks) {
           data: { id: '12345', type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
         }));
 
-      return source.push(t => t.addRecord(planet))
-        .then(function() {
-          assert.ok(true, 'transform resolves successfully');
+      await source.push(t => t.addRecord(planet));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
-          assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
-          assert.deepEqual(
-            JSON.parse(fetchStub.getCall(0).args[1].body),
-            {
-              data: {
-                type: 'planets',
-                attributes: {
-                  name: 'Jupiter',
-                  classification: 'gas giant'
-                }
-              }
-            },
-            'fetch called with expected data'
-          );
-        });
+      assert.ok(true, 'transform resolves successfully');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
+      assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        {
+          data: {
+            type: 'planets',
+            attributes: {
+              name: 'Jupiter',
+              classification: 'gas giant'
+            }
+          }
+        },
+        'fetch called with expected data'
+      );
     });
 
-    test('#push - can add sideloaded records', function (assert) {
+    test('#push - can add sideloaded records', async function (assert) {
       assert.expect(8);
 
       let transformCount = 0;
 
       let planet: Record = source.serializer.deserializeResource({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
-      let moon: Record = source.serializer.deserializeResource({ type: 'moon', attributes: { name: 'Europa' } });
 
       let addPlanetOp = {
         op: 'addRecord',
@@ -324,7 +357,7 @@ module('JSONAPISource', function(hooks) {
       };
 
       let addMoonOp = {
-        op: 'replaceRecord',
+        op: 'updateRecord',
         record: {
           type: 'moon',
           keys: {
@@ -336,7 +369,7 @@ module('JSONAPISource', function(hooks) {
         }
       };
 
-      source.on('transform', <() => void>function (transform) {
+      source.on('transform', (transform: Transform) => {
         transformCount++;
 
         if (transformCount === 1) {
@@ -354,7 +387,7 @@ module('JSONAPISource', function(hooks) {
           );
         } else if (transformCount === 3) {
           let operationsWithoutId = transform.operations.map(op => {
-            let clonedOp = Object.assign({}, op);
+            let clonedOp = Object.assign({}, op) as RecordOperation;
             delete clonedOp.record.id;
             return clonedOp;
           });
@@ -384,30 +417,28 @@ module('JSONAPISource', function(hooks) {
           }]
         }));
 
-      return source.push(t => t.addRecord(planet))
-        .then(function () {
-          assert.ok(true, 'transform resolves successfully');
+      await source.push(t => t.addRecord(planet));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
-          assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
-          assert.deepEqual(
-            JSON.parse(fetchStub.getCall(0).args[1].body),
-            {
-              data: {
-                type: 'planets',
-                attributes: {
-                  name: 'Jupiter',
-                  classification: 'gas giant'
-                }
-              }
-            },
-            'fetch called with expected data'
-          );
-        });
+      assert.ok(true, 'transform resolves successfully');
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
+      assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        {
+          data: {
+            type: 'planets',
+            attributes: {
+              name: 'Jupiter',
+              classification: 'gas giant'
+            }
+          }
+        },
+        'fetch called with expected data'
+      );
     });
 
-    test('#push - can transform records', function(assert) {
+    test('#push - can transform records', async function(assert) {
       assert.expect(6);
 
       let transformCount = 0;
@@ -422,7 +453,7 @@ module('JSONAPISource', function(hooks) {
       });
 
       let replacePlanetOp = {
-        op: 'replaceRecord',
+        op: 'updateRecord',
         record: {
           type: 'planet',
           id: planet.id,
@@ -436,7 +467,7 @@ module('JSONAPISource', function(hooks) {
         }
       };
 
-      source.on('transform', <() => void>function(transform) {
+      source.on('transform', (transform: Transform) => {
         transformCount++;
 
         if (transformCount === 1) {
@@ -457,31 +488,30 @@ module('JSONAPISource', function(hooks) {
           )
         );
 
-      return source.push(t => t.replaceRecord(planet))
-        .then(() => {
-          assert.ok(true, 'transform resolves successfully');
+      await source.push(t => t.updateRecord(planet));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
-          assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
-          assert.deepEqual(
-            JSON.parse(fetchStub.getCall(0).args[1].body),
-            {
-              data: {
-                type: 'planets',
-                id: '12345',
-                attributes: {
-                  name: 'Jupiter',
-                  classification: 'gas giant'
-                }
-              }
-            },
-            'fetch called with expected data'
-          );
-        });
+      assert.ok(true, 'transform resolves successfully');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
+      assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        {
+          data: {
+            type: 'planets',
+            id: '12345',
+            attributes: {
+              name: 'Jupiter',
+              classification: 'gas giant'
+            }
+          }
+        },
+        'fetch called with expected data'
+      );
     });
 
-    test('#push - can replace a single attribute', function(assert) {
+    test('#push - can replace a single attribute', async function(assert) {
       assert.expect(5);
 
       let planet = source.serializer.deserializeResource({
@@ -495,32 +525,31 @@ module('JSONAPISource', function(hooks) {
 
       fetchStub
         .withArgs('/planets/12345')
-        .returns(jsonapiResponse(200));
+        .returns(jsonapiResponse(204));
 
-      return source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'))
-        .then(() => {
-          assert.ok(true, 'record patched');
+      await source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
-          assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
-          assert.deepEqual(
-            JSON.parse(fetchStub.getCall(0).args[1].body),
-            {
-              data: {
-                type: 'planets',
-                id: '12345',
-                attributes: {
-                  classification: 'terrestrial'
-                }
-              }
-            },
-            'fetch called with expected data'
-          );
-        });
+      assert.ok(true, 'record patched');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
+      assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        {
+          data: {
+            type: 'planets',
+            id: '12345',
+            attributes: {
+              classification: 'terrestrial'
+            }
+          }
+        },
+        'fetch called with expected data'
+      );
     });
 
-    test('#push - can accept remote changes', function(assert) {
+    test('#push - can accept remote changes', async function(assert) {
       assert.expect(2);
 
       let planet = source.serializer.deserializeResource({
@@ -545,14 +574,13 @@ module('JSONAPISource', function(hooks) {
           }
         }));
 
-      return source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'))
-        .then((transforms) => {
-          assert.deepEqual(transforms[1].operations.map(o => o.op), ['replaceAttribute', 'replaceKey']);
-          assert.deepEqual(transforms[1].operations.map((o: ReplaceRecordOperation) => o.value), ['Mars', 'remote-id-123']);
-        });
+      let transforms = await source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'));
+
+      assert.deepEqual(transforms[1].operations.map(o => o.op), ['replaceAttribute', 'replaceKey']);
+      assert.deepEqual(transforms[1].operations.map((o: ReplaceKeyOperation) => o.value), ['Mars', 'remote-id-123']);
     });
 
-    test('#push - can delete records', function(assert) {
+    test('#push - can delete records', async function(assert) {
       assert.expect(4);
 
       let planet = source.serializer.deserializeResource({
@@ -564,17 +592,15 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200));
 
-      return source.push(t => t.removeRecord(planet))
-        .then(() => {
-          assert.ok(true, 'record deleted');
+      await source.push(t => t.removeRecord(planet));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, 'DELETE', 'fetch called with expected method');
-          assert.equal(fetchStub.getCall(0).args[1].body, null, 'fetch called with no data');
-        });
+      assert.ok(true, 'record deleted');
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'DELETE', 'fetch called with expected method');
+      assert.equal(fetchStub.getCall(0).args[1].body, null, 'fetch called with no data');
     });
 
-    test('#push - can add a hasMany relationship with POST', function(assert) {
+    test('#push - can add a hasMany relationship with POST', async function(assert) {
       assert.expect(5);
 
       let planet = source.serializer.deserializeResource({
@@ -591,22 +617,20 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345/relationships/moons')
         .returns(jsonapiResponse(204));
 
-      return source.push(t => t.addToRelatedRecords(planet, 'moons', moon))
-        .then(() => {
-          assert.ok(true, 'records linked');
+      await source.push(t => t.addToRelatedRecords(planet, 'moons', moon));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
-          assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
-          assert.deepEqual(
-            JSON.parse(fetchStub.getCall(0).args[1].body),
-            { data: [{ type: 'moons', id: '987' }] },
-            'fetch called with expected data'
-          );
-        });
+      assert.ok(true, 'records linked');
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
+      assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        { data: [{ type: 'moons', id: '987' }] },
+        'fetch called with expected data'
+      );
     });
 
-    test('#push - can remove a relationship with DELETE', function(assert) {
+    test('#push - can remove a relationship with DELETE', async function(assert) {
       assert.expect(4);
 
       let planet = source.serializer.deserializeResource({
@@ -623,21 +647,19 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345/relationships/moons')
         .returns(jsonapiResponse(200));
 
-      return source.push(t => t.removeFromRelatedRecords(planet, 'moons', moon))
-        .then(function() {
-          assert.ok(true, 'records unlinked');
+      await source.push(t => t.removeFromRelatedRecords(planet, 'moons', moon));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, 'DELETE', 'fetch called with expected method');
-          assert.deepEqual(
-            JSON.parse(fetchStub.getCall(0).args[1].body),
-            { data: [{ type: 'moons', id: '987' }] },
-            'fetch called with expected data'
-          );
-        });
+      assert.ok(true, 'records unlinked');
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'DELETE', 'fetch called with expected method');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        { data: [{ type: 'moons', id: '987' }] },
+        'fetch called with expected data'
+      );
     });
 
-    test('#push - can update a hasOne relationship with PATCH', function(assert) {
+    test('#push - can update a hasOne relationship with PATCH', async function(assert) {
       assert.expect(5);
 
       let planet = source.serializer.deserializeResource({
@@ -654,22 +676,21 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/moons/987')
         .returns(jsonapiResponse(200));
 
-      return source.push(t => t.replaceRelatedRecord(moon, 'planet', planet))
-        .then(function() {
-          assert.ok(true, 'relationship replaced');
+      await source.push(t => t.replaceRelatedRecord(moon, 'planet', planet));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
-          assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
-          assert.deepEqual(
-            JSON.parse(fetchStub.getCall(0).args[1].body),
-            { data: { type: 'moons', id: '987', relationships: { planet: { data: { type: 'planets', id: '12345' } } } } },
-            'fetch called with expected data'
-          );
-        });
+      assert.ok(true, 'relationship replaced');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
+      assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        { data: { type: 'moons', id: '987', relationships: { planet: { data: { type: 'planets', id: '12345' } } } } },
+        'fetch called with expected data'
+      );
     });
 
-    test('#push - can update a hasOne relationship with PATCH with newly created record', function(assert) {
+    test('#push - can update a hasOne relationship with PATCH with newly created record', async function(assert) {
       assert.expect(5);
 
       let planet = {
@@ -693,24 +714,24 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/moons/987')
         .returns(jsonapiResponse(200));
 
-      return source.push(t => [
+      await source.push(t => [
         t.addRecord(planet),
         t.replaceRelatedRecord(moon, 'planet', planet)
-      ]).then(function() {
-          assert.ok(true, 'relationship replaced');
+      ]);
 
-          assert.equal(fetchStub.callCount, 2, 'fetch called twice');
-          assert.equal(fetchStub.getCall(1).args[1].method, 'PATCH', 'fetch called with expected method');
-          assert.equal(fetchStub.getCall(1).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
-          assert.deepEqual(
-            JSON.parse(fetchStub.getCall(1).args[1].body),
-            { data: { type: 'moons', id: '987', relationships: { planet: { data: { type: 'planets', id: 'planet-remote-id' } } } } },
-            'fetch called with expected data'
-          );
-        });
+      assert.ok(true, 'relationship replaced');
+
+      assert.equal(fetchStub.callCount, 2, 'fetch called twice');
+      assert.equal(fetchStub.getCall(1).args[1].method, 'PATCH', 'fetch called with expected method');
+      assert.equal(fetchStub.getCall(1).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(1).args[1].body),
+        { data: { type: 'moons', id: '987', relationships: { planet: { data: { type: 'planets', id: 'planet-remote-id' } } } } },
+        'fetch called with expected data'
+      );
     });
 
-    test('#push - can clear a hasOne relationship with PATCH', function(assert) {
+    test('#push - can clear a hasOne relationship with PATCH', async function(assert) {
       assert.expect(5);
 
       let moon = source.serializer.deserializeResource({
@@ -722,22 +743,21 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/moons/987')
         .returns(jsonapiResponse(200));
 
-      return source.push(t => t.replaceRelatedRecord(moon, 'planet', null))
-        .then(function() {
-          assert.ok(true, 'relationship replaced');
+      await source.push(t => t.replaceRelatedRecord(moon, 'planet', null));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
-          assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
-          assert.deepEqual(
-            JSON.parse(fetchStub.getCall(0).args[1].body),
-            { data: { type: 'moons', id: '987', relationships: { planet: { data: null } } } },
-            'fetch called with expected data'
-          );
-        });
+      assert.ok(true, 'relationship replaced');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
+      assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        { data: { type: 'moons', id: '987', relationships: { planet: { data: null } } } },
+        'fetch called with expected data'
+      );
     });
 
-    test('#push - can replace a hasMany relationship with PATCH', function(assert) {
+    test('#push - can replace a hasMany relationship with PATCH', async function(assert) {
       assert.expect(5);
 
       let planet = source.serializer.deserializeResource({
@@ -754,22 +774,21 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200));
 
-      return source.push(t => t.replaceRelatedRecords(planet, 'moons', [moon]))
-        .then(function() {
-          assert.ok(true, 'relationship replaced');
+      await source.push(t => t.replaceRelatedRecords(planet, 'moons', [moon]));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
-          assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
-          assert.deepEqual(
-            JSON.parse(fetchStub.getCall(0).args[1].body),
-            { data: { type: 'planets', id: '12345', relationships: { moons: { data: [{ type: 'moons', id: '987' }] } } } },
-            'fetch called with expected data'
-          );
-        });
+      assert.ok(true, 'relationship replaced');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'PATCH', 'fetch called with expected method');
+      assert.equal(fetchStub.getCall(0).args[1].headers['Content-Type'], 'application/vnd.api+json', 'fetch called with expected content type');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        { data: { type: 'planets', id: '12345', relationships: { moons: { data: [{ type: 'moons', id: '987' }] } } } },
+        'fetch called with expected data'
+      );
     });
 
-    test('#push - a single transform can result in multiple requests', function(assert) {
+    test('#push - a single transform can result in multiple requests', async function(assert) {
       assert.expect(6);
 
       let planet1 = source.serializer.deserializeResource({ type: 'planet', id: '1' });
@@ -783,24 +802,23 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/2')
         .returns(jsonapiResponse(200));
 
-      return source.push(t => [
+      await source.push(t => [
         t.removeRecord(planet1),
         t.removeRecord(planet2)
-      ])
-        .then(() => {
-          assert.ok(true, 'records deleted');
+      ]);
 
-          assert.equal(fetchStub.callCount, 2, 'fetch called twice');
+      assert.ok(true, 'records deleted');
 
-          assert.equal(fetchStub.getCall(0).args[1].method, 'DELETE', 'fetch called with expected method');
-          assert.equal(fetchStub.getCall(0).args[1].body, null, 'fetch called with no data');
+      assert.equal(fetchStub.callCount, 2, 'fetch called twice');
 
-          assert.equal(fetchStub.getCall(1).args[1].method, 'DELETE', 'fetch called with expected method');
-          assert.equal(fetchStub.getCall(1).args[1].body, null, 'fetch called with no data');
-        });
+      assert.equal(fetchStub.getCall(0).args[1].method, 'DELETE', 'fetch called with expected method');
+      assert.equal(fetchStub.getCall(0).args[1].body, null, 'fetch called with no data');
+
+      assert.equal(fetchStub.getCall(1).args[1].method, 'DELETE', 'fetch called with expected method');
+      assert.equal(fetchStub.getCall(1).args[1].body, null, 'fetch called with no data');
     });
 
-    test('#push - source can limit the number of allowed requests per transform with `maxRequestsPerTransform`', function(assert) {
+    test('#push - source can limit the number of allowed requests per transform with `maxRequestsPerTransform`', async function(assert) {
       assert.expect(1);
 
       let planet1 = source.serializer.deserializeResource({ type: 'planet', id: '1' });
@@ -808,16 +826,17 @@ module('JSONAPISource', function(hooks) {
 
       source.maxRequestsPerTransform = 1;
 
-      return source.push(t => [
-        t.removeRecord(planet1),
-        t.removeRecord(planet2)
-      ])
-        .catch(e => {
-          assert.ok(e instanceof TransformNotAllowed, 'TransformNotAllowed thrown');
-        });
+      try {
+        await source.push(t => [
+          t.removeRecord(planet1),
+          t.removeRecord(planet2)
+        ]);
+      } catch(e) {
+        assert.ok(e instanceof TransformNotAllowed, 'TransformNotAllowed thrown');
+      }
     });
 
-    test('#push - request can timeout', function(assert) {
+    test('#push - request can timeout', async function(assert) {
       assert.expect(2);
 
       let planet = source.serializer.deserializeResource({
@@ -836,17 +855,16 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, null, 20)); // 20ms delay
 
-      return source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'))
-        .then(() => {
-          assert.ok(false, 'should not be reached');
-        })
-        .catch(e => {
-          assert.ok(e instanceof NetworkError, 'Network error raised');
-          assert.equal(e.description, 'No fetch response within 10ms.')
-        });
+      try {
+        await source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'));
+        assert.ok(false, 'should not be reached');
+      } catch(e) {
+        assert.ok(e instanceof NetworkError, 'Network error raised');
+        assert.equal(e.description, 'No fetch response within 10ms.')
+      }
     });
 
-    test('#push - allowed timeout can be specified per-request', function(assert) {
+    test('#push - allowed timeout can be specified per-request', async function(assert) {
       assert.expect(2);
 
       let planet = source.serializer.deserializeResource({
@@ -872,17 +890,16 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, null, 20)); // 20ms delay
 
-      return source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'), options)
-        .then(() => {
-          assert.ok(false, 'should not be reached');
-        })
-        .catch(e => {
-          assert.ok(e instanceof NetworkError, 'Network error raised');
-          assert.equal(e.description, 'No fetch response within 10ms.')
-        });
+      try {
+        await source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'), options);
+        assert.ok(false, 'should not be reached');
+      } catch(e) {
+        assert.ok(e instanceof NetworkError, 'Network error raised');
+        assert.equal(e.description, 'No fetch response within 10ms.')
+      }
     });
 
-    test('#push - fetch can reject with a NetworkError', function(assert) {
+    test('#push - fetch can reject with a NetworkError', async function(assert) {
       assert.expect(2);
 
       let planet = source.serializer.deserializeResource({
@@ -896,19 +913,18 @@ module('JSONAPISource', function(hooks) {
 
       fetchStub
         .withArgs('/planets/12345')
-        .returns(Orbit.Promise.reject(':('));
+        .returns(Promise.reject(':('));
 
-      return source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'))
-        .then(() => {
-          assert.ok(false, 'should not be reached');
-        })
-        .catch(e => {
-          assert.ok(e instanceof NetworkError, 'Network error raised');
-          assert.equal(e.description, ':(')
-        });
+      try {
+        await source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'));
+        assert.ok(false, 'should not be reached');
+      } catch(e) {
+        assert.ok(e instanceof NetworkError, 'Network error raised');
+        assert.equal(e.description, ':(')
+      }
     });
 
-    test('#push - response can trigger a ClientError', function(assert) {
+    test('#push - response can trigger a ClientError', async function(assert) {
       assert.expect(3);
 
       let planet = source.serializer.deserializeResource({
@@ -929,21 +945,20 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(422, { errors }));
 
-      return source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'))
-        .then(() => {
-          assert.ok(false, 'should not be reached');
-        })
-        .catch(e => {
-          assert.ok(e instanceof ClientError, 'Client error raised');
-          assert.equal(e.description, 'Unprocessable Entity');
-          assert.deepEqual(e.data, { errors }, 'Error data included');
-        });
+      try {
+        await source.push(t => t.replaceAttribute(planet, 'classification', 'terrestrial'));
+        assert.ok(false, 'should not be reached');
+      } catch(e) {
+        assert.ok(e instanceof ClientError, 'Client error raised');
+        assert.equal(e.description, 'Unprocessable Entity');
+        assert.deepEqual(e.data, { errors }, 'Error data included');
+      }
     });
 
-    test('#pull - record', function(assert) {
+    test('#pull - record', async function(assert) {
       assert.expect(5);
 
-      const data = { type: 'planets', id: '12345', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+      const data: Resource = { type: 'planets', id: '12345', attributes: { name: 'Jupiter', classification: 'gas giant' } };
 
       const planet = source.serializer.deserializeResource({
         type: 'planet',
@@ -954,21 +969,20 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(q => q.findRecord({ type: 'planet', id: planet.id }))
-        .then(transforms => {
-          assert.equal(transforms.length, 1, 'one transform returned');
-          assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
-          assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Jupiter']);
+      let transforms = await source.pull(q => q.findRecord({ type: 'planet', id: planet.id }));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Jupiter']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#pull - request can timeout', function(assert) {
+    test('#pull - request can timeout', async function(assert) {
       assert.expect(2);
 
-      const data = {
+      const data: Resource = {
         type: 'planets',
         id: '12345',
         attributes: { name: 'Jupiter', classification: 'gas giant' } ,
@@ -987,20 +1001,19 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, { data }, 20)); // 20ms delay
 
-      return source.pull(q => q.findRecord({ type: 'planet', id: planet.id }))
-        .then(() => {
-          assert.ok(false, 'should not be reached');
-        })
-        .catch(e => {
-          assert.ok(e instanceof NetworkError, 'Network error raised');
-          assert.equal(e.description, 'No fetch response within 10ms.')
-        });
+      try {
+        await source.pull(q => q.findRecord({ type: 'planet', id: planet.id }));
+        assert.ok(false, 'should not be reached');
+      } catch(e) {
+        assert.ok(e instanceof NetworkError, 'Network error raised');
+        assert.equal(e.description, 'No fetch response within 10ms.')
+      }
     });
 
-    test('#pull - allowed timeout can be specified per-request', function(assert) {
+    test('#pull - allowed timeout can be specified per-request', async function(assert) {
       assert.expect(2);
 
-      const data = {
+      const data: Resource = {
         type: 'planets',
         id: '12345',
         attributes: { name: 'Jupiter', classification: 'gas giant' } ,
@@ -1026,25 +1039,18 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, { data }, 20)); // 20ms delay
 
-      return source.pull(q => q.findRecord({ type: 'planet', id: planet.id }), options)
-        .then(() => {
-          assert.ok(false, 'should not be reached');
-        })
-        .catch(e => {
-          assert.ok(e instanceof NetworkError, 'Network error raised');
-          assert.equal(e.description, 'No fetch response within 10ms.')
-        });
+
+      try {
+        await source.pull(q => q.findRecord({ type: 'planet', id: planet.id }), options)
+        assert.ok(false, 'should not be reached');
+      } catch(e) {
+        assert.ok(e instanceof NetworkError, 'Network error raised');
+        assert.equal(e.description, 'No fetch response within 10ms.')
+      }
     });
 
-    test('#pull - fetch can reject with a NetworkError', function(assert) {
+    test('#pull - fetch can reject with a NetworkError', async function(assert) {
       assert.expect(2);
-
-      const data = {
-        type: 'planets',
-        id: '12345',
-        attributes: { name: 'Jupiter', classification: 'gas giant' } ,
-        relationships: { moons: { data: [] } }
-      };
 
       const planet = source.serializer.deserializeResource({
         type: 'planet',
@@ -1053,22 +1059,21 @@ module('JSONAPISource', function(hooks) {
 
       fetchStub
         .withArgs('/planets/12345')
-        .returns(Orbit.Promise.reject(':('));
+        .returns(Promise.reject(':('));
 
-      return source.pull(q => q.findRecord({ type: 'planet', id: planet.id }))
-        .then(() => {
-          assert.ok(false, 'should not be reached');
-        })
-        .catch(e => {
-          assert.ok(e instanceof NetworkError, 'Network error raised');
-          assert.equal(e.description, ':(')
-        });
+      try {
+        await source.pull(q => q.findRecord({ type: 'planet', id: planet.id }));
+        assert.ok(false, 'should not be reached');
+      } catch(e) {
+        assert.ok(e instanceof NetworkError, 'Network error raised');
+        assert.equal(e.description, ':(')
+      }
     });
 
-    test('#pull - record with include', function(assert) {
+    test('#pull - record with include', async function(assert) {
       assert.expect(2);
 
-      const data = {
+      const data: Resource = {
         type: 'planets',
         id: '12345',
         attributes: { name: 'Jupiter', classification: 'gas giant' } ,
@@ -1092,17 +1097,16 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345?include=moons')
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(q => q.findRecord({ type: 'planet', id: planet.id }), options)
-        .then(() => {
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      await source.pull(q => q.findRecord({ type: 'planet', id: planet.id }), options);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#pull - records', function(assert) {
+    test('#pull - records', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } },
         { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial' } },
         { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant' } }
@@ -1112,21 +1116,20 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets')
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(q => q.findRecords('planet'))
-        .then(transforms => {
-          assert.equal(transforms.length, 1, 'one transform returned');
-          assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
-          assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
+      let transforms = await source.pull(q => q.findRecords('planet'));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord', 'updateRecord', 'updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#pull - records with attribute filter', function(assert) {
+    test('#pull - records with attribute filter', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial', lengthOfDay: 24 } }
       ];
 
@@ -1134,23 +1137,21 @@ module('JSONAPISource', function(hooks) {
         .withArgs(`/planets?${encodeURIComponent('filter[length-of-day]')}=24`)
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(q => q.findRecords('planet')
-                               .filter({ attribute: 'lengthOfDay', value: 24 }))
-        .then(transforms => {
-          assert.equal(transforms.length, 1, 'one transform returned');
-          assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
-          assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Earth']);
+      let transforms = await source.pull(q => q.findRecords('planet')
+                                   .filter({ attribute: 'lengthOfDay', value: 24 }));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Earth']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-
-    test('#pull - records with attribute filters', function(assert) {
+    test('#pull - records with attribute filters', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial', lengthOfDay: 24 } }
       ];
 
@@ -1163,22 +1164,21 @@ module('JSONAPISource', function(hooks) {
         .withArgs(expectedUrl)
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(q => q.findRecords('planet')
-                               .filter({ attribute: 'lengthOfDay', value: 'le:24' }, { attribute: 'lengthOfDay', value: 'ge:24' }))
-        .then(transforms => {
-          assert.equal(transforms.length, 1, 'one transform returned');
-          assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
-          assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Earth']);
+      let transforms = await source.pull(q => q.findRecords('planet')
+                                   .filter({ attribute: 'lengthOfDay', value: 'le:24' }, { attribute: 'lengthOfDay', value: 'ge:24' }));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Earth']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#pull - records with relatedRecord filter (single value)', function(assert) {
+    test('#pull - records with relatedRecord filter (single value)', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         {
           id: 'moon',
           type: 'moons',
@@ -1193,22 +1193,21 @@ module('JSONAPISource', function(hooks) {
         .withArgs(`/moons?${encodeURIComponent('filter[planet]')}=earth`)
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(q => q.findRecords('moon')
-                               .filter({ relation: 'planet', record: { id: 'earth', type: 'planets' } }))
-        .then(transforms => {
-          assert.equal(transforms.length, 1, 'one transform returned');
-          assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
-          assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Moon']);
+      let transforms = await source.pull(q => q.findRecords('moon')
+                                   .filter({ relation: 'planet', record: { id: 'earth', type: 'planets' } }));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Moon']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#pull - records with relatedRecord filter (multiple values)', function(assert) {
+    test('#pull - records with relatedRecord filter (multiple values)', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         {
           id: 'moon',
           type: 'moons',
@@ -1239,26 +1238,25 @@ module('JSONAPISource', function(hooks) {
         .withArgs(`/moons?${encodeURIComponent('filter[planet]')}=${encodeURIComponent('earth,mars')}`)
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(q => q.findRecords('moon')
-                               .filter({ relation: 'planet', record: [{ id: 'earth', type: 'planets' }, { id: 'mars', type: 'planets' }] }))
-        .then(transforms => {
-          assert.equal(transforms.length, 1, 'one transform returned');
-          assert.deepEqual(transforms[0].operations.map(o => o.op), [
-            'replaceRecord',
-            'replaceRecord',
-            'replaceRecord'
-          ]);
-          assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Moon', 'Phobos', 'Deimos']);
+      let transforms = await source.pull(q => q.findRecords('moon')
+                                   .filter({ relation: 'planet', record: [{ id: 'earth', type: 'planets' }, { id: 'mars', type: 'planets' }] }));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), [
+        'updateRecord',
+        'updateRecord',
+        'updateRecord'
+      ]);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Moon', 'Phobos', 'Deimos']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#pull - records with relatedRecords filter', function(assert) {
+    test('#pull - records with relatedRecords filter', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         {
           id: 'mars',
           type: 'planets',
@@ -1273,26 +1271,25 @@ module('JSONAPISource', function(hooks) {
         .withArgs(`/planets?${encodeURIComponent('filter[moons]')}=${encodeURIComponent('phobos,deimos')}`)
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(q => q.findRecords('planet')
+      let transforms = await source.pull(q => q.findRecords('planet')
         .filter({
           relation: 'moons',
           records: [{ id: 'phobos', type: 'moons' }, { id: 'deimos', type: 'moons' }],
           op: 'equal'
-        }))
-        .then(transforms => {
-          assert.equal(transforms.length, 1, 'one transform returned');
-          assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
-          assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Mars']);
+        }));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Mars']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#pull - records with sort by an attribute in ascending order', function(assert) {
+    test('#pull - records with sort by an attribute in ascending order', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial' } },
         { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } },
         { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant' } }
@@ -1302,21 +1299,20 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets?sort=name')
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(q => q.findRecords('planet').sort('name'))
-        .then(transforms => {
-          assert.equal(transforms.length, 1, 'one transform returned');
-          assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
-          assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Earth', 'Jupiter', 'Saturn']);
+      let transforms = await source.pull(q => q.findRecords('planet').sort('name'));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord', 'updateRecord', 'updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Earth', 'Jupiter', 'Saturn']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#pull - records with sort by an attribute in descending order', function(assert) {
+    test('#pull - records with sort by an attribute in descending order', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant' } },
         { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } },
         { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial' } }
@@ -1326,21 +1322,20 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets?sort=-name')
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(q => q.findRecords('planet').sort('-name'))
-        .then(transforms => {
-          assert.equal(transforms.length, 1, 'one transform returned');
-          assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
-          assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Saturn', 'Jupiter', 'Earth']);
+      let transforms = await source.pull(q => q.findRecords('planet').sort('-name'))
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord', 'updateRecord', 'updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Saturn', 'Jupiter', 'Earth']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#pull - records with sort by multiple fields', function(assert) {
+    test('#pull - records with sort by multiple fields', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant', lengthOfDay: 9.9 } },
         { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant', lengthOfDay: 10.7 } },
         { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial', lengthOfDay: 24.0 } }
@@ -1350,21 +1345,20 @@ module('JSONAPISource', function(hooks) {
         .withArgs(`/planets?sort=${encodeURIComponent('length-of-day,name')}`)
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(q => q.findRecords('planet').sort('lengthOfDay', 'name'))
-        .then(transforms => {
-          assert.equal(transforms.length, 1, 'one transform returned');
-          assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
-          assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Jupiter', 'Saturn', 'Earth']);
+      let transforms = await source.pull(q => q.findRecords('planet').sort('lengthOfDay', 'name'))
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord', 'updateRecord', 'updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Jupiter', 'Saturn', 'Earth']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#pull - records with pagination', function(assert) {
+    test('#pull - records with pagination', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } },
         { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial' } },
         { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant' } }
@@ -1374,19 +1368,18 @@ module('JSONAPISource', function(hooks) {
         .withArgs(`/planets?${encodeURIComponent('page[offset]')}=1&${encodeURIComponent('page[limit]')}=10`)
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(q => q.findRecords('planet')
-                               .page({ offset: 1, limit: 10 }))
-        .then(transforms => {
-          assert.equal(transforms.length, 1, 'one transform returned');
-          assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord', 'replaceRecord', 'replaceRecord']);
-          assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
+      let transforms = await source.pull(q => q.findRecords('planet')
+                                               .page({ offset: 1, limit: 10 }));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord', 'updateRecord', 'updateRecord']);
+      assert.deepEqual(transforms[0].operations.map((o: UpdateRecordOperation) => o.record.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#pull - records with include', function(assert) {
+    test('#pull - records with include', async function(assert) {
       assert.expect(2);
 
       const options = {
@@ -1401,14 +1394,13 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets?include=moons')
         .returns(jsonapiResponse(200, { data: [] }));
 
-      return source.pull(q => q.findRecords('planet'), options)
-        .then(() => {
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      await source.pull(q => q.findRecords('planet'), options);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#pull - records with include many relationships', function(assert) {
+    test('#pull - records with include many relationships', async function(assert) {
       assert.expect(2);
 
       const options = {
@@ -1423,15 +1415,62 @@ module('JSONAPISource', function(hooks) {
         .withArgs(`/planets?include=${encodeURIComponent('moons,solar-systems')}`)
         .returns(jsonapiResponse(200, { data: [] }));
 
-      return source.pull(q => q.findRecords('planet'), options)
-        .then(() => {
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      await source.pull(q => q.findRecords('planet'), options);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#pull - relatedRecords', function(assert) {
-      assert.expect(5);
+    test('#pull - relatedRecord', async function(assert) {
+      assert.expect(12);
+
+      const planetRecord: Record = <Record>source.serializer.deserializeDocument({
+        data: {
+          type: 'planets',
+          id: 'jupiter'
+        }
+      }).data;
+
+      const data: Resource = {
+        type: 'solar-systems',
+        id: 'ours',
+        attributes: {
+          name: 'Our Solar System'
+        }
+      };
+
+      fetchStub
+        .withArgs('/planets/jupiter/solar-system')
+        .returns(jsonapiResponse(200, { data }));
+
+      let transforms = await source.pull(q => q.findRelatedRecord(planetRecord, 'solarSystem'));
+
+      assert.equal(transforms.length, 1, 'one transform returned');
+      const operations = transforms[0].operations as RecordOperation[];
+
+      const planetId = keyMap.keyToId('planet', 'remoteId', 'jupiter');
+      const ssId = keyMap.keyToId('solarSystem', 'remoteId', 'ours');
+
+      assert.deepEqual(operations.map(o => o.op), ['updateRecord', 'replaceRelatedRecord']);
+
+      const op1 = operations[0] as UpdateRecordOperation;
+      assert.equal(op1.record.type, 'solarSystem');
+      assert.equal(op1.record.id, ssId);
+      assert.equal(op1.record.attributes.name, 'Our Solar System');
+
+      const op2 = operations[1] as ReplaceRelatedRecordOperation;
+      assert.equal(op2.record.type, 'planet');
+      assert.equal(op2.record.id, planetId);
+      assert.equal(op2.relationship, 'solarSystem');
+      assert.equal(op2.relatedRecord.type, 'solarSystem');
+      assert.equal(op2.relatedRecord.id, ssId);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+    });
+
+    test('#pull - relatedRecords', async function(assert) {
+      assert.expect(8);
 
       let planetRecord: Record = <Record>source.serializer.deserializeDocument({
         data: {
@@ -1452,17 +1491,24 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/jupiter/moons')
         .returns(jsonapiResponse(200, { data }));
 
-      return source.pull(q => q.findRelatedRecords(planetRecord, 'moons')).then((transforms) => {
-        assert.equal(transforms.length, 1, 'one transform returned');
-        assert.deepEqual(transforms[0].operations.map(o => o.op), ['replaceRecord']);
-        assert.deepEqual(transforms[0].operations.map((o: ReplaceRecordOperation) => o.record.attributes.name), ['Io']);
+      let transforms = await source.pull(q => q.findRelatedRecords(planetRecord, 'moons'));
 
-        assert.equal(fetchStub.callCount, 1, 'fetch called once');
-        assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-      });
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), ['updateRecord', 'replaceRelatedRecords']);
+
+      const op1 = transforms[0].operations[0] as UpdateRecordOperation;
+      assert.equal(op1.record.attributes.name, 'Io');
+
+      const op2 = transforms[0].operations[1] as ReplaceRelatedRecordsOperation;
+      assert.equal(op2.record.id, planetRecord.id);
+      assert.equal(op2.relationship, 'moons');
+      assert.deepEqual(op2.relatedRecords.map(r => r.id),  [op1.record.id]);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#pull - relatedRecords with include', function(assert) {
+    test('#pull - relatedRecords with include', async function(assert) {
       assert.expect(2);
 
       const planetRecord = source.serializer.deserializeDocument({
@@ -1484,17 +1530,16 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/jupiter/moons?include=planet')
         .returns(jsonapiResponse(200, { data: [] }));
 
-      return source.pull(q => q.findRelatedRecords(<RecordIdentity>planetRecord, 'moons'), options)
-        .then(() => {
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      await source.pull(q => q.findRelatedRecords(<RecordIdentity>planetRecord, 'moons'), options);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#query - record', function(assert) {
+    test('#query - record', async function(assert) {
       assert.expect(4);
 
-      const data = { type: 'planets', id: '12345', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+      const data: Resource = { type: 'planets', id: '12345', attributes: { name: 'Jupiter', classification: 'gas giant' } };
 
       const planet = source.serializer.deserializeResource({
         type: 'planet',
@@ -1505,20 +1550,19 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, { data }));
 
-      return source.query(q => q.findRecord({ type: 'planet', id: planet.id }))
-        .then(data => {
-          assert.ok(!Array.isArray(data), 'only a single primary recored returned');
-          assert.equal((data as Record).attributes.name, 'Jupiter');
+      let record = await source.query(q => q.findRecord({ type: 'planet', id: planet.id }));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.ok(!Array.isArray(record), 'only a single primary recored returned');
+      assert.equal((record as Record).attributes.name, 'Jupiter');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#query - request can timeout', function(assert) {
+    test('#query - request can timeout', async function(assert) {
       assert.expect(2);
 
-      const data = {
+      const data: Resource = {
         type: 'planets',
         id: '12345',
         attributes: { name: 'Jupiter', classification: 'gas giant' } ,
@@ -1537,20 +1581,19 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, { data }, 20)); // 20ms delay
 
-      return source.query(q => q.findRecord({ type: 'planet', id: planet.id }))
-        .then(() => {
-          assert.ok(false, 'should not be reached');
-        })
-        .catch(e => {
-          assert.ok(e instanceof NetworkError, 'Network error raised');
-          assert.equal(e.description, 'No fetch response within 10ms.')
-        });
+      try {
+        await source.query(q => q.findRecord({ type: 'planet', id: planet.id }));
+        assert.ok(false, 'should not be reached');
+      } catch(e) {
+        assert.ok(e instanceof NetworkError, 'Network error raised');
+        assert.equal(e.description, 'No fetch response within 10ms.')
+      }
     });
 
-    test('#query - allowed timeout can be specified per-request', function(assert) {
+    test('#query - allowed timeout can be specified per-request', async function(assert) {
       assert.expect(2);
 
-      const data = {
+      const data: Resource = {
         type: 'planets',
         id: '12345',
         attributes: { name: 'Jupiter', classification: 'gas giant' } ,
@@ -1576,17 +1619,16 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, { data }, 20)); // 20ms delay
 
-      return source.query(q => q.findRecord({ type: 'planet', id: planet.id }), options)
-        .then(() => {
-          assert.ok(false, 'should not be reached');
-        })
-        .catch(e => {
-          assert.ok(e instanceof NetworkError, 'Network error raised');
-          assert.equal(e.description, 'No fetch response within 10ms.')
-        });
+      try {
+        await source.query(q => q.findRecord({ type: 'planet', id: planet.id }), options);
+        assert.ok(false, 'should not be reached');
+      } catch(e) {
+        assert.ok(e instanceof NetworkError, 'Network error raised');
+        assert.equal(e.description, 'No fetch response within 10ms.')
+      }
     });
 
-    test('#query - fetch can reject with a NetworkError', function(assert) {
+    test('#query - fetch can reject with a NetworkError', async function(assert) {
       assert.expect(2);
 
       const planet = source.serializer.deserializeResource({
@@ -1596,22 +1638,21 @@ module('JSONAPISource', function(hooks) {
 
       fetchStub
         .withArgs('/planets/12345')
-        .returns(Orbit.Promise.reject(':('));
+        .returns(Promise.reject(':('));
 
-      return source.query(q => q.findRecord({ type: 'planet', id: planet.id }))
-        .then(() => {
-          assert.ok(false, 'should not be reached');
-        })
-        .catch(e => {
-          assert.ok(e instanceof NetworkError, 'Network error raised');
-          assert.equal(e.description, ':(')
-        });
+      try {
+        await source.query(q => q.findRecord({ type: 'planet', id: planet.id }));
+        assert.ok(false, 'should not be reached');
+      } catch(e) {
+        assert.ok(e instanceof NetworkError, 'Network error raised');
+        assert.equal(e.description, ':(')
+      }
     });
 
-    test('#query - record with include', function(assert) {
+    test('#query - record with include', async function(assert) {
       assert.expect(2);
 
-      const data = {
+      const data: Resource = {
         type: 'planets',
         id: '12345',
         attributes: { name: 'Jupiter', classification: 'gas giant' } ,
@@ -1635,17 +1676,16 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/12345?include=moons')
         .returns(jsonapiResponse(200, { data }));
 
-      return source.query(q => q.findRecord({ type: 'planet', id: planet.id }), options)
-        .then(() => {
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      await source.query(q => q.findRecord({ type: 'planet', id: planet.id }), options);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#query - records', function(assert) {
+    test('#query - records', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } },
         { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial' } },
         { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant' } }
@@ -1655,21 +1695,20 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets')
         .returns(jsonapiResponse(200, { data }));
 
-      return source.query(q => q.findRecords('planet'))
-        .then((data) => {
-          assert.ok(Array.isArray(data), 'returned an array of data');
-          assert.equal(data.length, 3, 'three objects in data returned');
-          assert.deepEqual(data.map((o) => o.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
+      let records: Record[] = await source.query(q => q.findRecords('planet'));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 3, 'three objects in data returned');
+      assert.deepEqual(records.map((o) => o.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#query - records with attribute filter', function(assert) {
+    test('#query - records with attribute filter', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial', lengthOfDay: 24 } }
       ];
 
@@ -1677,22 +1716,21 @@ module('JSONAPISource', function(hooks) {
         .withArgs(`/planets?${encodeURIComponent('filter[length-of-day]')}=24`)
         .returns(jsonapiResponse(200, { data }));
 
-      return source.query(q => q.findRecords('planet')
-                               .filter({ attribute: 'lengthOfDay', value: 24 }))
-        .then(data => {
-          assert.ok(Array.isArray(data), 'returned an array of data');
-          assert.equal(data.length, 1, 'one objects in data returned');
-          assert.deepEqual(data.map((o) => o.attributes.name), ['Earth']);
+      let records: Record[] = await source.query(q => q.findRecords('planet')
+                                          .filter({ attribute: 'lengthOfDay', value: 24 }));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 1, 'one objects in data returned');
+      assert.deepEqual(records.map((o) => o.attributes.name), ['Earth']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#query - records with relatedRecord filter (single value)', function(assert) {
+    test('#query - records with relatedRecord filter (single value)', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         {
           id: 'moon',
           type: 'moons',
@@ -1707,22 +1745,21 @@ module('JSONAPISource', function(hooks) {
         .withArgs(`/moons?${encodeURIComponent('filter[planet]')}=earth`)
         .returns(jsonapiResponse(200, { data }));
 
-      return source.query(q => q.findRecords('moon')
-                               .filter({ relation: 'planet', record: { id: 'earth', type: 'planets' } }))
-        .then(data => {
-          assert.ok(Array.isArray(data), 'returned an array of data');
-          assert.equal(data.length, 1, 'one objects in data returned');
-          assert.deepEqual(data.map((o) => o.attributes.name), ['Moon']);
+      let records: Record[] = await source.query(q => q.findRecords('moon')
+                                          .filter({ relation: 'planet', record: { id: 'earth', type: 'planets' } }));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 1, 'one objects in data returned');
+      assert.deepEqual(records.map((o) => o.attributes.name), ['Moon']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#query - records with relatedRecord filter (multiple values)', function(assert) {
+    test('#query - records with relatedRecord filter (multiple values)', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         {
           id: 'moon',
           type: 'moons',
@@ -1753,22 +1790,21 @@ module('JSONAPISource', function(hooks) {
         .withArgs(`/moons?${encodeURIComponent('filter[planet]')}=${encodeURIComponent('earth,mars')}`)
         .returns(jsonapiResponse(200, { data }));
 
-      return source.query(q => q.findRecords('moon')
-                               .filter({ relation: 'planet', record: [{ id: 'earth', type: 'planets' }, { id: 'mars', type: 'planets' }] }))
-        .then(data => {
-          assert.ok(Array.isArray(data), 'returned an array of data');
-          assert.equal(data.length, 3, 'three objects in data returned');
-          assert.deepEqual(data.map((o) => o.attributes.name), ['Moon', 'Phobos', 'Deimos']);
+      let records: Record[] = await source.query(q => q.findRecords('moon')
+                                          .filter({ relation: 'planet', record: [{ id: 'earth', type: 'planets' }, { id: 'mars', type: 'planets' }] }))
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 3, 'three objects in data returned');
+      assert.deepEqual(records.map((o) => o.attributes.name), ['Moon', 'Phobos', 'Deimos']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#query - records with relatedRecords filter', function(assert) {
+    test('#query - records with relatedRecords filter', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         {
           id: 'mars',
           type: 'planets',
@@ -1783,26 +1819,25 @@ module('JSONAPISource', function(hooks) {
         .withArgs(`/planets?${encodeURIComponent('filter[moons]')}=${encodeURIComponent('phobos,deimos')}`)
         .returns(jsonapiResponse(200, { data }));
 
-      return source.query(q => q.findRecords('planet')
+      let records: Record[] = await source.query(q => q.findRecords('planet')
         .filter({
           relation: 'moons',
           records: [{ id: 'phobos', type: 'moons' }, { id: 'deimos', type: 'moons' }],
           op: 'equal'
-        }))
-        .then(data => {
-          assert.ok(Array.isArray(data), 'returned an array of data');
-          assert.equal(data.length, 1, 'one objects in data returned');
-          assert.deepEqual(data.map((o) => o.attributes.name), ['Mars']);
+        }));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 1, 'one objects in data returned');
+      assert.deepEqual(records.map((o) => o.attributes.name), ['Mars']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#query - records with sort by an attribute in ascending order', function(assert) {
+    test('#query - records with sort by an attribute in ascending order', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial' } },
         { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } },
         { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant' } }
@@ -1812,21 +1847,20 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets?sort=name')
         .returns(jsonapiResponse(200, { data }));
 
-      return source.query(q => q.findRecords('planet').sort('name'))
-        .then(data => {
-          assert.ok(Array.isArray(data), 'returned an array of data');
-          assert.equal(data.length, 3, 'three objects in data returned');
-          assert.deepEqual(data.map((o) => o.attributes.name), ['Earth', 'Jupiter', 'Saturn']);
+      let records: Record[] = await source.query(q => q.findRecords('planet').sort('name'));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 3, 'three objects in data returned');
+      assert.deepEqual(records.map((o) => o.attributes.name), ['Earth', 'Jupiter', 'Saturn']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#query - records with sort by an attribute in descending order', function(assert) {
+    test('#query - records with sort by an attribute in descending order', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant' } },
         { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } },
         { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial' } }
@@ -1836,21 +1870,20 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets?sort=-name')
         .returns(jsonapiResponse(200, { data }));
 
-      return source.query(q => q.findRecords('planet').sort('-name'))
-        .then(data => {
-          assert.ok(Array.isArray(data), 'returned an array of data');
-          assert.equal(data.length, 3, 'three objects in data returned');
-          assert.deepEqual(data.map((o) => o.attributes.name), ['Saturn', 'Jupiter', 'Earth']);
+      let records: Record[] = await source.query(q => q.findRecords('planet').sort('-name'));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 3, 'three objects in data returned');
+      assert.deepEqual(records.map((o) => o.attributes.name), ['Saturn', 'Jupiter', 'Earth']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#query - records with sort by multiple fields', function(assert) {
+    test('#query - records with sort by multiple fields', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant', lengthOfDay: 9.9 } },
         { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant', lengthOfDay: 10.7 } },
         { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial', lengthOfDay: 24.0 } }
@@ -1860,21 +1893,20 @@ module('JSONAPISource', function(hooks) {
         .withArgs(`/planets?sort=${encodeURIComponent('length-of-day,name')}`)
         .returns(jsonapiResponse(200, { data }));
 
-      return source.query(q => q.findRecords('planet').sort('lengthOfDay', 'name'))
-        .then(data => {
-          assert.ok(Array.isArray(data), 'returned an array of data');
-          assert.equal(data.length, 3, 'three objects in data returned');
-          assert.deepEqual(data.map((o) => o.attributes.name), ['Jupiter', 'Saturn', 'Earth']);
+      let records: Record[] = await source.query(q => q.findRecords('planet').sort('lengthOfDay', 'name'));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 3, 'three objects in data returned');
+      assert.deepEqual(records.map((o) => o.attributes.name), ['Jupiter', 'Saturn', 'Earth']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#query - records with pagination', function(assert) {
+    test('#query - records with pagination', async function(assert) {
       assert.expect(5);
 
-      const data = [
+      const data: Resource[] = [
         { type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } },
         { type: 'planets', attributes: { name: 'Earth', classification: 'terrestrial' } },
         { type: 'planets', attributes: { name: 'Saturn', classification: 'gas giant' } }
@@ -1884,19 +1916,18 @@ module('JSONAPISource', function(hooks) {
         .withArgs(`/planets?${encodeURIComponent('page[offset]')}=1&${encodeURIComponent('page[limit]')}=10`)
         .returns(jsonapiResponse(200, { data }));
 
-      return source.query(q => q.findRecords('planet')
-                               .page({ offset: 1, limit: 10 }))
-        .then(data => {
-          assert.ok(Array.isArray(data), 'returned an array of data');
-          assert.equal(data.length, 3, 'three objects in data returned');
-          assert.deepEqual(data.map((o) => o.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
+      let records: Record[] = await source.query(q => q.findRecords('planet')
+                                                       .page({ offset: 1, limit: 10 }));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 3, 'three objects in data returned');
+      assert.deepEqual(records.map((o) => o.attributes.name), ['Jupiter', 'Earth', 'Saturn']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#query - records with include', function(assert) {
+    test('#query - records with include', async function(assert) {
       assert.expect(2);
 
       const options = {
@@ -1911,14 +1942,13 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets?include=moons')
         .returns(jsonapiResponse(200, { data: [] }));
 
-      return source.query(q => q.findRecords('planet'), options)
-        .then(() => {
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      await source.query(q => q.findRecords('planet'), options);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#query - records with include: verify only primary data array is returned', function(assert) {
+    test('#query - records with include: verify only primary data array is returned', async function(assert) {
       assert.expect(6);
 
       const options = {
@@ -1936,19 +1966,18 @@ module('JSONAPISource', function(hooks) {
           included: [{ type: "moons", id: 1 }, { type: "moons", id: 2 }]
         }));
 
-      return source.query(q => q.findRecords('planet'), options)
-        .then((result) => {
-          assert.ok(Array.isArray(result), 'query result is an array, like primary data');
-          assert.equal(result.length, 2, 'query result length equals primary data length');
-          assert.deepEqual(result.map(planet => planet.type), ["planet", "planet"]);
-          assert.deepEqual(result.map(planet => planet.keys.remoteId), [1, 2], "returned IDs match primary data (including sorting)");
+      let records: Record[] = await source.query(q => q.findRecords('planet'), options);
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.ok(Array.isArray(records), 'query result is an array, like primary data');
+      assert.equal(records.length, 2, 'query result length equals primary data length');
+      assert.deepEqual(records.map(planet => planet.type), ["planet", "planet"]);
+      assert.deepEqual(records.map(planet => planet.keys.remoteId), [1, 2], "returned IDs match primary data (including sorting)");
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#query - records with include many relationships', function(assert) {
+    test('#query - records with include many relationships', async function(assert) {
       assert.expect(2);
 
       const options = {
@@ -1963,14 +1992,13 @@ module('JSONAPISource', function(hooks) {
         .withArgs(`/planets?include=${encodeURIComponent('moons,solar-systems')}`)
         .returns(jsonapiResponse(200, { data: [] }));
 
-      return source.query(q => q.findRecords('planet'), options)
-        .then(() => {
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      await source.query(q => q.findRecords('planet'), options);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#query - relatedRecords', function(assert) {
+    test('#query - relatedRecords', async function(assert) {
       assert.expect(5);
 
       let planetRecord: Record = <Record>source.serializer.deserializeDocument({
@@ -1992,18 +2020,17 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/jupiter/moons')
         .returns(jsonapiResponse(200, { data }));
 
-      return source.query(q => q.findRelatedRecords(planetRecord, 'moons'))
-        .then((data) => {
-          assert.ok(Array.isArray(data), 'returned an array of data');
-          assert.equal(data.length, 1, 'one objects in data returned');
-          assert.deepEqual(data.map((o) => o.attributes.name), ['Io']);
+      let records: Record[] = await source.query(q => q.findRelatedRecords(planetRecord, 'moons'));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 1, 'one objects in data returned');
+      assert.deepEqual(records.map((o) => o.attributes.name), ['Io']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
-    test('#query - relatedRecords with include', function(assert) {
+    test('#query - relatedRecords with include', async function(assert) {
       assert.expect(2);
 
       const planetRecord = source.serializer.deserializeDocument({
@@ -2025,17 +2052,16 @@ module('JSONAPISource', function(hooks) {
         .withArgs('/planets/jupiter/moons?include=planet')
         .returns(jsonapiResponse(200, { data: [] }));
 
-      return source.query(q => q.findRelatedRecords(<RecordIdentity>planetRecord, 'moons'), options)
-        .then(() => {
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
-        });
+      await source.query(q => q.findRelatedRecords(<RecordIdentity>planetRecord, 'moons'), options);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
   });
 
   module('with no secondary keys', function(hooks) {
     hooks.beforeEach(function() {
-      fetchStub = sinon.stub(Orbit, 'fetch');
+      fetchStub = sinon.stub(self, 'fetch');
 
       let schema = new Schema({
         models: {
@@ -2067,7 +2093,7 @@ module('JSONAPISource', function(hooks) {
       fetchStub.restore();
     });
 
-    test('#push - can add records', function(assert) {
+    test('#push - can add records', async function(assert) {
       assert.expect(5);
 
       let transformCount = 0;
@@ -2090,7 +2116,7 @@ module('JSONAPISource', function(hooks) {
         }
       };
 
-      source.on('transform', <() => void>function(transform) {
+      source.on('transform', (transform: Transform) => {
         transformCount++;
 
         if (transformCount === 1) {
@@ -2108,27 +2134,26 @@ module('JSONAPISource', function(hooks) {
           data: { id: planet.id, type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
         }));
 
-      return source.push(t => t.addRecord(planet))
-        .then(function() {
-          assert.ok(true, 'transform resolves successfully');
+      await source.push(t => t.addRecord(planet));
 
-          assert.equal(fetchStub.callCount, 1, 'fetch called once');
-          assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
-          assert.deepEqual(
-            JSON.parse(fetchStub.getCall(0).args[1].body),
-            {
-              data: {
-                type: 'planets',
-                id: planet.id,
-                attributes: {
-                  name: 'Jupiter',
-                  classification: 'gas giant'
-                }
-              }
-            },
-            'fetch called with expected data'
-          );
-        });
+      assert.ok(true, 'transform resolves successfully');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(fetchStub.getCall(0).args[1].method, 'POST', 'fetch called with expected method');
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        {
+          data: {
+            type: 'planets',
+            id: planet.id,
+            attributes: {
+              name: 'Jupiter',
+              classification: 'gas giant'
+            }
+          }
+        },
+        'fetch called with expected data'
+      );
     });
   });
 });

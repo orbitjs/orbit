@@ -54,17 +54,53 @@ export function equalRecordIdentities(record1: RecordIdentity, record2: RecordId
       record1.id === record2.id);
 }
 
+export function equalRecordIdentitySets(set1: RecordIdentity[], set2: RecordIdentity[]): boolean {
+  if (set1.length === set2.length) {
+    if (set1.length === 0) {
+      return true;
+    }
+
+    const serialized1 = serializeRecordIdentities(set1);
+    const serialized2 = serializeRecordIdentities(set2);
+
+    return exclusiveIdentities(serialized1, serialized2).length === 0 &&
+           exclusiveIdentities(serialized2, serialized1).length === 0;
+  }
+  return false;
+}
+
+export function uniqueRecordIdentities(set1: RecordIdentity[], set2: RecordIdentity[]): RecordIdentity[] {
+  return exclusiveIdentities(serializeRecordIdentities(set1),
+                             serializeRecordIdentities(set2))
+    .map(id => deserializeRecordIdentity(id));
+}
+
+export function recordsInclude(records: RecordIdentity[], match: RecordIdentity): boolean {
+  for (let r of records) {
+    if (equalRecordIdentities(r, match)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function recordsIncludeAll(records: RecordIdentity[], match: RecordIdentity[]): boolean {
+  return exclusiveIdentities(serializeRecordIdentities(match), serializeRecordIdentities(records)).length === 0;
+}
+
 export function mergeRecords(current: Record | null, updates: Record): Record {
   if (current) {
-    let record = cloneRecordIdentity(current);
+    let record: any = cloneRecordIdentity(current);
+    let currentRecord: any = current;
+    let updatedRecord: any = updates;
 
     ['attributes', 'keys', 'relationships'].forEach(grouping => {
-      if (current[grouping] && updates[grouping]) {
-        record[grouping] = merge({}, current[grouping], updates[grouping]);
-      } else if (current[grouping]) {
-        record[grouping] = merge({}, current[grouping]);
-      } else if (updates[grouping]) {
-        record[grouping] = merge({}, updates[grouping]);
+      if (currentRecord[grouping] && updatedRecord[grouping]) {
+        record[grouping] = merge({}, currentRecord[grouping], updatedRecord[grouping]);
+      } else if (currentRecord[grouping]) {
+        record[grouping] = merge({}, currentRecord[grouping]);
+      } else if (updatedRecord[grouping]) {
+        record[grouping] = merge({}, updatedRecord[grouping]);
       }
     });
 
@@ -72,4 +108,21 @@ export function mergeRecords(current: Record | null, updates: Record): Record {
   } else {
     return updates;
   }
+}
+
+export function serializeRecordIdentity(record: RecordIdentity): string {
+  return `${record.type}:${record.id}`;
+}
+
+export function deserializeRecordIdentity(identity: string): RecordIdentity {
+  const [type, id] = identity.split(':');
+  return { type, id };
+}
+
+function serializeRecordIdentities(recordIdentities: RecordIdentity[]): string[] {
+  return recordIdentities.map(r => serializeRecordIdentity(r));
+}
+
+function exclusiveIdentities(identities1: string[], identities2: string[]): string[] {
+  return identities1.filter(i => !identities2.includes(i));
 }

@@ -4,7 +4,8 @@ import Orbit, {
   Schema,
   Source, SourceSettings,
   Syncable, syncable,
-  Query, QueryOrExpression,
+  Query,
+  QueryOrExpression,
   Queryable, queryable,
   Updatable, updatable,
   Transform,
@@ -12,9 +13,11 @@ import Orbit, {
   coalesceRecordOperations,
   buildTransform
 } from '@orbit/data';
-import { Log } from '@orbit/core';
-import { assert, Dict } from '@orbit/utils';
-import Cache, { CacheSettings, PatchResultData } from './cache';
+import { Dict } from '@orbit/utils';
+import Cache, { CacheSettings } from './cache';
+import { PatchResultData } from '@orbit/record-cache';
+
+const { assert } = Orbit;
 
 export interface StoreSettings extends SourceSettings {
   base?: Store;
@@ -59,9 +62,9 @@ export default class Store extends Source implements Syncable, Queryable, Updata
     this._transforms = {};
     this._transformInverses = {};
 
-    this.transformLog.on('clear', <() => void>this._logCleared, this);
-    this.transformLog.on('truncate', <() => void>this._logTruncated, this);
-    this.transformLog.on('rollback', <() => void>this._logRolledback, this);
+    this.transformLog.on('clear', this._logCleared.bind(this));
+    this.transformLog.on('truncate', this._logTruncated.bind(this));
+    this.transformLog.on('rollback', this._logRolledback.bind(this));
 
     let cacheSettings: CacheSettings = settings.cacheSettings || {};
     cacheSettings.schema = schema;
@@ -90,33 +93,39 @@ export default class Store extends Source implements Syncable, Queryable, Updata
 
   upgrade(): Promise<void> {
     this._cache.upgrade();
-    return Orbit.Promise.resolve();
+    return Promise.resolve();
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Syncable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _sync(transform: Transform): Promise<void> {
+  async _sync(transform: Transform): Promise<void> {
     this._applyTransform(transform);
-    return Orbit.Promise.resolve();
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Updatable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _update(transform: Transform): Promise<any> {
+  async _update(transform: Transform): Promise<any> {
     let results = this._applyTransform(transform);
-    return Orbit.Promise.resolve(results.length === 1 ? results[0] : results);
+    return results.length === 1 ? results[0] : results;
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Queryable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _query(query: QueryOrExpression) {
-    return Orbit.Promise.resolve(this._cache.query(query));
+  async _query(query: Query, hints?: any): Promise<any> {
+    if (hints && hints.data) {
+      if (Array.isArray(hints.data)) {
+        return this._cache.query(q => q.findRecords(hints.data));
+      } else if (hints.data) {
+        return this._cache.query(q => q.findRecord(hints.data));
+      }
+    }
+    return this._cache.query(query);
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -133,7 +142,7 @@ export default class Store extends Source implements Syncable, Queryable, Updata
    @method fork
    @returns {Store} The forked store.
   */
-  fork(settings: StoreSettings = {}) {
+  fork(settings: StoreSettings = {}): Store {
     settings.schema = this._schema;
     settings.cacheSettings = settings.cacheSettings || {};
     settings.keyMap = this._keyMap;

@@ -1,21 +1,26 @@
-import Orbit, {
-  Source,
-  pullable, isPullable,
+import {
   Query,
-  buildTransform
+  QueryOrExpression,
+  Source,
+  Transform,
+  pullable, isPullable,
+  buildTransform,
+  Pullable
 } from '../../src/index';
 import '../test-helper';
 
-const { Promise } = Orbit;
 const { module, test } = QUnit;
 
 module('@pullable', function(hooks) {
-  let source;
+  @pullable
+  class MySource extends Source implements Pullable {
+    pull: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<Transform[]>;
+    _pull: (query: Query, hints?: any) => Promise<Transform[]>;
+  }
+
+  let source: MySource;
 
   hooks.beforeEach(function() {
-    @pullable
-    class MySource extends Source {}
-
     source = new MySource();
   });
 
@@ -37,21 +42,22 @@ module('@pullable', function(hooks) {
   //   'assertion raised');
   // });
 
-  test('#pull should resolve as a failure when _pull fails', function(assert) {
+  test('#pull should resolve as a failure when _pull fails', async function(assert) {
     assert.expect(2);
 
-    source._pull = function() {
+    source._pull = async function() {
       return Promise.reject(':(');
     };
 
-    return source.pull(q => q.findRecords('planet'))
-      .catch((error) => {
-        assert.ok(true, 'pull promise resolved as a failure');
-        assert.equal(error, ':(', 'failure');
-      });
+    try {
+      await source.pull(q => q.findRecords('planet'));
+    } catch(error) {
+      assert.ok(true, 'pull promise resolved as a failure');
+      assert.equal(error, ':(', 'failure');
+    }
   });
 
-  test('#pull should trigger `pull` event after a successful action in which `_pull` returns an array of transforms', function(assert) {
+  test('#pull should trigger `pull` event after a successful action in which `_pull` returns an array of transforms', async function(assert) {
     assert.expect(9);
 
     let order = 0;
@@ -80,14 +86,13 @@ module('@pullable', function(hooks) {
       assert.strictEqual(result, resultingTransforms, 'result matches');
     });
 
-    return source.pull(qe)
-      .then((result) => {
-        assert.equal(++order, 3, 'promise resolved last');
-        assert.strictEqual(result, resultingTransforms, 'success!');
-      });
+    let result = await source.pull(qe);
+
+    assert.equal(++order, 3, 'promise resolved last');
+    assert.strictEqual(result, resultingTransforms, 'success!');
   });
 
-  test('#pull should resolve all promises returned from `beforePull` before calling `_transform`', function(assert) {
+  test('#pull should resolve all promises returned from `beforePull` before calling `_transform`', async function(assert) {
     assert.expect(12);
 
     let order = 0;
@@ -113,10 +118,10 @@ module('@pullable', function(hooks) {
       return Promise.resolve();
     });
 
-    source._pull = function(query) {
+    source._pull = async function(query) {
       assert.equal(++order, 4, 'action performed after willPull');
       assert.strictEqual(query.expression, qe, 'query object matches');
-      return Promise.resolve(resultingTransforms);
+      return resultingTransforms;
     };
 
     let transformCount = 0;
@@ -131,14 +136,13 @@ module('@pullable', function(hooks) {
       assert.strictEqual(result, resultingTransforms, 'result matches');
     });
 
-    return source.pull(qe)
-      .then((result) => {
-        assert.equal(++order, 6, 'promise resolved last');
-        assert.strictEqual(result, resultingTransforms, 'success!');
-      });
+    let result = await source.pull(qe);
+
+    assert.equal(++order, 6, 'promise resolved last');
+    assert.strictEqual(result, resultingTransforms, 'success!');
   });
 
-  test('#pull should resolve all promises returned from `beforePull` and fail if any fail', function(assert) {
+  test('#pull should resolve all promises returned from `beforePull` and fail if any fail', async function(assert) {
     assert.expect(7);
 
     let order = 0;
@@ -154,8 +158,9 @@ module('@pullable', function(hooks) {
       return Promise.reject(':(');
     });
 
-    source._pull = function() {
+    source._pull = async function(query: Query): Promise<Transform[]> {
       assert.ok(false, '_pull should not be invoked');
+      return [];
     };
 
     source.on('pull', () => {
@@ -168,14 +173,15 @@ module('@pullable', function(hooks) {
       assert.equal(error, ':(', 'error matches');
     });
 
-    return source.pull(qe)
-      .catch((error) => {
-        assert.equal(++order, 4, 'promise resolved last');
-        assert.equal(error, ':(', 'failure');
-      });
+    try {
+      await source.pull(qe);
+    } catch(error) {
+      assert.equal(++order, 4, 'promise resolved last');
+      assert.equal(error, ':(', 'failure');
+    }
   });
 
-  test('#pull should trigger `pullFail` event after an unsuccessful pull', function(assert) {
+  test('#pull should trigger `pullFail` event after an unsuccessful pull', async function(assert) {
     assert.expect(7);
 
     let order = 0;
@@ -197,10 +203,62 @@ module('@pullable', function(hooks) {
       assert.equal(error, ':(', 'error matches');
     });
 
-    return source.pull(qe)
-      .catch((error) => {
-        assert.equal(++order, 3, 'promise resolved last');
-        assert.equal(error, ':(', 'failure');
-      });
+    try {
+      await source.pull(qe);
+    } catch(error) {
+      assert.equal(++order, 3, 'promise resolved last');
+      assert.equal(error, ':(', 'failure');
+    }
   });
+
+  test('#pull should pass a common `hints` object to all `beforePull` events and forward it to `_pull`', async function(assert) {
+    assert.expect(16);
+
+    let order = 0;
+    let qe = { op: 'findRecords', type: 'planet' };
+    let h: any;
+    const resultingTransforms = [
+      buildTransform({ op: 'addRecord' }),
+      buildTransform({ op: 'replaceRecordAttribute' })
+    ];
+
+    source.on('beforePull', async function(query: Query, hints: any) {
+      assert.equal(++order, 1, 'beforePull triggered first');
+      assert.deepEqual(hints, {}, 'beforePull is passed empty `hints` object')
+      h = hints;
+      hints.data = resultingTransforms;
+    });
+
+    source.on('beforePull', async function(query: Query, hints: any) {
+      assert.equal(++order, 2, 'beforePull triggered second');
+      assert.strictEqual(hints, h, 'beforePull is passed same hints instance');
+    });
+
+    source.on('beforePull', async function(query: Query, hints: any) {
+      assert.equal(++order, 3, 'beforePull triggered third');
+      assert.strictEqual(hints, h, 'beforePull is passed same hints instance');
+    });
+
+    source._pull = async function(query: Query, hints: any) {
+      assert.equal(++order, 4, 'action performed after willPull');
+      assert.strictEqual(query.expression, qe, 'query object matches');
+      assert.strictEqual(hints, h, '_pull is passed same hints instance');
+      return hints.data;
+    };
+
+    let transformCount = 0;
+    source.on('transform', async function(transform) {
+      assert.strictEqual(transform, resultingTransforms[transformCount++], 'transform matches');
+    });
+
+    source.on('pull', (query, result) => {
+      assert.equal(++order, 5, 'pull triggered after action performed successfully');
+      assert.strictEqual(query.expression, qe, 'query matches');
+      assert.strictEqual(result, resultingTransforms, 'result matches');
+    });
+
+    let result = await source.pull(qe);
+
+    assert.equal(++order, 6, 'promise resolved last');
+    assert.strictEqual(result, resultingTransforms, 'success!');  });
 });

@@ -2,17 +2,17 @@ import {
   Source,
   Schema,
   buildTransform,
+  Transform,
   TransformBuilder,
   QueryBuilder
 } from '../src/index';
-import Orbit, { isEvented } from '@orbit/core';
 import { FakeBucket } from './test-helper';
 
 const { module, test } = QUnit;
 
 module('Source', function(hooks) {
-  let source;
-  let schema;
+  let source: any;
+  let schema: Schema;
 
   class MySource extends Source {}
 
@@ -26,18 +26,19 @@ module('Source', function(hooks) {
     assert.ok(source.transformLog, 'has a transform log');
   });
 
-  test('it can be assigned a schema, which will be observed for upgrades by default', function(assert) {
+  test('it can be assigned a schema, which will be observed for upgrades by default', async function(assert) {
     assert.expect(2);
 
     class MyDynamicSource extends Source {
-      upgrade() {
+      async upgrade() {
         assert.ok(true, 'upgrade called');
-        return Orbit.Promise.resolve();
       }
     };
 
     source = new MyDynamicSource({ schema });
+
     schema.upgrade({});
+
     assert.ok(true, 'after upgrade');
   });
 
@@ -45,9 +46,8 @@ module('Source', function(hooks) {
     assert.expect(1);
 
     class MyDynamicSource extends Source {
-      upgrade() {
+      async upgrade(): Promise<void> {
         assert.ok(false, 'upgrade should not be called');
-        return Orbit.Promise.resolve();
       }
     };
 
@@ -129,25 +129,24 @@ module('Source', function(hooks) {
     assert.strictEqual(transformBuilder, source.transformBuilder, 'transformBuilder remains the same');
   });
 
-  test('#_transformed should trigger `transform` event BEFORE resolving', function(assert) {
+  test('#_transformed should trigger `transform` event BEFORE resolving', async function(assert) {
     assert.expect(3);
 
     source = new MySource();
     let order = 0;
     const appliedTransform = buildTransform({ op: 'addRecord' });
 
-    source.on('transform', (transform) => {
+    source.on('transform', (transform: Transform) => {
       assert.equal(++order, 1, '`transform` event triggered after action performed successfully');
       assert.strictEqual(transform, appliedTransform, 'applied transform matches');
     });
 
-    return source._transformed([appliedTransform])
-      .then(() => {
-        assert.equal(++order, 2, '_transformed promise resolved last');
-      });
+    await source._transformed([appliedTransform]);
+
+    assert.equal(++order, 2, '_transformed promise resolved last');
   });
 
-  test('#transformLog contains transforms applied', function(assert) {
+  test('#transformLog contains transforms applied', async function(assert) {
     assert.expect(2);
 
     source = new MySource();
@@ -155,8 +154,8 @@ module('Source', function(hooks) {
 
     assert.ok(!source.transformLog.contains(appliedTransform.id));
 
-    return source
-      ._transformed([appliedTransform])
-      .then(() => assert.ok(source.transformLog.contains(appliedTransform.id)));
+    await source._transformed([appliedTransform]);
+
+    assert.ok(source.transformLog.contains(appliedTransform.id));
   });
 });

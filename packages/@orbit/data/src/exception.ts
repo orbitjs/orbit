@@ -2,10 +2,6 @@ import { Exception } from '@orbit/core';
 
 /**
  * An client-side error occurred while communicating with a remote server.
- * 
- * @export
- * @class ClientError
- * @extends {Exception}
  */
 export class ClientError extends Exception {
   public description: string;
@@ -18,10 +14,6 @@ export class ClientError extends Exception {
 
 /**
  * A server-side error occurred while communicating with a remote server.
- * 
- * @export
- * @class ServerError
- * @extends {Exception}
  */
 export class ServerError extends Exception {
   public description: string;
@@ -35,10 +27,6 @@ export class ServerError extends Exception {
 /**
  * A networking error occurred while attempting to communicate with a remote
  * server.
- *
- * @export
- * @class NetworkError
- * @extends {Exception}
  */
 export class NetworkError extends Exception {
   public description: string;
@@ -51,10 +39,6 @@ export class NetworkError extends Exception {
 
 /**
  * A query expression could not be parsed.
- * 
- * @export
- * @class QueryExpressionParseError
- * @extends {Exception}
  */
 export class QueryExpressionParseError extends Exception {
   public description: string;
@@ -69,10 +53,6 @@ export class QueryExpressionParseError extends Exception {
 
 /**
  * A query is invalid for a particular source.
- * 
- * @export
- * @class QueryNotAllowed
- * @extends {Exception}
  */
 export class QueryNotAllowed extends Exception {
   public description: string;
@@ -87,10 +67,6 @@ export class QueryNotAllowed extends Exception {
 
 /**
  * A transform is invalid for a particular source.
- * 
- * @export
- * @class TransformNotAllowed
- * @extends {Exception}
  */
 export class TransformNotAllowed extends Exception {
   public description: string;
@@ -105,9 +81,6 @@ export class TransformNotAllowed extends Exception {
 
 /**
  * An error occured related to the schema.
- * 
- * @export
- * @class SchemaError
  */
 export class SchemaError extends Exception {
   public description: string;
@@ -121,9 +94,6 @@ export class SchemaError extends Exception {
 
 /**
  * A model could not be found in the schema.
- * 
- * @export
- * @class ModelNotFound
  */
 export class ModelNotFound extends SchemaError {
   constructor(type: string) {
@@ -133,11 +103,6 @@ export class ModelNotFound extends SchemaError {
 
 /**
  * An error occurred related to a particular record.
- * 
- * @export
- * @abstract
- * @class RecordException
- * @extends {Exception}
  */
 export abstract class RecordException extends Exception {
   public description: string;
@@ -163,39 +128,9 @@ export abstract class RecordException extends Exception {
 
 /**
  * A record could not be found.
- * 
- * @export
- * @class RecordNotFoundException
- * @extends {RecordException}
  */
 export class RecordNotFoundException extends RecordException {
   constructor(type: string, id: string) {
     super('Record not found', type, id);
-  }
-}
-
-/**
- * A relationship could not be found.
- * 
- * @export
- * @class RelationshipNotFoundException
- * @extends {RecordException}
- */
-export class RelationshipNotFoundException extends RecordException {
-  constructor(type: string, id: string, relationship: string) {
-    super('Relationship not found', type, id, relationship);
-  }
-}
-
-/**
- * The record already exists.
- * 
- * @export
- * @class RecordAlreadyExistsException
- * @extends {RecordException}
- */
-export class RecordAlreadyExistsException extends RecordException {
-  constructor(type: string, id: string) {
-    super('Record already exists', type, id);
   }
 }

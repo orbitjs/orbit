@@ -1,10 +1,11 @@
 import QueryBuilder from '../src/query-builder';
 import './test-helper';
+import { FindRecord, FindRecords } from '../src/query-expression';
 
 const { module, test } = QUnit;
 
 module('QueryBuilder', function(hooks) {
-  let oqb;
+  let oqb: QueryBuilder;
 
   hooks.beforeEach(function() {
     oqb = new QueryBuilder();
@@ -19,17 +20,27 @@ module('QueryBuilder', function(hooks) {
           type: 'planet',
           id: '123'
         }
-      }
+      } as FindRecord
     );
   });
 
-  test('findRecords', function(assert) {
+  test('findRecords by type', function(assert) {
     assert.deepEqual(
       oqb.findRecords('planet').toQueryExpression(),
       {
         op: 'findRecords',
         type: 'planet'
-      }
+      } as FindRecords
+    );
+  });
+
+  test('findRecords by identities', function(assert) {
+    assert.deepEqual(
+      oqb.findRecords([{ type: 'planet', id: 'earth' }, { type: 'planet', id: 'mars' }]).toQueryExpression(),
+      {
+        op: 'findRecords',
+        records: [{ type: 'planet', id: 'earth' }, { type: 'planet', id: 'mars' }]
+      } as FindRecords
     );
   });
 
@@ -50,7 +61,7 @@ module('QueryBuilder', function(hooks) {
             value: 'Pluto'
           }
         ]
-      }
+      } as FindRecords
     );
   });
 
@@ -78,7 +89,7 @@ module('QueryBuilder', function(hooks) {
             value: 'terrestrial'
           }
         ]
-      }
+      } as FindRecords
     );
   });
 
@@ -99,7 +110,7 @@ module('QueryBuilder', function(hooks) {
             record: { id: '1', type: 'star' }
           }
         ]
-      }
+      } as FindRecords
     );
   });
 
@@ -124,7 +135,7 @@ module('QueryBuilder', function(hooks) {
             records: [{ id: '1', type: 'moon' }, { id: '2', type: 'moon' }]
           }
         ]
-      }
+      } as FindRecords
     );
   });
 
@@ -144,7 +155,7 @@ module('QueryBuilder', function(hooks) {
             order: 'ascending'
           }
         ]
-      }
+      } as FindRecords
     );
   });
 
@@ -164,7 +175,7 @@ module('QueryBuilder', function(hooks) {
             order: 'descending'
           }
         ]
-      }
+      } as FindRecords
     );
   });
 
@@ -189,7 +200,7 @@ module('QueryBuilder', function(hooks) {
             order: 'ascending'
           }
         ]
-      }
+      } as FindRecords
     );
   });
 
@@ -209,7 +220,7 @@ module('QueryBuilder', function(hooks) {
             order: 'ascending'
           }
         ]
-      }
+      } as FindRecords
     );
   });
 
@@ -229,7 +240,7 @@ module('QueryBuilder', function(hooks) {
             order: 'ascending'
           }
         ]
-      }
+      } as FindRecords
     );
   });
 
@@ -255,7 +266,7 @@ module('QueryBuilder', function(hooks) {
             order: 'descending'
           }
         ]
-      }
+      } as FindRecords
     );
   });
 
@@ -266,7 +277,7 @@ module('QueryBuilder', function(hooks) {
           .findRecords('planet')
           .sort(null);
       },
-      new Error('Sort expression must be either an object or a string.')
+      new Error('Unrecognized sort param.')
     );
   });
 
@@ -279,8 +290,12 @@ module('QueryBuilder', function(hooks) {
       {
         op: 'findRecords',
         type: 'planet',
-        page: { offset: 1, limit: 10 }
-      }
+        page: {
+          kind: 'offsetLimit',
+          offset: 1,
+          limit: 10
+        }
+      } as FindRecords
     );
   });
 
@@ -310,7 +325,11 @@ module('QueryBuilder', function(hooks) {
             value: 23000000
           }
         ],
-        page: { offset: 1, limit: 10 },
+        page: {
+          kind: 'offsetLimit',
+          offset: 1,
+          limit: 10
+        },
         sort: [
           {
             kind: 'attribute',
@@ -318,7 +337,7 @@ module('QueryBuilder', function(hooks) {
             order: 'descending'
           }
         ]
-      }
+      } as FindRecords
     );
   });
 });

@@ -9,7 +9,7 @@ export interface ResourceIdentity {
 }
 
 export interface ResourceHasOneRelationship {
-  data?: ResourceIdentity;
+  data?: ResourceIdentity | null;
   meta?: any;
   links?: RecordRelationshipLinks;
 }

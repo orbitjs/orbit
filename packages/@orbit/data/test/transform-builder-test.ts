@@ -4,7 +4,7 @@ import './test-helper';
 const { module, test } = QUnit;
 
 module('TransformBuilder', function(hooks) {
-  let tb;
+  let tb: TransformBuilder;
 
   hooks.beforeEach(function() {
     tb = new TransformBuilder();
@@ -19,12 +19,12 @@ module('TransformBuilder', function(hooks) {
     );
   });
 
-  test('#replaceRecord', function(assert) {
+  test('#updateRecord', function(assert) {
     let record = { type: 'planet', id: 'jupiter' };
 
     assert.deepEqual(
-      tb.replaceRecord(record),
-      { op: 'replaceRecord', record }
+      tb.updateRecord(record),
+      { op: 'updateRecord', record }
     );
   });
 
@@ -109,7 +109,7 @@ module('TransformBuilder', function(hooks) {
     let record = { type: 'planet' };
 
     assert.deepEqual(
-      tb.addRecord(record),
+      tb.addRecord(record as Record),
       { op: 'addRecord', record: { type: 'planet', id: 'abc123' } }
     );
   });

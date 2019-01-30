@@ -1,37 +1,23 @@
-import Coordinator, { ActivationOptions, LogLevel } from '../coordinator';
+import Coordinator, { ActivationOptions } from '../coordinator';
 import { Strategy, StrategyOptions } from '../strategy';
-import Orbit, {
-  Source,
-  Transform,
-  isSyncable,
-  Syncable
-} from '@orbit/data';
-import { Dict, assert, objectValues, deepGet, deepSet } from '@orbit/utils';
+import Orbit, { Listener } from '@orbit/core';
+import { Source } from '@orbit/data';
 
-declare const console: any;
+const { assert } = Orbit;
 
 export interface ConnectionStrategyOptions extends StrategyOptions {
   /**
    * The name of the source to be observed.
-   *
-   * @type {string}
-   * @memberOf ConnectionStrategyOptions
    */
   source: string;
 
   /**
    * The name of the event to observe.
-   *
-   * @type {string}
-   * @memberOf ConnectionStrategyOptions
    */
   on: string;
 
   /**
    * The name of the source which will be acted upon.
-   *
-   * @type {string}
-   * @memberOf ConnectionStrategyOptions
    */
   target?: string;
 
@@ -41,17 +27,11 @@ export interface ConnectionStrategyOptions extends StrategyOptions {
    * Can be specified as a string (e.g. `pull`) or a function which will be
    * invoked in the context of this strategy (and thus will have access to
    * both `this.source` and `this.target`).
-   *
-   * @type {(string | Function)}
-   * @memberOf ConnectionStrategyOptions
    */
   action: string | Function;
 
   /**
    * A handler for any errors thrown as a result of performing the action.
-   *
-   * @type {Function}
-   * @memberOf ConnectionStrategyOptions
    */
   catch?: Function;
 
@@ -60,9 +40,6 @@ export interface ConnectionStrategyOptions extends StrategyOptions {
    *
    * `filter` will be invoked in the context of this strategy (and thus will
    * have access to both `this.source` and `this.target`).
-   *
-   * @type {Function}
-   * @memberOf ConnectionStrategyOptions
    */
   filter?: Function;
 
@@ -71,9 +48,6 @@ export interface ConnectionStrategyOptions extends StrategyOptions {
    * of the source's event?
    *
    * By default, `blocking` is false.
-   *
-   * @type {(boolean | Function)}
-   * @memberOf ConnectionStrategyOptionss
    */
   blocking?: boolean | Function;
 }
@@ -83,7 +57,7 @@ export class ConnectionStrategy extends Strategy {
   protected _event: string;
   protected _action: string | Function;
   protected _catch: Function;
-  protected _listener: Function;
+  protected _listener: Listener;
   protected _filter: Function;
 
   constructor(options: ConnectionStrategyOptions) {
@@ -124,26 +98,22 @@ export class ConnectionStrategy extends Strategy {
     return this._blocking;
   }
 
-  activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<any> {
-    return super.activate(coordinator, options)
-      .then(() => {
-        this._listener = this._generateListener();
-        this.source.on(this._event, this._listener, this);
-      });
+  async activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<void> {
+    await super.activate(coordinator, options);
+    this._listener = this.generateListener();
+    this.source.on(this._event, this._listener);
   }
 
-  deactivate(): Promise<any> {
-    return super.deactivate()
-      .then(() => {
-        this.source.off(this._event, this._listener, this);
-        this._listener = null;
-      });
+  async deactivate(): Promise<void> {
+    await super.deactivate()
+    this.source.off(this._event, this._listener);
+    this._listener = null;
   }
 
-  protected _generateListener() {
-    let target: any = this.target;
+  protected generateListener(): Listener {
+    const target = this.target as any;
 
-    return (...args) => {
+    return (...args: any[]) => {
       let result;
 
       if (this._filter) {
@@ -153,13 +123,13 @@ export class ConnectionStrategy extends Strategy {
       }
 
       if (typeof this._action === 'string') {
-        result = this.target[this._action](...args);
+        result = target[this._action](...args);
       } else {
         result = this._action.apply(this, args);
       }
 
       if (this._catch && result && result.catch) {
-        result = result.catch((e) => {
+        result = result.catch((e: Error) => {
           args.unshift(e);
           return this._catch.apply(this, args);
         });

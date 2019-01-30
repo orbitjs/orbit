@@ -13,13 +13,14 @@ import Orbit, {
   Queryable, queryable,
   Record
 } from '@orbit/data';
-import { assert, merge, deepMerge, deprecate } from '@orbit/utils';
-import JSONAPISerializer, { DeserializedDocument, JSONAPISerializerSettings } from './jsonapi-serializer';
+import { deepMerge } from '@orbit/utils';
+import JSONAPISerializer, { JSONAPISerializerSettings } from './jsonapi-serializer';
 import { appendQueryParams } from './lib/query-params';
-import { PullOperator, PullOperators } from './lib/pull-operators';
 import { getTransformRequests, TransformRequestProcessors } from './lib/transform-requests';
 import { InvalidServerResponse } from './lib/exceptions';
 import { QueryOperator, QueryOperators } from "./lib/query-operators";
+
+const { assert, deprecate } = Orbit;
 
 export interface FetchSettings {
   headers?: object;
@@ -43,6 +44,7 @@ export interface JSONAPISourceSettings extends SourceSettings {
   defaultFetchHeaders?: object;
   defaultFetchTimeout?: number;
   defaultFetchSettings?: FetchSettings;
+  allowedContentTypes?: string[];
   SerializerClass?: (new (settings: JSONAPISerializerSettings) => JSONAPISerializer);
 }
 
@@ -67,6 +69,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   maxRequestsPerTransform: number;
   namespace: string;
   host: string;
+  allowedContentTypes: string[];
   defaultFetchSettings: FetchSettings;
   serializer: JSONAPISerializer;
   
@@ -81,7 +84,6 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
 
   constructor(settings: JSONAPISourceSettings = {}) {
     assert('JSONAPISource\'s `schema` must be specified in `settings.schema` constructor argument', !!settings.schema);
-    assert('JSONAPISource requires Orbit.Promise be defined', Orbit.Promise);
 
     settings.name = settings.name || 'jsonapi';
 
@@ -89,6 +91,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
 
     this.namespace = settings.namespace;
     this.host = settings.host;
+    this.allowedContentTypes = settings.allowedContentTypes || ['application/vnd.api+json', 'application/json'];
 
     this.initDefaultFetchSettings(settings);
 
@@ -123,50 +126,55 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   // Pushable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _push(transform: Transform): Promise<Transform[]> {
+  async _push(transform: Transform): Promise<Transform[]> {
     const requests = getTransformRequests(this, transform);
 
     if (this.maxRequestsPerTransform && requests.length > this.maxRequestsPerTransform) {
-      return Orbit.Promise.resolve()
-        .then(() => {
-          throw new TransformNotAllowed(
-            `This transform requires ${requests.length} requests, which exceeds the specified limit of ${this.maxRequestsPerTransform} requests per transform.`,
-            transform);
-        });
+      throw new TransformNotAllowed(
+        `This transform requires ${requests.length} requests, which exceeds the specified limit of ${this.maxRequestsPerTransform} requests per transform.`,
+        transform);
     }
 
-    return this._processRequests(requests, TransformRequestProcessors)
-      .then(transforms => {
-        transforms.unshift(transform);
-        return transforms;
-      });
+    const transforms: Transform[] = [];
+
+    for (let request of requests) {
+      let processor = TransformRequestProcessors[request.op];
+
+      let additionalTransforms: Transform[] = await processor(this, request);
+      if (additionalTransforms) {
+        Array.prototype.push.apply(transforms, additionalTransforms);
+      }
+    }
+
+    transforms.unshift(transform);
+    return transforms;
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Pullable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _pull(query: Query): Promise<Transform[]> {
-    const operator: PullOperator = PullOperators[query.expression.op];
+  async _pull(query: Query): Promise<Transform[]> {
+    const operator: QueryOperator = QueryOperators[query.expression.op];
     if (!operator) {
       throw new Error('JSONAPISource does not support the `${query.expression.op}` operator for queries.');
     }
-    return operator(this, query);
+    const response = await operator(this, query);
+    return response.transforms;
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Queryable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  _query(query: Query): Promise<Record|Record[]> {
+  async _query(query: Query): Promise<Record|Record[]> {
     const operator: QueryOperator = QueryOperators[query.expression.op];
     if (!operator) {
       throw new Error('JSONAPISource does not support the `${query.expression.op}` operator for queries.');
     }
-    return operator(this, query).then(response => {
-      return this._transformed(response.transforms)
-        .then(()=> response.primaryData);
-    });
+    const response = await operator(this, query);
+    await this._transformed(response.transforms);
+    return response.primaryData;
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -182,14 +190,16 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
       delete settings.params;
     }
 
-    // console.log('fetch', fullUrl, mergedSettings, 'polyfill', fetch.polyfill);
-    let fetchFn = Orbit.fetch || fetch;
+    let fetchFn = (Orbit as any).fetch || Orbit.globals.fetch;
+
+    // console.log('fetch', fullUrl, settings, 'polyfill', fetchFn.polyfill);
+
     if (settings.timeout) {
       let timeout = settings.timeout;
       delete settings.timeout;
 
-      return new Orbit.Promise((resolve, reject) => {
-        let timedOut;
+      return new Promise((resolve, reject) => {
+        let timedOut: boolean;
 
         let timer = Orbit.globals.setTimeout(() => {
           timedOut = true;
@@ -197,14 +207,14 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
         }, timeout);
 
         fetchFn(fullUrl, settings)
-          .catch(e => {
+          .catch((e: Error) => {
             Orbit.globals.clearTimeout(timer);
 
             if (!timedOut) {
               return this.handleFetchError(e);
             }
           })
-          .then(response => {
+          .then((response: any) => {
             Orbit.globals.clearTimeout(timer);
 
             if (!timedOut) {
@@ -215,8 +225,8 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
       });
     } else {
       return fetchFn(fullUrl, settings)
-        .catch(e => this.handleFetchError(e))
-        .then(response => this.handleFetchResponse(response));
+        .catch((e: Error) => this.handleFetchError(e))
+        .then((response: any) => this.handleFetchResponse(response));
     }
   }
 
@@ -230,18 +240,18 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
     }
 
     if (settings.headers && !settings.body) {
-      delete settings.headers['Content-Type'];
+      delete (settings.headers as any)['Content-Type'];
     }
 
     return settings;
   }
 
-  protected handleFetchResponse(response: any): Promise<any> {
+  protected async handleFetchResponse(response: Response): Promise<any> {
     if (response.status === 201) {
       if (this.responseHasContent(response)) {
         return response.json();
       } else {
-        throw new InvalidServerResponse(`Server responses with a ${response.status} status should return content with a Content-Type that includes 'application/vnd.api+json'.`);
+        throw new InvalidServerResponse(`Server responses with a ${response.status} status should return content with one of the following content types: ${this.allowedContentTypes.join(', ')}.`);
       }
     } else if (response.status >= 200 && response.status < 300) {
       if (this.responseHasContent(response)) {
@@ -250,16 +260,15 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
     } else {
       if (this.responseHasContent(response)) {
         return response.json()
-          .then(data => this.handleFetchResponseError(response, data));
+          .then((data: any) => this.handleFetchResponseError(response, data));
       } else {
         return this.handleFetchResponseError(response);
       }
     }
-    return Orbit.Promise.resolve();
   }
 
-  protected handleFetchResponseError(response: any, data?: any): Promise<any> {
-    let error;
+  protected async handleFetchResponseError(response: Response, data?: any): Promise<any> {
+    let error: any;
     if (response.status >= 400 && response.status < 500) {
       error = new ClientError(response.statusText);
     } else {
@@ -267,17 +276,23 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
     }
     error.response = response;
     error.data = data;
-    return Orbit.Promise.reject(error);
+    throw error;
   }
 
-  protected handleFetchError(e: any): Promise<any> {
-    let error = new NetworkError(e);
-    return Orbit.Promise.reject(error);
+  protected async handleFetchError(e: any): Promise<any> {
+    throw new NetworkError(e);
   }
 
-  responseHasContent(response: any): boolean {
+  responseHasContent(response: Response): boolean {
     let contentType = response.headers.get('Content-Type');
-    return contentType && contentType.indexOf('application/vnd.api+json') > -1;
+    if (contentType) {
+      for (let allowedContentType of this.allowedContentTypes) {
+        if (contentType.indexOf(allowedContentType) > -1) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   resourceNamespace(type?: string): string {
@@ -324,10 +339,10 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   }
 
   /////////////////////////////////////////////////////////////////////////////
-  // Private methods
+  // Protected methods
   /////////////////////////////////////////////////////////////////////////////
 
-  private initDefaultFetchSettings(settings: JSONAPISourceSettings): void {
+  protected initDefaultFetchSettings(settings: JSONAPISourceSettings): void {
     this.defaultFetchSettings = {
       headers: {
         Accept: 'application/vnd.api+json',
@@ -349,25 +364,5 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
     if (settings.defaultFetchSettings) {
       deepMerge(this.defaultFetchSettings, settings.defaultFetchSettings);
     }
-  }
-
-  protected _processRequests(requests, processors): Promise<Transform[]> {
-    let transforms: Transform[] = [];
-    let result: Promise<void> = Orbit.Promise.resolve();
-
-    requests.forEach(request => {
-      let processor = processors[request.op];
-
-      result = result.then(() => {
-        return processor(this, request)
-          .then(additionalTransforms => {
-            if (additionalTransforms) {
-              Array.prototype.push.apply(transforms, additionalTransforms);
-            }
-          });
-      });
-    });
-
-    return result.then(() => transforms);
   }
 }

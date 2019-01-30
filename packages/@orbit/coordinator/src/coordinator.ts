@@ -1,9 +1,8 @@
-import Orbit, {
-  Source,
-  Transform
-} from '@orbit/data';
-import { Dict, assert, objectValues } from '@orbit/utils';
+import Orbit, { Source } from '@orbit/data';
+import { Dict, objectValues } from '@orbit/utils';
 import { Strategy } from './strategy';
+
+const { assert } = Orbit;
 
 export interface CoordinatorOptions {
   sources?: Source[];
@@ -25,9 +24,6 @@ export interface ActivationOptions {
 /**
  * The Coordinator class manages a set of sources to which it applies a set of
  * coordination strategies.
- *
- * @export
- * @class Coordinator
  */
 export default class Coordinator {
   protected _sources: Dict<Source>;
@@ -116,7 +112,7 @@ export default class Coordinator {
     return Object.keys(this._strategies);
   }
 
-  get activated(): Promise<void[]> {
+  get activated(): Promise<void> {
     return this._activated;
   }
 
@@ -131,7 +127,7 @@ export default class Coordinator {
       this._activated = this.strategies.reduce((chain, strategy) => {
         return chain
           .then(() => strategy.activate(this, options))
-      }, Orbit.Promise.resolve());
+      }, Promise.resolve());
     }
 
     return this._activated;
@@ -144,13 +140,13 @@ export default class Coordinator {
           return this.strategies.reverse().reduce((chain, strategy) => {
             return chain
               .then(() => strategy.deactivate());
-          }, Orbit.Promise.resolve());
+          }, Promise.resolve());
         })
         .then(() => {
           this._activated = null;
         });
     } else {
-      return Orbit.Promise.resolve();
+      return Promise.resolve();
     }
   }
 }

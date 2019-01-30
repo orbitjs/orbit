@@ -1,40 +1,27 @@
-import Orbit from './main';
 import evented, { Evented } from './evented';
-import { assert } from '@orbit/utils';
+import { Listener } from './notifier';
 
 /**
  * Settings used to instantiate and/or upgrade a `Bucket`.
- * 
- * @export
- * @interface BucketSettings
  */
 export interface BucketSettings {
   /**
    * Name used for tracking and debugging a bucket instance.
-   * 
-   * @type {string}
-   * @memberOf BucketSettings
    */
   name?: string;
 
   /**
    * The namespace used by the bucket when accessing any items.
-   * 
-   * This is used to distinguish one bucket's contents from another. 
-   * 
-   * @type {string}
-   * @memberOf BucketSettings
+   *
+   * This is used to distinguish one bucket's contents from another.
    */
   namespace?: string;
 
   /**
    * The current version of the bucket.
-   * 
-   * Used to identify the version of the bucket's schema and thus migrate it 
+   *
+   * Used to identify the version of the bucket's schema and thus migrate it
    * as needed.
-   * 
-   * @type {number}
-   * @memberOf BucketSettings
    */
   version?: number;
 }
@@ -50,14 +37,9 @@ export type BUCKET_EVENTS = 'upgrade';
  * asynchronous stores like IndexedDB.
  *
  * Buckets can be assigned a unique `namespace` in order to avoid collisions.
- * 
+ *
  * Buckets can be assigned a version, and can be "upgraded" to a new version.
  * The upgrade process allows buckets to migrate their data between versions.
- *
- * @export
- * @abstract
- * @class Bucket
- * @implements {Evented}
  */
 @evented
 export abstract class Bucket implements Evented {
@@ -66,19 +48,12 @@ export abstract class Bucket implements Evented {
   private _version: number;
 
   // Evented interface stubs
-  on: (event: BUCKET_EVENTS, callback: Function, binding?: object) => void;
-  off: (event: BUCKET_EVENTS, callback: Function, binding?: object) => void;
-  one: (event: BUCKET_EVENTS, callback: Function, binding?: object) => void;
-  emit: (event: BUCKET_EVENTS, ...args) => void;
-  listeners: (event: BUCKET_EVENTS) => any[];
+  on: (event: BUCKET_EVENTS, listener: Listener) => void;
+  off: (event: BUCKET_EVENTS, listener?: Listener) => void;
+  one: (event: BUCKET_EVENTS, listener: Listener) => void;
+  emit: (event: BUCKET_EVENTS, ...args: any[]) => void;
+  listeners: (event: BUCKET_EVENTS) => Listener[];
 
-  /**
-   * Creates an instance of `Bucket`.
-   * 
-   * @param {BucketSettings} [settings={}] 
-   * 
-   * @memberOf Bucket
-   */
   constructor(settings: BucketSettings = {}) {
     if (settings.version === undefined) {
       settings.version = 1;
@@ -91,44 +66,21 @@ export abstract class Bucket implements Evented {
 
   /**
    * Retrieves an item from the bucket.
-   * 
-   * @abstract
-   * @param {string} key 
-   * @returns {Promise<any>} 
-   * 
-   * @memberOf Bucket
    */
   abstract getItem(key: string): Promise<any>;
 
   /**
    * Stores an item in the bucket.
-   * 
-   * @abstract
-   * @param {string} key 
-   * @param {*} value 
-   * @returns {Promise<void>} 
-   * 
-   * @memberOf Bucket
    */
   abstract setItem(key: string, value: any): Promise<void>;
 
   /**
    * Removes an item from the bucket.
-   * 
-   * @abstract
-   * @param {string} key 
-   * @returns {Promise<void>} 
-   * 
-   * @memberOf Bucket
    */
   abstract removeItem(key: string): Promise<void>;
 
   /**
    * Name used for tracking and debugging a bucket instance.
-   * 
-   * @readonly
-   * @type {string}
-   * @memberOf Bucket
    */
   get name(): string {
     return this._name;
@@ -136,12 +88,8 @@ export abstract class Bucket implements Evented {
 
   /**
    * The namespace used by the bucket when accessing any items.
-   * 
+   *
    * This is used to distinguish one bucket's contents from another.
-   * 
-   * @readonly
-   * @type {string}
-   * @memberOf Bucket
    */
   get namespace(): string {
     return this._namespace;
@@ -149,12 +97,8 @@ export abstract class Bucket implements Evented {
 
   /**
    * The current version of the bucket.
-   * 
-   * To change versions, `upgrade` should be invoked.
-   * 
-   * @readonly
-   * @type {number}
-   * @memberOf Bucket
+   *
+   * This is read-only. To change versions, `upgrade` should be invoked.
    */
   get version(): number {
     return this._version;
@@ -164,11 +108,7 @@ export abstract class Bucket implements Evented {
    * Upgrades Bucket to a new version with new settings.
    *
    * Settings, beyond `version`, are bucket-specific.
-   *
-   * @param {BucketSettings} settings 
-   * @returns {Promise<void>} 
-   * @memberOf Bucket
-    */
+   */
   upgrade(settings: BucketSettings = {}): Promise<void> {
     if (settings.version === undefined) {
       settings.version = this._version + 1;
@@ -179,12 +119,8 @@ export abstract class Bucket implements Evented {
 
   /**
    * Applies settings passed from a `constructor` or `upgrade`.
-   * 
-   * @param {BucketSettings} settings 
-   * @returns {Promise<void>} 
-   * @memberOf Bucket
    */
-  _applySettings(settings: BucketSettings): Promise<void> {
+  protected _applySettings(settings: BucketSettings): Promise<void> {
     if (settings.name) {
       this._name = settings.name;
     }
@@ -192,6 +128,6 @@ export abstract class Bucket implements Evented {
       this._namespace = settings.namespace;
     }
     this._version = settings.version;
-    return Orbit.Promise.resolve();
+    return Promise.resolve();
   }
 }

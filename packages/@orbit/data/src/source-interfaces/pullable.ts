@@ -1,28 +1,22 @@
-import { assert } from '@orbit/utils';
-import { settleInSeries, fulfillInSeries } from '@orbit/core';
+import Orbit, { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Query, QueryOrExpression, buildQuery } from '../query';
 import { Transform } from '../transform';
+
+const { assert } = Orbit;
 
 export const PULLABLE = '__pullable__';
 
 /**
  * Has a source been decorated as `@pullable`?
- *
- * @export
- * @param {Source} source
- * @returns
  */
-export function isPullable(source: Source) {
+export function isPullable(source: any) {
   return !!source[PULLABLE];
 }
 
 /**
  * A source decorated as `@pullable` must also implement the `Pullable`
  * interface.
- *
- * @export
- * @interface Pullable
  */
 export interface Pullable {
   /**
@@ -30,17 +24,10 @@ export interface Pullable {
    * resolves to an array of `Transform` instances that represent the changeset
    * that resulted from applying the query. In other words, a `pull` request
    * retrieves the results of a query in `Transform` form.
-   *
-   * @param {QueryOrExpression} queryOrExpression
-   * @param {object} [options]
-   * @param {string} [id]
-   * @returns {Promise<Transform[]>}
-   *
-   * @memberOf Pullable
    */
   pull(queryOrExpression: QueryOrExpression, options?: object, id?: string): Promise<Transform[]>;
 
-  _pull(query: Query): Promise<Transform[]>;
+  _pull(query: Query, hints?: any): Promise<Transform[]>;
 }
 
 /**
@@ -66,11 +53,6 @@ export interface Pullable {
  * A pullable source must implement a private method `_pull`, which performs
  * the processing required for `pull` and returns a promise that resolves to an
  * array of `Transform` instances.
- *
- * @export
- * @decorator
- * @param {SourceClass} Klass
- * @returns {void}
  */
 export default function pullable(Klass: SourceClass): void {
   let proto = Klass.prototype;
@@ -89,14 +71,15 @@ export default function pullable(Klass: SourceClass): void {
   }
 
   proto.__pull__ = function(query: Query): Promise<Transform[]> {
-    return fulfillInSeries(this, 'beforePull', query)
-      .then(() => this._pull(query))
+    const hints: any = {};
+    return fulfillInSeries(this, 'beforePull', query, hints)
+      .then(() => this._pull(query, hints))
       .then(result => this._transformed(result))
       .then(result => {
         return settleInSeries(this, 'pull', query, result)
           .then(() => result);
       })
-      .catch(error => {
+      .catch((error: Error) => {
         return settleInSeries(this, 'pullFail', query, error)
           .then(() => { throw error; });
       });

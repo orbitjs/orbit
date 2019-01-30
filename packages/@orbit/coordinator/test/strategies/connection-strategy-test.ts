@@ -1,7 +1,7 @@
 import Coordinator, {
   ConnectionStrategy
 } from '../../src/index';
-import Orbit, {
+import {
   Source,
   Transform,
   TransformBuilder,
@@ -9,20 +9,18 @@ import Orbit, {
   updatable,
   buildTransform
 } from '@orbit/data';
-import '../test-helper';
 
-declare const RSVP: any;
-const { all } = RSVP;
 const { module, test } = QUnit;
 
 module('ConnectionStrategy', function(hooks) {
   const t = new TransformBuilder();
   const tA = buildTransform([t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })], null, 'a');
   const tB = buildTransform([t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })], null, 'b');
-  const tC = buildTransform([t.addRecord({ type: 'planet', id: 'c', attributes: { name: 'c' } })], null, 'c');
-  const tD = buildTransform([t.addRecord({ type: 'planet', id: 'd', attributes: { name: 'd' } })], null, 'd');
 
-  let strategy, coordinator, s1, s2;
+  let strategy: ConnectionStrategy;
+  let coordinator: Coordinator;
+  let s1: any;
+  let s2: any;
 
   hooks.beforeEach(function() {
     @pushable
@@ -41,7 +39,7 @@ module('ConnectionStrategy', function(hooks) {
     assert.equal(strategy.name, 's1:update -> s2:push', 'name is based on source names by default');
   });
 
-  test('assigns source and target when activated', function(assert) {
+  test('assigns source and target when activated', async function(assert) {
     strategy = new ConnectionStrategy({ source: 's1', target: 's2', on: 'update', action: 'push'});
 
     coordinator = new Coordinator({
@@ -49,14 +47,12 @@ module('ConnectionStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    return coordinator.activate()
-      .then(() => {
-        assert.strictEqual(strategy.source, s1, 'source is set');
-        assert.strictEqual(strategy.target, s2, 'target is set');
-      });
+    await coordinator.activate();
+    assert.strictEqual(strategy.source, s1, 'source is set');
+    assert.strictEqual(strategy.target, s2, 'target is set');
   });
 
-  test('installs listeners on activate and removes them on deactivate', function(assert) {
+  test('installs listeners on activate and removes them on deactivate', async function(assert) {
     assert.expect(6);
 
     strategy = new ConnectionStrategy({ source: 's1', target: 's2', on: 'update', action: 'push'});
@@ -69,21 +65,18 @@ module('ConnectionStrategy', function(hooks) {
     assert.equal(s1.listeners('update').length, 0, 'no listeners installed yet');
     assert.equal(s2.listeners('update').length, 0, 'no listeners installed yet');
 
-    return coordinator.activate()
-      .then(() => {
-        assert.equal(s1.listeners('update').length, 1, 'listeners installed');
-        assert.equal(s2.listeners('update').length, 0, 'no listeners installed on target');
+    await coordinator.activate();
 
-        return coordinator.deactivate();
-      })
-      .then(() => {
-        assert.equal(s1.listeners('update').length, 0, 'listeners removed');
-        assert.equal(s2.listeners('update').length, 0, 'still no listeners on target');
-      });
+    assert.equal(s1.listeners('update').length, 1, 'listeners installed');
+    assert.equal(s2.listeners('update').length, 0, 'no listeners installed on target');
+
+    await coordinator.deactivate();
+
+    assert.equal(s1.listeners('update').length, 0, 'listeners removed');
+    assert.equal(s2.listeners('update').length, 0, 'still no listeners on target');
   });
 
-  test('observes source `on` event and invokes `action` on target', function(assert) {
-    const done = assert.async();
+  test('observes source `on` event and invokes `action` on target', async function(assert) {
     assert.expect(3);
 
     strategy = new ConnectionStrategy({ source: 's1', target: 's2', on: 'update', action: 'push'});
@@ -93,23 +86,21 @@ module('ConnectionStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    s1._update = function(transform) {
+    s1._update = async function(transform: Transform): Promise<any> {
       assert.strictEqual(transform, tA, 'argument to _update is expected Transform');
-      return Promise.resolve();
     };
 
-    s2._push = function(transform) {
+    s2._push = async function(transform: Transform): Promise<Transform[]> {
       assert.strictEqual(transform, tA, 'argument to _push is expected Transform');
       assert.strictEqual(this, s2, 'context is that of the target');
-      done();
+      return [];
     };
 
-    coordinator.activate()
-      .then(() => s1.update(tA));
+    await coordinator.activate()
+    await s1.update(tA);
   });
 
-  test('can apply a `filter` function', function(assert) {
-    const done = assert.async();
+  test('can apply a `filter` function', async function(assert) {
     assert.expect(4);
 
     strategy = new ConnectionStrategy({
@@ -128,19 +119,18 @@ module('ConnectionStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    s1._update = function(transform) {
-      return Promise.resolve();
+    s1._update = async function(transform: Transform): Promise<any> {
     };
 
-    s2._push = function(transform) {
+    s2._push = async function(transform: Transform): Promise<Transform[]> {
       assert.strictEqual(transform, tB, 'argument to _push is expected Transform');
       assert.strictEqual(this, s2, 'context is that of the target');
-      done();
+      return [];
     };
 
-    coordinator.activate()
-      .then(() => s1.update(tA))
-      .then(() => s1.update(tB));
+    await coordinator.activate();
+    await s1.update(tA);
+    await s1.update(tB);
   });
 
   // TODO - test blocking option

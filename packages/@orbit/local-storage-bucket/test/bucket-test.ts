@@ -1,11 +1,10 @@
 import { Bucket } from '@orbit/core';
 import LocalStorageBucket from '../src/bucket';
-import './test-helper';
 
 const { module, test } = QUnit;
 
 module('LocalStorageBucket', function(hooks) {
-  let bucket;
+  let bucket: LocalStorageBucket;
 
   hooks.beforeEach(() => {
     bucket = new LocalStorageBucket();
@@ -25,7 +24,7 @@ module('LocalStorageBucket', function(hooks) {
     assert.equal(bucket.delimiter, '/', '`delimiter` is `/` by default');
   });
 
-  test('#setItem sets a value, #getItem gets a value, #removeItem removes a value', function(assert) {
+  test('#setItem sets a value, #getItem gets a value, #removeItem removes a value', async function(assert) {
     assert.expect(3);
 
     let planet = {
@@ -37,13 +36,15 @@ module('LocalStorageBucket', function(hooks) {
       }
     };
 
-    return bucket.getItem('planet')
-      .then(item => assert.equal(item, null, 'bucket does not contain item'))
-      .then(() => bucket.setItem('planet', planet))
-      .then(() => bucket.getItem('planet'))
-      .then(item => assert.deepEqual(item, planet, 'bucket contains item'))
-      .then(() => bucket.removeItem('planet'))
-      .then(() => bucket.getItem('planet'))
-      .then(item => assert.equal(item, null, 'bucket does not contain item'));
+    let item = await bucket.getItem('planet');
+    assert.equal(item, null, 'bucket does not contain item');
+
+    await bucket.setItem('planet', planet);
+    item = await bucket.getItem('planet');
+    assert.deepEqual(item, planet, 'bucket contains item');
+
+    await bucket.removeItem('planet');
+    item = await bucket.getItem('planet');
+    assert.equal(item, null, 'bucket does not contain item');
   });
 });

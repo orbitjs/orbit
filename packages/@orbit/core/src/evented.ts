@@ -1,26 +1,21 @@
 import Orbit from './main';
-import Notifier from './notifier';
-import { assert } from '@orbit/utils';
+import Notifier, { Listener } from './notifier';
 
-declare const console: any;
+const { deprecate } = Orbit;
 
 export const EVENTED = '__evented__';
 
 /**
  * Has a class been decorated as `@evented`?
- * 
- * @export
- * @param {object} obj 
- * @returns {boolean} 
  */
-export function isEvented(obj: object): boolean {
+export function isEvented(obj: any): boolean {
   return !!obj[EVENTED];
 }
 
 /**
- * A class decorated as `@evented` should also implement the `Evented` 
+ * A class decorated as `@evented` should also implement the `Evented`
  * interface.
- * 
+ *
  * ```ts
  * import { evented, Evented } from '@orbit/core';
  *
@@ -29,21 +24,18 @@ export function isEvented(obj: object): boolean {
  *   // ... Evented implementation
  * }
  * ```
- * 
- * @export
- * @interface Evented
  */
 export interface Evented {
-  on: (event: string, callback: Function, binding?: object) => void;
-  off: (event: string, callback: Function, binding?: object) => void;
-  one: (event: string, callback: Function, binding?: object) => void;
-  emit: (event: string, ...args) => void;
-  listeners: (event: string) => any[];
+  on: (event: string, listener: Listener) => void;
+  off: (event: string, listener?: Listener) => void;
+  one: (event: string, listener: Listener) => void;
+  emit: (event: string, ...args: any[]) => void;
+  listeners: (event: string) => Listener[];
 }
 
 /**
  * Marks a class as evented.
- * 
+ *
  * An evented class should also implement the `Evented` interface.
  *
  * ```ts
@@ -54,12 +46,12 @@ export interface Evented {
  *   ...
  * }
  * ```
- * 
+ *
  * Listeners can then register themselves for particular events with `on`:
  *
  * ```ts
  * let source = new Source();
- * 
+ *
  * function listener1(message: string) {
  *   console.log('listener1 heard ' + message);
  * };
@@ -79,10 +71,6 @@ export interface Evented {
  * ```ts
  * source.off('greeting', listener2);
  * ```
- * 
- * @decorator
- * @export
- * @param {*} Klass 
  */
 export default function evented(Klass: any): void {
   let proto = Klass.prototype;
@@ -93,41 +81,46 @@ export default function evented(Klass: any): void {
 
   proto[EVENTED] = true;
 
-  proto.on = function(eventName, callback, _binding) {
-    const binding = _binding || this;
+  proto.on = function(eventName: string, listener: Listener) {
+    if (arguments.length > 2) {
+      deprecate('`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `on`.');
+    }
 
-    notifierForEvent(this, eventName, true).addListener(callback, binding);
+    notifierForEvent(this, eventName, true).addListener(listener);
   };
 
-  proto.off = function(eventName, callback, _binding) {
-    const binding = _binding || this;
+  proto.off = function(eventName: string, listener: Listener) {
+    if (arguments.length > 2) {
+      deprecate('`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `off`.');
+    }
+
     const notifier = notifierForEvent(this, eventName);
 
     if (notifier) {
-      if (callback) {
-        notifier.removeListener(callback, binding);
+      if (listener) {
+        notifier.removeListener(listener);
       } else {
         removeNotifierForEvent(this, eventName);
       }
     }
   };
 
-  proto.one = function(eventName, callback, _binding) {
-    let callOnce;
-    let notifier;
-    let binding = _binding || this;
+  proto.one = function(eventName: string, listener: Listener) {
+    if (arguments.length > 2) {
+      deprecate('`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `off`.');
+    }
 
-    notifier = notifierForEvent(this, eventName, true);
+    const notifier = notifierForEvent(this, eventName, true);
 
-    callOnce = function() {
-      callback.apply(binding, arguments);
-      notifier.removeListener(callOnce, binding);
+    const callOnce = function() {
+      listener(...arguments);
+      notifier.removeListener(callOnce);
     };
 
-    notifier.addListener(callOnce, binding);
+    notifier.addListener(callOnce);
   };
 
-  proto.emit = function(eventName, ...args) {
+  proto.emit = function(eventName: string, ...args: any[]) {
     let notifier = notifierForEvent(this, eventName);
 
     if (notifier) {
@@ -135,7 +128,7 @@ export default function evented(Klass: any): void {
     }
   };
 
-  proto.listeners = function(eventName) {
+  proto.listeners = function(eventName: string) {
     let notifier = notifierForEvent(this, eventName);
     return notifier ? notifier.listeners : [];
   };
@@ -143,46 +136,34 @@ export default function evented(Klass: any): void {
 
 /**
  * Settle any promises returned by event listeners in series.
- * 
+ *
  * If any errors are encountered during processing, they will be ignored.
- * 
- * @export
- * @param {Evented} obj 
- * @param {any} eventName 
- * @param {any} args 
- * @returns {Promise<void>}
  */
-export function settleInSeries(obj: Evented, eventName, ...args): Promise<void> {
+export function settleInSeries(obj: Evented, eventName: string, ...args: any[]): Promise<void> {
   const listeners = obj.listeners(eventName);
 
-  return listeners.reduce((chain, [callback, binding]) => {
+  return listeners.reduce((chain, listener) => {
     return chain
-      .then(() => callback.apply(binding, args))
-      .catch(e => {});
-  }, Orbit.Promise.resolve());
+      .then(() => listener(...args))
+      .catch(() => {});
+  }, Promise.resolve());
 }
 
 /**
  * Fulfill any promises returned by event listeners in series.
- * 
+ *
  * Processing will stop if an error is encountered and the returned promise will
  * be rejected.
- * 
- * @export
- * @param {Evented} obj 
- * @param {any} eventName 
- * @param {any} args 
- * @returns {Promise<void>}
  */
-export function fulfillInSeries(obj: Evented, eventName, ...args): Promise<void> {
+export function fulfillInSeries(obj: Evented, eventName: string, ...args: any[]): Promise<void> {
   const listeners = obj.listeners(eventName);
 
-  return new Orbit.Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     fulfillEach(listeners, args, resolve, reject);
   });
 }
 
-function notifierForEvent(object, eventName, createIfUndefined = false) {
+function notifierForEvent(object: any, eventName: string, createIfUndefined = false) {
   if (object._eventedNotifiers === undefined) {
     object._eventedNotifiers = {};
   }
@@ -193,25 +174,24 @@ function notifierForEvent(object, eventName, createIfUndefined = false) {
   return notifier;
 }
 
-function removeNotifierForEvent(object, eventName) {
+function removeNotifierForEvent(object: any, eventName: string) {
   if (object._eventedNotifiers && object._eventedNotifiers[eventName]) {
     delete object._eventedNotifiers[eventName];
   }
 }
 
-function fulfillEach(listeners, args, resolve, reject) {
+function fulfillEach(listeners: Listener[], args: any[], resolve: Function, reject: Function): Promise<any> {
   if (listeners.length === 0) {
     resolve();
   } else {
     let listener;
     [listener, ...listeners] = listeners;
-    let [callback, binding] = listener;
-    let response = callback.apply(binding, args);
+    let response = listener(...args);
 
     if (response) {
-      return Orbit.Promise.resolve(response)
+      return Promise.resolve(response)
         .then(() => fulfillEach(listeners, args, resolve, reject))
-        .catch(error => reject(error));
+        .catch((error: Error) => reject(error));
     } else {
       fulfillEach(listeners, args, resolve, reject);
     }
