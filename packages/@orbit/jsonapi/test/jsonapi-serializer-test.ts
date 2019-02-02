@@ -668,8 +668,8 @@ module('JSONAPISerializer', function(hooks) {
       );
     });
   });
-  
-  module('Deserialize links',function(hooks){
+
+  module('Deserialize links and meta',function(hooks){
     let serializer;
 
     hooks.beforeEach(function() {
@@ -685,7 +685,33 @@ module('JSONAPISerializer', function(hooks) {
       assert.ok(serializer);
     });
 
-    test('it deserializes links in records', function (assert) {
+    test('it deserializes links and meta at the document-level', function (assert) {
+      let result = serializer.deserializeDocument(
+        {
+          links: {
+            self: "https://example.com/planets/12345/moons"
+          },
+          meta: {
+            abc: "123",
+            def: "456"
+          },
+          data: []
+        }
+      );
+
+      assert.deepEqual(result, {
+        links: {
+          self: "https://example.com/planets/12345/moons"
+        },
+        meta: {
+          abc: "123",
+          def: "456"
+        },
+        data: []
+      })
+    });
+
+    test('it deserializes links and meta in records', function (assert) {
       let result = serializer.deserializeDocument(
         {
           data: {
@@ -697,6 +723,10 @@ module('JSONAPISerializer', function(hooks) {
             },
             links: {
               self: "https://example.com/api/planets/12345"
+            },
+            meta: {
+              abc: "123",
+              def: "456"
             },
             relationships: {
               moons: { data: [{ type: 'moons', id: '5' }] },
@@ -716,6 +746,10 @@ module('JSONAPISerializer', function(hooks) {
           links: {
             self: "https://example.com/api/planets/12345"
           },
+          meta: {
+            abc: "123",
+            def: "456"
+          },
           relationships: {
             moons: {
               data: [
@@ -730,7 +764,7 @@ module('JSONAPISerializer', function(hooks) {
       })
     });
 
-    test('it deserializes links in hasOne relationship', function (assert) {
+    test('it deserializes links and meta in hasOne relationship', function (assert) {
       let result = serializer.deserializeDocument(
         {
           data: {
@@ -745,10 +779,16 @@ module('JSONAPISerializer', function(hooks) {
             },
             relationships: {
               moons: { data: [{ type: 'moons', id: '5' }] },
-              'solar-system': { data: { type: 'solar-systems', id: '6' }, links: {
-                self: "https://example.com/api/planets/12345/relationships/solarsystem",
-                related: "https://example.com/api/planets/12345/solarsystem"
-              } }
+              'solar-system': { data: { type: 'solar-systems', id: '6' },
+                links: {
+                  self: "https://example.com/api/planets/12345/relationships/solarsystem",
+                  related: "https://example.com/api/planets/12345/solarsystem"
+                },
+                meta: {
+                  abc: "123",
+                  def: "456"
+                }
+              }
             }
           }
         });
@@ -775,6 +815,10 @@ module('JSONAPISerializer', function(hooks) {
               links: {
                 self: "https://example.com/api/planets/12345/relationships/solarsystem",
                 related: "https://example.com/api/planets/12345/solarsystem"
+              },
+              meta: {
+                abc: "123",
+                def: "456"
               }
             }
           }
@@ -782,7 +826,7 @@ module('JSONAPISerializer', function(hooks) {
       })
     });
 
-    test('it deserializes links in hasMany relationship', function (assert) {
+    test('it deserializes links and meta in hasMany relationship', function (assert) {
       let result = serializer.deserializeDocument(
         {
           data: {
@@ -797,14 +841,19 @@ module('JSONAPISerializer', function(hooks) {
             },
             relationships: {
               moons: { data: [{ type: 'moons', id: '5' }],
-               links: {
-                self: "https://example.com/api/planets/12345/relationships/moons",
-                related: "https://example.com/api/planets/12345/moons"
-              } 
-            },
-              'solar-system': { data: { type: 'solar-systems', id: '6' }
-            
-            }}
+                links: {
+                  self: "https://example.com/api/planets/12345/relationships/moons",
+                  related: "https://example.com/api/planets/12345/moons"
+                },
+                meta: {
+                  abc: "123",
+                  def: "456"
+                }
+              },
+              'solar-system': {
+                data: { type: 'solar-systems', id: '6' }
+              }
+          }
           }
         });
       let planet = result.data;
@@ -827,6 +876,10 @@ module('JSONAPISerializer', function(hooks) {
               links: {
                 self: "https://example.com/api/planets/12345/relationships/moons",
                 related: "https://example.com/api/planets/12345/moons"
+              },
+              meta: {
+                abc: "123",
+                def: "456"
               }
             },
             solarSystem: {
@@ -837,7 +890,7 @@ module('JSONAPISerializer', function(hooks) {
       })
     });
 
-    test('it deserializes links in hasOne relationship without data', function (assert) {
+    test('it deserializes links and meta in hasOne relationship without data', function (assert) {
       let result = serializer.deserializeDocument(
         {
           data: {
@@ -852,10 +905,16 @@ module('JSONAPISerializer', function(hooks) {
             },
             relationships: {
               moons: { data: [{ type: 'moons', id: '5' }] },
-              'solar-system': {  links: {
-                self: "https://example.com/api/planets/12345/relationships/solarsystem",
-                related: "https://example.com/api/planets/12345/solarsystem"
-              } }
+              'solar-system': {
+                links: {
+                  self: "https://example.com/api/planets/12345/relationships/solarsystem",
+                  related: "https://example.com/api/planets/12345/solarsystem"
+                },
+                meta: {
+                  abc: "123",
+                  def: "456"
+                }
+              }
             }
           }
         });
@@ -881,6 +940,10 @@ module('JSONAPISerializer', function(hooks) {
               links: {
                 self: "https://example.com/api/planets/12345/relationships/solarsystem",
                 related: "https://example.com/api/planets/12345/solarsystem"
+              },
+              meta: {
+                abc: "123",
+                def: "456"
               }
             }
           }
@@ -903,14 +966,17 @@ module('JSONAPISerializer', function(hooks) {
             },
             relationships: {
               moons: {
-               links: {
-                self: "https://example.com/api/planets/12345/relationships/moons",
-                related: "https://example.com/api/planets/12345/moons"
-              } 
-            },
-              'solar-system': { data: { type: 'solar-systems', id: '6' }
-            
-            }}
+                links: {
+                  self: "https://example.com/api/planets/12345/relationships/moons",
+                  related: "https://example.com/api/planets/12345/moons"
+                },
+                meta: {
+                  abc: "123",
+                  def: "456"
+                }
+              },
+              'solar-system': { data: { type: 'solar-systems', id: '6' } }
+            }
           }
         });
       let planet = result.data;
@@ -930,6 +996,10 @@ module('JSONAPISerializer', function(hooks) {
               links: {
                 self: "https://example.com/api/planets/12345/relationships/moons",
                 related: "https://example.com/api/planets/12345/moons"
+              },
+              meta: {
+                abc: "123",
+                def: "456"
               }
             },
             solarSystem: {
