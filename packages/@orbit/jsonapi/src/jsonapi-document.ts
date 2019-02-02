@@ -8,13 +8,13 @@ export interface ResourceIdentity {
 
 export interface ResourceHasOneRelationship {
   data?: ResourceIdentity | null;
-  meta?: any;
+  meta?: Dict<any>;
   links?: Dict<Link>;
 }
 
 export interface ResourceHasManyRelationship {
   data?: ResourceIdentity[];
-  meta?: any;
+  meta?: Dict<any>;
   links?: Dict<Link>;
 }
 
@@ -25,13 +25,13 @@ export interface Resource {
   type: string;
   attributes?: Dict<any>;
   relationships?: Dict<ResourceRelationship>;
-  meta?: any;
+  meta?: Dict<any>;
   links?: Dict<Link>;
 }
 
 export interface JSONAPIDocument {
   data: Resource | Resource[] | ResourceIdentity | ResourceIdentity[];
   included?: Resource[];
-  meta?: any;
+  meta?: Dict<any>;
   links?: Dict<Link>;
 }

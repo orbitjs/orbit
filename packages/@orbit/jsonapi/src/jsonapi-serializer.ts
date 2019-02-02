@@ -1,5 +1,6 @@
 import { isArray, dasherize, camelize, deepSet, Dict } from '@orbit/utils';
 import {
+  Link,
   Schema,
   KeyMap,
   Record,
@@ -13,8 +14,10 @@ import {
 } from './jsonapi-document';
 
 export interface DeserializedDocument {
-  data: Record | Record[]
-  included?: Record[]
+  data: Record | Record[];
+  included?: Record[];
+  links?: Dict<Link>;
+  meta?: Dict<any>;
 }
 
 export interface JSONAPISerializerSettings {
@@ -209,6 +212,14 @@ export default class JSONAPISerializer {
       result.included = document.included.map(e => this.deserializeResource(e));
     }
 
+    if (document.links) {
+      result.links = document.links;
+    }
+
+    if (document.meta) {
+      result.meta = document.meta;
+    }
+
     return result;
   }
 
@@ -246,6 +257,7 @@ export default class JSONAPISerializer {
     this.deserializeAttributes(record, resource);
     this.deserializeRelationships(record, resource);
     this.deserializeLinks(record, resource);
+    this.deserializeMeta(record, resource);
 
     if (this.keyMap) {
       this.keyMap.pushRecord(record);
@@ -300,16 +312,26 @@ export default class JSONAPISerializer {
       deepSet(record, ['relationships', relationship, 'data'], data);
     }
 
-    let resourceLinks = value.links;
+    let { links, meta } = value;
 
-    if (resourceLinks !== undefined) {
-      deepSet(record, ['relationships', relationship, 'links'], resourceLinks);
+    if (links !== undefined) {
+      deepSet(record, ['relationships', relationship, 'links'], links);
+    }
+
+    if (meta !== undefined) {
+      deepSet(record, ['relationships', relationship, 'meta'], meta);
     }
   }
 
   deserializeLinks(record: Record, resource: Resource) {
     if (resource.links) {
       record.links = resource.links;
+    }
+  }
+
+  deserializeMeta(record: Record, resource: Resource) {
+    if (resource.meta) {
+      record.meta = resource.meta;
     }
   }
 
