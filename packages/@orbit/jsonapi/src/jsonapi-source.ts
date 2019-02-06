@@ -283,6 +283,10 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   }
 
   responseHasContent(response: Response): boolean {
+    if (response.status === 204) {
+      return false;
+    }
+
     let contentType = response.headers.get('Content-Type');
     if (contentType) {
       for (let allowedContentType of this.allowedContentTypes) {
