@@ -257,6 +257,12 @@ module('JSONAPISource', function() {
       assert.equal(source.responseHasContent(response), true, 'Source will accept custom content type if specifically allowed.');
     });
 
+    test('#responseHasContent - returns false if response has status code 204', function(assert) {
+      let response = new Orbit.globals.Response(null, { status: 204, headers: { 'Content-Type': 'application/vnd.api+json' } });
+
+      assert.equal(source.responseHasContent(response), false, 'A 204 - No Content response has no content.');
+    });
+
     test('#push - can add records', async function(assert) {
       assert.expect(7);
 
