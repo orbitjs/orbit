@@ -1,4 +1,4 @@
 export interface Serializer<From, To> {
-  serialize(arg: From): To;
-  deserialize(arg: To): From;
+  serialize(arg: From, options?: any): To;
+  deserialize(arg: To, options?: any): From;
 }
