@@ -29,9 +29,14 @@ export interface Resource {
   links?: Dict<Link>;
 }
 
-export interface JSONAPIDocument {
+export interface ResourceDocument {
   data: Resource | Resource[] | ResourceIdentity | ResourceIdentity[];
   included?: Resource[];
   meta?: Dict<any>;
   links?: Dict<Link>;
 }
+
+/**
+ * @deprecated
+ */
+export interface JSONAPIDocument extends ResourceDocument {};

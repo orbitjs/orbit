@@ -1,23 +1,24 @@
 import { isArray, dasherize, camelize, deepSet, Dict } from '@orbit/utils';
-import {
-  Link,
+import Orbit, {
   Schema,
   KeyMap,
   Record,
   RecordIdentity
 } from '@orbit/data';
+import { Serializer } from '@orbit/serializers';
 import {
   Resource,
   ResourceIdentity,
   ResourceRelationship,
-  JSONAPIDocument
-} from './jsonapi-document';
+  ResourceDocument
+} from './resource-document';
+import { RecordDocument } from './record-document';
 
-export interface DeserializedDocument {
-  data: Record | Record[];
-  included?: Record[];
-  links?: Dict<Link>;
-  meta?: Dict<any>;
+const { deprecate } = Orbit;
+
+export interface DeserializeOptions {
+  primaryRecord?: Record;
+  primaryRecords?: Record[];
 }
 
 export interface JSONAPISerializerSettings {
@@ -25,7 +26,7 @@ export interface JSONAPISerializerSettings {
   keyMap?: KeyMap;
 }
 
-export default class JSONAPISerializer {
+export class JSONAPISerializer implements Serializer<RecordDocument, ResourceDocument> {
   protected _schema: Schema;
   protected _keyMap: KeyMap;
 
@@ -113,10 +114,21 @@ export default class JSONAPISerializer {
     return camelize(resourceRelationship);
   }
 
-  serializeDocument(data: Record | Record[]): JSONAPIDocument {
+  serialize(document: RecordDocument): ResourceDocument {
+    let data = document.data;
+
     return {
       data: isArray(data) ? this.serializeRecords(<Record[]>data) : this.serializeRecord(<Record>data)
     };
+  }
+
+  /**
+   * @deprecated
+   * @param data
+   */
+  serializeDocument(data: Record | Record[]): ResourceDocument {
+    deprecate('JSONAPISerializer: `serializeDocument()` has been deprecated. Call `serialize(document: RecordDocument)` instead.');
+    return this.serialize({ data });
   }
 
   serializeRecords(records: Record[]): Resource[] {
@@ -185,21 +197,23 @@ export default class JSONAPISerializer {
     }
   }
 
-  deserializeDocument(document: JSONAPIDocument, primaryRecordData?: Record | Record[]): DeserializedDocument {
-    let result: DeserializedDocument;
-
+  deserialize(document: ResourceDocument, options?: DeserializeOptions): RecordDocument {
+    let result: RecordDocument;
     let data;
+
     if (isArray(document.data)) {
-      if (primaryRecordData !== undefined) {
+      let primaryRecords = options && options.primaryRecords;
+      if (primaryRecords) {
         data = (document.data as Resource[]).map((entry, i) => {
-          return this.deserializeResource(entry, (primaryRecordData as Record[])[i]);
+          return this.deserializeResource(entry, primaryRecords[i]);
         });
       } else {
         data = (document.data as Resource[]).map((entry, i) => this.deserializeResource(entry));
       }
     } else if (document.data !== null) {
-      if (primaryRecordData !== undefined) {
-        data = this.deserializeResource(document.data as Resource, primaryRecordData as Record);
+      let primaryRecord = options && options.primaryRecord;
+      if (primaryRecord) {
+        data = this.deserializeResource(document.data as Resource, primaryRecord);
       } else {
         data = this.deserializeResource(document.data as Resource);
       }
@@ -221,6 +235,24 @@ export default class JSONAPISerializer {
     }
 
     return result;
+  }
+
+  /**
+   * @deprecated
+   * @param document
+   * @param primaryRecordData
+   */
+  deserializeDocument(document: ResourceDocument, primaryRecordData?: Record | Record[]): RecordDocument {
+    deprecate('JSONAPISerializer: `deserializeDocument()` has been deprecated. Call `deserialize(document: RecordDocument, options?: DeserializeOptions)` instead.');
+    let options: DeserializeOptions = {};
+    if (primaryRecordData) {
+      if (Array.isArray(primaryRecordData)) {
+        options.primaryRecords = primaryRecordData as Record[];
+      } else {
+        options.primaryRecord = primaryRecordData as Record;
+      }
+    }
+    return this.deserialize(document, options);
   }
 
   deserializeResource(resource: Resource, primaryRecord?: Record): Record {
