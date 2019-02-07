@@ -21,10 +21,10 @@ import {
   PageSpecifier
 } from '@orbit/data';
 import JSONAPISource from '../jsonapi-source';
-import { DeserializedDocument } from '../jsonapi-serializer';
+import { RecordDocument } from '../record-document';
 import { Filter, RequestOptions, buildFetchSettings, customRequestOptions } from './request-settings';
 
-function operationsFromDeserializedDocument(deserialized: DeserializedDocument): Operation[] {
+function operationsFromDeserializedDocument(deserialized: RecordDocument): Operation[] {
   const records: Record[] = [];
   Array.prototype.push.apply(records, toArray(deserialized.data));
 
@@ -58,7 +58,7 @@ export const QueryOperators: Dict<QueryOperator> = {
 
     const document = await source.fetch(source.resourceURL(record.type, record.id), settings);
 
-    const deserialized = source.serializer.deserializeDocument(document);
+    const deserialized = source.serializer.deserialize(document);
     const operations = operationsFromDeserializedDocument(deserialized);
 
     const transforms = [buildTransform(operations)];
@@ -94,7 +94,7 @@ export const QueryOperators: Dict<QueryOperator> = {
 
     const document = await source.fetch(source.resourceURL(type), settings);
 
-    const deserialized = source.serializer.deserializeDocument(document);
+    const deserialized = source.serializer.deserialize(document);
     const operations = operationsFromDeserializedDocument(deserialized);
 
     const transforms = [buildTransform(operations)];
@@ -111,7 +111,7 @@ export const QueryOperators: Dict<QueryOperator> = {
 
     const document = await source.fetch(source.relatedResourceURL(record.type, record.id, relationship), settings);
 
-    const deserialized = source.serializer.deserializeDocument(document);
+    const deserialized = source.serializer.deserialize(document);
     const relatedRecord = deserialized.data;
     const operations = operationsFromDeserializedDocument(deserialized);
     operations.push({
@@ -135,7 +135,7 @@ export const QueryOperators: Dict<QueryOperator> = {
 
     const document = await source.fetch(source.relatedResourceURL(record.type, record.id, relationship), settings);
 
-    const deserialized = source.serializer.deserializeDocument(document);
+    const deserialized = source.serializer.deserialize(document);
     const relatedRecords = deserialized.data;
 
     const operations = operationsFromDeserializedDocument(deserialized);

@@ -18,8 +18,8 @@ import Orbit, {
 } from '@orbit/data';
 import { clone, deepSet, Dict } from '@orbit/utils';
 import JSONAPISource from '../jsonapi-source';
-import { JSONAPIDocument } from '../jsonapi-document';
-import { DeserializedDocument } from '../jsonapi-serializer';
+import { ResourceDocument } from '../resource-document';
+import { RecordDocument } from '../record-document';
 import { buildFetchSettings, customRequestOptions, RequestOptions } from './request-settings';
 
 export interface TransformRecordRequest {
@@ -74,11 +74,11 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
   async addRecord(source: JSONAPISource, request: AddRecordRequest): Promise<Transform[]> {
     const { serializer } = source;
     const record = request.record;
-    const requestDoc: JSONAPIDocument = serializer.serializeDocument(record);
+    const requestDoc: ResourceDocument = serializer.serialize({ data: record });
     const settings = buildFetchSettings(request.options, { method: 'POST', json: requestDoc });
 
-    let raw: JSONAPIDocument = await source.fetch(source.resourceURL(record.type), settings);
-    return handleChanges(record, serializer.deserializeDocument(raw, record));
+    let raw: ResourceDocument = await source.fetch(source.resourceURL(record.type), settings);
+    return handleChanges(record, serializer.deserialize(raw, { primaryRecord: record }));
   },
 
   async removeRecord(source: JSONAPISource, request: RemoveRecordRequest): Promise<Transform[]> {
@@ -93,12 +93,12 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const { serializer } = source;
     const record = request.record;
     const { type, id } = record;
-    const requestDoc: JSONAPIDocument = serializer.serializeDocument(record);
+    const requestDoc: ResourceDocument = serializer.serialize({ data: record });
     const settings = buildFetchSettings(request.options, { method: 'PATCH', json: requestDoc });
 
-    let raw: JSONAPIDocument = await source.fetch(source.resourceURL(type, id), settings)
+    let raw: ResourceDocument = await source.fetch(source.resourceURL(type, id), settings)
     if (raw) {
-      return handleChanges(record, serializer.deserializeDocument(raw, record));
+      return handleChanges(record, serializer.deserialize(raw, { primaryRecord: record }));
     } else {
       return [];
     }
@@ -305,7 +305,7 @@ function replaceRecordHasMany(record: RecordIdentity, relationship: string, rela
   deepSet(record, ['relationships', relationship, 'data'], relatedRecords.map(r => cloneRecordIdentity(r)));
 }
 
-function handleChanges(record: Record, responseDoc: DeserializedDocument): Transform[] {
+function handleChanges(record: Record, responseDoc: RecordDocument): Transform[] {
   let updatedRecord: Record = <Record>responseDoc.data;
   let transforms = [];
   let updateOps = recordDiffs(record, updatedRecord);

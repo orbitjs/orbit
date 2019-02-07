@@ -15,9 +15,8 @@ import Orbit, {
   ReplaceRelatedRecordsOperation,
   Transform
 } from '@orbit/data';
-import JSONAPISource from '../src/jsonapi-source';
 import { jsonapiResponse } from './support/jsonapi';
-import { Resource } from '../src/jsonapi-document';
+import JSONAPISource, { Resource } from '../src/index';
 import { SinonStatic, SinonStub} from 'sinon';
 
 declare const sinon: SinonStatic;
@@ -399,7 +398,7 @@ module('JSONAPISource', function() {
           });
           assert.deepEqual(
             operationsWithoutId,
-            [addMoonOp],
+            [addMoonOp as any],
             'transform event to add included records'
           );
         }
@@ -1430,12 +1429,12 @@ module('JSONAPISource', function() {
     test('#pull - relatedRecord', async function(assert) {
       assert.expect(12);
 
-      const planetRecord: Record = <Record>source.serializer.deserializeDocument({
+      const planetRecord: Record = source.serializer.deserialize({
         data: {
           type: 'planets',
           id: 'jupiter'
         }
-      }).data;
+      }).data as Record;
 
       const data: Resource = {
         type: 'solar-systems',
@@ -1478,12 +1477,12 @@ module('JSONAPISource', function() {
     test('#pull - relatedRecords', async function(assert) {
       assert.expect(8);
 
-      let planetRecord: Record = <Record>source.serializer.deserializeDocument({
+      let planetRecord: Record = source.serializer.deserialize({
         data: {
           type: 'planets',
           id: 'jupiter'
         }
-      }).data;
+      }).data as Record;
 
       let data = [{
         type: 'moons',
@@ -1517,12 +1516,12 @@ module('JSONAPISource', function() {
     test('#pull - relatedRecords with include', async function(assert) {
       assert.expect(2);
 
-      const planetRecord = source.serializer.deserializeDocument({
+      const planetRecord = source.serializer.deserialize({
         data: {
           type: 'planets',
           id: 'jupiter'
         }
-      }).data;
+      }).data as RecordIdentity;
 
       const options = {
         sources: {
@@ -1536,7 +1535,7 @@ module('JSONAPISource', function() {
         .withArgs('/planets/jupiter/moons?include=planet')
         .returns(jsonapiResponse(200, { data: [] }));
 
-      await source.pull(q => q.findRelatedRecords(<RecordIdentity>planetRecord, 'moons'), options);
+      await source.pull(q => q.findRelatedRecords(planetRecord, 'moons'), options);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -1968,16 +1967,16 @@ module('JSONAPISource', function() {
       fetchStub
         .withArgs('/planets?include=moons')
         .returns(jsonapiResponse(200, {
-          data: [{ type: "planets", id: 1 }, { type: "planets", id: 2 }],
-          included: [{ type: "moons", id: 1 }, { type: "moons", id: 2 }]
+          data: [{ type: 'planets', id: '1' }, { type: 'planets', id: '2' }],
+          included: [{ type: 'moons', id: '1' }, { type: 'moons', id: '2' }]
         }));
 
       let records: Record[] = await source.query(q => q.findRecords('planet'), options);
 
       assert.ok(Array.isArray(records), 'query result is an array, like primary data');
       assert.equal(records.length, 2, 'query result length equals primary data length');
-      assert.deepEqual(records.map(planet => planet.type), ["planet", "planet"]);
-      assert.deepEqual(records.map(planet => planet.keys.remoteId), [1, 2], "returned IDs match primary data (including sorting)");
+      assert.deepEqual(records.map(planet => planet.type), ['planet', 'planet']);
+      assert.deepEqual(records.map(planet => planet.keys.remoteId), ['1', '2'], 'returned IDs match primary data (including sorting)');
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
@@ -2007,12 +2006,12 @@ module('JSONAPISource', function() {
     test('#query - relatedRecords', async function(assert) {
       assert.expect(5);
 
-      let planetRecord: Record = <Record>source.serializer.deserializeDocument({
+      let planetRecord: Record = source.serializer.deserialize({
         data: {
           type: 'planets',
           id: 'jupiter'
         }
-      }).data;
+      }).data as Record;
 
       let data = [{
         type: 'moons',
@@ -2039,12 +2038,12 @@ module('JSONAPISource', function() {
     test('#query - relatedRecords with include', async function(assert) {
       assert.expect(2);
 
-      const planetRecord = source.serializer.deserializeDocument({
+      const planetRecord = source.serializer.deserialize({
         data: {
           type: 'planets',
           id: 'jupiter'
         }
-      }).data;
+      }).data as RecordIdentity;
 
       const options = {
         sources: {
@@ -2058,7 +2057,7 @@ module('JSONAPISource', function() {
         .withArgs('/planets/jupiter/moons?include=planet')
         .returns(jsonapiResponse(200, { data: [] }));
 
-      await source.query(q => q.findRelatedRecords(<RecordIdentity>planetRecord, 'moons'), options);
+      await source.query(q => q.findRelatedRecords(planetRecord, 'moons'), options);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');

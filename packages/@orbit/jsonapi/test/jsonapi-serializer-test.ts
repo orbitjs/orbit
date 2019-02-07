@@ -5,7 +5,7 @@ import {
   Record,
   Schema
 } from '@orbit/data';
-import JSONAPISerializer from '../src/jsonapi-serializer';
+import { JSONAPISerializer } from '../src/index';
 
 const { module, test } = QUnit;
 
@@ -115,10 +115,10 @@ module('JSONAPISerializer', function(hooks) {
       assert.equal(serializer.recordId('planet', 'b'), '2');
     });
 
-    test('#serializeDocument - can serialize a simple resource with only attributes', function(assert) {
+    test('#serialize - can serialize a simple resource with only attributes', function(assert) {
       assert.deepEqual(
-        serializer.serializeDocument(
-          {
+        serializer.serialize({
+          data: {
             type: 'planet',
             id: 'jupiter',
             attributes: {
@@ -126,7 +126,7 @@ module('JSONAPISerializer', function(hooks) {
               classification: 'gas giant'
             }
           }
-        ),
+        }),
         {
           data: {
             type: 'planets',
@@ -140,14 +140,14 @@ module('JSONAPISerializer', function(hooks) {
       );
     });
 
-    test('#serializeDocument - can serialize a resource with attributes and has-many relationships', function(assert) {
+    test('#serialize - can serialize a resource with attributes and has-many relationships', function(assert) {
       keyMap.pushRecord({ type: 'planet', id: 'p1', keys: { remoteId: 'p1-id' } });
       keyMap.pushRecord({ type: 'moon', id: 'm1', keys: { remoteId: 'm1-id' } });
       keyMap.pushRecord({ type: 'moon', id: 'm2', keys: { remoteId: 'm2-id' } });
 
       assert.deepEqual(
-        serializer.serializeDocument(
-          {
+        serializer.serialize({
+          data: {
             type: 'planet',
             id: 'p1',
             attributes: {
@@ -163,7 +163,7 @@ module('JSONAPISerializer', function(hooks) {
               }
             }
           }
-        ),
+        }),
         {
           data: {
             type: 'planets',
@@ -186,13 +186,13 @@ module('JSONAPISerializer', function(hooks) {
       );
     });
 
-    test('#serializeDocument - can serialize a resource with attributes and a null has-one relationship', function(assert) {
+    test('#serialize - can serialize a resource with attributes and a null has-one relationship', function(assert) {
       keyMap.pushRecord({ type: 'planet', id: 'p0', keys: { remoteId: 'p1-id' } });
       keyMap.pushRecord({ type: 'moon', id: 'm1', keys: { remoteId: 'm1-id' } });
 
       assert.deepEqual(
-        serializer.serializeDocument(
-          {
+        serializer.serialize({
+          data: {
             type: 'moon',
             id: 'm1',
             attributes: {
@@ -204,7 +204,7 @@ module('JSONAPISerializer', function(hooks) {
               }
             }
           }
-        ),
+        }),
         {
           data: {
             type: 'moons',
@@ -221,13 +221,13 @@ module('JSONAPISerializer', function(hooks) {
       );
     });
 
-    test('#serializeDocument - can serialize a resource with attributes and a has-one relationships', function(assert) {
+    test('#serialize - can serialize a resource with attributes and a has-one relationships', function(assert) {
       keyMap.pushRecord({ type: 'planet', id: 'p1', keys: { remoteId: 'p1-id' } });
       keyMap.pushRecord({ type: 'solarSystem', id: 'ss1', keys: { remoteId: 'ss1-id' } });
 
       assert.deepEqual(
-        serializer.serializeDocument(
-          {
+        serializer.serialize({
+          data: {
             type: 'planet',
             id: 'p1',
             attributes: {
@@ -239,7 +239,7 @@ module('JSONAPISerializer', function(hooks) {
               }
             }
           }
-        ),
+        }),
         {
           data: {
             type: 'planets',
@@ -259,7 +259,7 @@ module('JSONAPISerializer', function(hooks) {
     });
 
     test('#deserialize - can deserialize a simple resource with only type and id - using local IDs', function(assert) {
-      let result = serializer.deserializeDocument(
+      let result = serializer.deserialize(
         {
           data: {
             type: 'planets',
@@ -286,16 +286,18 @@ module('JSONAPISerializer', function(hooks) {
       let localRecord = {
         id: '1a2b3c',
         type: 'planet'
-      };
+      } as Record;
 
-      let result = serializer.deserializeDocument(
+      let result = serializer.deserialize(
         {
           data: {
             type: 'planets',
             id: '123'
           }
         },
-        localRecord
+        {
+          primaryRecord: localRecord
+        }
       );
 
       let record = result.data;
@@ -314,7 +316,7 @@ module('JSONAPISerializer', function(hooks) {
     });
 
     test('#deserialize - can deserialize a compound document', function(assert) {
-      let result = serializer.deserializeDocument(
+      let result = serializer.deserialize(
         {
           data: {
             id: '12345',
@@ -416,7 +418,7 @@ module('JSONAPISerializer', function(hooks) {
     });
 
     test('#deserialize - can deserialize null as primary data', function(assert) {
-      let result = serializer.deserializeDocument(
+      let result = serializer.deserialize(
         {
           data: null
         }
@@ -427,7 +429,7 @@ module('JSONAPISerializer', function(hooks) {
     });
 
     test('#deserialize - can deserialize an array of records', function (assert) {
-      let result = serializer.deserializeDocument(
+      let result = serializer.deserialize(
         {
           data: [
             { type: 'planets', id: '123' },
@@ -456,15 +458,17 @@ module('JSONAPISerializer', function(hooks) {
     });
 
     test('#deserialize - can deserialize an array of records and associate them with local records', function (assert) {
-      let localRecords = [{ id: '1a2b3c' }, { id: '4d5e6f' }];
-      let result = serializer.deserializeDocument(
+      let localRecords = [{ id: '1a2b3c' }, { id: '4d5e6f' }]  as Record[];
+      let result = serializer.deserialize(
         {
           data: [
             { type: 'planets', id: '123' },
             { type: 'planets', id: '234' }
           ]
         },
-        localRecords as Record[]
+        {
+          primaryRecords: localRecords
+        }
       );
       let records = result.data as Record[];
 
@@ -508,23 +512,23 @@ module('JSONAPISerializer', function(hooks) {
     });
 
     test('#resourceId returns a matching resource id given an orbit id', function(assert) {
-      serializer.deserializeDocument({ data: { type: 'planet', id: 'a' } });
-      serializer.deserializeDocument({ data: { type: 'planet', id: 'b' } });
+      serializer.deserialize({ data: { type: 'planet', id: 'a' } });
+      serializer.deserialize({ data: { type: 'planet', id: 'b' } });
 
       assert.equal(serializer.resourceId('planet', 'a'), 'a');
       assert.equal(serializer.resourceId('planet', 'b'), 'b');
     });
 
     test('#resourceIds returns an array of matching resource ids given an array of orbit ids', function(assert) {
-      serializer.deserializeDocument({ data: { type: 'planet', id: 'a' } });
-      serializer.deserializeDocument({ data: { type: 'planet', id: 'b' } });
+      serializer.deserialize({ data: { type: 'planet', id: 'a' } });
+      serializer.deserialize({ data: { type: 'planet', id: 'b' } });
 
       assert.deepEqual(serializer.resourceIds('planet', ['a', 'b']), ['a', 'b'], 'works for arrays too');
     });
 
     test('#recordId returns a matching orbit id given a resource id - using UUIDs', function(assert) {
-      serializer.deserializeDocument({ data: { type: 'planet', id: 'a' } });
-      serializer.deserializeDocument({ data: { type: 'planet', id: 'b' } });
+      serializer.deserialize({ data: { type: 'planet', id: 'a' } });
+      serializer.deserialize({ data: { type: 'planet', id: 'b' } });
 
       assert.equal(serializer.recordId('planet', 'a'), 'a');
       assert.equal(serializer.recordId('planet', 'b'), 'b');
@@ -532,12 +536,12 @@ module('JSONAPISerializer', function(hooks) {
 
     test('#serialize - can serialize a simple resource with only type and id', function(assert) {
       assert.deepEqual(
-        serializer.serializeDocument(
-          {
+        serializer.serialize({
+          data: {
             type: 'planet',
             id: '123'
           }
-        ),
+        }),
         {
           data: {
             type: 'planets',
@@ -549,7 +553,7 @@ module('JSONAPISerializer', function(hooks) {
     });
 
     test('#deserialize - can deserialize a simple resource with only type and id', function(assert) {
-      let result = serializer.deserializeDocument(
+      let result = serializer.deserialize(
         {
           data: {
             type: 'planets',
@@ -570,7 +574,7 @@ module('JSONAPISerializer', function(hooks) {
     });
 
     test('#deserialize - can deserialize a compound document', function(assert) {
-      let result = serializer.deserializeDocument(
+      let result = serializer.deserialize(
         {
           data: {
             id: '12345',
@@ -632,7 +636,7 @@ module('JSONAPISerializer', function(hooks) {
     });
 
     test('#deserialize - ignores attributes and relationships not defined in the schema', function(assert) {
-      let result = serializer.deserializeDocument(
+      let result = serializer.deserialize(
         {
           data: {
             id: '12345',
@@ -670,7 +674,7 @@ module('JSONAPISerializer', function(hooks) {
   });
 
   module('Deserialize links and meta',function(hooks){
-    let serializer;
+    let serializer: JSONAPISerializer;
 
     hooks.beforeEach(function() {
       let schema = new Schema({ models: modelDefinitions });
@@ -686,7 +690,7 @@ module('JSONAPISerializer', function(hooks) {
     });
 
     test('it deserializes links and meta at the document-level', function (assert) {
-      let result = serializer.deserializeDocument(
+      let result = serializer.deserialize(
         {
           links: {
             self: "https://example.com/planets/12345/moons"
@@ -712,7 +716,7 @@ module('JSONAPISerializer', function(hooks) {
     });
 
     test('it deserializes links and meta in records', function (assert) {
-      let result = serializer.deserializeDocument(
+      let result = serializer.deserialize(
         {
           data: {
             id: '12345',
@@ -734,7 +738,7 @@ module('JSONAPISerializer', function(hooks) {
             }
           }
         });
-      let planet = result.data;
+      let planet = result.data as Record;
       assert.deepEqual(result, {
         data: {
           type: 'planet',
@@ -765,7 +769,7 @@ module('JSONAPISerializer', function(hooks) {
     });
 
     test('it deserializes links and meta in hasOne relationship', function (assert) {
-      let result = serializer.deserializeDocument(
+      let result = serializer.deserialize(
         {
           data: {
             id: '12345',
@@ -792,7 +796,7 @@ module('JSONAPISerializer', function(hooks) {
             }
           }
         });
-      let planet = result.data;
+      let planet = result.data as Record;
       assert.deepEqual(result, {
         data: {
           type: 'planet',
@@ -827,7 +831,7 @@ module('JSONAPISerializer', function(hooks) {
     });
 
     test('it deserializes links and meta in hasMany relationship', function (assert) {
-      let result = serializer.deserializeDocument(
+      let result = serializer.deserialize(
         {
           data: {
             id: '12345',
@@ -856,7 +860,7 @@ module('JSONAPISerializer', function(hooks) {
           }
           }
         });
-      let planet = result.data;
+      let planet = result.data as Record;
       assert.deepEqual(result, {
         data: {
           type: 'planet',
@@ -891,7 +895,7 @@ module('JSONAPISerializer', function(hooks) {
     });
 
     test('it deserializes links and meta in hasOne relationship without data', function (assert) {
-      let result = serializer.deserializeDocument(
+      let result = serializer.deserialize(
         {
           data: {
             id: '12345',
@@ -918,7 +922,7 @@ module('JSONAPISerializer', function(hooks) {
             }
           }
         });
-      let planet = result.data;
+      let planet = result.data as Record;
       assert.deepEqual(result, {
         data: {
           type: 'planet',
@@ -952,7 +956,7 @@ module('JSONAPISerializer', function(hooks) {
     });
 
     test('it deserializes links in hasMany relationship without data', function (assert) {
-      let result = serializer.deserializeDocument(
+      let result = serializer.deserialize(
         {
           data: {
             id: '12345',
@@ -979,7 +983,7 @@ module('JSONAPISerializer', function(hooks) {
             }
           }
         });
-      let planet = result.data;
+      let planet = result.data as Record;
       assert.deepEqual(result, {
         data: {
           type: 'planet',

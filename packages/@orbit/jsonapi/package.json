@@ -28,7 +28,8 @@
   "dependencies": {
     "@orbit/core": "^0.15.23",
     "@orbit/data": "^0.15.23",
-    "@orbit/utils": "^0.15.23"
+    "@orbit/utils": "^0.15.23",
+    "@orbit/serializers": "^0.15.23"
   },
   "devDependencies": {
     "@glimmer/build": "^0.9.0",
