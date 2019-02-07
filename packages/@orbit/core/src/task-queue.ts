@@ -29,8 +29,6 @@ export interface TaskQueueSettings {
   autoProcess?: boolean;
 }
 
-export type TASK_QUEUE_EVENTS = 'complete' | 'fail' | 'beforeTask' | 'task' | 'change';
-
 /**
  * `TaskQueue` is a FIFO queue of asynchronous tasks that should be
  * performed sequentially.
@@ -59,11 +57,11 @@ export default class TaskQueue implements Evented {
   private _reified: Promise<any>;
 
   // Evented interface stubs
-  on: (event: TASK_QUEUE_EVENTS, listener: Listener) => void;
-  off: (event: TASK_QUEUE_EVENTS, listener?: Listener) => void;
-  one: (event: TASK_QUEUE_EVENTS, listener: Listener) => void;
-  emit: (event: TASK_QUEUE_EVENTS, ...args: any[]) => void;
-  listeners: (event: TASK_QUEUE_EVENTS) => Listener[];
+  on: (event: string, listener: Listener) => void;
+  off: (event: string, listener?: Listener) => void;
+  one: (event: string, listener: Listener) => void;
+  emit: (event: string, ...args: any[]) => void;
+  listeners: (event: string) => Listener[];
 
   /**
    * Creates an instance of `TaskQueue`.
