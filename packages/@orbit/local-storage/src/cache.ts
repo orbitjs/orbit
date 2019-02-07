@@ -50,7 +50,7 @@ export default class LocalStorageCache extends SyncRecordCache {
     return [this.namespace, 'inverseRels', record.type, record.id].join(this.delimiter);
   }
 
-  getRecordSync(identity: RecordIdentity): Record | null {
+  getRecordSync(identity: RecordIdentity): Record {
     const key = this.getKeyForRecord(identity);
 
     let result = JSON.parse(Orbit.globals.localStorage.getItem(key));
@@ -118,7 +118,7 @@ export default class LocalStorageCache extends SyncRecordCache {
     }
   }
 
-  removeRecordSync(recordIdentity: RecordIdentity): Record | null {
+  removeRecordSync(recordIdentity: RecordIdentity): Record {
     const record = this.getRecordSync(recordIdentity);
     if (record) {
       const key = this.getKeyForRecord(record);

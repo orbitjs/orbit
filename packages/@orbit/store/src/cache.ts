@@ -32,7 +32,7 @@ export default class Cache extends SyncRecordCache {
     this.reset(settings.base);
   }
 
-  getRecordSync(identity: RecordIdentity): Record | null {
+  getRecordSync(identity: RecordIdentity): Record {
     return this._records[identity.type].get(identity.id) || null;
   }
 
@@ -70,7 +70,7 @@ export default class Cache extends SyncRecordCache {
     }
   }
 
-  removeRecordSync(recordIdentity: RecordIdentity): Record | null {
+  removeRecordSync(recordIdentity: RecordIdentity): Record {
     const recordMap = this._records[recordIdentity.type];
     const record = recordMap.get(recordIdentity.id);
     if (record) {
