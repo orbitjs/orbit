@@ -3,9 +3,17 @@ import Orbit, {
   Schema,
   KeyMap,
   Record,
-  RecordIdentity
+  RecordIdentity,
+  ModelDefinition
 } from '@orbit/data';
-import { Serializer } from '@orbit/serializers';
+import {
+  BooleanSerializer,
+  StringSerializer,
+  DateSerializer,
+  DateTimeSerializer,
+  Serializer,
+  NumberSerializer
+} from '@orbit/serializers';
 import {
   Resource,
   ResourceIdentity,
@@ -24,15 +32,18 @@ export interface DeserializeOptions {
 export interface JSONAPISerializerSettings {
   schema: Schema;
   keyMap?: KeyMap;
+  serializers?: Dict<Serializer<any,any>>;
 }
 
 export class JSONAPISerializer implements Serializer<RecordDocument, ResourceDocument> {
   protected _schema: Schema;
   protected _keyMap: KeyMap;
+  protected _serializers: Dict<Serializer<any,any>>;
 
   constructor(settings: JSONAPISerializerSettings) {
     this._schema = settings.schema;
     this._keyMap = settings.keyMap;
+    this._initSerializers(settings.serializers);
   }
 
   get schema(): Schema {
@@ -41,6 +52,10 @@ export class JSONAPISerializer implements Serializer<RecordDocument, ResourceDoc
 
   get keyMap(): KeyMap {
     return this._keyMap;
+  }
+
+  serializerFor(type: string): Serializer<any, any> {
+    return this._serializers[type];
   }
 
   resourceKey(type: string): string {
@@ -136,48 +151,54 @@ export class JSONAPISerializer implements Serializer<RecordDocument, ResourceDoc
   }
 
   serializeRecord(record: Record): Resource {
-    let resource: Resource = {
+    const resource: Resource = {
       type: this.resourceType(record.type)
     };
+    const model: ModelDefinition = this._schema.getModel(record.type);
 
-    this.serializeId(resource, record);
-    this.serializeAttributes(resource, record);
-    this.serializeRelationships(resource, record);
+    this.serializeId(resource, record, model);
+    this.serializeAttributes(resource, record, model);
+    this.serializeRelationships(resource, record, model);
 
     return resource;
   }
 
-  serializeId(resource: Resource, record: RecordIdentity): void {
+  serializeId(resource: Resource, record: RecordIdentity, model: ModelDefinition): void {
     let value = this.resourceId(record.type, record.id);
     if (value !== undefined) {
       resource.id = value;
     }
   }
 
-  serializeAttributes(resource: Resource, record: Record): void {
+  serializeAttributes(resource: Resource, record: Record, model: ModelDefinition): void {
     if (record.attributes) {
       Object.keys(record.attributes).forEach(attr => {
-        this.serializeAttribute(resource, record, attr);
+        this.serializeAttribute(resource, record, attr, model);
       });
     }
   }
 
-  serializeAttribute(resource: Resource, record: Record, attr: string): void {
+  serializeAttribute(resource: Resource, record: Record, attr: string, model: ModelDefinition): void {
     let value: any = record.attributes[attr];
     if (value !== undefined) {
+      const attrOptions = model.attributes[attr];
+      const serializer = this._serializers[attrOptions.type];
+      if (serializer) {
+        value = serializer.serialize(value, attrOptions.serializationOptions);
+      }
       deepSet(resource, ['attributes', this.resourceAttribute(record.type, attr)], value);
     }
   }
 
-  serializeRelationships(resource: Resource, record: Record): void {
+  serializeRelationships(resource: Resource, record: Record, model: ModelDefinition): void {
     if (record.relationships) {
       Object.keys(record.relationships).forEach(relationship => {
-        this.serializeRelationship(resource, record, relationship);
+        this.serializeRelationship(resource, record, relationship, model);
       });
     }
   }
 
-  serializeRelationship(resource: Resource, record: Record, relationship: string): void {
+  serializeRelationship(resource: Resource, record: Record, relationship: string, model: ModelDefinition): void {
     const value = record.relationships[relationship].data;
 
     if (value !== undefined) {
@@ -257,8 +278,9 @@ export class JSONAPISerializer implements Serializer<RecordDocument, ResourceDoc
 
   deserializeResource(resource: Resource, primaryRecord?: Record): Record {
     let record: Record;
-    let type: string = this.recordType(resource.type);
-    let resourceKey = this.resourceKey(type);
+    const type: string = this.recordType(resource.type);
+    const model: ModelDefinition = this._schema.getModel(type);
+    const resourceKey = this.resourceKey(type);
 
     if (resourceKey === 'id') {
       record = { type, id: resource.id };
@@ -286,10 +308,10 @@ export class JSONAPISerializer implements Serializer<RecordDocument, ResourceDoc
       }
     }
 
-    this.deserializeAttributes(record, resource);
-    this.deserializeRelationships(record, resource);
-    this.deserializeLinks(record, resource);
-    this.deserializeMeta(record, resource);
+    this.deserializeAttributes(record, resource, model);
+    this.deserializeRelationships(record, resource, model);
+    this.deserializeLinks(record, resource, model);
+    this.deserializeMeta(record, resource, model);
 
     if (this.keyMap) {
       this.keyMap.pushRecord(record);
@@ -298,36 +320,43 @@ export class JSONAPISerializer implements Serializer<RecordDocument, ResourceDoc
     return record;
   }
 
-  deserializeAttributes(record: Record, resource: Resource): void {
+  deserializeAttributes(record: Record, resource: Resource, model: ModelDefinition): void {
     if (resource.attributes) {
       Object.keys(resource.attributes).forEach(resourceAttribute => {
         let attribute = this.recordAttribute(record.type, resourceAttribute);
         if (this.schema.hasAttribute(record.type, attribute)) {
           let value = resource.attributes[resourceAttribute];
-          this.deserializeAttribute(record, attribute, value);
+          this.deserializeAttribute(record, attribute, value, model);
         }
       });
     }
   }
 
-  deserializeAttribute(record: Record, attr: string, value: any): void {
+  deserializeAttribute(record: Record, attr: string, value: any, model: ModelDefinition): void {
     record.attributes = record.attributes || {};
+    if (value !== undefined) {
+      const attrOptions = model.attributes[attr];
+      const serializer = this._serializers[attrOptions.type];
+      if (serializer) {
+        value = serializer.deserialize(value, attrOptions.deserializationOptions);
+      }
+    }
     record.attributes[attr] = value;
   }
 
-  deserializeRelationships(record: Record, resource: Resource): void {
+  deserializeRelationships(record: Record, resource: Resource, model: ModelDefinition): void {
     if (resource.relationships) {
       Object.keys(resource.relationships).forEach(resourceRel => {
         let relationship = this.recordRelationship(record.type, resourceRel);
         if (this.schema.hasRelationship(record.type, relationship)) {
           let value = resource.relationships[resourceRel];
-          this.deserializeRelationship(record, relationship, value);
+          this.deserializeRelationship(record, relationship, value, model);
         }
       });
     }
   }
 
-  deserializeRelationship(record: Record, relationship: string, value: ResourceRelationship) {
+  deserializeRelationship(record: Record, relationship: string, value: ResourceRelationship, model: ModelDefinition) {
     let resourceData = value.data;
 
     if (resourceData !== undefined) {
@@ -355,16 +384,25 @@ export class JSONAPISerializer implements Serializer<RecordDocument, ResourceDoc
     }
   }
 
-  deserializeLinks(record: Record, resource: Resource) {
+  deserializeLinks(record: Record, resource: Resource, model: ModelDefinition) {
     if (resource.links) {
       record.links = resource.links;
     }
   }
 
-  deserializeMeta(record: Record, resource: Resource) {
+  deserializeMeta(record: Record, resource: Resource, model: ModelDefinition) {
     if (resource.meta) {
       record.meta = resource.meta;
     }
+  }
+
+  protected _initSerializers(serializers: Dict<Serializer<any,any>> = {}) {
+    this._serializers = serializers;
+    serializers.boolean = serializers.boolean || new BooleanSerializer;
+    serializers.string = serializers.string || new StringSerializer;
+    serializers.date = serializers.date || new DateSerializer;
+    serializers.datetime = serializers.datetime || new DateTimeSerializer;
+    serializers.number = serializers.number || new NumberSerializer;
   }
 
   protected _generateNewId(type: string, keyName: string, keyValue: string) {
