@@ -26,8 +26,6 @@ export interface BucketSettings {
   version?: number;
 }
 
-export type BUCKET_EVENTS = 'upgrade';
-
 /**
  * Buckets can persist state. The base `Bucket` class is abstract and should be
  * extended to created buckets with different persistence strategies.
@@ -48,11 +46,11 @@ export abstract class Bucket implements Evented {
   private _version: number;
 
   // Evented interface stubs
-  on: (event: BUCKET_EVENTS, listener: Listener) => void;
-  off: (event: BUCKET_EVENTS, listener?: Listener) => void;
-  one: (event: BUCKET_EVENTS, listener: Listener) => void;
-  emit: (event: BUCKET_EVENTS, ...args: any[]) => void;
-  listeners: (event: BUCKET_EVENTS) => Listener[];
+  on: (event: string, listener: Listener) => void;
+  off: (event: string, listener?: Listener) => void;
+  one: (event: string, listener: Listener) => void;
+  emit: (event: string, ...args: any[]) => void;
+  listeners: (event: string) => Listener[];
 
   constructor(settings: BucketSettings = {}) {
     if (settings.version === undefined) {
