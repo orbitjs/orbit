@@ -5,7 +5,9 @@ import {
   Record,
   Schema
 } from '@orbit/data';
+
 import { JSONAPISerializer } from '../src/index';
+import { Serializer } from '../../serializers/dist/types';
 
 const { module, test } = QUnit;
 
@@ -47,6 +49,134 @@ module('JSONAPISerializer', function(hooks) {
       }
     }
   };
+
+  module('Using custom serializers', function(hooks) {
+    const modelDefinitions: Dict<ModelDefinition> = {
+      person: {
+        attributes: {
+          name: { type: 'string' },
+          birthday: { type: 'date' },
+          birthtime: { type: 'datetime' },
+          height: { type: 'distance', serializationOptions: { format: 'cm', digits: 2 }, deserializationOptions: { format: 'cm' }},
+          isAdult: { type: 'boolean' }
+        }
+      }
+    };
+
+    class DistanceSerializer implements Serializer<number,string> {
+      serialize(arg: number, options?: any): string {
+        let distance = arg;
+        const format = options && options.format;
+        const digits = options && options.digits || 0;
+        if (format === 'cm') {
+          distance *= 100;
+        } else if (format) {
+          throw new Error('Unknown format');
+        }
+        return distance.toFixed(digits);
+      }
+
+      deserialize(arg: string, options?: any): number {
+        const format = options && options.format;
+        let distance = parseFloat(arg);
+        if (format === 'cm') {
+          distance /= 100;
+        } else if (format) {
+          throw new Error('Unknown format');
+        }
+        return distance;
+      }
+    }
+
+    let serializer: JSONAPISerializer;
+
+    hooks.beforeEach(function() {
+      let schema: Schema = new Schema({ models: modelDefinitions });
+      serializer = new JSONAPISerializer({ schema, serializers: {
+        distance: new DistanceSerializer()
+      }});
+    })
+
+    hooks.afterEach(function() {
+      serializer = null;
+    });
+
+    test('serializer is assigned some standard serializers by default, and any custom serializers passed as settings', function(assert) {
+      // default serializers
+      assert.ok(serializer.serializerFor('boolean'));
+      assert.ok(serializer.serializerFor('string'));
+      assert.ok(serializer.serializerFor('date'));
+      assert.ok(serializer.serializerFor('datetime'));
+      assert.ok(serializer.serializerFor('number'));
+
+      // custom serializer
+      assert.ok(serializer.serializerFor('distance'));
+
+      // nonexistent serializer (as sanity check)
+      assert.notOk(serializer.serializerFor('fake'));
+    });
+
+    test('#serialize will use available serializers for attribute values', function(assert) {
+      assert.deepEqual(
+        serializer.serialize({
+          data: {
+            type: 'person',
+            id: '123',
+            attributes: {
+              name: 'Joe',
+              birthday: new Date(2000, 11, 31),
+              birthtime: new Date('2000-12-31T10:00:00.000Z'),
+              height: 1.0, // meters
+              isAdult: true
+            }
+          }
+        }),
+        {
+          data: {
+            type: 'persons',
+            id: '123',
+            attributes: {
+              name: 'Joe',
+              birthday: '2000-12-31',
+              birthtime: '2000-12-31T10:00:00.000Z',
+              height: '100.00', // cm (with 2 digits)
+              'is-adult': true
+            }
+          }
+        },
+        'serialized document matches'
+      );
+    });
+
+    test('#deserialize will use available serializers for attribute values', function(assert) {
+      let result = serializer.deserialize({
+        data: {
+          type: 'persons',
+          id: '123',
+          attributes: {
+            name: 'Joe',
+            birthday: '2000-12-31',
+            birthtime: '2000-12-31T10:00:00.000Z',
+            height: '100.00', // cm (with 2 digits)
+            'is-adult': true
+          }
+        }
+      });
+      assert.deepEqual(result, {
+        data: {
+          type: 'person',
+          id: '123',
+          attributes: {
+            name: 'Joe',
+            birthday: new Date(2000, 11, 31),
+            birthtime: new Date('2000-12-31T10:00:00.000Z'),
+            height: 1.0, // meters
+            isAdult: true
+          }
+        }
+      });
+    });
+  });
 
   module('Using local ids', function(hooks) {
     let serializer: JSONAPISerializer;
@@ -712,7 +842,7 @@ module('JSONAPISerializer', function(hooks) {
           def: "456"
         },
         data: []
-      })
+      });
     });
 
     test('it deserializes links and meta in records', function (assert) {
@@ -765,7 +895,7 @@ module('JSONAPISerializer', function(hooks) {
             }
           }
         }
-      })
+      });
     });
 
     test('it deserializes links and meta in hasOne relationship', function (assert) {
@@ -827,7 +957,7 @@ module('JSONAPISerializer', function(hooks) {
             }
           }
         }
-      })
+      });
     });
 
     test('it deserializes links and meta in hasMany relationship', function (assert) {
@@ -891,7 +1021,7 @@ module('JSONAPISerializer', function(hooks) {
             }
           }
         }
-      })
+      });
     });
 
     test('it deserializes links and meta in hasOne relationship without data', function (assert) {
@@ -952,7 +1082,7 @@ module('JSONAPISerializer', function(hooks) {
             }
           }
         }
-      })
+      });
     });
 
     test('it deserializes links in hasMany relationship without data', function (assert) {
@@ -1011,7 +1141,7 @@ module('JSONAPISerializer', function(hooks) {
             }
           }
         }
-      })
+      });
     });
-  })
+  });
 });
