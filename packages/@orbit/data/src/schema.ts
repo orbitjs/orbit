@@ -7,6 +7,8 @@ import { Record, RecordInitializer } from './record';
 
 export interface AttributeDefinition {
   type?: string;
+  serializationOptions?: Dict<any>;
+  deserializationOptions?: Dict<any>;
 }
 
 export interface RelationshipDefinition {
