@@ -1,141 +1,51 @@
 # Orbit [![Build Status](https://secure.travis-ci.org/orbitjs/orbit.png?branch=master)](http://travis-ci.org/orbitjs/orbit) [![Join the chat at https://gitter.im/orbitjs/orbit.js](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/orbitjs/orbit.js?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Orbit is a composable framework for orchestrating change processing, tracking,
-and synchronization across multiple data sources.
+Orbit is a composable data framework for managing the complex needs of today's
+web applications.
+
+Although Orbit is primarily used as a flexible client-side ORM, Orbit can also
+be run in [Node.js](https://nodejs.org/) to coordinate data access on the
+server.
+
+Orbit might be a good fit for your application if it needs to:
+
+* Interact with data from a variety of sources: a REST server, a WebSocket
+stream, an IndexedDB backup, an in-memory store, etc.
+
+* Work offline. Work online. Transition seamlessly between both modes.
+
+* Create optimistic and pessimistic user experiences (and even both in the same
+app).
+
+* Use a common schema to model data, regardless of its source.
+
+* Query and update data with a common set of expressions, understood across
+sources.
+
+* Track changes deterministically.
+
+* Fork immutable stores and then merge changes back if and when ready.
+
+* Support undo / redo.
 
 Orbit is written in [Typescript](https://www.typescriptlang.org) and distributed
 on npm through the [@orbit](https://www.npmjs.com/org/orbit) organization.
 Pre-built distributions are provided in several module formats and ES language
 levels.
 
-Orbit is isomorphic - it can be run both in modern browsers as well as in the
-[Node.js](https://nodejs.org/) runtime.
+## Docs and Guides
 
-## Goals
-
-Orbit was primarily designed as a data layer to support the needs of ambitious
-client-side web applications, including:
-
-* Optimistic and pessimistic UX patterns.
-
-* Pluggable sources that share common interfaces, to allow similar behavior on
-  different devices.
-
-* Connection durability by queueing and retrying requests.
-
-* Application durability by persisting all transient state.
-
-* Warm caches of data available immediately on startup.
-
-* Client-first / serverless development.
-
-* Custom request coordination across multiple sources, allowing for priority
-  and fallback plans.
-
-* Branching and merging of immutable data caches.
-
-* Deterministic change tracking.
-
-* Undo / redo editing support.
-
-In order to meet these goals, many primitives were developed in Orbit that can
-be used in ways that go beyond these original use cases.
-
-## Packages
-
-### Core libraries
-
-Orbit consists of the following core libraries:
-
-* [@orbit/core](./packages/@orbit/core) - A core set of primitives for
-  performing, tracking, and responding to asynchronous tasks, including:
-
-  * An event system that allows listeners to engage with the fulfillment of
-    events by returning promises.
-
-  * An asynchronous task processing queue.
-
-  * A log that tracks a history of changes and allows for revision and
-    interrogation.
-
-  * A bucket interface for persisting state. Used by logs and queues.
-
-* [@orbit/data](./packages/@orbit/data) - Applies the core Orbit primitives
-  to data sources. Includes the following elements:
-
-  * A schema for defining models, including attributes and relationships.
-
-  * Operations used to manipulate records (e.g. `addRecord`, `removeRecord`,
-    `addToHasMany`, etc.).
-
-  * Transforms, which are composed of any number of operations, and must be
-    performed transactionally.
-
-  * A query language that allows query expressions to be composed in a flexible
-    AST form.
-
-  * A base `Source` class that can be used to abstract any source of data.
-    Sources can be decorated as `pullable`, `pushable`, `queryable`, `syncable`,
-    and/or `updatable` - each decorator provides a unique interface that allows
-    for transforms and queries to be applied as appropriate.
-
-* [@orbit/coordinator](./packages/@orbit/coordinator) - A coordinator and set of
-  coordination strategies for managing data flow and keeping @orbit/data sources
-  in sync.
-
-* [@orbit/immutable](./packages/@orbit/immutable) - A lightweight library of
-  immutable data structures.
-
-* [@orbit/utils](./packages/@orbit/utils) - A common set of utility functions
-  used by Orbit libraries.
-
-### Standard data sources
-
-Orbit provides the following sources for accessing and persisting data:
-
-* [@orbit/store](./packages/@orbit/store) - An in-memory data store that
-  supports complex querying and updating. Because stores maintain data in
-  immutable data structures, they can be efficiently forked. Forked stores can
-  diverge from the master store, and then the changes can be merged later.
-
-* [@orbit/jsonapi](./packages/@orbit/jsonapi) - Provides full CRUD support,
-  including complex querying, for a RESTful API that conforms to the
-  [JSON:API](http://jsonapi.org/) specification.
-
-* [@orbit/local-storage](./packages/@orbit/local-storage) -
-  Persists records to local storage.
-
-* [@orbit/indexeddb](./packages/@orbit/indexeddb) -
-  Persists records to IndexedDB.
-
-These standard sources can provide guidance for building your own custom sources
-as well.
-
-### Standard persistence buckets
-
-Buckets are used to persist application state, such as queued requests and
-change logs. Standard buckets include:
-
-* [@orbit/local-storage-bucket](./packages/@orbit/local-storage-bucket) -
-  Persists state to local storage.
-
-* [@orbit/indexeddb-bucket](./packages/@orbit/indexeddb-bucket) -
-  Persists state to IndexedDB.
+Please visit [orbitjs.com](https://orbitjs.com) to learn how to make the
+most of Orbit.
 
 ## Contributing
 
-Orbit's main packages are maintained in this "mono-repo" and managed by
+Orbit's main packages are maintained in this monorepo and managed by
 [lerna](https://lernajs.io).
 
 ### Installation
 
-Install the CLI for [Broccoli](https://github.com/broccolijs/broccoli) globally:
-
-```
-npm install -g broccoli-cli
-```
-
-Install other dependencies:
+Install dependencies:
 
 ```
 npm install
@@ -160,10 +70,10 @@ npm test
 Or `cd` into each package's dir and test it individually in the browser:
 
 ```
-cd packages/@orbit/core
+cd packages/@orbit/PACKAGE-NAME
 testem
 ```
 
 ## License
 
-Copyright 2014-2017 Cerebris Corporation. MIT License (see LICENSE for details).
+Copyright 2014-2019 Cerebris Corporation. MIT License (see LICENSE for details).
