@@ -1,6 +1,6 @@
 {
   "name": "@orbit/indexeddb",
-  "version": "0.15.25",
+  "version": "0.16.0-beta.1",
   "description": "IndexedDB support for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -23,10 +23,10 @@
     "test": "testem ci"
   },
   "dependencies": {
-    "@orbit/core": "^0.15.23",
-    "@orbit/data": "^0.15.23",
-    "@orbit/utils": "^0.15.23",
-    "@orbit/record-cache": "^0.15.25"
+    "@orbit/core": "^0.16.0-beta.1",
+    "@orbit/data": "^0.16.0-beta.1",
+    "@orbit/record-cache": "^0.16.0-beta.1",
+    "@orbit/utils": "^0.16.0-beta.1"
   },
   "devDependencies": {
     "@glimmer/build": "^0.9.0",
