@@ -3,16 +3,15 @@
 Orbit is a composable data framework for managing the complex needs of today's
 web applications.
 
-Although Orbit is primarily used as a flexible client-side ORM, Orbit can also
-be run in [Node.js](https://nodejs.org/) to coordinate data access on the
-server.
+Although Orbit is primarily used as a flexible client-side ORM, it can also
+be used server-side in [Node.js](https://nodejs.org/).
 
-Orbit might be a good fit for your application if it needs to:
+Orbit is designed for applications that need to:
 
 * Interact with data from a variety of sources: a REST server, a WebSocket
 stream, an IndexedDB backup, an in-memory store, etc.
 
-* Work offline. Work online. Transition seamlessly between both modes.
+* Work offline, work online, and seamlessly transition between both modes.
 
 * Create optimistic and pessimistic user experiences (and even both in the same
 app).
