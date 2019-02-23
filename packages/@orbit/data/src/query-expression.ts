@@ -1,4 +1,4 @@
-import { RecordIdentity } from './record';
+import { LID } from './record';
 
 export type SortOrder = 'ascending' | 'descending';
 
@@ -33,14 +33,14 @@ export interface RelatedRecordFilterSpecifier extends BaseFilterSpecifier {
   kind: 'relatedRecord';
   op: SetComparisonOperator,
   relation: string;
-  record: RecordIdentity | RecordIdentity[] | null;
+  record: LID | LID[] | null;
 }
 
 export interface RelatedRecordsFilterSpecifier extends BaseFilterSpecifier {
   kind: 'relatedRecords';
   op: SetComparisonOperator,
   relation: string;
-  records: RecordIdentity[];
+  records: LID[];
 }
 
 export type FilterSpecifier = BaseFilterSpecifier |
@@ -72,24 +72,24 @@ export interface QueryExpression {
 
 export interface FindRecord extends QueryExpression {
   op: 'findRecord';
-  record: RecordIdentity;
+  record: LID;
 }
 
 export interface FindRelatedRecord extends QueryExpression {
   op: 'findRelatedRecord';
-  record: RecordIdentity;
+  record: LID;
   relationship: string;
 }
 
 export interface FindRelatedRecords extends QueryExpression {
   op: 'findRelatedRecords';
-  record: RecordIdentity;
+  record: LID;
   relationship: string;
 }
 
 export interface FindRecords extends QueryExpression {
   op: 'findRecords';
-  records?: RecordIdentity[];
+  records?: LID[];
   type?: string;
   sort?: SortSpecifier[];
   filter?: FilterSpecifier[];

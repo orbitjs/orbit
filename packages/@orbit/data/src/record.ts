@@ -12,26 +12,46 @@ export interface RecordIdentity {
   id: string;
 }
 
+export type LID = string;
+
 export interface RecordHasOneRelationship {
-  data?: RecordIdentity | null;
+  data?: RecordIdentity | LID | null;
   links?: Dict<Link>;
   meta?: Dict<any>;
 }
 
 export interface RecordHasManyRelationship {
-  data?: RecordIdentity[];
+  data?: (RecordIdentity | LID)[];
   links?: Dict<Link>;
   meta?: Dict<any>;
 }
 
 export type RecordRelationship = RecordHasOneRelationship | RecordHasManyRelationship;
 
-export interface Record extends RecordIdentity {
+export interface Record {
+  type?: string;
+  id?: string;
+  lid?: LID;
   keys?: Dict<string>;
   attributes?: Dict<any>;
   relationships?: Dict<RecordRelationship>;
   links?: Dict<Link>;
   meta?: Dict<any>;
+}
+
+export interface NormalizedHasOneRelationship extends RecordHasOneRelationship {
+  data?: LID | null;
+}
+
+export interface NormalizedHasManyRelationship extends RecordHasManyRelationship {
+  data?: LID[];
+}
+
+export type NormalizedRelationship = NormalizedHasOneRelationship | NormalizedHasManyRelationship;
+
+export interface NormalizedRecord extends Record {
+  lid: LID;
+  relationships?: Dict<NormalizedRelationship>;
 }
 
 export interface RecordInitializer {
@@ -86,7 +106,11 @@ export function recordsIncludeAll(records: RecordIdentity[], match: RecordIdenti
 
 export function mergeRecords(current: Record | null, updates: Record): Record {
   if (current) {
-    let record: any = cloneRecordIdentity(current);
+    let record: any = {
+      type: current.type,
+      id: current.id,
+      lid: current.lid
+    };
     let currentRecord: any = current;
     let updatedRecord: any = updates;
 

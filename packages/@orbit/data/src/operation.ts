@@ -1,4 +1,4 @@
-import { Record, RecordIdentity, cloneRecordIdentity, equalRecordIdentities } from './record';
+import { NormalizedRecord, LID } from './record';
 import { eq, deepGet, deepSet } from '@orbit/utils';
 
 /**
@@ -13,7 +13,7 @@ export interface Operation {
  */
 export interface AddRecordOperation extends Operation {
   op: 'addRecord';
-  record: Record;
+  record: NormalizedRecord;
 }
 
 /**
@@ -21,7 +21,7 @@ export interface AddRecordOperation extends Operation {
  */
 export interface UpdateRecordOperation extends Operation {
   op: 'updateRecord';
-  record: Record;
+  record: NormalizedRecord;
 }
 
 /**
@@ -29,7 +29,7 @@ export interface UpdateRecordOperation extends Operation {
  */
 export interface RemoveRecordOperation extends Operation {
   op: 'removeRecord';
-  record: RecordIdentity;
+  record: LID;
 }
 
 /**
@@ -37,7 +37,7 @@ export interface RemoveRecordOperation extends Operation {
  */
 export interface ReplaceKeyOperation extends Operation {
   op: 'replaceKey';
-  record: RecordIdentity;
+  record: LID;
   key: string;
   value: string;
 }
@@ -47,7 +47,7 @@ export interface ReplaceKeyOperation extends Operation {
  */
 export interface ReplaceAttributeOperation extends Operation {
   op: 'replaceAttribute';
-  record: RecordIdentity;
+  record: LID;
   attribute: string;
   value: any;
 }
@@ -57,9 +57,9 @@ export interface ReplaceAttributeOperation extends Operation {
  */
 export interface AddToRelatedRecordsOperation extends Operation {
   op: 'addToRelatedRecords';
-  record: RecordIdentity;
+  record: LID;
   relationship: string;
-  relatedRecord: RecordIdentity;
+  relatedRecord: LID;
 }
 
 /**
@@ -67,9 +67,9 @@ export interface AddToRelatedRecordsOperation extends Operation {
  */
 export interface RemoveFromRelatedRecordsOperation extends Operation {
   op: 'removeFromRelatedRecords';
-  record: RecordIdentity;
+  record: LID;
   relationship: string;
-  relatedRecord: RecordIdentity;
+  relatedRecord: LID;
 }
 
 /**
@@ -77,9 +77,9 @@ export interface RemoveFromRelatedRecordsOperation extends Operation {
  */
 export interface ReplaceRelatedRecordsOperation extends Operation {
   op: 'replaceRelatedRecords';
-  record: RecordIdentity;
+  record: LID;
   relationship: string;
-  relatedRecords: RecordIdentity[];
+  relatedRecords: LID[];
 }
 
 /**
@@ -87,9 +87,9 @@ export interface ReplaceRelatedRecordsOperation extends Operation {
  */
 export interface ReplaceRelatedRecordOperation extends Operation {
   op: 'replaceRelatedRecord';
-  record: RecordIdentity;
+  record: LID;
   relationship: string;
-  relatedRecord: RecordIdentity | null;
+  relatedRecord: LID | null;
 }
 
 /**
@@ -116,7 +116,7 @@ function isOperationMarkedToDelete(operation: Operation): boolean {
 }
 
 function mergeOperations(superceded: RecordOperation, superceding: RecordOperation, consecutiveOps: boolean): void {
-  if (equalRecordIdentities(superceded.record, superceding.record)) {
+  if (superceded.record === superceding.record) {
     if (superceding.op === 'removeRecord') {
       markOperationToDelete(superceded);
       if (superceded.op === 'addRecord') {
@@ -137,37 +137,46 @@ function mergeOperations(superceded: RecordOperation, superceding: RecordOperati
             superceded.relationship === superceding.relationship) {
           markOperationToDelete(superceded);
         } else {
+          let supercededRecord: NormalizedRecord;
+          if (typeof superceded.record === 'string') {
+            supercededRecord = {
+              lid: superceded.record
+            };
+          } else {
+            supercededRecord = superceded.record;
+          }
           if (superceded.op === 'replaceAttribute') {
-            updateRecordReplaceAttribute(superceded.record, superceded.attribute, superceded.value);
+            updateRecordReplaceAttribute(supercededRecord, superceded.attribute, superceded.value);
             delete superceded.attribute;
             delete superceded.value;
           } else if (superceded.op === 'replaceRelatedRecord') {
-            updateRecordReplaceHasOne(superceded.record, superceded.relationship, superceded.relatedRecord);
+            updateRecordReplaceHasOne(supercededRecord, superceded.relationship, superceded.relatedRecord);
             delete superceded.relationship;
             delete superceded.relatedRecord;
           } else if (superceded.op === 'replaceRelatedRecords') {
-            updateRecordReplaceHasMany(superceded.record, superceded.relationship, superceded.relatedRecords);
+            updateRecordReplaceHasMany(supercededRecord, superceded.relationship, superceded.relatedRecords);
             delete superceded.relationship;
             delete superceded.relatedRecords;
           }
           if (superceding.op === 'replaceAttribute') {
-            updateRecordReplaceAttribute(superceded.record, superceding.attribute, superceding.value);
+            updateRecordReplaceAttribute(supercededRecord, superceding.attribute, superceding.value);
           } else if (superceding.op === 'replaceRelatedRecord') {
-            updateRecordReplaceHasOne(superceded.record, superceding.relationship, superceding.relatedRecord);
+            updateRecordReplaceHasOne(supercededRecord, superceding.relationship, superceding.relatedRecord);
           } else if (superceding.op === 'replaceRelatedRecords') {
-            updateRecordReplaceHasMany(superceded.record, superceding.relationship, superceding.relatedRecords);
+            updateRecordReplaceHasMany(supercededRecord, superceding.relationship, superceding.relatedRecords);
           }
           superceded.op = 'updateRecord';
+          superceded.record = supercededRecord;
           markOperationToDelete(superceding);
         }
       } else if ((superceded.op === 'addRecord' || superceded.op === 'updateRecord' || (superceded as any).op === 'replaceRecord') &&
                  isReplaceFieldOp(superceding.op)) {
         if (superceding.op === 'replaceAttribute') {
-          updateRecordReplaceAttribute(superceded.record, superceding.attribute, superceding.value);
+          updateRecordReplaceAttribute(superceded.record as NormalizedRecord, superceding.attribute, superceding.value);
         } else if (superceding.op === 'replaceRelatedRecord') {
-          updateRecordReplaceHasOne(superceded.record, superceding.relationship, superceding.relatedRecord);
+          updateRecordReplaceHasOne(superceded.record as NormalizedRecord, superceding.relationship, superceding.relatedRecord);
         } else if (superceding.op === 'replaceRelatedRecords') {
-          updateRecordReplaceHasMany(superceded.record, superceding.relationship, superceding.relatedRecords);
+          updateRecordReplaceHasMany(superceded.record as NormalizedRecord, superceding.relationship, superceding.relatedRecords);
         }
         markOperationToDelete(superceding);
       } else if (superceding.op === 'addToRelatedRecords') {
@@ -175,26 +184,26 @@ function mergeOperations(superceded: RecordOperation, superceding: RecordOperati
           updateRecordAddToHasMany(superceded.record, superceding.relationship, superceding.relatedRecord);
           markOperationToDelete(superceding);
         } else if (superceded.op === 'updateRecord' || (superceded as any).op === 'replaceRecord') {
-          let record: Record = superceded.record;
+          let record = superceded.record as NormalizedRecord;
           if (record.relationships &&
               record.relationships[superceding.relationship] &&
               record.relationships[superceding.relationship].data) {
-            updateRecordAddToHasMany(superceded.record, superceding.relationship, superceding.relatedRecord);
+            updateRecordAddToHasMany(superceded.record as NormalizedRecord, superceding.relationship, superceding.relatedRecord);
             markOperationToDelete(superceding);
           }
         }
       } else if (superceding.op === 'removeFromRelatedRecords') {
         if (superceded.op === 'addToRelatedRecords' &&
             superceded.relationship === superceding.relationship &&
-            equalRecordIdentities(superceded.relatedRecord, superceding.relatedRecord)) {
+            superceded.relatedRecord === superceding.relatedRecord) {
           markOperationToDelete(superceded);
           markOperationToDelete(superceding);
         } else if (superceded.op === 'addRecord' || superceded.op === 'updateRecord' || (superceded as any).op === 'replaceRecord') {
-          let record: Record = superceded.record;
+          let record = superceded.record as NormalizedRecord;
           if (record.relationships &&
               record.relationships[superceding.relationship] &&
               record.relationships[superceding.relationship].data) {
-            updateRecordRemoveFromHasMany(superceded.record, superceding.relationship, superceding.relatedRecord);
+            updateRecordRemoveFromHasMany(superceded.record as NormalizedRecord, superceding.relationship, superceding.relatedRecord);
             markOperationToDelete(superceding);
           }
         }
@@ -202,7 +211,7 @@ function mergeOperations(superceded: RecordOperation, superceding: RecordOperati
     }
   } else if (superceding.record && superceding.op === 'removeRecord') {
     if ((superceded as ReplaceRelatedRecordOperation).relatedRecord &&
-        equalRecordIdentities((superceded as ReplaceRelatedRecordOperation).relatedRecord, superceding.record)) {
+        (superceded as ReplaceRelatedRecordOperation).relatedRecord === superceding.record) {
       markOperationToDelete(superceded);
     }
   }
@@ -214,31 +223,30 @@ function isReplaceFieldOp(op: string): boolean {
           op === 'replaceRelatedRecords');
 }
 
-function updateRecordReplaceAttribute(record: Record, attribute: string, value: any) {
+function updateRecordReplaceAttribute(record: NormalizedRecord, attribute: string, value: any) {
   record.attributes = record.attributes || {};
   record.attributes[attribute] = value;
 }
 
-function updateRecordReplaceHasOne(record: Record, relationship: string, relatedRecord: RecordIdentity) {
-  deepSet(record, ['relationships', relationship, 'data'], cloneRecordIdentity(relatedRecord));
+function updateRecordReplaceHasOne(record: NormalizedRecord, relationship: string, relatedRecord: LID) {
+  deepSet(record, ['relationships', relationship, 'data'], relatedRecord);
 }
 
-function updateRecordReplaceHasMany(record: Record, relationship: string, relatedRecords: RecordIdentity[]) {
-  deepSet(record, ['relationships', relationship, 'data'], relatedRecords.map(cloneRecordIdentity));
+function updateRecordReplaceHasMany(record: NormalizedRecord, relationship: string, relatedRecords: LID[]) {
+  deepSet(record, ['relationships', relationship, 'data'], Array.from(relatedRecords));
 }
 
-function updateRecordAddToHasMany(record: Record, relationship: string, relatedRecord: RecordIdentity) {
+function updateRecordAddToHasMany(record: NormalizedRecord, relationship: string, relatedRecord: LID) {
   const data = deepGet(record, ['relationships', relationship, 'data']) || [];
-  data.push(cloneRecordIdentity(relatedRecord));
+  data.push(relatedRecord);
   deepSet(record, ['relationships', relationship, 'data'], data);
 }
 
-function updateRecordRemoveFromHasMany(record: Record, relationship: string, relatedRecord: RecordIdentity) {
-  const data = deepGet(record, ['relationships', relationship, 'data']) as RecordIdentity[];
+function updateRecordRemoveFromHasMany(record: NormalizedRecord, relationship: string, relatedRecord: LID) {
+  const data = deepGet(record, ['relationships', relationship, 'data']) as LID[];
   if (data) {
     for (let i = 0, l = data.length; i < l; i++) {
-      let r = data[i];
-      if (equalRecordIdentities(r, relatedRecord)) {
+      if (data[i] === relatedRecord) {
         data.splice(i, 1);
         break;
       }
@@ -277,11 +285,11 @@ export function coalesceRecordOperations(operations: RecordOperation[]): RecordO
  * Determine the differences between a record and its updated version in terms
  * of a set of operations.
  */
-export function recordDiffs(record: Record, updatedRecord: Record): RecordOperation[] {
+export function recordDiffs(record: NormalizedRecord, updatedRecord: NormalizedRecord): RecordOperation[] {
   const diffs: RecordOperation[] = [];
 
   if (record && updatedRecord) {
-    const recordIdentity = cloneRecordIdentity(record);
+    const { lid } = record;
 
     if (updatedRecord.attributes) {
       Object.keys(updatedRecord.attributes).forEach(attribute => {
@@ -290,7 +298,7 @@ export function recordDiffs(record: Record, updatedRecord: Record): RecordOperat
         if (record.attributes === undefined || !eq(record.attributes[attribute], value)) {
           let op: ReplaceAttributeOperation = {
             op: 'replaceAttribute',
-            record: recordIdentity,
+            record: lid,
             attribute,
             value
           }
@@ -306,7 +314,7 @@ export function recordDiffs(record: Record, updatedRecord: Record): RecordOperat
         if (record.keys === undefined || !eq(record.keys[key], value)) {
           let op: ReplaceKeyOperation = {
             op: 'replaceKey',
-            record: recordIdentity,
+            record: lid,
             key,
             value
           }
