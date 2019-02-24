@@ -414,6 +414,129 @@ module('Store', function(hooks) {
       });
   });
 
+  test('#rebase - works with empty stores', function (assert) {
+    assert.expect(1);
+
+    let child = store.fork();
+    child.rebase();
+
+    assert.ok(true, 'no exception has been thrown');
+  });
+
+  test('#rebase - record ends up in child store', function (assert) {
+    assert.expect(3);
+
+    const jupiter: Record = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+
+    let child = store.fork();
+
+    return store.update(t => t.addRecord(jupiter)).then(() => {
+      assert.deepEqual(store.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'verify store data');
+      assert.equal(child.cache.getRecordsSync('planet').length, 0, 'child store is still empty');
+
+      child.rebase();
+
+      assert.deepEqual(child.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'verify child data');
+    });
+  });
+
+  test('#rebase - rebase orders conflicting transforms in expected way', function (assert) {
+    assert.expect(6);
+
+    const jupiter: Record = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+    const id = { type: 'planet', id: 'jupiter-id' };
+
+    let child: Store;
+
+    // 1. fill store with some data
+    return store.update(t => t.addRecord(jupiter)).then(() => {
+      // 2. create a child store
+      assert.deepEqual(store.cache.getRecordSync(id), jupiter, 'verify store data');
+      child = store.fork();
+      assert.deepEqual(child.cache.getRecordSync(id), jupiter, 'verify child data');
+
+      // 3. update the child and the parent store (in any order)
+      return child.update(t => t.replaceAttribute(id, 'name', 'The Gas Giant'));
+    }).then(() => {
+      return store.update(t => t.replaceAttribute(id, 'name', 'Gassy Giant'));
+    }).then(() => {
+      // 4. make sure updates were successful
+      assert.equal(child.cache.getRecordSync(id).attributes.name, 'The Gas Giant');
+      assert.equal(store.cache.getRecordSync(id).attributes.name, 'Gassy Giant');
+
+      // 5. do the rebase
+      child.rebase();
+      assert.equal(child.cache.getRecordSync(id).attributes.name, 'The Gas Giant');
+      assert.equal(store.cache.getRecordSync(id).attributes.name, 'Gassy Giant');
+    });
+  });
+
+  test('#rebase - calling rebase multiple times', async function (assert) {
+    assert.expect(22);
+
+    const jupiter: Record = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+    const id = { type: 'planet', id: 'jupiter-id' };
+
+    let child: Store;
+
+    // 1. fill store with some data
+    await store.update(t => t.addRecord(jupiter));
+    // 2. create a child store
+    assert.deepEqual(store.cache.getRecordSync(id), jupiter, 'verify store data');
+    child = store.fork();
+    assert.deepEqual(child.cache.getRecordSync(id), jupiter, 'verify child data');
+
+    // 3. update the child and the parent store (in any order)
+    await child.update(t => t.replaceAttribute(id, 'name', 'The Gas Giant'));
+    await store.update(t => t.replaceAttribute(id, 'name', 'Gassy Giant'));
+    // 4. make sure updates were successful
+    assert.equal(child.cache.getRecordSync(id).attributes.name, 'The Gas Giant');
+    assert.equal(store.cache.getRecordSync(id).attributes.name, 'Gassy Giant');
+
+    // 5. do the rebase
+    child.rebase();
+    assert.equal(child.cache.getRecordSync(id).attributes.name, 'The Gas Giant');
+    assert.equal(store.cache.getRecordSync(id).attributes.name, 'Gassy Giant');
+
+    // 6. do a second update to the parent store
+    assert.equal(store.cache.getRecordSync(id).attributes.classification, 'gas giant');
+    await store.update(t => t.updateRecord({
+      ...id,
+      attributes: {
+        name: 'Gassy Giant II',
+        classification: 'gas giant II',
+      }
+    }));
+    // 7. make sure updates were successful
+    assert.equal(child.cache.getRecordSync(id).attributes.name, 'The Gas Giant');
+    assert.equal(store.cache.getRecordSync(id).attributes.name, 'Gassy Giant II');
+    assert.equal(store.cache.getRecordSync(id).attributes.classification, 'gas giant II');
+
+    // 8. do the second rebase
+    // make sure that changes from the child are still winning
+    child.rebase();
+    assert.equal(child.cache.getRecordSync(id).attributes.name, 'The Gas Giant');
+    assert.equal(child.cache.getRecordSync(id).attributes.classification, 'gas giant II');
+    assert.equal(store.cache.getRecordSync(id).attributes.name, 'Gassy Giant II');
+    assert.equal(store.cache.getRecordSync(id).attributes.classification, 'gas giant II');
+
+    // 9. update the parent store a third time
+    await store.update(t => t.replaceAttribute(id, 'classification', 'gas giant III'));
+    // 10. make sure updates were successful
+    assert.equal(child.cache.getRecordSync(id).attributes.name, 'The Gas Giant');
+    assert.equal(child.cache.getRecordSync(id).attributes.classification, 'gas giant II');
+    assert.equal(store.cache.getRecordSync(id).attributes.name, 'Gassy Giant II');
+    assert.equal(store.cache.getRecordSync(id).attributes.classification, 'gas giant III');
+
+    // 11. do the third rebase
+    // make sure that transforms from the parent are applied in correct order
+    child.rebase();
+    assert.equal(child.cache.getRecordSync(id).attributes.name, 'The Gas Giant');
+    assert.equal(child.cache.getRecordSync(id).attributes.classification, 'gas giant III', 'classification has not been touched in child store => should be the same as in parent store');
+    assert.equal(store.cache.getRecordSync(id).attributes.name, 'Gassy Giant II');
+    assert.equal(store.cache.getRecordSync(id).attributes.classification, 'gas giant III');
+  });
+
   test('#rollback - rolls back transform log and replays transform inverses against the cache', async function(assert) {
     const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
