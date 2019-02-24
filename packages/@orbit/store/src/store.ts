@@ -210,9 +210,15 @@ export default class Store extends Source implements Syncable, Queryable, Updata
     let forkPoint = this._forkPoint;
 
     assert('A `base` store must be defined for `rebase` to work', !!base);
-    assert('A `forkPoint` must be defined for `rebase` to work', !!forkPoint);
+    //assert('A `forkPoint` must be defined for `rebase` to work', !!forkPoint);
 
-    let baseTransforms = base.transformsSince(forkPoint);
+    let baseTransforms: Transform[];
+    if (forkPoint === undefined){
+      // store was empty at fork point
+      baseTransforms = base.allTransforms();
+    } else {
+      baseTransforms = base.transformsSince(forkPoint);
+    }
     if (baseTransforms.length > 0) {
       let localTransforms = this.allTransforms();
 
