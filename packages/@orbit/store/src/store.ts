@@ -194,6 +194,33 @@ export default class Store extends Source implements Syncable, Queryable, Updata
     return this.update(reducedTransform);
   }
 
+
+  rebase() {
+    let base = this._base;
+    let forkPoint = this._forkPoint;
+
+    assert('A `base` store must be defined for `rebase` to work', !!base);
+    assert('A `forkPoint` must be defined for `rebase` to work', !!forkPoint);
+
+    let baseTransforms = base.transformsSince(forkPoint);
+    if (baseTransforms.length > 0) {
+      let localTransforms = this.allTransforms();
+
+      localTransforms.reverse().forEach(transform => {
+        const inverseOperations = this._transformInverses[transform.id];
+        if (inverseOperations) {
+          this.cache.patch(inverseOperations);
+        }
+        this._clearTransformFromHistory(transform.id);
+      });
+
+      baseTransforms.forEach(transform => this._applyTransform(transform));
+      localTransforms.forEach(transform => this._applyTransform(transform));
+      this._forkPoint = base.transformLog.head;
+    }
+  }
+
+
   /**
    Rolls back the Store to a particular transformId
 
