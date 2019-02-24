@@ -194,8 +194,18 @@ export default class Store extends Source implements Syncable, Queryable, Updata
     return this.update(reducedTransform);
   }
 
-
-  rebase() {
+  /**
+   * This rebase method works similarly to a git rebase:
+   *
+   * After a store is forked, there is a parent- and a child-store.
+   * Both may be updated with transforms.
+   * If after some updates on both stores `childStore.rebase()` is called,
+   * the result on the child store will look like,
+   * as if all updates to the parent store were added first,
+   * followed by those made in the child store.
+   * This means that updates in the child store have a tendency of winning.
+   */
+  rebase(): void {
     let base = this._base;
     let forkPoint = this._forkPoint;
 
