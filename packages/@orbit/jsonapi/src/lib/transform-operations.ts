@@ -15,7 +15,8 @@ import {
   TransformBuilder,
   cloneRecordIdentity,
   ReplaceAttributeOperation,
-  ReplaceRecordOperation
+  ReplaceRecordOperation,
+  RecordIdentity
 } from "@orbit/data";
 import { replaceRecordAttribute } from "./transform-requests";
 
@@ -29,20 +30,34 @@ interface JSONAPIOperation {
   data?: Resource | Resource[];
 }
 
+interface JSONAPIOperationsPayload {
+  operations: JSONAPIOperation[]
+}
+
 export function transformsToJSONAPIOperations(
   source: JSONAPISource,
   transformBuilder: TransformBuilder,
   transforms: TransformOrOperations
-) {
+): JSONAPIOperationsPayload {
   const transform = buildTransform(
     transforms,
     undefined,
     undefined,
     transformBuilder
   );
-  const data = transformsToOperationsData(source, transform);
+  const operations = transformsToOperationsData(source, transform);
+
+  const data = {
+    operations
+  };
 
   return data;
+}
+
+export function toRecordIdentity(record: Resource): RecordIdentity {
+  const { type, id } = record;
+
+  return { type, id };
 }
 
 export function transformsToOperationsData(
@@ -110,8 +125,10 @@ export const TransformToOperationData: Dict<TransformToOperationFunction> = {
 
   replaceAttribute(source: JSONAPISource, operation: ReplaceAttributeOperation): JSONAPIOperation {
     const { serializer } = source;
-    const { type, id } = operation.record;
-    const record = cloneRecordIdentity(operation.record);
+
+    const resource = serializer.serializeRecord(operation.record);
+    const { type, id } = resource;
+    const record = toRecordIdentity(resource);
 
     replaceRecordAttribute(record, operation.attribute, operation.value);
 
