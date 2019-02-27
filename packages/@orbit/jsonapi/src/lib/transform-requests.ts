@@ -293,15 +293,15 @@ const OperationToRequestMap: Dict<OperationToRequestConverter> = {
   }
 };
 
-function replaceRecordAttribute(record: RecordIdentity, attribute: string, value: any) {
+export function replaceRecordAttribute(record: RecordIdentity, attribute: string, value: any) {
   deepSet(record, ['attributes', attribute], value);
 }
 
-function replaceRecordHasOne(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity) {
+export function replaceRecordHasOne(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity) {
   deepSet(record, ['relationships', relationship, 'data'], relatedRecord ? cloneRecordIdentity(relatedRecord) : null);
 }
 
-function replaceRecordHasMany(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]) {
+export function replaceRecordHasMany(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]) {
   deepSet(record, ['relationships', relationship, 'data'], relatedRecords.map(r => cloneRecordIdentity(r)));
 }
 

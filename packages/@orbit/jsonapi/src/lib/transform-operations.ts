@@ -12,8 +12,12 @@ import {
   RemoveFromRelatedRecordsOperation,
   ReplaceRelatedRecordOperation,
   ReplaceRelatedRecordsOperation,
-  TransformBuilder
+  TransformBuilder,
+  cloneRecordIdentity,
+  ReplaceAttributeOperation,
+  ReplaceRecordOperation
 } from "@orbit/data";
+import { replaceRecordAttribute } from "./transform-requests";
 
 interface JSONAPIOperation {
   op: "get" | "add" | "update" | "remove";
@@ -90,7 +94,7 @@ export const TransformToOperationData: Dict<TransformToOperationFunction> = {
 
   updateRecord(
     source: JSONAPISource,
-    operation: UpdateRecordOperation
+    operation: ReplaceRecordOperation
   ): JSONAPIOperation {
     const { serializer } = source;
     const record = operation.record;
@@ -101,6 +105,20 @@ export const TransformToOperationData: Dict<TransformToOperationFunction> = {
       op: "update",
       ref: { type, id },
       data: requestDoc.data
+    };
+  },
+
+  replaceAttribute(source: JSONAPISource, operation: ReplaceAttributeOperation): JSONAPIOperation {
+    const { serializer } = source;
+    const { type, id } = operation.record;
+    const record = cloneRecordIdentity(operation.record);
+
+    replaceRecordAttribute(record, operation.attribute, operation.value);
+
+    return {
+      op: 'update',
+      ref: { type, id },
+      data: record,
     };
   },
 
