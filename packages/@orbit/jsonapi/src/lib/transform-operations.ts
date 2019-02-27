@@ -31,7 +31,7 @@ interface JSONAPIOperation {
 }
 
 interface JSONAPIOperationsPayload {
-  operations: JSONAPIOperation[]
+  operations: JSONAPIOperation[];
 }
 
 export function transformsToJSONAPIOperations(
@@ -60,7 +60,11 @@ export function toRecordIdentity(record: Resource): RecordIdentity {
   return { type, id };
 }
 
-export function transformsToOperationsData(
+interface JSONAPIOperationsPayload {
+  operations: JSONAPIOperation[];
+}
+
+function transformsToOperationsData(
   source: JSONAPISource,
   transform: Transform
 ): JSONAPIOperation[] {
@@ -71,6 +75,16 @@ export function transformsToOperationsData(
   });
 }
 
+interface JSONAPIOperation {
+  op: "get" | "add" | "update" | "remove";
+  ref: {
+    type: string;
+    id?: string | number;
+    relationship?: string;
+  };
+  data?: Resource | Resource[];
+}
+
 type TransformToOperationFunction = (
   source: JSONAPISource,
   operation: any
@@ -78,28 +92,24 @@ type TransformToOperationFunction = (
 
 export const TransformToOperationData: Dict<TransformToOperationFunction> = {
   addRecord(
-    source: JSONAPISource,
+    { serializer }: JSONAPISource,
     operation: AddRecordOperation
   ): JSONAPIOperation {
-    const { serializer } = source;
-    const record = operation.record;
-    const requestDoc: ResourceDocument = serializer.serializeDocument(record);
+    const resource = serializer.serializeRecord(operation.record);
+    const { type, id } = resource;
 
     return {
       op: "add",
-      ref: {
-        type: record.type,
-        id: record.id
-      },
-      data: requestDoc.data
+      ref: { type, id },
+      data: resource
     };
   },
 
   removeRecord(
-    source: JSONAPISource,
+    { serializer }: JSONAPISource,
     operation: RemoveRecordOperation
   ): JSONAPIOperation {
-    const { type, id } = operation.record;
+    const { type, id } = serializer.serializeRecord(operation.record);
 
     return {
       op: "remove",
@@ -108,24 +118,23 @@ export const TransformToOperationData: Dict<TransformToOperationFunction> = {
   },
 
   updateRecord(
-    source: JSONAPISource,
+    { serializer }: JSONAPISource,
     operation: ReplaceRecordOperation
   ): JSONAPIOperation {
-    const { serializer } = source;
-    const record = operation.record;
-    const { type, id } = record;
-    const requestDoc: ResourceDocument = serializer.serializeDocument(record);
+    const resource = serializer.serializeRecord(operation.record);
+    const { type, id } = resource;
 
     return {
       op: "update",
       ref: { type, id },
-      data: requestDoc.data
+      data: resource
     };
   },
 
-  replaceAttribute(source: JSONAPISource, operation: ReplaceAttributeOperation): JSONAPIOperation {
-    const { serializer } = source;
-
+  replaceAttribute(
+    { serializer }: JSONAPISource,
+    operation: ReplaceAttributeOperation
+  ): JSONAPIOperation {
     const resource = serializer.serializeRecord(operation.record);
     const { type, id } = resource;
     const record = toRecordIdentity(resource);
@@ -133,50 +142,50 @@ export const TransformToOperationData: Dict<TransformToOperationFunction> = {
     replaceRecordAttribute(record, operation.attribute, operation.value);
 
     return {
-      op: 'update',
+      op: "update",
       ref: { type, id },
-      data: record,
+      data: record
     };
   },
 
   addToRelatedRecords(
-    source: JSONAPISource,
+    { serializer }: JSONAPISource,
     operation: AddToRelatedRecordsOperation
   ): JSONAPIOperation {
-    const { type, id } = operation.record;
+    const relatedResource = serializer.serializeRecord(operation.relatedRecord);
+    const { type, id } = serializer.serializeRecord(operation.record);
     const { relationship } = operation;
-    const data = source.serializer.resourceIdentity(operation.relatedRecord);
 
     return {
       op: "add",
       ref: { type, id, relationship },
-      data
+      data: relatedResource
     };
   },
 
   removeFromRelatedRecords(
-    source: JSONAPISource,
+    { serializer }: JSONAPISource,
     operation: RemoveFromRelatedRecordsOperation
   ): JSONAPIOperation {
-    const { type, id } = operation.record;
+    const { type, id } = serializer.serializeRecord(operation.record);
     const { relationship } = operation;
-    const data = source.serializer.resourceIdentity(operation.relatedRecord);
+    const relatedResource = serializer.serializeRecord(operation.relatedRecord);
 
     return {
       op: "remove",
       ref: { type, id, relationship },
-      data
+      data: relatedResource
     };
   },
 
   replaceRelatedRecord(
-    source: JSONAPISource,
+    { serializer }: JSONAPISource,
     operation: ReplaceRelatedRecordOperation
   ): JSONAPIOperation {
-    const { type, id } = operation.record;
+    const { type, id } = serializer.serializeRecord(operation.record);
     const { relationship, relatedRecord } = operation;
     const data = relatedRecord
-      ? source.serializer.resourceIdentity(relatedRecord)
+      ? serializer.resourceIdentity(relatedRecord)
       : null;
 
     return {
@@ -187,12 +196,12 @@ export const TransformToOperationData: Dict<TransformToOperationFunction> = {
   },
 
   replaceRelatedRecords(
-    source: JSONAPISource,
+    { serializer }: JSONAPISource,
     operation: ReplaceRelatedRecordsOperation
   ): JSONAPIOperation {
-    const { type, id } = operation.record;
+    const { type, id } = serializer.serializeRecord(operation.record);
     const { relationship, relatedRecords } = operation;
-    const data = relatedRecords.map(r => source.serializer.resourceIdentity(r));
+    const data = relatedRecords.map(r => serializer.resourceIdentity(r));
 
     return {
       op: "update",
