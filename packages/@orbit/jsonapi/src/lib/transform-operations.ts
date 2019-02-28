@@ -33,6 +33,9 @@ interface JSONAPIOperation {
 interface JSONAPIOperationsPayload {
   operations: JSONAPIOperation[];
 }
+interface JSONAPIOperationsPayload {
+  operations: JSONAPIOperation[];
+}
 
 export function transformsToJSONAPIOperations(
   source: JSONAPISource,
@@ -54,16 +57,6 @@ export function transformsToJSONAPIOperations(
   return data;
 }
 
-export function toRecordIdentity(record: Resource): RecordIdentity {
-  const { type, id } = record;
-
-  return { type, id };
-}
-
-interface JSONAPIOperationsPayload {
-  operations: JSONAPIOperation[];
-}
-
 function transformsToOperationsData(
   source: JSONAPISource,
   transform: Transform
@@ -83,6 +76,12 @@ interface JSONAPIOperation {
     relationship?: string;
   };
   data?: Resource | Resource[];
+}
+
+export function toRecordIdentity(record: Resource): RecordIdentity {
+  const { type, id } = record;
+
+  return { type, id };
 }
 
 type TransformToOperationFunction = (
@@ -114,6 +113,20 @@ export const TransformToOperationData: Dict<TransformToOperationFunction> = {
     return {
       op: "remove",
       ref: { type, id }
+    };
+  },
+
+  replaceRecord(
+    { serializer }: JSONAPISource,
+    operation: ReplaceRecordOperation
+  ): JSONAPIOperation {
+    const resource = serializer.serializeRecord(operation.record);
+    const { type, id } = resource;
+
+    return {
+      op: "update",
+      ref: { type, id },
+      data: resource
     };
   },
 
