@@ -1,57 +1,38 @@
-import { Dict } from "@orbit/utils";
-
-import JSONAPISource, { Resource, ResourceDocument } from "..";
 import {
-  TransformOrOperations,
   buildTransform,
-  Transform,
+  TransformOrOperations,
   Operation,
+  Transform,
   AddRecordOperation,
   RemoveRecordOperation,
   AddToRelatedRecordsOperation,
   RemoveFromRelatedRecordsOperation,
   ReplaceRelatedRecordOperation,
   ReplaceRelatedRecordsOperation,
-  TransformBuilder,
-  cloneRecordIdentity,
   ReplaceAttributeOperation,
+  RecordIdentity,
   ReplaceRecordOperation,
-  RecordIdentity
-} from "@orbit/data";
-import { replaceRecordAttribute } from "./transform-requests";
+  TransformBuilder,
+} from '@orbit/data';
+import { deepSet, Dict } from '@orbit/utils';
 
-interface JSONAPIOperation {
-  op: "get" | "add" | "update" | "remove";
-  ref: {
-    type: string;
-    id?: string | number;
-    relationship?: string;
-  };
-  data?: Resource | Resource[];
-}
+import { JSONAPIOperationsPayload, JSONAPIOperation } from './types';
+import JSONAPISource, { Resource } from '../..';
 
-interface JSONAPIOperationsPayload {
-  operations: JSONAPIOperation[];
-}
-interface JSONAPIOperationsPayload {
-  operations: JSONAPIOperation[];
-}
+/**
+ * TODO: import everything below from orbit.js when Operations stuff is merged
+ */
 
 export function transformsToJSONAPIOperations(
   source: JSONAPISource,
   transformBuilder: TransformBuilder,
   transforms: TransformOrOperations
 ): JSONAPIOperationsPayload {
-  const transform = buildTransform(
-    transforms,
-    undefined,
-    undefined,
-    transformBuilder
-  );
+  const transform = buildTransform(transforms, undefined, undefined, transformBuilder);
   const operations = transformsToOperationsData(source, transform);
 
   const data = {
-    operations
+    operations,
   };
 
   return data;
@@ -68,51 +49,32 @@ function transformsToOperationsData(
   });
 }
 
-interface JSONAPIOperation {
-  op: "get" | "add" | "update" | "remove";
-  ref: {
-    type: string;
-    id?: string | number;
-    relationship?: string;
-  };
-  data?: Resource | Resource[];
-}
-
-export function toRecordIdentity(record: Resource): RecordIdentity {
+function toRecordIdentity(record: Resource): RecordIdentity {
   const { type, id } = record;
 
   return { type, id };
 }
 
-type TransformToOperationFunction = (
-  source: JSONAPISource,
-  operation: any
-) => JSONAPIOperation;
+type TransformToOperationFunction = (source: JSONAPISource, operation: any) => JSONAPIOperation;
 
 export const TransformToOperationData: Dict<TransformToOperationFunction> = {
-  addRecord(
-    { serializer }: JSONAPISource,
-    operation: AddRecordOperation
-  ): JSONAPIOperation {
+  addRecord({ serializer }: JSONAPISource, operation: AddRecordOperation): JSONAPIOperation {
     const resource = serializer.serializeRecord(operation.record);
     const { type, id } = resource;
 
     return {
-      op: "add",
+      op: 'add',
       ref: { type, id },
-      data: resource
+      data: resource,
     };
   },
 
-  removeRecord(
-    { serializer }: JSONAPISource,
-    operation: RemoveRecordOperation
-  ): JSONAPIOperation {
+  removeRecord({ serializer }: JSONAPISource, operation: RemoveRecordOperation): JSONAPIOperation {
     const { type, id } = serializer.serializeRecord(operation.record);
 
     return {
-      op: "remove",
-      ref: { type, id }
+      op: 'remove',
+      ref: { type, id },
     };
   },
 
@@ -124,23 +86,20 @@ export const TransformToOperationData: Dict<TransformToOperationFunction> = {
     const { type, id } = resource;
 
     return {
-      op: "update",
+      op: 'update',
       ref: { type, id },
-      data: resource
+      data: resource,
     };
   },
 
-  updateRecord(
-    { serializer }: JSONAPISource,
-    operation: ReplaceRecordOperation
-  ): JSONAPIOperation {
+  updateRecord({ serializer }: JSONAPISource, operation: ReplaceRecordOperation): JSONAPIOperation {
     const resource = serializer.serializeRecord(operation.record);
     const { type, id } = resource;
 
     return {
-      op: "update",
+      op: 'update',
       ref: { type, id },
-      data: resource
+      data: resource,
     };
   },
 
@@ -155,9 +114,9 @@ export const TransformToOperationData: Dict<TransformToOperationFunction> = {
     replaceRecordAttribute(record, operation.attribute, operation.value);
 
     return {
-      op: "update",
+      op: 'update',
       ref: { type, id },
-      data: record
+      data: record,
     };
   },
 
@@ -170,9 +129,9 @@ export const TransformToOperationData: Dict<TransformToOperationFunction> = {
     const { relationship } = operation;
 
     return {
-      op: "add",
+      op: 'add',
       ref: { type, id, relationship },
-      data: relatedResource
+      data: relatedResource,
     };
   },
 
@@ -185,9 +144,9 @@ export const TransformToOperationData: Dict<TransformToOperationFunction> = {
     const relatedResource = serializer.serializeRecord(operation.relatedRecord);
 
     return {
-      op: "remove",
+      op: 'remove',
       ref: { type, id, relationship },
-      data: relatedResource
+      data: relatedResource,
     };
   },
 
@@ -197,14 +156,12 @@ export const TransformToOperationData: Dict<TransformToOperationFunction> = {
   ): JSONAPIOperation {
     const { type, id } = serializer.serializeRecord(operation.record);
     const { relationship, relatedRecord } = operation;
-    const data = relatedRecord
-      ? serializer.resourceIdentity(relatedRecord)
-      : null;
+    const data = relatedRecord ? serializer.resourceIdentity(relatedRecord) : null;
 
     return {
-      op: "update",
+      op: 'update',
       ref: { type, id, relationship },
-      data
+      data,
     };
   },
 
@@ -214,12 +171,17 @@ export const TransformToOperationData: Dict<TransformToOperationFunction> = {
   ): JSONAPIOperation {
     const { type, id } = serializer.serializeRecord(operation.record);
     const { relationship, relatedRecords } = operation;
-    const data = relatedRecords.map(r => serializer.resourceIdentity(r));
+    const data = relatedRecords.map((r) => serializer.resourceIdentity(r));
 
     return {
-      op: "update",
+      op: 'update',
       ref: { type, id, relationship },
-      data
+      data,
     };
-  }
+  },
 };
+
+// these currently are not exported from orbit.js
+function replaceRecordAttribute(record: RecordIdentity, attribute: string, value: any) {
+  deepSet(record, ['attributes', attribute], value);
+}
