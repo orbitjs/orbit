@@ -1421,7 +1421,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
   
-  test('#query - findRelatedRecord', function(assert) {
+  test('#query - findRelatedRecord - return null if no related record is found', function(assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
