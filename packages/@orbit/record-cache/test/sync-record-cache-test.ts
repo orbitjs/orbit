@@ -1381,6 +1381,22 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
+  test('#query - findRelatedRecords - returns empty array if there are no related records', function (assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const jupiter: Record = {
+      id: 'jupiter', type: 'planet',
+      attributes: { name: 'Jupiter' }
+    };
+
+    cache.patch(t => [t.addRecord(jupiter)]);
+
+    assert.deepEqual(
+      cache.query(q => q.findRelatedRecords({ type: 'planet', id: 'jupiter'}, 'moons')),
+      []
+    );
+  });
+
   test('#query - findRelatedRecord', function(assert) {
     const cache = new Cache({ schema, keyMap });
 
@@ -1402,6 +1418,22 @@ module('SyncRecordCache', function(hooks) {
     assert.deepEqual(
       cache.query(q => q.findRelatedRecord({ type: 'moon', id: 'callisto' }, 'planet')),
       jupiter
+    );
+  });
+  
+  test('#query - findRelatedRecord', function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const jupiter: Record = {
+      id: 'jupiter', type: 'planet',
+      attributes: { name: 'Jupiter' }
+    };
+
+    cache.patch(t => [t.addRecord(jupiter)]);
+
+    assert.deepEqual(
+      cache.query(q => q.findRelatedRecord({ type: 'moon', id: 'callisto' }, 'planet')),
+      null
     );
   });
 });
