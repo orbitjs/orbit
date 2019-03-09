@@ -48,6 +48,10 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
   findRelatedRecords(cache: SyncRecordAccessor, expression: FindRelatedRecords): Record[] {
     const { record, relationship } = expression;
     const relatedIds = cache.getRelatedRecordsSync(record, relationship);
+    if (!relatedIds) {
+      return [];
+    }
+  
     return cache.getRecordsSync(relatedIds);
   },
 
