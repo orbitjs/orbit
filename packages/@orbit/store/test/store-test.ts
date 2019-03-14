@@ -80,7 +80,7 @@ module('Store', function(hooks) {
     assert.strictEqual(store.cache.queryBuilder, store.queryBuilder, 'queryBuilder is shared');
   });
 
-  test('#update - transforms the store\'s cache', function(assert) {
+  test('#update - transforms the store\'s cache', async function(assert) {
     assert.expect(4);
 
     const jupiter: Record = {
@@ -91,15 +91,14 @@ module('Store', function(hooks) {
 
     assert.equal(store.cache.getRecordsSync('planet').length, 0, 'cache should start empty');
 
-    return store.update(t => t.addRecord(jupiter))
-      .then((record) => {
-        assert.equal(store.cache.getRecordsSync('planet').length, 1, 'cache should contain one planet');
-        assert.deepEqual(store.cache.getRecordSync({ type: 'planet', id: 'jupiter' }), jupiter, 'planet should be jupiter');
-        assert.strictEqual(record, jupiter, 'result should be returned');
-      });
+    let record = await store.update(t => t.addRecord(jupiter));
+
+    assert.equal(store.cache.getRecordsSync('planet').length, 1, 'cache should contain one planet');
+    assert.deepEqual(store.cache.getRecordSync({ type: 'planet', id: 'jupiter' }), jupiter, 'planet should be jupiter');
+    assert.strictEqual(record, jupiter, 'result should be returned');
   });
 
-  test('#update - can perform multiple operations and return the results', function(assert) {
+  test('#update - can perform multiple operations and return the results', async function(assert) {
     assert.expect(3);
 
     const jupiter: Record = {
@@ -116,14 +115,13 @@ module('Store', function(hooks) {
 
     assert.equal(store.cache.getRecordsSync('planet').length, 0, 'cache should start empty');
 
-    return store.update(t => [t.addRecord(jupiter), t.addRecord(earth)])
-      .then((records) => {
-        assert.equal(store.cache.getRecordsSync('planet').length, 2, 'cache should contain two planets');
-        assert.deepEqual(records, [ jupiter, earth ], 'results array should be returned');
-      });
+    let records = await store.update(t => [t.addRecord(jupiter), t.addRecord(earth)]);
+
+    assert.equal(store.cache.getRecordsSync('planet').length, 2, 'cache should contain two planets');
+    assert.deepEqual(records, [ jupiter, earth ], 'results array should be returned');
   });
 
-  test('#query - queries the store\'s cache', function(assert) {
+  test('#query - queries the store\'s cache', async function(assert) {
     assert.expect(2);
 
     let jupiter = {
@@ -136,13 +134,12 @@ module('Store', function(hooks) {
 
     assert.equal(store.cache.getRecordsSync('planet').length, 1, 'cache should contain one planet');
 
-    return store.query(q => q.findRecord({ type: 'planet', id: 'jupiter' }))
-      .then(foundPlanet => {
-        assert.deepEqual(foundPlanet, jupiter, 'found planet matches original');
-      });
+    let planet = await store.query(q => q.findRecord({ type: 'planet', id: 'jupiter' }));
+
+    assert.deepEqual(planet, jupiter, 'found planet matches original');
   });
 
-  test('#query - findRecord accepts hints that can influence results', function(assert) {
+  test('#query - findRecord accepts hints that can influence results', async function(assert) {
     assert.expect(2);
 
     let jupiter2 = {
@@ -161,10 +158,9 @@ module('Store', function(hooks) {
 
     assert.equal(store.cache.getRecordsSync('planet').length, 1, 'cache should contain one planet');
 
-    return store.query(q => q.findRecord({ type: 'planet', id: 'jupiter' }))
-      .then(foundPlanet => {
-        assert.deepEqual(foundPlanet, jupiter2, 'found planet matches hinted record');
-      });
+    let planet = await store.query(q => q.findRecord({ type: 'planet', id: 'jupiter' }));
+
+    assert.deepEqual(planet, jupiter2, 'found planet matches hinted record');
   });
 
   test('#query - findRecords accepts hints that can influence results', async function(assert) {
@@ -214,42 +210,42 @@ module('Store', function(hooks) {
     assert.deepEqual(distantPlanets, [uranus, jupiter] , 'planets match hinted records');
   });
 
-  test('#query - catches errors', function(assert) {
+  test('#query - catches errors', async function(assert) {
     assert.expect(2);
 
     store.cache.reset();
 
     assert.equal(store.cache.getRecordsSync('planet').length, 0, 'cache should contain no planets');
 
-    return store.query(q => q.findRecord({ type: 'planet', id: 'jupiter' }))
-      .catch(e => {
-        assert.equal(e.message, 'Record not found: planet:jupiter');
-      });
+    try {
+      await store.query(q => q.findRecord({ type: 'planet', id: 'jupiter' }));
+    } catch(e) {
+      assert.equal(e.message, 'Record not found: planet:jupiter');
+    }
   });
 
-  test('#getTransform - returns a particular transform given an id', function(assert) {
+  test('#getTransform - returns a particular transform given an id', async function(assert) {
     const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
 
     const addRecordATransform = buildTransform(store.transformBuilder.addRecord(recordA));
-    return store.sync(addRecordATransform)
-      .then(() => {
-        assert.strictEqual(store.getTransform(addRecordATransform.id), addRecordATransform);
-     });
+
+    await store.sync(addRecordATransform);
+
+    assert.strictEqual(store.getTransform(addRecordATransform.id), addRecordATransform);
   });
 
-  test('#getInverseOperations - returns the inverse operations for a particular transform', function(assert) {
+  test('#getInverseOperations - returns the inverse operations for a particular transform', async function(assert) {
     const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const addRecordATransform = buildTransform(store.transformBuilder.addRecord(recordA));
 
-    return store.sync(addRecordATransform)
-      .then(() => {
-        assert.deepEqual(store.getInverseOperations(addRecordATransform.id), [
-          { op: 'removeRecord', record: identity(recordA) }
-        ]);
-     });
+    await store.sync(addRecordATransform);
+
+    assert.deepEqual(store.getInverseOperations(addRecordATransform.id), [
+      { op: 'removeRecord', record: identity(recordA) }
+    ]);
   });
 
-  test('#transformsSince - returns all transforms since a specified transformId', function(assert) {
+  test('#transformsSince - returns all transforms since a specified transformId', async function(assert) {
     const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
     const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
@@ -259,24 +255,21 @@ module('Store', function(hooks) {
     const addRecordBTransform = buildTransform(tb.addRecord(recordB));
     const addRecordCTransform = buildTransform(tb.addRecord(recordC));
 
-    return all([
-      store.sync(addRecordATransform),
-      store.sync(addRecordBTransform),
-      store.sync(addRecordCTransform)
-    ])
-      .then(() => {
-        assert.deepEqual(
-          store.transformsSince(addRecordATransform.id),
-          [
-            addRecordBTransform,
-            addRecordCTransform
-          ],
-          'returns transforms since the specified transform'
-        );
-      });
+    await store.sync(addRecordATransform);
+    await store.sync(addRecordBTransform);
+    await store.sync(addRecordCTransform);
+
+    assert.deepEqual(
+      store.transformsSince(addRecordATransform.id),
+      [
+        addRecordBTransform,
+        addRecordCTransform
+      ],
+      'returns transforms since the specified transform'
+    );
   });
 
-  test('#allTransforms - returns all tracked transforms', function(assert) {
+  test('#allTransforms - returns all tracked transforms', async function(assert) {
     const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
     const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
@@ -286,25 +279,22 @@ module('Store', function(hooks) {
     const addRecordBTransform = buildTransform(tb.addRecord(recordB));
     const addRecordCTransform = buildTransform(tb.addRecord(recordC));
 
-    return all([
-      store.sync(addRecordATransform),
-      store.sync(addRecordBTransform),
-      store.sync(addRecordCTransform)
-    ])
-      .then(() => {
-        assert.deepEqual(
-          store.allTransforms(),
-          [
-            addRecordATransform,
-            addRecordBTransform,
-            addRecordCTransform
-          ],
-          'tracks transforms in correct order'
-        );
-      });
+    await store.sync(addRecordATransform);
+    await store.sync(addRecordBTransform);
+    await store.sync(addRecordCTransform);
+
+    assert.deepEqual(
+      store.allTransforms(),
+      [
+        addRecordATransform,
+        addRecordBTransform,
+        addRecordCTransform
+      ],
+      'tracks transforms in correct order'
+    );
   });
 
-  test('transformLog.truncate - clears transforms from log as well as tracked transforms before a specified transform', function(assert) {
+  test('transformLog.truncate - clears transforms from log as well as tracked transforms before a specified transform', async function(assert) {
     const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
     const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
@@ -314,27 +304,23 @@ module('Store', function(hooks) {
     const addRecordBTransform = buildTransform(tb.addRecord(recordB));
     const addRecordCTransform = buildTransform(tb.addRecord(recordC));
 
-    return all([
-      store.sync(addRecordATransform),
-      store.sync(addRecordBTransform),
-      store.sync(addRecordCTransform)
-    ])
-      .then(() => {
-        return store.transformLog.truncate(addRecordBTransform.id);
-      })
-      .then(() => {
-        assert.deepEqual(
-          store.allTransforms(),
-          [
-            addRecordBTransform,
-            addRecordCTransform
-          ],
-          'remaining transforms are in correct order'
-        );
-      });
+    await store.sync(addRecordATransform);
+    await store.sync(addRecordBTransform);
+    await store.sync(addRecordCTransform);
+
+    await store.transformLog.truncate(addRecordBTransform.id);
+
+    assert.deepEqual(
+      store.allTransforms(),
+      [
+        addRecordBTransform,
+        addRecordCTransform
+      ],
+      'remaining transforms are in correct order'
+    );
   });
 
-  test('transformLog.clear - clears all transforms from log as well as tracked transforms', function(assert) {
+  test('transformLog.clear - clears all transforms from log as well as tracked transforms', async function(assert) {
     const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
     const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
     const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
@@ -344,56 +330,52 @@ module('Store', function(hooks) {
     const addRecordBTransform = buildTransform(tb.addRecord(recordB));
     const addRecordCTransform = buildTransform(tb.addRecord(recordC));
 
-    return all([
-      store.sync(addRecordATransform),
-      store.sync(addRecordBTransform),
-      store.sync(addRecordCTransform)
-    ])
-      .then(() => store.transformLog.clear())
-      .then(() => {
-        assert.deepEqual(
-          store.allTransforms(),
-          [],
-          'no transforms remain in history'
-        );
-      });
+    await store.sync(addRecordATransform);
+    await store.sync(addRecordBTransform);
+    await store.sync(addRecordCTransform);
+
+    await store.transformLog.clear();
+
+    assert.deepEqual(
+      store.allTransforms(),
+      [],
+      'no transforms remain in history'
+    );
   });
 
-  test('#fork - creates a new store that starts with the same schema, keyMap, and cache contents as the base store', function(assert) {
+  test('#fork - creates a new store that starts with the same schema, keyMap, and cache contents as the base store', async function(assert) {
     const jupiter: Record = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
 
-    return store.update(t => t.addRecord(jupiter))
-      .then(() => {
-        assert.deepEqual(store.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'verify store data');
+    await store.update(t => t.addRecord(jupiter));
 
-        const fork = store.fork();
+    assert.deepEqual(store.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'verify store data');
 
-        assert.deepEqual(fork.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'data in fork matches data in store');
-        assert.strictEqual(store.schema, fork.schema, 'schema matches');
-        assert.strictEqual(store.keyMap, fork.keyMap, 'keyMap matches');
-        assert.strictEqual(store.transformBuilder, fork.transformBuilder, 'transformBuilder is shared');
-        assert.strictEqual(store.queryBuilder, fork.queryBuilder, 'queryBuilder is shared');
-        assert.strictEqual(fork.forkPoint, store.transformLog.head, 'forkPoint is set on the forked store');
-        assert.strictEqual(fork.base, store, 'base store is set on the forked store');
-      });
+    const fork = store.fork();
+
+    assert.deepEqual(fork.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'data in fork matches data in store');
+    assert.strictEqual(store.schema, fork.schema, 'schema matches');
+    assert.strictEqual(store.keyMap, fork.keyMap, 'keyMap matches');
+    assert.strictEqual(store.transformBuilder, fork.transformBuilder, 'transformBuilder is shared');
+    assert.strictEqual(store.queryBuilder, fork.queryBuilder, 'queryBuilder is shared');
+    assert.strictEqual(fork.forkPoint, store.transformLog.head, 'forkPoint is set on the forked store');
+    assert.strictEqual(fork.base, store, 'base store is set on the forked store');
   });
 
-  test('#merge - merges transforms from a forked store back into a base store', function(assert) {
+  test('#merge - merges transforms from a forked store back into a base store', async function(assert) {
     const jupiter: Record = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
 
     let fork = store.fork();
 
-    return fork.update(t => t.addRecord(jupiter))
-      .then(() => {
-        assert.deepEqual(fork.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'verify fork data');
-        return store.merge(fork);
-      })
-      .then(() => {
-        assert.deepEqual(store.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'data in store matches data in fork');
-      });
+    await fork.update(t => t.addRecord(jupiter));
+
+    assert.deepEqual(fork.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'verify fork data');
+
+    await store.merge(fork);
+
+    assert.deepEqual(store.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'data in store matches data in fork');
   });
 
-  test('#merge - can accept options that will be assigned to the resulting transform', function(assert) {
+  test('#merge - can accept options that will be assigned to the resulting transform', async function(assert) {
     assert.expect(3);
 
     const jupiter: Record = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
@@ -404,17 +386,16 @@ module('Store', function(hooks) {
       assert.equal(transform.options.label, 'Create Jupiter');
     });
 
-    return fork.update(t => t.addRecord(jupiter))
-      .then(() => {
-        assert.deepEqual(fork.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'verify fork data');
-        return store.merge(fork, { transformOptions: { label: 'Create Jupiter' }});
-      })
-      .then(() => {
-        assert.deepEqual(store.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'data in store matches data in fork');
-      });
+    await fork.update(t => t.addRecord(jupiter));
+
+    assert.deepEqual(fork.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'verify fork data');
+
+    await store.merge(fork, { transformOptions: { label: 'Create Jupiter' }});
+
+    assert.deepEqual(store.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'data in store matches data in fork');
   });
 
-  test('#rebase - works with empty stores', function (assert) {
+  test('#rebase - works with empty stores', function(assert) {
     assert.expect(1);
 
     let child = store.fork();
@@ -423,24 +404,66 @@ module('Store', function(hooks) {
     assert.ok(true, 'no exception has been thrown');
   });
 
-  test('#rebase - record ends up in child store', function (assert) {
+  test('#rebase', function(assert) {
+    const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
+    const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
+    const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
+    const recordD = { id: 'neptune', type: 'planet', attributes: { name: 'Neptune' } };
+    const recordE = { id: 'uranus', type: 'planet', attributes: { name: 'Uranus' } };
+
+    const tb = store.transformBuilder;
+    const addRecordA = buildTransform(tb.addRecord(recordA));
+    const addRecordB = buildTransform(tb.addRecord(recordB));
+    const addRecordC = buildTransform(tb.addRecord(recordC));
+    const addRecordD = buildTransform(tb.addRecord(recordD));
+    const addRecordE = buildTransform(tb.addRecord(recordE));
+
+    let fork;
+
+    return all([
+      store.update(addRecordA),
+      store.update(addRecordB)
+    ])
+      .then(() => {
+        fork = store.fork();
+
+        return all([
+          fork.update(addRecordD),
+          store.update(addRecordC),
+          fork.update(addRecordE)
+        ]);
+      })
+      .then(() => {
+        fork.rebase();
+
+        assert.deepEqual(fork.allTransforms(), [addRecordD, addRecordE]);
+        assert.deepEqual(fork.cache.query(q => q.findRecord(recordA)), recordA);
+        assert.deepEqual(fork.cache.query(q => q.findRecord(recordB)), recordB);
+        assert.deepEqual(fork.cache.query(q => q.findRecord(recordC)), recordC);
+        assert.deepEqual(fork.cache.query(q => q.findRecord(recordD)), recordD);
+        assert.deepEqual(fork.cache.query(q => q.findRecord(recordE)), recordE);
+        assert.deepEqual(fork.cache.query(q => q.findRecords('planet')).length, 5);
+      });
+  });
+
+  test('#rebase - record ends up in child store', async function(assert) {
     assert.expect(3);
 
     const jupiter: Record = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
 
     let child = store.fork();
 
-    return store.update(t => t.addRecord(jupiter)).then(() => {
-      assert.deepEqual(store.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'verify store data');
-      assert.equal(child.cache.getRecordsSync('planet').length, 0, 'child store is still empty');
+    await store.update(t => t.addRecord(jupiter));
 
-      child.rebase();
+    assert.deepEqual(store.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'verify store data');
+    assert.equal(child.cache.getRecordsSync('planet').length, 0, 'child store is still empty');
 
-      assert.deepEqual(child.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'verify child data');
-    });
+    child.rebase();
+
+    assert.deepEqual(child.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'verify child data');
   });
 
-  test('#rebase - rebase orders conflicting transforms in expected way', function (assert) {
+  test('#rebase - rebase orders conflicting transforms in expected way', async function(assert) {
     assert.expect(6);
 
     const jupiter: Record = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
@@ -449,29 +472,29 @@ module('Store', function(hooks) {
     let child: Store;
 
     // 1. fill store with some data
-    return store.update(t => t.addRecord(jupiter)).then(() => {
-      // 2. create a child store
-      assert.deepEqual(store.cache.getRecordSync(id), jupiter, 'verify store data');
-      child = store.fork();
-      assert.deepEqual(child.cache.getRecordSync(id), jupiter, 'verify child data');
+    await store.update(t => t.addRecord(jupiter));
 
-      // 3. update the child and the parent store (in any order)
-      return child.update(t => t.replaceAttribute(id, 'name', 'The Gas Giant'));
-    }).then(() => {
-      return store.update(t => t.replaceAttribute(id, 'name', 'Gassy Giant'));
-    }).then(() => {
-      // 4. make sure updates were successful
-      assert.equal(child.cache.getRecordSync(id).attributes.name, 'The Gas Giant');
-      assert.equal(store.cache.getRecordSync(id).attributes.name, 'Gassy Giant');
+    // 2. create a child store
+    assert.deepEqual(store.cache.getRecordSync(id), jupiter, 'verify store data');
+    child = store.fork();
+    assert.deepEqual(child.cache.getRecordSync(id), jupiter, 'verify child data');
 
-      // 5. do the rebase
-      child.rebase();
-      assert.equal(child.cache.getRecordSync(id).attributes.name, 'The Gas Giant');
-      assert.equal(store.cache.getRecordSync(id).attributes.name, 'Gassy Giant');
-    });
+    // 3. update the child and the parent store (in any order)
+    await child.update(t => t.replaceAttribute(id, 'name', 'The Gas Giant'));
+    await store.update(t => t.replaceAttribute(id, 'name', 'Gassy Giant'));
+
+    // 4. make sure updates were successful
+    assert.equal(child.cache.getRecordSync(id).attributes.name, 'The Gas Giant');
+    assert.equal(store.cache.getRecordSync(id).attributes.name, 'Gassy Giant');
+
+    // 5. do the rebase
+    child.rebase();
+
+    assert.equal(child.cache.getRecordSync(id).attributes.name, 'The Gas Giant');
+    assert.equal(store.cache.getRecordSync(id).attributes.name, 'Gassy Giant');
   });
 
-  test('#rebase - calling rebase multiple times', async function (assert) {
+  test('#rebase - calling rebase multiple times', async function(assert) {
     assert.expect(22);
 
     const jupiter: Record = { type: 'planet', id: 'jupiter-id', attributes: { name: 'Jupiter', classification: 'gas giant' } };
