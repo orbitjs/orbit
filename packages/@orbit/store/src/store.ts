@@ -195,6 +195,49 @@ export default class Store extends Source implements Syncable, Queryable, Updata
   }
 
   /**
+   * This rebase method works similarly to a git rebase:
+   *
+   * After a store is forked, there is a parent- and a child-store.
+   * Both may be updated with transforms.
+   * If after some updates on both stores `childStore.rebase()` is called,
+   * the result on the child store will look like,
+   * as if all updates to the parent store were added first,
+   * followed by those made in the child store.
+   * This means that updates in the child store have a tendency of winning.
+   */
+  rebase(): void {
+    let base = this._base;
+    let forkPoint = this._forkPoint;
+
+    assert('A `base` store must be defined for `rebase` to work', !!base);
+    //assert('A `forkPoint` must be defined for `rebase` to work', !!forkPoint);
+
+    let baseTransforms: Transform[];
+    if (forkPoint === undefined){
+      // store was empty at fork point
+      baseTransforms = base.allTransforms();
+    } else {
+      baseTransforms = base.transformsSince(forkPoint);
+    }
+    if (baseTransforms.length > 0) {
+      let localTransforms = this.allTransforms();
+
+      localTransforms.reverse().forEach(transform => {
+        const inverseOperations = this._transformInverses[transform.id];
+        if (inverseOperations) {
+          this.cache.patch(inverseOperations);
+        }
+        this._clearTransformFromHistory(transform.id);
+      });
+
+      baseTransforms.forEach(transform => this._applyTransform(transform));
+      localTransforms.forEach(transform => this._applyTransform(transform));
+      this._forkPoint = base.transformLog.head;
+    }
+  }
+
+
+  /**
    Rolls back the Store to a particular transformId
 
    @method rollback
