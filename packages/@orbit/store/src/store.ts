@@ -133,15 +133,14 @@ export default class Store extends Source implements Syncable, Queryable, Updata
   /////////////////////////////////////////////////////////////////////////////
 
   /**
-   Create a clone, or "fork", from a "base" store.
-
-   The forked store will have the same `schema` and `keyMap` as its base store.
-   The forked store's cache will start with the same immutable document as
-   the base store. Its contents and log will evolve independently.
-
-   @method fork
-   @returns {Store} The forked store.
-  */
+   * Create a clone, or "fork", from a "base" store.
+   *
+   * The forked store will have the same `schema` and `keyMap` as its base store.
+   * The forked store's cache will start with the same immutable document as
+   * the base store. Its contents and log will evolve independently.
+   *
+   * @returns The forked store.
+   */
   fork(settings: StoreSettings = {}): Store {
     settings.schema = this._schema;
     settings.cacheSettings = settings.cacheSettings || {};
@@ -154,22 +153,19 @@ export default class Store extends Source implements Syncable, Queryable, Updata
   }
 
   /**
-   Merge transforms from a forked store back into a base store.
-
-   By default, all of the operations from all of the transforms in the forked
-   store's history will be reduced into a single transform. A subset of
-   operations can be selected by specifying the `sinceTransformId` option.
-
-   The `coalesce` option controls whether operations are coalesced into a
-   minimal equivalent set before being reduced into a transform.
-
-   @method merge
-   @param {Store} forkedStore - The store to merge.
-   @param {Object}  [options] settings
-   @param {Boolean} [options.coalesce = true] Should operations be coalesced into a minimal equivalent set?
-   @param {String}  [options.sinceTransformId = null] Select only transforms since the specified ID.
-   @returns {Promise} The result of calling `update()` with the forked transforms.
-  */
+   * Merge transforms from a forked store back into a base store.
+   *
+   * By default, all of the operations from all of the transforms in the forked
+   * store's history will be reduced into a single transform. A subset of
+   * operations can be selected by specifying the `sinceTransformId` option.
+   *
+   * The `coalesce` option controls whether operations are coalesced into a
+   * minimal equivalent set before being reduced into a transform.
+   *
+   * @param forkedStore - The store to merge.
+   * @param options - Merge options
+   * @returns The result of calling `update()` with the forked transforms.
+   */
   merge(forkedStore: Store, options: StoreMergeOptions = {}): Promise<any> {
     let transforms: Transform[];
     if (options.sinceTransformId) {
@@ -195,22 +191,20 @@ export default class Store extends Source implements Syncable, Queryable, Updata
   }
 
   /**
-   * This rebase method works similarly to a git rebase:
+   * Rebase works similarly to a git rebase:
    *
-   * After a store is forked, there is a parent- and a child-store.
-   * Both may be updated with transforms.
-   * If after some updates on both stores `childStore.rebase()` is called,
-   * the result on the child store will look like,
-   * as if all updates to the parent store were added first,
-   * followed by those made in the child store.
-   * This means that updates in the child store have a tendency of winning.
+   * After a store is forked, there is a parent- and a child-store. Both may be
+   * updated with transforms. If, after some updates on both stores
+   * `childStore.rebase()` is called, the result on the child store will look
+   * like, as if all updates to the parent store were added first, followed by
+   * those made in the child store. This means that updates in the child store
+   * have a tendency of winning.
    */
   rebase(): void {
     let base = this._base;
     let forkPoint = this._forkPoint;
 
     assert('A `base` store must be defined for `rebase` to work', !!base);
-    //assert('A `forkPoint` must be defined for `rebase` to work', !!forkPoint);
 
     let baseTransforms: Transform[];
     if (forkPoint === undefined){
@@ -219,6 +213,7 @@ export default class Store extends Source implements Syncable, Queryable, Updata
     } else {
       baseTransforms = base.transformsSince(forkPoint);
     }
+
     if (baseTransforms.length > 0) {
       let localTransforms = this.allTransforms();
 
@@ -236,26 +231,21 @@ export default class Store extends Source implements Syncable, Queryable, Updata
     }
   }
 
-
   /**
-   Rolls back the Store to a particular transformId
-
-   @method rollback
-   @param {string} transformId - The ID of the transform to roll back to
-   @param {number} relativePosition - A positive or negative integer to specify a position relative to `transformId`
-   @returns {undefined}
-  */
+   * Rolls back the Store to a particular transformId
+   *
+   * @param transformId - The ID of the transform to roll back to
+   * @param relativePosition - A positive or negative integer to specify a position relative to `transformId`
+   */
   rollback(transformId: string, relativePosition: number = 0): Promise<void> {
     return this.transformLog.rollback(transformId, relativePosition);
   }
 
   /**
-   Returns all transforms since a particular `transformId`.
-
-   @method transformsSince
-   @param {string} transformId - The ID of the transform to start with.
-   @returns {Array} Array of transforms.
-  */
+   * Returns all transforms since a particular `transformId`.
+   *
+   * @param transformId - The ID of the transform to start with.
+   */
   transformsSince(transformId: string): Transform[] {
     return this.transformLog
       .after(transformId)
@@ -263,11 +253,8 @@ export default class Store extends Source implements Syncable, Queryable, Updata
   }
 
   /**
-   Returns all tracked transforms.
-
-   @method allTransforms
-   @returns {Array} Array of transforms.
-  */
+   * Returns all tracked transforms.
+   */
   allTransforms(): Transform[] {
     return this.transformLog.entries
       .map(id => this._transforms[id]);
