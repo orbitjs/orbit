@@ -1380,6 +1380,32 @@ module('AsyncRecordCache', function(hooks) {
     );
   });
 
+  test('#query - findRelatedRecords - returns empty array if there are no related records', async function (assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const jupiter: Record = {
+      id: 'jupiter', type: 'planet',
+      attributes: { name: 'Jupiter' }
+    };
+
+    await cache.patch(t => [t.addRecord(jupiter)]);
+
+    assert.deepEqual(
+      await cache.query(q => q.findRelatedRecords({ type: 'planet', id: 'jupiter'}, 'moons')),
+      []
+    );
+  });
+
+  test('#query - findRelatedRecords - throws RecordNotFoundException if primary record doesn\'t exist', async function (assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    try {
+      await cache.query(q => q.findRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons'));
+    } catch(e) {
+      assert.ok(e instanceof RecordNotFoundException);
+    }
+  });
+
   test('#query - findRelatedRecord', async function(assert) {
     const cache = new Cache({ schema, keyMap });
 
@@ -1402,5 +1428,31 @@ module('AsyncRecordCache', function(hooks) {
       await cache.query(q => q.findRelatedRecord({ type: 'moon', id: 'callisto' }, 'planet')),
       jupiter
     );
+  });
+
+  test('#query - findRelatedRecord - return null if no related record is found', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const callisto: Record = {
+      id: 'callisto', type: 'moon',
+      attributes: { name: 'Callisto' }
+    };
+
+    await cache.patch(t => [t.addRecord(callisto)]);
+
+    assert.deepEqual(
+      await cache.query(q => q.findRelatedRecord({ type: 'moon', id: 'callisto' }, 'planet')),
+      null
+    );
+  });
+
+  test('#query - findRelatedRecord - throws RecordNotFoundException if primary record doesn\'t exist', async function (assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    try {
+      await cache.query(q => q.findRelatedRecord({ type: 'moon', id: 'callisto' }, 'planet'));
+    } catch(e) {
+      assert.ok(e instanceof RecordNotFoundException);
+    }
   });
 });
