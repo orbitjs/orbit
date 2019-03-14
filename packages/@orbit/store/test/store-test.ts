@@ -404,48 +404,6 @@ module('Store', function(hooks) {
     assert.ok(true, 'no exception has been thrown');
   });
 
-  test('#rebase', function(assert) {
-    const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
-    const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
-    const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
-    const recordD = { id: 'neptune', type: 'planet', attributes: { name: 'Neptune' } };
-    const recordE = { id: 'uranus', type: 'planet', attributes: { name: 'Uranus' } };
-
-    const tb = store.transformBuilder;
-    const addRecordA = buildTransform(tb.addRecord(recordA));
-    const addRecordB = buildTransform(tb.addRecord(recordB));
-    const addRecordC = buildTransform(tb.addRecord(recordC));
-    const addRecordD = buildTransform(tb.addRecord(recordD));
-    const addRecordE = buildTransform(tb.addRecord(recordE));
-
-    let fork;
-
-    return all([
-      store.update(addRecordA),
-      store.update(addRecordB)
-    ])
-      .then(() => {
-        fork = store.fork();
-
-        return all([
-          fork.update(addRecordD),
-          store.update(addRecordC),
-          fork.update(addRecordE)
-        ]);
-      })
-      .then(() => {
-        fork.rebase();
-
-        assert.deepEqual(fork.allTransforms(), [addRecordD, addRecordE]);
-        assert.deepEqual(fork.cache.query(q => q.findRecord(recordA)), recordA);
-        assert.deepEqual(fork.cache.query(q => q.findRecord(recordB)), recordB);
-        assert.deepEqual(fork.cache.query(q => q.findRecord(recordC)), recordC);
-        assert.deepEqual(fork.cache.query(q => q.findRecord(recordD)), recordD);
-        assert.deepEqual(fork.cache.query(q => q.findRecord(recordE)), recordE);
-        assert.deepEqual(fork.cache.query(q => q.findRecords('planet')).length, 5);
-      });
-  });
-
   test('#rebase - record ends up in child store', async function(assert) {
     assert.expect(3);
 
@@ -461,6 +419,47 @@ module('Store', function(hooks) {
     child.rebase();
 
     assert.deepEqual(child.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }), jupiter, 'verify child data');
+  });
+
+  test('#rebase - maintains only unique transforms in fork', async function(assert) {
+    const recordA = { id: 'jupiter', type: 'planet', attributes: { name: 'Jupiter' } };
+    const recordB = { id: 'saturn', type: 'planet', attributes: { name: 'Saturn' } };
+    const recordC = { id: 'pluto', type: 'planet', attributes: { name: 'Pluto' } };
+    const recordD = { id: 'neptune', type: 'planet', attributes: { name: 'Neptune' } };
+    const recordE = { id: 'uranus', type: 'planet', attributes: { name: 'Uranus' } };
+
+    const tb = store.transformBuilder;
+    const addRecordA = buildTransform(tb.addRecord(recordA));
+    const addRecordB = buildTransform(tb.addRecord(recordB));
+    const addRecordC = buildTransform(tb.addRecord(recordC));
+    const addRecordD = buildTransform(tb.addRecord(recordD));
+    const addRecordE = buildTransform(tb.addRecord(recordE));
+
+    let fork;
+
+    await all([
+      store.update(addRecordA),
+      store.update(addRecordB)
+    ]);
+
+    fork = store.fork();
+
+    await all([
+      fork.update(addRecordD),
+      store.update(addRecordC),
+      fork.update(addRecordE)
+    ]);
+
+    fork.rebase();
+
+    assert.deepEqual(fork.allTransforms(), [addRecordD, addRecordE]);
+
+    assert.deepEqual(fork.cache.getRecordSync(recordA), recordA);
+    assert.deepEqual(fork.cache.getRecordSync(recordB), recordB);
+    assert.deepEqual(fork.cache.getRecordSync(recordC), recordC);
+    assert.deepEqual(fork.cache.getRecordSync(recordD), recordD);
+    assert.deepEqual(fork.cache.getRecordSync(recordE), recordE);
+    assert.deepEqual(fork.cache.getRecordsSync('planet').length, 5);
   });
 
   test('#rebase - rebase orders conflicting transforms in expected way', async function(assert) {
