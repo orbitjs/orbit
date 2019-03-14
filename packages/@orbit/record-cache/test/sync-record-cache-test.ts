@@ -1397,6 +1397,15 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
+  test('#query - findRelatedRecords - throws RecordNotFoundException if primary record doesn\'t exist', function (assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    assert.throws(
+      () => cache.query(q => q.findRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons')),
+      RecordNotFoundException
+    );
+  });
+
   test('#query - findRelatedRecord', function(assert) {
     const cache = new Cache({ schema, keyMap });
 
@@ -1420,20 +1429,29 @@ module('SyncRecordCache', function(hooks) {
       jupiter
     );
   });
-  
+
   test('#query - findRelatedRecord - return null if no related record is found', function(assert) {
     const cache = new Cache({ schema, keyMap });
 
-    const jupiter: Record = {
-      id: 'jupiter', type: 'planet',
-      attributes: { name: 'Jupiter' }
+    const callisto: Record = {
+      id: 'callisto', type: 'moon',
+      attributes: { name: 'Callisto' }
     };
 
-    cache.patch(t => [t.addRecord(jupiter)]);
+    cache.patch(t => [t.addRecord(callisto)]);
 
     assert.deepEqual(
       cache.query(q => q.findRelatedRecord({ type: 'moon', id: 'callisto' }, 'planet')),
       null
+    );
+  });
+
+  test('#query - findRelatedRecord - throws RecordNotFoundException if primary record doesn\'t exist', function (assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    assert.throws(
+      () => cache.query(q => q.findRelatedRecord({ type: 'moon', id: 'callisto' }, 'planet')),
+      RecordNotFoundException
     );
   });
 });
