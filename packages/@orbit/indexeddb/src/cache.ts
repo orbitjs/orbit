@@ -49,8 +49,6 @@ export default class IndexedDBCache extends AsyncRecordCache {
     super(settings);
 
     this._namespace = settings.namespace || 'orbit';
-
-    this.reset();
   }
 
   async query(queryOrExpression: QueryOrExpression, options?: object, id?: string): Promise<QueryResultData> {
