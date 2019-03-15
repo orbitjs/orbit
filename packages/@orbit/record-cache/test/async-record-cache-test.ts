@@ -588,7 +588,7 @@ module('AsyncRecordCache', function(hooks) {
     assert.equal((await cache.getRecordAsync({ type: 'one', id: '1' })).relationships.two.data, null, 'ones link to two got removed');
   });
 
-  test('#patch removes dependent records', async function(assert) {
+  test('#patch removes dependent hasOne records', async function(assert) {
     const dependentSchema = new Schema({
       models: {
         planet: {
@@ -622,6 +622,43 @@ module('AsyncRecordCache', function(hooks) {
     await cache.patch(t => t.removeRecord(io));
 
     assert.equal((await cache.getRecordsAsync('moon')).length, 1, 'Only europa is left in store');
+    assert.equal((await cache.getRecordsAsync('planet')).length, 0, 'No planets left in store');
+  });
+
+  test('#patch removes dependent hasMany records', async function(assert) {
+    const dependentSchema = new Schema({
+      models: {
+        planet: {
+          relationships: {
+            moons: { type: 'hasMany', model: 'moon', dependent: 'remove' }
+          }
+        },
+        moon: {
+          relationships: {
+            planet: { type: 'hasOne', model: 'planet' }
+          }
+        }
+      }
+    });
+
+    const cache = new Cache({ schema: dependentSchema, keyMap });
+
+    const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' } };
+    const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: { type: 'planet', id: 'p1'} } } };
+    const europa: Record = { type: 'moon', id: 'm2', attributes: { name: 'Europa' }, relationships: { planet: { data: { type: 'planet', id: 'p1'} } } };
+
+    await cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(io),
+      t.addRecord(europa),
+      t.addToRelatedRecords(jupiter, 'moons', io),
+      t.addToRelatedRecords(jupiter, 'moons', europa)
+    ]);
+
+    // Removing the planet should remove all the moons
+    await cache.patch(t => t.removeRecord(jupiter));
+
+    assert.equal((await cache.getRecordsAsync('moon')).length, 0, 'Only europa is left in store');
     assert.equal((await cache.getRecordsAsync('planet')).length, 0, 'No planets left in store');
   });
 
