@@ -252,6 +252,34 @@ module('IndexedDBSource', function(hooks) {
     assert.equal(await getRecordFromIndexedDB(source.cache, planet), undefined, 'indexeddb does not contain record');
   });
 
+  test('#push - removeRecord when part of has many relationship', async function(assert) {
+    assert.expect(2);
+
+    let moon1 = { type: 'moon', id: 'moon1' };
+    let moon2 = { type: 'moon', id: 'moon2' }
+    let planet: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant'
+      },
+      relationships: {
+        moons: {
+          data: [
+            moon1,
+            moon2
+          ]
+        }
+      }
+    };
+
+    await source.push(t => [t.addRecord(moon1),t.addRecord(moon2),t.addRecord(planet)]);
+    assert.deepEqual((await getRecordFromIndexedDB(source.cache, planet)).relationships.moons.data.length, 2, 'record has 2 moons');
+    await source.push(t => t.removeRecord(moon1));
+    assert.deepEqual((await getRecordFromIndexedDB(source.cache, planet)).relationships.moons.data.length, 1, 'record has 1 moon');
+  });
+
   test('#push - removeRecord - when record does not exist', async function(assert) {
     assert.expect(1);
 

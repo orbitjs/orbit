@@ -201,6 +201,8 @@ module('AsyncRecordCache', function(hooks) {
 
     assert.equal(await cache.getRecordAsync({ type: 'moon', id: 'm1' }), null, 'Io is GONE');
 
+    assert.deepEqual((await cache.getRelatedRecordsAsync({ type: 'planet', id: 'p1' }, 'moons')), [{ type: 'moon', id: 'm2' }], 'Io have been cleared from Jupiter');
+
     await cache.patch(t => t.removeRecord(europa));
 
     assert.equal(await cache.getRecordAsync({ type: 'moon', id: 'm2' }), null, 'Europa is GONE');
