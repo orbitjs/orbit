@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.16.0-beta.2 (2019-03-14)
+
+#### :rocket: Enhancement
+* `@orbit/store`
+  * [#596](https://github.com/orbitjs/orbit/pull/596) Add Store.rebase() ([@Bernhard---H](https://github.com/Bernhard---H))
+
+#### :bug: Bug Fix
+* `@orbit/record-cache`
+  * [#603](https://github.com/orbitjs/orbit/pull/603) Return empty array when querying for non-existing relationships with findRelatedRecords ([@PieterJanVdb](https://github.com/PieterJanVdb))
+
+* `@orbit/record-cache`
+  * [#605](https://github.com/orbitjs/orbit/pull/605) Extends #603 to fix related errors ([@dgeb](https://github.com/dgeb))
+
+#### :house: Internal
+* `@orbit/store`
+  * [#604](https://github.com/orbitjs/orbit/pull/604) Cleanup and extend store tests ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 3
+- Bernhard Halbartschlager ([@Bernhard---H](https://github.com/Bernhard---H))
+- Pieter-Jan Vandenbussche ([@PieterJanVdb](https://github.com/PieterJanVdb))
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
+
 ## v0.16.0-beta.1 (2019-02-10)
 
 #### :boom: Breaking Change
