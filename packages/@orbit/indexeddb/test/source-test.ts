@@ -115,6 +115,30 @@ module('IndexedDBSource', function(hooks) {
     assert.ok(true, 'db has been reset twice and can still be reopened');
   });
 
+  test('data persists across re-instantiating source', async function(assert) {
+    assert.expect(2);
+
+    let planet: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      keys: {
+        remoteId: 'j'
+      },
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant'
+      }
+    };
+
+    await source.push(t => t.addRecord(planet));
+    assert.deepEqual(await getRecordFromIndexedDB(source.cache, planet), planet, 'indexeddb contains record');
+
+    await source.cache.closeDB();
+
+    source = new IndexedDBSource({ schema, keyMap });
+    assert.deepEqual(await getRecordFromIndexedDB(source.cache, planet), planet, 'indexeddb still contains record');
+  });
+
   test('#push - addRecord', async function(assert) {
     assert.expect(2);
 

@@ -78,6 +78,28 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
+  test('data persists across re-instantiating source', async function(assert) {
+    assert.expect(2);
+
+    let planet: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      keys: {
+        remoteId: 'j'
+      },
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant'
+      }
+    };
+
+    await source.push(t => t.addRecord(planet));
+    assert.deepEqual(getRecordFromLocalStorage(source, planet), planet, 'local storage contains record');
+
+    source = new LocalStorageSource({ schema, keyMap });
+    assert.deepEqual(getRecordFromLocalStorage(source, planet), planet, 'local storage still contains record');
+  });
+
   test('#push - addRecord', async function(assert) {
     assert.expect(2);
 
