@@ -7,7 +7,7 @@ import {
 } from '@orbit/data';
 import IndexedDBSource from '../src/source';
 
-const { module, test, skip } = QUnit;
+const { module, test } = QUnit;
 
 module('IndexedDBSource', function(hooks) {
   let schema: Schema,
@@ -69,8 +69,7 @@ module('IndexedDBSource', function(hooks) {
     assert.equal(source.cache.dbName, 'orbit', '`dbName` is `orbit` by default');
   });
 
-  // TODO: Skipped for CI
-  skip('will reopen the database when the schema is upgraded', async function(assert) {
+  test('will reopen the database when the schema is upgraded', async function(assert) {
     const done = assert.async();
 
     assert.expect(5);
