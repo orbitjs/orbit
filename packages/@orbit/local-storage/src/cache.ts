@@ -30,8 +30,6 @@ export default class LocalStorageCache extends SyncRecordCache {
 
     this._namespace = settings.namespace || 'orbit';
     this._delimiter = settings.delimiter || '/';
-
-    this.reset();
   }
 
   get namespace(): string {
