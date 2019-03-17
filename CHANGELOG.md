@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.16.0-beta.3 (2019-03-17)
+
+#### :bug: Bug Fix
+* `@orbit/indexeddb`, `@orbit/local-storage`, `@orbit/record-cache`
+  * [#608](https://github.com/orbitjs/orbit/pull/608) RemoveRecord when part of has many relationship should not clobber the whole relationship in IndexedDB source ([@tchak](https://github.com/tchak))
+* `@orbit/indexeddb`, `@orbit/local-storage`
+  * [#606](https://github.com/orbitjs/orbit/pull/606) Do not reset persisting sources on initalize ([@tchak](https://github.com/tchak))
+
+#### :house: Internal
+* `@orbit/indexeddb`, `@orbit/local-storage`
+  * [#610](https://github.com/orbitjs/orbit/pull/610) Add tests to verify local storage + indexeddb sources are not reset on initialization ([@dgeb](https://github.com/dgeb))
+* `@orbit/integration-tests`
+  * [#609](https://github.com/orbitjs/orbit/pull/609) Add integration-tests package ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 2
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+- Paul Chavard ([@tchak](https://github.com/tchak))
+
+
 ## v0.16.0-beta.2 (2019-03-14)
 
 #### :rocket: Enhancement
