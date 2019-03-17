@@ -5,8 +5,7 @@ import Orbit, {
   Record,
   RecordIdentity,
   RecordOperation,
-  TransformBuilderFunc,
-  recordsInclude
+  TransformBuilderFunc
 } from '@orbit/data';
 import {
   RecordRelationshipIdentity,
@@ -155,6 +154,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
   createInverseRelationshipStore(db: IDBDatabase): void {
     let objectStore = db.createObjectStore(INVERSE_RELS, { keyPath: 'id' });
     objectStore.createIndex('type', 'type', { unique: false });
+    objectStore.createIndex('recordIdentity', 'recordIdentity', { unique: false });
     objectStore.createIndex('relatedType', 'relatedType', { unique: false });
     objectStore.createIndex('relatedIdentity', 'relatedIdentity', { unique: false });
   }
@@ -443,7 +443,8 @@ export default class IndexedDBCache extends AsyncRecordCache {
       const transaction = this._db.transaction([INVERSE_RELS]);
       const objectStore = transaction.objectStore(INVERSE_RELS);
       const results: RecordRelationshipIdentity[] = [];
-      const request = objectStore.openCursor();
+      const keyRange = IDBKeyRange.only(serializeRecordIdentity(recordIdentity));
+      const request = objectStore.index('recordIdentity').openCursor(keyRange);
 
       request.onerror = function(/* event */) {
         // console.error('error - getRecords', request.error);
