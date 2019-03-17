@@ -19,6 +19,7 @@ module('Store + JSONAPISource + remote IDs + optimistic coordination', function(
   let remote: JSONAPISource;
   let store: Store;
   let coordinator: Coordinator;
+  let catchArguments = [];
 
   hooks.beforeEach(() => {
     fetchStub = sinon.stub(self, 'fetch');
@@ -68,7 +69,11 @@ module('Store + JSONAPISource + remote IDs + optimistic coordination', function(
 
     store = new Store({ schema, keyMap });
 
-    remote = new JSONAPISource({ schema, keyMap, name: 'remote' });
+    remote = new JSONAPISource({
+      schema,
+      keyMap,
+      name: 'remote'
+    });
     remote.serializer.resourceKey = function() { return 'remoteId'; };
 
     coordinator = new Coordinator({
@@ -90,7 +95,10 @@ module('Store + JSONAPISource + remote IDs + optimistic coordination', function(
       on: 'beforeUpdate',
       target: 'remote',
       action: 'push',
-      blocking: false
+      blocking: false,
+      catch(...args) {
+        catchArguments = args;
+      }
     }));
 
     // Sync all changes received from the remote server to the store
@@ -141,6 +149,44 @@ module('Store + JSONAPISource + remote IDs + optimistic coordination', function(
         keys: { remoteId: '12345' },
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       },
+      'keys are syncd up after remote source finishes processing requests'
+    );
+  });
+
+  test('Failing to add a record to a store invokes the `catch` method of the `beforeUpdate` strategy', async function(assert) {
+    assert.expect(2);
+    let planet: Record = { type: 'planet', id: schema.generateId(), attributes: { name: 'Jupiter', classification: 'gas giant' } };
+
+    await store.cache.patch(t => t.addRecord(planet));
+    await coordinator.activate();
+
+    fetchStub.withArgs("/planets").returns(
+      jsonapiResponse(422, {
+        "errors": [{
+          "status": 422,
+          "title": "unprocessable entity",
+          "detail": "Name already taken"
+        }]
+      })
+    );
+
+    await store.update(t => t.replaceAttribute({ type: 'planet', id: planet.id }, 'classification', 'gas giant!'));
+
+    assert.deepEqual(
+      store.cache.query(q => q.findRecord(planet)),
+      {
+        type: 'planet',
+        id: planet.id,
+        attributes: { name: 'Jupiter', classification: 'gas giant!' }
+      },
+      'keys have not been syncd up yet - remote source still needs to process request'
+    );
+
+    await remote.requestQueue.process();
+    debugger;
+
+    assert.deepEqual(catchArguments
+      ['foo'],
       'keys are syncd up after remote source finishes processing requests'
     );
   });
