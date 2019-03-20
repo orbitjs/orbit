@@ -15,7 +15,7 @@ declare const sinon: SinonStatic;
 import LocalStorageBucket from '@orbit/local-storage-bucket'
 import IndexedDBBucket, { supportsIndexedDB } from '@orbit/indexeddb-bucket'
 import { NetworkError, Transform } from '@orbit/data';
-module('Cache', function (hooks) {
+module('JSONAPI', function (hooks) {
     let fetchStub: SinonStub;
     let schema: Schema;
     let remote: JSONAPISource;
