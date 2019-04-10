@@ -162,7 +162,7 @@ module('SyncRecordCache', function(hooks) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } } };
-    const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' }};
+    const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: null } }};
 
     cache.patch(t => [
       t.addRecord(jupiter),
@@ -177,12 +177,12 @@ module('SyncRecordCache', function(hooks) {
   test('#patch updates inverse hasMany relationship when a record is added', function(assert) {
     const cache = new Cache({ schema, keyMap });
 
-    const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' } };
     const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: { type: 'planet', id: 'p1'} } } };
+    const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: { data: [] } } };
 
     cache.patch(t => [
-      t.addRecord(jupiter),
-      t.addRecord(io)
+      t.addRecord(io),
+      t.addRecord(jupiter)
     ]);
 
     assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'Jupiter has been assigned to Io');
