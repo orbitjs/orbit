@@ -163,7 +163,7 @@ module('AsyncRecordCache', function(hooks) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } } };
-    const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' }};
+    const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: null } }};
 
     await cache.patch(t => [
       t.addRecord(jupiter),
@@ -178,7 +178,7 @@ module('AsyncRecordCache', function(hooks) {
   test('#patch updates inverse hasMany relationship when a record is added', async function(assert) {
     const cache = new Cache({ schema, keyMap });
 
-    const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' } };
+    const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: { data: [] } } };
     const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: { type: 'planet', id: 'p1'} } } };
 
     await cache.patch(t => [
