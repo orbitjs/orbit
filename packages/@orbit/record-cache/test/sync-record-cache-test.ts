@@ -169,7 +169,7 @@ module('SyncRecordCache', function(hooks) {
       t.addRecord(io)
     ]);
 
-    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data , [{ type: 'moon', id: 'm1' }], 'Jupiter has been assigned to Io');
+    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'Jupiter has been assigned to Io');
     assert.deepEqual(cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.planet.data, { type: 'planet', id: 'p1' }, 'Io has been assigned to Jupiter');
   });
 
@@ -185,7 +185,7 @@ module('SyncRecordCache', function(hooks) {
       t.addRecord(io)
     ]);
 
-    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data , [{ type: 'moon', id: 'm1' }], 'Jupiter has been assigned to Io');
+    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'Jupiter has been assigned to Io');
     assert.deepEqual(cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.planet.data, { type: 'planet', id: 'p1' }, 'Io has been assigned to Jupiter');
   });
 
