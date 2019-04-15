@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.16.0-beta.4 (2019-04-15)
+
+#### :rocket: Enhancement
+* `@orbit/jsonapi`
+  * [#621](https://github.com/orbitjs/orbit/pull/621) Extract appendQueryParams in its own method ([@tchak](https://github.com/tchak))
+
+#### :bug: Bug Fix
+* `@orbit/record-cache`, `@orbit/store`
+  * [#620](https://github.com/orbitjs/orbit/pull/620) Fix update record not populating inverse relationships ([@ggayowsky](https://github.com/ggayowsky))
+
+#### :house: Internal
+* `@orbit/indexeddb`
+  * [#623](https://github.com/orbitjs/orbit/pull/623) Rationalize indexes ([@tchak](https://github.com/tchak))
+
+#### Committers: 2
+- Gerald Gayowsky ([@ggayowsky](https://github.com/ggayowsky))
+- Paul Chavard ([@tchak](https://github.com/tchak))
+
+
 ## v0.16.0-beta.3 (2019-03-17)
 
 #### :bug: Bug Fix
