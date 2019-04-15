@@ -443,7 +443,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
       const transaction = this._db.transaction([INVERSE_RELS]);
       const objectStore = transaction.objectStore(INVERSE_RELS);
       const results: RecordRelationshipIdentity[] = [];
-      const keyRange = IDBKeyRange.only(serializeRecordIdentity(recordIdentity));
+      const keyRange = Orbit.globals.IDBKeyRange.only(serializeRecordIdentity(recordIdentity));
       const request = objectStore.index('recordIdentity').openCursor(keyRange);
 
       request.onerror = function(/* event */) {
