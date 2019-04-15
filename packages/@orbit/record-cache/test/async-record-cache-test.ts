@@ -800,6 +800,28 @@ module('AsyncRecordCache', function(hooks) {
 
   });
 
+  test('#patch can update existing record with empty relationship', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    await cache.patch(t => [
+      t.addRecord({
+        id: '1',
+        type: 'planet'
+      }),
+      t.updateRecord({
+        id: '1',
+        type: 'planet',
+        relationships: {
+          moons: { data: [] }
+        }
+      })
+    ]);
+
+    const planet = await cache.getRecordAsync({ type: 'planet', id: '1' });
+    assert.ok(planet, 'planet exists');
+    assert.deepEqual(planet.relationships.moons.data, [], 'planet has empty moons relationship');
+  });
+
   test('#query can retrieve an individual record', async function(assert) {
     const cache = new Cache({ schema, keyMap });
 
