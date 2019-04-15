@@ -182,12 +182,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
 
   fetch(url: string, customSettings?: FetchSettings): Promise<any> {
     let settings = this.initFetchSettings(customSettings);
-
-    let fullUrl = url;
-    if (settings.params) {
-      fullUrl = appendQueryParams(fullUrl, settings.params);
-      delete settings.params;
-    }
+    let fullUrl = this.appendQueryParams(url, settings);
 
     let fetchFn = (Orbit as any).fetch || Orbit.globals.fetch;
 
@@ -243,6 +238,15 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
     }
 
     return settings;
+  }
+
+  protected appendQueryParams(url: string, settings: FetchSettings): string {
+    let fullUrl = url;
+    if (settings.params) {
+      fullUrl = appendQueryParams(fullUrl, settings.params);
+      delete settings.params;
+    }
+    return fullUrl;
   }
 
   protected async handleFetchResponse(response: Response): Promise<any> {
