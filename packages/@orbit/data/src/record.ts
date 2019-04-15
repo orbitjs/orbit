@@ -9,29 +9,25 @@ export type Link = string | LinkObject;
 
 export interface RecordIdentity {
   type: string;
-  id: string;
+  id?: string;
+  lid?: string;
 }
 
-export type LID = string;
-
 export interface RecordHasOneRelationship {
-  data?: RecordIdentity | LID | null;
+  data?: RecordIdentity | null;
   links?: Dict<Link>;
   meta?: Dict<any>;
 }
 
 export interface RecordHasManyRelationship {
-  data?: (RecordIdentity | LID)[];
+  data?: RecordIdentity[];
   links?: Dict<Link>;
   meta?: Dict<any>;
 }
 
 export type RecordRelationship = RecordHasOneRelationship | RecordHasManyRelationship;
 
-export interface Record {
-  type?: string;
-  id?: string;
-  lid?: LID;
+export interface Record extends RecordIdentity {
   keys?: Dict<string>;
   attributes?: Dict<any>;
   relationships?: Dict<RecordRelationship>;
@@ -39,23 +35,27 @@ export interface Record {
   meta?: Dict<any>;
 }
 
+export interface NormalizedRecordIdentity extends RecordIdentity {
+  lid: string;
+}
+
 export interface NormalizedHasOneRelationship extends RecordHasOneRelationship {
-  data?: LID | null;
+  data?: NormalizedRecordIdentity | null;
 }
 
 export interface NormalizedHasManyRelationship extends RecordHasManyRelationship {
-  data?: LID[];
+  data?: NormalizedRecordIdentity[];
 }
 
 export type NormalizedRelationship = NormalizedHasOneRelationship | NormalizedHasManyRelationship;
 
 export interface NormalizedRecord extends Record {
-  lid: LID;
+  lid: string;
   relationships?: Dict<NormalizedRelationship>;
 }
 
-export interface RecordInitializer {
-  initializeRecord(record: Record): void;
+export interface RecordNormalizer {
+  normalizeRecord(record: Record): NormalizedRecord;
 }
 
 export function cloneRecordIdentity(identity: RecordIdentity): RecordIdentity {

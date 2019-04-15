@@ -3,7 +3,7 @@ import Orbit from './main';
 import { ModelNotFound } from './exception';
 import { Dict } from '@orbit/utils';
 import { evented, Evented, Listener } from '@orbit/core';
-import { Record, RecordInitializer } from './record';
+import { Record, RecordNormalizer } from './record';
 
 export interface AttributeDefinition {
   type?: string;
@@ -82,7 +82,7 @@ export interface SchemaSettings {
  * @implements {Evented}
  */
 @evented
-export default class Schema implements Evented, RecordInitializer {
+export default class Schema implements Evented, RecordNormalizer {
   private _models: Dict<ModelDefinition>;
 
   private _version: number;

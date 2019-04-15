@@ -2,7 +2,7 @@ import Orbit from '@orbit/core';
 import {
   Record,
   RecordIdentity,
-  RecordInitializer
+  RecordNormalizer
 } from './record';
 import {
   AddRecordOperation,
@@ -17,17 +17,17 @@ import {
 } from './operation';
 
 export interface TransformBuilderSettings {
-  recordInitializer?: RecordInitializer;
+  recordInitializer?: RecordNormalizer;
 }
 
 export default class TransformBuilder {
-  private _recordInitializer: RecordInitializer;
+  private _recordInitializer: RecordNormalizer;
 
   constructor(settings: TransformBuilderSettings = {}) {
     this._recordInitializer = settings.recordInitializer;
   }
 
-  get recordInitializer(): RecordInitializer {
+  get recordInitializer(): RecordNormalizer {
     return this._recordInitializer;
   }
 
