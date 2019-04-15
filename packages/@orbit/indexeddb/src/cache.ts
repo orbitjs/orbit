@@ -153,10 +153,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
 
   createInverseRelationshipStore(db: IDBDatabase): void {
     let objectStore = db.createObjectStore(INVERSE_RELS, { keyPath: 'id' });
-    objectStore.createIndex('type', 'type', { unique: false });
     objectStore.createIndex('recordIdentity', 'recordIdentity', { unique: false });
-    objectStore.createIndex('relatedType', 'relatedType', { unique: false });
-    objectStore.createIndex('relatedIdentity', 'relatedIdentity', { unique: false });
   }
 
   /**
