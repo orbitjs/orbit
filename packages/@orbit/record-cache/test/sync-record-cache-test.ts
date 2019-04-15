@@ -798,6 +798,28 @@ module('SyncRecordCache', function(hooks) {
 
   });
 
+  test('#patch can update existing record with empty relationship', function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    cache.patch(t => [
+      t.addRecord({
+        id: '1',
+        type: 'planet'
+      }),
+      t.updateRecord({
+        id: '1',
+        type: 'planet',
+        relationships: {
+          moons: { data: [] }
+        }
+      })
+    ]);
+
+    const planet = cache.getRecordSync({ type: 'planet', id: '1' });
+    assert.ok(planet, 'planet exists');
+    assert.deepEqual(planet.relationships.moons.data, [], 'planet has empty moons relationship');
+  });
+
   test('#query can retrieve an individual record', function(assert) {
     const cache = new Cache({ schema, keyMap });
 

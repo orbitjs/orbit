@@ -71,7 +71,7 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
           let data = deepGet(replacement, ['relationships', field, 'data']);
 
           let relationshipMatch;
-          if (isArray(data)) {
+          if (isArray(data) && isArray(currentData)) {
             relationshipMatch = equalRecordIdentitySets(currentData, data);
           } else {
             relationshipMatch = equalRecordIdentities(currentData, data);
