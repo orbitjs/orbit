@@ -158,6 +158,96 @@ module('AsyncRecordCache', function(hooks) {
     );
   });
 
+  test('#patch updates inverse hasOne relationship when a record with relationships unspecified is added - record added after', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } } };
+    const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' }};
+
+    await cache.patch(t => [
+      t.updateRecord(jupiter),
+      t.updateRecord(io)
+    ]);
+
+    assert.deepEqual((await cache.getRecordAsync({ type: 'planet', id: 'p1' })).relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'Io has been assigned to Jupiter');
+    assert.deepEqual((await cache.getRecordAsync({ type: 'moon', id: 'm1' })).relationships.planet.data, { type: 'planet', id: 'p1' }, 'Jupiter has been assigned to Io');
+  });
+
+  test('#patch updates inverse hasOne relationship when a record with relationships unspecified is added - record added before', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } } };
+    const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' }};
+
+    await cache.patch(t => [
+      t.updateRecord(io),
+      t.updateRecord(jupiter)
+    ]);
+
+    assert.deepEqual((await cache.getRecordAsync({ type: 'planet', id: 'p1' })).relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'Io has been assigned to Jupiter');
+    assert.deepEqual((await cache.getRecordAsync({ type: 'moon', id: 'm1' })).relationships.planet.data, { type: 'planet', id: 'p1' }, 'Jupiter has been assigned to Io');
+  });
+
+  test('#patch updates inverse hasMany relationship when a record with relationships unspecified is added - record added after', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: { type: 'planet', id: 'p1'} } } };
+    const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' } };
+
+    await cache.patch(t => [
+      t.updateRecord(io),
+      t.updateRecord(jupiter)
+    ]);
+
+    assert.deepEqual((await cache.getRecordAsync({ type: 'planet', id: 'p1' })).relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'Io has been assigned to Jupiter');
+    assert.deepEqual((await cache.getRecordAsync({ type: 'moon', id: 'm1' })).relationships.planet.data, { type: 'planet', id: 'p1' }, 'Jupiter has been assigned to Io');
+  });
+
+  test('#patch updates inverse hasMany relationship when a record with relationships unspecified is added - record added before', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: { type: 'planet', id: 'p1'} } } };
+    const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' } };
+
+    await cache.patch(t => [
+      t.updateRecord(jupiter),
+      t.updateRecord(io)
+    ]);
+
+    assert.deepEqual((await cache.getRecordAsync({ type: 'planet', id: 'p1' })).relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'Io has been assigned to Jupiter');
+    assert.deepEqual((await cache.getRecordAsync({ type: 'moon', id: 'm1' })).relationships.planet.data, { type: 'planet', id: 'p1' }, 'Jupiter has been assigned to Io');
+  });
+
+  test('#patch updates inverse hasOne relationship when a record with an empty relationship is added', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: { type: 'planet', id: 'p1'} } } };
+    const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: { data: [] }}};
+
+    await cache.patch(t => [
+      t.updateRecord(io),
+      t.updateRecord(jupiter)
+    ]);
+
+    assert.deepEqual((await cache.getRecordAsync({ type: 'planet', id: 'p1' })).relationships.moons.data, [], 'Jupiter has no moons');
+    assert.deepEqual((await cache.getRecordAsync({ type: 'moon', id: 'm1' })).relationships.planet.data, null, 'Jupiter has been cleared to Io');
+  });
+
+  test('#patch updates inverse hasMany relationship when a record with an empty relationship is added', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } } };
+    const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: null } } };
+
+    await cache.patch(t => [
+      t.updateRecord(jupiter),
+      t.updateRecord(io)
+    ]);
+
+    assert.deepEqual((await cache.getRecordAsync({ type: 'planet', id: 'p1' })).relationships.moons.data, [], 'Io has been cleared from Jupiter');
+    assert.deepEqual((await cache.getRecordAsync({ type: 'moon', id: 'm1' })).relationships.planet.data, null, 'Io has no planet');
+  });
+
   test('#patch tracks refs and clears them from hasOne relationships when a referenced record is removed', async function(assert) {
     const cache = new Cache({ schema, keyMap });
 
