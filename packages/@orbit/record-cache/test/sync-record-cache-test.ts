@@ -169,8 +169,8 @@ module('SyncRecordCache', function(hooks) {
       t.updateRecord(io)
     ]);
 
-    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'Jupiter has been assigned to Io');
-    assert.deepEqual(cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.planet.data, { type: 'planet', id: 'p1' }, 'Io has been assigned to Jupiter');
+    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'Io has been assigned to Jupiter');
+    assert.deepEqual(cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.planet.data, { type: 'planet', id: 'p1' }, 'Jupiter has been assigned to Io');
   });
 
   test('#patch updates inverse hasOne relationship when a record with relationships unspecified is added - record added before', function(assert) {
@@ -184,8 +184,8 @@ module('SyncRecordCache', function(hooks) {
       t.updateRecord(jupiter)
     ]);
 
-    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'Jupiter has been assigned to Io');
-    assert.deepEqual(cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.planet.data, { type: 'planet', id: 'p1' }, 'Io has been assigned to Jupiter');
+    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'Io has been assigned to Jupiter');
+    assert.deepEqual(cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.planet.data, { type: 'planet', id: 'p1' }, 'Jupiter has been assigned to Io');
   });
 
   test('#patch updates inverse hasMany relationship when a record with relationships unspecified is added - record added after', function(assert) {
@@ -199,8 +199,8 @@ module('SyncRecordCache', function(hooks) {
       t.updateRecord(jupiter)
     ]);
 
-    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'Jupiter has been assigned to Io');
-    assert.deepEqual(cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.planet.data, { type: 'planet', id: 'p1' }, 'Io has been assigned to Jupiter');
+    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'Io has been assigned to Jupiter');
+    assert.deepEqual(cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.planet.data, { type: 'planet', id: 'p1' }, 'Jupiter has been assigned to Io');
   });
 
   test('#patch updates inverse hasMany relationship when a record with relationships unspecified is added - record added before', function(assert) {
@@ -214,8 +214,8 @@ module('SyncRecordCache', function(hooks) {
       t.updateRecord(io)
     ]);
 
-    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'Jupiter has been assigned to Io');
-    assert.deepEqual(cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.planet.data, { type: 'planet', id: 'p1' }, 'Io has been assigned to Jupiter');
+    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'Io has been assigned to Jupiter');
+    assert.deepEqual(cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.planet.data, { type: 'planet', id: 'p1' }, 'Jupiter has been assigned to Io');
   });
 
   test('#patch updates inverse hasOne relationship when a record with an empty relationship is added', function(assert) {
@@ -229,8 +229,8 @@ module('SyncRecordCache', function(hooks) {
       t.updateRecord(jupiter)
     ]);
 
-    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [], 'Jupiter has been assigned to Io');
-    assert.deepEqual(cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.planet.data, null, 'Io has been assigned to Jupiter');
+    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [], 'Jupiter has no moons');
+    assert.deepEqual(cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.planet.data, null, 'Jupiter has been cleared from Io');
   });
 
   test('#patch updates inverse hasMany relationship when a record with an empty relationship is added', function(assert) {
@@ -244,8 +244,8 @@ module('SyncRecordCache', function(hooks) {
       t.updateRecord(io)
     ]);
 
-    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [], 'Jupiter has been assigned to Io');
-    assert.deepEqual(cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.planet.data, null, 'Io has been assigned to Jupiter');
+    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [], 'Io has been cleared from Jupiter');
+    assert.deepEqual(cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.planet.data, null, 'Io has no planet');
   });
 
   test('#patch tracks refs and clears them from hasOne relationships when a referenced record is removed', function(assert) {
