@@ -800,12 +800,27 @@ module('SyncRecordCache', function(hooks) {
 
   test('#patch can update existing record with empty relationship', function(assert) {
     const cache = new Cache({ schema, keyMap });
+    const tb = cache.transformBuilder;
 
-    cache.patch(t => [
-      t.addRecord({
-        id: '1',
-        type: 'planet'
-      }),
+    let result = cache.patch(t => [
+      t.addRecord({ id: '1', type: 'planet' })
+    ]);
+
+    assert.deepEqual(
+      result,
+      {
+        data: [
+          { id: '1', type: 'planet' }
+        ],
+        inverse: [
+          tb.removeRecord({
+            type: 'planet', id: '1'
+          })
+        ]
+      }
+    );
+
+    result = cache.patch(t => [
       t.updateRecord({
         id: '1',
         type: 'planet',
@@ -815,9 +830,83 @@ module('SyncRecordCache', function(hooks) {
       })
     ]);
 
+    assert.deepEqual(
+      result,
+      {
+        data: [
+          {
+            id: '1',
+            type: 'planet',
+            relationships: {
+              moons: { data: [] }
+            }
+          }
+        ],
+        inverse: [
+          tb.updateRecord({
+            id: '1',
+            type: 'planet',
+            relationships: {
+              moons: { data: [] }
+            }
+          })
+        ]
+      }
+    );
+
     const planet = cache.getRecordSync({ type: 'planet', id: '1' });
     assert.ok(planet, 'planet exists');
     assert.deepEqual(planet.relationships.moons.data, [], 'planet has empty moons relationship');
+  });
+
+  test('#patch will not overwrite an existing relationship with a missing relationship', function(assert) {
+    const cache = new Cache({ schema, keyMap });
+    const tb = cache.transformBuilder;
+
+    let result = cache.patch(t => [
+      t.addRecord({
+        id: '1',
+        type: 'planet',
+        relationships: {
+          moons: { data: [{ type: 'moon', id: 'm1' }] }
+        }
+      }),
+      t.updateRecord({
+        id: '1',
+        type: 'planet'
+      })
+    ]);
+
+    assert.deepEqual(
+      result,
+      {
+        data: [
+          {
+            id: '1',
+            type: 'planet',
+            relationships: {
+              moons: { data: [{ type: 'moon', id: 'm1' }] }
+            }
+          },
+          null
+        ],
+        inverse: [
+          tb.replaceRelatedRecord(
+            { type: 'moon', id: 'm1' },
+            'planet',
+            null
+          ),
+          tb.removeRecord({
+            id: '1',
+            type: 'planet'
+          })
+        ]
+      }
+    );
+
+    const planet = cache.getRecordSync({ type: 'planet', id: '1' });
+    assert.ok(planet, 'planet exists');
+    assert.deepEqual(planet.relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'planet has a moons relationship');
   });
 
   test('#query can retrieve an individual record', function(assert) {

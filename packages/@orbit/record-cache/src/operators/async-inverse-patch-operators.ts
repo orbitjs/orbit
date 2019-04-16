@@ -67,19 +67,32 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
 
       if (replacement.relationships) {
         Object.keys(replacement.relationships).forEach(field => {
-          let currentData = deepGet(current, ['relationships', field, 'data']);
           let data = deepGet(replacement, ['relationships', field, 'data']);
+          if (data !== undefined) {
+            let currentData = deepGet(current, ['relationships', field, 'data']);
+            let relationshipChanged;
 
-          let relationshipMatch;
-          if (isArray(data) && isArray(currentData)) {
-            relationshipMatch = equalRecordIdentitySets(currentData, data);
-          } else {
-            relationshipMatch = equalRecordIdentities(currentData, data);
-          }
+            if (isArray(data)) {
+              if (currentData) {
+                relationshipChanged = !equalRecordIdentitySets(currentData, data);
+              } else {
+                relationshipChanged = true;
+                currentData = [];
+              }
 
-          if (!relationshipMatch) {
-            changed = true;
-            deepSet(result, ['relationships', field, 'data'], currentData === undefined ? null : currentData);
+            } else {
+              if (currentData) {
+                relationshipChanged = !equalRecordIdentities(currentData, data);
+              } else {
+                relationshipChanged = true;
+                currentData = null;
+              }
+            }
+
+            if (relationshipChanged) {
+              changed = true;
+              deepSet(result, ['relationships', field, 'data'], currentData);
+            }
           }
         });
       }
