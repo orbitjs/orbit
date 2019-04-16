@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.16.0-beta.5 (2019-04-16)
+
+#### :bug: Bug Fix
+* `@orbit/record-cache`
+  * [#625](https://github.com/orbitjs/orbit/pull/625) Fix updating an empty record with an empty relationship ([@simonihmig](https://github.com/simonihmig))
+
+#### Committers: 1
+- Simon Ihmig ([@simonihmig](https://github.com/simonihmig))
+
+
 ## v0.16.0-beta.4 (2019-04-15)
 
 #### :rocket: Enhancement
