@@ -31,6 +31,7 @@ module('SchemaValidationProcessor', function(hooks) {
           name: { type: 'string' }
         },
         relationships: {
+          favoritePet: { type: 'hasOne', model: ['cat', 'dog'] },
           pets: { type: 'hasMany', model: ['cat', 'dog'], inverse: 'owner' }
         }
       },
@@ -110,10 +111,16 @@ module('SchemaValidationProcessor', function(hooks) {
     }, unknownError);
   });
 
-  test('addToRelatedRecords with an unknown relationship type', assert => {
+  test('addToRelatedRecords with a relationship not defined in the schema', assert => {
     assert.throws(() => {
-      cache.patch(t => t.addToRelatedRecords({ type: 'person', id: '1'}, 'animals', { type: 'dog', id: '1' }));
-    }, new RelationshipNotFound('animals', 'person'));
+      cache.patch(t => t.addToRelatedRecords({ type: 'node', id: '1'}, 'sibling', { type: 'node', id: '2' }));
+    }, new RelationshipNotFound('sibling', 'node'));
+  });
+
+  test('addToRelatedRecord with a related record with an invalid type for a non-polymorphic relationship', assert => {
+    assert.throws(() => {
+      cache.patch(t => t.addToRelatedRecords({ type: 'node', id: '1'}, 'children', { type: 'person', id: '1' }));
+    }, new IncorrectRelatedRecordType('person', 'children', 'node'));
   });
 
   test('addToRelatedRecords with a related record with an invalid type for a polymorphic relationship', assert => {
@@ -146,10 +153,16 @@ module('SchemaValidationProcessor', function(hooks) {
     }, unknownError);
   });
 
-  test('replaceRelatedRecords with an unknown relationship type', assert => {
+  test('replaceRelatedRecords with a relationship not defined in the schema', assert => {
     assert.throws(() => {
-      cache.patch(t => t.replaceRelatedRecords({ type: 'person', id: '1'}, 'animals', [{ type: 'dog', id: '1' }]));
-    }, new RelationshipNotFound('animals', 'person'));
+      cache.patch(t => t.replaceRelatedRecords({ type: 'node', id: '1'}, 'siblings', [{ type: 'node', id: '2' }]));
+    }, new RelationshipNotFound('siblings', 'node'));
+  });
+
+  test('replaceRelatedRecords with a related record with an invalid type for a non-polymorphic relationship', assert => {
+    assert.throws(() => {
+      cache.patch(t => t.replaceRelatedRecords({ type: 'node', id: '1'}, 'children', [{ type: 'person', id: '1' }]));
+    }, new IncorrectRelatedRecordType('person', 'children', 'node'));
   });
   
   test('replaceRelatedRecords with a related record with an invalid type for a polymorphic relationship', assert => {
@@ -175,15 +188,21 @@ module('SchemaValidationProcessor', function(hooks) {
     assert.ok(true, 'no error is thrown');
   });
 
-  test('replaceRelatedRecord with an unknown relationship type', assert => {
+  test('replaceRelatedRecord with a relationship not defined in the schema', assert => {
     assert.throws(() => {
-      cache.patch(t => t.replaceRelatedRecord({ type: 'dog', id: '1'}, 'human', { type: 'person', id: '1' }));
-    }, new RelationshipNotFound('human', 'dog'));
+      cache.patch(t => t.replaceRelatedRecord({ type: 'node', id: '1'}, 'mother', { type: 'node', id: '1' }));
+    }, new RelationshipNotFound('mother', 'node'));
   });
 
-  test('replaceRelatedRecord with an invalid type', assert => {
+  test('replaceRelatedRecord with a related record with an invalid type for a non-polymorphic relationship', assert => {
     assert.throws(() => {
-      cache.patch(t => t.replaceRelatedRecord({ type: 'dog', id: '1'}, 'owner', { type: 'dog', id: '2' }));
-    }, new RelationshipNotFound('dog', 'owner', 'dog'));
+      cache.patch(t => t.replaceRelatedRecord({ type: 'node', id: '1'}, 'parent', { type: 'person', id: '1' }));
+    }, new IncorrectRelatedRecordType('person', 'parent', 'node'));
+  });
+
+  test('replaceRelatedRecord with a related record with an invalid type for a polymorphic relationship', assert => {
+    assert.throws(() => {
+      cache.patch(t => t.replaceRelatedRecord({ type: 'person', id: '1'}, 'favoritePet', { type: 'person', id: '2' }));
+    }, new IncorrectRelatedRecordType('person', 'favoritePet', 'person'));
   });
 });
