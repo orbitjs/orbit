@@ -213,8 +213,8 @@ module('Cache', function(hooks) {
     const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' }};
 
     cache.patch(t => [
-      t.addRecord(jupiter),
-      t.addRecord(io)
+      t.updateRecord(jupiter),
+      t.updateRecord(io)
     ]);
 
     assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'Jupiter has been assigned to Io');
@@ -228,8 +228,8 @@ module('Cache', function(hooks) {
     const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' } };
 
     cache.patch(t => [
-      t.addRecord(io),
-      t.addRecord(jupiter)
+      t.updateRecord(io),
+      t.updateRecord(jupiter)
     ]);
 
     assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [{ type: 'moon', id: 'm1' }], 'Jupiter has been assigned to Io');
@@ -243,8 +243,8 @@ module('Cache', function(hooks) {
     const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { moons: { data: [] }}};
 
     cache.patch(t => [
-      t.addRecord(io),
-      t.addRecord(jupiter)
+      t.updateRecord(io),
+      t.updateRecord(jupiter)
     ]);
 
     assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [], 'Jupiter has been assigned to Io');
@@ -258,8 +258,8 @@ module('Cache', function(hooks) {
     const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { planet: { data: null } } };
 
     cache.patch(t => [
-      t.addRecord(jupiter),
-      t.addRecord(io)
+      t.updateRecord(jupiter),
+      t.updateRecord(io)
     ]);
 
     assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [], 'Jupiter has been assigned to Io');
