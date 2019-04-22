@@ -2,6 +2,8 @@ import {
   Record,
   RecordIdentity,
   RecordOperation,
+  RelationshipNotFound,
+  IncorrectRelatedRecordType
 } from '@orbit/data';
 import { AsyncOperationProcessor } from '../async-operation-processor';
 
@@ -67,6 +69,7 @@ export default class AsyncSchemaValidationProcessor extends AsyncOperationProces
   protected _relatedRecordAdded(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity) {
     this._validateRecordIdentity(record);
     this._validateRecordIdentity(relatedRecord);
+    this._validateRelationship(record, relationship, relatedRecord);
   }
 
   protected _relatedRecordRemoved(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity) {
@@ -77,8 +80,9 @@ export default class AsyncSchemaValidationProcessor extends AsyncOperationProces
   protected _relatedRecordsReplaced(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]) {
     this._validateRecordIdentity(record);
 
-    relatedRecords.forEach(record => {
-      this._validateRecordIdentity(record);
+    relatedRecords.forEach(relatedRecord => {
+      this._validateRecordIdentity(relatedRecord);
+      this._validateRelationship(record, relationship, relatedRecord);
     });
   }
 
@@ -87,14 +91,37 @@ export default class AsyncSchemaValidationProcessor extends AsyncOperationProces
 
     if (relatedRecord) {
       this._validateRecordIdentity(relatedRecord);
+      this._validateRelationship(record, relationship, relatedRecord);
     }
   }
+
 
   protected _validateRecord(record: Record) {
     this._validateRecordIdentity(record);
   }
 
   protected _validateRecordIdentity(record: RecordIdentity) {
-    this.accessor.schema.getModel(record.type);
+    this._getModelSchema(record.type);
+  }
+
+  protected _validateRelationship(record: Record, relationship: string, relatedRecord: RecordIdentity) {
+    const modelSchema = this._getModelSchema(record.type);
+    const relationshipDef = modelSchema.relationships && modelSchema.relationships[relationship];
+    if (relationshipDef === undefined) {
+      throw new RelationshipNotFound(relationship, record.type);
+    }
+    if (Array.isArray(relationshipDef.model)) {
+      if (!relationshipDef.model.includes(relatedRecord.type)) {
+        throw new IncorrectRelatedRecordType(relatedRecord.type, relationship, record.type);
+      }
+    } else if (typeof relationshipDef.model === 'string') {
+      if (relationshipDef.model !== relatedRecord.type) {
+        throw new IncorrectRelatedRecordType(relatedRecord.type, relationship, record.type);
+      }
+    }
+  } 
+
+  private _getModelSchema(type: string) {
+    return this.accessor.schema.getModel(type);
   }
 }

@@ -22,12 +22,21 @@ module('SyncRecordCache', function(hooks) {
   hooks.beforeEach(function() {
     schema = new Schema({
       models: {
+        star: {
+          keys: {
+            remoteId: {}
+          },
+          relationships: {
+            celestialObjects: { type: 'hasMany', model: ['planet', 'moon'], inverse: 'star' }
+          }
+        },
         planet: {
           keys: {
             remoteId: {}
           },
           relationships: {
-            moons: { type: 'hasMany', model: 'moon', inverse: 'planet' }
+            moons: { type: 'hasMany', model: 'moon', inverse: 'planet' },
+            star: { type: 'hasOne', model: 'star', inverse: 'celestialObjects' }
           }
         },
         moon: {
@@ -35,7 +44,8 @@ module('SyncRecordCache', function(hooks) {
             remoteId: {}
           },
           relationships: {
-            planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
+            planet: { type: 'hasOne', model: 'planet', inverse: 'moons' },
+            star: { type: 'hasOne', model: 'star', inverse: 'celestialObjects' }
           }
         }
       }
@@ -246,6 +256,43 @@ module('SyncRecordCache', function(hooks) {
 
     assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons.data, [], 'Io has been cleared from Jupiter');
     assert.deepEqual(cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.planet.data, null, 'Io has no planet');
+  });
+
+  test('#patch updates inverse hasMany polymorphic relationship', function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const sun: Record = { type: 'star', id: 's1', attributes: { name: 'Sun' }, relationships: { celestialObjects: { data: [{ type: 'planet', id: 'p1' }, { type: 'moon', id: 'm1' }]}}}
+    const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' } };
+    const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' } };
+
+    cache.patch(t => [
+      t.updateRecord(sun),
+      t.updateRecord(jupiter),
+      t.updateRecord(io)
+    ]);
+
+    assert.deepEqual(cache.getRecordSync({ type: 'star', id: 's1' }).relationships.celestialObjects.data, [{ type: 'planet', id: 'p1' }, { type: 'moon', id: 'm1' }], 'Jupiter and Io has been assigned to Sun');
+    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.star.data, { type: 'star', id: 's1' }, 'Sun has been assigned to Jupiter');
+    assert.deepEqual(cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.star.data, { type: 'star', id: 's1' }, 'Sun has been assigned to Io');
+  });
+
+
+  test('#patch updates inverse hasOne polymorphic relationship', function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const jupiter: Record = { type: 'planet', id: 'p1', attributes: { name: 'Jupiter' }, relationships: { star: { data: { type: 'star', id: 's1' } } } };
+    const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' }, relationships: { star: { data: { type: 'star', id: 's1' } } } };
+    const sun: Record = { type: 'star', id: 's1', attributes: { name: 'Sun' } }
+
+    cache.patch(t => [
+      t.updateRecord(jupiter),
+      t.updateRecord(io),
+      t.updateRecord(sun)
+    ]);
+
+    assert.deepEqual(cache.getRecordSync({ type: 'star', id: 's1' }).relationships.celestialObjects.data, [{ type: 'planet', id: 'p1' }, { type: 'moon', id: 'm1' }], 'Jupiter and Io has been assigned to Sun');
+    assert.deepEqual(cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.star.data, { type: 'star', id: 's1' }, 'Sun has been assigned to Jupiter');
+    assert.deepEqual(cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.star.data, { type: 'star', id: 's1' }, 'Sun has been assigned to Io');
   });
 
   test('#patch tracks refs and clears them from hasOne relationships when a referenced record is removed', function(assert) {
