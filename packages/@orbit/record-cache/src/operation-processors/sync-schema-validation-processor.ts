@@ -99,6 +99,10 @@ export default class SyncSchemaValidationProcessor extends SyncOperationProcesso
     this._validateRecordIdentity(record);
   }
 
+  protected _validateRecordIdentity(record: RecordIdentity) {
+    this._getModelSchema(record.type);
+  }
+
   protected _validateRelationship(record: Record, relationship: string, relatedRecord: RecordIdentity) {
     const modelSchema = this._getModelSchema(record.type);
     const relationshipDef = modelSchema.relationships && modelSchema.relationships[relationship];
@@ -109,18 +113,15 @@ export default class SyncSchemaValidationProcessor extends SyncOperationProcesso
       if (!relationshipDef.model.includes(relatedRecord.type)) {
         throw new IncorrectRelatedRecordType(relatedRecord.type, relationship, record.type);
       }
-    } else {
+    } else if (typeof relationshipDef.model === 'string') {
       if (relationshipDef.model !== relatedRecord.type) {
         throw new IncorrectRelatedRecordType(relatedRecord.type, relationship, record.type);
       }
     }
   } 
 
-  protected _getModelSchema(type: string) {
+  private _getModelSchema(type: string) {
     return this.accessor.schema.getModel(type);
   }
 
-  protected _validateRecordIdentity(record: RecordIdentity) {
-    this._getModelSchema(record.type);
-  }
 }
