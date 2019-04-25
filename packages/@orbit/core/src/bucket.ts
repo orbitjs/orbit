@@ -28,7 +28,7 @@ export interface BucketSettings {
 
 /**
  * Buckets can persist state. The base `Bucket` class is abstract and should be
- * extended to created buckets with different persistence strategies.
+ * extended to create buckets with different persistence strategies.
  *
  * Buckets have a simple map-like interface with methods like `getItem`,
  * `setItem`, and `removeItem`. All methods return promises to enable usage with
