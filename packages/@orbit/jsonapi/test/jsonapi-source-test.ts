@@ -182,62 +182,6 @@ module('JSONAPISource', function() {
         });
     });
 
-    test('#initFetchSettings will override defaults with custom settings provided', function(assert) {
-      assert.deepEqual(
-        source.initFetchSettings({
-          headers: {
-            Accept: 'application/json'
-          },
-          method: 'POST',
-          body: '{"data": {}}',
-          timeout: 10000
-        }),
-        {
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/vnd.api+json'
-          },
-          method: 'POST',
-          body: '{"data": {}}',
-          timeout: 10000
-        });
-    });
-
-    test('#initFetchSettings will convert json to a stringified body', function(assert) {
-      assert.deepEqual(
-        source.initFetchSettings({
-          headers: {
-            Accept: 'application/json'
-          },
-          method: 'POST',
-          json: { data: { a: 123 } },
-          timeout: 10000
-        }),
-        {
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/vnd.api+json'
-          },
-          method: 'POST',
-          body: '{"data":{"a":123}}',
-          timeout: 10000
-        });
-    });
-
-    test('#initFetchSettings will not include a `Content-Type` header with no body', function(assert) {
-      assert.deepEqual(
-        source.initFetchSettings({
-          method: 'GET'
-        }),
-        {
-          headers: {
-            Accept: 'application/vnd.api+json'
-          },
-          method: 'GET',
-          timeout: 5000
-        });
-    });
-
     test('#responseHasContent - returns true if one of the `allowedContentTypes` appears anywhere in `Content-Type` header', function(assert) {
       let response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/vnd.api+json' } });
       assert.equal(source.responseHasContent(response), true, 'Accepts content that is _only_ the JSONAPI media type.');

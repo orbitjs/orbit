@@ -6,36 +6,17 @@ import Orbit, {
   Pushable, pushable,
   Transform,
   TransformOrOperations,
-  TransformNotAllowed,
-  ClientError,
-  ServerError,
-  NetworkError,
   Queryable, queryable,
   Record
 } from '@orbit/data';
-import { deepMerge } from '@orbit/utils';
+import JSONAPIRequestProcessor, {
+  JSONAPIRequestProcessorSettings,
+  FetchSettings
+} from './jsonapi-request-processor';
 import { JSONAPISerializer, JSONAPISerializerSettings } from './jsonapi-serializer';
-import { appendQueryParams } from './lib/query-params';
-import { getTransformRequests, TransformRequestProcessors } from './lib/transform-requests';
-import { InvalidServerResponse } from './lib/exceptions';
-import { QueryOperator, QueryOperators } from "./lib/query-operators";
+import { QueryOperator } from "./lib/query-operators";
 
 const { assert, deprecate } = Orbit;
-
-export interface FetchSettings {
-  headers?: object;
-  method?: string;
-  json?: object;
-  body?: string;
-  params?: any;
-  timeout?: number;
-  credentials?: string;
-  cache?: string;
-  redirect?: string;
-  referrer?: string;
-  referrerPolicy?: string;
-  integrity?: string;
-}
 
 export interface JSONAPISourceSettings extends SourceSettings {
   maxRequestsPerTransform?: number;
@@ -46,6 +27,7 @@ export interface JSONAPISourceSettings extends SourceSettings {
   defaultFetchSettings?: FetchSettings;
   allowedContentTypes?: string[];
   SerializerClass?: (new (settings: JSONAPISerializerSettings) => JSONAPISerializer);
+  RequestProcessorClass?: (new (source: JSONAPISource, settings: JSONAPIRequestProcessorSettings) => JSONAPIRequestProcessor);
 }
 
 /**
@@ -66,12 +48,10 @@ export interface JSONAPISourceSettings extends SourceSettings {
 @pushable
 @queryable
 export default class JSONAPISource extends Source implements Pullable, Pushable, Queryable {
-  maxRequestsPerTransform: number;
   namespace: string;
   host: string;
-  allowedContentTypes: string[];
-  defaultFetchSettings: FetchSettings;
   serializer: JSONAPISerializer;
+  requestProcessor: JSONAPIRequestProcessor;
 
   // Pullable interface stubs
   pull: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<Transform[]>;
@@ -91,34 +71,19 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
 
     this.namespace = settings.namespace;
     this.host = settings.host;
-    this.allowedContentTypes = settings.allowedContentTypes || ['application/vnd.api+json', 'application/json'];
-
-    this.initDefaultFetchSettings(settings);
-
-    this.maxRequestsPerTransform = settings.maxRequestsPerTransform;
 
     const SerializerClass = settings.SerializerClass || JSONAPISerializer;
-    this.serializer = new SerializerClass({ schema: settings.schema, keyMap: settings.keyMap });
-  }
+    this.serializer = new SerializerClass({
+      schema: settings.schema,
+      keyMap: settings.keyMap
+    });
 
-  get defaultFetchHeaders(): object {
-    deprecate('JSONAPISource: Access `defaultFetchSettings.headers` instead of `defaultFetchHeaders`');
-    return this.defaultFetchSettings.headers;
-  }
-
-  set defaultFetchHeaders(headers: object) {
-    deprecate('JSONAPISource: Access `defaultFetchSettings.headers` instead of `defaultFetchHeaders`');
-    this.defaultFetchSettings.headers = headers;
-  }
-
-  get defaultFetchTimeout() {
-    deprecate('JSONAPISource: Access `defaultFetchSettings.timeout` instead of `defaultFetchTimeout`');
-    return this.defaultFetchSettings.timeout;
-  }
-
-  set defaultFetchTimeout(timeout: number) {
-    deprecate('JSONAPISource: Access `defaultFetchSettings.timeout` instead of `defaultFetchTimeout`');
-    this.defaultFetchSettings.timeout = timeout;
+    const RequestProcessorClass = settings.RequestProcessorClass || JSONAPIRequestProcessor;
+    this.requestProcessor = new RequestProcessorClass(this, {
+      allowedContentTypes: settings.allowedContentTypes,
+      defaultFetchSettings: settings.defaultFetchSettings,
+      maxRequestsPerTransform: settings.maxRequestsPerTransform
+    });
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -126,18 +91,11 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   /////////////////////////////////////////////////////////////////////////////
 
   async _push(transform: Transform): Promise<Transform[]> {
-    const requests = getTransformRequests(this, transform);
-
-    if (this.maxRequestsPerTransform && requests.length > this.maxRequestsPerTransform) {
-      throw new TransformNotAllowed(
-        `This transform requires ${requests.length} requests, which exceeds the specified limit of ${this.maxRequestsPerTransform} requests per transform.`,
-        transform);
-    }
-
+    const requests = this.requestProcessor.getTransformRequests(transform);
     const transforms: Transform[] = [];
 
     for (let request of requests) {
-      let processor = TransformRequestProcessors[request.op];
+      let processor = this.requestProcessor.getTransformRequestProcessor(request);
 
       let additionalTransforms: Transform[] = await processor(this, request);
       if (additionalTransforms) {
@@ -154,10 +112,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   /////////////////////////////////////////////////////////////////////////////
 
   async _pull(query: Query): Promise<Transform[]> {
-    const operator: QueryOperator = QueryOperators[query.expression.op];
-    if (!operator) {
-      throw new Error('JSONAPISource does not support the `${query.expression.op}` operator for queries.');
-    }
+    const operator: QueryOperator = this.requestProcessor.getQueryOperator(query);
     const response = await operator(this, query);
     return response.transforms;
   }
@@ -167,10 +122,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   /////////////////////////////////////////////////////////////////////////////
 
   async _query(query: Query): Promise<Record|Record[]> {
-    const operator: QueryOperator = QueryOperators[query.expression.op];
-    if (!operator) {
-      throw new Error('JSONAPISource does not support the `${query.expression.op}` operator for queries.');
-    }
+    const operator: QueryOperator = this.requestProcessor.getQueryOperator(query);
     const response = await operator(this, query);
     await this._transformed(response.transforms);
     return response.primaryData;
@@ -179,128 +131,6 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   /////////////////////////////////////////////////////////////////////////////
   // Publicly accessible methods particular to JSONAPISource
   /////////////////////////////////////////////////////////////////////////////
-
-  fetch(url: string, customSettings?: FetchSettings): Promise<any> {
-    let settings = this.initFetchSettings(customSettings);
-    let fullUrl = this.appendQueryParams(url, settings);
-
-    let fetchFn = (Orbit as any).fetch || Orbit.globals.fetch;
-
-    // console.log('fetch', fullUrl, settings, 'polyfill', fetchFn.polyfill);
-
-    if (settings.timeout) {
-      let timeout = settings.timeout;
-      delete settings.timeout;
-
-      return new Promise((resolve, reject) => {
-        let timedOut: boolean;
-
-        let timer = Orbit.globals.setTimeout(() => {
-          timedOut = true;
-          reject(new NetworkError(`No fetch response within ${timeout}ms.`));
-        }, timeout);
-
-        fetchFn(fullUrl, settings)
-          .catch((e: Error) => {
-            Orbit.globals.clearTimeout(timer);
-
-            if (!timedOut) {
-              return this.handleFetchError(e);
-            }
-          })
-          .then((response: any) => {
-            Orbit.globals.clearTimeout(timer);
-
-            if (!timedOut) {
-              return this.handleFetchResponse(response);
-            }
-          })
-          .then(resolve, reject);
-      });
-    } else {
-      return fetchFn(fullUrl, settings)
-        .catch((e: Error) => this.handleFetchError(e))
-        .then((response: any) => this.handleFetchResponse(response));
-    }
-  }
-
-  initFetchSettings(customSettings: FetchSettings = {}): FetchSettings {
-    let settings: FetchSettings = deepMerge({}, this.defaultFetchSettings, customSettings);
-
-    if (settings.json) {
-      assert('`json` and `body` can\'t both be set for fetch requests.', !settings.body);
-      settings.body = JSON.stringify(settings.json);
-      delete settings.json;
-    }
-
-    if (settings.headers && !settings.body) {
-      delete (settings.headers as any)['Content-Type'];
-    }
-
-    return settings;
-  }
-
-  protected appendQueryParams(url: string, settings: FetchSettings): string {
-    let fullUrl = url;
-    if (settings.params) {
-      fullUrl = appendQueryParams(fullUrl, settings.params);
-      delete settings.params;
-    }
-    return fullUrl;
-  }
-
-  protected async handleFetchResponse(response: Response): Promise<any> {
-    if (response.status === 201) {
-      if (this.responseHasContent(response)) {
-        return response.json();
-      } else {
-        throw new InvalidServerResponse(`Server responses with a ${response.status} status should return content with one of the following content types: ${this.allowedContentTypes.join(', ')}.`);
-      }
-    } else if (response.status >= 200 && response.status < 300) {
-      if (this.responseHasContent(response)) {
-        return response.json();
-      }
-    } else {
-      if (this.responseHasContent(response)) {
-        return response.json()
-          .then((data: any) => this.handleFetchResponseError(response, data));
-      } else {
-        return this.handleFetchResponseError(response);
-      }
-    }
-  }
-
-  protected async handleFetchResponseError(response: Response, data?: any): Promise<any> {
-    let error: any;
-    if (response.status >= 400 && response.status < 500) {
-      error = new ClientError(response.statusText);
-    } else {
-      error = new ServerError(response.statusText);
-    }
-    error.response = response;
-    error.data = data;
-    throw error;
-  }
-
-  protected async handleFetchError(e: any): Promise<any> {
-    throw new NetworkError(e);
-  }
-
-  responseHasContent(response: Response): boolean {
-    if (response.status === 204) {
-      return false;
-    }
-
-    let contentType = response.headers.get('Content-Type');
-    if (contentType) {
-      for (let allowedContentType of this.allowedContentTypes) {
-        if (contentType.indexOf(allowedContentType) > -1) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
 
   resourceNamespace(type?: string): string {
     return this.namespace;
@@ -345,31 +175,81 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
            '/' + this.serializer.resourceRelationship(type, relationship);
   }
 
-  /////////////////////////////////////////////////////////////////////////////
-  // Protected methods
-  /////////////////////////////////////////////////////////////////////////////
+  /* DEPRECATED METHODS & PROPERTIES
+   *
+   * Note: In addition to deprecations below, the following methods
+   * have moved to JSONAPIRequestProcessor:
+   *
+   *        appendQueryParams
+   *        initFetchSettings
+   *        initDefaultFetchSettings
+   *        handleFetchResponse
+   *        handleFetchResponseError
+   *        handleFetchError
+   */
 
-  protected initDefaultFetchSettings(settings: JSONAPISourceSettings): void {
-    this.defaultFetchSettings = {
-      headers: {
-        Accept: 'application/vnd.api+json',
-        'Content-Type': 'application/vnd.api+json'
-      },
-      timeout: 5000
-    };
+  fetch(url: string, customSettings?: FetchSettings): Promise<any> {
+    deprecate('JSONAPISource: fetch has moved to the requestProcessor', true);
+    return this.requestProcessor.fetch(url, customSettings);
+  }
 
-    if (settings.defaultFetchHeaders || settings.defaultFetchTimeout) {
-      deprecate('JSONAPISource: Pass `defaultFetchSettings` with `headers` instead of `defaultFetchHeaders` to initialize source', settings.defaultFetchHeaders === undefined);
-      deprecate('JSONAPISource: Pass `defaultFetchSettings` with `timeout` instead of `defaultFetchTimeout` to initialize source', settings.defaultFetchTimeout === undefined);
+  responseHasContent(response: Response): boolean {
+    deprecate('JSONAPISource: responseHasContent has moved to the requestProcessor', true);
+    return this.requestProcessor.responseHasContent(response);
+  }
 
-      deepMerge(this.defaultFetchSettings, {
-        headers: settings.defaultFetchHeaders,
-        timeout: settings.defaultFetchTimeout
-      });
-    }
+  initFetchSettings(customSettings: FetchSettings = {}): FetchSettings {
+    deprecate('JSONAPISource: initFetchSettings has moved to the requestProcessor', true);
+    return this.requestProcessor.initFetchSettings(customSettings);
+  }
 
-    if (settings.defaultFetchSettings) {
-      deepMerge(this.defaultFetchSettings, settings.defaultFetchSettings);
-    }
+  get defaultFetchSettings(): FetchSettings {
+    deprecate('JSONAPISource: Access `defaultFetchSettings` on requestProcessor instead of source`');
+    return this.requestProcessor.defaultFetchSettings;
+  }
+
+  set defaultFetchSettings(settings: FetchSettings) {
+    deprecate('JSONAPISource: Access `defaultFetchSettings` on requestProcessor instead of source');
+    this.requestProcessor.defaultFetchSettings = settings;
+  }
+
+  get defaultFetchHeaders(): object {
+    deprecate('JSONAPISource: Access `defaultFetchSettings.headers` instead of `defaultFetchHeaders`');
+    return this.requestProcessor.defaultFetchSettings.headers;
+  }
+
+  set defaultFetchHeaders(headers: object) {
+    deprecate('JSONAPISource: Access `defaultFetchSettings.headers` instead of `defaultFetchHeaders`');
+    this.requestProcessor.defaultFetchSettings.headers = headers;
+  }
+
+  get defaultFetchTimeout() {
+    deprecate('JSONAPISource: Access `defaultFetchSettings.timeout` instead of `defaultFetchTimeout`');
+    return this.requestProcessor.defaultFetchSettings.timeout;
+  }
+
+  set defaultFetchTimeout(timeout: number) {
+    deprecate('JSONAPISource: Access `defaultFetchSettings.timeout` instead of `defaultFetchTimeout`');
+    this.requestProcessor.defaultFetchSettings.timeout = timeout;
+  }
+
+  get allowedContentTypes():string[] {
+    deprecate('JSONAPISource: Access `requestProcessor.allowedContentTypes` instead of `allowedContentTypes`');
+    return this.requestProcessor.allowedContentTypes;
+  }
+
+  set allowedContentTypes(val:string[]) {
+    deprecate('JSONAPISource: Access `requestProcessor.allowedContentTypes` instead of `allowedContentTypes`');
+    this.requestProcessor.allowedContentTypes = val;
+  }
+
+  get maxRequestsPerTransform():number {
+    deprecate('JSONAPISource: Access `requestProcessor.maxRequestsPerTransform` instead of `maxRequestsPerTransform`');
+    return this.requestProcessor.maxRequestsPerTransform;
+  }
+
+  set maxRequestsPerTransform(val:number) {
+    deprecate('JSONAPISource: Access `requestProcessor.maxRequestsPerTransform` instead of `maxRequestsPerTransform`');
+    this.requestProcessor.maxRequestsPerTransform = val;
   }
 }
