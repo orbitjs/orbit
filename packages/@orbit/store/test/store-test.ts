@@ -16,9 +16,6 @@ import {
 } from '@orbit/record-cache';
 import Store from '../src/index';
 
-declare const RSVP: any;
-
-const { all } = RSVP;
 const { module, test } = QUnit;
 
 module('Store', function(hooks) {
@@ -437,18 +434,14 @@ module('Store', function(hooks) {
 
     let fork;
 
-    await all([
-      store.update(addRecordA),
-      store.update(addRecordB)
-    ]);
+    await store.update(addRecordA);
+    await store.update(addRecordB);
 
     fork = store.fork();
 
-    await all([
-      fork.update(addRecordD),
-      store.update(addRecordC),
-      fork.update(addRecordE)
-    ]);
+    await fork.update(addRecordD);
+    await store.update(addRecordC);
+    await fork.update(addRecordE);
 
     fork.rebase();
 
@@ -573,15 +566,13 @@ module('Store', function(hooks) {
 
     const rollbackOperations: RecordOperation[] = [];
 
-    await all([
-      store.sync(addRecordATransform),
-      store.sync(addRecordBTransform),
-      store.sync(addRecordCTransform),
-      store.sync(buildTransform([
-        tb.addRecord(recordD),
-        tb.addRecord(recordE)
-      ]))
-    ]);
+    await store.sync(addRecordATransform),
+    await store.sync(addRecordBTransform),
+    await store.sync(addRecordCTransform),
+    await store.sync(buildTransform([
+      tb.addRecord(recordD),
+      tb.addRecord(recordE)
+    ]));
 
     store.cache.on('patch', (operation: RecordOperation) => rollbackOperations.push(operation));
     await store.rollback(addRecordATransform.id);

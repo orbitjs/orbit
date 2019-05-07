@@ -2,6 +2,4 @@
 
 const build = require('@glimmer/build');
 
-const buildOptions = {};
-
-module.exports = build(buildOptions);
+module.exports = build();

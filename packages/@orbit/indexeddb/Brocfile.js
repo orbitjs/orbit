@@ -2,8 +2,6 @@
 
 const build = require('@glimmer/build');
 const packageDist = require('@glimmer/build/lib/package-dist');
-const funnel = require('broccoli-funnel');
-const path = require('path');
 
 let buildOptions = {
   external: [
@@ -19,8 +17,7 @@ if (process.env.BROCCOLI_ENV === 'tests') {
     packageDist('@orbit/utils'),
     packageDist('@orbit/core'),
     packageDist('@orbit/data'),
-    packageDist('@orbit/record-cache'),
-    funnel(path.join(require.resolve('rsvp'), '..'), { include: ['rsvp.js'] })
+    packageDist('@orbit/record-cache')
   ];
 }
 
