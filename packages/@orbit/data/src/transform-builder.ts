@@ -103,7 +103,7 @@ export default class TransformBuilder {
   /**
    * Instantiate a new `replaceRelatedRecord` operation.
    */
-  replaceRelatedRecord(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): ReplaceRelatedRecordOperation {
+  replaceRelatedRecord(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity | null): ReplaceRelatedRecordOperation {
     return { op: 'replaceRelatedRecord', record, relationship, relatedRecord };
   }
 }
