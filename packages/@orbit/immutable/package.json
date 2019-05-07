@@ -23,8 +23,6 @@
     "test": "testem ci"
   },
   "devDependencies": {
-    "@glimmer/build": "^0.9.0",
-    "merge": ">=1.2.1",
-    "randomatic": ">=3.0.0"
+    "@glimmer/build": "^0.10.1"
   }
 }
