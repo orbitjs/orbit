@@ -18,7 +18,7 @@ let buildOptions = {
     '@orbit/local-storage-bucket',
     '@orbit/record-cache',
     '@orbit/serializers',
-    '@orbit/store',
+    '@orbit/memory',
     '@orbit/utils',
     'sinon'
   ]
@@ -37,7 +37,7 @@ if (process.env.BROCCOLI_ENV === 'tests') {
     packageDist('@orbit/local-storage'),
     packageDist('@orbit/local-storage-bucket'),
     packageDist('@orbit/serializers'),
-    packageDist('@orbit/store'),
+    packageDist('@orbit/memory'),
     packageDist('@orbit/utils'),
     funnel(path.join(require.resolve('sinon'), '../../pkg'), { include: ['sinon.js'] }),
     funnel(path.join(require.resolve('whatwg-fetch'), '../'), { include: ['fetch.js'] })
