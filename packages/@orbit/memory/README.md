@@ -2,7 +2,7 @@
 
 An in-memory data source that supports complex querying and updating. Because
 memory sources maintain data in immutable data structures, they can be efficiently
-forked. Forked source can diverge from the master source, and then the changes
+forked. Forked sources can diverge from the master source, and then any changes
 can be merged later.
 
 ## Installation
