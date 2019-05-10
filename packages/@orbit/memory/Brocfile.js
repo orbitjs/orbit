@@ -9,8 +9,7 @@ let buildOptions = {
     '@orbit/core',
     '@orbit/data',
     '@orbit/immutable',
-    '@orbit/record-cache',
-    '@orbit/memory'
+    '@orbit/record-cache'
   ]
 };
 
@@ -20,8 +19,7 @@ if (process.env.BROCCOLI_ENV === 'tests') {
     packageDist('@orbit/core'),
     packageDist('@orbit/data'),
     packageDist('@orbit/immutable'),
-    packageDist('@orbit/record-cache'),
-    packageDist('@orbit/memory')
+    packageDist('@orbit/record-cache')
   ];
 }
 

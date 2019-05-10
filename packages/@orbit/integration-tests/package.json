@@ -30,7 +30,7 @@
     "@orbit/local-storage-bucket": "^0.16.0-beta.1",
     "@orbit/record-cache": "^0.16.0-beta.5",
     "@orbit/serializers": "^0.16.0-beta.1",
-    "@orbit/store": "^0.16.0-beta.5",
+    "@orbit/memory": "^0.16.0-beta.1",
     "@orbit/utils": "^0.16.0-beta.1"
   },
   "devDependencies": {
