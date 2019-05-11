@@ -24,7 +24,12 @@ import { appendQueryParams } from './lib/query-params';
 import { clone, deepMerge, toArray } from '@orbit/utils';
 import { QueryOperator, QueryOperators } from "./lib/query-operators";
 import { RecordDocument } from './record-document';
-import { TransformRequestProcessors, TransformRecordRequest, getTransformRequests } from  './lib/transform-requests';
+import {
+  TransformRequestProcessor,
+  TransformRequestProcessors,
+  TransformRecordRequest,
+  getTransformRequests
+} from  './lib/transform-requests';
 import {
   Filter,
   RequestOptions,
