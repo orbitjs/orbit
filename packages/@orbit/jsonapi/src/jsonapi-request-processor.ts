@@ -3,6 +3,7 @@ import Orbit, {
   AttributeSortSpecifier,
   ClientError,
   FilterSpecifier,
+  KeyMap,
   NetworkError,
   Operation,
   PageSpecifier,
@@ -11,6 +12,7 @@ import Orbit, {
   Record,
   RelatedRecordFilterSpecifier,
   RelatedRecordsFilterSpecifier,
+  Schema,
   ServerError,
   SortSpecifier,
   Transform,
@@ -54,6 +56,8 @@ export interface JSONAPIRequestProcessorSettings {
   defaultFetchSettings?: FetchSettings;
   allowedContentTypes?: string[];
   maxRequestsPerTransform?: number;
+  schema: Schema;
+  keyMap: KeyMap;
 }
 
 export default class JSONAPIRequestProcessor {
@@ -61,11 +65,19 @@ export default class JSONAPIRequestProcessor {
   allowedContentTypes: string[];
   defaultFetchSettings: FetchSettings;
   maxRequestsPerTransform: number;
+  host: string;
+  namespace: string;
+  schema: Schema;
+  keyMap: KeyMap;
 
-  constructor(source: JSONAPISource, settings: JSONAPIRequestProcessorSettings = {}) {
+  constructor(source: JSONAPISource, settings: JSONAPIRequestProcessorSettings) {
     this.source = source;
     this.allowedContentTypes = settings.allowedContentTypes || ['application/vnd.api+json', 'application/json'];
     this.maxRequestsPerTransform = settings.maxRequestsPerTransform;
+    this.host = settings.host;
+    this.namespace = settings.namespace;
+    this.schema = settings.schema;
+    this.keyMap = settings.keyMap;
     this.initDefaultFetchSettings(settings);
   }
 
@@ -165,6 +177,49 @@ export default class JSONAPIRequestProcessor {
 
   getTransformRequestProcessor(request:TransformRecordRequest):TransformRequestProcessor {
     return TransformRequestProcessors[request.op];
+  }
+
+  resourceNamespace(type?: string): string {
+    return this.namespace;
+  }
+
+  resourceHost(type?: string): string {
+    return this.host;
+  }
+
+  resourceURL(type: string, id?: string): string {
+    let host = this.resourceHost(type);
+    let namespace = this.resourceNamespace(type);
+    let url: string[] = [];
+
+    if (host) { url.push(host); }
+    if (namespace) { url.push(namespace); }
+    url.push(this.resourcePath(type, id));
+
+    if (!host) { url.unshift(''); }
+
+    return url.join('/');
+  }
+
+  resourcePath(type: string, id?: string): string {
+    let path = [this.source.serializer.resourceType(type)];
+    if (id) {
+      let resourceId = this.source.serializer.resourceId(type, id);
+      if (resourceId) {
+        path.push(resourceId);
+      }
+    }
+    return path.join('/');
+  }
+
+  resourceRelationshipURL(type: string, id: string, relationship: string): string {
+    return this.resourceURL(type, id) +
+           '/relationships/' + this.source.serializer.resourceRelationship(type, relationship);
+  }
+
+  relatedResourceURL(type: string, id: string, relationship: string): string {
+    return this.resourceURL(type, id) +
+           '/' + this.source.serializer.resourceRelationship(type, relationship);
   }
 
   operationsFromDeserializedDocument(deserialized: RecordDocument): Operation[] {

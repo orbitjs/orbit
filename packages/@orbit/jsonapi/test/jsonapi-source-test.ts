@@ -102,7 +102,7 @@ module('JSONAPISource', function() {
       assert.deepEqual(source.allowedContentTypes, ['application/vnd.api+json', 'application/json'], 'allowedContentTypes are set to default');
     });
 
-    test('source saves options', function(assert) {
+     test('source saves options', function(assert) {
       assert.expect(7);
 
       let schema = new Schema({} as SchemaSettings);
@@ -117,38 +117,13 @@ module('JSONAPISource', function() {
       });
       assert.equal(source.name, 'custom', 'name is custom');
       assert.deepEqual(source.allowedContentTypes, ['application/custom'], 'allowedContentTypes are custom');
-      assert.equal(source.namespace, 'api', 'Namespace should be defined');
-      assert.equal(source.host, '127.0.0.1:8888', 'Host should be defined');
+      assert.equal(source.requestProcessor.namespace, 'api', 'Namespace should be defined');
+      assert.equal(source.requestProcessor.host, '127.0.0.1:8888', 'Host should be defined');
 
       const headers = source.defaultFetchSettings.headers as any;
       assert.equal(headers['User-Agent'], 'CERN-LineMode/2.15 libwww/2.17b3', 'Headers should be defined');
-      assert.equal(source.resourceNamespace(), source.namespace, 'Default namespace should be used by default');
-      assert.equal(source.resourceHost(), source.host, 'Default host should be used by default');
-    });
-
-    test('#resourcePath - returns resource\'s path without its host and namespace', function(assert) {
-      assert.expect(1);
-      source.host = 'http://127.0.0.1:8888';
-      source.namespace = 'api';
-      keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
-
-      assert.equal(source.resourcePath('planet', '1'), 'planets/a', 'resourcePath returns the path to the resource relative to the host and namespace');
-    });
-
-    test('#resourceURL - respects options to construct URLs', function(assert) {
-      assert.expect(1);
-      source.host = 'http://127.0.0.1:8888';
-      source.namespace = 'api';
-      keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
-
-      assert.equal(source.resourceURL('planet', '1'), 'http://127.0.0.1:8888/api/planets/a', 'resourceURL method should use the options to construct URLs');
-    });
-
-    test('#resourceRelationshipURL - constructs relationship URLs based upon base resourceURL', function(assert) {
-      assert.expect(1);
-      keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
-
-      assert.equal(source.resourceRelationshipURL('planet', '1', 'moons'), '/planets/a/relationships/moons', 'resourceRelationshipURL appends /relationships/[relationship] to resourceURL');
+      assert.equal(source.requestProcessor.resourceNamespace(), source.namespace, 'Default namespace should be used by default');
+      assert.equal(source.requestProcessor.resourceHost(), source.host, 'Default host should be used by default');
     });
 
     test('#defaultFetchSettings - include JSONAPI Accept and Content-Type headers and a 5000ms timeout by default', function(assert) {

@@ -7,7 +7,9 @@ import JSONAPISource from '../src/index';
 import { JSONAPIRequestProcessor } from '../src/index';
 
 module('JSONAPIRequestProcessor', function(hooks) {
-  let processor;
+  let keyMap: KeyMap;
+  let schema: Schema;
+  let processor: JSONAPIRequestProcessor;
 
   hooks.beforeEach(() => {
     let schema = new Schema({
@@ -51,9 +53,14 @@ module('JSONAPIRequestProcessor', function(hooks) {
       }
     });
 
-    let keyMap = new KeyMap();
-    let source = new JSONAPISource({ schema, keyMap });
-    processor = new JSONAPIRequestProcessor(source, {});
+    keyMap = new KeyMap();
+    let source = new JSONAPISource({ schema, keyMap, RequestProcessorClass: JSONAPIRequestProcessor });
+    source.serializer.resourceKey = function() { return 'remoteId'; };
+    processor = source.requestProcessor;
+  });
+
+  hooks.afterEach(() => {
+    keyMap = schema = processor = null;
   });
 
   test('it exists', function(assert) {
@@ -144,4 +151,30 @@ module('JSONAPIRequestProcessor', function(hooks) {
 
     assert.equal(processor.responseHasContent(response), false, 'A 204 - No Content response has no content.');
   });
+
+  test('#resourceURL - respects options to construct URLs', function(assert) {
+    assert.expect(1);
+    processor.host = 'http://127.0.0.1:8888';
+    processor.namespace = 'api';
+    keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
+
+    assert.equal(processor.resourceURL('planet', '1'), 'http://127.0.0.1:8888/api/planets/a', 'resourceURL method should use the options to construct URLs');
+  });
+
+  test('#resourcePath - returns resource\'s path without its host and namespace', function(assert) {
+    assert.expect(1);
+    processor.host = 'http://127.0.0.1:8888';
+    processor.namespace = 'api';
+    keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
+
+    assert.equal(processor.resourcePath('planet', '1'), 'planets/a', 'resourcePath returns the path to the resource relative to the host and namespace');
+  });
+
+  test('#resourceRelationshipURL - constructs relationship URLs based upon base resourceURL', function(assert) {
+    assert.expect(1);
+    keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
+
+    assert.equal(processor.resourceRelationshipURL('planet', '1', 'moons'), '/planets/a/relationships/moons', 'resourceRelationshipURL appends /relationships/[relationship] to resourceURL');
+  });
+
 });

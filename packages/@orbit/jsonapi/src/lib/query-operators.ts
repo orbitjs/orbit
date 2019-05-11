@@ -31,7 +31,7 @@ export const QueryOperators: Dict<QueryOperator> = {
     const requestOptions = requestProcessor.customRequestOptions(query);
     const settings = requestProcessor.buildFetchSettings(requestOptions);
 
-    const document = await requestProcessor.fetch(source.resourceURL(record.type, record.id), settings);
+    const document = await requestProcessor.fetch(requestProcessor.resourceURL(record.type, record.id), settings);
 
     const deserialized = serializer.deserialize(document);
     const operations = requestProcessor.operationsFromDeserializedDocument(deserialized);
@@ -68,7 +68,7 @@ export const QueryOperators: Dict<QueryOperator> = {
 
     const settings = requestProcessor.buildFetchSettings(requestOptions);
 
-    const document = await requestProcessor.fetch(source.resourceURL(type), settings);
+    const document = await requestProcessor.fetch(requestProcessor.resourceURL(type), settings);
 
     const deserialized = serializer.deserialize(document);
     const operations = requestProcessor.operationsFromDeserializedDocument(deserialized);
@@ -86,7 +86,7 @@ export const QueryOperators: Dict<QueryOperator> = {
     const requestOptions = requestProcessor.customRequestOptions(query);
     const settings = requestProcessor.buildFetchSettings(requestOptions);
 
-    const document = await requestProcessor.fetch(source.relatedResourceURL(record.type, record.id, relationship), settings);
+    const document = await requestProcessor.fetch(requestProcessor.relatedResourceURL(record.type, record.id, relationship), settings);
 
     const deserialized = serializer.deserialize(document);
     const relatedRecord = deserialized.data;
@@ -111,7 +111,7 @@ export const QueryOperators: Dict<QueryOperator> = {
     let requestOptions = requestProcessor.customRequestOptions(query);
     const settings = requestProcessor.buildFetchSettings(requestOptions);
 
-    const document = await requestProcessor.fetch(source.relatedResourceURL(record.type, record.id, relationship), settings);
+    const document = await requestProcessor.fetch(requestProcessor.relatedResourceURL(record.type, record.id, relationship), settings);
 
     const deserialized = serializer.deserialize(document);
     const relatedRecords = deserialized.data;

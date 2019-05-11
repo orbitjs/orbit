@@ -1,5 +1,7 @@
 /* eslint-disable valid-jsdoc */
 import Orbit, {
+  KeyMap,
+  Schema,
   Source, SourceSettings,
   Query, QueryOrExpression,
   Pullable, pullable,
@@ -20,6 +22,7 @@ const { assert, deprecate } = Orbit;
 
 export interface JSONAPISourceSettings extends SourceSettings {
   maxRequestsPerTransform?: number;
+  name?: string;
   namespace?: string;
   host?: string;
   defaultFetchHeaders?: object;
@@ -28,6 +31,8 @@ export interface JSONAPISourceSettings extends SourceSettings {
   allowedContentTypes?: string[];
   SerializerClass?: (new (settings: JSONAPISerializerSettings) => JSONAPISerializer);
   RequestProcessorClass?: (new (source: JSONAPISource, settings: JSONAPIRequestProcessorSettings) => JSONAPIRequestProcessor);
+  schema?: Schema,
+  keyMap?: KeyMap
 }
 
 /**
@@ -82,7 +87,11 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
     this.requestProcessor = new RequestProcessorClass(this, {
       allowedContentTypes: settings.allowedContentTypes,
       defaultFetchSettings: settings.defaultFetchSettings,
-      maxRequestsPerTransform: settings.maxRequestsPerTransform
+      maxRequestsPerTransform: settings.maxRequestsPerTransform,
+      namespace: settings.namespace,
+      host: settings.host,
+      schema: settings.schema,
+      keyMap: settings.keyMap
     });
   }
 
@@ -132,49 +141,6 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   // Publicly accessible methods particular to JSONAPISource
   /////////////////////////////////////////////////////////////////////////////
 
-  resourceNamespace(type?: string): string {
-    return this.namespace;
-  }
-
-  resourceHost(type?: string): string {
-    return this.host;
-  }
-
-  resourcePath(type: string, id?: string): string {
-    let path = [this.serializer.resourceType(type)];
-    if (id) {
-      let resourceId = this.serializer.resourceId(type, id);
-      if (resourceId) {
-        path.push(resourceId);
-      }
-    }
-    return path.join('/');
-  }
-
-  resourceURL(type: string, id?: string): string {
-    let host = this.resourceHost(type);
-    let namespace = this.resourceNamespace(type);
-    let url: string[] = [];
-
-    if (host) { url.push(host); }
-    if (namespace) { url.push(namespace); }
-    url.push(this.resourcePath(type, id));
-
-    if (!host) { url.unshift(''); }
-
-    return url.join('/');
-  }
-
-  resourceRelationshipURL(type: string, id: string, relationship: string): string {
-    return this.resourceURL(type, id) +
-           '/relationships/' + this.serializer.resourceRelationship(type, relationship);
-  }
-
-  relatedResourceURL(type: string, id: string, relationship: string): string {
-    return this.resourceURL(type, id) +
-           '/' + this.serializer.resourceRelationship(type, relationship);
-  }
-
   /* DEPRECATED METHODS & PROPERTIES
    *
    * Note: In addition to deprecations below, the following methods
@@ -186,6 +152,12 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
    *        handleFetchResponse
    *        handleFetchResponseError
    *        handleFetchError
+   *        resourceURL
+   *        resourcePath
+   *        resourceRelationshipURL
+   *        relatedResourceURL
+   *        resourceNamespace
+   *        resourceHost
    */
 
   fetch(url: string, customSettings?: FetchSettings): Promise<any> {
