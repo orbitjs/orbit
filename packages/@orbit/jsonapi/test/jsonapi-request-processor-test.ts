@@ -3,15 +3,20 @@ import Orbit, {
   KeyMap,
   Schema
 } from '@orbit/data';
-import JSONAPISource from '../src/index';
 import { JSONAPIRequestProcessor } from '../src/index';
+import { jsonapiResponse } from './support/jsonapi';
+import { SinonStatic, SinonStub} from 'sinon';
+
+declare const sinon: SinonStatic;
 
 module('JSONAPIRequestProcessor', function(hooks) {
+  let fetchStub: SinonStub;
   let keyMap: KeyMap;
   let schema: Schema;
   let processor: JSONAPIRequestProcessor;
 
   hooks.beforeEach(() => {
+    fetchStub = sinon.stub(self, 'fetch');
     schema = new Schema({
       models: {
         planet: {
@@ -60,6 +65,7 @@ module('JSONAPIRequestProcessor', function(hooks) {
 
   hooks.afterEach(() => {
     keyMap = schema = processor = null;
+    fetchStub.restore();
   });
 
   test('it exists', function(assert) {
@@ -127,22 +133,79 @@ module('JSONAPIRequestProcessor', function(hooks) {
   });
 
 
-  test('#responseHasContent - returns true if one of the `allowedContentTypes` appears anywhere in `Content-Type` header', function(assert) {
-    let response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/vnd.api+json' } });
-    assert.equal(processor.responseHasContent(response), true, 'Accepts content that is _only_ the JSONAPI media type.');
+  test('#fetch - successful if one of the `allowedContentTypes` appears anywhere in `Content-Type` header', async function(assert) {
+    assert.expect(5);
+    fetchStub
+      .withArgs('/planets/12345/relationships/moons')
+      .returns(jsonapiResponse({
+        status: 200,
+        headers: {
+          'Content-Type': 'application/vnd.api+json'
+        }
+      }, { data: null }));
+    try {
+      let result = await processor.fetch('/planets/12345/relationships/moons', {});
+      assert.ok(result, 'Accepts content that is _only_ the JSONAPI media type');
+    } catch (e) {
+      assert.ok(false, 'Should accept content that is _only_ the JSONAPI media type');
+    }
 
-    response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'multipart,application/vnd.api+json; charset=utf-8' } });
-    assert.equal(processor.responseHasContent(response), true, 'Position of JSONAPI media type is not important.');
+    fetchStub
+      .withArgs('/planets/12345/relationships/moons')
+      .returns(jsonapiResponse({
+        status: 200,
+        headers: {
+          'Content-Type': 'multipart,application/vnd.api+json; charset=utf-8'
+        }
+      }, { data: null }));
+    try {
+      let result = await processor.fetch('/planets/12345/relationships/moons', {});
+      assert.ok(result, 'Position of JSONAPI media type is not important');
+    } catch (e) {
+      assert.ok(false, 'Position of JSONAPI media type should not matter');
+    }
 
-    response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/json' } });
-    assert.equal(processor.responseHasContent(response), true, 'Source will attempt to parse plain json.');
+    fetchStub
+      .withArgs('/planets/12345/relationships/moons')
+      .returns(jsonapiResponse({
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }, { data: null }));
+    try {
+      let result = await processor.fetch('/planets/12345/relationships/moons', {});
+      assert.ok(result, 'Processor will attempt to parse plain json');
+    } catch (e) {
+      assert.ok(false, 'Processor should parse plain json');
+    }
 
-    response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/xml' } });
-    assert.equal(processor.responseHasContent(response), false, 'XML is not acceptable.');
+    fetchStub
+      .withArgs('/planets/12345/relationships/moons')
+      .returns(jsonapiResponse({
+        status: 200,
+        headers: {
+          'Content-Type': 'application/xml'
+        }
+      }, {
+        data: null
+      }));
+    let result = await processor.fetch('/planets/12345/relationships/moons', {});
+    assert.ok(result == null, 'XML is not acceptable but HTTP Status is good, so just ignore response');
 
     processor.allowedContentTypes = ['application/custom'];
-    response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/custom' } });
-    assert.equal(processor.responseHasContent(response), true, 'Source will accept custom content type if specifically allowed.');
+    fetchStub
+      .withArgs('/planets/12345/relationships/moons')
+      .returns(jsonapiResponse({
+        status: 200,
+        headers: {
+          'Content-Type': 'application/custom'
+        }
+      }, {
+        data: null
+      }));
+    result = await processor.fetch('/planets/12345/relationships/moons', {});
+    assert.ok(result, 'will accept custom content type if specifically allowed');
   });
 
   test('#responseHasContent - returns false if response has status code 204', function(assert) {

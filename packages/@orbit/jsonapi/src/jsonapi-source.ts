@@ -154,6 +154,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
    *        resourceURL
    *        resourcePath
    *        resourceRelationshipURL
+   *        responseHasContent
    *        relatedResourceURL
    *        resourceNamespace
    *        resourceHost
@@ -162,11 +163,6 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   fetch(url: string, customSettings?: FetchSettings): Promise<any> {
     deprecate('JSONAPISource: fetch has moved to the requestProcessor', true);
     return this.requestProcessor.fetch(url, customSettings);
-  }
-
-  responseHasContent(response: Response): boolean {
-    deprecate('JSONAPISource: responseHasContent has moved to the requestProcessor', true);
-    return this.requestProcessor.responseHasContent(response);
   }
 
   initFetchSettings(customSettings: FetchSettings = {}): FetchSettings {
