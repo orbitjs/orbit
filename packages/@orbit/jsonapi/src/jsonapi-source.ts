@@ -96,13 +96,14 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   /////////////////////////////////////////////////////////////////////////////
 
   async _push(transform: Transform): Promise<Transform[]> {
-    const requests = this.requestProcessor.getTransformRequests(transform);
+    let { requestProcessor } = this;
+    const requests = requestProcessor.getTransformRequests(transform);
     const transforms: Transform[] = [];
 
     for (let request of requests) {
-      let processor = this.requestProcessor.getTransformRequestProcessor(request);
+      let processor = requestProcessor.getTransformRequestProcessor(request);
 
-      let additionalTransforms: Transform[] = await processor(this, request);
+      let additionalTransforms: Transform[] = await processor(requestProcessor, request);
       if (additionalTransforms) {
         Array.prototype.push.apply(transforms, additionalTransforms);
       }
@@ -117,8 +118,9 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   /////////////////////////////////////////////////////////////////////////////
 
   async _pull(query: Query): Promise<Transform[]> {
-    const operator: QueryOperator = this.requestProcessor.getQueryOperator(query);
-    const response = await operator(this, query);
+    let { requestProcessor } = this;
+    const operator: QueryOperator = requestProcessor.getQueryOperator(query);
+    const response = await operator(requestProcessor, query);
     return response.transforms;
   }
 
@@ -127,8 +129,9 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   /////////////////////////////////////////////////////////////////////////////
 
   async _query(query: Query): Promise<Record|Record[]> {
-    const operator: QueryOperator = this.requestProcessor.getQueryOperator(query);
-    const response = await operator(this, query);
+    let { requestProcessor } = this;
+    const operator: QueryOperator = requestProcessor.getQueryOperator(query);
+    const response = await operator(requestProcessor, query);
     await this._transformed(response.transforms);
     return response.primaryData;
   }

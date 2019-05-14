@@ -17,7 +17,6 @@ import Orbit, {
   buildTransform
 } from '@orbit/data';
 import { clone, deepSet, Dict } from '@orbit/utils';
-import JSONAPISource from '../jsonapi-source';
 import JSONAPIRequestProcessor from '../jsonapi-request-processor';
 import { ResourceDocument } from '../resource-document';
 import { RecordDocument } from '../record-document';
@@ -68,12 +67,11 @@ export interface ReplaceRelatedRecordsRequest extends TransformRecordRelationshi
 }
 
 export interface TransformRequestProcessor {
-  (source: JSONAPISource, request: TransformRecordRequest): Promise<Transform[]>;
+  (requestProcessor: JSONAPIRequestProcessor, request: TransformRecordRequest): Promise<Transform[]>;
 }
 
 export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
-  async addRecord(source: JSONAPISource, request: AddRecordRequest): Promise<Transform[]> {
-    const { requestProcessor } = source;
+  async addRecord(requestProcessor: JSONAPIRequestProcessor, request: AddRecordRequest): Promise<Transform[]> {
     const record = request.record;
     const requestDoc: ResourceDocument = requestProcessor.serializer.serialize({ data: record });
     const settings = requestProcessor.buildFetchSettings(request.options, { method: 'POST', json: requestDoc });
@@ -82,17 +80,15 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     return handleChanges(record, requestProcessor.serializer.deserialize(raw, { primaryRecord: record }));
   },
 
-  async removeRecord(source: JSONAPISource, request: RemoveRecordRequest): Promise<Transform[]> {
+  async removeRecord(requestProcessor: JSONAPIRequestProcessor, request: RemoveRecordRequest): Promise<Transform[]> {
     const { type, id } = request.record;
-    const { requestProcessor } = source;
     const settings = requestProcessor.buildFetchSettings(request.options, { method: 'DELETE' });
 
     await requestProcessor.fetch(requestProcessor.resourceURL(type, id), settings);
     return [];
   },
 
-  async updateRecord(source: JSONAPISource, request: UpdateRecordRequest): Promise<Transform[]> {
-    const { requestProcessor } = source;
+  async updateRecord(requestProcessor: JSONAPIRequestProcessor, request: UpdateRecordRequest): Promise<Transform[]> {
     const record = request.record;
     const { type, id } = record;
     const requestDoc: ResourceDocument = requestProcessor.serializer.serialize({ data: record });
@@ -106,10 +102,9 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     }
   },
 
-  async addToRelatedRecords(source: JSONAPISource, request: AddToRelatedRecordsRequest): Promise<Transform[]> {
+  async addToRelatedRecords(requestProcessor: JSONAPIRequestProcessor, request: AddToRelatedRecordsRequest): Promise<Transform[]> {
     const { type, id } = request.record;
     const { relationship } = request;
-    const { requestProcessor } = source;
     const json = {
       data: request.relatedRecords.map(r => requestProcessor.serializer.resourceIdentity(r))
     };
@@ -119,10 +114,9 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     return [];
   },
 
-  async removeFromRelatedRecords(source: JSONAPISource, request: RemoveFromRelatedRecordsRequest): Promise<Transform[]> {
+  async removeFromRelatedRecords(requestProcessor: JSONAPIRequestProcessor, request: RemoveFromRelatedRecordsRequest): Promise<Transform[]> {
     const { type, id } = request.record;
     const { relationship } = request;
-    const { requestProcessor } = source;
     const json = {
       data: request.relatedRecords.map(r => requestProcessor.serializer.resourceIdentity(r))
     };
@@ -132,10 +126,9 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     return [];
   },
 
-  async replaceRelatedRecord(source: JSONAPISource, request: ReplaceRelatedRecordRequest): Promise<Transform[]> {
+  async replaceRelatedRecord(requestProcessor: JSONAPIRequestProcessor, request: ReplaceRelatedRecordRequest): Promise<Transform[]> {
     const { type, id } = request.record;
     const { relationship, relatedRecord } = request;
-    const { requestProcessor } = source;
     const json = {
       data: relatedRecord ? requestProcessor.serializer.resourceIdentity(relatedRecord) : null
     };
@@ -145,10 +138,9 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     return [];
   },
 
-  async replaceRelatedRecords(source: JSONAPISource, request: ReplaceRelatedRecordsRequest): Promise<Transform[]> {
+  async replaceRelatedRecords(requestProcessor: JSONAPIRequestProcessor, request: ReplaceRelatedRecordsRequest): Promise<Transform[]> {
     const { type, id } = request.record;
     const { relationship, relatedRecords } = request;
-    const { requestProcessor } = source;
     const json = {
       data: relatedRecords.map(r => requestProcessor.serializer.resourceIdentity(r))
     };
