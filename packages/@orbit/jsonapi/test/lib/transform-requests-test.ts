@@ -62,7 +62,7 @@ module('TransformRequests', function(hooks) {
 
       keyMap = new KeyMap();
       source = new JSONAPISource({ schema });
-      requestProcessor = new JSONAPIRequestProcessor(source, { keyMap, schema });
+      requestProcessor = new JSONAPIRequestProcessor(source, { keyMap, schema, sourceName: source.name });
 
       tb = new TransformBuilder();
     });

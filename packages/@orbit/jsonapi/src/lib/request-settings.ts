@@ -16,10 +16,6 @@ export interface RequestOptions {
   settings?: FetchSettings;
 }
 
-export function customRequestOptions(source: Source, queryOrTransform: Query | Transform): RequestOptions {
-  return deepGet(queryOrTransform, ['options', 'sources', source.name]);
-}
-
 export function buildFetchSettings(options: RequestOptions = {}, customSettings?: FetchSettings): FetchSettings {
   let settings = options.settings ? clone(options.settings) : {};
 

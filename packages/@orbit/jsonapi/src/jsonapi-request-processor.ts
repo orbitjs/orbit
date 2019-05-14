@@ -21,7 +21,7 @@ import Orbit, {
 import JSONAPISource from './jsonapi-source';
 import { InvalidServerResponse } from './lib/exceptions';
 import { appendQueryParams } from './lib/query-params';
-import { clone, deepMerge, toArray } from '@orbit/utils';
+import { clone, deepGet, deepMerge, toArray } from '@orbit/utils';
 import { QueryOperator, QueryOperators } from "./lib/query-operators";
 import { RecordDocument } from './record-document';
 import {
@@ -33,8 +33,7 @@ import {
 import {
   Filter,
   RequestOptions,
-  buildFetchSettings,
-  customRequestOptions
+  buildFetchSettings
 } from './lib/request-settings';
 const { assert, deprecate } = Orbit;
 
@@ -56,6 +55,7 @@ export interface FetchSettings {
 import { JSONAPISerializer, JSONAPISerializerSettings } from './jsonapi-serializer';
 
 export interface JSONAPIRequestProcessorSettings {
+  sourceName: string;
   SerializerClass?: (new (settings: JSONAPISerializerSettings) => JSONAPISerializer);
   namespace?: string;
   host?: string;
@@ -70,6 +70,7 @@ export interface JSONAPIRequestProcessorSettings {
 
 export default class JSONAPIRequestProcessor {
   source: JSONAPISource;
+  sourceName: string;
   SerializerClass?: (new (settings: JSONAPISerializerSettings) => JSONAPISerializer);
   serializer: JSONAPISerializer;
   allowedContentTypes: string[];
@@ -82,6 +83,7 @@ export default class JSONAPIRequestProcessor {
 
   constructor(source: JSONAPISource, settings: JSONAPIRequestProcessorSettings) {
     this.source = source;
+    this.sourceName = settings.sourceName;
     this.allowedContentTypes = settings.allowedContentTypes || ['application/vnd.api+json', 'application/json'];
     this.maxRequestsPerTransform = settings.maxRequestsPerTransform;
     this.host = settings.host;
@@ -308,7 +310,7 @@ export default class JSONAPIRequestProcessor {
   }
 
   customRequestOptions(queryOrTransform: Query | Transform): RequestOptions {
-    return customRequestOptions(this.source, queryOrTransform);
+    return deepGet(queryOrTransform, ['options', 'sources', this.sourceName]);
   }
 
   protected appendQueryParams(url: string, settings: FetchSettings): string {
