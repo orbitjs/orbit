@@ -30,7 +30,7 @@ export interface JSONAPISourceSettings extends SourceSettings {
   defaultFetchSettings?: FetchSettings;
   allowedContentTypes?: string[];
   SerializerClass?: (new (settings: JSONAPISerializerSettings) => JSONAPISerializer);
-  RequestProcessorClass?: (new (source: JSONAPISource, settings: JSONAPIRequestProcessorSettings) => JSONAPIRequestProcessor);
+  RequestProcessorClass?: (new (settings: JSONAPIRequestProcessorSettings) => JSONAPIRequestProcessor);
   schema?: Schema,
   keyMap?: KeyMap
 }
@@ -78,7 +78,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
     this.host = settings.host;
 
     const RequestProcessorClass = settings.RequestProcessorClass || JSONAPIRequestProcessor;
-    this.requestProcessor = new RequestProcessorClass(this, {
+    this.requestProcessor = new RequestProcessorClass({
       sourceName: this.name,
       SerializerClass: settings.SerializerClass || JSONAPISerializer,
       allowedContentTypes: settings.allowedContentTypes,

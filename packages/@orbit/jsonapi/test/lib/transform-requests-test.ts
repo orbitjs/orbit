@@ -5,21 +5,19 @@ import {
   buildTransform
 } from '@orbit/data';
 import { getTransformRequests } from '../../src/lib/transform-requests';
-import JSONAPISource from '../../src/jsonapi-source';
 import JSONAPIRequestProcessor from '../../src/jsonapi-request-processor';
 
 const { module, test } = QUnit;
 
-module('TransformRequests', function(hooks) {
+module('TransformRequests', function(/* hooks */) {
   module('getTransformRequests', function(hooks) {
     let keyMap: KeyMap;
     let schema: Schema;
-    let source: JSONAPISource;
     let requestProcessor: JSONAPIRequestProcessor;
     let tb: TransformBuilder;
 
     hooks.beforeEach(() => {
-      let schema = new Schema({
+      schema = new Schema({
         models: {
           planet: {
             keys: {
@@ -61,14 +59,13 @@ module('TransformRequests', function(hooks) {
       });
 
       keyMap = new KeyMap();
-      source = new JSONAPISource({ schema });
-      requestProcessor = new JSONAPIRequestProcessor(source, { keyMap, schema, sourceName: source.name });
+      requestProcessor = new JSONAPIRequestProcessor({ keyMap, schema, sourceName: 'foo' });
 
       tb = new TransformBuilder();
     });
 
     hooks.afterEach(() => {
-      schema = source = requestProcessor = null;
+      schema = requestProcessor = null;
     });
 
     test('addRecord', function(assert) {

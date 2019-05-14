@@ -18,7 +18,6 @@ import Orbit, {
   Transform,
   TransformNotAllowed,
 } from '@orbit/data';
-import JSONAPISource from './jsonapi-source';
 import { InvalidServerResponse } from './lib/exceptions';
 import { appendQueryParams } from './lib/query-params';
 import { clone, deepGet, deepMerge, toArray } from '@orbit/utils';
@@ -69,7 +68,6 @@ export interface JSONAPIRequestProcessorSettings {
 }
 
 export default class JSONAPIRequestProcessor {
-  source: JSONAPISource;
   sourceName: string;
   SerializerClass?: (new (settings: JSONAPISerializerSettings) => JSONAPISerializer);
   serializer: JSONAPISerializer;
@@ -81,8 +79,7 @@ export default class JSONAPIRequestProcessor {
   schema: Schema;
   keyMap: KeyMap;
 
-  constructor(source: JSONAPISource, settings: JSONAPIRequestProcessorSettings) {
-    this.source = source;
+  constructor(settings: JSONAPIRequestProcessorSettings) {
     this.sourceName = settings.sourceName;
     this.allowedContentTypes = settings.allowedContentTypes || ['application/vnd.api+json', 'application/json'];
     this.maxRequestsPerTransform = settings.maxRequestsPerTransform;
@@ -332,8 +329,8 @@ export default class JSONAPIRequestProcessor {
     };
 
     if (settings.defaultFetchHeaders || settings.defaultFetchTimeout) {
-      deprecate('Pass `defaultFetchSettings` with `headers` instead of `defaultFetchHeaders` to initialize source', settings.defaultFetchHeaders === undefined);
-      deprecate('Pass `defaultFetchSettings` with `timeout` instead of `defaultFetchTimeout` to initialize source', settings.defaultFetchTimeout === undefined);
+      deprecate('Pass `defaultFetchSettings` with `headers` instead of `defaultFetchHeaders` to initialize requestProcessor', settings.defaultFetchHeaders === undefined);
+      deprecate('Pass `defaultFetchSettings` with `timeout` instead of `defaultFetchTimeout` to initialize requestProcessor', settings.defaultFetchTimeout === undefined);
 
       deepMerge(this.defaultFetchSettings, {
         headers: settings.defaultFetchHeaders,

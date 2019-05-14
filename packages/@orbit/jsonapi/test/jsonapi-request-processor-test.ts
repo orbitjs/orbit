@@ -12,7 +12,7 @@ module('JSONAPIRequestProcessor', function(hooks) {
   let processor: JSONAPIRequestProcessor;
 
   hooks.beforeEach(() => {
-    let schema = new Schema({
+    schema = new Schema({
       models: {
         planet: {
           keys: {
@@ -54,8 +54,7 @@ module('JSONAPIRequestProcessor', function(hooks) {
     });
 
     keyMap = new KeyMap();
-    let source = new JSONAPISource({ schema, keyMap, RequestProcessorClass: JSONAPIRequestProcessor });
-    processor = source.requestProcessor;
+    processor = new JSONAPIRequestProcessor({ schema, keyMap, sourceName: 'foo' });
     processor.serializer.resourceKey = function() { return 'remoteId'; };
   });
 
