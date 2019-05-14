@@ -21,11 +21,8 @@ import Orbit, {
 import { InvalidServerResponse } from './lib/exceptions';
 import { appendQueryParams } from './lib/query-params';
 import { clone, deepGet, deepMerge, toArray } from '@orbit/utils';
-import { QueryOperator, QueryOperators } from "./lib/query-operators";
 import { RecordDocument } from './record-document';
 import {
-  TransformRequestProcessor,
-  TransformRequestProcessors,
   TransformRecordRequest,
   getTransformRequests
 } from  './lib/transform-requests';
@@ -179,18 +176,6 @@ export default class JSONAPIRequestProcessor {
         transform);
     }
     return transformRequests;
-  }
-
-  getQueryOperator(query: Query): QueryOperator {
-    const operator: QueryOperator = QueryOperators[query.expression.op];
-    if (!operator) {
-      throw new Error('JSONAPIRequestProcessor does not support the `${query.expression.op}` operator for queries.');
-    }
-    return operator;
-  }
-
-  getTransformRequestProcessor(request:TransformRecordRequest):TransformRequestProcessor {
-    return TransformRequestProcessors[request.op];
   }
 
   resourceNamespace(type?: string): string {

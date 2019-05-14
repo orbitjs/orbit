@@ -16,7 +16,12 @@ import JSONAPIRequestProcessor, {
   FetchSettings
 } from './jsonapi-request-processor';
 import { JSONAPISerializer, JSONAPISerializerSettings } from './jsonapi-serializer';
-import { QueryOperator } from "./lib/query-operators";
+import { QueryOperator, QueryOperators } from "./lib/query-operators";
+import {
+  TransformRequestProcessor,
+  TransformRequestProcessors,
+  TransformRecordRequest
+} from  './lib/transform-requests';
 
 const { assert, deprecate } = Orbit;
 
@@ -101,7 +106,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
     const transforms: Transform[] = [];
 
     for (let request of requests) {
-      let processor = requestProcessor.getTransformRequestProcessor(request);
+      let processor = this.getTransformRequestProcessor(request);
 
       let additionalTransforms: Transform[] = await processor(requestProcessor, request);
       if (additionalTransforms) {
@@ -119,7 +124,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
 
   async _pull(query: Query): Promise<Transform[]> {
     let { requestProcessor } = this;
-    const operator: QueryOperator = requestProcessor.getQueryOperator(query);
+    const operator: QueryOperator = this.getQueryOperator(query);
     const response = await operator(requestProcessor, query);
     return response.transforms;
   }
@@ -130,12 +135,23 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
 
   async _query(query: Query): Promise<Record|Record[]> {
     let { requestProcessor } = this;
-    const operator: QueryOperator = requestProcessor.getQueryOperator(query);
+    const operator: QueryOperator = this.getQueryOperator(query);
     const response = await operator(requestProcessor, query);
     await this._transformed(response.transforms);
     return response.primaryData;
   }
 
+  protected getQueryOperator(query: Query): QueryOperator {
+    const operator: QueryOperator = QueryOperators[query.expression.op];
+    if (!operator) {
+      throw new Error('JSONAPIRequestProcessor does not support the `${query.expression.op}` operator for queries.');
+    }
+    return operator;
+  }
+
+  protected getTransformRequestProcessor(request:TransformRecordRequest):TransformRequestProcessor {
+    return TransformRequestProcessors[request.op];
+  }
   /////////////////////////////////////////////////////////////////////////////
   // Publicly accessible methods particular to JSONAPISource
   /////////////////////////////////////////////////////////////////////////////
