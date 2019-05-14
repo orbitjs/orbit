@@ -18,6 +18,7 @@ import Orbit, {
 } from '@orbit/data';
 import { clone, deepSet, Dict } from '@orbit/utils';
 import JSONAPISource from '../jsonapi-source';
+import JSONAPIRequestProcessor from '../jsonapi-request-processor';
 import { ResourceDocument } from '../resource-document';
 import { RecordDocument } from '../record-document';
 import { RequestOptions } from './request-settings';
@@ -158,7 +159,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
   }
 };
 
-export function getTransformRequests(source: JSONAPISource, transform: Transform): TransformRecordRequest[] {
+export function getTransformRequests(requestProcessor: JSONAPIRequestProcessor, transform: Transform): TransformRecordRequest[] {
   const requests: TransformRecordRequest[] = [];
   let prevRequest: TransformRecordRequest;
 
@@ -198,7 +199,7 @@ export function getTransformRequests(source: JSONAPISource, transform: Transform
     }
 
     if (request) {
-      let options = source.requestProcessor.customRequestOptions(transform);
+      let options = requestProcessor.customRequestOptions(transform);
       if (options) {
         request.options = options;
       }

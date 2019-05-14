@@ -163,7 +163,7 @@ export default class JSONAPIRequestProcessor {
   }
 
   getTransformRequests(transform: Transform): TransformRecordRequest[] {
-    const transformRequests = getTransformRequests(this.source, transform);
+    const transformRequests = getTransformRequests(this, transform);
     if (this.maxRequestsPerTransform && transformRequests.length > this.maxRequestsPerTransform) {
       throw new TransformNotAllowed(
         `This transform requires ${transformRequests.length} requests, which exceeds the specified limit of ${this.maxRequestsPerTransform} requests per transform.`,

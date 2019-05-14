@@ -1,5 +1,5 @@
 import { clone, deepGet, deepMerge, deepSet, isArray } from '@orbit/utils';
-import { FetchSettings } from '../jsonapi-source';
+import { FetchSettings } from '../jsonapi-request-processor';
 import Orbit, { Source, Query, Transform } from '@orbit/data';
 
 const { deprecate } = Orbit;
