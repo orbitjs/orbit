@@ -7,8 +7,7 @@ import { SyncOperationProcessor } from '../sync-operation-processor';
 import {
   getInverseRelationship,
   getInverseRelationships,
-  getAllInverseRelationships,
-  getInverseRelationshipRemovalOps
+  getAllInverseRelationships
 } from './utils/cache-integrity-utils';
 
 /**
@@ -47,9 +46,8 @@ export default class SyncCacheIntegrityProcessor extends SyncOperationProcessor 
         return [];
 
       case 'removeRecord':
-        let ops = this.clearInverseRelationshipOps(operation.record);
         this.removeAllInverseRelationships(operation.record);
-        return ops;
+        return [];
 
       case 'updateRecord':
         this.removeAllInverseRelationships(operation.record);
@@ -128,9 +126,5 @@ export default class SyncCacheIntegrityProcessor extends SyncOperationProcessor 
     if (inverseRelationships) {
       this.accessor.removeInverseRelationshipsSync(inverseRelationships);
     }
-  }
-
-  protected clearInverseRelationshipOps(record: RecordIdentity): RecordOperation[] {
-    return getInverseRelationshipRemovalOps(this.accessor.schema, this.accessor.getInverseRelationshipsSync(record));
   }
 }

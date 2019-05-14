@@ -776,4 +776,83 @@ module('SchemaConsistencyProcessor', function(hooks) {
       []
     );
   });
+
+  test('remove record with hasMany relationships - verify processor', function(assert) {
+    const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: [{ type: 'inhabitant', id: 'human' }] } } };
+    const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: [{ type: 'planet', id: 'earth' }] } } };
+
+    cache.patch(t => [
+      t.addRecord(earth),
+      t.addRecord(human)
+    ]);
+
+    assert.deepEqual(cache.getInverseRelationshipsSync(earth), [{
+      record: identity(human),
+      relationship: 'planets',
+      relatedRecord: identity(earth)
+    }], 'human contains earth as a planet');
+
+    assert.deepEqual(cache.getInverseRelationshipsSync(human), [{
+      record: identity(earth),
+      relationship: 'inhabitants',
+      relatedRecord: identity(human)
+    }], 'earth contains human as an inhabitant');
+
+    const removeInhabitantOp: RemoveRecordOperation = {
+      op: 'removeRecord',
+      record: identity(human)
+    };
+
+    assert.deepEqual(
+      processor.before(removeInhabitantOp),
+      [],
+      'the before method should return no ops before for a removeRecord operation'
+    );
+
+    assert.deepEqual(
+      processor.after(removeInhabitantOp),
+      [
+        {
+          op: 'removeFromRelatedRecords',
+          record: identity(earth),
+          relationship: 'inhabitants',
+          relatedRecord: identity(human)
+        }
+      ],
+      'the after method should return a removeFromRelatedRecords op for a removeRecord operation'
+    );
+
+    assert.deepEqual(
+      processor.finally(removeInhabitantOp),
+      [],
+      'the finally method should return no ops before for a removeRecord operation'
+    );
+  });
+
+  test('remove record with hasMany relationships - verify inverse relationships are cleared', function(assert) {
+    const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: [{ type: 'inhabitant', id: 'human' }] } } };
+    const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: [{ type: 'planet', id: 'earth' }] } } };
+
+    cache.patch(t => [
+      t.addRecord(earth),
+      t.addRecord(human)
+    ]);
+
+    assert.deepEqual(cache.getInverseRelationshipsSync(earth), [{
+      record: identity(human),
+      relationship: 'planets',
+      relatedRecord: identity(earth)
+    }], 'human contains earth as a planet');
+
+    assert.deepEqual(cache.getInverseRelationshipsSync(human), [{
+      record: identity(earth),
+      relationship: 'inhabitants',
+      relatedRecord: identity(human)
+    }], 'earth contains human as an inhabitant');
+
+    cache.patch(t => t.removeRecord(human));
+
+    assert.deepEqual(cache.getInverseRelationshipsSync(earth), []);
+    assert.deepEqual(cache.getInverseRelationshipsSync(human), []);
+  });
 });
