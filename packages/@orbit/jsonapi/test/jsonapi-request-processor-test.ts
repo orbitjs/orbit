@@ -55,8 +55,8 @@ module('JSONAPIRequestProcessor', function(hooks) {
 
     keyMap = new KeyMap();
     let source = new JSONAPISource({ schema, keyMap, RequestProcessorClass: JSONAPIRequestProcessor });
-    source.serializer.resourceKey = function() { return 'remoteId'; };
     processor = source.requestProcessor;
+    processor.serializer.resourceKey = function() { return 'remoteId'; };
   });
 
   hooks.afterEach(() => {

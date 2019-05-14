@@ -73,13 +73,13 @@ export interface TransformRequestProcessor {
 
 export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
   async addRecord(source: JSONAPISource, request: AddRecordRequest): Promise<Transform[]> {
-    const { serializer, requestProcessor } = source;
+    const { requestProcessor } = source;
     const record = request.record;
-    const requestDoc: ResourceDocument = serializer.serialize({ data: record });
+    const requestDoc: ResourceDocument = requestProcessor.serializer.serialize({ data: record });
     const settings = requestProcessor.buildFetchSettings(request.options, { method: 'POST', json: requestDoc });
 
     let raw: ResourceDocument = await requestProcessor.fetch(requestProcessor.resourceURL(record.type), settings);
-    return handleChanges(record, serializer.deserialize(raw, { primaryRecord: record }));
+    return handleChanges(record, requestProcessor.serializer.deserialize(raw, { primaryRecord: record }));
   },
 
   async removeRecord(source: JSONAPISource, request: RemoveRecordRequest): Promise<Transform[]> {
@@ -92,15 +92,15 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
   },
 
   async updateRecord(source: JSONAPISource, request: UpdateRecordRequest): Promise<Transform[]> {
-    const { serializer, requestProcessor } = source;
+    const { requestProcessor } = source;
     const record = request.record;
     const { type, id } = record;
-    const requestDoc: ResourceDocument = serializer.serialize({ data: record });
+    const requestDoc: ResourceDocument = requestProcessor.serializer.serialize({ data: record });
     const settings = requestProcessor.buildFetchSettings(request.options, { method: 'PATCH', json: requestDoc });
 
     let raw: ResourceDocument = await requestProcessor.fetch(requestProcessor.resourceURL(type, id), settings)
     if (raw) {
-      return handleChanges(record, serializer.deserialize(raw, { primaryRecord: record }));
+      return handleChanges(record, requestProcessor.serializer.deserialize(raw, { primaryRecord: record }));
     } else {
       return [];
     }
@@ -111,7 +111,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const { relationship } = request;
     const { requestProcessor } = source;
     const json = {
-      data: request.relatedRecords.map(r => source.serializer.resourceIdentity(r))
+      data: request.relatedRecords.map(r => requestProcessor.serializer.resourceIdentity(r))
     };
     const settings = requestProcessor.buildFetchSettings(request.options, { method: 'POST', json });
 
@@ -122,9 +122,9 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
   async removeFromRelatedRecords(source: JSONAPISource, request: RemoveFromRelatedRecordsRequest): Promise<Transform[]> {
     const { type, id } = request.record;
     const { relationship } = request;
-    const { serializer, requestProcessor } = source;
+    const { requestProcessor } = source;
     const json = {
-      data: request.relatedRecords.map(r => serializer.resourceIdentity(r))
+      data: request.relatedRecords.map(r => requestProcessor.serializer.resourceIdentity(r))
     };
     const settings = requestProcessor.buildFetchSettings(request.options, { method: 'DELETE', json });
 
@@ -135,9 +135,9 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
   async replaceRelatedRecord(source: JSONAPISource, request: ReplaceRelatedRecordRequest): Promise<Transform[]> {
     const { type, id } = request.record;
     const { relationship, relatedRecord } = request;
-    const { serializer, requestProcessor } = source;
+    const { requestProcessor } = source;
     const json = {
-      data: relatedRecord ? serializer.resourceIdentity(relatedRecord) : null
+      data: relatedRecord ? requestProcessor.serializer.resourceIdentity(relatedRecord) : null
     };
     const settings = requestProcessor.buildFetchSettings(request.options, { method: 'PATCH', json });
 
@@ -148,9 +148,9 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
   async replaceRelatedRecords(source: JSONAPISource, request: ReplaceRelatedRecordsRequest): Promise<Transform[]> {
     const { type, id } = request.record;
     const { relationship, relatedRecords } = request;
-    const { serializer, requestProcessor } = source;
+    const { requestProcessor } = source;
     const json = {
-      data: relatedRecords.map(r => serializer.resourceIdentity(r))
+      data: relatedRecords.map(r => requestProcessor.serializer.resourceIdentity(r))
     };
     const settings = requestProcessor.buildFetchSettings(request.options, { method: 'PATCH', json });
 

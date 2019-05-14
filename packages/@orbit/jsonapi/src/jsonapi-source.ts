@@ -77,14 +77,9 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
     this.namespace = settings.namespace;
     this.host = settings.host;
 
-    const SerializerClass = settings.SerializerClass || JSONAPISerializer;
-    this.serializer = new SerializerClass({
-      schema: settings.schema,
-      keyMap: settings.keyMap
-    });
-
     const RequestProcessorClass = settings.RequestProcessorClass || JSONAPIRequestProcessor;
     this.requestProcessor = new RequestProcessorClass(this, {
+      SerializerClass: settings.SerializerClass || JSONAPISerializer,
       allowedContentTypes: settings.allowedContentTypes,
       defaultFetchSettings: settings.defaultFetchSettings,
       maxRequestsPerTransform: settings.maxRequestsPerTransform,

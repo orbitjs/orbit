@@ -53,7 +53,10 @@ export interface FetchSettings {
   integrity?: string;
 }
 
+import { JSONAPISerializer, JSONAPISerializerSettings } from './jsonapi-serializer';
+
 export interface JSONAPIRequestProcessorSettings {
+  SerializerClass?: (new (settings: JSONAPISerializerSettings) => JSONAPISerializer);
   namespace?: string;
   host?: string;
   defaultFetchHeaders?: object;
@@ -67,6 +70,8 @@ export interface JSONAPIRequestProcessorSettings {
 
 export default class JSONAPIRequestProcessor {
   source: JSONAPISource;
+  SerializerClass?: (new (settings: JSONAPISerializerSettings) => JSONAPISerializer);
+  serializer: JSONAPISerializer;
   allowedContentTypes: string[];
   defaultFetchSettings: FetchSettings;
   maxRequestsPerTransform: number;
@@ -83,6 +88,11 @@ export default class JSONAPIRequestProcessor {
     this.namespace = settings.namespace;
     this.schema = settings.schema;
     this.keyMap = settings.keyMap;
+    let SerializerClass = settings.SerializerClass || JSONAPISerializer;
+    this.serializer = new SerializerClass({
+      schema: settings.schema,
+      keyMap: settings.keyMap
+    });
     this.initDefaultFetchSettings(settings);
   }
 
@@ -207,9 +217,9 @@ export default class JSONAPIRequestProcessor {
   }
 
   resourcePath(type: string, id?: string): string {
-    let path = [this.source.serializer.resourceType(type)];
+    let path = [this.serializer.resourceType(type)];
     if (id) {
-      let resourceId = this.source.serializer.resourceId(type, id);
+      let resourceId = this.serializer.resourceId(type, id);
       if (resourceId) {
         path.push(resourceId);
       }
@@ -219,12 +229,12 @@ export default class JSONAPIRequestProcessor {
 
   resourceRelationshipURL(type: string, id: string, relationship: string): string {
     return this.resourceURL(type, id) +
-           '/relationships/' + this.source.serializer.resourceRelationship(type, relationship);
+           '/relationships/' + this.serializer.resourceRelationship(type, relationship);
   }
 
   relatedResourceURL(type: string, id: string, relationship: string): string {
     return this.resourceURL(type, id) +
-           '/' + this.source.serializer.resourceRelationship(type, relationship);
+           '/' + this.serializer.resourceRelationship(type, relationship);
   }
 
   operationsFromDeserializedDocument(deserialized: RecordDocument): Operation[] {
@@ -251,7 +261,7 @@ export default class JSONAPIRequestProcessor {
         const attributeFilter = filterSpecifier as AttributeFilterSpecifier;
 
         // Note: We don't know the `type` of the attribute here, so passing `null`
-        const resourceAttribute = this.source.serializer.resourceAttribute(null, attributeFilter.attribute);
+        const resourceAttribute = this.serializer.resourceAttribute(null, attributeFilter.attribute);
         filters.push({ [resourceAttribute]: attributeFilter.value });
       } else if (filterSpecifier.kind === 'relatedRecord') {
         const relatedRecordFilter = filterSpecifier as RelatedRecordFilterSpecifier;
@@ -280,7 +290,7 @@ export default class JSONAPIRequestProcessor {
         const attributeSort = sortSpecifier as AttributeSortSpecifier;
 
         // Note: We don't know the `type` of the attribute here, so passing `null`
-        const resourceAttribute = this.source.serializer.resourceAttribute(null, attributeSort.attribute);
+        const resourceAttribute = this.serializer.resourceAttribute(null, attributeSort.attribute);
         return (sortSpecifier.order === 'descending' ? '-' : '') + resourceAttribute;
       }
       throw new QueryExpressionParseError(`Sort specifier ${sortSpecifier.kind} not recognized for JSONAPISource.`, sortSpecifier);

@@ -13,7 +13,7 @@ export function jsonapiResponse(_options: any, body?: any, timeout?: number): Pr
   options.headers = options.headers || {};
 
   if (body) {
-    options.headers['Content-Type'] = 'application/vnd.api+json';
+    options.headers['Content-Type'] = options.headers['Content-Type'] || 'application/vnd.api+json';
     response = new Orbit.globals.Response(JSON.stringify(body), options);
   } else {
     response = new Orbit.globals.Response(options);
