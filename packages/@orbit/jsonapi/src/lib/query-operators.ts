@@ -30,7 +30,7 @@ export const QueryOperators: Dict<QueryOperator> = {
     const requestOptions = requestProcessor.customRequestOptions(query);
     const settings = requestProcessor.buildFetchSettings(requestOptions);
 
-    const document = await requestProcessor.fetch(requestProcessor.resourceURL(record.type, record.id), settings);
+    const document = await requestProcessor.fetch(requestProcessor.urlBuilder.resourceURL(record.type, record.id), settings);
 
     const deserialized = requestProcessor.serializer.deserialize(document);
     const operations = requestProcessor.operationsFromDeserializedDocument(deserialized);
@@ -44,19 +44,19 @@ export const QueryOperators: Dict<QueryOperator> = {
   async findRecords(requestProcessor: JSONAPIRequestProcessor, query: Query): Promise<QueryOperatorResponse> {
     const expression = query.expression as FindRecords;
     const { type } = expression;
-
+    let { urlBuilder } = requestProcessor;
     let requestOptions: RequestOptions = {};
 
     if (expression.filter) {
-      requestOptions.filter = requestProcessor.buildFilterParam(expression.filter);
+      requestOptions.filter = urlBuilder.buildFilterParam(expression.filter);
     }
 
     if (expression.sort) {
-      requestOptions.sort = requestProcessor.buildSortParam(expression.sort);
+      requestOptions.sort = urlBuilder.buildSortParam(expression.sort);
     }
 
     if (expression.page) {
-      requestOptions.page = requestProcessor.buildPageParam(expression.page);
+      requestOptions.page = urlBuilder.buildPageParam(expression.page);
     }
 
     let customOptions = requestProcessor.customRequestOptions(query);
@@ -66,7 +66,7 @@ export const QueryOperators: Dict<QueryOperator> = {
 
     const settings = requestProcessor.buildFetchSettings(requestOptions);
 
-    const document = await requestProcessor.fetch(requestProcessor.resourceURL(type), settings);
+    const document = await requestProcessor.fetch(requestProcessor.urlBuilder.resourceURL(type), settings);
 
     const deserialized = requestProcessor.serializer.deserialize(document);
     const operations = requestProcessor.operationsFromDeserializedDocument(deserialized);
@@ -83,7 +83,7 @@ export const QueryOperators: Dict<QueryOperator> = {
     const requestOptions = requestProcessor.customRequestOptions(query);
     const settings = requestProcessor.buildFetchSettings(requestOptions);
 
-    const document = await requestProcessor.fetch(requestProcessor.relatedResourceURL(record.type, record.id, relationship), settings);
+    const document = await requestProcessor.fetch(requestProcessor.urlBuilder.relatedResourceURL(record.type, record.id, relationship), settings);
 
     const deserialized = requestProcessor.serializer.deserialize(document);
     const relatedRecord = deserialized.data;
@@ -107,7 +107,7 @@ export const QueryOperators: Dict<QueryOperator> = {
     let requestOptions = requestProcessor.customRequestOptions(query);
     const settings = requestProcessor.buildFetchSettings(requestOptions);
 
-    const document = await requestProcessor.fetch(requestProcessor.relatedResourceURL(record.type, record.id, relationship), settings);
+    const document = await requestProcessor.fetch(requestProcessor.urlBuilder.relatedResourceURL(record.type, record.id, relationship), settings);
 
     const deserialized = requestProcessor.serializer.deserialize(document);
     const relatedRecords = deserialized.data;

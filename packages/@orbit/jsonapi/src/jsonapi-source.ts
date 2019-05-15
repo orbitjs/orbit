@@ -16,6 +16,7 @@ import JSONAPIRequestProcessor, {
   FetchSettings
 } from './jsonapi-request-processor';
 import { JSONAPISerializer, JSONAPISerializerSettings } from './jsonapi-serializer';
+import JSONAPIURLBuilder, { JSONAPIURLBuilderSettings } from './jsonapi-url-builder';
 import { QueryOperator, QueryOperators } from "./lib/query-operators";
 import {
   TransformRequestProcessor,
@@ -36,6 +37,7 @@ export interface JSONAPISourceSettings extends SourceSettings {
   allowedContentTypes?: string[];
   SerializerClass?: (new (settings: JSONAPISerializerSettings) => JSONAPISerializer);
   RequestProcessorClass?: (new (settings: JSONAPIRequestProcessorSettings) => JSONAPIRequestProcessor);
+  URLBuilderClass?: (new (settings: JSONAPIURLBuilderSettings) => JSONAPIURLBuilder);
   schema?: Schema,
   keyMap?: KeyMap
 }
@@ -60,7 +62,6 @@ export interface JSONAPISourceSettings extends SourceSettings {
 export default class JSONAPISource extends Source implements Pullable, Pushable, Queryable {
   namespace: string;
   host: string;
-  serializer: JSONAPISerializer;
   requestProcessor: JSONAPIRequestProcessor;
 
   // Pullable interface stubs
@@ -86,6 +87,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
     this.requestProcessor = new RequestProcessorClass({
       sourceName: this.name,
       SerializerClass: settings.SerializerClass || JSONAPISerializer,
+      URLBuilderClass: settings.URLBuilderClass || JSONAPIURLBuilder,
       allowedContentTypes: settings.allowedContentTypes,
       defaultFetchSettings: settings.defaultFetchSettings,
       maxRequestsPerTransform: settings.maxRequestsPerTransform,

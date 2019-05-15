@@ -134,7 +134,7 @@ module('JSONAPIRequestProcessor', function(hooks) {
 
 
   test('#fetch - successful if one of the `allowedContentTypes` appears anywhere in `Content-Type` header', async function(assert) {
-    assert.expect(5);
+    assert.expect(6);
     fetchStub
       .withArgs('/planets/12345/relationships/moons')
       .returns(jsonapiResponse({
@@ -206,37 +206,16 @@ module('JSONAPIRequestProcessor', function(hooks) {
       }));
     result = await processor.fetch('/planets/12345/relationships/moons', {});
     assert.ok(result, 'will accept custom content type if specifically allowed');
+
+    fetchStub
+      .withArgs('/planets/12345/relationships/moons')
+      .returns(jsonapiResponse({
+        status: 204,
+        headers: {
+          'Content-Type': 'application/custom'
+        }
+      }));
+    result = await processor.fetch('/planets/12345/relationships/moons', {});
+    assert.ok(result === undefined, 'A 204 - No Content response has no content');
   });
-
-  test('#responseHasContent - returns false if response has status code 204', function(assert) {
-    let response = new Orbit.globals.Response(null, { status: 204, headers: { 'Content-Type': 'application/vnd.api+json' } });
-
-    assert.equal(processor.responseHasContent(response), false, 'A 204 - No Content response has no content.');
-  });
-
-  test('#resourceURL - respects options to construct URLs', function(assert) {
-    assert.expect(1);
-    processor.host = 'http://127.0.0.1:8888';
-    processor.namespace = 'api';
-    keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
-
-    assert.equal(processor.resourceURL('planet', '1'), 'http://127.0.0.1:8888/api/planets/a', 'resourceURL method should use the options to construct URLs');
-  });
-
-  test('#resourcePath - returns resource\'s path without its host and namespace', function(assert) {
-    assert.expect(1);
-    processor.host = 'http://127.0.0.1:8888';
-    processor.namespace = 'api';
-    keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
-
-    assert.equal(processor.resourcePath('planet', '1'), 'planets/a', 'resourcePath returns the path to the resource relative to the host and namespace');
-  });
-
-  test('#resourceRelationshipURL - constructs relationship URLs based upon base resourceURL', function(assert) {
-    assert.expect(1);
-    keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
-
-    assert.equal(processor.resourceRelationshipURL('planet', '1', 'moons'), '/planets/a/relationships/moons', 'resourceRelationshipURL appends /relationships/[relationship] to resourceURL');
-  });
-
 });

@@ -121,8 +121,8 @@ module('JSONAPISource', function() {
 
       const headers = source.defaultFetchSettings.headers as any;
       assert.equal(headers['User-Agent'], 'CERN-LineMode/2.15 libwww/2.17b3', 'Headers should be defined');
-      assert.equal(source.requestProcessor.resourceNamespace(), source.namespace, 'Default namespace should be used by default');
-      assert.equal(source.requestProcessor.resourceHost(), source.host, 'Default host should be used by default');
+      assert.equal(source.requestProcessor.urlBuilder.resourceNamespace(), 'api', 'Default namespace should be used by default');
+      assert.equal(source.requestProcessor.urlBuilder.resourceHost(), '127.0.0.1:8888', 'Default host should be used by default');
     });
 
     test('#defaultFetchSettings - include JSONAPI Accept and Content-Type headers and a 5000ms timeout by default', function(assert) {

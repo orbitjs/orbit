@@ -76,7 +76,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const requestDoc: ResourceDocument = requestProcessor.serializer.serialize({ data: record });
     const settings = requestProcessor.buildFetchSettings(request.options, { method: 'POST', json: requestDoc });
 
-    let raw: ResourceDocument = await requestProcessor.fetch(requestProcessor.resourceURL(record.type), settings);
+    let raw: ResourceDocument = await requestProcessor.fetch(requestProcessor.urlBuilder.resourceURL(record.type), settings);
     return handleChanges(record, requestProcessor.serializer.deserialize(raw, { primaryRecord: record }));
   },
 
@@ -84,7 +84,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const { type, id } = request.record;
     const settings = requestProcessor.buildFetchSettings(request.options, { method: 'DELETE' });
 
-    await requestProcessor.fetch(requestProcessor.resourceURL(type, id), settings);
+    await requestProcessor.fetch(requestProcessor.urlBuilder.resourceURL(type, id), settings);
     return [];
   },
 
@@ -94,7 +94,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const requestDoc: ResourceDocument = requestProcessor.serializer.serialize({ data: record });
     const settings = requestProcessor.buildFetchSettings(request.options, { method: 'PATCH', json: requestDoc });
 
-    let raw: ResourceDocument = await requestProcessor.fetch(requestProcessor.resourceURL(type, id), settings)
+    let raw: ResourceDocument = await requestProcessor.fetch(requestProcessor.urlBuilder.resourceURL(type, id), settings)
     if (raw) {
       return handleChanges(record, requestProcessor.serializer.deserialize(raw, { primaryRecord: record }));
     } else {
@@ -110,7 +110,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     };
     const settings = requestProcessor.buildFetchSettings(request.options, { method: 'POST', json });
 
-    await requestProcessor.fetch(requestProcessor.resourceRelationshipURL(type, id, relationship), settings);
+    await requestProcessor.fetch(requestProcessor.urlBuilder.resourceRelationshipURL(type, id, relationship), settings);
     return [];
   },
 
@@ -122,7 +122,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     };
     const settings = requestProcessor.buildFetchSettings(request.options, { method: 'DELETE', json });
 
-    await requestProcessor.fetch(requestProcessor.resourceRelationshipURL(type, id, relationship), settings);
+    await requestProcessor.fetch(requestProcessor.urlBuilder.resourceRelationshipURL(type, id, relationship), settings);
     return [];
   },
 
@@ -134,7 +134,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     };
     const settings = requestProcessor.buildFetchSettings(request.options, { method: 'PATCH', json });
 
-    await requestProcessor.fetch(requestProcessor.resourceRelationshipURL(type, id, relationship), settings)
+    await requestProcessor.fetch(requestProcessor.urlBuilder.resourceRelationshipURL(type, id, relationship), settings)
     return [];
   },
 
@@ -146,7 +146,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     };
     const settings = requestProcessor.buildFetchSettings(request.options, { method: 'PATCH', json });
 
-    await requestProcessor.fetch(requestProcessor.resourceRelationshipURL(type, id, relationship), settings);
+    await requestProcessor.fetch(requestProcessor.urlBuilder.resourceRelationshipURL(type, id, relationship), settings);
     return [];
   }
 };

@@ -1,36 +1,28 @@
 import Orbit, {
-  AttributeFilterSpecifier,
-  AttributeSortSpecifier,
   ClientError,
-  FilterSpecifier,
   KeyMap,
   NetworkError,
   Operation,
-  PageSpecifier,
   Query,
-  QueryExpressionParseError,
   Record,
-  RelatedRecordFilterSpecifier,
-  RelatedRecordsFilterSpecifier,
   Schema,
   ServerError,
-  SortSpecifier,
   Transform,
   TransformNotAllowed,
 } from '@orbit/data';
 import { InvalidServerResponse } from './lib/exceptions';
-import { appendQueryParams } from './lib/query-params';
-import { clone, deepGet, deepMerge, toArray } from '@orbit/utils';
+import { deepGet, deepMerge, toArray } from '@orbit/utils';
 import { RecordDocument } from './record-document';
 import {
   TransformRecordRequest,
   getTransformRequests
 } from  './lib/transform-requests';
 import {
-  Filter,
   RequestOptions,
   buildFetchSettings
 } from './lib/request-settings';
+import JSONAPIURLBuilder, { JSONAPIURLBuilderSettings } from './jsonapi-url-builder';
+import { JSONAPISerializer, JSONAPISerializerSettings } from './jsonapi-serializer';
 const { assert, deprecate } = Orbit;
 
 export interface FetchSettings {
@@ -48,11 +40,11 @@ export interface FetchSettings {
   integrity?: string;
 }
 
-import { JSONAPISerializer, JSONAPISerializerSettings } from './jsonapi-serializer';
 
 export interface JSONAPIRequestProcessorSettings {
   sourceName: string;
   SerializerClass?: (new (settings: JSONAPISerializerSettings) => JSONAPISerializer);
+  URLBuilderClass?: (new (settings: JSONAPIURLBuilderSettings) => JSONAPIURLBuilder);
   namespace?: string;
   host?: string;
   defaultFetchHeaders?: object;
@@ -68,6 +60,8 @@ export default class JSONAPIRequestProcessor {
   sourceName: string;
   SerializerClass?: (new (settings: JSONAPISerializerSettings) => JSONAPISerializer);
   serializer: JSONAPISerializer;
+  URLBuilderClass?: (new (settings: JSONAPIURLBuilderSettings) => JSONAPIURLBuilder);
+  urlBuilder: JSONAPIURLBuilder;
   allowedContentTypes: string[];
   defaultFetchSettings: FetchSettings;
   maxRequestsPerTransform: number;
@@ -89,12 +83,24 @@ export default class JSONAPIRequestProcessor {
       schema: settings.schema,
       keyMap: settings.keyMap
     });
+    let URLBuilderClass = settings.URLBuilderClass || JSONAPIURLBuilder;
+    this.urlBuilder = new URLBuilderClass({
+      host: settings.host,
+      namespace: settings.namespace,
+      serializer: this.serializer,
+      keyMap: settings.keyMap
+    });
     this.initDefaultFetchSettings(settings);
   }
 
   fetch(url: string, customSettings?: FetchSettings): Promise<any> {
     let settings = this.initFetchSettings(customSettings);
-    let fullUrl = this.appendQueryParams(url, settings);
+
+    let fullUrl = url;
+    if (settings.params) {
+      fullUrl = this.urlBuilder.appendQueryParams(fullUrl, settings.params);
+      delete settings.params;
+    }
 
     let fetchFn = (Orbit as any).fetch || Orbit.globals.fetch;
 
@@ -152,22 +158,6 @@ export default class JSONAPIRequestProcessor {
     return settings;
   }
 
-  responseHasContent(response: Response): boolean {
-    if (response.status === 204) {
-      return false;
-    }
-
-    let contentType = response.headers.get('Content-Type');
-    if (contentType) {
-      for (let allowedContentType of this.allowedContentTypes) {
-        if (contentType.indexOf(allowedContentType) > -1) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   getTransformRequests(transform: Transform): TransformRecordRequest[] {
     const transformRequests = getTransformRequests(this, transform);
     if (this.maxRequestsPerTransform && transformRequests.length > this.maxRequestsPerTransform) {
@@ -176,49 +166,6 @@ export default class JSONAPIRequestProcessor {
         transform);
     }
     return transformRequests;
-  }
-
-  resourceNamespace(type?: string): string {
-    return this.namespace;
-  }
-
-  resourceHost(type?: string): string {
-    return this.host;
-  }
-
-  resourceURL(type: string, id?: string): string {
-    let host = this.resourceHost(type);
-    let namespace = this.resourceNamespace(type);
-    let url: string[] = [];
-
-    if (host) { url.push(host); }
-    if (namespace) { url.push(namespace); }
-    url.push(this.resourcePath(type, id));
-
-    if (!host) { url.unshift(''); }
-
-    return url.join('/');
-  }
-
-  resourcePath(type: string, id?: string): string {
-    let path = [this.serializer.resourceType(type)];
-    if (id) {
-      let resourceId = this.serializer.resourceId(type, id);
-      if (resourceId) {
-        path.push(resourceId);
-      }
-    }
-    return path.join('/');
-  }
-
-  resourceRelationshipURL(type: string, id: string, relationship: string): string {
-    return this.resourceURL(type, id) +
-           '/relationships/' + this.serializer.resourceRelationship(type, relationship);
-  }
-
-  relatedResourceURL(type: string, id: string, relationship: string): string {
-    return this.resourceURL(type, id) +
-           '/' + this.serializer.resourceRelationship(type, relationship);
   }
 
   operationsFromDeserializedDocument(deserialized: RecordDocument): Operation[] {
@@ -237,56 +184,6 @@ export default class JSONAPIRequestProcessor {
     });
   }
 
-  buildFilterParam(filterSpecifiers: FilterSpecifier[]): Filter[] {
-    const filters: Filter[] = [];
-
-    filterSpecifiers.forEach(filterSpecifier => {
-      if (filterSpecifier.kind === 'attribute' && filterSpecifier.op === 'equal') {
-        const attributeFilter = filterSpecifier as AttributeFilterSpecifier;
-
-        // Note: We don't know the `type` of the attribute here, so passing `null`
-        const resourceAttribute = this.serializer.resourceAttribute(null, attributeFilter.attribute);
-        filters.push({ [resourceAttribute]: attributeFilter.value });
-      } else if (filterSpecifier.kind === 'relatedRecord') {
-        const relatedRecordFilter = filterSpecifier as RelatedRecordFilterSpecifier;
-        if (Array.isArray(relatedRecordFilter.record)) {
-          filters.push({ [relatedRecordFilter.relation]: relatedRecordFilter.record.map(e => e.id).join(',') });
-        } else {
-          filters.push({ [relatedRecordFilter.relation]: relatedRecordFilter.record.id });
-        }
-      } else if (filterSpecifier.kind === 'relatedRecords') {
-        if (filterSpecifier.op !== 'equal') {
-          throw new Error(`Operation "${filterSpecifier.op}" is not supported in JSONAPI for relatedRecords filtering`);
-        }
-        const relatedRecordsFilter = filterSpecifier as RelatedRecordsFilterSpecifier;
-        filters.push({ [relatedRecordsFilter.relation]: relatedRecordsFilter.records.map(e => e.id).join(',') });
-      } else {
-        throw new QueryExpressionParseError(`Filter operation ${filterSpecifier.op} not recognized for JSONAPISource.`, filterSpecifier);
-      }
-    });
-
-    return filters;
-  }
-
-  buildSortParam(sortSpecifiers: SortSpecifier[]): string {
-    return sortSpecifiers.map(sortSpecifier => {
-      if (sortSpecifier.kind === 'attribute') {
-        const attributeSort = sortSpecifier as AttributeSortSpecifier;
-
-        // Note: We don't know the `type` of the attribute here, so passing `null`
-        const resourceAttribute = this.serializer.resourceAttribute(null, attributeSort.attribute);
-        return (sortSpecifier.order === 'descending' ? '-' : '') + resourceAttribute;
-      }
-      throw new QueryExpressionParseError(`Sort specifier ${sortSpecifier.kind} not recognized for JSONAPISource.`, sortSpecifier);
-    }).join(',');
-  }
-
-  buildPageParam(pageSpecifier: PageSpecifier): object {
-    let pageParam = clone(pageSpecifier);
-    delete pageParam.kind;
-    return pageParam;
-  }
-
   buildFetchSettings(options: RequestOptions = {}, customSettings?: FetchSettings): FetchSettings {
     return buildFetchSettings(options, customSettings);
   }
@@ -295,13 +192,20 @@ export default class JSONAPIRequestProcessor {
     return deepGet(queryOrTransform, ['options', 'sources', this.sourceName]);
   }
 
-  protected appendQueryParams(url: string, settings: FetchSettings): string {
-    let fullUrl = url;
-    if (settings.params) {
-      fullUrl = appendQueryParams(fullUrl, settings.params);
-      delete settings.params;
+  protected responseHasContent(response: Response): boolean {
+    if (response.status === 204) {
+      return false;
     }
-    return fullUrl;
+
+    let contentType = response.headers.get('Content-Type');
+    if (contentType) {
+      for (let allowedContentType of this.allowedContentTypes) {
+        if (contentType.indexOf(allowedContentType) > -1) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   protected initDefaultFetchSettings(settings: JSONAPIRequestProcessorSettings): void {
