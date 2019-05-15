@@ -8,15 +8,10 @@ import Orbit, {
   Schema,
   ServerError,
   Transform,
-  TransformNotAllowed,
 } from '@orbit/data';
 import { InvalidServerResponse } from './lib/exceptions';
 import { deepGet, deepMerge, toArray } from '@orbit/utils';
 import { RecordDocument } from './record-document';
-import {
-  TransformRecordRequest,
-  getTransformRequests
-} from  './lib/transform-requests';
 import {
   RequestOptions,
   buildFetchSettings
@@ -51,7 +46,6 @@ export interface JSONAPIRequestProcessorSettings {
   defaultFetchTimeout?: number;
   defaultFetchSettings?: FetchSettings;
   allowedContentTypes?: string[];
-  maxRequestsPerTransform?: number;
   schema: Schema;
   keyMap: KeyMap;
 }
@@ -64,7 +58,6 @@ export default class JSONAPIRequestProcessor {
   urlBuilder: JSONAPIURLBuilder;
   allowedContentTypes: string[];
   defaultFetchSettings: FetchSettings;
-  maxRequestsPerTransform: number;
   host: string;
   namespace: string;
   schema: Schema;
@@ -73,7 +66,6 @@ export default class JSONAPIRequestProcessor {
   constructor(settings: JSONAPIRequestProcessorSettings) {
     this.sourceName = settings.sourceName;
     this.allowedContentTypes = settings.allowedContentTypes || ['application/vnd.api+json', 'application/json'];
-    this.maxRequestsPerTransform = settings.maxRequestsPerTransform;
     this.host = settings.host;
     this.namespace = settings.namespace;
     this.schema = settings.schema;
@@ -156,16 +148,6 @@ export default class JSONAPIRequestProcessor {
     }
 
     return settings;
-  }
-
-  getTransformRequests(transform: Transform): TransformRecordRequest[] {
-    const transformRequests = getTransformRequests(this, transform);
-    if (this.maxRequestsPerTransform && transformRequests.length > this.maxRequestsPerTransform) {
-      throw new TransformNotAllowed(
-        `This transform requires ${transformRequests.length} requests, which exceeds the specified limit of ${this.maxRequestsPerTransform} requests per transform.`,
-        transform);
-    }
-    return transformRequests;
   }
 
   operationsFromDeserializedDocument(deserialized: RecordDocument): Operation[] {

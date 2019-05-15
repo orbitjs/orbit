@@ -9,7 +9,8 @@ import Orbit, {
   Transform,
   TransformOrOperations,
   Queryable, queryable,
-  Record
+  Record,
+  TransformNotAllowed
 } from '@orbit/data';
 import JSONAPIRequestProcessor, {
   JSONAPIRequestProcessorSettings,
@@ -21,7 +22,8 @@ import { QueryOperator, QueryOperators } from "./lib/query-operators";
 import {
   TransformRequestProcessor,
   TransformRequestProcessors,
-  TransformRecordRequest
+  TransformRecordRequest,
+  getTransformRequests
 } from  './lib/transform-requests';
 
 const { assert, deprecate } = Orbit;
@@ -62,6 +64,7 @@ export interface JSONAPISourceSettings extends SourceSettings {
 export default class JSONAPISource extends Source implements Pullable, Pushable, Queryable {
   namespace: string;
   host: string;
+  maxRequestsPerTransform?: number;
   requestProcessor: JSONAPIRequestProcessor;
 
   // Pullable interface stubs
@@ -82,6 +85,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
 
     this.namespace = settings.namespace;
     this.host = settings.host;
+    this.maxRequestsPerTransform = settings.maxRequestsPerTransform;
 
     const RequestProcessorClass = settings.RequestProcessorClass || JSONAPIRequestProcessor;
     this.requestProcessor = new RequestProcessorClass({
@@ -90,7 +94,6 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
       URLBuilderClass: settings.URLBuilderClass || JSONAPIURLBuilder,
       allowedContentTypes: settings.allowedContentTypes,
       defaultFetchSettings: settings.defaultFetchSettings,
-      maxRequestsPerTransform: settings.maxRequestsPerTransform,
       namespace: settings.namespace,
       host: settings.host,
       schema: settings.schema,
@@ -104,7 +107,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
 
   async _push(transform: Transform): Promise<Transform[]> {
     let { requestProcessor } = this;
-    const requests = requestProcessor.getTransformRequests(transform);
+    const requests = this.getTransformRequests(transform);
     const transforms: Transform[] = [];
 
     for (let request of requests) {
@@ -143,7 +146,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
     return response.primaryData;
   }
 
-  protected getQueryOperator(query: Query): QueryOperator {
+  private getQueryOperator(query: Query): QueryOperator {
     const operator: QueryOperator = QueryOperators[query.expression.op];
     if (!operator) {
       throw new Error('JSONAPIRequestProcessor does not support the `${query.expression.op}` operator for queries.');
@@ -151,7 +154,17 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
     return operator;
   }
 
-  protected getTransformRequestProcessor(request:TransformRecordRequest):TransformRequestProcessor {
+  private getTransformRequests(transform: Transform): TransformRecordRequest[] {
+    const transformRequests = getTransformRequests(this.requestProcessor, transform);
+    if (this.maxRequestsPerTransform && transformRequests.length > this.maxRequestsPerTransform) {
+      throw new TransformNotAllowed(
+        `This transform requires ${transformRequests.length} requests, which exceeds the specified limit of ${this.maxRequestsPerTransform} requests per transform.`,
+        transform);
+    }
+    return transformRequests;
+  }
+
+  private getTransformRequestProcessor(request:TransformRecordRequest):TransformRequestProcessor {
     return TransformRequestProcessors[request.op];
   }
   /////////////////////////////////////////////////////////////////////////////
@@ -226,15 +239,5 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   set allowedContentTypes(val:string[]) {
     deprecate('JSONAPISource: Access `requestProcessor.allowedContentTypes` instead of `allowedContentTypes`');
     this.requestProcessor.allowedContentTypes = val;
-  }
-
-  get maxRequestsPerTransform():number {
-    deprecate('JSONAPISource: Access `requestProcessor.maxRequestsPerTransform` instead of `maxRequestsPerTransform`');
-    return this.requestProcessor.maxRequestsPerTransform;
-  }
-
-  set maxRequestsPerTransform(val:number) {
-    deprecate('JSONAPISource: Access `requestProcessor.maxRequestsPerTransform` instead of `maxRequestsPerTransform`');
-    this.requestProcessor.maxRequestsPerTransform = val;
   }
 }
