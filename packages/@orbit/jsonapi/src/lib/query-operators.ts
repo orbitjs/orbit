@@ -12,7 +12,7 @@ import {
   Transform,
 } from '@orbit/data';
 import JSONAPIRequestProcessor from '../jsonapi-request-processor';
-import { RequestOptions } from './request-settings';
+import { RequestOptions, mergeRequestOptions } from './request-settings';
 
 export interface QueryOperatorResponse {
   transforms: Transform[];
@@ -45,23 +45,24 @@ export const QueryOperators: Dict<QueryOperator> = {
     const expression = query.expression as FindRecords;
     const { type } = expression;
     let { urlBuilder } = requestProcessor;
-    let requestOptions: RequestOptions = {};
+    let standardRequestOptions: RequestOptions = {};
 
     if (expression.filter) {
-      requestOptions.filter = urlBuilder.buildFilterParam(expression.filter);
+      standardRequestOptions.filter = await urlBuilder.buildFilterParam(expression.filter);
     }
 
     if (expression.sort) {
-      requestOptions.sort = urlBuilder.buildSortParam(expression.sort);
+      standardRequestOptions.sort = await urlBuilder.buildSortParam(expression.sort);
     }
 
     if (expression.page) {
-      requestOptions.page = urlBuilder.buildPageParam(expression.page);
+      standardRequestOptions.page = await urlBuilder.buildPageParam(expression.page);
     }
 
     let customOptions = requestProcessor.customRequestOptions(query);
+    let requestOptions = standardRequestOptions;
     if (customOptions) {
-      merge(requestOptions, customOptions);
+      requestOptions = mergeRequestOptions(standardRequestOptions, customOptions);
     }
 
     const settings = requestProcessor.buildFetchSettings(requestOptions);
