@@ -18,6 +18,7 @@ import Orbit, {
 import { jsonapiResponse } from './support/jsonapi';
 import JSONAPISource, { Resource } from '../src/index';
 import { SinonStatic, SinonStub} from 'sinon';
+import { ResourceDocument } from '../dist/types';
 
 declare const sinon: SinonStatic;
 const { module, test } = QUnit;
@@ -1458,6 +1459,32 @@ module('JSONAPISource', function() {
       assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
+    test('#query - invokes preprocessResponseDocument when response has content', async function(assert) {
+      assert.expect(1);
+
+      const data: Resource = { type: 'planets', id: '12345', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+      const meta = {
+        'important-info': 'goes-here'
+      };
+      let responseDoc = { data, meta };
+
+      const planet = source.requestProcessor.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345'
+      });
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(jsonapiResponse(200, responseDoc));
+
+      const preprocessResponseDocumentSpy = sinon.spy(source.requestProcessor, 'preprocessResponseDocument');
+
+      await source.query(q => q.findRecord({ type: 'planet', id: planet.id }));
+
+      assert.ok(preprocessResponseDocumentSpy.calledOnceWith(responseDoc, sinon.match.any));
+      preprocessResponseDocumentSpy.restore();
+    });
+
     test('#query - request can timeout', async function(assert) {
       assert.expect(2);
 
@@ -1895,6 +1922,20 @@ module('JSONAPISource', function() {
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
+    });
+
+    test('#query - records invokes preprocessResponseDocument when response has content', async function(assert) {
+      assert.expect(1);
+      const responseDoc : ResourceDocument = { meta: { 'interesting': 'info' }, data: [] };
+      fetchStub
+        .withArgs(`/planets`)
+        .returns(jsonapiResponse(200, responseDoc));
+        const preprocessResponseDocumentSpy = sinon.spy(source.requestProcessor, 'preprocessResponseDocument');
+
+      await source.query(q => q.findRecords('planet'), {});
+
+      assert.ok(preprocessResponseDocumentSpy.calledOnceWith(responseDoc, sinon.match.any));
+      preprocessResponseDocumentSpy.restore();
     });
 
     test('#query - relatedRecords', async function(assert) {

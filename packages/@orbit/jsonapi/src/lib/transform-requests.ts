@@ -77,7 +77,9 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const settings = requestProcessor.buildFetchSettings(request.options, { method: 'POST', json: requestDoc });
 
     let raw: ResourceDocument = await requestProcessor.fetch(requestProcessor.urlBuilder.resourceURL(record.type), settings);
-    return handleChanges(record, requestProcessor.serializer.deserialize(raw, { primaryRecord: record }));
+    requestProcessor.preprocessResponseDocument(raw, request);
+    let deserialized = requestProcessor.serializer.deserialize(raw, { primaryRecord: record });
+    return handleChanges(record, deserialized);
   },
 
   async removeRecord(requestProcessor: JSONAPIRequestProcessor, request: RemoveRecordRequest): Promise<Transform[]> {
@@ -96,7 +98,9 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
 
     let raw: ResourceDocument = await requestProcessor.fetch(requestProcessor.urlBuilder.resourceURL(type, id), settings)
     if (raw) {
-      return handleChanges(record, requestProcessor.serializer.deserialize(raw, { primaryRecord: record }));
+      requestProcessor.preprocessResponseDocument(raw, request);
+      let deserialized = requestProcessor.serializer.deserialize(raw, { primaryRecord: record })
+      return handleChanges(record, deserialized);
     } else {
       return [];
     }

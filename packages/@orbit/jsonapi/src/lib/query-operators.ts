@@ -31,7 +31,7 @@ export const QueryOperators: Dict<QueryOperator> = {
     const settings = requestProcessor.buildFetchSettings(requestOptions);
 
     const document = await requestProcessor.fetch(requestProcessor.urlBuilder.resourceURL(record.type, record.id), settings);
-
+    requestProcessor.preprocessResponseDocument(document, query);
     const deserialized = requestProcessor.serializer.deserialize(document);
     const operations = requestProcessor.operationsFromDeserializedDocument(deserialized);
 
@@ -67,7 +67,7 @@ export const QueryOperators: Dict<QueryOperator> = {
     const settings = requestProcessor.buildFetchSettings(requestOptions);
 
     const document = await requestProcessor.fetch(requestProcessor.urlBuilder.resourceURL(type), settings);
-
+    requestProcessor.preprocessResponseDocument(document, query);
     const deserialized = requestProcessor.serializer.deserialize(document);
     const operations = requestProcessor.operationsFromDeserializedDocument(deserialized);
 
@@ -84,6 +84,7 @@ export const QueryOperators: Dict<QueryOperator> = {
     const settings = requestProcessor.buildFetchSettings(requestOptions);
 
     const document = await requestProcessor.fetch(requestProcessor.urlBuilder.relatedResourceURL(record.type, record.id, relationship), settings);
+    requestProcessor.preprocessResponseDocument(document, query);
 
     const deserialized = requestProcessor.serializer.deserialize(document);
     const relatedRecord = deserialized.data;
@@ -108,7 +109,7 @@ export const QueryOperators: Dict<QueryOperator> = {
     const settings = requestProcessor.buildFetchSettings(requestOptions);
 
     const document = await requestProcessor.fetch(requestProcessor.urlBuilder.relatedResourceURL(record.type, record.id, relationship), settings);
-
+    requestProcessor.preprocessResponseDocument(document, query);
     const deserialized = requestProcessor.serializer.deserialize(document);
     const relatedRecords = deserialized.data;
 

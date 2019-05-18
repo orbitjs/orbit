@@ -10,8 +10,10 @@ import Orbit, {
   Transform,
 } from '@orbit/data';
 import { InvalidServerResponse } from './lib/exceptions';
+import { TransformRecordRequest } from './lib/transform-requests';
 import { deepGet, deepMerge, toArray } from '@orbit/utils';
 import { RecordDocument } from './record-document';
+import { ResourceDocument } from './resource-document';
 import {
   RequestOptions,
   buildFetchSettings
@@ -52,9 +54,7 @@ export interface JSONAPIRequestProcessorSettings {
 
 export default class JSONAPIRequestProcessor {
   sourceName: string;
-  SerializerClass?: (new (settings: JSONAPISerializerSettings) => JSONAPISerializer);
   serializer: JSONAPISerializer;
-  URLBuilderClass?: (new (settings: JSONAPIURLBuilderSettings) => JSONAPIURLBuilder);
   urlBuilder: JSONAPIURLBuilder;
   allowedContentTypes: string[];
   defaultFetchSettings: FetchSettings;
@@ -173,6 +173,8 @@ export default class JSONAPIRequestProcessor {
   customRequestOptions(queryOrTransform: Query | Transform): RequestOptions {
     return deepGet(queryOrTransform, ['options', 'sources', this.sourceName]);
   }
+
+  preprocessResponseDocument(document: ResourceDocument, queryOrTransformRecordRequest:Query|TransformRecordRequest) {}
 
   protected responseHasContent(response: Response): boolean {
     if (response.status === 204) {
