@@ -26,6 +26,7 @@
     "@orbit/indexeddb": "^0.16.0-beta.5",
     "@orbit/indexeddb-bucket": "^0.16.0-beta.1",
     "@orbit/jsonapi": "^0.16.0-beta.4",
+    "@orbit/jsonapi-serializer": "^0.16.0-beta.1",
     "@orbit/local-storage": "^0.16.0-beta.5",
     "@orbit/local-storage-bucket": "^0.16.0-beta.1",
     "@orbit/record-cache": "^0.16.0-beta.5",

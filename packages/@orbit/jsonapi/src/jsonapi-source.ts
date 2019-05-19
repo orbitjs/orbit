@@ -14,7 +14,8 @@ import Orbit, {
   Record
 } from '@orbit/data';
 import { deepMerge } from '@orbit/utils';
-import { JSONAPISerializer, JSONAPISerializerSettings } from './jsonapi-serializer';
+import JSONAPISerializer, { JSONAPISerializerSettings } from '@orbit/jsonapi-serializer';
+
 import { appendQueryParams } from './lib/query-params';
 import { getTransformRequests, TransformRequestProcessors } from './lib/transform-requests';
 import { InvalidServerResponse } from './lib/exceptions';

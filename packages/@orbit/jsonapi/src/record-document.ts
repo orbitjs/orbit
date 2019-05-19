@@ -1,15 +1,6 @@
-import { Dict } from '@orbit/utils';
-import {
-  Link,
-  Record
-} from '@orbit/data';
+import { RecordDocument } from '@orbit/jsonapi-serializer';
 
-export interface RecordDocument {
-  data: Record | Record[];
-  included?: Record[];
-  links?: Dict<Link>;
-  meta?: Dict<any>;
-}
+export { RecordDocument };
 
 /**
  * @deprecated

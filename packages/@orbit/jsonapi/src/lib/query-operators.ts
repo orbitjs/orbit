@@ -20,8 +20,9 @@ import {
   RelatedRecordsFilterSpecifier,
   PageSpecifier
 } from '@orbit/data';
+import { RecordDocument } from '@orbit/jsonapi-serializer';
+
 import JSONAPISource from '../jsonapi-source';
-import { RecordDocument } from '../record-document';
 import { Filter, RequestOptions, buildFetchSettings, customRequestOptions } from './request-settings';
 
 function operationsFromDeserializedDocument(deserialized: RecordDocument): Operation[] {

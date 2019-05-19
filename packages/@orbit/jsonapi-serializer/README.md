@@ -1,13 +1,13 @@
 # @orbit/jsonapi
 
-[JSON:API](http://jsonapi.org/) support for client-side Orbit applications.
+[JSON:API](http://jsonapi.org/) serializer for Orbit applications.
 
 ## Installation
 
 Install with npm:
 
 ```
-npm install @orbit/jsonapi
+npm install @orbit/jsonapi-serializer
 ```
 
 ## Contributing

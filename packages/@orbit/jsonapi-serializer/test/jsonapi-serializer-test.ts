@@ -6,7 +6,7 @@ import {
   Schema
 } from '@orbit/data';
 
-import { JSONAPISerializer } from '../src/index';
+import JSONAPISerializer from '../src/index';
 import { Serializer } from '../../serializers/dist/types';
 
 const { module, test } = QUnit;

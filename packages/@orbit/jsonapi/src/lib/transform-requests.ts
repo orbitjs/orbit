@@ -17,9 +17,9 @@ import Orbit, {
   buildTransform
 } from '@orbit/data';
 import { clone, deepSet, Dict } from '@orbit/utils';
+import { RecordDocument, ResourceDocument } from '@orbit/jsonapi-serializer';
+
 import JSONAPISource from '../jsonapi-source';
-import { ResourceDocument } from '../resource-document';
-import { RecordDocument } from '../record-document';
 import { buildFetchSettings, customRequestOptions, RequestOptions } from './request-settings';
 
 export interface TransformRecordRequest {
