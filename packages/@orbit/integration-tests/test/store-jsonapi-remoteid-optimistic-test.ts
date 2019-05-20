@@ -69,7 +69,7 @@ module('Store + JSONAPISource + remote IDs + optimistic coordination', function(
     memory = new MemorySource({ schema, keyMap });
 
     remote = new JSONAPISource({ schema, keyMap, name: 'remote' });
-    remote.serializer.resourceKey = function() { return 'remoteId'; };
+    remote.requestProcessor.serializer.resourceKey = function() { return 'remoteId'; };
 
     coordinator = new Coordinator({
       sources: [memory, remote]

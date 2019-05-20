@@ -18,6 +18,7 @@ import Orbit, {
 import { jsonapiResponse } from './support/jsonapi';
 import JSONAPISource, { Resource } from '../src/index';
 import { SinonStatic, SinonStub} from 'sinon';
+import { ResourceDocument } from '../dist/types';
 
 declare const sinon: SinonStatic;
 const { module, test } = QUnit;
@@ -76,12 +77,11 @@ module('JSONAPISource', function() {
       keyMap = new KeyMap();
       source = new JSONAPISource({ schema, keyMap });
 
-      source.serializer.resourceKey = function() { return 'remoteId'; };
+      source.requestProcessor.serializer.resourceKey = function() { return 'remoteId'; };
     });
 
     hooks.afterEach(() => {
       keyMap = schema = source = null;
-
       fetchStub.restore();
     });
 
@@ -102,8 +102,8 @@ module('JSONAPISource', function() {
       assert.deepEqual(source.allowedContentTypes, ['application/vnd.api+json', 'application/json'], 'allowedContentTypes are set to default');
     });
 
-    test('source saves options', function(assert) {
-      assert.expect(7);
+     test('source saves options', function(assert) {
+      assert.expect(5);
 
       let schema = new Schema({} as SchemaSettings);
       source = new JSONAPISource({
@@ -117,38 +117,11 @@ module('JSONAPISource', function() {
       });
       assert.equal(source.name, 'custom', 'name is custom');
       assert.deepEqual(source.allowedContentTypes, ['application/custom'], 'allowedContentTypes are custom');
-      assert.equal(source.namespace, 'api', 'Namespace should be defined');
-      assert.equal(source.host, '127.0.0.1:8888', 'Host should be defined');
 
       const headers = source.defaultFetchSettings.headers as any;
       assert.equal(headers['User-Agent'], 'CERN-LineMode/2.15 libwww/2.17b3', 'Headers should be defined');
-      assert.equal(source.resourceNamespace(), source.namespace, 'Default namespace should be used by default');
-      assert.equal(source.resourceHost(), source.host, 'Default host should be used by default');
-    });
-
-    test('#resourcePath - returns resource\'s path without its host and namespace', function(assert) {
-      assert.expect(1);
-      source.host = 'http://127.0.0.1:8888';
-      source.namespace = 'api';
-      keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
-
-      assert.equal(source.resourcePath('planet', '1'), 'planets/a', 'resourcePath returns the path to the resource relative to the host and namespace');
-    });
-
-    test('#resourceURL - respects options to construct URLs', function(assert) {
-      assert.expect(1);
-      source.host = 'http://127.0.0.1:8888';
-      source.namespace = 'api';
-      keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
-
-      assert.equal(source.resourceURL('planet', '1'), 'http://127.0.0.1:8888/api/planets/a', 'resourceURL method should use the options to construct URLs');
-    });
-
-    test('#resourceRelationshipURL - constructs relationship URLs based upon base resourceURL', function(assert) {
-      assert.expect(1);
-      keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
-
-      assert.equal(source.resourceRelationshipURL('planet', '1', 'moons'), '/planets/a/relationships/moons', 'resourceRelationshipURL appends /relationships/[relationship] to resourceURL');
+      assert.equal(source.requestProcessor.urlBuilder.resourceNamespace(), 'api', 'Default namespace should be used by default');
+      assert.equal(source.requestProcessor.urlBuilder.resourceHost(), '127.0.0.1:8888', 'Default host should be used by default');
     });
 
     test('#defaultFetchSettings - include JSONAPI Accept and Content-Type headers and a 5000ms timeout by default', function(assert) {
@@ -182,92 +155,12 @@ module('JSONAPISource', function() {
         });
     });
 
-    test('#initFetchSettings will override defaults with custom settings provided', function(assert) {
-      assert.deepEqual(
-        source.initFetchSettings({
-          headers: {
-            Accept: 'application/json'
-          },
-          method: 'POST',
-          body: '{"data": {}}',
-          timeout: 10000
-        }),
-        {
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/vnd.api+json'
-          },
-          method: 'POST',
-          body: '{"data": {}}',
-          timeout: 10000
-        });
-    });
-
-    test('#initFetchSettings will convert json to a stringified body', function(assert) {
-      assert.deepEqual(
-        source.initFetchSettings({
-          headers: {
-            Accept: 'application/json'
-          },
-          method: 'POST',
-          json: { data: { a: 123 } },
-          timeout: 10000
-        }),
-        {
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/vnd.api+json'
-          },
-          method: 'POST',
-          body: '{"data":{"a":123}}',
-          timeout: 10000
-        });
-    });
-
-    test('#initFetchSettings will not include a `Content-Type` header with no body', function(assert) {
-      assert.deepEqual(
-        source.initFetchSettings({
-          method: 'GET'
-        }),
-        {
-          headers: {
-            Accept: 'application/vnd.api+json'
-          },
-          method: 'GET',
-          timeout: 5000
-        });
-    });
-
-    test('#responseHasContent - returns true if one of the `allowedContentTypes` appears anywhere in `Content-Type` header', function(assert) {
-      let response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/vnd.api+json' } });
-      assert.equal(source.responseHasContent(response), true, 'Accepts content that is _only_ the JSONAPI media type.');
-
-      response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'multipart,application/vnd.api+json; charset=utf-8' } });
-      assert.equal(source.responseHasContent(response), true, 'Position of JSONAPI media type is not important.');
-
-      response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/json' } });
-      assert.equal(source.responseHasContent(response), true, 'Source will attempt to parse plain json.');
-
-      response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/xml' } });
-      assert.equal(source.responseHasContent(response), false, 'XML is not acceptable.');
-
-      source.allowedContentTypes = ['application/custom'];
-      response = new Orbit.globals.Response('{ data: null }', { headers: { 'Content-Type': 'application/custom' } });
-      assert.equal(source.responseHasContent(response), true, 'Source will accept custom content type if specifically allowed.');
-    });
-
-    test('#responseHasContent - returns false if response has status code 204', function(assert) {
-      let response = new Orbit.globals.Response(null, { status: 204, headers: { 'Content-Type': 'application/vnd.api+json' } });
-
-      assert.equal(source.responseHasContent(response), false, 'A 204 - No Content response has no content.');
-    });
-
     test('#push - can add records', async function(assert) {
       assert.expect(7);
 
       let transformCount = 0;
 
-      let planet: Record = source.serializer.deserializeResource({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
+      let planet: Record = source.requestProcessor.serializer.deserializeResource({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
 
       let addPlanetOp = {
         op: 'addRecord',
@@ -340,7 +233,7 @@ module('JSONAPISource', function() {
 
       let transformCount = 0;
 
-      let planet: Record = source.serializer.deserializeResource({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
+      let planet: Record = source.requestProcessor.serializer.deserializeResource({ type: 'planet', attributes: { name: 'Jupiter', classification: 'gas giant' } });
 
       let addPlanetOp = {
         op: 'addRecord',
@@ -448,7 +341,7 @@ module('JSONAPISource', function() {
 
       let transformCount = 0;
 
-      let planet = source.serializer.deserializeResource({
+      let planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345',
         attributes: {
@@ -519,7 +412,7 @@ module('JSONAPISource', function() {
     test('#push - can replace a single attribute', async function(assert) {
       assert.expect(5);
 
-      let planet = source.serializer.deserializeResource({
+      let planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345',
         attributes: {
@@ -557,7 +450,7 @@ module('JSONAPISource', function() {
     test('#push - can accept remote changes', async function(assert) {
       assert.expect(2);
 
-      let planet = source.serializer.deserializeResource({
+      let planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345',
         attributes: {
@@ -588,7 +481,7 @@ module('JSONAPISource', function() {
     test('#push - can delete records', async function(assert) {
       assert.expect(4);
 
-      let planet = source.serializer.deserializeResource({
+      let planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345'
       });
@@ -608,12 +501,12 @@ module('JSONAPISource', function() {
     test('#push - can add a hasMany relationship with POST', async function(assert) {
       assert.expect(5);
 
-      let planet = source.serializer.deserializeResource({
+      let planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345'
       });
 
-      let moon = source.serializer.deserializeResource({
+      let moon = source.requestProcessor.serializer.deserializeResource({
         type: 'moon',
         id: '987'
       });
@@ -638,12 +531,12 @@ module('JSONAPISource', function() {
     test('#push - can remove a relationship with DELETE', async function(assert) {
       assert.expect(4);
 
-      let planet = source.serializer.deserializeResource({
+      let planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345'
       });
 
-      let moon = source.serializer.deserializeResource({
+      let moon = source.requestProcessor.serializer.deserializeResource({
         type: 'moon',
         id: '987'
       });
@@ -667,12 +560,12 @@ module('JSONAPISource', function() {
     test('#push - can update a hasOne relationship with PATCH', async function(assert) {
       assert.expect(5);
 
-      let planet = source.serializer.deserializeResource({
+      let planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345'
       });
 
-      let moon = source.serializer.deserializeResource({
+      let moon = source.requestProcessor.serializer.deserializeResource({
         type: 'moon',
         id: '987'
       });
@@ -704,7 +597,7 @@ module('JSONAPISource', function() {
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       };
 
-      let moon = source.serializer.deserializeResource({
+      let moon = source.requestProcessor.serializer.deserializeResource({
         type: 'moon',
         id: '987'
       });
@@ -739,7 +632,7 @@ module('JSONAPISource', function() {
     test('#push - can clear a hasOne relationship with PATCH', async function(assert) {
       assert.expect(5);
 
-      let moon = source.serializer.deserializeResource({
+      let moon = source.requestProcessor.serializer.deserializeResource({
         type: 'moon',
         id: '987'
       });
@@ -765,12 +658,12 @@ module('JSONAPISource', function() {
     test('#push - can replace a hasMany relationship with PATCH', async function(assert) {
       assert.expect(5);
 
-      let planet = source.serializer.deserializeResource({
+      let planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345'
       });
 
-      let moon = source.serializer.deserializeResource({
+      let moon = source.requestProcessor.serializer.deserializeResource({
         type: 'moon',
         id: '987'
       });
@@ -796,8 +689,8 @@ module('JSONAPISource', function() {
     test('#push - a single transform can result in multiple requests', async function(assert) {
       assert.expect(6);
 
-      let planet1 = source.serializer.deserializeResource({ type: 'planet', id: '1' });
-      let planet2 = source.serializer.deserializeResource({ type: 'planet', id: '2' });
+      let planet1 = source.requestProcessor.serializer.deserializeResource({ type: 'planet', id: '1' });
+      let planet2 = source.requestProcessor.serializer.deserializeResource({ type: 'planet', id: '2' });
 
       fetchStub
         .withArgs('/planets/1')
@@ -826,8 +719,8 @@ module('JSONAPISource', function() {
     test('#push - source can limit the number of allowed requests per transform with `maxRequestsPerTransform`', async function(assert) {
       assert.expect(1);
 
-      let planet1 = source.serializer.deserializeResource({ type: 'planet', id: '1' });
-      let planet2 = source.serializer.deserializeResource({ type: 'planet', id: '2' });
+      let planet1 = source.requestProcessor.serializer.deserializeResource({ type: 'planet', id: '1' });
+      let planet2 = source.requestProcessor.serializer.deserializeResource({ type: 'planet', id: '2' });
 
       source.maxRequestsPerTransform = 1;
 
@@ -844,7 +737,7 @@ module('JSONAPISource', function() {
     test('#push - request can timeout', async function(assert) {
       assert.expect(2);
 
-      let planet = source.serializer.deserializeResource({
+      let planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345',
         attributes: {
@@ -872,7 +765,7 @@ module('JSONAPISource', function() {
     test('#push - allowed timeout can be specified per-request', async function(assert) {
       assert.expect(2);
 
-      let planet = source.serializer.deserializeResource({
+      let planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345',
         attributes: {
@@ -907,7 +800,7 @@ module('JSONAPISource', function() {
     test('#push - fetch can reject with a NetworkError', async function(assert) {
       assert.expect(2);
 
-      let planet = source.serializer.deserializeResource({
+      let planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345',
         attributes: {
@@ -932,7 +825,7 @@ module('JSONAPISource', function() {
     test('#push - response can trigger a ClientError', async function(assert) {
       assert.expect(3);
 
-      let planet = source.serializer.deserializeResource({
+      let planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345',
         attributes: {
@@ -965,7 +858,7 @@ module('JSONAPISource', function() {
 
       const data: Resource = { type: 'planets', id: '12345', attributes: { name: 'Jupiter', classification: 'gas giant' } };
 
-      const planet = source.serializer.deserializeResource({
+      const planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345'
       });
@@ -994,7 +887,7 @@ module('JSONAPISource', function() {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = source.serializer.deserializeResource({
+      const planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345'
       });
@@ -1025,7 +918,7 @@ module('JSONAPISource', function() {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = source.serializer.deserializeResource({
+      const planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345'
       });
@@ -1057,7 +950,7 @@ module('JSONAPISource', function() {
     test('#pull - fetch can reject with a NetworkError', async function(assert) {
       assert.expect(2);
 
-      const planet = source.serializer.deserializeResource({
+      const planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345'
       });
@@ -1085,7 +978,7 @@ module('JSONAPISource', function() {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = source.serializer.deserializeResource({
+      const planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345'
       });
@@ -1429,7 +1322,7 @@ module('JSONAPISource', function() {
     test('#pull - relatedRecord', async function(assert) {
       assert.expect(12);
 
-      const planetRecord: Record = source.serializer.deserialize({
+      const planetRecord: Record = source.requestProcessor.serializer.deserialize({
         data: {
           type: 'planets',
           id: 'jupiter'
@@ -1477,7 +1370,7 @@ module('JSONAPISource', function() {
     test('#pull - relatedRecords', async function(assert) {
       assert.expect(8);
 
-      let planetRecord: Record = source.serializer.deserialize({
+      let planetRecord: Record = source.requestProcessor.serializer.deserialize({
         data: {
           type: 'planets',
           id: 'jupiter'
@@ -1516,7 +1409,7 @@ module('JSONAPISource', function() {
     test('#pull - relatedRecords with include', async function(assert) {
       assert.expect(2);
 
-      const planetRecord = source.serializer.deserialize({
+      const planetRecord = source.requestProcessor.serializer.deserialize({
         data: {
           type: 'planets',
           id: 'jupiter'
@@ -1546,7 +1439,7 @@ module('JSONAPISource', function() {
 
       const data: Resource = { type: 'planets', id: '12345', attributes: { name: 'Jupiter', classification: 'gas giant' } };
 
-      const planet = source.serializer.deserializeResource({
+      const planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345'
       });
@@ -1564,6 +1457,32 @@ module('JSONAPISource', function() {
       assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
+    test('#query - invokes preprocessResponseDocument when response has content', async function(assert) {
+      assert.expect(1);
+
+      const data: Resource = { type: 'planets', id: '12345', attributes: { name: 'Jupiter', classification: 'gas giant' } };
+      const meta = {
+        'important-info': 'goes-here'
+      };
+      let responseDoc = { data, meta };
+
+      const planet = source.requestProcessor.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345'
+      });
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(jsonapiResponse(200, responseDoc));
+
+      const preprocessResponseDocumentSpy = sinon.spy(source.requestProcessor, 'preprocessResponseDocument');
+
+      await source.query(q => q.findRecord({ type: 'planet', id: planet.id }));
+
+      assert.ok(preprocessResponseDocumentSpy.calledOnceWith(responseDoc, sinon.match.any));
+      preprocessResponseDocumentSpy.restore();
+    });
+
     test('#query - request can timeout', async function(assert) {
       assert.expect(2);
 
@@ -1574,7 +1493,7 @@ module('JSONAPISource', function() {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = source.serializer.deserializeResource({
+      const planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345'
       });
@@ -1605,7 +1524,7 @@ module('JSONAPISource', function() {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = source.serializer.deserializeResource({
+      const planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345'
       });
@@ -1636,7 +1555,7 @@ module('JSONAPISource', function() {
     test('#query - fetch can reject with a NetworkError', async function(assert) {
       assert.expect(2);
 
-      const planet = source.serializer.deserializeResource({
+      const planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345'
       });
@@ -1664,7 +1583,7 @@ module('JSONAPISource', function() {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = source.serializer.deserializeResource({
+      const planet = source.requestProcessor.serializer.deserializeResource({
         type: 'planet',
         id: '12345'
       });
@@ -2003,10 +1922,24 @@ module('JSONAPISource', function() {
       assert.equal(fetchStub.getCall(0).args[1].method, undefined, 'fetch called with no method (equivalent to GET)');
     });
 
+    test('#query - records invokes preprocessResponseDocument when response has content', async function(assert) {
+      assert.expect(1);
+      const responseDoc : ResourceDocument = { meta: { 'interesting': 'info' }, data: [] };
+      fetchStub
+        .withArgs(`/planets`)
+        .returns(jsonapiResponse(200, responseDoc));
+        const preprocessResponseDocumentSpy = sinon.spy(source.requestProcessor, 'preprocessResponseDocument');
+
+      await source.query(q => q.findRecords('planet'), {});
+
+      assert.ok(preprocessResponseDocumentSpy.calledOnceWith(responseDoc, sinon.match.any));
+      preprocessResponseDocumentSpy.restore();
+    });
+
     test('#query - relatedRecords', async function(assert) {
       assert.expect(5);
 
-      let planetRecord: Record = source.serializer.deserialize({
+      let planetRecord: Record = source.requestProcessor.serializer.deserialize({
         data: {
           type: 'planets',
           id: 'jupiter'
@@ -2038,7 +1971,7 @@ module('JSONAPISource', function() {
     test('#query - relatedRecords with include', async function(assert) {
       assert.expect(2);
 
-      const planetRecord = source.serializer.deserialize({
+      const planetRecord = source.requestProcessor.serializer.deserialize({
         data: {
           type: 'planets',
           id: 'jupiter'
