@@ -57,18 +57,18 @@ export function mergeRequestOptions(options: RequestOptions, customOptions: Requ
 
 function mergeIncludePaths(paths:string[], customPaths:string[]) {
   let result = clone(paths);
-  customPaths.forEach((customPath) => {
+  for (let customPath of customPaths) {
     if (!paths.includes(customPath)) {
         result.push(customPath);
     }
-  });
+  }
   return result;
 }
 
 function mergeFilters(filters: Filter[], customFilters: Filter[]) {
   let result: Filter[] = clone(filters);
   let filterKeys:string[] = filters.map((f) => filterKey(f));
-  customFilters.forEach((customFilter) => {
+  for (let customFilter of customFilters) {
     let customerFilterKey = filterKey(customFilter);
     if (filterKeys.includes(customerFilterKey)) {
       let filterToOverride = result.find(f => filterKey(f) === customerFilterKey);
@@ -76,7 +76,7 @@ function mergeFilters(filters: Filter[], customFilters: Filter[]) {
     } else {
       result.push(customFilter);
     }
-  });
+  }
   return result;
 }
 
