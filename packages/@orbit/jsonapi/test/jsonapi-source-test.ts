@@ -103,7 +103,7 @@ module('JSONAPISource', function() {
     });
 
      test('source saves options', function(assert) {
-      assert.expect(7);
+      assert.expect(5);
 
       let schema = new Schema({} as SchemaSettings);
       source = new JSONAPISource({
@@ -117,8 +117,6 @@ module('JSONAPISource', function() {
       });
       assert.equal(source.name, 'custom', 'name is custom');
       assert.deepEqual(source.allowedContentTypes, ['application/custom'], 'allowedContentTypes are custom');
-      assert.equal(source.requestProcessor.namespace, 'api', 'Namespace should be defined');
-      assert.equal(source.requestProcessor.host, '127.0.0.1:8888', 'Host should be defined');
 
       const headers = source.defaultFetchSettings.headers as any;
       assert.equal(headers['User-Agent'], 'CERN-LineMode/2.15 libwww/2.17b3', 'Headers should be defined');

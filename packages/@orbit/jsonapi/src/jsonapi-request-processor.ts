@@ -58,16 +58,12 @@ export default class JSONAPIRequestProcessor {
   urlBuilder: JSONAPIURLBuilder;
   allowedContentTypes: string[];
   defaultFetchSettings: FetchSettings;
-  host: string;
-  namespace: string;
   schema: Schema;
   keyMap: KeyMap;
 
   constructor(settings: JSONAPIRequestProcessorSettings) {
     this.sourceName = settings.sourceName;
     this.allowedContentTypes = settings.allowedContentTypes || ['application/vnd.api+json', 'application/json'];
-    this.host = settings.host;
-    this.namespace = settings.namespace;
     this.schema = settings.schema;
     this.keyMap = settings.keyMap;
     let SerializerClass = settings.SerializerClass || JSONAPISerializer;
