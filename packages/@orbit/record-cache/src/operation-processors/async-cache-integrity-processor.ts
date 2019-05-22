@@ -7,7 +7,8 @@ import { AsyncOperationProcessor } from '../async-operation-processor';
 import {
   getInverseRelationship,
   getInverseRelationships,
-  getAllInverseRelationships
+  getAllInverseRelationships,
+  getInverseRelationshipRemovalOps
 } from './utils/cache-integrity-utils';
 
 /**
@@ -46,8 +47,9 @@ export default class AsyncCacheIntegrityProcessor extends AsyncOperationProcesso
         return [];
 
       case 'removeRecord':
+        let ops = await this.clearInverseRelationshipOps(operation.record);
         await this.removeAllInverseRelationships(operation.record);
-        return [];
+        return ops;
 
       case 'updateRecord':
         await this.removeAllInverseRelationships(operation.record);
@@ -126,5 +128,12 @@ export default class AsyncCacheIntegrityProcessor extends AsyncOperationProcesso
     if (inverseRelationships) {
       await this.accessor.removeInverseRelationshipsAsync(inverseRelationships);
     }
+  }
+
+  protected async clearInverseRelationshipOps(record: RecordIdentity): Promise<RecordOperation[]> {
+    return getInverseRelationshipRemovalOps(
+      this.accessor.schema,
+      await this.accessor.getInverseRelationshipsAsync(record)
+    );
   }
 }

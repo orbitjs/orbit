@@ -900,6 +900,82 @@ module('CacheIntegrityProcessor', function(hooks) {
     }]);
   });
 
+  test('remove record with hasMany relationships - verify processor', function(assert) {
+    const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: [humanId] } } };
+    const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: [earthId] } } };
+
+    cache.patch(t => [
+      t.addRecord(earth),
+      t.addRecord(human)
+    ]);
+
+    assert.deepEqual(cache.getInverseRelationshipsSync(earth), [{
+      record: humanId,
+      relationship: 'planets',
+      relatedRecord: earthId
+    }]);
+
+    assert.deepEqual(cache.getInverseRelationshipsSync(human), [{
+      record: earthId,
+      relationship: 'inhabitants',
+      relatedRecord: humanId
+    }]);
+
+    const removeInhabitantOp: RemoveRecordOperation = {
+      op: 'removeRecord',
+      record: human
+    };
+
+    assert.deepEqual(
+      processor.before(removeInhabitantOp),
+      []
+    );
+
+    assert.deepEqual(
+      processor.after(removeInhabitantOp),
+      [
+        {
+          op: 'removeFromRelatedRecords',
+          record: earthId,
+          relationship: 'inhabitants',
+          relatedRecord: humanId
+        }
+      ]
+    );
+
+    assert.deepEqual(
+      processor.finally(removeInhabitantOp),
+      []
+    );
+  });
+
+  test('remove record with hasMany relationships - verify inverse relationships are cleared', function(assert) {
+    const earth = { type: 'planet', id: 'earth', relationships: { inhabitants: { data: [humanId] } } };
+    const human = { type: 'inhabitant', id: 'human', relationships: { planets: { data: [earthId] } } };
+
+    cache.patch(t => [
+      t.addRecord(earth),
+      t.addRecord(human)
+    ]);
+
+    assert.deepEqual(cache.getInverseRelationshipsSync(earth), [{
+      record: humanId,
+      relationship: 'planets',
+      relatedRecord: earthId
+    }]);
+
+    assert.deepEqual(cache.getInverseRelationshipsSync(human), [{
+      record: earthId,
+      relationship: 'inhabitants',
+      relatedRecord: humanId
+    }]);
+
+    cache.patch(t => t.removeRecord(humanId));
+
+    assert.deepEqual(cache.getInverseRelationshipsSync(earth), []);
+    assert.deepEqual(cache.getInverseRelationshipsSync(human), []);
+  });
+
   test('updateRecord', function(assert) {
     const earth = earthId;
     const human = humanId;

@@ -3,6 +3,7 @@ import {
   cloneRecordIdentity,
   Record,
   RecordIdentity,
+  RecordOperation,
   Schema
 } from '@orbit/data';
 import { RecordRelationshipIdentity } from '../../record-accessor';
@@ -68,4 +69,31 @@ export function getAllInverseRelationships(record: Record): RecordRelationshipId
 
     return inverseRelationships;
   }
+}
+
+export function getInverseRelationshipRemovalOps(schema: Schema, inverseRelationships: RecordRelationshipIdentity[]): RecordOperation[] {
+  const ops: RecordOperation[] = [];
+
+  if (inverseRelationships && inverseRelationships.length > 0) {
+    inverseRelationships.forEach(rel => {
+      const relationshipDef = schema.getModel(rel.record.type).relationships[rel.relationship];
+      if (relationshipDef.type === 'hasMany') {
+        ops.push({
+          op: 'removeFromRelatedRecords',
+          record: rel.record,
+          relationship: rel.relationship,
+          relatedRecord: rel.relatedRecord
+        });
+      } else {
+        ops.push({
+          op: 'replaceRelatedRecord',
+          record: rel.record,
+          relationship: rel.relationship,
+          relatedRecord: null
+        });
+      }
+    });
+  }
+
+  return ops;
 }

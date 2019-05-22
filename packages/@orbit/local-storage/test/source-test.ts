@@ -216,7 +216,7 @@ module('LocalStorageSource', function(hooks) {
     assert.deepEqual(getRecordFromLocalStorage(source, planet), null, 'local storage does not contain record');
   });
 
-  skip('#push - removeRecord when part of has many relationship', async function(assert) {
+  test('#push - removeRecord when part of has many relationship', async function(assert) {
     assert.expect(2);
 
     let moon1 = { type: 'moon', id: 'moon1' };
