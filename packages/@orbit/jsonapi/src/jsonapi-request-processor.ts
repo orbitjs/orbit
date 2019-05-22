@@ -25,19 +25,10 @@ import {
 } from './jsonapi-serializer';
 const { assert, deprecate } = Orbit;
 
-export interface FetchSettings {
-  headers?: object;
-  method?: string;
+export interface FetchSettings extends RequestInit {
   json?: object;
-  body?: string;
   params?: any;
   timeout?: number;
-  credentials?: string;
-  cache?: string;
-  redirect?: string;
-  referrer?: string;
-  referrerPolicy?: string;
-  integrity?: string;
 }
 
 export interface JSONAPIRequestProcessorSettings {
@@ -91,52 +82,33 @@ export default class JSONAPIRequestProcessor {
   }
 
   fetch(url: string, customSettings?: FetchSettings): Promise<any> {
-    let settings = this.initFetchSettings(customSettings);
+    const settings = this.initFetchSettings(customSettings);
+    const urlWithQueryParams = this.urlBuilder.appendQueryParams(url, settings.params);
+    const AbortController = (Orbit as any).AbortController || Orbit.globals.AbortController;
+    const timeout = settings.timeout;
+    delete settings.timeout;
+    let promise: Promise<any>;
 
-    let fullUrl = url;
-    if (settings.params) {
-      fullUrl = this.urlBuilder.appendQueryParams(fullUrl, settings.params);
-      delete settings.params;
-    }
-
-    let fetchFn = (Orbit as any).fetch || Orbit.globals.fetch;
-
-    // console.log('fetch', fullUrl, settings, 'polyfill', fetchFn.polyfill);
-
-    if (settings.timeout) {
-      let timeout = settings.timeout;
-      delete settings.timeout;
-
-      return new Promise((resolve, reject) => {
-        let timedOut: boolean;
-
-        let timer = Orbit.globals.setTimeout(() => {
-          timedOut = true;
-          reject(new NetworkError(`No fetch response within ${timeout}ms.`));
-        }, timeout);
-
-        fetchFn(fullUrl, settings)
-          .catch((e: Error) => {
-            Orbit.globals.clearTimeout(timer);
-
-            if (!timedOut) {
-              return this.handleFetchError(e);
-            }
-          })
-          .then((response: any) => {
-            Orbit.globals.clearTimeout(timer);
-
-            if (!timedOut) {
-              return this.handleFetchResponse(response);
-            }
-          })
-          .then(resolve, reject);
-      });
+    if (timeout && !AbortController) {
+      promise = polyfillFetchWithTimeout(urlWithQueryParams, settings, timeout);
     } else {
-      return fetchFn(fullUrl, settings)
-        .catch((e: Error) => this.handleFetchError(e))
-        .then((response: any) => this.handleFetchResponse(response));
+      const fetchFn = (Orbit as any).fetch || Orbit.globals.fetch;
+
+      if (timeout && AbortController) {
+        const controller = new AbortController();
+        settings.signal = controller.signal;
+
+        Orbit.globals.setTimeout(() => {
+          controller.abort();
+        }, timeout);
+      }
+
+      promise = fetchFn(urlWithQueryParams, settings);
     }
+
+    return promise
+      .catch((e: Error) => this.handleFetchError(e))
+      .then((response: Response) => this.handleFetchResponse(response));
   }
 
   initFetchSettings(customSettings: FetchSettings = {}): FetchSettings {
@@ -290,4 +262,34 @@ export default class JSONAPIRequestProcessor {
   protected async handleFetchError(e: any): Promise<any> {
     throw new NetworkError(e);
   }
+}
+
+function polyfillFetchWithTimeout(url: string, settings: FetchSettings, timeout: number) {
+  const fetchFn = (Orbit as any).fetch || Orbit.globals.fetch;
+
+  return new Promise((resolve, reject) => {
+    let timedOut: boolean;
+
+    let timer = Orbit.globals.setTimeout(() => {
+      timedOut = true;
+      reject(new NetworkError(`No fetch response within ${timeout}ms.`));
+    }, timeout);
+
+    fetchFn(url, settings)
+      .catch((e: Error) => {
+        Orbit.globals.clearTimeout(timer);
+
+        if (!timedOut) {
+          throw e;
+        }
+      })
+      .then((response: Response) => {
+        Orbit.globals.clearTimeout(timer);
+
+        if (!timedOut) {
+          return response;
+        }
+      })
+      .then(resolve, reject);
+  });
 }
