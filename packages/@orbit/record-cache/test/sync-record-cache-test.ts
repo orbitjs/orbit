@@ -803,16 +803,6 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch replace related record does not add a shell record if adding replacing with an empty object', function(assert) {
-    const cache = new Cache({ schema, keyMap });
-
-    let result = cache.patch(t =>
-      t.replaceRelatedRecord({ type: 'planet', id: '1' }, 'moons', null)
-    );
-
-    assert.equal(cache.getRecordSync({ type: 'planet', id: 'p1' }), undefined, 'planet does not exist');
-  });
-
   test('#patch merges records when "replacing" and _will_ replace specified attributes and relationships', function(assert) {
     const cache = new Cache({ schema, keyMap });
     const tb = cache.transformBuilder;

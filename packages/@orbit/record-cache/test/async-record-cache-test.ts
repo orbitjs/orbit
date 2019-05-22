@@ -804,16 +804,6 @@ module('AsyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch replace related record does not add a shell record if adding replacing with an empty object', async function(assert) {
-    const cache = new Cache({ schema, keyMap });
-
-    let result = await cache.patch(t =>
-      t.replaceRelatedRecord({ type: 'planet', id: '1' }, 'moons', null)
-    );
-
-    assert.equal(await cache.getRecordAsync({ type: 'planet', id: 'p1' }), undefined, 'planet does not exist');
-  });
-
   test('#patch merges records when updating and _will_ replace only specified attributes and relationships', async function(assert) {
     const cache = new Cache({ schema, keyMap });
     const tb = cache.transformBuilder;

@@ -933,6 +933,11 @@ module('CacheIntegrityProcessor', function(hooks) {
 
     assert.deepEqual(
       processor.after(removeInhabitantOp),
+      []
+    );
+
+    assert.deepEqual(
+      processor.finally(removeInhabitantOp),
       [
         {
           op: 'removeFromRelatedRecords',
@@ -941,11 +946,6 @@ module('CacheIntegrityProcessor', function(hooks) {
           relatedRecord: humanId
         }
       ]
-    );
-
-    assert.deepEqual(
-      processor.finally(removeInhabitantOp),
-      []
     );
   });
 
