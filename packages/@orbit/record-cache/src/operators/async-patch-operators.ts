@@ -146,6 +146,10 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
     let record = await cache.getRecordAsync(op.record);
     const { relationship, relatedRecord } = op;
 
+    if (!record && !relatedRecord) {
+      return null;
+    }
+
     if (record) {
       record = clone(record);
     } else {

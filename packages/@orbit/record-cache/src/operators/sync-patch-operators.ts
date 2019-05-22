@@ -146,6 +146,10 @@ export const SyncPatchOperators: Dict<SyncPatchOperator> = {
     let record = cache.getRecordSync(op.record);
     const { relationship, relatedRecord } = op;
 
+    if (!record && !relatedRecord) {
+      return null;
+    }
+
     if (record) {
       record = clone(record);
     } else {
