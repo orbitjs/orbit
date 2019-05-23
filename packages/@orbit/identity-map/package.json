@@ -15,7 +15,7 @@
   "repository": "https://github.com/orbitjs/orbit",
   "license": "MIT",
   "main": "dist/commonjs/es5/index.js",
-  "module": "dist/modules/es5/index.js",
+  "module": "dist/modules/es2017/index.js",
   "types": "dist/types/index.d.ts",
   "scripts": {
     "build": "rm -rf dist && BROCCOLI_ENV=dist broccoli build dist",
