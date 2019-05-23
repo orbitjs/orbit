@@ -25,10 +25,10 @@ module('IndexedDBSource', function(hooks) {
             revised: { type: 'boolean' }
           },
           relationships: {
-            moons: { type: 'hasMany', model: 'moon', inverse: 'planet' },
+            moons: { kind: 'hasMany', type: 'moon', inverse: 'planet' },
             solarSystem: {
-              type: 'hasOne',
-              model: 'solarSystem',
+              kind: 'hasOne',
+              type: 'solarSystem',
               inverse: 'planets'
             }
           }
@@ -39,7 +39,7 @@ module('IndexedDBSource', function(hooks) {
             name: { type: 'string' }
           },
           relationships: {
-            planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
+            planet: { kind: 'hasOne', type: 'planet', inverse: 'moons' }
           }
         },
         solarSystem: {
@@ -49,8 +49,8 @@ module('IndexedDBSource', function(hooks) {
           },
           relationships: {
             planets: {
-              type: 'hasMany',
-              model: 'planet',
+              kind: 'hasMany',
+              type: 'planet',
               inverse: 'solarSystem'
             }
           }

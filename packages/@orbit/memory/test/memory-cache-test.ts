@@ -25,7 +25,7 @@ module('MemoryCache', function(hooks) {
             remoteId: {}
           },
           relationships: {
-            moons: { type: 'hasMany', model: 'moon', inverse: 'planet' }
+            moons: { kind: 'hasMany', type: 'moon', inverse: 'planet' }
           }
         },
         moon: {
@@ -33,7 +33,7 @@ module('MemoryCache', function(hooks) {
             remoteId: {}
           },
           relationships: {
-            planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
+            planet: { kind: 'hasOne', type: 'planet', inverse: 'moons' }
           }
         }
       }
@@ -223,13 +223,13 @@ module('MemoryCache', function(hooks) {
 
     let models = clone(schema.models);
     models.planet.relationships.inhabitants = {
-      type: 'hasMany',
-      model: 'person',
+      kind: 'hasMany',
+      type: 'person',
       inverse: 'planet'
     };
     models.person = {
       relationships: {
-        planet: { type: 'hasOne', model: 'planet', inverse: 'inhabitants' }
+        planet: { kind: 'hasOne', type: 'planet', inverse: 'inhabitants' }
       }
     };
 
@@ -676,12 +676,12 @@ module('MemoryCache', function(hooks) {
       models: {
         one: {
           relationships: {
-            two: { type: 'hasOne', model: 'two', inverse: 'one' }
+            two: { kind: 'hasOne', type: 'two', inverse: 'one' }
           }
         },
         two: {
           relationships: {
-            one: { type: 'hasOne', model: 'one', inverse: 'two' }
+            one: { kind: 'hasOne', type: 'one', inverse: 'two' }
           }
         }
       }

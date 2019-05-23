@@ -146,16 +146,19 @@ export default class AsyncSchemaValidationProcessor extends AsyncOperationProces
     if (relationshipDef === undefined) {
       throw new RelationshipNotFound(relationship, record.type);
     }
-    if (Array.isArray(relationshipDef.model)) {
-      if (!relationshipDef.model.includes(relatedRecord.type)) {
+    const type = relationshipDef.kind
+      ? relationshipDef.type
+      : relationshipDef.model;
+    if (Array.isArray(type)) {
+      if (!type.includes(relatedRecord.type)) {
         throw new IncorrectRelatedRecordType(
           relatedRecord.type,
           relationship,
           record.type
         );
       }
-    } else if (typeof relationshipDef.model === 'string') {
-      if (relationshipDef.model !== relatedRecord.type) {
+    } else if (typeof type === 'string') {
+      if (type !== relatedRecord.type) {
         throw new IncorrectRelatedRecordType(
           relatedRecord.type,
           relationship,

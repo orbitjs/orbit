@@ -25,8 +25,8 @@ module('AsyncRecordCache', function(hooks) {
           },
           relationships: {
             celestialObjects: {
-              type: 'hasMany',
-              model: ['planet', 'moon'],
+              kind: 'hasMany',
+              type: ['planet', 'moon'],
               inverse: 'star'
             }
           }
@@ -36,8 +36,8 @@ module('AsyncRecordCache', function(hooks) {
             remoteId: {}
           },
           relationships: {
-            moons: { type: 'hasMany', model: 'moon', inverse: 'planet' },
-            star: { type: 'hasOne', model: 'star', inverse: 'celestialObjects' }
+            moons: { kind: 'hasMany', type: 'moon', inverse: 'planet' },
+            star: { kind: 'hasOne', type: 'star', inverse: 'celestialObjects' }
           }
         },
         moon: {
@@ -45,8 +45,8 @@ module('AsyncRecordCache', function(hooks) {
             remoteId: {}
           },
           relationships: {
-            planet: { type: 'hasOne', model: 'planet', inverse: 'moons' },
-            star: { type: 'hasOne', model: 'star', inverse: 'celestialObjects' }
+            planet: { kind: 'hasOne', type: 'planet', inverse: 'moons' },
+            star: { kind: 'hasOne', type: 'star', inverse: 'celestialObjects' }
           }
         }
       }
@@ -909,12 +909,12 @@ module('AsyncRecordCache', function(hooks) {
       models: {
         one: {
           relationships: {
-            two: { type: 'hasOne', model: 'two', inverse: 'one' }
+            two: { kind: 'hasOne', type: 'two', inverse: 'one' }
           }
         },
         two: {
           relationships: {
-            one: { type: 'hasOne', model: 'one', inverse: 'two' }
+            one: { kind: 'hasOne', type: 'one', inverse: 'two' }
           }
         }
       }
@@ -969,12 +969,12 @@ module('AsyncRecordCache', function(hooks) {
       models: {
         planet: {
           relationships: {
-            moons: { type: 'hasMany', model: 'moon' }
+            moons: { kind: 'hasMany', type: 'moon' }
           }
         },
         moon: {
           relationships: {
-            planet: { type: 'hasOne', model: 'planet', dependent: 'remove' }
+            planet: { kind: 'hasOne', type: 'planet', dependent: 'remove' }
           }
         }
       }
@@ -1027,12 +1027,12 @@ module('AsyncRecordCache', function(hooks) {
       models: {
         planet: {
           relationships: {
-            moons: { type: 'hasMany', model: 'moon', dependent: 'remove' }
+            moons: { kind: 'hasMany', type: 'moon', dependent: 'remove' }
           }
         },
         moon: {
           relationships: {
-            planet: { type: 'hasOne', model: 'planet' }
+            planet: { kind: 'hasOne', type: 'planet' }
           }
         }
       }
@@ -1085,12 +1085,12 @@ module('AsyncRecordCache', function(hooks) {
       models: {
         planet: {
           relationships: {
-            moons: { type: 'hasMany', model: 'moon' }
+            moons: { kind: 'hasMany', type: 'moon' }
           }
         },
         moon: {
           relationships: {
-            planet: { type: 'hasOne', model: 'planet' }
+            planet: { kind: 'hasOne', type: 'planet' }
           }
         }
       }

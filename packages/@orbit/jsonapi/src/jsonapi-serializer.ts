@@ -528,11 +528,14 @@ export class JSONAPISerializer
     | UpdateRecordOperation {
     if (isRelatedResourceOperation(operation)) {
       const type = this.recordType(operation.ref.type);
-      const model: ModelDefinition = this._schema.getModel(type);
-      const relationships = model.relationships;
-      const relationship =
-        relationships && relationships[operation.ref.relationship];
-      if (relationship && relationship.type === 'hasMany') {
+      const relationshipDef = this._schema.getRelationship(
+        type,
+        operation.ref.relationship
+      );
+      if (
+        relationshipDef &&
+        (relationshipDef.kind || relationshipDef.type) === 'hasMany'
+      ) {
         return {
           op: 'replaceRelatedRecords',
           relationship: operation.ref.relationship,

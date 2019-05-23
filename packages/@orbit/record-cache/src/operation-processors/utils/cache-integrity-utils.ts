@@ -98,7 +98,7 @@ export function getInverseRelationshipRemovalOps(
       inverseRelationship.relationship
     );
 
-    if (relationshipDef.type === 'hasMany') {
+    if ((relationshipDef.kind || relationshipDef.type) === 'hasMany') {
       ops.push({
         op: 'removeFromRelatedRecords',
         record: inverseRelationship.record,

@@ -30,8 +30,8 @@ module('LocalStorageSource', function(hooks) {
             revised: { type: 'boolean' }
           },
           relationships: {
-            moons: { type: 'hasMany', model: 'moon' },
-            solarSystem: { type: 'hasMany', model: 'solarSystem' }
+            moons: { kind: 'hasMany', type: 'moon' },
+            solarSystem: { kind: 'hasMany', type: 'solarSystem' }
           }
         },
         moon: {

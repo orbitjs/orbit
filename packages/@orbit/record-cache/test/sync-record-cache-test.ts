@@ -883,12 +883,12 @@ module('SyncRecordCache', function(hooks) {
       models: {
         one: {
           relationships: {
-            two: { type: 'hasOne', model: 'two', inverse: 'one' }
+            two: { kind: 'hasOne', type: 'two', inverse: 'one' }
           }
         },
         two: {
           relationships: {
-            one: { type: 'hasOne', model: 'one', inverse: 'two' }
+            one: { kind: 'hasOne', type: 'one', inverse: 'two' }
           }
         }
       }
@@ -942,12 +942,12 @@ module('SyncRecordCache', function(hooks) {
       models: {
         planet: {
           relationships: {
-            moons: { type: 'hasMany', model: 'moon' }
+            moons: { kind: 'hasMany', type: 'moon' }
           }
         },
         moon: {
           relationships: {
-            planet: { type: 'hasOne', model: 'planet', dependent: 'remove' }
+            planet: { kind: 'hasOne', type: 'planet', dependent: 'remove' }
           }
         }
       }
@@ -1000,12 +1000,12 @@ module('SyncRecordCache', function(hooks) {
       models: {
         planet: {
           relationships: {
-            moons: { type: 'hasMany', model: 'moon', dependent: 'remove' }
+            moons: { kind: 'hasMany', type: 'moon', dependent: 'remove' }
           }
         },
         moon: {
           relationships: {
-            planet: { type: 'hasOne', model: 'planet' }
+            planet: { kind: 'hasOne', type: 'planet' }
           }
         }
       }
@@ -1058,12 +1058,12 @@ module('SyncRecordCache', function(hooks) {
       models: {
         planet: {
           relationships: {
-            moons: { type: 'hasMany', model: 'moon' }
+            moons: { kind: 'hasMany', type: 'moon' }
           }
         },
         moon: {
           relationships: {
-            planet: { type: 'hasOne', model: 'planet' }
+            planet: { kind: 'hasOne', type: 'planet' }
           }
         }
       }

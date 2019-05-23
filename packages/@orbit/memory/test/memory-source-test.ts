@@ -27,7 +27,7 @@ module('MemorySource', function(hooks) {
           name: { type: 'string' }
         },
         relationships: {
-          planets: { type: 'hasMany', model: 'planet', inverse: 'star' }
+          planets: { kind: 'hasMany', type: 'planet', inverse: 'star' }
         }
       },
       planet: {
@@ -36,8 +36,8 @@ module('MemorySource', function(hooks) {
           classification: { type: 'string' }
         },
         relationships: {
-          moons: { type: 'hasMany', model: 'moon', inverse: 'planet' },
-          star: { type: 'hasOne', model: 'star', inverse: 'planets' }
+          moons: { kind: 'hasMany', type: 'moon', inverse: 'planet' },
+          star: { kind: 'hasOne', type: 'star', inverse: 'planets' }
         }
       },
       moon: {
@@ -45,7 +45,7 @@ module('MemorySource', function(hooks) {
           name: { type: 'string' }
         },
         relationships: {
-          planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
+          planet: { kind: 'hasOne', type: 'planet', inverse: 'moons' }
         }
       }
     }
@@ -1113,13 +1113,13 @@ module('MemorySource', function(hooks) {
 
     let models = clone(schema.models);
     models.planet.relationships.inhabitants = {
-      type: 'hasMany',
-      model: 'person',
+      kind: 'hasMany',
+      type: 'person',
       inverse: 'planet'
     };
     models.person = {
       relationships: {
-        planet: { type: 'hasOne', model: 'planet', inverse: 'inhabitants' }
+        planet: { kind: 'hasOne', type: 'planet', inverse: 'inhabitants' }
       }
     };
 

@@ -22,8 +22,8 @@ module('SchemaValidationProcessor', function(hooks) {
           name: { type: 'string' }
         },
         relationships: {
-          parent: { type: 'hasOne', model: 'node', inverse: 'children' },
-          children: { type: 'hasMany', model: 'node', inverse: 'parent' }
+          parent: { kind: 'hasOne', type: 'node', inverse: 'children' },
+          children: { kind: 'hasMany', type: 'node', inverse: 'parent' }
         }
       },
       person: {
@@ -31,8 +31,8 @@ module('SchemaValidationProcessor', function(hooks) {
           name: { type: 'string' }
         },
         relationships: {
-          favoritePet: { type: 'hasOne', model: ['cat', 'dog'] },
-          pets: { type: 'hasMany', model: ['cat', 'dog'], inverse: 'owner' }
+          favoritePet: { kind: 'hasOne', type: ['cat', 'dog'] },
+          pets: { kind: 'hasMany', type: ['cat', 'dog'], inverse: 'owner' }
         }
       },
       cat: {
@@ -40,7 +40,7 @@ module('SchemaValidationProcessor', function(hooks) {
           name: { type: 'string' }
         },
         relationships: {
-          owner: { type: 'hasOne', model: 'person', inverse: 'pets' }
+          owner: { kind: 'hasOne', type: 'person', inverse: 'pets' }
         }
       },
       dog: {
@@ -48,7 +48,7 @@ module('SchemaValidationProcessor', function(hooks) {
           name: { type: 'string' }
         },
         relationships: {
-          owner: { type: 'hasOne', model: 'person', inverse: 'pets' }
+          owner: { kind: 'hasOne', type: 'person', inverse: 'pets' }
         }
       }
     }
