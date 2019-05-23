@@ -1,6 +1,6 @@
 {
   "name": "@orbit/immutable",
-  "version": "0.16.0-beta.1",
+  "version": "0.16.0-beta.6",
   "description": "Lightweight immutable library used by Orbit.js.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
