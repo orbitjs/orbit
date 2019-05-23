@@ -15,8 +15,7 @@
   "scripts": {
     "build:tests": "rm -rf tests && BROCCOLI_ENV=tests broccoli build tests",
     "clean": "git clean -x -f",
-    "prepare": "npm run build:tests",
-    "release": "",
+    "prepare": "yarn run build:tests",
     "test": "testem ci"
   },
   "dependencies": {
