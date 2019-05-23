@@ -19,6 +19,6 @@
     "test": "lerna run build && lerna run --concurrency 1 test"
   },
   "devDependencies": {
-    "lerna": "^3.13.4"
+    "lerna": "^3.14.1"
   }
 }
