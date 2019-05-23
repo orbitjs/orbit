@@ -116,6 +116,87 @@ module('Schema', function() {
     assert.equal(schema.hasRelationship('planet', 'unknown'), false);
   });
 
+  test('#getAttribute', function(assert) {
+    const schema = new Schema({
+      models: {
+        planet: {
+          attributes: {
+            name: { type: 'string' }
+          }
+        }
+      }
+    });
+
+    assert.deepEqual(schema.getAttribute('planet', 'name'), { type: 'string' });
+  });
+
+  test('#eachAttribute', function(assert) {
+    const schema = new Schema({
+      models: {
+        planet: {
+          attributes: {
+            name: { type: 'string' }
+          },
+          relationships: {
+            moons: { type: 'hasMany', model: 'moon' },
+          }
+        },
+        moon: {}
+      },
+    });
+
+    let attributes = {};
+
+    schema.eachAttribute('planet', (name, attribute) => {
+      attributes[name] = attribute;
+    });
+
+    assert.deepEqual(attributes, {
+      name: { type: 'string' }
+    });
+  });
+
+  test('#getRelationship', function(assert) {
+    const schema = new Schema({
+      models: {
+        planet: {
+          relationships: {
+            moons: { type: 'hasMany', model: 'moon' },
+          }
+        },
+        moon: {}
+      },
+    });
+
+    assert.deepEqual(schema.getRelationship('planet', 'moons'), { type: 'hasMany', model: 'moon' });
+  });
+
+  test('#eachRelationship', function(assert) {
+    const schema = new Schema({
+      models: {
+        planet: {
+          attributes: {
+            name: { type: 'string' }
+          },
+          relationships: {
+            moons: { type: 'hasMany', model: 'moon' },
+          }
+        },
+        moon: {}
+      },
+    });
+
+    let relationships = {};
+
+    schema.eachRelationship('planet', (name, relationship) => {
+      relationships[name] = relationship;
+    });
+
+    assert.deepEqual(relationships, {
+      moons: { type: 'hasMany', model: 'moon' }
+    });
+  });
+
   test('#pluralize simply adds an `s` to the end of words', function(assert) {
     const schema = new Schema();
     assert.equal(schema.pluralize('cow'), 'cows', 'no kine here');
