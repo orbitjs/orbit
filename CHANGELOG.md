@@ -1,5 +1,46 @@
 # Changelog
 
+## v0.16.0-beta.6 (2019-05-23)
+
+#### :boom: Breaking Change
+* `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/serializers`, `@orbit/store`, `@orbit/utils`
+  * [#644](https://github.com/orbitjs/orbit/pull/644) Update language level of module target to es2017 ([@dgeb](https://github.com/dgeb))
+* `@orbit/integration-tests`, `@orbit/memory`, `@orbit/store`
+  * [#634](https://github.com/orbitjs/orbit/pull/634) Rename @orbit/store to @orbit/memory ([@tchak](https://github.com/tchak))
+
+#### :rocket: Enhancement
+* `@orbit/integration-tests`, `@orbit/jsonapi`
+  * [#630](https://github.com/orbitjs/orbit/pull/630) Introduce JSONAPIRequestProcessor ([@lukemelia](https://github.com/lukemelia))
+* `@orbit/identity-map`
+  * [#636](https://github.com/orbitjs/orbit/pull/636) Implement @orbit/identity-map ([@tchak](https://github.com/tchak))
+* `@orbit/data`, `@orbit/record-cache`
+  * [#627](https://github.com/orbitjs/orbit/pull/627) Polymorphic Relationships ([@ggayowsky](https://github.com/ggayowsky))
+
+#### :bug: Bug Fix
+* `@orbit/memory`, `@orbit/record-cache`
+  * [#637](https://github.com/orbitjs/orbit/pull/637) Dependent record deletion not updating ([@ggayowsky](https://github.com/ggayowsky))
+
+#### :memo: Documentation
+* `@orbit/data`
+  * [#633](https://github.com/orbitjs/orbit/pull/633) replaceRelatedRecord should accept null ([@tchak](https://github.com/tchak))
+* `@orbit/core`
+  * [#629](https://github.com/orbitjs/orbit/pull/629) Fixed typo in comment ([@lukemelia](https://github.com/lukemelia))
+
+#### :house: Internal
+* `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/serializers`, `@orbit/store`, `@orbit/utils`
+  * [#645](https://github.com/orbitjs/orbit/pull/645) Update lerna and build scripts ([@dgeb](https://github.com/dgeb))
+  * [#643](https://github.com/orbitjs/orbit/pull/643) git clean prior to publishing packages ([@dgeb](https://github.com/dgeb))
+* `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/record-cache`, `@orbit/serializers`, `@orbit/store`, `@orbit/utils`
+  * [#632](https://github.com/orbitjs/orbit/pull/632) Remove unnecessary dependencies from builds ([@dgeb](https://github.com/dgeb))
+  * [#631](https://github.com/orbitjs/orbit/pull/631) Switch to yarn ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 4
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+- Gerald Gayowsky ([@ggayowsky](https://github.com/ggayowsky))
+- Luke Melia ([@lukemelia](https://github.com/lukemelia))
+- Paul Chavard ([@tchak](https://github.com/tchak))
+
+
 ## v0.16.0-beta.5 (2019-04-16)
 
 #### :bug: Bug Fix
