@@ -20,7 +20,9 @@
   "scripts": {
     "build": "rm -rf dist && BROCCOLI_ENV=dist broccoli build dist",
     "build:tests": "rm -rf tests && BROCCOLI_ENV=tests broccoli build tests",
+    "clean": "git clean -x -f",
     "prepare": "npm run build",
+    "prepublishOnly": "npm run clean",
     "release": "npm publish",
     "test": "testem ci"
   },
