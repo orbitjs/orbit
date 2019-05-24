@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.16.0-beta.7 (2019-05-24)
+
+#### :boom: Breaking Change
+* `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/serializers`, `@orbit/store`, `@orbit/utils`
+  * [#647](https://github.com/orbitjs/orbit/pull/647) Revert "Update language level of module target to es2017" ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
+
 ## v0.16.0-beta.6 (2019-05-23)
 
 #### :boom: Breaking Change
