@@ -102,6 +102,24 @@ export class ModelNotFound extends SchemaError {
 }
 
 /**
+ * A relationship definition could not be found in the model definition
+ */
+export class RelationshipNotFound extends SchemaError {
+  constructor(relationshipType: string, recordType: string) {
+    super(`Relationship definition for ${relationshipType} not found for model definition ${recordType}`)
+  }
+}
+
+/**
+ * A related record of the incorrect type was attempted to be added to a relationship of a model definition
+ */
+export class IncorrectRelatedRecordType extends SchemaError {
+  constructor(relatedRecordType: string, relationship: string, recordType: string) {
+    super(`Relationship definition ${relationship} for model definition ${recordType} does not accept record of type ${relatedRecordType}`);
+  }
+}
+
+/**
  * An error occurred related to a particular record.
  */
 export abstract class RecordException extends Exception {

@@ -1,6 +1,6 @@
-import { clone, deepGet, deepMerge, deepSet, isArray } from '@orbit/utils';
-import { FetchSettings } from '../jsonapi-source';
-import Orbit, { Source, Query, Transform } from '@orbit/data';
+import { clone, deepMerge, deepSet, merge, isArray } from '@orbit/utils';
+import { FetchSettings } from '../jsonapi-request-processor';
+import Orbit from '@orbit/data';
 
 const { deprecate } = Orbit;
 
@@ -14,10 +14,6 @@ export interface RequestOptions {
   page?: any;
   include?: any;
   settings?: FetchSettings;
-}
-
-export function customRequestOptions(source: Source, queryOrTransform: Query | Transform): RequestOptions {
-  return deepGet(queryOrTransform, ['options', 'sources', source.name]);
 }
 
 export function buildFetchSettings(options: RequestOptions = {}, customSettings?: FetchSettings): FetchSettings {
@@ -45,4 +41,53 @@ export function buildFetchSettings(options: RequestOptions = {}, customSettings?
   }
 
   return settings;
+}
+
+export function mergeRequestOptions(options: RequestOptions, customOptions: RequestOptions) {
+  let result: RequestOptions = {}
+  merge(result, options, customOptions);
+  if (options.include && customOptions.include) {
+    result.include = mergeIncludePaths(options.include, customOptions.include);
+  }
+  if (options.filter && customOptions.filter) {
+    result.filter = mergeFilters(options.filter, customOptions.filter);
+  }
+  return result;
+}
+
+function mergeIncludePaths(paths:string[], customPaths:string[]) {
+  let result = clone(paths);
+  for (let customPath of customPaths) {
+    if (!paths.includes(customPath)) {
+        result.push(customPath);
+    }
+  }
+  return result;
+}
+
+function mergeFilters(filters: Filter[], customFilters: Filter[]) {
+  let result: Filter[] = clone(filters);
+  let filterKeys:string[] = filters.map((f) => filterKey(f));
+  for (let customFilter of customFilters) {
+    let customerFilterKey = filterKey(customFilter);
+    if (filterKeys.includes(customerFilterKey)) {
+      let filterToOverride = result.find(f => filterKey(f) === customerFilterKey);
+      setFilterValue(filterToOverride, filterValue(customFilter));
+    } else {
+      result.push(customFilter);
+    }
+  }
+  return result;
+}
+
+function filterKey(filter: Filter) : string {
+  return Object.keys(filter)[0];
+}
+
+function filterValue(filter: Filter) : string {
+  return Object.values(filter)[0];
+}
+
+function setFilterValue(filter: Filter, value: any) {
+  filter[filterKey(filter)] = value;
 }

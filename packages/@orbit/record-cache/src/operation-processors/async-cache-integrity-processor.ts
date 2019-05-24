@@ -47,9 +47,8 @@ export default class AsyncCacheIntegrityProcessor extends AsyncOperationProcesso
         return [];
 
       case 'removeRecord':
-        let ops = await this.clearInverseRelationshipOps(operation.record);
         await this.removeAllInverseRelationships(operation.record);
-        return ops;
+        return [];
 
       case 'updateRecord':
         await this.removeAllInverseRelationships(operation.record);
@@ -81,6 +80,9 @@ export default class AsyncCacheIntegrityProcessor extends AsyncOperationProcesso
       case 'updateRecord':
         await this.addAllInverseRelationships(operation.record);
         return [];
+
+      case 'removeRecord':
+          return await this.clearInverseRelationshipOps(operation.record);
 
       default:
         return [];

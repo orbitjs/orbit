@@ -19,9 +19,6 @@
     "test": "lerna run build && lerna run --concurrency 1 test"
   },
   "devDependencies": {
-    "@types/qunit": "^2.5.3",
-    "lerna": "3.10.5",
-    "broccoli-cli": "^1.0.0",
-    "testem": "^2.14.0"
+    "lerna": "^3.14.1"
   }
 }

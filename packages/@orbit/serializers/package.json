@@ -1,6 +1,6 @@
 {
   "name": "@orbit/serializers",
-  "version": "0.16.0-beta.1",
+  "version": "0.16.0-beta.6",
   "description": "Serializers for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -14,18 +14,17 @@
   "repository": "https://github.com/orbitjs/orbit",
   "license": "MIT",
   "main": "dist/commonjs/es5/index.js",
-  "module": "dist/modules/es5/index.js",
+  "module": "dist/modules/es2017/index.js",
   "types": "dist/types/index.d.ts",
   "scripts": {
     "build": "rm -rf dist && BROCCOLI_ENV=dist broccoli build dist",
     "build:tests": "rm -rf tests && BROCCOLI_ENV=tests broccoli build tests",
-    "prepare": "npm run build",
-    "release": "npm publish",
+    "clean": "git clean -x -f",
+    "prepare": "yarn run build",
+    "prepublishOnly": "yarn run clean",
     "test": "testem ci"
   },
   "devDependencies": {
-    "@glimmer/build": "^0.9.0",
-    "merge": ">=1.2.1",
-    "randomatic": ">=3.0.0"
+    "@glimmer/build": "^0.10.1"
   }
 }

@@ -132,7 +132,7 @@ export function recordRemoved(schema: Schema, record: Record): RecordOperation[]
 export function recordReplaced(schema: Schema, currentRecord: Record, record: Record): RecordOperation[] {
   const ops: RecordOperation[] = [];
 
-  if (currentRecord && currentRecord.relationships && record.relationships) {
+  if (record.relationships) {
     const modelDef = schema.getModel(record.type);
     const recordIdentity = cloneRecordIdentity(record);
 

@@ -4,7 +4,7 @@ import {
   Schema
 } from '@orbit/data';
 import JSONAPISource from '@orbit/jsonapi';
-import Store from '@orbit/store';
+import MemorySource from '@orbit/memory';
 import Coordinator, { RequestStrategy, SyncStrategy } from '@orbit/coordinator';
 import { jsonapiResponse } from './support/jsonapi';
 import { SinonStatic, SinonStub} from 'sinon';
@@ -17,7 +17,7 @@ module('Store + JSONAPISource + remote IDs + pessimistic coordination', function
   let keyMap: KeyMap;
   let schema: Schema;
   let remote: JSONAPISource;
-  let store: Store;
+  let memory: MemorySource;
   let coordinator: Coordinator;
 
   hooks.beforeEach(() => {
@@ -66,48 +66,48 @@ module('Store + JSONAPISource + remote IDs + pessimistic coordination', function
 
     keyMap = new KeyMap();
 
-    store = new Store({ schema, keyMap });
+    memory = new MemorySource({ schema, keyMap });
 
     remote = new JSONAPISource({ schema, keyMap, name: 'remote' });
-    remote.serializer.resourceKey = function() { return 'remoteId'; };
+    remote.requestProcessor.serializer.resourceKey = function() { return 'remoteId'; };
 
     coordinator = new Coordinator({
-      sources: [store, remote]
+      sources: [memory, remote]
     });
 
-    // Query the remote server whenever the store is queried
+    // Query the remote server whenever the memory source is queried
     coordinator.addStrategy(new RequestStrategy({
-      source: 'store',
+      source: 'memory',
       on: 'beforeQuery',
       target: 'remote',
       action: 'pull',
       blocking: true
     }));
 
-    // Update the remote server whenever the store is updated
+    // Update the remote server whenever the memory source is updated
     coordinator.addStrategy(new RequestStrategy({
-      source: 'store',
+      source: 'memory',
       on: 'beforeUpdate',
       target: 'remote',
       action: 'push',
       blocking: true
     }));
 
-    // Sync all changes received from the remote server to the store
+    // Sync all changes received from the remote server to the memory source
     coordinator.addStrategy(new SyncStrategy({
       source: 'remote',
-      target: 'store',
+      target: 'memory',
       blocking: true
     }));
   });
 
   hooks.afterEach(() => {
-    keyMap = schema = remote = store = coordinator = null;
+    keyMap = schema = remote = memory = coordinator = null;
 
     fetchStub.restore();
   });
 
-  test('Adding a record to the store immediately pushes the update to the remote', async function(assert) {
+  test('Adding a record to the memory source immediately pushes the update to the remote', async function(assert) {
     assert.expect(3);
 
     await coordinator.activate();
@@ -119,9 +119,9 @@ module('Store + JSONAPISource + remote IDs + pessimistic coordination', function
       }));
 
     let planet: Record = { type: 'planet', id: schema.generateId(), attributes: { name: 'Jupiter', classification: 'gas giant' } };
-    await store.update(t => t.addRecord(planet));
+    await memory.update(t => t.addRecord(planet));
 
-    let result = store.cache.query(q => q.findRecord(planet));
+    let result = memory.cache.query(q => q.findRecord(planet));
 
     assert.deepEqual(result, {
       type: 'planet',
