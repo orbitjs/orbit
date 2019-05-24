@@ -2,7 +2,7 @@
   "packages": [
     "packages/@orbit/*"
   ],
-  "version": "0.16.0-beta.6",
+  "version": "0.16.0-beta.7",
   "npmClient": "yarn",
   "publish": {
     "ignoreChanges": [
