@@ -125,7 +125,7 @@ module('JSONAPI', function (hooks) {
                 }
             }
         }))
-        fetchStub.withArgs('/planets').returns(jsonapiResponse(200, {
+        fetchStub.withArgs('/planets').callsFake(() => jsonapiResponse(200, {
             data: [
                 {
                     type: "planets",
