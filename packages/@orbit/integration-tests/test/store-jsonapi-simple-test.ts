@@ -113,7 +113,7 @@ module('JSONAPI', function (hooks) {
     });
     test('double query', async function (assert) {
         assert.expect(1)
-        fetchStub.withArgs('/planets/earth').returns(jsonapiResponse(200, {
+        fetchStub.withArgs('/planets/earth').callsFake(() => jsonapiResponse(200, {
             data: {
                 type: "planets",
                 id: "earth",
