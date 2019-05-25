@@ -1,6 +1,6 @@
 {
   "name": "@orbit/identity-map",
-  "version": "0.16.0-beta.6",
+  "version": "0.16.0-beta.7",
   "description": "Orbit identity map to manage model instances.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>",
@@ -15,7 +15,7 @@
   "repository": "https://github.com/orbitjs/orbit",
   "license": "MIT",
   "main": "dist/commonjs/es5/index.js",
-  "module": "dist/modules/es2017/index.js",
+  "module": "dist/modules/es5/index.js",
   "types": "dist/types/index.d.ts",
   "scripts": {
     "build": "rm -rf dist && BROCCOLI_ENV=dist broccoli build dist",
@@ -27,8 +27,8 @@
   },
   "devDependencies": {
     "@glimmer/build": "^0.10.1",
-    "@orbit/core": "^0.16.0-beta.6",
-    "@orbit/data": "^0.16.0-beta.6",
-    "@orbit/utils": "^0.16.0-beta.6"
+    "@orbit/core": "^0.16.0-beta.7",
+    "@orbit/data": "^0.16.0-beta.7",
+    "@orbit/utils": "^0.16.0-beta.7"
   }
 }
