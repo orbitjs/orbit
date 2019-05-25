@@ -111,8 +111,9 @@ export abstract class Bucket implements Evented {
     if (settings.version === undefined) {
       settings.version = this._version + 1;
     }
-    return this._applySettings(settings)
-      .then(() => this.emit('upgrade', this._version));
+    return this._applySettings(settings).then(() =>
+      this.emit('upgrade', this._version)
+    );
   }
 
   /**

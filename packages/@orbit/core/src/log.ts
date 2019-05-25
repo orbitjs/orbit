@@ -109,7 +109,6 @@ export default class Log implements Evented {
 
     return this.reified
       .then(() => {
-
         const index = this._data.indexOf(id);
         if (index === -1) {
           throw new NotLoggedException(id);
@@ -187,7 +186,8 @@ export default class Log implements Evented {
 
   _reify(data: string[]): void {
     if (!data && this._bucket) {
-      this.reified = this._bucket.getItem(this._name)
+      this.reified = this._bucket
+        .getItem(this._name)
         .then(bucketData => this._initData(bucketData));
     } else {
       this._initData(data);

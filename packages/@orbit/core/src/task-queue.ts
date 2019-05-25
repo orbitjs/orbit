@@ -70,18 +70,18 @@ export default class TaskQueue implements Evented {
     this._performer = target;
     this._name = settings.name;
     this._bucket = settings.bucket;
-    this.autoProcess = settings.autoProcess === undefined ? true : settings.autoProcess;
+    this.autoProcess =
+      settings.autoProcess === undefined ? true : settings.autoProcess;
 
     if (this._bucket) {
       assert('TaskQueue requires a name if it has a bucket', !!this._name);
     }
 
-    this._reify()
-      .then(() => {
-        if (this.length > 0 && this.autoProcess) {
-          this.process();
-        }
-      });
+    this._reify().then(() => {
+      if (this.length > 0 && this.autoProcess) {
+        this.process();
+      }
+    });
   }
 
   /**
@@ -157,9 +157,7 @@ export default class TaskQueue implements Evented {
   get processing(): boolean {
     const processor = this.currentProcessor;
 
-    return processor !== undefined &&
-           processor.started &&
-           !processor.settled;
+    return processor !== undefined && processor.started && !processor.settled;
   }
 
   /**
@@ -280,28 +278,30 @@ export default class TaskQueue implements Evented {
    * Processes all the tasks in the queue. Resolves when the queue is empty.
    */
   process(): Promise<any> {
-    return this._reified
-      .then(() => {
-        let resolution = this._resolution;
+    return this._reified.then(() => {
+      let resolution = this._resolution;
 
-        if (!resolution) {
-          if (this._tasks.length === 0) {
-            resolution = this._complete();
-          } else {
-            this._error = null;
-            this._resolution = resolution = new Promise((resolve, reject) => {
-              this._resolve = resolve;
-              this._reject = reject;
-            });
-            this._settleEach(resolution);
-          }
+      if (!resolution) {
+        if (this._tasks.length === 0) {
+          resolution = this._complete();
+        } else {
+          this._error = null;
+          this._resolution = resolution = new Promise((resolve, reject) => {
+            this._resolve = resolve;
+            this._reject = reject;
+          });
+          this._settleEach(resolution);
         }
+      }
 
-        return resolution;
-      });
+      return resolution;
+    });
   }
 
-  private _settle(processor?: TaskProcessor, alwaysProcess?: boolean): Promise<void> {
+  private _settle(
+    processor?: TaskProcessor,
+    alwaysProcess?: boolean
+  ): Promise<void> {
     if (this.autoProcess || alwaysProcess) {
       let settle = processor ? () => processor.settle() : () => {};
       return this.process().then(settle, settle);
@@ -348,7 +348,7 @@ export default class TaskQueue implements Evented {
 
       return settleInSeries(this, 'beforeTask', task)
         .then(() => processor.process())
-        .then((result) => {
+        .then(() => {
           if (resolution === this._resolution) {
             this._tasks.shift();
             this._processors.shift();
@@ -358,7 +358,7 @@ export default class TaskQueue implements Evented {
               .then(() => this._settleEach(resolution));
           }
         })
-        .catch((e) => {
+        .catch(e => {
           if (resolution === this._resolution) {
             return this._fail(task, e);
           }
@@ -371,13 +371,14 @@ export default class TaskQueue implements Evented {
     this._processors = [];
 
     if (this._bucket) {
-      this._reified = this._bucket.getItem(this._name)
-        .then((tasks: Task[]) => {
-          if (tasks) {
-            this._tasks = tasks;
-            this._processors = tasks.map(task => new TaskProcessor(this._performer, task));
-          }
-        });
+      this._reified = this._bucket.getItem(this._name).then((tasks: Task[]) => {
+        if (tasks) {
+          this._tasks = tasks;
+          this._processors = tasks.map(
+            task => new TaskProcessor(this._performer, task)
+          );
+        }
+      });
     } else {
       this._reified = Promise.resolve();
     }

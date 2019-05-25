@@ -1,4 +1,11 @@
-import { evented, isEvented, fulfillInSeries, settleInSeries, Evented, Listener } from '../src/index';
+import {
+  evented,
+  isEvented,
+  fulfillInSeries,
+  settleInSeries,
+  Evented,
+  Listener
+} from '../src/index';
 
 const { module, test } = QUnit;
 
@@ -163,7 +170,11 @@ module('Evented', function(hooks) {
     obj.on('greeting', greeting1);
     obj.on('greeting', greeting2);
 
-    assert.deepEqual(obj.listeners('greeting'), [greeting1, greeting2], 'listeners match');
+    assert.deepEqual(
+      obj.listeners('greeting'),
+      [greeting1, greeting2],
+      'listeners match'
+    );
   });
 
   test('settleInSeries - can fulfill all promises returned by listeners to an event, in order, until all are settled', function(assert) {
@@ -196,17 +207,18 @@ module('Evented', function(hooks) {
     obj.on('greeting', listener3);
     obj.on('greeting', listener4);
 
-    return settleInSeries(obj, 'greeting', 'hello')
-      .then(result => {
-        assert.equal(result, undefined, 'no result returned');
-        assert.equal(++order, 5, 'promise resolved last');
-      });
+    return settleInSeries(obj, 'greeting', 'hello').then(result => {
+      assert.equal(result, undefined, 'no result returned');
+      assert.equal(++order, 5, 'promise resolved last');
+    });
   });
 
   test('settleInSeries - resolves regardless of errors thrown in handlers', function(assert) {
     assert.expect(1);
 
-    obj.on('greeting', () => { throw new Error(); });
+    obj.on('greeting', () => {
+      throw new Error();
+    });
 
     return settleInSeries(obj, 'greeting', 'hello')
       .then(function(result) {
@@ -235,13 +247,18 @@ module('Evented', function(hooks) {
     obj.on('greeting', listener1);
     obj.on('greeting', listener2);
 
-    return fulfillInSeries(obj, 'greeting', 'hello').then(
-      function(result) {
+    return fulfillInSeries(obj, 'greeting', 'hello')
+      .then(function(result) {
         assert.equal(result, undefined, 'no result returned');
         assert.equal(++order, 3, 'promise resolved last');
-      }).then(function() {
+      })
+      .then(function() {
         const listeners = obj.listeners('greeting');
-        assert.equal(listeners.length, 2, 'listeners should not be unregistered');
+        assert.equal(
+          listeners.length,
+          2,
+          'listeners should not be unregistered'
+        );
       });
   });
 
@@ -280,7 +297,6 @@ module('Evented', function(hooks) {
       .catch(error => {
         assert.equal(++order, 4, 'error handler triggered last');
         assert.equal(error, ':(', 'error result returned');
-      }
-    );
+      });
   });
 });

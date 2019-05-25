@@ -5,11 +5,19 @@ const { module, test } = QUnit;
 module('Bucket', function() {
   // Extend Bucket because it's an abstract class
   class MyBucket extends Bucket {
-    constructor(settings = {}) { super(settings); }
+    constructor(settings = {}) {
+      super(settings);
+    }
 
-    getItem(key: string): Promise<any> { return Promise.resolve(); }
-    setItem(key: string, value: any): Promise<void> { return Promise.resolve(); }
-    removeItem(key: string): Promise<void> { return Promise.resolve(); }
+    getItem(key: string): Promise<any> {
+      return Promise.resolve();
+    }
+    setItem(key: string, value: any): Promise<void> {
+      return Promise.resolve();
+    }
+    removeItem(key: string): Promise<void> {
+      return Promise.resolve();
+    }
   }
 
   test('can be instantiated', function(assert) {
@@ -47,14 +55,19 @@ module('Bucket', function() {
     assert.equal(bucket.namespace, 'ns1', 'namespace matches');
     assert.equal(bucket.version, 1, 'version matches');
 
-    bucket.on('upgrade', (version) => {
-      assert.equal(version, 2, 'version from upgrade event matches expectation');
+    bucket.on('upgrade', version => {
+      assert.equal(
+        version,
+        2,
+        'version from upgrade event matches expectation'
+      );
     });
 
-    bucket.upgrade({
-      namespace: 'ns2',
-      version: 2
-    })
+    bucket
+      .upgrade({
+        namespace: 'ns2',
+        version: 2
+      })
       .then(() => {
         assert.equal(bucket.namespace, 'ns2', 'namespace matches');
         assert.equal(bucket.version, 2, 'version matches');
