@@ -180,14 +180,18 @@ export class JSONAPISerializer implements Serializer<RecordDocument, ResourceDoc
 
   serializeAttribute(resource: Resource, record: Record, attr: string, model: ModelDefinition): void {
     let value: any = record.attributes[attr];
-    if (value !== undefined) {
-      const attrOptions = model.attributes[attr];
-      const serializer = this._serializers[attrOptions.type];
-      if (serializer) {
-        value = serializer.serialize(value, attrOptions.serializationOptions);
-      }
-      deepSet(resource, ['attributes', this.resourceAttribute(record.type, attr)], value);
+    if (value === undefined) {
+      return;
     }
+    const attrOptions = model.attributes[attr];
+    if (attrOptions === undefined) {
+      return;
+    }
+    const serializer = this._serializers[attrOptions.type];
+    if (serializer) {
+      value = serializer.serialize(value, attrOptions.serializationOptions);
+    }
+    deepSet(resource, ['attributes', this.resourceAttribute(record.type, attr)], value);
   }
 
   serializeRelationships(resource: Resource, record: Record, model: ModelDefinition): void {
@@ -201,21 +205,26 @@ export class JSONAPISerializer implements Serializer<RecordDocument, ResourceDoc
   serializeRelationship(resource: Resource, record: Record, relationship: string, model: ModelDefinition): void {
     const value = record.relationships[relationship].data;
 
-    if (value !== undefined) {
-      let data;
-
-      if (isArray(value)) {
-        data = (value as RecordIdentity[]).map(id => this.resourceIdentity(id));
-      } else if (value !== null) {
-        data = this.resourceIdentity(value as RecordIdentity);
-      } else {
-        data = null;
-      }
-
-      const resourceRelationship = this.resourceRelationship(record.type, relationship);
-
-      deepSet(resource, ['relationships', resourceRelationship, 'data'], data);
+    if (value === undefined) {
+      return;
     }
+    if (model.relationships[relationship] === undefined) {
+      return;
+    }
+
+    let data;
+
+    if (isArray(value)) {
+      data = (value as RecordIdentity[]).map(id => this.resourceIdentity(id));
+    } else if (value !== null) {
+      data = this.resourceIdentity(value as RecordIdentity);
+    } else {
+      data = null;
+    }
+
+    const resourceRelationship = this.resourceRelationship(record.type, relationship);
+
+    deepSet(resource, ['relationships', resourceRelationship, 'data'], data);
   }
 
   deserialize(document: ResourceDocument, options?: DeserializeOptions): RecordDocument {

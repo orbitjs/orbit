@@ -682,6 +682,35 @@ module('JSONAPISerializer', function(hooks) {
       );
     });
 
+    test('#serialize - ignores attributes and relationships not defined in the schema', function(assert) {
+      assert.deepEqual(
+        serializer.serialize({
+          data: {
+            type: 'planet',
+            id: '123',
+            attributes: {
+              unknownAttribute: 'gas giant'
+            },
+            relationships: {
+              overlord: {
+                data: {
+                  type: 'hutt',
+                  id: 'jaba'
+                }
+              }
+            }
+          }
+        }),
+        {
+          data: {
+            type: 'planets',
+            id: '123'
+          }
+        },
+        'serialized document excludes unknown data'
+      );
+    });
+
     test('#deserialize - can deserialize a simple resource with only type and id', function(assert) {
       let result = serializer.deserialize(
         {
