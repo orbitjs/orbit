@@ -200,21 +200,37 @@ export default class Schema implements Evented, RecordInitializer {
     }
   }
 
+  getAttribute(type: string, attribute: string): AttributeDefinition {
+    const model = this.getModel(type);
+    return model.attributes && model.attributes[attribute];
+  }
+
+  getRelationship(type: string, relationship: string): RelationshipDefinition {
+    const model = this.getModel(type);
+    return model.relationships && model.relationships[relationship];
+  }
+
   hasAttribute(type: string, attribute: string): boolean {
-    let model = this.getModel(type);
-    if (model.attributes && model.attributes[attribute]) {
-      return true;
-    } else {
-      return false;
-    }
+    return !!this.getAttribute(type, attribute);
   }
 
   hasRelationship(type: string, relationship: string): boolean {
-    let model = this.getModel(type);
-    if (model.relationships && model.relationships[relationship]) {
-      return true;
-    } else {
-      return false;
+    return !!this.getRelationship(type, relationship);
+  }
+
+  eachAttribute(type: string, callbackFn: (name: string, attribute: AttributeDefinition) => void): void {
+    const model = this.getModel(type);
+    const attributes = model.attributes || {};
+    for (let name in attributes) {
+      callbackFn(name, attributes[name]);
+    }
+  }
+
+  eachRelationship(type: string, callbackFn: (name: string, relationship: RelationshipDefinition) => void): void {
+    const model = this.getModel(type);
+    const relationships = model.relationships || {};
+    for (let name in relationships) {
+      callbackFn(name, relationships[name]);
     }
   }
 }
