@@ -225,8 +225,8 @@ export default class JSONAPIRequestProcessor {
       }
     } else {
       if (this.responseHasContent(response)) {
-        return response.json()
-          .then((data: any) => this.handleFetchResponseError(response, data));
+        let data = await response.json();
+        return this.handleFetchResponseError(response, data)
       } else {
         return this.handleFetchResponseError(response);
       }
