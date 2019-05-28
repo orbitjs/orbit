@@ -246,6 +246,6 @@ export default class JSONAPIRequestProcessor {
   }
 
   protected async handleFetchError(e: any): Promise<any> {
-    throw new NetworkError(e);
+    return Promise.reject(new NetworkError(e));
   }
 }
