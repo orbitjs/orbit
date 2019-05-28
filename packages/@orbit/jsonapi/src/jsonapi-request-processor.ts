@@ -242,7 +242,7 @@ export default class JSONAPIRequestProcessor {
     }
     error.response = response;
     error.data = data;
-    throw error;
+    return Promise.reject(error);
   }
 
   protected async handleFetchError(e: any): Promise<any> {
