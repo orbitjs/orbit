@@ -4,7 +4,8 @@ export interface IdentityMapSettings<Identity> {
   serializer: IdentitySerializer<Identity>;
 }
 
-export default class IdentityMap<Identity, Model> implements Map<Identity, Model> {
+export default class IdentityMap<Identity, Model>
+  implements Map<Identity, Model> {
   protected _serializer: IdentitySerializer<Identity>;
   protected _map: Map<string, Model>;
 
@@ -38,11 +39,19 @@ export default class IdentityMap<Identity, Model> implements Map<Identity, Model
 
   entries(): IterableIterator<[Identity, Model]> {
     return Array.from(this._map)
-      .map(([identifier, record]): [Identity, Model] => [this._serializer.deserialize(identifier), record])[Symbol.iterator]();
+      .map(
+        ([identifier, record]): [Identity, Model] => [
+          this._serializer.deserialize(identifier),
+          record
+        ]
+      )
+      [Symbol.iterator]();
   }
 
   keys(): IterableIterator<Identity> {
-    return Array.from(this).map(([identity]) => identity)[Symbol.iterator]();
+    return Array.from(this)
+      .map(([identity]) => identity)
+      [Symbol.iterator]();
   }
 
   values(): IterableIterator<Model> {
@@ -57,7 +66,14 @@ export default class IdentityMap<Identity, Model> implements Map<Identity, Model
     this._map.clear();
   }
 
-  forEach(callbackFn: (record: Model, identity: Identity, map: IdentityMap<Identity, Model>) => void, thisArg?: any): void {
+  forEach(
+    callbackFn: (
+      record: Model,
+      identity: Identity,
+      map: IdentityMap<Identity, Model>
+    ) => void,
+    thisArg?: any
+  ): void {
     for (let [identity, record] of this) {
       callbackFn.call(thisArg, record, identity, this);
     }

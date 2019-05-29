@@ -1,5 +1,8 @@
 import { StrategyOptions } from '../strategy';
-import { ConnectionStrategy, ConnectionStrategyOptions } from './connection-strategy';
+import {
+  ConnectionStrategy,
+  ConnectionStrategyOptions
+} from './connection-strategy';
 import Orbit from '@orbit/core';
 
 const { assert } = Orbit;
@@ -57,8 +60,14 @@ export class SyncStrategy extends ConnectionStrategy {
     let opts = options as ConnectionStrategyOptions;
     assert('A `source` must be specified for a SyncStrategy', !!opts.source);
     assert('A `target` must be specified for a SyncStrategy', !!opts.target);
-    assert('`source` should be a Source name specified as a string', typeof opts.source === 'string');
-    assert('`target` should be a Source name specified as a string', typeof opts.target === 'string');
+    assert(
+      '`source` should be a Source name specified as a string',
+      typeof opts.source === 'string'
+    );
+    assert(
+      '`target` should be a Source name specified as a string',
+      typeof opts.target === 'string'
+    );
     opts.on = opts.on || 'transform';
     opts.action = opts.action || 'sync';
     super(opts);

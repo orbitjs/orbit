@@ -1,4 +1,7 @@
-import { ConnectionStrategy, ConnectionStrategyOptions } from './connection-strategy';
+import {
+  ConnectionStrategy,
+  ConnectionStrategyOptions
+} from './connection-strategy';
 import { Listener } from '@orbit/core';
 
 export interface RequestStrategyOptions extends ConnectionStrategyOptions {
@@ -73,7 +76,6 @@ export class RequestStrategy extends ConnectionStrategy {
   }
 
   protected async applyHint(hints: any, result: Promise<any>): Promise<void> {
-    return hints.data = await result;
+    return (hints.data = await result);
   }
 }
-
