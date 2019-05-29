@@ -37,7 +37,9 @@ export default class Notifier {
    */
   addListener(listener: Listener) {
     if (arguments.length > 1) {
-      deprecate('`binding` argument is no longer supported for individual `Notifier` listeners. Please pre-bind listeners before calling `addListener`.');
+      deprecate(
+        '`binding` argument is no longer supported for individual `Notifier` listeners. Please pre-bind listeners before calling `addListener`.'
+      );
     }
 
     this.listeners.push(listener);
@@ -48,7 +50,9 @@ export default class Notifier {
    */
   removeListener(listener: Listener) {
     if (arguments.length > 1) {
-      deprecate('`binding` argument is no longer supported for individual `Notifier` listeners. Please pre-bind listeners before calling `removeListener`.');
+      deprecate(
+        '`binding` argument is no longer supported for individual `Notifier` listeners. Please pre-bind listeners before calling `removeListener`.'
+      );
     }
 
     const listeners = this.listeners;

@@ -18,7 +18,7 @@ export interface Task {
 
 /**
  * Classes that can perform tasks should implement the Performer interface.
- * 
+ *
  * @export
  * @interface Performer
  */

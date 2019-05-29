@@ -16,7 +16,8 @@
   "scripts": {
     "postinstall": "lerna bootstrap",
     "build": "lerna run build",
-    "test": "lerna run build && lerna run --concurrency 1 test"
+    "test": "lerna run build && lerna run --concurrency 1 test",
+    "lint:ts": "lerna run lint:ts"
   },
   "devDependencies": {
     "lerna": "^3.14.1"

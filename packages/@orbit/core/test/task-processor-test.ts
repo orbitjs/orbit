@@ -9,7 +9,9 @@ const { module, test } = QUnit;
 module('TaskProcessor', function() {
   test('can be instantiated', function(assert) {
     const target: Performer = {
-      perform(task: Task): Promise<void> { return Promise.resolve(); }
+      perform(task: Task): Promise<void> {
+        return Promise.resolve();
+      }
     };
     const processor = new TaskProcessor(target, { type: 'doSomething' });
     assert.ok(processor);
@@ -55,17 +57,20 @@ module('TaskProcessor', function() {
       }
     };
 
-    let processor = new TaskProcessor(target, { type: 'doSomething', data: '1' });
+    let processor = new TaskProcessor(target, {
+      type: 'doSomething',
+      data: '1'
+    });
 
     try {
       await processor.process();
-    } catch(e) {
+    } catch (e) {
       assert.ok(processor.settled, 'processor settled');
       assert.equal(e, ':(', 'process resolved');
     }
   });
 
-  test('it creates a promise immediately that won\'t be resolved until process is called', function(assert) {
+  test("it creates a promise immediately that won't be resolved until process is called", function(assert) {
     assert.expect(5);
 
     const target: Performer = {
@@ -77,12 +82,14 @@ module('TaskProcessor', function() {
       }
     };
 
-    let processor = new TaskProcessor(target, { type: 'doSomething', data: '1' });
+    let processor = new TaskProcessor(target, {
+      type: 'doSomething',
+      data: '1'
+    });
 
-    processor.settle()
-      .then(function() {
-        assert.ok(true, 'process resolved');
-      });
+    processor.settle().then(function() {
+      assert.ok(true, 'process resolved');
+    });
 
     return processor.process();
   });
@@ -100,7 +107,10 @@ module('TaskProcessor', function() {
       }
     };
 
-    let processor = new TaskProcessor(target, { type: 'doSomething', data: '1' });
+    let processor = new TaskProcessor(target, {
+      type: 'doSomething',
+      data: '1'
+    });
 
     let response = await processor.process();
 

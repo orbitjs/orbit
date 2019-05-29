@@ -36,18 +36,25 @@ module('Log', function() {
     test('#append', function(assert) {
       assert.expect(3);
 
-      log.on('append', (transformIds) => {
-        assert.deepEqual(transformIds, [transformAId], 'append event emits transform');
+      log.on('append', transformIds => {
+        assert.deepEqual(
+          transformIds,
+          [transformAId],
+          'append event emits transform'
+        );
       });
 
       log.on('change', () => {
         assert.ok('change event emitted');
       });
 
-      return log.append(transformAId)
-        .then(() => {
-          assert.deepEqual(log.entries, [transformAId], 'adds transformId to log');
-        });
+      return log.append(transformAId).then(() => {
+        assert.deepEqual(
+          log.entries,
+          [transformAId],
+          'adds transformId to log'
+        );
+      });
     });
 
     test('#head', function(assert) {
@@ -59,11 +66,7 @@ module('Log', function() {
     assert.beforeEach(function() {
       log = new Log();
 
-      return log.append(
-        transformAId,
-        transformBId,
-        transformCId
-      );
+      return log.append(transformAId, transformBId, transformCId);
     });
 
     test('#entries', function(assert) {
@@ -71,19 +74,31 @@ module('Log', function() {
     });
 
     test('#length', function(assert) {
-      assert.equal(log.length, 3, 'reflects number of transforms that have been added');
+      assert.equal(
+        log.length,
+        3,
+        'reflects number of transforms that have been added'
+      );
     });
 
     test('#before', function(assert) {
-      assert.deepEqual(log.before(transformCId), [transformAId, transformBId], 'includes transformIds preceding specified transformId');
+      assert.deepEqual(
+        log.before(transformCId),
+        [transformAId, transformBId],
+        'includes transformIds preceding specified transformId'
+      );
     });
 
-    test('#before - transformId that hasn\'t been logged', function(assert) {
+    test("#before - transformId that hasn't been logged", function(assert) {
       assert.throws(() => log.before(transformDId), NotLoggedException);
     });
 
     test('#before - specifying a -1 relativePosition', function(assert) {
-      assert.deepEqual(log.before(transformCId, -1), [transformAId], 'includes transformIds preceding specified transformId');
+      assert.deepEqual(
+        log.before(transformCId, -1),
+        [transformAId],
+        'includes transformIds preceding specified transformId'
+      );
     });
 
     test('#before - specifying a relativePosition that is too low', function(assert) {
@@ -95,19 +110,31 @@ module('Log', function() {
     });
 
     test('#after', function(assert) {
-      assert.deepEqual(log.after(transformAId), [transformBId, transformCId], 'includes transformIds following specified transformId');
+      assert.deepEqual(
+        log.after(transformAId),
+        [transformBId, transformCId],
+        'includes transformIds following specified transformId'
+      );
     });
 
-    test('#after - transformId that hasn\'t been logged', function(assert) {
+    test("#after - transformId that hasn't been logged", function(assert) {
       assert.throws(() => log.after(transformDId), NotLoggedException);
     });
 
     test('#after - specifying a +1 relativePosition', function(assert) {
-      assert.deepEqual(log.after(transformAId, 1), [transformCId], 'includes transformIds following specified transformId');
+      assert.deepEqual(
+        log.after(transformAId, 1),
+        [transformCId],
+        'includes transformIds following specified transformId'
+      );
     });
 
     test('#after - specifying a -1 relativePosition', function(assert) {
-      assert.deepEqual(log.after(transformAId, -1), [transformAId, transformBId, transformCId], 'includes transformIds following specified transformId');
+      assert.deepEqual(
+        log.after(transformAId, -1),
+        [transformAId, transformBId, transformCId],
+        'includes transformIds following specified transformId'
+      );
     });
 
     test('#after - head', function(assert) {
@@ -127,125 +154,164 @@ module('Log', function() {
       assert.expect(3);
 
       log.on('clear', (removed: string[]) => {
-        assert.deepEqual(removed, [transformAId, transformBId, transformCId], 'clear event emitted');
+        assert.deepEqual(
+          removed,
+          [transformAId, transformBId, transformCId],
+          'clear event emitted'
+        );
       });
 
       log.on('change', () => {
         assert.ok('change event emitted');
       });
 
-      return log.clear()
-        .then(() => {
-          assert.deepEqual(log.entries, [], 'clears all transforms');
-        });
+      return log.clear().then(() => {
+        assert.deepEqual(log.entries, [], 'clears all transforms');
+      });
     });
 
     test('#truncate', function(assert) {
       assert.expect(5);
 
       log.on('truncate', (transformId, relativePosition, removed) => {
-        assert.strictEqual(transformId, transformBId, 'truncate event emits transform');
-        assert.strictEqual(relativePosition, 0, 'truncate event emits relativePosition');
-        assert.deepEqual(removed, [transformAId], 'truncate event emits removed transforms');
+        assert.strictEqual(
+          transformId,
+          transformBId,
+          'truncate event emits transform'
+        );
+        assert.strictEqual(
+          relativePosition,
+          0,
+          'truncate event emits relativePosition'
+        );
+        assert.deepEqual(
+          removed,
+          [transformAId],
+          'truncate event emits removed transforms'
+        );
       });
 
       log.on('change', () => {
         assert.ok('change event emitted');
       });
 
-      return log.truncate(transformBId)
-        .then(() => {
-          assert.deepEqual(log.entries, [transformBId, transformCId], 'removes transformIds before specified transformId');
-        });
+      return log.truncate(transformBId).then(() => {
+        assert.deepEqual(
+          log.entries,
+          [transformBId, transformCId],
+          'removes transformIds before specified transformId'
+        );
+      });
     });
 
     test('#truncate - to head', function(assert) {
-      return log.truncate(log.head)
-        .then(() => {
-          assert.deepEqual(log.entries, [transformCId], 'only head entry remains in log');
-        });
+      return log.truncate(log.head).then(() => {
+        assert.deepEqual(
+          log.entries,
+          [transformCId],
+          'only head entry remains in log'
+        );
+      });
     });
 
     test('#truncate - just past head clears the log', function(assert) {
-      return log.truncate(transformCId, +1)
-        .then(() => {
-          assert.deepEqual(log.entries, [], 'clears log');
-        });
+      return log.truncate(transformCId, +1).then(() => {
+        assert.deepEqual(log.entries, [], 'clears log');
+      });
     });
 
-    test('#truncate - to transformId that hasn\'t been logged', function(assert) {
-      return log.truncate(transformDId)
-        .catch(e => {
-          assert.ok(e instanceof NotLoggedException, 'NotLoggedException caught');
-        });
+    test("#truncate - to transformId that hasn't been logged", function(assert) {
+      return log.truncate(transformDId).catch(e => {
+        assert.ok(e instanceof NotLoggedException, 'NotLoggedException caught');
+      });
     });
 
     test('#truncate - specifying a relativePosition that is too low', function(assert) {
-      return log.truncate(transformAId, -1)
-        .catch(e => {
-          assert.ok(e instanceof OutOfRangeException, 'OutOfRangeException caught');
-        });
+      return log.truncate(transformAId, -1).catch(e => {
+        assert.ok(
+          e instanceof OutOfRangeException,
+          'OutOfRangeException caught'
+        );
+      });
     });
 
     test('#truncate - specifying a relativePosition that is too high', function(assert) {
-      return log.truncate(transformCId, +2)
-        .catch(e => {
-          assert.ok(e instanceof OutOfRangeException, 'OutOfRangeException caught');
-        });
+      return log.truncate(transformCId, +2).catch(e => {
+        assert.ok(
+          e instanceof OutOfRangeException,
+          'OutOfRangeException caught'
+        );
+      });
     });
 
     test('#rollback', function(assert) {
       assert.expect(5);
 
       log.on('rollback', (transformId, relativePosition, removed) => {
-        assert.strictEqual(transformId, transformAId, 'rollback event emits transform');
-        assert.strictEqual(relativePosition, 0, 'rollback event emits relativePosition');
-        assert.deepEqual(removed, [transformBId, transformCId], 'rollback event emits removed transforms');
+        assert.strictEqual(
+          transformId,
+          transformAId,
+          'rollback event emits transform'
+        );
+        assert.strictEqual(
+          relativePosition,
+          0,
+          'rollback event emits relativePosition'
+        );
+        assert.deepEqual(
+          removed,
+          [transformBId, transformCId],
+          'rollback event emits removed transforms'
+        );
       });
 
       log.on('change', () => {
         assert.ok('change event emitted');
       });
 
-      return log.rollback(transformAId)
-        .then(() => {
-          assert.deepEqual(log.entries, [transformAId], 'removes transformIds after specified transformId');
-        });
+      return log.rollback(transformAId).then(() => {
+        assert.deepEqual(
+          log.entries,
+          [transformAId],
+          'removes transformIds after specified transformId'
+        );
+      });
     });
 
     test('#rollback - to head', function(assert) {
-      return log.rollback(log.head)
-        .then(() => {
-          assert.deepEqual(log.head, transformCId, 'doesn\'t change log');
-        });
+      return log.rollback(log.head).then(() => {
+        assert.deepEqual(log.head, transformCId, "doesn't change log");
+      });
     });
 
-    test('#rollback - to transformId that hasn\'t been logged', function(assert) {
-      return log.rollback(transformDId)
-        .catch(e => {
-          assert.ok(e instanceof NotLoggedException, 'NotLoggedException caught');
-        });
+    test("#rollback - to transformId that hasn't been logged", function(assert) {
+      return log.rollback(transformDId).catch(e => {
+        assert.ok(e instanceof NotLoggedException, 'NotLoggedException caught');
+      });
     });
 
     test('#rollback - to just before first', function(assert) {
-      return log.rollback(transformAId, -1)
-        .then(() => {
-          assert.deepEqual(log.entries, [], 'removes all entries');
-        });
+      return log.rollback(transformAId, -1).then(() => {
+        assert.deepEqual(log.entries, [], 'removes all entries');
+      });
     });
 
     test('#rollback - specifying a relativePosition that is too low', function(assert) {
-      return log.rollback(transformAId, -2)
-        .catch(e => {
-          assert.ok(e instanceof OutOfRangeException, 'OutOfRangeException caught');
-        });
+      return log.rollback(transformAId, -2).catch(e => {
+        assert.ok(
+          e instanceof OutOfRangeException,
+          'OutOfRangeException caught'
+        );
+      });
     });
 
     test('#rollback - specifying a relativePosition that is too high', function(assert) {
-      return log.rollback(transformCId, +1)
-        .catch(e => {
-          assert.ok(e instanceof OutOfRangeException, 'OutOfRangeException caught');
-        });
+      return log.rollback(transformCId, +1).catch(e => {
+        assert.ok(
+          e instanceof OutOfRangeException,
+          'OutOfRangeException caught'
+        );
+      });
     });
 
     test('#head', function(assert) {
@@ -253,7 +319,10 @@ module('Log', function() {
     });
 
     test('#contains', function(assert) {
-      assert.ok(log.contains(transformAId), 'identifies when log contains a transform');
+      assert.ok(
+        log.contains(transformAId),
+        'identifies when log contains a transform'
+      );
     });
   });
 
@@ -274,12 +343,14 @@ module('Log', function() {
           let log = new Log({ bucket });
         },
         Error('Assertion failed: Log requires a name if it has a bucket'),
-        'assertion raised');
+        'assertion raised'
+      );
     });
 
     test('will be reified from data in the bucket', function(assert) {
       assert.expect(1);
-      return bucket.setItem('log', [transformAId, transformBId])
+      return bucket
+        .setItem('log', [transformAId, transformBId])
         .then(() => {
           log = new Log({ name: 'log', bucket });
           return log.reified;
@@ -293,13 +364,18 @@ module('Log', function() {
       assert.expect(2);
       log = new Log({ name: 'log', bucket });
 
-      return log.append(transformAId, transformBId)
+      return log
+        .append(transformAId, transformBId)
         .then(() => {
           assert.equal(log.length, 2, 'log contains the expected transforms');
           return bucket.getItem('log');
         })
         .then(logged => {
-          assert.deepEqual(logged, [transformAId, transformBId], 'bucket contains the expected transforms');
+          assert.deepEqual(
+            logged,
+            [transformAId, transformBId],
+            'bucket contains the expected transforms'
+          );
         });
     });
 
@@ -307,14 +383,19 @@ module('Log', function() {
       assert.expect(2);
       log = new Log({ name: 'log', bucket });
 
-      return log.append(transformAId, transformBId, transformCId)
+      return log
+        .append(transformAId, transformBId, transformCId)
         .then(() => log.truncate(log.head))
         .then(() => {
           assert.equal(log.length, 1, 'log contains the expected transforms');
           return bucket.getItem('log');
         })
         .then(logged => {
-          assert.deepEqual(logged, [transformCId], 'bucket contains the expected transforms');
+          assert.deepEqual(
+            logged,
+            [transformCId],
+            'bucket contains the expected transforms'
+          );
         });
     });
 
@@ -322,14 +403,19 @@ module('Log', function() {
       assert.expect(2);
       log = new Log({ name: 'log', bucket });
 
-      return log.append(transformAId, transformBId, transformCId)
+      return log
+        .append(transformAId, transformBId, transformCId)
         .then(() => log.rollback(transformBId))
         .then(() => {
           assert.equal(log.length, 2, 'log contains the expected transforms');
           return bucket.getItem('log');
         })
         .then(logged => {
-          assert.deepEqual(logged, [transformAId, transformBId], 'bucket contains the expected transforms');
+          assert.deepEqual(
+            logged,
+            [transformAId, transformBId],
+            'bucket contains the expected transforms'
+          );
         });
     });
 
@@ -337,14 +423,19 @@ module('Log', function() {
       assert.expect(2);
       log = new Log({ name: 'log', bucket });
 
-      return log.append(transformAId, transformBId, transformCId)
+      return log
+        .append(transformAId, transformBId, transformCId)
         .then(() => log.clear())
         .then(() => {
           assert.equal(log.length, 0, 'log contains the expected transforms');
           return bucket.getItem('log');
         })
         .then(logged => {
-          assert.deepEqual(logged, [], 'bucket contains the expected transforms');
+          assert.deepEqual(
+            logged,
+            [],
+            'bucket contains the expected transforms'
+          );
         });
     });
   });

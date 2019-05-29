@@ -8,7 +8,7 @@ declare const global: any;
 export interface OrbitGlobal {
   globals: any;
   assert: (description: string, test: boolean) => void;
-  deprecate: (message: string, test?: boolean | (() => boolean) ) => void;
+  deprecate: (message: string, test?: boolean | (() => boolean)) => void;
   uuid: () => string;
 }
 
@@ -21,9 +21,10 @@ export interface OrbitGlobal {
 //     http://underscorejs.org
 //     (c) 2009-2017 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
 //     Underscore may be freely distributed under the MIT license.
-const globals = typeof self == 'object' && self.self === self && self ||
-                typeof global == 'object' && global ||
-                {};
+const globals =
+  (typeof self == 'object' && self.self === self && self) ||
+  (typeof global == 'object' && global) ||
+  {};
 
 const Orbit: OrbitGlobal = {
   globals,

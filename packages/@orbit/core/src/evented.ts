@@ -83,7 +83,9 @@ export default function evented(Klass: any): void {
 
   proto.on = function(eventName: string, listener: Listener) {
     if (arguments.length > 2) {
-      deprecate('`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `on`.');
+      deprecate(
+        '`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `on`.'
+      );
     }
 
     notifierForEvent(this, eventName, true).addListener(listener);
@@ -91,7 +93,9 @@ export default function evented(Klass: any): void {
 
   proto.off = function(eventName: string, listener: Listener) {
     if (arguments.length > 2) {
-      deprecate('`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `off`.');
+      deprecate(
+        '`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `off`.'
+      );
     }
 
     const notifier = notifierForEvent(this, eventName);
@@ -107,7 +111,9 @@ export default function evented(Klass: any): void {
 
   proto.one = function(eventName: string, listener: Listener) {
     if (arguments.length > 2) {
-      deprecate('`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `off`.');
+      deprecate(
+        '`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `off`.'
+      );
     }
 
     const notifier = notifierForEvent(this, eventName, true);
@@ -139,13 +145,15 @@ export default function evented(Klass: any): void {
  *
  * If any errors are encountered during processing, they will be ignored.
  */
-export function settleInSeries(obj: Evented, eventName: string, ...args: any[]): Promise<void> {
+export function settleInSeries(
+  obj: Evented,
+  eventName: string,
+  ...args: any[]
+): Promise<void> {
   const listeners = obj.listeners(eventName);
 
   return listeners.reduce((chain, listener) => {
-    return chain
-      .then(() => listener(...args))
-      .catch(() => {});
+    return chain.then(() => listener(...args)).catch(() => {});
   }, Promise.resolve());
 }
 
@@ -155,7 +163,11 @@ export function settleInSeries(obj: Evented, eventName: string, ...args: any[]):
  * Processing will stop if an error is encountered and the returned promise will
  * be rejected.
  */
-export function fulfillInSeries(obj: Evented, eventName: string, ...args: any[]): Promise<void> {
+export function fulfillInSeries(
+  obj: Evented,
+  eventName: string,
+  ...args: any[]
+): Promise<void> {
   const listeners = obj.listeners(eventName);
 
   return new Promise((resolve, reject) => {
@@ -163,7 +175,11 @@ export function fulfillInSeries(obj: Evented, eventName: string, ...args: any[])
   });
 }
 
-function notifierForEvent(object: any, eventName: string, createIfUndefined = false) {
+function notifierForEvent(
+  object: any,
+  eventName: string,
+  createIfUndefined = false
+) {
   if (object._eventedNotifiers === undefined) {
     object._eventedNotifiers = {};
   }
@@ -180,7 +196,12 @@ function removeNotifierForEvent(object: any, eventName: string) {
   }
 }
 
-function fulfillEach(listeners: Listener[], args: any[], resolve: Function, reject: Function): Promise<any> {
+function fulfillEach(
+  listeners: Listener[],
+  args: any[],
+  resolve: Function,
+  reject: Function
+): Promise<any> {
   if (listeners.length === 0) {
     resolve();
   } else {

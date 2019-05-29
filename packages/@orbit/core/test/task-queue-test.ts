@@ -8,7 +8,9 @@ const { module, test } = QUnit;
 module('TaskQueue', function() {
   test('can be instantiated', function(assert) {
     const performer: Performer = {
-      perform(task: Task): Promise<void> { return Promise.resolve(); }
+      perform(task: Task): Promise<void> {
+        return Promise.resolve();
+      }
     };
     const queue = new TaskQueue(performer);
     assert.ok(queue);
@@ -16,7 +18,9 @@ module('TaskQueue', function() {
 
   test('#autoProcess is enabled by default', function(assert) {
     const performer: Performer = {
-      perform(task: Task): Promise<void> { return Promise.resolve(); }
+      perform(task: Task): Promise<void> {
+        return Promise.resolve();
+      }
     };
     const queue = new TaskQueue(performer);
     assert.equal(queue.autoProcess, true, 'autoProcess === true');
@@ -32,10 +36,18 @@ module('TaskQueue', function() {
         transformCount++;
         if (transformCount === 1) {
           assert.equal(order++, 1, 'transform - op1 - order');
-          assert.strictEqual(task.data, op1, 'transform - op1 passed as argument');
+          assert.strictEqual(
+            task.data,
+            op1,
+            'transform - op1 passed as argument'
+          );
         } else if (transformCount === 2) {
           assert.equal(order++, 4, 'transform - op2 - order');
-          assert.strictEqual(task.data, op2, 'transform - op2 passed as argument');
+          assert.strictEqual(
+            task.data,
+            op2,
+            'transform - op2 passed as argument'
+          );
         }
         return Promise.resolve();
       }
@@ -51,11 +63,19 @@ module('TaskQueue', function() {
       if (transformCount === 0) {
         assert.equal(order++, 0, 'op1 - order of beforeTask event');
         assert.strictEqual(task.data, op1, 'op1 - beforeTask - data correct');
-        assert.strictEqual(queue.current, task, 'op1 - beforeTask - current task matches expectation');
+        assert.strictEqual(
+          queue.current,
+          task,
+          'op1 - beforeTask - current task matches expectation'
+        );
       } else if (transformCount === 1) {
         assert.equal(order++, 3, 'op2 - order of beforeTask event');
         assert.strictEqual(task.data, op2, 'op2 - beforeTask - data correct');
-        assert.strictEqual(queue.current, task, 'op2 - beforeTask - current task matches expectation');
+        assert.strictEqual(
+          queue.current,
+          task,
+          'op2 - beforeTask - current task matches expectation'
+        );
       }
     });
 
@@ -64,14 +84,30 @@ module('TaskQueue', function() {
         assert.equal(order++, 2, 'op1 - order of task event');
         assert.strictEqual(task.data, op1, 'op1 processed');
         assert.equal(queue.length, 1, 'op1 - after task - queue length');
-        assert.strictEqual(queue.current.data, op2, 'after op1 - current task is op2');
-        assert.equal(queue.processing, false, 'after op1 - queue.processing === false between tasks');
+        assert.strictEqual(
+          queue.current.data,
+          op2,
+          'after op1 - current task is op2'
+        );
+        assert.equal(
+          queue.processing,
+          false,
+          'after op1 - queue.processing === false between tasks'
+        );
       } else if (transformCount === 2) {
         assert.equal(order++, 5, 'op2 - order of task event');
         assert.strictEqual(task.data, op2, 'op2 processed');
         assert.equal(queue.length, 0, 'op2 - after task - queue length');
-        assert.strictEqual(queue.current, undefined, 'after op2 - current task is empty');
-        assert.equal(queue.processing, false, 'after op2 - queue.processing === false');
+        assert.strictEqual(
+          queue.current,
+          undefined,
+          'after op2 - current task is empty'
+        );
+        assert.equal(
+          queue.processing,
+          false,
+          'after op2 - queue.processing === false'
+        );
       }
     });
 
@@ -98,9 +134,17 @@ module('TaskQueue', function() {
       perform(task: Task): Promise<void> {
         transformCount++;
         if (transformCount === 1) {
-          assert.strictEqual(task.data, op1, 'transform - op1 passed as argument');
+          assert.strictEqual(
+            task.data,
+            op1,
+            'transform - op1 passed as argument'
+          );
         } else if (transformCount === 2) {
-          assert.strictEqual(task.data, op2, 'transform - op2 passed as argument');
+          assert.strictEqual(
+            task.data,
+            op2,
+            'transform - op2 passed as argument'
+          );
         }
         return Promise.resolve();
       }
@@ -181,11 +225,10 @@ module('TaskQueue', function() {
       data: op2
     });
 
-    return queue.process()
-      .then(function() {
-        assert.equal(queue.empty, true, 'queue processing complete');
-        assert.equal(++order, 6, 'queue resolves last');
-      });
+    return queue.process().then(function() {
+      assert.equal(queue.empty, true, 'queue processing complete');
+      assert.equal(++order, 6, 'queue resolves last');
+    });
   });
 
   test('will stop processing when a task errors', function(assert) {
@@ -195,7 +238,11 @@ module('TaskQueue', function() {
       perform(task: Task): Promise<void> {
         transformCount++;
         if (transformCount === 1) {
-          assert.strictEqual(task.data, op1, 'transform - op1 passed as argument');
+          assert.strictEqual(
+            task.data,
+            op1,
+            'transform - op1 passed as argument'
+          );
         } else if (transformCount === 2) {
           return Promise.reject(new Error(':('));
         } else {
@@ -229,34 +276,47 @@ module('TaskQueue', function() {
       assert.ok(false, 'queue should not complete');
     });
 
-    queue.push({
-      type: 'transform',
-      data: op1
-    }).catch(e => {
-      assert.ok(false, 'successful transform should not error');
-    });
-
-    queue.push({
-      type: 'transform',
-      data: op2
-    }).catch(e => {
-      assert.equal(e.message, ':(', 'error can be caught from `push`');
-    });
-
-    queue.push({
-      type: 'transform',
-      data: op3
-    }).catch(e => {
-      assert.ok(false, 'additional transforms should not be performed');
-    });
-
-    return queue.process()
-      .catch((e) => {
-        assert.equal(e.message, ':(', 'error can be caught from `process`');
-        assert.equal(queue.empty, false, 'queue processing encountered a problem');
-        assert.equal(queue.error.message, ':(', 'process error matches expectation');
-        assert.strictEqual(queue.error, e, 'process error matches expectation');
+    queue
+      .push({
+        type: 'transform',
+        data: op1
+      })
+      .catch(e => {
+        assert.ok(false, 'successful transform should not error');
       });
+
+    queue
+      .push({
+        type: 'transform',
+        data: op2
+      })
+      .catch(e => {
+        assert.equal(e.message, ':(', 'error can be caught from `push`');
+      });
+
+    queue
+      .push({
+        type: 'transform',
+        data: op3
+      })
+      .catch(e => {
+        assert.ok(false, 'additional transforms should not be performed');
+      });
+
+    return queue.process().catch(e => {
+      assert.equal(e.message, ':(', 'error can be caught from `process`');
+      assert.equal(
+        queue.empty,
+        false,
+        'queue processing encountered a problem'
+      );
+      assert.equal(
+        queue.error.message,
+        ':(',
+        'process error matches expectation'
+      );
+      assert.strictEqual(queue.error, e, 'process error matches expectation');
+    });
   });
 
   test('when autoprocessing, will stop processing when a task errors', function(assert) {
@@ -266,7 +326,11 @@ module('TaskQueue', function() {
       perform(task: Task): Promise<void> {
         transformCount++;
         if (transformCount === 1) {
-          assert.strictEqual(task.data, op1, 'transform - op1 passed as argument');
+          assert.strictEqual(
+            task.data,
+            op1,
+            'transform - op1 passed as argument'
+          );
         } else if (transformCount === 2) {
           return Promise.reject(new Error(':('));
         } else {
@@ -300,34 +364,47 @@ module('TaskQueue', function() {
       assert.ok(false, 'queue should not complete');
     });
 
-    queue.push({
-      type: 'transform',
-      data: op1
-    }).catch(e => {
-      assert.ok(false, 'successful transform should not error');
-    });
-
-    queue.push({
-      type: 'transform',
-      data: op2
-    }).catch(e => {
-      assert.equal(e.message, ':(', 'error can be caught from `push`');
-    });
-
-    queue.push({
-      type: 'transform',
-      data: op3
-    }).catch(e => {
-      assert.ok(false, 'additional transforms should not be performed');
-    });
-
-    return queue.process()
-      .catch((e) => {
-        assert.equal(e.message, ':(', 'error can be caught from `process`');
-        assert.equal(queue.empty, false, 'queue processing encountered a problem');
-        assert.equal(queue.error.message, ':(', 'process error matches expectation');
-        assert.strictEqual(queue.error, e, 'process error matches expectation');
+    queue
+      .push({
+        type: 'transform',
+        data: op1
+      })
+      .catch(e => {
+        assert.ok(false, 'successful transform should not error');
       });
+
+    queue
+      .push({
+        type: 'transform',
+        data: op2
+      })
+      .catch(e => {
+        assert.equal(e.message, ':(', 'error can be caught from `push`');
+      });
+
+    queue
+      .push({
+        type: 'transform',
+        data: op3
+      })
+      .catch(e => {
+        assert.ok(false, 'additional transforms should not be performed');
+      });
+
+    return queue.process().catch(e => {
+      assert.equal(e.message, ':(', 'error can be caught from `process`');
+      assert.equal(
+        queue.empty,
+        false,
+        'queue processing encountered a problem'
+      );
+      assert.equal(
+        queue.error.message,
+        ':(',
+        'process error matches expectation'
+      );
+      assert.strictEqual(queue.error, e, 'process error matches expectation');
+    });
   });
 
   test('#retry resets the current task in an inactive queue and restarts processing', async function(assert) {
@@ -393,19 +470,33 @@ module('TaskQueue', function() {
 
     try {
       await queue.process();
-    } catch(e) {
-      assert.equal(queue.empty, false, 'queue processing encountered a problem');
-      assert.equal(queue.error.message, ':(', 'process error matches expectation');
+    } catch (e) {
+      assert.equal(
+        queue.empty,
+        false,
+        'queue processing encountered a problem'
+      );
+      assert.equal(
+        queue.error.message,
+        ':(',
+        'process error matches expectation'
+      );
       assert.strictEqual(queue.error, e, 'process error matches expectation');
       assert.strictEqual(queue.current.data, op2, 'op2 is current failed task');
     }
 
     // retry current task and continue processing
     let result = await queue.retry();
-    assert.equal(result, '3', 'the result of the retried task should be returned');
+    assert.equal(
+      result,
+      '3',
+      'the result of the retried task should be returned'
+    );
 
     // prevent failed promise from leaking into test harness
-    try { await failedPush; } catch {}
+    try {
+      await failedPush;
+    } catch {}
   });
 
   test('#skip removes the current task from an inactive queue', async function(assert) {
@@ -449,38 +540,52 @@ module('TaskQueue', function() {
       assert.ok(true, 'queue should complete after processing has restarted');
     });
 
-    queue.push({
-      type: 'transform',
-      data: op1
-    })
+    queue
+      .push({
+        type: 'transform',
+        data: op1
+      })
       .then(() => {
         assert.ok(true, 'op1 should be processed');
       });
 
-    const failedPush = queue.push({
-      type: 'transform',
-      data: op2
-    })
+    const failedPush = queue
+      .push({
+        type: 'transform',
+        data: op2
+      })
       .then(() => {
         assert.ok(false, 'op2 should fail');
       })
-      .catch((e) => {
+      .catch(e => {
         assert.ok(true, 'op2 should fail');
       });
 
-    queue.push({
-      type: 'transform',
-      data: op3
-    })
+    queue
+      .push({
+        type: 'transform',
+        data: op3
+      })
       .then(() => {
-        assert.ok(false, 'op3 should not be processed because processing should not be restarted');
+        assert.ok(
+          false,
+          'op3 should not be processed because processing should not be restarted'
+        );
       });
 
     try {
       await queue.process();
-    } catch(e) {
-      assert.equal(queue.empty, false, 'queue processing encountered a problem');
-      assert.equal(queue.error.message, ':(', 'process error matches expectation');
+    } catch (e) {
+      assert.equal(
+        queue.empty,
+        false,
+        'queue processing encountered a problem'
+      );
+      assert.equal(
+        queue.error.message,
+        ':(',
+        'process error matches expectation'
+      );
       assert.strictEqual(queue.error, e, 'process error matches expectation');
     }
 
@@ -488,7 +593,9 @@ module('TaskQueue', function() {
     await queue.skip();
 
     // prevent failed promise from leaking into test harness
-    try { await failedPush; } catch {}
+    try {
+      await failedPush;
+    } catch {}
   });
 
   test('#skip removes the current task from an inactive queue and restarts processing if autoProcess=true', async function(assert) {
@@ -549,9 +656,17 @@ module('TaskQueue', function() {
 
     try {
       await queue.process();
-    } catch(e) {
-      assert.equal(queue.empty, false, 'queue processing encountered a problem');
-      assert.equal(queue.error.message, ':(', 'process error matches expectation');
+    } catch (e) {
+      assert.equal(
+        queue.empty,
+        false,
+        'queue processing encountered a problem'
+      );
+      assert.equal(
+        queue.error.message,
+        ':(',
+        'process error matches expectation'
+      );
       assert.strictEqual(queue.error, e, 'process error matches expectation');
     }
 
@@ -559,7 +674,9 @@ module('TaskQueue', function() {
     await queue.skip();
 
     // prevent failed promise from leaking into test harness
-    try { await failedPush; } catch {}
+    try {
+      await failedPush;
+    } catch {}
   });
 
   test('#shift can remove failed tasks from an inactive queue, allowing processing to be restarted', async function(assert) {
@@ -620,20 +737,34 @@ module('TaskQueue', function() {
 
     try {
       await queue.process();
-    } catch(e) {
-      assert.equal(queue.empty, false, 'queue processing encountered a problem');
-      assert.equal(queue.error.message, ':(', 'process error matches expectation');
+    } catch (e) {
+      assert.equal(
+        queue.empty,
+        false,
+        'queue processing encountered a problem'
+      );
+      assert.equal(
+        queue.error.message,
+        ':(',
+        'process error matches expectation'
+      );
       assert.strictEqual(queue.error, e, 'process error matches expectation');
     }
 
     const failedTask = await queue.shift();
-    assert.strictEqual(failedTask.data, op2, 'op2, which failed, is returned from `shift`');
+    assert.strictEqual(
+      failedTask.data,
+      op2,
+      'op2, which failed, is returned from `shift`'
+    );
 
     // continue processing
     await queue.process();
 
     // prevent failed promise from leaking into test harness
-    try { await failedPush; } catch {}
+    try {
+      await failedPush;
+    } catch {}
   });
 
   test('#unshift can add a new task to the beginning of an inactive queue', function(assert) {
@@ -726,10 +857,9 @@ module('TaskQueue', function() {
       data: op2
     });
 
-    return queue.clear()
-      .then(() => {
-        assert.ok(true, 'queue was cleared');
-      });
+    return queue.clear().then(() => {
+      assert.ok(true, 'queue was cleared');
+    });
   });
 
   module('assigned a bucket', function(hooks) {
@@ -757,7 +887,8 @@ module('TaskQueue', function() {
           let queue = new TaskQueue(performer, { bucket });
         },
         Error('Assertion failed: TaskQueue requires a name if it has a bucket'),
-        'assertion raised');
+        'assertion raised'
+      );
     });
 
     test('will be reified with the tasks serialized in its bucket and immediately process them', async function(assert) {
@@ -792,7 +923,7 @@ module('TaskQueue', function() {
       queue.on('complete', async function() {
         assert.ok(true, 'queue completed');
 
-        let serialized = await bucket.getItem('queue')
+        let serialized = await bucket.getItem('queue');
 
         assert.deepEqual(serialized, [], 'no serialized ops remain');
       });
@@ -817,30 +948,27 @@ module('TaskQueue', function() {
 
         if (transformCount === 1) {
           assert.strictEqual(task.data, op1, 'op1 processed');
-          bucket.getItem('queue')
-            .then(serialized => {
-              assert.equal(serialized.length, 2);
-              assert.deepEqual(serialized[0].data, op1)
-              assert.deepEqual(serialized[1].data, op2)
-            });
+          bucket.getItem('queue').then(serialized => {
+            assert.equal(serialized.length, 2);
+            assert.deepEqual(serialized[0].data, op1);
+            assert.deepEqual(serialized[1].data, op2);
+          });
         } else if (transformCount === 2) {
           assert.strictEqual(task.data, op2, 'op2 processed');
-          bucket.getItem('queue')
-            .then(serialized => {
-              assert.equal(serialized.length, 1);
-              assert.deepEqual(serialized[0].data, op2)
-            });
+          bucket.getItem('queue').then(serialized => {
+            assert.equal(serialized.length, 1);
+            assert.deepEqual(serialized[0].data, op2);
+          });
         }
       });
 
       queue.on('complete', function() {
         assert.ok(true, 'queue completed');
 
-        bucket.getItem('queue')
-          .then(serialized => {
-            assert.deepEqual(serialized, [], 'no serialized ops remain');
-            done();
-          });
+        bucket.getItem('queue').then(serialized => {
+          assert.deepEqual(serialized, [], 'no serialized ops remain');
+          done();
+        });
       });
 
       queue.push({
