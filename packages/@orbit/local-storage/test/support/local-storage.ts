@@ -2,8 +2,13 @@ import Orbit from '@orbit/core';
 import LocalStorageSource from '../../src/source';
 import { Record } from '@orbit/data';
 
-export function getRecordFromLocalStorage(source: LocalStorageSource, record: Record): Record {
-  const recordKey = [source.namespace, record.type, record.id].join(source.delimiter);
+export function getRecordFromLocalStorage(
+  source: LocalStorageSource,
+  record: Record
+): Record {
+  const recordKey = [source.namespace, record.type, record.id].join(
+    source.delimiter
+  );
   return JSON.parse(Orbit.globals.localStorage.getItem(recordKey));
 }
 

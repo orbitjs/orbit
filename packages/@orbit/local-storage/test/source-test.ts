@@ -15,9 +15,7 @@ import LocalStorageSource from '../src/source';
 const { module, test } = QUnit;
 
 module('LocalStorageSource', function(hooks) {
-  let schema: Schema,
-      source: LocalStorageSource,
-      keyMap: KeyMap;
+  let schema: Schema, source: LocalStorageSource, keyMap: KeyMap;
 
   hooks.beforeEach(() => {
     schema = new Schema({
@@ -49,18 +47,17 @@ module('LocalStorageSource', function(hooks) {
   });
 
   hooks.afterEach(() => {
-    return source.reset()
-      .then(() => {
-        schema = source = keyMap = null;
-        Orbit.globals.localStorage.removeItem('orbit-bucket/foo');
-      });
+    return source.reset().then(() => {
+      schema = source = keyMap = null;
+      Orbit.globals.localStorage.removeItem('orbit-bucket/foo');
+    });
   });
 
   test('it exists', function(assert) {
     assert.ok(source);
     assert.strictEqual(source.schema, schema, 'schema has been assigned');
     assert.strictEqual(source.keyMap, keyMap, 'keyMap has been assigned');
-   });
+  });
 
   test('its prototype chain is correct', function(assert) {
     assert.ok(source instanceof Source, 'instanceof Source');
@@ -73,7 +70,7 @@ module('LocalStorageSource', function(hooks) {
 
   test('#getKeyForRecord returns the local storage key that will be used for a record', function(assert) {
     assert.equal(
-      source.getKeyForRecord({type: 'planet', id: 'jupiter'}),
+      source.getKeyForRecord({ type: 'planet', id: 'jupiter' }),
       'orbit/planet/jupiter'
     );
   });
@@ -94,10 +91,18 @@ module('LocalStorageSource', function(hooks) {
     };
 
     await source.push(t => t.addRecord(planet));
-    assert.deepEqual(getRecordFromLocalStorage(source, planet), planet, 'local storage contains record');
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, planet),
+      planet,
+      'local storage contains record'
+    );
 
     source = new LocalStorageSource({ schema, keyMap });
-    assert.deepEqual(getRecordFromLocalStorage(source, planet), planet, 'local storage still contains record');
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, planet),
+      planet,
+      'local storage still contains record'
+    );
   });
 
   test('#push - addRecord', async function(assert) {
@@ -117,9 +122,17 @@ module('LocalStorageSource', function(hooks) {
 
     await source.push(t => t.addRecord(planet));
 
-    assert.deepEqual(getRecordFromLocalStorage(source, planet), planet, 'local storage contains record');
-    assert.equal(keyMap.keyToId('planet', 'remoteId', 'j'), 'jupiter', 'key has been mapped');
-   });
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, planet),
+      planet,
+      'local storage contains record'
+    );
+    assert.equal(
+      keyMap.keyToId('planet', 'remoteId', 'j'),
+      'jupiter',
+      'key has been mapped'
+    );
+  });
 
   test('#push - updateRecord', async function(assert) {
     assert.expect(2);
@@ -131,7 +144,7 @@ module('LocalStorageSource', function(hooks) {
         remoteId: 'j'
       },
       attributes: {
-        name: 'Jupiter',
+        name: 'Jupiter'
       },
       relationships: {
         moons: {
@@ -176,8 +189,16 @@ module('LocalStorageSource', function(hooks) {
     await source.push(t => t.addRecord(original));
     await source.push(t => t.updateRecord(updates));
 
-    assert.deepEqual(getRecordFromLocalStorage(source, expected), expected, 'local storage contains record');
-    assert.equal(keyMap.keyToId('planet', 'remoteId', 'j'), 'jupiter', 'key has been mapped');
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, expected),
+      expected,
+      'local storage contains record'
+    );
+    assert.equal(
+      keyMap.keyToId('planet', 'remoteId', 'j'),
+      'jupiter',
+      'key has been mapped'
+    );
   });
 
   test('#push - updateRecord - when record does not exist', async function(assert) {
@@ -195,7 +216,11 @@ module('LocalStorageSource', function(hooks) {
 
     await source.push(t => t.updateRecord(revised));
 
-    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, revised),
+      revised,
+      'local storage contains record'
+    );
   });
 
   test('#push - removeRecord', async function(assert) {
@@ -213,14 +238,18 @@ module('LocalStorageSource', function(hooks) {
     await source.push(t => t.addRecord(planet));
     await source.push(t => t.removeRecord(planet));
 
-    assert.deepEqual(getRecordFromLocalStorage(source, planet), null, 'local storage does not contain record');
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, planet),
+      null,
+      'local storage does not contain record'
+    );
   });
 
   test('#push - removeRecord when part of has many relationship', async function(assert) {
     assert.expect(2);
 
     let moon1 = { type: 'moon', id: 'moon1' };
-    let moon2 = { type: 'moon', id: 'moon2' }
+    let moon2 = { type: 'moon', id: 'moon2' };
     let planet: Record = {
       type: 'planet',
       id: 'jupiter',
@@ -230,18 +259,29 @@ module('LocalStorageSource', function(hooks) {
       },
       relationships: {
         moons: {
-          data: [
-            moon1,
-            moon2
-          ]
+          data: [moon1, moon2]
         }
       }
     };
 
-    await source.push(t => [t.addRecord(moon1),t.addRecord(moon2),t.addRecord(planet)]);
-    assert.deepEqual((await getRecordFromLocalStorage(source, planet)).relationships.moons.data.length, 2, 'record has 2 moons');
+    await source.push(t => [
+      t.addRecord(moon1),
+      t.addRecord(moon2),
+      t.addRecord(planet)
+    ]);
+    assert.deepEqual(
+      (await getRecordFromLocalStorage(source, planet)).relationships.moons.data
+        .length,
+      2,
+      'record has 2 moons'
+    );
     await source.push(t => t.removeRecord(moon1));
-    assert.deepEqual((await getRecordFromLocalStorage(source, planet)).relationships.moons.data.length, 1, 'record has 1 moon');
+    assert.deepEqual(
+      (await getRecordFromLocalStorage(source, planet)).relationships.moons.data
+        .length,
+      1,
+      'record has 1 moon'
+    );
   });
 
   test('#push - removeRecord - when record does not exist', async function(assert) {
@@ -254,7 +294,11 @@ module('LocalStorageSource', function(hooks) {
 
     await source.push(t => t.removeRecord(planet));
 
-    assert.equal(getRecordFromLocalStorage(source, planet), undefined, 'local storage does not contain record');
+    assert.equal(
+      getRecordFromLocalStorage(source, planet),
+      undefined,
+      'local storage does not contain record'
+    );
   });
 
   test('#push - replaceKey', async function(assert) {
@@ -284,8 +328,16 @@ module('LocalStorageSource', function(hooks) {
     await source.push(t => t.addRecord(original));
     await source.push(t => t.replaceKey(original, 'remoteId', '123'));
 
-    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
-    assert.equal(keyMap.keyToId('planet', 'remoteId', '123'), 'jupiter', 'key has been mapped');
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, revised),
+      revised,
+      'local storage contains record'
+    );
+    assert.equal(
+      keyMap.keyToId('planet', 'remoteId', '123'),
+      'jupiter',
+      'key has been mapped'
+    );
   });
 
   test('#push - replaceKey - when base record does not exist', async function(assert) {
@@ -299,10 +351,20 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.replaceKey({ type: 'planet', id: 'jupiter' }, 'remoteId', '123'));
+    await source.push(t =>
+      t.replaceKey({ type: 'planet', id: 'jupiter' }, 'remoteId', '123')
+    );
 
-    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
-    assert.equal(keyMap.keyToId('planet', 'remoteId', '123'), 'jupiter', 'key has been mapped');
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, revised),
+      revised,
+      'local storage contains record'
+    );
+    assert.equal(
+      keyMap.keyToId('planet', 'remoteId', '123'),
+      'jupiter',
+      'key has been mapped'
+    );
   });
 
   test('#push - replaceAttribute', async function(assert) {
@@ -330,7 +392,11 @@ module('LocalStorageSource', function(hooks) {
     await source.push(t => t.addRecord(original));
     await source.push(t => t.replaceAttribute(original, 'order', 5));
 
-    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, revised),
+      revised,
+      'local storage contains record'
+    );
   });
 
   test('#push - replaceAttribute - when base record does not exist', async function(assert) {
@@ -344,9 +410,15 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.replaceAttribute({ type: 'planet', id: 'jupiter' }, 'order', 5));
+    await source.push(t =>
+      t.replaceAttribute({ type: 'planet', id: 'jupiter' }, 'order', 5)
+    );
 
-    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, revised),
+      revised,
+      'local storage contains record'
+    );
   });
 
   test('#push - addToRelatedRecords', async function(assert) {
@@ -381,9 +453,15 @@ module('LocalStorageSource', function(hooks) {
     };
 
     await source.push(t => t.addRecord(original));
-    await source.push(t => t.addToRelatedRecords(original, 'moons', { type: 'moon', id: 'moon1' }));
+    await source.push(t =>
+      t.addToRelatedRecords(original, 'moons', { type: 'moon', id: 'moon1' })
+    );
 
-    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, revised),
+      revised,
+      'local storage contains record'
+    );
   });
 
   test('#push - addToRelatedRecords - when base record does not exist', async function(assert) {
@@ -399,9 +477,18 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addToRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', { type: 'moon', id: 'moon1' }));
+    await source.push(t =>
+      t.addToRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', {
+        type: 'moon',
+        id: 'moon1'
+      })
+    );
 
-    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, revised),
+      revised,
+      'local storage contains record'
+    );
   });
 
   test('#push - removeFromRelatedRecords', async function(assert) {
@@ -416,10 +503,7 @@ module('LocalStorageSource', function(hooks) {
       },
       relationships: {
         moons: {
-          data: [
-            { type: 'moon', id: 'moon1' },
-            { type: 'moon', id: 'moon2' }
-          ]
+          data: [{ type: 'moon', id: 'moon1' }, { type: 'moon', id: 'moon2' }]
         }
       }
     };
@@ -439,9 +523,18 @@ module('LocalStorageSource', function(hooks) {
     };
 
     await source.push(t => t.addRecord(original));
-    await source.push(t => t.removeFromRelatedRecords(original, 'moons', { type: 'moon', id: 'moon2' }));
+    await source.push(t =>
+      t.removeFromRelatedRecords(original, 'moons', {
+        type: 'moon',
+        id: 'moon2'
+      })
+    );
 
-    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, revised),
+      revised,
+      'local storage contains record'
+    );
   });
 
   test('#push - removeFromRelatedRecords - when base record does not exist', async function(assert) {
@@ -452,15 +545,23 @@ module('LocalStorageSource', function(hooks) {
       id: 'jupiter',
       relationships: {
         moons: {
-          data: [
-          ]
+          data: []
         }
       }
     };
 
-    await source.push(t => t.removeFromRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', { type: 'moon', id: 'moon2' }));
+    await source.push(t =>
+      t.removeFromRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', {
+        type: 'moon',
+        id: 'moon2'
+      })
+    );
 
-    assert.equal(getRecordFromLocalStorage(source, revised), undefined, 'local storage does not contain record');
+    assert.equal(
+      getRecordFromLocalStorage(source, revised),
+      undefined,
+      'local storage does not contain record'
+    );
   });
 
   test('#push - replaceRelatedRecords', async function(assert) {
@@ -475,9 +576,7 @@ module('LocalStorageSource', function(hooks) {
       },
       relationships: {
         moons: {
-          data: [
-            { type: 'moon', id: 'moon1' }
-          ]
+          data: [{ type: 'moon', id: 'moon1' }]
         }
       }
     };
@@ -491,18 +590,24 @@ module('LocalStorageSource', function(hooks) {
       },
       relationships: {
         moons: {
-          data: [
-            { type: 'moon', id: 'moon2' },
-            { type: 'moon', id: 'moon3' }
-          ]
+          data: [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }]
         }
       }
     };
 
     await source.push(t => t.addRecord(original));
-    await source.push(t => t.replaceRelatedRecords(original, 'moons', [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }]));
+    await source.push(t =>
+      t.replaceRelatedRecords(original, 'moons', [
+        { type: 'moon', id: 'moon2' },
+        { type: 'moon', id: 'moon3' }
+      ])
+    );
 
-    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, revised),
+      revised,
+      'local storage contains record'
+    );
   });
 
   test('#push - replaceRelatedRecords - when base record does not exist', async function(assert) {
@@ -513,17 +618,23 @@ module('LocalStorageSource', function(hooks) {
       id: 'jupiter',
       relationships: {
         moons: {
-          data: [
-            { type: 'moon', id: 'moon2' },
-            { type: 'moon', id: 'moon3' }
-          ]
+          data: [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }]
         }
       }
     };
 
-    await source.push(t => t.replaceRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }]));
+    await source.push(t =>
+      t.replaceRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', [
+        { type: 'moon', id: 'moon2' },
+        { type: 'moon', id: 'moon3' }
+      ])
+    );
 
-    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, revised),
+      revised,
+      'local storage contains record'
+    );
   });
 
   test('#push - replaceRelatedRecord - with record', async function(assert) {
@@ -558,9 +669,18 @@ module('LocalStorageSource', function(hooks) {
     };
 
     await source.push(t => t.addRecord(original));
-    await source.push(t => t.replaceRelatedRecord(original, 'solarSystem', { type: 'solarSystem', id: 'ss1' }));
+    await source.push(t =>
+      t.replaceRelatedRecord(original, 'solarSystem', {
+        type: 'solarSystem',
+        id: 'ss1'
+      })
+    );
 
-    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, revised),
+      revised,
+      'local storage contains record'
+    );
   });
 
   test('#push - replaceRelatedRecord - with record - when base record does not exist', async function(assert) {
@@ -576,8 +696,17 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.replaceRelatedRecord({ type: 'planet', id: 'jupiter' }, 'solarSystem', { type: 'solarSystem', id: 'ss1' }));
-    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
+    await source.push(t =>
+      t.replaceRelatedRecord({ type: 'planet', id: 'jupiter' }, 'solarSystem', {
+        type: 'solarSystem',
+        id: 'ss1'
+      })
+    );
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, revised),
+      revised,
+      'local storage contains record'
+    );
   });
 
   test('#push - replaceRelatedRecord - with null', async function(assert) {
@@ -612,8 +741,14 @@ module('LocalStorageSource', function(hooks) {
     };
 
     await source.push(t => t.addRecord(original));
-    await source.push(t => t.replaceRelatedRecord(original, 'solarSystem', null));
-    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
+    await source.push(t =>
+      t.replaceRelatedRecord(original, 'solarSystem', null)
+    );
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, revised),
+      revised,
+      'local storage contains record'
+    );
   });
 
   test('#push - replaceRelatedRecord - with null - when base record does not exist', async function(assert) {
@@ -629,8 +764,18 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.replaceRelatedRecord({ type: 'planet', id: 'jupiter' }, 'solarSystem', null));
-    assert.deepEqual(getRecordFromLocalStorage(source, revised), revised, 'local storage contains record');
+    await source.push(t =>
+      t.replaceRelatedRecord(
+        { type: 'planet', id: 'jupiter' },
+        'solarSystem',
+        null
+      )
+    );
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, revised),
+      revised,
+      'local storage contains record'
+    );
   });
 
   test('#reset - clears records for source', async function(assert) {
@@ -643,7 +788,11 @@ module('LocalStorageSource', function(hooks) {
 
     await source.push(t => t.addRecord(planet));
 
-    assert.deepEqual(getRecordFromLocalStorage(source, planet), planet, 'local storage contains record');
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, planet),
+      planet,
+      'local storage contains record'
+    );
 
     await source.reset();
 
@@ -707,12 +856,15 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.reset()
-      .then(() => source.push(t => [
-        t.addRecord(earth),
-        t.addRecord(jupiter),
-        t.addRecord(io)
-      ]))
+    return source
+      .reset()
+      .then(() =>
+        source.push(t => [
+          t.addRecord(earth),
+          t.addRecord(jupiter),
+          t.addRecord(io)
+        ])
+      )
       .then(() => {
         // reset keyMap to verify that pulling records also adds keys
         keyMap.reset();
@@ -727,9 +879,21 @@ module('LocalStorageSource', function(hooks) {
         );
       })
       .then(() => {
-        assert.equal(keyMap.keyToId('planet', 'remoteId', 'p1'), 'earth', 'key has been mapped');
-        assert.equal(keyMap.keyToId('planet', 'remoteId', 'p2'), 'jupiter', 'key has been mapped');
-        assert.equal(keyMap.keyToId('moon', 'remoteId', 'm1'), 'io', 'key has been mapped');
+        assert.equal(
+          keyMap.keyToId('planet', 'remoteId', 'p1'),
+          'earth',
+          'key has been mapped'
+        );
+        assert.equal(
+          keyMap.keyToId('planet', 'remoteId', 'p2'),
+          'jupiter',
+          'key has been mapped'
+        );
+        assert.equal(
+          keyMap.keyToId('moon', 'remoteId', 'm1'),
+          'io',
+          'key has been mapped'
+        );
       });
   });
 
@@ -762,12 +926,15 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.reset()
-      .then(() => source.push(t => [
-        t.addRecord(earth),
-        t.addRecord(jupiter),
-        t.addRecord(io)
-      ]))
+    return source
+      .reset()
+      .then(() =>
+        source.push(t => [
+          t.addRecord(earth),
+          t.addRecord(jupiter),
+          t.addRecord(io)
+        ])
+      )
       .then(() => source.pull(q => q.findRecords('planet')))
       .then(transforms => {
         assert.equal(transforms.length, 1, 'one transform returned');
@@ -814,11 +981,9 @@ module('LocalStorageSource', function(hooks) {
       t.addRecord(io)
     ]);
 
-    let transforms = await source.pull(q => q.findRecords([
-      earth,
-      io,
-      { type: 'moon', id: 'FAKE' }
-    ]));
+    let transforms = await source.pull(q =>
+      q.findRecords([earth, io, { type: 'moon', id: 'FAKE' }])
+    );
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.deepEqual(
@@ -865,12 +1030,15 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source.reset()
-      .then(() => source.push(t => [
-        t.addRecord(earth),
-        t.addRecord(jupiter),
-        t.addRecord(io)
-      ]))
+    return source
+      .reset()
+      .then(() =>
+        source.push(t => [
+          t.addRecord(earth),
+          t.addRecord(jupiter),
+          t.addRecord(io)
+        ])
+      )
       .then(() => {
         // reset keyMap to verify that pulling records also adds keys
         keyMap.reset();
@@ -885,19 +1053,28 @@ module('LocalStorageSource', function(hooks) {
         );
       })
       .then(() => {
-        assert.equal(keyMap.keyToId('planet', 'remoteId', 'p2'), 'jupiter', 'key has been mapped');
+        assert.equal(
+          keyMap.keyToId('planet', 'remoteId', 'p2'),
+          'jupiter',
+          'key has been mapped'
+        );
       });
-   });
+  });
 
   test('#pull - ignores local-storage-bucket entries', function(assert) {
     assert.expect(2);
 
-    return source.reset()
+    return source
+      .reset()
       .then(() => Orbit.globals.localStorage.setItem('orbit-bucket/foo', '{}'))
       .then(() => source.pull(q => q.findRecords()))
       .then(transforms => {
         assert.equal(transforms.length, 1, 'one transform returned');
-        assert.equal(transforms[0].operations.length, 0, 'no operations returned');
+        assert.equal(
+          transforms[0].operations.length,
+          0,
+          'no operations returned'
+        );
       });
   });
 });
