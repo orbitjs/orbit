@@ -71,8 +71,7 @@ export abstract class SyncOperationProcessor {
    *
    * No operations may be returned.
    */
-  immediate(operation: RecordOperation): void {
-  }
+  immediate(operation: RecordOperation): void {}
 
   /**
    * Called after an `operation` _and_ any related operations have been applied.

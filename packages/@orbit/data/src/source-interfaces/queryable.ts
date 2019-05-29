@@ -22,7 +22,11 @@ export interface Queryable {
    * The `query` method accepts a `Query` instance. It evaluates the query and
    * returns a promise that resolves to a static set of results.
    */
-  query(queryOrExpression: QueryOrExpression, options?: object, id?: string): Promise<any>;
+  query(
+    queryOrExpression: QueryOrExpression,
+    options?: object,
+    id?: string
+  ): Promise<any>;
 
   _query(query: Query, hints?: any): Promise<any>;
 }
@@ -57,26 +61,33 @@ export default function queryable(Klass: SourceClass): void {
     return;
   }
 
-  assert('Queryable interface can only be applied to a Source', proto instanceof Source);
+  assert(
+    'Queryable interface can only be applied to a Source',
+    proto instanceof Source
+  );
 
   proto[QUERYABLE] = true;
 
-  proto.query = function(queryOrExpression: QueryOrExpression, options?: object, id?: string): Promise<any> {
+  proto.query = function(
+    queryOrExpression: QueryOrExpression,
+    options?: object,
+    id?: string
+  ): Promise<any> {
     const query = buildQuery(queryOrExpression, options, id, this.queryBuilder);
     return this._enqueueRequest('query', query);
-  }
+  };
 
   proto.__query__ = function(query: Query): Promise<any> {
     const hints: any = {};
     return fulfillInSeries(this, 'beforeQuery', query, hints)
       .then(() => this._query(query, hints))
       .then((result: any) => {
-        return settleInSeries(this, 'query', query, result)
-          .then(() => result);
+        return settleInSeries(this, 'query', query, result).then(() => result);
       })
       .catch((error: Error) => {
-        return settleInSeries(this, 'queryFail', query, error)
-          .then(() => { throw error; });
+        return settleInSeries(this, 'queryFail', query, error).then(() => {
+          throw error;
+        });
       });
-  }
+  };
 }

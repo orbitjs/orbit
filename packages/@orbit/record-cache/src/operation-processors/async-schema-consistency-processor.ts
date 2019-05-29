@@ -1,6 +1,4 @@
-import {
-  RecordOperation
-} from '@orbit/data';
+import { RecordOperation } from '@orbit/data';
 import { AsyncOperationProcessor } from '../async-operation-processor';
 import {
   recordAdded,
@@ -21,10 +19,7 @@ export default class AsyncSchemaConsistencyProcessor extends AsyncOperationProce
   async after(operation: RecordOperation): Promise<RecordOperation[]> {
     switch (operation.op) {
       case 'addRecord':
-        return recordAdded(
-          this.accessor.schema,
-          operation.record
-        );
+        return recordAdded(this.accessor.schema, operation.record);
 
       case 'addToRelatedRecords':
         return relatedRecordAdded(
@@ -39,7 +34,10 @@ export default class AsyncSchemaConsistencyProcessor extends AsyncOperationProce
           this.accessor.schema,
           operation.record,
           operation.relationship,
-          await this.accessor.getRelatedRecordAsync(operation.record, operation.relationship),
+          await this.accessor.getRelatedRecordAsync(
+            operation.record,
+            operation.relationship
+          ),
           operation.relatedRecord
         );
 
@@ -48,7 +46,10 @@ export default class AsyncSchemaConsistencyProcessor extends AsyncOperationProce
           this.accessor.schema,
           operation.record,
           operation.relationship,
-          await this.accessor.getRelatedRecordsAsync(operation.record, operation.relationship),
+          await this.accessor.getRelatedRecordsAsync(
+            operation.record,
+            operation.relationship
+          ),
           operation.relatedRecords
         );
 

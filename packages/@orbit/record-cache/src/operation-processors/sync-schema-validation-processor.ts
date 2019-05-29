@@ -30,16 +30,32 @@ export default class SyncSchemaValidationProcessor extends SyncOperationProcesso
         return this._attributeReplaced(operation.record);
 
       case 'addToRelatedRecords':
-        return this._relatedRecordAdded(operation.record, operation.relationship, operation.relatedRecord);
+        return this._relatedRecordAdded(
+          operation.record,
+          operation.relationship,
+          operation.relatedRecord
+        );
 
       case 'removeFromRelatedRecords':
-        return this._relatedRecordRemoved(operation.record, operation.relationship, operation.relatedRecord);
+        return this._relatedRecordRemoved(
+          operation.record,
+          operation.relationship,
+          operation.relatedRecord
+        );
 
       case 'replaceRelatedRecords':
-        return this._relatedRecordsReplaced(operation.record, operation.relationship, operation.relatedRecords);
+        return this._relatedRecordsReplaced(
+          operation.record,
+          operation.relationship,
+          operation.relatedRecords
+        );
 
       case 'replaceRelatedRecord':
-        return this._relatedRecordReplaced(operation.record, operation.relationship, operation.relatedRecord);
+        return this._relatedRecordReplaced(
+          operation.record,
+          operation.relationship,
+          operation.relatedRecord
+        );
 
       default:
         return;
@@ -66,18 +82,30 @@ export default class SyncSchemaValidationProcessor extends SyncOperationProcesso
     this._validateRecordIdentity(record);
   }
 
-  protected _relatedRecordAdded(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity) {
+  protected _relatedRecordAdded(
+    record: RecordIdentity,
+    relationship: string,
+    relatedRecord: RecordIdentity
+  ) {
     this._validateRecordIdentity(record);
     this._validateRecordIdentity(relatedRecord);
     this._validateRelationship(record, relationship, relatedRecord);
   }
 
-  protected _relatedRecordRemoved(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity) {
+  protected _relatedRecordRemoved(
+    record: RecordIdentity,
+    relationship: string,
+    relatedRecord: RecordIdentity
+  ) {
     this._validateRecordIdentity(record);
     this._validateRecordIdentity(relatedRecord);
   }
 
-  protected _relatedRecordsReplaced(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]) {
+  protected _relatedRecordsReplaced(
+    record: RecordIdentity,
+    relationship: string,
+    relatedRecords: RecordIdentity[]
+  ) {
     this._validateRecordIdentity(record);
 
     relatedRecords.forEach(relatedRecord => {
@@ -86,7 +114,11 @@ export default class SyncSchemaValidationProcessor extends SyncOperationProcesso
     });
   }
 
-  protected _relatedRecordReplaced(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity | null) {
+  protected _relatedRecordReplaced(
+    record: RecordIdentity,
+    relationship: string,
+    relatedRecord: RecordIdentity | null
+  ) {
     this._validateRecordIdentity(record);
 
     if (relatedRecord) {
@@ -103,25 +135,37 @@ export default class SyncSchemaValidationProcessor extends SyncOperationProcesso
     this._getModelSchema(record.type);
   }
 
-  protected _validateRelationship(record: Record, relationship: string, relatedRecord: RecordIdentity) {
+  protected _validateRelationship(
+    record: Record,
+    relationship: string,
+    relatedRecord: RecordIdentity
+  ) {
     const modelSchema = this._getModelSchema(record.type);
-    const relationshipDef = modelSchema.relationships && modelSchema.relationships[relationship];
+    const relationshipDef =
+      modelSchema.relationships && modelSchema.relationships[relationship];
     if (relationshipDef === undefined) {
       throw new RelationshipNotFound(relationship, record.type);
     }
     if (Array.isArray(relationshipDef.model)) {
       if (!relationshipDef.model.includes(relatedRecord.type)) {
-        throw new IncorrectRelatedRecordType(relatedRecord.type, relationship, record.type);
+        throw new IncorrectRelatedRecordType(
+          relatedRecord.type,
+          relationship,
+          record.type
+        );
       }
     } else if (typeof relationshipDef.model === 'string') {
       if (relationshipDef.model !== relatedRecord.type) {
-        throw new IncorrectRelatedRecordType(relatedRecord.type, relationship, record.type);
+        throw new IncorrectRelatedRecordType(
+          relatedRecord.type,
+          relationship,
+          record.type
+        );
       }
     }
-  } 
+  }
 
   private _getModelSchema(type: string) {
     return this.accessor.schema.getModel(type);
   }
-
 }

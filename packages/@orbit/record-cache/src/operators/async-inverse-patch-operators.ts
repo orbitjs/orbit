@@ -22,7 +22,10 @@ export interface AsyncInversePatchOperator {
 }
 
 export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
-  async addRecord(cache: AsyncRecordAccessor, op: AddRecordOperation): Promise<RecordOperation> {
+  async addRecord(
+    cache: AsyncRecordAccessor,
+    op: AddRecordOperation
+  ): Promise<RecordOperation> {
     const { type, id } = op.record;
     const current = await cache.getRecordAsync(op.record);
 
@@ -43,7 +46,10 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
     }
   },
 
-  async updateRecord(cache: AsyncRecordAccessor, op: UpdateRecordOperation): Promise<RecordOperation> {
+  async updateRecord(
+    cache: AsyncRecordAccessor,
+    op: UpdateRecordOperation
+  ): Promise<RecordOperation> {
     const current = await cache.getRecordAsync(op.record);
     const replacement: Record = op.record;
     const { type, id } = replacement;
@@ -59,7 +65,11 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
             let currentValue = deepGet(current, [grouping, field]);
             if (!eq(value, currentValue)) {
               changed = true;
-              deepSet(result, [grouping, field], currentValue === undefined ? null : currentValue);
+              deepSet(
+                result,
+                [grouping, field],
+                currentValue === undefined ? null : currentValue
+              );
             }
           });
         }
@@ -69,17 +79,23 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
         Object.keys(replacement.relationships).forEach(field => {
           let data = deepGet(replacement, ['relationships', field, 'data']);
           if (data !== undefined) {
-            let currentData = deepGet(current, ['relationships', field, 'data']);
+            let currentData = deepGet(current, [
+              'relationships',
+              field,
+              'data'
+            ]);
             let relationshipChanged;
 
             if (isArray(data)) {
               if (currentData) {
-                relationshipChanged = !equalRecordIdentitySets(currentData, data);
+                relationshipChanged = !equalRecordIdentitySets(
+                  currentData,
+                  data
+                );
               } else {
                 relationshipChanged = true;
                 currentData = [];
               }
-
             } else {
               if (currentData) {
                 relationshipChanged = !equalRecordIdentities(currentData, data);
@@ -111,7 +127,10 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
     }
   },
 
-  async removeRecord(cache: AsyncRecordAccessor, op: RemoveRecordOperation): Promise<RecordOperation> {
+  async removeRecord(
+    cache: AsyncRecordAccessor,
+    op: RemoveRecordOperation
+  ): Promise<RecordOperation> {
     const current = await cache.getRecordAsync(op.record);
 
     if (current) {
@@ -122,7 +141,10 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
     }
   },
 
-  async replaceKey(cache: AsyncRecordAccessor, op: ReplaceKeyOperation): Promise<RecordOperation> {
+  async replaceKey(
+    cache: AsyncRecordAccessor,
+    op: ReplaceKeyOperation
+  ): Promise<RecordOperation> {
     const { key } = op;
     const record = await cache.getRecordAsync(op.record);
     const current = record && deepGet(record, ['keys', key]);
@@ -139,7 +161,10 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
     }
   },
 
-  async replaceAttribute(cache: AsyncRecordAccessor, op: ReplaceAttributeOperation): Promise<RecordOperation> {
+  async replaceAttribute(
+    cache: AsyncRecordAccessor,
+    op: ReplaceAttributeOperation
+  ): Promise<RecordOperation> {
     const { attribute } = op;
     const record = await cache.getRecordAsync(op.record);
     const current = record && deepGet(record, ['attributes', attribute]);
@@ -156,11 +181,20 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
     }
   },
 
-  async addToRelatedRecords(cache: AsyncRecordAccessor, op: AddToRelatedRecordsOperation): Promise<RecordOperation> {
+  async addToRelatedRecords(
+    cache: AsyncRecordAccessor,
+    op: AddToRelatedRecordsOperation
+  ): Promise<RecordOperation> {
     const { record, relationship, relatedRecord } = op;
-    const currentRelatedRecords = await cache.getRelatedRecordsAsync(record, relationship);
+    const currentRelatedRecords = await cache.getRelatedRecordsAsync(
+      record,
+      relationship
+    );
 
-    if (currentRelatedRecords === undefined || !recordsInclude(currentRelatedRecords, relatedRecord)) {
+    if (
+      currentRelatedRecords === undefined ||
+      !recordsInclude(currentRelatedRecords, relatedRecord)
+    ) {
       return {
         op: 'removeFromRelatedRecords',
         record,
@@ -170,11 +204,20 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
     }
   },
 
-  async removeFromRelatedRecords(cache: AsyncRecordAccessor, op: RemoveFromRelatedRecordsOperation): Promise<RecordOperation> {
+  async removeFromRelatedRecords(
+    cache: AsyncRecordAccessor,
+    op: RemoveFromRelatedRecordsOperation
+  ): Promise<RecordOperation> {
     const { record, relationship, relatedRecord } = op;
-    const currentRelatedRecords = await cache.getRelatedRecordsAsync(record, relationship);
+    const currentRelatedRecords = await cache.getRelatedRecordsAsync(
+      record,
+      relationship
+    );
 
-    if (currentRelatedRecords !== undefined && recordsInclude(currentRelatedRecords, relatedRecord)) {
+    if (
+      currentRelatedRecords !== undefined &&
+      recordsInclude(currentRelatedRecords, relatedRecord)
+    ) {
       return {
         op: 'addToRelatedRecords',
         record,
@@ -184,11 +227,20 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
     }
   },
 
-  async replaceRelatedRecords(cache: AsyncRecordAccessor, op: ReplaceRelatedRecordsOperation): Promise<RecordOperation> {
+  async replaceRelatedRecords(
+    cache: AsyncRecordAccessor,
+    op: ReplaceRelatedRecordsOperation
+  ): Promise<RecordOperation> {
     const { record, relationship, relatedRecords } = op;
-    const currentRelatedRecords = await cache.getRelatedRecordsAsync(record, relationship);
+    const currentRelatedRecords = await cache.getRelatedRecordsAsync(
+      record,
+      relationship
+    );
 
-    if (currentRelatedRecords === undefined || !equalRecordIdentitySets(currentRelatedRecords, relatedRecords)) {
+    if (
+      currentRelatedRecords === undefined ||
+      !equalRecordIdentitySets(currentRelatedRecords, relatedRecords)
+    ) {
       return {
         op: 'replaceRelatedRecords',
         record,
@@ -198,11 +250,20 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
     }
   },
 
-  async replaceRelatedRecord(cache: AsyncRecordAccessor, op: ReplaceRelatedRecordOperation): Promise<RecordOperation> {
+  async replaceRelatedRecord(
+    cache: AsyncRecordAccessor,
+    op: ReplaceRelatedRecordOperation
+  ): Promise<RecordOperation> {
     const { record, relationship, relatedRecord } = op;
-    const currentRelatedRecord = await cache.getRelatedRecordAsync(record, relationship);
+    const currentRelatedRecord = await cache.getRelatedRecordAsync(
+      record,
+      relationship
+    );
 
-    if (currentRelatedRecord === undefined || !equalRecordIdentities(currentRelatedRecord, relatedRecord)) {
+    if (
+      currentRelatedRecord === undefined ||
+      !equalRecordIdentities(currentRelatedRecord, relatedRecord)
+    ) {
       return {
         op: 'replaceRelatedRecord',
         record,

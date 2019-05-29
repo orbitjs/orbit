@@ -1,10 +1,6 @@
 /* eslint-disable valid-jsdoc */
 import { clone, deepGet, deepSet, Dict, objectValues } from '@orbit/utils';
-import {
-  Record,
-  RecordIdentity,
-  equalRecordIdentities
-} from '@orbit/data';
+import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/data';
 import {
   RecordRelationshipIdentity,
   SyncRecordCache,
@@ -22,7 +18,7 @@ export default class ExampleSyncRecordCache extends SyncRecordCache {
     super(settings);
 
     this._records = {};
-    this._inverseRelationships = {}
+    this._inverseRelationships = {};
 
     Object.keys(this._schema.models).forEach(type => {
       this._records[type] = {};
@@ -82,26 +78,56 @@ export default class ExampleSyncRecordCache extends SyncRecordCache {
     return records;
   }
 
-  getInverseRelationshipsSync(recordIdentity: RecordIdentity): RecordRelationshipIdentity[] {
-    return deepGet(this._inverseRelationships, [recordIdentity.type, recordIdentity.id]) || [];
+  getInverseRelationshipsSync(
+    recordIdentity: RecordIdentity
+  ): RecordRelationshipIdentity[] {
+    return (
+      deepGet(this._inverseRelationships, [
+        recordIdentity.type,
+        recordIdentity.id
+      ]) || []
+    );
   }
 
-  addInverseRelationshipsSync(relationships: RecordRelationshipIdentity[]): void {
+  addInverseRelationshipsSync(
+    relationships: RecordRelationshipIdentity[]
+  ): void {
     for (let relationship of relationships) {
-      let rels: any = deepGet(this._inverseRelationships, [relationship.relatedRecord.type, relationship.relatedRecord.id]);
+      let rels: any = deepGet(this._inverseRelationships, [
+        relationship.relatedRecord.type,
+        relationship.relatedRecord.id
+      ]);
       rels = rels ? clone(rels) : [];
       rels.push(relationship);
-      deepSet(this._inverseRelationships, [relationship.relatedRecord.type, relationship.relatedRecord.id], rels);
+      deepSet(
+        this._inverseRelationships,
+        [relationship.relatedRecord.type, relationship.relatedRecord.id],
+        rels
+      );
     }
   }
 
-  removeInverseRelationshipsSync(relationships: RecordRelationshipIdentity[]): void {
+  removeInverseRelationshipsSync(
+    relationships: RecordRelationshipIdentity[]
+  ): void {
     for (let relationship of relationships) {
-      let rels: any = deepGet(this._inverseRelationships, [relationship.relatedRecord.type, relationship.relatedRecord.id]);
+      let rels: any = deepGet(this._inverseRelationships, [
+        relationship.relatedRecord.type,
+        relationship.relatedRecord.id
+      ]);
       if (rels) {
-        let newRels: any = rels.filter((rel: any) => !(equalRecordIdentities(rel.record, relationship.record) &&
-                                                     rel.relationship === relationship.relationship));
-        deepSet(this._inverseRelationships, [relationship.relatedRecord.type, relationship.relatedRecord.id], newRels);
+        let newRels: any = rels.filter(
+          (rel: any) =>
+            !(
+              equalRecordIdentities(rel.record, relationship.record) &&
+              rel.relationship === relationship.relationship
+            )
+        );
+        deepSet(
+          this._inverseRelationships,
+          [relationship.relatedRecord.type, relationship.relatedRecord.id],
+          newRels
+        );
       }
     }
   }

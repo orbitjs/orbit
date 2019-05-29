@@ -1,11 +1,17 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from './main';
 import { Operation } from './operation';
-import { isObject, isArray, toArray } from '@orbit/utils';
+import { isObject, isArray } from '@orbit/utils';
 import TransformBuilder from './transform-builder';
 
-export type TransformBuilderFunc = (TransformBuilder: TransformBuilder) => Operation | Operation[];
-export type TransformOrOperations = Transform | Operation | Operation[] | TransformBuilderFunc;
+export type TransformBuilderFunc = (
+  TransformBuilder: TransformBuilder
+) => Operation | Operation[];
+export type TransformOrOperations =
+  | Transform
+  | Operation
+  | Operation[]
+  | TransformBuilderFunc;
 
 /**
  * A Transform represents a set of operations that can mutate a source.
@@ -28,10 +34,18 @@ export interface Transform {
  * Transforms will be assigned the specified `transformId` as `id`. If none
  * is specified, a UUID will be generated.
  */
-export function buildTransform(transformOrOperations: TransformOrOperations, transformOptions?: object, transformId?: string, transformBuilder?: TransformBuilder): Transform {
+export function buildTransform(
+  transformOrOperations: TransformOrOperations,
+  transformOptions?: object,
+  transformId?: string,
+  transformBuilder?: TransformBuilder
+): Transform {
   if (typeof transformOrOperations === 'function') {
-    return buildTransform(transformOrOperations(transformBuilder), transformOptions, transformId);
-
+    return buildTransform(
+      transformOrOperations(transformBuilder),
+      transformOptions,
+      transformId
+    );
   } else {
     let transform = transformOrOperations as Transform;
     let operations: Operation[];

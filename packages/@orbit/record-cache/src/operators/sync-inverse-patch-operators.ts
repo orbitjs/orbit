@@ -22,7 +22,10 @@ export interface SyncInversePatchOperator {
 }
 
 export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
-  addRecord(cache: SyncRecordAccessor, op: AddRecordOperation): RecordOperation {
+  addRecord(
+    cache: SyncRecordAccessor,
+    op: AddRecordOperation
+  ): RecordOperation {
     const { type, id } = op.record;
     const current = cache.getRecordSync(op.record);
 
@@ -43,7 +46,10 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
     }
   },
 
-  updateRecord(cache: SyncRecordAccessor, op: UpdateRecordOperation): RecordOperation {
+  updateRecord(
+    cache: SyncRecordAccessor,
+    op: UpdateRecordOperation
+  ): RecordOperation {
     const current = cache.getRecordSync(op.record);
     const replacement: Record = op.record;
     const { type, id } = replacement;
@@ -59,7 +65,11 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
             let currentValue = deepGet(current, [grouping, field]);
             if (!eq(value, currentValue)) {
               changed = true;
-              deepSet(result, [grouping, field], currentValue === undefined ? null : currentValue);
+              deepSet(
+                result,
+                [grouping, field],
+                currentValue === undefined ? null : currentValue
+              );
             }
           });
         }
@@ -69,17 +79,23 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
         Object.keys(replacement.relationships).forEach(field => {
           let data = deepGet(replacement, ['relationships', field, 'data']);
           if (data !== undefined) {
-            let currentData = deepGet(current, ['relationships', field, 'data']);
+            let currentData = deepGet(current, [
+              'relationships',
+              field,
+              'data'
+            ]);
             let relationshipChanged;
 
             if (isArray(data)) {
               if (currentData) {
-                relationshipChanged = !equalRecordIdentitySets(currentData, data);
+                relationshipChanged = !equalRecordIdentitySets(
+                  currentData,
+                  data
+                );
               } else {
                 relationshipChanged = true;
                 currentData = [];
               }
-
             } else {
               if (currentData) {
                 relationshipChanged = !equalRecordIdentities(currentData, data);
@@ -111,7 +127,10 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
     }
   },
 
-  removeRecord(cache: SyncRecordAccessor, op: RemoveRecordOperation): RecordOperation {
+  removeRecord(
+    cache: SyncRecordAccessor,
+    op: RemoveRecordOperation
+  ): RecordOperation {
     const current = cache.getRecordSync(op.record);
 
     if (current) {
@@ -122,7 +141,10 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
     }
   },
 
-  replaceKey(cache: SyncRecordAccessor, op: ReplaceKeyOperation): RecordOperation {
+  replaceKey(
+    cache: SyncRecordAccessor,
+    op: ReplaceKeyOperation
+  ): RecordOperation {
     const { key } = op;
     const record = cache.getRecordSync(op.record);
     const current = record && deepGet(record, ['keys', key]);
@@ -139,7 +161,10 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
     }
   },
 
-  replaceAttribute(cache: SyncRecordAccessor, op: ReplaceAttributeOperation): RecordOperation {
+  replaceAttribute(
+    cache: SyncRecordAccessor,
+    op: ReplaceAttributeOperation
+  ): RecordOperation {
     const { attribute } = op;
     const record = cache.getRecordSync(op.record);
     const current = record && deepGet(record, ['attributes', attribute]);
@@ -156,11 +181,20 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
     }
   },
 
-  addToRelatedRecords(cache: SyncRecordAccessor, op: AddToRelatedRecordsOperation): RecordOperation {
+  addToRelatedRecords(
+    cache: SyncRecordAccessor,
+    op: AddToRelatedRecordsOperation
+  ): RecordOperation {
     const { record, relationship, relatedRecord } = op;
-    const currentRelatedRecords = cache.getRelatedRecordsSync(record, relationship);
+    const currentRelatedRecords = cache.getRelatedRecordsSync(
+      record,
+      relationship
+    );
 
-    if (currentRelatedRecords === undefined || !recordsInclude(currentRelatedRecords, relatedRecord)) {
+    if (
+      currentRelatedRecords === undefined ||
+      !recordsInclude(currentRelatedRecords, relatedRecord)
+    ) {
       return {
         op: 'removeFromRelatedRecords',
         record,
@@ -170,11 +204,20 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
     }
   },
 
-  removeFromRelatedRecords(cache: SyncRecordAccessor, op: RemoveFromRelatedRecordsOperation): RecordOperation {
+  removeFromRelatedRecords(
+    cache: SyncRecordAccessor,
+    op: RemoveFromRelatedRecordsOperation
+  ): RecordOperation {
     const { record, relationship, relatedRecord } = op;
-    const currentRelatedRecords = cache.getRelatedRecordsSync(record, relationship);
+    const currentRelatedRecords = cache.getRelatedRecordsSync(
+      record,
+      relationship
+    );
 
-    if (currentRelatedRecords !== undefined && recordsInclude(currentRelatedRecords, relatedRecord)) {
+    if (
+      currentRelatedRecords !== undefined &&
+      recordsInclude(currentRelatedRecords, relatedRecord)
+    ) {
       return {
         op: 'addToRelatedRecords',
         record,
@@ -184,11 +227,20 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
     }
   },
 
-  replaceRelatedRecords(cache: SyncRecordAccessor, op: ReplaceRelatedRecordsOperation): RecordOperation {
+  replaceRelatedRecords(
+    cache: SyncRecordAccessor,
+    op: ReplaceRelatedRecordsOperation
+  ): RecordOperation {
     const { record, relationship, relatedRecords } = op;
-    const currentRelatedRecords = cache.getRelatedRecordsSync(record, relationship);
+    const currentRelatedRecords = cache.getRelatedRecordsSync(
+      record,
+      relationship
+    );
 
-    if (currentRelatedRecords === undefined || !equalRecordIdentitySets(currentRelatedRecords, relatedRecords)) {
+    if (
+      currentRelatedRecords === undefined ||
+      !equalRecordIdentitySets(currentRelatedRecords, relatedRecords)
+    ) {
       return {
         op: 'replaceRelatedRecords',
         record,
@@ -198,11 +250,20 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
     }
   },
 
-  replaceRelatedRecord(cache: SyncRecordAccessor, op: ReplaceRelatedRecordOperation): RecordOperation {
+  replaceRelatedRecord(
+    cache: SyncRecordAccessor,
+    op: ReplaceRelatedRecordOperation
+  ): RecordOperation {
     const { record, relationship, relatedRecord } = op;
-    const currentRelatedRecord = cache.getRelatedRecordSync(record, relationship);
+    const currentRelatedRecord = cache.getRelatedRecordSync(
+      record,
+      relationship
+    );
 
-    if (currentRelatedRecord === undefined || !equalRecordIdentities(currentRelatedRecord, relatedRecord)) {
+    if (
+      currentRelatedRecord === undefined ||
+      !equalRecordIdentities(currentRelatedRecord, relatedRecord)
+    ) {
       return {
         op: 'replaceRelatedRecord',
         record,

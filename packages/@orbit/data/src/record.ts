@@ -24,7 +24,9 @@ export interface RecordHasManyRelationship {
   meta?: Dict<any>;
 }
 
-export type RecordRelationship = RecordHasOneRelationship | RecordHasManyRelationship;
+export type RecordRelationship =
+  | RecordHasOneRelationship
+  | RecordHasManyRelationship;
 
 export interface Record extends RecordIdentity {
   keys?: Dict<string>;
@@ -43,14 +45,23 @@ export function cloneRecordIdentity(identity: RecordIdentity): RecordIdentity {
   return { type, id };
 }
 
-export function equalRecordIdentities(record1: RecordIdentity, record2: RecordIdentity): boolean {
-  return (isNone(record1) && isNone(record2)) ||
-         (isObject(record1) && isObject(record2) &&
-          record1.type === record2.type &&
-          record1.id === record2.id);
+export function equalRecordIdentities(
+  record1: RecordIdentity,
+  record2: RecordIdentity
+): boolean {
+  return (
+    (isNone(record1) && isNone(record2)) ||
+    (isObject(record1) &&
+      isObject(record2) &&
+      record1.type === record2.type &&
+      record1.id === record2.id)
+  );
 }
 
-export function equalRecordIdentitySets(set1: RecordIdentity[], set2: RecordIdentity[]): boolean {
+export function equalRecordIdentitySets(
+  set1: RecordIdentity[],
+  set2: RecordIdentity[]
+): boolean {
   if (set1.length === set2.length) {
     if (set1.length === 0) {
       return true;
@@ -59,19 +70,28 @@ export function equalRecordIdentitySets(set1: RecordIdentity[], set2: RecordIden
     const serialized1 = serializeRecordIdentities(set1);
     const serialized2 = serializeRecordIdentities(set2);
 
-    return exclusiveIdentities(serialized1, serialized2).length === 0 &&
-           exclusiveIdentities(serialized2, serialized1).length === 0;
+    return (
+      exclusiveIdentities(serialized1, serialized2).length === 0 &&
+      exclusiveIdentities(serialized2, serialized1).length === 0
+    );
   }
   return false;
 }
 
-export function uniqueRecordIdentities(set1: RecordIdentity[], set2: RecordIdentity[]): RecordIdentity[] {
-  return exclusiveIdentities(serializeRecordIdentities(set1),
-                             serializeRecordIdentities(set2))
-    .map(id => deserializeRecordIdentity(id));
+export function uniqueRecordIdentities(
+  set1: RecordIdentity[],
+  set2: RecordIdentity[]
+): RecordIdentity[] {
+  return exclusiveIdentities(
+    serializeRecordIdentities(set1),
+    serializeRecordIdentities(set2)
+  ).map(id => deserializeRecordIdentity(id));
 }
 
-export function recordsInclude(records: RecordIdentity[], match: RecordIdentity): boolean {
+export function recordsInclude(
+  records: RecordIdentity[],
+  match: RecordIdentity
+): boolean {
   for (let r of records) {
     if (equalRecordIdentities(r, match)) {
       return true;
@@ -80,8 +100,16 @@ export function recordsInclude(records: RecordIdentity[], match: RecordIdentity)
   return false;
 }
 
-export function recordsIncludeAll(records: RecordIdentity[], match: RecordIdentity[]): boolean {
-  return exclusiveIdentities(serializeRecordIdentities(match), serializeRecordIdentities(records)).length === 0;
+export function recordsIncludeAll(
+  records: RecordIdentity[],
+  match: RecordIdentity[]
+): boolean {
+  return (
+    exclusiveIdentities(
+      serializeRecordIdentities(match),
+      serializeRecordIdentities(records)
+    ).length === 0
+  );
 }
 
 export function mergeRecords(current: Record | null, updates: Record): Record {
@@ -92,7 +120,11 @@ export function mergeRecords(current: Record | null, updates: Record): Record {
 
     ['attributes', 'keys', 'relationships'].forEach(grouping => {
       if (currentRecord[grouping] && updatedRecord[grouping]) {
-        record[grouping] = merge({}, currentRecord[grouping], updatedRecord[grouping]);
+        record[grouping] = merge(
+          {},
+          currentRecord[grouping],
+          updatedRecord[grouping]
+        );
       } else if (currentRecord[grouping]) {
         record[grouping] = merge({}, currentRecord[grouping]);
       } else if (updatedRecord[grouping]) {
@@ -115,10 +147,15 @@ export function deserializeRecordIdentity(identity: string): RecordIdentity {
   return { type, id };
 }
 
-function serializeRecordIdentities(recordIdentities: RecordIdentity[]): string[] {
+function serializeRecordIdentities(
+  recordIdentities: RecordIdentity[]
+): string[] {
   return recordIdentities.map(r => serializeRecordIdentity(r));
 }
 
-function exclusiveIdentities(identities1: string[], identities2: string[]): string[] {
+function exclusiveIdentities(
+  identities1: string[],
+  identities2: string[]
+): string[] {
   return identities1.filter(i => !identities2.includes(i));
 }

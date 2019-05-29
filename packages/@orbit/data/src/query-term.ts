@@ -31,27 +31,28 @@ export interface PageQBParam {
 }
 
 export interface AttributeFilterQBParam {
-  op?: ValueComparisonOperator,
+  op?: ValueComparisonOperator;
   attribute: string;
   value: any;
 }
 
 export interface RelatedRecordFilterQBParam {
-  op?: SetComparisonOperator,
+  op?: SetComparisonOperator;
   relation: string;
   record: RecordIdentity | RecordIdentity[] | null;
 }
 
 export interface RelatedRecordsFilterQBParam {
-  op?: SetComparisonOperator,
+  op?: SetComparisonOperator;
   relation: string;
   records: RecordIdentity[];
 }
 
-export type FilterQBParam = FilterSpecifier |
-  AttributeFilterQBParam |
-  RelatedRecordFilterQBParam |
-  RelatedRecordsFilterQBParam;
+export type FilterQBParam =
+  | FilterSpecifier
+  | AttributeFilterQBParam
+  | RelatedRecordFilterQBParam
+  | RelatedRecordsFilterQBParam;
 
 /**
  * Query terms are used by query builders to allow for the construction of
@@ -240,7 +241,7 @@ function sortParamToSpecifier(param: SortQBParam): SortSpecifier {
   throw new Error('Unrecognized sort param.');
 }
 
-function parseSortParamString(sortSpecifier: string): AttributeSortSpecifier  {
+function parseSortParamString(sortSpecifier: string): AttributeSortSpecifier {
   let attribute: string;
   let order: SortOrder;
 

@@ -1,4 +1,9 @@
-import { Record, RecordIdentity, cloneRecordIdentity, equalRecordIdentities } from './record';
+import {
+  Record,
+  RecordIdentity,
+  cloneRecordIdentity,
+  equalRecordIdentities
+} from './record';
 import { eq, deepGet, deepSet } from '@orbit/utils';
 
 /**
@@ -95,15 +100,16 @@ export interface ReplaceRelatedRecordOperation extends Operation {
 /**
  * Union of all record-related operations.
  */
-export type RecordOperation = AddRecordOperation |
-  UpdateRecordOperation |
-  RemoveRecordOperation |
-  ReplaceKeyOperation |
-  ReplaceAttributeOperation |
-  AddToRelatedRecordsOperation |
-  RemoveFromRelatedRecordsOperation |
-  ReplaceRelatedRecordsOperation |
-  ReplaceRelatedRecordOperation;
+export type RecordOperation =
+  | AddRecordOperation
+  | UpdateRecordOperation
+  | RemoveRecordOperation
+  | ReplaceKeyOperation
+  | ReplaceAttributeOperation
+  | AddToRelatedRecordsOperation
+  | RemoveFromRelatedRecordsOperation
+  | ReplaceRelatedRecordsOperation
+  | ReplaceRelatedRecordOperation;
 
 function markOperationToDelete(operation: Operation): void {
   const o: any = operation;
@@ -115,126 +121,246 @@ function isOperationMarkedToDelete(operation: Operation): boolean {
   return o._deleted === true;
 }
 
-function mergeOperations(superceded: RecordOperation, superceding: RecordOperation, consecutiveOps: boolean): void {
+function mergeOperations(
+  superceded: RecordOperation,
+  superceding: RecordOperation,
+  consecutiveOps: boolean
+): void {
   if (equalRecordIdentities(superceded.record, superceding.record)) {
     if (superceding.op === 'removeRecord') {
       markOperationToDelete(superceded);
       if (superceded.op === 'addRecord') {
         markOperationToDelete(superceding);
       }
-    } else if (!isOperationMarkedToDelete(superceding) && (consecutiveOps || superceding.op === 'replaceAttribute')) {
+    } else if (
+      !isOperationMarkedToDelete(superceding) &&
+      (consecutiveOps || superceding.op === 'replaceAttribute')
+    ) {
       if (isReplaceFieldOp(superceded.op) && isReplaceFieldOp(superceding.op)) {
-        if (superceded.op === 'replaceAttribute' &&
-            superceding.op === 'replaceAttribute' &&
-            superceded.attribute === superceding.attribute) {
+        if (
+          superceded.op === 'replaceAttribute' &&
+          superceding.op === 'replaceAttribute' &&
+          superceded.attribute === superceding.attribute
+        ) {
           markOperationToDelete(superceded);
-        } else if (superceded.op === 'replaceRelatedRecord' &&
-            superceding.op === 'replaceRelatedRecord' &&
-            superceded.relationship === superceding.relationship) {
+        } else if (
+          superceded.op === 'replaceRelatedRecord' &&
+          superceding.op === 'replaceRelatedRecord' &&
+          superceded.relationship === superceding.relationship
+        ) {
           markOperationToDelete(superceded);
-        } else if (superceded.op === 'replaceRelatedRecords' &&
-            superceding.op === 'replaceRelatedRecords' &&
-            superceded.relationship === superceding.relationship) {
+        } else if (
+          superceded.op === 'replaceRelatedRecords' &&
+          superceding.op === 'replaceRelatedRecords' &&
+          superceded.relationship === superceding.relationship
+        ) {
           markOperationToDelete(superceded);
         } else {
           if (superceded.op === 'replaceAttribute') {
-            updateRecordReplaceAttribute(superceded.record, superceded.attribute, superceded.value);
+            updateRecordReplaceAttribute(
+              superceded.record,
+              superceded.attribute,
+              superceded.value
+            );
             delete superceded.attribute;
             delete superceded.value;
           } else if (superceded.op === 'replaceRelatedRecord') {
-            updateRecordReplaceHasOne(superceded.record, superceded.relationship, superceded.relatedRecord);
+            updateRecordReplaceHasOne(
+              superceded.record,
+              superceded.relationship,
+              superceded.relatedRecord
+            );
             delete superceded.relationship;
             delete superceded.relatedRecord;
           } else if (superceded.op === 'replaceRelatedRecords') {
-            updateRecordReplaceHasMany(superceded.record, superceded.relationship, superceded.relatedRecords);
+            updateRecordReplaceHasMany(
+              superceded.record,
+              superceded.relationship,
+              superceded.relatedRecords
+            );
             delete superceded.relationship;
             delete superceded.relatedRecords;
           }
           if (superceding.op === 'replaceAttribute') {
-            updateRecordReplaceAttribute(superceded.record, superceding.attribute, superceding.value);
+            updateRecordReplaceAttribute(
+              superceded.record,
+              superceding.attribute,
+              superceding.value
+            );
           } else if (superceding.op === 'replaceRelatedRecord') {
-            updateRecordReplaceHasOne(superceded.record, superceding.relationship, superceding.relatedRecord);
+            updateRecordReplaceHasOne(
+              superceded.record,
+              superceding.relationship,
+              superceding.relatedRecord
+            );
           } else if (superceding.op === 'replaceRelatedRecords') {
-            updateRecordReplaceHasMany(superceded.record, superceding.relationship, superceding.relatedRecords);
+            updateRecordReplaceHasMany(
+              superceded.record,
+              superceding.relationship,
+              superceding.relatedRecords
+            );
           }
           superceded.op = 'updateRecord';
           markOperationToDelete(superceding);
         }
-      } else if ((superceded.op === 'addRecord' || superceded.op === 'updateRecord' || (superceded as any).op === 'replaceRecord') &&
-                 isReplaceFieldOp(superceding.op)) {
+      } else if (
+        (superceded.op === 'addRecord' ||
+          superceded.op === 'updateRecord' ||
+          (superceded as any).op === 'replaceRecord') &&
+        isReplaceFieldOp(superceding.op)
+      ) {
         if (superceding.op === 'replaceAttribute') {
-          updateRecordReplaceAttribute(superceded.record, superceding.attribute, superceding.value);
+          updateRecordReplaceAttribute(
+            superceded.record,
+            superceding.attribute,
+            superceding.value
+          );
         } else if (superceding.op === 'replaceRelatedRecord') {
-          updateRecordReplaceHasOne(superceded.record, superceding.relationship, superceding.relatedRecord);
+          updateRecordReplaceHasOne(
+            superceded.record,
+            superceding.relationship,
+            superceding.relatedRecord
+          );
         } else if (superceding.op === 'replaceRelatedRecords') {
-          updateRecordReplaceHasMany(superceded.record, superceding.relationship, superceding.relatedRecords);
+          updateRecordReplaceHasMany(
+            superceded.record,
+            superceding.relationship,
+            superceding.relatedRecords
+          );
         }
         markOperationToDelete(superceding);
       } else if (superceding.op === 'addToRelatedRecords') {
         if (superceded.op === 'addRecord') {
-          updateRecordAddToHasMany(superceded.record, superceding.relationship, superceding.relatedRecord);
+          updateRecordAddToHasMany(
+            superceded.record,
+            superceding.relationship,
+            superceding.relatedRecord
+          );
           markOperationToDelete(superceding);
-        } else if (superceded.op === 'updateRecord' || (superceded as any).op === 'replaceRecord') {
+        } else if (
+          superceded.op === 'updateRecord' ||
+          (superceded as any).op === 'replaceRecord'
+        ) {
           let record: Record = superceded.record;
-          if (record.relationships &&
-              record.relationships[superceding.relationship] &&
-              record.relationships[superceding.relationship].data) {
-            updateRecordAddToHasMany(superceded.record, superceding.relationship, superceding.relatedRecord);
+          if (
+            record.relationships &&
+            record.relationships[superceding.relationship] &&
+            record.relationships[superceding.relationship].data
+          ) {
+            updateRecordAddToHasMany(
+              superceded.record,
+              superceding.relationship,
+              superceding.relatedRecord
+            );
             markOperationToDelete(superceding);
           }
         }
       } else if (superceding.op === 'removeFromRelatedRecords') {
-        if (superceded.op === 'addToRelatedRecords' &&
-            superceded.relationship === superceding.relationship &&
-            equalRecordIdentities(superceded.relatedRecord, superceding.relatedRecord)) {
+        if (
+          superceded.op === 'addToRelatedRecords' &&
+          superceded.relationship === superceding.relationship &&
+          equalRecordIdentities(
+            superceded.relatedRecord,
+            superceding.relatedRecord
+          )
+        ) {
           markOperationToDelete(superceded);
           markOperationToDelete(superceding);
-        } else if (superceded.op === 'addRecord' || superceded.op === 'updateRecord' || (superceded as any).op === 'replaceRecord') {
+        } else if (
+          superceded.op === 'addRecord' ||
+          superceded.op === 'updateRecord' ||
+          (superceded as any).op === 'replaceRecord'
+        ) {
           let record: Record = superceded.record;
-          if (record.relationships &&
-              record.relationships[superceding.relationship] &&
-              record.relationships[superceding.relationship].data) {
-            updateRecordRemoveFromHasMany(superceded.record, superceding.relationship, superceding.relatedRecord);
+          if (
+            record.relationships &&
+            record.relationships[superceding.relationship] &&
+            record.relationships[superceding.relationship].data
+          ) {
+            updateRecordRemoveFromHasMany(
+              superceded.record,
+              superceding.relationship,
+              superceding.relatedRecord
+            );
             markOperationToDelete(superceding);
           }
         }
       }
     }
   } else if (superceding.record && superceding.op === 'removeRecord') {
-    if ((superceded as ReplaceRelatedRecordOperation).relatedRecord &&
-        equalRecordIdentities((superceded as ReplaceRelatedRecordOperation).relatedRecord, superceding.record)) {
+    if (
+      (superceded as ReplaceRelatedRecordOperation).relatedRecord &&
+      equalRecordIdentities(
+        (superceded as ReplaceRelatedRecordOperation).relatedRecord,
+        superceding.record
+      )
+    ) {
       markOperationToDelete(superceded);
     }
   }
 }
 
 function isReplaceFieldOp(op: string): boolean {
-  return (op === 'replaceAttribute' ||
-          op === 'replaceRelatedRecord' ||
-          op === 'replaceRelatedRecords');
+  return (
+    op === 'replaceAttribute' ||
+    op === 'replaceRelatedRecord' ||
+    op === 'replaceRelatedRecords'
+  );
 }
 
-function updateRecordReplaceAttribute(record: Record, attribute: string, value: any) {
+function updateRecordReplaceAttribute(
+  record: Record,
+  attribute: string,
+  value: any
+) {
   record.attributes = record.attributes || {};
   record.attributes[attribute] = value;
 }
 
-function updateRecordReplaceHasOne(record: Record, relationship: string, relatedRecord: RecordIdentity) {
-  deepSet(record, ['relationships', relationship, 'data'], cloneRecordIdentity(relatedRecord));
+function updateRecordReplaceHasOne(
+  record: Record,
+  relationship: string,
+  relatedRecord: RecordIdentity
+) {
+  deepSet(
+    record,
+    ['relationships', relationship, 'data'],
+    cloneRecordIdentity(relatedRecord)
+  );
 }
 
-function updateRecordReplaceHasMany(record: Record, relationship: string, relatedRecords: RecordIdentity[]) {
-  deepSet(record, ['relationships', relationship, 'data'], relatedRecords.map(cloneRecordIdentity));
+function updateRecordReplaceHasMany(
+  record: Record,
+  relationship: string,
+  relatedRecords: RecordIdentity[]
+) {
+  deepSet(
+    record,
+    ['relationships', relationship, 'data'],
+    relatedRecords.map(cloneRecordIdentity)
+  );
 }
 
-function updateRecordAddToHasMany(record: Record, relationship: string, relatedRecord: RecordIdentity) {
+function updateRecordAddToHasMany(
+  record: Record,
+  relationship: string,
+  relatedRecord: RecordIdentity
+) {
   const data = deepGet(record, ['relationships', relationship, 'data']) || [];
   data.push(cloneRecordIdentity(relatedRecord));
   deepSet(record, ['relationships', relationship, 'data'], data);
 }
 
-function updateRecordRemoveFromHasMany(record: Record, relationship: string, relatedRecord: RecordIdentity) {
-  const data = deepGet(record, ['relationships', relationship, 'data']) as RecordIdentity[];
+function updateRecordRemoveFromHasMany(
+  record: Record,
+  relationship: string,
+  relatedRecord: RecordIdentity
+) {
+  const data = deepGet(record, [
+    'relationships',
+    relationship,
+    'data'
+  ]) as RecordIdentity[];
   if (data) {
     for (let i = 0, l = data.length; i < l; i++) {
       let r = data[i];
@@ -252,7 +378,9 @@ function updateRecordRemoveFromHasMany(record: Record, relationship: string, rel
  * This method respects the order of the operations array and does not allow
  * reordering of operations that affect relationships.
  */
-export function coalesceRecordOperations(operations: RecordOperation[]): RecordOperation[] {
+export function coalesceRecordOperations(
+  operations: RecordOperation[]
+): RecordOperation[] {
   for (let i = 0, l = operations.length; i < l; i++) {
     let currentOp = operations[i];
     let consecutiveOps = true;
@@ -277,7 +405,10 @@ export function coalesceRecordOperations(operations: RecordOperation[]): RecordO
  * Determine the differences between a record and its updated version in terms
  * of a set of operations.
  */
-export function recordDiffs(record: Record, updatedRecord: Record): RecordOperation[] {
+export function recordDiffs(
+  record: Record,
+  updatedRecord: Record
+): RecordOperation[] {
   const diffs: RecordOperation[] = [];
 
   if (record && updatedRecord) {
@@ -287,13 +418,16 @@ export function recordDiffs(record: Record, updatedRecord: Record): RecordOperat
       Object.keys(updatedRecord.attributes).forEach(attribute => {
         let value = updatedRecord.attributes[attribute];
 
-        if (record.attributes === undefined || !eq(record.attributes[attribute], value)) {
+        if (
+          record.attributes === undefined ||
+          !eq(record.attributes[attribute], value)
+        ) {
           let op: ReplaceAttributeOperation = {
             op: 'replaceAttribute',
             record: recordIdentity,
             attribute,
             value
-          }
+          };
 
           diffs.push(op);
         }
@@ -309,7 +443,7 @@ export function recordDiffs(record: Record, updatedRecord: Record): RecordOperat
             record: recordIdentity,
             key,
             value
-          }
+          };
 
           diffs.push(op);
         }

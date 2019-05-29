@@ -24,29 +24,30 @@ export interface BaseFilterSpecifier {
 
 export interface AttributeFilterSpecifier extends BaseFilterSpecifier {
   kind: 'attribute';
-  op: ValueComparisonOperator,
+  op: ValueComparisonOperator;
   attribute: string;
   value: any;
 }
 
 export interface RelatedRecordFilterSpecifier extends BaseFilterSpecifier {
   kind: 'relatedRecord';
-  op: SetComparisonOperator,
+  op: SetComparisonOperator;
   relation: string;
   record: RecordIdentity | RecordIdentity[] | null;
 }
 
 export interface RelatedRecordsFilterSpecifier extends BaseFilterSpecifier {
   kind: 'relatedRecords';
-  op: SetComparisonOperator,
+  op: SetComparisonOperator;
   relation: string;
   records: RecordIdentity[];
 }
 
-export type FilterSpecifier = BaseFilterSpecifier |
-  AttributeFilterSpecifier |
-  RelatedRecordFilterSpecifier |
-  RelatedRecordsFilterSpecifier;
+export type FilterSpecifier =
+  | BaseFilterSpecifier
+  | AttributeFilterSpecifier
+  | RelatedRecordFilterSpecifier
+  | RelatedRecordsFilterSpecifier;
 
 export interface BasePageSpecifier {
   kind: string;

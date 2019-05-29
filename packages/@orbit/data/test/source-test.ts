@@ -33,7 +33,7 @@ module('Source', function(hooks) {
       async upgrade() {
         assert.ok(true, 'upgrade called');
       }
-    };
+    }
 
     source = new MyDynamicSource({ schema });
 
@@ -49,7 +49,7 @@ module('Source', function(hooks) {
       async upgrade(): Promise<void> {
         assert.ok(false, 'upgrade should not be called');
       }
-    };
+    }
 
     source = new MyDynamicSource({ schema, autoUpgrade: false });
     schema.upgrade({});
@@ -61,17 +61,45 @@ module('Source', function(hooks) {
     const bucket = new FakeBucket();
     source = new MySource({ name: 'src1', schema, bucket });
     assert.equal(source.name, 'src1', 'source has been assigned name');
-    assert.equal(source.transformLog.name, 'src1-log', 'transformLog has been assigned name');
-    assert.equal(source.requestQueue.name, 'src1-requests', 'requestQueue has been assigned name');
-    assert.equal(source.syncQueue.name, 'src1-sync', 'syncQueue has been assigned name');
-    assert.strictEqual(source.bucket, bucket, 'source has been assigned bucket');
-    assert.strictEqual(source.transformLog.bucket, bucket, 'transformLog has been assigned bucket');
-    assert.strictEqual(source.requestQueue.bucket, bucket, 'requestQueue has been assigned bucket');
-    assert.strictEqual(source.syncQueue.bucket, bucket, 'syncQueue has been assigned bucket');
+    assert.equal(
+      source.transformLog.name,
+      'src1-log',
+      'transformLog has been assigned name'
+    );
+    assert.equal(
+      source.requestQueue.name,
+      'src1-requests',
+      'requestQueue has been assigned name'
+    );
+    assert.equal(
+      source.syncQueue.name,
+      'src1-sync',
+      'syncQueue has been assigned name'
+    );
+    assert.strictEqual(
+      source.bucket,
+      bucket,
+      'source has been assigned bucket'
+    );
+    assert.strictEqual(
+      source.transformLog.bucket,
+      bucket,
+      'transformLog has been assigned bucket'
+    );
+    assert.strictEqual(
+      source.requestQueue.bucket,
+      bucket,
+      'requestQueue has been assigned bucket'
+    );
+    assert.strictEqual(
+      source.syncQueue.bucket,
+      bucket,
+      'syncQueue has been assigned bucket'
+    );
   });
 
   test('overrides default requestQueue settings with injected requestQueueSettings', function(assert) {
-    assert.expect(3)
+    assert.expect(3);
 
     const defaultBucket = new FakeBucket();
     const requestQueueBucket = new FakeBucket();
@@ -82,15 +110,31 @@ module('Source', function(hooks) {
       bucket: requestQueueBucket
     };
 
-    source = new MySource({ name: 'src1', bucket: defaultBucket, requestQueueSettings });
+    source = new MySource({
+      name: 'src1',
+      bucket: defaultBucket,
+      requestQueueSettings
+    });
 
-    assert.equal(source.requestQueue.name, 'my-request-queue', 'requestQueue has been assigned overriden name');
-    assert.equal(source.requestQueue.autoProcess, false, 'requestQueue has been assigned overriden autoProcess');
-    assert.equal(source.requestQueue.bucket, requestQueueBucket, 'requestQueue has been assigned overriden bucket');
+    assert.equal(
+      source.requestQueue.name,
+      'my-request-queue',
+      'requestQueue has been assigned overriden name'
+    );
+    assert.equal(
+      source.requestQueue.autoProcess,
+      false,
+      'requestQueue has been assigned overriden autoProcess'
+    );
+    assert.equal(
+      source.requestQueue.bucket,
+      requestQueueBucket,
+      'requestQueue has been assigned overriden bucket'
+    );
   });
 
   test('overrides default syncQueue settings with injected syncQueueSettings', function(assert) {
-    assert.expect(3)
+    assert.expect(3);
 
     const defaultBucket = new FakeBucket();
     const syncQueueBucket = new FakeBucket();
@@ -101,32 +145,68 @@ module('Source', function(hooks) {
       bucket: syncQueueBucket
     };
 
-    source = new MySource({ name: 'src1', bucket: defaultBucket, syncQueueSettings });
+    source = new MySource({
+      name: 'src1',
+      bucket: defaultBucket,
+      syncQueueSettings
+    });
 
-    assert.equal(source.syncQueue.name, 'my-sync-queue', 'syncQueue has been assigned overriden name');
-    assert.equal(source.syncQueue.autoProcess, false, 'syncQueue has been assigned overriden autoProcess');
-    assert.equal(source.syncQueue.bucket, syncQueueBucket, 'syncQueue has been assigned overriden bucket');
+    assert.equal(
+      source.syncQueue.name,
+      'my-sync-queue',
+      'syncQueue has been assigned overriden name'
+    );
+    assert.equal(
+      source.syncQueue.autoProcess,
+      false,
+      'syncQueue has been assigned overriden autoProcess'
+    );
+    assert.equal(
+      source.syncQueue.bucket,
+      syncQueueBucket,
+      'syncQueue has been assigned overriden bucket'
+    );
   });
 
   test('creates a `queryBuilder` upon first access', function(assert) {
     const qb = source.queryBuilder;
     assert.ok(qb, 'queryBuilder created');
-    assert.strictEqual(qb, source.queryBuilder, 'queryBuilder remains the same');
+    assert.strictEqual(
+      qb,
+      source.queryBuilder,
+      'queryBuilder remains the same'
+    );
   });
 
   test('creates a `transformBuilder` upon first access', function(assert) {
     const tb = source.transformBuilder;
     assert.ok(tb, 'transformBuilder created');
-    assert.strictEqual(tb, source.transformBuilder, 'transformBuilder remains the same');
-    assert.strictEqual(source.transformBuilder.recordInitializer, source.schema, 'transformBuilder uses the schema to initialize records');
+    assert.strictEqual(
+      tb,
+      source.transformBuilder,
+      'transformBuilder remains the same'
+    );
+    assert.strictEqual(
+      source.transformBuilder.recordInitializer,
+      source.schema,
+      'transformBuilder uses the schema to initialize records'
+    );
   });
 
   test('it can be instantiated with a `queryBuilder` and/or `transformBuilder`', function(assert) {
-    const queryBuilder = new QueryBuilder;
-    const transformBuilder = new TransformBuilder;
+    const queryBuilder = new QueryBuilder();
+    const transformBuilder = new TransformBuilder();
     source = new MySource({ queryBuilder, transformBuilder });
-    assert.strictEqual(queryBuilder, source.queryBuilder, 'queryBuilder remains the same');
-    assert.strictEqual(transformBuilder, source.transformBuilder, 'transformBuilder remains the same');
+    assert.strictEqual(
+      queryBuilder,
+      source.queryBuilder,
+      'queryBuilder remains the same'
+    );
+    assert.strictEqual(
+      transformBuilder,
+      source.transformBuilder,
+      'transformBuilder remains the same'
+    );
   });
 
   test('#_transformed should trigger `transform` event BEFORE resolving', async function(assert) {
@@ -137,8 +217,16 @@ module('Source', function(hooks) {
     const appliedTransform = buildTransform({ op: 'addRecord' });
 
     source.on('transform', (transform: Transform) => {
-      assert.equal(++order, 1, '`transform` event triggered after action performed successfully');
-      assert.strictEqual(transform, appliedTransform, 'applied transform matches');
+      assert.equal(
+        ++order,
+        1,
+        '`transform` event triggered after action performed successfully'
+      );
+      assert.strictEqual(
+        transform,
+        appliedTransform,
+        'applied transform matches'
+      );
     });
 
     await source._transformed([appliedTransform]);

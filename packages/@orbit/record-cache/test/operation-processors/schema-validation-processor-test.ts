@@ -19,7 +19,7 @@ module('SchemaValidationProcessor', function(hooks) {
     models: {
       node: {
         attributes: {
-          name: { type: 'string' },
+          name: { type: 'string' }
         },
         relationships: {
           parent: { type: 'hasOne', model: 'node', inverse: 'children' },
@@ -61,7 +61,11 @@ module('SchemaValidationProcessor', function(hooks) {
   hooks.beforeEach(function() {
     let keyMap = new KeyMap();
     schema = new Schema(schemaDefinition);
-    cache = new Cache({ schema, keyMap, processors: [SyncSchemaValidationProcessor] });
+    cache = new Cache({
+      schema,
+      keyMap,
+      processors: [SyncSchemaValidationProcessor]
+    });
   });
 
   hooks.afterEach(function() {
@@ -113,19 +117,34 @@ module('SchemaValidationProcessor', function(hooks) {
 
   test('addToRelatedRecords with a relationship not defined in the schema', assert => {
     assert.throws(() => {
-      cache.patch(t => t.addToRelatedRecords({ type: 'node', id: '1'}, 'sibling', { type: 'node', id: '2' }));
+      cache.patch(t =>
+        t.addToRelatedRecords({ type: 'node', id: '1' }, 'sibling', {
+          type: 'node',
+          id: '2'
+        })
+      );
     }, new RelationshipNotFound('sibling', 'node'));
   });
 
   test('addToRelatedRecord with a related record with an invalid type for a non-polymorphic relationship', assert => {
     assert.throws(() => {
-      cache.patch(t => t.addToRelatedRecords({ type: 'node', id: '1'}, 'children', { type: 'person', id: '1' }));
+      cache.patch(t =>
+        t.addToRelatedRecords({ type: 'node', id: '1' }, 'children', {
+          type: 'person',
+          id: '1'
+        })
+      );
     }, new IncorrectRelatedRecordType('person', 'children', 'node'));
   });
 
   test('addToRelatedRecords with a related record with an invalid type for a polymorphic relationship', assert => {
     assert.throws(() => {
-      cache.patch(t => t.addToRelatedRecords({ type: 'person', id: '1'}, 'pets', { type: 'person', id: '2' }));
+      cache.patch(t =>
+        t.addToRelatedRecords({ type: 'person', id: '1' }, 'pets', {
+          type: 'person',
+          id: '2'
+        })
+      );
     }, new IncorrectRelatedRecordType('person', 'pets', 'person'));
   });
 
@@ -155,19 +174,31 @@ module('SchemaValidationProcessor', function(hooks) {
 
   test('replaceRelatedRecords with a relationship not defined in the schema', assert => {
     assert.throws(() => {
-      cache.patch(t => t.replaceRelatedRecords({ type: 'node', id: '1'}, 'siblings', [{ type: 'node', id: '2' }]));
+      cache.patch(t =>
+        t.replaceRelatedRecords({ type: 'node', id: '1' }, 'siblings', [
+          { type: 'node', id: '2' }
+        ])
+      );
     }, new RelationshipNotFound('siblings', 'node'));
   });
 
   test('replaceRelatedRecords with a related record with an invalid type for a non-polymorphic relationship', assert => {
     assert.throws(() => {
-      cache.patch(t => t.replaceRelatedRecords({ type: 'node', id: '1'}, 'children', [{ type: 'person', id: '1' }]));
+      cache.patch(t =>
+        t.replaceRelatedRecords({ type: 'node', id: '1' }, 'children', [
+          { type: 'person', id: '1' }
+        ])
+      );
     }, new IncorrectRelatedRecordType('person', 'children', 'node'));
   });
-  
+
   test('replaceRelatedRecords with a related record with an invalid type for a polymorphic relationship', assert => {
     assert.throws(() => {
-      cache.patch(t => t.replaceRelatedRecords({ type: 'person', id: '1'}, 'pets', [{ type: 'person', id: '2' }]));
+      cache.patch(t =>
+        t.replaceRelatedRecords({ type: 'person', id: '1' }, 'pets', [
+          { type: 'person', id: '2' }
+        ])
+      );
     }, new IncorrectRelatedRecordType('person', 'pets', 'person'));
   });
 
@@ -190,19 +221,34 @@ module('SchemaValidationProcessor', function(hooks) {
 
   test('replaceRelatedRecord with a relationship not defined in the schema', assert => {
     assert.throws(() => {
-      cache.patch(t => t.replaceRelatedRecord({ type: 'node', id: '1'}, 'mother', { type: 'node', id: '1' }));
+      cache.patch(t =>
+        t.replaceRelatedRecord({ type: 'node', id: '1' }, 'mother', {
+          type: 'node',
+          id: '1'
+        })
+      );
     }, new RelationshipNotFound('mother', 'node'));
   });
 
   test('replaceRelatedRecord with a related record with an invalid type for a non-polymorphic relationship', assert => {
     assert.throws(() => {
-      cache.patch(t => t.replaceRelatedRecord({ type: 'node', id: '1'}, 'parent', { type: 'person', id: '1' }));
+      cache.patch(t =>
+        t.replaceRelatedRecord({ type: 'node', id: '1' }, 'parent', {
+          type: 'person',
+          id: '1'
+        })
+      );
     }, new IncorrectRelatedRecordType('person', 'parent', 'node'));
   });
 
   test('replaceRelatedRecord with a related record with an invalid type for a polymorphic relationship', assert => {
     assert.throws(() => {
-      cache.patch(t => t.replaceRelatedRecord({ type: 'person', id: '1'}, 'favoritePet', { type: 'person', id: '2' }));
+      cache.patch(t =>
+        t.replaceRelatedRecord({ type: 'person', id: '1' }, 'favoritePet', {
+          type: 'person',
+          id: '2'
+        })
+      );
     }, new IncorrectRelatedRecordType('person', 'favoritePet', 'person'));
   });
 });

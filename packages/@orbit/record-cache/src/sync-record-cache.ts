@@ -1,8 +1,4 @@
-import Orbit, {
-  evented,
-  Evented,
-  Listener
-} from '@orbit/core';
+import Orbit, { evented, Evented, Listener } from '@orbit/core';
 import { isArray, deepGet, Dict } from '@orbit/utils';
 import {
   KeyMap,
@@ -17,14 +13,29 @@ import {
   TransformBuilderFunc,
   RecordIdentity
 } from '@orbit/data';
-import { SyncOperationProcessor, SyncOperationProcessorClass } from './sync-operation-processor';
+import {
+  SyncOperationProcessor,
+  SyncOperationProcessorClass
+} from './sync-operation-processor';
 import SyncCacheIntegrityProcessor from './operation-processors/sync-cache-integrity-processor';
 import SyncSchemaConsistencyProcessor from './operation-processors/sync-schema-consistency-processor';
 import SyncSchemaValidationProcessor from './operation-processors/sync-schema-validation-processor';
-import { SyncPatchOperators, SyncPatchOperator } from './operators/sync-patch-operators';
-import { SyncQueryOperators, SyncQueryOperator } from './operators/sync-query-operators';
-import { SyncInversePatchOperators, SyncInversePatchOperator } from './operators/sync-inverse-patch-operators';
-import { SyncRecordAccessor, RecordRelationshipIdentity } from './record-accessor';
+import {
+  SyncPatchOperators,
+  SyncPatchOperator
+} from './operators/sync-patch-operators';
+import {
+  SyncQueryOperators,
+  SyncQueryOperator
+} from './operators/sync-query-operators';
+import {
+  SyncInversePatchOperators,
+  SyncInversePatchOperator
+} from './operators/sync-inverse-patch-operators';
+import {
+  SyncRecordAccessor,
+  RecordRelationshipIdentity
+} from './record-accessor';
 import { PatchResult } from './patch-result';
 import { QueryResultData } from './query-result';
 
@@ -63,17 +74,29 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
     this._schema = settings.schema;
     this._keyMap = settings.keyMap;
     this._queryBuilder = settings.queryBuilder || new QueryBuilder();
-    this._transformBuilder = settings.transformBuilder || new TransformBuilder({
-      recordInitializer: this._schema
-    });
+    this._transformBuilder =
+      settings.transformBuilder ||
+      new TransformBuilder({
+        recordInitializer: this._schema
+      });
     this._queryOperators = settings.queryOperators || SyncQueryOperators;
     this._patchOperators = settings.patchOperators || SyncPatchOperators;
-    this._inversePatchOperators = settings.inversePatchOperators || SyncInversePatchOperators;
+    this._inversePatchOperators =
+      settings.inversePatchOperators || SyncInversePatchOperators;
 
-    const processors: SyncOperationProcessorClass[] = settings.processors ? settings.processors : [SyncSchemaValidationProcessor, SyncSchemaConsistencyProcessor, SyncCacheIntegrityProcessor];
+    const processors: SyncOperationProcessorClass[] = settings.processors
+      ? settings.processors
+      : [
+          SyncSchemaValidationProcessor,
+          SyncSchemaConsistencyProcessor,
+          SyncCacheIntegrityProcessor
+        ];
     this._processors = processors.map(Processor => {
       let processor = new Processor(this);
-      assert('Each processor must extend SyncOperationProcessor', processor instanceof SyncOperationProcessor);
+      assert(
+        'Each processor must extend SyncOperationProcessor',
+        processor instanceof SyncOperationProcessor
+      );
       return processor;
     });
   }
@@ -112,25 +135,39 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
 
   // Abstract methods for getting records and relationships
   abstract getRecordSync(recordIdentity: RecordIdentity): Record;
-  abstract getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[];
-  abstract getInverseRelationshipsSync(record: RecordIdentity): RecordRelationshipIdentity[];
+  abstract getRecordsSync(
+    typeOrIdentities?: string | RecordIdentity[]
+  ): Record[];
+  abstract getInverseRelationshipsSync(
+    record: RecordIdentity
+  ): RecordRelationshipIdentity[];
 
   // Abstract methods for setting records and relationships
   abstract setRecordSync(record: Record): void;
   abstract setRecordsSync(records: Record[]): void;
   abstract removeRecordSync(recordIdentity: RecordIdentity): Record;
   abstract removeRecordsSync(recordIdentities: RecordIdentity[]): Record[];
-  abstract addInverseRelationshipsSync(relationships: RecordRelationshipIdentity[]): void;
-  abstract removeInverseRelationshipsSync(relationships: RecordRelationshipIdentity[]): void;
+  abstract addInverseRelationshipsSync(
+    relationships: RecordRelationshipIdentity[]
+  ): void;
+  abstract removeInverseRelationshipsSync(
+    relationships: RecordRelationshipIdentity[]
+  ): void;
 
-  getRelatedRecordSync(identity: RecordIdentity, relationship: string): RecordIdentity {
+  getRelatedRecordSync(
+    identity: RecordIdentity,
+    relationship: string
+  ): RecordIdentity {
     const record = this.getRecordSync(identity);
     if (record) {
       return deepGet(record, ['relationships', relationship, 'data']);
     }
   }
 
-  getRelatedRecordsSync(identity: RecordIdentity, relationship: string): RecordIdentity[] {
+  getRelatedRecordsSync(
+    identity: RecordIdentity,
+    relationship: string
+  ): RecordIdentity[] {
     const record = this.getRecordSync(identity);
     if (record) {
       return deepGet(record, ['relationships', relationship, 'data']);
@@ -140,29 +177,52 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   /**
    * Queries the cache.
    */
-  query(queryOrExpression: QueryOrExpression, options?: object, id?: string): QueryResultData {
-    const query = buildQuery(queryOrExpression, options, id, this._queryBuilder);
+  query(
+    queryOrExpression: QueryOrExpression,
+    options?: object,
+    id?: string
+  ): QueryResultData {
+    const query = buildQuery(
+      queryOrExpression,
+      options,
+      id,
+      this._queryBuilder
+    );
     return this._query(query.expression);
   }
 
   /**
    * Patches the cache with an operation or operations.
    */
-  patch(operationOrOperations: RecordOperation | RecordOperation[] | TransformBuilderFunc): PatchResult {
+  patch(
+    operationOrOperations:
+      | RecordOperation
+      | RecordOperation[]
+      | TransformBuilderFunc
+  ): PatchResult {
     if (typeof operationOrOperations === 'function') {
-      operationOrOperations = <RecordOperation | RecordOperation[]>operationOrOperations(this._transformBuilder);
+      operationOrOperations = operationOrOperations(this._transformBuilder) as
+        | RecordOperation
+        | RecordOperation[];
     }
 
     const result: PatchResult = {
       inverse: [],
       data: []
-    }
+    };
 
     if (isArray(operationOrOperations)) {
-      this._applyPatchOperations(<RecordOperation[]>operationOrOperations, result, true);
-
+      this._applyPatchOperations(
+        operationOrOperations as RecordOperation[],
+        result,
+        true
+      );
     } else {
-      this._applyPatchOperation(<RecordOperation>operationOrOperations, result, true);
+      this._applyPatchOperation(
+        operationOrOperations as RecordOperation,
+        result,
+        true
+      );
     }
 
     result.inverse.reverse();
@@ -182,13 +242,23 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
     return queryOperator(this, expression);
   }
 
-  protected _applyPatchOperations(ops: RecordOperation[], result: PatchResult, primary: boolean = false) {
+  protected _applyPatchOperations(
+    ops: RecordOperation[],
+    result: PatchResult,
+    primary: boolean = false
+  ) {
     ops.forEach(op => this._applyPatchOperation(op, result, primary));
   }
 
-  protected _applyPatchOperation(operation: RecordOperation, result: PatchResult, primary: boolean = false) {
+  protected _applyPatchOperation(
+    operation: RecordOperation,
+    result: PatchResult,
+    primary: boolean = false
+  ) {
     if ((operation.op as string) === 'replaceRecord') {
-      Orbit.deprecate('The `replaceRecord` operation has been deprecated - use `updateRecord` instead.');
+      Orbit.deprecate(
+        'The `replaceRecord` operation has been deprecated - use `updateRecord` instead.'
+      );
       operation = {
         op: 'updateRecord',
         record: operation.record
@@ -205,12 +275,14 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
 
       // Query and perform related `before` operations
       this._processors
-          .map(processor => processor.before(operation))
-          .forEach(ops => this._applyPatchOperations(ops, result));
+        .map(processor => processor.before(operation))
+        .forEach(ops => this._applyPatchOperations(ops, result));
 
       // Query related `after` operations before performing
       // the requested operation. These will be applied on success.
-      let preparedOps = this._processors.map(processor => processor.after(operation));
+      let preparedOps = this._processors.map(processor =>
+        processor.after(operation)
+      );
 
       // Perform the requested operation
       let patchOperator = this.getPatchOperator(operation.op);
@@ -220,8 +292,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
       }
 
       // Query and perform related `immediate` operations
-      this._processors
-          .forEach(processor => processor.immediate(operation));
+      this._processors.forEach(processor => processor.immediate(operation));
 
       // Emit event
       this.emit('patch', operation, data);
@@ -231,10 +302,10 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
 
       // Query and perform related `finally` operations
       this._processors
-          .map(processor => processor.finally(operation))
-          .forEach(ops => this._applyPatchOperations(ops, result));
+        .map(processor => processor.finally(operation))
+        .forEach(ops => this._applyPatchOperations(ops, result));
     } else if (primary) {
       result.data.push(null);
     }
   }
-};
+}

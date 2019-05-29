@@ -23,7 +23,10 @@ export interface AsyncPatchOperator {
 }
 
 export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
-  async addRecord(cache: AsyncRecordAccessor, op: AddRecordOperation): Promise<PatchResultData> {
+  async addRecord(
+    cache: AsyncRecordAccessor,
+    op: AddRecordOperation
+  ): Promise<PatchResultData> {
     const { record } = op;
     await cache.setRecordAsync(record);
 
@@ -34,7 +37,10 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
     return record;
   },
 
-  async updateRecord(cache: AsyncRecordAccessor, op: UpdateRecordOperation): Promise<PatchResultData> {
+  async updateRecord(
+    cache: AsyncRecordAccessor,
+    op: UpdateRecordOperation
+  ): Promise<PatchResultData> {
     const { record } = op;
     const currentRecord = await cache.getRecordAsync(record);
     const mergedRecord = mergeRecords(currentRecord, record);
@@ -48,11 +54,17 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
     return mergedRecord;
   },
 
-  async removeRecord(cache: AsyncRecordAccessor, op: RemoveRecordOperation): Promise<PatchResultData> {
+  async removeRecord(
+    cache: AsyncRecordAccessor,
+    op: RemoveRecordOperation
+  ): Promise<PatchResultData> {
     return await cache.removeRecordAsync(op.record);
   },
 
-  async replaceKey(cache: AsyncRecordAccessor, op: ReplaceKeyOperation): Promise<PatchResultData> {
+  async replaceKey(
+    cache: AsyncRecordAccessor,
+    op: ReplaceKeyOperation
+  ): Promise<PatchResultData> {
     let record = await cache.getRecordAsync(op.record);
 
     if (record) {
@@ -71,7 +83,10 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
     return record;
   },
 
-  async replaceAttribute(cache: AsyncRecordAccessor, op: ReplaceAttributeOperation): Promise<PatchResultData> {
+  async replaceAttribute(
+    cache: AsyncRecordAccessor,
+    op: ReplaceAttributeOperation
+  ): Promise<PatchResultData> {
     let record = await cache.getRecordAsync(op.record);
 
     if (record) {
@@ -86,7 +101,10 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
     return record;
   },
 
-  async addToRelatedRecords(cache: AsyncRecordAccessor, op: AddToRelatedRecordsOperation): Promise<PatchResultData> {
+  async addToRelatedRecords(
+    cache: AsyncRecordAccessor,
+    op: AddToRelatedRecordsOperation
+  ): Promise<PatchResultData> {
     let record = await cache.getRecordAsync(op.record);
     const { relationship, relatedRecord } = op;
 
@@ -96,7 +114,8 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
       record = cloneRecordIdentity(op.record);
     }
 
-    const relatedRecords: RecordIdentity[] = deepGet(record, ['relationships', relationship, 'data']) || [];
+    const relatedRecords: RecordIdentity[] =
+      deepGet(record, ['relationships', relationship, 'data']) || [];
     relatedRecords.push(relatedRecord);
 
     deepSet(record, ['relationships', relationship, 'data'], relatedRecords);
@@ -105,17 +124,32 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
     return record;
   },
 
-  async removeFromRelatedRecords(cache: AsyncRecordAccessor, op: RemoveFromRelatedRecordsOperation): Promise<PatchResultData> {
+  async removeFromRelatedRecords(
+    cache: AsyncRecordAccessor,
+    op: RemoveFromRelatedRecordsOperation
+  ): Promise<PatchResultData> {
     let record = await cache.getRecordAsync(op.record);
     const { relationship, relatedRecord } = op;
 
     if (record) {
       record = clone(record);
-      let relatedRecords: RecordIdentity[] = deepGet(record, ['relationships', relationship, 'data']);
+      let relatedRecords: RecordIdentity[] = deepGet(record, [
+        'relationships',
+        relationship,
+        'data'
+      ]);
       if (relatedRecords) {
-        relatedRecords = relatedRecords.filter(r => !equalRecordIdentities(r, relatedRecord));
+        relatedRecords = relatedRecords.filter(
+          r => !equalRecordIdentities(r, relatedRecord)
+        );
 
-        if (deepSet(record, ['relationships', relationship, 'data'], relatedRecords)) {
+        if (
+          deepSet(
+            record,
+            ['relationships', relationship, 'data'],
+            relatedRecords
+          )
+        ) {
           await cache.setRecordAsync(record);
         }
       }
@@ -125,7 +159,10 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
     return null;
   },
 
-  async replaceRelatedRecords(cache: AsyncRecordAccessor, op: ReplaceRelatedRecordsOperation): Promise<PatchResultData> {
+  async replaceRelatedRecords(
+    cache: AsyncRecordAccessor,
+    op: ReplaceRelatedRecordsOperation
+  ): Promise<PatchResultData> {
     let record = await cache.getRecordAsync(op.record);
     const { relationship, relatedRecords } = op;
 
@@ -135,14 +172,19 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
       record = cloneRecordIdentity(op.record);
     }
 
-    if (deepSet(record, ['relationships', relationship, 'data'], relatedRecords)) {
+    if (
+      deepSet(record, ['relationships', relationship, 'data'], relatedRecords)
+    ) {
       await cache.setRecordAsync(record);
     }
 
     return record;
   },
 
-  async replaceRelatedRecord(cache: AsyncRecordAccessor, op: ReplaceRelatedRecordOperation): Promise<PatchResultData> {
+  async replaceRelatedRecord(
+    cache: AsyncRecordAccessor,
+    op: ReplaceRelatedRecordOperation
+  ): Promise<PatchResultData> {
     let record = await cache.getRecordAsync(op.record);
     const { relationship, relatedRecord } = op;
 
@@ -152,7 +194,9 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
       record = cloneRecordIdentity(op.record);
     }
 
-    if (deepSet(record, ['relationships', relationship, 'data'], relatedRecord)) {
+    if (
+      deepSet(record, ['relationships', relationship, 'data'], relatedRecord)
+    ) {
       await cache.setRecordAsync(record);
     }
 

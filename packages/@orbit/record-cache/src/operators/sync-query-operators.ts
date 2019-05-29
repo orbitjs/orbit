@@ -45,7 +45,10 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
     return results;
   },
 
-  findRelatedRecords(cache: SyncRecordAccessor, expression: FindRelatedRecords): Record[] {
+  findRelatedRecords(
+    cache: SyncRecordAccessor,
+    expression: FindRelatedRecords
+  ): Record[] {
     const { record, relationship } = expression;
     const relatedIds = cache.getRelatedRecordsSync(record, relationship);
     if (!relatedIds) {
@@ -59,7 +62,10 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
     return cache.getRecordsSync(relatedIds);
   },
 
-  findRelatedRecord(cache: SyncRecordAccessor, expression: FindRelatedRecord): Record {
+  findRelatedRecord(
+    cache: SyncRecordAccessor,
+    expression: FindRelatedRecord
+  ): Record {
     const { record, relationship } = expression;
     const relatedId = cache.getRelatedRecordSync(record, relationship);
     if (relatedId) {
@@ -89,14 +95,22 @@ function applyFilter(record: Record, filter: any) {
   if (filter.kind === 'attribute') {
     let actual = deepGet(record, ['attributes', filter.attribute]);
     let expected = filter.value;
-    switch(filter.op) {
-      case 'equal': return actual === expected;
-      case 'gt':    return actual > expected;
-      case 'gte':   return actual >= expected;
-      case 'lt':    return actual < expected;
-      case 'lte':   return actual <= expected;
+    switch (filter.op) {
+      case 'equal':
+        return actual === expected;
+      case 'gt':
+        return actual > expected;
+      case 'gte':
+        return actual >= expected;
+      case 'lt':
+        return actual < expected;
+      case 'lte':
+        return actual <= expected;
       default:
-        throw new QueryExpressionParseError('Filter operation ${filter.op} not recognized for Store.', filter);
+        throw new QueryExpressionParseError(
+          'Filter operation ${filter.op} not recognized for Store.',
+          filter
+        );
     }
   } else if (filter.kind === 'relatedRecords') {
     let relation = deepGet(record, ['relationships', filter.relation]);
@@ -104,30 +118,53 @@ function applyFilter(record: Record, filter: any) {
     let expected: RecordIdentity[] = filter.records;
     switch (filter.op) {
       case 'equal':
-        return actual.length === expected.length
-          && expected.every(e => actual.some(a => a.id === e.id && a.type === e.type));
+        return (
+          actual.length === expected.length &&
+          expected.every(e =>
+            actual.some(a => a.id === e.id && a.type === e.type)
+          )
+        );
       case 'all':
-        return expected.every(e => actual.some(a => a.id === e.id && a.type === e.type));
+        return expected.every(e =>
+          actual.some(a => a.id === e.id && a.type === e.type)
+        );
       case 'some':
-        return expected.some(e => actual.some(a => a.id === e.id && a.type === e.type));
+        return expected.some(e =>
+          actual.some(a => a.id === e.id && a.type === e.type)
+        );
       case 'none':
-        return !expected.some(e => actual.some(a => a.id === e.id && a.type === e.type));
+        return !expected.some(e =>
+          actual.some(a => a.id === e.id && a.type === e.type)
+        );
       default:
-        throw new QueryExpressionParseError('Filter operation ${filter.op} not recognized for Store.', filter);
+        throw new QueryExpressionParseError(
+          'Filter operation ${filter.op} not recognized for Store.',
+          filter
+        );
     }
   } else if (filter.kind === 'relatedRecord') {
-    let relation = deepGet(record, ["relationships", filter.relation]);
+    let relation = deepGet(record, ['relationships', filter.relation]);
     let actual = relation === undefined ? undefined : relation.data;
     let expected = filter.record;
     switch (filter.op) {
       case 'equal':
         if (Array.isArray(expected)) {
-          return actual !== undefined && expected.some(e => actual.type === e.type && actual.id === e.id);
+          return (
+            actual !== undefined &&
+            expected.some(e => actual.type === e.type && actual.id === e.id)
+          );
         } else {
-          return actual !== undefined && actual.type === expected.type && actual.id === expected.id;
+          return (
+            actual !== undefined &&
+            actual.type === expected.type &&
+            actual.id === expected.id
+          );
         }
       default:
-        throw new QueryExpressionParseError('Filter operation ${filter.op} not recognized for Store.', filter);
+        throw new QueryExpressionParseError(
+          'Filter operation ${filter.op} not recognized for Store.',
+          filter
+        );
     }
   }
   return false;
@@ -141,16 +178,23 @@ function sortRecords(records: Record[], sortSpecifiers: SortSpecifier[]) {
       record,
       sortSpecifiers.map(sortSpecifier => {
         if (sortSpecifier.kind === 'attribute') {
-          return deepGet(record, ['attributes' , (<AttributeSortSpecifier>sortSpecifier).attribute])
+          return deepGet(record, [
+            'attributes',
+            (sortSpecifier as AttributeSortSpecifier).attribute
+          ]);
         } else {
-          throw new QueryExpressionParseError('Sort specifier ${sortSpecifier.kind} not recognized for Store.', sortSpecifier);
+          throw new QueryExpressionParseError(
+            'Sort specifier ${sortSpecifier.kind} not recognized for Store.',
+            sortSpecifier
+          );
         }
       })
     );
   });
 
-  const comparisonOrders = sortSpecifiers.map(
-    sortExpression => sortExpression.order === 'descending' ? -1 : 1);
+  const comparisonOrders = sortSpecifiers.map(sortExpression =>
+    sortExpression.order === 'descending' ? -1 : 1
+  );
 
   return records.sort((record1, record2) => {
     const values1 = comparisonValues.get(record1);
@@ -172,12 +216,15 @@ function sortRecords(records: Record[], sortSpecifiers: SortSpecifier[]) {
 
 function paginateRecords(records: Record[], paginationOptions: any) {
   if (paginationOptions.limit !== undefined) {
-    let offset = paginationOptions.offset === undefined ? 0 : paginationOptions.offset;
+    let offset =
+      paginationOptions.offset === undefined ? 0 : paginationOptions.offset;
     let limit = paginationOptions.limit;
 
     return records.slice(offset, offset + limit);
-
   } else {
-    throw new QueryExpressionParseError('Pagination options not recognized for Store. Please specify `offset` and `limit`.', paginationOptions);
+    throw new QueryExpressionParseError(
+      'Pagination options not recognized for Store. Please specify `offset` and `limit`.',
+      paginationOptions
+    );
   }
 }

@@ -1,8 +1,4 @@
-import Orbit, {
-  evented,
-  Evented,
-  Listener
-} from '@orbit/core';
+import Orbit, { evented, Evented, Listener } from '@orbit/core';
 import { isArray, deepGet, Dict } from '@orbit/utils';
 import {
   KeyMap,
@@ -17,14 +13,29 @@ import {
   TransformBuilderFunc,
   RecordIdentity
 } from '@orbit/data';
-import { AsyncOperationProcessor, AsyncOperationProcessorClass } from './async-operation-processor';
+import {
+  AsyncOperationProcessor,
+  AsyncOperationProcessorClass
+} from './async-operation-processor';
 import AsyncCacheIntegrityProcessor from './operation-processors/async-cache-integrity-processor';
 import AsyncSchemaConsistencyProcessor from './operation-processors/async-schema-consistency-processor';
 import AsyncSchemaValidationProcessor from './operation-processors/async-schema-validation-processor';
-import { AsyncPatchOperators, AsyncPatchOperator } from './operators/async-patch-operators';
-import { AsyncQueryOperators, AsyncQueryOperator } from './operators/async-query-operators';
-import { AsyncInversePatchOperators, AsyncInversePatchOperator } from './operators/async-inverse-patch-operators';
-import { AsyncRecordAccessor, RecordRelationshipIdentity } from './record-accessor';
+import {
+  AsyncPatchOperators,
+  AsyncPatchOperator
+} from './operators/async-patch-operators';
+import {
+  AsyncQueryOperators,
+  AsyncQueryOperator
+} from './operators/async-query-operators';
+import {
+  AsyncInversePatchOperators,
+  AsyncInversePatchOperator
+} from './operators/async-inverse-patch-operators';
+import {
+  AsyncRecordAccessor,
+  RecordRelationshipIdentity
+} from './record-accessor';
 import { PatchResult } from './patch-result';
 import { QueryResultData } from './query-result';
 
@@ -63,17 +74,29 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
     this._schema = settings.schema;
     this._keyMap = settings.keyMap;
     this._queryBuilder = settings.queryBuilder || new QueryBuilder();
-    this._transformBuilder = settings.transformBuilder || new TransformBuilder({
-      recordInitializer: this._schema
-    });
+    this._transformBuilder =
+      settings.transformBuilder ||
+      new TransformBuilder({
+        recordInitializer: this._schema
+      });
     this._queryOperators = settings.queryOperators || AsyncQueryOperators;
     this._patchOperators = settings.patchOperators || AsyncPatchOperators;
-    this._inversePatchOperators = settings.inversePatchOperators || AsyncInversePatchOperators;
+    this._inversePatchOperators =
+      settings.inversePatchOperators || AsyncInversePatchOperators;
 
-    const processors: AsyncOperationProcessorClass[] = settings.processors ? settings.processors : [AsyncSchemaValidationProcessor, AsyncSchemaConsistencyProcessor, AsyncCacheIntegrityProcessor];
+    const processors: AsyncOperationProcessorClass[] = settings.processors
+      ? settings.processors
+      : [
+          AsyncSchemaValidationProcessor,
+          AsyncSchemaConsistencyProcessor,
+          AsyncCacheIntegrityProcessor
+        ];
     this._processors = processors.map(Processor => {
       let processor = new Processor(this);
-      assert('Each processor must extend AsyncOperationProcessor', processor instanceof AsyncOperationProcessor);
+      assert(
+        'Each processor must extend AsyncOperationProcessor',
+        processor instanceof AsyncOperationProcessor
+      );
       return processor;
     });
   }
@@ -112,25 +135,41 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
 
   // Abstract methods for getting records and relationships
   abstract getRecordAsync(recordIdentity: RecordIdentity): Promise<Record>;
-  abstract getRecordsAsync(typeOrIdentities?: string | RecordIdentity[]): Promise<Record[]>;
-  abstract getInverseRelationshipsAsync(record: RecordIdentity): Promise<RecordRelationshipIdentity[]>;
+  abstract getRecordsAsync(
+    typeOrIdentities?: string | RecordIdentity[]
+  ): Promise<Record[]>;
+  abstract getInverseRelationshipsAsync(
+    record: RecordIdentity
+  ): Promise<RecordRelationshipIdentity[]>;
 
   // Abstract methods for setting records and relationships
   abstract setRecordAsync(record: Record): Promise<void>;
   abstract setRecordsAsync(records: Record[]): Promise<void>;
   abstract removeRecordAsync(recordIdentity: RecordIdentity): Promise<Record>;
-  abstract removeRecordsAsync(recordIdentities: RecordIdentity[]): Promise<Record[]>;
-  abstract addInverseRelationshipsAsync(relationships: RecordRelationshipIdentity[]): Promise<void>;
-  abstract removeInverseRelationshipsAsync(relationships: RecordRelationshipIdentity[]): Promise<void>;
+  abstract removeRecordsAsync(
+    recordIdentities: RecordIdentity[]
+  ): Promise<Record[]>;
+  abstract addInverseRelationshipsAsync(
+    relationships: RecordRelationshipIdentity[]
+  ): Promise<void>;
+  abstract removeInverseRelationshipsAsync(
+    relationships: RecordRelationshipIdentity[]
+  ): Promise<void>;
 
-  async getRelatedRecordAsync(identity: RecordIdentity, relationship: string): Promise<RecordIdentity> {
+  async getRelatedRecordAsync(
+    identity: RecordIdentity,
+    relationship: string
+  ): Promise<RecordIdentity> {
     const record = await this.getRecordAsync(identity);
     if (record) {
       return deepGet(record, ['relationships', relationship, 'data']);
     }
   }
 
-  async getRelatedRecordsAsync(identity: RecordIdentity, relationship: string): Promise<RecordIdentity[]> {
+  async getRelatedRecordsAsync(
+    identity: RecordIdentity,
+    relationship: string
+  ): Promise<RecordIdentity[]> {
     const record = await this.getRecordAsync(identity);
     if (record) {
       return deepGet(record, ['relationships', relationship, 'data']);
@@ -140,29 +179,52 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   /**
    * Queries the cache.
    */
-  async query(queryOrExpression: QueryOrExpression, options?: object, id?: string): Promise<QueryResultData> {
-    const query = buildQuery(queryOrExpression, options, id, this._queryBuilder);
+  async query(
+    queryOrExpression: QueryOrExpression,
+    options?: object,
+    id?: string
+  ): Promise<QueryResultData> {
+    const query = buildQuery(
+      queryOrExpression,
+      options,
+      id,
+      this._queryBuilder
+    );
     return await this._query(query.expression);
   }
 
   /**
    * Patches the cache with an operation or operations.
    */
-  async patch(operationOrOperations: RecordOperation | RecordOperation[] | TransformBuilderFunc): Promise<PatchResult> {
+  async patch(
+    operationOrOperations:
+      | RecordOperation
+      | RecordOperation[]
+      | TransformBuilderFunc
+  ): Promise<PatchResult> {
     if (typeof operationOrOperations === 'function') {
-      operationOrOperations = <RecordOperation | RecordOperation[]>operationOrOperations(this._transformBuilder);
+      operationOrOperations = operationOrOperations(this._transformBuilder) as
+        | RecordOperation
+        | RecordOperation[];
     }
 
     const result: PatchResult = {
       inverse: [],
       data: []
-    }
+    };
 
     if (isArray(operationOrOperations)) {
-      await this._applyPatchOperations(<RecordOperation[]>operationOrOperations, result, true);
-
+      await this._applyPatchOperations(
+        operationOrOperations as RecordOperation[],
+        result,
+        true
+      );
     } else {
-      await this._applyPatchOperation(<RecordOperation>operationOrOperations, result, true);
+      await this._applyPatchOperation(
+        operationOrOperations as RecordOperation,
+        result,
+        true
+      );
     }
 
     result.inverse.reverse();
@@ -174,7 +236,9 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
 
-  protected async _query(expression: QueryExpression): Promise<QueryResultData> {
+  protected async _query(
+    expression: QueryExpression
+  ): Promise<QueryResultData> {
     const queryOperator = this.getQueryOperator(expression.op);
     if (!queryOperator) {
       throw new Error(`Unable to find query operator: ${expression.op}`);
@@ -182,15 +246,25 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
     return await queryOperator(this, expression);
   }
 
-  protected async _applyPatchOperations(ops: RecordOperation[], result: PatchResult, primary: boolean = false) {
+  protected async _applyPatchOperations(
+    ops: RecordOperation[],
+    result: PatchResult,
+    primary: boolean = false
+  ) {
     for (let op of ops) {
       await this._applyPatchOperation(op, result, primary);
     }
   }
 
-  protected async _applyPatchOperation(operation: RecordOperation, result: PatchResult, primary: boolean = false) {
+  protected async _applyPatchOperation(
+    operation: RecordOperation,
+    result: PatchResult,
+    primary: boolean = false
+  ) {
     if ((operation.op as string) === 'replaceRecord') {
-      Orbit.deprecate('The `replaceRecord` operation has been deprecated - use `updateRecord` instead.');
+      Orbit.deprecate(
+        'The `replaceRecord` operation has been deprecated - use `updateRecord` instead.'
+      );
       operation = {
         op: 'updateRecord',
         record: operation.record
@@ -202,13 +276,19 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
     }
 
     const inversePatchOperator = this.getInversePatchOperator(operation.op);
-    const inverseOp: RecordOperation = await inversePatchOperator(this, operation);
+    const inverseOp: RecordOperation = await inversePatchOperator(
+      this,
+      operation
+    );
     if (inverseOp) {
       result.inverse.push(inverseOp);
 
       // Query and perform related `before` operations
       for (let processor of this._processors) {
-        await this._applyPatchOperations(await processor.before(operation), result);
+        await this._applyPatchOperations(
+          await processor.before(operation),
+          result
+        );
       }
 
       // Query related `after` operations before performing
@@ -240,11 +320,13 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
 
       // Query and perform related `finally` operations
       for (let processor of this._processors) {
-        await this._applyPatchOperations(await processor.finally(operation), result);
+        await this._applyPatchOperations(
+          await processor.finally(operation),
+          result
+        );
       }
-
     } else if (primary) {
       result.data.push(null);
     }
   }
-};
+}

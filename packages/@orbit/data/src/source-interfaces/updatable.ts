@@ -23,7 +23,11 @@ export interface Updatable {
    * operations which it then converts to a `Transform` instance. The source
    * applies the update and returns a promise that resolves when complete.
    */
-  update(transformOrOperations: TransformOrOperations, options?: object, id?: string): Promise<any>;
+  update(
+    transformOrOperations: TransformOrOperations,
+    options?: object,
+    id?: string
+  ): Promise<any>;
 
   _update(transform: Transform, hints?: any): Promise<any>;
 }
@@ -58,19 +62,31 @@ export default function updatable(Klass: SourceClass): void {
     return;
   }
 
-  assert('Updatable interface can only be applied to a Source', proto instanceof Source);
+  assert(
+    'Updatable interface can only be applied to a Source',
+    proto instanceof Source
+  );
 
   proto[UPDATABLE] = true;
 
-  proto.update = function(transformOrOperations: TransformOrOperations, options?: object, id?: string): Promise<any> {
-    const transform = buildTransform(transformOrOperations, options, id, this.transformBuilder);
+  proto.update = function(
+    transformOrOperations: TransformOrOperations,
+    options?: object,
+    id?: string
+  ): Promise<any> {
+    const transform = buildTransform(
+      transformOrOperations,
+      options,
+      id,
+      this.transformBuilder
+    );
 
     if (this.transformLog.contains(transform.id)) {
       return Promise.resolve();
     }
 
     return this._enqueueRequest('update', transform);
-  }
+  };
 
   proto.__update__ = function(transform: Transform): Promise<any> {
     if (this.transformLog.contains(transform.id)) {
@@ -83,17 +99,17 @@ export default function updatable(Klass: SourceClass): void {
         if (this.transformLog.contains(transform.id)) {
           return Promise.resolve();
         } else {
-          return this._update(transform, hints)
-            .then((result: any) => {
-              return this._transformed([transform])
-                .then(() => settleInSeries(this, 'update', transform, result))
-                .then(() => result);
-            })
+          return this._update(transform, hints).then((result: any) => {
+            return this._transformed([transform])
+              .then(() => settleInSeries(this, 'update', transform, result))
+              .then(() => result);
+          });
         }
       })
       .catch((error: Error) => {
-        return settleInSeries(this, 'updateFail', transform, error)
-          .then(() => { throw error; });
+        return settleInSeries(this, 'updateFail', transform, error).then(() => {
+          throw error;
+        });
       });
-  }
+  };
 }

@@ -27,10 +27,13 @@ module('Schema', function() {
     });
     assert.equal(schema.version, 1, 'version === 1');
 
-    schema.on('upgrade', (version) => {
+    schema.on('upgrade', version => {
       assert.equal(version, 2, 'version is passed as argument');
       assert.equal(schema.version, 2, 'version === 2');
-      assert.ok(schema.getModel('planet').attributes.name, 'model attribute has been added');
+      assert.ok(
+        schema.getModel('planet').attributes.name,
+        'model attribute has been added'
+      );
       done();
     });
 
@@ -58,7 +61,10 @@ module('Schema', function() {
       }
     });
 
-    assert.deepEqual(schema.models.planet.attributes, planetDefinition.attributes);
+    assert.deepEqual(
+      schema.models.planet.attributes,
+      planetDefinition.attributes
+    );
   });
 
   test('#getModel provides access to a model definition', function(assert) {
@@ -74,7 +80,10 @@ module('Schema', function() {
       }
     });
 
-    assert.deepEqual(schema.getModel('planet').attributes, planetDefinition.attributes);
+    assert.deepEqual(
+      schema.getModel('planet').attributes,
+      planetDefinition.attributes
+    );
   });
 
   test('#getModel throws an exception if a model definition is not found', function(assert) {
@@ -82,7 +91,7 @@ module('Schema', function() {
 
     assert.throws(function() {
       schema.getModel('planet');
-    }, /Schema error: Model definition for planet not found/)
+    }, /Schema error: Model definition for planet not found/);
   });
 
   test('#hasAttribute', function(assert) {
@@ -105,11 +114,11 @@ module('Schema', function() {
       models: {
         planet: {
           relationships: {
-            moons: { type: 'hasMany', model: 'moon' },
+            moons: { type: 'hasMany', model: 'moon' }
           }
         },
         moon: {}
-      },
+      }
     });
 
     assert.equal(schema.hasRelationship('planet', 'moons'), true);
@@ -138,11 +147,11 @@ module('Schema', function() {
             name: { type: 'string' }
           },
           relationships: {
-            moons: { type: 'hasMany', model: 'moon' },
+            moons: { type: 'hasMany', model: 'moon' }
           }
         },
         moon: {}
-      },
+      }
     });
 
     let attributes = {};
@@ -161,14 +170,17 @@ module('Schema', function() {
       models: {
         planet: {
           relationships: {
-            moons: { type: 'hasMany', model: 'moon' },
+            moons: { type: 'hasMany', model: 'moon' }
           }
         },
         moon: {}
-      },
+      }
     });
 
-    assert.deepEqual(schema.getRelationship('planet', 'moons'), { type: 'hasMany', model: 'moon' });
+    assert.deepEqual(schema.getRelationship('planet', 'moons'), {
+      type: 'hasMany',
+      model: 'moon'
+    });
   });
 
   test('#eachRelationship', function(assert) {
@@ -179,11 +191,11 @@ module('Schema', function() {
             name: { type: 'string' }
           },
           relationships: {
-            moons: { type: 'hasMany', model: 'moon' },
+            moons: { type: 'hasMany', model: 'moon' }
           }
         },
         moon: {}
-      },
+      }
     });
 
     let relationships = {};
@@ -210,19 +222,23 @@ module('Schema', function() {
 
   test('#generateId', function(assert) {
     const schema = new Schema({
-      generateId: (modelName) => `${modelName}-123`,
+      generateId: modelName => `${modelName}-123`,
 
       models: {
         moon: {}
       }
     });
 
-    assert.equal(schema.generateId('moon'), 'moon-123', 'provides the default value for the ID');
+    assert.equal(
+      schema.generateId('moon'),
+      'moon-123',
+      'provides the default value for the ID'
+    );
   });
 
   test('#initializeRecord', function(assert) {
     const schema = new Schema({
-      generateId: (modelName) => `${modelName}-123`,
+      generateId: modelName => `${modelName}-123`,
 
       models: {
         moon: {}

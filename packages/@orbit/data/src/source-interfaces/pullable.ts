@@ -25,7 +25,11 @@ export interface Pullable {
    * that resulted from applying the query. In other words, a `pull` request
    * retrieves the results of a query in `Transform` form.
    */
-  pull(queryOrExpression: QueryOrExpression, options?: object, id?: string): Promise<Transform[]>;
+  pull(
+    queryOrExpression: QueryOrExpression,
+    options?: object,
+    id?: string
+  ): Promise<Transform[]>;
 
   _pull(query: Query, hints?: any): Promise<Transform[]>;
 }
@@ -61,14 +65,21 @@ export default function pullable(Klass: SourceClass): void {
     return;
   }
 
-  assert('Pullable interface can only be applied to a Source', proto instanceof Source);
+  assert(
+    'Pullable interface can only be applied to a Source',
+    proto instanceof Source
+  );
 
   proto[PULLABLE] = true;
 
-  proto.pull = function(queryOrExpression: QueryOrExpression, options?: object, id?: string): Promise<Transform[]> {
+  proto.pull = function(
+    queryOrExpression: QueryOrExpression,
+    options?: object,
+    id?: string
+  ): Promise<Transform[]> {
     const query = buildQuery(queryOrExpression, options, id, this.queryBuilder);
     return this._enqueueRequest('pull', query);
-  }
+  };
 
   proto.__pull__ = function(query: Query): Promise<Transform[]> {
     const hints: any = {};
@@ -76,12 +87,12 @@ export default function pullable(Klass: SourceClass): void {
       .then(() => this._pull(query, hints))
       .then(result => this._transformed(result))
       .then(result => {
-        return settleInSeries(this, 'pull', query, result)
-          .then(() => result);
+        return settleInSeries(this, 'pull', query, result).then(() => result);
       })
       .catch((error: Error) => {
-        return settleInSeries(this, 'pullFail', query, error)
-          .then(() => { throw error; });
+        return settleInSeries(this, 'pullFail', query, error).then(() => {
+          throw error;
+        });
       });
-  }
+  };
 }

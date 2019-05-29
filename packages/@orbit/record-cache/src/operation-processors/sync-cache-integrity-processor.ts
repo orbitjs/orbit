@@ -1,8 +1,4 @@
-import {
-  Record,
-  RecordIdentity,
-  RecordOperation
-} from '@orbit/data';
+import { Record, RecordIdentity, RecordOperation } from '@orbit/data';
 import { SyncOperationProcessor } from '../sync-operation-processor';
 import {
   getInverseRelationship,
@@ -26,7 +22,10 @@ export default class SyncCacheIntegrityProcessor extends SyncOperationProcessor 
         this.removeInverseRelationship(
           operation.record,
           operation.relationship,
-          this.accessor.getRelatedRecordSync(operation.record, operation.relationship)
+          this.accessor.getRelatedRecordSync(
+            operation.record,
+            operation.relationship
+          )
         );
         return [];
 
@@ -34,7 +33,10 @@ export default class SyncCacheIntegrityProcessor extends SyncOperationProcessor 
         this.removeInverseRelationships(
           operation.record,
           operation.relationship,
-          this.accessor.getRelatedRecordsSync(operation.record, operation.relationship)
+          this.accessor.getRelatedRecordsSync(
+            operation.record,
+            operation.relationship
+          )
         );
         return [];
 
@@ -62,15 +64,27 @@ export default class SyncCacheIntegrityProcessor extends SyncOperationProcessor 
   finally(operation: RecordOperation): RecordOperation[] {
     switch (operation.op) {
       case 'replaceRelatedRecord':
-        this.addInverseRelationship(operation.record, operation.relationship, operation.relatedRecord);
+        this.addInverseRelationship(
+          operation.record,
+          operation.relationship,
+          operation.relatedRecord
+        );
         return [];
 
       case 'replaceRelatedRecords':
-        this.addInverseRelationships(operation.record, operation.relationship, operation.relatedRecords);
+        this.addInverseRelationships(
+          operation.record,
+          operation.relationship,
+          operation.relatedRecords
+        );
         return [];
 
       case 'addToRelatedRecords':
-        this.addInverseRelationship(operation.record, operation.relationship, operation.relatedRecord);
+        this.addInverseRelationship(
+          operation.record,
+          operation.relationship,
+          operation.relatedRecord
+        );
         return [];
 
       case 'addRecord':
@@ -89,15 +103,33 @@ export default class SyncCacheIntegrityProcessor extends SyncOperationProcessor 
     }
   }
 
-  protected addInverseRelationship(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): void {
-    let inverseRelationship = getInverseRelationship(this.accessor.schema, record, relationship, relatedRecord);
+  protected addInverseRelationship(
+    record: RecordIdentity,
+    relationship: string,
+    relatedRecord: RecordIdentity
+  ): void {
+    let inverseRelationship = getInverseRelationship(
+      this.accessor.schema,
+      record,
+      relationship,
+      relatedRecord
+    );
     if (inverseRelationship) {
       this.accessor.addInverseRelationshipsSync([inverseRelationship]);
     }
   }
 
-  protected addInverseRelationships(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]): void {
-    let inverseRelationships = getInverseRelationships(this.accessor.schema, record, relationship, relatedRecords);
+  protected addInverseRelationships(
+    record: RecordIdentity,
+    relationship: string,
+    relatedRecords: RecordIdentity[]
+  ): void {
+    let inverseRelationships = getInverseRelationships(
+      this.accessor.schema,
+      record,
+      relationship,
+      relatedRecords
+    );
     if (inverseRelationships) {
       this.accessor.addInverseRelationshipsSync(inverseRelationships);
     }
@@ -110,15 +142,33 @@ export default class SyncCacheIntegrityProcessor extends SyncOperationProcessor 
     }
   }
 
-  protected removeInverseRelationship(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): void {
-    let inverseRelationship = getInverseRelationship(this.accessor.schema, record, relationship, relatedRecord);
+  protected removeInverseRelationship(
+    record: RecordIdentity,
+    relationship: string,
+    relatedRecord: RecordIdentity
+  ): void {
+    let inverseRelationship = getInverseRelationship(
+      this.accessor.schema,
+      record,
+      relationship,
+      relatedRecord
+    );
     if (inverseRelationship) {
       this.accessor.removeInverseRelationshipsSync([inverseRelationship]);
     }
   }
 
-  protected removeInverseRelationships(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]): void {
-    let inverseRelationships = getInverseRelationships(this.accessor.schema, record, relationship, relatedRecords);
+  protected removeInverseRelationships(
+    record: RecordIdentity,
+    relationship: string,
+    relatedRecords: RecordIdentity[]
+  ): void {
+    let inverseRelationships = getInverseRelationships(
+      this.accessor.schema,
+      record,
+      relationship,
+      relatedRecords
+    );
     if (inverseRelationships) {
       this.accessor.removeInverseRelationshipsSync(inverseRelationships);
     }
@@ -132,7 +182,12 @@ export default class SyncCacheIntegrityProcessor extends SyncOperationProcessor 
     }
   }
 
-  protected clearInverseRelationshipOps(record: RecordIdentity): RecordOperation[] {
-    return getInverseRelationshipRemovalOps(this.accessor.schema, this.accessor.getInverseRelationshipsSync(record));
+  protected clearInverseRelationshipOps(
+    record: RecordIdentity
+  ): RecordOperation[] {
+    return getInverseRelationshipRemovalOps(
+      this.accessor.schema,
+      this.accessor.getInverseRelationshipsSync(record)
+    );
   }
 }

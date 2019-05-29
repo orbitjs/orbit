@@ -18,13 +18,17 @@ module('buildTransform', function() {
 
   test('can instantiate a transform with operations, options, and an id', function(assert) {
     let operations = [{ op: 'addRecord' }];
-    let options = { sources: { jsonapi: { include: 'comments' } }}
+    let options = { sources: { jsonapi: { include: 'comments' } } };
     let id = 'abc123';
 
     let transform = buildTransform(operations, options, id);
 
     assert.strictEqual(transform.id, id, 'id was populated');
-    assert.strictEqual(transform.operations, operations, 'operations was populated');
+    assert.strictEqual(
+      transform.operations,
+      operations,
+      'operations was populated'
+    );
     assert.strictEqual(transform.options, options, 'options was populated');
   });
 

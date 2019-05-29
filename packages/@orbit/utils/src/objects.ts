@@ -11,7 +11,9 @@
  * @returns {*} Clone of the input `obj`
  */
 export function clone(obj: any): any {
-  if (obj === undefined || obj === null || typeof obj !== 'object') { return obj; }
+  if (obj === undefined || obj === null || typeof obj !== 'object') {
+    return obj;
+  }
 
   let dup: any;
   let type = Object.prototype.toString.call(obj);
@@ -35,7 +37,9 @@ export function clone(obj: any): any {
     for (let key in obj) {
       if (obj.hasOwnProperty(key)) {
         val = obj[key];
-        if (typeof val === 'object') { val = clone(val); }
+        if (typeof val === 'object') {
+          val = clone(val);
+        }
         dup[key] = val;
       }
     }
@@ -180,8 +184,7 @@ export function deepMerge(object: any, ...sources: any[]): any {
       if (source.hasOwnProperty(field)) {
         let a = object[field];
         let b = source[field];
-        if (isObject(a) && isObject(b) &&
-            !isArray(a) && !isArray(b)) {
+        if (isObject(a) && isObject(b) && !isArray(a) && !isArray(b)) {
           deepMerge(a, b);
         } else if (b !== undefined) {
           object[field] = clone(b);
@@ -233,19 +236,19 @@ export function deepGet(obj: any, path: string[]): any {
  */
 export function deepSet(obj: any, path: string[], value: any): boolean {
   let ptr = obj;
-  let prop = path.pop();
+  let prop = path.pop() as string;
   let segment;
   for (let i = 0, l = path.length; i < l; i++) {
     segment = path[i];
     if (ptr[segment] === undefined) {
-      ptr[segment] = (typeof segment === 'number') ? [] : {};
+      ptr[segment] = typeof segment === 'number' ? [] : {};
     }
     ptr = ptr[segment];
   }
-  if (ptr[prop!] === value) {
+  if (ptr[prop] === value) {
     return false;
   } else {
-    ptr[prop!] = value;
+    ptr[prop] = value;
     return true;
   }
 }

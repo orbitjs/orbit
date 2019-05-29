@@ -1,5 +1,3 @@
-import {
-  Record
-} from '@orbit/data';
+import { Record } from '@orbit/data';
 
 export type QueryResultData = Record | Record[] | null;

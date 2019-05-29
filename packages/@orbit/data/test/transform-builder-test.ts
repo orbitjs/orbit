@@ -13,56 +13,53 @@ module('TransformBuilder', function(hooks) {
   test('#addRecord', function(assert) {
     let record = { type: 'planet', id: 'jupiter' };
 
-    assert.deepEqual(
-      tb.addRecord(record),
-      { op: 'addRecord', record }
-    );
+    assert.deepEqual(tb.addRecord(record), { op: 'addRecord', record });
   });
 
   test('#updateRecord', function(assert) {
     let record = { type: 'planet', id: 'jupiter' };
 
-    assert.deepEqual(
-      tb.updateRecord(record),
-      { op: 'updateRecord', record }
-    );
+    assert.deepEqual(tb.updateRecord(record), { op: 'updateRecord', record });
   });
 
   test('#removeRecord', function(assert) {
     let record = { type: 'planet', id: 'jupiter' };
 
-    assert.deepEqual(
-      tb.removeRecord(record),
-      { op: 'removeRecord', record }
-    );
+    assert.deepEqual(tb.removeRecord(record), { op: 'removeRecord', record });
   });
 
   test('#replaceKey', function(assert) {
     let record = { type: 'planet', id: 'jupiter' };
 
-    assert.deepEqual(
-      tb.replaceKey(record, 'remoteId', '123'),
-      { op: 'replaceKey', record, key: 'remoteId', value: '123' }
-    );
+    assert.deepEqual(tb.replaceKey(record, 'remoteId', '123'), {
+      op: 'replaceKey',
+      record,
+      key: 'remoteId',
+      value: '123'
+    });
   });
 
   test('#replaceAttribute', function(assert) {
     let record = { type: 'planet', id: 'jupiter' };
 
-    assert.deepEqual(
-      tb.replaceAttribute(record, 'name', 'Earth'),
-      { op: 'replaceAttribute', record, attribute: 'name', value: 'Earth' }
-    );
+    assert.deepEqual(tb.replaceAttribute(record, 'name', 'Earth'), {
+      op: 'replaceAttribute',
+      record,
+      attribute: 'name',
+      value: 'Earth'
+    });
   });
 
   test('#addToRelatedRecords', function(assert) {
     let record = { type: 'planet', id: 'jupiter' };
     let relatedRecord = { type: 'moon', id: 'Io' };
 
-    assert.deepEqual(
-      tb.addToRelatedRecords(record, 'moons', relatedRecord),
-      { op: 'addToRelatedRecords', record, relationship: 'moons', relatedRecord }
-    );
+    assert.deepEqual(tb.addToRelatedRecords(record, 'moons', relatedRecord), {
+      op: 'addToRelatedRecords',
+      record,
+      relationship: 'moons',
+      relatedRecord
+    });
   });
 
   test('#removeFromRelatedRecords', function(assert) {
@@ -71,7 +68,12 @@ module('TransformBuilder', function(hooks) {
 
     assert.deepEqual(
       tb.removeFromRelatedRecords(record, 'moons', relatedRecord),
-      { op: 'removeFromRelatedRecords', record, relationship: 'moons', relatedRecord }
+      {
+        op: 'removeFromRelatedRecords',
+        record,
+        relationship: 'moons',
+        relatedRecord
+      }
     );
   });
 
@@ -81,7 +83,12 @@ module('TransformBuilder', function(hooks) {
 
     assert.deepEqual(
       tb.replaceRelatedRecords(record, 'moons', relatedRecords),
-      { op: 'replaceRelatedRecords', record, relationship: 'moons', relatedRecords }
+      {
+        op: 'replaceRelatedRecords',
+        record,
+        relationship: 'moons',
+        relatedRecords
+      }
     );
   });
 
@@ -89,10 +96,12 @@ module('TransformBuilder', function(hooks) {
     let record = { type: 'moon', id: 'Io' };
     let relatedRecord = { type: 'planet', id: 'Jupiter' };
 
-    assert.deepEqual(
-      tb.replaceRelatedRecord(record, 'planet', relatedRecord),
-      { op: 'replaceRelatedRecord', record, relationship: 'planet', relatedRecord }
-    );
+    assert.deepEqual(tb.replaceRelatedRecord(record, 'planet', relatedRecord), {
+      op: 'replaceRelatedRecord',
+      record,
+      relationship: 'planet',
+      relatedRecord
+    });
   });
 
   test('#addRecord - when a recordInitializer has been set', function(assert) {
@@ -102,15 +111,15 @@ module('TransformBuilder', function(hooks) {
           record.id = 'abc123';
         }
       }
-    }
+    };
 
     tb = new TransformBuilder({ recordInitializer });
 
     let record = { type: 'planet' };
 
-    assert.deepEqual(
-      tb.addRecord(record as Record),
-      { op: 'addRecord', record: { type: 'planet', id: 'abc123' } }
-    );
+    assert.deepEqual(tb.addRecord(record as Record), {
+      op: 'addRecord',
+      record: { type: 'planet', id: 'abc123' }
+    });
   });
 });
