@@ -7,7 +7,7 @@ import {
   QueryExpressionParseError,
   RelatedRecordFilterSpecifier,
   RelatedRecordsFilterSpecifier,
-  SortSpecifier,
+  SortSpecifier
 } from '@orbit/data';
 import { clone } from '@orbit/utils';
 import { JSONAPISerializer } from './jsonapi-serializer';
@@ -27,7 +27,7 @@ export default class JSONAPIURLBuilder {
   serializer: JSONAPISerializer;
   keyMap: KeyMap;
 
-  constructor(settings:JSONAPIURLBuilderSettings) {
+  constructor(settings: JSONAPIURLBuilderSettings) {
     this.host = settings.host;
     this.namespace = settings.namespace;
     this.serializer = settings.serializer;
@@ -47,11 +47,17 @@ export default class JSONAPIURLBuilder {
     let namespace = this.resourceNamespace(type);
     let url: string[] = [];
 
-    if (host) { url.push(host); }
-    if (namespace) { url.push(namespace); }
+    if (host) {
+      url.push(host);
+    }
+    if (namespace) {
+      url.push(namespace);
+    }
     url.push(this.resourcePath(type, id));
 
-    if (!host) { url.unshift(''); }
+    if (!host) {
+      url.unshift('');
+    }
 
     return url.join('/');
   }
@@ -67,41 +73,76 @@ export default class JSONAPIURLBuilder {
     return path.join('/');
   }
 
-  resourceRelationshipURL(type: string, id: string, relationship: string): string {
-    return this.resourceURL(type, id) +
-           '/relationships/' + this.serializer.resourceRelationship(type, relationship);
+  resourceRelationshipURL(
+    type: string,
+    id: string,
+    relationship: string
+  ): string {
+    return (
+      this.resourceURL(type, id) +
+      '/relationships/' +
+      this.serializer.resourceRelationship(type, relationship)
+    );
   }
 
   relatedResourceURL(type: string, id: string, relationship: string): string {
-    return this.resourceURL(type, id) +
-           '/' + this.serializer.resourceRelationship(type, relationship);
+    return (
+      this.resourceURL(type, id) +
+      '/' +
+      this.serializer.resourceRelationship(type, relationship)
+    );
   }
 
   buildFilterParam(filterSpecifiers: FilterSpecifier[]): Filter[] {
     const filters: Filter[] = [];
 
     filterSpecifiers.forEach(filterSpecifier => {
-      if (filterSpecifier.kind === 'attribute' && filterSpecifier.op === 'equal') {
+      if (
+        filterSpecifier.kind === 'attribute' &&
+        filterSpecifier.op === 'equal'
+      ) {
         const attributeFilter = filterSpecifier as AttributeFilterSpecifier;
 
         // Note: We don't know the `type` of the attribute here, so passing `null`
-        const resourceAttribute = this.serializer.resourceAttribute(null, attributeFilter.attribute);
+        const resourceAttribute = this.serializer.resourceAttribute(
+          null,
+          attributeFilter.attribute
+        );
         filters.push({ [resourceAttribute]: attributeFilter.value });
       } else if (filterSpecifier.kind === 'relatedRecord') {
         const relatedRecordFilter = filterSpecifier as RelatedRecordFilterSpecifier;
         if (Array.isArray(relatedRecordFilter.record)) {
-          filters.push({ [relatedRecordFilter.relation]: relatedRecordFilter.record.map(e => e.id).join(',') });
+          filters.push({
+            [relatedRecordFilter.relation]: relatedRecordFilter.record
+              .map(e => e.id)
+              .join(',')
+          });
         } else {
-          filters.push({ [relatedRecordFilter.relation]: relatedRecordFilter.record.id });
+          filters.push({
+            [relatedRecordFilter.relation]: relatedRecordFilter.record.id
+          });
         }
       } else if (filterSpecifier.kind === 'relatedRecords') {
         if (filterSpecifier.op !== 'equal') {
-          throw new Error(`Operation "${filterSpecifier.op}" is not supported in JSONAPI for relatedRecords filtering`);
+          throw new Error(
+            `Operation "${
+              filterSpecifier.op
+            }" is not supported in JSONAPI for relatedRecords filtering`
+          );
         }
         const relatedRecordsFilter = filterSpecifier as RelatedRecordsFilterSpecifier;
-        filters.push({ [relatedRecordsFilter.relation]: relatedRecordsFilter.records.map(e => e.id).join(',') });
+        filters.push({
+          [relatedRecordsFilter.relation]: relatedRecordsFilter.records
+            .map(e => e.id)
+            .join(',')
+        });
       } else {
-        throw new QueryExpressionParseError(`Filter operation ${filterSpecifier.op} not recognized for JSONAPISource.`, filterSpecifier);
+        throw new QueryExpressionParseError(
+          `Filter operation ${
+            filterSpecifier.op
+          } not recognized for JSONAPISource.`,
+          filterSpecifier
+        );
       }
     });
 
@@ -109,16 +150,29 @@ export default class JSONAPIURLBuilder {
   }
 
   buildSortParam(sortSpecifiers: SortSpecifier[]): string {
-    return sortSpecifiers.map(sortSpecifier => {
-      if (sortSpecifier.kind === 'attribute') {
-        const attributeSort = sortSpecifier as AttributeSortSpecifier;
+    return sortSpecifiers
+      .map(sortSpecifier => {
+        if (sortSpecifier.kind === 'attribute') {
+          const attributeSort = sortSpecifier as AttributeSortSpecifier;
 
-        // Note: We don't know the `type` of the attribute here, so passing `null`
-        const resourceAttribute = this.serializer.resourceAttribute(null, attributeSort.attribute);
-        return (sortSpecifier.order === 'descending' ? '-' : '') + resourceAttribute;
-      }
-      throw new QueryExpressionParseError(`Sort specifier ${sortSpecifier.kind} not recognized for JSONAPISource.`, sortSpecifier);
-    }).join(',');
+          // Note: We don't know the `type` of the attribute here, so passing `null`
+          const resourceAttribute = this.serializer.resourceAttribute(
+            null,
+            attributeSort.attribute
+          );
+          return (
+            (sortSpecifier.order === 'descending' ? '-' : '') +
+            resourceAttribute
+          );
+        }
+        throw new QueryExpressionParseError(
+          `Sort specifier ${
+            sortSpecifier.kind
+          } not recognized for JSONAPISource.`,
+          sortSpecifier
+        );
+      })
+      .join(',');
   }
 
   buildPageParam(pageSpecifier: PageSpecifier): object {

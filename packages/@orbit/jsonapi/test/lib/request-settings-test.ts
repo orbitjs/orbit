@@ -5,7 +5,7 @@ const { module, test } = QUnit;
 module('RequestSettings', function() {
   module('mergeRequestOptions', function() {
     const OPTIONS = {
-      filter: [{ 'foo': 'bar' }],
+      filter: [{ foo: 'bar' }],
       include: ['baz.bay']
     };
 
@@ -14,55 +14,54 @@ module('RequestSettings', function() {
     });
 
     test('add sort', function(assert) {
-      assert.deepEqual(
-        mergeRequestOptions(OPTIONS, { sort: ['qay'] }),
-        {
-          filter: [{ 'foo': 'bar' }],
-          include: ['baz.bay'],
-          sort: ['qay']
-        }
-      )
+      assert.deepEqual(mergeRequestOptions(OPTIONS, { sort: ['qay'] }), {
+        filter: [{ foo: 'bar' }],
+        include: ['baz.bay'],
+        sort: ['qay']
+      });
     });
 
     test('merge includes', function(assert) {
       assert.deepEqual(
         mergeRequestOptions(OPTIONS, { include: ['baz.bay', 'snoop.dog'] }),
         {
-          filter: [{ 'foo': 'bar' }],
+          filter: [{ foo: 'bar' }],
           include: ['baz.bay', 'snoop.dog']
         }
-      )
+      );
     });
 
     test('merge filters', function(assert) {
       assert.deepEqual(
-        mergeRequestOptions(OPTIONS, { filter: [{ 'intelligence': 'low' }] }),
+        mergeRequestOptions(OPTIONS, { filter: [{ intelligence: 'low' }] }),
         {
-          filter: [{ 'foo': 'bar' }, { 'intelligence': 'low' }],
+          filter: [{ foo: 'bar' }, { intelligence: 'low' }],
           include: ['baz.bay']
         }
-      )
+      );
     });
 
     test('override filter', function(assert) {
       assert.deepEqual(
-        mergeRequestOptions(OPTIONS, { filter: [{ 'foo': 'zaz' }] }),
+        mergeRequestOptions(OPTIONS, { filter: [{ foo: 'zaz' }] }),
         {
-          filter: [{ 'foo': 'zaz' }],
+          filter: [{ foo: 'zaz' }],
           include: ['baz.bay']
         }
-      )
+      );
     });
 
     test('add page', function(assert) {
       assert.deepEqual(
-        mergeRequestOptions(OPTIONS, { page: {
-          kind: 'offsetLimit',
-          offset: 5,
-          limit: 100
-        }}),
+        mergeRequestOptions(OPTIONS, {
+          page: {
+            kind: 'offsetLimit',
+            offset: 5,
+            limit: 100
+          }
+        }),
         {
-          filter: [{ 'foo': 'bar' }],
+          filter: [{ foo: 'bar' }],
           include: ['baz.bay'],
           page: {
             kind: 'offsetLimit',
@@ -70,7 +69,7 @@ module('RequestSettings', function() {
             limit: 100
           }
         }
-      )
+      );
     });
   });
 });

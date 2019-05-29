@@ -1,8 +1,6 @@
+/* eslint @typescript-eslint/no-empty-interface:off */
 import { Dict } from '@orbit/utils';
-import {
-  Link,
-  Record
-} from '@orbit/data';
+import { Link, Record } from '@orbit/data';
 
 export interface RecordDocument {
   data: Record | Record[];
@@ -14,4 +12,4 @@ export interface RecordDocument {
 /**
  * @deprecated
  */
-export interface DeserializedDocument extends RecordDocument {};
+export interface DeserializedDocument extends RecordDocument {}
