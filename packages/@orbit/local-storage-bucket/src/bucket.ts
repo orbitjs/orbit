@@ -1,6 +1,4 @@
-import Orbit, {
-  Bucket, BucketSettings
-} from '@orbit/core';
+import Orbit, { Bucket, BucketSettings } from '@orbit/core';
 import { supportsLocalStorage } from './lib/local-storage';
 
 const { assert } = Orbit;
@@ -29,7 +27,10 @@ export default class LocalStorageBucket extends Bucket {
    * @param {Integer} [settings.version]   Optional. Defaults to 1.
    */
   constructor(settings: LocalStorageBucketSettings = {}) {
-    assert('Your browser does not support local storage!', supportsLocalStorage());
+    assert(
+      'Your browser does not support local storage!',
+      supportsLocalStorage()
+    );
 
     settings.name = settings.name || 'localStorage';
 
@@ -48,7 +49,9 @@ export default class LocalStorageBucket extends Bucket {
 
   getItem(key: string): Promise<any> {
     const fullKey: string = this.getFullKeyForItem(key);
-    return Promise.resolve(JSON.parse(Orbit.globals.localStorage.getItem(fullKey)));
+    return Promise.resolve(
+      JSON.parse(Orbit.globals.localStorage.getItem(fullKey))
+    );
   }
 
   setItem(key: string, value: any): Promise<void> {
