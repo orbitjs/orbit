@@ -2,12 +2,16 @@ import Orbit, {
   KeyMap,
   RecordOperation,
   Schema,
-  Source, SourceSettings,
-  Syncable, syncable,
+  Source,
+  SourceSettings,
+  Syncable,
+  syncable,
   Query,
   QueryOrExpression,
-  Queryable, queryable,
-  Updatable, updatable,
+  Queryable,
+  queryable,
+  Updatable,
+  updatable,
   Transform,
   TransformOrOperations,
   coalesceRecordOperations,
@@ -33,7 +37,8 @@ export interface MemorySourceMergeOptions {
 @syncable
 @queryable
 @updatable
-export default class MemorySource extends Source implements Syncable, Queryable, Updatable {
+export default class MemorySource extends Source
+  implements Syncable, Queryable, Updatable {
   private _cache: MemoryCache;
   private _base: MemorySource;
   private _forkPoint: string;
@@ -44,13 +49,24 @@ export default class MemorySource extends Source implements Syncable, Queryable,
   sync: (transformOrTransforms: Transform | Transform[]) => Promise<void>;
 
   // Queryable interface stubs
-  query: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<any>;
+  query: (
+    queryOrExpression: QueryOrExpression,
+    options?: object,
+    id?: string
+  ) => Promise<any>;
 
   // Updatable interface stubs
-  update: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => Promise<any>;
+  update: (
+    transformOrOperations: TransformOrOperations,
+    options?: object,
+    id?: string
+  ) => Promise<any>;
 
   constructor(settings: MemorySourceSettings = {}) {
-    assert('MemorySource\'s `schema` must be specified in `settings.schema` constructor argument', !!settings.schema);
+    assert(
+      "MemorySource's `schema` must be specified in `settings.schema` constructor argument",
+      !!settings.schema
+    );
 
     let keyMap: KeyMap = settings.keyMap;
     let schema: Schema = settings.schema;
@@ -69,8 +85,10 @@ export default class MemorySource extends Source implements Syncable, Queryable,
     let cacheSettings: MemoryCacheSettings = settings.cacheSettings || {};
     cacheSettings.schema = schema;
     cacheSettings.keyMap = keyMap;
-    cacheSettings.queryBuilder = cacheSettings.queryBuilder || this.queryBuilder;
-    cacheSettings.transformBuilder = cacheSettings.transformBuilder || this.transformBuilder;
+    cacheSettings.queryBuilder =
+      cacheSettings.queryBuilder || this.queryBuilder;
+    cacheSettings.transformBuilder =
+      cacheSettings.transformBuilder || this.transformBuilder;
     if (settings.base) {
       this._base = settings.base;
       this._forkPoint = this._base.transformLog.head;
@@ -166,7 +184,10 @@ export default class MemorySource extends Source implements Syncable, Queryable,
    * @param options - Merge options
    * @returns The result of calling `update()` with the forked transforms.
    */
-  merge(forkedSource: MemorySource, options: MemorySourceMergeOptions = {}): Promise<any> {
+  merge(
+    forkedSource: MemorySource,
+    options: MemorySourceMergeOptions = {}
+  ): Promise<any> {
     let transforms: Transform[];
     if (options.sinceTransformId) {
       transforms = forkedSource.transformsSince(options.sinceTransformId);
@@ -179,7 +200,6 @@ export default class MemorySource extends Source implements Syncable, Queryable,
     transforms.forEach(t => {
       Array.prototype.push.apply(ops, t.operations);
     });
-
 
     if (options.coalesce !== false) {
       ops = coalesceRecordOperations(ops);
@@ -207,7 +227,7 @@ export default class MemorySource extends Source implements Syncable, Queryable,
     assert('A `base` source must be defined for `rebase` to work', !!base);
 
     let baseTransforms: Transform[];
-    if (forkPoint === undefined){
+    if (forkPoint === undefined) {
       // source was empty at fork point
       baseTransforms = base.allTransforms();
     } else {
@@ -247,17 +267,14 @@ export default class MemorySource extends Source implements Syncable, Queryable,
    * @param transformId - The ID of the transform to start with.
    */
   transformsSince(transformId: string): Transform[] {
-    return this.transformLog
-      .after(transformId)
-      .map(id => this._transforms[id]);
+    return this.transformLog.after(transformId).map(id => this._transforms[id]);
   }
 
   /**
    * Returns all tracked transforms.
    */
   allTransforms(): Transform[] {
-    return this.transformLog.entries
-      .map(id => this._transforms[id]);
+    return this.transformLog.entries.map(id => this._transforms[id]);
   }
 
   getTransform(transformId: string): Transform {
@@ -273,7 +290,7 @@ export default class MemorySource extends Source implements Syncable, Queryable,
   /////////////////////////////////////////////////////////////////////////////
 
   protected _applyTransform(transform: Transform): PatchResultData[] {
-    const result = this.cache.patch(<RecordOperation[]>transform.operations);
+    const result = this.cache.patch(transform.operations as RecordOperation[]);
     this._transforms[transform.id] = transform;
     this._transformInverses[transform.id] = result.inverse;
     return result.data;
@@ -289,11 +306,19 @@ export default class MemorySource extends Source implements Syncable, Queryable,
     this._transformInverses = {};
   }
 
-  protected _logTruncated(transformId: string, relativePosition: number, removed: string[]): void {
+  protected _logTruncated(
+    transformId: string,
+    relativePosition: number,
+    removed: string[]
+  ): void {
     removed.forEach(id => this._clearTransformFromHistory(id));
   }
 
-  protected _logRolledback(transformId: string, relativePosition: number, removed: string[]): void {
+  protected _logRolledback(
+    transformId: string,
+    relativePosition: number,
+    removed: string[]
+  ): void {
     removed.reverse().forEach(id => {
       const inverseOperations = this._transformInverses[id];
       if (inverseOperations) {

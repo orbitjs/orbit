@@ -1,4 +1,8 @@
-export { default, MemorySourceSettings, MemorySourceMergeOptions } from './memory-source';
+export {
+  default,
+  MemorySourceSettings,
+  MemorySourceMergeOptions
+} from './memory-source';
 export { default as MemoryCache, MemoryCacheSettings } from './memory-cache';
 
 // LEGACY EXPORTS
