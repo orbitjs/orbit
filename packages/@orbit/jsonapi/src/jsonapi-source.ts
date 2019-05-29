@@ -2,13 +2,18 @@
 import Orbit, {
   KeyMap,
   Schema,
-  Source, SourceSettings,
-  Query, QueryOrExpression,
-  Pullable, pullable,
-  Pushable, pushable,
+  Source,
+  SourceSettings,
+  Query,
+  QueryOrExpression,
+  Pullable,
+  pullable,
+  Pushable,
+  pushable,
   Transform,
   TransformOrOperations,
-  Queryable, queryable,
+  Queryable,
+  queryable,
   Record,
   TransformNotAllowed
 } from '@orbit/data';
@@ -16,15 +21,20 @@ import JSONAPIRequestProcessor, {
   JSONAPIRequestProcessorSettings,
   FetchSettings
 } from './jsonapi-request-processor';
-import { JSONAPISerializer, JSONAPISerializerSettings } from './jsonapi-serializer';
-import JSONAPIURLBuilder, { JSONAPIURLBuilderSettings } from './jsonapi-url-builder';
-import { QueryOperator, QueryOperators } from "./lib/query-operators";
+import {
+  JSONAPISerializer,
+  JSONAPISerializerSettings
+} from './jsonapi-serializer';
+import JSONAPIURLBuilder, {
+  JSONAPIURLBuilderSettings
+} from './jsonapi-url-builder';
+import { QueryOperator, QueryOperators } from './lib/query-operators';
 import {
   TransformRequestProcessor,
   TransformRequestProcessors,
   TransformRecordRequest,
   getTransformRequests
-} from  './lib/transform-requests';
+} from './lib/transform-requests';
 
 const { assert, deprecate } = Orbit;
 
@@ -37,11 +47,17 @@ export interface JSONAPISourceSettings extends SourceSettings {
   defaultFetchTimeout?: number;
   defaultFetchSettings?: FetchSettings;
   allowedContentTypes?: string[];
-  SerializerClass?: (new (settings: JSONAPISerializerSettings) => JSONAPISerializer);
-  RequestProcessorClass?: (new (settings: JSONAPIRequestProcessorSettings) => JSONAPIRequestProcessor);
-  URLBuilderClass?: (new (settings: JSONAPIURLBuilderSettings) => JSONAPIURLBuilder);
-  schema?: Schema,
-  keyMap?: KeyMap
+  SerializerClass?: new (
+    settings: JSONAPISerializerSettings
+  ) => JSONAPISerializer;
+  RequestProcessorClass?: new (
+    settings: JSONAPIRequestProcessorSettings
+  ) => JSONAPIRequestProcessor;
+  URLBuilderClass?: new (
+    settings: JSONAPIURLBuilderSettings
+  ) => JSONAPIURLBuilder;
+  schema?: Schema;
+  keyMap?: KeyMap;
 }
 
 /**
@@ -61,23 +77,39 @@ export interface JSONAPISourceSettings extends SourceSettings {
 @pullable
 @pushable
 @queryable
-export default class JSONAPISource extends Source implements Pullable, Pushable, Queryable {
+export default class JSONAPISource extends Source
+  implements Pullable, Pushable, Queryable {
   namespace: string;
   host: string;
   maxRequestsPerTransform?: number;
   requestProcessor: JSONAPIRequestProcessor;
 
   // Pullable interface stubs
-  pull: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<Transform[]>;
+  pull: (
+    queryOrExpression: QueryOrExpression,
+    options?: object,
+    id?: string
+  ) => Promise<Transform[]>;
 
   // Pushable interface stubs
-  push: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => Promise<Transform[]>;
+  push: (
+    transformOrOperations: TransformOrOperations,
+    options?: object,
+    id?: string
+  ) => Promise<Transform[]>;
 
   // Queryable interface stubs
-  query: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<any>;
+  query: (
+    queryOrExpression: QueryOrExpression,
+    options?: object,
+    id?: string
+  ) => Promise<any>;
 
   constructor(settings: JSONAPISourceSettings = {}) {
-    assert('JSONAPISource\'s `schema` must be specified in `settings.schema` constructor argument', !!settings.schema);
+    assert(
+      "JSONAPISource's `schema` must be specified in `settings.schema` constructor argument",
+      !!settings.schema
+    );
 
     settings.name = settings.name || 'jsonapi';
 
@@ -87,7 +119,8 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
     this.host = settings.host;
     this.maxRequestsPerTransform = settings.maxRequestsPerTransform;
 
-    const RequestProcessorClass = settings.RequestProcessorClass || JSONAPIRequestProcessor;
+    const RequestProcessorClass =
+      settings.RequestProcessorClass || JSONAPIRequestProcessor;
     this.requestProcessor = new RequestProcessorClass({
       sourceName: this.name,
       SerializerClass: settings.SerializerClass || JSONAPISerializer,
@@ -113,7 +146,10 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
     for (let request of requests) {
       let processor = this.getTransformRequestProcessor(request);
 
-      let additionalTransforms: Transform[] = await processor(requestProcessor, request);
+      let additionalTransforms: Transform[] = await processor(
+        requestProcessor,
+        request
+      );
       if (additionalTransforms) {
         Array.prototype.push.apply(transforms, additionalTransforms);
       }
@@ -138,7 +174,7 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   // Queryable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _query(query: Query): Promise<Record|Record[]> {
+  async _query(query: Query): Promise<Record | Record[]> {
     let { requestProcessor } = this;
     const operator: QueryOperator = this.getQueryOperator(query);
     const response = await operator(requestProcessor, query);
@@ -149,22 +185,37 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   private getQueryOperator(query: Query): QueryOperator {
     const operator: QueryOperator = QueryOperators[query.expression.op];
     if (!operator) {
-      throw new Error('JSONAPIRequestProcessor does not support the `${query.expression.op}` operator for queries.');
+      throw new Error(
+        'JSONAPIRequestProcessor does not support the `${query.expression.op}` operator for queries.'
+      );
     }
     return operator;
   }
 
   private getTransformRequests(transform: Transform): TransformRecordRequest[] {
-    const transformRequests = getTransformRequests(this.requestProcessor, transform);
-    if (this.maxRequestsPerTransform && transformRequests.length > this.maxRequestsPerTransform) {
+    const transformRequests = getTransformRequests(
+      this.requestProcessor,
+      transform
+    );
+    if (
+      this.maxRequestsPerTransform &&
+      transformRequests.length > this.maxRequestsPerTransform
+    ) {
       throw new TransformNotAllowed(
-        `This transform requires ${transformRequests.length} requests, which exceeds the specified limit of ${this.maxRequestsPerTransform} requests per transform.`,
-        transform);
+        `This transform requires ${
+          transformRequests.length
+        } requests, which exceeds the specified limit of ${
+          this.maxRequestsPerTransform
+        } requests per transform.`,
+        transform
+      );
     }
     return transformRequests;
   }
 
-  private getTransformRequestProcessor(request:TransformRecordRequest):TransformRequestProcessor {
+  private getTransformRequestProcessor(
+    request: TransformRecordRequest
+  ): TransformRequestProcessor {
     return TransformRequestProcessors[request.op];
   }
   /////////////////////////////////////////////////////////////////////////////
@@ -197,47 +248,66 @@ export default class JSONAPISource extends Source implements Pullable, Pushable,
   }
 
   initFetchSettings(customSettings: FetchSettings = {}): FetchSettings {
-    deprecate('JSONAPISource: initFetchSettings has moved to the requestProcessor', true);
+    deprecate(
+      'JSONAPISource: initFetchSettings has moved to the requestProcessor',
+      true
+    );
     return this.requestProcessor.initFetchSettings(customSettings);
   }
 
   get defaultFetchSettings(): FetchSettings {
-    deprecate('JSONAPISource: Access `defaultFetchSettings` on requestProcessor instead of source`');
+    deprecate(
+      'JSONAPISource: Access `defaultFetchSettings` on requestProcessor instead of source`'
+    );
     return this.requestProcessor.defaultFetchSettings;
   }
 
   set defaultFetchSettings(settings: FetchSettings) {
-    deprecate('JSONAPISource: Access `defaultFetchSettings` on requestProcessor instead of source');
+    deprecate(
+      'JSONAPISource: Access `defaultFetchSettings` on requestProcessor instead of source'
+    );
     this.requestProcessor.defaultFetchSettings = settings;
   }
 
   get defaultFetchHeaders(): object {
-    deprecate('JSONAPISource: Access `defaultFetchSettings.headers` instead of `defaultFetchHeaders`');
+    deprecate(
+      'JSONAPISource: Access `defaultFetchSettings.headers` instead of `defaultFetchHeaders`'
+    );
     return this.requestProcessor.defaultFetchSettings.headers;
   }
 
   set defaultFetchHeaders(headers: object) {
-    deprecate('JSONAPISource: Access `defaultFetchSettings.headers` instead of `defaultFetchHeaders`');
+    deprecate(
+      'JSONAPISource: Access `defaultFetchSettings.headers` instead of `defaultFetchHeaders`'
+    );
     this.requestProcessor.defaultFetchSettings.headers = headers;
   }
 
   get defaultFetchTimeout() {
-    deprecate('JSONAPISource: Access `defaultFetchSettings.timeout` instead of `defaultFetchTimeout`');
+    deprecate(
+      'JSONAPISource: Access `defaultFetchSettings.timeout` instead of `defaultFetchTimeout`'
+    );
     return this.requestProcessor.defaultFetchSettings.timeout;
   }
 
   set defaultFetchTimeout(timeout: number) {
-    deprecate('JSONAPISource: Access `defaultFetchSettings.timeout` instead of `defaultFetchTimeout`');
+    deprecate(
+      'JSONAPISource: Access `defaultFetchSettings.timeout` instead of `defaultFetchTimeout`'
+    );
     this.requestProcessor.defaultFetchSettings.timeout = timeout;
   }
 
-  get allowedContentTypes():string[] {
-    deprecate('JSONAPISource: Access `requestProcessor.allowedContentTypes` instead of `allowedContentTypes`');
+  get allowedContentTypes(): string[] {
+    deprecate(
+      'JSONAPISource: Access `requestProcessor.allowedContentTypes` instead of `allowedContentTypes`'
+    );
     return this.requestProcessor.allowedContentTypes;
   }
 
-  set allowedContentTypes(val:string[]) {
-    deprecate('JSONAPISource: Access `requestProcessor.allowedContentTypes` instead of `allowedContentTypes`');
+  set allowedContentTypes(val: string[]) {
+    deprecate(
+      'JSONAPISource: Access `requestProcessor.allowedContentTypes` instead of `allowedContentTypes`'
+    );
     this.requestProcessor.allowedContentTypes = val;
   }
 }

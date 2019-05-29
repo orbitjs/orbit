@@ -22,7 +22,11 @@ module('JSONAPIRequestProcessor', function(hooks) {
           },
           relationships: {
             moons: { type: 'hasMany', model: 'moon', inverse: 'planet' },
-            solarSystem: { type: 'hasOne', model: 'solarSystem', inverse: 'planets' }
+            solarSystem: {
+              type: 'hasOne',
+              model: 'solarSystem',
+              inverse: 'planets'
+            }
           }
         },
         moon: {
@@ -44,14 +48,20 @@ module('JSONAPIRequestProcessor', function(hooks) {
             name: { type: 'string' }
           },
           relationships: {
-            planets: { type: 'hasMany', model: 'planet', inverse: 'solarSystem' }
+            planets: {
+              type: 'hasMany',
+              model: 'planet',
+              inverse: 'solarSystem'
+            }
           }
         }
       }
     });
     let serializer = new JSONAPISerializer({ schema, keyMap });
     urlBuilder = new JSONAPIURLBuilder({ serializer, keyMap });
-    urlBuilder.serializer.resourceKey = function() { return 'remoteId'; };
+    urlBuilder.serializer.resourceKey = function() {
+      return 'remoteId';
+    };
   });
 
   hooks.afterEach(() => {
@@ -66,24 +76,51 @@ module('JSONAPIRequestProcessor', function(hooks) {
     assert.expect(1);
     urlBuilder.host = 'http://127.0.0.1:8888';
     urlBuilder.namespace = 'api';
-    keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
+    keyMap.pushRecord({
+      type: 'planet',
+      id: '1',
+      keys: { remoteId: 'a' },
+      attributes: { name: 'Jupiter' }
+    });
 
-    assert.equal(urlBuilder.resourceURL('planet', '1'), 'http://127.0.0.1:8888/api/planets/a', 'resourceURL method should use the options to construct URLs');
+    assert.equal(
+      urlBuilder.resourceURL('planet', '1'),
+      'http://127.0.0.1:8888/api/planets/a',
+      'resourceURL method should use the options to construct URLs'
+    );
   });
 
-  test('#resourcePath - returns resource\'s path without its host and namespace', function(assert) {
+  test("#resourcePath - returns resource's path without its host and namespace", function(assert) {
     assert.expect(1);
     urlBuilder.host = 'http://127.0.0.1:8888';
     urlBuilder.namespace = 'api';
-    keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
+    keyMap.pushRecord({
+      type: 'planet',
+      id: '1',
+      keys: { remoteId: 'a' },
+      attributes: { name: 'Jupiter' }
+    });
 
-    assert.equal(urlBuilder.resourcePath('planet', '1'), 'planets/a', 'resourcePath returns the path to the resource relative to the host and namespace');
+    assert.equal(
+      urlBuilder.resourcePath('planet', '1'),
+      'planets/a',
+      'resourcePath returns the path to the resource relative to the host and namespace'
+    );
   });
 
   test('#resourceRelationshipURL - constructs relationship URLs based upon base resourceURL', function(assert) {
     assert.expect(1);
-    keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' }, attributes: { name: 'Jupiter' } });
+    keyMap.pushRecord({
+      type: 'planet',
+      id: '1',
+      keys: { remoteId: 'a' },
+      attributes: { name: 'Jupiter' }
+    });
 
-    assert.equal(urlBuilder.resourceRelationshipURL('planet', '1', 'moons'), '/planets/a/relationships/moons', 'resourceRelationshipURL appends /relationships/[relationship] to resourceURL');
+    assert.equal(
+      urlBuilder.resourceRelationshipURL('planet', '1', 'moons'),
+      '/planets/a/relationships/moons',
+      'resourceRelationshipURL appends /relationships/[relationship] to resourceURL'
+    );
   });
 });

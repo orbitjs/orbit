@@ -7,19 +7,21 @@ import Orbit, {
   Record,
   Schema,
   ServerError,
-  Transform,
+  Transform
 } from '@orbit/data';
 import { InvalidServerResponse } from './lib/exceptions';
 import { TransformRecordRequest } from './lib/transform-requests';
 import { deepGet, deepMerge, toArray } from '@orbit/utils';
 import { RecordDocument } from './record-document';
 import { ResourceDocument } from './resource-document';
+import { RequestOptions, buildFetchSettings } from './lib/request-settings';
+import JSONAPIURLBuilder, {
+  JSONAPIURLBuilderSettings
+} from './jsonapi-url-builder';
 import {
-  RequestOptions,
-  buildFetchSettings
-} from './lib/request-settings';
-import JSONAPIURLBuilder, { JSONAPIURLBuilderSettings } from './jsonapi-url-builder';
-import { JSONAPISerializer, JSONAPISerializerSettings } from './jsonapi-serializer';
+  JSONAPISerializer,
+  JSONAPISerializerSettings
+} from './jsonapi-serializer';
 const { assert, deprecate } = Orbit;
 
 export interface FetchSettings {
@@ -37,11 +39,14 @@ export interface FetchSettings {
   integrity?: string;
 }
 
-
 export interface JSONAPIRequestProcessorSettings {
   sourceName: string;
-  SerializerClass?: (new (settings: JSONAPISerializerSettings) => JSONAPISerializer);
-  URLBuilderClass?: (new (settings: JSONAPIURLBuilderSettings) => JSONAPIURLBuilder);
+  SerializerClass?: new (
+    settings: JSONAPISerializerSettings
+  ) => JSONAPISerializer;
+  URLBuilderClass?: new (
+    settings: JSONAPIURLBuilderSettings
+  ) => JSONAPIURLBuilder;
   namespace?: string;
   host?: string;
   defaultFetchHeaders?: object;
@@ -63,7 +68,10 @@ export default class JSONAPIRequestProcessor {
 
   constructor(settings: JSONAPIRequestProcessorSettings) {
     this.sourceName = settings.sourceName;
-    this.allowedContentTypes = settings.allowedContentTypes || ['application/vnd.api+json', 'application/json'];
+    this.allowedContentTypes = settings.allowedContentTypes || [
+      'application/vnd.api+json',
+      'application/json'
+    ];
     this.schema = settings.schema;
     this.keyMap = settings.keyMap;
     let SerializerClass = settings.SerializerClass || JSONAPISerializer;
@@ -131,10 +139,17 @@ export default class JSONAPIRequestProcessor {
   }
 
   initFetchSettings(customSettings: FetchSettings = {}): FetchSettings {
-    let settings: FetchSettings = deepMerge({}, this.defaultFetchSettings, customSettings);
+    let settings: FetchSettings = deepMerge(
+      {},
+      this.defaultFetchSettings,
+      customSettings
+    );
 
     if (settings.json) {
-      assert('`json` and `body` can\'t both be set for fetch requests.', !settings.body);
+      assert(
+        "`json` and `body` can't both be set for fetch requests.",
+        !settings.body
+      );
       settings.body = JSON.stringify(settings.json);
       delete settings.json;
     }
@@ -146,7 +161,9 @@ export default class JSONAPIRequestProcessor {
     return settings;
   }
 
-  operationsFromDeserializedDocument(deserialized: RecordDocument): Operation[] {
+  operationsFromDeserializedDocument(
+    deserialized: RecordDocument
+  ): Operation[] {
     const records: Record[] = [];
     Array.prototype.push.apply(records, toArray(deserialized.data));
 
@@ -162,7 +179,10 @@ export default class JSONAPIRequestProcessor {
     });
   }
 
-  buildFetchSettings(options: RequestOptions = {}, customSettings?: FetchSettings): FetchSettings {
+  buildFetchSettings(
+    options: RequestOptions = {},
+    customSettings?: FetchSettings
+  ): FetchSettings {
     return buildFetchSettings(options, customSettings);
   }
 
@@ -170,7 +190,10 @@ export default class JSONAPIRequestProcessor {
     return deepGet(queryOrTransform, ['options', 'sources', this.sourceName]);
   }
 
-  preprocessResponseDocument(document: ResourceDocument, queryOrTransformRecordRequest:Query|TransformRecordRequest) {}
+  preprocessResponseDocument(
+    document: ResourceDocument,
+    queryOrTransformRecordRequest: Query | TransformRecordRequest
+  ) {}
 
   protected responseHasContent(response: Response): boolean {
     if (response.status === 204) {
@@ -188,7 +211,9 @@ export default class JSONAPIRequestProcessor {
     return false;
   }
 
-  protected initDefaultFetchSettings(settings: JSONAPIRequestProcessorSettings): void {
+  protected initDefaultFetchSettings(
+    settings: JSONAPIRequestProcessorSettings
+  ): void {
     this.defaultFetchSettings = {
       headers: {
         Accept: 'application/vnd.api+json',
@@ -198,8 +223,14 @@ export default class JSONAPIRequestProcessor {
     };
 
     if (settings.defaultFetchHeaders || settings.defaultFetchTimeout) {
-      deprecate('Pass `defaultFetchSettings` with `headers` instead of `defaultFetchHeaders` to initialize requestProcessor', settings.defaultFetchHeaders === undefined);
-      deprecate('Pass `defaultFetchSettings` with `timeout` instead of `defaultFetchTimeout` to initialize requestProcessor', settings.defaultFetchTimeout === undefined);
+      deprecate(
+        'Pass `defaultFetchSettings` with `headers` instead of `defaultFetchHeaders` to initialize requestProcessor',
+        settings.defaultFetchHeaders === undefined
+      );
+      deprecate(
+        'Pass `defaultFetchSettings` with `timeout` instead of `defaultFetchTimeout` to initialize requestProcessor',
+        settings.defaultFetchTimeout === undefined
+      );
 
       deepMerge(this.defaultFetchSettings, {
         headers: settings.defaultFetchHeaders,
@@ -217,7 +248,13 @@ export default class JSONAPIRequestProcessor {
       if (this.responseHasContent(response)) {
         return response.json();
       } else {
-        throw new InvalidServerResponse(`Server responses with a ${response.status} status should return content with one of the following content types: ${this.allowedContentTypes.join(', ')}.`);
+        throw new InvalidServerResponse(
+          `Server responses with a ${
+            response.status
+          } status should return content with one of the following content types: ${this.allowedContentTypes.join(
+            ', '
+          )}.`
+        );
       }
     } else if (response.status >= 200 && response.status < 300) {
       if (this.responseHasContent(response)) {
@@ -225,7 +262,8 @@ export default class JSONAPIRequestProcessor {
       }
     } else {
       if (this.responseHasContent(response)) {
-        return response.json()
+        return response
+          .json()
           .then((data: any) => this.handleFetchResponseError(response, data));
       } else {
         return this.handleFetchResponseError(response);
@@ -233,7 +271,10 @@ export default class JSONAPIRequestProcessor {
     }
   }
 
-  protected async handleFetchResponseError(response: Response, data?: any): Promise<any> {
+  protected async handleFetchResponseError(
+    response: Response,
+    data?: any
+  ): Promise<any> {
     let error: any;
     if (response.status >= 400 && response.status < 500) {
       error = new ClientError(response.statusText);

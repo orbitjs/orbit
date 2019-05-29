@@ -1,13 +1,17 @@
 import Orbit, {
   buildTransform,
   Operation,
-  pullable, Pullable,
-  pushable, Pushable,
+  pullable,
+  Pullable,
+  pushable,
+  Pushable,
   Resettable,
-  syncable, Syncable,
+  syncable,
+  Syncable,
   Query,
   QueryOrExpression,
-  Source, SourceSettings,
+  Source,
+  SourceSettings,
   Transform,
   TransformOrOperations,
   Record,
@@ -32,21 +36,36 @@ export interface LocalStorageSourceSettings extends SourceSettings {
 @pullable
 @pushable
 @syncable
-export default class LocalStorageSource extends Source implements Pullable, Pushable, Resettable, Syncable {
+export default class LocalStorageSource extends Source
+  implements Pullable, Pushable, Resettable, Syncable {
   protected _cache: LocalStorageCache;
 
   // Syncable interface stubs
   sync: (transformOrTransforms: Transform | Transform[]) => Promise<void>;
 
   // Pullable interface stubs
-  pull: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<Transform[]>;
+  pull: (
+    queryOrExpression: QueryOrExpression,
+    options?: object,
+    id?: string
+  ) => Promise<Transform[]>;
 
   // Pushable interface stubs
-  push: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => Promise<Transform[]>;
+  push: (
+    transformOrOperations: TransformOrOperations,
+    options?: object,
+    id?: string
+  ) => Promise<Transform[]>;
 
   constructor(settings: LocalStorageSourceSettings = {}) {
-    assert('LocalStorageSource\'s `schema` must be specified in `settings.schema` constructor argument', !!settings.schema);
-    assert('Your browser does not support local storage!', supportsLocalStorage());
+    assert(
+      "LocalStorageSource's `schema` must be specified in `settings.schema` constructor argument",
+      !!settings.schema
+    );
+    assert(
+      'Your browser does not support local storage!',
+      supportsLocalStorage()
+    );
 
     settings.name = settings.name || 'localStorage';
 
@@ -55,8 +74,10 @@ export default class LocalStorageSource extends Source implements Pullable, Push
     let cacheSettings: LocalStorageCacheSettings = settings.cacheSettings || {};
     cacheSettings.schema = settings.schema;
     cacheSettings.keyMap = settings.keyMap;
-    cacheSettings.queryBuilder = cacheSettings.queryBuilder || this.queryBuilder;
-    cacheSettings.transformBuilder = cacheSettings.transformBuilder || this.transformBuilder;
+    cacheSettings.queryBuilder =
+      cacheSettings.queryBuilder || this.queryBuilder;
+    cacheSettings.transformBuilder =
+      cacheSettings.transformBuilder || this.transformBuilder;
     cacheSettings.namespace = cacheSettings.namespace || settings.namespace;
     cacheSettings.delimiter = cacheSettings.delimiter || settings.delimiter;
 
@@ -117,10 +138,12 @@ export default class LocalStorageSource extends Source implements Pullable, Push
         };
       });
     } else if (results) {
-      operations = [{
-        op: 'updateRecord',
-        record: results
-      } as UpdateRecordOperation];
+      operations = [
+        {
+          op: 'updateRecord',
+          record: results
+        } as UpdateRecordOperation
+      ];
     } else {
       operations = [];
     }

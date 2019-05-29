@@ -1,7 +1,10 @@
 import { IndexedDBCache } from '../../src/index';
 import { Record } from '@orbit/data';
 
-export async function getRecordFromIndexedDB(cache: IndexedDBCache, record: Record): Promise<Record> {
+export async function getRecordFromIndexedDB(
+  cache: IndexedDBCache,
+  record: Record
+): Promise<Record> {
   const db = await cache.openDB();
   const transaction = db.transaction([record.type]);
   const objectStore = transaction.objectStore(record.type);

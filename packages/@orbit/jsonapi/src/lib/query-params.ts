@@ -1,24 +1,29 @@
 interface RawParam {
-  path: string[],
-  val: string
+  path: string[];
+  val: string;
 }
 
 export interface Param {
-  path: string,
-  val: string
+  path: string;
+  val: string;
 }
 
 function flattenObjectToParams(obj: any, path: string[] = []): RawParam[] {
   let params: RawParam[] = [];
 
   Object.keys(obj).forEach(key => {
-    if (!obj.hasOwnProperty(key)) { return; }
+    if (!obj.hasOwnProperty(key)) {
+      return;
+    }
 
     let newPath = path.slice();
     newPath.push(key);
 
     if (obj[key] !== null && typeof obj[key] === 'object') {
-      Array.prototype.push.apply(params, flattenObjectToParams(obj[key], newPath));
+      Array.prototype.push.apply(
+        params,
+        flattenObjectToParams(obj[key], newPath)
+      );
     } else {
       params.push({
         path: newPath,
@@ -45,7 +50,10 @@ export function encodeQueryParams(obj: any) {
       }
       return { path, val };
     })
-    .map(param => encodeURIComponent(param.path) + '=' + encodeURIComponent(param.val))
+    .map(
+      param =>
+        encodeURIComponent(param.path) + '=' + encodeURIComponent(param.val)
+    )
     .join('&');
 }
 

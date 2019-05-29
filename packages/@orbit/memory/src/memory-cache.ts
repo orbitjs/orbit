@@ -1,10 +1,6 @@
 /* eslint-disable valid-jsdoc */
 import { clone, Dict } from '@orbit/utils';
-import {
-  Record,
-  RecordIdentity,
-  equalRecordIdentities
-} from '@orbit/data';
+import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/data';
 import {
   RecordRelationshipIdentity,
   SyncRecordCache,
@@ -24,7 +20,9 @@ export interface MemoryCacheSettings extends SyncRecordCacheSettings {
  */
 export default class MemoryCache extends SyncRecordCache {
   protected _records: Dict<ImmutableMap<string, Record>>;
-  protected _inverseRelationships: Dict<ImmutableMap<string, RecordRelationshipIdentity[]>>;
+  protected _inverseRelationships: Dict<
+    ImmutableMap<string, RecordRelationshipIdentity[]>
+  >;
 
   constructor(settings: MemoryCacheSettings) {
     super(settings);
@@ -47,7 +45,6 @@ export default class MemoryCache extends SyncRecordCache {
         }
       }
       return records;
-
     } else {
       const type: string = typeOrIdentities;
 
@@ -98,26 +95,50 @@ export default class MemoryCache extends SyncRecordCache {
     return records;
   }
 
-  getInverseRelationshipsSync(recordIdentity: RecordIdentity): RecordRelationshipIdentity[] {
-    return this._inverseRelationships[recordIdentity.type].get(recordIdentity.id) || [];
+  getInverseRelationshipsSync(
+    recordIdentity: RecordIdentity
+  ): RecordRelationshipIdentity[] {
+    return (
+      this._inverseRelationships[recordIdentity.type].get(recordIdentity.id) ||
+      []
+    );
   }
 
-  addInverseRelationshipsSync(relationships: RecordRelationshipIdentity[]): void {
+  addInverseRelationshipsSync(
+    relationships: RecordRelationshipIdentity[]
+  ): void {
     relationships.forEach(r => {
-      let rels = this._inverseRelationships[r.relatedRecord.type].get(r.relatedRecord.id);
+      let rels = this._inverseRelationships[r.relatedRecord.type].get(
+        r.relatedRecord.id
+      );
       rels = rels ? clone(rels) : [];
       rels.push(r);
-      this._inverseRelationships[r.relatedRecord.type].set(r.relatedRecord.id, rels);
+      this._inverseRelationships[r.relatedRecord.type].set(
+        r.relatedRecord.id,
+        rels
+      );
     });
   }
 
-  removeInverseRelationshipsSync(relationships: RecordRelationshipIdentity[]): void {
+  removeInverseRelationshipsSync(
+    relationships: RecordRelationshipIdentity[]
+  ): void {
     relationships.forEach(r => {
-      let rels = this._inverseRelationships[r.relatedRecord.type].get(r.relatedRecord.id);
+      let rels = this._inverseRelationships[r.relatedRecord.type].get(
+        r.relatedRecord.id
+      );
       if (rels) {
-        let newRels = rels.filter(rel => !(equalRecordIdentities(rel.record, r.record) &&
-                                           rel.relationship === r.relationship));
-        this._inverseRelationships[r.relatedRecord.type].set(r.relatedRecord.id, newRels);
+        let newRels = rels.filter(
+          rel =>
+            !(
+              equalRecordIdentities(rel.record, r.record) &&
+              rel.relationship === r.relationship
+            )
+        );
+        this._inverseRelationships[r.relatedRecord.type].set(
+          r.relatedRecord.id,
+          newRels
+        );
       }
     });
   }
@@ -167,7 +188,9 @@ export default class MemoryCache extends SyncRecordCache {
   /////////////////////////////////////////////////////////////////////////////
 
   protected _resetInverseRelationships(base?: MemoryCache) {
-    const inverseRelationships: Dict<ImmutableMap<string, RecordRelationshipIdentity[]>> = {};
+    const inverseRelationships: Dict<
+      ImmutableMap<string, RecordRelationshipIdentity[]>
+    > = {};
     Object.keys(this._schema.models).forEach(type => {
       let baseRelationships = base && base._inverseRelationships[type];
       inverseRelationships[type] = new ImmutableMap(baseRelationships);

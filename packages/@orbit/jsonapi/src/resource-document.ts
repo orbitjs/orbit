@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/no-empty-interface:off */
 import { Dict } from '@orbit/utils';
 import { Link } from '@orbit/data';
 
@@ -18,7 +19,9 @@ export interface ResourceHasManyRelationship {
   links?: Dict<Link>;
 }
 
-export type ResourceRelationship = ResourceHasOneRelationship | ResourceHasManyRelationship;
+export type ResourceRelationship =
+  | ResourceHasOneRelationship
+  | ResourceHasManyRelationship;
 
 export interface Resource {
   id?: string;
@@ -39,4 +42,4 @@ export interface ResourceDocument {
 /**
  * @deprecated
  */
-export interface JSONAPIDocument extends ResourceDocument {};
+export interface JSONAPIDocument extends ResourceDocument {}

@@ -16,7 +16,10 @@ export interface RequestOptions {
   settings?: FetchSettings;
 }
 
-export function buildFetchSettings(options: RequestOptions = {}, customSettings?: FetchSettings): FetchSettings {
+export function buildFetchSettings(
+  options: RequestOptions = {},
+  customSettings?: FetchSettings
+): FetchSettings {
   let settings = options.settings ? clone(options.settings) : {};
 
   if (customSettings) {
@@ -36,15 +39,18 @@ export function buildFetchSettings(options: RequestOptions = {}, customSettings?
 
   let timeout = (options as any)['timeout'];
   if (timeout) {
-    deprecate("JSONAPI: Specify `timeout` option inside a `settings` object.")
+    deprecate('JSONAPI: Specify `timeout` option inside a `settings` object.');
     settings.timeout = timeout;
   }
 
   return settings;
 }
 
-export function mergeRequestOptions(options: RequestOptions, customOptions: RequestOptions) {
-  let result: RequestOptions = {}
+export function mergeRequestOptions(
+  options: RequestOptions,
+  customOptions: RequestOptions
+) {
+  let result: RequestOptions = {};
   merge(result, options, customOptions);
   if (options.include && customOptions.include) {
     result.include = mergeIncludePaths(options.include, customOptions.include);
@@ -55,11 +61,11 @@ export function mergeRequestOptions(options: RequestOptions, customOptions: Requ
   return result;
 }
 
-function mergeIncludePaths(paths:string[], customPaths:string[]) {
+function mergeIncludePaths(paths: string[], customPaths: string[]) {
   let result = clone(paths);
   for (let customPath of customPaths) {
     if (!paths.includes(customPath)) {
-        result.push(customPath);
+      result.push(customPath);
     }
   }
   return result;
@@ -67,11 +73,13 @@ function mergeIncludePaths(paths:string[], customPaths:string[]) {
 
 function mergeFilters(filters: Filter[], customFilters: Filter[]) {
   let result: Filter[] = clone(filters);
-  let filterKeys:string[] = filters.map((f) => filterKey(f));
+  let filterKeys: string[] = filters.map(f => filterKey(f));
   for (let customFilter of customFilters) {
     let customerFilterKey = filterKey(customFilter);
     if (filterKeys.includes(customerFilterKey)) {
-      let filterToOverride = result.find(f => filterKey(f) === customerFilterKey);
+      let filterToOverride = result.find(
+        f => filterKey(f) === customerFilterKey
+      );
       setFilterValue(filterToOverride, filterValue(customFilter));
     } else {
       result.push(customFilter);
@@ -80,11 +88,11 @@ function mergeFilters(filters: Filter[], customFilters: Filter[]) {
   return result;
 }
 
-function filterKey(filter: Filter) : string {
+function filterKey(filter: Filter): string {
   return Object.keys(filter)[0];
 }
 
-function filterValue(filter: Filter) : string {
+function filterValue(filter: Filter): string {
   return Object.values(filter)[0];
 }
 

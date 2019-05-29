@@ -1,11 +1,8 @@
 const { module, test } = QUnit;
-import Orbit, {
-  KeyMap,
-  Schema
-} from '@orbit/data';
+import Orbit, { KeyMap, Schema } from '@orbit/data';
 import { JSONAPIRequestProcessor } from '../src/index';
 import { jsonapiResponse } from './support/jsonapi';
-import { SinonStatic, SinonStub} from 'sinon';
+import { SinonStatic, SinonStub } from 'sinon';
 
 declare const sinon: SinonStatic;
 
@@ -30,7 +27,11 @@ module('JSONAPIRequestProcessor', function(hooks) {
           },
           relationships: {
             moons: { type: 'hasMany', model: 'moon', inverse: 'planet' },
-            solarSystem: { type: 'hasOne', model: 'solarSystem', inverse: 'planets' }
+            solarSystem: {
+              type: 'hasOne',
+              model: 'solarSystem',
+              inverse: 'planets'
+            }
           }
         },
         moon: {
@@ -52,15 +53,25 @@ module('JSONAPIRequestProcessor', function(hooks) {
             name: { type: 'string' }
           },
           relationships: {
-            planets: { type: 'hasMany', model: 'planet', inverse: 'solarSystem' }
+            planets: {
+              type: 'hasMany',
+              model: 'planet',
+              inverse: 'solarSystem'
+            }
           }
         }
       }
     });
 
     keyMap = new KeyMap();
-    processor = new JSONAPIRequestProcessor({ schema, keyMap, sourceName: 'foo' });
-    processor.serializer.resourceKey = function() { return 'remoteId'; };
+    processor = new JSONAPIRequestProcessor({
+      schema,
+      keyMap,
+      sourceName: 'foo'
+    });
+    processor.serializer.resourceKey = function() {
+      return 'remoteId';
+    };
   });
 
   hooks.afterEach(() => {
@@ -73,7 +84,11 @@ module('JSONAPIRequestProcessor', function(hooks) {
   });
 
   test('processor has default settings', function(assert) {
-    assert.deepEqual(processor.allowedContentTypes, ['application/vnd.api+json', 'application/json'], 'allowedContentTypes are set to default');
+    assert.deepEqual(
+      processor.allowedContentTypes,
+      ['application/vnd.api+json', 'application/json'],
+      'allowedContentTypes are set to default'
+    );
   });
 
   test('#initFetchSettings will override defaults with custom settings provided', function(assert) {
@@ -94,7 +109,8 @@ module('JSONAPIRequestProcessor', function(hooks) {
         method: 'POST',
         body: '{"data": {}}',
         timeout: 10000
-      });
+      }
+    );
   });
 
   test('#initFetchSettings will convert json to a stringified body', function(assert) {
@@ -115,7 +131,8 @@ module('JSONAPIRequestProcessor', function(hooks) {
         method: 'POST',
         body: '{"data":{"a":123}}',
         timeout: 10000
-      });
+      }
+    );
   });
 
   test('#initFetchSettings will not include a `Content-Type` header with no body', function(assert) {
@@ -129,93 +146,135 @@ module('JSONAPIRequestProcessor', function(hooks) {
         },
         method: 'GET',
         timeout: 5000
-      });
+      }
+    );
   });
-
 
   test('#fetch - successful if one of the `allowedContentTypes` appears anywhere in `Content-Type` header', async function(assert) {
     assert.expect(6);
-    fetchStub
-      .withArgs('/planets/12345/relationships/moons')
-      .returns(jsonapiResponse({
-        status: 200,
-        headers: {
-          'Content-Type': 'application/vnd.api+json'
-        }
-      }, { data: null }));
+    fetchStub.withArgs('/planets/12345/relationships/moons').returns(
+      jsonapiResponse(
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/vnd.api+json'
+          }
+        },
+        { data: null }
+      )
+    );
     try {
-      let result = await processor.fetch('/planets/12345/relationships/moons', {});
-      assert.ok(result, 'Accepts content that is _only_ the JSONAPI media type');
+      let result = await processor.fetch(
+        '/planets/12345/relationships/moons',
+        {}
+      );
+      assert.ok(
+        result,
+        'Accepts content that is _only_ the JSONAPI media type'
+      );
     } catch (e) {
-      assert.ok(false, 'Should accept content that is _only_ the JSONAPI media type');
+      assert.ok(
+        false,
+        'Should accept content that is _only_ the JSONAPI media type'
+      );
     }
 
-    fetchStub
-      .withArgs('/planets/12345/relationships/moons')
-      .returns(jsonapiResponse({
-        status: 200,
-        headers: {
-          'Content-Type': 'multipart,application/vnd.api+json; charset=utf-8'
-        }
-      }, { data: null }));
+    fetchStub.withArgs('/planets/12345/relationships/moons').returns(
+      jsonapiResponse(
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'multipart,application/vnd.api+json; charset=utf-8'
+          }
+        },
+        { data: null }
+      )
+    );
     try {
-      let result = await processor.fetch('/planets/12345/relationships/moons', {});
+      let result = await processor.fetch(
+        '/planets/12345/relationships/moons',
+        {}
+      );
       assert.ok(result, 'Position of JSONAPI media type is not important');
     } catch (e) {
       assert.ok(false, 'Position of JSONAPI media type should not matter');
     }
 
-    fetchStub
-      .withArgs('/planets/12345/relationships/moons')
-      .returns(jsonapiResponse({
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }, { data: null }));
+    fetchStub.withArgs('/planets/12345/relationships/moons').returns(
+      jsonapiResponse(
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        },
+        { data: null }
+      )
+    );
     try {
-      let result = await processor.fetch('/planets/12345/relationships/moons', {});
+      let result = await processor.fetch(
+        '/planets/12345/relationships/moons',
+        {}
+      );
       assert.ok(result, 'Processor will attempt to parse plain json');
     } catch (e) {
       assert.ok(false, 'Processor should parse plain json');
     }
 
-    fetchStub
-      .withArgs('/planets/12345/relationships/moons')
-      .returns(jsonapiResponse({
-        status: 200,
-        headers: {
-          'Content-Type': 'application/xml'
+    fetchStub.withArgs('/planets/12345/relationships/moons').returns(
+      jsonapiResponse(
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/xml'
+          }
+        },
+        {
+          data: null
         }
-      }, {
-        data: null
-      }));
-    let result = await processor.fetch('/planets/12345/relationships/moons', {});
-    assert.ok(result == null, 'XML is not acceptable but HTTP Status is good, so just ignore response');
+      )
+    );
+    let result = await processor.fetch(
+      '/planets/12345/relationships/moons',
+      {}
+    );
+    assert.ok(
+      result == null,
+      'XML is not acceptable but HTTP Status is good, so just ignore response'
+    );
 
     processor.allowedContentTypes = ['application/custom'];
-    fetchStub
-      .withArgs('/planets/12345/relationships/moons')
-      .returns(jsonapiResponse({
-        status: 200,
-        headers: {
-          'Content-Type': 'application/custom'
+    fetchStub.withArgs('/planets/12345/relationships/moons').returns(
+      jsonapiResponse(
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/custom'
+          }
+        },
+        {
+          data: null
         }
-      }, {
-        data: null
-      }));
+      )
+    );
     result = await processor.fetch('/planets/12345/relationships/moons', {});
-    assert.ok(result, 'will accept custom content type if specifically allowed');
+    assert.ok(
+      result,
+      'will accept custom content type if specifically allowed'
+    );
 
-    fetchStub
-      .withArgs('/planets/12345/relationships/moons')
-      .returns(jsonapiResponse({
+    fetchStub.withArgs('/planets/12345/relationships/moons').returns(
+      jsonapiResponse({
         status: 204,
         headers: {
           'Content-Type': 'application/custom'
         }
-      }));
+      })
+    );
     result = await processor.fetch('/planets/12345/relationships/moons', {});
-    assert.ok(result === undefined, 'A 204 - No Content response has no content');
+    assert.ok(
+      result === undefined,
+      'A 204 - No Content response has no content'
+    );
   });
 });

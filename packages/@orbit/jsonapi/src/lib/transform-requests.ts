@@ -28,7 +28,8 @@ export interface TransformRecordRequest {
   record: RecordIdentity;
 }
 
-export interface TransformRecordRelationshipRequest extends TransformRecordRequest {
+export interface TransformRecordRelationshipRequest
+  extends TransformRecordRequest {
   relationship: string;
 }
 
@@ -46,116 +47,220 @@ export interface UpdateRecordRequest extends TransformRecordRequest {
   record: Record;
 }
 
-export interface AddToRelatedRecordsRequest extends TransformRecordRelationshipRequest {
+export interface AddToRelatedRecordsRequest
+  extends TransformRecordRelationshipRequest {
   op: 'addToRelatedRecords';
   relatedRecords: RecordIdentity[];
 }
 
-export interface RemoveFromRelatedRecordsRequest extends TransformRecordRelationshipRequest {
+export interface RemoveFromRelatedRecordsRequest
+  extends TransformRecordRelationshipRequest {
   op: 'removeFromRelatedRecords';
   relatedRecords: RecordIdentity[];
 }
 
-export interface ReplaceRelatedRecordRequest extends TransformRecordRelationshipRequest {
+export interface ReplaceRelatedRecordRequest
+  extends TransformRecordRelationshipRequest {
   op: 'replaceRelatedRecord';
   relatedRecord: RecordIdentity;
 }
 
-export interface ReplaceRelatedRecordsRequest extends TransformRecordRelationshipRequest {
+export interface ReplaceRelatedRecordsRequest
+  extends TransformRecordRelationshipRequest {
   op: 'replaceRelatedRecord';
   relatedRecords: RecordIdentity[];
 }
 
 export interface TransformRequestProcessor {
-  (requestProcessor: JSONAPIRequestProcessor, request: TransformRecordRequest): Promise<Transform[]>;
+  (
+    requestProcessor: JSONAPIRequestProcessor,
+    request: TransformRecordRequest
+  ): Promise<Transform[]>;
 }
 
 export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
-  async addRecord(requestProcessor: JSONAPIRequestProcessor, request: AddRecordRequest): Promise<Transform[]> {
+  async addRecord(
+    requestProcessor: JSONAPIRequestProcessor,
+    request: AddRecordRequest
+  ): Promise<Transform[]> {
     const record = request.record;
-    const requestDoc: ResourceDocument = requestProcessor.serializer.serialize({ data: record });
-    const settings = requestProcessor.buildFetchSettings(request.options, { method: 'POST', json: requestDoc });
+    const requestDoc: ResourceDocument = requestProcessor.serializer.serialize({
+      data: record
+    });
+    const settings = requestProcessor.buildFetchSettings(request.options, {
+      method: 'POST',
+      json: requestDoc
+    });
 
-    let raw: ResourceDocument = await requestProcessor.fetch(requestProcessor.urlBuilder.resourceURL(record.type), settings);
+    let raw: ResourceDocument = await requestProcessor.fetch(
+      requestProcessor.urlBuilder.resourceURL(record.type),
+      settings
+    );
     requestProcessor.preprocessResponseDocument(raw, request);
-    let deserialized = requestProcessor.serializer.deserialize(raw, { primaryRecord: record });
+    let deserialized = requestProcessor.serializer.deserialize(raw, {
+      primaryRecord: record
+    });
     return handleChanges(record, deserialized);
   },
 
-  async removeRecord(requestProcessor: JSONAPIRequestProcessor, request: RemoveRecordRequest): Promise<Transform[]> {
+  async removeRecord(
+    requestProcessor: JSONAPIRequestProcessor,
+    request: RemoveRecordRequest
+  ): Promise<Transform[]> {
     const { type, id } = request.record;
-    const settings = requestProcessor.buildFetchSettings(request.options, { method: 'DELETE' });
+    const settings = requestProcessor.buildFetchSettings(request.options, {
+      method: 'DELETE'
+    });
 
-    await requestProcessor.fetch(requestProcessor.urlBuilder.resourceURL(type, id), settings);
+    await requestProcessor.fetch(
+      requestProcessor.urlBuilder.resourceURL(type, id),
+      settings
+    );
     return [];
   },
 
-  async updateRecord(requestProcessor: JSONAPIRequestProcessor, request: UpdateRecordRequest): Promise<Transform[]> {
+  async updateRecord(
+    requestProcessor: JSONAPIRequestProcessor,
+    request: UpdateRecordRequest
+  ): Promise<Transform[]> {
     const record = request.record;
     const { type, id } = record;
-    const requestDoc: ResourceDocument = requestProcessor.serializer.serialize({ data: record });
-    const settings = requestProcessor.buildFetchSettings(request.options, { method: 'PATCH', json: requestDoc });
+    const requestDoc: ResourceDocument = requestProcessor.serializer.serialize({
+      data: record
+    });
+    const settings = requestProcessor.buildFetchSettings(request.options, {
+      method: 'PATCH',
+      json: requestDoc
+    });
 
-    let raw: ResourceDocument = await requestProcessor.fetch(requestProcessor.urlBuilder.resourceURL(type, id), settings)
+    let raw: ResourceDocument = await requestProcessor.fetch(
+      requestProcessor.urlBuilder.resourceURL(type, id),
+      settings
+    );
     if (raw) {
       requestProcessor.preprocessResponseDocument(raw, request);
-      let deserialized = requestProcessor.serializer.deserialize(raw, { primaryRecord: record })
+      let deserialized = requestProcessor.serializer.deserialize(raw, {
+        primaryRecord: record
+      });
       return handleChanges(record, deserialized);
     } else {
       return [];
     }
   },
 
-  async addToRelatedRecords(requestProcessor: JSONAPIRequestProcessor, request: AddToRelatedRecordsRequest): Promise<Transform[]> {
+  async addToRelatedRecords(
+    requestProcessor: JSONAPIRequestProcessor,
+    request: AddToRelatedRecordsRequest
+  ): Promise<Transform[]> {
     const { type, id } = request.record;
     const { relationship } = request;
     const json = {
-      data: request.relatedRecords.map(r => requestProcessor.serializer.resourceIdentity(r))
+      data: request.relatedRecords.map(r =>
+        requestProcessor.serializer.resourceIdentity(r)
+      )
     };
-    const settings = requestProcessor.buildFetchSettings(request.options, { method: 'POST', json });
+    const settings = requestProcessor.buildFetchSettings(request.options, {
+      method: 'POST',
+      json
+    });
 
-    await requestProcessor.fetch(requestProcessor.urlBuilder.resourceRelationshipURL(type, id, relationship), settings);
+    await requestProcessor.fetch(
+      requestProcessor.urlBuilder.resourceRelationshipURL(
+        type,
+        id,
+        relationship
+      ),
+      settings
+    );
     return [];
   },
 
-  async removeFromRelatedRecords(requestProcessor: JSONAPIRequestProcessor, request: RemoveFromRelatedRecordsRequest): Promise<Transform[]> {
+  async removeFromRelatedRecords(
+    requestProcessor: JSONAPIRequestProcessor,
+    request: RemoveFromRelatedRecordsRequest
+  ): Promise<Transform[]> {
     const { type, id } = request.record;
     const { relationship } = request;
     const json = {
-      data: request.relatedRecords.map(r => requestProcessor.serializer.resourceIdentity(r))
+      data: request.relatedRecords.map(r =>
+        requestProcessor.serializer.resourceIdentity(r)
+      )
     };
-    const settings = requestProcessor.buildFetchSettings(request.options, { method: 'DELETE', json });
+    const settings = requestProcessor.buildFetchSettings(request.options, {
+      method: 'DELETE',
+      json
+    });
 
-    await requestProcessor.fetch(requestProcessor.urlBuilder.resourceRelationshipURL(type, id, relationship), settings);
+    await requestProcessor.fetch(
+      requestProcessor.urlBuilder.resourceRelationshipURL(
+        type,
+        id,
+        relationship
+      ),
+      settings
+    );
     return [];
   },
 
-  async replaceRelatedRecord(requestProcessor: JSONAPIRequestProcessor, request: ReplaceRelatedRecordRequest): Promise<Transform[]> {
+  async replaceRelatedRecord(
+    requestProcessor: JSONAPIRequestProcessor,
+    request: ReplaceRelatedRecordRequest
+  ): Promise<Transform[]> {
     const { type, id } = request.record;
     const { relationship, relatedRecord } = request;
     const json = {
-      data: relatedRecord ? requestProcessor.serializer.resourceIdentity(relatedRecord) : null
+      data: relatedRecord
+        ? requestProcessor.serializer.resourceIdentity(relatedRecord)
+        : null
     };
-    const settings = requestProcessor.buildFetchSettings(request.options, { method: 'PATCH', json });
+    const settings = requestProcessor.buildFetchSettings(request.options, {
+      method: 'PATCH',
+      json
+    });
 
-    await requestProcessor.fetch(requestProcessor.urlBuilder.resourceRelationshipURL(type, id, relationship), settings)
+    await requestProcessor.fetch(
+      requestProcessor.urlBuilder.resourceRelationshipURL(
+        type,
+        id,
+        relationship
+      ),
+      settings
+    );
     return [];
   },
 
-  async replaceRelatedRecords(requestProcessor: JSONAPIRequestProcessor, request: ReplaceRelatedRecordsRequest): Promise<Transform[]> {
+  async replaceRelatedRecords(
+    requestProcessor: JSONAPIRequestProcessor,
+    request: ReplaceRelatedRecordsRequest
+  ): Promise<Transform[]> {
     const { type, id } = request.record;
     const { relationship, relatedRecords } = request;
     const json = {
-      data: relatedRecords.map(r => requestProcessor.serializer.resourceIdentity(r))
+      data: relatedRecords.map(r =>
+        requestProcessor.serializer.resourceIdentity(r)
+      )
     };
-    const settings = requestProcessor.buildFetchSettings(request.options, { method: 'PATCH', json });
+    const settings = requestProcessor.buildFetchSettings(request.options, {
+      method: 'PATCH',
+      json
+    });
 
-    await requestProcessor.fetch(requestProcessor.urlBuilder.resourceRelationshipURL(type, id, relationship), settings);
+    await requestProcessor.fetch(
+      requestProcessor.urlBuilder.resourceRelationshipURL(
+        type,
+        id,
+        relationship
+      ),
+      settings
+    );
     return [];
   }
 };
 
-export function getTransformRequests(requestProcessor: JSONAPIRequestProcessor, transform: Transform): TransformRecordRequest[] {
+export function getTransformRequests(
+  requestProcessor: JSONAPIRequestProcessor,
+  transform: Transform
+): TransformRecordRequest[] {
   const requests: TransformRecordRequest[] = [];
   let prevRequest: TransformRecordRequest;
 
@@ -163,7 +268,10 @@ export function getTransformRequests(requestProcessor: JSONAPIRequestProcessor, 
     let request;
     let newRequestNeeded = true;
 
-    if (prevRequest && equalRecordIdentities(prevRequest.record, operation.record)) {
+    if (
+      prevRequest &&
+      equalRecordIdentities(prevRequest.record, operation.record)
+    ) {
       if (operation.op === 'removeRecord') {
         newRequestNeeded = false;
 
@@ -171,22 +279,42 @@ export function getTransformRequests(requestProcessor: JSONAPIRequestProcessor, 
           prevRequest = null;
           requests.pop();
         }
-      } else if (prevRequest.op === 'addRecord' || prevRequest.op === 'updateRecord') {
+      } else if (
+        prevRequest.op === 'addRecord' ||
+        prevRequest.op === 'updateRecord'
+      ) {
         if (operation.op === 'replaceAttribute') {
           newRequestNeeded = false;
-          replaceRecordAttribute(prevRequest.record, operation.attribute, operation.value);
+          replaceRecordAttribute(
+            prevRequest.record,
+            operation.attribute,
+            operation.value
+          );
         } else if (operation.op === 'replaceRelatedRecord') {
           newRequestNeeded = false;
-          replaceRecordHasOne(prevRequest.record, operation.relationship, operation.relatedRecord);
+          replaceRecordHasOne(
+            prevRequest.record,
+            operation.relationship,
+            operation.relatedRecord
+          );
         } else if (operation.op === 'replaceRelatedRecords') {
           newRequestNeeded = false;
-          replaceRecordHasMany(prevRequest.record, operation.relationship, operation.relatedRecords);
+          replaceRecordHasMany(
+            prevRequest.record,
+            operation.relationship,
+            operation.relatedRecords
+          );
         }
-      } else if (prevRequest.op === 'addToRelatedRecords' &&
-                 operation.op === 'addToRelatedRecords' &&
-                 (prevRequest as AddToRelatedRecordsRequest).relationship === operation.relationship) {
+      } else if (
+        prevRequest.op === 'addToRelatedRecords' &&
+        operation.op === 'addToRelatedRecords' &&
+        (prevRequest as AddToRelatedRecordsRequest).relationship ===
+          operation.relationship
+      ) {
         newRequestNeeded = false;
-        (prevRequest as AddToRelatedRecordsRequest).relatedRecords.push(cloneRecordIdentity(operation.relatedRecord));
+        (prevRequest as AddToRelatedRecordsRequest).relatedRecords.push(
+          cloneRecordIdentity(operation.relatedRecord)
+        );
       }
     }
 
@@ -226,7 +354,9 @@ const OperationToRequestMap: Dict<OperationToRequestConverter> = {
     };
   },
 
-  replaceAttribute(operation: ReplaceAttributeOperation): TransformRecordRequest {
+  replaceAttribute(
+    operation: ReplaceAttributeOperation
+  ): TransformRecordRequest {
     const record = cloneRecordIdentity(operation.record);
 
     replaceRecordAttribute(record, operation.attribute, operation.value);
@@ -245,14 +375,18 @@ const OperationToRequestMap: Dict<OperationToRequestConverter> = {
   },
 
   replaceRecord(operation: UpdateRecordOperation): TransformRecordRequest {
-    Orbit.deprecate('The `replaceRecord` operation has been deprecated - use `updateRecord` instead.');
+    Orbit.deprecate(
+      'The `replaceRecord` operation has been deprecated - use `updateRecord` instead.'
+    );
     return {
       op: 'updateRecord',
       record: clone(operation.record)
     };
   },
 
-  addToRelatedRecords(operation: AddToRelatedRecordsOperation): TransformRecordRequest {
+  addToRelatedRecords(
+    operation: AddToRelatedRecordsOperation
+  ): TransformRecordRequest {
     return {
       op: 'addToRelatedRecords',
       record: cloneRecordIdentity(operation.record),
@@ -261,7 +395,9 @@ const OperationToRequestMap: Dict<OperationToRequestConverter> = {
     } as AddToRelatedRecordsRequest;
   },
 
-  removeFromRelatedRecords(operation: RemoveFromRelatedRecordsOperation): TransformRecordRequest {
+  removeFromRelatedRecords(
+    operation: RemoveFromRelatedRecordsOperation
+  ): TransformRecordRequest {
     return {
       op: 'removeFromRelatedRecords',
       record: cloneRecordIdentity(operation.record),
@@ -270,13 +406,19 @@ const OperationToRequestMap: Dict<OperationToRequestConverter> = {
     } as RemoveFromRelatedRecordsRequest;
   },
 
-  replaceRelatedRecord(operation: ReplaceRelatedRecordOperation): TransformRecordRequest {
+  replaceRelatedRecord(
+    operation: ReplaceRelatedRecordOperation
+  ): TransformRecordRequest {
     const record: Record = {
       type: operation.record.type,
       id: operation.record.id
     };
 
-    deepSet(record, ['relationships', operation.relationship, 'data'], operation.relatedRecord);
+    deepSet(
+      record,
+      ['relationships', operation.relationship, 'data'],
+      operation.relatedRecord
+    );
 
     return {
       op: 'updateRecord',
@@ -284,9 +426,15 @@ const OperationToRequestMap: Dict<OperationToRequestConverter> = {
     } as UpdateRecordRequest;
   },
 
-  replaceRelatedRecords(operation: ReplaceRelatedRecordsOperation): TransformRecordRequest {
+  replaceRelatedRecords(
+    operation: ReplaceRelatedRecordsOperation
+  ): TransformRecordRequest {
     const record = cloneRecordIdentity(operation.record);
-    deepSet(record, ['relationships', operation.relationship, 'data'], operation.relatedRecords);
+    deepSet(
+      record,
+      ['relationships', operation.relationship, 'data'],
+      operation.relatedRecords
+    );
 
     return {
       op: 'updateRecord',
@@ -295,20 +443,43 @@ const OperationToRequestMap: Dict<OperationToRequestConverter> = {
   }
 };
 
-function replaceRecordAttribute(record: RecordIdentity, attribute: string, value: any) {
+function replaceRecordAttribute(
+  record: RecordIdentity,
+  attribute: string,
+  value: any
+) {
   deepSet(record, ['attributes', attribute], value);
 }
 
-function replaceRecordHasOne(record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity) {
-  deepSet(record, ['relationships', relationship, 'data'], relatedRecord ? cloneRecordIdentity(relatedRecord) : null);
+function replaceRecordHasOne(
+  record: RecordIdentity,
+  relationship: string,
+  relatedRecord: RecordIdentity
+) {
+  deepSet(
+    record,
+    ['relationships', relationship, 'data'],
+    relatedRecord ? cloneRecordIdentity(relatedRecord) : null
+  );
 }
 
-function replaceRecordHasMany(record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]) {
-  deepSet(record, ['relationships', relationship, 'data'], relatedRecords.map(r => cloneRecordIdentity(r)));
+function replaceRecordHasMany(
+  record: RecordIdentity,
+  relationship: string,
+  relatedRecords: RecordIdentity[]
+) {
+  deepSet(
+    record,
+    ['relationships', relationship, 'data'],
+    relatedRecords.map(r => cloneRecordIdentity(r))
+  );
 }
 
-function handleChanges(record: Record, responseDoc: RecordDocument): Transform[] {
-  let updatedRecord: Record = <Record>responseDoc.data;
+function handleChanges(
+  record: Record,
+  responseDoc: RecordDocument
+): Transform[] {
+  let updatedRecord: Record = responseDoc.data as Record;
   let transforms = [];
   let updateOps = recordDiffs(record, updatedRecord);
   if (updateOps.length > 0) {

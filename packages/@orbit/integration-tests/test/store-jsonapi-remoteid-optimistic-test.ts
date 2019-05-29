@@ -1,18 +1,16 @@
-import {
-  KeyMap,
-  Record,
-  Schema
-} from '@orbit/data';
+import { KeyMap, Record, Schema } from '@orbit/data';
 import JSONAPISource from '@orbit/jsonapi';
 import MemorySource from '@orbit/memory';
 import Coordinator, { RequestStrategy, SyncStrategy } from '@orbit/coordinator';
 import { jsonapiResponse } from './support/jsonapi';
-import { SinonStatic, SinonStub} from 'sinon';
+import { SinonStatic, SinonStub } from 'sinon';
 
 declare const sinon: SinonStatic;
 const { module, test } = QUnit;
 
-module('Store + JSONAPISource + remote IDs + optimistic coordination', function(hooks) {
+module('Store + JSONAPISource + remote IDs + optimistic coordination', function(
+  hooks
+) {
   let fetchStub: SinonStub;
   let keyMap: KeyMap;
   let schema: Schema;
@@ -36,7 +34,11 @@ module('Store + JSONAPISource + remote IDs + optimistic coordination', function(
           },
           relationships: {
             moons: { type: 'hasMany', model: 'moon', inverse: 'planet' },
-            solarSystem: { type: 'hasOne', model: 'solarSystem', inverse: 'planets' }
+            solarSystem: {
+              type: 'hasOne',
+              model: 'solarSystem',
+              inverse: 'planets'
+            }
           }
         },
         moon: {
@@ -58,7 +60,11 @@ module('Store + JSONAPISource + remote IDs + optimistic coordination', function(
             name: { type: 'string' }
           },
           relationships: {
-            planets: { type: 'hasMany', model: 'planet', inverse: 'solarSystem' }
+            planets: {
+              type: 'hasMany',
+              model: 'planet',
+              inverse: 'solarSystem'
+            }
           }
         }
       }
@@ -69,36 +75,44 @@ module('Store + JSONAPISource + remote IDs + optimistic coordination', function(
     memory = new MemorySource({ schema, keyMap });
 
     remote = new JSONAPISource({ schema, keyMap, name: 'remote' });
-    remote.requestProcessor.serializer.resourceKey = function() { return 'remoteId'; };
+    remote.requestProcessor.serializer.resourceKey = function() {
+      return 'remoteId';
+    };
 
     coordinator = new Coordinator({
       sources: [memory, remote]
     });
 
     // Query the remote server whenever the memory source is queried
-    coordinator.addStrategy(new RequestStrategy({
-      source: 'memory',
-      on: 'beforeQuery',
-      target: 'remote',
-      action: 'pull',
-      blocking: false
-    }));
+    coordinator.addStrategy(
+      new RequestStrategy({
+        source: 'memory',
+        on: 'beforeQuery',
+        target: 'remote',
+        action: 'pull',
+        blocking: false
+      })
+    );
 
     // Update the remote server whenever the memory source is updated
-    coordinator.addStrategy(new RequestStrategy({
-      source: 'memory',
-      on: 'beforeUpdate',
-      target: 'remote',
-      action: 'push',
-      blocking: false
-    }));
+    coordinator.addStrategy(
+      new RequestStrategy({
+        source: 'memory',
+        on: 'beforeUpdate',
+        target: 'remote',
+        action: 'push',
+        blocking: false
+      })
+    );
 
     // Sync all changes received from the remote server to the memory source
-    coordinator.addStrategy(new SyncStrategy({
-      source: 'remote',
-      target: 'memory',
-      blocking: true
-    }));
+    coordinator.addStrategy(
+      new SyncStrategy({
+        source: 'remote',
+        target: 'memory',
+        blocking: true
+      })
+    );
   });
 
   hooks.afterEach(() => {
@@ -112,13 +126,21 @@ module('Store + JSONAPISource + remote IDs + optimistic coordination', function(
 
     await coordinator.activate();
 
-    fetchStub
-      .withArgs('/planets')
-      .returns(jsonapiResponse(201, {
-        data: { id: '12345', type: 'planets', attributes: { name: 'Jupiter', classification: 'gas giant' } }
-      }));
+    fetchStub.withArgs('/planets').returns(
+      jsonapiResponse(201, {
+        data: {
+          id: '12345',
+          type: 'planets',
+          attributes: { name: 'Jupiter', classification: 'gas giant' }
+        }
+      })
+    );
 
-    let planet: Record = { type: 'planet', id: schema.generateId(), attributes: { name: 'Jupiter', classification: 'gas giant' } };
+    let planet: Record = {
+      type: 'planet',
+      id: schema.generateId(),
+      attributes: { name: 'Jupiter', classification: 'gas giant' }
+    };
     await memory.update(t => t.addRecord(planet));
 
     assert.deepEqual(

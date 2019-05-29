@@ -45,7 +45,9 @@ export default class LocalStorageCache extends SyncRecordCache {
   }
 
   getKeyForRecordInverses(record: RecordIdentity | Record): string {
-    return [this.namespace, 'inverseRels', record.type, record.id].join(this.delimiter);
+    return [this.namespace, 'inverseRels', record.type, record.id].join(
+      this.delimiter
+    );
   }
 
   getRecordSync(identity: RecordIdentity): Record {
@@ -81,7 +83,7 @@ export default class LocalStorageCache extends SyncRecordCache {
           if (!typesMatch) {
             let fragments = key.split(this.delimiter);
             let recordType = fragments[1];
-            typesMatch = (recordType === type);
+            typesMatch = recordType === type;
           }
 
           if (typesMatch) {
@@ -140,7 +142,9 @@ export default class LocalStorageCache extends SyncRecordCache {
     return records;
   }
 
-  getInverseRelationshipsSync(recordIdentity: RecordIdentity): RecordRelationshipIdentity[] {
+  getInverseRelationshipsSync(
+    recordIdentity: RecordIdentity
+  ): RecordRelationshipIdentity[] {
     const key = this.getKeyForRecordInverses(recordIdentity);
     const item = Orbit.globals.localStorage.getItem(key);
 
@@ -151,7 +155,9 @@ export default class LocalStorageCache extends SyncRecordCache {
     return [];
   }
 
-  addInverseRelationshipsSync(relationships: RecordRelationshipIdentity[]): void {
+  addInverseRelationshipsSync(
+    relationships: RecordRelationshipIdentity[]
+  ): void {
     for (let relationship of relationships) {
       const key = this.getKeyForRecordInverses(relationship.relatedRecord);
       const item = Orbit.globals.localStorage.getItem(key);
@@ -161,14 +167,21 @@ export default class LocalStorageCache extends SyncRecordCache {
     }
   }
 
-  removeInverseRelationshipsSync(relationships: RecordRelationshipIdentity[]): void {
+  removeInverseRelationshipsSync(
+    relationships: RecordRelationshipIdentity[]
+  ): void {
     for (let relationship of relationships) {
       const key = this.getKeyForRecordInverses(relationship.relatedRecord);
       const item = Orbit.globals.localStorage.getItem(key);
       if (item) {
         let rels: RecordRelationshipIdentity[] = item ? JSON.parse(item) : [];
-        let newRels = rels.filter(rel => !(equalRecordIdentities(rel.record, relationship.record) &&
-                                           rel.relationship === relationship.relationship));
+        let newRels = rels.filter(
+          rel =>
+            !(
+              equalRecordIdentities(rel.record, relationship.record) &&
+              rel.relationship === relationship.relationship
+            )
+        );
         Orbit.globals.localStorage.setItem(key, JSON.stringify(newRels));
       }
     }
