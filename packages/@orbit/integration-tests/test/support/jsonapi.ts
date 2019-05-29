@@ -1,6 +1,10 @@
 import Orbit from '@orbit/core';
 
-export function jsonapiResponse(_options: any, body?: any, timeout?: number): Promise<Response> {
+export function jsonapiResponse(
+  _options: any,
+  body?: any,
+  timeout?: number
+): Promise<Response> {
   let options: any;
   let response: Response;
 
@@ -23,11 +27,11 @@ export function jsonapiResponse(_options: any, body?: any, timeout?: number): Pr
 
   if (timeout) {
     return new Promise((resolve: (response: Response) => void) => {
-        let timer = Orbit.globals.setTimeout(() => {
-          Orbit.globals.clearTimeout(timer);
-          resolve(response);
-        }, timeout);
-      });
+      let timer = Orbit.globals.setTimeout(() => {
+        Orbit.globals.clearTimeout(timer);
+        resolve(response);
+      }, timeout);
+    });
   } else {
     return Promise.resolve(response);
   }
