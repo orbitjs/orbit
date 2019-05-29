@@ -50,12 +50,21 @@ export default class IndexedDBCache extends AsyncRecordCache {
     this._namespace = settings.namespace || 'orbit';
   }
 
-  async query(queryOrExpression: QueryOrExpression, options?: object, id?: string): Promise<QueryResultData> {
+  async query(
+    queryOrExpression: QueryOrExpression,
+    options?: object,
+    id?: string
+  ): Promise<QueryResultData> {
     await this.openDB();
     return super.query(queryOrExpression, options, id);
   }
 
-  async patch(operationOrOperations: RecordOperation | RecordOperation[] | TransformBuilderFunc): Promise<PatchResult> {
+  async patch(
+    operationOrOperations:
+      | RecordOperation
+      | RecordOperation[]
+      | TransformBuilderFunc
+  ): Promise<PatchResult> {
     await this.openDB();
     return super.patch(operationOrOperations);
   }
@@ -72,7 +81,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
   }
 
   async reset(): Promise<void> {
-    await  this.deleteDB();
+    await this.deleteDB();
 
     for (let processor of this._processors) {
       await processor.reset();
@@ -113,13 +122,13 @@ export default class IndexedDBCache extends AsyncRecordCache {
 
         request.onsuccess = (/* event */) => {
           // console.log('success opening indexedDB', this.dbName);
-          const db = this._db = request.result;
+          const db = (this._db = request.result);
           resolve(db);
         };
 
         request.onupgradeneeded = (event: any) => {
           // console.log('indexedDB upgrade needed');
-          const db = this._db = event.target.result;
+          const db = (this._db = event.target.result);
           if (event && event.oldVersion > 0) {
             this.migrateDB(db, event);
           } else {
@@ -153,14 +162,21 @@ export default class IndexedDBCache extends AsyncRecordCache {
 
   createInverseRelationshipStore(db: IDBDatabase): void {
     let objectStore = db.createObjectStore(INVERSE_RELS, { keyPath: 'id' });
-    objectStore.createIndex('recordIdentity', 'recordIdentity', { unique: false });
+    objectStore.createIndex('recordIdentity', 'recordIdentity', {
+      unique: false
+    });
   }
 
   /**
    * Migrate database.
    */
   migrateDB(db: IDBDatabase, event: IDBVersionChangeEvent): void {
-    console.error('IndexedDBSource#migrateDB - should be overridden to upgrade IDBDatabase from: ', event.oldVersion, ' -> ', event.newVersion);
+    console.error(
+      'IndexedDBSource#migrateDB - should be overridden to upgrade IDBDatabase from: ',
+      event.oldVersion,
+      ' -> ',
+      event.newVersion
+    );
   }
 
   deleteDB(): Promise<void> {
@@ -236,7 +252,9 @@ export default class IndexedDBCache extends AsyncRecordCache {
     });
   }
 
-  getRecordsAsync(typeOrIdentities?: string | RecordIdentity[]): Promise<Record[]> {
+  getRecordsAsync(
+    typeOrIdentities?: string | RecordIdentity[]
+  ): Promise<Record[]> {
     // console.log('getRecordsAsync', typeOrIdentities);
 
     if (!typeOrIdentities) {
@@ -255,7 +273,8 @@ export default class IndexedDBCache extends AsyncRecordCache {
           reject(request.error);
         };
 
-        request.onsuccess = (event: any) => { // TODO: typing
+        request.onsuccess = (event: any) => {
+          // TODO: typing
           // console.log('success - getRecords', request.result);
           const cursor = event.target.result;
           if (cursor) {
@@ -310,11 +329,10 @@ export default class IndexedDBCache extends AsyncRecordCache {
                 // console.error('error - getRecords', request.error);
                 reject(request.error);
               };
-
             } else {
               resolve(records);
             }
-          }
+          };
 
           getNext();
         });
@@ -370,11 +388,10 @@ export default class IndexedDBCache extends AsyncRecordCache {
               // console.error('error - setRecordsAsync', request.error);
               reject(request.error);
             };
-
           } else {
             resolve();
           }
-        }
+        };
 
         putNext();
       });
@@ -383,7 +400,10 @@ export default class IndexedDBCache extends AsyncRecordCache {
 
   removeRecordAsync(recordIdentity: RecordIdentity): Promise<Record> {
     return new Promise((resolve, reject) => {
-      const transaction = this._db.transaction([recordIdentity.type], 'readwrite');
+      const transaction = this._db.transaction(
+        [recordIdentity.type],
+        'readwrite'
+      );
       const objectStore = transaction.objectStore(recordIdentity.type);
       const request = objectStore.delete(recordIdentity.id);
 
@@ -422,25 +442,28 @@ export default class IndexedDBCache extends AsyncRecordCache {
               // console.error('error - addInverseRelationshipsAsync', request.error);
               reject(request.error);
             };
-
           } else {
             resolve();
           }
-        }
+        };
 
         removeNext();
       });
     }
   }
 
-  getInverseRelationshipsAsync(recordIdentity: RecordIdentity): Promise<RecordRelationshipIdentity[]> {
+  getInverseRelationshipsAsync(
+    recordIdentity: RecordIdentity
+  ): Promise<RecordRelationshipIdentity[]> {
     // console.log('getInverseRelationshipsAsync', recordIdentity);
 
     return new Promise((resolve, reject) => {
       const transaction = this._db.transaction([INVERSE_RELS]);
       const objectStore = transaction.objectStore(INVERSE_RELS);
       const results: RecordRelationshipIdentity[] = [];
-      const keyRange = Orbit.globals.IDBKeyRange.only(serializeRecordIdentity(recordIdentity));
+      const keyRange = Orbit.globals.IDBKeyRange.only(
+        serializeRecordIdentity(recordIdentity)
+      );
       const request = objectStore.index('recordIdentity').openCursor(keyRange);
 
       request.onerror = function(/* event */) {
@@ -462,7 +485,9 @@ export default class IndexedDBCache extends AsyncRecordCache {
     });
   }
 
-  addInverseRelationshipsAsync(relationships: RecordRelationshipIdentity[]): Promise<void> {
+  addInverseRelationshipsAsync(
+    relationships: RecordRelationshipIdentity[]
+  ): Promise<void> {
     // console.log('addInverseRelationshipsAsync', relationships);
 
     if (relationships.length > 0) {
@@ -482,11 +507,10 @@ export default class IndexedDBCache extends AsyncRecordCache {
               // console.error('error - addInverseRelationshipsAsync', request.error);
               reject(request.error);
             };
-
           } else {
             resolve();
           }
-        }
+        };
 
         putNext();
       });
@@ -495,7 +519,9 @@ export default class IndexedDBCache extends AsyncRecordCache {
     }
   }
 
-  removeInverseRelationshipsAsync(relationships: RecordRelationshipIdentity[]): Promise<void> {
+  removeInverseRelationshipsAsync(
+    relationships: RecordRelationshipIdentity[]
+  ): Promise<void> {
     // console.log('removeInverseRelationshipsAsync', relationships);
 
     if (relationships.length > 0) {
@@ -515,11 +541,10 @@ export default class IndexedDBCache extends AsyncRecordCache {
               // console.error('error - removeInverseRelationshipsAsync');
               reject(request.error);
             };
-
           } else {
             resolve();
           }
-        }
+        };
 
         removeNext();
       });
@@ -544,18 +569,20 @@ export default class IndexedDBCache extends AsyncRecordCache {
       }
     }
 
-    return types.reduce((chain, type) => {
-      return chain.then(() => {
-        return this.getRecordsAsync(type)
-          .then(records => {
+    return types
+      .reduce((chain, type) => {
+        return chain.then(() => {
+          return this.getRecordsAsync(type).then(records => {
             Array.prototype.push.apply(allRecords, records);
           });
-      });
-    }, Promise.resolve())
+        });
+      }, Promise.resolve())
       .then(() => allRecords);
   }
 
-  protected _serializeInverseRelationshipIdentity(ri: RecordRelationshipIdentity): string {
+  protected _serializeInverseRelationshipIdentity(
+    ri: RecordRelationshipIdentity
+  ): string {
     return [
       serializeRecordIdentity(ri.record),
       ri.relationship,
@@ -563,7 +590,9 @@ export default class IndexedDBCache extends AsyncRecordCache {
     ].join('::');
   }
 
-  protected _toInverseRelationshipForIDB(ri: RecordRelationshipIdentity): InverseRelationshipForIDB {
+  protected _toInverseRelationshipForIDB(
+    ri: RecordRelationshipIdentity
+  ): InverseRelationshipForIDB {
     return {
       id: this._serializeInverseRelationshipIdentity(ri),
       recordIdentity: serializeRecordIdentity(ri.record),
@@ -574,7 +603,9 @@ export default class IndexedDBCache extends AsyncRecordCache {
     };
   }
 
-  protected _fromInverseRelationshipForIDB(ir: InverseRelationshipForIDB): RecordRelationshipIdentity {
+  protected _fromInverseRelationshipForIDB(
+    ir: InverseRelationshipForIDB
+  ): RecordRelationshipIdentity {
     return {
       record: deserializeRecordIdentity(ir.recordIdentity),
       relatedRecord: deserializeRecordIdentity(ir.relatedIdentity),

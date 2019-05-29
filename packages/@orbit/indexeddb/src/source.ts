@@ -1,12 +1,16 @@
 import Orbit, {
   buildTransform,
-  pullable, Pullable,
-  pushable, Pushable,
+  pullable,
+  Pullable,
+  pushable,
+  Pushable,
   Resettable,
-  syncable, Syncable,
+  syncable,
+  Syncable,
   Query,
   QueryOrExpression,
-  Source, SourceSettings,
+  Source,
+  SourceSettings,
   Transform,
   TransformOrOperations,
   RecordOperation,
@@ -30,20 +34,32 @@ export interface IndexedDBSourceSettings extends SourceSettings {
 @pullable
 @pushable
 @syncable
-export default class IndexedDBSource extends Source implements Pullable, Pushable, Resettable, Syncable {
+export default class IndexedDBSource extends Source
+  implements Pullable, Pushable, Resettable, Syncable {
   protected _cache: IndexedDBCache;
 
   // Syncable interface stubs
   sync: (transformOrTransforms: Transform | Transform[]) => Promise<void>;
 
   // Pullable interface stubs
-  pull: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<Transform[]>;
+  pull: (
+    queryOrExpression: QueryOrExpression,
+    options?: object,
+    id?: string
+  ) => Promise<Transform[]>;
 
   // Pushable interface stubs
-  push: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => Promise<Transform[]>;
+  push: (
+    transformOrOperations: TransformOrOperations,
+    options?: object,
+    id?: string
+  ) => Promise<Transform[]>;
 
   constructor(settings: IndexedDBSourceSettings = {}) {
-    assert('IndexedDBSource\'s `schema` must be specified in `settings.schema` constructor argument', !!settings.schema);
+    assert(
+      "IndexedDBSource's `schema` must be specified in `settings.schema` constructor argument",
+      !!settings.schema
+    );
     assert('Your browser does not support IndexedDB!', supportsIndexedDB());
 
     settings.name = settings.name || 'indexedDB';
@@ -53,8 +69,10 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
     let cacheSettings: IndexedDBCacheSettings = settings.cacheSettings || {};
     cacheSettings.schema = settings.schema;
     cacheSettings.keyMap = settings.keyMap;
-    cacheSettings.queryBuilder = cacheSettings.queryBuilder || this.queryBuilder;
-    cacheSettings.transformBuilder = cacheSettings.transformBuilder || this.transformBuilder;
+    cacheSettings.queryBuilder =
+      cacheSettings.queryBuilder || this.queryBuilder;
+    cacheSettings.transformBuilder =
+      cacheSettings.transformBuilder || this.transformBuilder;
     cacheSettings.namespace = cacheSettings.namespace || settings.namespace;
 
     this._cache = new IndexedDBCache(cacheSettings);
@@ -111,10 +129,12 @@ export default class IndexedDBSource extends Source implements Pullable, Pushabl
       });
     } else if (results) {
       let record = results as Record;
-      operations = [{
-        op: 'updateRecord',
-        record
-      } as UpdateRecordOperation];
+      operations = [
+        {
+          op: 'updateRecord',
+          record
+        } as UpdateRecordOperation
+      ];
     } else {
       operations = [];
     }
