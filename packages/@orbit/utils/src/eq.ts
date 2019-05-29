@@ -8,10 +8,10 @@
  *
  * Includes special handling for strings, numbers, dates, booleans, regexes, and
  * arrays
- * 
+ *
  * @export
- * @param {*} a 
- * @param {*} b 
+ * @param {*} a
+ * @param {*} b
  * @returns {boolean} are `a` and `b` equal?
  */
 export function eq(a: any, b: any): boolean {
@@ -22,12 +22,18 @@ export function eq(a: any, b: any): boolean {
 
   // Identical objects are equal. `0 === -0`, but they aren't identical.
   // See the [Harmony `egal` proposal](http://wiki.ecmascript.org/doku.php?id=harmony:egal).
-  if (a === b) { return a !== 0 || 1 / a == 1 / b; }
+  if (a === b) {
+    return a !== 0 || 1 / a == 1 / b;
+  }
   // A strict comparison is necessary because `null == undefined`.
-  if (a == null || b == null) { return a === b; }
+  if (a == null || b == null) {
+    return a === b;
+  }
 
   var type = Object.prototype.toString.call(a);
-  if (type !== Object.prototype.toString.call(b)) { return false; }
+  if (type !== Object.prototype.toString.call(b)) {
+    return false;
+  }
 
   switch (type) {
     case '[object String]':
@@ -35,7 +41,7 @@ export function eq(a: any, b: any): boolean {
     case '[object Number]':
       // `NaN`s are equivalent, but non-reflexive. An `egal` comparison is performed for
       // other numeric values.
-      return a != +a ? b != +b : (a == 0 ? 1 / a == 1 / b : a == +b);
+      return a != +a ? b != +b : a == 0 ? 1 / a == 1 / b : a == +b;
     case '[object Date]':
     case '[object Boolean]':
       // Coerce dates and booleans to numeric primitive values. Dates are compared by their
@@ -44,26 +50,36 @@ export function eq(a: any, b: any): boolean {
       return +a == +b;
     // RegExps are compared by their source patterns and flags.
     case '[object RegExp]':
-      return a.source == b.source &&
-             a.global == b.global &&
-             a.multiline == b.multiline &&
-             a.ignoreCase == b.ignoreCase;
+      return (
+        a.source == b.source &&
+        a.global == b.global &&
+        a.multiline == b.multiline &&
+        a.ignoreCase == b.ignoreCase
+      );
   }
-  if (typeof a != 'object' || typeof b != 'object') { return false; }
+  if (typeof a != 'object' || typeof b != 'object') {
+    return false;
+  }
 
   if (type === '[object Array]') {
-    if (a.length !== b.length) { return false; }
+    if (a.length !== b.length) {
+      return false;
+    }
   }
 
   var i;
   for (i in b) {
     if (b.hasOwnProperty(i)) {
-      if (!eq(a[i], b[i])) { return false; }
+      if (!eq(a[i], b[i])) {
+        return false;
+      }
     }
   }
   for (i in a) {
     if (a.hasOwnProperty(i)) {
-      if (!eq(a[i], b[i])) { return false; }
+      if (!eq(a[i], b[i])) {
+        return false;
+      }
     }
   }
   return true;
