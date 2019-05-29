@@ -1,6 +1,4 @@
-import Orbit, {
-  Bucket, BucketSettings
-} from '@orbit/core';
+import Orbit, { Bucket, BucketSettings } from '@orbit/core';
 import { supportsIndexedDB } from './lib/indexeddb';
 
 const { assert } = Orbit;
@@ -102,13 +100,13 @@ export default class IndexedDBBucket extends Bucket {
 
         request.onsuccess = (/* event */) => {
           // console.log('success opening indexedDB', this.dbName);
-          const db = this._db = request.result;
+          const db = (this._db = request.result);
           resolve(db);
         };
 
         request.onupgradeneeded = (event: any) => {
           // console.log('indexedDB upgrade needed');
-          const db = this._db = event.target.result;
+          const db = (this._db = event.target.result);
           if (event && event.oldVersion > 0) {
             this.migrateDB(db, event);
           } else {
@@ -139,7 +137,12 @@ export default class IndexedDBBucket extends Bucket {
    * Migrate database.
    */
   migrateDB(db: IDBDatabase, event: IDBVersionChangeEvent): void {
-    console.error('IndexedDBBucket#migrateDB - should be overridden to upgrade IDBDatabase from: ', event.oldVersion, ' -> ', event.newVersion);
+    console.error(
+      'IndexedDBBucket#migrateDB - should be overridden to upgrade IDBDatabase from: ',
+      event.oldVersion,
+      ' -> ',
+      event.newVersion
+    );
   }
 
   deleteDB(): Promise<void> {
@@ -162,24 +165,23 @@ export default class IndexedDBBucket extends Bucket {
   }
 
   getItem(key: string): Promise<any> {
-    return this.openDB()
-      .then(() => {
-        return new Promise((resolve, reject) => {
-          const transaction = this._db.transaction([this.dbStoreName]);
-          const objectStore = transaction.objectStore(this.dbStoreName);
-          const request = objectStore.get(key);
+    return this.openDB().then(() => {
+      return new Promise((resolve, reject) => {
+        const transaction = this._db.transaction([this.dbStoreName]);
+        const objectStore = transaction.objectStore(this.dbStoreName);
+        const request = objectStore.get(key);
 
-          request.onerror = function(/* event */) {
-            console.error('error - getItem', request.error);
-            reject(request.error);
-          };
+        request.onerror = function(/* event */) {
+          console.error('error - getItem', request.error);
+          reject(request.error);
+        };
 
-          request.onsuccess = function(/* event */) {
-            // console.log('success - getItem', request.result);
-            resolve(request.result);
-          };
-        });
+        request.onsuccess = function(/* event */) {
+          // console.log('success - getItem', request.result);
+          resolve(request.result);
+        };
       });
+    });
   }
 
   async setItem(key: string, value: any): Promise<void> {
