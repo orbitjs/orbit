@@ -59,7 +59,7 @@ export default class KeyMap {
   idFromKeys(type: string, keys: Dict<string>): string {
     let keyNames = Object.keys(keys);
 
-    return firstResult(keyNames, (keyName) => {
+    return firstResult(keyNames, keyName => {
       let keyValue = keys[keyName];
       if (keyValue) {
         return this.keyToId(type, keyName, keyValue);

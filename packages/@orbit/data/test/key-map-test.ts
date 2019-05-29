@@ -57,6 +57,10 @@ module('KeyMap', function(hooks) {
     assert.equal(foundId, '1', 'Found previously pushed id');
 
     let missingId = keyMap.idFromKeys('planet', { remoteId: 'b' });
-    assert.equal(missingId, undefined, 'returns undefined when id cannot be found');
+    assert.equal(
+      missingId,
+      undefined,
+      'returns undefined when id cannot be found'
+    );
   });
 });

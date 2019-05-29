@@ -1,9 +1,12 @@
 import Orbit, {
-  evented, Evented, settleInSeries,
+  evented,
+  Evented,
+  settleInSeries,
   Bucket,
   TaskQueue,
   TaskQueueSettings,
-  Task, Performer,
+  Task,
+  Performer,
   Listener,
   Log
 } from '@orbit/core';
@@ -27,7 +30,7 @@ export interface SourceSettings {
   syncQueueSettings?: TaskQueueSettings;
 }
 
-export type SourceClass = (new () => Source);
+export type SourceClass = new () => Source;
 
 /**
  * Base class for sources.
@@ -54,8 +57,8 @@ export abstract class Source implements Evented, Performer {
   constructor(settings: SourceSettings = {}) {
     this._schema = settings.schema;
     this._keyMap = settings.keyMap;
-    const name = this._name = settings.name;
-    const bucket = this._bucket = settings.bucket;
+    const name = (this._name = settings.name);
+    const bucket = (this._bucket = settings.bucket);
     this._queryBuilder = settings.queryBuilder;
     this._transformBuilder = settings.transformBuilder;
     const requestQueueSettings = settings.requestQueueSettings || {};
@@ -65,7 +68,10 @@ export abstract class Source implements Evented, Performer {
       assert('TransformLog requires a name if it has a bucket', !!name);
     }
 
-    this._transformLog = new Log({ name: name ? `${name}-log` : undefined, bucket });
+    this._transformLog = new Log({
+      name: name ? `${name}-log` : undefined,
+      bucket
+    });
 
     this._requestQueue = new TaskQueue(this, {
       name: name ? `${name}-requests` : undefined,
@@ -79,7 +85,10 @@ export abstract class Source implements Evented, Performer {
       ...syncQueueSettings
     });
 
-    if (this._schema && (settings.autoUpgrade === undefined || settings.autoUpgrade)) {
+    if (
+      this._schema &&
+      (settings.autoUpgrade === undefined || settings.autoUpgrade)
+    ) {
       this._schema.on('upgrade', () => this.upgrade());
     }
   }
@@ -135,7 +144,7 @@ export abstract class Source implements Evented, Performer {
     let obj: any = this;
     let method = obj[`__${task.type}__`] as Function;
     return method.call(this, task.data);
-  };
+  }
 
   /**
    * Upgrade source as part of a schema upgrade.
@@ -167,7 +176,8 @@ export abstract class Source implements Evented, Performer {
             return Promise.resolve();
           }
 
-          return this._transformLog.append(transform.id)
+          return this._transformLog
+            .append(transform.id)
             .then(() => settleInSeries(this, 'transform', transform));
         });
       }, Promise.resolve())

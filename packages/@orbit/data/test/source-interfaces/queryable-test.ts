@@ -13,7 +13,11 @@ const { module, test } = QUnit;
 module('@queryable', function(hooks) {
   @queryable
   class MySource extends Source implements Queryable {
-    query: (queryOrExpression: QueryOrExpression, options?: object, id?: string) => Promise<any>;
+    query: (
+      queryOrExpression: QueryOrExpression,
+      options?: object,
+      id?: string
+    ) => Promise<any>;
     _query: (query: Query, hints?: any) => Promise<any>;
   }
 
@@ -50,7 +54,7 @@ module('@queryable', function(hooks) {
 
     try {
       await source.query(q => q.findRecords('planet'));
-    } catch(error) {
+    } catch (error) {
       assert.ok(true, 'query promise resolved as a failure');
       assert.equal(error, ':(', 'failure');
     }
@@ -69,7 +73,11 @@ module('@queryable', function(hooks) {
     };
 
     source.on('query', (query, result) => {
-      assert.equal(++order, 2, 'query triggered after action performed successfully');
+      assert.equal(
+        ++order,
+        2,
+        'query triggered after action performed successfully'
+      );
       assert.strictEqual(query.expression, qe, 'query matches');
       assert.equal(result, ':)', 'result matches');
     });
@@ -92,7 +100,11 @@ module('@queryable', function(hooks) {
     };
 
     source.on('query', (query, result) => {
-      assert.equal(++order, 2, 'query triggered after action performed successfully');
+      assert.equal(
+        ++order,
+        2,
+        'query triggered after action performed successfully'
+      );
       assert.strictEqual(query.expression, qe, 'query matches');
       assert.equal(result, undefined, 'result matches');
     });
@@ -116,7 +128,11 @@ module('@queryable', function(hooks) {
     };
 
     source.on('query', (query, result) => {
-      assert.equal(++order, 2, 'query triggered after action performed successfully');
+      assert.equal(
+        ++order,
+        2,
+        'query triggered after action performed successfully'
+      );
       assert.strictEqual(query.expression, qe, 'query matches');
       assert.deepEqual(result, ['a', 'b', 'c'], 'result matches');
     });
@@ -144,14 +160,18 @@ module('@queryable', function(hooks) {
     });
 
     source.on('queryFail', (query, error) => {
-      assert.equal(++order, 2, 'queryFail triggered after an unsuccessful query');
+      assert.equal(
+        ++order,
+        2,
+        'queryFail triggered after an unsuccessful query'
+      );
       assert.strictEqual(query.expression, qe, 'query matches');
       assert.equal(error, ':(', 'error matches');
     });
 
     try {
       await source.query(qe);
-    } catch(error) {
+    } catch (error) {
       assert.equal(++order, 3, 'promise resolved last');
       assert.equal(error, ':(', 'failure');
     }
@@ -179,12 +199,20 @@ module('@queryable', function(hooks) {
     });
 
     source._query = function() {
-      assert.equal(++order, 4, '_query invoked after all `beforeQuery` handlers');
+      assert.equal(
+        ++order,
+        4,
+        '_query invoked after all `beforeQuery` handlers'
+      );
       return Promise.resolve(':)');
     };
 
     source.on('query', () => {
-      assert.equal(++order, 5, 'query triggered after action performed successfully');
+      assert.equal(
+        ++order,
+        5,
+        'query triggered after action performed successfully'
+      );
     });
 
     let result = await source.query(qe);
@@ -223,7 +251,7 @@ module('@queryable', function(hooks) {
 
     try {
       await source.query(qe);
-    } catch(error) {
+    } catch (error) {
       assert.equal(++order, 4, 'promise failed because no actions succeeded');
       assert.equal(error, ':(', 'failure');
     }
@@ -238,12 +266,15 @@ module('@queryable', function(hooks) {
 
     source.on('beforeQuery', async function(query: Query, hints: any) {
       assert.equal(++order, 1, 'beforeQuery triggered first');
-      assert.deepEqual(hints, {}, 'beforeQuery is passed empty `hints` object')
+      assert.deepEqual(hints, {}, 'beforeQuery is passed empty `hints` object');
       h = hints;
-      hints.data = [{ type: 'planet', id: 'venus' }, { type: 'planet', id: 'mars' }];
+      hints.data = [
+        { type: 'planet', id: 'venus' },
+        { type: 'planet', id: 'mars' }
+      ];
     });
 
-    source.on('beforeQuery', async function (query: Query, hints: any) {
+    source.on('beforeQuery', async function(query: Query, hints: any) {
       assert.equal(++order, 2, 'beforeQuery triggered second');
       assert.strictEqual(hints, h, 'beforeQuery is passed same hints instance');
     });
@@ -254,18 +285,30 @@ module('@queryable', function(hooks) {
     });
 
     source._query = async function(query: Query, hints: any) {
-      assert.equal(++order, 4, '_query invoked after all `beforeQuery` handlers');
+      assert.equal(
+        ++order,
+        4,
+        '_query invoked after all `beforeQuery` handlers'
+      );
       assert.strictEqual(hints, h, '_query is passed same hints instance');
       return hints.data;
     };
 
     source.on('query', async function() {
-      assert.equal(++order, 5, 'query triggered after action performed successfully');
+      assert.equal(
+        ++order,
+        5,
+        'query triggered after action performed successfully'
+      );
     });
 
     let result = await source.query(qe);
 
     assert.equal(++order, 6, 'promise resolved last');
-    assert.deepEqual(result, [{ type: 'planet', id: 'venus' }, { type: 'planet', id: 'mars' }], 'success!');
+    assert.deepEqual(
+      result,
+      [{ type: 'planet', id: 'venus' }, { type: 'planet', id: 'mars' }],
+      'success!'
+    );
   });
 });

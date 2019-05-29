@@ -29,11 +29,15 @@ module('buildQuery', function() {
     let expression: FindRecords = {
       op: 'findRecords'
     };
-    let options = { sources: { jsonapi: { include: 'comments' } }}
+    let options = { sources: { jsonapi: { include: 'comments' } } };
     let query = buildQuery(expression, options, 'abc123');
 
     assert.strictEqual(query.id, 'abc123', 'id was populated');
-    assert.strictEqual(query.expression, expression, 'expression was populated');
+    assert.strictEqual(
+      query.expression,
+      expression,
+      'expression was populated'
+    );
     assert.strictEqual(query.options, options, 'options was populated');
   });
 
@@ -62,6 +66,10 @@ module('buildQuery', function() {
     };
     let queryFactory = new QueryTerm(expression);
     let query = buildQuery(queryFactory);
-    assert.strictEqual(query.expression, expression, 'expression was populated');
+    assert.strictEqual(
+      query.expression,
+      expression,
+      'expression was populated'
+    );
   });
 });

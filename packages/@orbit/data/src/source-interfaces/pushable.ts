@@ -28,7 +28,11 @@ export interface Pushable {
    * applied as a result. In other words, `push` captures the direct results
    * _and_ side effects of applying a `Transform` to a source.
    */
-  push(transformOrOperations: TransformOrOperations, options?: object, id?: string): Promise<Transform[]>;
+  push(
+    transformOrOperations: TransformOrOperations,
+    options?: object,
+    id?: string
+  ): Promise<Transform[]>;
 
   _push(transform: Transform, hints?: any): Promise<Transform[]>;
 }
@@ -64,19 +68,31 @@ export default function pushable(Klass: SourceClass): void {
     return;
   }
 
-  assert('Pushable interface can only be applied to a Source', proto instanceof Source);
+  assert(
+    'Pushable interface can only be applied to a Source',
+    proto instanceof Source
+  );
 
   proto[PUSHABLE] = true;
 
-  proto.push = function(transformOrOperations: TransformOrOperations, options?: object, id?: string): Promise<Transform[]> {
-    const transform = buildTransform(transformOrOperations, options, id, this.transformBuilder);
+  proto.push = function(
+    transformOrOperations: TransformOrOperations,
+    options?: object,
+    id?: string
+  ): Promise<Transform[]> {
+    const transform = buildTransform(
+      transformOrOperations,
+      options,
+      id,
+      this.transformBuilder
+    );
 
     if (this.transformLog.contains(transform.id)) {
       return Promise.resolve([]);
     }
 
     return this._enqueueRequest('push', transform);
-  }
+  };
 
   proto.__push__ = function(transform: Transform): Promise<Transform[]> {
     if (this.transformLog.contains(transform.id)) {
@@ -89,17 +105,17 @@ export default function pushable(Klass: SourceClass): void {
         if (this.transformLog.contains(transform.id)) {
           return Promise.resolve([]);
         } else {
-          return this._push(transform, hints)
-            .then((result: Transform[]) => {
-              return this._transformed(result)
-                .then(() => settleInSeries(this, 'push', transform, result))
-                .then(() => result);
-            })
+          return this._push(transform, hints).then((result: Transform[]) => {
+            return this._transformed(result)
+              .then(() => settleInSeries(this, 'push', transform, result))
+              .then(() => result);
+          });
         }
       })
       .catch(error => {
-        return settleInSeries(this, 'pushFail', transform, error)
-          .then(() => { throw error; });
+        return settleInSeries(this, 'pushFail', transform, error).then(() => {
+          throw error;
+        });
       });
-  }
+  };
 }

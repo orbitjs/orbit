@@ -91,7 +91,6 @@ export class SchemaError extends Exception {
   }
 }
 
-
 /**
  * A model could not be found in the schema.
  */
@@ -106,7 +105,9 @@ export class ModelNotFound extends SchemaError {
  */
 export class RelationshipNotFound extends SchemaError {
   constructor(relationshipType: string, recordType: string) {
-    super(`Relationship definition for ${relationshipType} not found for model definition ${recordType}`)
+    super(
+      `Relationship definition for ${relationshipType} not found for model definition ${recordType}`
+    );
   }
 }
 
@@ -114,8 +115,14 @@ export class RelationshipNotFound extends SchemaError {
  * A related record of the incorrect type was attempted to be added to a relationship of a model definition
  */
 export class IncorrectRelatedRecordType extends SchemaError {
-  constructor(relatedRecordType: string, relationship: string, recordType: string) {
-    super(`Relationship definition ${relationship} for model definition ${recordType} does not accept record of type ${relatedRecordType}`);
+  constructor(
+    relatedRecordType: string,
+    relationship: string,
+    recordType: string
+  ) {
+    super(
+      `Relationship definition ${relationship} for model definition ${recordType} does not accept record of type ${relatedRecordType}`
+    );
   }
 }
 
@@ -128,8 +135,13 @@ export abstract class RecordException extends Exception {
   public id: string;
   public relationship: string;
 
-  constructor(description: string, type: string, id: string, relationship?: string) {
-    let message: string = `${description}: ${type}:${id}`;
+  constructor(
+    description: string,
+    type: string,
+    id: string,
+    relationship?: string
+  ) {
+    let message = `${description}: ${type}:${id}`;
 
     if (relationship) {
       message += '/' + relationship;

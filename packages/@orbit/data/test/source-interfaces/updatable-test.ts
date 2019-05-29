@@ -1,6 +1,7 @@
 import {
   Source,
-  updatable, isUpdatable,
+  updatable,
+  isUpdatable,
   Updatable,
   buildTransform,
   Transform,
@@ -13,7 +14,11 @@ const { module, test } = QUnit;
 module('@updatable', function(hooks) {
   @updatable
   class MySource extends Source implements Updatable {
-    update: (transformOrOperations: TransformOrOperations, options?: object, id?: string) => Promise<any>;
+    update: (
+      transformOrOperations: TransformOrOperations,
+      options?: object,
+      id?: string
+    ) => Promise<any>;
     _update: (transform: Transform, hints?: any) => Promise<any>;
   }
 
@@ -50,7 +55,7 @@ module('@updatable', function(hooks) {
 
     try {
       await source.update({ op: 'addRecord' });
-    } catch(error) {
+    } catch (error) {
       assert.ok(true, 'update promise resolved as a failure');
       assert.equal(error, ':(', 'failure');
     }
@@ -63,26 +68,42 @@ module('@updatable', function(hooks) {
 
     const addRecordTransform = buildTransform({ op: 'addRecord' });
 
-    source.on('beforeUpdate', (transform) => {
+    source.on('beforeUpdate', transform => {
       assert.equal(++order, 1, 'beforeUpdate triggered first');
       assert.strictEqual(transform, addRecordTransform, 'transform matches');
     });
 
     source._update = async function(transform) {
       assert.equal(++order, 2, 'action performed after beforeUpdate');
-      assert.strictEqual(transform, addRecordTransform, 'transform object matches');
+      assert.strictEqual(
+        transform,
+        addRecordTransform,
+        'transform object matches'
+      );
       return ':)';
     };
 
-    source.on('transform', (transform) => {
-      assert.equal(++order, 3, 'transform triggered after action performed successfully');
+    source.on('transform', transform => {
+      assert.equal(
+        ++order,
+        3,
+        'transform triggered after action performed successfully'
+      );
       assert.strictEqual(transform, addRecordTransform, 'transform matches');
       return Promise.resolve();
     });
 
     source.on('update', (transform, result) => {
-      assert.equal(++order, 4, 'update triggered after action performed successfully');
-      assert.strictEqual(transform, addRecordTransform, 'update transform matches');
+      assert.equal(
+        ++order,
+        4,
+        'update triggered after action performed successfully'
+      );
+      assert.strictEqual(
+        transform,
+        addRecordTransform,
+        'update transform matches'
+      );
       assert.equal(result, ':)', 'result matches');
     });
 
@@ -99,26 +120,42 @@ module('@updatable', function(hooks) {
 
     const addRecordTransform = buildTransform({ op: 'addRecord' });
 
-    source.on('beforeUpdate', (transform) => {
+    source.on('beforeUpdate', transform => {
       assert.equal(++order, 1, 'beforeUpdate triggered first');
       assert.strictEqual(transform, addRecordTransform, 'transform matches');
     });
 
     source._update = function(transform) {
       assert.equal(++order, 2, 'action performed after beforeUpdate');
-      assert.strictEqual(transform, addRecordTransform, 'transform object matches');
+      assert.strictEqual(
+        transform,
+        addRecordTransform,
+        'transform object matches'
+      );
       return Promise.resolve(['a', 'b', 'c']);
     };
 
-    source.on('transform', (transform) => {
-      assert.equal(++order, 3, 'transform triggered after action performed successfully');
+    source.on('transform', transform => {
+      assert.equal(
+        ++order,
+        3,
+        'transform triggered after action performed successfully'
+      );
       assert.strictEqual(transform, addRecordTransform, 'transform matches');
       return Promise.resolve();
     });
 
     source.on('update', (transform, result) => {
-      assert.equal(++order, 4, 'update triggered after action performed successfully');
-      assert.strictEqual(transform, addRecordTransform, 'update transform matches');
+      assert.equal(
+        ++order,
+        4,
+        'update triggered after action performed successfully'
+      );
+      assert.strictEqual(
+        transform,
+        addRecordTransform,
+        'update transform matches'
+      );
       assert.deepEqual(result, ['a', 'b', 'c'], 'result matches');
     });
 
@@ -146,14 +183,18 @@ module('@updatable', function(hooks) {
     });
 
     source.on('updateFail', (transform, error) => {
-      assert.equal(++order, 2, 'updateFail triggered after an unsuccessful update');
+      assert.equal(
+        ++order,
+        2,
+        'updateFail triggered after an unsuccessful update'
+      );
       assert.strictEqual(transform, addRecordTransform, 'transform matches');
       assert.equal(error, ':(', 'error matches');
     });
 
     try {
       await source.update(addRecordTransform);
-    } catch(error) {
+    } catch (error) {
       assert.equal(++order, 3, 'promise resolved last');
       assert.equal(error, ':(', 'failure');
     }
@@ -182,11 +223,19 @@ module('@updatable', function(hooks) {
     });
 
     source._update = async function() {
-      assert.equal(++order, 4, '_update invoked after all `beforeUpdate` handlers');
+      assert.equal(
+        ++order,
+        4,
+        '_update invoked after all `beforeUpdate` handlers'
+      );
     };
 
     source.on('update', () => {
-      assert.equal(++order, 5, 'update triggered after action performed successfully');
+      assert.equal(
+        ++order,
+        5,
+        'update triggered after action performed successfully'
+      );
     });
 
     await source.update(addRecordTransform);
@@ -254,7 +303,7 @@ module('@updatable', function(hooks) {
 
     try {
       await source.update(addRecordTransform);
-    } catch(error) {
+    } catch (error) {
       assert.equal(++order, 4, 'promise failed because no actions succeeded');
       assert.equal(error, ':(', 'failure');
     }
@@ -266,43 +315,66 @@ module('@updatable', function(hooks) {
     let order = 0;
 
     const addRecordTransform = buildTransform({ op: 'addRecord' });
-    const replaceAttributeTransform = buildTransform({ op: 'replaceRecordAttribute' });
+    const replaceAttributeTransform = buildTransform({
+      op: 'replaceRecordAttribute'
+    });
     let h: any;
-    const resultingTransforms = [
-      addRecordTransform,
-      replaceAttributeTransform
-    ];
+    const resultingTransforms = [addRecordTransform, replaceAttributeTransform];
 
     source.on('beforeUpdate', async function(transform: Transform, hints: any) {
       assert.equal(++order, 1, 'beforeUpdate triggered first');
-      assert.deepEqual(hints, {}, 'beforeUpdate is passed empty `hints` object')
+      assert.deepEqual(
+        hints,
+        {},
+        'beforeUpdate is passed empty `hints` object'
+      );
       h = hints;
       hints.foo = 'bar';
-     });
+    });
 
     source.on('beforeUpdate', async function(transform: Transform, hints: any) {
       assert.equal(++order, 2, 'beforeUpdate triggered second');
-      assert.strictEqual(hints, h, 'beforeUpdate is passed same hints instance');
+      assert.strictEqual(
+        hints,
+        h,
+        'beforeUpdate is passed same hints instance'
+      );
     });
 
     source.on('beforeUpdate', async function(transform: Transform, hints: any) {
       assert.equal(++order, 3, 'beforeUpdate triggered third');
-      assert.strictEqual(hints, h, 'beforeUpdate is passed same hints instance');
+      assert.strictEqual(
+        hints,
+        h,
+        'beforeUpdate is passed same hints instance'
+      );
     });
 
     source._update = async function(transform: Transform, hints: any) {
-      assert.equal(++order, 4, '_update invoked after all `beforeUpdate` handlers');
+      assert.equal(
+        ++order,
+        4,
+        '_update invoked after all `beforeUpdate` handlers'
+      );
       assert.strictEqual(hints, h, '_update is passed same hints instance');
       return resultingTransforms;
     };
 
     source.on('update', () => {
-      assert.equal(++order, 5, 'update triggered after action performed successfully');
+      assert.equal(
+        ++order,
+        5,
+        'update triggered after action performed successfully'
+      );
     });
 
     let result = await source.update(addRecordTransform);
 
     assert.equal(++order, 6, 'promise resolved last');
-    assert.deepEqual(result, resultingTransforms, 'applied transforms are returned on success');
+    assert.deepEqual(
+      result,
+      resultingTransforms,
+      'applied transforms are returned on success'
+    );
   });
 });

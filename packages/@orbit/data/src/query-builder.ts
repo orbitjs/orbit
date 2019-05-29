@@ -26,14 +26,20 @@ export default class QueryBuilder {
   /**
    * Find a record in a to-one relationship.
    */
-  findRelatedRecord(record: RecordIdentity, relationship: string): FindRelatedRecordTerm {
+  findRelatedRecord(
+    record: RecordIdentity,
+    relationship: string
+  ): FindRelatedRecordTerm {
     return new FindRelatedRecordTerm(record, relationship);
   }
 
   /**
    * Find records in a to-many relationship.
    */
-  findRelatedRecords(record: RecordIdentity, relationship: string): FindRelatedRecordsTerm {
+  findRelatedRecords(
+    record: RecordIdentity,
+    relationship: string
+  ): FindRelatedRecordsTerm {
     return new FindRelatedRecordsTerm(record, relationship);
   }
 }

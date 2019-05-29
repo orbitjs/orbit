@@ -218,7 +218,10 @@ export default class Schema implements Evented, RecordInitializer {
     return !!this.getRelationship(type, relationship);
   }
 
-  eachAttribute(type: string, callbackFn: (name: string, attribute: AttributeDefinition) => void): void {
+  eachAttribute(
+    type: string,
+    callbackFn: (name: string, attribute: AttributeDefinition) => void
+  ): void {
     const model = this.getModel(type);
     const attributes = model.attributes || {};
     for (let name in attributes) {
@@ -226,7 +229,10 @@ export default class Schema implements Evented, RecordInitializer {
     }
   }
 
-  eachRelationship(type: string, callbackFn: (name: string, relationship: RelationshipDefinition) => void): void {
+  eachRelationship(
+    type: string,
+    callbackFn: (name: string, relationship: RelationshipDefinition) => void
+  ): void {
     const model = this.getModel(type);
     const relationships = model.relationships || {};
     for (let name in relationships) {

@@ -1,6 +1,7 @@
 import {
   Source,
-  syncable, isSyncable,
+  syncable,
+  isSyncable,
   Syncable,
   buildTransform,
   Transform
@@ -43,11 +44,18 @@ module('@syncable', function(hooks) {
   test('#sync accepts a Transform and calls internal method `_sync`', async function(assert) {
     assert.expect(2);
 
-    const addPlanet = { op: 'addRecord', record: { type: 'planet', id: 'jupiter' } };
+    const addPlanet = {
+      op: 'addRecord',
+      record: { type: 'planet', id: 'jupiter' }
+    };
     const addRecordTransform = buildTransform(addPlanet);
 
     source._sync = async function(transform: Transform) {
-      assert.strictEqual(transform, addRecordTransform, 'argument to _sync is a Transform');
+      assert.strictEqual(
+        transform,
+        addRecordTransform,
+        'argument to _sync is a Transform'
+      );
     };
 
     await source.sync(addRecordTransform);
@@ -58,7 +66,10 @@ module('@syncable', function(hooks) {
   test('#sync should resolve as a failure when `_sync` fails', async function(assert) {
     assert.expect(2);
 
-    const addPlanet = { op: 'addRecord', record: { type: 'planet', id: 'jupiter' } };
+    const addPlanet = {
+      op: 'addRecord',
+      record: { type: 'planet', id: 'jupiter' }
+    };
     const addRecordTransform = buildTransform(addPlanet);
 
     source._sync = async function(transform: Transform) {
@@ -67,7 +78,7 @@ module('@syncable', function(hooks) {
 
     try {
       await source.sync(addRecordTransform);
-    } catch(error) {
+    } catch (error) {
       assert.ok(true, 'sync promise resolved as a failure');
       assert.equal(error, ':(', 'failure');
     }
@@ -78,29 +89,48 @@ module('@syncable', function(hooks) {
 
     let order = 0;
 
-    const addPlanet = { op: 'addRecord', record: { type: 'planet', id: 'jupiter' } };
+    const addPlanet = {
+      op: 'addRecord',
+      record: { type: 'planet', id: 'jupiter' }
+    };
     const addRecordTransform = buildTransform(addPlanet);
 
-    source.on('beforeSync', (transform) => {
+    source.on('beforeSync', transform => {
       assert.equal(++order, 1, 'beforeSync triggered first');
       assert.strictEqual(transform, addRecordTransform, 'transform matches');
     });
 
     source._sync = function(transform) {
       assert.equal(++order, 2, 'action performed after beforeSync');
-      assert.strictEqual(transform, addRecordTransform, 'transform object matches');
+      assert.strictEqual(
+        transform,
+        addRecordTransform,
+        'transform object matches'
+      );
       return Promise.resolve();
     };
 
-    source.on('transform', (transform) => {
-      assert.equal(++order, 3, 'transform triggered after action performed successfully');
+    source.on('transform', transform => {
+      assert.equal(
+        ++order,
+        3,
+        'transform triggered after action performed successfully'
+      );
       assert.strictEqual(transform, addRecordTransform, 'transform matches');
       return Promise.resolve();
     });
 
-    source.on('sync', (transform) => {
-      assert.equal(++order, 4, 'sync triggered after action performed successfully');
-      assert.strictEqual(transform, addRecordTransform, 'sync transform matches');
+    source.on('sync', transform => {
+      assert.equal(
+        ++order,
+        4,
+        'sync triggered after action performed successfully'
+      );
+      assert.strictEqual(
+        transform,
+        addRecordTransform,
+        'sync transform matches'
+      );
     });
 
     await source.sync(addRecordTransform);
@@ -111,7 +141,10 @@ module('@syncable', function(hooks) {
   test('#sync should trigger `syncFail` event after an unsuccessful sync', async function(assert) {
     assert.expect(7);
 
-    const addPlanet = { op: 'addRecord', record: { type: 'planet', id: 'jupiter' } };
+    const addPlanet = {
+      op: 'addRecord',
+      record: { type: 'planet', id: 'jupiter' }
+    };
     const addRecordTransform = buildTransform(addPlanet);
 
     let order = 0;
@@ -134,7 +167,7 @@ module('@syncable', function(hooks) {
 
     try {
       await source.sync(addRecordTransform);
-    } catch(error) {
+    } catch (error) {
       assert.equal(++order, 3, 'promise resolved last');
       assert.equal(error.message, ':(', 'failure');
     }
@@ -145,7 +178,10 @@ module('@syncable', function(hooks) {
 
     let order = 0;
 
-    const addPlanet = { op: 'addRecord', record: { type: 'planet', id: 'jupiter' } };
+    const addPlanet = {
+      op: 'addRecord',
+      record: { type: 'planet', id: 'jupiter' }
+    };
     const addRecordTransform = buildTransform(addPlanet);
 
     source.on('beforeSync', () => {
@@ -175,7 +211,10 @@ module('@syncable', function(hooks) {
 
     let order = 0;
 
-    const addPlanet = { op: 'addRecord', record: { type: 'planet', id: 'jupiter' } };
+    const addPlanet = {
+      op: 'addRecord',
+      record: { type: 'planet', id: 'jupiter' }
+    };
     const addRecordTransform = buildTransform(addPlanet);
 
     source.on('beforeSync', () => {
@@ -198,7 +237,11 @@ module('@syncable', function(hooks) {
     };
 
     source.on('sync', () => {
-      assert.equal(++order, 5, 'sync triggered after action performed successfully');
+      assert.equal(
+        ++order,
+        5,
+        'sync triggered after action performed successfully'
+      );
     });
 
     await source.sync(addRecordTransform);
@@ -237,7 +280,7 @@ module('@syncable', function(hooks) {
 
     try {
       await source.sync(addRecordTransform);
-    } catch(error) {
+    } catch (error) {
       assert.equal(++order, 4, 'promise failed because no actions succeeded');
       assert.equal(error, ':(', 'failure');
     }

@@ -1,6 +1,4 @@
-import {
-  coalesceRecordOperations
-} from '../src/index';
+import { coalesceRecordOperations } from '../src/index';
 import './test-helper';
 
 const { module, test } = QUnit;
@@ -117,11 +115,19 @@ module('Operation', function() {
         [
           {
             op: 'addRecord',
-            record: { type: 'contact', id: '1234', attributes: { name: 'Joseph' } }
+            record: {
+              type: 'contact',
+              id: '1234',
+              attributes: { name: 'Joseph' }
+            }
           },
           {
             op: 'addRecord',
-            record: { type: 'contact', id: '5678', attributes: { name: 'James' } }
+            record: {
+              type: 'contact',
+              id: '5678',
+              attributes: { name: 'James' }
+            }
           }
         ]
       );
@@ -145,69 +151,8 @@ module('Operation', function() {
           {
             op: 'addRecord',
             record: {
-              type: 'contact', id: '1234',
-              attributes: { name: 'Joe' },
-              relationships: {
-                phoneNumbers: {
-                  data:  [{ type: 'phoneNumber', id: 'abc' }]
-                }
-              }
-            }
-          }
-        ]
-      );
-    });
-
-    test('can coalesce addRecord + replaceRelatedRecord for the same record', function(assert) {
-      assert.deepEqual(
-        coalesceRecordOperations([
-          {
-            op: 'addRecord',
-            record: { type: 'contact', id: '1234', attributes: { name: 'Joe' } }
-          },
-          {
-            op: 'replaceRelatedRecord',
-            record: { type: 'contact', id: '1234' },
-            relationship: 'address',
-            relatedRecord: { type: 'address', id: 'abc' }
-          }
-        ]),
-        [
-          {
-            op: 'addRecord',
-            record: {
-              type: 'contact', id: '1234',
-              attributes: { name: 'Joe' },
-              relationships: {
-                address: {
-                  data: { type: 'address', id: 'abc' }
-                }
-              }
-            }
-          }
-        ]
-      );
-    });
-
-    test('can coalesce addRecord + addToRelatedRecords for the same record', function(assert) {
-      assert.deepEqual(
-        coalesceRecordOperations([
-          {
-            op: 'addRecord',
-            record: { type: 'contact', id: '1234', attributes: { name: 'Joe' } }
-          },
-          {
-            op: 'addToRelatedRecords',
-            record: { type: 'contact', id: '1234' },
-            relationship: 'phoneNumbers',
-            relatedRecord: { type: 'phoneNumber', id: 'abc' }
-          }
-        ]),
-        [
-          {
-            op: 'addRecord',
-            record: {
-              type: 'contact', id: '1234',
+              type: 'contact',
+              id: '1234',
               attributes: { name: 'Joe' },
               relationships: {
                 phoneNumbers: {
@@ -238,7 +183,72 @@ module('Operation', function() {
           {
             op: 'addRecord',
             record: {
-              type: 'contact', id: '1234',
+              type: 'contact',
+              id: '1234',
+              attributes: { name: 'Joe' },
+              relationships: {
+                address: {
+                  data: { type: 'address', id: 'abc' }
+                }
+              }
+            }
+          }
+        ]
+      );
+    });
+
+    test('can coalesce addRecord + addToRelatedRecords for the same record', function(assert) {
+      assert.deepEqual(
+        coalesceRecordOperations([
+          {
+            op: 'addRecord',
+            record: { type: 'contact', id: '1234', attributes: { name: 'Joe' } }
+          },
+          {
+            op: 'addToRelatedRecords',
+            record: { type: 'contact', id: '1234' },
+            relationship: 'phoneNumbers',
+            relatedRecord: { type: 'phoneNumber', id: 'abc' }
+          }
+        ]),
+        [
+          {
+            op: 'addRecord',
+            record: {
+              type: 'contact',
+              id: '1234',
+              attributes: { name: 'Joe' },
+              relationships: {
+                phoneNumbers: {
+                  data: [{ type: 'phoneNumber', id: 'abc' }]
+                }
+              }
+            }
+          }
+        ]
+      );
+    });
+
+    test('can coalesce addRecord + replaceRelatedRecord for the same record', function(assert) {
+      assert.deepEqual(
+        coalesceRecordOperations([
+          {
+            op: 'addRecord',
+            record: { type: 'contact', id: '1234', attributes: { name: 'Joe' } }
+          },
+          {
+            op: 'replaceRelatedRecord',
+            record: { type: 'contact', id: '1234' },
+            relationship: 'address',
+            relatedRecord: { type: 'address', id: 'abc' }
+          }
+        ]),
+        [
+          {
+            op: 'addRecord',
+            record: {
+              type: 'contact',
+              id: '1234',
               attributes: { name: 'Joe' },
               relationships: {
                 address: {
@@ -256,7 +266,10 @@ module('Operation', function() {
         coalesceRecordOperations([
           {
             op: 'addRecord',
-            record: { type: 'contact', id: '1234', attributes: { name: 'Joe' },
+            record: {
+              type: 'contact',
+              id: '1234',
+              attributes: { name: 'Joe' },
               relationships: {
                 address: {
                   data: { type: 'address', id: 'def' }
@@ -275,7 +288,8 @@ module('Operation', function() {
           {
             op: 'addRecord',
             record: {
-              type: 'contact', id: '1234',
+              type: 'contact',
+              id: '1234',
               attributes: { name: 'Joe' },
               relationships: {
                 address: {
@@ -327,8 +341,7 @@ module('Operation', function() {
             record: { type: 'contact', id: '1234' }
           }
         ]),
-        [
-        ]
+        []
       );
     });
 
@@ -337,7 +350,10 @@ module('Operation', function() {
         coalesceRecordOperations([
           {
             op: 'addRecord',
-            record: { type: 'contact', id: '1234', attributes: { name: 'Joe' },
+            record: {
+              type: 'contact',
+              id: '1234',
+              attributes: { name: 'Joe' },
               relationships: {
                 address: {
                   data: { type: 'address', id: 'def' }
@@ -356,8 +372,7 @@ module('Operation', function() {
             record: { type: 'contact', id: '1234' }
           }
         ]),
-        [
-        ]
+        []
       );
     });
 
@@ -366,7 +381,10 @@ module('Operation', function() {
         coalesceRecordOperations([
           {
             op: 'addRecord',
-            record: { type: 'contact', id: '1234', attributes: { name: 'Joe' },
+            record: {
+              type: 'contact',
+              id: '1234',
+              attributes: { name: 'Joe' },
               relationships: {
                 address: {
                   data: { type: 'address', id: 'def' }
@@ -416,8 +434,7 @@ module('Operation', function() {
             record: { type: 'phoneNumber', id: 'abc' }
           }
         ]),
-        [
-        ]
+        []
       );
     });
 
@@ -442,7 +459,7 @@ module('Operation', function() {
       );
     });
 
-    test('coalesces operations, but doesn\'t allow reordering of ops that affect relationships', function(assert) {
+    test("coalesces operations, but doesn't allow reordering of ops that affect relationships", function(assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -483,7 +500,11 @@ module('Operation', function() {
         [
           {
             op: 'addRecord',
-            record: { type: 'address', id: 'def789', attributes: { street: 'abc' } }
+            record: {
+              type: 'address',
+              id: 'def789',
+              attributes: { street: 'abc' }
+            }
           },
           {
             op: 'replaceRelatedRecord',
@@ -517,8 +538,7 @@ module('Operation', function() {
             relatedRecord: { type: 'phoneNumber', id: 'abc' }
           }
         ]),
-        [
-        ]
+        []
       );
     });
 
@@ -626,8 +646,7 @@ module('Operation', function() {
             relatedRecord: { type: 'phoneNumber', id: 'abc' }
           }
         ]),
-        [
-        ]
+        []
       );
     });
 
@@ -642,9 +661,7 @@ module('Operation', function() {
               attributes: { street: 'abc' },
               relationships: {
                 phoneNumbers: {
-                  data: [
-                    { type: 'phoneNumber', id: 'abc' }
-                  ]
+                  data: [{ type: 'phoneNumber', id: 'abc' }]
                 }
               }
             }

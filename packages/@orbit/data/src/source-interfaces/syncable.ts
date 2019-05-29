@@ -46,19 +46,24 @@ export default function syncable(Klass: SourceClass): void {
     return;
   }
 
-  assert('Syncable interface can only be applied to a Source', proto instanceof Source);
+  assert(
+    'Syncable interface can only be applied to a Source',
+    proto instanceof Source
+  );
 
   proto[SYNCABLE] = true;
 
-  proto.sync = function(transformOrTransforms: Transform | Transform[]): Promise<void> {
+  proto.sync = function(
+    transformOrTransforms: Transform | Transform[]
+  ): Promise<void> {
     if (isArray(transformOrTransforms)) {
-      const transforms = <Transform[]>transformOrTransforms;
+      const transforms = transformOrTransforms as Transform[];
 
       return transforms.reduce((chain, transform) => {
         return chain.then(() => this.sync(transform));
       }, Promise.resolve());
     } else {
-      const transform = <Transform>transformOrTransforms;
+      const transform = transformOrTransforms as Transform;
 
       if (this.transformLog.contains(transform.id)) {
         return Promise.resolve();
@@ -66,7 +71,7 @@ export default function syncable(Klass: SourceClass): void {
 
       return this._enqueueSync('sync', transform);
     }
-  }
+  };
 
   proto.__sync__ = function(transform: Transform): Promise<void> {
     if (this.transformLog.contains(transform.id)) {
@@ -84,8 +89,9 @@ export default function syncable(Klass: SourceClass): void {
         }
       })
       .catch((error: Error) => {
-        return settleInSeries(this, 'syncFail', transform, error)
-          .then(() => { throw error; });
+        return settleInSeries(this, 'syncFail', transform, error).then(() => {
+          throw error;
+        });
       });
-  }
+  };
 }
