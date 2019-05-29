@@ -16,7 +16,7 @@ export function jsonapiResponse(_options: any, body?: any, timeout?: number): Pr
     options.headers['Content-Type'] = options.headers['Content-Type'] || 'application/vnd.api+json';
     response = new Orbit.globals.Response(JSON.stringify(body), options);
   } else {
-    response = new Orbit.globals.Response(options);
+    response = new Orbit.globals.Response(null, options);
   }
 
   // console.log('jsonapiResponse', body, options, response.headers.get('Content-Type'));
