@@ -1,5 +1,5 @@
 import { AsyncRecordAccessor } from './record-accessor';
-import Orbit, { RecordOperation } from '@orbit/data';
+import { RecordOperation } from '@orbit/data';
 
 export interface AsyncOperationProcessorClass {
   new (cache: AsyncRecordAccessor): AsyncOperationProcessor;

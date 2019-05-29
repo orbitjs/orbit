@@ -1,6 +1,4 @@
-import {
-  RecordOperation
-} from '@orbit/data';
+import { RecordOperation } from '@orbit/data';
 import { SyncOperationProcessor } from '../sync-operation-processor';
 import {
   recordAdded,
@@ -21,10 +19,7 @@ export default class SyncSchemaConsistencyProcessor extends SyncOperationProcess
   after(operation: RecordOperation): RecordOperation[] {
     switch (operation.op) {
       case 'addRecord':
-        return recordAdded(
-          this.accessor.schema,
-          operation.record
-        );
+        return recordAdded(this.accessor.schema, operation.record);
 
       case 'addToRelatedRecords':
         return relatedRecordAdded(
@@ -39,7 +34,10 @@ export default class SyncSchemaConsistencyProcessor extends SyncOperationProcess
           this.accessor.schema,
           operation.record,
           operation.relationship,
-          this.accessor.getRelatedRecordSync(operation.record, operation.relationship),
+          this.accessor.getRelatedRecordSync(
+            operation.record,
+            operation.relationship
+          ),
           operation.relatedRecord
         );
 
@@ -48,7 +46,10 @@ export default class SyncSchemaConsistencyProcessor extends SyncOperationProcess
           this.accessor.schema,
           operation.record,
           operation.relationship,
-          this.accessor.getRelatedRecordsSync(operation.record, operation.relationship),
+          this.accessor.getRelatedRecordsSync(
+            operation.record,
+            operation.relationship
+          ),
           operation.relatedRecords
         );
 

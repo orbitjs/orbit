@@ -1,10 +1,6 @@
 /* eslint-disable valid-jsdoc */
 import { clone, deepGet, deepSet, Dict, objectValues } from '@orbit/utils';
-import {
-  Record,
-  RecordIdentity,
-  equalRecordIdentities
-} from '@orbit/data';
+import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/data';
 import {
   RecordRelationshipIdentity,
   AsyncRecordCache,
@@ -22,7 +18,7 @@ export default class ExampleAsyncRecordCache extends AsyncRecordCache {
     super(settings);
 
     this._records = {};
-    this._inverseRelationships = {}
+    this._inverseRelationships = {};
 
     Object.keys(this._schema.models).forEach(type => {
       this._records[type] = {};
@@ -34,7 +30,9 @@ export default class ExampleAsyncRecordCache extends AsyncRecordCache {
     return deepGet(this._records, [identity.type, identity.id]) || null;
   }
 
-  async getRecordsAsync(typeOrIdentities?: string | RecordIdentity[]): Promise<Record[]> {
+  async getRecordsAsync(
+    typeOrIdentities?: string | RecordIdentity[]
+  ): Promise<Record[]> {
     if (typeof typeOrIdentities === 'string') {
       return objectValues(this._records[typeOrIdentities]);
     } else if (Array.isArray(typeOrIdentities)) {
@@ -60,7 +58,9 @@ export default class ExampleAsyncRecordCache extends AsyncRecordCache {
     }
   }
 
-  async removeRecordAsync(recordIdentity: RecordIdentity): Promise<Record | null> {
+  async removeRecordAsync(
+    recordIdentity: RecordIdentity
+  ): Promise<Record | null> {
     const record = await this.getRecordAsync(recordIdentity);
     if (record) {
       delete this._records[recordIdentity.type][recordIdentity.id];
@@ -70,7 +70,9 @@ export default class ExampleAsyncRecordCache extends AsyncRecordCache {
     }
   }
 
-  async removeRecordsAsync(recordIdentities: RecordIdentity[]): Promise<Record[]> {
+  async removeRecordsAsync(
+    recordIdentities: RecordIdentity[]
+  ): Promise<Record[]> {
     const records = [];
     for (let recordIdentity of recordIdentities) {
       let record = await this.getRecordAsync(recordIdentity);
@@ -82,26 +84,56 @@ export default class ExampleAsyncRecordCache extends AsyncRecordCache {
     return records;
   }
 
-  async getInverseRelationshipsAsync(recordIdentity: RecordIdentity): Promise<RecordRelationshipIdentity[]> {
-    return deepGet(this._inverseRelationships, [recordIdentity.type, recordIdentity.id]) || [];
+  async getInverseRelationshipsAsync(
+    recordIdentity: RecordIdentity
+  ): Promise<RecordRelationshipIdentity[]> {
+    return (
+      deepGet(this._inverseRelationships, [
+        recordIdentity.type,
+        recordIdentity.id
+      ]) || []
+    );
   }
 
-  async addInverseRelationshipsAsync(relationships: RecordRelationshipIdentity[]): Promise<void> {
+  async addInverseRelationshipsAsync(
+    relationships: RecordRelationshipIdentity[]
+  ): Promise<void> {
     for (let relationship of relationships) {
-      let rels: any = deepGet(this._inverseRelationships, [relationship.relatedRecord.type, relationship.relatedRecord.id]);
+      let rels: any = deepGet(this._inverseRelationships, [
+        relationship.relatedRecord.type,
+        relationship.relatedRecord.id
+      ]);
       rels = rels ? clone(rels) : [];
       rels.push(relationship);
-      deepSet(this._inverseRelationships, [relationship.relatedRecord.type, relationship.relatedRecord.id], rels);
+      deepSet(
+        this._inverseRelationships,
+        [relationship.relatedRecord.type, relationship.relatedRecord.id],
+        rels
+      );
     }
   }
 
-  async removeInverseRelationshipsAsync(relationships: RecordRelationshipIdentity[]): Promise<void> {
+  async removeInverseRelationshipsAsync(
+    relationships: RecordRelationshipIdentity[]
+  ): Promise<void> {
     for (let relationship of relationships) {
-      let rels: any = deepGet(this._inverseRelationships, [relationship.relatedRecord.type, relationship.relatedRecord.id]);
+      let rels: any = deepGet(this._inverseRelationships, [
+        relationship.relatedRecord.type,
+        relationship.relatedRecord.id
+      ]);
       if (rels) {
-        let newRels: any = rels.filter((rel: any) => !(equalRecordIdentities(rel.record, relationship.record) &&
-                                                     rel.relationship === relationship.relationship));
-        deepSet(this._inverseRelationships, [relationship.relatedRecord.type, relationship.relatedRecord.id], newRels);
+        let newRels: any = rels.filter(
+          (rel: any) =>
+            !(
+              equalRecordIdentities(rel.record, relationship.record) &&
+              rel.relationship === relationship.relationship
+            )
+        );
+        deepSet(
+          this._inverseRelationships,
+          [relationship.relatedRecord.type, relationship.relatedRecord.id],
+          newRels
+        );
       }
     }
   }

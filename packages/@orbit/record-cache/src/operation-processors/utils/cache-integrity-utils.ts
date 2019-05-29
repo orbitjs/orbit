@@ -8,9 +8,16 @@ import {
 } from '@orbit/data';
 import { RecordRelationshipIdentity } from '../../record-accessor';
 
-export function getInverseRelationship(schema: Schema, record: RecordIdentity, relationship: string, relatedRecord: RecordIdentity): RecordRelationshipIdentity {
+export function getInverseRelationship(
+  schema: Schema,
+  record: RecordIdentity,
+  relationship: string,
+  relatedRecord: RecordIdentity
+): RecordRelationshipIdentity {
   if (relatedRecord) {
-    const relationshipDef = schema.getModel(record.type).relationships[relationship];
+    const relationshipDef = schema.getModel(record.type).relationships[
+      relationship
+    ];
     if (relationshipDef.inverse) {
       return {
         record,
@@ -21,9 +28,16 @@ export function getInverseRelationship(schema: Schema, record: RecordIdentity, r
   }
 }
 
-export function getInverseRelationships(schema: Schema, record: RecordIdentity, relationship: string, relatedRecords: RecordIdentity[]): RecordRelationshipIdentity[] {
+export function getInverseRelationships(
+  schema: Schema,
+  record: RecordIdentity,
+  relationship: string,
+  relatedRecords: RecordIdentity[]
+): RecordRelationshipIdentity[] {
   if (relatedRecords && relatedRecords.length > 0) {
-    const relationshipDef = schema.getModel(record.type).relationships[relationship];
+    const relationshipDef = schema.getModel(record.type).relationships[
+      relationship
+    ];
     if (relationshipDef.inverse) {
       const recordIdentity = cloneRecordIdentity(record);
 
@@ -38,14 +52,17 @@ export function getInverseRelationships(schema: Schema, record: RecordIdentity, 
   }
 }
 
-export function getAllInverseRelationships(record: Record): RecordRelationshipIdentity[] {
+export function getAllInverseRelationships(
+  record: Record
+): RecordRelationshipIdentity[] {
   const relationships = record && record.relationships;
   if (relationships) {
     const recordIdentity = cloneRecordIdentity(record);
     const inverseRelationships: RecordRelationshipIdentity[] = [];
 
     Object.keys(relationships).forEach(relationship => {
-      const relationshipData = relationships[relationship] && relationships[relationship].data;
+      const relationshipData =
+        relationships[relationship] && relationships[relationship].data;
       if (relationshipData) {
         if (isArray(relationshipData)) {
           const relatedRecords = relationshipData as Record[];
@@ -71,12 +88,17 @@ export function getAllInverseRelationships(record: Record): RecordRelationshipId
   }
 }
 
-export function getInverseRelationshipRemovalOps(schema: Schema, inverseRelationships: RecordRelationshipIdentity[]): RecordOperation[] {
+export function getInverseRelationshipRemovalOps(
+  schema: Schema,
+  inverseRelationships: RecordRelationshipIdentity[]
+): RecordOperation[] {
   const ops: RecordOperation[] = [];
 
   if (inverseRelationships && inverseRelationships.length > 0) {
     inverseRelationships.forEach(rel => {
-      const relationshipDef = schema.getModel(rel.record.type).relationships[rel.relationship];
+      const relationshipDef = schema.getModel(rel.record.type).relationships[
+        rel.relationship
+      ];
       if (relationshipDef.type === 'hasMany') {
         ops.push({
           op: 'removeFromRelatedRecords',
