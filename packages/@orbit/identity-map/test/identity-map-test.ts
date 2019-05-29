@@ -52,8 +52,14 @@ module('IdentityMap', function(hooks) {
     identityMap.set(identity2, record2);
 
     assert.equal(identityMap.size, 2);
-    assert.deepEqual(Array.from(identityMap), [[identity, record], [identity2, record2]]);
-    assert.deepEqual(Array.from(identityMap.entries()), [[identity, record], [identity2, record2]]);
+    assert.deepEqual(Array.from(identityMap), [
+      [identity, record],
+      [identity2, record2]
+    ]);
+    assert.deepEqual(Array.from(identityMap.entries()), [
+      [identity, record],
+      [identity2, record2]
+    ]);
     assert.deepEqual(Array.from(identityMap.values()), [record, record2]);
     assert.deepEqual(Array.from(identityMap.keys()), [identity, identity2]);
   });

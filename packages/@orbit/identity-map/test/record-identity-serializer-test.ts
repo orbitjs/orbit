@@ -23,6 +23,9 @@ module('RecordIdentitySerializer', function(hooks) {
   });
 
   test('deserialize', function(assert) {
-    assert.deepEqual(serializer.deserialize('person:1'), { type: 'person', id: '1' });
+    assert.deepEqual(serializer.deserialize('person:1'), {
+      type: 'person',
+      id: '1'
+    });
   });
 });
