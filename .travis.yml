@@ -9,7 +9,17 @@ addons:
   chrome: stable
 
 install:
-  - npm install
+  - yarn install --no-lockfile --non-interactive
+
+jobs:
+  fail_fast: true
+
+  include:
+    - stage: tests
+      name: "Linting"
+      script: yarn lint:ts
+    - name: "Tests"
+      script: yarn test
 
 notifications:
   webhooks:
