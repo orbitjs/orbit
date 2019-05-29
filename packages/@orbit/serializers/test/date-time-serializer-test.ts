@@ -17,6 +17,9 @@ module('DateTimeSerializer', function(hooks) {
   });
 
   test('#deserialize returns a Date, with a time set', function(assert) {
-    assert.equal(serializer.deserialize(dateString).toISOString(), date.toISOString());
+    assert.equal(
+      serializer.deserialize(dateString).toISOString(),
+      date.toISOString()
+    );
   });
 });

@@ -6,7 +6,7 @@ export class DateSerializer implements Serializer<Date, string> {
   }
 
   deserialize(arg: string): Date {
-    const [ year, month, date ] = arg.split('-');
+    const [year, month, date] = arg.split('-');
     return new Date(parseInt(year), parseInt(month) - 1, parseInt(date));
   }
 }
