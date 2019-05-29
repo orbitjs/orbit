@@ -1,6 +1,4 @@
-import Coordinator, {
-  SyncStrategy
-} from '../../src/index';
+import Coordinator, { SyncStrategy } from '../../src/index';
 import {
   Source,
   Transform,
@@ -14,8 +12,16 @@ const { module, test } = QUnit;
 
 module('SyncStrategy', function(hooks) {
   const t = new TransformBuilder();
-  const tA = buildTransform([t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })], null, 'a');
-  const tB = buildTransform([t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })], null, 'b');
+  const tA = buildTransform(
+    [t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })],
+    null,
+    'a'
+  );
+  const tB = buildTransform(
+    [t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })],
+    null,
+    'b'
+  );
 
   let strategy: SyncStrategy;
   let coordinator: Coordinator;
@@ -31,15 +37,23 @@ module('SyncStrategy', function(hooks) {
   });
 
   test('can be instantiated', function(assert) {
-    strategy = new SyncStrategy({ source: 's1', target: 's2'});
+    strategy = new SyncStrategy({ source: 's1', target: 's2' });
 
     assert.ok(strategy);
-    assert.strictEqual(strategy.blocking, false, 'blocking is false by default');
-    assert.equal(strategy.name, 's1:transform -> s2:sync', 'name is based on source names by default');
+    assert.strictEqual(
+      strategy.blocking,
+      false,
+      'blocking is false by default'
+    );
+    assert.equal(
+      strategy.name,
+      's1:transform -> s2:sync',
+      'name is based on source names by default'
+    );
   });
 
   test('assigns source and target when activated', async function(assert) {
-    strategy = new SyncStrategy({ source: 's1', target: 's2'});
+    strategy = new SyncStrategy({ source: 's1', target: 's2' });
 
     coordinator = new Coordinator({
       sources: [s1, s2],
@@ -62,18 +76,34 @@ module('SyncStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    assert.equal(s1.listeners('transform').length, 0, 'no listeners installed yet');
-    assert.equal(s2.listeners('transform').length, 0, 'no listeners installed yet');
+    assert.equal(
+      s1.listeners('transform').length,
+      0,
+      'no listeners installed yet'
+    );
+    assert.equal(
+      s2.listeners('transform').length,
+      0,
+      'no listeners installed yet'
+    );
 
     await coordinator.activate();
 
     assert.equal(s1.listeners('transform').length, 1, 'listeners installed');
-    assert.equal(s2.listeners('transform').length, 0, 'no listeners installed on target');
+    assert.equal(
+      s2.listeners('transform').length,
+      0,
+      'no listeners installed on target'
+    );
 
     await coordinator.deactivate();
 
     assert.equal(s1.listeners('transform').length, 0, 'listeners removed');
-    assert.equal(s2.listeners('transform').length, 0, 'still no listeners on target');
+    assert.equal(
+      s2.listeners('transform').length,
+      0,
+      'still no listeners on target'
+    );
   });
 
   test('observes source `transform` event and invokes `sync` on target', async function(assert) {
@@ -87,7 +117,11 @@ module('SyncStrategy', function(hooks) {
     });
 
     s2._sync = async function(transform: Transform): Promise<void> {
-      assert.strictEqual(transform, tA, 'argument to _sync is expected Transform');
+      assert.strictEqual(
+        transform,
+        tA,
+        'argument to _sync is expected Transform'
+      );
       assert.strictEqual(this, s2, 'context is that of the target');
     };
 
@@ -103,7 +137,7 @@ module('SyncStrategy', function(hooks) {
       target: 's2',
       filter(transform: Transform): boolean {
         assert.strictEqual(this, strategy, 'context is the strategy');
-        return (transform === tB);
+        return transform === tB;
       }
     });
 
@@ -113,7 +147,11 @@ module('SyncStrategy', function(hooks) {
     });
 
     s2._sync = async function(transform: Transform): Promise<void> {
-      assert.strictEqual(transform, tB, 'argument to _sync is expected Transform');
+      assert.strictEqual(
+        transform,
+        tB,
+        'argument to _sync is expected Transform'
+      );
       assert.strictEqual(this, s2, 'context is that of the target');
     };
 
@@ -130,7 +168,11 @@ module('SyncStrategy', function(hooks) {
       blocking: true,
       catch(e: Exception, transform: Transform) {
         assert.equal(e.message, ':(', 'error matches');
-        assert.strictEqual(transform, tA, 'argument to catch is expected Transform');
+        assert.strictEqual(
+          transform,
+          tA,
+          'argument to catch is expected Transform'
+        );
         assert.strictEqual(this, strategy, 'context is the strategy');
       }
     });
@@ -141,12 +183,16 @@ module('SyncStrategy', function(hooks) {
     });
 
     s2._sync = async function(transform: Transform): Promise<void> {
-      assert.strictEqual(transform, tA, 'argument to _sync is expected Transform');
+      assert.strictEqual(
+        transform,
+        tA,
+        'argument to _sync is expected Transform'
+      );
       assert.strictEqual(this, s2, 'context is that of the target');
       throw new Error(':(');
     };
 
-    await coordinator.activate()
+    await coordinator.activate();
     await s1._transformed([tA]);
 
     assert.ok(true, 'transform event settled');
@@ -161,7 +207,11 @@ module('SyncStrategy', function(hooks) {
       blocking: true,
       catch(e: Exception, transform: Transform) {
         assert.equal(e.message, ':(', 'error matches');
-        assert.strictEqual(transform, tA, 'argument to catch is expected Transform');
+        assert.strictEqual(
+          transform,
+          tA,
+          'argument to catch is expected Transform'
+        );
         assert.strictEqual(this, strategy, 'context is the strategy');
         throw e;
       }
@@ -173,7 +223,11 @@ module('SyncStrategy', function(hooks) {
     });
 
     s2._sync = function(transform: Transform): Promise<void> {
-      assert.strictEqual(transform, tA, 'argument to _sync is expected Transform');
+      assert.strictEqual(
+        transform,
+        tA,
+        'argument to _sync is expected Transform'
+      );
       assert.strictEqual(this, s2, 'context is that of the target');
       throw new Error(':(');
     };
@@ -181,6 +235,9 @@ module('SyncStrategy', function(hooks) {
     await coordinator.activate();
     await s1._transformed([tA]);
 
-    assert.ok(true, 'transformed event still settled after error was caught and rethrown');
+    assert.ok(
+      true,
+      'transformed event still settled after error was caught and rethrown'
+    );
   });
 });

@@ -61,14 +61,26 @@ export class ConnectionStrategy extends Strategy {
   protected _filter: Function;
 
   constructor(options: ConnectionStrategyOptions) {
-    assert('A `source` must be specified for a ConnectionStrategy', !!options.source);
-    assert('`source` should be a Source name specified as a string', typeof options.source === 'string');
-    assert('`on` should be specified as the name of the event a ConnectionStrategy listens for', typeof options.on === 'string');
+    assert(
+      'A `source` must be specified for a ConnectionStrategy',
+      !!options.source
+    );
+    assert(
+      '`source` should be a Source name specified as a string',
+      typeof options.source === 'string'
+    );
+    assert(
+      '`on` should be specified as the name of the event a ConnectionStrategy listens for',
+      typeof options.on === 'string'
+    );
     options.sources = [options.source];
     let defaultName = `${options.source}:${options.on}`;
     delete options.source;
     if (options.target) {
-      assert('`target` should be a Source name specified as a string', typeof options.target === 'string');
+      assert(
+        '`target` should be a Source name specified as a string',
+        typeof options.target === 'string'
+      );
       options.sources.push(options.target);
       defaultName += ` -> ${options.target}`;
       if (typeof options.action === 'string') {
@@ -83,7 +95,10 @@ export class ConnectionStrategy extends Strategy {
     this._action = options.action;
     this._catch = options.catch;
     this._filter = options.filter;
-    this._blocking = typeof options.blocking === 'function' ? options.blocking : !!options.blocking;
+    this._blocking =
+      typeof options.blocking === 'function'
+        ? options.blocking
+        : !!options.blocking;
   }
 
   get source(): Source {
@@ -98,14 +113,17 @@ export class ConnectionStrategy extends Strategy {
     return this._blocking;
   }
 
-  async activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<void> {
+  async activate(
+    coordinator: Coordinator,
+    options: ActivationOptions = {}
+  ): Promise<void> {
     await super.activate(coordinator, options);
     this._listener = this.generateListener();
     this.source.on(this._event, this._listener);
   }
 
   async deactivate(): Promise<void> {
-    await super.deactivate()
+    await super.deactivate();
     this.source.off(this._event, this._listener);
     this._listener = null;
   }

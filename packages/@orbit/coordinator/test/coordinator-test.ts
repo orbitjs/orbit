@@ -1,4 +1,8 @@
-import Coordinator, { Strategy, CoordinatorOptions, ActivationOptions } from '../src/index';
+import Coordinator, {
+  Strategy,
+  CoordinatorOptions,
+  ActivationOptions
+} from '../src/index';
 import { Source } from '@orbit/data';
 
 const { module, test } = QUnit;
@@ -36,12 +40,9 @@ module('Coordinator', function(hooks) {
     let s1 = new MySource();
     coordinator = new Coordinator();
 
-    assert.throws(
-      () => {
-        coordinator.addSource(s1);
-      },
-      new Error("Assertion failed: Sources require a 'name' to be added to a coordinator.")
-    );
+    assert.throws(() => {
+      coordinator.addSource(s1);
+    }, new Error("Assertion failed: Sources require a 'name' to be added to a coordinator."));
   });
 
   test('can not add a source with a duplicate name', function(assert) {
@@ -49,13 +50,10 @@ module('Coordinator', function(hooks) {
     let s2 = new MySource({ name: 's1' });
     coordinator = new Coordinator();
 
-    assert.throws(
-      () => {
-        coordinator.addSource(s1);
-        coordinator.addSource(s2);
-      },
-      new Error("Assertion failed: A source named 's1' has already been added to this coordinator.")
-    );
+    assert.throws(() => {
+      coordinator.addSource(s1);
+      coordinator.addSource(s2);
+    }, new Error("Assertion failed: A source named 's1' has already been added to this coordinator."));
   });
 
   test('can not add a source while activated', async function(assert) {
@@ -64,12 +62,9 @@ module('Coordinator', function(hooks) {
 
     await coordinator.activate();
 
-    assert.throws(
-      () => {
-        coordinator.addSource(s1);
-      },
-      new Error("Assertion failed: A coordinator's sources can not be changed while it is active.")
-    );
+    assert.throws(() => {
+      coordinator.addSource(s1);
+    }, new Error("Assertion failed: A coordinator's sources can not be changed while it is active."));
   });
 
   test('can not remove a source while activated', async function(assert) {
@@ -78,12 +73,9 @@ module('Coordinator', function(hooks) {
 
     await coordinator.activate();
 
-    assert.throws(
-      () => {
-        coordinator.removeSource('s1');
-      },
-      new Error("Assertion failed: A coordinator's sources can not be changed while it is active.")
-    );
+    assert.throws(() => {
+      coordinator.removeSource('s1');
+    }, new Error("Assertion failed: A coordinator's sources can not be changed while it is active."));
   });
 
   test('can not remove a source that has not been added', async function(assert) {
@@ -92,12 +84,9 @@ module('Coordinator', function(hooks) {
 
     await coordinator.activate();
 
-    assert.throws(
-      () => {
-        coordinator.removeSource('s1');
-      },
-      new Error("Assertion failed: Source 's1' has not been added to this coordinator.")
-    );
+    assert.throws(() => {
+      coordinator.removeSource('s1');
+    }, new Error("Assertion failed: Source 's1' has not been added to this coordinator."));
   });
 
   test('can remove a source while inactive', function(assert) {
@@ -134,13 +123,10 @@ module('Coordinator', function(hooks) {
     let s2 = new MyStrategy({ name: 's1' });
     coordinator = new Coordinator();
 
-    assert.throws(
-      () => {
-        coordinator.addStrategy(s1);
-        coordinator.addStrategy(s2);
-      },
-      new Error("Assertion failed: A strategy named 's1' has already been added to this coordinator.")
-    );
+    assert.throws(() => {
+      coordinator.addStrategy(s1);
+      coordinator.addStrategy(s2);
+    }, new Error("Assertion failed: A strategy named 's1' has already been added to this coordinator."));
   });
 
   test('can not add a strategy while activated', async function(assert) {
@@ -149,12 +135,9 @@ module('Coordinator', function(hooks) {
 
     await coordinator.activate();
 
-    assert.throws(
-      () => {
-        coordinator.addStrategy(s1);
-      },
-      new Error("Assertion failed: A coordinator's strategies can not be changed while it is active.")
-    );
+    assert.throws(() => {
+      coordinator.addStrategy(s1);
+    }, new Error("Assertion failed: A coordinator's strategies can not be changed while it is active."));
   });
 
   test('can not remove a strategy while activated', async function(assert) {
@@ -163,12 +146,9 @@ module('Coordinator', function(hooks) {
 
     await coordinator.activate();
 
-    assert.throws(
-      () => {
-        coordinator.removeStrategy('s1');
-      },
-      new Error("Assertion failed: A coordinator's strategies can not be changed while it is active.")
-    );
+    assert.throws(() => {
+      coordinator.removeStrategy('s1');
+    }, new Error("Assertion failed: A coordinator's strategies can not be changed while it is active."));
   });
 
   test('can not remove a strategy that has not been added', async function(assert) {
@@ -177,12 +157,9 @@ module('Coordinator', function(hooks) {
 
     await coordinator.activate();
 
-    assert.throws(
-      () => {
-        coordinator.removeStrategy('s1');
-      },
-      new Error("Assertion failed: Strategy 's1' has not been added to this coordinator.")
-    );
+    assert.throws(() => {
+      coordinator.removeStrategy('s1');
+    }, new Error("Assertion failed: Strategy 's1' has not been added to this coordinator."));
   });
 
   test('can remove a strategy while inactive', function(assert) {
@@ -204,7 +181,10 @@ module('Coordinator', function(hooks) {
     let deactivatedCount = 0;
 
     class CustomStrategy extends Strategy {
-      async activate(coordinator: Coordinator, options: ActivationOptions): Promise<void> {
+      async activate(
+        coordinator: Coordinator,
+        options: ActivationOptions
+      ): Promise<void> {
         activatedCount++;
         if (activatedCount === 1) {
           assert.strictEqual(this.name, 's2', 'expected order');
@@ -249,7 +229,10 @@ module('Coordinator', function(hooks) {
     assert.expect(2);
 
     class CustomStrategy extends Strategy {
-      async activate(coordinator: Coordinator, options: ActivationOptions): Promise<void> {
+      async activate(
+        coordinator: Coordinator,
+        options: ActivationOptions
+      ): Promise<void> {
         assert.ok(false, 'strategies should not be activated');
       }
 

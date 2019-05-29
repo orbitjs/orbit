@@ -82,7 +82,10 @@ module('Strategy', function(hooks) {
         super(options);
       }
 
-      async activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<void> {
+      async activate(
+        coordinator: Coordinator,
+        options: ActivationOptions = {}
+      ): Promise<void> {
         await super.activate(coordinator, options);
         assert.deepEqual(this._sources, [s1, s2, s3]);
       }
@@ -102,7 +105,10 @@ module('Strategy', function(hooks) {
         super(options);
       }
 
-      async activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<void> {
+      async activate(
+        coordinator: Coordinator,
+        options: ActivationOptions = {}
+      ): Promise<void> {
         await super.activate(coordinator, options);
         assert.deepEqual(this._sources, [s1, s2]);
       }
@@ -121,12 +127,23 @@ module('Strategy', function(hooks) {
         options.name = 'custom';
         super(options);
 
-        assert.equal(this.logLevel, undefined, '_logLevel is initially undefined');
+        assert.equal(
+          this.logLevel,
+          undefined,
+          '_logLevel is initially undefined'
+        );
       }
 
-      async activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<void> {
+      async activate(
+        coordinator: Coordinator,
+        options: ActivationOptions = {}
+      ): Promise<void> {
         await super.activate(coordinator, options);
-        assert.equal(this.logLevel, LogLevel.Warnings, '_logLevel is set by activate');
+        assert.equal(
+          this.logLevel,
+          LogLevel.Warnings,
+          '_logLevel is set by activate'
+        );
       }
     }
 
@@ -147,9 +164,16 @@ module('Strategy', function(hooks) {
         assert.equal(this.logLevel, LogLevel.Errors, '_logLevel is custom');
       }
 
-      async activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<void> {
+      async activate(
+        coordinator: Coordinator,
+        options: ActivationOptions = {}
+      ): Promise<void> {
         await super.activate(coordinator, options);
-        assert.equal(this.logLevel, LogLevel.Errors, '_logLevel is custom even after activate');
+        assert.equal(
+          this.logLevel,
+          LogLevel.Errors,
+          '_logLevel is custom even after activate'
+        );
       }
     }
 

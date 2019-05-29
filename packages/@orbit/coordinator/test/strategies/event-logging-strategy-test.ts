@@ -1,10 +1,5 @@
-import Coordinator, {
-  EventLoggingStrategy
-} from '../../src/index';
-import {
-  Source,
-  TransformBuilder
-} from '@orbit/data';
+import Coordinator, { EventLoggingStrategy } from '../../src/index';
+import { Source, TransformBuilder } from '@orbit/data';
 
 const { module, test } = QUnit;
 
@@ -24,7 +19,10 @@ module('EventLoggingStrategy', function(hooks) {
 
     coordinator.addStrategy(eventLoggingStrategy);
 
-    assert.strictEqual(coordinator.getStrategy('event-logging'), eventLoggingStrategy);
+    assert.strictEqual(
+      coordinator.getStrategy('event-logging'),
+      eventLoggingStrategy
+    );
   });
 
   test('for basic sources, installs `transform` listeners on activatation and removes them on deactivation', async function(assert) {
@@ -37,7 +35,10 @@ module('EventLoggingStrategy', function(hooks) {
 
     eventLoggingStrategy = new EventLoggingStrategy();
 
-    let coordinator = new Coordinator({ sources: [ s1, s2 ], strategies: [ eventLoggingStrategy ]});
+    let coordinator = new Coordinator({
+      sources: [s1, s2],
+      strategies: [eventLoggingStrategy]
+    });
 
     assert.equal(s1.listeners('transform').length, 0);
     assert.equal(s2.listeners('transform').length, 0);

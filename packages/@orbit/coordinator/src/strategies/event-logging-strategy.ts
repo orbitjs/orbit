@@ -32,7 +32,10 @@ export class EventLoggingStrategy extends Strategy {
     this._logPrefix = options.logPrefix || '[source-event]';
   }
 
-  async activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<void> {
+  async activate(
+    coordinator: Coordinator,
+    options: ActivationOptions = {}
+  ): Promise<void> {
     await super.activate(coordinator, options);
     this._eventListeners = {};
     this._sources.forEach(source => this._activateSource(source));
@@ -73,17 +76,27 @@ export class EventLoggingStrategy extends Strategy {
 
   protected _sourceInterfaces(source: Source): string[] {
     let interfaces = ['transformable'];
-    if (isPullable(source)) { interfaces.push('pullable'); }
-    if (isPushable(source)) { interfaces.push('pushable'); }
-    if (isQueryable(source)) { interfaces.push('queryable'); }
-    if (isSyncable(source)) { interfaces.push('syncable'); }
-    if (isUpdatable(source)) { interfaces.push('updatable'); }
+    if (isPullable(source)) {
+      interfaces.push('pullable');
+    }
+    if (isPushable(source)) {
+      interfaces.push('pushable');
+    }
+    if (isQueryable(source)) {
+      interfaces.push('queryable');
+    }
+    if (isSyncable(source)) {
+      interfaces.push('syncable');
+    }
+    if (isUpdatable(source)) {
+      interfaces.push('updatable');
+    }
     return interfaces;
   }
 
   protected _interfaceEvents(interfaceName: string): string[] {
     if (this._logLevel === LogLevel.Info) {
-      switch(interfaceName) {
+      switch (interfaceName) {
         case 'pullable':
           return ['beforePull', 'pull', 'pullFail'];
         case 'pushable':
@@ -98,7 +111,7 @@ export class EventLoggingStrategy extends Strategy {
           return ['transform'];
       }
     } else if (this._logLevel > LogLevel.None) {
-      switch(interfaceName) {
+      switch (interfaceName) {
         case 'pullable':
           return ['pullFail'];
         case 'pushable':
@@ -109,7 +122,7 @@ export class EventLoggingStrategy extends Strategy {
           return ['syncFail'];
         case 'updatable':
           return ['updateFail'];
-       }
+      }
     }
   }
 

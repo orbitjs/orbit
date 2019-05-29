@@ -1,6 +1,4 @@
-import Coordinator, {
-  RequestStrategy
-} from '../../src/index';
+import Coordinator, { RequestStrategy } from '../../src/index';
 import {
   Source,
   Transform,
@@ -14,8 +12,16 @@ const { module, test } = QUnit;
 
 module('RequestStrategy', function(hooks) {
   const t = new TransformBuilder();
-  const tA = buildTransform([t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })], null, 'a');
-  const tB = buildTransform([t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })], null, 'b');
+  const tA = buildTransform(
+    [t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })],
+    null,
+    'a'
+  );
+  const tB = buildTransform(
+    [t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })],
+    null,
+    'b'
+  );
 
   let strategy: RequestStrategy;
   let coordinator: Coordinator;
@@ -32,15 +38,33 @@ module('RequestStrategy', function(hooks) {
   });
 
   test('can be instantiated', function(assert) {
-    strategy = new RequestStrategy({ source: 's1', target: 's2', on: 'update', action: 'push' });
+    strategy = new RequestStrategy({
+      source: 's1',
+      target: 's2',
+      on: 'update',
+      action: 'push'
+    });
 
     assert.ok(strategy);
-    assert.strictEqual(strategy.blocking, false, 'blocking is false by default');
-    assert.equal(strategy.name, 's1:update -> s2:push', 'name is based on source names by default');
+    assert.strictEqual(
+      strategy.blocking,
+      false,
+      'blocking is false by default'
+    );
+    assert.equal(
+      strategy.name,
+      's1:update -> s2:push',
+      'name is based on source names by default'
+    );
   });
 
   test('assigns source and target when activated', async function(assert) {
-    strategy = new RequestStrategy({ source: 's1', target: 's2', on: 'update', action: 'push'});
+    strategy = new RequestStrategy({
+      source: 's1',
+      target: 's2',
+      on: 'update',
+      action: 'push'
+    });
 
     coordinator = new Coordinator({
       sources: [s1, s2],
@@ -55,31 +79,57 @@ module('RequestStrategy', function(hooks) {
   test('installs listeners on activate and removes them on deactivate', async function(assert) {
     assert.expect(6);
 
-    strategy = new RequestStrategy({ source: 's1', target: 's2', on: 'update', action: 'push'});
+    strategy = new RequestStrategy({
+      source: 's1',
+      target: 's2',
+      on: 'update',
+      action: 'push'
+    });
 
     coordinator = new Coordinator({
       sources: [s1, s2],
       strategies: [strategy]
     });
 
-    assert.equal(s1.listeners('update').length, 0, 'no listeners installed yet');
-    assert.equal(s2.listeners('update').length, 0, 'no listeners installed yet');
+    assert.equal(
+      s1.listeners('update').length,
+      0,
+      'no listeners installed yet'
+    );
+    assert.equal(
+      s2.listeners('update').length,
+      0,
+      'no listeners installed yet'
+    );
 
     await coordinator.activate();
 
     assert.equal(s1.listeners('update').length, 1, 'listeners installed');
-    assert.equal(s2.listeners('update').length, 0, 'no listeners installed on target');
+    assert.equal(
+      s2.listeners('update').length,
+      0,
+      'no listeners installed on target'
+    );
 
     await coordinator.deactivate();
 
     assert.equal(s1.listeners('update').length, 0, 'listeners removed');
-    assert.equal(s2.listeners('update').length, 0, 'still no listeners on target');
+    assert.equal(
+      s2.listeners('update').length,
+      0,
+      'still no listeners on target'
+    );
   });
 
   test('observes source `on` event and invokes `action` on target', async function(assert) {
     assert.expect(3);
 
-    strategy = new RequestStrategy({ source: 's1', target: 's2', on: 'update', action: 'push'});
+    strategy = new RequestStrategy({
+      source: 's1',
+      target: 's2',
+      on: 'update',
+      action: 'push'
+    });
 
     coordinator = new Coordinator({
       sources: [s1, s2],
@@ -87,11 +137,19 @@ module('RequestStrategy', function(hooks) {
     });
 
     s1._update = async function(transform: Transform): Promise<any> {
-      assert.strictEqual(transform, tA, 'argument to _update is expected Transform');
+      assert.strictEqual(
+        transform,
+        tA,
+        'argument to _update is expected Transform'
+      );
     };
 
     s2._push = async function(transform: Transform): Promise<Transform[]> {
-      assert.strictEqual(transform, tA, 'argument to _push is expected Transform');
+      assert.strictEqual(
+        transform,
+        tA,
+        'argument to _push is expected Transform'
+      );
       assert.strictEqual(this, s2, 'context is that of the target');
       return [];
     };
@@ -117,19 +175,33 @@ module('RequestStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function(transform: Transform, hints: any): Promise<any> {
-      assert.strictEqual(transform, tA, 'argument to _update is expected Transform');
+    s1._update = async function(
+      transform: Transform,
+      hints: any
+    ): Promise<any> {
+      assert.strictEqual(
+        transform,
+        tA,
+        'argument to _update is expected Transform'
+      );
       assert.deepEqual(hints.data, [tA], 'result is passed as a hint');
     };
 
-    s2._push = async function(transform: Transform, hints: any): Promise<Transform[]> {
+    s2._push = async function(
+      transform: Transform,
+      hints: any
+    ): Promise<Transform[]> {
       assert.deepEqual(hints, {}, 'no hints are passed to `push`');
-      assert.strictEqual(transform, tA, 'argument to _push is expected Transform');
+      assert.strictEqual(
+        transform,
+        tA,
+        'argument to _push is expected Transform'
+      );
       assert.strictEqual(this, s2, 'context is that of the target');
       return [tA];
     };
 
-    await coordinator.activate()
+    await coordinator.activate();
     await s1.update(tA);
   });
 
@@ -143,7 +215,7 @@ module('RequestStrategy', function(hooks) {
       action: 'push',
       filter(transform: Transform): boolean {
         assert.strictEqual(this, strategy, 'context is the strategy');
-        return (transform === tB);
+        return transform === tB;
       }
     });
 
@@ -152,11 +224,14 @@ module('RequestStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function(): Promise<any> {
-    };
+    s1._update = async function(): Promise<any> {};
 
     s2._push = async function(transform: Transform): Promise<Transform[]> {
-      assert.strictEqual(transform, tB, 'argument to _push is expected Transform');
+      assert.strictEqual(
+        transform,
+        tB,
+        'argument to _push is expected Transform'
+      );
       assert.strictEqual(this, s2, 'context is that of the target');
       return [];
     };
@@ -175,8 +250,15 @@ module('RequestStrategy', function(hooks) {
       on: 'update',
       action: 'push',
       blocking(transform: Transform): boolean {
-        assert.ok(this instanceof RequestStrategy, 'it is bound to the strategy');
-        assert.strictEqual(transform, tA, "argument to _update is expected Transform");
+        assert.ok(
+          this instanceof RequestStrategy,
+          'it is bound to the strategy'
+        );
+        assert.strictEqual(
+          transform,
+          tA,
+          'argument to _update is expected Transform'
+        );
         return false;
       }
     });
@@ -187,11 +269,19 @@ module('RequestStrategy', function(hooks) {
     });
 
     s1._update = async function(transform: Transform): Promise<any> {
-      assert.strictEqual(transform, tA, 'argument to _update is expected Transform');
+      assert.strictEqual(
+        transform,
+        tA,
+        'argument to _update is expected Transform'
+      );
     };
 
     s2._push = async function(transform: Transform): Promise<Transform[]> {
-      assert.strictEqual(transform, tA, 'argument to _push is expected Transform');
+      assert.strictEqual(
+        transform,
+        tA,
+        'argument to _push is expected Transform'
+      );
       assert.strictEqual(this, s2, 'context is that of the target');
       return [];
     };

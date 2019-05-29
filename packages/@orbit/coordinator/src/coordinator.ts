@@ -55,8 +55,14 @@ export default class Coordinator {
     const name = source.name;
 
     assert(`Sources require a 'name' to be added to a coordinator.`, !!name);
-    assert(`A source named '${name}' has already been added to this coordinator.`, !this._sources[name]);
-    assert(`A coordinator's sources can not be changed while it is active.`, !this._activated);
+    assert(
+      `A source named '${name}' has already been added to this coordinator.`,
+      !this._sources[name]
+    );
+    assert(
+      `A coordinator's sources can not be changed while it is active.`,
+      !this._activated
+    );
 
     this._sources[name] = source;
   }
@@ -64,8 +70,14 @@ export default class Coordinator {
   removeSource(name: string): void {
     let source = this._sources[name];
 
-    assert(`Source '${name}' has not been added to this coordinator.`, !!source);
-    assert(`A coordinator's sources can not be changed while it is active.`, !this._activated);
+    assert(
+      `Source '${name}' has not been added to this coordinator.`,
+      !!source
+    );
+    assert(
+      `A coordinator's sources can not be changed while it is active.`,
+      !this._activated
+    );
 
     delete this._sources[name];
   }
@@ -85,8 +97,14 @@ export default class Coordinator {
   addStrategy(strategy: Strategy): void {
     const name = strategy.name;
 
-    assert(`A strategy named '${name}' has already been added to this coordinator.`, !this._strategies[name]);
-    assert(`A coordinator's strategies can not be changed while it is active.`, !this._activated);
+    assert(
+      `A strategy named '${name}' has already been added to this coordinator.`,
+      !this._strategies[name]
+    );
+    assert(
+      `A coordinator's strategies can not be changed while it is active.`,
+      !this._activated
+    );
 
     this._strategies[name] = strategy;
   }
@@ -94,8 +112,14 @@ export default class Coordinator {
   removeStrategy(name: string): void {
     let strategy = this._strategies[name];
 
-    assert(`Strategy '${name}' has not been added to this coordinator.`, !!strategy);
-    assert(`A coordinator's strategies can not be changed while it is active.`, !this._activated);
+    assert(
+      `Strategy '${name}' has not been added to this coordinator.`,
+      !!strategy
+    );
+    assert(
+      `A coordinator's strategies can not be changed while it is active.`,
+      !this._activated
+    );
 
     delete this._strategies[name];
   }
@@ -125,8 +149,7 @@ export default class Coordinator {
       this._currentActivationOptions = options;
 
       this._activated = this.strategies.reduce((chain, strategy) => {
-        return chain
-          .then(() => strategy.activate(this, options))
+        return chain.then(() => strategy.activate(this, options));
       }, Promise.resolve());
     }
 
@@ -138,8 +161,7 @@ export default class Coordinator {
       return this._activated
         .then(() => {
           return this.strategies.reverse().reduce((chain, strategy) => {
-            return chain
-              .then(() => strategy.deactivate());
+            return chain.then(() => strategy.deactivate());
           }, Promise.resolve());
         })
         .then(() => {

@@ -1,7 +1,5 @@
 import Coordinator, { ActivationOptions, LogLevel } from './coordinator';
-import Orbit, {
-  Source
-} from '@orbit/data';
+import Orbit, { Source } from '@orbit/data';
 
 const { assert } = Orbit;
 
@@ -65,7 +63,10 @@ export abstract class Strategy {
     this._logLevel = this._customLogLevel = options.logLevel;
   }
 
-  async activate(coordinator: Coordinator, options: ActivationOptions = {}): Promise<void> {
+  async activate(
+    coordinator: Coordinator,
+    options: ActivationOptions = {}
+  ): Promise<void> {
     this._coordinator = coordinator;
 
     if (this._customLogLevel === undefined) {
@@ -73,7 +74,9 @@ export abstract class Strategy {
     }
 
     if (this._sourceNames) {
-      this._sources = this._sourceNames.map(name => coordinator.getSource(name));
+      this._sources = this._sourceNames.map(name =>
+        coordinator.getSource(name)
+      );
     } else {
       this._sources = coordinator.sources;
     }
