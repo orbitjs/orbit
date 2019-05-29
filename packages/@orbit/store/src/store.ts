@@ -15,4 +15,4 @@ export default class Store extends MemorySource {
   }
 }
 
-export { MemorySourceSettings as StoreSettings }
+export { MemorySourceSettings as StoreSettings };

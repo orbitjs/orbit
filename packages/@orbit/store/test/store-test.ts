@@ -1,7 +1,4 @@
-import {
-  Schema,
-  Source
-} from '@orbit/data';
+import { Schema, Source } from '@orbit/data';
 import Store from '../src/index';
 
 const { module, test } = QUnit;
