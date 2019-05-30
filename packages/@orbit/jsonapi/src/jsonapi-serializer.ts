@@ -4,7 +4,15 @@ import Orbit, {
   KeyMap,
   Record,
   RecordIdentity,
-  ModelDefinition
+  ModelDefinition,
+  RecordOperation,
+  AddToRelatedRecordsOperation,
+  ReplaceRelatedRecordOperation,
+  ReplaceRelatedRecordsOperation,
+  UpdateRecordOperation,
+  RemoveFromRelatedRecordsOperation,
+  RemoveRecordOperation,
+  AddRecordOperation
 } from '@orbit/data';
 import {
   BooleanSerializer,
@@ -15,10 +23,19 @@ import {
   NumberSerializer
 } from '@orbit/serializers';
 import {
+  AddResourceOperation,
+  AddToRelatedResourcesOperation,
+  RemoveFromRelatedResourcesOperation,
+  RemoveResourceOperation,
+  ReplaceRelatedResourceOperation,
+  ReplaceRelatedResourcesOperation,
   Resource,
+  ResourceDocument,
   ResourceIdentity,
+  ResourceOperation,
+  ResourceOperationsDocument,
   ResourceRelationship,
-  ResourceDocument
+  UpdateResourceOperation
 } from './resource-document';
 import { RecordDocument } from './record-document';
 
@@ -309,6 +326,112 @@ export class JSONAPISerializer
     return result;
   }
 
+  deserializeOperationsDocument(
+    document: ResourceOperationsDocument
+  ): RecordOperation[] {
+    return this.deserializeOperations(document.operations);
+  }
+
+  deserializeOperations(operations: ResourceOperation[]): RecordOperation[] {
+    return operations.map(operation => this.deserializeOperation(operation));
+  }
+
+  deserializeOperation(operation: ResourceOperation): RecordOperation {
+    if (isAddOperation(operation)) {
+      return this.deserializeAddOperation(operation);
+    } else if (isUpdateOperation(operation)) {
+      return this.deserializeUpdateOperation(operation);
+    } else if (isRemoveOperation(operation)) {
+      return this.deserializeRemoveOperation(operation);
+    } else {
+      throw new Error(
+        `JSONAPISerializer: "get" operation recieved but only "add", "update" and "remove" operations are supported as input at this time.`
+      );
+    }
+  }
+
+  deserializeAddOperation(
+    operation: AddResourceOperation | AddToRelatedResourcesOperation
+  ): AddRecordOperation | AddToRelatedRecordsOperation {
+    if (isRelatedResourceOperation(operation)) {
+      return {
+        op: 'addToRelatedRecords',
+        relationship: operation.ref.relationship,
+        record: this.deserializeResourceIdentity(operation.ref),
+        relatedRecord: this.deserializeResourceIdentity(
+          operation.data as RecordIdentity
+        )
+      };
+    } else {
+      return {
+        op: 'addRecord',
+        record: this.deserializeResource(operation.data)
+      };
+    }
+  }
+
+  deserializeUpdateOperation(
+    operation:
+      | UpdateResourceOperation
+      | ReplaceRelatedResourceOperation
+      | ReplaceRelatedResourcesOperation
+  ):
+    | ReplaceRelatedRecordOperation
+    | ReplaceRelatedRecordsOperation
+    | UpdateRecordOperation {
+    if (isRelatedResourceOperation(operation)) {
+      const type = this.recordType(operation.ref.type);
+      const model: ModelDefinition = this._schema.getModel(type);
+      const relationships = model.relationships;
+      const relationship =
+        relationships && relationships[operation.ref.relationship];
+      if (relationship && relationship.type === 'hasMany') {
+        return {
+          op: 'replaceRelatedRecords',
+          relationship: operation.ref.relationship,
+          record: this.deserializeResourceIdentity(operation.ref),
+          relatedRecords: (operation.data as RecordIdentity[]).map(record =>
+            this.deserializeResourceIdentity(record)
+          )
+        };
+      } else {
+        return {
+          op: 'replaceRelatedRecord',
+          relationship: operation.ref.relationship,
+          record: this.deserializeResourceIdentity(operation.ref),
+          relatedRecord: operation.data
+            ? this.deserializeResourceIdentity(operation.data as RecordIdentity)
+            : null
+        };
+      }
+    } else {
+      return {
+        op: 'updateRecord',
+        record: this.deserializeResource(operation.data as Resource)
+      };
+    }
+  }
+
+  deserializeRemoveOperation(
+    operation: RemoveResourceOperation | RemoveFromRelatedResourcesOperation
+  ): RemoveFromRelatedRecordsOperation | RemoveRecordOperation {
+    if (isRelatedResourceOperation(operation)) {
+      return {
+        op: 'removeFromRelatedRecords',
+        relationship: operation.ref.relationship,
+        record: this.deserializeResourceIdentity(operation.ref),
+        relatedRecord: this.deserializeResourceIdentity(
+          operation.data as RecordIdentity
+        )
+      };
+    } else {
+      return {
+        op: 'removeRecord',
+        record: this.deserializeResourceIdentity(operation.ref)
+      };
+    }
+  }
+
   /**
    * @deprecated
    * @param document
@@ -332,10 +455,12 @@ export class JSONAPISerializer
     return this.deserialize(document, options);
   }
 
-  deserializeResource(resource: Resource, primaryRecord?: Record): Record {
+  deserializeResourceIdentity(
+    resource: Resource,
+    primaryRecord?: Record
+  ): Record {
     let record: Record;
     const type: string = this.recordType(resource.type);
-    const model: ModelDefinition = this._schema.getModel(type);
     const resourceKey = this.resourceKey(type);
 
     if (resourceKey === 'id') {
@@ -365,14 +490,21 @@ export class JSONAPISerializer
       }
     }
 
+    if (this.keyMap) {
+      this.keyMap.pushRecord(record);
+    }
+
+    return record;
+  }
+
+  deserializeResource(resource: Resource, primaryRecord?: Record): Record {
+    const record = this.deserializeResourceIdentity(resource, primaryRecord);
+    const model: ModelDefinition = this._schema.getModel(record.type);
+
     this.deserializeAttributes(record, resource, model);
     this.deserializeRelationships(record, resource, model);
     this.deserializeLinks(record, resource, model);
     this.deserializeMeta(record, resource, model);
-
-    if (this.keyMap) {
-      this.keyMap.pushRecord(record);
-    }
 
     return record;
   }
@@ -498,4 +630,35 @@ export class JSONAPISerializer
 
     return id;
   }
+}
+
+function isRelatedResourceOperation(
+  operation: ResourceOperation
+): operation is
+  | AddToRelatedResourcesOperation
+  | RemoveFromRelatedResourcesOperation
+  | ReplaceRelatedResourceOperation
+  | ReplaceRelatedResourcesOperation {
+  return !!operation.ref.relationship;
+}
+
+function isAddOperation(
+  operation: ResourceOperation
+): operation is AddResourceOperation | AddToRelatedResourcesOperation {
+  return operation.op === 'add';
+}
+
+function isUpdateOperation(
+  operation: ResourceOperation
+): operation is
+  | UpdateResourceOperation
+  | ReplaceRelatedResourcesOperation
+  | ReplaceRelatedResourcesOperation {
+  return operation.op === 'update';
+}
+
+function isRemoveOperation(
+  operation: ResourceOperation
+): operation is RemoveResourceOperation | RemoveFromRelatedResourcesOperation {
+  return operation.op === 'remove';
 }
