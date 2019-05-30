@@ -1,0 +1,47 @@
+{
+  "name": "@orbit/jsonapi-websocket",
+  "version": "0.16.0-beta.7",
+  "description": "JSON:API with WebSocket support for Orbit.",
+  "contributors": [
+    "Dan Gebhardt <dan@cerebris.com>",
+    "Paul Chavard <github@paul.chavard.net>"
+  ],
+  "keywords": [
+    "orbit",
+    "orbit.js",
+    "JSON:API",
+    "JSONAPI",
+    "API",
+    "REST"
+  ],
+  "repository": "https://github.com/orbitjs/orbit",
+  "license": "MIT",
+  "main": "dist/commonjs/es5/index.js",
+  "module": "dist/modules/es5/index.js",
+  "types": "dist/types/index.d.ts",
+  "scripts": {
+    "build": "rm -rf dist && BROCCOLI_ENV=dist broccoli build dist",
+    "build:tests": "rm -rf tests && BROCCOLI_ENV=tests broccoli build tests",
+    "prepare": "npm run build",
+    "release": "npm publish",
+    "test": "testem ci",
+    "lint:ts": "eslint . --ext .ts"
+  },
+  "dependencies": {
+    "@orbit/core": "^0.16.0-beta.7",
+    "@orbit/data": "^0.16.0-beta.7",
+    "@orbit/jsonapi": "^0.16.0-beta.7",
+    "@orbit/serializers": "^0.16.0-beta.7",
+    "@orbit/utils": "^0.16.0-beta.7"
+  },
+  "devDependencies": {
+    "@glimmer/build": "^0.10.1",
+    "@typescript-eslint/eslint-plugin": "^1.9.0",
+    "@typescript-eslint/parser": "^1.9.0",
+    "eslint": "^5.16.0",
+    "eslint-config-prettier": "^4.3.0",
+    "eslint-plugin-prettier": "^3.1.0",
+    "mock-socket": "^8.0.5",
+    "prettier": "^1.17.1"
+  }
+}
