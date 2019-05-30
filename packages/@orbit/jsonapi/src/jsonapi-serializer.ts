@@ -12,7 +12,8 @@ import Orbit, {
   UpdateRecordOperation,
   RemoveFromRelatedRecordsOperation,
   RemoveRecordOperation,
-  AddRecordOperation
+  AddRecordOperation,
+  ReplaceAttributeOperation
 } from '@orbit/data';
 import {
   BooleanSerializer,
@@ -168,6 +169,145 @@ export class JSONAPISerializer
     return this.serialize({ data });
   }
 
+  serializeOperations(operations: RecordOperation[]): ResourceOperation[] {
+    return operations.map(operation => this.serializeOperation(operation));
+  }
+
+  serializeOperation(operation: RecordOperation): ResourceOperation {
+    switch (operation.op) {
+      case 'addRecord':
+        return this.serializeAddRecordOperation(operation);
+      case 'updateRecord':
+        return this.serializeUpdateRecordOperation(operation);
+      case 'removeRecord':
+        return this.serializeRemoveRecordOperation(operation);
+      case 'addToRelatedRecords':
+        return this.serializeAddToRelatedRecordsOperation(operation);
+      case 'removeFromRelatedRecords':
+        return this.serializeRemoveFromRelatedRecordsOperation(operation);
+      case 'replaceRelatedRecord':
+        return this.serializeReplaceRelatedRecordOperation(operation);
+      case 'replaceRelatedRecords':
+        return this.serializeReplaceRelatedRecordsOperation(operation);
+      case 'replaceAttribute':
+        return this.serializeReplaceAttributeOperation(operation);
+    }
+  }
+
+  serializeAddRecordOperation(
+    operation: AddRecordOperation
+  ): AddResourceOperation {
+    const ref = {
+      type: this.resourceType(operation.record.type)
+    } as ResourceIdentity;
+    const id = this.resourceId(operation.record.type, operation.record.id);
+    if (id !== undefined) {
+      ref.id = id;
+    }
+    return {
+      op: 'add',
+      ref,
+      data: this.serializeRecord(operation.record)
+    };
+  }
+
+  serializeUpdateRecordOperation(
+    operation: UpdateRecordOperation
+  ): UpdateResourceOperation {
+    return {
+      op: 'update',
+      ref: this.serializeIdentity(operation.record),
+      data: this.serializeRecord(operation.record)
+    };
+  }
+
+  serializeRemoveRecordOperation(
+    operation: RemoveRecordOperation
+  ): RemoveResourceOperation {
+    return {
+      op: 'remove',
+      ref: this.serializeIdentity(operation.record)
+    };
+  }
+
+  serializeAddToRelatedRecordsOperation(
+    operation: AddToRelatedRecordsOperation
+  ): AddToRelatedResourcesOperation {
+    const ref = this.serializeIdentity(operation.record);
+    return {
+      op: 'add',
+      ref: { relationship: operation.relationship, ...ref },
+      data: this.serializeIdentity(operation.relatedRecord)
+    };
+  }
+
+  serializeRemoveFromRelatedRecordsOperation(
+    operation: RemoveFromRelatedRecordsOperation
+  ): RemoveFromRelatedResourcesOperation {
+    const ref = this.serializeIdentity(operation.record);
+    return {
+      op: 'remove',
+      ref: { relationship: operation.relationship, ...ref },
+      data: this.serializeIdentity(operation.relatedRecord)
+    };
+  }
+
+  serializeReplaceRelatedRecordsOperation(
+    operation: ReplaceRelatedRecordsOperation
+  ): ReplaceRelatedResourcesOperation {
+    const ref = this.serializeIdentity(operation.record);
+    return {
+      op: 'update',
+      ref: { relationship: operation.relationship, ...ref },
+      data: operation.relatedRecords.map(record =>
+        this.serializeIdentity(record)
+      )
+    };
+  }
+
+  serializeReplaceRelatedRecordOperation(
+    operation: ReplaceRelatedRecordOperation
+  ): ReplaceRelatedResourceOperation {
+    const ref = this.serializeIdentity(operation.record);
+    return {
+      op: 'update',
+      ref: { relationship: operation.relationship, ...ref },
+      data: operation.relatedRecord
+        ? this.serializeIdentity(operation.relatedRecord)
+        : null
+    };
+  }
+
+  serializeReplaceAttributeOperation(
+    operation: ReplaceAttributeOperation
+  ): UpdateResourceOperation {
+    const ref = this.serializeIdentity(operation.record);
+    let value: any = operation.value;
+    const attr = operation.attribute;
+    const type = operation.record.type;
+    const attrName = this.resourceAttribute(type, attr);
+    const attrOptions = this.schema.getModel(type).attributes[attr];
+
+    if (attrOptions && value !== undefined) {
+      const serializer = this._serializers[attrOptions.type];
+      if (serializer) {
+        value = serializer.serialize(value, attrOptions.serializationOptions);
+      }
+    }
+
+    return {
+      op: 'update',
+      ref,
+      data: {
+        id: ref.id,
+        type: ref.type,
+        attributes: {
+          [attrName]: value
+        }
+      }
+    };
+  }
+
   serializeRecords(records: Record[]): Resource[] {
     return records.map(record => this.serializeRecord(record));
   }
@@ -183,6 +323,13 @@ export class JSONAPISerializer
     this.serializeRelationships(resource, record, model);
 
     return resource;
+  }
+
+  serializeIdentity(record: Record): ResourceIdentity {
+    return {
+      type: this.resourceType(record.type),
+      id: this.resourceId(record.type, record.id)
+    };
   }
 
   serializeId(
