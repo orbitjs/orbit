@@ -100,6 +100,37 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
+  test('findRecords + filter (invalid filter expression)', function(assert) {
+    assert.throws(() => {
+      oqb
+        .findRecords('planet')
+        // @ts-ignore: testing a common mistake for a new Orbiteer not using TypeScript
+        .filter({ name: 'Pluto' })
+        .toQueryExpression();
+    }, new Error('Unrecognized filter param.'));
+  });
+
+  test('findRecords + attribute filter', function(assert) {
+    assert.deepEqual(
+      oqb
+        .findRecords('planet')
+        .filter({ attribute: 'name', value: 'Pluto' })
+        .toQueryExpression(),
+      {
+        op: 'findRecords',
+        type: 'planet',
+        filter: [
+          {
+            op: 'equal',
+            kind: 'attribute',
+            attribute: 'name',
+            value: 'Pluto'
+          }
+        ]
+      } as FindRecords
+    );
+  });
+
   test('findRecords + hasOne filter', function(assert) {
     assert.deepEqual(
       oqb

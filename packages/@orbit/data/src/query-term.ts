@@ -202,7 +202,7 @@ function filterParamToSpecifier(param: FilterQBParam): FilterSpecifier {
         records: (param as RelatedRecordsFilterQBParam).records
       } as RelatedRecordsFilterSpecifier;
     }
-  } else {
+  } else if (param.hasOwnProperty('attribute')) {
     return {
       kind: 'attribute',
       op,
