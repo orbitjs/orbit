@@ -321,4 +321,196 @@ module('JSONAPISerializer', function(hooks) {
       });
     }, '"get" operation recieved');
   });
+
+  test('serializeOperation', function(assert) {
+    const operation = serializer.serializeOperation({
+      op: 'updateRecord',
+      record: {
+        type: 'planet',
+        id: '1',
+        attributes: {
+          name: 'Earth'
+        }
+      }
+    });
+
+    assert.deepEqual(operation, {
+      op: 'update',
+      ref: {
+        type: 'planets',
+        id: '1'
+      },
+      data: {
+        type: 'planets',
+        id: '1',
+        attributes: {
+          name: 'Earth'
+        }
+      }
+    });
+  });
+
+  test('serializeOperations', function(assert) {
+    const operations = serializer.serializeOperations([
+      {
+        op: 'updateRecord',
+        record: {
+          id: '1',
+          type: 'planet',
+          attributes: {
+            name: 'Earth'
+          }
+        }
+      },
+      {
+        op: 'replaceRelatedRecords',
+        record: {
+          id: '1',
+          type: 'planet'
+        },
+        relatedRecords: [
+          {
+            id: '2',
+            type: 'moon'
+          }
+        ],
+        relationship: 'moons'
+      },
+      {
+        op: 'replaceRelatedRecord',
+        record: {
+          id: '1',
+          type: 'planet'
+        },
+        relatedRecord: {
+          id: '3',
+          type: 'solarSystem'
+        },
+        relationship: 'solarSystem'
+      },
+      {
+        op: 'replaceRelatedRecord',
+        record: {
+          id: '2',
+          type: 'planet'
+        },
+        relatedRecord: null,
+        relationship: 'solarSystem'
+      },
+      {
+        op: 'removeRecord',
+        record: {
+          id: '1',
+          type: 'planet'
+        }
+      },
+      {
+        op: 'removeFromRelatedRecords',
+        record: {
+          id: '1',
+          type: 'planet'
+        },
+        relatedRecord: {
+          id: '2',
+          type: 'moon'
+        },
+        relationship: 'moons'
+      },
+      {
+        op: 'addRecord',
+        record: {
+          id: '3',
+          type: 'moon',
+          attributes: {
+            name: 'Io'
+          }
+        }
+      }
+    ]);
+
+    assert.deepEqual(operations, [
+      {
+        op: 'update',
+        ref: {
+          type: 'planets',
+          id: '1'
+        },
+        data: {
+          type: 'planets',
+          id: '1',
+          attributes: {
+            name: 'Earth'
+          }
+        }
+      },
+      {
+        op: 'update',
+        ref: {
+          type: 'planets',
+          id: '1',
+          relationship: 'moons'
+        },
+        data: [
+          {
+            type: 'moons',
+            id: '2'
+          }
+        ]
+      },
+      {
+        op: 'update',
+        ref: {
+          type: 'planets',
+          id: '1',
+          relationship: 'solarSystem'
+        },
+        data: {
+          type: 'solar-systems',
+          id: '3'
+        }
+      },
+      {
+        op: 'update',
+        ref: {
+          type: 'planets',
+          id: '2',
+          relationship: 'solarSystem'
+        },
+        data: null
+      },
+      {
+        op: 'remove',
+        ref: {
+          type: 'planets',
+          id: '1'
+        }
+      },
+      {
+        op: 'remove',
+        ref: {
+          type: 'planets',
+          id: '1',
+          relationship: 'moons'
+        },
+        data: {
+          type: 'moons',
+          id: '2'
+        }
+      },
+      {
+        op: 'add',
+        ref: {
+          type: 'moons',
+          id: '3'
+        },
+        data: {
+          type: 'moons',
+          id: '3',
+          attributes: {
+            name: 'Io'
+          }
+        }
+      }
+    ]);
+  });
 });
