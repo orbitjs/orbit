@@ -1,6 +1,6 @@
 {
   "name": "@orbit/core",
-  "version": "0.16.0-beta.7",
+  "version": "0.16.0-beta.8",
   "description": "Core library for Orbit - a flexible data access and synchronization layer.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -26,7 +26,7 @@
     "lint:ts": "eslint . --ext .ts"
   },
   "dependencies": {
-    "@orbit/utils": "^0.16.0-beta.7"
+    "@orbit/utils": "^0.16.0-beta.8"
   },
   "devDependencies": {
     "@glimmer/build": "^0.10.1",

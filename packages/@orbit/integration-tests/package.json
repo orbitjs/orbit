@@ -1,7 +1,7 @@
 {
   "name": "@orbit/integration-tests",
   "private": true,
-  "version": "0.16.0-beta.7",
+  "version": "0.16.0-beta.8",
   "description": "Integration tests for core Orbit packages.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -20,30 +20,30 @@
     "lint:ts": "eslint . --ext .ts"
   },
   "dependencies": {
-    "@orbit/coordinator": "^0.16.0-beta.7",
-    "@orbit/core": "^0.16.0-beta.7",
-    "@orbit/data": "^0.16.0-beta.7",
-    "@orbit/immutable": "^0.16.0-beta.7",
-    "@orbit/indexeddb": "^0.16.0-beta.7",
-    "@orbit/indexeddb-bucket": "^0.16.0-beta.7",
-    "@orbit/jsonapi": "^0.16.0-beta.7",
-    "@orbit/local-storage": "^0.16.0-beta.7",
-    "@orbit/local-storage-bucket": "^0.16.0-beta.7",
-    "@orbit/memory": "^0.16.0-beta.7",
-    "@orbit/record-cache": "^0.16.0-beta.7",
-    "@orbit/serializers": "^0.16.0-beta.7",
-    "@orbit/utils": "^0.16.0-beta.7"
+    "@orbit/coordinator": "^0.16.0-beta.8",
+    "@orbit/core": "^0.16.0-beta.8",
+    "@orbit/data": "^0.16.0-beta.8",
+    "@orbit/immutable": "^0.16.0-beta.8",
+    "@orbit/indexeddb": "^0.16.0-beta.8",
+    "@orbit/indexeddb-bucket": "^0.16.0-beta.8",
+    "@orbit/jsonapi": "^0.16.0-beta.8",
+    "@orbit/local-storage": "^0.16.0-beta.8",
+    "@orbit/local-storage-bucket": "^0.16.0-beta.8",
+    "@orbit/memory": "^0.16.0-beta.8",
+    "@orbit/record-cache": "^0.16.0-beta.8",
+    "@orbit/serializers": "^0.16.0-beta.8",
+    "@orbit/utils": "^0.16.0-beta.8"
   },
   "devDependencies": {
     "@glimmer/build": "^0.10.1",
     "@types/sinon": "7.0.3",
-    "sinon": "^7.2.2",
-    "whatwg-fetch": "^2.0.3",
     "@typescript-eslint/eslint-plugin": "^1.9.0",
     "@typescript-eslint/parser": "^1.9.0",
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^4.3.0",
     "eslint-plugin-prettier": "^3.1.0",
-    "prettier": "^1.17.1"
+    "prettier": "^1.17.1",
+    "sinon": "^7.2.2",
+    "whatwg-fetch": "^2.0.3"
   }
 }
