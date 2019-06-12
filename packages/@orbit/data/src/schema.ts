@@ -161,7 +161,7 @@ export default class Schema implements Evented, RecordInitializer {
    * A naive pluralization method.
    *
    * Override with a more robust general purpose inflector or provide an
-   * inflector tailored to the vocabularly of your application.
+   * inflector tailored to the vocabulary of your application.
    */
   pluralize(word: string): string {
     return word + 's';
@@ -171,12 +171,15 @@ export default class Schema implements Evented, RecordInitializer {
    * A naive singularization method.
    *
    * Override with a more robust general purpose inflector or provide an
-   * inflector tailored to the vocabularly of your application.
+   * inflector tailored to the vocabulary of your application.
    */
   singularize(word: string): string {
     if (word.lastIndexOf('s') === word.length - 1) {
       return word.substr(0, word.length - 1);
     } else {
+      console.warn(
+        `Orbit's built-in naive singularization rules cannot singularize ${word}. Pass singularize & pluralize functions to Schema to customize.`
+      );
       return word;
     }
   }
