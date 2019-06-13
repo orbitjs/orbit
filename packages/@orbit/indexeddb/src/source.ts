@@ -16,8 +16,13 @@ import Orbit, {
   RecordOperation,
   Operation,
   UpdateRecordOperation,
-  Record
+  Record,
+  Queryable,
+  Updatable,
+  queryable,
+  updatable
 } from '@orbit/data';
+import { toArray } from '@orbit/utils';
 import { supportsIndexedDB } from './lib/indexeddb';
 import IndexedDBCache, { IndexedDBCacheSettings } from './cache';
 
@@ -34,8 +39,10 @@ export interface IndexedDBSourceSettings extends SourceSettings {
 @pullable
 @pushable
 @syncable
+@queryable
+@updatable
 export default class IndexedDBSource extends Source
-  implements Pullable, Pushable, Resettable, Syncable {
+  implements Pullable, Pushable, Resettable, Syncable, Queryable, Updatable {
   protected _cache: IndexedDBCache;
 
   // Syncable interface stubs
@@ -54,6 +61,20 @@ export default class IndexedDBSource extends Source
     options?: object,
     id?: string
   ) => Promise<Transform[]>;
+
+  // Queryable interface stubs
+  query: (
+    queryOrExpression: QueryOrExpression,
+    options?: object,
+    id?: string
+  ) => Promise<any>;
+
+  // Updatable interface stubs
+  update: (
+    transformOrOperations: TransformOrOperations,
+    options?: object,
+    id?: string
+  ) => Promise<any>;
 
   constructor(settings: IndexedDBSourceSettings = {}) {
     assert(
@@ -140,5 +161,46 @@ export default class IndexedDBSource extends Source
     }
 
     return [buildTransform(operations)];
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Queryable interface implementation
+  /////////////////////////////////////////////////////////////////////////////
+
+  async _query(query: Query, hints?: any): Promise<any> {
+    let records: Record[] | Record;
+    const operations: RecordOperation[] = [];
+
+    if (hints && hints.data) {
+      if (Array.isArray(hints.data)) {
+        records = await this._cache.query(q => q.findRecords(hints.data));
+      } else {
+        records = await this._cache.query(q => q.findRecord(hints.data));
+      }
+    } else {
+      records = await this._cache.query(query);
+    }
+
+    for (let record of toArray(records)) {
+      operations.push({
+        op: 'updateRecord',
+        record
+      });
+    }
+
+    await this._transformed([buildTransform(operations)]);
+
+    return records;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Updatable interface implementation
+  /////////////////////////////////////////////////////////////////////////////
+
+  async _update(transform: Transform): Promise<any> {
+    const { data: results } = await this._cache.patch(
+      transform.operations as RecordOperation[]
+    );
+    return results.length === 1 ? results[0] : results;
   }
 }
