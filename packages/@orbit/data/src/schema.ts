@@ -28,6 +28,11 @@ export interface ModelDefinition {
   relationships?: Dict<RelationshipDefinition>;
 }
 
+export interface Inflections {
+  plurals: Dict<string>;
+  singulars: Dict<string>;
+}
+
 /**
  * Settings used to initialze and/or upgrade schemas.
  *
@@ -70,6 +75,13 @@ export interface SchemaSettings {
    * @memberof SchemaSettings
    */
   models?: Dict<ModelDefinition>;
+
+  /**
+   * Map of Static inflections.
+   *
+   * @memberof SchemaSettings
+   */
+  inflections?: Inflections;
 }
 
 /**
@@ -84,6 +96,7 @@ export interface SchemaSettings {
 @evented
 export default class Schema implements Evented, RecordInitializer {
   private _models: Dict<ModelDefinition>;
+  private _inflections?: Inflections;
 
   private _version: number;
 
@@ -148,6 +161,11 @@ export default class Schema implements Evented, RecordInitializer {
     if (settings.models) {
       this._models = settings.models;
     }
+
+    // Register inflections
+    if (settings.inflections) {
+      this._inflections = settings.inflections;
+    }
   }
 
   /**
@@ -164,6 +182,16 @@ export default class Schema implements Evented, RecordInitializer {
    * inflector tailored to the vocabulary of your application.
    */
   pluralize(word: string): string {
+    if (this._inflections) {
+      const pluralizedWord = this._inflections.plurals[word];
+      if (pluralizedWord) {
+        return pluralizedWord;
+      } else {
+        console.warn(
+          `Static inflections provided but could not find plural for ${word}.`
+        );
+      }
+    }
     return word + 's';
   }
 
@@ -174,6 +202,16 @@ export default class Schema implements Evented, RecordInitializer {
    * inflector tailored to the vocabulary of your application.
    */
   singularize(word: string): string {
+    if (this._inflections) {
+      const singularizedWord = this._inflections.singulars[word];
+      if (singularizedWord) {
+        return singularizedWord;
+      } else {
+        console.warn(
+          `Static inflections provided but could not find singular for ${word}.`
+        );
+      }
+    }
     if (word.lastIndexOf('s') === word.length - 1) {
       return word.substr(0, word.length - 1);
     } else {
