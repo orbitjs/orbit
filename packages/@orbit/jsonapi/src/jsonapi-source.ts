@@ -202,11 +202,7 @@ export default class JSONAPISource extends Source
       transformRequests.length > this.maxRequestsPerTransform
     ) {
       throw new TransformNotAllowed(
-        `This transform requires ${
-          transformRequests.length
-        } requests, which exceeds the specified limit of ${
-          this.maxRequestsPerTransform
-        } requests per transform.`,
+        `This transform requires ${transformRequests.length} requests, which exceeds the specified limit of ${this.maxRequestsPerTransform} requests per transform.`,
         transform
       );
     }

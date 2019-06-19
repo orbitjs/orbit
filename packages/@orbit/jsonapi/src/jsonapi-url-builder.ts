@@ -125,9 +125,7 @@ export default class JSONAPIURLBuilder {
       } else if (filterSpecifier.kind === 'relatedRecords') {
         if (filterSpecifier.op !== 'equal') {
           throw new Error(
-            `Operation "${
-              filterSpecifier.op
-            }" is not supported in JSONAPI for relatedRecords filtering`
+            `Operation "${filterSpecifier.op}" is not supported in JSONAPI for relatedRecords filtering`
           );
         }
         const relatedRecordsFilter = filterSpecifier as RelatedRecordsFilterSpecifier;
@@ -138,9 +136,7 @@ export default class JSONAPIURLBuilder {
         });
       } else {
         throw new QueryExpressionParseError(
-          `Filter operation ${
-            filterSpecifier.op
-          } not recognized for JSONAPISource.`,
+          `Filter operation ${filterSpecifier.op} not recognized for JSONAPISource.`,
           filterSpecifier
         );
       }
@@ -166,9 +162,7 @@ export default class JSONAPIURLBuilder {
           );
         }
         throw new QueryExpressionParseError(
-          `Sort specifier ${
-            sortSpecifier.kind
-          } not recognized for JSONAPISource.`,
+          `Sort specifier ${sortSpecifier.kind} not recognized for JSONAPISource.`,
           sortSpecifier
         );
       })

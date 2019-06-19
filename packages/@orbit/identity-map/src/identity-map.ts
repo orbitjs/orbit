@@ -39,12 +39,10 @@ export default class IdentityMap<Identity, Model>
 
   entries(): IterableIterator<[Identity, Model]> {
     return Array.from(this._map)
-      .map(
-        ([identifier, record]): [Identity, Model] => [
-          this._serializer.deserialize(identifier),
-          record
-        ]
-      )
+      .map(([identifier, record]): [Identity, Model] => [
+        this._serializer.deserialize(identifier),
+        record
+      ])
       [Symbol.iterator]();
   }
 
