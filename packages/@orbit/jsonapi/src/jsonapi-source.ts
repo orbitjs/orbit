@@ -14,6 +14,8 @@ import Orbit, {
   TransformOrOperations,
   Queryable,
   queryable,
+  Updatable,
+  updatable,
   Record,
   TransformNotAllowed
 } from '@orbit/data';
@@ -77,8 +79,9 @@ export interface JSONAPISourceSettings extends SourceSettings {
 @pullable
 @pushable
 @queryable
+@updatable
 export default class JSONAPISource extends Source
-  implements Pullable, Pushable, Queryable {
+  implements Pullable, Pushable, Queryable, Updatable {
   namespace: string;
   host: string;
   maxRequestsPerTransform?: number;
@@ -101,6 +104,13 @@ export default class JSONAPISource extends Source
   // Queryable interface stubs
   query: (
     queryOrExpression: QueryOrExpression,
+    options?: object,
+    id?: string
+  ) => Promise<any>;
+
+  // Updatable interface stubs
+  update: (
+    transformOrOperations: TransformOrOperations,
     options?: object,
     id?: string
   ) => Promise<any>;
@@ -139,18 +149,18 @@ export default class JSONAPISource extends Source
   /////////////////////////////////////////////////////////////////////////////
 
   async _push(transform: Transform): Promise<Transform[]> {
-    let { requestProcessor } = this;
+    const { requestProcessor } = this;
     const requests = this.getTransformRequests(transform);
     const transforms: Transform[] = [];
 
     for (let request of requests) {
       let processor = this.getTransformRequestProcessor(request);
 
-      let additionalTransforms: Transform[] = await processor(
+      let { transforms: additionalTransforms } = await processor(
         requestProcessor,
         request
       );
-      if (additionalTransforms) {
+      if (additionalTransforms.length) {
         Array.prototype.push.apply(transforms, additionalTransforms);
       }
     }
@@ -164,7 +174,7 @@ export default class JSONAPISource extends Source
   /////////////////////////////////////////////////////////////////////////////
 
   async _pull(query: Query): Promise<Transform[]> {
-    let { requestProcessor } = this;
+    const { requestProcessor } = this;
     const operator: QueryOperator = this.getQueryOperator(query);
     const response = await operator(requestProcessor, query);
     return response.transforms;
@@ -175,11 +185,40 @@ export default class JSONAPISource extends Source
   /////////////////////////////////////////////////////////////////////////////
 
   async _query(query: Query): Promise<Record | Record[]> {
-    let { requestProcessor } = this;
+    const { requestProcessor } = this;
     const operator: QueryOperator = this.getQueryOperator(query);
     const response = await operator(requestProcessor, query);
     await this._transformed(response.transforms);
     return response.primaryData;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Updatable interface implementation
+  /////////////////////////////////////////////////////////////////////////////
+
+  async _update(transform: Transform): Promise<any> {
+    const { requestProcessor } = this;
+    const requests = this.getTransformRequests(transform);
+    const transforms: Transform[] = [];
+    const records: Record[] = [];
+
+    for (let request of requests) {
+      let processor = this.getTransformRequestProcessor(request);
+
+      let { transforms: additionalTransforms, primaryData } = await processor(
+        requestProcessor,
+        request
+      );
+      if (additionalTransforms.length) {
+        Array.prototype.push.apply(transforms, additionalTransforms);
+      }
+      records.push(primaryData);
+    }
+
+    transforms.unshift(transform);
+    await this._transformed(transforms);
+
+    return records.length === 1 ? records[0] : records;
   }
 
   private getQueryOperator(query: Query): QueryOperator {
