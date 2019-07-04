@@ -42,7 +42,7 @@ import { QueryResultData } from './query-result';
 const { assert } = Orbit;
 
 export interface SyncRecordCacheSettings {
-  schema?: Schema;
+  schema: Schema;
   keyMap?: KeyMap;
   processors?: SyncOperationProcessorClass[];
   transformBuilder?: TransformBuilder;
@@ -71,6 +71,11 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   listeners: (event: string) => Listener[];
 
   constructor(settings: SyncRecordCacheSettings) {
+    assert(
+      "SyncRecordCache's `schema` must be specified in `settings.schema` constructor argument",
+      !!settings.schema
+    );
+
     this._schema = settings.schema;
     this._keyMap = settings.keyMap;
     this._queryBuilder = settings.queryBuilder || new QueryBuilder();

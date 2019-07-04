@@ -71,6 +71,11 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
+  test('it requires a schema', function(assert) {
+    assert.expect(1);
+    assert.throws(() => new Cache({ schema: null }));
+  });
+
   test('can be assigned processors', function(assert) {
     let cache = new Cache({
       schema,

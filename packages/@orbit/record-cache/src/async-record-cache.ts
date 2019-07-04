@@ -42,7 +42,7 @@ import { QueryResultData } from './query-result';
 const { assert } = Orbit;
 
 export interface AsyncRecordCacheSettings {
-  schema?: Schema;
+  schema: Schema;
   keyMap?: KeyMap;
   processors?: AsyncOperationProcessorClass[];
   transformBuilder?: TransformBuilder;
@@ -71,6 +71,11 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   listeners: (event: string) => Listener[];
 
   constructor(settings: AsyncRecordCacheSettings) {
+    assert(
+      "AsyncRecordCache's `schema` must be specified in `settings.schema` constructor argument",
+      !!settings.schema
+    );
+
     this._schema = settings.schema;
     this._keyMap = settings.keyMap;
     this._queryBuilder = settings.queryBuilder || new QueryBuilder();
