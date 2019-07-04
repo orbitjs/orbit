@@ -9,7 +9,11 @@
     "declaration": true,
     "newLine": "LF",
     "outDir": "dist",
-    "noImplicitAny": true
+    "strictNullChecks": true,
+    "noImplicitReturns": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true
   },
   "include": [
     "src/**/*.ts"
