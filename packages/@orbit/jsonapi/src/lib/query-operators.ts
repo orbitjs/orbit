@@ -10,7 +10,8 @@ import {
   FindRelatedRecord,
   FindRelatedRecords,
   Record,
-  Transform
+  Transform,
+  Link
 } from '@orbit/data';
 import JSONAPIRequestProcessor from '../jsonapi-request-processor';
 import { RequestOptions, mergeRequestOptions } from './request-settings';
@@ -18,6 +19,8 @@ import { RequestOptions, mergeRequestOptions } from './request-settings';
 export interface QueryOperatorResponse {
   transforms: Transform[];
   primaryData: Record | Record[];
+  links?: Dict<Link>;
+  meta?: Dict<any>;
 }
 
 export interface QueryOperator {
@@ -47,9 +50,9 @@ export const QueryOperators: Dict<QueryOperator> = {
     );
 
     const transforms = [buildTransform(operations)];
-    const primaryData = deserialized.data;
+    const { data: primaryData, meta, links } = deserialized;
 
-    return { transforms, primaryData };
+    return { transforms, primaryData, meta, links };
   },
 
   async findRecords(
@@ -101,9 +104,9 @@ export const QueryOperators: Dict<QueryOperator> = {
     );
 
     const transforms = [buildTransform(operations)];
-    const primaryData = deserialized.data;
+    const { data: primaryData, meta, links } = deserialized;
 
-    return { transforms, primaryData };
+    return { transforms, primaryData, meta, links };
   },
 
   async findRelatedRecord(
@@ -126,7 +129,7 @@ export const QueryOperators: Dict<QueryOperator> = {
     requestProcessor.preprocessResponseDocument(document, query);
 
     const deserialized = requestProcessor.serializer.deserialize(document);
-    const relatedRecord = deserialized.data;
+    const { data: relatedRecord, meta, links } = deserialized;
     const operations = requestProcessor.operationsFromDeserializedDocument(
       deserialized
     );
@@ -140,7 +143,7 @@ export const QueryOperators: Dict<QueryOperator> = {
     const transforms = [buildTransform(operations)];
     const primaryData = relatedRecord;
 
-    return { transforms, primaryData };
+    return { transforms, primaryData, meta, links };
   },
 
   async findRelatedRecords(
@@ -196,7 +199,8 @@ export const QueryOperators: Dict<QueryOperator> = {
     );
     requestProcessor.preprocessResponseDocument(document, query);
     const deserialized = requestProcessor.serializer.deserialize(document);
-    const relatedRecords = deserialized.data as Record[];
+    const { data, meta, links } = deserialized;
+    const relatedRecords = data as Record[];
 
     const operations = requestProcessor.operationsFromDeserializedDocument(
       deserialized
@@ -222,6 +226,6 @@ export const QueryOperators: Dict<QueryOperator> = {
     const transforms = [buildTransform(operations)];
     const primaryData = relatedRecords;
 
-    return { transforms, primaryData };
+    return { transforms, primaryData, meta, links };
   }
 };
