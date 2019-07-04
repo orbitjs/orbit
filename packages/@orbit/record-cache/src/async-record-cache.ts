@@ -54,7 +54,7 @@ export interface AsyncRecordCacheSettings {
 
 @evented
 export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
-  protected _keyMap: KeyMap;
+  protected _keyMap?: KeyMap;
   protected _schema: Schema;
   protected _transformBuilder: TransformBuilder;
   protected _queryBuilder: QueryBuilder;
@@ -105,7 +105,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
     return this._schema;
   }
 
-  get keyMap(): KeyMap {
+  get keyMap(): KeyMap | undefined {
     return this._keyMap;
   }
 

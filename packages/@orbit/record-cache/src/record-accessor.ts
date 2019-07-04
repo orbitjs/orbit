@@ -12,7 +12,7 @@ export interface RecordRelationshipIdentity {
 }
 
 export interface BaseRecordAccessor {
-  keyMap: KeyMap;
+  keyMap?: KeyMap;
   schema: Schema;
 }
 
