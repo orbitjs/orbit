@@ -139,7 +139,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   }
 
   // Abstract methods for getting records and relationships
-  abstract getRecordSync(recordIdentity: RecordIdentity): Record;
+  abstract getRecordSync(recordIdentity: RecordIdentity): Record | undefined;
   abstract getRecordsSync(
     typeOrIdentities?: string | RecordIdentity[]
   ): Record[];

@@ -18,12 +18,12 @@ export interface BaseRecordAccessor {
 
 export interface SyncRecordAccessor extends BaseRecordAccessor {
   // Getters
-  getRecordSync(recordIdentity: RecordIdentity): Record;
+  getRecordSync(recordIdentity: RecordIdentity): Record | undefined;
   getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[];
   getRelatedRecordSync(
     identity: RecordIdentity,
     relationship: string
-  ): RecordIdentity;
+  ): RecordIdentity | null;
   getRelatedRecordsSync(
     identity: RecordIdentity,
     relationship: string
@@ -47,14 +47,14 @@ export interface SyncRecordAccessor extends BaseRecordAccessor {
 
 export interface AsyncRecordAccessor extends BaseRecordAccessor {
   // Getters
-  getRecordAsync(recordIdentity: RecordIdentity): Promise<Record>;
+  getRecordAsync(recordIdentity: RecordIdentity): Promise<Record | undefined>;
   getRecordsAsync(
     typeOrIdentities?: string | RecordIdentity[]
   ): Promise<Record[]>;
   getRelatedRecordAsync(
     identity: RecordIdentity,
     relationship: string
-  ): Promise<RecordIdentity>;
+  ): Promise<RecordIdentity | null>;
   getRelatedRecordsAsync(
     identity: RecordIdentity,
     relationship: string
