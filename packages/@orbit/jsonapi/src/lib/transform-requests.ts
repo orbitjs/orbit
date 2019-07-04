@@ -75,14 +75,19 @@ export interface TransformRequestProcessor {
   (
     requestProcessor: JSONAPIRequestProcessor,
     request: TransformRecordRequest
-  ): Promise<Transform[]>;
+  ): Promise<RequestProcessorResponse>;
+}
+
+export interface RequestProcessorResponse {
+  transforms: Transform[];
+  primaryData: Record;
 }
 
 export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
   async addRecord(
     requestProcessor: JSONAPIRequestProcessor,
     request: AddRecordRequest
-  ): Promise<Transform[]> {
+  ): Promise<RequestProcessorResponse> {
     const record = request.record;
     const requestDoc: ResourceDocument = requestProcessor.serializer.serialize({
       data: record
@@ -106,9 +111,10 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
   async removeRecord(
     requestProcessor: JSONAPIRequestProcessor,
     request: RemoveRecordRequest
-  ): Promise<Transform[]> {
-    const { type, id } = request.record;
-    const settings = requestProcessor.buildFetchSettings(request.options, {
+  ): Promise<RequestProcessorResponse> {
+    const { record, options } = request;
+    const { type, id } = record;
+    const settings = requestProcessor.buildFetchSettings(options, {
       method: 'DELETE'
     });
 
@@ -116,19 +122,19 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
       requestProcessor.urlBuilder.resourceURL(type, id),
       settings
     );
-    return [];
+    return { transforms: [], primaryData: record };
   },
 
   async updateRecord(
     requestProcessor: JSONAPIRequestProcessor,
     request: UpdateRecordRequest
-  ): Promise<Transform[]> {
-    const record = request.record;
+  ): Promise<RequestProcessorResponse> {
+    const { record, options } = request;
     const { type, id } = record;
     const requestDoc: ResourceDocument = requestProcessor.serializer.serialize({
       data: record
     });
-    const settings = requestProcessor.buildFetchSettings(request.options, {
+    const settings = requestProcessor.buildFetchSettings(options, {
       method: 'PATCH',
       json: requestDoc
     });
@@ -144,22 +150,22 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
       });
       return handleChanges(record, deserialized);
     } else {
-      return [];
+      return { transforms: [], primaryData: record };
     }
   },
 
   async addToRelatedRecords(
     requestProcessor: JSONAPIRequestProcessor,
     request: AddToRelatedRecordsRequest
-  ): Promise<Transform[]> {
-    const { type, id } = request.record;
-    const { relationship } = request;
+  ): Promise<RequestProcessorResponse> {
+    const { relationship, record, options } = request;
+    const { type, id } = record;
     const json = {
       data: request.relatedRecords.map(r =>
         requestProcessor.serializer.resourceIdentity(r)
       )
     };
-    const settings = requestProcessor.buildFetchSettings(request.options, {
+    const settings = requestProcessor.buildFetchSettings(options, {
       method: 'POST',
       json
     });
@@ -172,21 +178,21 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
       ),
       settings
     );
-    return [];
+    return { transforms: [], primaryData: record };
   },
 
   async removeFromRelatedRecords(
     requestProcessor: JSONAPIRequestProcessor,
     request: RemoveFromRelatedRecordsRequest
-  ): Promise<Transform[]> {
-    const { type, id } = request.record;
-    const { relationship } = request;
+  ): Promise<RequestProcessorResponse> {
+    const { relationship, record, options } = request;
+    const { type, id } = record;
     const json = {
       data: request.relatedRecords.map(r =>
         requestProcessor.serializer.resourceIdentity(r)
       )
     };
-    const settings = requestProcessor.buildFetchSettings(request.options, {
+    const settings = requestProcessor.buildFetchSettings(options, {
       method: 'DELETE',
       json
     });
@@ -199,21 +205,21 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
       ),
       settings
     );
-    return [];
+    return { transforms: [], primaryData: record };
   },
 
   async replaceRelatedRecord(
     requestProcessor: JSONAPIRequestProcessor,
     request: ReplaceRelatedRecordRequest
-  ): Promise<Transform[]> {
-    const { type, id } = request.record;
-    const { relationship, relatedRecord } = request;
+  ): Promise<RequestProcessorResponse> {
+    const { relationship, relatedRecord, record, options } = request;
+    const { type, id } = record;
     const json = {
       data: relatedRecord
         ? requestProcessor.serializer.resourceIdentity(relatedRecord)
         : null
     };
-    const settings = requestProcessor.buildFetchSettings(request.options, {
+    const settings = requestProcessor.buildFetchSettings(options, {
       method: 'PATCH',
       json
     });
@@ -226,21 +232,21 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
       ),
       settings
     );
-    return [];
+    return { transforms: [], primaryData: record };
   },
 
   async replaceRelatedRecords(
     requestProcessor: JSONAPIRequestProcessor,
     request: ReplaceRelatedRecordsRequest
-  ): Promise<Transform[]> {
-    const { type, id } = request.record;
-    const { relationship, relatedRecords } = request;
+  ): Promise<RequestProcessorResponse> {
+    const { relationship, relatedRecords, record, options } = request;
+    const { type, id } = record;
     const json = {
       data: relatedRecords.map(r =>
         requestProcessor.serializer.resourceIdentity(r)
       )
     };
-    const settings = requestProcessor.buildFetchSettings(request.options, {
+    const settings = requestProcessor.buildFetchSettings(options, {
       method: 'PATCH',
       json
     });
@@ -253,7 +259,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
       ),
       settings
     );
-    return [];
+    return { transforms: [], primaryData: record };
   }
 };
 
@@ -478,7 +484,7 @@ function replaceRecordHasMany(
 function handleChanges(
   record: Record,
   responseDoc: RecordDocument
-): Transform[] {
+): RequestProcessorResponse {
   let updatedRecord: Record = responseDoc.data as Record;
   let transforms = [];
   let updateOps = recordDiffs(record, updatedRecord);
@@ -491,5 +497,5 @@ function handleChanges(
     });
     transforms.push(buildTransform(includedOps));
   }
-  return transforms;
+  return { transforms, primaryData: updatedRecord };
 }
