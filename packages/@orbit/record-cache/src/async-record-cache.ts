@@ -166,21 +166,23 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   async getRelatedRecordAsync(
     identity: RecordIdentity,
     relationship: string
-  ): Promise<RecordIdentity> {
+  ): Promise<RecordIdentity | null | undefined> {
     const record = await this.getRecordAsync(identity);
     if (record) {
       return deepGet(record, ['relationships', relationship, 'data']);
     }
+    return undefined;
   }
 
   async getRelatedRecordsAsync(
     identity: RecordIdentity,
     relationship: string
-  ): Promise<RecordIdentity[]> {
+  ): Promise<RecordIdentity[] | undefined> {
     const record = await this.getRecordAsync(identity);
     if (record) {
       return deepGet(record, ['relationships', relationship, 'data']);
     }
+    return undefined;
   }
 
   /**
@@ -283,7 +285,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
     }
 
     const inversePatchOperator = this.getInversePatchOperator(operation.op);
-    const inverseOp: RecordOperation = await inversePatchOperator(
+    const inverseOp: RecordOperation | undefined = await inversePatchOperator(
       this,
       operation
     );

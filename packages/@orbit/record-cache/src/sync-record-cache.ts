@@ -162,21 +162,23 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   getRelatedRecordSync(
     identity: RecordIdentity,
     relationship: string
-  ): RecordIdentity {
+  ): RecordIdentity | null | undefined {
     const record = this.getRecordSync(identity);
     if (record) {
       return deepGet(record, ['relationships', relationship, 'data']);
     }
+    return undefined;
   }
 
   getRelatedRecordsSync(
     identity: RecordIdentity,
     relationship: string
-  ): RecordIdentity[] {
+  ): RecordIdentity[] | undefined {
     const record = this.getRecordSync(identity);
     if (record) {
       return deepGet(record, ['relationships', relationship, 'data']);
     }
+    return undefined;
   }
 
   /**
@@ -273,7 +275,10 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
     this._processors.forEach(processor => processor.validate(operation));
 
     const inversePatchOperator = this.getInversePatchOperator(operation.op);
-    const inverseOp: RecordOperation = inversePatchOperator(this, operation);
+    const inverseOp: RecordOperation | undefined = inversePatchOperator(
+      this,
+      operation
+    );
 
     if (inverseOp) {
       result.inverse.push(inverseOp);

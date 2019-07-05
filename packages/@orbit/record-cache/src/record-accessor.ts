@@ -23,11 +23,11 @@ export interface SyncRecordAccessor extends BaseRecordAccessor {
   getRelatedRecordSync(
     identity: RecordIdentity,
     relationship: string
-  ): RecordIdentity | null;
+  ): RecordIdentity | null | undefined;
   getRelatedRecordsSync(
     identity: RecordIdentity,
     relationship: string
-  ): RecordIdentity[];
+  ): RecordIdentity[] | undefined;
   getInverseRelationshipsSync(
     record: RecordIdentity
   ): RecordRelationshipIdentity[];
@@ -54,11 +54,11 @@ export interface AsyncRecordAccessor extends BaseRecordAccessor {
   getRelatedRecordAsync(
     identity: RecordIdentity,
     relationship: string
-  ): Promise<RecordIdentity | null>;
+  ): Promise<RecordIdentity | null | undefined>;
   getRelatedRecordsAsync(
     identity: RecordIdentity,
     relationship: string
-  ): Promise<RecordIdentity[]>;
+  ): Promise<RecordIdentity[] | undefined>;
   getInverseRelationshipsAsync(
     recordIdentity: RecordIdentity
   ): Promise<RecordRelationshipIdentity[]>;
