@@ -13,7 +13,8 @@ import {
   AddToRelatedRecordsOperation,
   RemoveFromRelatedRecordsOperation,
   ReplaceRelatedRecordsOperation,
-  ReplaceRelatedRecordOperation
+  ReplaceRelatedRecordOperation,
+  Record
 } from '@orbit/data';
 import { SyncRecordAccessor } from '../record-accessor';
 import { PatchResultData } from '../patch-result';
@@ -43,7 +44,7 @@ export const SyncPatchOperators: Dict<SyncPatchOperator> = {
   ): PatchResultData {
     const { record } = op;
     const currentRecord = cache.getRecordSync(record);
-    const mergedRecord = mergeRecords(currentRecord, record);
+    const mergedRecord = mergeRecords(currentRecord || null, record);
 
     cache.setRecordSync(mergedRecord);
 
@@ -65,10 +66,11 @@ export const SyncPatchOperators: Dict<SyncPatchOperator> = {
     cache: SyncRecordAccessor,
     op: ReplaceKeyOperation
   ): PatchResultData {
-    let record = cache.getRecordSync(op.record);
+    let currentRecord = cache.getRecordSync(op.record);
+    let record: Record;
 
-    if (record) {
-      record = clone(record);
+    if (currentRecord) {
+      record = clone(currentRecord);
     } else {
       record = cloneRecordIdentity(op.record);
     }
@@ -87,10 +89,11 @@ export const SyncPatchOperators: Dict<SyncPatchOperator> = {
     cache: SyncRecordAccessor,
     op: ReplaceAttributeOperation
   ): PatchResultData {
-    let record = cache.getRecordSync(op.record);
+    let currentRecord = cache.getRecordSync(op.record);
+    let record: Record;
 
-    if (record) {
-      record = clone(record);
+    if (currentRecord) {
+      record = clone(currentRecord);
     } else {
       record = cloneRecordIdentity(op.record);
     }
@@ -105,11 +108,12 @@ export const SyncPatchOperators: Dict<SyncPatchOperator> = {
     cache: SyncRecordAccessor,
     op: AddToRelatedRecordsOperation
   ): PatchResultData {
-    let record = cache.getRecordSync(op.record);
+    let currentRecord = cache.getRecordSync(op.record);
+    let record: Record;
     const { relationship, relatedRecord } = op;
 
-    if (record) {
-      record = clone(record);
+    if (currentRecord) {
+      record = clone(currentRecord);
     } else {
       record = cloneRecordIdentity(op.record);
     }
@@ -128,11 +132,12 @@ export const SyncPatchOperators: Dict<SyncPatchOperator> = {
     cache: SyncRecordAccessor,
     op: RemoveFromRelatedRecordsOperation
   ): PatchResultData {
-    let record = cache.getRecordSync(op.record);
+    let currentRecord = cache.getRecordSync(op.record);
+    let record: Record;
     const { relationship, relatedRecord } = op;
 
-    if (record) {
-      record = clone(record);
+    if (currentRecord) {
+      record = clone(currentRecord);
       let relatedRecords: RecordIdentity[] = deepGet(record, [
         'relationships',
         relationship,
@@ -163,11 +168,12 @@ export const SyncPatchOperators: Dict<SyncPatchOperator> = {
     cache: SyncRecordAccessor,
     op: ReplaceRelatedRecordsOperation
   ): PatchResultData {
-    let record = cache.getRecordSync(op.record);
+    let currentRecord = cache.getRecordSync(op.record);
+    let record: Record;
     const { relationship, relatedRecords } = op;
 
-    if (record) {
-      record = clone(record);
+    if (currentRecord) {
+      record = clone(currentRecord);
     } else {
       record = cloneRecordIdentity(op.record);
     }
@@ -185,11 +191,12 @@ export const SyncPatchOperators: Dict<SyncPatchOperator> = {
     cache: SyncRecordAccessor,
     op: ReplaceRelatedRecordOperation
   ): PatchResultData {
-    let record = cache.getRecordSync(op.record);
+    let currentRecord = cache.getRecordSync(op.record);
+    let record: Record;
     const { relationship, relatedRecord } = op;
 
-    if (record) {
-      record = clone(record);
+    if (currentRecord) {
+      record = clone(currentRecord);
     } else {
       record = cloneRecordIdentity(op.record);
     }

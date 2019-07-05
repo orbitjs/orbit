@@ -13,7 +13,8 @@ import {
   AddToRelatedRecordsOperation,
   RemoveFromRelatedRecordsOperation,
   ReplaceRelatedRecordsOperation,
-  ReplaceRelatedRecordOperation
+  ReplaceRelatedRecordOperation,
+  Record
 } from '@orbit/data';
 import { AsyncRecordAccessor } from '../record-accessor';
 import { PatchResultData } from '../patch-result';
@@ -43,7 +44,7 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
   ): Promise<PatchResultData> {
     const { record } = op;
     const currentRecord = await cache.getRecordAsync(record);
-    const mergedRecord = mergeRecords(currentRecord, record);
+    const mergedRecord = mergeRecords(currentRecord || null, record);
 
     await cache.setRecordAsync(mergedRecord);
 
@@ -65,10 +66,11 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
     cache: AsyncRecordAccessor,
     op: ReplaceKeyOperation
   ): Promise<PatchResultData> {
-    let record = await cache.getRecordAsync(op.record);
+    let currentRecord = await cache.getRecordAsync(op.record);
+    let record: Record;
 
-    if (record) {
-      record = clone(record);
+    if (currentRecord) {
+      record = clone(currentRecord);
     } else {
       record = cloneRecordIdentity(op.record);
     }
@@ -87,10 +89,11 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
     cache: AsyncRecordAccessor,
     op: ReplaceAttributeOperation
   ): Promise<PatchResultData> {
-    let record = await cache.getRecordAsync(op.record);
+    let currentRecord = await cache.getRecordAsync(op.record);
+    let record: Record;
 
-    if (record) {
-      record = clone(record);
+    if (currentRecord) {
+      record = clone(currentRecord);
     } else {
       record = cloneRecordIdentity(op.record);
     }
@@ -105,11 +108,12 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
     cache: AsyncRecordAccessor,
     op: AddToRelatedRecordsOperation
   ): Promise<PatchResultData> {
-    let record = await cache.getRecordAsync(op.record);
+    let currentRecord = await cache.getRecordAsync(op.record);
+    let record: Record;
     const { relationship, relatedRecord } = op;
 
-    if (record) {
-      record = clone(record);
+    if (currentRecord) {
+      record = clone(currentRecord);
     } else {
       record = cloneRecordIdentity(op.record);
     }
@@ -128,11 +132,12 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
     cache: AsyncRecordAccessor,
     op: RemoveFromRelatedRecordsOperation
   ): Promise<PatchResultData> {
-    let record = await cache.getRecordAsync(op.record);
+    let currentRecord = await cache.getRecordAsync(op.record);
+    let record: Record;
     const { relationship, relatedRecord } = op;
 
-    if (record) {
-      record = clone(record);
+    if (currentRecord) {
+      record = clone(currentRecord);
       let relatedRecords: RecordIdentity[] = deepGet(record, [
         'relationships',
         relationship,
@@ -163,11 +168,12 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
     cache: AsyncRecordAccessor,
     op: ReplaceRelatedRecordsOperation
   ): Promise<PatchResultData> {
-    let record = await cache.getRecordAsync(op.record);
+    let currentRecord = await cache.getRecordAsync(op.record);
+    let record: Record;
     const { relationship, relatedRecords } = op;
 
-    if (record) {
-      record = clone(record);
+    if (currentRecord) {
+      record = clone(currentRecord);
     } else {
       record = cloneRecordIdentity(op.record);
     }
@@ -185,11 +191,12 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
     cache: AsyncRecordAccessor,
     op: ReplaceRelatedRecordOperation
   ): Promise<PatchResultData> {
-    let record = await cache.getRecordAsync(op.record);
+    let currentRecord = await cache.getRecordAsync(op.record);
+    let record: Record;
     const { relationship, relatedRecord } = op;
 
-    if (record) {
-      record = clone(record);
+    if (currentRecord) {
+      record = clone(currentRecord);
     } else {
       record = cloneRecordIdentity(op.record);
     }

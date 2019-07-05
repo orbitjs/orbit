@@ -61,7 +61,7 @@ export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
   ): Promise<Record[]> {
     const { record, relationship } = expression;
     const relatedIds = await cache.getRelatedRecordsAsync(record, relationship);
-    if (!relatedIds) {
+    if (!relatedIds || relatedIds.length === 0) {
       if (!(await cache.getRecordAsync(record))) {
         throw new RecordNotFoundException(record.type, record.id);
       }
@@ -75,12 +75,12 @@ export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
   async findRelatedRecord(
     cache: AsyncRecordAccessor,
     expression: FindRelatedRecord
-  ): Promise<Record> {
+  ): Promise<Record | null> {
     const { record, relationship } = expression;
     const relatedId = await cache.getRelatedRecordAsync(record, relationship);
 
     if (relatedId) {
-      return await cache.getRecordAsync(relatedId);
+      return (await cache.getRecordAsync(relatedId)) || null;
     } else {
       if (!(await cache.getRecordAsync(record))) {
         throw new RecordNotFoundException(record.type, record.id);
