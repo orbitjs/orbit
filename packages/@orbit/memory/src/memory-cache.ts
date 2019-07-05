@@ -30,8 +30,8 @@ export default class MemoryCache extends SyncRecordCache {
     this.reset(settings.base);
   }
 
-  getRecordSync(identity: RecordIdentity): Record {
-    return this._records[identity.type].get(identity.id) || null;
+  getRecordSync(identity: RecordIdentity): Record | undefined {
+    return this._records[identity.type].get(identity.id);
   }
 
   getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[] {

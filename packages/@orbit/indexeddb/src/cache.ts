@@ -223,7 +223,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
     });
   }
 
-  getRecordAsync(record: RecordIdentity): Promise<Record> {
+  getRecordAsync(record: RecordIdentity): Promise<Record | undefined> {
     // console.log('getRecordAsync', record);
 
     return new Promise((resolve, reject) => {
@@ -246,7 +246,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
           }
           resolve(result);
         } else {
-          resolve();
+          resolve(undefined);
         }
       };
     });
