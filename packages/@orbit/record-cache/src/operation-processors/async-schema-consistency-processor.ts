@@ -7,7 +7,7 @@ import {
   relatedRecordReplaced,
   relatedRecordsReplaced,
   recordRemoved,
-  recordReplaced
+  recordUpdated
 } from './utils/schema-consistency-utils';
 
 /**
@@ -34,11 +34,11 @@ export default class AsyncSchemaConsistencyProcessor extends AsyncOperationProce
           this.accessor.schema,
           operation.record,
           operation.relationship,
+          operation.relatedRecord,
           await this.accessor.getRelatedRecordAsync(
             operation.record,
             operation.relationship
-          ),
-          operation.relatedRecord
+          )
         );
 
       case 'replaceRelatedRecords':
@@ -46,11 +46,11 @@ export default class AsyncSchemaConsistencyProcessor extends AsyncOperationProce
           this.accessor.schema,
           operation.record,
           operation.relationship,
+          operation.relatedRecords,
           await this.accessor.getRelatedRecordsAsync(
             operation.record,
             operation.relationship
-          ),
-          operation.relatedRecords
+          )
         );
 
       case 'removeFromRelatedRecords':
@@ -58,8 +58,8 @@ export default class AsyncSchemaConsistencyProcessor extends AsyncOperationProce
           this.accessor.schema,
           operation.record,
           operation.relationship,
-          await this.accessor.getRecordAsync(operation.relatedRecord),
-          operation.relatedRecord
+          operation.relatedRecord,
+          await this.accessor.getRecordAsync(operation.relatedRecord)
         );
 
       case 'removeRecord':
@@ -69,10 +69,10 @@ export default class AsyncSchemaConsistencyProcessor extends AsyncOperationProce
         );
 
       case 'updateRecord':
-        return recordReplaced(
+        return recordUpdated(
           this.accessor.schema,
-          await this.accessor.getRecordAsync(operation.record),
-          operation.record
+          operation.record,
+          await this.accessor.getRecordAsync(operation.record)
         );
 
       default:

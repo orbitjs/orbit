@@ -7,7 +7,7 @@ import {
   relatedRecordReplaced,
   relatedRecordsReplaced,
   recordRemoved,
-  recordReplaced
+  recordUpdated
 } from './utils/schema-consistency-utils';
 
 /**
@@ -34,11 +34,11 @@ export default class SyncSchemaConsistencyProcessor extends SyncOperationProcess
           this.accessor.schema,
           operation.record,
           operation.relationship,
+          operation.relatedRecord,
           this.accessor.getRelatedRecordSync(
             operation.record,
             operation.relationship
-          ),
-          operation.relatedRecord
+          )
         );
 
       case 'replaceRelatedRecords':
@@ -46,11 +46,11 @@ export default class SyncSchemaConsistencyProcessor extends SyncOperationProcess
           this.accessor.schema,
           operation.record,
           operation.relationship,
+          operation.relatedRecords,
           this.accessor.getRelatedRecordsSync(
             operation.record,
             operation.relationship
-          ),
-          operation.relatedRecords
+          )
         );
 
       case 'removeFromRelatedRecords':
@@ -58,8 +58,8 @@ export default class SyncSchemaConsistencyProcessor extends SyncOperationProcess
           this.accessor.schema,
           operation.record,
           operation.relationship,
-          this.accessor.getRecordSync(operation.relatedRecord),
-          operation.relatedRecord
+          operation.relatedRecord,
+          this.accessor.getRecordSync(operation.relatedRecord)
         );
 
       case 'removeRecord':
@@ -69,10 +69,10 @@ export default class SyncSchemaConsistencyProcessor extends SyncOperationProcess
         );
 
       case 'updateRecord':
-        return recordReplaced(
+        return recordUpdated(
           this.accessor.schema,
-          this.accessor.getRecordSync(operation.record),
-          operation.record
+          operation.record,
+          this.accessor.getRecordSync(operation.record)
         );
 
       default:

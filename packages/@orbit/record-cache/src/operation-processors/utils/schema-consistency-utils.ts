@@ -1,4 +1,4 @@
-import { deepGet, isArray } from '@orbit/utils';
+import { deepGet } from '@orbit/utils';
 import {
   cloneRecordIdentity,
   equalRecordIdentities,
@@ -12,19 +12,21 @@ import {
 
 export function recordAdded(schema: Schema, record: Record): RecordOperation[] {
   const ops: RecordOperation[] = [];
-  const relationships = record.relationships;
 
-  if (relationships) {
-    const modelDef = schema.getModel(record.type);
+  if (record.relationships) {
     const recordIdentity = cloneRecordIdentity(record);
 
-    Object.keys(relationships).forEach(relationship => {
-      const relationshipData =
-        relationships[relationship] && relationships[relationship].data;
+    schema.eachRelationship(record.type, (relationship, relationshipDef) => {
+      const relationshipData = deepGet(record, [
+        'relationships',
+        relationship,
+        'data'
+      ]) as RecordIdentity | RecordIdentity[] | null | undefined;
 
       if (relationshipData) {
-        const relationshipDef = modelDef.relationships[relationship];
-        const relatedRecords = recordArrayFromData(relationshipData);
+        const relatedRecords = recordArrayFromData(
+          relationshipData
+        ) as RecordIdentity[];
 
         Array.prototype.push.apply(
           ops,
@@ -51,9 +53,7 @@ export function relatedRecordAdded(
   const ops: RecordOperation[] = [];
 
   if (relatedRecord) {
-    const relationshipDef = schema.getModel(record.type).relationships[
-      relationship
-    ];
+    const relationshipDef = schema.getRelationship(record.type, relationship);
     const inverseRelationship = relationshipDef.inverse;
 
     if (inverseRelationship) {
@@ -70,15 +70,13 @@ export function relatedRecordRemoved(
   schema: Schema,
   record: RecordIdentity,
   relationship: string,
-  currentRelatedRecord: RecordIdentity,
-  relatedRecord: RecordIdentity
+  relatedRecord: RecordIdentity,
+  currentRelatedRecord?: RecordIdentity | null
 ): RecordOperation[] {
   const ops: RecordOperation[] = [];
 
-  if (currentRelatedRecord && relatedRecord) {
-    const relationshipDef = schema.getModel(record.type).relationships[
-      relationship
-    ];
+  if (currentRelatedRecord) {
+    const relationshipDef = schema.getRelationship(record.type, relationship);
     const inverseRelationship = relationshipDef.inverse;
 
     if (inverseRelationship) {
@@ -95,15 +93,18 @@ export function relatedRecordReplaced(
   schema: Schema,
   record: RecordIdentity,
   relationship: string,
-  currentRelatedRecord: RecordIdentity,
-  relatedRecord: RecordIdentity
+  relatedRecord: RecordIdentity | null,
+  currentRelatedRecord?: RecordIdentity | null
 ): RecordOperation[] {
   const ops: RecordOperation[] = [];
 
-  if (!equalRecordIdentities(relatedRecord, currentRelatedRecord)) {
-    const relationshipDef = schema.getModel(record.type).relationships[
-      relationship
-    ];
+  if (
+    !equalRecordIdentities(
+      relatedRecord as RecordIdentity,
+      currentRelatedRecord as RecordIdentity
+    )
+  ) {
+    const relationshipDef = schema.getRelationship(record.type, relationship);
     const inverseRelationship = relationshipDef.inverse;
 
     if (inverseRelationship) {
@@ -133,15 +134,13 @@ export function relatedRecordsReplaced(
   schema: Schema,
   record: RecordIdentity,
   relationship: string,
-  currentRelatedRecords: RecordIdentity[],
-  relatedRecords: RecordIdentity[]
+  relatedRecords: RecordIdentity[],
+  currentRelatedRecords?: RecordIdentity[]
 ): RecordOperation[] {
   const ops: RecordOperation[] = [];
-  const relationshipDef = schema.getModel(record.type).relationships[
-    relationship
-  ];
+  const relationshipDef = schema.getRelationship(record.type, relationship);
 
-  let addedRecords;
+  let addedRecords: RecordIdentity[];
 
   if (currentRelatedRecords && currentRelatedRecords.length > 0) {
     let removedRecords = uniqueRecordIdentities(
@@ -171,79 +170,92 @@ export function relatedRecordsReplaced(
 
 export function recordRemoved(
   schema: Schema,
-  record: Record
+  record?: Record
 ): RecordOperation[] {
   const ops: RecordOperation[] = [];
-  const relationships = record && record.relationships;
 
-  if (relationships) {
-    const modelDef = schema.getModel(record.type);
+  if (record && record.relationships) {
     const recordIdentity = cloneRecordIdentity(record);
 
-    Object.keys(relationships).forEach(relationship => {
-      const relationshipDef = modelDef.relationships[relationship];
-      const relationshipData =
-        relationships[relationship] && relationships[relationship].data;
-      const relatedRecords = recordArrayFromData(relationshipData);
+    schema.eachRelationship(record.type, (relationship, relationshipDef) => {
+      const relationshipData = deepGet(record, [
+        'relationships',
+        relationship,
+        'data'
+      ]) as RecordIdentity | RecordIdentity[] | null | undefined;
 
-      Array.prototype.push.apply(
-        ops,
-        removeRelatedRecordsOps(
-          schema,
-          recordIdentity,
-          relationshipDef,
-          relatedRecords
-        )
-      );
+      if (relationshipData) {
+        const relatedRecords = recordArrayFromData(
+          relationshipData
+        ) as RecordIdentity[];
+
+        Array.prototype.push.apply(
+          ops,
+          removeRelatedRecordsOps(
+            schema,
+            recordIdentity,
+            relationshipDef,
+            relatedRecords
+          )
+        );
+      }
     });
   }
 
   return ops;
 }
 
-export function recordReplaced(
+export function recordUpdated(
   schema: Schema,
-  currentRecord: Record,
-  record: Record
+  record: Record,
+  currentRecord?: Record
 ): RecordOperation[] {
   const ops: RecordOperation[] = [];
 
   if (record.relationships) {
-    const modelDef = schema.getModel(record.type);
     const recordIdentity = cloneRecordIdentity(record);
 
-    for (let relationship in record.relationships) {
-      const relationshipDef = modelDef.relationships[relationship];
-      const relationshipData =
-        record && deepGet(record, ['relationships', relationship, 'data']);
+    schema.eachRelationship(record.type, (relationship, relationshipDef) => {
+      const relationshipData = deepGet(record, [
+        'relationships',
+        relationship,
+        'data'
+      ]) as RecordIdentity | RecordIdentity[] | null | undefined;
+
       const currentRelationshipData =
         currentRecord &&
-        deepGet(currentRecord, ['relationships', relationship, 'data']);
+        (deepGet(currentRecord, ['relationships', relationship, 'data']) as
+          | RecordIdentity
+          | RecordIdentity[]
+          | null
+          | undefined);
 
-      if (relationshipDef.type === 'hasMany') {
-        Array.prototype.push.apply(
-          ops,
-          relatedRecordsReplaced(
-            schema,
-            recordIdentity,
-            relationship,
-            currentRelationshipData,
-            relationshipData
-          )
-        );
-      } else {
-        Array.prototype.push.apply(
-          ops,
-          relatedRecordReplaced(
-            schema,
-            recordIdentity,
-            relationship,
-            currentRelationshipData,
-            relationshipData
-          )
-        );
+      if (relationshipData !== undefined) {
+        if (relationshipDef.type === 'hasMany') {
+          Array.prototype.push.apply(
+            ops,
+            relatedRecordsReplaced(
+              schema,
+              recordIdentity,
+              relationship,
+              (relationshipData as RecordIdentity[]) || [],
+              (currentRelationshipData as RecordIdentity[]) || []
+            )
+          );
+        } else {
+          Array.prototype.push.apply(
+            ops,
+            relatedRecordReplaced(
+              schema,
+              recordIdentity,
+              relationship,
+              (relationshipData as RecordIdentity) || null,
+              (currentRelationshipData as RecordIdentity) || null
+            )
+          );
+        }
       }
-    }
+    });
   }
 
   return ops;
@@ -256,8 +268,9 @@ function addRelatedRecordsOps(
   relatedRecords: RecordIdentity[]
 ): RecordOperation[] {
   if (relatedRecords.length > 0 && relationshipDef.inverse) {
+    const inverse = relationshipDef.inverse;
     return relatedRecords.map(relatedRecord =>
-      addRelationshipOp(schema, relatedRecord, relationshipDef.inverse, record)
+      addRelationshipOp(schema, relatedRecord, inverse, record)
     );
   }
   return [];
@@ -273,13 +286,9 @@ export function removeRelatedRecordsOps(
     if (relationshipDef.dependent === 'remove') {
       return removeDependentRecords(relatedRecords);
     } else if (relationshipDef.inverse) {
+      const inverse = relationshipDef.inverse;
       return relatedRecords.map(relatedRecord =>
-        removeRelationshipOp(
-          schema,
-          relatedRecord,
-          relationshipDef.inverse,
-          record
-        )
+        removeRelationshipOp(schema, relatedRecord, inverse, record)
       );
     }
   }
@@ -292,9 +301,7 @@ export function addRelationshipOp(
   relationship: string,
   relatedRecord: RecordIdentity
 ): RecordOperation {
-  const relationshipDef = schema.getModel(record.type).relationships[
-    relationship
-  ];
+  const relationshipDef = schema.getRelationship(record.type, relationship);
   const isHasMany = relationshipDef.type === 'hasMany';
 
   return {
@@ -311,9 +318,7 @@ export function removeRelationshipOp(
   relationship: string,
   relatedRecord: RecordIdentity
 ): RecordOperation {
-  const relationshipDef = schema.getModel(record.type).relationships[
-    relationship
-  ];
+  const relationshipDef = schema.getRelationship(record.type, relationship);
   const isHasMany = relationshipDef.type === 'hasMany';
 
   return {
@@ -325,7 +330,7 @@ export function removeRelationshipOp(
 }
 
 export function recordArrayFromData(data: any): RecordIdentity[] {
-  if (isArray(data)) {
+  if (Array.isArray(data)) {
     return data;
   } else if (data) {
     return [data];
