@@ -1,7 +1,7 @@
 /* eslint-disable valid-jsdoc */
 import Orbit from './main';
 import { Operation } from './operation';
-import { isObject, isArray } from '@orbit/utils';
+import { isObject } from '@orbit/utils';
 import TransformBuilder from './transform-builder';
 
 export type TransformBuilderFunc = (
@@ -58,7 +58,7 @@ export function buildTransform(
       operations = transform.operations;
       options = transformOptions || transform.options;
     } else {
-      if (isArray(transformOrOperations)) {
+      if (Array.isArray(transformOrOperations)) {
         operations = transformOrOperations as Operation[];
       } else {
         operations = [transformOrOperations as Operation];

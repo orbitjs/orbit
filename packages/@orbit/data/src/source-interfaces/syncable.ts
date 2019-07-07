@@ -1,4 +1,3 @@
-import { isArray } from '@orbit/utils';
 import Orbit, { fulfillInSeries, settleInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Transform } from '../transform';
@@ -56,7 +55,7 @@ export default function syncable(Klass: SourceClass): void {
   proto.sync = function(
     transformOrTransforms: Transform | Transform[]
   ): Promise<void> {
-    if (isArray(transformOrTransforms)) {
+    if (Array.isArray(transformOrTransforms)) {
       const transforms = transformOrTransforms as Transform[];
 
       return transforms.reduce((chain, transform) => {

@@ -1,4 +1,4 @@
-import { clone, deepMerge, deepSet, merge, isArray } from '@orbit/utils';
+import { clone, deepMerge, deepSet, merge } from '@orbit/utils';
 import { FetchSettings } from '../jsonapi-request-processor';
 import Orbit from '@orbit/data';
 
@@ -29,7 +29,7 @@ export function buildFetchSettings(
   ['filter', 'include', 'page', 'sort'].forEach(param => {
     let value = (options as any)[param];
     if (value) {
-      if (param === 'include' && isArray(value)) {
+      if (param === 'include' && Array.isArray(value)) {
         value = value.join(',');
       }
 

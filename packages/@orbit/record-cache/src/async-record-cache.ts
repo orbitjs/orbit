@@ -1,5 +1,5 @@
 import Orbit, { evented, Evented, Listener } from '@orbit/core';
-import { isArray, deepGet, Dict } from '@orbit/utils';
+import { deepGet, Dict } from '@orbit/utils';
 import {
   KeyMap,
   Record,
@@ -222,7 +222,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
       data: []
     };
 
-    if (isArray(operationOrOperations)) {
+    if (Array.isArray(operationOrOperations)) {
       await this._applyPatchOperations(
         operationOrOperations as RecordOperation[],
         result,

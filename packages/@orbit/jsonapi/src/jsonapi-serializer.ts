@@ -1,4 +1,4 @@
-import { isArray, dasherize, camelize, deepSet, Dict } from '@orbit/utils';
+import { dasherize, camelize, deepSet, Dict } from '@orbit/utils';
 import Orbit, {
   Schema,
   KeyMap,
@@ -152,7 +152,7 @@ export class JSONAPISerializer
     let data = document.data;
 
     return {
-      data: isArray(data)
+      data: Array.isArray(data)
         ? this.serializeRecords(data as Record[])
         : this.serializeRecord(data as Record)
     };
@@ -409,7 +409,7 @@ export class JSONAPISerializer
 
     let data;
 
-    if (isArray(value)) {
+    if (Array.isArray(value)) {
       data = (value as RecordIdentity[]).map(id => this.resourceIdentity(id));
     } else if (value !== null) {
       data = this.resourceIdentity(value as RecordIdentity);
@@ -432,7 +432,7 @@ export class JSONAPISerializer
     let result: RecordDocument;
     let data;
 
-    if (isArray(document.data)) {
+    if (Array.isArray(document.data)) {
       let primaryRecords = options && options.primaryRecords;
       if (primaryRecords) {
         data = (document.data as Resource[]).map((entry, i) => {
@@ -721,7 +721,7 @@ export class JSONAPISerializer
 
       if (resourceData === null) {
         data = null;
-      } else if (isArray(resourceData)) {
+      } else if (Array.isArray(resourceData)) {
         data = (resourceData as ResourceIdentity[]).map(resourceIdentity =>
           this.recordIdentity(resourceIdentity)
         );
