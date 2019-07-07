@@ -42,7 +42,7 @@ import { QueryResultData } from './query-result';
 const { assert } = Orbit;
 
 export interface AsyncRecordCacheSettings {
-  schema?: Schema;
+  schema: Schema;
   keyMap?: KeyMap;
   processors?: AsyncOperationProcessorClass[];
   transformBuilder?: TransformBuilder;
@@ -54,7 +54,7 @@ export interface AsyncRecordCacheSettings {
 
 @evented
 export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
-  protected _keyMap: KeyMap;
+  protected _keyMap?: KeyMap;
   protected _schema: Schema;
   protected _transformBuilder: TransformBuilder;
   protected _queryBuilder: QueryBuilder;
@@ -71,6 +71,11 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   listeners: (event: string) => Listener[];
 
   constructor(settings: AsyncRecordCacheSettings) {
+    assert(
+      "AsyncRecordCache's `schema` must be specified in `settings.schema` constructor argument",
+      !!settings.schema
+    );
+
     this._schema = settings.schema;
     this._keyMap = settings.keyMap;
     this._queryBuilder = settings.queryBuilder || new QueryBuilder();
@@ -105,7 +110,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
     return this._schema;
   }
 
-  get keyMap(): KeyMap {
+  get keyMap(): KeyMap | undefined {
     return this._keyMap;
   }
 
@@ -134,7 +139,9 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   }
 
   // Abstract methods for getting records and relationships
-  abstract getRecordAsync(recordIdentity: RecordIdentity): Promise<Record>;
+  abstract getRecordAsync(
+    recordIdentity: RecordIdentity
+  ): Promise<Record | undefined>;
   abstract getRecordsAsync(
     typeOrIdentities?: string | RecordIdentity[]
   ): Promise<Record[]>;
@@ -159,21 +166,23 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   async getRelatedRecordAsync(
     identity: RecordIdentity,
     relationship: string
-  ): Promise<RecordIdentity> {
+  ): Promise<RecordIdentity | null | undefined> {
     const record = await this.getRecordAsync(identity);
     if (record) {
       return deepGet(record, ['relationships', relationship, 'data']);
     }
+    return undefined;
   }
 
   async getRelatedRecordsAsync(
     identity: RecordIdentity,
     relationship: string
-  ): Promise<RecordIdentity[]> {
+  ): Promise<RecordIdentity[] | undefined> {
     const record = await this.getRecordAsync(identity);
     if (record) {
       return deepGet(record, ['relationships', relationship, 'data']);
     }
+    return undefined;
   }
 
   /**
@@ -276,7 +285,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
     }
 
     const inversePatchOperator = this.getInversePatchOperator(operation.op);
-    const inverseOp: RecordOperation = await inversePatchOperator(
+    const inverseOp: RecordOperation | undefined = await inversePatchOperator(
       this,
       operation
     );

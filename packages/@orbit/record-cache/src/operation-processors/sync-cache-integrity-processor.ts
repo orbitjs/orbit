@@ -106,7 +106,7 @@ export default class SyncCacheIntegrityProcessor extends SyncOperationProcessor 
   protected addInverseRelationship(
     record: RecordIdentity,
     relationship: string,
-    relatedRecord: RecordIdentity
+    relatedRecord: RecordIdentity | null
   ): void {
     let inverseRelationship = getInverseRelationship(
       this.accessor.schema,
@@ -136,8 +136,11 @@ export default class SyncCacheIntegrityProcessor extends SyncOperationProcessor 
   }
 
   protected addAllInverseRelationships(record: Record): void {
-    let inverseRelationships = getAllInverseRelationships(record);
-    if (inverseRelationships) {
+    let inverseRelationships = getAllInverseRelationships(
+      this.accessor.schema,
+      record
+    );
+    if (inverseRelationships.length > 0) {
       this.accessor.addInverseRelationshipsSync(inverseRelationships);
     }
   }
@@ -145,7 +148,7 @@ export default class SyncCacheIntegrityProcessor extends SyncOperationProcessor 
   protected removeInverseRelationship(
     record: RecordIdentity,
     relationship: string,
-    relatedRecord: RecordIdentity
+    relatedRecord?: RecordIdentity | null
   ): void {
     let inverseRelationship = getInverseRelationship(
       this.accessor.schema,
@@ -161,7 +164,7 @@ export default class SyncCacheIntegrityProcessor extends SyncOperationProcessor 
   protected removeInverseRelationships(
     record: RecordIdentity,
     relationship: string,
-    relatedRecords: RecordIdentity[]
+    relatedRecords?: RecordIdentity[]
   ): void {
     let inverseRelationships = getInverseRelationships(
       this.accessor.schema,
@@ -169,16 +172,21 @@ export default class SyncCacheIntegrityProcessor extends SyncOperationProcessor 
       relationship,
       relatedRecords
     );
-    if (inverseRelationships) {
+    if (inverseRelationships.length > 0) {
       this.accessor.removeInverseRelationshipsSync(inverseRelationships);
     }
   }
 
   protected removeAllInverseRelationships(record: RecordIdentity): void {
-    const recordInCache = this.accessor.getRecordSync(record);
-    const inverseRelationships = getAllInverseRelationships(recordInCache);
-    if (inverseRelationships) {
-      this.accessor.removeInverseRelationshipsSync(inverseRelationships);
+    const currentRecord = this.accessor.getRecordSync(record);
+    if (currentRecord) {
+      const inverseRelationships = getAllInverseRelationships(
+        this.accessor.schema,
+        currentRecord
+      );
+      if (inverseRelationships.length > 0) {
+        this.accessor.removeInverseRelationshipsSync(inverseRelationships);
+      }
     }
   }
 

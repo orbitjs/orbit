@@ -106,7 +106,7 @@ export default class AsyncCacheIntegrityProcessor extends AsyncOperationProcesso
   protected async addInverseRelationship(
     record: RecordIdentity,
     relationship: string,
-    relatedRecord: RecordIdentity
+    relatedRecord: RecordIdentity | null
   ): Promise<void> {
     let inverseRelationship = getInverseRelationship(
       this.accessor.schema,
@@ -136,8 +136,11 @@ export default class AsyncCacheIntegrityProcessor extends AsyncOperationProcesso
   }
 
   protected async addAllInverseRelationships(record: Record): Promise<void> {
-    let inverseRelationships = getAllInverseRelationships(record);
-    if (inverseRelationships) {
+    let inverseRelationships = getAllInverseRelationships(
+      this.accessor.schema,
+      record
+    );
+    if (inverseRelationships.length > 0) {
       await this.accessor.addInverseRelationshipsAsync(inverseRelationships);
     }
   }
@@ -145,7 +148,7 @@ export default class AsyncCacheIntegrityProcessor extends AsyncOperationProcesso
   protected async removeInverseRelationship(
     record: RecordIdentity,
     relationship: string,
-    relatedRecord: RecordIdentity
+    relatedRecord?: RecordIdentity | null
   ): Promise<void> {
     let inverseRelationship = getInverseRelationship(
       this.accessor.schema,
@@ -163,7 +166,7 @@ export default class AsyncCacheIntegrityProcessor extends AsyncOperationProcesso
   protected async removeInverseRelationships(
     record: RecordIdentity,
     relationship: string,
-    relatedRecords: RecordIdentity[]
+    relatedRecords?: RecordIdentity[]
   ): Promise<void> {
     let inverseRelationships = getInverseRelationships(
       this.accessor.schema,
@@ -171,7 +174,7 @@ export default class AsyncCacheIntegrityProcessor extends AsyncOperationProcesso
       relationship,
       relatedRecords
     );
-    if (inverseRelationships) {
+    if (inverseRelationships.length > 0) {
       await this.accessor.removeInverseRelationshipsAsync(inverseRelationships);
     }
   }
@@ -179,10 +182,17 @@ export default class AsyncCacheIntegrityProcessor extends AsyncOperationProcesso
   protected async removeAllInverseRelationships(
     record: RecordIdentity
   ): Promise<void> {
-    const recordInCache = await this.accessor.getRecordAsync(record);
-    const inverseRelationships = getAllInverseRelationships(recordInCache);
-    if (inverseRelationships) {
-      await this.accessor.removeInverseRelationshipsAsync(inverseRelationships);
+    const currentRecord = await this.accessor.getRecordAsync(record);
+    if (currentRecord) {
+      const inverseRelationships = getAllInverseRelationships(
+        this.accessor.schema,
+        currentRecord
+      );
+      if (inverseRelationships.length > 0) {
+        await this.accessor.removeInverseRelationshipsAsync(
+          inverseRelationships
+        );
+      }
     }
   }
 

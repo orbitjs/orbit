@@ -758,6 +758,12 @@ module('SchemaConsistencyProcessor', function(hooks) {
 
     assert.deepEqual(processor.after(clearInhabitantsOp), [
       {
+        op: 'replaceRelatedRecord',
+        record: identity(moon),
+        relationship: 'planet',
+        relatedRecord: identity(earth)
+      },
+      {
         op: 'addToRelatedRecords',
         record: identity(cat),
         relationship: 'planets',
@@ -767,12 +773,6 @@ module('SchemaConsistencyProcessor', function(hooks) {
         op: 'addToRelatedRecords',
         record: identity(dog),
         relationship: 'planets',
-        relatedRecord: identity(earth)
-      },
-      {
-        op: 'replaceRelatedRecord',
-        record: identity(moon),
-        relationship: 'planet',
         relatedRecord: identity(earth)
       },
       {

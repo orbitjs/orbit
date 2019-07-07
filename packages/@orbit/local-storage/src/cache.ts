@@ -50,16 +50,21 @@ export default class LocalStorageCache extends SyncRecordCache {
     );
   }
 
-  getRecordSync(identity: RecordIdentity): Record {
+  getRecordSync(identity: RecordIdentity): Record | undefined {
     const key = this.getKeyForRecord(identity);
+    const item: string | undefined = Orbit.globals.localStorage.getItem(key);
 
-    let result = JSON.parse(Orbit.globals.localStorage.getItem(key));
+    if (item) {
+      const record: Record = JSON.parse(item);
 
-    if (result && this._keyMap) {
-      this._keyMap.pushRecord(result);
+      if (this._keyMap) {
+        this._keyMap.pushRecord(record);
+      }
+
+      return record;
     }
 
-    return result;
+    return undefined;
   }
 
   getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[] {

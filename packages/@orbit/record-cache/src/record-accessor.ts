@@ -12,22 +12,22 @@ export interface RecordRelationshipIdentity {
 }
 
 export interface BaseRecordAccessor {
-  keyMap: KeyMap;
+  keyMap?: KeyMap;
   schema: Schema;
 }
 
 export interface SyncRecordAccessor extends BaseRecordAccessor {
   // Getters
-  getRecordSync(recordIdentity: RecordIdentity): Record;
+  getRecordSync(recordIdentity: RecordIdentity): Record | undefined;
   getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[];
   getRelatedRecordSync(
     identity: RecordIdentity,
     relationship: string
-  ): RecordIdentity;
+  ): RecordIdentity | null | undefined;
   getRelatedRecordsSync(
     identity: RecordIdentity,
     relationship: string
-  ): RecordIdentity[];
+  ): RecordIdentity[] | undefined;
   getInverseRelationshipsSync(
     record: RecordIdentity
   ): RecordRelationshipIdentity[];
@@ -47,18 +47,18 @@ export interface SyncRecordAccessor extends BaseRecordAccessor {
 
 export interface AsyncRecordAccessor extends BaseRecordAccessor {
   // Getters
-  getRecordAsync(recordIdentity: RecordIdentity): Promise<Record>;
+  getRecordAsync(recordIdentity: RecordIdentity): Promise<Record | undefined>;
   getRecordsAsync(
     typeOrIdentities?: string | RecordIdentity[]
   ): Promise<Record[]>;
   getRelatedRecordAsync(
     identity: RecordIdentity,
     relationship: string
-  ): Promise<RecordIdentity>;
+  ): Promise<RecordIdentity | null | undefined>;
   getRelatedRecordsAsync(
     identity: RecordIdentity,
     relationship: string
-  ): Promise<RecordIdentity[]>;
+  ): Promise<RecordIdentity[] | undefined>;
   getInverseRelationshipsAsync(
     recordIdentity: RecordIdentity
   ): Promise<RecordRelationshipIdentity[]>;

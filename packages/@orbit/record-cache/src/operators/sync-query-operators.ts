@@ -51,7 +51,7 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
   ): Record[] {
     const { record, relationship } = expression;
     const relatedIds = cache.getRelatedRecordsSync(record, relationship);
-    if (!relatedIds) {
+    if (!relatedIds || relatedIds.length === 0) {
       if (!cache.getRecordSync(record)) {
         throw new RecordNotFoundException(record.type, record.id);
       }
@@ -65,11 +65,11 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
   findRelatedRecord(
     cache: SyncRecordAccessor,
     expression: FindRelatedRecord
-  ): Record {
+  ): Record | null {
     const { record, relationship } = expression;
     const relatedId = cache.getRelatedRecordSync(record, relationship);
     if (relatedId) {
-      return cache.getRecordSync(relatedId);
+      return cache.getRecordSync(relatedId) || null;
     } else {
       if (!cache.getRecordSync(record)) {
         throw new RecordNotFoundException(record.type, record.id);
