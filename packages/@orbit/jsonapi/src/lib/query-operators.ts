@@ -1,6 +1,7 @@
 import { Dict } from '@orbit/utils';
 import {
   Query,
+  AddToRelatedRecordsOperation,
   ReplaceRelatedRecordOperation,
   ReplaceRelatedRecordsOperation,
   buildTransform,
@@ -148,7 +149,41 @@ export const QueryOperators: Dict<QueryOperator> = {
   ): Promise<QueryOperatorResponse> {
     const expression = query.expression as FindRelatedRecords;
     const { record, relationship } = expression;
-    let requestOptions = requestProcessor.customRequestOptions(query);
+    const { urlBuilder } = requestProcessor;
+    const standardRequestOptions: RequestOptions = {};
+    const isFiltered = !!(
+      expression.filter ||
+      expression.sort ||
+      expression.page
+    );
+
+    if (expression.filter) {
+      standardRequestOptions.filter = await urlBuilder.buildFilterParam(
+        expression.filter
+      );
+    }
+
+    if (expression.sort) {
+      standardRequestOptions.sort = await urlBuilder.buildSortParam(
+        expression.sort
+      );
+    }
+
+    if (expression.page) {
+      standardRequestOptions.page = await urlBuilder.buildPageParam(
+        expression.page
+      );
+    }
+
+    const customOptions = requestProcessor.customRequestOptions(query);
+    let requestOptions = standardRequestOptions;
+    if (customOptions) {
+      requestOptions = mergeRequestOptions(
+        standardRequestOptions,
+        customOptions
+      );
+    }
+
     const settings = requestProcessor.buildFetchSettings(requestOptions);
 
     const document = await requestProcessor.fetch(
@@ -161,17 +196,28 @@ export const QueryOperators: Dict<QueryOperator> = {
     );
     requestProcessor.preprocessResponseDocument(document, query);
     const deserialized = requestProcessor.serializer.deserialize(document);
-    const relatedRecords = deserialized.data;
+    const relatedRecords = deserialized.data as Record[];
 
     const operations = requestProcessor.operationsFromDeserializedDocument(
       deserialized
     );
-    operations.push({
-      op: 'replaceRelatedRecords',
-      record,
-      relationship,
-      relatedRecords
-    } as ReplaceRelatedRecordsOperation);
+    if (isFiltered) {
+      for (let relatedRecord of relatedRecords) {
+        operations.push({
+          op: 'addToRelatedRecords',
+          record,
+          relationship,
+          relatedRecord
+        } as AddToRelatedRecordsOperation);
+      }
+    } else {
+      operations.push({
+        op: 'replaceRelatedRecords',
+        record,
+        relationship,
+        relatedRecords
+      } as ReplaceRelatedRecordsOperation);
+    }
 
     const transforms = [buildTransform(operations)];
     const primaryData = relatedRecords;

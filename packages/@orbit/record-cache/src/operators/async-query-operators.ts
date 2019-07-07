@@ -68,8 +68,18 @@ export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
 
       return [];
     }
+    let results = await cache.getRecordsAsync(relatedIds);
 
-    return cache.getRecordsAsync(relatedIds);
+    if (expression.filter) {
+      results = filterRecords(results, expression.filter);
+    }
+    if (expression.sort) {
+      results = sortRecords(results, expression.sort);
+    }
+    if (expression.page) {
+      results = paginateRecords(results, expression.page);
+    }
+    return results;
   },
 
   async findRelatedRecord(

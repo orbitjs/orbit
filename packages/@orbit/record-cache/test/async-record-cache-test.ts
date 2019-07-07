@@ -2650,4 +2650,1204 @@ module('AsyncRecordCache', function(hooks) {
       assert.ok(e instanceof RecordNotFoundException);
     }
   });
+
+  test('#query - findRelatedRecords can perform a simple attribute filter by value equality', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const sun: Record = {
+      type: 'star',
+      id: 'sun',
+      relationships: {
+        celestialObjects: {
+          data: [
+            { type: 'planet', id: 'jupiter' },
+            { type: 'planet', id: 'earth' },
+            { type: 'planet', id: 'venus' },
+            { type: 'planet', id: 'mercury' }
+          ]
+        }
+      }
+    };
+
+    const jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth',
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const venus: Record = {
+      type: 'planet',
+      id: 'venus',
+      attributes: {
+        name: 'Venus',
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const mercury: Record = {
+      type: 'planet',
+      id: 'mercury',
+      attributes: {
+        name: 'Mercury',
+        classification: 'terrestrial',
+        atmosphere: false
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+
+    await cache.patch(t => [
+      t.addRecord(sun),
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
+    ]);
+
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .filter({ attribute: 'name', value: 'Jupiter' })
+      ),
+      [jupiter]
+    );
+  });
+
+  test('#query - findRelatedRecords - can perform a simple attribute filter by value comparison (gt, lt, gte & lte)', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const sun: Record = {
+      type: 'star',
+      id: 'sun',
+      relationships: {
+        celestialObjects: {
+          data: [
+            { type: 'planet', id: 'jupiter' },
+            { type: 'planet', id: 'earth' },
+            { type: 'planet', id: 'venus' },
+            { type: 'planet', id: 'mercury' }
+          ]
+        }
+      }
+    };
+
+    const jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: {
+        name: 'Jupiter',
+        sequence: 5,
+        classification: 'gas giant',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth',
+        sequence: 3,
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const venus: Record = {
+      type: 'planet',
+      id: 'venus',
+      attributes: {
+        name: 'Venus',
+        sequence: 2,
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const mercury: Record = {
+      type: 'planet',
+      id: 'mercury',
+      attributes: {
+        name: 'Mercury',
+        sequence: 1,
+        classification: 'terrestrial',
+        atmosphere: false
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+
+    await cache.patch(t => [
+      t.addRecord(sun),
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
+    ]);
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .filter({ attribute: 'sequence', value: 2, op: 'gt' })
+      ),
+      [earth, jupiter]
+    );
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .filter({ attribute: 'sequence', value: 2, op: 'gte' })
+      ),
+      [venus, earth, jupiter]
+    );
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .filter({ attribute: 'sequence', value: 2, op: 'lt' })
+      ),
+      [mercury]
+    );
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .filter({ attribute: 'sequence', value: 2, op: 'lte' })
+      ),
+      [venus, mercury]
+    );
+  });
+
+  test('#query - findRelatedRecords - can perform relatedRecords filters with operators `equal`, `all`, `some` and `none`', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const sun: Record = {
+      type: 'star',
+      id: 'sun',
+      relationships: {
+        celestialObjects: {
+          data: [
+            { type: 'planet', id: 'jupiter' },
+            { type: 'planet', id: 'earth' },
+            { type: 'planet', id: 'mars' },
+            { type: 'planet', id: 'mercury' }
+          ]
+        }
+      }
+    };
+
+    const jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: {
+        name: 'Jupiter',
+        sequence: 5,
+        classification: 'gas giant',
+        atmosphere: true
+      },
+      relationships: {
+        star: { data: { type: 'star', id: 'sun' } },
+        moons: {
+          data: [
+            { type: 'moon', id: 'europa' },
+            { type: 'moon', id: 'ganymede' },
+            { type: 'moon', id: 'callisto' }
+          ]
+        }
+      }
+    };
+    const earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth',
+        sequence: 3,
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: {
+        star: { data: { type: 'star', id: 'sun' } },
+        moons: { data: [{ type: 'moon', id: 'moon' }] }
+      }
+    };
+    const mars: Record = {
+      type: 'planet',
+      id: 'mars',
+      attributes: {
+        name: 'Mars',
+        sequence: 4,
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: {
+        star: { data: { type: 'star', id: 'sun' } },
+        moons: {
+          data: [{ type: 'moon', id: 'phobos' }, { type: 'moon', id: 'deimos' }]
+        }
+      }
+    };
+    const mercury: Record = {
+      type: 'planet',
+      id: 'mercury',
+      attributes: {
+        name: 'Mercury',
+        sequence: 1,
+        classification: 'terrestrial',
+        atmosphere: false
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const theMoon: Record = {
+      id: 'moon',
+      type: 'moon',
+      attributes: { name: 'The moon' },
+      relationships: { planet: { data: { type: 'planet', id: 'earth' } } }
+    };
+    const europa: Record = {
+      id: 'europa',
+      type: 'moon',
+      attributes: { name: 'Europa' },
+      relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
+    };
+    const ganymede: Record = {
+      id: 'ganymede',
+      type: 'moon',
+      attributes: { name: 'Ganymede' },
+      relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
+    };
+    const callisto: Record = {
+      id: 'callisto',
+      type: 'moon',
+      attributes: { name: 'Callisto' },
+      relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
+    };
+    const phobos: Record = {
+      id: 'phobos',
+      type: 'moon',
+      attributes: { name: 'Phobos' },
+      relationships: { planet: { data: { type: 'planet', id: 'mars' } } }
+    };
+    const deimos: Record = {
+      id: 'deimos',
+      type: 'moon',
+      attributes: { name: 'Deimos' },
+      relationships: { planet: { data: { type: 'planet', id: 'mars' } } }
+    };
+    const titan: Record = {
+      id: 'titan',
+      type: 'moon',
+      attributes: { name: 'titan' },
+      relationships: {}
+    };
+
+    await cache.patch(t => [
+      t.addRecord(sun),
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(mars),
+      t.addRecord(mercury),
+      t.addRecord(theMoon),
+      t.addRecord(europa),
+      t.addRecord(ganymede),
+      t.addRecord(callisto),
+      t.addRecord(phobos),
+      t.addRecord(deimos),
+      t.addRecord(titan)
+    ]);
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .filter({ relation: 'moons', records: [theMoon], op: 'equal' })
+      ),
+      [earth]
+    );
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .filter({ relation: 'moons', records: [phobos], op: 'equal' })
+      ),
+      []
+    );
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .filter({ relation: 'moons', records: [phobos], op: 'all' })
+      ),
+      [mars]
+    );
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .filter({ relation: 'moons', records: [phobos, callisto], op: 'all' })
+      ),
+      []
+    );
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q.findRelatedRecords(sun, 'celestialObjects').filter({
+          relation: 'moons',
+          records: [phobos, callisto],
+          op: 'some'
+        })
+      ),
+      [mars, jupiter]
+    );
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .filter({ relation: 'moons', records: [titan], op: 'some' })
+      ),
+      []
+    );
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .filter({ relation: 'moons', records: [ganymede], op: 'none' })
+      ),
+      [earth, mars, mercury]
+    );
+  });
+
+  test('#query - findRelatedRecords - can perform relatedRecord filters', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const sun: Record = {
+      type: 'star',
+      id: 'sun',
+      relationships: {
+        celestialObjects: {
+          data: [
+            { type: 'planet', id: 'jupiter' },
+            { type: 'planet', id: 'earth' },
+            { type: 'planet', id: 'mars' },
+            { type: 'planet', id: 'mercury' },
+            { type: 'moon', id: 'moon' },
+            { type: 'moon', id: 'europa' },
+            { type: 'moon', id: 'ganymede' },
+            { type: 'moon', id: 'callisto' },
+            { type: 'moon', id: 'phobos' },
+            { type: 'moon', id: 'deimos' }
+          ]
+        }
+      }
+    };
+
+    const jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: {
+        name: 'Jupiter',
+        sequence: 5,
+        classification: 'gas giant',
+        atmosphere: true
+      },
+      relationships: {
+        star: { data: { type: 'star', id: 'sun' } },
+        moons: {
+          data: [
+            { type: 'moon', id: 'europa' },
+            { type: 'moon', id: 'ganymede' },
+            { type: 'moon', id: 'callisto' }
+          ]
+        }
+      }
+    };
+    const earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth',
+        sequence: 3,
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: {
+        star: { data: { type: 'star', id: 'sun' } },
+        moons: { data: [{ type: 'moon', id: 'moon' }] }
+      }
+    };
+    const mars: Record = {
+      type: 'planet',
+      id: 'mars',
+      attributes: {
+        name: 'Mars',
+        sequence: 4,
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: {
+        star: { data: { type: 'star', id: 'sun' } },
+        moons: {
+          data: [{ type: 'moon', id: 'phobos' }, { type: 'moon', id: 'deimos' }]
+        }
+      }
+    };
+    const mercury: Record = {
+      type: 'planet',
+      id: 'mercury',
+      attributes: {
+        name: 'Mercury',
+        sequence: 1,
+        classification: 'terrestrial',
+        atmosphere: false
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const theMoon: Record = {
+      id: 'moon',
+      type: 'moon',
+      attributes: { name: 'The moon' },
+      relationships: {
+        planet: { data: { type: 'planet', id: 'earth' } },
+        star: { data: { type: 'star', id: 'sun' } }
+      }
+    };
+    const europa: Record = {
+      id: 'europa',
+      type: 'moon',
+      attributes: { name: 'Europa' },
+      relationships: {
+        planet: { data: { type: 'planet', id: 'jupiter' } },
+        star: { data: { type: 'star', id: 'sun' } }
+      }
+    };
+    const ganymede: Record = {
+      id: 'ganymede',
+      type: 'moon',
+      attributes: { name: 'Ganymede' },
+      relationships: {
+        planet: { data: { type: 'planet', id: 'jupiter' } },
+        star: { data: { type: 'star', id: 'sun' } }
+      }
+    };
+    const callisto: Record = {
+      id: 'callisto',
+      type: 'moon',
+      attributes: { name: 'Callisto' },
+      relationships: {
+        planet: { data: { type: 'planet', id: 'jupiter' } },
+        star: { data: { type: 'star', id: 'sun' } }
+      }
+    };
+    const phobos: Record = {
+      id: 'phobos',
+      type: 'moon',
+      attributes: { name: 'Phobos' },
+      relationships: {
+        planet: { data: { type: 'planet', id: 'mars' } },
+        star: { data: { type: 'star', id: 'sun' } }
+      }
+    };
+    const deimos: Record = {
+      id: 'deimos',
+      type: 'moon',
+      attributes: { name: 'Deimos' },
+      relationships: {
+        planet: { data: { type: 'planet', id: 'mars' } },
+        star: { data: { type: 'star', id: 'sun' } }
+      }
+    };
+    const titan: Record = {
+      id: 'titan',
+      type: 'moon',
+      attributes: { name: 'titan' },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+
+    await cache.patch(t => [
+      t.addRecord(sun),
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(mars),
+      t.addRecord(mercury),
+      t.addRecord(theMoon),
+      t.addRecord(europa),
+      t.addRecord(ganymede),
+      t.addRecord(callisto),
+      t.addRecord(phobos),
+      t.addRecord(deimos),
+      t.addRecord(titan)
+    ]);
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q
+          .findRelatedRecords(earth, 'moons')
+          .filter({ relation: 'planet', record: earth })
+      ),
+      [theMoon]
+    );
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q
+          .findRelatedRecords(jupiter, 'moons')
+          .filter({ relation: 'planet', record: jupiter })
+      ),
+      [europa, ganymede, callisto]
+    );
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q
+          .findRelatedRecords(mercury, 'moons')
+          .filter({ relation: 'planet', record: mercury })
+      ),
+      []
+    );
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .filter({ relation: 'planet', record: [earth, mars] })
+      ),
+      [theMoon, phobos, deimos]
+    );
+  });
+
+  test('#query - findRelatedRecords - can perform a complex attribute filter by value', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const sun: Record = {
+      type: 'star',
+      id: 'sun',
+      relationships: {
+        celestialObjects: {
+          data: [
+            { type: 'planet', id: 'jupiter' },
+            { type: 'planet', id: 'earth' },
+            { type: 'planet', id: 'venus' },
+            { type: 'planet', id: 'mercury' }
+          ]
+        }
+      }
+    };
+
+    const jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth',
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const venus: Record = {
+      type: 'planet',
+      id: 'venus',
+      attributes: {
+        name: 'Venus',
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const mercury: Record = {
+      type: 'planet',
+      id: 'mercury',
+      attributes: {
+        name: 'Mercury',
+        classification: 'terrestrial',
+        atmosphere: false
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+
+    await cache.patch(t => [
+      t.addRecord(sun),
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
+    ]);
+
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .filter(
+            { attribute: 'atmosphere', value: true },
+            { attribute: 'classification', value: 'terrestrial' }
+          )
+      ),
+      [earth, venus]
+    );
+  });
+
+  test('#query - findRelatedRecords - can perform a filter on attributes, even when a particular record has none', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const sun: Record = {
+      type: 'star',
+      id: 'sun',
+      relationships: {
+        celestialObjects: {
+          data: [
+            { type: 'planet', id: 'jupiter' },
+            { type: 'planet', id: 'earth' },
+            { type: 'planet', id: 'venus' },
+            { type: 'planet', id: 'mercury' }
+          ]
+        }
+      }
+    };
+
+    const jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth',
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const venus: Record = {
+      type: 'planet',
+      id: 'venus',
+      attributes: {
+        name: 'Venus',
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const mercury: Record = {
+      type: 'planet',
+      id: 'mercury',
+      attributes: {
+        name: 'Mercury',
+        classification: 'terrestrial',
+        atmosphere: false
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+
+    await cache.patch(t => [
+      t.addRecord(sun),
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
+    ]);
+
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .filter(
+            { attribute: 'atmosphere', value: true },
+            { attribute: 'classification', value: 'terrestrial' }
+          )
+      ),
+      [earth, venus]
+    );
+  });
+
+  test('#query - findRelatedRecords - can sort by an attribute', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const sun: Record = {
+      type: 'star',
+      id: 'sun',
+      relationships: {
+        celestialObjects: {
+          data: [
+            { type: 'planet', id: 'jupiter' },
+            { type: 'planet', id: 'earth' },
+            { type: 'planet', id: 'venus' },
+            { type: 'planet', id: 'mercury' }
+          ]
+        }
+      }
+    };
+
+    const jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth',
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const venus: Record = {
+      type: 'planet',
+      id: 'venus',
+      attributes: {
+        name: 'Venus',
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const mercury: Record = {
+      type: 'planet',
+      id: 'mercury',
+      attributes: {
+        name: 'Mercury',
+        classification: 'terrestrial',
+        atmosphere: false
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+
+    await cache.patch(t => [
+      t.addRecord(sun),
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
+    ]);
+
+    assert.deepEqual(
+      await cache.query(q =>
+        q.findRelatedRecords(sun, 'celestialObjects').sort('name')
+      ),
+      [earth, jupiter, mercury, venus]
+    );
+  });
+
+  test('#query - findRelatedRecords - can sort by an attribute, even when a particular record has none', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const sun: Record = {
+      type: 'star',
+      id: 'sun',
+      relationships: {
+        celestialObjects: {
+          data: [
+            { type: 'planet', id: 'jupiter' },
+            { type: 'planet', id: 'earth' },
+            { type: 'planet', id: 'venus' },
+            { type: 'planet', id: 'mercury' }
+          ]
+        }
+      }
+    };
+
+    const jupiter: Record = { type: 'planet', id: 'jupiter' };
+    const earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth',
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const venus: Record = {
+      type: 'planet',
+      id: 'venus',
+      attributes: {
+        name: 'Venus',
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const mercury: Record = {
+      type: 'planet',
+      id: 'mercury',
+      attributes: {
+        name: 'Mercury',
+        classification: 'terrestrial',
+        atmosphere: false
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+
+    await cache.patch(t => [
+      t.addRecord(sun),
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
+    ]);
+
+    assert.deepEqual(
+      await cache.query(q =>
+        q.findRelatedRecords(sun, 'celestialObjects').sort('name')
+      ),
+      [earth, mercury, venus, jupiter]
+    );
+  });
+
+  test('#query - findRelatedRecords - can filter and sort by attributes', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const sun: Record = {
+      type: 'star',
+      id: 'sun',
+      relationships: {
+        celestialObjects: {
+          data: [
+            { type: 'planet', id: 'jupiter' },
+            { type: 'planet', id: 'earth' },
+            { type: 'planet', id: 'venus' },
+            { type: 'planet', id: 'mercury' }
+          ]
+        }
+      }
+    };
+
+    const jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth',
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const venus: Record = {
+      type: 'planet',
+      id: 'venus',
+      attributes: {
+        name: 'Venus',
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const mercury: Record = {
+      type: 'planet',
+      id: 'mercury',
+      attributes: {
+        name: 'Mercury',
+        classification: 'terrestrial',
+        atmosphere: false
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+
+    await cache.patch(t => [
+      t.addRecord(sun),
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
+    ]);
+
+    assert.deepEqual(
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .filter(
+            { attribute: 'atmosphere', value: true },
+            { attribute: 'classification', value: 'terrestrial' }
+          )
+          .sort('name')
+      ),
+      [earth, venus]
+    );
+  });
+
+  test('#query - findRelatedRecords - can sort by an attribute in descending order', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const sun: Record = {
+      type: 'star',
+      id: 'sun',
+      relationships: {
+        celestialObjects: {
+          data: [
+            { type: 'planet', id: 'jupiter' },
+            { type: 'planet', id: 'earth' },
+            { type: 'planet', id: 'venus' },
+            { type: 'planet', id: 'mercury' }
+          ]
+        }
+      }
+    };
+
+    const jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth',
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const venus: Record = {
+      type: 'planet',
+      id: 'venus',
+      attributes: {
+        name: 'Venus',
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const mercury: Record = {
+      type: 'planet',
+      id: 'mercury',
+      attributes: {
+        name: 'Mercury',
+        classification: 'terrestrial',
+        atmosphere: false
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+
+    await cache.patch(t => [
+      t.addRecord(sun),
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
+    ]);
+
+    assert.deepEqual(
+      await cache.query(q =>
+        q.findRelatedRecords(sun, 'celestialObjects').sort('-name')
+      ),
+      [venus, mercury, jupiter, earth]
+    );
+  });
+
+  test('#query - findRelatedRecords - can sort by according to multiple criteria', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const sun: Record = {
+      type: 'star',
+      id: 'sun',
+      relationships: {
+        celestialObjects: {
+          data: [
+            { type: 'planet', id: 'jupiter' },
+            { type: 'planet', id: 'earth' },
+            { type: 'planet', id: 'venus' },
+            { type: 'planet', id: 'mercury' }
+          ]
+        }
+      }
+    };
+
+    const jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth',
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const venus: Record = {
+      type: 'planet',
+      id: 'venus',
+      attributes: {
+        name: 'Venus',
+        classification: 'terrestrial',
+        atmosphere: true
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+    const mercury: Record = {
+      type: 'planet',
+      id: 'mercury',
+      attributes: {
+        name: 'Mercury',
+        classification: 'terrestrial',
+        atmosphere: false
+      },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+
+    await cache.patch(t => [
+      t.addRecord(sun),
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
+    ]);
+
+    assert.deepEqual(
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .sort('classification', 'name')
+      ),
+      [jupiter, earth, mercury, venus]
+    );
+  });
+
+  test('#query - findRelatedRecords - page - can paginate records by offset and limit', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const sun: Record = {
+      type: 'star',
+      id: 'sun',
+      relationships: {
+        celestialObjects: {
+          data: [
+            { type: 'planet', id: 'jupiter' },
+            { type: 'planet', id: 'earth' },
+            { type: 'planet', id: 'venus' },
+            { type: 'planet', id: 'mars' }
+          ]
+        }
+      }
+    };
+
+    const jupiter: Record = {
+      id: 'jupiter',
+      type: 'planet',
+      attributes: { name: 'Jupiter' },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+
+    const earth = {
+      id: 'earth',
+      type: 'planet',
+      attributes: { name: 'Earth' },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+
+    const venus = {
+      id: 'venus',
+      type: 'planet',
+      attributes: { name: 'Venus' },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+
+    const mars = {
+      id: 'mars',
+      type: 'planet',
+      attributes: { name: 'Mars' },
+      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+    };
+
+    await cache.patch(t => [
+      t.addRecord(sun),
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mars)
+    ]);
+
+    assert.deepEqual(
+      await cache.query(q =>
+        q.findRelatedRecords(sun, 'celestialObjects').sort('name')
+      ),
+      [earth, jupiter, mars, venus]
+    );
+
+    assert.deepEqual(
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .sort('name')
+          .page({ limit: 3 })
+      ),
+      [earth, jupiter, mars]
+    );
+
+    assert.deepEqual(
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .sort('name')
+          .page({ offset: 1, limit: 2 })
+      ),
+      [jupiter, mars]
+    );
+  });
 });

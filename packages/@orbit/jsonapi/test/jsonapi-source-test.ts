@@ -76,6 +76,11 @@ module('JSONAPISource', function() {
                 type: 'hasMany',
                 model: 'planet',
                 inverse: 'solarSystem'
+              },
+              moons: {
+                type: 'hasMany',
+                model: 'moon',
+                inverse: 'solarSystem'
               }
             }
           }
@@ -2614,6 +2619,588 @@ module('JSONAPISource', function() {
       );
     });
 
+    test('#pull - related records with attribute filter', async function(assert) {
+      assert.expect(5);
+
+      const solarSystem = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'solar-systems',
+          id: 'sun'
+        }
+      );
+
+      const data: Resource[] = [
+        {
+          type: 'planets',
+          attributes: {
+            name: 'Earth',
+            classification: 'terrestrial',
+            lengthOfDay: 24
+          },
+          relationships: {
+            solarSystem: {
+              data: {
+                type: 'solar-systems',
+                id: 'sun'
+              }
+            }
+          }
+        }
+      ];
+
+      fetchStub
+        .withArgs(
+          `/solar-systems/sun/planets?${encodeURIComponent(
+            'filter[length-of-day]'
+          )}=24`
+        )
+        .returns(jsonapiResponse(200, { data }));
+
+      let transforms = await source.pull(q =>
+        q
+          .findRelatedRecords(solarSystem, 'planets')
+          .filter({ attribute: 'lengthOfDay', value: 24 })
+      );
+
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), [
+        'updateRecord',
+        'addToRelatedRecords'
+      ]);
+
+      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
+
+      assert.equal(op1.record.attributes.name, 'Earth');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#pull - related records with attribute filters', async function(assert) {
+      assert.expect(5);
+
+      const solarSystem = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'solar-systems',
+          id: 'sun'
+        }
+      );
+
+      const data: Resource[] = [
+        {
+          type: 'planets',
+          attributes: {
+            name: 'Earth',
+            classification: 'terrestrial',
+            lengthOfDay: 24
+          }
+        }
+      ];
+
+      const value1 = encodeURIComponent('le:24');
+      const value2 = encodeURIComponent('ge:24');
+      const attribute = encodeURIComponent('filter[length-of-day]');
+      const expectedUrl = `/solar-systems/sun/planets?${attribute}=${value1}&${attribute}=${value2}`;
+
+      fetchStub.withArgs(expectedUrl).returns(jsonapiResponse(200, { data }));
+
+      let transforms = await source.pull(q =>
+        q
+          .findRelatedRecords(solarSystem, 'planets')
+          .filter(
+            { attribute: 'lengthOfDay', value: 'le:24' },
+            { attribute: 'lengthOfDay', value: 'ge:24' }
+          )
+      );
+
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), [
+        'updateRecord',
+        'addToRelatedRecords'
+      ]);
+
+      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
+
+      assert.equal(op1.record.attributes.name, 'Earth');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#pull - records with relatedRecord filter (single value)', async function(assert) {
+      assert.expect(5);
+
+      const solarSystem = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'solar-systems',
+          id: 'sun'
+        }
+      );
+
+      const data: Resource[] = [
+        {
+          id: 'moon',
+          type: 'moons',
+          attributes: { name: 'Moon' },
+          relationships: {
+            planet: { data: { id: 'earth', type: 'planets' } }
+          }
+        }
+      ];
+
+      fetchStub
+        .withArgs(
+          `/solar-systems/sun/moons?${encodeURIComponent(
+            'filter[planet]'
+          )}=earth`
+        )
+        .returns(jsonapiResponse(200, { data }));
+
+      let transforms = await source.pull(q =>
+        q.findRelatedRecords(solarSystem, 'moons').filter({
+          relation: 'planet',
+          record: { id: 'earth', type: 'planet' }
+        })
+      );
+
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), [
+        'updateRecord',
+        'addToRelatedRecords'
+      ]);
+
+      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
+
+      assert.equal(op1.record.attributes.name, 'Moon');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#pull - records with relatedRecord filter (multiple values)', async function(assert) {
+      assert.expect(5);
+
+      const solarSystem = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'solar-systems',
+          id: 'sun'
+        }
+      );
+
+      const data: Resource[] = [
+        {
+          id: 'moon',
+          type: 'moons',
+          attributes: { name: 'Moon' },
+          relationships: {
+            planet: { data: { id: 'earth', type: 'planets' } }
+          }
+        },
+        {
+          id: 'phobos',
+          type: 'moons',
+          attributes: { name: 'Phobos' },
+          relationships: {
+            planet: { data: { id: 'mars', type: 'planets' } }
+          }
+        },
+        {
+          id: 'deimos',
+          type: 'moons',
+          attributes: { name: 'Deimos' },
+          relationships: {
+            planet: { data: { id: 'mars', type: 'planets' } }
+          }
+        }
+      ];
+
+      fetchStub
+        .withArgs(
+          `/solar-systems/sun/moons?${encodeURIComponent(
+            'filter[planet]'
+          )}=${encodeURIComponent('earth,mars')}`
+        )
+        .returns(jsonapiResponse(200, { data }));
+
+      let transforms = await source.pull(q =>
+        q.findRelatedRecords(solarSystem, 'moons').filter({
+          relation: 'planet',
+          record: [
+            { id: 'earth', type: 'planet' },
+            { id: 'mars', type: 'planet' }
+          ]
+        })
+      );
+
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), [
+        'updateRecord',
+        'updateRecord',
+        'updateRecord',
+        'addToRelatedRecords',
+        'addToRelatedRecords',
+        'addToRelatedRecords'
+      ]);
+
+      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
+      let op2 = transforms[0].operations[1] as UpdateRecordOperation;
+      let op3 = transforms[0].operations[2] as UpdateRecordOperation;
+
+      assert.deepEqual([op1, op2, op3].map(o => o.record.attributes.name), [
+        'Moon',
+        'Phobos',
+        'Deimos'
+      ]);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#pull - records with relatedRecords filter', async function(assert) {
+      assert.expect(5);
+
+      const solarSystem = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'solar-systems',
+          id: 'sun'
+        }
+      );
+
+      const data: Resource[] = [
+        {
+          id: 'mars',
+          type: 'planets',
+          attributes: { name: 'Mars' },
+          relationships: {
+            moons: {
+              data: [
+                { id: 'phobos', type: 'moons' },
+                { id: 'deimos', type: 'moons' }
+              ]
+            }
+          }
+        }
+      ];
+
+      fetchStub
+        .withArgs(
+          `/solar-systems/sun/planets?${encodeURIComponent(
+            'filter[moons]'
+          )}=${encodeURIComponent('phobos,deimos')}`
+        )
+        .returns(jsonapiResponse(200, { data }));
+
+      let transforms = await source.pull(q =>
+        q.findRelatedRecords(solarSystem, 'planets').filter({
+          relation: 'moons',
+          records: [
+            { id: 'phobos', type: 'moon' },
+            { id: 'deimos', type: 'moon' }
+          ],
+          op: 'equal'
+        })
+      );
+
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), [
+        'updateRecord',
+        'addToRelatedRecords'
+      ]);
+
+      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
+
+      assert.equal(op1.record.attributes.name, 'Mars');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#pull - records with sort by an attribute in ascending order', async function(assert) {
+      assert.expect(5);
+
+      const solarSystem = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'solar-systems',
+          id: 'sun'
+        }
+      );
+
+      const data: Resource[] = [
+        {
+          type: 'planets',
+          attributes: { name: 'Earth', classification: 'terrestrial' }
+        },
+        {
+          type: 'planets',
+          attributes: { name: 'Jupiter', classification: 'gas giant' }
+        },
+        {
+          type: 'planets',
+          attributes: { name: 'Saturn', classification: 'gas giant' }
+        }
+      ];
+
+      fetchStub
+        .withArgs('/solar-systems/sun/planets?sort=name')
+        .returns(jsonapiResponse(200, { data }));
+
+      let transforms = await source.pull(q =>
+        q.findRelatedRecords(solarSystem, 'planets').sort('name')
+      );
+
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), [
+        'updateRecord',
+        'updateRecord',
+        'updateRecord',
+        'addToRelatedRecords',
+        'addToRelatedRecords',
+        'addToRelatedRecords'
+      ]);
+
+      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
+      let op2 = transforms[0].operations[1] as UpdateRecordOperation;
+      let op3 = transforms[0].operations[2] as UpdateRecordOperation;
+
+      assert.deepEqual([op1, op2, op3].map(o => o.record.attributes.name), [
+        'Earth',
+        'Jupiter',
+        'Saturn'
+      ]);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#pull - records with sort by an attribute in descending order', async function(assert) {
+      assert.expect(5);
+
+      const solarSystem = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'solar-systems',
+          id: 'sun'
+        }
+      );
+
+      const data: Resource[] = [
+        {
+          type: 'planets',
+          attributes: { name: 'Saturn', classification: 'gas giant' }
+        },
+        {
+          type: 'planets',
+          attributes: { name: 'Jupiter', classification: 'gas giant' }
+        },
+        {
+          type: 'planets',
+          attributes: { name: 'Earth', classification: 'terrestrial' }
+        }
+      ];
+
+      fetchStub
+        .withArgs('/solar-systems/sun/planets?sort=-name')
+        .returns(jsonapiResponse(200, { data }));
+
+      let transforms = await source.pull(q =>
+        q.findRelatedRecords(solarSystem, 'planets').sort('-name')
+      );
+
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), [
+        'updateRecord',
+        'updateRecord',
+        'updateRecord',
+        'addToRelatedRecords',
+        'addToRelatedRecords',
+        'addToRelatedRecords'
+      ]);
+
+      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
+      let op2 = transforms[0].operations[1] as UpdateRecordOperation;
+      let op3 = transforms[0].operations[2] as UpdateRecordOperation;
+
+      assert.deepEqual([op1, op2, op3].map(o => o.record.attributes.name), [
+        'Saturn',
+        'Jupiter',
+        'Earth'
+      ]);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#pull - records with sort by multiple fields', async function(assert) {
+      assert.expect(5);
+
+      const solarSystem = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'solar-systems',
+          id: 'sun'
+        }
+      );
+
+      const data: Resource[] = [
+        {
+          type: 'planets',
+          attributes: {
+            name: 'Jupiter',
+            classification: 'gas giant',
+            lengthOfDay: 9.9
+          }
+        },
+        {
+          type: 'planets',
+          attributes: {
+            name: 'Saturn',
+            classification: 'gas giant',
+            lengthOfDay: 10.7
+          }
+        },
+        {
+          type: 'planets',
+          attributes: {
+            name: 'Earth',
+            classification: 'terrestrial',
+            lengthOfDay: 24.0
+          }
+        }
+      ];
+
+      fetchStub
+        .withArgs(
+          `/solar-systems/sun/planets?sort=${encodeURIComponent(
+            'length-of-day,name'
+          )}`
+        )
+        .returns(jsonapiResponse(200, { data }));
+
+      let transforms = await source.pull(q =>
+        q.findRelatedRecords(solarSystem, 'planets').sort('lengthOfDay', 'name')
+      );
+
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), [
+        'updateRecord',
+        'updateRecord',
+        'updateRecord',
+        'addToRelatedRecords',
+        'addToRelatedRecords',
+        'addToRelatedRecords'
+      ]);
+
+      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
+      let op2 = transforms[0].operations[1] as UpdateRecordOperation;
+      let op3 = transforms[0].operations[2] as UpdateRecordOperation;
+
+      assert.deepEqual([op1, op2, op3].map(o => o.record.attributes.name), [
+        'Jupiter',
+        'Saturn',
+        'Earth'
+      ]);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#pull - records with pagination', async function(assert) {
+      assert.expect(5);
+
+      const solarSystem = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'solar-systems',
+          id: 'sun'
+        }
+      );
+
+      const data: Resource[] = [
+        {
+          type: 'planets',
+          attributes: { name: 'Jupiter', classification: 'gas giant' }
+        },
+        {
+          type: 'planets',
+          attributes: { name: 'Earth', classification: 'terrestrial' }
+        },
+        {
+          type: 'planets',
+          attributes: { name: 'Saturn', classification: 'gas giant' }
+        }
+      ];
+
+      fetchStub
+        .withArgs(
+          `/solar-systems/sun/planets?${encodeURIComponent(
+            'page[offset]'
+          )}=1&${encodeURIComponent('page[limit]')}=10`
+        )
+        .returns(jsonapiResponse(200, { data }));
+
+      let transforms = await source.pull(q =>
+        q
+          .findRelatedRecords(solarSystem, 'planets')
+          .page({ offset: 1, limit: 10 })
+      );
+
+      assert.equal(transforms.length, 1, 'one transform returned');
+      assert.deepEqual(transforms[0].operations.map(o => o.op), [
+        'updateRecord',
+        'updateRecord',
+        'updateRecord',
+        'addToRelatedRecords',
+        'addToRelatedRecords',
+        'addToRelatedRecords'
+      ]);
+
+      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
+      let op2 = transforms[0].operations[1] as UpdateRecordOperation;
+      let op3 = transforms[0].operations[2] as UpdateRecordOperation;
+
+      assert.deepEqual([op1, op2, op3].map(o => o.record.attributes.name), [
+        'Jupiter',
+        'Earth',
+        'Saturn'
+      ]);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
     test('#pull - records with include', async function(assert) {
       assert.expect(2);
 
@@ -3410,6 +3997,455 @@ module('JSONAPISource', function() {
 
       let records: Record[] = await source.query(q =>
         q.findRecords('planet').page({ offset: 1, limit: 10 })
+      );
+
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 3, 'three objects in data returned');
+      assert.deepEqual(records.map(o => o.attributes.name), [
+        'Jupiter',
+        'Earth',
+        'Saturn'
+      ]);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#query - related records with attribute filter', async function(assert) {
+      assert.expect(5);
+
+      const solarSystem = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'solar-systems',
+          id: 'sun'
+        }
+      );
+
+      const data: Resource[] = [
+        {
+          type: 'planets',
+          attributes: {
+            name: 'Earth',
+            classification: 'terrestrial',
+            lengthOfDay: 24
+          },
+          relationships: {
+            solarSystem: {
+              data: {
+                type: 'solar-systems',
+                id: 'sun'
+              }
+            }
+          }
+        }
+      ];
+
+      fetchStub
+        .withArgs(
+          `/solar-systems/sun/planets?${encodeURIComponent(
+            'filter[length-of-day]'
+          )}=24`
+        )
+        .returns(jsonapiResponse(200, { data }));
+
+      let records: Record[] = await source.query(q =>
+        q
+          .findRelatedRecords(solarSystem, 'planets')
+          .filter({ attribute: 'lengthOfDay', value: 24 })
+      );
+
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 1, 'one objects in data returned');
+      assert.deepEqual(records.map(o => o.attributes.name), ['Earth']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#query - related records with relatedRecord filter (single value)', async function(assert) {
+      assert.expect(5);
+
+      const solarSystem = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'solar-systems',
+          id: 'sun'
+        }
+      );
+
+      const data: Resource[] = [
+        {
+          id: 'moon',
+          type: 'moons',
+          attributes: { name: 'Moon' },
+          relationships: {
+            planet: { data: { id: 'earth', type: 'planets' } }
+          }
+        }
+      ];
+
+      fetchStub
+        .withArgs(
+          `/solar-systems/sun/moons?${encodeURIComponent(
+            'filter[planet]'
+          )}=earth`
+        )
+        .returns(jsonapiResponse(200, { data }));
+
+      let records: Record[] = await source.query(q =>
+        q.findRelatedRecords(solarSystem, 'moons').filter({
+          relation: 'planet',
+          record: { id: 'earth', type: 'planets' }
+        })
+      );
+
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 1, 'one objects in data returned');
+      assert.deepEqual(records.map(o => o.attributes.name), ['Moon']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#query - related records with relatedRecord filter (multiple values)', async function(assert) {
+      assert.expect(5);
+
+      const solarSystem = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'solar-systems',
+          id: 'sun'
+        }
+      );
+
+      const data: Resource[] = [
+        {
+          id: 'moon',
+          type: 'moons',
+          attributes: { name: 'Moon' },
+          relationships: {
+            planet: { data: { id: 'earth', type: 'planets' } }
+          }
+        },
+        {
+          id: 'phobos',
+          type: 'moons',
+          attributes: { name: 'Phobos' },
+          relationships: {
+            planet: { data: { id: 'mars', type: 'planets' } }
+          }
+        },
+        {
+          id: 'deimos',
+          type: 'moons',
+          attributes: { name: 'Deimos' },
+          relationships: {
+            planet: { data: { id: 'mars', type: 'planets' } }
+          }
+        }
+      ];
+
+      fetchStub
+        .withArgs(
+          `/solar-systems/sun/moons?${encodeURIComponent(
+            'filter[planet]'
+          )}=${encodeURIComponent('earth,mars')}`
+        )
+        .returns(jsonapiResponse(200, { data }));
+
+      let records: Record[] = await source.query(q =>
+        q.findRelatedRecords(solarSystem, 'moons').filter({
+          relation: 'planet',
+          record: [
+            { id: 'earth', type: 'planets' },
+            { id: 'mars', type: 'planets' }
+          ]
+        })
+      );
+
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 3, 'three objects in data returned');
+      assert.deepEqual(records.map(o => o.attributes.name), [
+        'Moon',
+        'Phobos',
+        'Deimos'
+      ]);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#query - related records with relatedRecords filter', async function(assert) {
+      assert.expect(5);
+
+      const solarSystem = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'solar-systems',
+          id: 'sun'
+        }
+      );
+
+      const data: Resource[] = [
+        {
+          id: 'mars',
+          type: 'planets',
+          attributes: { name: 'Mars' },
+          relationships: {
+            moons: {
+              data: [
+                { id: 'phobos', type: 'moons' },
+                { id: 'deimos', type: 'moons' }
+              ]
+            }
+          }
+        }
+      ];
+
+      fetchStub
+        .withArgs(
+          `/solar-systems/sun/planets?${encodeURIComponent(
+            'filter[moons]'
+          )}=${encodeURIComponent('phobos,deimos')}`
+        )
+        .returns(jsonapiResponse(200, { data }));
+
+      let records: Record[] = await source.query(q =>
+        q.findRelatedRecords(solarSystem, 'planets').filter({
+          relation: 'moons',
+          records: [
+            { id: 'phobos', type: 'moons' },
+            { id: 'deimos', type: 'moons' }
+          ],
+          op: 'equal'
+        })
+      );
+
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 1, 'one objects in data returned');
+      assert.deepEqual(records.map(o => o.attributes.name), ['Mars']);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#query - related records with sort by an attribute in ascending order', async function(assert) {
+      assert.expect(5);
+
+      const solarSystem = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'solar-systems',
+          id: 'sun'
+        }
+      );
+
+      const data: Resource[] = [
+        {
+          type: 'planets',
+          attributes: { name: 'Earth', classification: 'terrestrial' }
+        },
+        {
+          type: 'planets',
+          attributes: { name: 'Jupiter', classification: 'gas giant' }
+        },
+        {
+          type: 'planets',
+          attributes: { name: 'Saturn', classification: 'gas giant' }
+        }
+      ];
+
+      fetchStub
+        .withArgs('/solar-systems/sun/planets?sort=name')
+        .returns(jsonapiResponse(200, { data }));
+
+      let records: Record[] = await source.query(q =>
+        q.findRelatedRecords(solarSystem, 'planets').sort('name')
+      );
+
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 3, 'three objects in data returned');
+      assert.deepEqual(records.map(o => o.attributes.name), [
+        'Earth',
+        'Jupiter',
+        'Saturn'
+      ]);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#query - related records with sort by an attribute in descending order', async function(assert) {
+      assert.expect(5);
+
+      const solarSystem = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'solar-systems',
+          id: 'sun'
+        }
+      );
+
+      const data: Resource[] = [
+        {
+          type: 'planets',
+          attributes: { name: 'Saturn', classification: 'gas giant' }
+        },
+        {
+          type: 'planets',
+          attributes: { name: 'Jupiter', classification: 'gas giant' }
+        },
+        {
+          type: 'planets',
+          attributes: { name: 'Earth', classification: 'terrestrial' }
+        }
+      ];
+
+      fetchStub
+        .withArgs('/solar-systems/sun/planets?sort=-name')
+        .returns(jsonapiResponse(200, { data }));
+
+      let records: Record[] = await source.query(q =>
+        q.findRelatedRecords(solarSystem, 'planets').sort('-name')
+      );
+
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 3, 'three objects in data returned');
+      assert.deepEqual(records.map(o => o.attributes.name), [
+        'Saturn',
+        'Jupiter',
+        'Earth'
+      ]);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#query - related records with sort by multiple fields', async function(assert) {
+      assert.expect(5);
+
+      const solarSystem = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'solar-systems',
+          id: 'sun'
+        }
+      );
+
+      const data: Resource[] = [
+        {
+          type: 'planets',
+          attributes: {
+            name: 'Jupiter',
+            classification: 'gas giant',
+            lengthOfDay: 9.9
+          }
+        },
+        {
+          type: 'planets',
+          attributes: {
+            name: 'Saturn',
+            classification: 'gas giant',
+            lengthOfDay: 10.7
+          }
+        },
+        {
+          type: 'planets',
+          attributes: {
+            name: 'Earth',
+            classification: 'terrestrial',
+            lengthOfDay: 24.0
+          }
+        }
+      ];
+
+      fetchStub
+        .withArgs(
+          `/solar-systems/sun/planets?sort=${encodeURIComponent(
+            'length-of-day,name'
+          )}`
+        )
+        .returns(jsonapiResponse(200, { data }));
+
+      let records: Record[] = await source.query(q =>
+        q.findRelatedRecords(solarSystem, 'planets').sort('lengthOfDay', 'name')
+      );
+
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 3, 'three objects in data returned');
+      assert.deepEqual(records.map(o => o.attributes.name), [
+        'Jupiter',
+        'Saturn',
+        'Earth'
+      ]);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#query - related records with pagination', async function(assert) {
+      assert.expect(5);
+
+      const solarSystem = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'solar-systems',
+          id: 'sun'
+        }
+      );
+
+      const data: Resource[] = [
+        {
+          type: 'planets',
+          attributes: { name: 'Jupiter', classification: 'gas giant' }
+        },
+        {
+          type: 'planets',
+          attributes: { name: 'Earth', classification: 'terrestrial' }
+        },
+        {
+          type: 'planets',
+          attributes: { name: 'Saturn', classification: 'gas giant' }
+        }
+      ];
+
+      fetchStub
+        .withArgs(
+          `/solar-systems/sun/planets?${encodeURIComponent(
+            'page[offset]'
+          )}=1&${encodeURIComponent('page[limit]')}=10`
+        )
+        .returns(jsonapiResponse(200, { data }));
+
+      let records: Record[] = await source.query(q =>
+        q
+          .findRelatedRecords(solarSystem, 'planets')
+          .page({ offset: 1, limit: 10 })
       );
 
       assert.ok(Array.isArray(records), 'returned an array of data');

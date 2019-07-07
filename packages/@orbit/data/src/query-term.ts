@@ -112,6 +112,55 @@ export class FindRelatedRecordsTerm extends QueryTerm {
 
     super(expression);
   }
+
+  /**
+   * Applies sorting to a collection query.
+   *
+   * Sort specifiers can be expressed in object form, like:
+   *
+   * ```ts
+   * { attribute: 'name', order: 'descending' }
+   * { attribute: 'name', order: 'ascending' }
+   * ```
+   *
+   * Or in string form, like:
+   *
+   * ```ts
+   * '-name' // descending order
+   * 'name'  // ascending order
+   * ```
+   */
+  sort(...params: SortQBParam[]): FindRelatedRecordsTerm {
+    const specifiers = params.map(sortParamToSpecifier);
+    this.expression.sort = (this.expression.sort || []).concat(specifiers);
+    return this;
+  }
+
+  /**
+   * Applies pagination to a collection query.
+   */
+  page(param: PageQBParam): FindRelatedRecordsTerm {
+    this.expression.page = pageParamToSpecifier(param);
+    return this;
+  }
+
+  /**
+   * Apply a filter expression.
+   *
+   * For example:
+   *
+   * ```ts
+   * oqb
+   *   .records('planet')
+   *   .filter({ attribute: 'atmosphere', value: true },
+   *           { attribute: 'classification', value: 'terrestrial' });
+   * ```
+   */
+  filter(...params: FilterQBParam[]): FindRelatedRecordsTerm {
+    const specifiers = params.map(filterParamToSpecifier);
+    this.expression.filter = (this.expression.filter || []).concat(specifiers);
+    return this;
+  }
 }
 
 export class FindRecordsTerm extends QueryTerm {

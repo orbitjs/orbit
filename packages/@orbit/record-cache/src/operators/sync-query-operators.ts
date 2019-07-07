@@ -58,8 +58,18 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
 
       return [];
     }
+    let results = cache.getRecordsSync(relatedIds);
 
-    return cache.getRecordsSync(relatedIds);
+    if (expression.filter) {
+      results = filterRecords(results, expression.filter);
+    }
+    if (expression.sort) {
+      results = sortRecords(results, expression.sort);
+    }
+    if (expression.page) {
+      results = paginateRecords(results, expression.page);
+    }
+    return results;
   },
 
   findRelatedRecord(
