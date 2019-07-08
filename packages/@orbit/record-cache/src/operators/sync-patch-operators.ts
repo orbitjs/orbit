@@ -14,7 +14,8 @@ import {
   RemoveFromRelatedRecordsOperation,
   ReplaceRelatedRecordsOperation,
   ReplaceRelatedRecordOperation,
-  Record
+  Record,
+  recordsInclude
 } from '@orbit/data';
 import { SyncRecordAccessor } from '../record-accessor';
 import { PatchResultData } from '../patch-result';
@@ -120,10 +121,13 @@ export const SyncPatchOperators: Dict<SyncPatchOperator> = {
 
     const relatedRecords: RecordIdentity[] =
       deepGet(record, ['relationships', relationship, 'data']) || [];
-    relatedRecords.push(relatedRecord);
 
-    deepSet(record, ['relationships', relationship, 'data'], relatedRecords);
-    cache.setRecordSync(record);
+    if (!recordsInclude(relatedRecords, relatedRecord)) {
+      relatedRecords.push(relatedRecord);
+
+      deepSet(record, ['relationships', relationship, 'data'], relatedRecords);
+      cache.setRecordSync(record);
+    }
 
     return record;
   },

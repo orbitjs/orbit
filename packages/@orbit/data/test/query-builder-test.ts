@@ -1,6 +1,10 @@
 import QueryBuilder from '../src/query-builder';
 import './test-helper';
-import { FindRecord, FindRecords } from '../src/query-expression';
+import {
+  FindRecord,
+  FindRecords,
+  FindRelatedRecords
+} from '../src/query-expression';
 
 const { module, test } = QUnit;
 
@@ -375,6 +379,403 @@ module('QueryBuilder', function(hooks) {
           }
         ]
       } as FindRecords
+    );
+  });
+
+  test('findRelatedRecords', function(assert) {
+    assert.deepEqual(
+      oqb
+        .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
+        .toQueryExpression(),
+      {
+        op: 'findRelatedRecords',
+        record: {
+          id: '123',
+          type: 'planet'
+        },
+        relationship: 'moons'
+      } as FindRelatedRecords
+    );
+  });
+
+  test('findRelatedRecords + attribute filter', function(assert) {
+    assert.deepEqual(
+      oqb
+        .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
+        .filter({ attribute: 'name', value: 'Pluto' })
+        .toQueryExpression(),
+      {
+        op: 'findRelatedRecords',
+        record: {
+          id: '123',
+          type: 'planet'
+        },
+        relationship: 'moons',
+        filter: [
+          {
+            op: 'equal',
+            kind: 'attribute',
+            attribute: 'name',
+            value: 'Pluto'
+          }
+        ]
+      } as FindRelatedRecords
+    );
+  });
+
+  test('findRelatedRecords + attribute filters', function(assert) {
+    assert.deepEqual(
+      oqb
+        .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
+        .filter(
+          { attribute: 'atmosphere', value: true },
+          { attribute: 'classification', value: 'terrestrial' }
+        )
+        .toQueryExpression(),
+      {
+        op: 'findRelatedRecords',
+        record: {
+          id: '123',
+          type: 'planet'
+        },
+        relationship: 'moons',
+        filter: [
+          {
+            op: 'equal',
+            kind: 'attribute',
+            attribute: 'atmosphere',
+            value: true
+          },
+          {
+            op: 'equal',
+            kind: 'attribute',
+            attribute: 'classification',
+            value: 'terrestrial'
+          }
+        ]
+      } as FindRelatedRecords
+    );
+  });
+
+  test('findRelatedRecords + filter (invalid filter expression)', function(assert) {
+    assert.throws(() => {
+      oqb
+        .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
+        // @ts-ignore: testing a common mistake for a new Orbiteer not using TypeScript
+        .filter({ name: 'Pluto' })
+        .toQueryExpression();
+    }, new Error('Unrecognized filter param.'));
+  });
+
+  test('findRelatedRecords + attribute filter', function(assert) {
+    assert.deepEqual(
+      oqb
+        .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
+        .filter({ attribute: 'name', value: 'Pluto' })
+        .toQueryExpression(),
+      {
+        op: 'findRelatedRecords',
+        record: {
+          id: '123',
+          type: 'planet'
+        },
+        relationship: 'moons',
+        filter: [
+          {
+            op: 'equal',
+            kind: 'attribute',
+            attribute: 'name',
+            value: 'Pluto'
+          }
+        ]
+      } as FindRelatedRecords
+    );
+  });
+
+  test('findRelatedRecords + hasOne filter', function(assert) {
+    assert.deepEqual(
+      oqb
+        .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
+        .filter({ relation: 'star', record: { id: '1', type: 'star' } })
+        .toQueryExpression(),
+      {
+        op: 'findRelatedRecords',
+        record: {
+          id: '123',
+          type: 'planet'
+        },
+        relationship: 'moons',
+        filter: [
+          {
+            op: 'equal',
+            kind: 'relatedRecord',
+            relation: 'star',
+            record: { id: '1', type: 'star' }
+          }
+        ]
+      } as FindRelatedRecords
+    );
+  });
+
+  test('findRelatedRecords + hasMany filter', function(assert) {
+    assert.deepEqual(
+      oqb
+        .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
+        .filter({
+          relation: 'moons',
+          records: [{ id: '1', type: 'moon' }, { id: '2', type: 'moon' }],
+          op: 'equal'
+        })
+        .toQueryExpression(),
+      {
+        op: 'findRelatedRecords',
+        record: {
+          id: '123',
+          type: 'planet'
+        },
+        relationship: 'moons',
+        filter: [
+          {
+            op: 'equal',
+            kind: 'relatedRecords',
+            relation: 'moons',
+            records: [{ id: '1', type: 'moon' }, { id: '2', type: 'moon' }]
+          }
+        ]
+      } as FindRelatedRecords
+    );
+  });
+
+  test('findRelatedRecords + sort (one field, compact)', function(assert) {
+    assert.deepEqual(
+      oqb
+        .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
+        .sort('name')
+        .toQueryExpression(),
+      {
+        op: 'findRelatedRecords',
+        record: {
+          id: '123',
+          type: 'planet'
+        },
+        relationship: 'moons',
+        sort: [
+          {
+            kind: 'attribute',
+            attribute: 'name',
+            order: 'ascending'
+          }
+        ]
+      } as FindRelatedRecords
+    );
+  });
+
+  test('findRelatedRecords + sort (one field descending, compact)', function(assert) {
+    assert.deepEqual(
+      oqb
+        .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
+        .sort('-name')
+        .toQueryExpression(),
+      {
+        op: 'findRelatedRecords',
+        record: {
+          id: '123',
+          type: 'planet'
+        },
+        relationship: 'moons',
+        sort: [
+          {
+            kind: 'attribute',
+            attribute: 'name',
+            order: 'descending'
+          }
+        ]
+      } as FindRelatedRecords
+    );
+  });
+
+  test('findRelatedRecords + sort (multiple fields, compact)', function(assert) {
+    assert.deepEqual(
+      oqb
+        .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
+        .sort('name', 'age')
+        .toQueryExpression(),
+      {
+        op: 'findRelatedRecords',
+        record: {
+          id: '123',
+          type: 'planet'
+        },
+        relationship: 'moons',
+        sort: [
+          {
+            kind: 'attribute',
+            attribute: 'name',
+            order: 'ascending'
+          },
+          {
+            kind: 'attribute',
+            attribute: 'age',
+            order: 'ascending'
+          }
+        ]
+      } as FindRelatedRecords
+    );
+  });
+
+  test('findRelatedRecords + sort (one field, verbose)', function(assert) {
+    assert.deepEqual(
+      oqb
+        .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
+        .sort({ attribute: 'name' })
+        .toQueryExpression(),
+      {
+        op: 'findRelatedRecords',
+        record: {
+          id: '123',
+          type: 'planet'
+        },
+        relationship: 'moons',
+        sort: [
+          {
+            kind: 'attribute',
+            attribute: 'name',
+            order: 'ascending'
+          }
+        ]
+      } as FindRelatedRecords
+    );
+  });
+
+  test('findRelatedRecords + sort (one field, specified order, verbose)', function(assert) {
+    assert.deepEqual(
+      oqb
+        .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
+        .sort({ attribute: 'name', order: 'ascending' })
+        .toQueryExpression(),
+      {
+        op: 'findRelatedRecords',
+        record: {
+          id: '123',
+          type: 'planet'
+        },
+        relationship: 'moons',
+        sort: [
+          {
+            kind: 'attribute',
+            attribute: 'name',
+            order: 'ascending'
+          }
+        ]
+      } as FindRelatedRecords
+    );
+  });
+
+  test('findRelatedRecords + sort (one field, specified order, verbose)', function(assert) {
+    assert.deepEqual(
+      oqb
+        .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
+        .sort(
+          { attribute: 'name', order: 'ascending' },
+          { attribute: 'age', order: 'descending' }
+        )
+        .toQueryExpression(),
+      {
+        op: 'findRelatedRecords',
+        record: {
+          id: '123',
+          type: 'planet'
+        },
+        relationship: 'moons',
+        sort: [
+          {
+            kind: 'attribute',
+            attribute: 'name',
+            order: 'ascending'
+          },
+          {
+            kind: 'attribute',
+            attribute: 'age',
+            order: 'descending'
+          }
+        ]
+      } as FindRelatedRecords
+    );
+  });
+
+  test('findRelatedRecords + sort (invalid sort expression)', function(assert) {
+    assert.throws(() => {
+      oqb.findRelatedRecords({ type: 'planet', id: '123' }, 'moons').sort(null);
+    }, new Error('Unrecognized sort param.'));
+  });
+
+  test('findRelatedRecords + page', function(assert) {
+    assert.deepEqual(
+      oqb
+        .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
+        .page({ offset: 1, limit: 10 })
+        .toQueryExpression(),
+      {
+        op: 'findRelatedRecords',
+        record: {
+          id: '123',
+          type: 'planet'
+        },
+        relationship: 'moons',
+        page: {
+          kind: 'offsetLimit',
+          offset: 1,
+          limit: 10
+        }
+      } as FindRelatedRecords
+    );
+  });
+
+  test('findRelatedRecords + filter + sort + page', function(assert) {
+    assert.deepEqual(
+      oqb
+        .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
+        .filter(
+          { attribute: 'name', value: 'Jupiter' },
+          { attribute: 'age', value: 23000000 }
+        )
+        .page({ offset: 1, limit: 10 })
+        .sort('-name')
+        .toQueryExpression(),
+      {
+        op: 'findRelatedRecords',
+        record: {
+          id: '123',
+          type: 'planet'
+        },
+        relationship: 'moons',
+        filter: [
+          {
+            op: 'equal',
+            kind: 'attribute',
+            attribute: 'name',
+            value: 'Jupiter'
+          },
+          {
+            op: 'equal',
+            kind: 'attribute',
+            attribute: 'age',
+            value: 23000000
+          }
+        ],
+        page: {
+          kind: 'offsetLimit',
+          offset: 1,
+          limit: 10
+        },
+        sort: [
+          {
+            kind: 'attribute',
+            attribute: 'name',
+            order: 'descending'
+          }
+        ]
+      } as FindRelatedRecords
     );
   });
 });
