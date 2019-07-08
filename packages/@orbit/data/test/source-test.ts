@@ -246,4 +246,19 @@ module('Source', function(hooks) {
 
     assert.ok(source.transformLog.contains(appliedTransform.id));
   });
+
+  test('autoActivate', async function(assert) {
+    assert.expect(2);
+
+    source = new MySource({ autoActivate: false });
+
+    assert.throws(() => {
+      source.activated;
+    });
+
+    source.activate();
+
+    await source.activated;
+    assert.ok(true);
+  });
 });

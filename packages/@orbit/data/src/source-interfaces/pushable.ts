@@ -75,11 +75,12 @@ export default function pushable(Klass: SourceClass): void {
 
   proto[PUSHABLE] = true;
 
-  proto.push = function(
+  proto.push = async function(
     transformOrOperations: TransformOrOperations,
     options?: object,
     id?: string
   ): Promise<Transform[]> {
+    await this.activated;
     const transform = buildTransform(
       transformOrOperations,
       options,

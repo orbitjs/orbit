@@ -18,21 +18,18 @@ export class LogTruncationStrategy extends Strategy {
     options: ActivationOptions = {}
   ): Promise<void> {
     await super.activate(coordinator, options);
-    await this._reifySources();
     this._transformListeners = {};
-    this._sources.forEach(source => this._activateSource(source));
+    for (let source of this._sources) {
+      this._connectSource(source);
+    }
   }
 
   async deactivate(): Promise<void> {
     await super.deactivate();
-    this._sources.forEach(source => this._deactivateSource(source));
+    for (let source of this._sources) {
+      this._disconnectSource(source);
+    }
     this._transformListeners = null;
-  }
-
-  _reifySources(): Promise<void> {
-    return this._sources.reduce((chain, source) => {
-      return chain.then(() => source.transformLog.reified);
-    }, Promise.resolve());
   }
 
   _review(source: Source): Promise<void> {
@@ -69,7 +66,7 @@ export class LogTruncationStrategy extends Strategy {
     }, Promise.resolve());
   }
 
-  _activateSource(source: Source) {
+  _connectSource(source: Source) {
     const listener = (this._transformListeners[source.name] = (): Promise<
       void
     > => {
@@ -82,7 +79,7 @@ export class LogTruncationStrategy extends Strategy {
     source.requestQueue.on('complete', listener);
   }
 
-  _deactivateSource(source: Source) {
+  _disconnectSource(source: Source) {
     const listener = this._transformListeners[source.name];
     source.syncQueue.off('complete', listener);
     source.requestQueue.off('complete', listener);
