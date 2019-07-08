@@ -631,6 +631,13 @@ module('AsyncRecordCache', function(hooks) {
       })
     );
 
+    await cache.patch(t =>
+      t.addToRelatedRecords({ type: 'planet', id: 'p1' }, 'moons', {
+        type: 'moon',
+        id: 'm1'
+      })
+    );
+
     assert.deepEqual(
       (await cache.getRecordAsync({ type: 'planet', id: 'p1' })).relationships
         .moons.data,
