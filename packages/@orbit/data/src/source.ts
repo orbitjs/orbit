@@ -26,6 +26,7 @@ export interface SourceSettings {
   queryBuilder?: QueryBuilder;
   transformBuilder?: TransformBuilder;
   autoUpgrade?: boolean;
+  autoActivate?: boolean;
   requestQueueSettings?: TaskQueueSettings;
   syncQueueSettings?: TaskQueueSettings;
 }
@@ -46,6 +47,7 @@ export abstract class Source implements Evented, Performer {
   protected _syncQueue: TaskQueue;
   protected _queryBuilder: QueryBuilder;
   protected _transformBuilder: TransformBuilder;
+  private _activated?: Promise<void>;
 
   // Evented interface stubs
   on: (event: string, listener: Listener) => void;
@@ -90,6 +92,10 @@ export abstract class Source implements Evented, Performer {
       (settings.autoUpgrade === undefined || settings.autoUpgrade)
     ) {
       this._schema.on('upgrade', () => this.upgrade());
+    }
+
+    if (settings.autoActivate === undefined || settings.autoActivate) {
+      this.activate();
     }
   }
 
@@ -156,6 +162,34 @@ export abstract class Source implements Evented, Performer {
     return Promise.resolve();
   }
 
+  get activated(): Promise<void> {
+    if (!this._activated) {
+      throw new Error(`"${this.name}" source is not activated`);
+    }
+    return this._activated;
+  }
+
+  async activate(): Promise<void> {
+    if (!this._activated) {
+      this._activated = this._activate();
+    }
+    return this._activated;
+  }
+
+  async deactivate(): Promise<void> {
+    if (this._activated) {
+      await this._activated;
+      await this.requestQueue.process();
+      await this.syncQueue.process();
+    }
+
+    this._activated = undefined;
+  }
+
+  protected async _activate(): Promise<void> {
+    return this._transformLog.reified;
+  }
+
   /////////////////////////////////////////////////////////////////////////////
   // Private methods
   /////////////////////////////////////////////////////////////////////////////
@@ -168,7 +202,8 @@ export abstract class Source implements Evented, Performer {
    *
    * Also, adds an entry to the Source's `transformLog` for each transform.
    */
-  protected _transformed(transforms: Transform[]): Promise<Transform[]> {
+  protected async _transformed(transforms: Transform[]): Promise<Transform[]> {
+    await this.activated;
     return transforms
       .reduce((chain, transform) => {
         return chain.then(() => {

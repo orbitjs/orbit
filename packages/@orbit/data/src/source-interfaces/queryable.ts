@@ -68,11 +68,12 @@ export default function queryable(Klass: SourceClass): void {
 
   proto[QUERYABLE] = true;
 
-  proto.query = function(
+  proto.query = async function(
     queryOrExpression: QueryOrExpression,
     options?: object,
     id?: string
   ): Promise<any> {
+    await this.activated;
     const query = buildQuery(queryOrExpression, options, id, this.queryBuilder);
     return this._enqueueRequest('query', query);
   };

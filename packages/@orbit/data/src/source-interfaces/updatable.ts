@@ -69,11 +69,12 @@ export default function updatable(Klass: SourceClass): void {
 
   proto[UPDATABLE] = true;
 
-  proto.update = function(
+  proto.update = async function(
     transformOrOperations: TransformOrOperations,
     options?: object,
     id?: string
   ): Promise<any> {
+    await this.activated;
     const transform = buildTransform(
       transformOrOperations,
       options,

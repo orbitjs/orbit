@@ -72,11 +72,12 @@ export default function pullable(Klass: SourceClass): void {
 
   proto[PULLABLE] = true;
 
-  proto.pull = function(
+  proto.pull = async function(
     queryOrExpression: QueryOrExpression,
     options?: object,
     id?: string
   ): Promise<Transform[]> {
+    await this.activated;
     const query = buildQuery(queryOrExpression, options, id, this.queryBuilder);
     return this._enqueueRequest('pull', query);
   };

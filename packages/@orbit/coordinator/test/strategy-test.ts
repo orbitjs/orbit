@@ -182,4 +182,28 @@ module('Strategy', function(hooks) {
 
     await coordinator.activate({ logLevel: LogLevel.Warnings });
   });
+
+  test('activate sources', async function(assert) {
+    class CustomStrategy extends Strategy {}
+
+    strategy = new CustomStrategy({
+      name: 'custom',
+      sources: ['s1', 's2', 's3']
+    });
+
+    assert.throws(() => {
+      strategy.sources.map(s => s.activated);
+    });
+
+    coordinator.addStrategy(strategy);
+    await coordinator.activate();
+
+    assert.ok(strategy.sources.map(s => s.activated));
+
+    await coordinator.deactivate();
+
+    assert.throws(() => {
+      strategy.sources.map(s => s.activated);
+    });
+  });
 });

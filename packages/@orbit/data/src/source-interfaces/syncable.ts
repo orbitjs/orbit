@@ -52,9 +52,10 @@ export default function syncable(Klass: SourceClass): void {
 
   proto[SYNCABLE] = true;
 
-  proto.sync = function(
+  proto.sync = async function(
     transformOrTransforms: Transform | Transform[]
   ): Promise<void> {
+    await this.activated;
     if (Array.isArray(transformOrTransforms)) {
       const transforms = transformOrTransforms as Transform[];
 
