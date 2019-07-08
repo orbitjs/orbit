@@ -1,4 +1,4 @@
-import { Dict, deepGet, deepSet, eq, isArray } from '@orbit/utils';
+import { Dict, deepGet, deepSet, eq } from '@orbit/utils';
 import {
   Record,
   RecordOperation,
@@ -87,7 +87,7 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
             ]);
             let relationshipChanged;
 
-            if (isArray(data)) {
+            if (Array.isArray(data)) {
               if (currentData) {
                 relationshipChanged = !equalRecordIdentitySets(
                   currentData,

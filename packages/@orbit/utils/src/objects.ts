@@ -102,7 +102,10 @@ export function extend(destination: any, ...sources: any[]): any {
  * @returns {boolean}
  */
 export function isArray(obj: any): boolean {
-  return Object.prototype.toString.call(obj) === '[object Array]';
+  console.warn(
+    '`isArray` from `@orbit/utils` is deprecated and will be removed in the next release. Please use `Array.isArray`.'
+  );
+  return Array.isArray(obj);
 }
 
 /**
@@ -116,7 +119,7 @@ export function toArray(obj: any): any[] {
   if (isNone(obj)) {
     return [];
   } else {
-    return isArray(obj) ? obj : [obj];
+    return Array.isArray(obj) ? obj : [obj];
   }
 }
 
@@ -184,7 +187,12 @@ export function deepMerge(object: any, ...sources: any[]): any {
       if (source.hasOwnProperty(field)) {
         let a = object[field];
         let b = source[field];
-        if (isObject(a) && isObject(b) && !isArray(a) && !isArray(b)) {
+        if (
+          isObject(a) &&
+          isObject(b) &&
+          !Array.isArray(a) &&
+          !Array.isArray(b)
+        ) {
           deepMerge(a, b);
         } else if (b !== undefined) {
           object[field] = clone(b);
