@@ -1,6 +1,6 @@
 {
   "name": "@orbit/identity-map",
-  "version": "0.16.0-beta.8",
+  "version": "0.16.0-beta.9",
   "description": "Orbit identity map to manage model instances.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>",
@@ -28,9 +28,9 @@
   },
   "devDependencies": {
     "@glimmer/build": "^0.10.1",
-    "@orbit/core": "^0.16.0-beta.8",
-    "@orbit/data": "^0.16.0-beta.8",
-    "@orbit/utils": "^0.16.0-beta.8",
+    "@orbit/core": "^0.16.0-beta.9",
+    "@orbit/data": "^0.16.0-beta.9",
+    "@orbit/utils": "^0.16.0-beta.9",
     "@typescript-eslint/eslint-plugin": "^1.10.2",
     "@typescript-eslint/parser": "^1.10.2",
     "eslint": "^5.16.0",
