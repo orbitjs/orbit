@@ -361,51 +361,6 @@
     tslint "^5.16.0"
     typescript "~3.4.5"
 
-"@orbit/core@^0.16.0-beta.8":
-  version "0.16.0-beta.8"
-  resolved "https://registry.yarnpkg.com/@orbit/core/-/core-0.16.0-beta.8.tgz#7296f524efc864f270988c62f0ba46fb2b3fa7ae"
-  integrity sha512-rM9NdNCmid4IVzvIss1Uoq2s4udHMPGqI8CIXrLYpbFpdDQmPAxdy2QO9mnrx0gA17oQr1KCAtDBDBa1n83PdA==
-  dependencies:
-    "@orbit/utils" "^0.16.0-beta.8"
-
-"@orbit/data@^0.16.0-beta.8":
-  version "0.16.0-beta.8"
-  resolved "https://registry.yarnpkg.com/@orbit/data/-/data-0.16.0-beta.8.tgz#1b7bae4d13020a9620a19347d0ff9c5fdd584915"
-  integrity sha512-U9l4j+pQPjPg4AQpDYO6nggRBUySspuVLm/beo705Bk+twbqfqCZ/4257BNuU+qtPciQTpTTrXy3aQweCj2MAQ==
-  dependencies:
-    "@orbit/core" "^0.16.0-beta.8"
-    "@orbit/utils" "^0.16.0-beta.8"
-
-"@orbit/immutable@^0.16.0-beta.8":
-  version "0.16.0-beta.8"
-  resolved "https://registry.yarnpkg.com/@orbit/immutable/-/immutable-0.16.0-beta.8.tgz#14efc6c28ee4ccc704f31be309225bfd1aa2a4d1"
-  integrity sha512-AIn2YhQwnN5hxeCPqjKxi2q4f56IjHhorHT7t/75MbM/HND88NOd1nnZ1YausWB9NZcASuKN9KzteEHfG1lhGA==
-
-"@orbit/memory@^0.16.0-beta.8":
-  version "0.16.0-beta.8"
-  resolved "https://registry.yarnpkg.com/@orbit/memory/-/memory-0.16.0-beta.8.tgz#ea3061d87b511718d53d8eba0d00c55b8bfe7750"
-  integrity sha512-C5QxIohSz1Q07fxZfosuMGAM6nBxQOjsV5dXGDBZ65EAWShUcegxsmsT5SqbbKyXFrfiP9J5wcfxJFoMzKyGKA==
-  dependencies:
-    "@orbit/core" "^0.16.0-beta.8"
-    "@orbit/data" "^0.16.0-beta.8"
-    "@orbit/immutable" "^0.16.0-beta.8"
-    "@orbit/record-cache" "^0.16.0-beta.8"
-    "@orbit/utils" "^0.16.0-beta.8"
-
-"@orbit/record-cache@^0.16.0-beta.8":
-  version "0.16.0-beta.8"
-  resolved "https://registry.yarnpkg.com/@orbit/record-cache/-/record-cache-0.16.0-beta.8.tgz#2c1aebe6e6182b8bf12fdeeddfa24da10a314f7c"
-  integrity sha512-5Sd3dwBiYX3ZGtbZDQTJ7mxCxXkkGgjDRiKuUz9Fp71gW21HwFCYHAUkJc7kZsnW+ViVrylgZS9ljWRN+TBk8A==
-  dependencies:
-    "@orbit/core" "^0.16.0-beta.8"
-    "@orbit/data" "^0.16.0-beta.8"
-    "@orbit/utils" "^0.16.0-beta.8"
-
-"@orbit/utils@^0.16.0-beta.8":
-  version "0.16.0-beta.8"
-  resolved "https://registry.yarnpkg.com/@orbit/utils/-/utils-0.16.0-beta.8.tgz#5ed7a8662c8f83a1326e7189f7e75b1e687c096f"
-  integrity sha512-Rhay7vFA0976NCOnp1Hujx6auxzE7crzOd2YloNomqay6kNBACziwfWzgkTnPiOsEIXQI+h0sGtYwZPcuQC41Q==
-
 "@types/eslint-visitor-keys@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@types/eslint-visitor-keys/-/eslint-visitor-keys-1.0.0.tgz#1ee30d79544ca84d68d4b3cdb0af4f205663dd2d"

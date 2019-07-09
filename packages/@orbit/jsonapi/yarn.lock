@@ -361,31 +361,6 @@
     tslint "^5.16.0"
     typescript "~3.4.5"
 
-"@orbit/core@^0.16.0-beta.8":
-  version "0.16.0-beta.8"
-  resolved "https://registry.yarnpkg.com/@orbit/core/-/core-0.16.0-beta.8.tgz#7296f524efc864f270988c62f0ba46fb2b3fa7ae"
-  integrity sha512-rM9NdNCmid4IVzvIss1Uoq2s4udHMPGqI8CIXrLYpbFpdDQmPAxdy2QO9mnrx0gA17oQr1KCAtDBDBa1n83PdA==
-  dependencies:
-    "@orbit/utils" "^0.16.0-beta.8"
-
-"@orbit/data@^0.16.0-beta.8":
-  version "0.16.0-beta.8"
-  resolved "https://registry.yarnpkg.com/@orbit/data/-/data-0.16.0-beta.8.tgz#1b7bae4d13020a9620a19347d0ff9c5fdd584915"
-  integrity sha512-U9l4j+pQPjPg4AQpDYO6nggRBUySspuVLm/beo705Bk+twbqfqCZ/4257BNuU+qtPciQTpTTrXy3aQweCj2MAQ==
-  dependencies:
-    "@orbit/core" "^0.16.0-beta.8"
-    "@orbit/utils" "^0.16.0-beta.8"
-
-"@orbit/serializers@^0.16.0-beta.8":
-  version "0.16.0-beta.8"
-  resolved "https://registry.yarnpkg.com/@orbit/serializers/-/serializers-0.16.0-beta.8.tgz#6aa1e9373045302355cfaceb5d5de7de05b89e08"
-  integrity sha512-eMzTCs+bfp3Qj8w44AJNOZCs8E0vFU+KlWOpK5D46S6tS5cNQedJ6G2VKgSbFnW2qhsi3SI2729nh/wfbx1W5g==
-
-"@orbit/utils@^0.16.0-beta.8":
-  version "0.16.0-beta.8"
-  resolved "https://registry.yarnpkg.com/@orbit/utils/-/utils-0.16.0-beta.8.tgz#5ed7a8662c8f83a1326e7189f7e75b1e687c096f"
-  integrity sha512-Rhay7vFA0976NCOnp1Hujx6auxzE7crzOd2YloNomqay6kNBACziwfWzgkTnPiOsEIXQI+h0sGtYwZPcuQC41Q==
-
 "@sinonjs/commons@^1", "@sinonjs/commons@^1.0.2", "@sinonjs/commons@^1.4.0":
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/@sinonjs/commons/-/commons-1.4.0.tgz#7b3ec2d96af481d7a0321252e7b1c94724ec5a78"
