@@ -122,4 +122,106 @@ module('TaskProcessor', function() {
     assert.ok(!processor.started, 'after reset, task has not started');
     assert.ok(!processor.settled, 'after reset, task has not settled');
   });
+
+  test('#reject rejects the processor promise and marks the processor state as settled', async function(assert) {
+    assert.expect(5);
+
+    const target: Performer = {
+      async perform(task: Task): Promise<string> {
+        return ':)';
+      }
+    };
+
+    let processor = new TaskProcessor(target, {
+      type: 'doSomething',
+      data: '1'
+    });
+
+    processor.reject(new Error(':('));
+
+    assert.ok(processor.settled, 'processor settled');
+    assert.ok(!processor.started, 'processor not started');
+
+    try {
+      await processor.settle();
+    } catch (e) {
+      assert.equal(e.message, ':(', 'fail - error matches expectation');
+    }
+
+    processor.reset();
+
+    assert.ok(!processor.started, 'after reset, task has not started');
+    assert.ok(!processor.settled, 'after reset, task has not settled');
+  });
+
+  test('#reject can reject processing that has started', async function(assert) {
+    assert.expect(5);
+
+    let processor: TaskProcessor;
+
+    const target: Performer = {
+      async perform(task: Task): Promise<string> {
+        // reject before processing can be completed successfully
+        processor.reject(new Error(':('));
+
+        return ':)';
+      }
+    };
+
+    processor = new TaskProcessor(target, {
+      type: 'doSomething',
+      data: '1'
+    });
+
+    try {
+      await processor.process();
+    } catch (e) {
+      assert.equal(e.message, ':(', 'fail - error matches expectation');
+    }
+
+    assert.ok(processor.started, 'processor started');
+    assert.ok(processor.settled, 'processor settled');
+
+    processor.reset();
+
+    assert.ok(!processor.started, 'after reset, task has not started');
+    assert.ok(!processor.settled, 'after reset, task has not settled');
+  });
+
+  test('#reject will fail when processing has already settled', async function(assert) {
+    assert.expect(5);
+
+    let processor: TaskProcessor;
+
+    const target: Performer = {
+      async perform(task: Task): Promise<string> {
+        return ':)';
+      }
+    };
+
+    processor = new TaskProcessor(target, {
+      type: 'doSomething',
+      data: '1'
+    });
+
+    await processor.process();
+
+    try {
+      processor.reject(new Error(':('));
+    } catch (e) {
+      assert.equal(
+        e.message,
+        'TaskProcessor#reject can not be invoked when processing has already settled.',
+        'error matches expectation'
+      );
+    }
+
+    assert.ok(processor.started, 'processor started');
+    assert.ok(processor.settled, 'processor settled');
+
+    processor.reset();
+
+    assert.ok(!processor.started, 'after reset, task has not started');
+    assert.ok(!processor.settled, 'after reset, task has not settled');
+  });
 });
