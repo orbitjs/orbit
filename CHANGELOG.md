@@ -1,5 +1,45 @@
 # Changelog
 
+## v0.16.0-beta.9 (2019-07-09)
+
+#### :rocket: Enhancement
+
+- `@orbit/core`
+  - [#673](https://github.com/orbitjs/orbit/pull/673) Ensure that cancelled tasks in queues have promises rejected ([@dgeb](https://github.com/dgeb))
+- `@orbit/jsonapi`
+  - [#668](https://github.com/orbitjs/orbit/pull/668) Expose meta and links from processors to source ([@tchak](https://github.com/tchak))
+  - [#667](https://github.com/orbitjs/orbit/pull/667) Add Updatable interface to jsonapi source ([@tchak](https://github.com/tchak))
+- `@orbit/coordinator`, `@orbit/data`, `@orbit/integration-tests`
+  - [#671](https://github.com/orbitjs/orbit/pull/671) Introduce explicit source activation + deactivation ([@tchak](https://github.com/tchak))
+- `@orbit/data`, `@orbit/jsonapi`, `@orbit/record-cache`
+  - [#669](https://github.com/orbitjs/orbit/pull/669) Add filter|sort|page support to findRelatedRecords queries ([@tchak](https://github.com/tchak))
+- `@orbit/data`
+  - [#662](https://github.com/orbitjs/orbit/pull/662) Warn if naive singularize method receives a word that doesn't end in "s" ([@lukemelia](https://github.com/lukemelia))
+
+#### :bug: Bug Fix
+
+- `@orbit/core`
+  - [#673](https://github.com/orbitjs/orbit/pull/673) Ensure that cancelled tasks in queues have promises rejected ([@dgeb](https://github.com/dgeb))
+- `@orbit/coordinator`, `@orbit/data`, `@orbit/integration-tests`
+  - [#671](https://github.com/orbitjs/orbit/pull/671) Introduce explicit source activation + deactivation ([@tchak](https://github.com/tchak))
+
+#### :house: Internal
+
+- `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/store`
+  - [#672](https://github.com/orbitjs/orbit/pull/672) Clean up yarn.lock interdependencies ([@dgeb](https://github.com/dgeb))
+- `@orbit/data`, `@orbit/jsonapi`, `@orbit/record-cache`, `@orbit/utils`
+  - [#670](https://github.com/orbitjs/orbit/pull/670) Use native isArray ([@tchak](https://github.com/tchak))
+- `@orbit/indexeddb`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`
+  - [#666](https://github.com/orbitjs/orbit/pull/666) Refactor @orbit/record-cache with a stricter TS config ([@tchak](https://github.com/tchak))
+- `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/serializers`, `@orbit/store`, `@orbit/utils`
+  - [#664](https://github.com/orbitjs/orbit/pull/664) Upgrade npm dependencies (mostly prettier) ([@tchak](https://github.com/tchak))
+
+#### Committers: 3
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+- Luke Melia ([@lukemelia](https://github.com/lukemelia))
+- Paul Chavard ([@tchak](https://github.com/tchak))
+
 ## v0.16.0-beta.8 (2019-06-09)
 
 #### :rocket: Enhancement
