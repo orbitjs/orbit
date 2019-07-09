@@ -1,7 +1,13 @@
 import { KeyMap, Schema, TransformBuilder, buildTransform } from '@orbit/data';
-import { getTransformRequests } from '../../src/lib/transform-requests';
+import {
+  getTransformRequests,
+  TransformRequestProcessors
+} from '../../src/lib/transform-requests';
 import JSONAPIRequestProcessor from '../../src/jsonapi-request-processor';
+import { SinonStatic, SinonStub } from 'sinon';
+import { jsonapiResponse } from '../support/jsonapi';
 
+declare const sinon: SinonStatic;
 const { module, test } = QUnit;
 
 module('TransformRequests', function(/* hooks */) {
@@ -10,8 +16,11 @@ module('TransformRequests', function(/* hooks */) {
     let schema: Schema;
     let requestProcessor: JSONAPIRequestProcessor;
     let tb: TransformBuilder;
+    let fetchStub: SinonStub;
 
     hooks.beforeEach(() => {
+      fetchStub = sinon.stub(self, 'fetch');
+
       schema = new Schema({
         models: {
           planet: {
@@ -73,6 +82,7 @@ module('TransformRequests', function(/* hooks */) {
 
     hooks.afterEach(() => {
       schema = requestProcessor = null;
+      fetchStub.restore();
     });
 
     test('addRecord', function(assert) {
@@ -341,6 +351,67 @@ module('TransformRequests', function(/* hooks */) {
           relatedRecords: [io, europa]
         }
       ]);
+    });
+
+    test('meta and links', async function(assert) {
+      fetchStub.withArgs('/planets').returns(
+        jsonapiResponse(201, {
+          data: {
+            type: 'planets',
+            id: 'jupiter',
+            attributes: { name: 'Jupiter' }
+          },
+          meta: {
+            important: true
+          },
+          links: {
+            self: 'https://api.example.com/self',
+            related: {
+              href: 'https://api.example.com/related',
+              meta: {
+                important: true
+              }
+            }
+          }
+        })
+      );
+
+      const jupiter = {
+        type: 'planet',
+        id: 'jupiter',
+        attributes: { name: 'Jupiter' }
+      };
+
+      const t = buildTransform(tb.addRecord(jupiter));
+
+      const [request] = getTransformRequests(requestProcessor, t);
+      const response = await TransformRequestProcessors[request.op](
+        requestProcessor,
+        request
+      );
+
+      assert.deepEqual(response, {
+        meta: {
+          important: true
+        },
+        links: {
+          self: 'https://api.example.com/self',
+          related: {
+            href: 'https://api.example.com/related',
+            meta: {
+              important: true
+            }
+          }
+        },
+        primaryData: {
+          attributes: {
+            name: 'Jupiter'
+          },
+          id: 'jupiter',
+          type: 'planet'
+        },
+        transforms: []
+      });
     });
   });
 });

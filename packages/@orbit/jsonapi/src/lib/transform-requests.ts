@@ -14,7 +14,8 @@ import Orbit, {
   RemoveFromRelatedRecordsOperation,
   ReplaceRelatedRecordOperation,
   ReplaceRelatedRecordsOperation,
-  buildTransform
+  buildTransform,
+  Link
 } from '@orbit/data';
 import { clone, deepSet, Dict } from '@orbit/utils';
 import JSONAPIRequestProcessor from '../jsonapi-request-processor';
@@ -81,6 +82,8 @@ export interface TransformRequestProcessor {
 export interface RequestProcessorResponse {
   transforms: Transform[];
   primaryData: Record;
+  links?: Dict<Link>;
+  meta?: Dict<any>;
 }
 
 export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
@@ -486,6 +489,7 @@ function handleChanges(
   responseDoc: RecordDocument
 ): RequestProcessorResponse {
   let updatedRecord: Record = responseDoc.data as Record;
+  let { meta, links } = responseDoc;
   let transforms = [];
   let updateOps = recordDiffs(record, updatedRecord);
   if (updateOps.length > 0) {
@@ -497,5 +501,5 @@ function handleChanges(
     });
     transforms.push(buildTransform(includedOps));
   }
-  return { transforms, primaryData: updatedRecord };
+  return { transforms, primaryData: updatedRecord, meta, links };
 }
