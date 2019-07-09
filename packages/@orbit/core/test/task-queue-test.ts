@@ -599,7 +599,7 @@ module('TaskQueue', function() {
   });
 
   test('#skip removes the current task from an inactive queue and restarts processing if autoProcess=true', async function(assert) {
-    assert.expect(9);
+    assert.expect(10);
 
     const performer: Performer = {
       async perform(task: Task): Promise<void> {
@@ -673,14 +673,111 @@ module('TaskQueue', function() {
     // skip current task and continue processing
     await queue.skip();
 
-    // prevent failed promise from leaking into test harness
     try {
       await failedPush;
-    } catch {}
+    } catch (e) {
+      assert.equal(
+        e.message,
+        ':(',
+        'failure message matches the processing error'
+      );
+    }
+  });
+
+  test('#skip will cancel tasks with a default error message', async function(assert) {
+    assert.expect(2);
+
+    const performer: Performer = {
+      perform(task: Task): Promise<void> {
+        assert.ok(false, 'transform should not be called');
+        return Promise.resolve();
+      }
+    };
+
+    const queue = new TaskQueue(performer, { autoProcess: false });
+
+    let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
+    let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+
+    queue.on('task', function() {
+      assert.ok(false, 'no tasks should be processed');
+    });
+
+    queue.on('complete', function() {
+      assert.ok(true, 'queue completed after clear');
+    });
+
+    let t1 = queue.push({
+      type: 'transform',
+      data: op1
+    });
+
+    queue.push({
+      type: 'transform',
+      data: op2
+    });
+
+    await queue.skip();
+
+    try {
+      await t1;
+    } catch (e) {
+      assert.equal(
+        e.message,
+        'Processing cancelled via `TaskQueue#skip`',
+        'processing cancelled error raised'
+      );
+    }
+
+    assert.equal(queue.length, 1, 'queue now has one member');
+  });
+
+  test('#skip can cancel tasks with a custom error message', async function(assert) {
+    assert.expect(2);
+
+    const performer: Performer = {
+      perform(task: Task): Promise<void> {
+        assert.ok(false, 'transform should not be called');
+        return Promise.resolve();
+      }
+    };
+
+    const queue = new TaskQueue(performer, { autoProcess: false });
+
+    let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
+    let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+
+    queue.on('task', function() {
+      assert.ok(false, 'no tasks should be processed');
+    });
+
+    queue.on('complete', function() {
+      assert.ok(true, 'queue completed after clear');
+    });
+
+    let t1 = queue.push({
+      type: 'transform',
+      data: op1
+    });
+
+    queue.push({
+      type: 'transform',
+      data: op2
+    });
+
+    await queue.skip(new Error(':('));
+
+    try {
+      await t1;
+    } catch (e) {
+      assert.equal(e.message, ':(', 'processing cancelled error raised');
+    }
+
+    assert.equal(queue.length, 1, 'queue now has one member');
   });
 
   test('#shift can remove failed tasks from an inactive queue, allowing processing to be restarted', async function(assert) {
-    assert.expect(10);
+    assert.expect(11);
 
     const performer: Performer = {
       async perform(task: Task): Promise<void> {
@@ -761,10 +858,107 @@ module('TaskQueue', function() {
     // continue processing
     await queue.process();
 
-    // prevent failed promise from leaking into test harness
     try {
       await failedPush;
-    } catch {}
+    } catch (e) {
+      assert.equal(
+        e.message,
+        ':(',
+        'failure message matches the processing error'
+      );
+    }
+  });
+
+  test('#shift will cancel the current task with a default error message', async function(assert) {
+    assert.expect(2);
+
+    const performer: Performer = {
+      perform(task: Task): Promise<void> {
+        assert.ok(false, 'transform should not be called');
+        return Promise.resolve();
+      }
+    };
+
+    const queue = new TaskQueue(performer, { autoProcess: false });
+
+    let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
+    let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+
+    queue.on('task', function() {
+      assert.ok(false, 'no tasks should be processed');
+    });
+
+    queue.on('complete', function() {
+      assert.ok(true, 'queue completed after clear');
+    });
+
+    let t1 = queue.push({
+      type: 'transform',
+      data: op1
+    });
+
+    queue.push({
+      type: 'transform',
+      data: op2
+    });
+
+    await queue.shift();
+
+    try {
+      await t1;
+    } catch (e) {
+      assert.equal(
+        e.message,
+        'Processing cancelled via `TaskQueue#shift`',
+        'processing cancelled error raised'
+      );
+    }
+
+    assert.equal(queue.length, 1, 'queue now has one member');
+  });
+
+  test('#shift can cancel the current task with a custom error message', async function(assert) {
+    assert.expect(2);
+
+    const performer: Performer = {
+      perform(task: Task): Promise<void> {
+        assert.ok(false, 'transform should not be called');
+        return Promise.resolve();
+      }
+    };
+
+    const queue = new TaskQueue(performer, { autoProcess: false });
+
+    let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
+    let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+
+    queue.on('task', function() {
+      assert.ok(false, 'no tasks should be processed');
+    });
+
+    queue.on('complete', function() {
+      assert.ok(true, 'queue completed after clear');
+    });
+
+    let t1 = queue.push({
+      type: 'transform',
+      data: op1
+    });
+
+    queue.push({
+      type: 'transform',
+      data: op2
+    });
+
+    await queue.shift(new Error(':('));
+
+    try {
+      await t1;
+    } catch (e) {
+      assert.equal(e.message, ':(', 'processing cancelled error raised');
+    }
+
+    assert.equal(queue.length, 1, 'queue now has one member');
   });
 
   test('#unshift can add a new task to the beginning of an inactive queue', function(assert) {
@@ -824,8 +1018,8 @@ module('TaskQueue', function() {
     return queue.process();
   });
 
-  test('#clear removes all tasks from an inactive queue', function(assert) {
-    assert.expect(2);
+  test('#clear removes all tasks from an inactive queue', async function(assert) {
+    assert.expect(4);
 
     const performer: Performer = {
       perform(task: Task): Promise<void> {
@@ -847,19 +1041,89 @@ module('TaskQueue', function() {
       assert.ok(true, 'queue completed after clear');
     });
 
-    queue.push({
+    let t1 = queue.push({
       type: 'transform',
       data: op1
     });
 
-    queue.push({
+    let t2 = queue.push({
       type: 'transform',
       data: op2
     });
 
-    return queue.clear().then(() => {
-      assert.ok(true, 'queue was cleared');
+    await queue.clear();
+
+    try {
+      await t1;
+    } catch (e) {
+      assert.equal(
+        e.message,
+        'Processing cancelled via `TaskQueue#clear`',
+        'processing cancelled error raised'
+      );
+    }
+
+    try {
+      await t2;
+    } catch (e) {
+      assert.equal(
+        e.message,
+        'Processing cancelled via `TaskQueue#clear`',
+        'processing cancelled error raised'
+      );
+    }
+
+    assert.ok(true, 'queue was cleared');
+  });
+
+  test('#clear can cancel tasks with a custom error message', async function(assert) {
+    assert.expect(4);
+
+    const performer: Performer = {
+      perform(task: Task): Promise<void> {
+        assert.ok(false, 'transform should not be called');
+        return Promise.resolve();
+      }
+    };
+
+    const queue = new TaskQueue(performer, { autoProcess: false });
+
+    let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
+    let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
+
+    queue.on('task', function() {
+      assert.ok(false, 'no tasks should be processed');
     });
+
+    queue.on('complete', function() {
+      assert.ok(true, 'queue completed after clear');
+    });
+
+    let t1 = queue.push({
+      type: 'transform',
+      data: op1
+    });
+
+    let t2 = queue.push({
+      type: 'transform',
+      data: op2
+    });
+
+    await queue.clear(new Error(':('));
+
+    try {
+      await t1;
+    } catch (e) {
+      assert.equal(e.message, ':(', 'processing cancelled error raised');
+    }
+
+    try {
+      await t2;
+    } catch (e) {
+      assert.equal(e.message, ':(', 'processing cancelled error raised');
+    }
+
+    assert.ok(true, 'queue was cleared');
   });
 
   module('assigned a bucket', function(hooks) {
