@@ -58,7 +58,7 @@ export default class TaskProcessor {
   }
 
   /**
-   * Has `process` been invoked and settled?
+   * Has promise settled, either via `process` or `reject`?
    */
   get settled(): boolean {
     return this._settled;
@@ -82,5 +82,20 @@ export default class TaskProcessor {
     }
 
     return this.settle();
+  }
+
+  /**
+   * Reject the current promise with a specific error.
+   *
+   * @param e Error associated with rejection
+   */
+  reject(e: Error): void {
+    if (this._settled) {
+      throw new Error(
+        'TaskProcessor#reject can not be invoked when processing has already settled.'
+      );
+    } else {
+      this._fail(e);
+    }
   }
 }

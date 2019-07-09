@@ -212,12 +212,17 @@ export default class TaskQueue implements Evented {
    * If `autoProcess` is enabled, this will automatically trigger processing of
    * the queue.
    */
-  skip(): Promise<void> {
+  skip(e?: Error): Promise<void> {
     return this._reified
       .then(() => {
         this._cancel();
         this._tasks.shift();
-        this._processors.shift();
+        let processor = this._processors.shift();
+        if (!processor.settled) {
+          processor.reject(
+            e || new Error('Processing cancelled via `TaskQueue#skip`')
+          );
+        }
         return this._persist();
       })
       .then(() => this._settle());
@@ -226,11 +231,18 @@ export default class TaskQueue implements Evented {
   /**
    * Cancels the current task and completely clears the queue.
    */
-  clear(): Promise<void> {
+  clear(e?: Error): Promise<void> {
     return this._reified
       .then(() => {
         this._cancel();
         this._tasks = [];
+        for (let processor of this._processors) {
+          if (!processor.settled) {
+            processor.reject(
+              e || new Error('Processing cancelled via `TaskQueue#clear`')
+            );
+          }
+        }
         this._processors = [];
         return this._persist();
       })
@@ -242,14 +254,19 @@ export default class TaskQueue implements Evented {
    *
    * Returns the canceled and removed task.
    */
-  shift(): Promise<Task> {
+  shift(e?: Error): Promise<Task> {
     let task: Task;
 
     return this._reified
       .then(() => {
         this._cancel();
         task = this._tasks.shift();
-        this._processors.shift();
+        let processor = this._processors.shift();
+        if (!processor.settled) {
+          processor.reject(
+            e || new Error('Processing cancelled via `TaskQueue#shift`')
+          );
+        }
         return this._persist();
       })
       .then(() => task);
