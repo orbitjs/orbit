@@ -15,7 +15,8 @@ import Orbit, {
   Transform,
   TransformOrOperations,
   coalesceRecordOperations,
-  buildTransform
+  buildTransform,
+  RecordIdentity
 } from '@orbit/data';
 import { Dict } from '@orbit/utils';
 import MemoryCache, { MemoryCacheSettings } from './memory-cache';
@@ -128,9 +129,14 @@ export default class MemorySource extends Source
   // Updatable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _update(transform: Transform): Promise<any> {
+  async _update(transform: Transform, hints?: any): Promise<any> {
     let results = this._applyTransform(transform);
-    return results.length === 1 ? results[0] : results;
+
+    if (hints && hints.data) {
+      return this._retrieveFromCache(hints.data);
+    } else {
+      return results.length === 1 ? results[0] : results;
+    }
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -139,13 +145,10 @@ export default class MemorySource extends Source
 
   async _query(query: Query, hints?: any): Promise<any> {
     if (hints && hints.data) {
-      if (Array.isArray(hints.data)) {
-        return this._cache.query(q => q.findRecords(hints.data));
-      } else if (hints.data) {
-        return this._cache.query(q => q.findRecord(hints.data));
-      }
+      return this._retrieveFromCache(hints.data);
+    } else {
+      return this._cache.query(query);
     }
-    return this._cache.query(query);
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -292,6 +295,14 @@ export default class MemorySource extends Source
   /////////////////////////////////////////////////////////////////////////////
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
+
+  protected _retrieveFromCache(idOrIds: RecordIdentity | RecordIdentity[]) {
+    if (Array.isArray(idOrIds)) {
+      return this._cache.getRecordsSync(idOrIds);
+    } else {
+      return this._cache.getRecordSync(idOrIds);
+    }
+  }
 
   protected _applyTransform(transform: Transform): PatchResultData[] {
     const result = this.cache.patch(transform.operations as RecordOperation[]);
