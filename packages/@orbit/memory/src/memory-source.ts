@@ -82,7 +82,9 @@ export default class MemorySource extends Source
     this.transformLog.on('truncate', this._logTruncated.bind(this));
     this.transformLog.on('rollback', this._logRolledback.bind(this));
 
-    let cacheSettings: MemoryCacheSettings = settings.cacheSettings || {};
+    let cacheSettings: MemoryCacheSettings = settings.cacheSettings || {
+      schema
+    };
     cacheSettings.schema = schema;
     cacheSettings.keyMap = keyMap;
     cacheSettings.queryBuilder =
@@ -160,8 +162,10 @@ export default class MemorySource extends Source
    * @returns The forked source.
    */
   fork(settings: MemorySourceSettings = {}): MemorySource {
-    settings.schema = this._schema;
-    settings.cacheSettings = settings.cacheSettings || {};
+    const schema = this._schema;
+
+    settings.schema = schema;
+    settings.cacheSettings = settings.cacheSettings || { schema };
     settings.keyMap = this._keyMap;
     settings.queryBuilder = this.queryBuilder;
     settings.transformBuilder = this.transformBuilder;

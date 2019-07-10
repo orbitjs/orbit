@@ -71,6 +71,7 @@ module('MemorySource', function(hooks) {
       schema,
       keyMap,
       cacheSettings: {
+        schema,
         processors: [
           SyncCacheIntegrityProcessor,
           SyncSchemaConsistencyProcessor
