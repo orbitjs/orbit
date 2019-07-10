@@ -21,7 +21,7 @@ import Orbit, {
 import { supportsIndexedDB } from './lib/indexeddb';
 import IndexedDBCache, { IndexedDBCacheSettings } from './cache';
 
-const { assert } = Orbit;
+const { assert, deprecate } = Orbit;
 
 export interface IndexedDBSourceSettings extends SourceSettings {
   namespace?: string;
@@ -84,6 +84,11 @@ export default class IndexedDBSource extends Source
 
   async upgrade(): Promise<void> {
     await this._cache.reopenDB();
+  }
+
+  closeDB() {
+    deprecate('`closeDB()` must be called as `cache.closeDB()`.');
+    return this.cache.closeDB();
   }
 
   /////////////////////////////////////////////////////////////////////////////
