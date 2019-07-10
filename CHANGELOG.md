@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.16.0-beta.10 (2019-07-10)
+
+#### :rocket: Enhancement
+
+- `@orbit/memory`
+  - [#676](https://github.com/orbitjs/orbit/pull/676) [memory] Support hints for `update` ([@dgeb](https://github.com/dgeb))
+- `@orbit/indexeddb`, `@orbit/memory`
+  - [#675](https://github.com/orbitjs/orbit/pull/675) Add more deprecations ([@tchak](https://github.com/tchak))
+
+#### :bug: Bug Fix
+
+- `@orbit/data`
+  - [#674](https://github.com/orbitjs/orbit/pull/674) Remove queues processing from deactivate ([@tchak](https://github.com/tchak))
+
+#### Committers: 2
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+- Paul Chavard ([@tchak](https://github.com/tchak))
+
 ## v0.16.0-beta.9 (2019-07-09)
 
 #### :rocket: Enhancement
