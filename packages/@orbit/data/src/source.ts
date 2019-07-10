@@ -179,8 +179,6 @@ export abstract class Source implements Evented, Performer {
   async deactivate(): Promise<void> {
     if (this._activated) {
       await this._activated;
-      await this.requestQueue.process();
-      await this.syncQueue.process();
     }
 
     this._activated = undefined;
