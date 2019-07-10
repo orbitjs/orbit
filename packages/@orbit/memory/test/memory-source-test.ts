@@ -7,7 +7,8 @@ import {
   SchemaSettings,
   Source,
   buildTransform,
-  RecordOperation
+  RecordOperation,
+  Transform
 } from '@orbit/data';
 import { clone } from '@orbit/utils';
 import {
@@ -71,6 +72,7 @@ module('MemorySource', function(hooks) {
       schema,
       keyMap,
       cacheSettings: {
+        schema,
         processors: [
           SyncCacheIntegrityProcessor,
           SyncSchemaConsistencyProcessor
@@ -161,6 +163,92 @@ module('MemorySource', function(hooks) {
       records,
       [jupiter, earth],
       'results array should be returned'
+    );
+  });
+
+  test('#update - accepts hints that can return a single record', async function(assert) {
+    assert.expect(2);
+
+    let jupiter = {
+      id: 'jupiter',
+      type: 'planet',
+      attributes: { name: 'Jupiter' }
+    };
+
+    let earth = {
+      id: 'earth',
+      type: 'planet',
+      attributes: { name: 'Earth' }
+    };
+
+    source.cache.patch(t => t.addRecord(earth));
+
+    source.on('beforeUpdate', (transform: Transform, hints: any) => {
+      if (transform.options.customizeResults) {
+        hints.data = earth;
+      }
+    });
+
+    let planet = await source.update(t => t.addRecord(jupiter), {
+      customizeResults: true
+    });
+
+    assert.equal(
+      source.cache.getRecordsSync('planet').length,
+      2,
+      'cache should contain two planets'
+    );
+
+    assert.deepEqual(planet, earth, 'added planet matches hinted record');
+  });
+
+  test('#update - accepts hints that can return a collection of records', async function(assert) {
+    assert.expect(2);
+
+    let jupiter = {
+      id: 'jupiter',
+      type: 'planet',
+      attributes: { name: 'Jupiter' }
+    };
+
+    let earth = {
+      id: 'earth',
+      type: 'planet',
+      attributes: { name: 'Earth' }
+    };
+
+    let uranus = {
+      id: 'uranus',
+      type: 'planet',
+      attributes: { name: 'Uranus' }
+    };
+
+    source.on('beforeUpdate', (transform: Transform, hints: any) => {
+      if (transform.options.customizeResults) {
+        hints.data = [
+          { type: 'planet', id: 'uranus' },
+          { type: 'planet', id: 'jupiter' }
+        ];
+      }
+    });
+
+    let planets = await source.update(
+      t => [t.addRecord(jupiter), t.addRecord(earth), t.addRecord(uranus)],
+      {
+        customizeResults: true
+      }
+    );
+
+    assert.equal(
+      source.cache.getRecordsSync('planet').length,
+      3,
+      'cache should contain three planets'
+    );
+
+    assert.deepEqual(
+      planets,
+      [uranus, jupiter],
+      'planets match hinted records'
     );
   });
 
