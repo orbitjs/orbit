@@ -82,18 +82,18 @@ export default function pullable(Klass: SourceClass): void {
     return this._enqueueRequest('pull', query);
   };
 
-  proto.__pull__ = function(query: Query): Promise<Transform[]> {
-    const hints: any = {};
-    return fulfillInSeries(this, 'beforePull', query, hints)
-      .then(() => this._pull(query, hints))
-      .then(result => this._transformed(result))
-      .then(result => {
-        return settleInSeries(this, 'pull', query, result).then(() => result);
-      })
-      .catch((error: Error) => {
-        return settleInSeries(this, 'pullFail', query, error).then(() => {
-          throw error;
-        });
-      });
+  proto.__pull__ = async function(query: Query): Promise<Transform[]> {
+    try {
+      const hints: any = {};
+
+      await fulfillInSeries(this, 'beforePull', query, hints);
+      let result = await this._pull(query, hints);
+      await this._transformed(result);
+      await settleInSeries(this, 'pull', query, result);
+      return result;
+    } catch (error) {
+      await settleInSeries(this, 'pullFail', query, error);
+      throw error;
+    }
   };
 }

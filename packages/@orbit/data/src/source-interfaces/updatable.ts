@@ -89,28 +89,25 @@ export default function updatable(Klass: SourceClass): void {
     return this._enqueueRequest('update', transform);
   };
 
-  proto.__update__ = function(transform: Transform): Promise<any> {
+  proto.__update__ = async function(transform: Transform): Promise<any> {
     if (this.transformLog.contains(transform.id)) {
-      return Promise.resolve();
+      return;
     }
 
-    const hints: any = {};
-    return fulfillInSeries(this, 'beforeUpdate', transform, hints)
-      .then(() => {
-        if (this.transformLog.contains(transform.id)) {
-          return Promise.resolve();
-        } else {
-          return this._update(transform, hints).then((result: any) => {
-            return this._transformed([transform])
-              .then(() => settleInSeries(this, 'update', transform, result))
-              .then(() => result);
-          });
-        }
-      })
-      .catch((error: Error) => {
-        return settleInSeries(this, 'updateFail', transform, error).then(() => {
-          throw error;
-        });
-      });
+    try {
+      const hints: any = {};
+      await fulfillInSeries(this, 'beforeUpdate', transform, hints);
+      if (this.transformLog.contains(transform.id)) {
+        return;
+      } else {
+        let result = await this._update(transform, hints);
+        await this._transformed([transform]);
+        await settleInSeries(this, 'update', transform, result);
+        return result;
+      }
+    } catch (error) {
+      await settleInSeries(this, 'updateFail', transform, error);
+      throw error;
+    }
   };
 }

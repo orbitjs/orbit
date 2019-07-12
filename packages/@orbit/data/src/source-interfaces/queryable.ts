@@ -78,17 +78,16 @@ export default function queryable(Klass: SourceClass): void {
     return this._enqueueRequest('query', query);
   };
 
-  proto.__query__ = function(query: Query): Promise<any> {
-    const hints: any = {};
-    return fulfillInSeries(this, 'beforeQuery', query, hints)
-      .then(() => this._query(query, hints))
-      .then((result: any) => {
-        return settleInSeries(this, 'query', query, result).then(() => result);
-      })
-      .catch((error: Error) => {
-        return settleInSeries(this, 'queryFail', query, error).then(() => {
-          throw error;
-        });
-      });
+  proto.__query__ = async function(query: Query): Promise<any> {
+    try {
+      const hints: any = {};
+
+      await fulfillInSeries(this, 'beforeQuery', query, hints);
+      let result = await this._query(query, hints);
+      return settleInSeries(this, 'query', query, result).then(() => result);
+    } catch (error) {
+      await settleInSeries(this, 'queryFail', query, error);
+      throw error;
+    }
   };
 }

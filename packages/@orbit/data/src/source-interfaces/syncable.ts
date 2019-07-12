@@ -73,25 +73,23 @@ export default function syncable(Klass: SourceClass): void {
     }
   };
 
-  proto.__sync__ = function(transform: Transform): Promise<void> {
+  proto.__sync__ = async function(transform: Transform): Promise<void> {
     if (this.transformLog.contains(transform.id)) {
-      return Promise.resolve();
+      return;
     }
 
-    return fulfillInSeries(this, 'beforeSync', transform)
-      .then(() => {
-        if (this.transformLog.contains(transform.id)) {
-          return Promise.resolve();
-        } else {
-          return this._sync(transform)
-            .then(() => this._transformed([transform]))
-            .then(() => settleInSeries(this, 'sync', transform));
-        }
-      })
-      .catch((error: Error) => {
-        return settleInSeries(this, 'syncFail', transform, error).then(() => {
-          throw error;
-        });
-      });
+    try {
+      await fulfillInSeries(this, 'beforeSync', transform);
+      if (this.transformLog.contains(transform.id)) {
+        return;
+      } else {
+        await this._sync(transform);
+        await this._transformed([transform]);
+        await settleInSeries(this, 'sync', transform);
+      }
+    } catch (error) {
+      await settleInSeries(this, 'syncFail', transform, error);
+      throw error;
+    }
   };
 }
