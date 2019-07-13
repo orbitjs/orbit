@@ -1,5 +1,11 @@
 import { getRecordFromIndexedDB } from './support/indexeddb';
-import { Record, Schema, KeyMap, AddRecordOperation } from '@orbit/data';
+import {
+  buildTransform,
+  Record,
+  Schema,
+  KeyMap,
+  AddRecordOperation
+} from '@orbit/data';
 import IndexedDBSource from '../src/source';
 
 const { module, test, skip } = QUnit;
@@ -157,6 +163,42 @@ module('IndexedDBSource', function(hooks) {
       await getRecordFromIndexedDB(source.cache, planet),
       planet,
       'indexeddb still contains record'
+    );
+  });
+
+  test('#sync - addRecord', async function(assert) {
+    assert.expect(3);
+
+    let planet: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      keys: {
+        remoteId: 'j'
+      },
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant'
+      }
+    };
+
+    const t = buildTransform({
+      op: 'addRecord',
+      record: planet
+    } as AddRecordOperation);
+    await source.sync(t);
+
+    assert.ok(source.transformLog.contains(t.id), 'log contains transform');
+
+    assert.deepEqual(
+      await getRecordFromIndexedDB(source.cache, planet),
+      planet,
+      'indexeddb contains record'
+    );
+
+    assert.equal(
+      keyMap.keyToId('planet', 'remoteId', 'j'),
+      'jupiter',
+      'key has been mapped'
     );
   });
 

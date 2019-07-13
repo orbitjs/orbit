@@ -122,7 +122,10 @@ export default class MemorySource extends Source
   /////////////////////////////////////////////////////////////////////////////
 
   async _sync(transform: Transform): Promise<void> {
-    this._applyTransform(transform);
+    if (!this.transformLog.contains(transform.id)) {
+      this._applyTransform(transform);
+      await this._transformed([transform]);
+    }
   }
 
   /////////////////////////////////////////////////////////////////////////////

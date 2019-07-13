@@ -109,7 +109,10 @@ export default class LocalStorageSource extends Source
   /////////////////////////////////////////////////////////////////////////////
 
   async _sync(transform: Transform): Promise<void> {
-    this._cache.patch(transform.operations as RecordOperation[]);
+    if (!this.transformLog.contains(transform.id)) {
+      this._cache.patch(transform.operations as RecordOperation[]);
+      await this._transformed([transform]);
+    }
   }
 
   /////////////////////////////////////////////////////////////////////////////

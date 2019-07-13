@@ -384,6 +384,25 @@ module('MemorySource', function(hooks) {
     }
   });
 
+  test('#sync - appends transform to log', async function(assert) {
+    const recordA = {
+      id: 'jupiter',
+      type: 'planet',
+      attributes: { name: 'Jupiter' }
+    };
+
+    const addRecordATransform = buildTransform(
+      source.transformBuilder.addRecord(recordA)
+    );
+
+    await source.sync(addRecordATransform);
+
+    assert.ok(
+      source.transformLog.contains(addRecordATransform.id),
+      'log contains transform'
+    );
+  });
+
   test('#getTransform - returns a particular transform given an id', async function(assert) {
     const recordA = {
       id: 'jupiter',

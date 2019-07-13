@@ -3,6 +3,7 @@ import {
   isLocalStorageEmpty
 } from './support/local-storage';
 import {
+  buildTransform,
   AddRecordOperation,
   Record,
   Schema,
@@ -102,6 +103,41 @@ module('LocalStorageSource', function(hooks) {
       getRecordFromLocalStorage(source, planet),
       planet,
       'local storage still contains record'
+    );
+  });
+
+  test('#sync - addRecord', async function(assert) {
+    assert.expect(3);
+
+    let planet = {
+      type: 'planet',
+      id: 'jupiter',
+      keys: {
+        remoteId: 'j'
+      },
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant'
+      }
+    };
+
+    const t = buildTransform({
+      op: 'addRecord',
+      record: planet
+    } as AddRecordOperation);
+    await source.sync(t);
+
+    assert.ok(source.transformLog.contains(t.id), 'log contains transform');
+
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, planet),
+      planet,
+      'local storage contains record'
+    );
+    assert.equal(
+      keyMap.keyToId('planet', 'remoteId', 'j'),
+      'jupiter',
+      'key has been mapped'
     );
   });
 

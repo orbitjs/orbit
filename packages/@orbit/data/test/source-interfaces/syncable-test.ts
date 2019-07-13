@@ -100,14 +100,14 @@ module('@syncable', function(hooks) {
       assert.strictEqual(transform, addRecordTransform, 'transform matches');
     });
 
-    source._sync = function(transform) {
+    source._sync = async function(transform) {
       assert.equal(++order, 2, 'action performed after beforeSync');
       assert.strictEqual(
         transform,
         addRecordTransform,
         'transform object matches'
       );
-      return Promise.resolve();
+      await this._transformed([transform]);
     };
 
     source.on('transform', transform => {
@@ -173,8 +173,8 @@ module('@syncable', function(hooks) {
     }
   });
 
-  test('#sync should not call `_sync` if the transform has been applied as a result of `beforeSync` resolution', async function(assert) {
-    assert.expect(2);
+  test('#sync should still call `_sync` if the transform has been applied as a result of `beforeSync` resolution', async function(assert) {
+    assert.expect(5);
 
     let order = 0;
 
@@ -194,11 +194,15 @@ module('@syncable', function(hooks) {
     });
 
     source._sync = async function(transform: Transform) {
-      assert.ok(false, '_sync should not be reached');
+      assert.ok(true, '_sync should still be reached');
+      assert.ok(
+        this.transformLog.contains(transform.id),
+        'transform is already contained in the log'
+      );
     };
 
     source.on('sync', () => {
-      assert.ok(false, 'sync should not be reached');
+      assert.ok(true, 'sync should still be reached');
     });
 
     await source.sync(addRecordTransform);
