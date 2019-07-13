@@ -95,28 +95,26 @@ export default function pushable(Klass: SourceClass): void {
     return this._enqueueRequest('push', transform);
   };
 
-  proto.__push__ = function(transform: Transform): Promise<Transform[]> {
+  proto.__push__ = async function(transform: Transform): Promise<Transform[]> {
     if (this.transformLog.contains(transform.id)) {
-      return Promise.resolve([]);
+      return [];
     }
 
-    const hints: any = {};
-    return fulfillInSeries(this, 'beforePush', transform, hints)
-      .then(() => {
-        if (this.transformLog.contains(transform.id)) {
-          return Promise.resolve([]);
-        } else {
-          return this._push(transform, hints).then((result: Transform[]) => {
-            return this._transformed(result)
-              .then(() => settleInSeries(this, 'push', transform, result))
-              .then(() => result);
-          });
-        }
-      })
-      .catch(error => {
-        return settleInSeries(this, 'pushFail', transform, error).then(() => {
-          throw error;
-        });
-      });
+    try {
+      const hints: any = {};
+
+      await fulfillInSeries(this, 'beforePush', transform, hints);
+      if (this.transformLog.contains(transform.id)) {
+        return [];
+      } else {
+        let result = await this._push(transform, hints);
+        await this._transformed(result);
+        await settleInSeries(this, 'push', transform, result);
+        return result;
+      }
+    } catch (error) {
+      await settleInSeries(this, 'pushFail', transform, error);
+      throw error;
+    }
   };
 }
