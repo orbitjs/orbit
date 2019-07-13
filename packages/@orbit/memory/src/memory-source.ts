@@ -130,11 +130,16 @@ export default class MemorySource extends Source
   /////////////////////////////////////////////////////////////////////////////
 
   async _update(transform: Transform, hints?: any): Promise<any> {
-    let results = this._applyTransform(transform);
+    let results: any[];
+
+    if (!this.transformLog.contains(transform.id)) {
+      results = this._applyTransform(transform);
+      await this._transformed([transform]);
+    }
 
     if (hints && hints.data) {
       return this._retrieveFromCache(hints.data);
-    } else {
+    } else if (results !== undefined) {
       return results.length === 1 ? results[0] : results;
     }
   }

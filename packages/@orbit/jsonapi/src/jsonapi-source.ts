@@ -197,28 +197,30 @@ export default class JSONAPISource extends Source
   /////////////////////////////////////////////////////////////////////////////
 
   async _update(transform: Transform): Promise<any> {
-    const { requestProcessor } = this;
-    const requests = this.getTransformRequests(transform);
-    const transforms: Transform[] = [];
-    const records: Record[] = [];
+    if (!this.transformLog.contains(transform.id)) {
+      const transforms: Transform[] = [];
+      const { requestProcessor } = this;
+      const requests = this.getTransformRequests(transform);
+      const records: Record[] = [];
 
-    for (let request of requests) {
-      let processor = this.getTransformRequestProcessor(request);
+      for (let request of requests) {
+        let processor = this.getTransformRequestProcessor(request);
 
-      let { transforms: additionalTransforms, primaryData } = await processor(
-        requestProcessor,
-        request
-      );
-      if (additionalTransforms.length) {
-        Array.prototype.push.apply(transforms, additionalTransforms);
+        let { transforms: additionalTransforms, primaryData } = await processor(
+          requestProcessor,
+          request
+        );
+        if (additionalTransforms.length) {
+          Array.prototype.push.apply(transforms, additionalTransforms);
+        }
+        records.push(primaryData);
       }
-      records.push(primaryData);
+
+      transforms.unshift(transform);
+      await this._transformed(transforms);
+
+      return records.length === 1 ? records[0] : records;
     }
-
-    transforms.unshift(transform);
-    await this._transformed(transforms);
-
-    return records.length === 1 ? records[0] : records;
   }
 
   private getQueryOperator(query: Query): QueryOperator {

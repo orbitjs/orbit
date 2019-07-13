@@ -97,14 +97,9 @@ export default function updatable(Klass: SourceClass): void {
     try {
       const hints: any = {};
       await fulfillInSeries(this, 'beforeUpdate', transform, hints);
-      if (this.transformLog.contains(transform.id)) {
-        return;
-      } else {
-        let result = await this._update(transform, hints);
-        await this._transformed([transform]);
-        await settleInSeries(this, 'update', transform, result);
-        return result;
-      }
+      let result = await this._update(transform, hints);
+      await settleInSeries(this, 'update', transform, result);
+      return result;
     } catch (error) {
       await settleInSeries(this, 'updateFail', transform, error);
       throw error;
