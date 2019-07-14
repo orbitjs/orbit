@@ -177,6 +177,7 @@ export default class JSONAPISource extends Source
     const { requestProcessor } = this;
     const operator: QueryOperator = this.getQueryOperator(query);
     const response = await operator(requestProcessor, query);
+    await this._transformed(response.transforms);
     return response.transforms;
   }
 

@@ -88,7 +88,6 @@ export default function pullable(Klass: SourceClass): void {
 
       await fulfillInSeries(this, 'beforePull', query, hints);
       let result = await this._pull(query, hints);
-      await this._transformed(result);
       await settleInSeries(this, 'pull', query, result);
       return result;
     } catch (error) {

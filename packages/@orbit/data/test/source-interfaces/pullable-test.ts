@@ -73,10 +73,11 @@ module('@pullable', function(hooks) {
       buildTransform({ op: 'replaceRecordAttribute' })
     ];
 
-    source._pull = function(query) {
+    source._pull = async function(query) {
       assert.equal(++order, 1, 'action performed after willPull');
       assert.strictEqual(query.expression, qe, 'query object matches');
-      return Promise.resolve(resultingTransforms);
+      await this._transformed(resultingTransforms);
+      return resultingTransforms;
     };
 
     let transformCount = 0;
@@ -134,6 +135,7 @@ module('@pullable', function(hooks) {
     source._pull = async function(query) {
       assert.equal(++order, 4, 'action performed after willPull');
       assert.strictEqual(query.expression, qe, 'query object matches');
+      await this._transformed(resultingTransforms);
       return resultingTransforms;
     };
 
@@ -268,6 +270,7 @@ module('@pullable', function(hooks) {
       assert.equal(++order, 4, 'action performed after willPull');
       assert.strictEqual(query.expression, qe, 'query object matches');
       assert.strictEqual(hints, h, '_pull is passed same hints instance');
+      await this._transformed(resultingTransforms);
       return hints.data;
     };
 

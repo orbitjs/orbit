@@ -147,6 +147,10 @@ export default class IndexedDBSource extends Source
       operations = [];
     }
 
-    return [buildTransform(operations)];
+    const transforms = [buildTransform(operations)];
+
+    await this._transformed(transforms);
+
+    return transforms;
   }
 }
