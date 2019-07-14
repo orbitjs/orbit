@@ -149,23 +149,28 @@ export default class JSONAPISource extends Source
   /////////////////////////////////////////////////////////////////////////////
 
   async _push(transform: Transform): Promise<Transform[]> {
-    const { requestProcessor } = this;
-    const requests = this.getTransformRequests(transform);
     const transforms: Transform[] = [];
 
-    for (let request of requests) {
-      let processor = this.getTransformRequestProcessor(request);
+    if (!this.transformLog.contains(transform.id)) {
+      const { requestProcessor } = this;
+      const requests = this.getTransformRequests(transform);
 
-      let { transforms: additionalTransforms } = await processor(
-        requestProcessor,
-        request
-      );
-      if (additionalTransforms.length) {
-        Array.prototype.push.apply(transforms, additionalTransforms);
+      for (let request of requests) {
+        let processor = this.getTransformRequestProcessor(request);
+
+        let { transforms: additionalTransforms } = await processor(
+          requestProcessor,
+          request
+        );
+        if (additionalTransforms.length) {
+          Array.prototype.push.apply(transforms, additionalTransforms);
+        }
       }
+
+      transforms.unshift(transform);
+      await this._transformed(transforms);
     }
 
-    transforms.unshift(transform);
     return transforms;
   }
 

@@ -115,8 +115,17 @@ export default class IndexedDBSource extends Source
   /////////////////////////////////////////////////////////////////////////////
 
   async _push(transform: Transform): Promise<Transform[]> {
-    await this._cache.patch(transform.operations as RecordOperation[]);
-    return [transform];
+    let results: Transform[];
+
+    if (!this.transformLog.contains(transform.id)) {
+      await this._cache.patch(transform.operations as RecordOperation[]);
+      results = [transform];
+      await this._transformed(results);
+    } else {
+      results = [];
+    }
+
+    return results;
   }
 
   /////////////////////////////////////////////////////////////////////////////

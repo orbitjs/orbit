@@ -4,7 +4,8 @@ import {
   Record,
   Schema,
   KeyMap,
-  AddRecordOperation
+  AddRecordOperation,
+  Transform
 } from '@orbit/data';
 import IndexedDBSource from '../src/source';
 
@@ -185,16 +186,15 @@ module('IndexedDBSource', function(hooks) {
       op: 'addRecord',
       record: planet
     } as AddRecordOperation);
+
     await source.sync(t);
 
     assert.ok(source.transformLog.contains(t.id), 'log contains transform');
-
     assert.deepEqual(
       await getRecordFromIndexedDB(source.cache, planet),
       planet,
       'indexeddb contains record'
     );
-
     assert.equal(
       keyMap.keyToId('planet', 'remoteId', 'j'),
       'jupiter',
@@ -203,7 +203,7 @@ module('IndexedDBSource', function(hooks) {
   });
 
   test('#push - addRecord', async function(assert) {
-    assert.expect(2);
+    assert.expect(3);
 
     let planet: Record = {
       type: 'planet',
@@ -217,13 +217,59 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(planet));
+    const t = buildTransform({
+      op: 'addRecord',
+      record: planet
+    } as AddRecordOperation);
+
+    await source.push(t);
+
+    assert.ok(source.transformLog.contains(t.id), 'log contains transform');
     assert.deepEqual(
       await getRecordFromIndexedDB(source.cache, planet),
       planet,
       'indexeddb contains record'
     );
+    assert.equal(
+      keyMap.keyToId('planet', 'remoteId', 'j'),
+      'jupiter',
+      'key has been mapped'
+    );
+  });
 
+  test('#push - addRecord - with beforePush listener that syncs transform', async function(assert) {
+    assert.expect(4);
+
+    let planet: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      keys: {
+        remoteId: 'j'
+      },
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant'
+      }
+    };
+
+    const t = buildTransform({
+      op: 'addRecord',
+      record: planet
+    } as AddRecordOperation);
+
+    source.on('beforePush', async function(transform: Transform) {
+      await source.sync(transform);
+    });
+
+    let result = await source.push(t);
+
+    assert.deepEqual(result, [], 'result represents transforms applied');
+    assert.ok(source.transformLog.contains(t.id), 'log contains transform');
+    assert.deepEqual(
+      await getRecordFromIndexedDB(source.cache, planet),
+      planet,
+      'indexeddb contains record'
+    );
     assert.equal(
       keyMap.keyToId('planet', 'remoteId', 'j'),
       'jupiter',

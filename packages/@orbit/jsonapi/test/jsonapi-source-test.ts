@@ -1,4 +1,6 @@
-import Orbit, {
+import {
+  buildTransform,
+  AddRecordOperation,
   ClientError,
   KeyMap,
   NetworkError,
@@ -191,7 +193,7 @@ module('JSONAPISource', function() {
     });
 
     test('#push - can add records', async function(assert) {
-      assert.expect(7);
+      assert.expect(9);
 
       let transformCount = 0;
 
@@ -250,11 +252,17 @@ module('JSONAPISource', function() {
         })
       );
 
-      await source.push(t => t.addRecord(planet));
+      const t = buildTransform({
+        op: 'addRecord',
+        record: planet
+      } as AddRecordOperation);
 
-      assert.ok(true, 'transform resolves successfully');
+      let result = await source.push(t);
 
+      assert.equal(result.length, 2, 'two transforms applied');
+      assert.deepEqual(result[0], t, 'result represents transforms applied');
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.ok(source.transformLog.contains(t.id), 'log contains transform');
       assert.equal(
         fetchStub.getCall(0).args[1].method,
         'POST',
@@ -278,6 +286,31 @@ module('JSONAPISource', function() {
         },
         'fetch called with expected data'
       );
+    });
+
+    test('#push - will not issue fetch if beforePush listener logs transform', async function(assert) {
+      assert.expect(2);
+
+      let planet: Record = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'planet',
+          attributes: { name: 'Jupiter', classification: 'gas giant' }
+        }
+      );
+
+      const t = buildTransform({
+        op: 'addRecord',
+        record: planet
+      } as AddRecordOperation);
+
+      source.on('beforePush', async function(transform: Transform) {
+        await source.transformLog.append(t.id);
+      });
+
+      let result = await source.push(t);
+
+      assert.deepEqual(result, [], 'result represents transforms applied');
+      assert.ok(source.transformLog.contains(t.id), 'log contains transform');
     });
 
     test('#push - can add sideloaded records', async function(assert) {

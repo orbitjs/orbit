@@ -78,14 +78,15 @@ module('@pushable', function(hooks) {
       assert.strictEqual(transform, addRecordTransform, 'transform matches');
     });
 
-    source._push = function(transform) {
+    source._push = async function(transform) {
       assert.equal(++order, 2, 'action performed after beforePush');
       assert.strictEqual(
         transform,
         addRecordTransform,
         'transform object matches'
       );
-      return Promise.resolve(resultingTransforms);
+      await this._transformed(resultingTransforms);
+      return resultingTransforms;
     };
 
     let transformCount = 0;
@@ -203,8 +204,8 @@ module('@pushable', function(hooks) {
     );
   });
 
-  test('#push should not call `_push` if the transform has been applied as a result of `beforePush` resolution', async function(assert) {
-    assert.expect(2);
+  test('#push should still call `_push` if the transform has been applied as a result of `beforePush` resolution', async function(assert) {
+    assert.expect(5);
 
     let order = 0;
 
@@ -220,12 +221,16 @@ module('@pushable', function(hooks) {
     });
 
     source._push = async function(): Promise<Transform[]> {
-      assert.ok(false, '_push should not be reached');
+      assert.ok(true, '_push should still be reached');
+      assert.ok(
+        this.transformLog.contains(addRecordTransform.id),
+        'transform is already contained in the log'
+      );
       return [];
     };
 
     source.on('push', () => {
-      assert.ok(false, 'push should not be reached');
+      assert.ok(true, 'push should still be reached');
     });
 
     await source.push(addRecordTransform);

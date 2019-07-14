@@ -89,7 +89,7 @@ export default function pushable(Klass: SourceClass): void {
     );
 
     if (this.transformLog.contains(transform.id)) {
-      return Promise.resolve([]);
+      return [];
     }
 
     return this._enqueueRequest('push', transform);
@@ -102,16 +102,10 @@ export default function pushable(Klass: SourceClass): void {
 
     try {
       const hints: any = {};
-
       await fulfillInSeries(this, 'beforePush', transform, hints);
-      if (this.transformLog.contains(transform.id)) {
-        return [];
-      } else {
-        let result = await this._push(transform, hints);
-        await this._transformed(result);
-        await settleInSeries(this, 'push', transform, result);
-        return result;
-      }
+      let result = await this._push(transform, hints);
+      await settleInSeries(this, 'push', transform, result);
+      return result;
     } catch (error) {
       await settleInSeries(this, 'pushFail', transform, error);
       throw error;
