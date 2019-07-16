@@ -252,6 +252,56 @@ module('MemorySource', function(hooks) {
     );
   });
 
+  test('#update - accepts hints that can return an array of varied results', async function(assert) {
+    assert.expect(2);
+
+    let jupiter = {
+      id: 'jupiter',
+      type: 'planet',
+      attributes: { name: 'Jupiter' }
+    };
+
+    let earth = {
+      id: 'earth',
+      type: 'planet',
+      attributes: { name: 'Earth' }
+    };
+
+    let uranus = {
+      id: 'uranus',
+      type: 'planet',
+      attributes: { name: 'Uranus' }
+    };
+
+    source.on('beforeUpdate', (transform: Transform, hints: any) => {
+      if (transform.options.customizeResults) {
+        hints.data = [
+          [{ type: 'planet', id: 'uranus' }, { type: 'planet', id: 'earth' }],
+          { type: 'planet', id: 'jupiter' }
+        ];
+      }
+    });
+
+    let planets = await source.update(
+      t => [t.addRecord(jupiter), t.addRecord(earth), t.addRecord(uranus)],
+      {
+        customizeResults: true
+      }
+    );
+
+    assert.equal(
+      source.cache.getRecordsSync('planet').length,
+      3,
+      'cache should contain three planets'
+    );
+
+    assert.deepEqual(
+      planets,
+      [[uranus, earth], jupiter],
+      'planets match hinted records'
+    );
+  });
+
   test("#query - queries the source's cache", async function(assert) {
     assert.expect(2);
 
