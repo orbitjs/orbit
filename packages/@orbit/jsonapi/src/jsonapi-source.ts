@@ -168,7 +168,7 @@ export default class JSONAPISource extends Source
       }
 
       transforms.unshift(transform);
-      await this._transformed(transforms);
+      await this.transformed(transforms);
     }
 
     return transforms;
@@ -182,7 +182,7 @@ export default class JSONAPISource extends Source
     const { requestProcessor } = this;
     const operator: QueryOperator = this.getQueryOperator(query);
     const response = await operator(requestProcessor, query);
-    await this._transformed(response.transforms);
+    await this.transformed(response.transforms);
     return response.transforms;
   }
 
@@ -194,7 +194,7 @@ export default class JSONAPISource extends Source
     const { requestProcessor } = this;
     const operator: QueryOperator = this.getQueryOperator(query);
     const response = await operator(requestProcessor, query);
-    await this._transformed(response.transforms);
+    await this.transformed(response.transforms);
     return response.primaryData;
   }
 
@@ -223,7 +223,7 @@ export default class JSONAPISource extends Source
       }
 
       transforms.unshift(transform);
-      await this._transformed(transforms);
+      await this.transformed(transforms);
 
       return transform.operations.length === 1 ? records[0] : records;
     }

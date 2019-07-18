@@ -209,7 +209,7 @@ module('Source', function(hooks) {
     );
   });
 
-  test('#_transformed should trigger `transform` event BEFORE resolving', async function(assert) {
+  test('#transformed should trigger `transform` event BEFORE resolving', async function(assert) {
     assert.expect(3);
 
     source = new MySource();
@@ -229,9 +229,9 @@ module('Source', function(hooks) {
       );
     });
 
-    await source._transformed([appliedTransform]);
+    await source.transformed([appliedTransform]);
 
-    assert.equal(++order, 2, '_transformed promise resolved last');
+    assert.equal(++order, 2, 'transformed promise resolved last');
   });
 
   test('#transformLog contains transforms applied', async function(assert) {
@@ -242,7 +242,7 @@ module('Source', function(hooks) {
 
     assert.ok(!source.transformLog.contains(appliedTransform.id));
 
-    await source._transformed([appliedTransform]);
+    await source.transformed([appliedTransform]);
 
     assert.ok(source.transformLog.contains(appliedTransform.id));
   });

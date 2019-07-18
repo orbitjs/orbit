@@ -106,7 +106,7 @@ export default class IndexedDBSource extends Source
   async _sync(transform: Transform): Promise<void> {
     if (!this.transformLog.contains(transform.id)) {
       await this._cache.patch(transform.operations as RecordOperation[]);
-      await this._transformed([transform]);
+      await this.transformed([transform]);
     }
   }
 
@@ -120,7 +120,7 @@ export default class IndexedDBSource extends Source
     if (!this.transformLog.contains(transform.id)) {
       await this._cache.patch(transform.operations as RecordOperation[]);
       results = [transform];
-      await this._transformed(results);
+      await this.transformed(results);
     } else {
       results = [];
     }
@@ -158,7 +158,7 @@ export default class IndexedDBSource extends Source
 
     const transforms = [buildTransform(operations)];
 
-    await this._transformed(transforms);
+    await this.transformed(transforms);
 
     return transforms;
   }

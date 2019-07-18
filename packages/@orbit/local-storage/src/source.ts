@@ -111,7 +111,7 @@ export default class LocalStorageSource extends Source
   async _sync(transform: Transform): Promise<void> {
     if (!this.transformLog.contains(transform.id)) {
       this._cache.patch(transform.operations as RecordOperation[]);
-      await this._transformed([transform]);
+      await this.transformed([transform]);
     }
   }
 
@@ -125,7 +125,7 @@ export default class LocalStorageSource extends Source
     if (!this.transformLog.contains(transform.id)) {
       this._cache.patch(transform.operations as RecordOperation[]);
       results = [transform];
-      await this._transformed(results);
+      await this.transformed(results);
     } else {
       results = [];
     }
@@ -162,7 +162,7 @@ export default class LocalStorageSource extends Source
 
     const transforms = [buildTransform(operations)];
 
-    await this._transformed(transforms);
+    await this.transformed(transforms);
 
     return transforms;
   }

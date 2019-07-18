@@ -165,9 +165,9 @@ module('LogTruncationStrategy', function(hooks) {
     });
 
     await coordinator.activate();
-    await s1._transformed([tA, tB]);
-    await s2._transformed([tA, tB]);
-    await s3._transformed([tA, tB]);
+    await s1.transformed([tA, tB]);
+    await s2.transformed([tA, tB]);
+    await s3.transformed([tA, tB]);
     await s1.syncQueue.clear();
     await s2.syncQueue.clear();
     await s3.syncQueue.clear();
@@ -187,9 +187,9 @@ module('LogTruncationStrategy', function(hooks) {
     });
 
     await coordinator.activate();
-    await s1._transformed([tA, tB, tC, tD]);
-    await s2._transformed([tA, tB, tC]);
-    await s3._transformed([tA, tB, tC]);
+    await s1.transformed([tA, tB, tC, tD]);
+    await s2.transformed([tA, tB, tC]);
+    await s3.transformed([tA, tB, tC]);
 
     await s1.syncQueue.clear();
     await s2.syncQueue.clear();

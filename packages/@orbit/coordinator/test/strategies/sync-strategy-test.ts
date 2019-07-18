@@ -126,7 +126,7 @@ module('SyncStrategy', function(hooks) {
     };
 
     await coordinator.activate();
-    await s1._transformed([tA]);
+    await s1.transformed([tA]);
   });
 
   test('can apply a `filter` function', async function(assert) {
@@ -156,7 +156,7 @@ module('SyncStrategy', function(hooks) {
     };
 
     await coordinator.activate();
-    await s1._transformed([tA, tB]);
+    await s1.transformed([tA, tB]);
   });
 
   test('can catch errors with a `catch` function', async function(assert) {
@@ -193,7 +193,7 @@ module('SyncStrategy', function(hooks) {
     };
 
     await coordinator.activate();
-    await s1._transformed([tA]);
+    await s1.transformed([tA]);
 
     assert.ok(true, 'transform event settled');
   });
@@ -233,7 +233,7 @@ module('SyncStrategy', function(hooks) {
     };
 
     await coordinator.activate();
-    await s1._transformed([tA]);
+    await s1.transformed([tA]);
 
     assert.ok(
       true,
