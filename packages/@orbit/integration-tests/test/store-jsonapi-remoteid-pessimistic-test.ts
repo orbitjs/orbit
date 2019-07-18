@@ -100,8 +100,9 @@ module(
           source: 'memory',
           on: 'beforeUpdate',
           target: 'remote',
-          action: 'push',
-          blocking: true
+          action: 'update',
+          blocking: true,
+          passHints: true
         })
       );
 
@@ -122,7 +123,7 @@ module(
     });
 
     test('Adding a record to the memory source immediately pushes the update to the remote', async function(assert) {
-      assert.expect(3);
+      assert.expect(4);
 
       await coordinator.activate();
 
@@ -141,8 +142,8 @@ module(
         id: schema.generateId(),
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       };
-      await memory.update(t => t.addRecord(planet));
 
+      let createdRecord = await memory.update(t => t.addRecord(planet));
       let result = memory.cache.query(q => q.findRecord(planet));
 
       assert.deepEqual(result, {
@@ -151,6 +152,7 @@ module(
         keys: { remoteId: '12345' },
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       });
+      assert.deepEqual(createdRecord, result);
 
       assert.equal(
         keyMap.idToKey('planet', 'remoteId', planet.id),

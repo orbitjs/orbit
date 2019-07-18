@@ -122,7 +122,7 @@ module('Store + JSONAPISource + remote IDs + optimistic coordination', function(
   });
 
   test('Adding a record to the memory source queues an update request which will be pushed to the remote', async function(assert) {
-    assert.expect(2);
+    assert.expect(3);
 
     await coordinator.activate();
 
@@ -141,10 +141,12 @@ module('Store + JSONAPISource + remote IDs + optimistic coordination', function(
       id: schema.generateId(),
       attributes: { name: 'Jupiter', classification: 'gas giant' }
     };
-    await memory.update(t => t.addRecord(planet));
+
+    let createdRecord = await memory.update(t => t.addRecord(planet));
+    let result = memory.cache.query(q => q.findRecord(planet));
 
     assert.deepEqual(
-      memory.cache.query(q => q.findRecord(planet)),
+      result,
       {
         type: 'planet',
         id: planet.id,
@@ -152,6 +154,7 @@ module('Store + JSONAPISource + remote IDs + optimistic coordination', function(
       },
       'keys have not been syncd up yet - remote source still needs to process request'
     );
+    assert.deepEqual(createdRecord, result);
 
     await remote.requestQueue.process();
 
