@@ -133,7 +133,7 @@ export default class MemorySource extends Source
   /////////////////////////////////////////////////////////////////////////////
 
   async _update(transform: Transform, hints?: any): Promise<any> {
-    let results: any[];
+    let results: PatchResultData[];
 
     if (!this.transformLog.contains(transform.id)) {
       results = this._applyTransform(transform);
@@ -141,9 +141,19 @@ export default class MemorySource extends Source
     }
 
     if (hints && hints.data) {
-      return this._retrieveFromCache(hints.data);
-    } else if (results !== undefined) {
-      return results.length === 1 ? results[0] : results;
+      if (transform.operations.length > 1 && Array.isArray(hints.data)) {
+        return hints.data.map((idOrIds: RecordIdentity | RecordIdentity[]) =>
+          this._retrieveFromCache(idOrIds)
+        );
+      } else {
+        return this._retrieveFromCache(hints.data);
+      }
+    } else if (results) {
+      if (transform.operations.length === 1 && Array.isArray(results)) {
+        return results[0];
+      } else {
+        return results;
+      }
     }
   }
 

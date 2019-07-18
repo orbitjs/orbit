@@ -225,7 +225,7 @@ export default class JSONAPISource extends Source
       transforms.unshift(transform);
       await this._transformed(transforms);
 
-      return records.length === 1 ? records[0] : records;
+      return transform.operations.length === 1 ? records[0] : records;
     }
   }
 
