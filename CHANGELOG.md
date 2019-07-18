@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.16.0-beta.11 (2019-07-18)
+
+#### :boom: Breaking Change
+
+- `@orbit/data`, `@orbit/indexeddb`, `@orbit/jsonapi`, `@orbit/local-storage`, `@orbit/memory`
+  - [#678](https://github.com/orbitjs/orbit/pull/678) [BREAKING] Shift some responsibilities for transform-related interfaces to source implementations ([@dgeb](https://github.com/dgeb))
+
+#### :rocket: Enhancement
+
+- `@orbit/coordinator`, `@orbit/data`, `@orbit/indexeddb`, `@orbit/jsonapi`, `@orbit/local-storage`, `@orbit/memory`
+  - [#680](https://github.com/orbitjs/orbit/pull/680) [DEPRECATION] Deprecate `_transformed` in favor of `transformed` ([@dgeb](https://github.com/dgeb))
+
+#### :house: Internal
+
+- `@orbit/jsonapi`, `@orbit/memory`
+  - [#679](https://github.com/orbitjs/orbit/pull/679) Standardize update responses ([@dgeb](https://github.com/dgeb))
+- `@orbit/data`
+  - [#677](https://github.com/orbitjs/orbit/pull/677) Convert source interface implementations to use async/await ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 2
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+- Paul Chavard ([@tchak](https://github.com/tchak))
+
 ## v0.16.0-beta.10 (2019-07-10)
 
 #### :rocket: Enhancement
