@@ -85,7 +85,7 @@ module('@pushable', function(hooks) {
         addRecordTransform,
         'transform object matches'
       );
-      await this._transformed(resultingTransforms);
+      await this.transformed(resultingTransforms);
       return resultingTransforms;
     };
 

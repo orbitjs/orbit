@@ -124,7 +124,7 @@ export default class MemorySource extends Source
   async _sync(transform: Transform): Promise<void> {
     if (!this.transformLog.contains(transform.id)) {
       this._applyTransform(transform);
-      await this._transformed([transform]);
+      await this.transformed([transform]);
     }
   }
 
@@ -137,7 +137,7 @@ export default class MemorySource extends Source
 
     if (!this.transformLog.contains(transform.id)) {
       results = this._applyTransform(transform);
-      await this._transformed([transform]);
+      await this.transformed([transform]);
     }
 
     if (hints && hints.data) {

@@ -80,7 +80,7 @@ module('@updatable', function(hooks) {
         addRecordTransform,
         'transform object matches'
       );
-      await this._transformed([transform]);
+      await this.transformed([transform]);
       return ':)';
     };
 
@@ -133,7 +133,7 @@ module('@updatable', function(hooks) {
         addRecordTransform,
         'transform object matches'
       );
-      await this._transformed([transform]);
+      await this.transformed([transform]);
       return ['a', 'b', 'c'];
     };
 

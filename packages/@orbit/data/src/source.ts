@@ -16,7 +16,7 @@ import QueryBuilder from './query-builder';
 import { Transform } from './transform';
 import TransformBuilder from './transform-builder';
 
-const { assert } = Orbit;
+const { assert, deprecate } = Orbit;
 
 export interface SourceSettings {
   name?: string;
@@ -193,6 +193,16 @@ export abstract class Source implements Evented, Performer {
   /////////////////////////////////////////////////////////////////////////////
 
   /**
+   * @deprecated
+   */
+  protected async _transformed(transforms: Transform[]): Promise<Transform[]> {
+    deprecate(
+      'The `_transformed` method on `Source` is deprecated in favor of `transformed`.'
+    );
+    return this.transformed(transforms);
+  }
+
+  /**
    * Notifies listeners that this source has been transformed by emitting the
    * `transform` event.
    *
@@ -200,7 +210,7 @@ export abstract class Source implements Evented, Performer {
    *
    * Also, adds an entry to the Source's `transformLog` for each transform.
    */
-  protected async _transformed(transforms: Transform[]): Promise<Transform[]> {
+  protected async transformed(transforms: Transform[]): Promise<Transform[]> {
     await this.activated;
     return transforms
       .reduce((chain, transform) => {
