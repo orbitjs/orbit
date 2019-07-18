@@ -1,6 +1,6 @@
 {
   "name": "@orbit/data",
-  "version": "0.16.0-beta.10",
+  "version": "0.16.0-beta.11",
   "description": "A flexible data access and synchronization layer.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
