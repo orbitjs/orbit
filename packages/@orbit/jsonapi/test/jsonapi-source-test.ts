@@ -1,4 +1,6 @@
-import Orbit, {
+import {
+  buildTransform,
+  AddRecordOperation,
   ClientError,
   KeyMap,
   NetworkError,
@@ -191,7 +193,7 @@ module('JSONAPISource', function() {
     });
 
     test('#push - can add records', async function(assert) {
-      assert.expect(7);
+      assert.expect(9);
 
       let transformCount = 0;
 
@@ -250,11 +252,17 @@ module('JSONAPISource', function() {
         })
       );
 
-      await source.push(t => t.addRecord(planet));
+      const t = buildTransform({
+        op: 'addRecord',
+        record: planet
+      } as AddRecordOperation);
 
-      assert.ok(true, 'transform resolves successfully');
+      let result = await source.push(t);
 
+      assert.equal(result.length, 2, 'two transforms applied');
+      assert.deepEqual(result[0], t, 'result represents transforms applied');
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.ok(source.transformLog.contains(t.id), 'log contains transform');
       assert.equal(
         fetchStub.getCall(0).args[1].method,
         'POST',
@@ -278,6 +286,31 @@ module('JSONAPISource', function() {
         },
         'fetch called with expected data'
       );
+    });
+
+    test('#push - will not issue fetch if beforePush listener logs transform', async function(assert) {
+      assert.expect(2);
+
+      let planet: Record = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'planet',
+          attributes: { name: 'Jupiter', classification: 'gas giant' }
+        }
+      );
+
+      const t = buildTransform({
+        op: 'addRecord',
+        record: planet
+      } as AddRecordOperation);
+
+      source.on('beforePush', async function(transform: Transform) {
+        await source.transformLog.append(t.id);
+      });
+
+      let result = await source.push(t);
+
+      assert.deepEqual(result, [], 'result represents transforms applied');
+      assert.ok(source.transformLog.contains(t.id), 'log contains transform');
     });
 
     test('#push - can add sideloaded records', async function(assert) {
@@ -1941,7 +1974,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - record', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const data: Resource = {
         type: 'planets',
@@ -1963,6 +1996,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord'
       ]);
@@ -2113,7 +2150,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - records', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const data: Resource[] = [
         {
@@ -2135,6 +2172,10 @@ module('JSONAPISource', function() {
       let transforms = await source.pull(q => q.findRecords('planet'));
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord',
         'updateRecord',
@@ -2197,7 +2238,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - records with attribute filters', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const data: Resource[] = [
         {
@@ -2227,6 +2268,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord'
       ]);
@@ -2246,7 +2291,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - records with relatedRecord filter (single value)', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const data: Resource[] = [
         {
@@ -2271,6 +2316,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord'
       ]);
@@ -2290,7 +2339,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - records with relatedRecord filter (multiple values)', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const data: Resource[] = [
         {
@@ -2338,6 +2387,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord',
         'updateRecord',
@@ -2359,7 +2412,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - records with relatedRecords filter', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const data: Resource[] = [
         {
@@ -2397,6 +2450,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord'
       ]);
@@ -2416,7 +2473,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - records with sort by an attribute in ascending order', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const data: Resource[] = [
         {
@@ -2442,6 +2499,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord',
         'updateRecord',
@@ -2463,7 +2524,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - records with sort by an attribute in descending order', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const data: Resource[] = [
         {
@@ -2489,6 +2550,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord',
         'updateRecord',
@@ -2510,7 +2575,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - records with sort by multiple fields', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const data: Resource[] = [
         {
@@ -2548,6 +2613,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord',
         'updateRecord',
@@ -2569,7 +2638,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - records with pagination', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const data: Resource[] = [
         {
@@ -2599,6 +2668,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord',
         'updateRecord',
@@ -2620,7 +2693,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - related records with attribute filter', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
         {
@@ -2663,6 +2736,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord',
         'addToRelatedRecords'
@@ -2681,7 +2758,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - related records with attribute filters', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
         {
@@ -2718,6 +2795,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord',
         'addToRelatedRecords'
@@ -2736,7 +2817,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - records with relatedRecord filter (single value)', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
         {
@@ -2772,6 +2853,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord',
         'addToRelatedRecords'
@@ -2790,7 +2875,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - records with relatedRecord filter (multiple values)', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
         {
@@ -2845,6 +2930,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord',
         'updateRecord',
@@ -2873,7 +2962,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - records with relatedRecords filter', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
         {
@@ -2918,6 +3007,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord',
         'addToRelatedRecords'
@@ -2936,7 +3029,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - records with sort by an attribute in ascending order', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
         {
@@ -2969,6 +3062,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord',
         'updateRecord',
@@ -2997,7 +3094,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - records with sort by an attribute in descending order', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
         {
@@ -3030,6 +3127,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord',
         'updateRecord',
@@ -3058,7 +3159,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - records with sort by multiple fields', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
         {
@@ -3107,6 +3208,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord',
         'updateRecord',
@@ -3135,7 +3240,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - records with pagination', async function(assert) {
-      assert.expect(5);
+      assert.expect(6);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
         {
@@ -3174,6 +3279,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord',
         'updateRecord',
@@ -3254,7 +3363,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - relatedRecord', async function(assert) {
-      assert.expect(12);
+      assert.expect(13);
 
       const planetRecord: Record = source.requestProcessor.serializer.deserialize(
         {
@@ -3282,6 +3391,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       const operations = transforms[0].operations as RecordOperation[];
 
       const planetId = keyMap.keyToId('planet', 'remoteId', 'jupiter');
@@ -3313,7 +3426,7 @@ module('JSONAPISource', function() {
     });
 
     test('#pull - relatedRecords', async function(assert) {
-      assert.expect(8);
+      assert.expect(9);
 
       let planetRecord: Record = source.requestProcessor.serializer.deserialize(
         {
@@ -3343,6 +3456,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
+      assert.ok(
+        source.transformLog.contains(transforms[0].id),
+        'log contains transform'
+      );
       assert.deepEqual(transforms[0].operations.map(o => o.op), [
         'updateRecord',
         'replaceRelatedRecords'

@@ -104,7 +104,10 @@ export default class IndexedDBSource extends Source
   /////////////////////////////////////////////////////////////////////////////
 
   async _sync(transform: Transform): Promise<void> {
-    await this._cache.patch(transform.operations as RecordOperation[]);
+    if (!this.transformLog.contains(transform.id)) {
+      await this._cache.patch(transform.operations as RecordOperation[]);
+      await this._transformed([transform]);
+    }
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -112,8 +115,17 @@ export default class IndexedDBSource extends Source
   /////////////////////////////////////////////////////////////////////////////
 
   async _push(transform: Transform): Promise<Transform[]> {
-    await this._cache.patch(transform.operations as RecordOperation[]);
-    return [transform];
+    let results: Transform[];
+
+    if (!this.transformLog.contains(transform.id)) {
+      await this._cache.patch(transform.operations as RecordOperation[]);
+      results = [transform];
+      await this._transformed(results);
+    } else {
+      results = [];
+    }
+
+    return results;
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -144,6 +156,10 @@ export default class IndexedDBSource extends Source
       operations = [];
     }
 
-    return [buildTransform(operations)];
+    const transforms = [buildTransform(operations)];
+
+    await this._transformed(transforms);
+
+    return transforms;
   }
 }

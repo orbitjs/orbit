@@ -3,11 +3,13 @@ import {
   isLocalStorageEmpty
 } from './support/local-storage';
 import {
+  buildTransform,
   AddRecordOperation,
   Record,
   Schema,
   Source,
-  KeyMap
+  KeyMap,
+  Transform
 } from '@orbit/data';
 import Orbit from '@orbit/core';
 import LocalStorageSource from '../src/source';
@@ -105,8 +107,8 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - addRecord', async function(assert) {
-    assert.expect(2);
+  test('#sync - addRecord', async function(assert) {
+    assert.expect(3);
 
     let planet = {
       type: 'planet',
@@ -120,8 +122,89 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(planet));
+    const t = buildTransform({
+      op: 'addRecord',
+      record: planet
+    } as AddRecordOperation);
 
+    await source.sync(t);
+
+    assert.ok(source.transformLog.contains(t.id), 'log contains transform');
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, planet),
+      planet,
+      'local storage contains record'
+    );
+    assert.equal(
+      keyMap.keyToId('planet', 'remoteId', 'j'),
+      'jupiter',
+      'key has been mapped'
+    );
+  });
+
+  test('#push - addRecord', async function(assert) {
+    assert.expect(3);
+
+    let planet = {
+      type: 'planet',
+      id: 'jupiter',
+      keys: {
+        remoteId: 'j'
+      },
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant'
+      }
+    };
+
+    const t = buildTransform({
+      op: 'addRecord',
+      record: planet
+    } as AddRecordOperation);
+
+    await source.push(t);
+
+    assert.ok(source.transformLog.contains(t.id), 'log contains transform');
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, planet),
+      planet,
+      'local storage contains record'
+    );
+    assert.equal(
+      keyMap.keyToId('planet', 'remoteId', 'j'),
+      'jupiter',
+      'key has been mapped'
+    );
+  });
+
+  test('#push - addRecord - with beforePush listener that syncs transform', async function(assert) {
+    assert.expect(4);
+
+    let planet: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      keys: {
+        remoteId: 'j'
+      },
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant'
+      }
+    };
+
+    const t = buildTransform({
+      op: 'addRecord',
+      record: planet
+    } as AddRecordOperation);
+
+    source.on('beforePush', async function(transform: Transform) {
+      await source.sync(transform);
+    });
+
+    let result = await source.push(t);
+
+    assert.deepEqual(result, [], 'result represents transforms applied');
+    assert.ok(source.transformLog.contains(t.id), 'log contains transform');
     assert.deepEqual(
       getRecordFromLocalStorage(source, planet),
       planet,
@@ -818,8 +901,8 @@ module('LocalStorageSource', function(hooks) {
     assert.equal(Orbit.globals.localStorage.getItem('orbit-bucket/foo'), '{}');
   });
 
-  test('#pull - all records', function(assert) {
-    assert.expect(5);
+  test('#pull - all records', async function(assert) {
+    assert.expect(6);
 
     let earth = {
       type: 'planet',
@@ -856,49 +939,48 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source
-      .reset()
-      .then(() =>
-        source.push(t => [
-          t.addRecord(earth),
-          t.addRecord(jupiter),
-          t.addRecord(io)
-        ])
-      )
-      .then(() => {
-        // reset keyMap to verify that pulling records also adds keys
-        keyMap.reset();
-      })
-      .then(() => source.pull(q => q.findRecords()))
-      .then(transforms => {
-        assert.equal(transforms.length, 1, 'one transform returned');
-        assert.deepEqual(
-          transforms[0].operations.map(o => o.op),
-          ['updateRecord', 'updateRecord', 'updateRecord'],
-          'operations match expectations'
-        );
-      })
-      .then(() => {
-        assert.equal(
-          keyMap.keyToId('planet', 'remoteId', 'p1'),
-          'earth',
-          'key has been mapped'
-        );
-        assert.equal(
-          keyMap.keyToId('planet', 'remoteId', 'p2'),
-          'jupiter',
-          'key has been mapped'
-        );
-        assert.equal(
-          keyMap.keyToId('moon', 'remoteId', 'm1'),
-          'io',
-          'key has been mapped'
-        );
-      });
+    await source.reset();
+
+    await source.push(t => [
+      t.addRecord(earth),
+      t.addRecord(jupiter),
+      t.addRecord(io)
+    ]);
+
+    // reset keyMap to verify that pulling records also adds keys
+    keyMap.reset();
+
+    let transforms = await source.pull(q => q.findRecords());
+
+    assert.equal(transforms.length, 1, 'one transform returned');
+    assert.ok(
+      source.transformLog.contains(transforms[0].id),
+      'log contains transform'
+    );
+    assert.deepEqual(
+      transforms[0].operations.map(o => o.op),
+      ['updateRecord', 'updateRecord', 'updateRecord'],
+      'operations match expectations'
+    );
+    assert.equal(
+      keyMap.keyToId('planet', 'remoteId', 'p1'),
+      'earth',
+      'key has been mapped'
+    );
+    assert.equal(
+      keyMap.keyToId('planet', 'remoteId', 'p2'),
+      'jupiter',
+      'key has been mapped'
+    );
+    assert.equal(
+      keyMap.keyToId('moon', 'remoteId', 'm1'),
+      'io',
+      'key has been mapped'
+    );
   });
 
-  test('#pull - records of one type', function(assert) {
-    assert.expect(2);
+  test('#pull - records of one type', async function(assert) {
+    assert.expect(4);
 
     let earth = {
       type: 'planet',
@@ -926,28 +1008,34 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source
-      .reset()
-      .then(() =>
-        source.push(t => [
-          t.addRecord(earth),
-          t.addRecord(jupiter),
-          t.addRecord(io)
-        ])
-      )
-      .then(() => source.pull(q => q.findRecords('planet')))
-      .then(transforms => {
-        assert.equal(transforms.length, 1, 'one transform returned');
-        assert.deepEqual(
-          transforms[0].operations.map(o => o.op),
-          ['updateRecord', 'updateRecord'],
-          'operations match expectations'
-        );
-      });
+    await source.reset();
+
+    await source.push(t => [
+      t.addRecord(earth),
+      t.addRecord(jupiter),
+      t.addRecord(io)
+    ]);
+
+    let transforms = await source.pull(q => q.findRecords('planet'));
+
+    assert.equal(transforms.length, 1, 'one transform returned');
+    assert.ok(
+      source.transformLog.contains(transforms[0].id),
+      'log contains transform'
+    );
+    assert.ok(
+      source.transformLog.contains(transforms[0].id),
+      'log contains transform'
+    );
+    assert.deepEqual(
+      transforms[0].operations.map(o => o.op),
+      ['updateRecord', 'updateRecord'],
+      'operations match expectations'
+    );
   });
 
   test('#pull - specific records', async function(assert) {
-    assert.expect(3);
+    assert.expect(4);
 
     let earth: Record = {
       type: 'planet',
@@ -986,6 +1074,10 @@ module('LocalStorageSource', function(hooks) {
     );
 
     assert.equal(transforms.length, 1, 'one transform returned');
+    assert.ok(
+      source.transformLog.contains(transforms[0].id),
+      'log contains transform'
+    );
     assert.deepEqual(
       transforms[0].operations.map(o => o.op),
       ['updateRecord', 'updateRecord'],
@@ -998,8 +1090,8 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#pull - a specific record', function(assert) {
-    assert.expect(3);
+  test('#pull - a specific record', async function(assert) {
+    assert.expect(4);
 
     let earth = {
       type: 'planet',
@@ -1030,51 +1122,50 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    return source
-      .reset()
-      .then(() =>
-        source.push(t => [
-          t.addRecord(earth),
-          t.addRecord(jupiter),
-          t.addRecord(io)
-        ])
-      )
-      .then(() => {
-        // reset keyMap to verify that pulling records also adds keys
-        keyMap.reset();
-      })
-      .then(() => source.pull(q => q.findRecord(jupiter)))
-      .then(transforms => {
-        assert.equal(transforms.length, 1, 'one transform returned');
-        assert.deepEqual(
-          transforms[0].operations.map(o => o.op),
-          ['updateRecord'],
-          'operations match expectations'
-        );
-      })
-      .then(() => {
-        assert.equal(
-          keyMap.keyToId('planet', 'remoteId', 'p2'),
-          'jupiter',
-          'key has been mapped'
-        );
-      });
+    await source.reset();
+
+    await source.push(t => [
+      t.addRecord(earth),
+      t.addRecord(jupiter),
+      t.addRecord(io)
+    ]);
+
+    // reset keyMap to verify that pulling records also adds keys
+    keyMap.reset();
+
+    let transforms = await source.pull(q => q.findRecord(jupiter));
+
+    assert.equal(transforms.length, 1, 'one transform returned');
+    assert.ok(
+      source.transformLog.contains(transforms[0].id),
+      'log contains transform'
+    );
+    assert.deepEqual(
+      transforms[0].operations.map(o => o.op),
+      ['updateRecord'],
+      'operations match expectations'
+    );
+    assert.equal(
+      keyMap.keyToId('planet', 'remoteId', 'p2'),
+      'jupiter',
+      'key has been mapped'
+    );
   });
 
-  test('#pull - ignores local-storage-bucket entries', function(assert) {
-    assert.expect(2);
+  test('#pull - ignores local-storage-bucket entries', async function(assert) {
+    assert.expect(3);
 
-    return source
-      .reset()
-      .then(() => Orbit.globals.localStorage.setItem('orbit-bucket/foo', '{}'))
-      .then(() => source.pull(q => q.findRecords()))
-      .then(transforms => {
-        assert.equal(transforms.length, 1, 'one transform returned');
-        assert.equal(
-          transforms[0].operations.length,
-          0,
-          'no operations returned'
-        );
-      });
+    await source.reset();
+
+    await Orbit.globals.localStorage.setItem('orbit-bucket/foo', '{}');
+
+    let transforms = await source.pull(q => q.findRecords());
+
+    assert.equal(transforms.length, 1, 'one transform returned');
+    assert.ok(
+      source.transformLog.contains(transforms[0].id),
+      'log contains transform'
+    );
+    assert.equal(transforms[0].operations.length, 0, 'no operations returned');
   });
 });

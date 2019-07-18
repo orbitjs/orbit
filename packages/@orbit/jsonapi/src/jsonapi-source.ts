@@ -149,23 +149,28 @@ export default class JSONAPISource extends Source
   /////////////////////////////////////////////////////////////////////////////
 
   async _push(transform: Transform): Promise<Transform[]> {
-    const { requestProcessor } = this;
-    const requests = this.getTransformRequests(transform);
     const transforms: Transform[] = [];
 
-    for (let request of requests) {
-      let processor = this.getTransformRequestProcessor(request);
+    if (!this.transformLog.contains(transform.id)) {
+      const { requestProcessor } = this;
+      const requests = this.getTransformRequests(transform);
 
-      let { transforms: additionalTransforms } = await processor(
-        requestProcessor,
-        request
-      );
-      if (additionalTransforms.length) {
-        Array.prototype.push.apply(transforms, additionalTransforms);
+      for (let request of requests) {
+        let processor = this.getTransformRequestProcessor(request);
+
+        let { transforms: additionalTransforms } = await processor(
+          requestProcessor,
+          request
+        );
+        if (additionalTransforms.length) {
+          Array.prototype.push.apply(transforms, additionalTransforms);
+        }
       }
+
+      transforms.unshift(transform);
+      await this._transformed(transforms);
     }
 
-    transforms.unshift(transform);
     return transforms;
   }
 
@@ -177,6 +182,7 @@ export default class JSONAPISource extends Source
     const { requestProcessor } = this;
     const operator: QueryOperator = this.getQueryOperator(query);
     const response = await operator(requestProcessor, query);
+    await this._transformed(response.transforms);
     return response.transforms;
   }
 
@@ -197,28 +203,30 @@ export default class JSONAPISource extends Source
   /////////////////////////////////////////////////////////////////////////////
 
   async _update(transform: Transform): Promise<any> {
-    const { requestProcessor } = this;
-    const requests = this.getTransformRequests(transform);
-    const transforms: Transform[] = [];
-    const records: Record[] = [];
+    if (!this.transformLog.contains(transform.id)) {
+      const transforms: Transform[] = [];
+      const { requestProcessor } = this;
+      const requests = this.getTransformRequests(transform);
+      const records: Record[] = [];
 
-    for (let request of requests) {
-      let processor = this.getTransformRequestProcessor(request);
+      for (let request of requests) {
+        let processor = this.getTransformRequestProcessor(request);
 
-      let { transforms: additionalTransforms, primaryData } = await processor(
-        requestProcessor,
-        request
-      );
-      if (additionalTransforms.length) {
-        Array.prototype.push.apply(transforms, additionalTransforms);
+        let { transforms: additionalTransforms, primaryData } = await processor(
+          requestProcessor,
+          request
+        );
+        if (additionalTransforms.length) {
+          Array.prototype.push.apply(transforms, additionalTransforms);
+        }
+        records.push(primaryData);
       }
-      records.push(primaryData);
+
+      transforms.unshift(transform);
+      await this._transformed(transforms);
+
+      return records.length === 1 ? records[0] : records;
     }
-
-    transforms.unshift(transform);
-    await this._transformed(transforms);
-
-    return records.length === 1 ? records[0] : records;
   }
 
   private getQueryOperator(query: Query): QueryOperator {

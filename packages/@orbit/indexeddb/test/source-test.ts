@@ -1,5 +1,12 @@
 import { getRecordFromIndexedDB } from './support/indexeddb';
-import { Record, Schema, KeyMap, AddRecordOperation } from '@orbit/data';
+import {
+  buildTransform,
+  Record,
+  Schema,
+  KeyMap,
+  AddRecordOperation,
+  Transform
+} from '@orbit/data';
 import IndexedDBSource from '../src/source';
 
 const { module, test, skip } = QUnit;
@@ -160,8 +167,8 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - addRecord', async function(assert) {
-    assert.expect(2);
+  test('#sync - addRecord', async function(assert) {
+    assert.expect(3);
 
     let planet: Record = {
       type: 'planet',
@@ -175,13 +182,94 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(planet));
+    const t = buildTransform({
+      op: 'addRecord',
+      record: planet
+    } as AddRecordOperation);
+
+    await source.sync(t);
+
+    assert.ok(source.transformLog.contains(t.id), 'log contains transform');
     assert.deepEqual(
       await getRecordFromIndexedDB(source.cache, planet),
       planet,
       'indexeddb contains record'
     );
+    assert.equal(
+      keyMap.keyToId('planet', 'remoteId', 'j'),
+      'jupiter',
+      'key has been mapped'
+    );
+  });
 
+  test('#push - addRecord', async function(assert) {
+    assert.expect(3);
+
+    let planet: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      keys: {
+        remoteId: 'j'
+      },
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant'
+      }
+    };
+
+    const t = buildTransform({
+      op: 'addRecord',
+      record: planet
+    } as AddRecordOperation);
+
+    await source.push(t);
+
+    assert.ok(source.transformLog.contains(t.id), 'log contains transform');
+    assert.deepEqual(
+      await getRecordFromIndexedDB(source.cache, planet),
+      planet,
+      'indexeddb contains record'
+    );
+    assert.equal(
+      keyMap.keyToId('planet', 'remoteId', 'j'),
+      'jupiter',
+      'key has been mapped'
+    );
+  });
+
+  test('#push - addRecord - with beforePush listener that syncs transform', async function(assert) {
+    assert.expect(4);
+
+    let planet: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      keys: {
+        remoteId: 'j'
+      },
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant'
+      }
+    };
+
+    const t = buildTransform({
+      op: 'addRecord',
+      record: planet
+    } as AddRecordOperation);
+
+    source.on('beforePush', async function(transform: Transform) {
+      await source.sync(transform);
+    });
+
+    let result = await source.push(t);
+
+    assert.deepEqual(result, [], 'result represents transforms applied');
+    assert.ok(source.transformLog.contains(t.id), 'log contains transform');
+    assert.deepEqual(
+      await getRecordFromIndexedDB(source.cache, planet),
+      planet,
+      'indexeddb contains record'
+    );
     assert.equal(
       keyMap.keyToId('planet', 'remoteId', 'j'),
       'jupiter',
@@ -992,7 +1080,7 @@ module('IndexedDBSource', function(hooks) {
   });
 
   test('#pull - records of one type', async function(assert) {
-    assert.expect(3);
+    assert.expect(4);
 
     let earth: Record = {
       type: 'planet',
@@ -1029,6 +1117,10 @@ module('IndexedDBSource', function(hooks) {
     let transforms = await source.pull(q => q.findRecords('planet'));
 
     assert.equal(transforms.length, 1, 'one transform returned');
+    assert.ok(
+      source.transformLog.contains(transforms[0].id),
+      'log contains transform'
+    );
     assert.deepEqual(
       transforms[0].operations.map(o => o.op),
       ['updateRecord', 'updateRecord'],
@@ -1042,7 +1134,7 @@ module('IndexedDBSource', function(hooks) {
   });
 
   test('#pull - specific records', async function(assert) {
-    assert.expect(3);
+    assert.expect(4);
 
     let earth: Record = {
       type: 'planet',
@@ -1081,6 +1173,10 @@ module('IndexedDBSource', function(hooks) {
     );
 
     assert.equal(transforms.length, 1, 'one transform returned');
+    assert.ok(
+      source.transformLog.contains(transforms[0].id),
+      'log contains transform'
+    );
     assert.deepEqual(
       transforms[0].operations.map(o => o.op),
       ['updateRecord', 'updateRecord'],
@@ -1094,7 +1190,7 @@ module('IndexedDBSource', function(hooks) {
   });
 
   test('#pull - a specific record', async function(assert) {
-    assert.expect(3);
+    assert.expect(4);
 
     let earth: Record = {
       type: 'planet',
@@ -1137,12 +1233,15 @@ module('IndexedDBSource', function(hooks) {
     let transforms = await source.pull(q => q.findRecord(jupiter));
 
     assert.equal(transforms.length, 1, 'one transform returned');
+    assert.ok(
+      source.transformLog.contains(transforms[0].id),
+      'log contains transform'
+    );
     assert.deepEqual(
       transforms[0].operations.map(o => o.op),
       ['updateRecord'],
       'operations match expectations'
     );
-
     assert.equal(
       keyMap.keyToId('planet', 'remoteId', 'p2'),
       'jupiter',

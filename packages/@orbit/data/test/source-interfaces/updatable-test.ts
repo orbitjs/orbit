@@ -80,6 +80,7 @@ module('@updatable', function(hooks) {
         addRecordTransform,
         'transform object matches'
       );
+      await this._transformed([transform]);
       return ':)';
     };
 
@@ -125,14 +126,15 @@ module('@updatable', function(hooks) {
       assert.strictEqual(transform, addRecordTransform, 'transform matches');
     });
 
-    source._update = function(transform) {
+    source._update = async function(transform) {
       assert.equal(++order, 2, 'action performed after beforeUpdate');
       assert.strictEqual(
         transform,
         addRecordTransform,
         'transform object matches'
       );
-      return Promise.resolve(['a', 'b', 'c']);
+      await this._transformed([transform]);
+      return ['a', 'b', 'c'];
     };
 
     source.on('transform', transform => {
@@ -243,8 +245,8 @@ module('@updatable', function(hooks) {
     assert.equal(++order, 6, 'promise resolved last');
   });
 
-  test('#update should not call `_update` if the transform has been applied as a result of `beforeUpdate` resolution', async function(assert) {
-    assert.expect(2);
+  test('#update should still call `_update` if the transform has been applied as a result of `beforeUpdate` resolution', async function(assert) {
+    assert.expect(5);
 
     let order = 0;
 
@@ -259,12 +261,16 @@ module('@updatable', function(hooks) {
       return Promise.resolve();
     });
 
-    source._update = async function() {
-      assert.ok(false, '_update should not be reached');
+    source._update = async function(transform) {
+      assert.ok(true, '_update should still be reached');
+      assert.ok(
+        this.transformLog.contains(transform.id),
+        'transform is already contained in the log'
+      );
     };
 
     source.on('update', () => {
-      assert.ok(false, 'update should not be reached');
+      assert.ok(true, 'update should still be reached');
     });
 
     await source.update(addRecordTransform);

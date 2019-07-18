@@ -80,13 +80,8 @@ export default function syncable(Klass: SourceClass): void {
 
     try {
       await fulfillInSeries(this, 'beforeSync', transform);
-      if (this.transformLog.contains(transform.id)) {
-        return;
-      } else {
-        await this._sync(transform);
-        await this._transformed([transform]);
-        await settleInSeries(this, 'sync', transform);
-      }
+      await this._sync(transform);
+      await settleInSeries(this, 'sync', transform);
     } catch (error) {
       await settleInSeries(this, 'syncFail', transform, error);
       throw error;
