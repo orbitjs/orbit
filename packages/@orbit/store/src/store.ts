@@ -10,7 +10,7 @@ const { deprecate } = Orbit;
 export default class Store extends MemorySource {
   constructor(settings: MemorySourceSettings = {}) {
     settings.name = settings.name || 'store';
-    deprecate('@rbit/store package was renamed to @orbit/memory');
+    deprecate('@orbit/store package was renamed to @orbit/memory');
     super(settings);
   }
 }
