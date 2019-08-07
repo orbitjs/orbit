@@ -679,7 +679,7 @@ export class JSONAPISerializer
     model: ModelDefinition
   ): void {
     record.attributes = record.attributes || {};
-    if (value !== undefined) {
+    if (value !== undefined && value !== null) {
       const attrOptions = model.attributes[attr];
       const serializer = this._serializers[attrOptions.type];
       if (serializer) {
