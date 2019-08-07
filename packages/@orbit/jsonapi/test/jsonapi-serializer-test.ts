@@ -182,6 +182,29 @@ module('JSONAPISerializer', function(hooks) {
         }
       });
     });
+
+    test('#deserialize will pass null values', function(assert) {
+      let result = serializer.deserialize({
+        data: {
+          type: 'persons',
+          id: '123',
+          attributes: {
+            birthday: null,
+            birthtime: null
+          }
+        }
+      });
+      assert.deepEqual(result, {
+        data: {
+          type: 'person',
+          id: '123',
+          attributes: {
+            birthday: null,
+            birthtime: null
+          }
+        }
+      });
+    });
   });
 
   module('Using local ids', function(hooks) {
