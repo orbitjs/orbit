@@ -1,5 +1,9 @@
-"use strict";
+'use strict';
 
 const build = require('@glimmer/build');
 
-module.exports = build();
+const buildOptions = {
+  test: { es5: false }
+};
+
+module.exports = build(buildOptions);

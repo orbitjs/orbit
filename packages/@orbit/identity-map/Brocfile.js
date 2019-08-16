@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const build = require('@glimmer/build');
 const packageDist = require('@glimmer/build/lib/package-dist');
@@ -7,10 +7,11 @@ let buildOptions = {};
 
 if (process.env.BROCCOLI_ENV === 'tests') {
   buildOptions.vendorTrees = [
-    packageDist('@orbit/core'),
-    packageDist('@orbit/data'),
-    packageDist('@orbit/utils')
+    packageDist('@orbit/utils', { lang: 'es2017' }),
+    packageDist('@orbit/core', { lang: 'es2017' }),
+    packageDist('@orbit/data', { lang: 'es2017' })
   ];
+  buildOptions.test = { es5: false };
 }
 
 module.exports = build(buildOptions);

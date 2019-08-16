@@ -14,8 +14,8 @@
   ],
   "repository": "https://github.com/orbitjs/orbit",
   "license": "MIT",
-  "main": "dist/commonjs/es5/index.js",
-  "module": "dist/modules/es5/index.js",
+  "main": "dist/commonjs/es2017/index.js",
+  "module": "dist/modules/es2017/index.js",
   "types": "dist/types/index.d.ts",
   "scripts": {
     "build": "rm -rf dist && BROCCOLI_ENV=dist broccoli build dist",
@@ -27,7 +27,7 @@
     "lint:ts": "eslint . --ext .ts"
   },
   "devDependencies": {
-    "@glimmer/build": "^0.10.1",
+    "@glimmer/build": "^0.10.3",
     "@orbit/core": "^0.16.0",
     "@orbit/data": "^0.16.0",
     "@orbit/utils": "^0.16.0",
