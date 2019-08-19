@@ -218,7 +218,7 @@ export default class TaskQueue implements Evented {
         this._cancel();
         this._tasks.shift();
         let processor = this._processors.shift();
-        if (!processor.settled) {
+        if (processor !== undefined && !processor.settled) {
           processor.reject(
             e || new Error('Processing cancelled via `TaskQueue#skip`')
           );
@@ -262,7 +262,7 @@ export default class TaskQueue implements Evented {
         this._cancel();
         task = this._tasks.shift();
         let processor = this._processors.shift();
-        if (!processor.settled) {
+        if (processor !== undefined && !processor.settled) {
           processor.reject(
             e || new Error('Processing cancelled via `TaskQueue#shift`')
           );
