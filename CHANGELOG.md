@@ -1,5 +1,34 @@
 # Changelog
 
+## v0.16.1 (2019-08-20)
+
+#### :rocket: Enhancement
+
+- `@orbit/jsonapi`
+  - [#683](https://github.com/orbitjs/orbit/pull/683) fix(jsonapi): don't deserialize null attributes ([@makepanic](https://github.com/makepanic))
+
+#### :bug: Bug Fix
+
+- `@orbit/core`
+  - [#686](https://github.com/orbitjs/orbit/pull/686) Add guards to check that `TaskQueue`s have at least one processor ([@cibernox](https://github.com/cibernox))
+- `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/serializers`, `@orbit/store`, `@orbit/utils`
+  - [#684](https://github.com/orbitjs/orbit/pull/684) Target ES-latest by default + Fix ES5 builds ([@dgeb](https://github.com/dgeb))
+
+#### :memo: Documentation
+
+- `@orbit/store`
+  - [#681](https://github.com/orbitjs/orbit/pull/681) fix: fix typo in deprecation message ([@makepanic](https://github.com/makepanic))
+
+#### Committers: 3
+
+- Christian ([@makepanic](https://github.com/makepanic))
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+- Miguel Camba ([@cibernox](https://github.com/cibernox))
+
+## v0.16.0 (2019-07-30)
+
+No changes.
+
 ## v0.16.0-beta.11 (2019-07-18)
 
 #### :boom: Breaking Change
