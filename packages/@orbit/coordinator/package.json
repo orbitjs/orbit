@@ -1,6 +1,6 @@
 {
   "name": "@orbit/coordinator",
-  "version": "0.16.0",
+  "version": "0.16.1",
   "description": "A coordinator and set of coordination strategies for managing data flow and keeping @orbit/data sources in sync.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -26,9 +26,9 @@
     "lint:ts": "eslint . --ext .ts"
   },
   "dependencies": {
-    "@orbit/core": "^0.16.0",
-    "@orbit/data": "^0.16.0",
-    "@orbit/utils": "^0.16.0"
+    "@orbit/core": "^0.16.1",
+    "@orbit/data": "^0.16.1",
+    "@orbit/utils": "^0.16.1"
   },
   "devDependencies": {
     "@glimmer/build": "^0.10.3",

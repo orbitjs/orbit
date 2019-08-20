@@ -1,6 +1,6 @@
 {
   "name": "@orbit/record-cache",
-  "version": "0.16.0",
+  "version": "0.16.1",
   "description": "Orbit base classes used to access and maintain a set of records.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -26,9 +26,9 @@
     "lint:ts": "eslint . --ext .ts"
   },
   "dependencies": {
-    "@orbit/core": "^0.16.0",
-    "@orbit/data": "^0.16.0",
-    "@orbit/utils": "^0.16.0"
+    "@orbit/core": "^0.16.1",
+    "@orbit/data": "^0.16.1",
+    "@orbit/utils": "^0.16.1"
   },
   "devDependencies": {
     "@glimmer/build": "^0.10.3",

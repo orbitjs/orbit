@@ -1,7 +1,7 @@
 {
   "name": "@orbit/integration-tests",
   "private": true,
-  "version": "0.16.0",
+  "version": "0.16.1",
   "description": "Integration tests for core Orbit packages.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -20,19 +20,19 @@
     "lint:ts": "eslint . --ext .ts"
   },
   "dependencies": {
-    "@orbit/coordinator": "^0.16.0",
-    "@orbit/core": "^0.16.0",
-    "@orbit/data": "^0.16.0",
-    "@orbit/immutable": "^0.16.0",
-    "@orbit/indexeddb": "^0.16.0",
-    "@orbit/indexeddb-bucket": "^0.16.0",
-    "@orbit/jsonapi": "^0.16.0",
-    "@orbit/local-storage": "^0.16.0",
-    "@orbit/local-storage-bucket": "^0.16.0",
-    "@orbit/memory": "^0.16.0",
-    "@orbit/record-cache": "^0.16.0",
-    "@orbit/serializers": "^0.16.0",
-    "@orbit/utils": "^0.16.0"
+    "@orbit/coordinator": "^0.16.1",
+    "@orbit/core": "^0.16.1",
+    "@orbit/data": "^0.16.1",
+    "@orbit/immutable": "^0.16.1",
+    "@orbit/indexeddb": "^0.16.1",
+    "@orbit/indexeddb-bucket": "^0.16.1",
+    "@orbit/jsonapi": "^0.16.1",
+    "@orbit/local-storage": "^0.16.1",
+    "@orbit/local-storage-bucket": "^0.16.1",
+    "@orbit/memory": "^0.16.1",
+    "@orbit/record-cache": "^0.16.1",
+    "@orbit/serializers": "^0.16.1",
+    "@orbit/utils": "^0.16.1"
   },
   "devDependencies": {
     "@glimmer/build": "^0.10.3",
