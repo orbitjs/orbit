@@ -776,6 +776,33 @@ module('TaskQueue', function() {
     assert.equal(queue.length, 1, 'queue now has one member');
   });
 
+  test('#skip just restarts processing if there are no tasks in the queue', async function(assert) {
+    assert.expect(2);
+
+    const performer: Performer = {
+      async perform(task: Task): Promise<void> {}
+    };
+
+    const queue = new TaskQueue(performer, { autoProcess: true });
+
+    await queue.skip();
+
+    let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
+
+    queue.on('complete', function() {
+      assert.ok(true, 'queue completed');
+    });
+
+    queue.on('task', function(task) {
+      assert.strictEqual(task.data, op1, 'op1 processed');
+    });
+
+    await queue.push({
+      type: 'transform',
+      data: op1
+    });
+  });
+
   test('#shift can remove failed tasks from an inactive queue, allowing processing to be restarted', async function(assert) {
     assert.expect(11);
 
@@ -959,6 +986,33 @@ module('TaskQueue', function() {
     }
 
     assert.equal(queue.length, 1, 'queue now has one member');
+  });
+
+  test('#shift just restarts processing if there are no tasks in the queue', async function(assert) {
+    assert.expect(2);
+
+    const performer: Performer = {
+      async perform(task: Task): Promise<void> {}
+    };
+
+    const queue = new TaskQueue(performer, { autoProcess: true });
+
+    await queue.shift();
+
+    let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
+
+    queue.on('complete', function() {
+      assert.ok(true, 'queue completed');
+    });
+
+    queue.on('task', function(task) {
+      assert.strictEqual(task.data, op1, 'op1 processed');
+    });
+
+    await queue.push({
+      type: 'transform',
+      data: op1
+    });
   });
 
   test('#unshift can add a new task to the beginning of an inactive queue', function(assert) {
