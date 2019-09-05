@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.16.2 (2019-09-05)
+
+#### :bug: Bug Fix
+
+- `@orbit/coordinator`
+  - [#687](https://github.com/orbitjs/orbit/pull/687) Ensure that RequestStrategy handler functions receive all args ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.16.1 (2019-08-20)
 
 #### :rocket: Enhancement
