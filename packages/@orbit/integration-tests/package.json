@@ -1,7 +1,7 @@
 {
   "name": "@orbit/integration-tests",
   "private": true,
-  "version": "0.16.1",
+  "version": "0.16.2",
   "description": "Integration tests for core Orbit packages.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -20,7 +20,7 @@
     "lint:ts": "eslint . --ext .ts"
   },
   "dependencies": {
-    "@orbit/coordinator": "^0.16.1",
+    "@orbit/coordinator": "^0.16.2",
     "@orbit/core": "^0.16.1",
     "@orbit/data": "^0.16.1",
     "@orbit/immutable": "^0.16.1",
