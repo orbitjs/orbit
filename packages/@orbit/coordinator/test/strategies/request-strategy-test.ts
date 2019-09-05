@@ -290,5 +290,49 @@ module('RequestStrategy', function(hooks) {
     await s1.update(tA);
   });
 
+  test('for events that are invoked with more than one arg, pass all args to any custom handler functions', async function(assert) {
+    assert.expect(9);
+
+    strategy = new RequestStrategy({
+      source: 's1',
+      on: 'updateFail',
+      async action(transform: Transform, e: Error): Promise<void> {
+        assert.ok(
+          this instanceof RequestStrategy,
+          '`action` is bound to the strategy'
+        );
+        assert.strictEqual(transform, tA, 'transform is passed to `action`');
+        assert.equal(e.message, ':(', 'error is passed to `action`');
+      },
+      blocking(transform: Transform, e: Error): boolean {
+        assert.ok(
+          this instanceof RequestStrategy,
+          '`blocking` is bound to the strategy'
+        );
+        assert.strictEqual(transform, tA, 'transform is passed to `blocking`');
+        assert.equal(e.message, ':(', 'error is passed to `blocking`');
+        return false;
+      },
+      filter(transform: Transform, e: Error): boolean {
+        assert.ok(
+          this instanceof RequestStrategy,
+          '`filter` is bound to the strategy'
+        );
+        assert.strictEqual(transform, tA, 'transform is passed to `filter`');
+        assert.equal(e.message, ':(', 'error is passed to `filter`');
+        return true;
+      }
+    });
+
+    coordinator = new Coordinator({
+      sources: [s1, s2],
+      strategies: [strategy]
+    });
+
+    await coordinator.activate();
+
+    s1.emit('updateFail', tA, new Error(':('));
+  });
+
   // TODO - test blocking option
 });
