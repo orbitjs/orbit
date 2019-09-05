@@ -33,31 +33,31 @@ export class RequestStrategy extends ConnectionStrategy {
   protected generateListener(): Listener {
     const target = this.target as any;
 
-    return (data: any, hints: any): any => {
+    return (...args: any[]): any => {
       let result;
 
       if (this._filter) {
-        if (!this._filter(data, hints)) {
+        if (!this._filter(...args)) {
           return;
         }
       }
 
       if (typeof this._action === 'string') {
-        result = target[this._action](data);
+        result = target[this._action](args[0]);
       } else {
-        result = this._action(data);
+        result = this._action(...args);
       }
 
       if (this._catch && result && result.catch) {
         result = result.catch((e: Error) => {
-          return this._catch(e, data);
+          return this._catch(e, ...args);
         });
       }
 
       if (result && result.then) {
         let blocking = false;
         if (typeof this._blocking === 'function') {
-          if (this._blocking(data)) {
+          if (this._blocking(...args)) {
             blocking = true;
           }
         } else if (this._blocking) {
@@ -65,11 +65,13 @@ export class RequestStrategy extends ConnectionStrategy {
         }
 
         if (blocking) {
-          if (this.passHints && typeof hints === 'object') {
-            return this.applyHint(hints, result);
-          } else {
-            return result;
+          if (this.passHints) {
+            const hints = args[1];
+            if (typeof hints === 'object') {
+              return this.applyHint(hints, result);
+            }
           }
+          return result;
         }
       }
     };
