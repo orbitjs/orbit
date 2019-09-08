@@ -7,7 +7,7 @@ import Orbit, {
   Syncable,
   syncable,
   Query,
-  QueryOrExpression,
+  QueryOrExpressions,
   Queryable,
   queryable,
   Updatable,
@@ -51,7 +51,7 @@ export default class MemorySource extends Source
 
   // Queryable interface stubs
   query: (
-    queryOrExpression: QueryOrExpression,
+    queryOrExpressions: QueryOrExpressions,
     options?: object,
     id?: string
   ) => Promise<any>;
@@ -163,7 +163,13 @@ export default class MemorySource extends Source
 
   async _query(query: Query, hints?: any): Promise<any> {
     if (hints && hints.data) {
-      return this._retrieveFromCache(hints.data);
+      if (query.expressions.length > 1 && Array.isArray(hints.data)) {
+        return hints.data.map((idOrIds: RecordIdentity | RecordIdentity[]) =>
+          this._retrieveFromCache(idOrIds)
+        );
+      } else {
+        return this._retrieveFromCache(hints.data);
+      }
     } else {
       return this._cache.query(query);
     }
