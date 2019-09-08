@@ -1,6 +1,6 @@
 import Orbit, { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
-import { Query, QueryOrExpression, buildQuery } from '../query';
+import { Query, QueryOrExpressions, buildQuery } from '../query';
 import { Transform } from '../transform';
 
 const { assert } = Orbit;
@@ -26,7 +26,7 @@ export interface Pullable {
    * retrieves the results of a query in `Transform` form.
    */
   pull(
-    queryOrExpression: QueryOrExpression,
+    queryOrExpressions: QueryOrExpressions,
     options?: object,
     id?: string
   ): Promise<Transform[]>;
@@ -73,12 +73,17 @@ export default function pullable(Klass: SourceClass): void {
   proto[PULLABLE] = true;
 
   proto.pull = async function(
-    queryOrExpression: QueryOrExpression,
+    queryOrExpressions: QueryOrExpressions,
     options?: object,
     id?: string
   ): Promise<Transform[]> {
     await this.activated;
-    const query = buildQuery(queryOrExpression, options, id, this.queryBuilder);
+    const query = buildQuery(
+      queryOrExpressions,
+      options,
+      id,
+      this.queryBuilder
+    );
     return this._enqueueRequest('pull', query);
   };
 

@@ -1,6 +1,6 @@
 import {
   Query,
-  QueryOrExpression,
+  QueryOrExpressions,
   Source,
   Transform,
   pullable,
@@ -16,7 +16,7 @@ module('@pullable', function(hooks) {
   @pullable
   class MySource extends Source implements Pullable {
     pull: (
-      queryOrExpression: QueryOrExpression,
+      queryOrExpressions: QueryOrExpressions,
       options?: object,
       id?: string
     ) => Promise<Transform[]>;
@@ -75,7 +75,7 @@ module('@pullable', function(hooks) {
 
     source._pull = async function(query) {
       assert.equal(++order, 1, 'action performed after willPull');
-      assert.strictEqual(query.expression, qe, 'query object matches');
+      assert.strictEqual(query.expressions[0], qe, 'query object matches');
       await this.transformed(resultingTransforms);
       return resultingTransforms;
     };
@@ -96,7 +96,7 @@ module('@pullable', function(hooks) {
         2,
         'pull triggered after action performed successfully'
       );
-      assert.strictEqual(query.expression, qe, 'query matches');
+      assert.strictEqual(query.expressions[0], qe, 'query matches');
       assert.strictEqual(result, resultingTransforms, 'result matches');
     });
 
@@ -134,7 +134,7 @@ module('@pullable', function(hooks) {
 
     source._pull = async function(query) {
       assert.equal(++order, 4, 'action performed after willPull');
-      assert.strictEqual(query.expression, qe, 'query object matches');
+      assert.strictEqual(query.expressions[0], qe, 'query object matches');
       await this.transformed(resultingTransforms);
       return resultingTransforms;
     };
@@ -155,7 +155,7 @@ module('@pullable', function(hooks) {
         5,
         'pull triggered after action performed successfully'
       );
-      assert.strictEqual(query.expression, qe, 'query matches');
+      assert.strictEqual(query.expressions[0], qe, 'query matches');
       assert.strictEqual(result, resultingTransforms, 'result matches');
     });
 
@@ -196,7 +196,7 @@ module('@pullable', function(hooks) {
         3,
         'pullFail triggered after an unsuccessful beforePull'
       );
-      assert.strictEqual(query.expression, qe, 'query matches');
+      assert.strictEqual(query.expressions[0], qe, 'query matches');
       assert.equal(error, ':(', 'error matches');
     });
 
@@ -216,7 +216,7 @@ module('@pullable', function(hooks) {
 
     source._pull = function(query) {
       assert.equal(++order, 1, 'action performed after willPull');
-      assert.strictEqual(query.expression, qe, 'query object matches');
+      assert.strictEqual(query.expressions[0], qe, 'query object matches');
       return Promise.reject(':(');
     };
 
@@ -226,7 +226,7 @@ module('@pullable', function(hooks) {
 
     source.on('pullFail', (query, error) => {
       assert.equal(++order, 2, 'pullFail triggered after an unsuccessful pull');
-      assert.strictEqual(query.expression, qe, 'query matches');
+      assert.strictEqual(query.expressions[0], qe, 'query matches');
       assert.equal(error, ':(', 'error matches');
     });
 
@@ -268,7 +268,7 @@ module('@pullable', function(hooks) {
 
     source._pull = async function(query: Query, hints: any) {
       assert.equal(++order, 4, 'action performed after willPull');
-      assert.strictEqual(query.expression, qe, 'query object matches');
+      assert.strictEqual(query.expressions[0], qe, 'query object matches');
       assert.strictEqual(hints, h, '_pull is passed same hints instance');
       await this.transformed(resultingTransforms);
       return hints.data;
@@ -289,7 +289,7 @@ module('@pullable', function(hooks) {
         5,
         'pull triggered after action performed successfully'
       );
-      assert.strictEqual(query.expression, qe, 'query matches');
+      assert.strictEqual(query.expressions[0], qe, 'query matches');
       assert.strictEqual(result, resultingTransforms, 'result matches');
     });
 
