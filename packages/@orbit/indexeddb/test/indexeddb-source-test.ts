@@ -7,7 +7,7 @@ import {
   AddRecordOperation,
   Transform
 } from '@orbit/data';
-import IndexedDBSource from '../src/source';
+import IndexedDBSource from '../src/indexeddb-source';
 
 const { module, test, skip } = QUnit;
 

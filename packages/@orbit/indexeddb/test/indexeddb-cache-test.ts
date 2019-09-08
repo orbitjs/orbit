@@ -1,6 +1,6 @@
 import { getRecordFromIndexedDB } from './support/indexeddb';
 import { Record, Schema, KeyMap } from '@orbit/data';
-import Cache from '../src/cache';
+import Cache from '../src/indexeddb-cache';
 
 const { module, test } = QUnit;
 

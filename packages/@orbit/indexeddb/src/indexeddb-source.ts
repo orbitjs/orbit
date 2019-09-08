@@ -20,7 +20,7 @@ import Orbit, {
 } from '@orbit/data';
 import { QueryResultData } from '@orbit/record-cache';
 import { supportsIndexedDB } from './lib/indexeddb';
-import IndexedDBCache, { IndexedDBCacheSettings } from './cache';
+import IndexedDBCache, { IndexedDBCacheSettings } from './indexeddb-cache';
 
 const { assert, deprecate } = Orbit;
 
