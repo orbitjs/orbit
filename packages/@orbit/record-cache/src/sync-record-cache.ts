@@ -6,7 +6,7 @@ import {
   RecordOperation,
   Schema,
   QueryBuilder,
-  QueryOrExpression,
+  QueryOrExpressions,
   QueryExpression,
   buildQuery,
   TransformBuilder,
@@ -37,7 +37,7 @@ import {
   RecordRelationshipIdentity
 } from './record-accessor';
 import { PatchResult } from './patch-result';
-import { QueryResultData } from './query-result';
+import { QueryResult, QueryResultData } from './query-result';
 
 const { assert } = Orbit;
 
@@ -185,17 +185,22 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
    * Queries the cache.
    */
   query(
-    queryOrExpression: QueryOrExpression,
+    queryOrExpressions: QueryOrExpressions,
     options?: object,
     id?: string
-  ): QueryResultData {
+  ): QueryResult {
     const query = buildQuery(
-      queryOrExpression,
+      queryOrExpressions,
       options,
       id,
       this._queryBuilder
     );
-    return this._query(query.expression);
+    const results = this._query(query.expressions);
+
+    if (query.expressions.length === 1) {
+      return results[0];
+    }
+    return results;
   }
 
   /**
@@ -241,12 +246,16 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
 
-  protected _query(expression: QueryExpression): QueryResultData {
-    const queryOperator = this.getQueryOperator(expression.op);
-    if (!queryOperator) {
-      throw new Error(`Unable to find query operator: ${expression.op}`);
+  protected _query(expressions: QueryExpression[]): QueryResultData[] {
+    const results: QueryResultData[] = [];
+    for (let expression of expressions) {
+      const queryOperator = this.getQueryOperator(expression.op);
+      if (!queryOperator) {
+        throw new Error(`Unable to find query operator: ${expression.op}`);
+      }
+      results.push(queryOperator(this, expression));
     }
-    return queryOperator(this, expression);
+    return results;
   }
 
   protected _applyPatchOperations(

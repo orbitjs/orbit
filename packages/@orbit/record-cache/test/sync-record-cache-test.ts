@@ -1433,6 +1433,38 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
+  test('#query can retrieve multiple expressions', function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant',
+        atmosphere: true
+      }
+    };
+    const earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth',
+        classification: 'terrestrial',
+        atmosphere: true
+      }
+    };
+    cache.patch(t => [t.addRecord(jupiter), t.addRecord(earth)]);
+
+    assert.deepEqual(
+      cache.query(q => [
+        q.findRecord({ type: 'planet', id: 'jupiter' }),
+        q.findRecord({ type: 'planet', id: 'earth' })
+      ]),
+      [jupiter, earth]
+    );
+  });
+
   test('#query can find records by type', function(assert) {
     const cache = new Cache({ schema, keyMap });
 
