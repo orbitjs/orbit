@@ -3552,6 +3552,60 @@ module('JSONAPISource', function() {
       );
     });
 
+    test('#query - can query with multiple expressions', async function(assert) {
+      assert.expect(6);
+
+      const data1: Resource = {
+        type: 'planets',
+        id: '12345',
+        attributes: { name: 'Jupiter' }
+      };
+
+      const planet1 = source.requestProcessor.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345'
+      });
+
+      const data2: Resource = {
+        type: 'planets',
+        id: '1234',
+        attributes: { name: 'Earth' }
+      };
+
+      const planet2 = source.requestProcessor.serializer.deserializeResource({
+        type: 'planet',
+        id: '1234'
+      });
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(jsonapiResponse(200, { data: data1 }));
+      fetchStub
+        .withArgs('/planets/1234')
+        .returns(jsonapiResponse(200, { data: data2 }));
+
+      let records = await source.query(q => [
+        q.findRecord({ type: 'planet', id: planet1.id }),
+        q.findRecord({ type: 'planet', id: planet2.id })
+      ]);
+
+      assert.ok(Array.isArray(records), 'multiple primary records returned');
+      assert.equal((records[0] as Record).attributes.name, 'Jupiter');
+      assert.equal((records[1] as Record).attributes.name, 'Earth');
+
+      assert.equal(fetchStub.callCount, 2, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+      assert.equal(
+        fetchStub.getCall(1).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
     test('#query - invokes preprocessResponseDocument when response has content', async function(assert) {
       assert.expect(1);
 

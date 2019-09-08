@@ -5,7 +5,7 @@ import Orbit, {
   Source,
   SourceSettings,
   Query,
-  QueryOrExpression,
+  QueryOrExpressions,
   Pullable,
   pullable,
   Pushable,
@@ -17,7 +17,8 @@ import Orbit, {
   Updatable,
   updatable,
   Record,
-  TransformNotAllowed
+  TransformNotAllowed,
+  QueryNotAllowed
 } from '@orbit/data';
 import JSONAPIRequestProcessor, {
   JSONAPIRequestProcessorSettings,
@@ -30,7 +31,12 @@ import {
 import JSONAPIURLBuilder, {
   JSONAPIURLBuilderSettings
 } from './jsonapi-url-builder';
-import { QueryOperator, QueryOperators } from './lib/query-operators';
+import {
+  QueryRequestProcessor,
+  QueryRequestProcessors,
+  QueryRequest,
+  getQueryRequests
+} from './lib/query-requests';
 import {
   TransformRequestProcessor,
   TransformRequestProcessors,
@@ -42,6 +48,7 @@ const { assert, deprecate } = Orbit;
 
 export interface JSONAPISourceSettings extends SourceSettings {
   maxRequestsPerTransform?: number;
+  maxRequestsPerQuery?: number;
   name?: string;
   namespace?: string;
   host?: string;
@@ -85,11 +92,12 @@ export default class JSONAPISource extends Source
   namespace: string;
   host: string;
   maxRequestsPerTransform?: number;
+  maxRequestsPerQuery?: number;
   requestProcessor: JSONAPIRequestProcessor;
 
   // Pullable interface stubs
   pull: (
-    queryOrExpression: QueryOrExpression,
+    queryOrExpressions: QueryOrExpressions,
     options?: object,
     id?: string
   ) => Promise<Transform[]>;
@@ -103,7 +111,7 @@ export default class JSONAPISource extends Source
 
   // Queryable interface stubs
   query: (
-    queryOrExpression: QueryOrExpression,
+    queryOrExpressions: QueryOrExpressions,
     options?: object,
     id?: string
   ) => Promise<any>;
@@ -179,23 +187,54 @@ export default class JSONAPISource extends Source
   /////////////////////////////////////////////////////////////////////////////
 
   async _pull(query: Query): Promise<Transform[]> {
+    const transforms: Transform[] = [];
     const { requestProcessor } = this;
-    const operator: QueryOperator = this.getQueryOperator(query);
-    const response = await operator(requestProcessor, query);
-    await this.transformed(response.transforms);
-    return response.transforms;
+    const requests = this.getQueryRequests(query);
+
+    for (let request of requests) {
+      let processor = this.getQueryRequestProcessor(request);
+
+      let { transforms: additionalTransforms } = await processor(
+        requestProcessor,
+        request
+      );
+      if (additionalTransforms.length) {
+        Array.prototype.push.apply(transforms, additionalTransforms);
+      }
+    }
+
+    await this.transformed(transforms);
+    return transforms;
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Queryable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _query(query: Query): Promise<Record | Record[]> {
+  async _query(
+    query: Query
+  ): Promise<Record | Record[] | (Record | Record[])[]> {
+    const transforms: Transform[] = [];
     const { requestProcessor } = this;
-    const operator: QueryOperator = this.getQueryOperator(query);
-    const response = await operator(requestProcessor, query);
-    await this.transformed(response.transforms);
-    return response.primaryData;
+    const requests = this.getQueryRequests(query);
+    const records: (Record | Record[] | null)[] = [];
+
+    for (let request of requests) {
+      let processor = this.getQueryRequestProcessor(request);
+
+      let { transforms: additionalTransforms, primaryData } = await processor(
+        requestProcessor,
+        request
+      );
+      if (additionalTransforms.length) {
+        Array.prototype.push.apply(transforms, additionalTransforms);
+      }
+      records.push(primaryData);
+    }
+
+    await this.transformed(transforms);
+
+    return query.expressions.length === 1 ? records[0] : records;
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -229,14 +268,24 @@ export default class JSONAPISource extends Source
     }
   }
 
-  private getQueryOperator(query: Query): QueryOperator {
-    const operator: QueryOperator = QueryOperators[query.expression.op];
-    if (!operator) {
-      throw new Error(
-        'JSONAPIRequestProcessor does not support the `${query.expression.op}` operator for queries.'
+  private getQueryRequests(query: Query): QueryRequest[] {
+    const queryRequests = getQueryRequests(this.requestProcessor, query);
+    if (
+      this.maxRequestsPerQuery &&
+      queryRequests.length > this.maxRequestsPerQuery
+    ) {
+      throw new QueryNotAllowed(
+        `This query requires ${queryRequests.length} requests, which exceeds the specified limit of ${this.maxRequestsPerQuery} requests per query.`,
+        query
       );
     }
-    return operator;
+    return queryRequests;
+  }
+
+  private getQueryRequestProcessor(
+    request: QueryRequest
+  ): QueryRequestProcessor {
+    return QueryRequestProcessors[request.op];
   }
 
   private getTransformRequests(transform: Transform): TransformRecordRequest[] {

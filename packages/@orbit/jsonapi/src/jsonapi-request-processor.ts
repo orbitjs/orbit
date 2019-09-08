@@ -11,6 +11,7 @@ import Orbit, {
 } from '@orbit/data';
 import { InvalidServerResponse } from './lib/exceptions';
 import { TransformRecordRequest } from './lib/transform-requests';
+import { QueryRequest } from './lib/query-requests';
 import { deepGet, deepMerge, toArray } from '@orbit/utils';
 import { RecordDocument } from './record-document';
 import { ResourceDocument } from './resource-document';
@@ -192,7 +193,7 @@ export default class JSONAPIRequestProcessor {
 
   preprocessResponseDocument(
     document: ResourceDocument,
-    queryOrTransformRecordRequest: Query | TransformRecordRequest
+    queryRequestOrTransformRecordRequest: QueryRequest | TransformRecordRequest
   ) {}
 
   protected responseHasContent(response: Response): boolean {

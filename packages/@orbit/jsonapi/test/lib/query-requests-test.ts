@@ -1,5 +1,8 @@
 import { Schema, QueryBuilder, buildQuery } from '@orbit/data';
-import { QueryOperators } from '../../src/lib/query-operators';
+import {
+  QueryRequestProcessors,
+  getQueryRequests
+} from '../../src/lib/query-requests';
 import JSONAPIRequestProcessor from '../../src/jsonapi-request-processor';
 import { SinonStatic, SinonStub } from 'sinon';
 import { jsonapiResponse } from '../support/jsonapi';
@@ -7,7 +10,7 @@ import { jsonapiResponse } from '../support/jsonapi';
 declare const sinon: SinonStatic;
 const { module, test } = QUnit;
 
-module('QueryOperators', function(hooks) {
+module('QueryRequests', function(hooks) {
   let schema: Schema;
   let requestProcessor: JSONAPIRequestProcessor;
   let qb: QueryBuilder;
@@ -106,9 +109,10 @@ module('QueryOperators', function(hooks) {
 
     const query = buildQuery(qb.findRecords('planet'));
 
-    const response = await QueryOperators[query.expression.op](
+    const request = getQueryRequests(requestProcessor, query)[0];
+    const response = await QueryRequestProcessors[request.op](
       requestProcessor,
-      query
+      request
     );
     const {
       transforms: [{ id: transformId }]
