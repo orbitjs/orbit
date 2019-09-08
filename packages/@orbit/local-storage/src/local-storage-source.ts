@@ -21,7 +21,9 @@ import Orbit, {
 } from '@orbit/data';
 import { QueryResultData } from '@orbit/record-cache';
 import { supportsLocalStorage } from './lib/local-storage';
-import LocalStorageCache, { LocalStorageCacheSettings } from './cache';
+import LocalStorageCache, {
+  LocalStorageCacheSettings
+} from './local-storage-cache';
 
 const { assert } = Orbit;
 

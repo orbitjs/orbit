@@ -12,7 +12,7 @@ import {
   Transform
 } from '@orbit/data';
 import Orbit from '@orbit/core';
-import LocalStorageSource from '../src/source';
+import LocalStorageSource from '../src/local-storage-source';
 
 const { module, test } = QUnit;
 
