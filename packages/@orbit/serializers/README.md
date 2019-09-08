@@ -4,20 +4,16 @@ A base set of serializers for serializing / deserializing data types.
 
 ## Installation
 
-Install with npm:
-
 ```
-npm install @orbit/serializers
+yarn add @orbit/serializers
 ```
 
 ## Contributing
 
 ### Installation
 
-Install dependencies:
-
 ```
-npm install
+yarn install
 ```
 
 ### Building
@@ -25,7 +21,7 @@ npm install
 Distributions can be built to the `/dist` directory by running:
 
 ```
-npm run build
+yarn build
 ```
 
 ### Testing
@@ -35,13 +31,7 @@ npm run build
 Test in CI mode by running:
 
 ```
-npm test
-```
-
-Or directly with testem (useful for configuring options):
-
-```
-testem ci
+yarn test
 ```
 
 #### Browser Testing
@@ -50,7 +40,7 @@ Test within a browser
 (at [http://localhost:4200/tests/](http://localhost:4200/tests/)) by running:
 
 ```
-testem
+yarn testem
 ```
 
 ## License

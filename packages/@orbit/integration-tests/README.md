@@ -9,10 +9,16 @@ This is a private package with no publishable source code.
 
 ### Installation
 
-Install dependencies:
+```
+yarn install
+```
+
+### Building
+
+Distributions can be built to the `/dist` directory by running:
 
 ```
-npm install
+yarn build
 ```
 
 ### Testing
@@ -22,13 +28,7 @@ npm install
 Test in CI mode by running:
 
 ```
-npm test
-```
-
-Or directly with testem (useful for configuring options):
-
-```
-testem ci
+yarn test
 ```
 
 #### Browser Testing
@@ -37,7 +37,7 @@ Test within a browser
 (at [http://localhost:4200/tests/](http://localhost:4200/tests/)) by running:
 
 ```
-testem
+yarn testem
 ```
 
 ## License

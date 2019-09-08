@@ -4,26 +4,16 @@
 
 ## Installation
 
-Install with npm:
-
 ```
-npm install @orbit/local-storage
+yarn add @orbit/local-storage
 ```
 
 ## Contributing
 
 ### Installation
 
-Install the CLI for [Broccoli](https://github.com/broccolijs/broccoli) globally:
-
 ```
-npm install -g broccoli-cli
-```
-
-Install other dependencies:
-
-```
-npm install
+yarn install
 ```
 
 ### Building
@@ -31,7 +21,7 @@ npm install
 Distributions can be built to the `/dist` directory by running:
 
 ```
-npm run build
+yarn build
 ```
 
 ### Testing
@@ -41,13 +31,7 @@ npm run build
 Test in CI mode by running:
 
 ```
-npm test
-```
-
-Or directly with testem (useful for configuring options):
-
-```
-testem ci
+yarn test
 ```
 
 #### Browser Testing
@@ -56,9 +40,9 @@ Test within a browser
 (at [http://localhost:4200/tests/](http://localhost:4200/tests/)) by running:
 
 ```
-testem
+yarn testem
 ```
 
 ## License
 
-Copyright 2014-2017 Cerebris Corporation. MIT License (see LICENSE for details).
+Copyright 2014-2019 Cerebris Corporation. MIT License (see LICENSE for details).

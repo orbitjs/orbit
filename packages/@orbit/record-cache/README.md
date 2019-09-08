@@ -4,27 +4,22 @@ A record cache is an abstraction used to access and maintain a set of records.
 
 Record caches should extend one of the following base classes:
 
-* `SyncRecordCache` - when records can be accessed synchronously
+- `SyncRecordCache` - when records can be accessed synchronously
 
-* `AsyncRecordCache` - when records must be accessed asynchronously
-
+- `AsyncRecordCache` - when records must be accessed asynchronously
 
 ## Installation
 
-Install with npm:
-
 ```
-npm install @orbit/record-cache
+yarn add @orbit/record-cache
 ```
 
 ## Contributing
 
 ### Installation
 
-Install dependencies:
-
 ```
-npm install
+yarn install
 ```
 
 ### Building
@@ -32,7 +27,7 @@ npm install
 Distributions can be built to the `/dist` directory by running:
 
 ```
-npm run build
+yarn build
 ```
 
 ### Testing
@@ -42,13 +37,7 @@ npm run build
 Test in CI mode by running:
 
 ```
-npm test
-```
-
-Or directly with testem (useful for configuring options):
-
-```
-npx testem ci
+yarn test
 ```
 
 #### Browser Testing
@@ -57,9 +46,9 @@ Test within a browser
 (at [http://localhost:4200/tests/](http://localhost:4200/tests/)) by running:
 
 ```
-npx testem
+yarn testem
 ```
 
 ## License
 
-Copyright 2014-2018 Cerebris Corporation. MIT License (see LICENSE for details).
+Copyright 2014-2019 Cerebris Corporation. MIT License (see LICENSE for details).

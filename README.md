@@ -8,24 +8,24 @@ be used server-side in [Node.js](https://nodejs.org/).
 
 Orbit is designed for applications that need to:
 
-* Interact with data from a variety of sources: a REST server, a WebSocket
-stream, an IndexedDB backup, an in-memory store, etc.
+- Interact with data from a variety of sources: a REST server, a WebSocket
+  stream, an IndexedDB backup, an in-memory store, etc.
 
-* Work offline, work online, and seamlessly transition between both modes.
+- Work offline, work online, and seamlessly transition between both modes.
 
-* Create optimistic and pessimistic user experiences (and even both in the same
-app).
+- Create optimistic and pessimistic user experiences (and even both in the same
+  app).
 
-* Use a common schema to model data, regardless of its source.
+- Use a common schema to model data, regardless of its source.
 
-* Query and update data with a common set of expressions, understood across
-sources.
+- Query and update data with a common set of expressions, understood across
+  sources.
 
-* Track changes deterministically.
+- Track changes deterministically.
 
-* Fork immutable stores and then merge changes back if and when ready.
+- Fork immutable stores and then merge changes back if and when ready.
 
-* Support undo / redo.
+- Support undo / redo.
 
 Orbit is written in [Typescript](https://www.typescriptlang.org) and distributed
 on npm through the [@orbit](https://www.npmjs.com/org/orbit) organization.
@@ -47,7 +47,7 @@ Orbit's main packages are maintained in this monorepo and managed by
 Install dependencies:
 
 ```
-npm install
+yarn install
 ```
 
 ### Building
@@ -55,7 +55,7 @@ npm install
 Build distributions for all packages:
 
 ```
-npm run build
+yarn build
 ```
 
 ### Testing
@@ -63,14 +63,14 @@ npm run build
 Test all packages:
 
 ```
-npm test
+yarn test
 ```
 
 Or `cd` into each package's dir and test it individually in the browser:
 
 ```
 cd packages/@orbit/PACKAGE-NAME
-testem
+yarn testem
 ```
 
 ## License
