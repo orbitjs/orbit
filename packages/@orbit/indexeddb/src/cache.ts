@@ -1,7 +1,7 @@
 import Orbit, {
   serializeRecordIdentity,
   deserializeRecordIdentity,
-  QueryOrExpression,
+  QueryOrExpressions,
   Record,
   RecordIdentity,
   RecordOperation,
@@ -51,12 +51,12 @@ export default class IndexedDBCache extends AsyncRecordCache {
   }
 
   async query(
-    queryOrExpression: QueryOrExpression,
+    queryOrExpressions: QueryOrExpressions,
     options?: object,
     id?: string
   ): Promise<QueryResultData> {
     await this.openDB();
-    return super.query(queryOrExpression, options, id);
+    return super.query(queryOrExpressions, options, id);
   }
 
   async patch(
