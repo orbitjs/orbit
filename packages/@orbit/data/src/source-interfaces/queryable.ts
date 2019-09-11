@@ -1,5 +1,5 @@
 import Orbit, { settleInSeries, fulfillInSeries } from '@orbit/core';
-import { Query, QueryOrExpression, buildQuery } from '../query';
+import { Query, QueryOrExpressions, buildQuery } from '../query';
 import { Source, SourceClass } from '../source';
 
 const { assert } = Orbit;
@@ -23,7 +23,7 @@ export interface Queryable {
    * returns a promise that resolves to a static set of results.
    */
   query(
-    queryOrExpression: QueryOrExpression,
+    queryOrExpressions: QueryOrExpressions,
     options?: object,
     id?: string
   ): Promise<any>;
@@ -69,12 +69,17 @@ export default function queryable(Klass: SourceClass): void {
   proto[QUERYABLE] = true;
 
   proto.query = async function(
-    queryOrExpression: QueryOrExpression,
+    queryOrExpressions: QueryOrExpressions,
     options?: object,
     id?: string
   ): Promise<any> {
     await this.activated;
-    const query = buildQuery(queryOrExpression, options, id, this.queryBuilder);
+    const query = buildQuery(
+      queryOrExpressions,
+      options,
+      id,
+      this.queryBuilder
+    );
     return this._enqueueRequest('query', query);
   };
 

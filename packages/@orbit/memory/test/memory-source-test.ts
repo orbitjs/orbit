@@ -336,7 +336,7 @@ module('MemorySource', function(hooks) {
     };
 
     source.on('beforeQuery', (query: Query, hints: any) => {
-      if (query.expression.op === 'findRecord') {
+      if (query.expressions[0].op === 'findRecord') {
         hints.data = jupiter2;
       }
     });
@@ -379,7 +379,7 @@ module('MemorySource', function(hooks) {
 
     source.on('beforeQuery', (query: Query, hints: any) => {
       if (
-        query.expression.op === 'findRecords' &&
+        query.expressions[0].op === 'findRecords' &&
         query.options.sources.remote.customFilter === 'distantPlanets'
       ) {
         hints.data = [
@@ -432,6 +432,32 @@ module('MemorySource', function(hooks) {
     } catch (e) {
       assert.equal(e.message, 'Record not found: planet:jupiter');
     }
+  });
+
+  test('#query - can query with multiple expressions', async function(assert) {
+    const jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: {
+        name: 'Jupiter'
+      }
+    };
+    const earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth'
+      }
+    };
+    await source.update(t => [t.addRecord(jupiter), t.addRecord(earth)]);
+
+    assert.deepEqual(
+      await source.query(q => [
+        q.findRecord({ type: 'planet', id: 'jupiter' }),
+        q.findRecord({ type: 'planet', id: 'earth' })
+      ]),
+      [jupiter, earth]
+    );
   });
 
   test('#sync - appends transform to log', async function(assert) {

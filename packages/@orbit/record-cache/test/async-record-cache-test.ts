@@ -1460,6 +1460,38 @@ module('AsyncRecordCache', function(hooks) {
     );
   });
 
+  test('#query can retrieve multiple expressions', async function(assert) {
+    const cache = new Cache({ schema, keyMap });
+
+    const jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant',
+        atmosphere: true
+      }
+    };
+    const earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth',
+        classification: 'terrestrial',
+        atmosphere: true
+      }
+    };
+    await cache.patch(t => [t.addRecord(jupiter), t.addRecord(earth)]);
+
+    assert.deepEqual(
+      await cache.query(q => [
+        q.findRecord({ type: 'planet', id: 'jupiter' }),
+        q.findRecord({ type: 'planet', id: 'earth' })
+      ]),
+      [jupiter, earth]
+    );
+  });
+
   test('#query can find records by type', async function(assert) {
     const cache = new Cache({ schema, keyMap });
 

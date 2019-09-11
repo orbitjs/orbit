@@ -4,7 +4,7 @@ import {
   isQueryable,
   Query,
   Queryable,
-  QueryOrExpression
+  QueryOrExpressions
 } from '../../src/index';
 import '../test-helper';
 
@@ -14,7 +14,7 @@ module('@queryable', function(hooks) {
   @queryable
   class MySource extends Source implements Queryable {
     query: (
-      queryOrExpression: QueryOrExpression,
+      queryOrExpressions: QueryOrExpressions,
       options?: object,
       id?: string
     ) => Promise<any>;
@@ -68,7 +68,7 @@ module('@queryable', function(hooks) {
 
     source._query = function(query) {
       assert.equal(++order, 1, 'action performed after willQuery');
-      assert.strictEqual(query.expression, qe, 'query object matches');
+      assert.strictEqual(query.expressions[0], qe, 'query object matches');
       return Promise.resolve(':)');
     };
 
@@ -78,7 +78,7 @@ module('@queryable', function(hooks) {
         2,
         'query triggered after action performed successfully'
       );
-      assert.strictEqual(query.expression, qe, 'query matches');
+      assert.strictEqual(query.expressions[0], qe, 'query matches');
       assert.equal(result, ':)', 'result matches');
     });
 
@@ -96,7 +96,7 @@ module('@queryable', function(hooks) {
 
     source._query = async function(query) {
       assert.equal(++order, 1, 'action performed after willQuery');
-      assert.strictEqual(query.expression, qe, 'query object matches');
+      assert.strictEqual(query.expressions[0], qe, 'query object matches');
     };
 
     source.on('query', (query, result) => {
@@ -105,7 +105,7 @@ module('@queryable', function(hooks) {
         2,
         'query triggered after action performed successfully'
       );
-      assert.strictEqual(query.expression, qe, 'query matches');
+      assert.strictEqual(query.expressions[0], qe, 'query matches');
       assert.equal(result, undefined, 'result matches');
     });
 
@@ -123,7 +123,7 @@ module('@queryable', function(hooks) {
 
     source._query = async function(query) {
       assert.equal(++order, 1, 'action performed after willQuery');
-      assert.strictEqual(query.expression, qe, 'query object matches');
+      assert.strictEqual(query.expressions[0], qe, 'query object matches');
       return ['a', 'b', 'c'];
     };
 
@@ -133,7 +133,7 @@ module('@queryable', function(hooks) {
         2,
         'query triggered after action performed successfully'
       );
-      assert.strictEqual(query.expression, qe, 'query matches');
+      assert.strictEqual(query.expressions[0], qe, 'query matches');
       assert.deepEqual(result, ['a', 'b', 'c'], 'result matches');
     });
 
@@ -151,7 +151,7 @@ module('@queryable', function(hooks) {
 
     source._query = function(query) {
       assert.equal(++order, 1, 'action performed after willQuery');
-      assert.strictEqual(query.expression, qe, 'query object matches');
+      assert.strictEqual(query.expressions[0], qe, 'query object matches');
       return Promise.reject(':(');
     };
 
@@ -165,7 +165,7 @@ module('@queryable', function(hooks) {
         2,
         'queryFail triggered after an unsuccessful query'
       );
-      assert.strictEqual(query.expression, qe, 'query matches');
+      assert.strictEqual(query.expressions[0], qe, 'query matches');
       assert.equal(error, ':(', 'error matches');
     });
 

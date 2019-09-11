@@ -4,13 +4,17 @@ import { QueryTerm } from './query-term';
 import QueryBuilder from './query-builder';
 import { isObject } from '@orbit/utils';
 
+const { deprecate } = Orbit;
+
 export type QueryBuilderFunc = (
   QueryBuilder: QueryBuilder
-) => QueryExpression | QueryTerm;
-export type QueryOrExpression =
+) => QueryExpression | QueryExpression[] | QueryTerm | QueryTerm[];
+export type QueryOrExpressions =
   | Query
   | QueryExpression
+  | QueryExpression[]
   | QueryTerm
+  | QueryTerm[]
   | QueryBuilderFunc;
 
 /**
@@ -18,7 +22,8 @@ export type QueryOrExpression =
  */
 export interface Query {
   id: string;
-  expression: QueryExpression;
+  expression?: QueryExpression;
+  expressions: QueryExpression[];
   options?: any;
 }
 
@@ -35,35 +40,59 @@ export interface Query {
  * specified, a UUID will be generated.
  */
 export function buildQuery(
-  queryOrExpression: QueryOrExpression,
+  queryOrExpressions: QueryOrExpressions,
   queryOptions?: object,
   queryId?: string,
   queryBuilder?: QueryBuilder
 ): Query {
-  if (typeof queryOrExpression === 'function') {
-    return buildQuery(queryOrExpression(queryBuilder), queryOptions, queryId);
+  if (typeof queryOrExpressions === 'function') {
+    return buildQuery(queryOrExpressions(queryBuilder), queryOptions, queryId);
   } else {
-    let query = queryOrExpression as Query;
-    let expression: QueryExpression;
+    let query = queryOrExpressions as Query;
+    let expressions: QueryExpression[];
     let options: object;
 
-    if (isObject(query) && query.expression) {
+    if (isQuery(query)) {
       if (query.id && !queryOptions && !queryId) {
         return query;
       }
-      expression = query.expression;
+      expressions = query.expressions;
       options = queryOptions || query.options;
+    } else if (Array.isArray(queryOrExpressions)) {
+      expressions = [];
+      for (let queryOrExpression of queryOrExpressions) {
+        if (queryOrExpression instanceof QueryTerm) {
+          expressions.push(queryOrExpression.toQueryExpression());
+        } else {
+          expressions.push(queryOrExpression);
+        }
+      }
+      options = queryOptions;
     } else {
-      if (queryOrExpression instanceof QueryTerm) {
-        expression = queryOrExpression.toQueryExpression();
+      if (queryOrExpressions instanceof QueryTerm) {
+        expressions = [queryOrExpressions.toQueryExpression()];
       } else {
-        expression = queryOrExpression as QueryExpression;
+        expressions = [queryOrExpressions] as QueryExpression[];
       }
       options = queryOptions;
     }
 
     let id: string = queryId || Orbit.uuid();
 
-    return { expression, options, id };
+    return {
+      expressions,
+      get expression() {
+        deprecate(
+          '`expression` on query is deprecated. You should use `expressions`'
+        );
+        return this.expressions[0];
+      },
+      options,
+      id
+    };
   }
+}
+
+function isQuery(query: QueryOrExpressions): query is Query {
+  return isObject(query) && (query as any).expressions;
 }

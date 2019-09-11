@@ -34,7 +34,7 @@ module('buildQuery', function() {
 
     assert.strictEqual(query.id, 'abc123', 'id was populated');
     assert.strictEqual(
-      query.expression,
+      query.expressions[0],
       expression,
       'expression was populated'
     );
@@ -56,7 +56,11 @@ module('buildQuery', function() {
       type: 'planet'
     };
     let query = buildQuery(q => q.findRecords('planet'), null, null, qb);
-    assert.deepEqual(query.expression, expression, 'expression was populated');
+    assert.deepEqual(
+      query.expressions[0],
+      expression,
+      'expression was populated'
+    );
   });
 
   test('should call toQueryExpression() if available', function(assert) {
@@ -67,9 +71,29 @@ module('buildQuery', function() {
     let queryFactory = new QueryTerm(expression);
     let query = buildQuery(queryFactory);
     assert.strictEqual(
-      query.expression,
+      query.expressions[0],
       expression,
       'expression was populated'
+    );
+  });
+
+  test('will create a query with multiple expressions', function(assert) {
+    let expression1: FindRecords = {
+      op: 'findRecords'
+    };
+    let expression2: FindRecords = {
+      op: 'findRecords'
+    };
+    let query = buildQuery([expression1, expression2]);
+    assert.strictEqual(
+      query.expressions[0],
+      expression1,
+      'expression1 was populated'
+    );
+    assert.strictEqual(
+      query.expressions[1],
+      expression2,
+      'expression2 was populated'
     );
   });
 });

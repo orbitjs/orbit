@@ -6,7 +6,7 @@ import {
   RecordOperation,
   Schema,
   QueryBuilder,
-  QueryOrExpression,
+  QueryOrExpressions,
   QueryExpression,
   buildQuery,
   TransformBuilder,
@@ -37,7 +37,7 @@ import {
   RecordRelationshipIdentity
 } from './record-accessor';
 import { PatchResult } from './patch-result';
-import { QueryResultData } from './query-result';
+import { QueryResult, QueryResultData } from './query-result';
 
 const { assert } = Orbit;
 
@@ -189,17 +189,22 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
    * Queries the cache.
    */
   async query(
-    queryOrExpression: QueryOrExpression,
+    queryOrExpressions: QueryOrExpressions,
     options?: object,
     id?: string
-  ): Promise<QueryResultData> {
+  ): Promise<QueryResult> {
     const query = buildQuery(
-      queryOrExpression,
+      queryOrExpressions,
       options,
       id,
       this._queryBuilder
     );
-    return await this._query(query.expression);
+    const results = await this._query(query.expressions);
+
+    if (query.expressions.length === 1) {
+      return results[0];
+    }
+    return results;
   }
 
   /**
@@ -246,13 +251,17 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   /////////////////////////////////////////////////////////////////////////////
 
   protected async _query(
-    expression: QueryExpression
-  ): Promise<QueryResultData> {
-    const queryOperator = this.getQueryOperator(expression.op);
-    if (!queryOperator) {
-      throw new Error(`Unable to find query operator: ${expression.op}`);
+    expressions: QueryExpression[]
+  ): Promise<QueryResultData[]> {
+    const results: QueryResultData[] = [];
+    for (let expression of expressions) {
+      const queryOperator = this.getQueryOperator(expression.op);
+      if (!queryOperator) {
+        throw new Error(`Unable to find query operator: ${expression.op}`);
+      }
+      results.push(await queryOperator(this, expression));
     }
-    return await queryOperator(this, expression);
+    return results;
   }
 
   protected async _applyPatchOperations(

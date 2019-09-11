@@ -8,7 +8,7 @@ import Orbit, {
   syncable,
   Syncable,
   Query,
-  QueryOrExpression,
+  QueryOrExpressions,
   Source,
   SourceSettings,
   Transform,
@@ -18,6 +18,7 @@ import Orbit, {
   UpdateRecordOperation,
   Record
 } from '@orbit/data';
+import { QueryResultData } from '@orbit/record-cache';
 import { supportsIndexedDB } from './lib/indexeddb';
 import IndexedDBCache, { IndexedDBCacheSettings } from './cache';
 
@@ -43,7 +44,7 @@ export default class IndexedDBSource extends Source
 
   // Pullable interface stubs
   pull: (
-    queryOrExpression: QueryOrExpression,
+    queryOrExpressions: QueryOrExpressions,
     options?: object,
     id?: string
   ) => Promise<Transform[]>;
@@ -137,23 +138,12 @@ export default class IndexedDBSource extends Source
 
     const results = await this._cache.query(query);
 
-    if (Array.isArray(results)) {
-      operations = results.map(r => {
-        return {
-          op: 'updateRecord',
-          record: r
-        };
-      });
-    } else if (results) {
-      let record = results as Record;
-      operations = [
-        {
-          op: 'updateRecord',
-          record
-        } as UpdateRecordOperation
-      ];
+    if (query.expressions.length === 1) {
+      operations = this._operationsFromQueryResult(results);
     } else {
-      operations = [];
+      for (let result of results as QueryResultData[]) {
+        operations.push(...this._operationsFromQueryResult(result));
+      }
     }
 
     const transforms = [buildTransform(operations)];
@@ -161,5 +151,25 @@ export default class IndexedDBSource extends Source
     await this.transformed(transforms);
 
     return transforms;
+  }
+
+  _operationsFromQueryResult(result: Record | Record[]): Operation[] {
+    if (Array.isArray(result)) {
+      return result.map(r => {
+        return {
+          op: 'updateRecord',
+          record: r
+        };
+      });
+    } else if (result) {
+      return [
+        {
+          op: 'updateRecord',
+          record: result
+        } as UpdateRecordOperation
+      ];
+    } else {
+      return [];
+    }
   }
 }
