@@ -76,7 +76,7 @@ export default class Log implements Evented {
       });
   }
 
-  before(id: string, relativePosition: number = 0): string[] {
+  before(id: string, relativePosition = 0): string[] {
     const index = this._data.indexOf(id);
     if (index === -1) {
       throw new NotLoggedException(id);
@@ -90,7 +90,7 @@ export default class Log implements Evented {
     return this._data.slice(0, position);
   }
 
-  after(id: string, relativePosition: number = 0): string[] {
+  after(id: string, relativePosition = 0): string[] {
     const index = this._data.indexOf(id);
     if (index === -1) {
       throw new NotLoggedException(id);
@@ -104,7 +104,7 @@ export default class Log implements Evented {
     return this._data.slice(position);
   }
 
-  truncate(id: string, relativePosition: number = 0): Promise<void> {
+  truncate(id: string, relativePosition = 0): Promise<void> {
     let removed: string[];
 
     return this.reified
@@ -134,7 +134,7 @@ export default class Log implements Evented {
       });
   }
 
-  rollback(id: string, relativePosition: number = 0): Promise<void> {
+  rollback(id: string, relativePosition = 0): Promise<void> {
     let removed: string[];
 
     return this.reified
