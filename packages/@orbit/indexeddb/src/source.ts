@@ -92,7 +92,7 @@ export default class IndexedDBSource extends Source
     await this._cache.reopenDB();
   }
 
-  async _activate() {
+  protected async _activate(): Promise<void> {
     await super._activate();
     await this.cache.openDB();
   }
