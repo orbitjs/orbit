@@ -261,7 +261,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   protected _applyPatchOperations(
     ops: RecordOperation[],
     result: PatchResult,
-    primary: boolean = false
+    primary = false
   ) {
     ops.forEach(op => this._applyPatchOperation(op, result, primary));
   }
@@ -269,7 +269,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   protected _applyPatchOperation(
     operation: RecordOperation,
     result: PatchResult,
-    primary: boolean = false
+    primary = false
   ) {
     if ((operation.op as string) === 'replaceRecord') {
       Orbit.deprecate(

@@ -288,7 +288,7 @@ export default class MemorySource extends Source
    * @param transformId - The ID of the transform to roll back to
    * @param relativePosition - A positive or negative integer to specify a position relative to `transformId`
    */
-  rollback(transformId: string, relativePosition: number = 0): Promise<void> {
+  rollback(transformId: string, relativePosition = 0): Promise<void> {
     return this.transformLog.rollback(transformId, relativePosition);
   }
 
