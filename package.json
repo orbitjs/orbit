@@ -20,7 +20,7 @@
     "lint:ts": "lerna run lint:ts"
   },
   "devDependencies": {
-    "lerna": "^3.14.1"
+    "lerna": "^3.16.4"
   },
   "workspaces": [
     "packages/@orbit/*"
