@@ -97,7 +97,7 @@ export default class IndexedDBSource extends Source
     await this.cache.openDB();
   }
 
-  async deactivate() {
+  async deactivate(): Promise<void> {
     await super.deactivate();
     await this.cache.closeDB();
   }
