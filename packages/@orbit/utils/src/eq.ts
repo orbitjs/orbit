@@ -30,7 +30,7 @@ export function eq(a: any, b: any): boolean {
     return a === b;
   }
 
-  var type = Object.prototype.toString.call(a);
+  let type = Object.prototype.toString.call(a);
   if (type !== Object.prototype.toString.call(b)) {
     return false;
   }
@@ -67,7 +67,7 @@ export function eq(a: any, b: any): boolean {
     }
   }
 
-  var i;
+  let i;
   for (i in b) {
     if (b.hasOwnProperty(i)) {
       if (!eq(a[i], b[i])) {

@@ -19,10 +19,11 @@ module.exports = {
     '@typescript-eslint/explicit-member-accessibility': ['off'],
     '@typescript-eslint/no-explicit-any': ['off']
   },
-  overrides: {
+  overrides: [{
     files: ['test/**/*.ts'],
     rules: {
-      '@typescript-eslint/no-unused-vars': ['off']
+      '@typescript-eslint/no-unused-vars': ['off'],
+      'prefer-const': ['off']
     }
-  }
+  }]
 };
