@@ -74,7 +74,9 @@ export default class LocalStorageSource extends Source
 
     super(settings);
 
-    let cacheSettings: LocalStorageCacheSettings = settings.cacheSettings || {};
+    let cacheSettings: LocalStorageCacheSettings = settings.cacheSettings || {
+      schema: settings.schema
+    };
     cacheSettings.schema = settings.schema;
     cacheSettings.keyMap = settings.keyMap;
     cacheSettings.queryBuilder =
@@ -146,7 +148,7 @@ export default class LocalStorageSource extends Source
     const results = this._cache.query(query);
 
     if (query.expressions.length === 1) {
-      operations = this._operationsFromQueryResult(results);
+      operations = this._operationsFromQueryResult(results as QueryResultData);
     } else {
       for (let result of results as QueryResultData[]) {
         operations.push(...this._operationsFromQueryResult(result));
@@ -160,7 +162,7 @@ export default class LocalStorageSource extends Source
     return transforms;
   }
 
-  _operationsFromQueryResult(result: Record | Record[]): Operation[] {
+  _operationsFromQueryResult(result: QueryResultData): Operation[] {
     if (Array.isArray(result)) {
       return result.map(r => {
         return {

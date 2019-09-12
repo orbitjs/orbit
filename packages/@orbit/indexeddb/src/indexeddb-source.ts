@@ -15,8 +15,7 @@ import Orbit, {
   TransformOrOperations,
   RecordOperation,
   Operation,
-  UpdateRecordOperation,
-  Record
+  UpdateRecordOperation
 } from '@orbit/data';
 import { QueryResultData } from '@orbit/record-cache';
 import { supportsIndexedDB } from './lib/indexeddb';
@@ -69,7 +68,9 @@ export default class IndexedDBSource extends Source
 
     super(settings);
 
-    let cacheSettings: IndexedDBCacheSettings = settings.cacheSettings || {};
+    let cacheSettings: IndexedDBCacheSettings = settings.cacheSettings || {
+      schema: settings.schema
+    };
     cacheSettings.schema = settings.schema;
     cacheSettings.keyMap = settings.keyMap;
     cacheSettings.queryBuilder =
@@ -154,7 +155,7 @@ export default class IndexedDBSource extends Source
     const results = await this._cache.query(query);
 
     if (query.expressions.length === 1) {
-      operations = this._operationsFromQueryResult(results);
+      operations = this._operationsFromQueryResult(results as QueryResultData);
     } else {
       for (let result of results as QueryResultData[]) {
         operations.push(...this._operationsFromQueryResult(result));
@@ -168,7 +169,7 @@ export default class IndexedDBSource extends Source
     return transforms;
   }
 
-  _operationsFromQueryResult(result: Record | Record[]): Operation[] {
+  _operationsFromQueryResult(result: QueryResultData): Operation[] {
     if (Array.isArray(result)) {
       return result.map(r => {
         return {
