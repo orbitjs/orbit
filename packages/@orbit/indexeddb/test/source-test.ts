@@ -14,7 +14,7 @@ const { module, test, skip } = QUnit;
 module('IndexedDBSource', function(hooks) {
   let schema: Schema, source: IndexedDBSource, keyMap: KeyMap;
 
-  hooks.beforeEach(() => {
+  hooks.beforeEach(async () => {
     schema = new Schema({
       models: {
         planet: {
@@ -61,10 +61,12 @@ module('IndexedDBSource', function(hooks) {
     keyMap = new KeyMap();
 
     source = new IndexedDBSource({ schema, keyMap });
+    await source.activated;
   });
 
-  hooks.afterEach(() => {
-    return source.cache.deleteDB();
+  hooks.afterEach(async () => {
+    await source.deactivate();
+    await source.cache.deleteDB();
   });
 
   test('it exists', function(assert) {
@@ -157,9 +159,11 @@ module('IndexedDBSource', function(hooks) {
       'indexeddb contains record'
     );
 
-    await source.cache.closeDB();
+    await source.deactivate();
 
     source = new IndexedDBSource({ schema, keyMap });
+    await source.activated;
+
     assert.deepEqual(
       await getRecordFromIndexedDB(source.cache, planet),
       planet,

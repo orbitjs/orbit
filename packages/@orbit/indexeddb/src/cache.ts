@@ -1,18 +1,13 @@
 import Orbit, {
   serializeRecordIdentity,
   deserializeRecordIdentity,
-  QueryOrExpressions,
   Record,
-  RecordIdentity,
-  RecordOperation,
-  TransformBuilderFunc
+  RecordIdentity
 } from '@orbit/data';
 import {
   RecordRelationshipIdentity,
   AsyncRecordCache,
-  AsyncRecordCacheSettings,
-  PatchResult,
-  QueryResultData
+  AsyncRecordCacheSettings
 } from '@orbit/record-cache';
 import { supportsIndexedDB } from './lib/indexeddb';
 
@@ -48,25 +43,6 @@ export default class IndexedDBCache extends AsyncRecordCache {
     super(settings);
 
     this._namespace = settings.namespace || 'orbit';
-  }
-
-  async query(
-    queryOrExpressions: QueryOrExpressions,
-    options?: object,
-    id?: string
-  ): Promise<QueryResultData> {
-    await this.openDB();
-    return super.query(queryOrExpressions, options, id);
-  }
-
-  async patch(
-    operationOrOperations:
-      | RecordOperation
-      | RecordOperation[]
-      | TransformBuilderFunc
-  ): Promise<PatchResult> {
-    await this.openDB();
-    return super.patch(operationOrOperations);
   }
 
   get namespace(): string {

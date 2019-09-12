@@ -7,7 +7,7 @@ const { module, test } = QUnit;
 module('Cache', function(hooks) {
   let schema: Schema, cache: Cache, keyMap: KeyMap;
 
-  hooks.beforeEach(() => {
+  hooks.beforeEach(async () => {
     schema = new Schema({
       models: {
         planet: {
@@ -54,6 +54,7 @@ module('Cache', function(hooks) {
     keyMap = new KeyMap();
 
     cache = new Cache({ schema, keyMap });
+    await cache.openDB();
   });
 
   hooks.afterEach(() => {
@@ -82,8 +83,6 @@ module('Cache', function(hooks) {
       id: 'europa',
       attributes: { name: 'Europa' }
     };
-
-    await cache.openDB();
 
     await cache.setRecordAsync(jupiter);
     await cache.setRecordAsync(io);
@@ -115,8 +114,6 @@ module('Cache', function(hooks) {
       attributes: { name: 'Europa' }
     };
 
-    await cache.openDB();
-
     await cache.setRecordsAsync([jupiter, io, europa]);
 
     assert.deepEqual(await cache.getRecordsAsync([jupiter, io, europa]), [
@@ -135,8 +132,6 @@ module('Cache', function(hooks) {
     const io = { type: 'moon', id: 'io' };
     const europa = { type: 'moon', id: 'europa' };
     const callisto = { type: 'moon', id: 'callisto' };
-
-    await cache.openDB();
 
     assert.deepEqual(
       await cache.getInverseRelationshipsAsync(jupiter),

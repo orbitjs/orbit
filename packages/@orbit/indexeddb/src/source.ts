@@ -64,6 +64,8 @@ export default class IndexedDBSource extends Source
     assert('Your browser does not support IndexedDB!', supportsIndexedDB());
 
     settings.name = settings.name || 'indexedDB';
+    const autoActivate = settings.autoActivate !== false;
+    settings.autoActivate = false;
 
     super(settings);
 
@@ -77,6 +79,9 @@ export default class IndexedDBSource extends Source
     cacheSettings.namespace = cacheSettings.namespace || settings.namespace;
 
     this._cache = new IndexedDBCache(cacheSettings);
+    if (autoActivate) {
+      this.activate();
+    }
   }
 
   get cache(): IndexedDBCache {
@@ -85,6 +90,16 @@ export default class IndexedDBSource extends Source
 
   async upgrade(): Promise<void> {
     await this._cache.reopenDB();
+  }
+
+  protected async _activate(): Promise<void> {
+    await super._activate();
+    await this.cache.openDB();
+  }
+
+  async deactivate(): Promise<void> {
+    await super.deactivate();
+    await this.cache.closeDB();
   }
 
   closeDB() {
