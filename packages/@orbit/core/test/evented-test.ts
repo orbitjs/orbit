@@ -24,9 +24,9 @@ function failedOperation() {
 module('Evented', function(hooks) {
   @evented
   class Foo implements Evented {
-    on: (event: string, listener: Listener) => void;
+    on: (event: string, listener: Listener) => () => void;
     off: (event: string, listener?: Listener) => void;
-    one: (event: string, listener: Listener) => void;
+    one: (event: string, listener: Listener) => () => void;
     emit: (event: string, ...args: any[]) => void;
     listeners: (event: string) => Listener[];
   }
@@ -76,6 +76,40 @@ module('Evented', function(hooks) {
 
     obj.emit('greeting', 'hello');
     obj.emit('greeting', 'hello');
+    obj.emit('greeting', 'hello');
+  });
+
+  test('#on return off function', function(assert) {
+    assert.expect(1);
+
+    let listener1: Listener = function(): void {
+      assert.ok(false, 'this listener should not be triggered');
+    };
+    let listener2: Listener = function(message: string): void {
+      assert.equal(message, 'hello', 'notification message should match');
+    };
+
+    const off = obj.on('greeting', listener1);
+    obj.on('greeting', listener2);
+    off();
+
+    obj.emit('greeting', 'hello');
+  });
+
+  test('#one return off function', function(assert) {
+    assert.expect(1);
+
+    let listener1: Listener = function(): void {
+      assert.ok(false, 'this listener should not be triggered');
+    };
+    let listener2: Listener = function(message: string): void {
+      assert.equal(message, 'hello', 'notification message should match');
+    };
+
+    const off = obj.one('greeting', listener1);
+    obj.one('greeting', listener2);
+    off();
+
     obj.emit('greeting', 'hello');
   });
 

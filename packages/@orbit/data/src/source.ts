@@ -50,9 +50,9 @@ export abstract class Source implements Evented, Performer {
   private _activated?: Promise<void>;
 
   // Evented interface stubs
-  on: (event: string, listener: Listener) => void;
+  on: (event: string, listener: Listener) => () => void;
   off: (event: string, listener?: Listener) => void;
-  one: (event: string, listener: Listener) => void;
+  one: (event: string, listener: Listener) => () => void;
   emit: (event: string, ...args: any[]) => void;
   listeners: (event: string) => Listener[];
 

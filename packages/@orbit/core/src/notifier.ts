@@ -35,7 +35,7 @@ export default class Notifier {
    * Add a callback as a listener, which will be triggered when sending
    * notifications.
    */
-  addListener(listener: Listener) {
+  addListener(listener: Listener): () => void {
     if (arguments.length > 1) {
       deprecate(
         '`binding` argument is no longer supported for individual `Notifier` listeners. Please pre-bind listeners before calling `addListener`.'
@@ -43,6 +43,8 @@ export default class Notifier {
     }
 
     this.listeners.push(listener);
+
+    return () => this.removeListener(listener);
   }
 
   /**
