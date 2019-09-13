@@ -1,6 +1,6 @@
-export { default, LocalStorageSourceSettings } from './source';
+export { default, LocalStorageSourceSettings } from './local-storage-source';
 export {
   default as LocalStorageCache,
   LocalStorageCacheSettings
-} from './cache';
+} from './local-storage-cache';
 export { supportsLocalStorage } from './lib/local-storage';

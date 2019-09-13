@@ -1,20 +1,25 @@
-import { getRecordFromIndexedDB } from './support/indexeddb';
+import {
+  getRecordFromLocalStorage,
+  isLocalStorageEmpty
+} from './support/local-storage';
 import {
   buildTransform,
+  AddRecordOperation,
   Record,
   Schema,
+  Source,
   KeyMap,
-  AddRecordOperation,
   Transform
 } from '@orbit/data';
-import IndexedDBSource from '../src/source';
+import Orbit from '@orbit/core';
+import LocalStorageSource from '../src/local-storage-source';
 
-const { module, test, skip } = QUnit;
+const { module, test } = QUnit;
 
-module('IndexedDBSource', function(hooks) {
-  let schema: Schema, source: IndexedDBSource, keyMap: KeyMap;
+module('LocalStorageSource', function(hooks) {
+  let schema: Schema, source: LocalStorageSource, keyMap: KeyMap;
 
-  hooks.beforeEach(async () => {
+  hooks.beforeEach(() => {
     schema = new Schema({
       models: {
         planet: {
@@ -25,48 +30,29 @@ module('IndexedDBSource', function(hooks) {
             revised: { type: 'boolean' }
           },
           relationships: {
-            moons: { type: 'hasMany', model: 'moon', inverse: 'planet' },
-            solarSystem: {
-              type: 'hasOne',
-              model: 'solarSystem',
-              inverse: 'planets'
-            }
+            moons: { type: 'hasMany', model: 'moon' },
+            solarSystem: { type: 'hasMany', model: 'solarSystem' }
           }
         },
         moon: {
-          keys: { remoteId: {} },
-          attributes: {
-            name: { type: 'string' }
-          },
-          relationships: {
-            planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
-          }
+          keys: { remoteId: {} }
         },
         solarSystem: {
-          keys: { remoteId: {} },
-          attributes: {
-            name: { type: 'string' }
-          },
-          relationships: {
-            planets: {
-              type: 'hasMany',
-              model: 'planet',
-              inverse: 'solarSystem'
-            }
-          }
+          keys: { remoteId: {} }
         }
       }
     });
 
     keyMap = new KeyMap();
 
-    source = new IndexedDBSource({ schema, keyMap });
-    await source.activated;
+    source = new LocalStorageSource({ schema, keyMap });
   });
 
-  hooks.afterEach(async () => {
-    await source.deactivate();
-    await source.cache.deleteDB();
+  hooks.afterEach(() => {
+    return source.reset().then(() => {
+      schema = source = keyMap = null;
+      Orbit.globals.localStorage.removeItem('orbit-bucket/foo');
+    });
   });
 
   test('it exists', function(assert) {
@@ -75,66 +61,20 @@ module('IndexedDBSource', function(hooks) {
     assert.strictEqual(source.keyMap, keyMap, 'keyMap has been assigned');
   });
 
-  test('is assigned a default dbName', function(assert) {
+  test('its prototype chain is correct', function(assert) {
+    assert.ok(source instanceof Source, 'instanceof Source');
+  });
+
+  test('is assigned a default namespace and delimiter', function(assert) {
+    assert.equal(source.namespace, 'orbit', 'namespace is `orbit` by default');
+    assert.equal(source.delimiter, '/', 'delimiter is `/` by default');
+  });
+
+  test('#getKeyForRecord returns the local storage key that will be used for a record', function(assert) {
     assert.equal(
-      source.cache.dbName,
-      'orbit',
-      '`dbName` is `orbit` by default'
+      source.getKeyForRecord({ type: 'planet', id: 'jupiter' }),
+      'orbit/planet/jupiter'
     );
-  });
-
-  // TODO: Skipped for CI
-  skip('will reopen the database when the schema is upgraded', async function(assert) {
-    const done = assert.async();
-
-    assert.expect(5);
-
-    assert.equal(source.cache.dbVersion, 1, 'db starts with version == 1');
-
-    source.cache.migrateDB = function(db, event) {
-      assert.equal(
-        event.oldVersion,
-        1,
-        'migrateDB called with oldVersion == 1'
-      );
-      assert.equal(
-        event.newVersion,
-        2,
-        'migrateDB called with newVersion == 2'
-      );
-      done();
-    };
-
-    schema.on('upgrade', version => {
-      assert.equal(version, 2, 'schema has upgraded to v2');
-      assert.equal(source.cache.dbVersion, 2, 'db has the correct version');
-    });
-
-    await source.cache.openDB();
-
-    await schema.upgrade({
-      models: {
-        planet: {
-          attributes: {
-            name: { type: 'string' }
-          }
-        },
-        moon: {
-          attributes: {
-            name: { type: 'string' }
-          }
-        }
-      }
-    });
-  });
-
-  test('#reset is idempotent', async function(assert) {
-    await source.cache.openDB();
-    await source.reset();
-    await source.reset();
-    await source.cache.openDB();
-
-    assert.ok(true, 'db has been reset twice and can still be reopened');
   });
 
   test('data persists across re-instantiating source', async function(assert) {
@@ -154,27 +94,23 @@ module('IndexedDBSource', function(hooks) {
 
     await source.push(t => t.addRecord(planet));
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, planet),
+      getRecordFromLocalStorage(source, planet),
       planet,
-      'indexeddb contains record'
+      'local storage contains record'
     );
 
-    await source.deactivate();
-
-    source = new IndexedDBSource({ schema, keyMap });
-    await source.activated;
-
+    source = new LocalStorageSource({ schema, keyMap });
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, planet),
+      getRecordFromLocalStorage(source, planet),
       planet,
-      'indexeddb still contains record'
+      'local storage still contains record'
     );
   });
 
   test('#sync - addRecord', async function(assert) {
     assert.expect(3);
 
-    let planet: Record = {
+    let planet = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -195,9 +131,9 @@ module('IndexedDBSource', function(hooks) {
 
     assert.ok(source.transformLog.contains(t.id), 'log contains transform');
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, planet),
+      getRecordFromLocalStorage(source, planet),
       planet,
-      'indexeddb contains record'
+      'local storage contains record'
     );
     assert.equal(
       keyMap.keyToId('planet', 'remoteId', 'j'),
@@ -209,7 +145,7 @@ module('IndexedDBSource', function(hooks) {
   test('#push - addRecord', async function(assert) {
     assert.expect(3);
 
-    let planet: Record = {
+    let planet = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -230,9 +166,9 @@ module('IndexedDBSource', function(hooks) {
 
     assert.ok(source.transformLog.contains(t.id), 'log contains transform');
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, planet),
+      getRecordFromLocalStorage(source, planet),
       planet,
-      'indexeddb contains record'
+      'local storage contains record'
     );
     assert.equal(
       keyMap.keyToId('planet', 'remoteId', 'j'),
@@ -270,9 +206,9 @@ module('IndexedDBSource', function(hooks) {
     assert.deepEqual(result, [], 'result represents transforms applied');
     assert.ok(source.transformLog.contains(t.id), 'log contains transform');
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, planet),
+      getRecordFromLocalStorage(source, planet),
       planet,
-      'indexeddb contains record'
+      'local storage contains record'
     );
     assert.equal(
       keyMap.keyToId('planet', 'remoteId', 'j'),
@@ -300,7 +236,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    let updates: Record = {
+    let updates = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -313,7 +249,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    let expected: Record = {
+    let expected = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -335,10 +271,11 @@ module('IndexedDBSource', function(hooks) {
 
     await source.push(t => t.addRecord(original));
     await source.push(t => t.updateRecord(updates));
+
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, expected),
+      getRecordFromLocalStorage(source, expected),
       expected,
-      'indexeddb contains record'
+      'local storage contains record'
     );
     assert.equal(
       keyMap.keyToId('planet', 'remoteId', 'j'),
@@ -361,17 +298,18 @@ module('IndexedDBSource', function(hooks) {
     };
 
     await source.push(t => t.updateRecord(revised));
+
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, revised),
+      getRecordFromLocalStorage(source, revised),
       revised,
-      'indexeddb contains record'
+      'local storage contains record'
     );
   });
 
   test('#push - removeRecord', async function(assert) {
     assert.expect(1);
 
-    let planet: Record = {
+    let planet = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -382,10 +320,11 @@ module('IndexedDBSource', function(hooks) {
 
     await source.push(t => t.addRecord(planet));
     await source.push(t => t.removeRecord(planet));
-    assert.equal(
-      await getRecordFromIndexedDB(source.cache, planet),
-      undefined,
-      'indexeddb does not contain record'
+
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, planet),
+      null,
+      'local storage does not contain record'
     );
   });
 
@@ -414,15 +353,15 @@ module('IndexedDBSource', function(hooks) {
       t.addRecord(planet)
     ]);
     assert.deepEqual(
-      (await getRecordFromIndexedDB(source.cache, planet)).relationships.moons
-        .data.length,
+      (await getRecordFromLocalStorage(source, planet)).relationships.moons.data
+        .length,
       2,
       'record has 2 moons'
     );
     await source.push(t => t.removeRecord(moon1));
     assert.deepEqual(
-      (await getRecordFromIndexedDB(source.cache, planet)).relationships.moons
-        .data.length,
+      (await getRecordFromLocalStorage(source, planet)).relationships.moons.data
+        .length,
       1,
       'record has 1 moon'
     );
@@ -431,16 +370,17 @@ module('IndexedDBSource', function(hooks) {
   test('#push - removeRecord - when record does not exist', async function(assert) {
     assert.expect(1);
 
-    let planet: Record = {
+    let planet = {
       type: 'planet',
       id: 'jupiter'
     };
 
     await source.push(t => t.removeRecord(planet));
+
     assert.equal(
-      await getRecordFromIndexedDB(source.cache, planet),
+      getRecordFromLocalStorage(source, planet),
       undefined,
-      'indexeddb does not contain record'
+      'local storage does not contain record'
     );
   });
 
@@ -470,12 +410,12 @@ module('IndexedDBSource', function(hooks) {
 
     await source.push(t => t.addRecord(original));
     await source.push(t => t.replaceKey(original, 'remoteId', '123'));
-    assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, revised),
-      revised,
-      'indexeddb contains record'
-    );
 
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, revised),
+      revised,
+      'local storage contains record'
+    );
     assert.equal(
       keyMap.keyToId('planet', 'remoteId', '123'),
       'jupiter',
@@ -497,12 +437,12 @@ module('IndexedDBSource', function(hooks) {
     await source.push(t =>
       t.replaceKey({ type: 'planet', id: 'jupiter' }, 'remoteId', '123')
     );
-    assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, revised),
-      revised,
-      'indexeddb contains record'
-    );
 
+    assert.deepEqual(
+      getRecordFromLocalStorage(source, revised),
+      revised,
+      'local storage contains record'
+    );
     assert.equal(
       keyMap.keyToId('planet', 'remoteId', '123'),
       'jupiter',
@@ -534,10 +474,11 @@ module('IndexedDBSource', function(hooks) {
 
     await source.push(t => t.addRecord(original));
     await source.push(t => t.replaceAttribute(original, 'order', 5));
+
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, revised),
+      getRecordFromLocalStorage(source, revised),
       revised,
-      'indexeddb contains record'
+      'local storage contains record'
     );
   });
 
@@ -555,10 +496,11 @@ module('IndexedDBSource', function(hooks) {
     await source.push(t =>
       t.replaceAttribute({ type: 'planet', id: 'jupiter' }, 'order', 5)
     );
+
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, revised),
+      getRecordFromLocalStorage(source, revised),
       revised,
-      'indexeddb contains record'
+      'local storage contains record'
     );
   });
 
@@ -597,10 +539,11 @@ module('IndexedDBSource', function(hooks) {
     await source.push(t =>
       t.addToRelatedRecords(original, 'moons', { type: 'moon', id: 'moon1' })
     );
+
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, revised),
+      getRecordFromLocalStorage(source, revised),
       revised,
-      'indexeddb contains record'
+      'local storage contains record'
     );
   });
 
@@ -623,10 +566,11 @@ module('IndexedDBSource', function(hooks) {
         id: 'moon1'
       })
     );
+
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, revised),
+      getRecordFromLocalStorage(source, revised),
       revised,
-      'indexeddb contains record'
+      'local storage contains record'
     );
   });
 
@@ -668,10 +612,11 @@ module('IndexedDBSource', function(hooks) {
         id: 'moon2'
       })
     );
+
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, revised),
+      getRecordFromLocalStorage(source, revised),
       revised,
-      'indexeddb contains record'
+      'local storage contains record'
     );
   });
 
@@ -694,10 +639,11 @@ module('IndexedDBSource', function(hooks) {
         id: 'moon2'
       })
     );
+
     assert.equal(
-      await getRecordFromIndexedDB(source.cache, revised),
+      getRecordFromLocalStorage(source, revised),
       undefined,
-      'indexeddb does not contain record'
+      'local storage does not contain record'
     );
   });
 
@@ -739,10 +685,11 @@ module('IndexedDBSource', function(hooks) {
         { type: 'moon', id: 'moon3' }
       ])
     );
+
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, revised),
+      getRecordFromLocalStorage(source, revised),
       revised,
-      'indexeddb contains record'
+      'local storage contains record'
     );
   });
 
@@ -765,10 +712,11 @@ module('IndexedDBSource', function(hooks) {
         { type: 'moon', id: 'moon3' }
       ])
     );
+
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, revised),
+      getRecordFromLocalStorage(source, revised),
       revised,
-      'indexeddb contains record'
+      'local storage contains record'
     );
   });
 
@@ -810,10 +758,11 @@ module('IndexedDBSource', function(hooks) {
         id: 'ss1'
       })
     );
+
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, revised),
+      getRecordFromLocalStorage(source, revised),
       revised,
-      'indexeddb contains record'
+      'local storage contains record'
     );
   });
 
@@ -837,9 +786,9 @@ module('IndexedDBSource', function(hooks) {
       })
     );
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, revised),
+      getRecordFromLocalStorage(source, revised),
       revised,
-      'indexeddb contains record'
+      'local storage contains record'
     );
   });
 
@@ -879,9 +828,9 @@ module('IndexedDBSource', function(hooks) {
       t.replaceRelatedRecord(original, 'solarSystem', null)
     );
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, revised),
+      getRecordFromLocalStorage(source, revised),
       revised,
-      'indexeddb contains record'
+      'local storage contains record'
     );
   });
 
@@ -906,115 +855,56 @@ module('IndexedDBSource', function(hooks) {
       )
     );
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, revised),
+      getRecordFromLocalStorage(source, revised),
       revised,
-      'indexeddb contains record'
+      'local storage contains record'
     );
   });
 
-  test('#push - inverse relationships are created', async function(assert) {
+  test('#reset - clears records for source', async function(assert) {
     assert.expect(2);
 
-    let ss = {
-      type: 'solarSystem',
-      id: 'ss'
-    };
-
-    let earth: Record = {
+    let planet = {
       type: 'planet',
-      id: 'earth',
-      attributes: {
-        name: 'Earth',
-        classification: 'terrestrial'
-      },
-      relationships: {
-        solarSystem: {
-          data: { type: 'solarSystem', id: 'ss' }
-        }
-      }
+      id: 'jupiter'
     };
 
-    let jupiter: Record = {
-      type: 'planet',
-      id: 'jupiter',
-      attributes: {
-        name: 'Jupiter',
-        classification: 'gas giant'
-      },
-      relationships: {
-        solarSystem: {
-          data: { type: 'solarSystem', id: 'ss' }
-        }
-      }
-    };
-
-    let io: Record = {
-      type: 'moon',
-      id: 'io',
-      attributes: {
-        name: 'Io'
-      },
-      relationships: {
-        planet: {
-          data: { type: 'planet', id: 'jupiter' }
-        }
-      }
-    };
-
-    await source.push(t => [
-      t.addRecord(ss),
-      t.addRecord(earth),
-      t.addRecord(jupiter),
-      t.addRecord(io)
-    ]);
-
-    let revisedSs = {
-      type: 'solarSystem',
-      id: 'ss',
-      relationships: {
-        planets: {
-          data: [
-            { type: 'planet', id: 'earth' },
-            { type: 'planet', id: 'jupiter' }
-          ]
-        }
-      }
-    };
+    await source.push(t => t.addRecord(planet));
 
     assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, revisedSs),
-      revisedSs,
-      'indexeddb contains record'
+      getRecordFromLocalStorage(source, planet),
+      planet,
+      'local storage contains record'
     );
 
-    let revisedJupiter = {
+    await source.reset();
+
+    assert.ok(isLocalStorageEmpty(source), 'local storage is empty');
+  });
+
+  test('#reset - ignores local-storage-bucket entries', async function(assert) {
+    assert.expect(2);
+
+    let planet = {
       type: 'planet',
-      id: 'jupiter',
-      attributes: {
-        name: 'Jupiter',
-        classification: 'gas giant'
-      },
-      relationships: {
-        moons: {
-          data: [{ type: 'moon', id: 'io' }]
-        },
-        solarSystem: {
-          data: { type: 'solarSystem', id: 'ss' }
-        }
-      }
+      id: 'jupiter'
     };
 
-    assert.deepEqual(
-      await getRecordFromIndexedDB(source.cache, revisedJupiter),
-      revisedJupiter,
-      'indexeddb contains record'
-    );
+    await source.push(t => t.addRecord(planet));
+
+    Orbit.globals.localStorage.setItem('orbit-bucket/foo', '{}');
+
+    await source.reset();
+
+    assert.ok(isLocalStorageEmpty(source), 'local storage is empty');
+
+    assert.equal(Orbit.globals.localStorage.getItem('orbit-bucket/foo'), '{}');
   });
 
   test('#pull - all records', async function(assert) {
-    assert.expect(5);
+    assert.expect(6);
 
-    let earth: Record = {
+    let earth = {
       type: 'planet',
       id: 'earth',
       keys: {
@@ -1026,7 +916,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -1038,7 +928,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    let io: Record = {
+    let io = {
       type: 'moon',
       id: 'io',
       keys: {
@@ -1048,6 +938,8 @@ module('IndexedDBSource', function(hooks) {
         name: 'Io'
       }
     };
+
+    await source.reset();
 
     await source.push(t => [
       t.addRecord(earth),
@@ -1061,6 +953,10 @@ module('IndexedDBSource', function(hooks) {
     let transforms = await source.pull(q => q.findRecords());
 
     assert.equal(transforms.length, 1, 'one transform returned');
+    assert.ok(
+      source.transformLog.contains(transforms[0].id),
+      'log contains transform'
+    );
     assert.deepEqual(
       transforms[0].operations.map(o => o.op),
       ['updateRecord', 'updateRecord', 'updateRecord'],
@@ -1086,7 +982,7 @@ module('IndexedDBSource', function(hooks) {
   test('#pull - records of one type', async function(assert) {
     assert.expect(4);
 
-    let earth: Record = {
+    let earth = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -1095,7 +991,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -1104,13 +1000,15 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    let io: Record = {
+    let io = {
       type: 'moon',
       id: 'io',
       attributes: {
         name: 'Io'
       }
     };
+
+    await source.reset();
 
     await source.push(t => [
       t.addRecord(earth),
@@ -1125,14 +1023,13 @@ module('IndexedDBSource', function(hooks) {
       source.transformLog.contains(transforms[0].id),
       'log contains transform'
     );
+    assert.ok(
+      source.transformLog.contains(transforms[0].id),
+      'log contains transform'
+    );
     assert.deepEqual(
       transforms[0].operations.map(o => o.op),
       ['updateRecord', 'updateRecord'],
-      'operations match expectations'
-    );
-    assert.deepEqual(
-      transforms[0].operations.map((o: AddRecordOperation) => o.record.type),
-      ['planet', 'planet'],
       'operations match expectations'
     );
   });
@@ -1196,7 +1093,7 @@ module('IndexedDBSource', function(hooks) {
   test('#pull - a specific record', async function(assert) {
     assert.expect(4);
 
-    let earth: Record = {
+    let earth = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -1205,7 +1102,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -1217,13 +1114,15 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    let io: Record = {
+    let io = {
       type: 'moon',
       id: 'io',
       attributes: {
         name: 'Io'
       }
     };
+
+    await source.reset();
 
     await source.push(t => [
       t.addRecord(earth),
@@ -1251,5 +1150,22 @@ module('IndexedDBSource', function(hooks) {
       'jupiter',
       'key has been mapped'
     );
+  });
+
+  test('#pull - ignores local-storage-bucket entries', async function(assert) {
+    assert.expect(3);
+
+    await source.reset();
+
+    await Orbit.globals.localStorage.setItem('orbit-bucket/foo', '{}');
+
+    let transforms = await source.pull(q => q.findRecords());
+
+    assert.equal(transforms.length, 1, 'one transform returned');
+    assert.ok(
+      source.transformLog.contains(transforms[0].id),
+      'log contains transform'
+    );
+    assert.equal(transforms[0].operations.length, 0, 'no operations returned');
   });
 });
