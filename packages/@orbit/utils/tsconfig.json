@@ -3,6 +3,7 @@
     "target": "es2017",
     "module": "es2015",
     "moduleResolution": "node",
+    "lib": ["es2018.asynciterable", "es2015"],
     "strict": true,
     "experimentalDecorators": true,
     "inlineSources": true,

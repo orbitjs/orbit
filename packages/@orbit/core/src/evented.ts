@@ -1,3 +1,4 @@
+import { Subject } from '@orbit/utils';
 import Orbit from './main';
 import Notifier, { Listener } from './notifier';
 
@@ -173,6 +174,24 @@ export function fulfillInSeries(
   return new Promise((resolve, reject) => {
     fulfillEach(listeners, args, resolve, reject);
   });
+}
+
+export function fromEvent<T>(
+  obj: Evented,
+  eventNames: string | string[]
+): AsyncIterableIterator<T> {
+  const subject = new Subject<T>();
+  const callback = (value: T) => {
+    subject.onNext(value);
+  };
+  let offs: (() => void)[] = [];
+  if (Array.isArray(eventNames)) {
+    offs = eventNames.map(eventName => obj.on(eventName, callback));
+  } else {
+    offs.push(obj.on(eventNames, callback));
+  }
+  subject.finally(() => offs.map(off => off()));
+  return subject.iterator;
 }
 
 function notifierForEvent(

@@ -1,11 +1,19 @@
 /* eslint-disable valid-jsdoc */
-import Orbit from '@orbit/core';
-import { clone, Dict } from '@orbit/utils';
-import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/data';
+import Orbit, { fromEvent } from '@orbit/core';
+import { clone, Dict, map, filter, pipe } from '@orbit/utils';
+import {
+  Record,
+  RecordIdentity,
+  equalRecordIdentities,
+  QueryOrExpressions,
+  RecordOperation,
+  buildQuery
+} from '@orbit/data';
 import {
   RecordRelationshipIdentity,
   SyncRecordCache,
-  SyncRecordCacheSettings
+  SyncRecordCacheSettings,
+  QueryResult
 } from '@orbit/record-cache';
 import { ImmutableMap } from '@orbit/immutable';
 
@@ -31,6 +39,38 @@ export default class MemoryCache extends SyncRecordCache {
     super(settings);
 
     this.reset(settings.base);
+  }
+
+  observeQuery(
+    queryOrExpressions: QueryOrExpressions,
+    options?: object,
+    id?: string
+  ): AsyncIterable<QueryResult> {
+    const query = buildQuery(
+      queryOrExpressions,
+      options,
+      id,
+      this.queryBuilder
+    );
+    const types = (query.expressions as any[])
+      .map(({ type }) => type)
+      .filter(type => type);
+    const filterByType = filter<RecordOperation | undefined>(
+      operation => !operation || types.indexOf(operation.record.type) !== -1
+    );
+    const executeQuery = map<RecordOperation | undefined, QueryResult>(() =>
+      this.query(query)
+    );
+
+    return {
+      [Symbol.asyncIterator]() {
+        const operations = fromEvent<RecordOperation | undefined>(this, ['patch', 'reset']);
+        return pipe(
+          filterByType,
+          executeQuery
+        )(operations);
+      }
+    };
   }
 
   getRecordSync(identity: RecordIdentity): Record | undefined {
