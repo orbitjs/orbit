@@ -26,9 +26,9 @@ export function isEvented(obj: any): boolean {
  * ```
  */
 export interface Evented {
-  on: (event: string, listener: Listener) => void;
+  on: (event: string, listener: Listener) => () => void;
   off: (event: string, listener?: Listener) => void;
-  one: (event: string, listener: Listener) => void;
+  one: (event: string, listener: Listener) => () => void;
   emit: (event: string, ...args: any[]) => void;
   listeners: (event: string) => Listener[];
 }
@@ -81,14 +81,14 @@ export default function evented(Klass: any): void {
 
   proto[EVENTED] = true;
 
-  proto.on = function(eventName: string, listener: Listener) {
+  proto.on = function(eventName: string, listener: Listener): () => void {
     if (arguments.length > 2) {
       deprecate(
         '`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `on`.'
       );
     }
 
-    notifierForEvent(this, eventName, true).addListener(listener);
+    return notifierForEvent(this, eventName, true).addListener(listener);
   };
 
   proto.off = function(eventName: string, listener: Listener) {
@@ -109,7 +109,7 @@ export default function evented(Klass: any): void {
     }
   };
 
-  proto.one = function(eventName: string, listener: Listener) {
+  proto.one = function(eventName: string, listener: Listener): () => void {
     if (arguments.length > 2) {
       deprecate(
         '`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `off`.'
@@ -123,7 +123,7 @@ export default function evented(Klass: any): void {
       notifier.removeListener(callOnce);
     };
 
-    notifier.addListener(callOnce);
+    return notifier.addListener(callOnce);
   };
 
   proto.emit = function(eventName: string, ...args: any[]) {
