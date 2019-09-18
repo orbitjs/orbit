@@ -164,22 +164,24 @@ function applyFilter(record: Record, filter: any) {
         );
     }
   } else if (filter.kind === 'relatedRecord') {
-    let relation = deepGet(record, ['relationships', filter.relation]);
-    let actual = relation === undefined ? undefined : relation.data;
+    let actual = deepGet(record, ['relationships', filter.relation, 'data']);
     let expected = filter.record;
     switch (filter.op) {
       case 'equal':
-        if (Array.isArray(expected)) {
-          return (
-            actual !== undefined &&
-            expected.some(e => actual.type === e.type && actual.id === e.id)
-          );
+        if (actual === undefined) {
+          return false;
+        } else if (actual === null) {
+          return expected === null;
         } else {
-          return (
-            actual !== undefined &&
-            actual.type === expected.type &&
-            actual.id === expected.id
-          );
+          if (Array.isArray(expected)) {
+            return expected.some(
+              e => actual.type === e.type && actual.id === e.id
+            );
+          } else if (expected) {
+            return actual.type === expected.type && actual.id === expected.id;
+          } else {
+            return false;
+          }
         }
       default:
         throw new QueryExpressionParseError(
