@@ -1999,7 +1999,7 @@ module('SyncRecordCache', function(hooks) {
       id: 'titan',
       type: 'moon',
       attributes: { name: 'titan' },
-      relationships: {}
+      relationships: { planet: { data: null } }
     };
 
     cache.patch(t => [
@@ -2015,6 +2015,13 @@ module('SyncRecordCache', function(hooks) {
       t.addRecord(deimos),
       t.addRecord(titan)
     ]);
+    arrayMembershipMatches(
+      assert,
+      cache.query(q =>
+        q.findRecords('moon').filter({ relation: 'planet', record: null })
+      ),
+      [titan]
+    );
     arrayMembershipMatches(
       assert,
       cache.query(q =>
@@ -3191,7 +3198,10 @@ module('SyncRecordCache', function(hooks) {
       id: 'titan',
       type: 'moon',
       attributes: { name: 'titan' },
-      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+      relationships: {
+        planet: { data: null },
+        star: { data: { type: 'star', id: 'sun' } }
+      }
     };
 
     cache.patch(t => [
@@ -3208,6 +3218,15 @@ module('SyncRecordCache', function(hooks) {
       t.addRecord(deimos),
       t.addRecord(titan)
     ]);
+    arrayMembershipMatches(
+      assert,
+      cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .filter({ relation: 'planet', record: null })
+      ),
+      [titan]
+    );
     arrayMembershipMatches(
       assert,
       cache.query(q =>
