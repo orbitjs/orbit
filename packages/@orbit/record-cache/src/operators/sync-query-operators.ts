@@ -101,9 +101,12 @@ function filterRecords(records: Record[], filters: any[]) {
   });
 }
 
-function applyFilter(record: Record, filter: any) {
+function applyFilter(record: Record, filter: any): boolean {
   if (filter.kind === 'attribute') {
     let actual = deepGet(record, ['attributes', filter.attribute]);
+    if (actual === undefined) {
+      return false;
+    }
     let expected = filter.value;
     switch (filter.op) {
       case 'equal':
@@ -123,8 +126,14 @@ function applyFilter(record: Record, filter: any) {
         );
     }
   } else if (filter.kind === 'relatedRecords') {
-    let relation = deepGet(record, ['relationships', filter.relation]);
-    let actual: RecordIdentity[] = relation === undefined ? [] : relation.data;
+    let actual: RecordIdentity[] = deepGet(record, [
+      'relationships',
+      filter.relation,
+      'data'
+    ]);
+    if (actual === undefined) {
+      return false;
+    }
     let expected: RecordIdentity[] = filter.records;
     switch (filter.op) {
       case 'equal':
@@ -154,12 +163,13 @@ function applyFilter(record: Record, filter: any) {
     }
   } else if (filter.kind === 'relatedRecord') {
     let actual = deepGet(record, ['relationships', filter.relation, 'data']);
+    if (actual === undefined) {
+      return false;
+    }
     let expected = filter.record;
     switch (filter.op) {
       case 'equal':
-        if (actual === undefined) {
-          return false;
-        } else if (actual === null) {
+        if (actual === null) {
           return expected === null;
         } else {
           if (Array.isArray(expected)) {

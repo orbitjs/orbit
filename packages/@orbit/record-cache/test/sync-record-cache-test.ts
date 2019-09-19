@@ -1865,7 +1865,7 @@ module('SyncRecordCache', function(hooks) {
           .findRecords('planet')
           .filter({ relation: 'moons', records: [ganymede], op: 'none' })
       ),
-      [earth, mars, mercury]
+      [earth, mars]
     );
   });
 
@@ -3019,7 +3019,7 @@ module('SyncRecordCache', function(hooks) {
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [ganymede], op: 'none' })
       ),
-      [earth, mars, mercury]
+      [earth, mars]
     );
   });
 
