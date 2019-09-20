@@ -1267,7 +1267,7 @@ module('MemoryCache', function(hooks) {
           .findRecords('planet')
           .filter({ relation: 'moons', records: [ganymede], op: 'none' })
       ),
-      [earth, mars, mercury]
+      [earth, mars]
     );
   });
 
