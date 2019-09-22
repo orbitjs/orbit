@@ -1,6 +1,6 @@
 {
   "name": "@orbit/local-storage",
-  "version": "0.16.1",
+  "version": "0.16.3",
   "description": "Local storage support for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -25,10 +25,10 @@
     "lint:ts": "eslint . --ext .ts"
   },
   "dependencies": {
-    "@orbit/core": "^0.16.1",
-    "@orbit/data": "^0.16.1",
-    "@orbit/record-cache": "^0.16.1",
-    "@orbit/utils": "^0.16.1"
+    "@orbit/core": "^0.16.3",
+    "@orbit/data": "^0.16.3",
+    "@orbit/record-cache": "^0.16.3",
+    "@orbit/utils": "^0.16.3"
   },
   "devDependencies": {
     "@glimmer/build": "^0.10.3",

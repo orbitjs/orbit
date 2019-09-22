@@ -1,6 +1,6 @@
 {
   "name": "@orbit/serializers",
-  "version": "0.16.1",
+  "version": "0.16.3",
   "description": "Serializers for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
