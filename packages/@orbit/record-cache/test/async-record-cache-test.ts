@@ -1892,7 +1892,7 @@ module('AsyncRecordCache', function(hooks) {
           .findRecords('planet')
           .filter({ relation: 'moons', records: [ganymede], op: 'none' })
       ),
-      [earth, mars, mercury]
+      [earth, mars]
     );
   });
 
@@ -1994,7 +1994,7 @@ module('AsyncRecordCache', function(hooks) {
       id: 'titan',
       type: 'moon',
       attributes: { name: 'titan' },
-      relationships: {}
+      relationships: { planet: { data: null } }
     };
 
     await cache.patch(t => [
@@ -2010,6 +2010,13 @@ module('AsyncRecordCache', function(hooks) {
       t.addRecord(deimos),
       t.addRecord(titan)
     ]);
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q.findRecords('moon').filter({ relation: 'planet', record: null })
+      ),
+      [titan]
+    );
     arrayMembershipMatches(
       assert,
       await cache.query(q =>
@@ -3036,7 +3043,7 @@ module('AsyncRecordCache', function(hooks) {
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [ganymede], op: 'none' })
       ),
-      [earth, mars, mercury]
+      [earth, mars]
     );
   });
 
@@ -3183,7 +3190,10 @@ module('AsyncRecordCache', function(hooks) {
       id: 'titan',
       type: 'moon',
       attributes: { name: 'titan' },
-      relationships: { star: { data: { type: 'star', id: 'sun' } } }
+      relationships: {
+        planet: { data: null },
+        star: { data: { type: 'star', id: 'sun' } }
+      }
     };
 
     await cache.patch(t => [
@@ -3200,6 +3210,15 @@ module('AsyncRecordCache', function(hooks) {
       t.addRecord(deimos),
       t.addRecord(titan)
     ]);
+    arrayMembershipMatches(
+      assert,
+      await cache.query(q =>
+        q
+          .findRelatedRecords(sun, 'celestialObjects')
+          .filter({ relation: 'planet', record: null })
+      ),
+      [titan]
+    );
     arrayMembershipMatches(
       assert,
       await cache.query(q =>

@@ -258,7 +258,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   protected async _applyPatchOperations(
     ops: RecordOperation[],
     result: PatchResult,
-    primary: boolean = false
+    primary = false
   ) {
     for (let op of ops) {
       await this._applyPatchOperation(op, result, primary);
@@ -268,7 +268,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   protected async _applyPatchOperation(
     operation: RecordOperation,
     result: PatchResult,
-    primary: boolean = false
+    primary = false
   ) {
     if ((operation.op as string) === 'replaceRecord') {
       Orbit.deprecate(

@@ -1,9 +1,7 @@
 {
-  "packages": [
-    "packages/@orbit/*"
-  ],
   "version": "0.16.2",
   "npmClient": "yarn",
+  "useWorkspaces": true,
   "publish": {
     "ignoreChanges": [
       "*.md"
