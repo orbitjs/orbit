@@ -1,5 +1,48 @@
 # Changelog
 
+## v0.17.0-beta.1 (2019-09-22)
+
+#### :rocket: Enhancement
+
+- `@orbit/core`, `@orbit/data`, `@orbit/record-cache`
+  - [#695](https://github.com/orbitjs/orbit/pull/695) Return off function from evented subscribers ([@tchak](https://github.com/tchak))
+- `@orbit/indexeddb`, `@orbit/local-storage`
+  - [#689](https://github.com/orbitjs/orbit/pull/689) Various small improvements to indexeddb and local-storage sources ([@tchak](https://github.com/tchak))
+- `@orbit/indexeddb`
+  - [#694](https://github.com/orbitjs/orbit/pull/694) Move indexeddb database opening code to source activate hook ([@tchak](https://github.com/tchak))
+- `@orbit/data`, `@orbit/indexeddb`, `@orbit/jsonapi`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`
+  - [#688](https://github.com/orbitjs/orbit/pull/688) Query with multiple expressions ([@tchak](https://github.com/tchak))
+
+#### Committers: 1
+
+- Paul Chavard ([@tchak](https://github.com/tchak))
+
+## v0.16.3 (2019-09-22)
+
+#### :bug: Bug Fix
+
+- `@orbit/memory`, `@orbit/record-cache`
+  - [#702](https://github.com/orbitjs/orbit/pull/702) Always ignore undefined values when filtering ([@dgeb](https://github.com/dgeb))
+- `@orbit/record-cache`
+  - [#701](https://github.com/orbitjs/orbit/pull/701) fix: added null case to relatedRecord filter processing ([@Michiel87](https://github.com/Michiel87))
+
+#### :house: Internal
+
+- `@orbit/coordinator`
+  - [#697](https://github.com/orbitjs/orbit/pull/697) Bump mixin-deep from 1.3.1 to 1.3.2 in /packages/@orbit/coordinator ([@dependabot[bot]](https://github.com/apps/dependabot))
+- `@orbit/utils`
+  - [#698](https://github.com/orbitjs/orbit/pull/698) Bump mixin-deep from 1.3.1 to 1.3.2 in /packages/@orbit/utils ([@dependabot[bot]](https://github.com/apps/dependabot))
+- `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/serializers`, `@orbit/store`, `@orbit/utils`
+  - [#693](https://github.com/orbitjs/orbit/pull/693) Update dependencies ([@tchak](https://github.com/tchak))
+- Other
+  - [#691](https://github.com/orbitjs/orbit/pull/691) Use yarn workspaces ([@tchak](https://github.com/tchak))
+
+#### Committers: 3
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+- Michiel de Vos ([@Michiel87](https://github.com/Michiel87))
+- Paul Chavard ([@tchak](https://github.com/tchak))
+
 ## v0.16.2 (2019-09-05)
 
 #### :bug: Bug Fix
