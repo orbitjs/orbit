@@ -205,18 +205,20 @@ module('Operation', function() {
             record: { type: 'contact', id: '1234' },
             relationship: 'address',
             relatedRecord: null
-          }, {
+          },
+          {
             op: 'replaceAttribute',
             record: { type: 'contact', id: '1234' },
             attribute: 'name',
             value: 'James'
-          },
+          }
         ]),
         [
           {
             op: 'updateRecord',
             record: {
-              type: 'contact', id: '1234',
+              type: 'contact',
+              id: '1234',
               attributes: {
                 name: 'James'
               },
