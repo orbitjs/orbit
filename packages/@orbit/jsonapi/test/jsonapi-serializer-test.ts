@@ -154,6 +154,38 @@ module('JSONAPISerializer', function(hooks) {
       );
     });
 
+    test('#serialize will pass null values without throwing', function(assert) {
+      assert.deepEqual(
+        serializer.serialize({
+          data: {
+            type: 'person',
+            id: '123',
+            attributes: {
+              name: null,
+              birthday: null,
+              birthtime: null,
+              height: null, // meters
+              isAdult: null
+            }
+          }
+        }),
+        {
+          data: {
+            type: 'persons',
+            id: '123',
+            attributes: {
+              name: null,
+              birthday: null,
+              birthtime: null,
+              height: null, // cm (with 2 digits)
+              'is-adult': null
+            }
+          }
+        },
+        'serialized document matches'
+      );
+    });
+
     test('#deserialize will use available serializers for attribute values', function(assert) {
       let result = serializer.deserialize({
         data: {
