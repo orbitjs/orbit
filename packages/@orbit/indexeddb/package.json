@@ -1,6 +1,6 @@
 {
   "name": "@orbit/indexeddb",
-  "version": "0.16.3",
+  "version": "0.16.4",
   "description": "IndexedDB support for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -26,8 +26,8 @@
   },
   "dependencies": {
     "@orbit/core": "^0.16.3",
-    "@orbit/data": "^0.16.3",
-    "@orbit/record-cache": "^0.16.3",
+    "@orbit/data": "^0.16.4",
+    "@orbit/record-cache": "^0.16.4",
     "@orbit/utils": "^0.16.3"
   },
   "devDependencies": {
