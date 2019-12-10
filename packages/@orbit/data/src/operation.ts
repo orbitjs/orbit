@@ -320,12 +320,12 @@ function updateRecordReplaceAttribute(
 function updateRecordReplaceHasOne(
   record: Record,
   relationship: string,
-  relatedRecord: RecordIdentity
+  relatedRecord: RecordIdentity | null
 ) {
   deepSet(
     record,
     ['relationships', relationship, 'data'],
-    cloneRecordIdentity(relatedRecord)
+    relatedRecord ? cloneRecordIdentity(relatedRecord) : null
   );
 }
 
