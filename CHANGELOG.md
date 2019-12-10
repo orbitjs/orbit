@@ -17,6 +17,18 @@
 
 - Paul Chavard ([@tchak](https://github.com/tchak))
 
+## v0.16.4 (2019-12-10)
+
+#### :bug: Bug Fix
+* `@orbit/data`
+  * [#710](https://github.com/orbitjs/orbit/pull/710) Allow mergeOperations to set null for hasOne relationship ([@jembezmamy](https://github.com/jembezmamy))
+* `@orbit/jsonapi`
+  * [#712](https://github.com/orbitjs/orbit/pull/712) [BUGFIX] Always allow serialization of null attributes ([@makepanic](https://github.com/makepanic))
+
+#### Committers: 2
+- Christian ([@makepanic](https://github.com/makepanic))
+- Paweł Bator ([@jembezmamy](https://github.com/jembezmamy))
+
 ## v0.16.3 (2019-09-22)
 
 #### :bug: Bug Fix
