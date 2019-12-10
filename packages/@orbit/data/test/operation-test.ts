@@ -197,6 +197,42 @@ module('Operation', function() {
       );
     });
 
+    test('can coalesce replaceAttribute + replaceRelatedRecord with null', function(assert) {
+      assert.deepEqual(
+        coalesceRecordOperations([
+          {
+            op: 'replaceRelatedRecord',
+            record: { type: 'contact', id: '1234' },
+            relationship: 'address',
+            relatedRecord: null
+          },
+          {
+            op: 'replaceAttribute',
+            record: { type: 'contact', id: '1234' },
+            attribute: 'name',
+            value: 'James'
+          }
+        ]),
+        [
+          {
+            op: 'updateRecord',
+            record: {
+              type: 'contact',
+              id: '1234',
+              attributes: {
+                name: 'James'
+              },
+              relationships: {
+                address: {
+                  data: null
+                }
+              }
+            }
+          }
+        ]
+      );
+    });
+
     test('can coalesce addRecord + addToRelatedRecords for the same record', function(assert) {
       assert.deepEqual(
         coalesceRecordOperations([
