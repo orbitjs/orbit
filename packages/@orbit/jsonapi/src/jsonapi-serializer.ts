@@ -371,7 +371,10 @@ export class JSONAPISerializer
     }
     const serializer = this._serializers[attrOptions.type];
     if (serializer) {
-      value = serializer.serialize(value, attrOptions.serializationOptions);
+      value =
+        value === null
+          ? null
+          : serializer.serialize(value, attrOptions.serializationOptions);
     }
     deepSet(
       resource,
