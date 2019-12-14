@@ -33,10 +33,10 @@ module('Store + JSONAPISource + remote IDs + optimistic coordination', function(
             lengthOfDay: { type: 'number' }
           },
           relationships: {
-            moons: { type: 'hasMany', model: 'moon', inverse: 'planet' },
+            moons: { kind: 'hasMany', type: 'moon', inverse: 'planet' },
             solarSystem: {
-              type: 'hasOne',
-              model: 'solarSystem',
+              kind: 'hasOne',
+              type: 'solarSystem',
               inverse: 'planets'
             }
           }
@@ -49,7 +49,7 @@ module('Store + JSONAPISource + remote IDs + optimistic coordination', function(
             name: { type: 'string' }
           },
           relationships: {
-            planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
+            planet: { kind: 'hasOne', type: 'planet', inverse: 'moons' }
           }
         },
         solarSystem: {
@@ -61,8 +61,8 @@ module('Store + JSONAPISource + remote IDs + optimistic coordination', function(
           },
           relationships: {
             planets: {
-              type: 'hasMany',
-              model: 'planet',
+              kind: 'hasMany',
+              type: 'planet',
               inverse: 'solarSystem'
             }
           }

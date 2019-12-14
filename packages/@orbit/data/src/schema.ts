@@ -12,7 +12,8 @@ export interface AttributeDefinition {
 }
 
 export interface RelationshipDefinition {
-  type: 'hasMany' | 'hasOne';
+  kind?: 'hasMany' | 'hasOne';
+  type?: string | string[];
   model?: string | string[];
   inverse?: string;
   dependent?: 'remove';
@@ -146,6 +147,7 @@ export default class Schema implements Evented, RecordInitializer {
 
     // Register model schemas
     if (settings.models) {
+      this._deprecateRelationshipModel(settings.models);
       this._models = settings.models;
     }
   }
@@ -241,5 +243,20 @@ export default class Schema implements Evented, RecordInitializer {
     for (let name in relationships) {
       callbackFn(name, relationships[name]);
     }
+  }
+
+  _deprecateRelationshipModel(models: Dict<ModelDefinition>) {
+    Object.keys(models).forEach(type => {
+      if (models[type].relationships) {
+        Object.keys(models[type].relationships).forEach(name => {
+          let relationship = models[type].relationships[name];
+          if (relationship.model) {
+            Orbit.deprecate(
+              'RelationshipDefinition.model is deprecated, use `type` and `kind` instead.'
+            );
+          }
+        });
+      }
+    });
   }
 }

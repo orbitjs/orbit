@@ -16,10 +16,10 @@ module('JSONAPISerializer', function(hooks) {
         classification: { type: 'string' }
       },
       relationships: {
-        moons: { type: 'hasMany', model: 'moon', inverse: 'planet' },
+        moons: { kind: 'hasMany', type: 'moon', inverse: 'planet' },
         solarSystem: {
-          type: 'hasOne',
-          model: 'solarSystem',
+          kind: 'hasOne',
+          type: 'solarSystem',
           inverse: 'planets'
         }
       }
@@ -32,7 +32,7 @@ module('JSONAPISerializer', function(hooks) {
         name: { type: 'string' }
       },
       relationships: {
-        planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
+        planet: { kind: 'hasOne', type: 'planet', inverse: 'moons' }
       }
     },
     solarSystem: {
@@ -43,7 +43,7 @@ module('JSONAPISerializer', function(hooks) {
         name: { type: 'string' }
       },
       relationships: {
-        planets: { type: 'hasMany', model: 'planet', inverse: 'solarSystem' }
+        planets: { kind: 'hasMany', type: 'planet', inverse: 'solarSystem' }
       }
     }
   };

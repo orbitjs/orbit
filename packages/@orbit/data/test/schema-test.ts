@@ -114,7 +114,7 @@ module('Schema', function() {
       models: {
         planet: {
           relationships: {
-            moons: { type: 'hasMany', model: 'moon' }
+            moons: { kind: 'hasMany', type: 'moon' }
           }
         },
         moon: {}
@@ -147,7 +147,7 @@ module('Schema', function() {
             name: { type: 'string' }
           },
           relationships: {
-            moons: { type: 'hasMany', model: 'moon' }
+            moons: { kind: 'hasMany', type: 'moon' }
           }
         },
         moon: {}
@@ -170,7 +170,7 @@ module('Schema', function() {
       models: {
         planet: {
           relationships: {
-            moons: { type: 'hasMany', model: 'moon' }
+            moons: { kind: 'hasMany', type: 'moon' }
           }
         },
         moon: {}
@@ -178,8 +178,8 @@ module('Schema', function() {
     });
 
     assert.deepEqual(schema.getRelationship('planet', 'moons'), {
-      type: 'hasMany',
-      model: 'moon'
+      kind: 'hasMany',
+      type: 'moon'
     });
   });
 
@@ -191,7 +191,7 @@ module('Schema', function() {
             name: { type: 'string' }
           },
           relationships: {
-            moons: { type: 'hasMany', model: 'moon' }
+            moons: { kind: 'hasMany', type: 'moon' }
           }
         },
         moon: {}
@@ -205,7 +205,7 @@ module('Schema', function() {
     });
 
     assert.deepEqual(relationships, {
-      moons: { type: 'hasMany', model: 'moon' }
+      moons: { kind: 'hasMany', type: 'moon' }
     });
   });
 

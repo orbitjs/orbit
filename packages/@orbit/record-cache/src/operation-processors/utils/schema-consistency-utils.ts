@@ -231,7 +231,7 @@ export function recordUpdated(
           | undefined);
 
       if (relationshipData !== undefined) {
-        if (relationshipDef.type === 'hasMany') {
+        if ((relationshipDef.kind || relationshipDef.type) === 'hasMany') {
           Array.prototype.push.apply(
             ops,
             relatedRecordsReplaced(
@@ -302,7 +302,8 @@ export function addRelationshipOp(
   relatedRecord: RecordIdentity
 ): RecordOperation {
   const relationshipDef = schema.getRelationship(record.type, relationship);
-  const isHasMany = relationshipDef.type === 'hasMany';
+  const isHasMany =
+    (relationshipDef.kind || relationshipDef.type) === 'hasMany';
 
   return {
     op: isHasMany ? 'addToRelatedRecords' : 'replaceRelatedRecord',
@@ -319,7 +320,8 @@ export function removeRelationshipOp(
   relatedRecord: RecordIdentity
 ): RecordOperation {
   const relationshipDef = schema.getRelationship(record.type, relationship);
-  const isHasMany = relationshipDef.type === 'hasMany';
+  const isHasMany =
+    (relationshipDef.kind || relationshipDef.type) === 'hasMany';
 
   return {
     op: isHasMany ? 'removeFromRelatedRecords' : 'replaceRelatedRecord',

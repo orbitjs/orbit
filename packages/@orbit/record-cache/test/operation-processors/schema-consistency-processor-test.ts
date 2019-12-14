@@ -32,14 +32,14 @@ module('SchemaConsistencyProcessor', function(hooks) {
           classification: { type: 'string' }
         },
         relationships: {
-          moons: { type: 'hasMany', model: 'moon', inverse: 'planet' },
+          moons: { kind: 'hasMany', type: 'moon', inverse: 'planet' },
           inhabitants: {
-            type: 'hasMany',
-            model: 'inhabitant',
+            kind: 'hasMany',
+            type: 'inhabitant',
             inverse: 'planets'
           },
-          next: { type: 'hasOne', model: 'planet', inverse: 'previous' },
-          previous: { type: 'hasOne', model: 'planet', inverse: 'next' }
+          next: { kind: 'hasOne', type: 'planet', inverse: 'previous' },
+          previous: { kind: 'hasOne', type: 'planet', inverse: 'next' }
         }
       },
       moon: {
@@ -47,7 +47,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
           name: { type: 'string' }
         },
         relationships: {
-          planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
+          planet: { kind: 'hasOne', type: 'planet', inverse: 'moons' }
         }
       },
       inhabitant: {
@@ -55,7 +55,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
           name: { type: 'string' }
         },
         relationships: {
-          planets: { type: 'hasMany', model: 'planet', inverse: 'inhabitants' }
+          planets: { kind: 'hasMany', type: 'planet', inverse: 'inhabitants' }
         }
       }
     }
