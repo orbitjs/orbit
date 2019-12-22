@@ -4,9 +4,11 @@ export * from './record-accessor';
 
 export * from './async-record-cache';
 export * from './async-operation-processor';
+export * from './live-query/async-live-query';
 
 export * from './sync-record-cache';
 export * from './sync-operation-processor';
+export * from './live-query/sync-live-query';
 
 // Operators
 export * from './operators/async-inverse-patch-operators';
