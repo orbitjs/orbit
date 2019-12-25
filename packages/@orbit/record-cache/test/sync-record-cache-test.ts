@@ -25,8 +25,8 @@ module('SyncRecordCache', function(hooks) {
           },
           relationships: {
             celestialObjects: {
-              type: 'hasMany',
-              model: ['planet', 'moon'],
+              kind: 'hasMany',
+              type: ['planet', 'moon'],
               inverse: 'star'
             }
           }
@@ -36,8 +36,8 @@ module('SyncRecordCache', function(hooks) {
             remoteId: {}
           },
           relationships: {
-            moons: { type: 'hasMany', model: 'moon', inverse: 'planet' },
-            star: { type: 'hasOne', model: 'star', inverse: 'celestialObjects' }
+            moons: { kind: 'hasMany', type: 'moon', inverse: 'planet' },
+            star: { kind: 'hasOne', type: 'star', inverse: 'celestialObjects' }
           }
         },
         moon: {
@@ -45,8 +45,8 @@ module('SyncRecordCache', function(hooks) {
             remoteId: {}
           },
           relationships: {
-            planet: { type: 'hasOne', model: 'planet', inverse: 'moons' },
-            star: { type: 'hasOne', model: 'star', inverse: 'celestialObjects' }
+            planet: { kind: 'hasOne', type: 'planet', inverse: 'moons' },
+            star: { kind: 'hasOne', type: 'star', inverse: 'celestialObjects' }
           }
         }
       }
