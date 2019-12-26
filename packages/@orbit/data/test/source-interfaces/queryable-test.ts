@@ -307,7 +307,10 @@ module('@queryable', function(hooks) {
     assert.equal(++order, 6, 'promise resolved last');
     assert.deepEqual(
       result,
-      [{ type: 'planet', id: 'venus' }, { type: 'planet', id: 'mars' }],
+      [
+        { type: 'planet', id: 'venus' },
+        { type: 'planet', id: 'mars' }
+      ],
       'success!'
     );
   });

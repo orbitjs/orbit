@@ -354,7 +354,10 @@ module('MemoryCache', function(hooks) {
       attributes: { name: 'Jupiter' },
       relationships: {
         moons: {
-          data: [{ type: 'moon', id: 'm1' }, { type: 'moon', id: 'm2' }]
+          data: [
+            { type: 'moon', id: 'm1' },
+            { type: 'moon', id: 'm2' }
+          ]
         }
       }
     };
@@ -368,7 +371,10 @@ module('MemoryCache', function(hooks) {
     assert.deepEqual(
       cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons
         .data,
-      [{ type: 'moon', id: 'm1' }, { type: 'moon', id: 'm2' }],
+      [
+        { type: 'moon', id: 'm1' },
+        { type: 'moon', id: 'm2' }
+      ],
       'Jupiter has been assigned to Io and Europa'
     );
     assert.ok(
@@ -1134,7 +1140,10 @@ module('MemoryCache', function(hooks) {
       },
       relationships: {
         moons: {
-          data: [{ type: 'moon', id: 'phobos' }, { type: 'moon', id: 'deimos' }]
+          data: [
+            { type: 'moon', id: 'phobos' },
+            { type: 'moon', id: 'deimos' }
+          ]
         }
       }
     };
@@ -1316,7 +1325,10 @@ module('MemoryCache', function(hooks) {
       },
       relationships: {
         moons: {
-          data: [{ type: 'moon', id: 'phobos' }, { type: 'moon', id: 'deimos' }]
+          data: [
+            { type: 'moon', id: 'phobos' },
+            { type: 'moon', id: 'deimos' }
+          ]
         }
       }
     };
@@ -1579,12 +1591,10 @@ module('MemoryCache', function(hooks) {
       t.addRecord(mercury)
     ]);
 
-    assert.deepEqual(cache.query(q => q.findRecords('planet').sort('name')), [
-      earth,
-      jupiter,
-      mercury,
-      venus
-    ]);
+    assert.deepEqual(
+      cache.query(q => q.findRecords('planet').sort('name')),
+      [earth, jupiter, mercury, venus]
+    );
   });
 
   test('#query can sort by an attribute, even when a particular record has none', function(assert) {
@@ -1626,12 +1636,10 @@ module('MemoryCache', function(hooks) {
       t.addRecord(mercury)
     ]);
 
-    assert.deepEqual(cache.query(q => q.findRecords('planet').sort('name')), [
-      earth,
-      mercury,
-      venus,
-      jupiter
-    ]);
+    assert.deepEqual(
+      cache.query(q => q.findRecords('planet').sort('name')),
+      [earth, mercury, venus, jupiter]
+    );
   });
 
   test('#query can filter and sort by attributes', function(assert) {
@@ -1742,12 +1750,10 @@ module('MemoryCache', function(hooks) {
       t.addRecord(mercury)
     ]);
 
-    assert.deepEqual(cache.query(q => q.findRecords('planet').sort('-name')), [
-      venus,
-      mercury,
-      jupiter,
-      earth
-    ]);
+    assert.deepEqual(
+      cache.query(q => q.findRecords('planet').sort('-name')),
+      [venus, mercury, jupiter, earth]
+    );
   });
 
   test('#query can sort by according to multiple criteria', function(assert) {
@@ -1849,7 +1855,10 @@ module('MemoryCache', function(hooks) {
 
     cache.patch(t => [t.addRecord(jupiter), t.addRecord(callisto)]);
 
-    assert.deepEqual(cache.query(q => q.findRecords('planet')), [jupiter]);
+    assert.deepEqual(
+      cache.query(q => q.findRecords('planet')),
+      [jupiter]
+    );
   });
 
   test('#query - findRecords - records by identity', async function(assert) {
@@ -1929,12 +1938,10 @@ module('MemoryCache', function(hooks) {
       t.addRecord(mars)
     ]);
 
-    assert.deepEqual(cache.query(q => q.findRecords('planet').sort('name')), [
-      earth,
-      jupiter,
-      mars,
-      venus
-    ]);
+    assert.deepEqual(
+      cache.query(q => q.findRecords('planet').sort('name')),
+      [earth, jupiter, mars, venus]
+    );
 
     assert.deepEqual(
       cache.query(q =>

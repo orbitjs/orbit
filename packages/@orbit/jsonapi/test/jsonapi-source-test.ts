@@ -593,10 +593,10 @@ module('JSONAPISource', function() {
         t.replaceAttribute(planet, 'classification', 'terrestrial')
       );
 
-      assert.deepEqual(transforms[1].operations.map(o => o.op), [
-        'replaceAttribute',
-        'replaceKey'
-      ]);
+      assert.deepEqual(
+        transforms[1].operations.map(o => o.op),
+        ['replaceAttribute', 'replaceKey']
+      );
       assert.deepEqual(
         transforms[1].operations.map((o: ReplaceKeyOperation) => o.value),
         ['Mars', 'remote-id-123']
@@ -1463,10 +1463,10 @@ module('JSONAPISource', function() {
         t.replaceAttribute(planet, 'classification', 'terrestrial')
       );
 
-      assert.deepEqual(transforms[1].operations.map(o => o.op), [
-        'replaceAttribute',
-        'replaceKey'
-      ]);
+      assert.deepEqual(
+        transforms[1].operations.map(o => o.op),
+        ['replaceAttribute', 'replaceKey']
+      );
       assert.deepEqual(
         transforms[1].operations.map((o: ReplaceKeyOperation) => o.value),
         ['Mars', 'remote-id-123']
@@ -2000,9 +2000,10 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        ['updateRecord']
+      );
       assert.deepEqual(
         transforms[0].operations.map(
           (o: UpdateRecordOperation) => o.record.attributes.name
@@ -2176,11 +2177,10 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord',
-        'updateRecord',
-        'updateRecord'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        ['updateRecord', 'updateRecord', 'updateRecord']
+      );
       assert.deepEqual(
         transforms[0].operations.map(
           (o: UpdateRecordOperation) => o.record.attributes.name
@@ -2219,9 +2219,10 @@ module('JSONAPISource', function() {
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        ['updateRecord']
+      );
       assert.deepEqual(
         transforms[0].operations.map(
           (o: UpdateRecordOperation) => o.record.attributes.name
@@ -2272,9 +2273,10 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        ['updateRecord']
+      );
       assert.deepEqual(
         transforms[0].operations.map(
           (o: UpdateRecordOperation) => o.record.attributes.name
@@ -2320,9 +2322,10 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        ['updateRecord']
+      );
       assert.deepEqual(
         transforms[0].operations.map(
           (o: UpdateRecordOperation) => o.record.attributes.name
@@ -2391,11 +2394,10 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord',
-        'updateRecord',
-        'updateRecord'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        ['updateRecord', 'updateRecord', 'updateRecord']
+      );
       assert.deepEqual(
         transforms[0].operations.map(
           (o: UpdateRecordOperation) => o.record.attributes.name
@@ -2454,9 +2456,10 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        ['updateRecord']
+      );
       assert.deepEqual(
         transforms[0].operations.map(
           (o: UpdateRecordOperation) => o.record.attributes.name
@@ -2503,11 +2506,10 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord',
-        'updateRecord',
-        'updateRecord'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        ['updateRecord', 'updateRecord', 'updateRecord']
+      );
       assert.deepEqual(
         transforms[0].operations.map(
           (o: UpdateRecordOperation) => o.record.attributes.name
@@ -2554,11 +2556,10 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord',
-        'updateRecord',
-        'updateRecord'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        ['updateRecord', 'updateRecord', 'updateRecord']
+      );
       assert.deepEqual(
         transforms[0].operations.map(
           (o: UpdateRecordOperation) => o.record.attributes.name
@@ -2617,11 +2618,10 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord',
-        'updateRecord',
-        'updateRecord'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        ['updateRecord', 'updateRecord', 'updateRecord']
+      );
       assert.deepEqual(
         transforms[0].operations.map(
           (o: UpdateRecordOperation) => o.record.attributes.name
@@ -2672,11 +2672,10 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord',
-        'updateRecord',
-        'updateRecord'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        ['updateRecord', 'updateRecord', 'updateRecord']
+      );
       assert.deepEqual(
         transforms[0].operations.map(
           (o: UpdateRecordOperation) => o.record.attributes.name
@@ -2740,10 +2739,10 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord',
-        'addToRelatedRecords'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        ['updateRecord', 'addToRelatedRecords']
+      );
 
       let op1 = transforms[0].operations[0] as UpdateRecordOperation;
 
@@ -2799,10 +2798,10 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord',
-        'addToRelatedRecords'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        ['updateRecord', 'addToRelatedRecords']
+      );
 
       let op1 = transforms[0].operations[0] as UpdateRecordOperation;
 
@@ -2857,10 +2856,10 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord',
-        'addToRelatedRecords'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        ['updateRecord', 'addToRelatedRecords']
+      );
 
       let op1 = transforms[0].operations[0] as UpdateRecordOperation;
 
@@ -2934,24 +2933,26 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord',
-        'updateRecord',
-        'updateRecord',
-        'addToRelatedRecords',
-        'addToRelatedRecords',
-        'addToRelatedRecords'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        [
+          'updateRecord',
+          'updateRecord',
+          'updateRecord',
+          'addToRelatedRecords',
+          'addToRelatedRecords',
+          'addToRelatedRecords'
+        ]
+      );
 
       let op1 = transforms[0].operations[0] as UpdateRecordOperation;
       let op2 = transforms[0].operations[1] as UpdateRecordOperation;
       let op3 = transforms[0].operations[2] as UpdateRecordOperation;
 
-      assert.deepEqual([op1, op2, op3].map(o => o.record.attributes.name), [
-        'Moon',
-        'Phobos',
-        'Deimos'
-      ]);
+      assert.deepEqual(
+        [op1, op2, op3].map(o => o.record.attributes.name),
+        ['Moon', 'Phobos', 'Deimos']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -3011,10 +3012,10 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord',
-        'addToRelatedRecords'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        ['updateRecord', 'addToRelatedRecords']
+      );
 
       let op1 = transforms[0].operations[0] as UpdateRecordOperation;
 
@@ -3066,24 +3067,26 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord',
-        'updateRecord',
-        'updateRecord',
-        'addToRelatedRecords',
-        'addToRelatedRecords',
-        'addToRelatedRecords'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        [
+          'updateRecord',
+          'updateRecord',
+          'updateRecord',
+          'addToRelatedRecords',
+          'addToRelatedRecords',
+          'addToRelatedRecords'
+        ]
+      );
 
       let op1 = transforms[0].operations[0] as UpdateRecordOperation;
       let op2 = transforms[0].operations[1] as UpdateRecordOperation;
       let op3 = transforms[0].operations[2] as UpdateRecordOperation;
 
-      assert.deepEqual([op1, op2, op3].map(o => o.record.attributes.name), [
-        'Earth',
-        'Jupiter',
-        'Saturn'
-      ]);
+      assert.deepEqual(
+        [op1, op2, op3].map(o => o.record.attributes.name),
+        ['Earth', 'Jupiter', 'Saturn']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -3131,24 +3134,26 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord',
-        'updateRecord',
-        'updateRecord',
-        'addToRelatedRecords',
-        'addToRelatedRecords',
-        'addToRelatedRecords'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        [
+          'updateRecord',
+          'updateRecord',
+          'updateRecord',
+          'addToRelatedRecords',
+          'addToRelatedRecords',
+          'addToRelatedRecords'
+        ]
+      );
 
       let op1 = transforms[0].operations[0] as UpdateRecordOperation;
       let op2 = transforms[0].operations[1] as UpdateRecordOperation;
       let op3 = transforms[0].operations[2] as UpdateRecordOperation;
 
-      assert.deepEqual([op1, op2, op3].map(o => o.record.attributes.name), [
-        'Saturn',
-        'Jupiter',
-        'Earth'
-      ]);
+      assert.deepEqual(
+        [op1, op2, op3].map(o => o.record.attributes.name),
+        ['Saturn', 'Jupiter', 'Earth']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -3212,24 +3217,26 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord',
-        'updateRecord',
-        'updateRecord',
-        'addToRelatedRecords',
-        'addToRelatedRecords',
-        'addToRelatedRecords'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        [
+          'updateRecord',
+          'updateRecord',
+          'updateRecord',
+          'addToRelatedRecords',
+          'addToRelatedRecords',
+          'addToRelatedRecords'
+        ]
+      );
 
       let op1 = transforms[0].operations[0] as UpdateRecordOperation;
       let op2 = transforms[0].operations[1] as UpdateRecordOperation;
       let op3 = transforms[0].operations[2] as UpdateRecordOperation;
 
-      assert.deepEqual([op1, op2, op3].map(o => o.record.attributes.name), [
-        'Jupiter',
-        'Saturn',
-        'Earth'
-      ]);
+      assert.deepEqual(
+        [op1, op2, op3].map(o => o.record.attributes.name),
+        ['Jupiter', 'Saturn', 'Earth']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -3283,24 +3290,26 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord',
-        'updateRecord',
-        'updateRecord',
-        'addToRelatedRecords',
-        'addToRelatedRecords',
-        'addToRelatedRecords'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        [
+          'updateRecord',
+          'updateRecord',
+          'updateRecord',
+          'addToRelatedRecords',
+          'addToRelatedRecords',
+          'addToRelatedRecords'
+        ]
+      );
 
       let op1 = transforms[0].operations[0] as UpdateRecordOperation;
       let op2 = transforms[0].operations[1] as UpdateRecordOperation;
       let op3 = transforms[0].operations[2] as UpdateRecordOperation;
 
-      assert.deepEqual([op1, op2, op3].map(o => o.record.attributes.name), [
-        'Jupiter',
-        'Earth',
-        'Saturn'
-      ]);
+      assert.deepEqual(
+        [op1, op2, op3].map(o => o.record.attributes.name),
+        ['Jupiter', 'Earth', 'Saturn']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -3400,10 +3409,10 @@ module('JSONAPISource', function() {
       const planetId = keyMap.keyToId('planet', 'remoteId', 'jupiter');
       const ssId = keyMap.keyToId('solarSystem', 'remoteId', 'ours');
 
-      assert.deepEqual(operations.map(o => o.op), [
-        'updateRecord',
-        'replaceRelatedRecord'
-      ]);
+      assert.deepEqual(
+        operations.map(o => o.op),
+        ['updateRecord', 'replaceRelatedRecord']
+      );
 
       const op1 = operations[0] as UpdateRecordOperation;
       assert.equal(op1.record.type, 'solarSystem');
@@ -3460,10 +3469,10 @@ module('JSONAPISource', function() {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
-      assert.deepEqual(transforms[0].operations.map(o => o.op), [
-        'updateRecord',
-        'replaceRelatedRecords'
-      ]);
+      assert.deepEqual(
+        transforms[0].operations.map(o => o.op),
+        ['updateRecord', 'replaceRelatedRecords']
+      );
 
       const op1 = transforms[0].operations[0] as UpdateRecordOperation;
       assert.equal(op1.record.attributes.name, 'Io');
@@ -3471,7 +3480,10 @@ module('JSONAPISource', function() {
       const op2 = transforms[0].operations[1] as ReplaceRelatedRecordsOperation;
       assert.equal(op2.record.id, planetRecord.id);
       assert.equal(op2.relationship, 'moons');
-      assert.deepEqual(op2.relatedRecords.map(r => r.id), [op1.record.id]);
+      assert.deepEqual(
+        op2.relatedRecords.map(r => r.id),
+        [op1.record.id]
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -3803,11 +3815,10 @@ module('JSONAPISource', function() {
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
-      assert.deepEqual(records.map(o => o.attributes.name), [
-        'Jupiter',
-        'Earth',
-        'Saturn'
-      ]);
+      assert.deepEqual(
+        records.map(o => o.attributes.name),
+        ['Jupiter', 'Earth', 'Saturn']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -3841,7 +3852,10 @@ module('JSONAPISource', function() {
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
-      assert.deepEqual(records.map(o => o.attributes.name), ['Earth']);
+      assert.deepEqual(
+        records.map(o => o.attributes.name),
+        ['Earth']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -3878,7 +3892,10 @@ module('JSONAPISource', function() {
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
-      assert.deepEqual(records.map(o => o.attributes.name), ['Moon']);
+      assert.deepEqual(
+        records.map(o => o.attributes.name),
+        ['Moon']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -3938,11 +3955,10 @@ module('JSONAPISource', function() {
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
-      assert.deepEqual(records.map(o => o.attributes.name), [
-        'Moon',
-        'Phobos',
-        'Deimos'
-      ]);
+      assert.deepEqual(
+        records.map(o => o.attributes.name),
+        ['Moon', 'Phobos', 'Deimos']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -3992,7 +4008,10 @@ module('JSONAPISource', function() {
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
-      assert.deepEqual(records.map(o => o.attributes.name), ['Mars']);
+      assert.deepEqual(
+        records.map(o => o.attributes.name),
+        ['Mars']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -4030,11 +4049,10 @@ module('JSONAPISource', function() {
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
-      assert.deepEqual(records.map(o => o.attributes.name), [
-        'Earth',
-        'Jupiter',
-        'Saturn'
-      ]);
+      assert.deepEqual(
+        records.map(o => o.attributes.name),
+        ['Earth', 'Jupiter', 'Saturn']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -4072,11 +4090,10 @@ module('JSONAPISource', function() {
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
-      assert.deepEqual(records.map(o => o.attributes.name), [
-        'Saturn',
-        'Jupiter',
-        'Earth'
-      ]);
+      assert.deepEqual(
+        records.map(o => o.attributes.name),
+        ['Saturn', 'Jupiter', 'Earth']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -4126,11 +4143,10 @@ module('JSONAPISource', function() {
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
-      assert.deepEqual(records.map(o => o.attributes.name), [
-        'Jupiter',
-        'Saturn',
-        'Earth'
-      ]);
+      assert.deepEqual(
+        records.map(o => o.attributes.name),
+        ['Jupiter', 'Saturn', 'Earth']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -4172,11 +4188,10 @@ module('JSONAPISource', function() {
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
-      assert.deepEqual(records.map(o => o.attributes.name), [
-        'Jupiter',
-        'Earth',
-        'Saturn'
-      ]);
+      assert.deepEqual(
+        records.map(o => o.attributes.name),
+        ['Jupiter', 'Earth', 'Saturn']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -4231,7 +4246,10 @@ module('JSONAPISource', function() {
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
-      assert.deepEqual(records.map(o => o.attributes.name), ['Earth']);
+      assert.deepEqual(
+        records.map(o => o.attributes.name),
+        ['Earth']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -4279,7 +4297,10 @@ module('JSONAPISource', function() {
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
-      assert.deepEqual(records.map(o => o.attributes.name), ['Moon']);
+      assert.deepEqual(
+        records.map(o => o.attributes.name),
+        ['Moon']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -4346,11 +4367,10 @@ module('JSONAPISource', function() {
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
-      assert.deepEqual(records.map(o => o.attributes.name), [
-        'Moon',
-        'Phobos',
-        'Deimos'
-      ]);
+      assert.deepEqual(
+        records.map(o => o.attributes.name),
+        ['Moon', 'Phobos', 'Deimos']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -4407,7 +4427,10 @@ module('JSONAPISource', function() {
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
-      assert.deepEqual(records.map(o => o.attributes.name), ['Mars']);
+      assert.deepEqual(
+        records.map(o => o.attributes.name),
+        ['Mars']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -4452,11 +4475,10 @@ module('JSONAPISource', function() {
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
-      assert.deepEqual(records.map(o => o.attributes.name), [
-        'Earth',
-        'Jupiter',
-        'Saturn'
-      ]);
+      assert.deepEqual(
+        records.map(o => o.attributes.name),
+        ['Earth', 'Jupiter', 'Saturn']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -4501,11 +4523,10 @@ module('JSONAPISource', function() {
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
-      assert.deepEqual(records.map(o => o.attributes.name), [
-        'Saturn',
-        'Jupiter',
-        'Earth'
-      ]);
+      assert.deepEqual(
+        records.map(o => o.attributes.name),
+        ['Saturn', 'Jupiter', 'Earth']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -4566,11 +4587,10 @@ module('JSONAPISource', function() {
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
-      assert.deepEqual(records.map(o => o.attributes.name), [
-        'Jupiter',
-        'Saturn',
-        'Earth'
-      ]);
+      assert.deepEqual(
+        records.map(o => o.attributes.name),
+        ['Jupiter', 'Saturn', 'Earth']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -4621,11 +4641,10 @@ module('JSONAPISource', function() {
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
-      assert.deepEqual(records.map(o => o.attributes.name), [
-        'Jupiter',
-        'Earth',
-        'Saturn'
-      ]);
+      assert.deepEqual(
+        records.map(o => o.attributes.name),
+        ['Jupiter', 'Earth', 'Saturn']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -4673,8 +4692,14 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/planets?include=moons').returns(
         jsonapiResponse(200, {
-          data: [{ type: 'planets', id: '1' }, { type: 'planets', id: '2' }],
-          included: [{ type: 'moons', id: '1' }, { type: 'moons', id: '2' }]
+          data: [
+            { type: 'planets', id: '1' },
+            { type: 'planets', id: '2' }
+          ],
+          included: [
+            { type: 'moons', id: '1' },
+            { type: 'moons', id: '2' }
+          ]
         })
       );
 
@@ -4692,10 +4717,10 @@ module('JSONAPISource', function() {
         2,
         'query result length equals primary data length'
       );
-      assert.deepEqual(records.map(planet => planet.type), [
-        'planet',
-        'planet'
-      ]);
+      assert.deepEqual(
+        records.map(planet => planet.type),
+        ['planet', 'planet']
+      );
       assert.deepEqual(
         records.map(planet => planet.keys.remoteId),
         ['1', '2'],
@@ -4792,7 +4817,10 @@ module('JSONAPISource', function() {
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
-      assert.deepEqual(records.map(o => o.attributes.name), ['Io']);
+      assert.deepEqual(
+        records.map(o => o.attributes.name),
+        ['Io']
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(

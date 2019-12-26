@@ -403,7 +403,10 @@ module('AsyncRecordCache', function(hooks) {
       attributes: { name: 'Sun' },
       relationships: {
         celestialObjects: {
-          data: [{ type: 'planet', id: 'p1' }, { type: 'moon', id: 'm1' }]
+          data: [
+            { type: 'planet', id: 'p1' },
+            { type: 'moon', id: 'm1' }
+          ]
         }
       }
     };
@@ -423,7 +426,10 @@ module('AsyncRecordCache', function(hooks) {
     assert.deepEqual(
       (await cache.getRecordAsync({ type: 'star', id: 's1' })).relationships
         .celestialObjects.data,
-      [{ type: 'planet', id: 'p1' }, { type: 'moon', id: 'm1' }],
+      [
+        { type: 'planet', id: 'p1' },
+        { type: 'moon', id: 'm1' }
+      ],
       'Jupiter and Io has been assigned to Sun'
     );
     assert.deepEqual(
@@ -466,7 +472,10 @@ module('AsyncRecordCache', function(hooks) {
     assert.deepEqual(
       (await cache.getRecordAsync({ type: 'star', id: 's1' })).relationships
         .celestialObjects.data,
-      [{ type: 'planet', id: 'p1' }, { type: 'moon', id: 'm1' }],
+      [
+        { type: 'planet', id: 'p1' },
+        { type: 'moon', id: 'm1' }
+      ],
       'Jupiter and Io has been assigned to Sun'
     );
     assert.deepEqual(
@@ -567,7 +576,10 @@ module('AsyncRecordCache', function(hooks) {
       attributes: { name: 'Jupiter' },
       relationships: {
         moons: {
-          data: [{ type: 'moon', id: 'm1' }, { type: 'moon', id: 'm2' }]
+          data: [
+            { type: 'moon', id: 'm1' },
+            { type: 'moon', id: 'm2' }
+          ]
         }
       }
     };
@@ -581,7 +593,10 @@ module('AsyncRecordCache', function(hooks) {
     assert.deepEqual(
       (await cache.getRecordAsync({ type: 'planet', id: 'p1' })).relationships
         .moons.data,
-      [{ type: 'moon', id: 'm1' }, { type: 'moon', id: 'm2' }],
+      [
+        { type: 'moon', id: 'm1' },
+        { type: 'moon', id: 'm2' }
+      ],
       'Jupiter has been assigned to Io and Europa'
     );
     assert.ok(
@@ -1791,7 +1806,10 @@ module('AsyncRecordCache', function(hooks) {
       },
       relationships: {
         moons: {
-          data: [{ type: 'moon', id: 'phobos' }, { type: 'moon', id: 'deimos' }]
+          data: [
+            { type: 'moon', id: 'phobos' },
+            { type: 'moon', id: 'deimos' }
+          ]
         }
       }
     };
@@ -1972,7 +1990,10 @@ module('AsyncRecordCache', function(hooks) {
       },
       relationships: {
         moons: {
-          data: [{ type: 'moon', id: 'phobos' }, { type: 'moon', id: 'deimos' }]
+          data: [
+            { type: 'moon', id: 'phobos' },
+            { type: 'moon', id: 'deimos' }
+          ]
         }
       }
     };
@@ -2940,7 +2961,10 @@ module('AsyncRecordCache', function(hooks) {
       relationships: {
         star: { data: { type: 'star', id: 'sun' } },
         moons: {
-          data: [{ type: 'moon', id: 'phobos' }, { type: 'moon', id: 'deimos' }]
+          data: [
+            { type: 'moon', id: 'phobos' },
+            { type: 'moon', id: 'deimos' }
+          ]
         }
       }
     };
@@ -3149,7 +3173,10 @@ module('AsyncRecordCache', function(hooks) {
       relationships: {
         star: { data: { type: 'star', id: 'sun' } },
         moons: {
-          data: [{ type: 'moon', id: 'phobos' }, { type: 'moon', id: 'deimos' }]
+          data: [
+            { type: 'moon', id: 'phobos' },
+            { type: 'moon', id: 'deimos' }
+          ]
         }
       }
     };

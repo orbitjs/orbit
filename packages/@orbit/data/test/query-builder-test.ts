@@ -162,7 +162,10 @@ module('QueryBuilder', function(hooks) {
         .findRecords('planet')
         .filter({
           relation: 'moons',
-          records: [{ id: '1', type: 'moon' }, { id: '2', type: 'moon' }],
+          records: [
+            { id: '1', type: 'moon' },
+            { id: '2', type: 'moon' }
+          ],
           op: 'equal'
         })
         .toQueryExpression(),
@@ -174,7 +177,10 @@ module('QueryBuilder', function(hooks) {
             op: 'equal',
             kind: 'relatedRecords',
             relation: 'moons',
-            records: [{ id: '1', type: 'moon' }, { id: '2', type: 'moon' }]
+            records: [
+              { id: '1', type: 'moon' },
+              { id: '2', type: 'moon' }
+            ]
           }
         ]
       } as FindRecords
@@ -523,7 +529,10 @@ module('QueryBuilder', function(hooks) {
         .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
         .filter({
           relation: 'moons',
-          records: [{ id: '1', type: 'moon' }, { id: '2', type: 'moon' }],
+          records: [
+            { id: '1', type: 'moon' },
+            { id: '2', type: 'moon' }
+          ],
           op: 'equal'
         })
         .toQueryExpression(),
@@ -539,7 +548,10 @@ module('QueryBuilder', function(hooks) {
             op: 'equal',
             kind: 'relatedRecords',
             relation: 'moons',
-            records: [{ id: '1', type: 'moon' }, { id: '2', type: 'moon' }]
+            records: [
+              { id: '1', type: 'moon' },
+              { id: '2', type: 'moon' }
+            ]
           }
         ]
       } as FindRelatedRecords

@@ -1013,7 +1013,10 @@ module('SchemaConsistencyProcessor', function(hooks) {
       id: 'jupiter',
       relationships: {
         moons: {
-          data: [{ type: 'moon', id: 'io' }, { type: 'moon', id: 'europa' }]
+          data: [
+            { type: 'moon', id: 'io' },
+            { type: 'moon', id: 'europa' }
+          ]
         }
       }
     };
@@ -1100,7 +1103,10 @@ module('SchemaConsistencyProcessor', function(hooks) {
       id: 'jupiter',
       relationships: {
         moons: {
-          data: [{ type: 'moon', id: 'io' }, { type: 'moon', id: 'europa' }]
+          data: [
+            { type: 'moon', id: 'io' },
+            { type: 'moon', id: 'europa' }
+          ]
         }
       }
     };
