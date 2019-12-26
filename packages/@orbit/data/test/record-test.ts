@@ -71,14 +71,23 @@ module('Record', function() {
     );
     assert.ok(
       equalRecordIdentitySets(
-        [{ type: 'planet', id: 'p1' }, { type: 'moon', id: 'm1' }],
-        [{ type: 'moon', id: 'm1' }, { type: 'planet', id: 'p1' }]
+        [
+          { type: 'planet', id: 'p1' },
+          { type: 'moon', id: 'm1' }
+        ],
+        [
+          { type: 'moon', id: 'm1' },
+          { type: 'planet', id: 'p1' }
+        ]
       ),
       'equal sets with two members out of order'
     );
     assert.notOk(
       equalRecordIdentitySets(
-        [{ type: 'planet', id: 'p1' }, { type: 'moon', id: 'm1' }],
+        [
+          { type: 'planet', id: 'p1' },
+          { type: 'moon', id: 'm1' }
+        ],
         [{ type: 'moon', id: 'm1' }]
       ),
       'unequal sets 1'
@@ -86,7 +95,10 @@ module('Record', function() {
     assert.notOk(
       equalRecordIdentitySets(
         [{ type: 'planet', id: 'p1' }],
-        [{ type: 'moon', id: 'm1' }, { type: 'planet', id: 'p1' }]
+        [
+          { type: 'moon', id: 'm1' },
+          { type: 'planet', id: 'p1' }
+        ]
       ),
       'unequal sets 2'
     );
@@ -108,15 +120,24 @@ module('Record', function() {
     );
     assert.deepEqual(
       uniqueRecordIdentities(
-        [{ type: 'planet', id: 'p1' }, { type: 'moon', id: 'm1' }],
-        [{ type: 'moon', id: 'm1' }, { type: 'planet', id: 'p1' }]
+        [
+          { type: 'planet', id: 'p1' },
+          { type: 'moon', id: 'm1' }
+        ],
+        [
+          { type: 'moon', id: 'm1' },
+          { type: 'planet', id: 'p1' }
+        ]
       ),
       [],
       'equal sets with two members out of order'
     );
     assert.deepEqual(
       uniqueRecordIdentities(
-        [{ type: 'planet', id: 'p1' }, { type: 'moon', id: 'm1' }],
+        [
+          { type: 'planet', id: 'p1' },
+          { type: 'moon', id: 'm1' }
+        ],
         [{ type: 'moon', id: 'm1' }]
       ),
       [{ type: 'planet', id: 'p1' }],
@@ -125,7 +146,10 @@ module('Record', function() {
     assert.deepEqual(
       uniqueRecordIdentities(
         [{ type: 'planet', id: 'p1' }],
-        [{ type: 'moon', id: 'm1' }, { type: 'planet', id: 'p1' }]
+        [
+          { type: 'moon', id: 'm1' },
+          { type: 'planet', id: 'p1' }
+        ]
       ),
       [],
       'unequal sets 2'
@@ -143,14 +167,20 @@ module('Record', function() {
     );
     assert.ok(
       recordsInclude(
-        [{ type: 'planet', id: 'p1' }, { type: 'moon', id: 'm1' }],
+        [
+          { type: 'planet', id: 'p1' },
+          { type: 'moon', id: 'm1' }
+        ],
         { type: 'moon', id: 'm1' }
       ),
       'set with two members'
     );
     assert.notOk(
       recordsInclude(
-        [{ type: 'planet', id: 'p1' }, { type: 'moon', id: 'm1' }],
+        [
+          { type: 'planet', id: 'p1' },
+          { type: 'moon', id: 'm1' }
+        ],
         { type: 'foo', id: 'bar' }
       ),
       'set with two members and no matches'
@@ -168,14 +198,23 @@ module('Record', function() {
     );
     assert.ok(
       recordsIncludeAll(
-        [{ type: 'planet', id: 'p1' }, { type: 'moon', id: 'm1' }],
-        [{ type: 'moon', id: 'm1' }, { type: 'planet', id: 'p1' }]
+        [
+          { type: 'planet', id: 'p1' },
+          { type: 'moon', id: 'm1' }
+        ],
+        [
+          { type: 'moon', id: 'm1' },
+          { type: 'planet', id: 'p1' }
+        ]
       ),
       'equal sets with two members out of order'
     );
     assert.ok(
       recordsIncludeAll(
-        [{ type: 'planet', id: 'p1' }, { type: 'moon', id: 'm1' }],
+        [
+          { type: 'planet', id: 'p1' },
+          { type: 'moon', id: 'm1' }
+        ],
         [{ type: 'moon', id: 'm1' }]
       ),
       'unequal sets 1'
@@ -183,7 +222,10 @@ module('Record', function() {
     assert.notOk(
       recordsIncludeAll(
         [{ type: 'planet', id: 'p1' }],
-        [{ type: 'moon', id: 'm1' }, { type: 'planet', id: 'p1' }]
+        [
+          { type: 'moon', id: 'm1' },
+          { type: 'planet', id: 'p1' }
+        ]
       ),
       'unequal sets 2'
     );

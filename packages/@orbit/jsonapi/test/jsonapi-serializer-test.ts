@@ -383,7 +383,10 @@ module('JSONAPISerializer', function(hooks) {
             },
             relationships: {
               moons: {
-                data: [{ type: 'moon', id: 'm1' }, { type: 'moon', id: 'm2' }]
+                data: [
+                  { type: 'moon', id: 'm1' },
+                  { type: 'moon', id: 'm2' }
+                ]
               }
             }
           }
@@ -665,7 +668,10 @@ module('JSONAPISerializer', function(hooks) {
 
     test('#deserialize - can deserialize an array of records', function(assert) {
       let result = serializer.deserialize({
-        data: [{ type: 'planets', id: '123' }, { type: 'planets', id: '234' }]
+        data: [
+          { type: 'planets', id: '123' },
+          { type: 'planets', id: '234' }
+        ]
       });
       let records = result.data as Record[];
 
@@ -691,7 +697,10 @@ module('JSONAPISerializer', function(hooks) {
       let localRecords = [{ id: '1a2b3c' }, { id: '4d5e6f' }] as Record[];
       let result = serializer.deserialize(
         {
-          data: [{ type: 'planets', id: '123' }, { type: 'planets', id: '234' }]
+          data: [
+            { type: 'planets', id: '123' },
+            { type: 'planets', id: '234' }
+          ]
         },
         {
           primaryRecords: localRecords

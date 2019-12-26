@@ -59,7 +59,10 @@ module('ImmutableMap', function() {
     );
     assert.deepEqual(
       Array.from(map.entries()),
-      [['pluto', pluto], ['jupiter', jupiter2]],
+      [
+        ['pluto', pluto],
+        ['jupiter', jupiter2]
+      ],
       'entries match expectations'
     );
 

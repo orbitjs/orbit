@@ -202,9 +202,10 @@ export default class MemoryCache extends SyncRecordCache {
   /////////////////////////////////////////////////////////////////////////////
 
   protected _resetInverseRelationships(base?: MemoryCache) {
-    const inverseRelationships: Dict<
-      ImmutableMap<string, RecordRelationshipIdentity[]>
-    > = {};
+    const inverseRelationships: Dict<ImmutableMap<
+      string,
+      RecordRelationshipIdentity[]
+    >> = {};
     Object.keys(this._schema.models).forEach(type => {
       let baseRelationships = base && base._inverseRelationships[type];
       inverseRelationships[type] = new ImmutableMap(baseRelationships);

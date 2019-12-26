@@ -397,7 +397,10 @@ module('SyncRecordCache', function(hooks) {
       attributes: { name: 'Sun' },
       relationships: {
         celestialObjects: {
-          data: [{ type: 'planet', id: 'p1' }, { type: 'moon', id: 'm1' }]
+          data: [
+            { type: 'planet', id: 'p1' },
+            { type: 'moon', id: 'm1' }
+          ]
         }
       }
     };
@@ -417,7 +420,10 @@ module('SyncRecordCache', function(hooks) {
     assert.deepEqual(
       cache.getRecordSync({ type: 'star', id: 's1' }).relationships
         .celestialObjects.data,
-      [{ type: 'planet', id: 'p1' }, { type: 'moon', id: 'm1' }],
+      [
+        { type: 'planet', id: 'p1' },
+        { type: 'moon', id: 'm1' }
+      ],
       'Jupiter and Io has been assigned to Sun'
     );
     assert.deepEqual(
@@ -458,7 +464,10 @@ module('SyncRecordCache', function(hooks) {
     assert.deepEqual(
       cache.getRecordSync({ type: 'star', id: 's1' }).relationships
         .celestialObjects.data,
-      [{ type: 'planet', id: 'p1' }, { type: 'moon', id: 'm1' }],
+      [
+        { type: 'planet', id: 'p1' },
+        { type: 'moon', id: 'm1' }
+      ],
       'Jupiter and Io has been assigned to Sun'
     );
     assert.deepEqual(
@@ -553,7 +562,10 @@ module('SyncRecordCache', function(hooks) {
       attributes: { name: 'Jupiter' },
       relationships: {
         moons: {
-          data: [{ type: 'moon', id: 'm1' }, { type: 'moon', id: 'm2' }]
+          data: [
+            { type: 'moon', id: 'm1' },
+            { type: 'moon', id: 'm2' }
+          ]
         }
       }
     };
@@ -567,7 +579,10 @@ module('SyncRecordCache', function(hooks) {
     assert.deepEqual(
       cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons
         .data,
-      [{ type: 'moon', id: 'm1' }, { type: 'moon', id: 'm2' }],
+      [
+        { type: 'moon', id: 'm1' },
+        { type: 'moon', id: 'm2' }
+      ],
       'Jupiter has been assigned to Io and Europa'
     );
     assert.ok(
@@ -1512,12 +1527,11 @@ module('SyncRecordCache', function(hooks) {
       t.addRecord(mercury)
     ]);
 
-    arrayMembershipMatches(assert, cache.query(q => q.findRecords('planet')), [
-      jupiter,
-      earth,
-      venus,
-      mercury
-    ]);
+    arrayMembershipMatches(
+      assert,
+      cache.query(q => q.findRecords('planet')),
+      [jupiter, earth, venus, mercury]
+    );
   });
 
   test('#query can find records by identities', function(assert) {
@@ -1764,7 +1778,10 @@ module('SyncRecordCache', function(hooks) {
       },
       relationships: {
         moons: {
-          data: [{ type: 'moon', id: 'phobos' }, { type: 'moon', id: 'deimos' }]
+          data: [
+            { type: 'moon', id: 'phobos' },
+            { type: 'moon', id: 'deimos' }
+          ]
         }
       }
     };
@@ -1945,7 +1962,10 @@ module('SyncRecordCache', function(hooks) {
       },
       relationships: {
         moons: {
-          data: [{ type: 'moon', id: 'phobos' }, { type: 'moon', id: 'deimos' }]
+          data: [
+            { type: 'moon', id: 'phobos' },
+            { type: 'moon', id: 'deimos' }
+          ]
         }
       }
     };
@@ -2215,12 +2235,10 @@ module('SyncRecordCache', function(hooks) {
       t.addRecord(mercury)
     ]);
 
-    assert.deepEqual(cache.query(q => q.findRecords('planet').sort('name')), [
-      earth,
-      jupiter,
-      mercury,
-      venus
-    ]);
+    assert.deepEqual(
+      cache.query(q => q.findRecords('planet').sort('name')),
+      [earth, jupiter, mercury, venus]
+    );
   });
 
   test('#query can sort by an attribute, even when a particular record has none', function(assert) {
@@ -2262,12 +2280,10 @@ module('SyncRecordCache', function(hooks) {
       t.addRecord(mercury)
     ]);
 
-    assert.deepEqual(cache.query(q => q.findRecords('planet').sort('name')), [
-      earth,
-      mercury,
-      venus,
-      jupiter
-    ]);
+    assert.deepEqual(
+      cache.query(q => q.findRecords('planet').sort('name')),
+      [earth, mercury, venus, jupiter]
+    );
   });
 
   test('#query can filter and sort by attributes', function(assert) {
@@ -2378,12 +2394,10 @@ module('SyncRecordCache', function(hooks) {
       t.addRecord(mercury)
     ]);
 
-    assert.deepEqual(cache.query(q => q.findRecords('planet').sort('-name')), [
-      venus,
-      mercury,
-      jupiter,
-      earth
-    ]);
+    assert.deepEqual(
+      cache.query(q => q.findRecords('planet').sort('-name')),
+      [venus, mercury, jupiter, earth]
+    );
   });
 
   test('#query can sort by according to multiple criteria', function(assert) {
@@ -2485,7 +2499,10 @@ module('SyncRecordCache', function(hooks) {
 
     cache.patch(t => [t.addRecord(jupiter), t.addRecord(callisto)]);
 
-    assert.deepEqual(cache.query(q => q.findRecords('planet')), [jupiter]);
+    assert.deepEqual(
+      cache.query(q => q.findRecords('planet')),
+      [jupiter]
+    );
   });
 
   test('#query - page - can paginate records by offset and limit', function(assert) {
@@ -2522,12 +2539,10 @@ module('SyncRecordCache', function(hooks) {
       t.addRecord(mars)
     ]);
 
-    assert.deepEqual(cache.query(q => q.findRecords('planet').sort('name')), [
-      earth,
-      jupiter,
-      mars,
-      venus
-    ]);
+    assert.deepEqual(
+      cache.query(q => q.findRecords('planet').sort('name')),
+      [earth, jupiter, mars, venus]
+    );
 
     assert.deepEqual(
       cache.query(q =>
@@ -2916,7 +2931,10 @@ module('SyncRecordCache', function(hooks) {
       relationships: {
         star: { data: { type: 'star', id: 'sun' } },
         moons: {
-          data: [{ type: 'moon', id: 'phobos' }, { type: 'moon', id: 'deimos' }]
+          data: [
+            { type: 'moon', id: 'phobos' },
+            { type: 'moon', id: 'deimos' }
+          ]
         }
       }
     };
@@ -3125,7 +3143,10 @@ module('SyncRecordCache', function(hooks) {
       relationships: {
         star: { data: { type: 'star', id: 'sun' } },
         moons: {
-          data: [{ type: 'moon', id: 'phobos' }, { type: 'moon', id: 'deimos' }]
+          data: [
+            { type: 'moon', id: 'phobos' },
+            { type: 'moon', id: 'deimos' }
+          ]
         }
       }
     };

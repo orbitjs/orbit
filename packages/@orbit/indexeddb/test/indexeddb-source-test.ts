@@ -642,7 +642,10 @@ module('IndexedDBSource', function(hooks) {
       },
       relationships: {
         moons: {
-          data: [{ type: 'moon', id: 'moon1' }, { type: 'moon', id: 'moon2' }]
+          data: [
+            { type: 'moon', id: 'moon1' },
+            { type: 'moon', id: 'moon2' }
+          ]
         }
       }
     };
@@ -727,7 +730,10 @@ module('IndexedDBSource', function(hooks) {
       },
       relationships: {
         moons: {
-          data: [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }]
+          data: [
+            { type: 'moon', id: 'moon2' },
+            { type: 'moon', id: 'moon3' }
+          ]
         }
       }
     };
@@ -754,7 +760,10 @@ module('IndexedDBSource', function(hooks) {
       id: 'jupiter',
       relationships: {
         moons: {
-          data: [{ type: 'moon', id: 'moon2' }, { type: 'moon', id: 'moon3' }]
+          data: [
+            { type: 'moon', id: 'moon2' },
+            { type: 'moon', id: 'moon3' }
+          ]
         }
       }
     };

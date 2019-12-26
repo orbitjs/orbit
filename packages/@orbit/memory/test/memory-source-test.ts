@@ -276,7 +276,10 @@ module('MemorySource', function(hooks) {
     source.on('beforeUpdate', (transform: Transform, hints: any) => {
       if (transform.options.customizeResults) {
         hints.data = [
-          [{ type: 'planet', id: 'uranus' }, { type: 'planet', id: 'earth' }],
+          [
+            { type: 'planet', id: 'uranus' },
+            { type: 'planet', id: 'earth' }
+          ],
           { type: 'planet', id: 'jupiter' }
         ];
       }
