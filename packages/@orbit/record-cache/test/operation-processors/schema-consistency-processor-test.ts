@@ -986,8 +986,8 @@ module('SchemaConsistencyProcessor', function(hooks) {
         planet: {
           relationships: {
             moons: {
-              type: 'hasMany',
-              model: 'moon',
+              kind: 'hasMany',
+              type: 'moon',
               inverse: 'planet',
               dependent: 'remove'
             }
@@ -995,7 +995,7 @@ module('SchemaConsistencyProcessor', function(hooks) {
         },
         moon: {
           relationships: {
-            planet: { type: 'hasOne', model: 'planet', inverse: 'moons' }
+            planet: { kind: 'hasOne', type: 'planet', inverse: 'moons' }
           }
         }
       }
@@ -1075,14 +1075,14 @@ module('SchemaConsistencyProcessor', function(hooks) {
       models: {
         planet: {
           relationships: {
-            moons: { type: 'hasMany', model: 'moon', inverse: 'planet' }
+            moons: { kind: 'hasMany', type: 'moon', inverse: 'planet' }
           }
         },
         moon: {
           relationships: {
             planet: {
-              type: 'hasOne',
-              model: 'planet',
+              kind: 'hasOne',
+              type: 'planet',
               inverse: 'moons',
               dependent: 'remove'
             }
