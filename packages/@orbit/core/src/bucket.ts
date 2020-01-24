@@ -78,6 +78,11 @@ export abstract class Bucket implements Evented {
   abstract removeItem(key: string): Promise<void>;
 
   /**
+   * Clears all items from the bucket.
+   */
+  abstract clear(): Promise<void>;
+
+  /**
    * Name used for tracking and debugging a bucket instance.
    */
   get name(): string {

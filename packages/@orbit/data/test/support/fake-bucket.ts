@@ -25,4 +25,8 @@ export default class FakeBucket extends Bucket {
   async removeItem(key: string): Promise<void> {
     delete this.data[key];
   }
+
+  async clear(): Promise<void> {
+    this.data = {};
+  }
 }
