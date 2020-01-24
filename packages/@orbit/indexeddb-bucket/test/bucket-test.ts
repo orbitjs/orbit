@@ -112,4 +112,21 @@ module('IndexedDBBucket', function(hooks) {
       .then(() => bucket.getItem('planet'))
       .then(item => assert.equal(item, null, 'bucket does not contain item'));
   });
+
+  test('#clear clears all keys', async function(assert) {
+    assert.expect(2);
+
+    let planet = {
+      type: 'planet',
+      id: 'jupiter'
+    };
+
+    return bucket
+      .setItem('planet', planet)
+      .then(() => bucket.getItem('planet'))
+      .then(item => assert.deepEqual(item, planet, 'bucket contains item'))
+      .then(() => bucket.clear())
+      .then(() => bucket.getItem('planet'))
+      .then(item => assert.equal(item, null, 'bucket does not contain item'));
+  });
 });

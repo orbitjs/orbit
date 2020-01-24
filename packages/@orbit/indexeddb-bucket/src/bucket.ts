@@ -223,4 +223,23 @@ export default class IndexedDBBucket extends Bucket {
       };
     });
   }
+
+  async clear(): Promise<void> {
+    await this.openDB();
+    await new Promise((resolve, reject) => {
+      const transaction = this._db.transaction([this.dbStoreName], 'readwrite');
+      const objectStore = transaction.objectStore(this.dbStoreName);
+      const request = objectStore.clear();
+
+      request.onerror = function(/* event */) {
+        console.error('error - clear', request.error);
+        reject(request.error);
+      };
+
+      request.onsuccess = function(/* event */) {
+        // console.log('success - clear');
+        resolve();
+      };
+    });
+  }
 }
