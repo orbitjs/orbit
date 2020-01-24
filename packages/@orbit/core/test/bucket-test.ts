@@ -18,6 +18,9 @@ module('Bucket', function() {
     removeItem(key: string): Promise<void> {
       return Promise.resolve();
     }
+    clear(): Promise<void> {
+      return Promise.resolve();
+    }
   }
 
   test('can be instantiated', function(assert) {
