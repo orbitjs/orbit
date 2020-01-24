@@ -65,4 +65,9 @@ export default class LocalStorageBucket extends Bucket {
     Orbit.globals.localStorage.removeItem(fullKey);
     return Promise.resolve();
   }
+
+  clear(): Promise<void> {
+    Orbit.globals.localStorage.clear();
+    return Promise.resolve();
+  }
 }

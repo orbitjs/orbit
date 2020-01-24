@@ -55,4 +55,25 @@ module('LocalStorageBucket', function(hooks) {
     item = await bucket.getItem('planet');
     assert.equal(item, null, 'bucket does not contain item');
   });
+
+  test('#clear clears all keys', async function(assert) {
+    assert.expect(2);
+
+    let planet = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant'
+      }
+    };
+
+    await bucket.setItem('planet', planet);
+    let item = await bucket.getItem('planet');
+    assert.deepEqual(item, planet, 'bucket contains item');
+
+    await bucket.clear();
+    item = await bucket.getItem('planet');
+    assert.equal(item, null, 'bucket does not contain item');
+  });
 });
