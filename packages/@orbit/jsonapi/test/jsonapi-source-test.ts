@@ -2019,6 +2019,29 @@ module('JSONAPISource', function() {
       );
     });
 
+    test('#pull - record (with a 304 response)', async function(assert) {
+      assert.expect(3);
+
+      const planet = source.requestProcessor.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345'
+      });
+
+      fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(304));
+
+      let transforms = await source.pull(q =>
+        q.findRecord({ type: 'planet', id: planet.id })
+      );
+
+      assert.equal(transforms.length, 0, 'no transforms returned');
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
     test('#pull - request can timeout', async function(assert) {
       assert.expect(2);
 
@@ -2187,6 +2210,23 @@ module('JSONAPISource', function() {
         ),
         ['Jupiter', 'Earth', 'Saturn']
       );
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#pull - records (with a 304 response)', async function(assert) {
+      assert.expect(3);
+
+      fetchStub.withArgs('/planets').returns(jsonapiResponse(304));
+
+      let transforms = await source.pull(q => q.findRecords('planet'));
+
+      assert.equal(transforms.length, 0, 'no transforms returned');
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -3552,9 +3592,33 @@ module('JSONAPISource', function() {
 
       assert.ok(
         !Array.isArray(record),
-        'only a single primary recored returned'
+        'only a single primary record returned'
       );
       assert.equal((record as Record).attributes.name, 'Jupiter');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#query - record (304 response)', async function(assert) {
+      assert.expect(3);
+
+      const planet = source.requestProcessor.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345'
+      });
+
+      fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(304));
+
+      let record = await source.query(q =>
+        q.findRecord({ type: 'planet', id: planet.id })
+      );
+
+      assert.strictEqual(record, undefined);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -3819,6 +3883,23 @@ module('JSONAPISource', function() {
         records.map(o => o.attributes.name),
         ['Jupiter', 'Earth', 'Saturn']
       );
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#query - records (304 response)', async function(assert) {
+      assert.expect(3);
+
+      fetchStub.withArgs('/planets').returns(jsonapiResponse(304));
+
+      let records = await source.query(q => q.findRecords('planet'));
+
+      assert.strictEqual(records, undefined);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -4645,6 +4726,63 @@ module('JSONAPISource', function() {
         records.map(o => o.attributes.name),
         ['Jupiter', 'Earth', 'Saturn']
       );
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#query - related record (304 response)', async function(assert) {
+      assert.expect(3);
+
+      fetchStub
+        .withArgs('/planets/earth/solar-system')
+        .returns(jsonapiResponse(304));
+
+      const earth = source.requestProcessor.serializer.deserializeResource({
+        type: 'planets',
+        id: 'earth'
+      });
+
+      let records = await source.query(q =>
+        q.findRelatedRecord({ type: 'planet', id: earth.id }, 'solarSystem')
+      );
+
+      assert.strictEqual(records, undefined);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#query - related records (304 response)', async function(assert) {
+      assert.expect(3);
+
+      fetchStub
+        .withArgs('/solar-systems/sun/planets')
+        .returns(jsonapiResponse(304));
+
+      const solarSystem = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'solar-systems',
+          id: 'sun'
+        }
+      );
+
+      let records = await source.query(q =>
+        q.findRelatedRecords(
+          { type: 'solarSystem', id: solarSystem.id },
+          'planets'
+        )
+      );
+
+      assert.strictEqual(records, undefined);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
