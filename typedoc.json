@@ -1,0 +1,11 @@
+{
+  "name": "orbit.js",
+  "mode": "modules",
+  "out": "docs",
+  "theme": "default",
+  "ignoreCompilerErrors": true,
+  "preserveConstEnums": true,
+  "exclude": ["**/node_modules/**", "**/*.spec.ts", "**/test/**"],
+  "excludePrivate": true,
+  "stripInternal": true
+}
