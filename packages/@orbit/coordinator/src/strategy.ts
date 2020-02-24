@@ -80,16 +80,9 @@ export abstract class Strategy {
     } else {
       this._sources = coordinator.sources;
     }
-
-    for (let source of this._sources) {
-      await source.activate();
-    }
   }
 
   async deactivate(): Promise<void> {
-    for (let source of this._sources) {
-      await source.deactivate();
-    }
     this._coordinator = null;
   }
 
