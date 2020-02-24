@@ -86,6 +86,12 @@ export abstract class Strategy {
     this._coordinator = null;
   }
 
+  async beforeSourceActivation(): Promise<void> {}
+  async afterSourceActivation(): Promise<void> {}
+
+  async beforeSourceDeactivation(): Promise<void> {}
+  async afterSourceDeactivation(): Promise<void> {}
+
   get name(): string {
     return this._name;
   }

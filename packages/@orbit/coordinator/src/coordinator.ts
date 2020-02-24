@@ -167,17 +167,36 @@ export default class Coordinator {
       await strategy.activate(this, options);
     }
 
+    for (let strategy of this.strategies) {
+      await strategy.beforeSourceActivation();
+    }
+
     for (let source of this.sources) {
       await source.activate();
+    }
+
+    for (let strategy of this.strategies) {
+      await strategy.afterSourceActivation();
     }
   }
 
   protected async _deactivate(): Promise<void> {
-    for (let source of this.sources) {
+    const strategies = this.strategies.reverse();
+    const sources = this.sources.reverse();
+
+    for (let strategy of strategies) {
+      await strategy.beforeSourceDeactivation();
+    }
+
+    for (let source of sources) {
       await source.deactivate();
     }
 
-    for (let strategy of this.strategies.reverse()) {
+    for (let strategy of strategies) {
+      await strategy.afterSourceDeactivation();
+    }
+
+    for (let strategy of strategies) {
       await strategy.deactivate();
     }
   }
