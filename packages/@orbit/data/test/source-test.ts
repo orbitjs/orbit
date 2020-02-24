@@ -98,7 +98,7 @@ module('Source', function(hooks) {
     );
   });
 
-  test('overrides default requestQueue settings with injected requestQueueSettings', function(assert) {
+  test('overrides default requestQueue settings with injected requestQueueSettings', async function(assert) {
     assert.expect(3);
 
     const defaultBucket = new FakeBucket();
@@ -116,24 +116,26 @@ module('Source', function(hooks) {
       requestQueueSettings
     });
 
+    await source.activated;
+
     assert.equal(
       source.requestQueue.name,
       'my-request-queue',
-      'requestQueue has been assigned overriden name'
+      'requestQueue has been assigned overridden name'
     );
     assert.equal(
       source.requestQueue.autoProcess,
       false,
-      'requestQueue has been assigned overriden autoProcess'
+      'requestQueue has been assigned overridden autoProcess'
     );
     assert.equal(
       source.requestQueue.bucket,
       requestQueueBucket,
-      'requestQueue has been assigned overriden bucket'
+      'requestQueue has been assigned overridden bucket'
     );
   });
 
-  test('overrides default syncQueue settings with injected syncQueueSettings', function(assert) {
+  test('overrides default syncQueue settings with injected syncQueueSettings', async function(assert) {
     assert.expect(3);
 
     const defaultBucket = new FakeBucket();
@@ -151,20 +153,57 @@ module('Source', function(hooks) {
       syncQueueSettings
     });
 
+    await source.activated;
+
     assert.equal(
       source.syncQueue.name,
       'my-sync-queue',
-      'syncQueue has been assigned overriden name'
+      'syncQueue has been assigned overridden name'
     );
     assert.equal(
       source.syncQueue.autoProcess,
       false,
-      'syncQueue has been assigned overriden autoProcess'
+      'syncQueue has been assigned overridden autoProcess'
     );
     assert.equal(
       source.syncQueue.bucket,
       syncQueueBucket,
-      'syncQueue has been assigned overriden bucket'
+      'syncQueue has been assigned overridden bucket'
+    );
+  });
+
+  test('disables queue processing by default until activation', async function(assert) {
+    assert.expect(4);
+
+    source = new MySource({
+      name: 'src1',
+      autoActivate: false
+    });
+
+    assert.equal(
+      source.syncQueue.autoProcess,
+      false,
+      'syncQueue.autoProcess === false'
+    );
+
+    assert.equal(
+      source.requestQueue.autoProcess,
+      false,
+      'requestQueue.autoProcess === false'
+    );
+
+    await source.activate();
+
+    assert.equal(
+      source.syncQueue.autoProcess,
+      true,
+      'syncQueue.autoProcess === true'
+    );
+
+    assert.equal(
+      source.requestQueue.autoProcess,
+      true,
+      'requestQueue.autoProcess === true'
     );
   });
 
