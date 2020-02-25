@@ -45,8 +45,6 @@ export abstract class Source implements Evented, Performer {
   protected _transformLog: Log;
   protected _requestQueue: TaskQueue;
   protected _syncQueue: TaskQueue;
-  protected _requestQueueSettings: TaskQueueSettings;
-  protected _syncQueueSettings: TaskQueueSettings;
   protected _queryBuilder: QueryBuilder;
   protected _transformBuilder: TransformBuilder;
   private _activated?: Promise<void>;
@@ -65,8 +63,8 @@ export abstract class Source implements Evented, Performer {
     const bucket = (this._bucket = settings.bucket);
     this._queryBuilder = settings.queryBuilder;
     this._transformBuilder = settings.transformBuilder;
-    this._requestQueueSettings = settings.requestQueueSettings || {};
-    this._syncQueueSettings = settings.syncQueueSettings || {};
+    const requestQueueSettings = settings.requestQueueSettings || {};
+    const syncQueueSettings = settings.syncQueueSettings || {};
     const autoActivate =
       settings.autoActivate === undefined || settings.autoActivate;
 
@@ -79,18 +77,18 @@ export abstract class Source implements Evented, Performer {
       bucket
     });
 
-    this._requestQueue = new TaskQueue(this, {
-      name: name ? `${name}-requests` : undefined,
-      bucket,
-      autoProcess: false,
-      ...this._requestQueueSettings
-    });
-
     this._syncQueue = new TaskQueue(this, {
       name: name ? `${name}-sync` : undefined,
       bucket,
-      autoProcess: false,
-      ...this._syncQueueSettings
+      autoActivate: false,
+      ...syncQueueSettings
+    });
+
+    this._requestQueue = new TaskQueue(this, {
+      name: name ? `${name}-requests` : undefined,
+      bucket,
+      autoActivate: false,
+      ...requestQueueSettings
     });
 
     if (
@@ -191,16 +189,8 @@ export abstract class Source implements Evented, Performer {
 
   protected async _activate(): Promise<void> {
     await this._transformLog.reified;
-
-    if (this._syncQueueSettings.autoProcess !== false) {
-      this._syncQueue.autoProcess = true;
-      await this._syncQueue.process();
-    }
-
-    if (this._requestQueueSettings.autoProcess !== false) {
-      this._requestQueue.autoProcess = true;
-      await this._requestQueue.process();
-    }
+    await this._syncQueue.activate();
+    await this._requestQueue.activate();
   }
 
   /////////////////////////////////////////////////////////////////////////////

@@ -172,39 +172,48 @@ module('Source', function(hooks) {
     );
   });
 
-  test('disables queue processing by default until activation', async function(assert) {
+  test('disables queue activation by default until source activation', async function(assert) {
     assert.expect(4);
+
+    const bucket = new FakeBucket();
+    const op1 = { op: 'add', path: ['planets', '1'], value: 'Mercury' };
+    const op2 = { op: 'add', path: ['planets', '2'], value: 'Venus' };
+    await bucket.setItem('src1-sync', [
+      {
+        type: 'transform',
+        data: op1
+      }
+    ]);
+    await bucket.setItem('src1-requests', [
+      {
+        type: 'transform',
+        data: op2
+      }
+    ]);
 
     source = new MySource({
       name: 'src1',
+      bucket,
       autoActivate: false
     });
 
-    assert.equal(
-      source.syncQueue.autoProcess,
-      false,
-      'syncQueue.autoProcess === false'
-    );
+    let i = 0;
+    source.perform = async function(task) {
+      i++;
+      if (i === 1) {
+        assert.strictEqual(task.data, op1, 'op1 - first task in sync queue');
+      } else if (i === 2) {
+        assert.strictEqual(task.data, op2, 'op2 - first task in request queue');
+      }
+    };
 
-    assert.equal(
-      source.requestQueue.autoProcess,
-      false,
-      'requestQueue.autoProcess === false'
-    );
+    await source.syncQueue.reified;
+    await source.requestQueue.reified;
+
+    assert.equal(source.syncQueue.length, 1, 'syncQueue has one task');
+    assert.equal(source.requestQueue.length, 1, 'requestQueue has one task');
 
     await source.activate();
-
-    assert.equal(
-      source.syncQueue.autoProcess,
-      true,
-      'syncQueue.autoProcess === true'
-    );
-
-    assert.equal(
-      source.requestQueue.autoProcess,
-      true,
-      'requestQueue.autoProcess === true'
-    );
   });
 
   test('creates a `queryBuilder` upon first access', function(assert) {
