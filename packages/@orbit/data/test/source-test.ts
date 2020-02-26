@@ -98,7 +98,7 @@ module('Source', function(hooks) {
     );
   });
 
-  test('overrides default requestQueue settings with injected requestQueueSettings', function(assert) {
+  test('overrides default requestQueue settings with injected requestQueueSettings', async function(assert) {
     assert.expect(3);
 
     const defaultBucket = new FakeBucket();
@@ -116,24 +116,26 @@ module('Source', function(hooks) {
       requestQueueSettings
     });
 
+    await source.activated;
+
     assert.equal(
       source.requestQueue.name,
       'my-request-queue',
-      'requestQueue has been assigned overriden name'
+      'requestQueue has been assigned overridden name'
     );
     assert.equal(
       source.requestQueue.autoProcess,
       false,
-      'requestQueue has been assigned overriden autoProcess'
+      'requestQueue has been assigned overridden autoProcess'
     );
     assert.equal(
       source.requestQueue.bucket,
       requestQueueBucket,
-      'requestQueue has been assigned overriden bucket'
+      'requestQueue has been assigned overridden bucket'
     );
   });
 
-  test('overrides default syncQueue settings with injected syncQueueSettings', function(assert) {
+  test('overrides default syncQueue settings with injected syncQueueSettings', async function(assert) {
     assert.expect(3);
 
     const defaultBucket = new FakeBucket();
@@ -151,21 +153,67 @@ module('Source', function(hooks) {
       syncQueueSettings
     });
 
+    await source.activated;
+
     assert.equal(
       source.syncQueue.name,
       'my-sync-queue',
-      'syncQueue has been assigned overriden name'
+      'syncQueue has been assigned overridden name'
     );
     assert.equal(
       source.syncQueue.autoProcess,
       false,
-      'syncQueue has been assigned overriden autoProcess'
+      'syncQueue has been assigned overridden autoProcess'
     );
     assert.equal(
       source.syncQueue.bucket,
       syncQueueBucket,
-      'syncQueue has been assigned overriden bucket'
+      'syncQueue has been assigned overridden bucket'
     );
+  });
+
+  test('disables queue activation by default until source activation', async function(assert) {
+    assert.expect(4);
+
+    const bucket = new FakeBucket();
+    const op1 = { op: 'add', path: ['planets', '1'], value: 'Mercury' };
+    const op2 = { op: 'add', path: ['planets', '2'], value: 'Venus' };
+    await bucket.setItem('src1-sync', [
+      {
+        type: 'transform',
+        data: op1
+      }
+    ]);
+    await bucket.setItem('src1-requests', [
+      {
+        type: 'transform',
+        data: op2
+      }
+    ]);
+
+    source = new MySource({
+      name: 'src1',
+      bucket,
+      autoActivate: false
+    });
+
+    let i = 0;
+    source.perform = async function(task) {
+      i++;
+      if (i === 1) {
+        assert.strictEqual(task.data, op1, 'op1 - first task in sync queue');
+      } else if (i === 2) {
+        assert.strictEqual(task.data, op2, 'op2 - first task in request queue');
+      }
+    };
+
+    await source.syncQueue.reified;
+    await source.requestQueue.reified;
+
+    assert.equal(source.syncQueue.length, 1, 'syncQueue has one task');
+    assert.equal(source.requestQueue.length, 1, 'requestQueue has one task');
+
+    await source.activate();
   });
 
   test('creates a `queryBuilder` upon first access', function(assert) {

@@ -80,18 +80,17 @@ export abstract class Strategy {
     } else {
       this._sources = coordinator.sources;
     }
-
-    for (let source of this._sources) {
-      await source.activate();
-    }
   }
 
   async deactivate(): Promise<void> {
-    for (let source of this._sources) {
-      await source.deactivate();
-    }
     this._coordinator = null;
   }
+
+  async beforeSourceActivation(): Promise<void> {}
+  async afterSourceActivation(): Promise<void> {}
+
+  async beforeSourceDeactivation(): Promise<void> {}
+  async afterSourceDeactivation(): Promise<void> {}
 
   get name(): string {
     return this._name;

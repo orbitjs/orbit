@@ -175,10 +175,47 @@ module('Coordinator', function(hooks) {
   });
 
   test('can be activated and deactivated', async function(assert) {
-    assert.expect(10);
+    assert.expect(31);
 
     let activatedCount = 0;
+    let bsaCount = 0;
+    let asaCount = 0;
+
     let deactivatedCount = 0;
+    let bsdCount = 0;
+    let asdCount = 0;
+
+    class CustomSource extends Source {
+      async activate() {
+        assert.equal(
+          bsaCount,
+          3,
+          'source.activate - beforeSourceActivation has already been invoked for all strategies'
+        );
+        assert.equal(
+          asaCount,
+          0,
+          'source.activate - afterSourceActivation has not been invoked for any strategies'
+        );
+
+        await super.activate();
+      }
+
+      async deactivate() {
+        assert.equal(
+          bsdCount,
+          3,
+          'source.deactivate - beforeSourceDeactivation has already been invoked for all strategies'
+        );
+        assert.equal(
+          asdCount,
+          0,
+          'source.deactivate - afterSourceDectivation has not been invoked for any strategies'
+        );
+
+        await super.deactivate();
+      }
+    }
 
     class CustomStrategy extends Strategy {
       async activate(
@@ -187,22 +224,155 @@ module('Coordinator', function(hooks) {
       ): Promise<void> {
         activatedCount++;
         if (activatedCount === 1) {
-          assert.strictEqual(this.name, 's2', 'expected order');
+          assert.equal(
+            bsaCount,
+            0,
+            'strategy.activate - beforeSourceActivation has not yet been invoked'
+          );
+          assert.strictEqual(
+            this.name,
+            's2',
+            'strategy.activate - expected order'
+          );
         } else if (activatedCount === 2) {
-          assert.strictEqual(this.name, 's1', 'expected order');
+          assert.strictEqual(
+            this.name,
+            's1',
+            'strategy.activate - expected order'
+          );
         } else if (activatedCount === 3) {
-          assert.strictEqual(this.name, 's3', 'expected order');
+          assert.strictEqual(
+            this.name,
+            's3',
+            'strategy.activate - expected order'
+          );
         }
       }
 
       async deactivate(): Promise<void> {
         deactivatedCount++;
+
         if (deactivatedCount === 1) {
-          assert.strictEqual(this.name, 's3', 'expected reverse order');
+          assert.equal(
+            bsdCount,
+            3,
+            'strategy.deactivate - beforeSourceDeactivation has already been invoked for all strategies'
+          );
+          assert.equal(
+            asdCount,
+            3,
+            'strategy.deactivate - afterSourceDeactivation has already been invoked for all strategies'
+          );
+
+          assert.strictEqual(
+            this.name,
+            's3',
+            'strategy.deactivate - expected reverse order'
+          );
         } else if (deactivatedCount === 2) {
-          assert.strictEqual(this.name, 's1', 'expected reverse order');
+          assert.strictEqual(
+            this.name,
+            's1',
+            'strategy.deactivate - expected reverse order'
+          );
         } else if (deactivatedCount === 3) {
-          assert.strictEqual(this.name, 's2', 'expected reverse order');
+          assert.strictEqual(
+            this.name,
+            's2',
+            'strategy.deactivate - expected reverse order'
+          );
+        }
+      }
+
+      async beforeSourceActivation(): Promise<void> {
+        bsaCount++;
+        if (bsaCount === 1) {
+          assert.strictEqual(
+            this.name,
+            's2',
+            'strategy.beforeSourceActivation - expected order'
+          );
+        } else if (bsaCount === 2) {
+          assert.strictEqual(
+            this.name,
+            's1',
+            'strategy.beforeSourceActivation - expected order'
+          );
+        } else if (bsaCount === 3) {
+          assert.strictEqual(
+            this.name,
+            's3',
+            'strategy.beforeSourceActivation - expected order'
+          );
+        }
+      }
+
+      async afterSourceActivation(): Promise<void> {
+        asaCount++;
+        if (asaCount === 1) {
+          assert.strictEqual(
+            this.name,
+            's2',
+            'strategy.afterSourceActivation - expected order'
+          );
+        } else if (asaCount === 2) {
+          assert.strictEqual(
+            this.name,
+            's1',
+            'strategy.afterSourceActivation - expected order'
+          );
+        } else if (asaCount === 3) {
+          assert.strictEqual(
+            this.name,
+            's3',
+            'strategy.afterSourceActivation - expected order'
+          );
+        }
+      }
+
+      async beforeSourceDeactivation(): Promise<void> {
+        bsdCount++;
+        if (bsdCount === 1) {
+          assert.strictEqual(
+            this.name,
+            's3',
+            'strategy.beforeSourceDeactivation - expected reverse order'
+          );
+        } else if (bsdCount === 2) {
+          assert.strictEqual(
+            this.name,
+            's1',
+            'strategy.beforeSourceDeactivation - expected reverse order'
+          );
+        } else if (bsdCount === 3) {
+          assert.strictEqual(
+            this.name,
+            's2',
+            'strategy.beforeSourceDeactivation - expected reverse order'
+          );
+        }
+      }
+
+      async afterSourceDeactivation(): Promise<void> {
+        asdCount++;
+        if (asdCount === 1) {
+          assert.strictEqual(
+            this.name,
+            's3',
+            'strategy.afterSourceDeactivation - expected reverse order'
+          );
+        } else if (asdCount === 2) {
+          assert.strictEqual(
+            this.name,
+            's1',
+            'strategy.afterSourceDeactivation - expected reverse order'
+          );
+        } else if (asdCount === 3) {
+          assert.strictEqual(
+            this.name,
+            's2',
+            'strategy.afterSourceDeactivation - expected reverse order'
+          );
         }
       }
     }
@@ -210,19 +380,32 @@ module('Coordinator', function(hooks) {
     let s1 = new CustomStrategy({ name: 's1' });
     let s2 = new CustomStrategy({ name: 's2' });
     let s3 = new CustomStrategy({ name: 's3' });
+    let source1 = new CustomSource({ name: 'source1', autoActivate: false });
 
-    coordinator = new Coordinator({ strategies: [s2, s1] });
+    coordinator = new Coordinator({ strategies: [s2, s1], sources: [source1] });
     coordinator.addStrategy(s3);
 
     await coordinator.activate();
 
-    assert.equal(activatedCount, 3, 'both strategies have been activated');
+    assert.equal(
+      asaCount,
+      3,
+      'afterSourceActivation has been invoked for all strategies'
+    );
+
+    assert.equal(activatedCount, 3, 'all strategies have been activated');
     assert.equal(deactivatedCount, 0, 'no strategies have been deactivated');
 
     await coordinator.deactivate();
 
+    assert.equal(
+      asdCount,
+      3,
+      'afterSourceDeactivation has been invoked for all strategies'
+    );
+
     assert.equal(activatedCount, 3, 'activated count has not changed');
-    assert.equal(deactivatedCount, 3, 'both strategies have been deactivated');
+    assert.equal(deactivatedCount, 3, 'all strategies have been deactivated');
   });
 
   test('can be deactivated multiple times, without being activated', async function(assert) {

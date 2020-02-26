@@ -140,35 +140,64 @@ export default class Coordinator {
     return this._activated;
   }
 
-  activate(options: ActivationOptions = {}): Promise<void> {
+  async activate(options: ActivationOptions = {}): Promise<void> {
     if (!this._activated) {
-      if (options.logLevel === undefined) {
-        options.logLevel = this._defaultActivationOptions.logLevel;
-      }
-
-      this._currentActivationOptions = options;
-
-      this._activated = this.strategies.reduce((chain, strategy) => {
-        return chain.then(() => strategy.activate(this, options));
-      }, Promise.resolve());
+      this._activated = this._activate(options);
     }
-
-    return this._activated;
+    await this._activated;
   }
 
-  deactivate(): Promise<void> {
+  async deactivate(): Promise<void> {
     if (this._activated) {
-      return this._activated
-        .then(() => {
-          return this.strategies.reverse().reduce((chain, strategy) => {
-            return chain.then(() => strategy.deactivate());
-          }, Promise.resolve());
-        })
-        .then(() => {
-          this._activated = null;
-        });
-    } else {
-      return Promise.resolve();
+      await this._activated;
+      await this._deactivate();
+    }
+
+    this._activated = undefined;
+  }
+
+  protected async _activate(options: ActivationOptions = {}): Promise<void> {
+    if (options.logLevel === undefined) {
+      options.logLevel = this._defaultActivationOptions.logLevel;
+    }
+
+    this._currentActivationOptions = options;
+
+    for (let strategy of this.strategies) {
+      await strategy.activate(this, options);
+    }
+
+    for (let strategy of this.strategies) {
+      await strategy.beforeSourceActivation();
+    }
+
+    for (let source of this.sources) {
+      await source.activate();
+    }
+
+    for (let strategy of this.strategies) {
+      await strategy.afterSourceActivation();
+    }
+  }
+
+  protected async _deactivate(): Promise<void> {
+    const strategies = this.strategies.reverse();
+    const sources = this.sources.reverse();
+
+    for (let strategy of strategies) {
+      await strategy.beforeSourceDeactivation();
+    }
+
+    for (let source of sources) {
+      await source.deactivate();
+    }
+
+    for (let strategy of strategies) {
+      await strategy.afterSourceDeactivation();
+    }
+
+    for (let strategy of strategies) {
+      await strategy.deactivate();
     }
   }
 }

@@ -27,6 +27,16 @@ export interface TaskQueueSettings {
    * behavior.
    */
   autoProcess?: boolean;
+
+  /**
+   * A flag indicating whether activation should happen as part of
+   * instantiation. Set to `false` to override the default `true` behavior. When
+   * `autoActivate === false`, no tasks reified from the queue's bucket will be
+   * automatically processed as part of queue instantiation, regardless of the
+   * `autoProcess` setting. Invoke `queue.activate()` as a separate step to
+   * finish activation and start processing tasks.
+   */
+  autoActivate?: boolean;
 }
 
 /**
@@ -77,11 +87,22 @@ export default class TaskQueue implements Evented {
       assert('TaskQueue requires a name if it has a bucket', !!this._name);
     }
 
-    this._reify().then(() => {
-      if (this.length > 0 && this.autoProcess) {
-        this.process();
-      }
-    });
+    const autoActivate =
+      settings.autoActivate === undefined || settings.autoActivate;
+
+    if (autoActivate) {
+      this.activate();
+    } else {
+      this._reify();
+    }
+  }
+
+  async activate(): Promise<void> {
+    await this._reify();
+
+    if (this.length > 0 && this.autoProcess) {
+      this.process();
+    }
   }
 
   /**

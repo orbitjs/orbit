@@ -65,6 +65,8 @@ export abstract class Source implements Evented, Performer {
     this._transformBuilder = settings.transformBuilder;
     const requestQueueSettings = settings.requestQueueSettings || {};
     const syncQueueSettings = settings.syncQueueSettings || {};
+    const autoActivate =
+      settings.autoActivate === undefined || settings.autoActivate;
 
     if (bucket) {
       assert('TransformLog requires a name if it has a bucket', !!name);
@@ -75,16 +77,18 @@ export abstract class Source implements Evented, Performer {
       bucket
     });
 
-    this._requestQueue = new TaskQueue(this, {
-      name: name ? `${name}-requests` : undefined,
-      bucket,
-      ...requestQueueSettings
-    });
-
     this._syncQueue = new TaskQueue(this, {
       name: name ? `${name}-sync` : undefined,
       bucket,
+      autoActivate: false,
       ...syncQueueSettings
+    });
+
+    this._requestQueue = new TaskQueue(this, {
+      name: name ? `${name}-requests` : undefined,
+      bucket,
+      autoActivate: false,
+      ...requestQueueSettings
     });
 
     if (
@@ -94,7 +98,7 @@ export abstract class Source implements Evented, Performer {
       this._schema.on('upgrade', () => this.upgrade());
     }
 
-    if (settings.autoActivate === undefined || settings.autoActivate) {
+    if (autoActivate) {
       this.activate();
     }
   }
@@ -172,7 +176,7 @@ export abstract class Source implements Evented, Performer {
     if (!this._activated) {
       this._activated = this._activate();
     }
-    return this._activated;
+    await this._activated;
   }
 
   async deactivate(): Promise<void> {
@@ -184,7 +188,9 @@ export abstract class Source implements Evented, Performer {
   }
 
   protected async _activate(): Promise<void> {
-    return this._transformLog.reified;
+    await this._transformLog.reified;
+    await this._syncQueue.activate();
+    await this._requestQueue.activate();
   }
 
   /////////////////////////////////////////////////////////////////////////////

@@ -1247,6 +1247,51 @@ module('TaskQueue', function() {
       });
     });
 
+    test('if `autoActivate = false`, will wait for `activate` to begin processing', async function(assert) {
+      assert.expect(3);
+
+      const performer: Performer = {
+        perform(task: Task): Promise<void> {
+          return Promise.resolve();
+        }
+      };
+
+      const serialized: Task[] = [
+        {
+          type: 'transform',
+          data: op1
+        },
+        {
+          type: 'transform',
+          data: op2
+        }
+      ];
+
+      let queue: TaskQueue;
+
+      await bucket.setItem('queue', serialized);
+
+      queue = new TaskQueue(performer, {
+        name: 'queue',
+        bucket,
+        autoActivate: false
+      });
+
+      await queue.reified;
+
+      assert.equal(queue.length, 2, 'queue has two tasks');
+
+      await queue.activate();
+
+      queue.on('complete', async function() {
+        assert.ok(true, 'queue completed');
+
+        let serialized = await bucket.getItem('queue');
+
+        assert.deepEqual(serialized, [], 'no serialized ops remain');
+      });
+    });
+
     test('#push - tasks pushed to a queue are persisted to its bucket', function(assert) {
       const done = assert.async();
       assert.expect(9);
