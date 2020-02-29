@@ -261,6 +261,8 @@ export default class JSONAPIRequestProcessor {
       if (this.responseHasContent(response)) {
         return response.json();
       }
+    } else if (response.status === 304) {
+      return;
     } else {
       if (this.responseHasContent(response)) {
         return response

@@ -186,15 +186,19 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
     );
     requestProcessor.preprocessResponseDocument(document, request);
 
-    const deserialized = requestProcessor.serializer.deserialize(document);
-    const operations = requestProcessor.operationsFromDeserializedDocument(
-      deserialized
-    );
+    if (document) {
+      const deserialized = requestProcessor.serializer.deserialize(document);
+      const operations = requestProcessor.operationsFromDeserializedDocument(
+        deserialized
+      );
 
-    const transforms = [buildTransform(operations)];
-    const { data: primaryData, meta, links } = deserialized;
+      const transforms = [buildTransform(operations)];
+      const { data: primaryData, meta, links } = deserialized;
 
-    return { transforms, primaryData, meta, links };
+      return { transforms, primaryData, meta, links };
+    } else {
+      return { transforms: [], primaryData: undefined };
+    }
   },
 
   async findRecords(
@@ -210,15 +214,19 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
     );
     requestProcessor.preprocessResponseDocument(document, request);
 
-    const deserialized = requestProcessor.serializer.deserialize(document);
-    const operations = requestProcessor.operationsFromDeserializedDocument(
-      deserialized
-    );
+    if (document) {
+      const deserialized = requestProcessor.serializer.deserialize(document);
+      const operations = requestProcessor.operationsFromDeserializedDocument(
+        deserialized
+      );
 
-    const transforms = [buildTransform(operations)];
-    const { data: primaryData, meta, links } = deserialized;
+      const transforms = [buildTransform(operations)];
+      const { data: primaryData, meta, links } = deserialized;
 
-    return { transforms, primaryData, meta, links };
+      return { transforms, primaryData, meta, links };
+    } else {
+      return { transforms: [], primaryData: undefined };
+    }
   },
 
   async findRelatedRecord(
@@ -238,22 +246,26 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
     );
     requestProcessor.preprocessResponseDocument(document, request);
 
-    const deserialized = requestProcessor.serializer.deserialize(document);
-    const { data: relatedRecord, meta, links } = deserialized;
-    const operations = requestProcessor.operationsFromDeserializedDocument(
-      deserialized
-    );
-    operations.push({
-      op: 'replaceRelatedRecord',
-      record,
-      relationship,
-      relatedRecord
-    } as ReplaceRelatedRecordOperation);
+    if (document) {
+      const deserialized = requestProcessor.serializer.deserialize(document);
+      const { data: relatedRecord, meta, links } = deserialized;
+      const operations = requestProcessor.operationsFromDeserializedDocument(
+        deserialized
+      );
+      operations.push({
+        op: 'replaceRelatedRecord',
+        record,
+        relationship,
+        relatedRecord
+      } as ReplaceRelatedRecordOperation);
 
-    const transforms = [buildTransform(operations)];
-    const primaryData = relatedRecord;
+      const transforms = [buildTransform(operations)];
+      const primaryData = relatedRecord;
 
-    return { transforms, primaryData, meta, links };
+      return { transforms, primaryData, meta, links };
+    } else {
+      return { transforms: [], primaryData: undefined };
+    }
   },
 
   async findRelatedRecords(
@@ -278,34 +290,38 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
     );
     requestProcessor.preprocessResponseDocument(document, request);
 
-    const deserialized = requestProcessor.serializer.deserialize(document);
-    const { data, meta, links } = deserialized;
-    const relatedRecords = data as Record[];
+    if (document) {
+      const deserialized = requestProcessor.serializer.deserialize(document);
+      const { data, meta, links } = deserialized;
+      const relatedRecords = data as Record[];
 
-    const operations = requestProcessor.operationsFromDeserializedDocument(
-      deserialized
-    );
-    if (isFiltered) {
-      for (let relatedRecord of relatedRecords) {
+      const operations = requestProcessor.operationsFromDeserializedDocument(
+        deserialized
+      );
+      if (isFiltered) {
+        for (let relatedRecord of relatedRecords) {
+          operations.push({
+            op: 'addToRelatedRecords',
+            record,
+            relationship,
+            relatedRecord
+          } as AddToRelatedRecordsOperation);
+        }
+      } else {
         operations.push({
-          op: 'addToRelatedRecords',
+          op: 'replaceRelatedRecords',
           record,
           relationship,
-          relatedRecord
-        } as AddToRelatedRecordsOperation);
+          relatedRecords
+        } as ReplaceRelatedRecordsOperation);
       }
+
+      const transforms = [buildTransform(operations)];
+      const primaryData = relatedRecords;
+
+      return { transforms, primaryData, meta, links };
     } else {
-      operations.push({
-        op: 'replaceRelatedRecords',
-        record,
-        relationship,
-        relatedRecords
-      } as ReplaceRelatedRecordsOperation);
+      return { transforms: [], primaryData: undefined };
     }
-
-    const transforms = [buildTransform(operations)];
-    const primaryData = relatedRecords;
-
-    return { transforms, primaryData, meta, links };
   }
 };
