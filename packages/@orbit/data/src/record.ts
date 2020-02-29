@@ -1,4 +1,4 @@
-import { Dict, isObject, isNone, merge } from '@orbit/utils';
+import { Dict, isObject, isNone, clone, merge } from '@orbit/utils';
 
 export interface LinkObject {
   href: string;
@@ -117,7 +117,6 @@ export function mergeRecords(current: Record | null, updates: Record): Record {
     let record: any = cloneRecordIdentity(current);
     let currentRecord: any = current;
     let updatedRecord: any = updates;
-
     ['attributes', 'keys', 'relationships'].forEach(grouping => {
       if (currentRecord[grouping] && updatedRecord[grouping]) {
         record[grouping] = merge(
@@ -131,10 +130,9 @@ export function mergeRecords(current: Record | null, updates: Record): Record {
         record[grouping] = merge({}, updatedRecord[grouping]);
       }
     });
-
     return record;
   } else {
-    return updates;
+    return clone(updates);
   }
 }
 

@@ -6,7 +6,8 @@ import {
   recordsInclude,
   recordsIncludeAll,
   deserializeRecordIdentity,
-  serializeRecordIdentity
+  serializeRecordIdentity,
+  mergeRecords
 } from '../src/index';
 import './test-helper';
 
@@ -229,5 +230,17 @@ module('Record', function() {
       ),
       'unequal sets 2'
     );
+  });
+
+  test('`mergeRecords` returns a clone of the updates if no current record is supplied', function(assert) {
+    let earth = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth'
+      }
+    };
+    assert.deepEqual(mergeRecords(null, earth), earth);
+    assert.notStrictEqual(mergeRecords(null, earth), earth);
   });
 });
