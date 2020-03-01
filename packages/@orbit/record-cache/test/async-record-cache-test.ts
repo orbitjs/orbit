@@ -125,7 +125,7 @@ module('AsyncRecordCache', function(hooks) {
   });
 
   test('#patch can replace records', async function(assert) {
-    assert.expect(4);
+    assert.expect(5);
 
     const cache = new Cache({ schema, keyMap });
 
@@ -146,10 +146,15 @@ module('AsyncRecordCache', function(hooks) {
 
     await cache.patch(t => t.updateRecord(earth));
 
-    assert.strictEqual(
+    assert.deepEqual(
       await cache.getRecordAsync({ type: 'planet', id: '1' }),
       earth,
-      'objects strictly match'
+      'objects deeply match'
+    );
+    assert.notStrictEqual(
+      await cache.getRecordAsync({ type: 'planet', id: '1' }),
+      earth,
+      'objects do not strictly match'
     );
     assert.equal(
       keyMap.keyToId('planet', 'remoteId', 'a'),
