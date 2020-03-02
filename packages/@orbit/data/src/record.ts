@@ -1,4 +1,4 @@
-import { Dict, isObject, isNone, merge } from '@orbit/utils';
+import { Dict, isObject, isNone, clone, merge } from '@orbit/utils';
 
 export interface LinkObject {
   href: string;
@@ -114,27 +114,60 @@ export function recordsIncludeAll(
 
 export function mergeRecords(current: Record | null, updates: Record): Record {
   if (current) {
-    let record: any = cloneRecordIdentity(current);
-    let currentRecord: any = current;
-    let updatedRecord: any = updates;
+    let record: Record = cloneRecordIdentity(current);
 
-    ['attributes', 'keys', 'relationships'].forEach(grouping => {
-      if (currentRecord[grouping] && updatedRecord[grouping]) {
-        record[grouping] = merge(
-          {},
-          currentRecord[grouping],
-          updatedRecord[grouping]
-        );
-      } else if (currentRecord[grouping]) {
-        record[grouping] = merge({}, currentRecord[grouping]);
-      } else if (updatedRecord[grouping]) {
-        record[grouping] = merge({}, updatedRecord[grouping]);
-      }
-    });
+    // Merge `meta` and `links`, replacing whole sections rather than merging
+    // individual members
+    mergeRecordSection(record, current, updates, 'meta', 0);
+    mergeRecordSection(record, current, updates, 'links', 0);
+
+    // Merge attributes and keys, replacing at the individual field level
+    mergeRecordSection(record, current, updates, 'attributes', 1);
+    mergeRecordSection(record, current, updates, 'keys', 1);
+
+    // Merge relationships, replacing at the `data`, `links`, and `meta` level
+    // for each relationship
+    mergeRecordSection(record, current, updates, 'relationships', 2);
 
     return record;
   } else {
-    return updates;
+    return clone(updates);
+  }
+}
+
+function mergeRecordSection(
+  record: any,
+  current: any,
+  update: any,
+  section: string,
+  replacementDepth: number
+): void {
+  if (current[section] && update[section]) {
+    if (replacementDepth === 0) {
+      record[section] = clone(update[section]);
+    } else if (replacementDepth === 1) {
+      record[section] = merge({}, current[section], update[section]);
+    } else {
+      record[section] = {};
+      for (let name of Object.keys(current[section])) {
+        mergeRecordSection(
+          record[section],
+          current[section],
+          update[section],
+          name,
+          replacementDepth - 1
+        );
+      }
+      for (let name of Object.keys(update[section])) {
+        if (!record[section][name]) {
+          record[section][name] = clone(update[section][name]);
+        }
+      }
+    }
+  } else if (current[section]) {
+    record[section] = clone(current[section]);
+  } else if (update[section]) {
+    record[section] = clone(update[section]);
   }
 }
 
