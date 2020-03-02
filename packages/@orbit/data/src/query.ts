@@ -4,8 +4,6 @@ import { QueryTerm } from './query-term';
 import QueryBuilder from './query-builder';
 import { isObject } from '@orbit/utils';
 
-const { deprecate } = Orbit;
-
 export type QueryBuilderFunc = (
   QueryBuilder: QueryBuilder
 ) => QueryExpression | QueryExpression[] | QueryTerm | QueryTerm[];
@@ -81,12 +79,6 @@ export function buildQuery(
 
     return {
       expressions,
-      get expression() {
-        deprecate(
-          '`expression` on query is deprecated. You should use `expressions`'
-        );
-        return this.expressions[0];
-      },
       options,
       id
     };
