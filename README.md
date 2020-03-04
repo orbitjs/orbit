@@ -40,7 +40,7 @@ most of Orbit.
 ## Contributing
 
 Orbit's main packages are maintained in this monorepo and managed by
-[lerna](https://lernajs.io).
+[lerna](https://lerna.js.org/).
 
 ### Installation
 
