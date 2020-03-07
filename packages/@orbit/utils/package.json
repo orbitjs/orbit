@@ -1,6 +1,6 @@
 {
   "name": "@orbit/utils",
-  "version": "0.17.0-beta.1",
+  "version": "0.17.0-beta.2",
   "description": "Core utilities for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
