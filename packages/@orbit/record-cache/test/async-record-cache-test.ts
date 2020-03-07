@@ -3933,4 +3933,276 @@ module('AsyncRecordCache', function(hooks) {
       [jupiter, mars]
     );
   });
+
+  test('#liveQuery', async function(assert) {
+    let cache = new Cache({ schema, keyMap });
+
+    const jupiter: Record = {
+      id: 'jupiter',
+      type: 'planet',
+      attributes: { name: 'Jupiter' }
+    };
+
+    const jupiter2 = {
+      ...jupiter,
+      attributes: { name: 'Jupiter 2' }
+    };
+
+    const callisto: Record = {
+      id: 'callisto',
+      type: 'moon',
+      attributes: { name: 'Callisto' },
+      relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
+    };
+
+    const jupiterWithCallisto = {
+      ...jupiter2,
+      relationships: { moons: { data: [{ type: 'moon', id: 'callisto' }] } }
+    };
+
+    const livePlanet = cache.liveQuery(q =>
+      q.findRecord({ type: 'planet', id: 'jupiter' })
+    );
+    const livePlanets = cache.liveQuery(q => q.findRecords('planet'));
+    const livePlanetMoons = cache.liveQuery(q =>
+      q.findRelatedRecords(jupiter, 'moons')
+    );
+    const liveMoonPlanet = cache.liveQuery(q =>
+      q.findRelatedRecord(callisto, 'planet')
+    );
+
+    interface Deferred {
+      promise?: Promise<any>;
+      resolve?: () => void;
+      reject?: (message: string) => void;
+    }
+    function defer() {
+      let defer: Deferred = {};
+      defer.promise = new Promise((resolve, reject) => {
+        defer.resolve = resolve;
+        defer.reject = message => reject(new Error(message));
+      });
+      return defer;
+    }
+
+    let jupiterAdded = defer();
+    let jupiterUpdated = defer();
+    let callistoAdded = defer();
+    let jupiterRemoved = defer();
+
+    function next() {
+      if (n === 1 && i === 1 && j === 0 && k === 0) {
+        jupiterAdded.resolve();
+      }
+      if (n === 2 && i === 2 && j === 0 && k === 0) {
+        jupiterUpdated.resolve();
+      }
+      if (n === 3 && i === 3 && j === 1 && k === 1) {
+        callistoAdded.resolve();
+      }
+      if (n === 4 && i === 4 && j === 2 && k === 2) {
+        jupiterRemoved.resolve();
+      }
+    }
+
+    let n = 0;
+    let livePlanetUnsubscribe = livePlanet.subscribe(update => {
+      update
+        .query()
+        .then(result => {
+          n++;
+          if (n === 1) {
+            assert.deepEqual(result, jupiter, 'findRecord jupiter');
+          } else if (n === 2) {
+            assert.deepEqual(result, jupiter2, 'findRecord jupiter2');
+          } else if (n === 3) {
+            assert.deepEqual(
+              result,
+              jupiterWithCallisto,
+              'findRecord jupiterWithCallisto'
+            );
+          } else {
+            assert.ok(false, 'findRecord should not execute');
+          }
+          next();
+        })
+        .catch(error => {
+          n++;
+          if (n === 4) {
+            assert.ok(
+              error instanceof RecordNotFoundException,
+              'findRecord not found'
+            );
+          } else {
+            assert.ok(false, 'findRecord should not throw error');
+          }
+          next();
+        });
+    });
+
+    let i = 0;
+    let livePlanetsUnsubscribe = livePlanets.subscribe(update => {
+      update
+        .query()
+        .then(result => {
+          i++;
+          if (i === 1) {
+            assert.deepEqual(result, [jupiter], 'findRecords [jupiter]');
+          } else if (i === 2) {
+            assert.deepEqual(result, [jupiter2], 'findRecords [jupiter2]');
+          } else if (i === 3) {
+            assert.deepEqual(
+              result,
+              [jupiterWithCallisto],
+              'findRecords [jupiterWithCallisto]'
+            );
+          } else if (i === 4) {
+            assert.deepEqual(result, [], 'findRecords []');
+          } else {
+            assert.ok(false, 'findRecords should not execute');
+          }
+          next();
+        })
+        .catch(() => {
+          assert.ok(false, 'findRecords should not throw error');
+        });
+    });
+
+    let j = 0;
+    let livePlanetMoonsUnsubscribe = livePlanetMoons.subscribe(update => {
+      update
+        .query()
+        .then(result => {
+          j++;
+          if (j === 1) {
+            assert.deepEqual(
+              result,
+              [callisto],
+              'findRelatedRecords jupiter.moons => [callisto]'
+            );
+          } else {
+            assert.ok(false, 'findRelatedRecords should not execute');
+          }
+          next();
+        })
+        .catch(error => {
+          j++;
+          if (j === 2) {
+            assert.ok(
+              error instanceof RecordNotFoundException,
+              'findRelatedRecords not found'
+            );
+          } else {
+            assert.ok(false, 'findRelatedRecords should not throw error');
+          }
+          next();
+        });
+    });
+
+    let k = 0;
+    let liveMoonPlanetUnsubscribe = liveMoonPlanet.subscribe(update => {
+      update
+        .query()
+        .then(result => {
+          k++;
+          if (k === 1) {
+            assert.deepEqual(
+              result,
+              jupiterWithCallisto,
+              'findRelatedRecord callisto.planet => jupiter'
+            );
+          } else if (k === 2) {
+            assert.deepEqual(
+              result,
+              null,
+              'findRelatedRecord callisto.planet => null'
+            );
+          } else {
+            assert.ok(false, 'findRelatedRecord should not execute');
+          }
+          next();
+        })
+        .catch(() => {
+          assert.ok(false, 'findRelatedRecord should not throw error');
+        });
+    });
+
+    setTimeout(() => {
+      jupiterAdded.reject('reject jupiterAdded');
+      jupiterUpdated.reject('reject jupiterUpdated');
+      callistoAdded.reject('reject callistoAdded');
+      jupiterRemoved.reject('reject jupiterRemoved');
+    }, 500);
+
+    await cache.patch(t => t.addRecord(jupiter));
+    await jupiterAdded.promise;
+
+    await cache.patch(t => t.updateRecord(jupiter2));
+    await jupiterUpdated.promise;
+
+    await cache.patch(t => t.addRecord(callisto));
+    await callistoAdded.promise;
+
+    await cache.patch(t => t.removeRecord(jupiter));
+    await jupiterRemoved.promise;
+
+    assert.expect(16);
+    assert.equal(n, 4, 'findRecord should run 4 times');
+    assert.equal(i, 4, 'findRecords should run 4 times');
+    assert.equal(j, 2, 'findRelatedRecords should run 2 times');
+    assert.equal(k, 2, 'findRelatedRecord should run 2 times');
+
+    livePlanetUnsubscribe();
+    livePlanetsUnsubscribe();
+    livePlanetMoonsUnsubscribe();
+    liveMoonPlanetUnsubscribe();
+
+    await cache.patch(t =>
+      t.addRecord({
+        type: 'planet',
+        id: 'mercury',
+        attributes: {
+          name: 'Mercury'
+        }
+      })
+    );
+  });
+
+  test('#liveQuery findRecords', async function(assert) {
+    let cache = new Cache({ schema, keyMap });
+
+    const planets: Record[] = [
+      {
+        id: 'planet1',
+        type: 'planet',
+        attributes: { name: 'Planet 1' }
+      },
+      {
+        id: 'planet2',
+        type: 'planet',
+        attributes: { name: 'Planet 2' }
+      },
+      {
+        id: 'planet3',
+        type: 'planet',
+        attributes: { name: 'Planet 3' }
+      }
+    ];
+
+    const livePlanets = cache.liveQuery(q => q.findRecords('planet'));
+
+    let i = 0;
+    cache.on('patch', () => i++);
+
+    const done = assert.async();
+    livePlanets.subscribe(async update => {
+      const result = await update.query();
+      assert.deepEqual(result, planets);
+      assert.equal(i, 3);
+      done();
+    });
+
+    cache.patch(t => planets.map(planet => t.addRecord(planet)));
+    assert.expect(2);
+  });
 });

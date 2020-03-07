@@ -38,6 +38,7 @@ import {
 } from './record-accessor';
 import { PatchResult } from './patch-result';
 import { QueryResult, QueryResultData } from './query-result';
+import { AsyncLiveQuery } from './live-query/async-live-query';
 
 const { assert } = Orbit;
 
@@ -244,6 +245,24 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
     result.inverse.reverse();
 
     return result;
+  }
+
+  liveQuery(
+    queryOrExpressions: QueryOrExpressions,
+    options?: object,
+    id?: string
+  ): AsyncLiveQuery {
+    const query = buildQuery(
+      queryOrExpressions,
+      options,
+      id,
+      this.queryBuilder
+    );
+
+    return new AsyncLiveQuery({
+      cache: this,
+      query
+    });
   }
 
   /////////////////////////////////////////////////////////////////////////////

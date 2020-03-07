@@ -38,6 +38,7 @@ import {
 } from './record-accessor';
 import { PatchResult } from './patch-result';
 import { QueryResult, QueryResultData } from './query-result';
+import { SyncLiveQuery } from './live-query/sync-live-query';
 
 const { assert } = Orbit;
 
@@ -240,6 +241,24 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
     result.inverse.reverse();
 
     return result;
+  }
+
+  liveQuery(
+    queryOrExpressions: QueryOrExpressions,
+    options?: object,
+    id?: string
+  ): SyncLiveQuery {
+    const query = buildQuery(
+      queryOrExpressions,
+      options,
+      id,
+      this.queryBuilder
+    );
+
+    return new SyncLiveQuery({
+      cache: this,
+      query
+    });
   }
 
   /////////////////////////////////////////////////////////////////////////////
