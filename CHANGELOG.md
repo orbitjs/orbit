@@ -1,5 +1,50 @@
 # Changelog
 
+## v0.17.0-beta.2 (2020-03-07)
+
+#### :rocket: Enhancement
+
+- `@orbit/record-cache`
+  - [#718](https://github.com/orbitjs/orbit/pull/718) Implement live query on @orbit/record-cache ([@tchak](https://github.com/tchak))
+- `@orbit/data`
+  - [#736](https://github.com/orbitjs/orbit/pull/736) Remove deprecated `expression` property on query ([@tchak](https://github.com/tchak))
+- `@orbit/data`, `@orbit/memory`, `@orbit/record-cache`
+  - [#735](https://github.com/orbitjs/orbit/pull/735) Improve mergeRecords to better handle links, meta, and relationships ([@dgeb](https://github.com/dgeb))
+- `@orbit/jsonapi`
+  - [#727](https://github.com/orbitjs/orbit/pull/727) Handle 304 responses in jsonapi-request-processor ([@pangratz](https://github.com/pangratz))
+  - [#731](https://github.com/orbitjs/orbit/pull/731) Export all the types from jsonapi source ([@tchak](https://github.com/tchak))
+- `@orbit/coordinator`, `@orbit/core`, `@orbit/data`
+  - [#732](https://github.com/orbitjs/orbit/pull/732) Improve control of source and strategy activation and deactivation ([@dgeb](https://github.com/dgeb))
+- `@orbit/core`, `@orbit/data`, `@orbit/indexeddb-bucket`, `@orbit/local-storage-bucket`
+  - [#726](https://github.com/orbitjs/orbit/pull/726) Bucket.clear() ([@pangratz](https://github.com/pangratz))
+
+#### :bug: Bug Fix
+
+- `@orbit/data`
+  - [#710](https://github.com/orbitjs/orbit/pull/710) Allow mergeOperations to set null for hasOne relationship ([@jembezmamy](https://github.com/jembezmamy))
+- `@orbit/jsonapi`
+  - [#712](https://github.com/orbitjs/orbit/pull/712) [BUGFIX] Always allow serialization of null attributes ([@makepanic](https://github.com/makepanic))
+
+#### :memo: Documentation
+
+- [#729](https://github.com/orbitjs/orbit/pull/729) first pass at generating docs with typedoc ([@brumm](https://github.com/brumm))
+
+#### :house: Internal
+
+- `@orbit/record-cache`
+  - [#721](https://github.com/orbitjs/orbit/pull/721) fix deprecations ([@tchak](https://github.com/tchak))
+- `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/serializers`, `@orbit/store`, `@orbit/utils`
+  - [#719](https://github.com/orbitjs/orbit/pull/719) Update dependencies ([@tchak](https://github.com/tchak))
+
+#### Committers: 6
+
+- Christian ([@makepanic](https://github.com/makepanic))
+- Clemens M�ller ([@pangratz](https://github.com/pangratz))
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+- Paul Chavard ([@tchak](https://github.com/tchak))
+- Paweł Bator ([@jembezmamy](https://github.com/jembezmamy))
+- Philipp Brumm ([@brumm](https://github.com/brumm))
+
 ## v0.17.0-beta.1 (2019-09-22)
 
 #### :rocket: Enhancement
@@ -20,12 +65,14 @@
 ## v0.16.4 (2019-12-10)
 
 #### :bug: Bug Fix
-* `@orbit/data`
-  * [#710](https://github.com/orbitjs/orbit/pull/710) Allow mergeOperations to set null for hasOne relationship ([@jembezmamy](https://github.com/jembezmamy))
-* `@orbit/jsonapi`
-  * [#712](https://github.com/orbitjs/orbit/pull/712) [BUGFIX] Always allow serialization of null attributes ([@makepanic](https://github.com/makepanic))
+
+- `@orbit/data`
+  - [#710](https://github.com/orbitjs/orbit/pull/710) Allow mergeOperations to set null for hasOne relationship ([@jembezmamy](https://github.com/jembezmamy))
+- `@orbit/jsonapi`
+  - [#712](https://github.com/orbitjs/orbit/pull/712) [BUGFIX] Always allow serialization of null attributes ([@makepanic](https://github.com/makepanic))
 
 #### Committers: 2
+
 - Christian ([@makepanic](https://github.com/makepanic))
 - Paweł Bator ([@jembezmamy](https://github.com/jembezmamy))
 
