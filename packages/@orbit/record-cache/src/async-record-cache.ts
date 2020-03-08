@@ -51,6 +51,7 @@ export interface AsyncRecordCacheSettings {
   queryOperators?: Dict<AsyncQueryOperator>;
   patchOperators?: Dict<AsyncPatchOperator>;
   inversePatchOperators?: Dict<AsyncInversePatchOperator>;
+  debounceLiveQueries?: boolean;
 }
 
 @evented
@@ -63,6 +64,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   protected _queryOperators: Dict<AsyncQueryOperator>;
   protected _patchOperators: Dict<AsyncPatchOperator>;
   protected _inversePatchOperators: Dict<AsyncInversePatchOperator>;
+  protected _debounceLiveQueries: boolean;
 
   // Evented interface stubs
   on: (event: string, listener: Listener) => () => void;
@@ -89,6 +91,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
     this._patchOperators = settings.patchOperators || AsyncPatchOperators;
     this._inversePatchOperators =
       settings.inversePatchOperators || AsyncInversePatchOperators;
+    this._debounceLiveQueries = settings.debounceLiveQueries !== false;
 
     const processors: AsyncOperationProcessorClass[] = settings.processors
       ? settings.processors
@@ -259,7 +262,13 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
       this.queryBuilder
     );
 
+    let debounce = options && (options as any).debounce;
+    if (typeof debounce !== 'boolean') {
+      debounce = this._debounceLiveQueries;
+    }
+
     return new AsyncLiveQuery({
+      debounce,
       cache: this,
       query
     });
