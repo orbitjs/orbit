@@ -4130,7 +4130,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#liveQuery findRecords', async function(assert) {
+  test('#liveQuery findRecords (debounce)', async function(assert) {
     let cache = new Cache({ schema, keyMap });
 
     const planets: Record[] = [
@@ -4166,5 +4166,45 @@ module('SyncRecordCache', function(hooks) {
 
     cache.patch(t => planets.map(planet => t.addRecord(planet)));
     assert.expect(2);
+  });
+
+  test('#liveQuery findRecords (no debounce)', async function(assert) {
+    let cache = new Cache({ schema, keyMap, debounceLiveQueries: false });
+
+    const planets: Record[] = [
+      {
+        id: 'planet1',
+        type: 'planet',
+        attributes: { name: 'Planet 1' }
+      },
+      {
+        id: 'planet2',
+        type: 'planet',
+        attributes: { name: 'Planet 2' }
+      },
+      {
+        id: 'planet3',
+        type: 'planet',
+        attributes: { name: 'Planet 3' }
+      }
+    ];
+
+    const livePlanets = cache.liveQuery(q => q.findRecords('planet'));
+
+    let i = 0;
+    cache.on('patch', () => i++);
+
+    const done = assert.async();
+    livePlanets.subscribe(update => {
+      const result = update.query() as Record[];
+      assert.equal(result.length, i);
+
+      if (i === 3) {
+        done();
+      }
+    });
+
+    cache.patch(t => planets.map(planet => t.addRecord(planet)));
+    assert.expect(3);
   });
 });

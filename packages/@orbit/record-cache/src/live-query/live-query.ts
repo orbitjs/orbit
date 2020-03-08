@@ -16,16 +16,18 @@ import { RecordChange, recordOperationChange } from './record-change';
 const { assert } = Orbit;
 
 export interface LiveQuerySettings {
+  debounce: boolean;
   query: Query;
 }
 
 export abstract class LiveQuery {
+  readonly debounce: boolean;
   protected cache: Evented;
   protected schema: Schema;
 
   protected _query: Query;
   protected _subscribe(onNext: () => void): () => void {
-    const execute = onceTick(onNext);
+    const execute = this.debounce ? onceTick(onNext) : onNext;
 
     const unsubscribePatch = this.cache.on(
       'patch',
@@ -54,6 +56,7 @@ export abstract class LiveQuery {
       'Only single expression queries are supported on LiveQuery',
       settings.query.expressions.length === 1
     );
+    this.debounce = settings.debounce;
     this._query = settings.query;
   }
 

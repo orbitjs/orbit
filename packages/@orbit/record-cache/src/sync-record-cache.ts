@@ -51,6 +51,7 @@ export interface SyncRecordCacheSettings {
   queryOperators?: Dict<SyncQueryOperator>;
   patchOperators?: Dict<SyncPatchOperator>;
   inversePatchOperators?: Dict<SyncInversePatchOperator>;
+  debounceLiveQueries?: boolean;
 }
 
 @evented
@@ -63,6 +64,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   protected _queryOperators: Dict<SyncQueryOperator>;
   protected _patchOperators: Dict<SyncPatchOperator>;
   protected _inversePatchOperators: Dict<SyncInversePatchOperator>;
+  protected _debounceLiveQueries: boolean;
 
   // Evented interface stubs
   on: (event: string, listener: Listener) => () => void;
@@ -89,6 +91,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
     this._patchOperators = settings.patchOperators || SyncPatchOperators;
     this._inversePatchOperators =
       settings.inversePatchOperators || SyncInversePatchOperators;
+    this._debounceLiveQueries = settings.debounceLiveQueries !== false;
 
     const processors: SyncOperationProcessorClass[] = settings.processors
       ? settings.processors
@@ -255,7 +258,13 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
       this.queryBuilder
     );
 
+    let debounce = options && (options as any).debounce;
+    if (typeof debounce !== 'boolean') {
+      debounce = this._debounceLiveQueries;
+    }
+
     return new SyncLiveQuery({
+      debounce,
       cache: this,
       query
     });
