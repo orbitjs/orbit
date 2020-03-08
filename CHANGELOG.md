@@ -17,6 +17,8 @@
   - [#732](https://github.com/orbitjs/orbit/pull/732) Improve control of source and strategy activation and deactivation ([@dgeb](https://github.com/dgeb))
 - `@orbit/core`, `@orbit/data`, `@orbit/indexeddb-bucket`, `@orbit/local-storage-bucket`
   - [#726](https://github.com/orbitjs/orbit/pull/726) Bucket.clear() ([@pangratz](https://github.com/pangratz))
+- `@orbit/data`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`
+  - [#692](https://github.com/orbitjs/orbit/pull/692) Deprecate model on relationshipDef ([@tchak](https://github.com/tchak))
 
 #### :bug: Bug Fix
 
