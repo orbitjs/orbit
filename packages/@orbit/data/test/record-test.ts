@@ -6,7 +6,8 @@ import {
   recordsInclude,
   recordsIncludeAll,
   deserializeRecordIdentity,
-  serializeRecordIdentity
+  serializeRecordIdentity,
+  mergeRecords
 } from '../src/index';
 import './test-helper';
 
@@ -187,5 +188,274 @@ module('Record', function() {
       ),
       'unequal sets 2'
     );
+  });
+
+  test('`mergeRecords` returns a clone of the updates if no current record is supplied', function(assert) {
+    let earth = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth'
+      }
+    };
+    assert.deepEqual(mergeRecords(null, earth), earth);
+    assert.notStrictEqual(mergeRecords(null, earth), earth);
+  });
+
+  test('`mergeRecords` merges individual attributes and keys', function(assert) {
+    let earth = {
+      type: 'planet',
+      id: 'earth',
+      keys: {
+        primaryId: 'a',
+        secondaryId: 'b'
+      },
+      attributes: {
+        name: 'Earth',
+        circumference: 25000
+      }
+    };
+
+    let updates = {
+      type: 'planet',
+      id: 'earth',
+      keys: {
+        secondaryId: 'c',
+        tertiaryId: 'd'
+      },
+      attributes: {
+        name: 'Mother Earth',
+        description: 'Home'
+      }
+    };
+
+    let expected = {
+      type: 'planet',
+      id: 'earth',
+      keys: {
+        primaryId: 'a',
+        secondaryId: 'c',
+        tertiaryId: 'd'
+      },
+      attributes: {
+        name: 'Mother Earth',
+        description: 'Home',
+        circumference: 25000
+      }
+    };
+
+    assert.deepEqual(mergeRecords(earth, updates), expected);
+  });
+
+  test("`mergeRecords` adds meta and links objects if they don't previously exist", function(assert) {
+    let earth = {
+      type: 'planet',
+      id: 'earth'
+    };
+
+    let updates = {
+      type: 'planet',
+      id: 'earth',
+      meta: {
+        bar: 'baz'
+      },
+      links: {
+        self: 'http://example.com/planets/earth',
+        next: 'http://example.com/planets/mars'
+      }
+    };
+
+    let expected = {
+      type: 'planet',
+      id: 'earth',
+      meta: {
+        bar: 'baz'
+      },
+      links: {
+        self: 'http://example.com/planets/earth',
+        next: 'http://example.com/planets/mars'
+      }
+    };
+
+    assert.deepEqual(mergeRecords(earth, updates), expected);
+  });
+
+  test('`mergeRecords` carries forward meta and links objects if they exist', function(assert) {
+    let earth = {
+      type: 'planet',
+      id: 'earth',
+      meta: {
+        bar: 'baz'
+      },
+      links: {
+        self: 'http://example.com/planets/earth',
+        next: 'http://example.com/planets/mars'
+      }
+    };
+
+    let updates = {
+      type: 'planet',
+      id: 'earth'
+    };
+
+    let expected = {
+      type: 'planet',
+      id: 'earth',
+      meta: {
+        bar: 'baz'
+      },
+      links: {
+        self: 'http://example.com/planets/earth',
+        next: 'http://example.com/planets/mars'
+      }
+    };
+
+    assert.deepEqual(mergeRecords(earth, updates), expected);
+  });
+
+  test('`mergeRecords` replaces existing meta and links objects completely', function(assert) {
+    let earth = {
+      type: 'planet',
+      id: 'earth',
+      meta: {
+        foo: 'bar'
+      },
+      links: {
+        self: 'http://example.com/planets/earth',
+        previous: 'http://example.com/planets/venus'
+      }
+    };
+
+    let updates = {
+      type: 'planet',
+      id: 'earth',
+      meta: {
+        bar: 'baz'
+      },
+      links: {
+        self: 'http://example.com/planets/earth',
+        next: 'http://example.com/planets/mars'
+      }
+    };
+
+    let expected = {
+      type: 'planet',
+      id: 'earth',
+      meta: {
+        bar: 'baz'
+      },
+      links: {
+        self: 'http://example.com/planets/earth',
+        next: 'http://example.com/planets/mars'
+      }
+    };
+
+    assert.deepEqual(mergeRecords(earth, updates), expected);
+  });
+
+  test('`mergeRecords` handles meta, links, and data within relationships separately', function(assert) {
+    let earth = {
+      type: 'planet',
+      id: 'earth',
+      relationships: {
+        moons: {
+          meta: {
+            foo: 'bar'
+          },
+          links: {
+            self: 'http://example.com/planets/earth',
+            previous: 'http://example.com/planets/venus'
+          }
+        },
+        sun: {
+          meta: {
+            foo: 'bar'
+          }
+        },
+        inhabitants: {
+          data: [
+            {
+              type: 'person',
+              id: '1'
+            }
+          ]
+        }
+      }
+    };
+
+    let updates = {
+      type: 'planet',
+      id: 'earth',
+      relationships: {
+        moons: {
+          meta: {
+            bar: 'baz'
+          },
+          links: {
+            self: 'http://example.com/planets/earth/relationships/moons',
+            related: 'http://example.com/planets/earth/moons'
+          }
+        },
+        inhabitants: {
+          meta: {
+            bar: 'baz'
+          },
+          links: {
+            self: 'http://example.com/planets/earth/relationships/inhabitants',
+            related: 'http://example.com/planets/earth/inhabitants'
+          }
+        },
+        elements: {
+          links: {
+            self: 'http://example.com/planets/earth/relationships/elements',
+            related: 'http://example.com/planets/earth/elements'
+          }
+        }
+      }
+    };
+
+    let expected = {
+      type: 'planet',
+      id: 'earth',
+      relationships: {
+        inhabitants: {
+          meta: {
+            bar: 'baz'
+          },
+          links: {
+            self: 'http://example.com/planets/earth/relationships/inhabitants',
+            related: 'http://example.com/planets/earth/inhabitants'
+          },
+          data: [
+            {
+              type: 'person',
+              id: '1'
+            }
+          ]
+        },
+        moons: {
+          meta: {
+            bar: 'baz'
+          },
+          links: {
+            self: 'http://example.com/planets/earth/relationships/moons',
+            related: 'http://example.com/planets/earth/moons'
+          }
+        },
+        sun: {
+          meta: {
+            foo: 'bar'
+          }
+        },
+        elements: {
+          links: {
+            self: 'http://example.com/planets/earth/relationships/elements',
+            related: 'http://example.com/planets/earth/elements'
+          }
+        }
+      }
+    };
+
+    assert.deepEqual(mergeRecords(earth, updates), expected);
   });
 });
