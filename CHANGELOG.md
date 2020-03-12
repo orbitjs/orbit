@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.16.5 (2020-03-12)
+
+#### :rocket: Enhancement
+
+- `@orbit/data`, `@orbit/memory`, `@orbit/record-cache`
+  - [#739](https://github.com/orbitjs/orbit/pull/739) Backport PR 735 to v0.16 (Improve mergeRecords to better handle links, meta, and relationships) ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.2 (2020-03-07)
 
 #### :rocket: Enhancement
