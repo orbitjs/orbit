@@ -20,7 +20,6 @@ export type QueryOrExpressions =
  */
 export interface Query {
   id: string;
-  expression?: QueryExpression;
   expressions: QueryExpression[];
   options?: any;
 }
