@@ -3,6 +3,7 @@ import { QueryExpression } from './query-expression';
 import { QueryTerm } from './query-term';
 import QueryBuilder from './query-builder';
 import { isObject } from '@orbit/utils';
+import { RequestOptions } from './request';
 
 export type QueryBuilderFunc = (
   QueryBuilder: QueryBuilder
@@ -21,7 +22,7 @@ export type QueryOrExpressions =
 export interface Query {
   id: string;
   expressions: QueryExpression[];
-  options?: any;
+  options?: RequestOptions;
 }
 
 /**
@@ -38,7 +39,7 @@ export interface Query {
  */
 export function buildQuery(
   queryOrExpressions: QueryOrExpressions,
-  queryOptions?: object,
+  queryOptions?: RequestOptions,
   queryId?: string,
   queryBuilder?: QueryBuilder
 ): Query {
@@ -47,7 +48,7 @@ export function buildQuery(
   } else {
     let query = queryOrExpressions as Query;
     let expressions: QueryExpression[];
-    let options: object;
+    let options: RequestOptions;
 
     if (isQuery(query)) {
       if (query.id && !queryOptions && !queryId) {

@@ -1,6 +1,7 @@
 import Orbit, { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Transform, TransformOrOperations, buildTransform } from '../transform';
+import { RequestOptions } from '../request';
 
 const { assert } = Orbit;
 
@@ -30,7 +31,7 @@ export interface Pushable {
    */
   push(
     transformOrOperations: TransformOrOperations,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ): Promise<Transform[]>;
 
@@ -77,7 +78,7 @@ export default function pushable(Klass: SourceClass): void {
 
   proto.push = async function(
     transformOrOperations: TransformOrOperations,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ): Promise<Transform[]> {
     await this.activated;

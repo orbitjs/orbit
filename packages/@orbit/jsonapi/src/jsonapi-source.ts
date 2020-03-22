@@ -6,6 +6,7 @@ import Orbit, {
   SourceSettings,
   Query,
   QueryOrExpressions,
+  RequestOptions,
   Pullable,
   pullable,
   Pushable,
@@ -98,28 +99,28 @@ export default class JSONAPISource extends Source
   // Pullable interface stubs
   pull: (
     queryOrExpressions: QueryOrExpressions,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ) => Promise<Transform[]>;
 
   // Pushable interface stubs
   push: (
     transformOrOperations: TransformOrOperations,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ) => Promise<Transform[]>;
 
   // Queryable interface stubs
   query: (
     queryOrExpressions: QueryOrExpressions,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ) => Promise<any>;
 
   // Updatable interface stubs
   update: (
     transformOrOperations: TransformOrOperations,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ) => Promise<any>;
 

@@ -1,6 +1,7 @@
 import Orbit, { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Transform, TransformOrOperations, buildTransform } from '../transform';
+import { RequestOptions } from '../request';
 
 const { assert } = Orbit;
 
@@ -25,7 +26,7 @@ export interface Updatable {
    */
   update(
     transformOrOperations: TransformOrOperations,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ): Promise<any>;
 
@@ -71,7 +72,7 @@ export default function updatable(Klass: SourceClass): void {
 
   proto.update = async function(
     transformOrOperations: TransformOrOperations,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ): Promise<any> {
     await this.activated;

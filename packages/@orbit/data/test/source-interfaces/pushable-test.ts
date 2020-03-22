@@ -5,7 +5,8 @@ import {
   isPushable,
   buildTransform,
   Transform,
-  TransformOrOperations
+  TransformOrOperations,
+  RequestOptions
 } from '../../src/index';
 import '../test-helper';
 
@@ -16,7 +17,7 @@ module('@pushable', function(hooks) {
   class MySource extends Source implements Pushable {
     push: (
       transformOrOperations: TransformOrOperations,
-      options?: object,
+      options?: RequestOptions,
       id?: string
     ) => Promise<Transform[]>;
     _push: (transform: Transform, hints?: any) => Promise<Transform[]>;
