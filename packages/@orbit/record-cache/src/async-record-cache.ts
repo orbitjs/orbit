@@ -8,6 +8,7 @@ import {
   QueryBuilder,
   QueryOrExpressions,
   QueryExpression,
+  RequestOptions,
   buildQuery,
   TransformBuilder,
   TransformBuilderFunc,
@@ -194,7 +195,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
    */
   async query(
     queryOrExpressions: QueryOrExpressions,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ): Promise<QueryResult> {
     const query = buildQuery(
@@ -252,7 +253,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
 
   liveQuery(
     queryOrExpressions: QueryOrExpressions,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ): AsyncLiveQuery {
     const query = buildQuery(

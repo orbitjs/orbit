@@ -11,7 +11,8 @@ import {
   buildQuery,
   TransformBuilder,
   TransformBuilderFunc,
-  RecordIdentity
+  RecordIdentity,
+  RequestOptions
 } from '@orbit/data';
 import {
   SyncOperationProcessor,
@@ -190,7 +191,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
    */
   query(
     queryOrExpressions: QueryOrExpressions,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ): QueryResult {
     const query = buildQuery(
@@ -248,7 +249,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
 
   liveQuery(
     queryOrExpressions: QueryOrExpressions,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ): SyncLiveQuery {
     const query = buildQuery(

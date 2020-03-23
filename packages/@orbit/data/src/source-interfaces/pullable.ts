@@ -2,6 +2,7 @@ import Orbit, { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Query, QueryOrExpressions, buildQuery } from '../query';
 import { Transform } from '../transform';
+import { RequestOptions } from '../request';
 
 const { assert } = Orbit;
 
@@ -27,7 +28,7 @@ export interface Pullable {
    */
   pull(
     queryOrExpressions: QueryOrExpressions,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ): Promise<Transform[]>;
 
@@ -74,7 +75,7 @@ export default function pullable(Klass: SourceClass): void {
 
   proto.pull = async function(
     queryOrExpressions: QueryOrExpressions,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ): Promise<Transform[]> {
     await this.activated;

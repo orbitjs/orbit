@@ -9,6 +9,7 @@ import Orbit, {
   Syncable,
   Query,
   QueryOrExpressions,
+  RequestOptions,
   Source,
   SourceSettings,
   Transform,
@@ -44,14 +45,14 @@ export default class IndexedDBSource extends Source
   // Pullable interface stubs
   pull: (
     queryOrExpressions: QueryOrExpressions,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ) => Promise<Transform[]>;
 
   // Pushable interface stubs
   push: (
     transformOrOperations: TransformOrOperations,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ) => Promise<Transform[]>;
 

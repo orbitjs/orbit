@@ -436,6 +436,43 @@ module('JSONAPISource', function() {
       );
     });
 
+    test('#push - options can be passed in at the root level or source-specific level', async function(assert) {
+      assert.expect(1);
+
+      let planet: Record = source.requestProcessor.serializer.deserializeResource(
+        {
+          type: 'planet',
+          attributes: { name: 'Jupiter', classification: 'gas giant' }
+        }
+      );
+
+      fetchStub.withArgs('/planets?include=moons').returns(
+        jsonapiResponse(201, {
+          data: {
+            id: '12345',
+            type: 'planets',
+            attributes: { name: 'Jupiter', classification: 'gas giant' },
+            relationships: { moons: [{ id: '321', type: 'moons' }] }
+          },
+          included: [
+            {
+              id: '321',
+              type: 'moons',
+              attributes: {
+                name: 'Europa'
+              }
+            }
+          ]
+        })
+      );
+
+      await source.push(t => t.addRecord(planet), {
+        include: ['moons']
+      });
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+    });
+
     test('#push - can transform records', async function(assert) {
       assert.expect(6);
 
@@ -3853,6 +3890,33 @@ module('JSONAPISource', function() {
         undefined,
         'fetch called with no method (equivalent to GET)'
       );
+    });
+
+    test('#query - options can be passed in at the root level or source-specific level', async function(assert) {
+      assert.expect(1);
+
+      const data: Resource = {
+        type: 'planets',
+        id: '12345',
+        attributes: { name: 'Jupiter', classification: 'gas giant' },
+        relationships: { moons: { data: [] } }
+      };
+
+      const planet = source.requestProcessor.serializer.deserializeResource({
+        type: 'planet',
+        id: '12345'
+      });
+
+      fetchStub
+        .withArgs('/planets/12345?include=moons')
+        .returns(jsonapiResponse(200, { data }));
+
+      await source.query(q => q.findRecord({ type: 'planet', id: planet.id }), {
+        label: 'Fetch planet with moons',
+        include: ['moons']
+      });
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
     });
 
     test('#query - records', async function(assert) {

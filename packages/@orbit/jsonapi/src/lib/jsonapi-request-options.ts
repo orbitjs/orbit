@@ -8,7 +8,7 @@ export interface Filter {
   [filterOn: string]: any;
 }
 
-export interface RequestOptions {
+export interface JSONAPIRequestOptions {
   filter?: Filter[];
   sort?: any;
   page?: any;
@@ -17,7 +17,7 @@ export interface RequestOptions {
 }
 
 export function buildFetchSettings(
-  options: RequestOptions = {},
+  options: JSONAPIRequestOptions = {},
   customSettings?: FetchSettings
 ): FetchSettings {
   let settings = options.settings ? clone(options.settings) : {};
@@ -46,12 +46,11 @@ export function buildFetchSettings(
   return settings;
 }
 
-export function mergeRequestOptions(
-  options: RequestOptions,
-  customOptions: RequestOptions
+export function mergeJSONAPIRequestOptions(
+  options: JSONAPIRequestOptions,
+  customOptions: JSONAPIRequestOptions
 ) {
-  let result: RequestOptions = {};
-  merge(result, options, customOptions);
+  let result: JSONAPIRequestOptions = merge({}, options, customOptions);
   if (options.include && customOptions.include) {
     result.include = mergeIncludePaths(options.include, customOptions.include);
   }

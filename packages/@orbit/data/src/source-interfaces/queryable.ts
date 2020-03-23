@@ -1,6 +1,7 @@
 import Orbit, { settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Query, QueryOrExpressions, buildQuery } from '../query';
 import { Source, SourceClass } from '../source';
+import { RequestOptions } from '../request';
 
 const { assert } = Orbit;
 
@@ -24,7 +25,7 @@ export interface Queryable {
    */
   query(
     queryOrExpressions: QueryOrExpressions,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ): Promise<any>;
 
@@ -70,7 +71,7 @@ export default function queryable(Klass: SourceClass): void {
 
   proto.query = async function(
     queryOrExpressions: QueryOrExpressions,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ): Promise<any> {
     await this.activated;

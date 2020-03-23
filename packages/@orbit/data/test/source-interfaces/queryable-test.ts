@@ -4,7 +4,8 @@ import {
   isQueryable,
   Query,
   Queryable,
-  QueryOrExpressions
+  QueryOrExpressions,
+  RequestOptions
 } from '../../src/index';
 import '../test-helper';
 
@@ -15,7 +16,7 @@ module('@queryable', function(hooks) {
   class MySource extends Source implements Queryable {
     query: (
       queryOrExpressions: QueryOrExpressions,
-      options?: object,
+      options?: RequestOptions,
       id?: string
     ) => Promise<any>;
     _query: (query: Query, hints?: any) => Promise<any>;

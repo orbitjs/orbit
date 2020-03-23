@@ -8,6 +8,7 @@ import Orbit, {
   syncable,
   Query,
   QueryOrExpressions,
+  RequestOptions,
   Queryable,
   queryable,
   Updatable,
@@ -32,7 +33,7 @@ export interface MemorySourceSettings extends SourceSettings {
 export interface MemorySourceMergeOptions {
   coalesce?: boolean;
   sinceTransformId?: string;
-  transformOptions?: object;
+  transformOptions?: RequestOptions;
 }
 
 @syncable
@@ -52,14 +53,14 @@ export default class MemorySource extends Source
   // Queryable interface stubs
   query: (
     queryOrExpressions: QueryOrExpressions,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ) => Promise<any>;
 
   // Updatable interface stubs
   update: (
     transformOrOperations: TransformOrOperations,
-    options?: object,
+    options?: RequestOptions,
     id?: string
   ) => Promise<any>;
 

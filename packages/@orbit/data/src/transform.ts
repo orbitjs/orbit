@@ -3,6 +3,7 @@ import Orbit from './main';
 import { Operation } from './operation';
 import { isObject } from '@orbit/utils';
 import TransformBuilder from './transform-builder';
+import { RequestOptions } from './request';
 
 export type TransformBuilderFunc = (
   TransformBuilder: TransformBuilder
@@ -19,7 +20,7 @@ export type TransformOrOperations =
 export interface Transform {
   id: string;
   operations: Operation[];
-  options?: any;
+  options?: RequestOptions;
 }
 
 /**
@@ -36,7 +37,7 @@ export interface Transform {
  */
 export function buildTransform(
   transformOrOperations: TransformOrOperations,
-  transformOptions?: object,
+  transformOptions?: RequestOptions,
   transformId?: string,
   transformBuilder?: TransformBuilder
 ): Transform {
@@ -49,7 +50,7 @@ export function buildTransform(
   } else {
     let transform = transformOrOperations as Transform;
     let operations: Operation[];
-    let options: object;
+    let options: RequestOptions;
 
     if (isObject(transform) && transform.operations) {
       if (transform.id && !transformOptions && !transformId) {

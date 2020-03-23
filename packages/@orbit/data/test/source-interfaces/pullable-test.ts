@@ -6,7 +6,8 @@ import {
   pullable,
   isPullable,
   buildTransform,
-  Pullable
+  Pullable,
+  RequestOptions
 } from '../../src/index';
 import '../test-helper';
 
@@ -17,7 +18,7 @@ module('@pullable', function(hooks) {
   class MySource extends Source implements Pullable {
     pull: (
       queryOrExpressions: QueryOrExpressions,
-      options?: object,
+      options?: RequestOptions,
       id?: string
     ) => Promise<Transform[]>;
     _pull: (query: Query, hints?: any) => Promise<Transform[]>;

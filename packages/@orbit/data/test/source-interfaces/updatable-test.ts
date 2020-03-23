@@ -5,7 +5,8 @@ import {
   Updatable,
   buildTransform,
   Transform,
-  TransformOrOperations
+  TransformOrOperations,
+  RequestOptions
 } from '../../src/index';
 import '../test-helper';
 
@@ -16,7 +17,7 @@ module('@updatable', function(hooks) {
   class MySource extends Source implements Updatable {
     update: (
       transformOrOperations: TransformOrOperations,
-      options?: object,
+      options?: RequestOptions,
       id?: string
     ) => Promise<any>;
     _update: (transform: Transform, hints?: any) => Promise<any>;
