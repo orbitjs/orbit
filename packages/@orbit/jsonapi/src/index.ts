@@ -11,3 +11,6 @@ export {
 } from './jsonapi-url-builder';
 export * from './record-document';
 export * from './resource-document';
+export * from './lib/exceptions';
+export * from './lib/jsonapi-request-options';
+export * from './lib/query-params';
