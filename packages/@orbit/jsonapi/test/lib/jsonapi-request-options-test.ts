@@ -1,20 +1,20 @@
-import { mergeRequestOptions } from '../../src/lib/request-settings';
+import { mergeJSONAPIRequestOptions } from '../../src/lib/jsonapi-request-options';
 
 const { module, test } = QUnit;
 
-module('RequestSettings', function() {
-  module('mergeRequestOptions', function() {
+module('JSONAPIRequestOptions', function() {
+  module('mergeJSONAPIRequestOptions', function() {
     const OPTIONS = {
       filter: [{ foo: 'bar' }],
       include: ['baz.bay']
     };
 
     test('merge empty options', function(assert) {
-      assert.deepEqual(mergeRequestOptions(OPTIONS, {}), OPTIONS);
+      assert.deepEqual(mergeJSONAPIRequestOptions(OPTIONS, {}), OPTIONS);
     });
 
     test('add sort', function(assert) {
-      assert.deepEqual(mergeRequestOptions(OPTIONS, { sort: ['qay'] }), {
+      assert.deepEqual(mergeJSONAPIRequestOptions(OPTIONS, { sort: ['qay'] }), {
         filter: [{ foo: 'bar' }],
         include: ['baz.bay'],
         sort: ['qay']
@@ -23,7 +23,9 @@ module('RequestSettings', function() {
 
     test('merge includes', function(assert) {
       assert.deepEqual(
-        mergeRequestOptions(OPTIONS, { include: ['baz.bay', 'snoop.dog'] }),
+        mergeJSONAPIRequestOptions(OPTIONS, {
+          include: ['baz.bay', 'snoop.dog']
+        }),
         {
           filter: [{ foo: 'bar' }],
           include: ['baz.bay', 'snoop.dog']
@@ -33,7 +35,9 @@ module('RequestSettings', function() {
 
     test('merge filters', function(assert) {
       assert.deepEqual(
-        mergeRequestOptions(OPTIONS, { filter: [{ intelligence: 'low' }] }),
+        mergeJSONAPIRequestOptions(OPTIONS, {
+          filter: [{ intelligence: 'low' }]
+        }),
         {
           filter: [{ foo: 'bar' }, { intelligence: 'low' }],
           include: ['baz.bay']
@@ -43,7 +47,7 @@ module('RequestSettings', function() {
 
     test('override filter', function(assert) {
       assert.deepEqual(
-        mergeRequestOptions(OPTIONS, { filter: [{ foo: 'zaz' }] }),
+        mergeJSONAPIRequestOptions(OPTIONS, { filter: [{ foo: 'zaz' }] }),
         {
           filter: [{ foo: 'zaz' }],
           include: ['baz.bay']
@@ -53,7 +57,7 @@ module('RequestSettings', function() {
 
     test('add page', function(assert) {
       assert.deepEqual(
-        mergeRequestOptions(OPTIONS, {
+        mergeJSONAPIRequestOptions(OPTIONS, {
           page: {
             kind: 'offsetLimit',
             offset: 5,

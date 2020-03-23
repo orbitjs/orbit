@@ -21,11 +21,11 @@ import { clone, deepSet, Dict } from '@orbit/utils';
 import JSONAPIRequestProcessor from '../jsonapi-request-processor';
 import { ResourceDocument } from '../resource-document';
 import { RecordDocument } from '../record-document';
-import { RequestOptions } from './request-settings';
+import { JSONAPIRequestOptions } from './jsonapi-request-options';
 
 export interface TransformRecordRequest {
   op: string;
-  options?: RequestOptions;
+  options?: JSONAPIRequestOptions;
   record: RecordIdentity;
 }
 

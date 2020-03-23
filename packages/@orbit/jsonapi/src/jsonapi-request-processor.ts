@@ -7,15 +7,19 @@ import Orbit, {
   Record,
   Schema,
   ServerError,
-  Transform
+  Transform,
+  requestOptionsForSource
 } from '@orbit/data';
 import { InvalidServerResponse } from './lib/exceptions';
 import { TransformRecordRequest } from './lib/transform-requests';
 import { QueryRequest } from './lib/query-requests';
-import { deepGet, deepMerge, toArray } from '@orbit/utils';
+import { deepMerge, toArray } from '@orbit/utils';
 import { RecordDocument } from './record-document';
 import { ResourceDocument } from './resource-document';
-import { RequestOptions, buildFetchSettings } from './lib/request-settings';
+import {
+  JSONAPIRequestOptions,
+  buildFetchSettings
+} from './lib/jsonapi-request-options';
 import JSONAPIURLBuilder, {
   JSONAPIURLBuilderSettings
 } from './jsonapi-url-builder';
@@ -181,14 +185,22 @@ export default class JSONAPIRequestProcessor {
   }
 
   buildFetchSettings(
-    options: RequestOptions = {},
+    options: JSONAPIRequestOptions = {},
     customSettings?: FetchSettings
   ): FetchSettings {
     return buildFetchSettings(options, customSettings);
   }
 
-  customRequestOptions(queryOrTransform: Query | Transform): RequestOptions {
-    return deepGet(queryOrTransform, ['options', 'sources', this.sourceName]);
+  customRequestOptions(
+    queryOrTransform: Query | Transform
+  ): JSONAPIRequestOptions {
+    let options = queryOrTransform.options;
+    if (options) {
+      return requestOptionsForSource(
+        options,
+        this.sourceName
+      ) as JSONAPIRequestOptions;
+    }
   }
 
   preprocessResponseDocument(

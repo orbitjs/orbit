@@ -11,7 +11,7 @@ import {
 } from '@orbit/data';
 import { clone } from '@orbit/utils';
 import { JSONAPISerializer } from './jsonapi-serializer';
-import { Filter } from './lib/request-settings';
+import { Filter } from './lib/jsonapi-request-options';
 import { appendQueryParams } from './lib/query-params';
 
 export interface JSONAPIURLBuilderSettings {

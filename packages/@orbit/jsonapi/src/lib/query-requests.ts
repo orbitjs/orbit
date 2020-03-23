@@ -16,11 +16,14 @@ import {
   cloneRecordIdentity
 } from '@orbit/data';
 import JSONAPIRequestProcessor from '../jsonapi-request-processor';
-import { RequestOptions, mergeRequestOptions } from './request-settings';
+import {
+  JSONAPIRequestOptions,
+  mergeJSONAPIRequestOptions
+} from './jsonapi-request-options';
 
 export interface QueryRequest {
   op: string;
-  options?: RequestOptions;
+  options?: JSONAPIRequestOptions;
 }
 
 export interface FindRecordRequest extends QueryRequest {
@@ -69,11 +72,11 @@ export function getQueryRequests(
       expression,
       requestProcessor
     );
-    let options = requestProcessor.customRequestOptions(query);
 
+    let options = requestProcessor.customRequestOptions(query);
     if (options) {
       if (request.options) {
-        request.options = mergeRequestOptions(request.options, options);
+        request.options = mergeJSONAPIRequestOptions(request.options, options);
       } else {
         request.options = options;
       }
@@ -106,7 +109,7 @@ const ExpressionToRequestMap: Dict<ExpressionToRequestConverter> = {
       op: 'findRecords',
       type: expression.type
     };
-    let options: RequestOptions = {};
+    let options: JSONAPIRequestOptions = {};
 
     if (expression.filter) {
       options.filter = requestProcessor.urlBuilder.buildFilterParam(
@@ -146,7 +149,7 @@ const ExpressionToRequestMap: Dict<ExpressionToRequestConverter> = {
       record: cloneRecordIdentity(expression.record),
       relationship: expression.relationship
     };
-    const options: RequestOptions = {};
+    const options: JSONAPIRequestOptions = {};
 
     if (expression.filter) {
       options.filter = requestProcessor.urlBuilder.buildFilterParam(
