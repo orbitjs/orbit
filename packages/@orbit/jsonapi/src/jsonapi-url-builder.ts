@@ -96,7 +96,7 @@ export default class JSONAPIURLBuilder {
   buildFilterParam(filterSpecifiers: FilterSpecifier[]): Filter[] {
     const filters: Filter[] = [];
 
-    filterSpecifiers.forEach(filterSpecifier => {
+    filterSpecifiers.forEach((filterSpecifier) => {
       if (
         filterSpecifier.kind === 'attribute' &&
         filterSpecifier.op === 'equal'
@@ -114,7 +114,7 @@ export default class JSONAPIURLBuilder {
         if (Array.isArray(relatedRecordFilter.record)) {
           filters.push({
             [relatedRecordFilter.relation]: relatedRecordFilter.record
-              .map(e => e.id)
+              .map((e) => e.id)
               .join(',')
           });
         } else {
@@ -131,7 +131,7 @@ export default class JSONAPIURLBuilder {
         const relatedRecordsFilter = filterSpecifier as RelatedRecordsFilterSpecifier;
         filters.push({
           [relatedRecordsFilter.relation]: relatedRecordsFilter.records
-            .map(e => e.id)
+            .map((e) => e.id)
             .join(',')
         });
       } else {
@@ -147,7 +147,7 @@ export default class JSONAPIURLBuilder {
 
   buildSortParam(sortSpecifiers: SortSpecifier[]): string {
     return sortSpecifiers
-      .map(sortSpecifier => {
+      .map((sortSpecifier) => {
         if (sortSpecifier.kind === 'attribute') {
           const attributeSort = sortSpecifier as AttributeSortSpecifier;
 

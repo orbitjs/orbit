@@ -12,12 +12,12 @@ export async function getRecordFromIndexedDB(
   return new Promise((resolve: (record: Record) => void, reject) => {
     const request = objectStore.get(record.id);
 
-    request.onerror = function(/* event */) {
+    request.onerror = function (/* event */) {
       console.error('error - getRecord', request.error);
       reject(request.error);
     };
 
-    request.onsuccess = function(/* event */) {
+    request.onsuccess = function (/* event */) {
       // console.log('success - getRecord', request.result);
       resolve(request.result as Record);
     };

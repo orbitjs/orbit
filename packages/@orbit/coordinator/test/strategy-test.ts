@@ -8,7 +8,7 @@ import { Source } from '@orbit/data';
 
 const { module, test } = QUnit;
 
-module('Strategy', function(hooks) {
+module('Strategy', function (hooks) {
   class MySource extends Source {}
 
   let coordinator: Coordinator;
@@ -17,7 +17,7 @@ module('Strategy', function(hooks) {
   let s2: MySource;
   let s3: MySource;
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     s1 = new MySource({ name: 's1' });
     s2 = new MySource({ name: 's2' });
     s3 = new MySource({ name: 's3' });
@@ -25,12 +25,12 @@ module('Strategy', function(hooks) {
     coordinator = new Coordinator({ sources: [s1, s2, s3] });
   });
 
-  hooks.afterEach(function() {
+  hooks.afterEach(function () {
     coordinator = null;
     s1 = s2 = s3 = null;
   });
 
-  test('can be instantiated with a name', function(assert) {
+  test('can be instantiated with a name', function (assert) {
     class CustomStrategy extends Strategy {}
 
     strategy = new CustomStrategy({
@@ -40,11 +40,11 @@ module('Strategy', function(hooks) {
     assert.ok(strategy);
   });
 
-  test('requires a name', function(assert) {
+  test('requires a name', function (assert) {
     class CustomStrategy extends Strategy {}
 
     assert.throws(
-      function() {
+      function () {
         strategy = new CustomStrategy();
       },
       Error('Assertion failed: Strategy requires a name'),
@@ -52,7 +52,7 @@ module('Strategy', function(hooks) {
     );
   });
 
-  test('uses its name as the basis for a logPrefix', function(assert) {
+  test('uses its name as the basis for a logPrefix', function (assert) {
     class CustomStrategy extends Strategy {}
 
     strategy = new CustomStrategy({
@@ -62,7 +62,7 @@ module('Strategy', function(hooks) {
     assert.equal(strategy.logPrefix, '[custom]');
   });
 
-  test('can specify a custom logPrefix', function(assert) {
+  test('can specify a custom logPrefix', function (assert) {
     class CustomStrategy extends Strategy {}
 
     strategy = new CustomStrategy({
@@ -73,7 +73,7 @@ module('Strategy', function(hooks) {
     assert.equal(strategy.logPrefix, '[foo-bar]');
   });
 
-  test('applies to all sources by default', async function(assert) {
+  test('applies to all sources by default', async function (assert) {
     assert.expect(1);
 
     class CustomStrategy extends Strategy {
@@ -96,7 +96,7 @@ module('Strategy', function(hooks) {
     await strategy.activate(coordinator);
   });
 
-  test('can include only specific sources', async function(assert) {
+  test('can include only specific sources', async function (assert) {
     assert.expect(1);
 
     class CustomStrategy extends Strategy {
@@ -119,7 +119,7 @@ module('Strategy', function(hooks) {
     await strategy.activate(coordinator);
   });
 
-  test('#activate - receives the `logLevel` from the coordinator', async function(assert) {
+  test('#activate - receives the `logLevel` from the coordinator', async function (assert) {
     assert.expect(2);
 
     class CustomStrategy extends Strategy {
@@ -153,7 +153,7 @@ module('Strategy', function(hooks) {
     await coordinator.activate({ logLevel: LogLevel.Warnings });
   });
 
-  test('a custom `logLevel` will override the level from the coordinator', async function(assert) {
+  test('a custom `logLevel` will override the level from the coordinator', async function (assert) {
     assert.expect(2);
 
     class CustomStrategy extends Strategy {
@@ -183,7 +183,7 @@ module('Strategy', function(hooks) {
     await coordinator.activate({ logLevel: LogLevel.Warnings });
   });
 
-  test('activate sources', async function(assert) {
+  test('activate sources', async function (assert) {
     class CustomStrategy extends Strategy {}
 
     strategy = new CustomStrategy({
@@ -192,18 +192,18 @@ module('Strategy', function(hooks) {
     });
 
     assert.throws(() => {
-      strategy.sources.map(s => s.activated);
+      strategy.sources.map((s) => s.activated);
     });
 
     coordinator.addStrategy(strategy);
     await coordinator.activate();
 
-    assert.ok(strategy.sources.map(s => s.activated));
+    assert.ok(strategy.sources.map((s) => s.activated));
 
     await coordinator.deactivate();
 
     assert.throws(() => {
-      strategy.sources.map(s => s.activated);
+      strategy.sources.map((s) => s.activated);
     });
   });
 });

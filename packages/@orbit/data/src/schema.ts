@@ -246,9 +246,9 @@ export default class Schema implements Evented, RecordInitializer {
   }
 
   _deprecateRelationshipModel(models: Dict<ModelDefinition>) {
-    Object.keys(models).forEach(type => {
+    Object.keys(models).forEach((type) => {
       if (models[type].relationships) {
-        Object.keys(models[type].relationships).forEach(name => {
+        Object.keys(models[type].relationships).forEach((name) => {
           let relationship = models[type].relationships[name];
           if (relationship.model) {
             Orbit.deprecate(

@@ -149,7 +149,7 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
       ]);
       if (relatedRecords) {
         relatedRecords = relatedRecords.filter(
-          r => !equalRecordIdentities(r, relatedRecord)
+          (r) => !equalRecordIdentities(r, relatedRecord)
         );
 
         if (

@@ -52,7 +52,7 @@ export default function syncable(Klass: SourceClass): void {
 
   proto[SYNCABLE] = true;
 
-  proto.sync = async function(
+  proto.sync = async function (
     transformOrTransforms: Transform | Transform[]
   ): Promise<void> {
     await this.activated;
@@ -73,7 +73,7 @@ export default function syncable(Klass: SourceClass): void {
     }
   };
 
-  proto.__sync__ = async function(transform: Transform): Promise<void> {
+  proto.__sync__ = async function (transform: Transform): Promise<void> {
     if (this.transformLog.contains(transform.id)) {
       return;
     }

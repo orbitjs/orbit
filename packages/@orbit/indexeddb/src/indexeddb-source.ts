@@ -172,7 +172,7 @@ export default class IndexedDBSource extends Source
 
   _operationsFromQueryResult(result: QueryResultData): Operation[] {
     if (Array.isArray(result)) {
-      return result.map(r => {
+      return result.map((r) => {
         return {
           op: 'updateRecord',
           record: r

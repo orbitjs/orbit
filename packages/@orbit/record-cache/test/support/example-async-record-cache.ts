@@ -20,7 +20,7 @@ export default class ExampleAsyncRecordCache extends AsyncRecordCache {
     this._records = {};
     this._inverseRelationships = {};
 
-    Object.keys(this._schema.models).forEach(type => {
+    Object.keys(this._schema.models).forEach((type) => {
       this._records[type] = {};
       this._inverseRelationships[type] = {};
     });

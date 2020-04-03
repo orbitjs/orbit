@@ -269,7 +269,7 @@ function addRelatedRecordsOps(
 ): RecordOperation[] {
   if (relatedRecords.length > 0 && relationshipDef.inverse) {
     const inverse = relationshipDef.inverse;
-    return relatedRecords.map(relatedRecord =>
+    return relatedRecords.map((relatedRecord) =>
       addRelationshipOp(schema, relatedRecord, inverse, record)
     );
   }
@@ -287,7 +287,7 @@ export function removeRelatedRecordsOps(
       return removeDependentRecords(relatedRecords);
     } else if (relationshipDef.inverse) {
       const inverse = relationshipDef.inverse;
-      return relatedRecords.map(relatedRecord =>
+      return relatedRecords.map((relatedRecord) =>
         removeRelationshipOp(schema, relatedRecord, inverse, record)
       );
     }
@@ -345,7 +345,7 @@ function removeDependentRecords(
   relatedRecords: RecordIdentity[]
 ): RecordOperation[] {
   return relatedRecords.map(
-    record =>
+    (record) =>
       ({
         op: 'removeRecord',
         record

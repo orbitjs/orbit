@@ -171,12 +171,12 @@ export default class IndexedDBBucket extends Bucket {
         const objectStore = transaction.objectStore(this.dbStoreName);
         const request = objectStore.get(key);
 
-        request.onerror = function(/* event */) {
+        request.onerror = function (/* event */) {
           console.error('error - getItem', request.error);
           reject(request.error);
         };
 
-        request.onsuccess = function(/* event */) {
+        request.onsuccess = function (/* event */) {
           // console.log('success - getItem', request.result);
           resolve(request.result);
         };
@@ -193,12 +193,12 @@ export default class IndexedDBBucket extends Bucket {
     await new Promise((resolve, reject) => {
       const request = objectStore.put(value, key);
 
-      request.onerror = function(/* event */) {
+      request.onerror = function (/* event */) {
         console.error('error - setItem', request.error);
         reject(request.error);
       };
 
-      request.onsuccess = function(/* event */) {
+      request.onsuccess = function (/* event */) {
         // console.log('success - setItem');
         resolve();
       };
@@ -212,12 +212,12 @@ export default class IndexedDBBucket extends Bucket {
       const objectStore = transaction.objectStore(this.dbStoreName);
       const request = objectStore.delete(key);
 
-      request.onerror = function(/* event */) {
+      request.onerror = function (/* event */) {
         console.error('error - removeItem', request.error);
         reject(request.error);
       };
 
-      request.onsuccess = function(/* event */) {
+      request.onsuccess = function (/* event */) {
         // console.log('success - removeItem');
         resolve();
       };
@@ -231,12 +231,12 @@ export default class IndexedDBBucket extends Bucket {
       const objectStore = transaction.objectStore(this.dbStoreName);
       const request = objectStore.clear();
 
-      request.onerror = function(/* event */) {
+      request.onerror = function (/* event */) {
         console.error('error - clear', request.error);
         reject(request.error);
       };
 
-      request.onsuccess = function(/* event */) {
+      request.onsuccess = function (/* event */) {
         // console.log('success - clear');
         resolve();
       };

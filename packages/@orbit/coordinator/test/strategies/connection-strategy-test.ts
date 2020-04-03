@@ -10,7 +10,7 @@ import {
 
 const { module, test } = QUnit;
 
-module('ConnectionStrategy', function(hooks) {
+module('ConnectionStrategy', function (hooks) {
   const t = new TransformBuilder();
   const tA = buildTransform(
     [t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })],
@@ -28,7 +28,7 @@ module('ConnectionStrategy', function(hooks) {
   let s1: any;
   let s2: any;
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     @pushable
     @updatable
     class MySource extends Source {}
@@ -37,7 +37,7 @@ module('ConnectionStrategy', function(hooks) {
     s2 = new MySource({ name: 's2' });
   });
 
-  test('can be instantiated', function(assert) {
+  test('can be instantiated', function (assert) {
     strategy = new ConnectionStrategy({
       source: 's1',
       target: 's2',
@@ -58,7 +58,7 @@ module('ConnectionStrategy', function(hooks) {
     );
   });
 
-  test('assigns source and target when activated', async function(assert) {
+  test('assigns source and target when activated', async function (assert) {
     strategy = new ConnectionStrategy({
       source: 's1',
       target: 's2',
@@ -76,7 +76,7 @@ module('ConnectionStrategy', function(hooks) {
     assert.strictEqual(strategy.target, s2, 'target is set');
   });
 
-  test('installs listeners on activate and removes them on deactivate', async function(assert) {
+  test('installs listeners on activate and removes them on deactivate', async function (assert) {
     assert.expect(6);
 
     strategy = new ConnectionStrategy({
@@ -121,7 +121,7 @@ module('ConnectionStrategy', function(hooks) {
     );
   });
 
-  test('observes source `on` event and invokes `action` on target', async function(assert) {
+  test('observes source `on` event and invokes `action` on target', async function (assert) {
     assert.expect(3);
 
     strategy = new ConnectionStrategy({
@@ -136,7 +136,7 @@ module('ConnectionStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function(transform: Transform): Promise<any> {
+    s1._update = async function (transform: Transform): Promise<any> {
       assert.strictEqual(
         transform,
         tA,
@@ -144,7 +144,7 @@ module('ConnectionStrategy', function(hooks) {
       );
     };
 
-    s2._push = async function(transform: Transform): Promise<Transform[]> {
+    s2._push = async function (transform: Transform): Promise<Transform[]> {
       assert.strictEqual(
         transform,
         tA,
@@ -158,7 +158,7 @@ module('ConnectionStrategy', function(hooks) {
     await s1.update(tA);
   });
 
-  test('can apply a `filter` function', async function(assert) {
+  test('can apply a `filter` function', async function (assert) {
     assert.expect(4);
 
     strategy = new ConnectionStrategy({
@@ -177,9 +177,9 @@ module('ConnectionStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function(transform: Transform): Promise<any> {};
+    s1._update = async function (transform: Transform): Promise<any> {};
 
-    s2._push = async function(transform: Transform): Promise<Transform[]> {
+    s2._push = async function (transform: Transform): Promise<Transform[]> {
       assert.strictEqual(
         transform,
         tB,

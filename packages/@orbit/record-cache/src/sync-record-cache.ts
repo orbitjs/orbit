@@ -101,7 +101,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
           SyncSchemaConsistencyProcessor,
           SyncCacheIntegrityProcessor
         ];
-    this._processors = processors.map(Processor => {
+    this._processors = processors.map((Processor) => {
       let processor = new Processor(this);
       assert(
         'Each processor must extend SyncOperationProcessor',
@@ -292,7 +292,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
     result: PatchResult,
     primary = false
   ) {
-    ops.forEach(op => this._applyPatchOperation(op, result, primary));
+    ops.forEach((op) => this._applyPatchOperation(op, result, primary));
   }
 
   protected _applyPatchOperation(
@@ -310,7 +310,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
       };
     }
 
-    this._processors.forEach(processor => processor.validate(operation));
+    this._processors.forEach((processor) => processor.validate(operation));
 
     const inversePatchOperator = this.getInversePatchOperator(operation.op);
     const inverseOp: RecordOperation | undefined = inversePatchOperator(
@@ -323,12 +323,12 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
 
       // Query and perform related `before` operations
       this._processors
-        .map(processor => processor.before(operation))
-        .forEach(ops => this._applyPatchOperations(ops, result));
+        .map((processor) => processor.before(operation))
+        .forEach((ops) => this._applyPatchOperations(ops, result));
 
       // Query related `after` operations before performing
       // the requested operation. These will be applied on success.
-      let preparedOps = this._processors.map(processor =>
+      let preparedOps = this._processors.map((processor) =>
         processor.after(operation)
       );
 
@@ -340,18 +340,18 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
       }
 
       // Query and perform related `immediate` operations
-      this._processors.forEach(processor => processor.immediate(operation));
+      this._processors.forEach((processor) => processor.immediate(operation));
 
       // Emit event
       this.emit('patch', operation, data);
 
       // Perform prepared operations after performing the requested operation
-      preparedOps.forEach(ops => this._applyPatchOperations(ops, result));
+      preparedOps.forEach((ops) => this._applyPatchOperations(ops, result));
 
       // Query and perform related `finally` operations
       this._processors
-        .map(processor => processor.finally(operation))
-        .forEach(ops => this._applyPatchOperations(ops, result));
+        .map((processor) => processor.finally(operation))
+        .forEach((ops) => this._applyPatchOperations(ops, result));
     } else if (primary) {
       result.data.push(null);
     }

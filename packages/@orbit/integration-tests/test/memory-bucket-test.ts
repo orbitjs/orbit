@@ -4,7 +4,7 @@ import IndexedDBBucket from '@orbit/indexeddb-bucket';
 
 const { module, test } = QUnit;
 
-module('MemorySource + IndexdDBBucket', function(hooks) {
+module('MemorySource + IndexdDBBucket', function (hooks) {
   let schema: Schema;
   let bucket: IndexedDBBucket;
   let memory: MemorySource;
@@ -32,7 +32,7 @@ module('MemorySource + IndexdDBBucket', function(hooks) {
     schema = memory = bucket = null;
   });
 
-  test('push before pull', async function(assert) {
+  test('push before pull', async function (assert) {
     const theMoon = {
       id: undefined,
       type: 'moon',
@@ -41,7 +41,7 @@ module('MemorySource + IndexdDBBucket', function(hooks) {
       }
     };
 
-    await memory.update(t => t.addRecord(theMoon));
+    await memory.update((t) => t.addRecord(theMoon));
     assert.ok(true);
   });
 });

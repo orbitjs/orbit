@@ -10,7 +10,7 @@ const { module, test } = QUnit;
 
 module(
   'Store + JSONAPISource + client-generated IDs + pessimistic coordination',
-  function(hooks) {
+  function (hooks) {
     let fetchStub: SinonStub;
     let schema: Schema;
     let remote: JSONAPISource;
@@ -110,7 +110,7 @@ module(
       fetchStub.restore();
     });
 
-    test('Adding a record to the memory source immediately pushes the update to the remote', async function(assert) {
+    test('Adding a record to the memory source immediately pushes the update to the remote', async function (assert) {
       assert.expect(2);
 
       await coordinator.activate();
@@ -131,8 +131,8 @@ module(
         })
       );
 
-      let createdRecord = await memory.update(t => t.addRecord(planet));
-      let result = memory.cache.query(q => q.findRecord(planet));
+      let createdRecord = await memory.update((t) => t.addRecord(planet));
+      let result = memory.cache.query((q) => q.findRecord(planet));
 
       assert.deepEqual(result, {
         type: 'planet',

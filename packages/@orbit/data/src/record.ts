@@ -85,7 +85,7 @@ export function uniqueRecordIdentities(
   return exclusiveIdentities(
     serializeRecordIdentities(set1),
     serializeRecordIdentities(set2)
-  ).map(id => deserializeRecordIdentity(id));
+  ).map((id) => deserializeRecordIdentity(id));
 }
 
 export function recordsInclude(
@@ -183,12 +183,12 @@ export function deserializeRecordIdentity(identity: string): RecordIdentity {
 function serializeRecordIdentities(
   recordIdentities: RecordIdentity[]
 ): string[] {
-  return recordIdentities.map(r => serializeRecordIdentity(r));
+  return recordIdentities.map((r) => serializeRecordIdentity(r));
 }
 
 function exclusiveIdentities(
   identities1: string[],
   identities2: string[]
 ): string[] {
-  return identities1.filter(i => !identities2.includes(i));
+  return identities1.filter((i) => !identities2.includes(i));
 }

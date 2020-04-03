@@ -69,7 +69,7 @@ export default function queryable(Klass: SourceClass): void {
 
   proto[QUERYABLE] = true;
 
-  proto.query = async function(
+  proto.query = async function (
     queryOrExpressions: QueryOrExpressions,
     options?: RequestOptions,
     id?: string
@@ -84,7 +84,7 @@ export default function queryable(Klass: SourceClass): void {
     return this._enqueueRequest('query', query);
   };
 
-  proto.__query__ = async function(query: Query): Promise<any> {
+  proto.__query__ = async function (query: Query): Promise<any> {
     try {
       const hints: any = {};
 

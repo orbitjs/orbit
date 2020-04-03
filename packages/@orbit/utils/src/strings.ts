@@ -19,10 +19,10 @@ export function capitalize(str: string): string {
  */
 export function camelize(str: string): string {
   return str
-    .replace(/(\-|\_|\.|\s)+(.)?/g, function(match, separator, chr) {
+    .replace(/(\-|\_|\.|\s)+(.)?/g, function (match, separator, chr) {
       return chr ? chr.toUpperCase() : '';
     })
-    .replace(/(^|\/)([A-Z])/g, function(match) {
+    .replace(/(^|\/)([A-Z])/g, function (match) {
       return match.toLowerCase();
     });
 }

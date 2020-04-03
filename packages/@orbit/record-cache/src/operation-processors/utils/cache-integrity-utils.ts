@@ -40,7 +40,7 @@ export function getInverseRelationships(
     if (relationshipDef.inverse) {
       const recordIdentity = cloneRecordIdentity(record);
 
-      return relatedRecords.map(relatedRecord => {
+      return relatedRecords.map((relatedRecord) => {
         return {
           record: recordIdentity,
           relationship,
@@ -59,7 +59,7 @@ export function getAllInverseRelationships(
   const recordIdentity = cloneRecordIdentity(record);
   const inverseRelationships: RecordRelationshipIdentity[] = [];
 
-  schema.eachRelationship(record.type, relationship => {
+  schema.eachRelationship(record.type, (relationship) => {
     const relationshipData = deepGet(record, [
       'relationships',
       relationship,

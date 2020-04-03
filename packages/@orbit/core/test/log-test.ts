@@ -5,38 +5,38 @@ import { Bucket } from '../src/bucket';
 
 const { module, test } = QUnit;
 
-module('Log', function() {
+module('Log', function () {
   const transformAId = 'f8d2c75f-f758-4314-b5c5-ac7fb783ab26';
   const transformBId = '1d12dc84-0d03-4875-a4a6-0e389737d891';
   const transformCId = 'ea054670-8901-45c2-b908-4db2c5bb9c7d';
   const transformDId = '771b25ff-b971-42e0-aac3-c285aef75326';
   let log: Log;
 
-  test('can be instantiated with no params', function(assert) {
+  test('can be instantiated with no params', function (assert) {
     log = new Log();
     assert.ok(log, 'log instantiated');
     assert.equal(log.length, 0, 'log has expected size');
   });
 
-  test('can be instantiated with a name and array of ids', function(assert) {
+  test('can be instantiated with a name and array of ids', function (assert) {
     log = new Log({ name: 'log1', data: ['a', 'b'] });
     assert.ok(log, 'log instantiated');
     assert.equal(log.length, 2, 'log has expected data');
   });
 
-  module('when empty', function(assert) {
-    assert.beforeEach(function() {
+  module('when empty', function (assert) {
+    assert.beforeEach(function () {
       log = new Log();
     });
 
-    test('#length', function(assert) {
+    test('#length', function (assert) {
       assert.equal(log.length, 0, 'is zero');
     });
 
-    test('#append', function(assert) {
+    test('#append', function (assert) {
       assert.expect(3);
 
-      log.on('append', transformIds => {
+      log.on('append', (transformIds) => {
         assert.deepEqual(
           transformIds,
           [transformAId],
@@ -57,23 +57,23 @@ module('Log', function() {
       });
     });
 
-    test('#head', function(assert) {
+    test('#head', function (assert) {
       assert.equal(log.head, null, 'is null');
     });
   });
 
-  module('containing several transformIds', function(assert) {
-    assert.beforeEach(function() {
+  module('containing several transformIds', function (assert) {
+    assert.beforeEach(function () {
       log = new Log();
 
       return log.append(transformAId, transformBId, transformCId);
     });
 
-    test('#entries', function(assert) {
+    test('#entries', function (assert) {
       assert.equal(log.entries.length, 3, 'contains the expected transforms');
     });
 
-    test('#length', function(assert) {
+    test('#length', function (assert) {
       assert.equal(
         log.length,
         3,
@@ -81,7 +81,7 @@ module('Log', function() {
       );
     });
 
-    test('#before', function(assert) {
+    test('#before', function (assert) {
       assert.deepEqual(
         log.before(transformCId),
         [transformAId, transformBId],
@@ -89,11 +89,11 @@ module('Log', function() {
       );
     });
 
-    test("#before - transformId that hasn't been logged", function(assert) {
+    test("#before - transformId that hasn't been logged", function (assert) {
       assert.throws(() => log.before(transformDId), NotLoggedException);
     });
 
-    test('#before - specifying a -1 relativePosition', function(assert) {
+    test('#before - specifying a -1 relativePosition', function (assert) {
       assert.deepEqual(
         log.before(transformCId, -1),
         [transformAId],
@@ -101,15 +101,15 @@ module('Log', function() {
       );
     });
 
-    test('#before - specifying a relativePosition that is too low', function(assert) {
+    test('#before - specifying a relativePosition that is too low', function (assert) {
       assert.throws(() => log.before(transformCId, -3), OutOfRangeException);
     });
 
-    test('#before - specifying a relativePosition that is too high', function(assert) {
+    test('#before - specifying a relativePosition that is too high', function (assert) {
       assert.throws(() => log.before(transformCId, 1), OutOfRangeException);
     });
 
-    test('#after', function(assert) {
+    test('#after', function (assert) {
       assert.deepEqual(
         log.after(transformAId),
         [transformBId, transformCId],
@@ -117,11 +117,11 @@ module('Log', function() {
       );
     });
 
-    test("#after - transformId that hasn't been logged", function(assert) {
+    test("#after - transformId that hasn't been logged", function (assert) {
       assert.throws(() => log.after(transformDId), NotLoggedException);
     });
 
-    test('#after - specifying a +1 relativePosition', function(assert) {
+    test('#after - specifying a +1 relativePosition', function (assert) {
       assert.deepEqual(
         log.after(transformAId, 1),
         [transformCId],
@@ -129,7 +129,7 @@ module('Log', function() {
       );
     });
 
-    test('#after - specifying a -1 relativePosition', function(assert) {
+    test('#after - specifying a -1 relativePosition', function (assert) {
       assert.deepEqual(
         log.after(transformAId, -1),
         [transformAId, transformBId, transformCId],
@@ -137,20 +137,20 @@ module('Log', function() {
       );
     });
 
-    test('#after - head', function(assert) {
+    test('#after - head', function (assert) {
       log.after(log.head);
       assert.deepEqual(log.after(log.head), [], 'is empty');
     });
 
-    test('#after - specifying a relativePosition that is too low', function(assert) {
+    test('#after - specifying a relativePosition that is too low', function (assert) {
       assert.throws(() => log.after(transformAId, -2), OutOfRangeException);
     });
 
-    test('#after - specifying a relativePosition that is too high', function(assert) {
+    test('#after - specifying a relativePosition that is too high', function (assert) {
       assert.throws(() => log.after(transformCId, 1), OutOfRangeException);
     });
 
-    test('#clear', function(assert) {
+    test('#clear', function (assert) {
       assert.expect(3);
 
       log.on('clear', (removed: string[]) => {
@@ -170,7 +170,7 @@ module('Log', function() {
       });
     });
 
-    test('#truncate', function(assert) {
+    test('#truncate', function (assert) {
       assert.expect(5);
 
       log.on('truncate', (transformId, relativePosition, removed) => {
@@ -204,7 +204,7 @@ module('Log', function() {
       });
     });
 
-    test('#truncate - to head', function(assert) {
+    test('#truncate - to head', function (assert) {
       return log.truncate(log.head).then(() => {
         assert.deepEqual(
           log.entries,
@@ -214,20 +214,20 @@ module('Log', function() {
       });
     });
 
-    test('#truncate - just past head clears the log', function(assert) {
+    test('#truncate - just past head clears the log', function (assert) {
       return log.truncate(transformCId, +1).then(() => {
         assert.deepEqual(log.entries, [], 'clears log');
       });
     });
 
-    test("#truncate - to transformId that hasn't been logged", function(assert) {
-      return log.truncate(transformDId).catch(e => {
+    test("#truncate - to transformId that hasn't been logged", function (assert) {
+      return log.truncate(transformDId).catch((e) => {
         assert.ok(e instanceof NotLoggedException, 'NotLoggedException caught');
       });
     });
 
-    test('#truncate - specifying a relativePosition that is too low', function(assert) {
-      return log.truncate(transformAId, -1).catch(e => {
+    test('#truncate - specifying a relativePosition that is too low', function (assert) {
+      return log.truncate(transformAId, -1).catch((e) => {
         assert.ok(
           e instanceof OutOfRangeException,
           'OutOfRangeException caught'
@@ -235,8 +235,8 @@ module('Log', function() {
       });
     });
 
-    test('#truncate - specifying a relativePosition that is too high', function(assert) {
-      return log.truncate(transformCId, +2).catch(e => {
+    test('#truncate - specifying a relativePosition that is too high', function (assert) {
+      return log.truncate(transformCId, +2).catch((e) => {
         assert.ok(
           e instanceof OutOfRangeException,
           'OutOfRangeException caught'
@@ -244,7 +244,7 @@ module('Log', function() {
       });
     });
 
-    test('#rollback', function(assert) {
+    test('#rollback', function (assert) {
       assert.expect(5);
 
       log.on('rollback', (transformId, relativePosition, removed) => {
@@ -278,26 +278,26 @@ module('Log', function() {
       });
     });
 
-    test('#rollback - to head', function(assert) {
+    test('#rollback - to head', function (assert) {
       return log.rollback(log.head).then(() => {
         assert.deepEqual(log.head, transformCId, "doesn't change log");
       });
     });
 
-    test("#rollback - to transformId that hasn't been logged", function(assert) {
-      return log.rollback(transformDId).catch(e => {
+    test("#rollback - to transformId that hasn't been logged", function (assert) {
+      return log.rollback(transformDId).catch((e) => {
         assert.ok(e instanceof NotLoggedException, 'NotLoggedException caught');
       });
     });
 
-    test('#rollback - to just before first', function(assert) {
+    test('#rollback - to just before first', function (assert) {
       return log.rollback(transformAId, -1).then(() => {
         assert.deepEqual(log.entries, [], 'removes all entries');
       });
     });
 
-    test('#rollback - specifying a relativePosition that is too low', function(assert) {
-      return log.rollback(transformAId, -2).catch(e => {
+    test('#rollback - specifying a relativePosition that is too low', function (assert) {
+      return log.rollback(transformAId, -2).catch((e) => {
         assert.ok(
           e instanceof OutOfRangeException,
           'OutOfRangeException caught'
@@ -305,8 +305,8 @@ module('Log', function() {
       });
     });
 
-    test('#rollback - specifying a relativePosition that is too high', function(assert) {
-      return log.rollback(transformCId, +1).catch(e => {
+    test('#rollback - specifying a relativePosition that is too high', function (assert) {
+      return log.rollback(transformCId, +1).catch((e) => {
         assert.ok(
           e instanceof OutOfRangeException,
           'OutOfRangeException caught'
@@ -314,11 +314,11 @@ module('Log', function() {
       });
     });
 
-    test('#head', function(assert) {
+    test('#head', function (assert) {
       assert.equal(log.head, transformCId, 'is last transformId');
     });
 
-    test('#contains', function(assert) {
+    test('#contains', function (assert) {
       assert.ok(
         log.contains(transformAId),
         'identifies when log contains a transform'
@@ -326,20 +326,20 @@ module('Log', function() {
     });
   });
 
-  module('using a bucket', function(hooks) {
+  module('using a bucket', function (hooks) {
     let bucket: Bucket;
 
-    hooks.beforeEach(function() {
+    hooks.beforeEach(function () {
       bucket = new FakeBucket({ name: 'fake-bucket' });
     });
 
-    hooks.afterEach(function() {
+    hooks.afterEach(function () {
       bucket = null;
     });
 
-    test('requires a name for lookups in the bucket', function(assert) {
+    test('requires a name for lookups in the bucket', function (assert) {
       assert.throws(
-        function() {
+        function () {
           let log = new Log({ bucket });
         },
         Error('Assertion failed: Log requires a name if it has a bucket'),
@@ -347,7 +347,7 @@ module('Log', function() {
       );
     });
 
-    test('will be reified from data in the bucket', function(assert) {
+    test('will be reified from data in the bucket', function (assert) {
       assert.expect(1);
       return bucket
         .setItem('log', [transformAId, transformBId])
@@ -360,7 +360,7 @@ module('Log', function() {
         });
     });
 
-    test('#append - changes appended to the log are persisted to its bucket', function(assert) {
+    test('#append - changes appended to the log are persisted to its bucket', function (assert) {
       assert.expect(2);
       log = new Log({ name: 'log', bucket });
 
@@ -370,7 +370,7 @@ module('Log', function() {
           assert.equal(log.length, 2, 'log contains the expected transforms');
           return bucket.getItem('log');
         })
-        .then(logged => {
+        .then((logged) => {
           assert.deepEqual(
             logged,
             [transformAId, transformBId],
@@ -379,7 +379,7 @@ module('Log', function() {
         });
     });
 
-    test('#truncate - truncations to the log are persisted to its bucket', function(assert) {
+    test('#truncate - truncations to the log are persisted to its bucket', function (assert) {
       assert.expect(2);
       log = new Log({ name: 'log', bucket });
 
@@ -390,7 +390,7 @@ module('Log', function() {
           assert.equal(log.length, 1, 'log contains the expected transforms');
           return bucket.getItem('log');
         })
-        .then(logged => {
+        .then((logged) => {
           assert.deepEqual(
             logged,
             [transformCId],
@@ -399,7 +399,7 @@ module('Log', function() {
         });
     });
 
-    test('#rollback - when the log is rolled back, it is persisted to its bucket', function(assert) {
+    test('#rollback - when the log is rolled back, it is persisted to its bucket', function (assert) {
       assert.expect(2);
       log = new Log({ name: 'log', bucket });
 
@@ -410,7 +410,7 @@ module('Log', function() {
           assert.equal(log.length, 2, 'log contains the expected transforms');
           return bucket.getItem('log');
         })
-        .then(logged => {
+        .then((logged) => {
           assert.deepEqual(
             logged,
             [transformAId, transformBId],
@@ -419,7 +419,7 @@ module('Log', function() {
         });
     });
 
-    test('#clear - when the log is cleared, it is persisted to its bucket', function(assert) {
+    test('#clear - when the log is cleared, it is persisted to its bucket', function (assert) {
       assert.expect(2);
       log = new Log({ name: 'log', bucket });
 
@@ -430,7 +430,7 @@ module('Log', function() {
           assert.equal(log.length, 0, 'log contains the expected transforms');
           return bucket.getItem('log');
         })
-        .then(logged => {
+        .then((logged) => {
           assert.deepEqual(
             logged,
             [],

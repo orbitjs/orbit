@@ -8,8 +8,8 @@ const { module, test } = QUnit;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module('buildQuery', function() {
-  test('can instantiate a query from an expression', function(assert) {
+module('buildQuery', function () {
+  test('can instantiate a query from an expression', function (assert) {
     let expression: FindRecords = {
       op: 'findRecords'
     };
@@ -17,7 +17,7 @@ module('buildQuery', function() {
     assert.ok(query);
   });
 
-  test('can instantiate a query that will be assigned an `id`', function(assert) {
+  test('can instantiate a query that will be assigned an `id`', function (assert) {
     let expression: FindRecords = {
       op: 'findRecords'
     };
@@ -25,7 +25,7 @@ module('buildQuery', function() {
     assert.ok(query.id, 'query has an id');
   });
 
-  test('can instantiate a query with an expression, options, and an id', function(assert) {
+  test('can instantiate a query with an expression, options, and an id', function (assert) {
     let expression: FindRecords = {
       op: 'findRecords'
     };
@@ -41,7 +41,7 @@ module('buildQuery', function() {
     assert.strictEqual(query.options, options, 'options was populated');
   });
 
-  test('will return a query passed into it', function(assert) {
+  test('will return a query passed into it', function (assert) {
     let expression: FindRecords = {
       op: 'findRecords'
     };
@@ -49,13 +49,13 @@ module('buildQuery', function() {
     assert.strictEqual(buildQuery(query), query);
   });
 
-  test('will create a query using a QueryBuilder if a function is passed into it', function(assert) {
+  test('will create a query using a QueryBuilder if a function is passed into it', function (assert) {
     let qb = new QueryBuilder();
     let expression: FindRecords = {
       op: 'findRecords',
       type: 'planet'
     };
-    let query = buildQuery(q => q.findRecords('planet'), null, null, qb);
+    let query = buildQuery((q) => q.findRecords('planet'), null, null, qb);
     assert.deepEqual(
       query.expressions[0],
       expression,
@@ -63,7 +63,7 @@ module('buildQuery', function() {
     );
   });
 
-  test('should call toQueryExpression() if available', function(assert) {
+  test('should call toQueryExpression() if available', function (assert) {
     let expression: FindRecords = {
       op: 'findRecords',
       type: 'planet'
@@ -77,7 +77,7 @@ module('buildQuery', function() {
     );
   });
 
-  test('will create a query with multiple expressions', function(assert) {
+  test('will create a query with multiple expressions', function (assert) {
     let expression1: FindRecords = {
       op: 'findRecords'
     };

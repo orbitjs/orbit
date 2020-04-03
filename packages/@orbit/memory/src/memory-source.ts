@@ -229,7 +229,7 @@ export default class MemorySource extends Source
 
     let reducedTransform;
     let ops: RecordOperation[] = [];
-    transforms.forEach(t => {
+    transforms.forEach((t) => {
       Array.prototype.push.apply(ops, t.operations);
     });
 
@@ -269,7 +269,7 @@ export default class MemorySource extends Source
     if (baseTransforms.length > 0) {
       let localTransforms = this.allTransforms();
 
-      localTransforms.reverse().forEach(transform => {
+      localTransforms.reverse().forEach((transform) => {
         const inverseOperations = this._transformInverses[transform.id];
         if (inverseOperations) {
           this.cache.patch(inverseOperations);
@@ -277,8 +277,8 @@ export default class MemorySource extends Source
         this._clearTransformFromHistory(transform.id);
       });
 
-      baseTransforms.forEach(transform => this._applyTransform(transform));
-      localTransforms.forEach(transform => this._applyTransform(transform));
+      baseTransforms.forEach((transform) => this._applyTransform(transform));
+      localTransforms.forEach((transform) => this._applyTransform(transform));
       this._forkPoint = base.transformLog.head;
     }
   }
@@ -299,14 +299,16 @@ export default class MemorySource extends Source
    * @param transformId - The ID of the transform to start with.
    */
   transformsSince(transformId: string): Transform[] {
-    return this.transformLog.after(transformId).map(id => this._transforms[id]);
+    return this.transformLog
+      .after(transformId)
+      .map((id) => this._transforms[id]);
   }
 
   /**
    * Returns all tracked transforms.
    */
   allTransforms(): Transform[] {
-    return this.transformLog.entries.map(id => this._transforms[id]);
+    return this.transformLog.entries.map((id) => this._transforms[id]);
   }
 
   getTransform(transformId: string): Transform {
@@ -351,7 +353,7 @@ export default class MemorySource extends Source
     relativePosition: number,
     removed: string[]
   ): void {
-    removed.forEach(id => this._clearTransformFromHistory(id));
+    removed.forEach((id) => this._clearTransformFromHistory(id));
   }
 
   protected _logRolledback(
@@ -359,7 +361,7 @@ export default class MemorySource extends Source
     relativePosition: number,
     removed: string[]
   ): void {
-    removed.reverse().forEach(id => {
+    removed.reverse().forEach((id) => {
       const inverseOperations = this._transformInverses[id];
       if (inverseOperations) {
         this.cache.patch(inverseOperations);

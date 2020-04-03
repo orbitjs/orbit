@@ -74,7 +74,7 @@ export abstract class Strategy {
     }
 
     if (this._sourceNames) {
-      this._sources = this._sourceNames.map(name =>
+      this._sources = this._sourceNames.map((name) =>
         coordinator.getSource(name)
       );
     } else {

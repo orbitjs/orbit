@@ -398,7 +398,7 @@ export function coalesceRecordOperations(
     }
   }
 
-  return operations.filter(o => !isOperationMarkedToDelete(o));
+  return operations.filter((o) => !isOperationMarkedToDelete(o));
 }
 
 /**
@@ -415,7 +415,7 @@ export function recordDiffs(
     const recordIdentity = cloneRecordIdentity(record);
 
     if (updatedRecord.attributes) {
-      Object.keys(updatedRecord.attributes).forEach(attribute => {
+      Object.keys(updatedRecord.attributes).forEach((attribute) => {
         let value = updatedRecord.attributes[attribute];
 
         if (
@@ -435,7 +435,7 @@ export function recordDiffs(
     }
 
     if (updatedRecord.keys) {
-      Object.keys(updatedRecord.keys).forEach(key => {
+      Object.keys(updatedRecord.keys).forEach((key) => {
         let value = updatedRecord.keys[key];
         if (record.keys === undefined || !eq(record.keys[key], value)) {
           let op: ReplaceKeyOperation = {

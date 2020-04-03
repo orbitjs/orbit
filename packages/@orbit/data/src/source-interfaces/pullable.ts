@@ -73,7 +73,7 @@ export default function pullable(Klass: SourceClass): void {
 
   proto[PULLABLE] = true;
 
-  proto.pull = async function(
+  proto.pull = async function (
     queryOrExpressions: QueryOrExpressions,
     options?: RequestOptions,
     id?: string
@@ -88,7 +88,7 @@ export default function pullable(Klass: SourceClass): void {
     return this._enqueueRequest('pull', query);
   };
 
-  proto.__pull__ = async function(query: Query): Promise<Transform[]> {
+  proto.__pull__ = async function (query: Query): Promise<Transform[]> {
     try {
       const hints: any = {};
 

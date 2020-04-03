@@ -176,7 +176,7 @@ export default class JSONAPIRequestProcessor {
       Array.prototype.push.apply(records, deserialized.included);
     }
 
-    return records.map(record => {
+    return records.map((record) => {
       return {
         op: 'updateRecord',
         record

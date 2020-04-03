@@ -6,8 +6,8 @@ const { module, test } = QUnit;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module('TaskProcessor', function() {
-  test('can be instantiated', function(assert) {
+module('TaskProcessor', function () {
+  test('can be instantiated', function (assert) {
     const target: Performer = {
       perform(task: Task): Promise<void> {
         return Promise.resolve();
@@ -17,7 +17,7 @@ module('TaskProcessor', function() {
     assert.ok(processor);
   });
 
-  test('processes asynchronous tasks by calling `perform` on a target', async function(assert) {
+  test('processes asynchronous tasks by calling `perform` on a target', async function (assert) {
     assert.expect(5);
 
     const target: Performer = {
@@ -25,7 +25,7 @@ module('TaskProcessor', function() {
         assert.equal(task.type, 'doSomething', 'perform invoked with task');
         assert.ok(processor.started, 'processor started');
         assert.ok(!processor.settled, 'processor not settled');
-        return new Promise(function(resolve: (value?: string) => void) {
+        return new Promise(function (resolve: (value?: string) => void) {
           function respond() {
             resolve(':)');
           }
@@ -42,7 +42,7 @@ module('TaskProcessor', function() {
     assert.equal(response, ':)', 'response is returned');
   });
 
-  test('can be assigned an asynchronous function that rejects', async function(assert) {
+  test('can be assigned an asynchronous function that rejects', async function (assert) {
     assert.expect(6);
 
     const target: Performer = {
@@ -51,7 +51,7 @@ module('TaskProcessor', function() {
         assert.equal(task.data, '1', 'argument matches');
         assert.ok(processor.started, 'processor started');
         assert.ok(!processor.settled, 'processor not settled');
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
           Orbit.globals.setTimeout(reject(':('), 1);
         });
       }
@@ -70,7 +70,7 @@ module('TaskProcessor', function() {
     }
   });
 
-  test("it creates a promise immediately that won't be resolved until process is called", function(assert) {
+  test("it creates a promise immediately that won't be resolved until process is called", function (assert) {
     assert.expect(5);
 
     const target: Performer = {
@@ -87,14 +87,14 @@ module('TaskProcessor', function() {
       data: '1'
     });
 
-    processor.settle().then(function() {
+    processor.settle().then(function () {
       assert.ok(true, 'process resolved');
     });
 
     return processor.process();
   });
 
-  test('#reset returns to an unstarted, unsettled state', async function(assert) {
+  test('#reset returns to an unstarted, unsettled state', async function (assert) {
     assert.expect(8);
 
     const target: Performer = {
@@ -123,7 +123,7 @@ module('TaskProcessor', function() {
     assert.ok(!processor.settled, 'after reset, task has not settled');
   });
 
-  test('#reject rejects the processor promise and marks the processor state as settled', async function(assert) {
+  test('#reject rejects the processor promise and marks the processor state as settled', async function (assert) {
     assert.expect(5);
 
     const target: Performer = {
@@ -154,7 +154,7 @@ module('TaskProcessor', function() {
     assert.ok(!processor.settled, 'after reset, task has not settled');
   });
 
-  test('#reject can reject processing that has started', async function(assert) {
+  test('#reject can reject processing that has started', async function (assert) {
     assert.expect(5);
 
     let processor: TaskProcessor;
@@ -188,7 +188,7 @@ module('TaskProcessor', function() {
     assert.ok(!processor.settled, 'after reset, task has not settled');
   });
 
-  test('#reject will fail when processing has already settled', async function(assert) {
+  test('#reject will fail when processing has already settled', async function (assert) {
     assert.expect(5);
 
     let processor: TaskProcessor;

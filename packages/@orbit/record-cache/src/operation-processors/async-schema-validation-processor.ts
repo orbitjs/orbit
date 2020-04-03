@@ -108,7 +108,7 @@ export default class AsyncSchemaValidationProcessor extends AsyncOperationProces
   ) {
     this._validateRecordIdentity(record);
 
-    relatedRecords.forEach(relatedRecord => {
+    relatedRecords.forEach((relatedRecord) => {
       this._validateRecordIdentity(relatedRecord);
       this._validateRelationship(record, relationship, relatedRecord);
     });

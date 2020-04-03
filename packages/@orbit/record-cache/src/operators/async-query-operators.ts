@@ -102,7 +102,7 @@ export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
 };
 
 function filterRecords(records: Record[], filters: any[]) {
-  return records.filter(record => {
+  return records.filter((record) => {
     for (let i = 0, l = filters.length; i < l; i++) {
       if (!applyFilter(record, filters[i])) {
         return false;
@@ -150,21 +150,21 @@ function applyFilter(record: Record, filter: any): boolean {
       case 'equal':
         return (
           actual.length === expected.length &&
-          expected.every(e =>
-            actual.some(a => a.id === e.id && a.type === e.type)
+          expected.every((e) =>
+            actual.some((a) => a.id === e.id && a.type === e.type)
           )
         );
       case 'all':
-        return expected.every(e =>
-          actual.some(a => a.id === e.id && a.type === e.type)
+        return expected.every((e) =>
+          actual.some((a) => a.id === e.id && a.type === e.type)
         );
       case 'some':
-        return expected.some(e =>
-          actual.some(a => a.id === e.id && a.type === e.type)
+        return expected.some((e) =>
+          actual.some((a) => a.id === e.id && a.type === e.type)
         );
       case 'none':
-        return !expected.some(e =>
-          actual.some(a => a.id === e.id && a.type === e.type)
+        return !expected.some((e) =>
+          actual.some((a) => a.id === e.id && a.type === e.type)
         );
       default:
         throw new QueryExpressionParseError(
@@ -185,7 +185,7 @@ function applyFilter(record: Record, filter: any): boolean {
         } else {
           if (Array.isArray(expected)) {
             return expected.some(
-              e => actual.type === e.type && actual.id === e.id
+              (e) => actual.type === e.type && actual.id === e.id
             );
           } else if (expected) {
             return actual.type === expected.type && actual.id === expected.id;
@@ -206,10 +206,10 @@ function applyFilter(record: Record, filter: any): boolean {
 function sortRecords(records: Record[], sortSpecifiers: SortSpecifier[]) {
   const comparisonValues = new Map();
 
-  records.forEach(record => {
+  records.forEach((record) => {
     comparisonValues.set(
       record,
-      sortSpecifiers.map(sortSpecifier => {
+      sortSpecifiers.map((sortSpecifier) => {
         if (sortSpecifier.kind === 'attribute') {
           return deepGet(record, [
             'attributes',
@@ -225,7 +225,7 @@ function sortRecords(records: Record[], sortSpecifiers: SortSpecifier[]) {
     );
   });
 
-  const comparisonOrders = sortSpecifiers.map(sortExpression =>
+  const comparisonOrders = sortSpecifiers.map((sortExpression) =>
     sortExpression.order === 'descending' ? -1 : 1
   );
 

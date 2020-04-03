@@ -4,24 +4,24 @@ import RecordIdentitySerializer from './support/record-identity-serializer';
 
 const { module, test } = QUnit;
 
-module('IdentityMap', function(hooks) {
+module('IdentityMap', function (hooks) {
   class Model {}
   const serializer = new RecordIdentitySerializer();
   let identityMap: IdentityMap<RecordIdentity, Model>;
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     identityMap = new IdentityMap({ serializer });
   });
 
-  hooks.afterEach(function() {
+  hooks.afterEach(function () {
     identityMap = null;
   });
 
-  test('it exists', function(assert) {
+  test('it exists', function (assert) {
     assert.ok(identityMap);
   });
 
-  test('get/set/has/delete', function(assert) {
+  test('get/set/has/delete', function (assert) {
     const identity = { type: 'person', id: '1' };
     const identity2 = { type: 'person', id: '2' };
     const record = new Model();
@@ -40,7 +40,7 @@ module('IdentityMap', function(hooks) {
     assert.equal(identityMap.get(identity), undefined);
   });
 
-  test('iterable', function(assert) {
+  test('iterable', function (assert) {
     const identity = { type: 'person', id: '1' };
     const record = new Model();
     const identity2 = { type: 'person', id: '2' };
@@ -64,7 +64,7 @@ module('IdentityMap', function(hooks) {
     assert.deepEqual(Array.from(identityMap.keys()), [identity, identity2]);
   });
 
-  test('clear', function(assert) {
+  test('clear', function (assert) {
     const identity = { type: 'person', id: '1' };
     const record = new Model();
     const identity2 = { type: 'person', id: '2' };

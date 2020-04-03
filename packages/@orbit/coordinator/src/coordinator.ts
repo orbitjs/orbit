@@ -37,11 +37,11 @@ export default class Coordinator {
     this._strategies = {};
 
     if (options.sources) {
-      options.sources.forEach(source => this.addSource(source));
+      options.sources.forEach((source) => this.addSource(source));
     }
 
     if (options.strategies) {
-      options.strategies.forEach(strategy => this.addStrategy(strategy));
+      options.strategies.forEach((strategy) => this.addStrategy(strategy));
     }
 
     this._defaultActivationOptions = options.defaultActivationOptions || {};

@@ -5,8 +5,8 @@ const { module, test } = QUnit;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module('Request', function() {
-  test('requestOptionsForSource merges any source-specific options with top-level options', function(assert) {
+module('Request', function () {
+  test('requestOptionsForSource merges any source-specific options with top-level options', function (assert) {
     let vanilla = {
       label: 'request',
       counter: 10

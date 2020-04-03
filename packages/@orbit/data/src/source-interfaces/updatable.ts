@@ -70,7 +70,7 @@ export default function updatable(Klass: SourceClass): void {
 
   proto[UPDATABLE] = true;
 
-  proto.update = async function(
+  proto.update = async function (
     transformOrOperations: TransformOrOperations,
     options?: RequestOptions,
     id?: string
@@ -90,7 +90,7 @@ export default function updatable(Klass: SourceClass): void {
     return this._enqueueRequest('update', transform);
   };
 
-  proto.__update__ = async function(transform: Transform): Promise<any> {
+  proto.__update__ = async function (transform: Transform): Promise<any> {
     if (this.transformLog.contains(transform.id)) {
       return;
     }

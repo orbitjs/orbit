@@ -129,7 +129,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
 
   createDB(db: IDBDatabase): void {
     // console.log('createDB');
-    Object.keys(this.schema.models).forEach(model => {
+    Object.keys(this.schema.models).forEach((model) => {
       this.registerModel(db, model);
     });
 
@@ -187,12 +187,12 @@ export default class IndexedDBCache extends AsyncRecordCache {
       const objectStore = transaction.objectStore(type);
       const request = objectStore.clear();
 
-      request.onerror = function(/* event */) {
+      request.onerror = function (/* event */) {
         // console.error('error - removeRecords', request.error);
         reject(request.error);
       };
 
-      request.onsuccess = function(/* event */) {
+      request.onsuccess = function (/* event */) {
         // console.log('success - removeRecords');
         resolve();
       };
@@ -207,7 +207,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
       const objectStore = transaction.objectStore(record.type);
       const request = objectStore.get(record.id);
 
-      request.onerror = function(/* event */) {
+      request.onerror = function (/* event */) {
         // console.error('error - getRecord', request.error);
         reject(request.error);
       };
@@ -244,7 +244,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
         const request = objectStore.openCursor();
         const records: Record[] = [];
 
-        request.onerror = function(/* event */) {
+        request.onerror = function (/* event */) {
           // console.error('error - getRecords', request.error);
           reject(request.error);
         };
@@ -301,7 +301,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
                 }
                 getNext();
               };
-              request.onerror = function(/* event */) {
+              request.onerror = function (/* event */) {
                 // console.error('error - getRecords', request.error);
                 reject(request.error);
               };
@@ -325,7 +325,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
     return new Promise((resolve, reject) => {
       const request = objectStore.put(record);
 
-      request.onerror = function(/* event */) {
+      request.onerror = function (/* event */) {
         // console.error('error - putRecord', request.error);
         reject(request.error);
       };
@@ -360,7 +360,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
             let objectStore = transaction.objectStore(record.type);
             let request = objectStore.put(record);
             request.onsuccess = putNext();
-            request.onerror = function(/* event */) {
+            request.onerror = function (/* event */) {
               // console.error('error - setRecordsAsync', request.error);
               reject(request.error);
             };
@@ -383,12 +383,12 @@ export default class IndexedDBCache extends AsyncRecordCache {
       const objectStore = transaction.objectStore(recordIdentity.type);
       const request = objectStore.delete(recordIdentity.id);
 
-      request.onerror = function(/* event */) {
+      request.onerror = function (/* event */) {
         // console.error('error - removeRecord', request.error);
         reject(request.error);
       };
 
-      request.onsuccess = function(/* event */) {
+      request.onsuccess = function (/* event */) {
         // console.log('success - removeRecord');
         resolve();
       };
@@ -414,7 +414,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
             let objectStore = transaction.objectStore(record.type);
             let request = objectStore.delete(record.id);
             request.onsuccess = removeNext();
-            request.onerror = function(/* event */) {
+            request.onerror = function (/* event */) {
               // console.error('error - addInverseRelationshipsAsync', request.error);
               reject(request.error);
             };
@@ -442,7 +442,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
       );
       const request = objectStore.index('recordIdentity').openCursor(keyRange);
 
-      request.onerror = function(/* event */) {
+      request.onerror = function (/* event */) {
         // console.error('error - getRecords', request.error);
         reject(request.error);
       };
@@ -479,7 +479,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
             let ir = this._toInverseRelationshipForIDB(relationship);
             let request = objectStore.put(ir);
             request.onsuccess = putNext();
-            request.onerror = function(/* event */) {
+            request.onerror = function (/* event */) {
               // console.error('error - addInverseRelationshipsAsync', request.error);
               reject(request.error);
             };
@@ -513,7 +513,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
             let id = this._serializeInverseRelationshipIdentity(relationship);
             let request = objectStore.delete(id);
             request.onsuccess = removeNext();
-            request.onerror = function(/* event */) {
+            request.onerror = function (/* event */) {
               // console.error('error - removeInverseRelationshipsAsync');
               reject(request.error);
             };
@@ -548,7 +548,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
     return types
       .reduce((chain, type) => {
         return chain.then(() => {
-          return this.getRecordsAsync(type).then(records => {
+          return this.getRecordsAsync(type).then((records) => {
             Array.prototype.push.apply(allRecords, records);
           });
         });

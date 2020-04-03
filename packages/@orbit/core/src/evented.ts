@@ -81,7 +81,7 @@ export default function evented(Klass: any): void {
 
   proto[EVENTED] = true;
 
-  proto.on = function(eventName: string, listener: Listener): () => void {
+  proto.on = function (eventName: string, listener: Listener): () => void {
     if (arguments.length > 2) {
       deprecate(
         '`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `on`.'
@@ -91,7 +91,7 @@ export default function evented(Klass: any): void {
     return notifierForEvent(this, eventName, true).addListener(listener);
   };
 
-  proto.off = function(eventName: string, listener: Listener) {
+  proto.off = function (eventName: string, listener: Listener) {
     if (arguments.length > 2) {
       deprecate(
         '`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `off`.'
@@ -109,7 +109,7 @@ export default function evented(Klass: any): void {
     }
   };
 
-  proto.one = function(eventName: string, listener: Listener): () => void {
+  proto.one = function (eventName: string, listener: Listener): () => void {
     if (arguments.length > 2) {
       deprecate(
         '`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `off`.'
@@ -118,7 +118,7 @@ export default function evented(Klass: any): void {
 
     const notifier = notifierForEvent(this, eventName, true);
 
-    const callOnce = function() {
+    const callOnce = function () {
       listener(...arguments);
       notifier.removeListener(callOnce);
     };
@@ -126,7 +126,7 @@ export default function evented(Klass: any): void {
     return notifier.addListener(callOnce);
   };
 
-  proto.emit = function(eventName: string, ...args: any[]) {
+  proto.emit = function (eventName: string, ...args: any[]) {
     let notifier = notifierForEvent(this, eventName);
 
     if (notifier) {
@@ -134,7 +134,7 @@ export default function evented(Klass: any): void {
     }
   };
 
-  proto.listeners = function(eventName: string) {
+  proto.listeners = function (eventName: string) {
     let notifier = notifierForEvent(this, eventName);
     return notifier ? notifier.listeners : [];
   };

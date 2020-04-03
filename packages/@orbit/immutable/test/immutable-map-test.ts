@@ -2,13 +2,13 @@ import ImmutableMap from '../src/immutable-map';
 
 const { module, test } = QUnit;
 
-module('ImmutableMap', function() {
-  test('it can be instantiated with no data', function(assert) {
+module('ImmutableMap', function () {
+  test('it can be instantiated with no data', function (assert) {
     let map = new ImmutableMap<string, object>();
     assert.ok(map, 'map exists');
   });
 
-  test('records can be added and removed', function(assert) {
+  test('records can be added and removed', function (assert) {
     let map = new ImmutableMap<string, object>();
 
     assert.equal(map.size, 0, 'size matches expectations');
@@ -72,7 +72,7 @@ module('ImmutableMap', function() {
     assert.equal(map.size, 0, 'size matches expectations');
   });
 
-  test('maps can be instantiated based on other maps and their contents will be equal (but then will diverge)', function(assert) {
+  test('maps can be instantiated based on other maps and their contents will be equal (but then will diverge)', function (assert) {
     let map = new ImmutableMap<string, object>();
 
     let jupiter = {
@@ -139,7 +139,7 @@ module('ImmutableMap', function() {
     );
   });
 
-  test('maps can set and remove multiple items at once', function(assert) {
+  test('maps can set and remove multiple items at once', function (assert) {
     let jupiter = {
       type: 'planet',
       id: 'jupiter',

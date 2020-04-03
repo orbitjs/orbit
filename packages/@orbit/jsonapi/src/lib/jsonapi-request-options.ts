@@ -26,7 +26,7 @@ export function buildFetchSettings(
     deepMerge(settings, customSettings);
   }
 
-  ['filter', 'include', 'page', 'sort'].forEach(param => {
+  ['filter', 'include', 'page', 'sort'].forEach((param) => {
     let value = (options as any)[param];
     if (value) {
       if (param === 'include' && Array.isArray(value)) {
@@ -72,12 +72,12 @@ function mergeIncludePaths(paths: string[], customPaths: string[]) {
 
 function mergeFilters(filters: Filter[], customFilters: Filter[]) {
   let result: Filter[] = clone(filters);
-  let filterKeys: string[] = filters.map(f => filterKey(f));
+  let filterKeys: string[] = filters.map((f) => filterKey(f));
   for (let customFilter of customFilters) {
     let customerFilterKey = filterKey(customFilter);
     if (filterKeys.includes(customerFilterKey)) {
       let filterToOverride = result.find(
-        f => filterKey(f) === customerFilterKey
+        (f) => filterKey(f) === customerFilterKey
       );
       setFilterValue(filterToOverride, filterValue(customFilter));
     } else {

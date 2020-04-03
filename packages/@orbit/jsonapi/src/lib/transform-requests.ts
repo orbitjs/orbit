@@ -164,7 +164,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const { relationship, record, options } = request;
     const { type, id } = record;
     const json = {
-      data: request.relatedRecords.map(r =>
+      data: request.relatedRecords.map((r) =>
         requestProcessor.serializer.resourceIdentity(r)
       )
     };
@@ -191,7 +191,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const { relationship, record, options } = request;
     const { type, id } = record;
     const json = {
-      data: request.relatedRecords.map(r =>
+      data: request.relatedRecords.map((r) =>
         requestProcessor.serializer.resourceIdentity(r)
       )
     };
@@ -245,7 +245,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const { relationship, relatedRecords, record, options } = request;
     const { type, id } = record;
     const json = {
-      data: relatedRecords.map(r =>
+      data: relatedRecords.map((r) =>
         requestProcessor.serializer.resourceIdentity(r)
       )
     };
@@ -480,7 +480,7 @@ function replaceRecordHasMany(
   deepSet(
     record,
     ['relationships', relationship, 'data'],
-    relatedRecords.map(r => cloneRecordIdentity(r))
+    relatedRecords.map((r) => cloneRecordIdentity(r))
   );
 }
 
@@ -496,7 +496,7 @@ function handleChanges(
     transforms.push(buildTransform(updateOps));
   }
   if (responseDoc.included && responseDoc.included.length > 0) {
-    let includedOps = responseDoc.included.map(record => {
+    let includedOps = responseDoc.included.map((record) => {
       return { op: 'updateRecord', record };
     });
     transforms.push(buildTransform(includedOps));

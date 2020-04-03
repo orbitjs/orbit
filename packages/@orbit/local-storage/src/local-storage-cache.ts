@@ -181,7 +181,7 @@ export default class LocalStorageCache extends SyncRecordCache {
       if (item) {
         let rels: RecordRelationshipIdentity[] = item ? JSON.parse(item) : [];
         let newRels = rels.filter(
-          rel =>
+          (rel) =>
             !(
               equalRecordIdentities(rel.record, relationship.record) &&
               rel.relationship === relationship.relationship
@@ -199,10 +199,10 @@ export default class LocalStorageCache extends SyncRecordCache {
       }
     }
 
-    this._processors.forEach(processor => processor.reset());
+    this._processors.forEach((processor) => processor.reset());
   }
 
   upgrade() {
-    this._processors.forEach(processor => processor.upgrade());
+    this._processors.forEach((processor) => processor.upgrade());
   }
 }

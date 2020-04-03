@@ -10,7 +10,7 @@ import { Exception } from '@orbit/core';
 
 const { module, test } = QUnit;
 
-module('SyncStrategy', function(hooks) {
+module('SyncStrategy', function (hooks) {
   const t = new TransformBuilder();
   const tA = buildTransform(
     [t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })],
@@ -28,7 +28,7 @@ module('SyncStrategy', function(hooks) {
   let s1: any;
   let s2: any;
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     @syncable
     class MySource extends Source {}
 
@@ -36,7 +36,7 @@ module('SyncStrategy', function(hooks) {
     s2 = new MySource({ name: 's2' });
   });
 
-  test('can be instantiated', function(assert) {
+  test('can be instantiated', function (assert) {
     strategy = new SyncStrategy({ source: 's1', target: 's2' });
 
     assert.ok(strategy);
@@ -52,7 +52,7 @@ module('SyncStrategy', function(hooks) {
     );
   });
 
-  test('assigns source and target when activated', async function(assert) {
+  test('assigns source and target when activated', async function (assert) {
     strategy = new SyncStrategy({ source: 's1', target: 's2' });
 
     coordinator = new Coordinator({
@@ -66,7 +66,7 @@ module('SyncStrategy', function(hooks) {
     assert.strictEqual(strategy.target, s2, 'target is set');
   });
 
-  test('installs listeners on activate and removes them on deactivate', async function(assert) {
+  test('installs listeners on activate and removes them on deactivate', async function (assert) {
     assert.expect(6);
 
     strategy = new SyncStrategy({ source: 's1', target: 's2' });
@@ -106,7 +106,7 @@ module('SyncStrategy', function(hooks) {
     );
   });
 
-  test('observes source `transform` event and invokes `sync` on target', async function(assert) {
+  test('observes source `transform` event and invokes `sync` on target', async function (assert) {
     assert.expect(2);
 
     strategy = new SyncStrategy({ source: 's1', target: 's2' });
@@ -116,7 +116,7 @@ module('SyncStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    s2._sync = async function(transform: Transform): Promise<void> {
+    s2._sync = async function (transform: Transform): Promise<void> {
       assert.strictEqual(
         transform,
         tA,
@@ -129,7 +129,7 @@ module('SyncStrategy', function(hooks) {
     await s1.transformed([tA]);
   });
 
-  test('can apply a `filter` function', async function(assert) {
+  test('can apply a `filter` function', async function (assert) {
     assert.expect(4);
 
     strategy = new SyncStrategy({
@@ -146,7 +146,7 @@ module('SyncStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    s2._sync = async function(transform: Transform): Promise<void> {
+    s2._sync = async function (transform: Transform): Promise<void> {
       assert.strictEqual(
         transform,
         tB,
@@ -159,7 +159,7 @@ module('SyncStrategy', function(hooks) {
     await s1.transformed([tA, tB]);
   });
 
-  test('can catch errors with a `catch` function', async function(assert) {
+  test('can catch errors with a `catch` function', async function (assert) {
     assert.expect(6);
 
     strategy = new SyncStrategy({
@@ -182,7 +182,7 @@ module('SyncStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    s2._sync = async function(transform: Transform): Promise<void> {
+    s2._sync = async function (transform: Transform): Promise<void> {
       assert.strictEqual(
         transform,
         tA,
@@ -198,7 +198,7 @@ module('SyncStrategy', function(hooks) {
     assert.ok(true, 'transform event settled');
   });
 
-  test('errors rethrown within a `catch` function are not propagated', async function(assert) {
+  test('errors rethrown within a `catch` function are not propagated', async function (assert) {
     assert.expect(6);
 
     strategy = new SyncStrategy({
@@ -222,7 +222,7 @@ module('SyncStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    s2._sync = function(transform: Transform): Promise<void> {
+    s2._sync = function (transform: Transform): Promise<void> {
       assert.strictEqual(
         transform,
         tA,

@@ -19,7 +19,7 @@ import MemorySource from '../src/index';
 
 const { module, test } = QUnit;
 
-module('MemorySource', function(hooks) {
+module('MemorySource', function (hooks) {
   const schemaDefinition: SchemaSettings = {
     models: {
       star: {
@@ -56,18 +56,18 @@ module('MemorySource', function(hooks) {
   let source: MemorySource;
   let keyMap: KeyMap;
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     keyMap = new KeyMap();
     source = new MemorySource({ schema, keyMap });
   });
 
-  test('its prototype chain is correct', function(assert) {
+  test('its prototype chain is correct', function (assert) {
     assert.ok(source instanceof Source, 'instanceof Source');
     assert.ok(source instanceof MemorySource, 'instanceof MemorySource');
     assert.equal(source.name, 'memory', 'should have default name');
   });
 
-  test("internal cache's settings can be specified with `cacheSettings`", function(assert) {
+  test("internal cache's settings can be specified with `cacheSettings`", function (assert) {
     let source = new MemorySource({
       schema,
       keyMap,
@@ -85,7 +85,7 @@ module('MemorySource', function(hooks) {
     assert.equal(cache._processors.length, 2, 'cache has 2 processors');
   });
 
-  test('automatically shares its `transformBuilder` and `queryBuilder` with its cache', function(assert) {
+  test('automatically shares its `transformBuilder` and `queryBuilder` with its cache', function (assert) {
     assert.strictEqual(
       source.cache.transformBuilder,
       source.transformBuilder,
@@ -98,7 +98,7 @@ module('MemorySource', function(hooks) {
     );
   });
 
-  test("#update - transforms the source's cache", async function(assert) {
+  test("#update - transforms the source's cache", async function (assert) {
     assert.expect(4);
 
     const jupiter: Record = {
@@ -113,7 +113,7 @@ module('MemorySource', function(hooks) {
       'cache should start empty'
     );
 
-    let record = await source.update(t => t.addRecord(jupiter));
+    let record = await source.update((t) => t.addRecord(jupiter));
 
     assert.equal(
       source.cache.getRecordsSync('planet').length,
@@ -128,7 +128,7 @@ module('MemorySource', function(hooks) {
     assert.strictEqual(record, jupiter, 'result should be returned');
   });
 
-  test('#update - can perform multiple operations and return the results', async function(assert) {
+  test('#update - can perform multiple operations and return the results', async function (assert) {
     assert.expect(3);
 
     const jupiter: Record = {
@@ -149,7 +149,7 @@ module('MemorySource', function(hooks) {
       'cache should start empty'
     );
 
-    let records = await source.update(t => [
+    let records = await source.update((t) => [
       t.addRecord(jupiter),
       t.addRecord(earth)
     ]);
@@ -166,7 +166,7 @@ module('MemorySource', function(hooks) {
     );
   });
 
-  test('#update - accepts hints that can return a single record', async function(assert) {
+  test('#update - accepts hints that can return a single record', async function (assert) {
     assert.expect(2);
 
     let jupiter = {
@@ -181,7 +181,7 @@ module('MemorySource', function(hooks) {
       attributes: { name: 'Earth' }
     };
 
-    source.cache.patch(t => t.addRecord(earth));
+    source.cache.patch((t) => t.addRecord(earth));
 
     source.on('beforeUpdate', (transform: Transform, hints: any) => {
       if (transform.options.customizeResults) {
@@ -189,7 +189,7 @@ module('MemorySource', function(hooks) {
       }
     });
 
-    let planet = await source.update(t => t.addRecord(jupiter), {
+    let planet = await source.update((t) => t.addRecord(jupiter), {
       customizeResults: true
     });
 
@@ -202,7 +202,7 @@ module('MemorySource', function(hooks) {
     assert.deepEqual(planet, earth, 'added planet matches hinted record');
   });
 
-  test('#update - accepts hints that can return a collection of records', async function(assert) {
+  test('#update - accepts hints that can return a collection of records', async function (assert) {
     assert.expect(2);
 
     let jupiter = {
@@ -233,7 +233,7 @@ module('MemorySource', function(hooks) {
     });
 
     let planets = await source.update(
-      t => [t.addRecord(jupiter), t.addRecord(earth), t.addRecord(uranus)],
+      (t) => [t.addRecord(jupiter), t.addRecord(earth), t.addRecord(uranus)],
       {
         customizeResults: true
       }
@@ -252,7 +252,7 @@ module('MemorySource', function(hooks) {
     );
   });
 
-  test('#update - accepts hints that can return an array of varied results', async function(assert) {
+  test('#update - accepts hints that can return an array of varied results', async function (assert) {
     assert.expect(2);
 
     let jupiter = {
@@ -286,7 +286,7 @@ module('MemorySource', function(hooks) {
     });
 
     let planets = await source.update(
-      t => [t.addRecord(jupiter), t.addRecord(earth), t.addRecord(uranus)],
+      (t) => [t.addRecord(jupiter), t.addRecord(earth), t.addRecord(uranus)],
       {
         customizeResults: true
       }
@@ -305,7 +305,7 @@ module('MemorySource', function(hooks) {
     );
   });
 
-  test("#query - queries the source's cache", async function(assert) {
+  test("#query - queries the source's cache", async function (assert) {
     assert.expect(2);
 
     let jupiter = {
@@ -314,7 +314,7 @@ module('MemorySource', function(hooks) {
       attributes: { name: 'Jupiter', classification: 'gas giant' }
     };
 
-    source.cache.patch(t => t.addRecord(jupiter));
+    source.cache.patch((t) => t.addRecord(jupiter));
 
     assert.equal(
       source.cache.getRecordsSync('planet').length,
@@ -322,14 +322,14 @@ module('MemorySource', function(hooks) {
       'cache should contain one planet'
     );
 
-    let planet = await source.query(q =>
+    let planet = await source.query((q) =>
       q.findRecord({ type: 'planet', id: 'jupiter' })
     );
 
     assert.deepEqual(planet, jupiter, 'found planet matches original');
   });
 
-  test('#query - findRecord accepts hints that can influence results', async function(assert) {
+  test('#query - findRecord accepts hints that can influence results', async function (assert) {
     assert.expect(2);
 
     let jupiter2 = {
@@ -344,7 +344,7 @@ module('MemorySource', function(hooks) {
       }
     });
 
-    source.cache.patch(t => t.addRecord(jupiter2));
+    source.cache.patch((t) => t.addRecord(jupiter2));
 
     assert.equal(
       source.cache.getRecordsSync('planet').length,
@@ -352,14 +352,14 @@ module('MemorySource', function(hooks) {
       'cache should contain one planet'
     );
 
-    let planet = await source.query(q =>
+    let planet = await source.query((q) =>
       q.findRecord({ type: 'planet', id: 'jupiter' })
     );
 
     assert.deepEqual(planet, jupiter2, 'found planet matches hinted record');
   });
 
-  test('#query - findRecords accepts hints that can influence results', async function(assert) {
+  test('#query - findRecords accepts hints that can influence results', async function (assert) {
     assert.expect(2);
 
     let jupiter = {
@@ -392,7 +392,7 @@ module('MemorySource', function(hooks) {
       }
     });
 
-    source.cache.patch(t => [
+    source.cache.patch((t) => [
       t.addRecord(jupiter),
       t.addRecord(earth),
       t.addRecord(uranus)
@@ -404,7 +404,7 @@ module('MemorySource', function(hooks) {
       'cache should contain three planets'
     );
 
-    let distantPlanets = await source.query(q => q.findRecords('planet'), {
+    let distantPlanets = await source.query((q) => q.findRecords('planet'), {
       sources: {
         remote: {
           customFilter: 'distantPlanets' // custom remote-only filter
@@ -419,7 +419,7 @@ module('MemorySource', function(hooks) {
     );
   });
 
-  test('#query - catches errors', async function(assert) {
+  test('#query - catches errors', async function (assert) {
     assert.expect(2);
 
     source.cache.reset();
@@ -431,13 +431,15 @@ module('MemorySource', function(hooks) {
     );
 
     try {
-      await source.query(q => q.findRecord({ type: 'planet', id: 'jupiter' }));
+      await source.query((q) =>
+        q.findRecord({ type: 'planet', id: 'jupiter' })
+      );
     } catch (e) {
       assert.equal(e.message, 'Record not found: planet:jupiter');
     }
   });
 
-  test('#query - can query with multiple expressions', async function(assert) {
+  test('#query - can query with multiple expressions', async function (assert) {
     const jupiter: Record = {
       type: 'planet',
       id: 'jupiter',
@@ -452,10 +454,10 @@ module('MemorySource', function(hooks) {
         name: 'Earth'
       }
     };
-    await source.update(t => [t.addRecord(jupiter), t.addRecord(earth)]);
+    await source.update((t) => [t.addRecord(jupiter), t.addRecord(earth)]);
 
     assert.deepEqual(
-      await source.query(q => [
+      await source.query((q) => [
         q.findRecord({ type: 'planet', id: 'jupiter' }),
         q.findRecord({ type: 'planet', id: 'earth' })
       ]),
@@ -463,7 +465,7 @@ module('MemorySource', function(hooks) {
     );
   });
 
-  test('#sync - appends transform to log', async function(assert) {
+  test('#sync - appends transform to log', async function (assert) {
     const recordA = {
       id: 'jupiter',
       type: 'planet',
@@ -482,7 +484,7 @@ module('MemorySource', function(hooks) {
     );
   });
 
-  test('#getTransform - returns a particular transform given an id', async function(assert) {
+  test('#getTransform - returns a particular transform given an id', async function (assert) {
     const recordA = {
       id: 'jupiter',
       type: 'planet',
@@ -501,7 +503,7 @@ module('MemorySource', function(hooks) {
     );
   });
 
-  test('#getInverseOperations - returns the inverse operations for a particular transform', async function(assert) {
+  test('#getInverseOperations - returns the inverse operations for a particular transform', async function (assert) {
     const recordA = {
       id: 'jupiter',
       type: 'planet',
@@ -518,7 +520,7 @@ module('MemorySource', function(hooks) {
     ]);
   });
 
-  test('#transformsSince - returns all transforms since a specified transformId', async function(assert) {
+  test('#transformsSince - returns all transforms since a specified transformId', async function (assert) {
     const recordA = {
       id: 'jupiter',
       type: 'planet',
@@ -551,7 +553,7 @@ module('MemorySource', function(hooks) {
     );
   });
 
-  test('#allTransforms - returns all tracked transforms', async function(assert) {
+  test('#allTransforms - returns all tracked transforms', async function (assert) {
     const recordA = {
       id: 'jupiter',
       type: 'planet',
@@ -584,7 +586,7 @@ module('MemorySource', function(hooks) {
     );
   });
 
-  test('transformLog.truncate - clears transforms from log as well as tracked transforms before a specified transform', async function(assert) {
+  test('transformLog.truncate - clears transforms from log as well as tracked transforms before a specified transform', async function (assert) {
     const recordA = {
       id: 'jupiter',
       type: 'planet',
@@ -619,7 +621,7 @@ module('MemorySource', function(hooks) {
     );
   });
 
-  test('transformLog.clear - clears all transforms from log as well as tracked transforms', async function(assert) {
+  test('transformLog.clear - clears all transforms from log as well as tracked transforms', async function (assert) {
     const recordA = {
       id: 'jupiter',
       type: 'planet',
@@ -654,14 +656,14 @@ module('MemorySource', function(hooks) {
     );
   });
 
-  test('#fork - creates a new source that starts with the same schema, keyMap, and cache contents as the base source', async function(assert) {
+  test('#fork - creates a new source that starts with the same schema, keyMap, and cache contents as the base source', async function (assert) {
     const jupiter: Record = {
       type: 'planet',
       id: 'jupiter-id',
       attributes: { name: 'Jupiter', classification: 'gas giant' }
     };
 
-    await source.update(t => t.addRecord(jupiter));
+    await source.update((t) => t.addRecord(jupiter));
 
     assert.deepEqual(
       source.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }),
@@ -700,7 +702,7 @@ module('MemorySource', function(hooks) {
     );
   });
 
-  test('#merge - merges transforms from a forked source back into a base source', async function(assert) {
+  test('#merge - merges transforms from a forked source back into a base source', async function (assert) {
     const jupiter: Record = {
       type: 'planet',
       id: 'jupiter-id',
@@ -709,7 +711,7 @@ module('MemorySource', function(hooks) {
 
     let fork = source.fork();
 
-    await fork.update(t => t.addRecord(jupiter));
+    await fork.update((t) => t.addRecord(jupiter));
 
     assert.deepEqual(
       fork.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }),
@@ -726,7 +728,7 @@ module('MemorySource', function(hooks) {
     );
   });
 
-  test('#merge - can accept options that will be assigned to the resulting transform', async function(assert) {
+  test('#merge - can accept options that will be assigned to the resulting transform', async function (assert) {
     assert.expect(3);
 
     const jupiter: Record = {
@@ -737,11 +739,11 @@ module('MemorySource', function(hooks) {
 
     let fork = source.fork();
 
-    source.on('update', transform => {
+    source.on('update', (transform) => {
       assert.equal(transform.options.label, 'Create Jupiter');
     });
 
-    await fork.update(t => t.addRecord(jupiter));
+    await fork.update((t) => t.addRecord(jupiter));
 
     assert.deepEqual(
       fork.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }),
@@ -758,7 +760,7 @@ module('MemorySource', function(hooks) {
     );
   });
 
-  test('#rebase - works with empty sources', function(assert) {
+  test('#rebase - works with empty sources', function (assert) {
     assert.expect(1);
 
     let child = source.fork();
@@ -767,7 +769,7 @@ module('MemorySource', function(hooks) {
     assert.ok(true, 'no exception has been thrown');
   });
 
-  test('#rebase - record ends up in child source', async function(assert) {
+  test('#rebase - record ends up in child source', async function (assert) {
     assert.expect(3);
 
     const jupiter: Record = {
@@ -778,7 +780,7 @@ module('MemorySource', function(hooks) {
 
     let child = source.fork();
 
-    await source.update(t => t.addRecord(jupiter));
+    await source.update((t) => t.addRecord(jupiter));
 
     assert.deepEqual(
       source.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }),
@@ -800,7 +802,7 @@ module('MemorySource', function(hooks) {
     );
   });
 
-  test('#rebase - maintains only unique transforms in fork', async function(assert) {
+  test('#rebase - maintains only unique transforms in fork', async function (assert) {
     const recordA = {
       id: 'jupiter',
       type: 'planet',
@@ -857,7 +859,7 @@ module('MemorySource', function(hooks) {
     assert.deepEqual(fork.cache.getRecordsSync('planet').length, 5);
   });
 
-  test('#rebase - rebase orders conflicting transforms in expected way', async function(assert) {
+  test('#rebase - rebase orders conflicting transforms in expected way', async function (assert) {
     assert.expect(6);
 
     const jupiter: Record = {
@@ -870,7 +872,7 @@ module('MemorySource', function(hooks) {
     let child: MemorySource;
 
     // 1. fill source with some data
-    await source.update(t => t.addRecord(jupiter));
+    await source.update((t) => t.addRecord(jupiter));
 
     // 2. create a child source
     assert.deepEqual(
@@ -886,8 +888,8 @@ module('MemorySource', function(hooks) {
     );
 
     // 3. update the child and the parent source (in any order)
-    await child.update(t => t.replaceAttribute(id, 'name', 'The Gas Giant'));
-    await source.update(t => t.replaceAttribute(id, 'name', 'Gassy Giant'));
+    await child.update((t) => t.replaceAttribute(id, 'name', 'The Gas Giant'));
+    await source.update((t) => t.replaceAttribute(id, 'name', 'Gassy Giant'));
 
     // 4. make sure updates were successful
     assert.equal(
@@ -906,7 +908,7 @@ module('MemorySource', function(hooks) {
     assert.equal(source.cache.getRecordSync(id).attributes.name, 'Gassy Giant');
   });
 
-  test('#rebase - calling rebase multiple times', async function(assert) {
+  test('#rebase - calling rebase multiple times', async function (assert) {
     assert.expect(22);
 
     const jupiter: Record = {
@@ -919,7 +921,7 @@ module('MemorySource', function(hooks) {
     let child: MemorySource;
 
     // 1. fill source with some data
-    await source.update(t => t.addRecord(jupiter));
+    await source.update((t) => t.addRecord(jupiter));
     // 2. create a child source
     assert.deepEqual(
       source.cache.getRecordSync(id),
@@ -934,8 +936,8 @@ module('MemorySource', function(hooks) {
     );
 
     // 3. update the child and the parent source (in any order)
-    await child.update(t => t.replaceAttribute(id, 'name', 'The Gas Giant'));
-    await source.update(t => t.replaceAttribute(id, 'name', 'Gassy Giant'));
+    await child.update((t) => t.replaceAttribute(id, 'name', 'The Gas Giant'));
+    await source.update((t) => t.replaceAttribute(id, 'name', 'Gassy Giant'));
     // 4. make sure updates were successful
     assert.equal(
       child.cache.getRecordSync(id).attributes.name,
@@ -956,7 +958,7 @@ module('MemorySource', function(hooks) {
       source.cache.getRecordSync(id).attributes.classification,
       'gas giant'
     );
-    await source.update(t =>
+    await source.update((t) =>
       t.updateRecord({
         ...id,
         attributes: {
@@ -1000,7 +1002,7 @@ module('MemorySource', function(hooks) {
     );
 
     // 9. update the parent source a third time
-    await source.update(t =>
+    await source.update((t) =>
       t.replaceAttribute(id, 'classification', 'gas giant III')
     );
     // 10. make sure updates were successful
@@ -1043,7 +1045,7 @@ module('MemorySource', function(hooks) {
     );
   });
 
-  test('#rollback - rolls back transform log and replays transform inverses against the cache', async function(assert) {
+  test('#rollback - rolls back transform log and replays transform inverses against the cache', async function (assert) {
     const recordA = {
       id: 'jupiter',
       type: 'planet',
@@ -1107,7 +1109,7 @@ module('MemorySource', function(hooks) {
     );
   });
 
-  test('#upgrade upgrades the cache to include new models introduced in a schema', async function(assert) {
+  test('#upgrade upgrades the cache to include new models introduced in a schema', async function (assert) {
     let person = {
       type: 'person',
       id: '1',
@@ -1128,7 +1130,7 @@ module('MemorySource', function(hooks) {
 
     schema.upgrade({ models });
 
-    await source.update(t => t.addRecord(person));
+    await source.update((t) => t.addRecord(person));
 
     assert.deepEqual(
       source.cache.getRecordSync({ type: 'person', id: '1' }),

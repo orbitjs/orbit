@@ -8,14 +8,14 @@ import {
 
 const { module, test } = QUnit;
 
-module('QueryBuilder', function(hooks) {
+module('QueryBuilder', function (hooks) {
   let oqb: QueryBuilder;
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     oqb = new QueryBuilder();
   });
 
-  test('findRecord', function(assert) {
+  test('findRecord', function (assert) {
     assert.deepEqual(
       oqb.findRecord({ type: 'planet', id: '123' }).toQueryExpression(),
       {
@@ -28,14 +28,14 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRecords by type', function(assert) {
+  test('findRecords by type', function (assert) {
     assert.deepEqual(oqb.findRecords('planet').toQueryExpression(), {
       op: 'findRecords',
       type: 'planet'
     } as FindRecords);
   });
 
-  test('findRecords by identities', function(assert) {
+  test('findRecords by identities', function (assert) {
     assert.deepEqual(
       oqb
         .findRecords([
@@ -53,7 +53,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRecords + attribute filter', function(assert) {
+  test('findRecords + attribute filter', function (assert) {
     assert.deepEqual(
       oqb
         .findRecords('planet')
@@ -74,7 +74,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRecords + attribute filters', function(assert) {
+  test('findRecords + attribute filters', function (assert) {
     assert.deepEqual(
       oqb
         .findRecords('planet')
@@ -104,7 +104,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRecords + filter (invalid filter expression)', function(assert) {
+  test('findRecords + filter (invalid filter expression)', function (assert) {
     assert.throws(() => {
       oqb
         .findRecords('planet')
@@ -114,7 +114,7 @@ module('QueryBuilder', function(hooks) {
     }, new Error('Unrecognized filter param.'));
   });
 
-  test('findRecords + attribute filter', function(assert) {
+  test('findRecords + attribute filter', function (assert) {
     assert.deepEqual(
       oqb
         .findRecords('planet')
@@ -135,7 +135,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRecords + hasOne filter', function(assert) {
+  test('findRecords + hasOne filter', function (assert) {
     assert.deepEqual(
       oqb
         .findRecords('planet')
@@ -156,7 +156,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRecords + hasMany filter', function(assert) {
+  test('findRecords + hasMany filter', function (assert) {
     assert.deepEqual(
       oqb
         .findRecords('planet')
@@ -187,12 +187,9 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRecords + sort (one field, compact)', function(assert) {
+  test('findRecords + sort (one field, compact)', function (assert) {
     assert.deepEqual(
-      oqb
-        .findRecords('planet')
-        .sort('name')
-        .toQueryExpression(),
+      oqb.findRecords('planet').sort('name').toQueryExpression(),
       {
         op: 'findRecords',
         type: 'planet',
@@ -207,12 +204,9 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRecords + sort (one field descending, compact)', function(assert) {
+  test('findRecords + sort (one field descending, compact)', function (assert) {
     assert.deepEqual(
-      oqb
-        .findRecords('planet')
-        .sort('-name')
-        .toQueryExpression(),
+      oqb.findRecords('planet').sort('-name').toQueryExpression(),
       {
         op: 'findRecords',
         type: 'planet',
@@ -227,12 +221,9 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRecords + sort (multiple fields, compact)', function(assert) {
+  test('findRecords + sort (multiple fields, compact)', function (assert) {
     assert.deepEqual(
-      oqb
-        .findRecords('planet')
-        .sort('name', 'age')
-        .toQueryExpression(),
+      oqb.findRecords('planet').sort('name', 'age').toQueryExpression(),
       {
         op: 'findRecords',
         type: 'planet',
@@ -252,12 +243,9 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRecords + sort (one field, verbose)', function(assert) {
+  test('findRecords + sort (one field, verbose)', function (assert) {
     assert.deepEqual(
-      oqb
-        .findRecords('planet')
-        .sort({ attribute: 'name' })
-        .toQueryExpression(),
+      oqb.findRecords('planet').sort({ attribute: 'name' }).toQueryExpression(),
       {
         op: 'findRecords',
         type: 'planet',
@@ -272,7 +260,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRecords + sort (one field, specified order, verbose)', function(assert) {
+  test('findRecords + sort (one field, specified order, verbose)', function (assert) {
     assert.deepEqual(
       oqb
         .findRecords('planet')
@@ -292,7 +280,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRecords + sort (one field, specified order, verbose)', function(assert) {
+  test('findRecords + sort (one field, specified order, verbose)', function (assert) {
     assert.deepEqual(
       oqb
         .findRecords('planet')
@@ -320,13 +308,13 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRecords + sort (invalid sort expression)', function(assert) {
+  test('findRecords + sort (invalid sort expression)', function (assert) {
     assert.throws(() => {
       oqb.findRecords('planet').sort(null);
     }, new Error('Unrecognized sort param.'));
   });
 
-  test('findRecords + page', function(assert) {
+  test('findRecords + page', function (assert) {
     assert.deepEqual(
       oqb
         .findRecords('planet')
@@ -344,7 +332,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRecords + filter + sort + page', function(assert) {
+  test('findRecords + filter + sort + page', function (assert) {
     assert.deepEqual(
       oqb
         .findRecords('planet')
@@ -388,7 +376,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRelatedRecords', function(assert) {
+  test('findRelatedRecords', function (assert) {
     assert.deepEqual(
       oqb
         .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
@@ -404,7 +392,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRelatedRecords + attribute filter', function(assert) {
+  test('findRelatedRecords + attribute filter', function (assert) {
     assert.deepEqual(
       oqb
         .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
@@ -429,7 +417,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRelatedRecords + attribute filters', function(assert) {
+  test('findRelatedRecords + attribute filters', function (assert) {
     assert.deepEqual(
       oqb
         .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
@@ -463,7 +451,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRelatedRecords + filter (invalid filter expression)', function(assert) {
+  test('findRelatedRecords + filter (invalid filter expression)', function (assert) {
     assert.throws(() => {
       oqb
         .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
@@ -473,7 +461,7 @@ module('QueryBuilder', function(hooks) {
     }, new Error('Unrecognized filter param.'));
   });
 
-  test('findRelatedRecords + attribute filter', function(assert) {
+  test('findRelatedRecords + attribute filter', function (assert) {
     assert.deepEqual(
       oqb
         .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
@@ -498,7 +486,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRelatedRecords + hasOne filter', function(assert) {
+  test('findRelatedRecords + hasOne filter', function (assert) {
     assert.deepEqual(
       oqb
         .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
@@ -523,7 +511,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRelatedRecords + hasMany filter', function(assert) {
+  test('findRelatedRecords + hasMany filter', function (assert) {
     assert.deepEqual(
       oqb
         .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
@@ -558,7 +546,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRelatedRecords + sort (one field, compact)', function(assert) {
+  test('findRelatedRecords + sort (one field, compact)', function (assert) {
     assert.deepEqual(
       oqb
         .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
@@ -582,7 +570,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRelatedRecords + sort (one field descending, compact)', function(assert) {
+  test('findRelatedRecords + sort (one field descending, compact)', function (assert) {
     assert.deepEqual(
       oqb
         .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
@@ -606,7 +594,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRelatedRecords + sort (multiple fields, compact)', function(assert) {
+  test('findRelatedRecords + sort (multiple fields, compact)', function (assert) {
     assert.deepEqual(
       oqb
         .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
@@ -635,7 +623,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRelatedRecords + sort (one field, verbose)', function(assert) {
+  test('findRelatedRecords + sort (one field, verbose)', function (assert) {
     assert.deepEqual(
       oqb
         .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
@@ -659,7 +647,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRelatedRecords + sort (one field, specified order, verbose)', function(assert) {
+  test('findRelatedRecords + sort (one field, specified order, verbose)', function (assert) {
     assert.deepEqual(
       oqb
         .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
@@ -683,7 +671,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRelatedRecords + sort (one field, specified order, verbose)', function(assert) {
+  test('findRelatedRecords + sort (one field, specified order, verbose)', function (assert) {
     assert.deepEqual(
       oqb
         .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
@@ -715,13 +703,13 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRelatedRecords + sort (invalid sort expression)', function(assert) {
+  test('findRelatedRecords + sort (invalid sort expression)', function (assert) {
     assert.throws(() => {
       oqb.findRelatedRecords({ type: 'planet', id: '123' }, 'moons').sort(null);
     }, new Error('Unrecognized sort param.'));
   });
 
-  test('findRelatedRecords + page', function(assert) {
+  test('findRelatedRecords + page', function (assert) {
     assert.deepEqual(
       oqb
         .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
@@ -743,7 +731,7 @@ module('QueryBuilder', function(hooks) {
     );
   });
 
-  test('findRelatedRecords + filter + sort + page', function(assert) {
+  test('findRelatedRecords + filter + sort + page', function (assert) {
     assert.deepEqual(
       oqb
         .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')

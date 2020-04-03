@@ -3,32 +3,32 @@ import './test-helper';
 
 const { module, test } = QUnit;
 
-module('TransformBuilder', function(hooks) {
+module('TransformBuilder', function (hooks) {
   let tb: TransformBuilder;
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     tb = new TransformBuilder();
   });
 
-  test('#addRecord', function(assert) {
+  test('#addRecord', function (assert) {
     let record = { type: 'planet', id: 'jupiter' };
 
     assert.deepEqual(tb.addRecord(record), { op: 'addRecord', record });
   });
 
-  test('#updateRecord', function(assert) {
+  test('#updateRecord', function (assert) {
     let record = { type: 'planet', id: 'jupiter' };
 
     assert.deepEqual(tb.updateRecord(record), { op: 'updateRecord', record });
   });
 
-  test('#removeRecord', function(assert) {
+  test('#removeRecord', function (assert) {
     let record = { type: 'planet', id: 'jupiter' };
 
     assert.deepEqual(tb.removeRecord(record), { op: 'removeRecord', record });
   });
 
-  test('#replaceKey', function(assert) {
+  test('#replaceKey', function (assert) {
     let record = { type: 'planet', id: 'jupiter' };
 
     assert.deepEqual(tb.replaceKey(record, 'remoteId', '123'), {
@@ -39,7 +39,7 @@ module('TransformBuilder', function(hooks) {
     });
   });
 
-  test('#replaceAttribute', function(assert) {
+  test('#replaceAttribute', function (assert) {
     let record = { type: 'planet', id: 'jupiter' };
 
     assert.deepEqual(tb.replaceAttribute(record, 'name', 'Earth'), {
@@ -50,7 +50,7 @@ module('TransformBuilder', function(hooks) {
     });
   });
 
-  test('#addToRelatedRecords', function(assert) {
+  test('#addToRelatedRecords', function (assert) {
     let record = { type: 'planet', id: 'jupiter' };
     let relatedRecord = { type: 'moon', id: 'Io' };
 
@@ -62,7 +62,7 @@ module('TransformBuilder', function(hooks) {
     });
   });
 
-  test('#removeFromRelatedRecords', function(assert) {
+  test('#removeFromRelatedRecords', function (assert) {
     let record = { type: 'planet', id: 'jupiter' };
     let relatedRecord = { type: 'moon', id: 'Io' };
 
@@ -77,7 +77,7 @@ module('TransformBuilder', function(hooks) {
     );
   });
 
-  test('#replaceRelatedRecords', function(assert) {
+  test('#replaceRelatedRecords', function (assert) {
     let record = { type: 'planet', id: 'jupiter' };
     let relatedRecords = [{ type: 'moon', id: 'Io' }];
 
@@ -92,7 +92,7 @@ module('TransformBuilder', function(hooks) {
     );
   });
 
-  test('#replaceRelatedRecord', function(assert) {
+  test('#replaceRelatedRecord', function (assert) {
     let record = { type: 'moon', id: 'Io' };
     let relatedRecord = { type: 'planet', id: 'Jupiter' };
 
@@ -104,7 +104,7 @@ module('TransformBuilder', function(hooks) {
     });
   });
 
-  test('#addRecord - when a recordInitializer has been set', function(assert) {
+  test('#addRecord - when a recordInitializer has been set', function (assert) {
     const recordInitializer = {
       initializeRecord(record: Record) {
         if (record.id === undefined) {
