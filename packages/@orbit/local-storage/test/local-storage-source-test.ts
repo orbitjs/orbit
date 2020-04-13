@@ -16,7 +16,7 @@ import LocalStorageSource from '../src/local-storage-source';
 
 const { module, test } = QUnit;
 
-module('LocalStorageSource', function(hooks) {
+module('LocalStorageSource', function (hooks) {
   let schema: Schema, source: LocalStorageSource, keyMap: KeyMap;
 
   hooks.beforeEach(() => {
@@ -55,29 +55,29 @@ module('LocalStorageSource', function(hooks) {
     });
   });
 
-  test('it exists', function(assert) {
+  test('it exists', function (assert) {
     assert.ok(source);
     assert.strictEqual(source.schema, schema, 'schema has been assigned');
     assert.strictEqual(source.keyMap, keyMap, 'keyMap has been assigned');
   });
 
-  test('its prototype chain is correct', function(assert) {
+  test('its prototype chain is correct', function (assert) {
     assert.ok(source instanceof Source, 'instanceof Source');
   });
 
-  test('is assigned a default namespace and delimiter', function(assert) {
+  test('is assigned a default namespace and delimiter', function (assert) {
     assert.equal(source.namespace, 'orbit', 'namespace is `orbit` by default');
     assert.equal(source.delimiter, '/', 'delimiter is `/` by default');
   });
 
-  test('#getKeyForRecord returns the local storage key that will be used for a record', function(assert) {
+  test('#getKeyForRecord returns the local storage key that will be used for a record', function (assert) {
     assert.equal(
       source.getKeyForRecord({ type: 'planet', id: 'jupiter' }),
       'orbit/planet/jupiter'
     );
   });
 
-  test('data persists across re-instantiating source', async function(assert) {
+  test('data persists across re-instantiating source', async function (assert) {
     assert.expect(2);
 
     let planet: Record = {
@@ -92,7 +92,7 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(planet));
+    await source.push((t) => t.addRecord(planet));
     assert.deepEqual(
       getRecordFromLocalStorage(source, planet),
       planet,
@@ -107,7 +107,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#sync - addRecord', async function(assert) {
+  test('#sync - addRecord', async function (assert) {
     assert.expect(3);
 
     let planet = {
@@ -142,7 +142,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - addRecord', async function(assert) {
+  test('#push - addRecord', async function (assert) {
     assert.expect(3);
 
     let planet = {
@@ -177,7 +177,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - addRecord - with beforePush listener that syncs transform', async function(assert) {
+  test('#push - addRecord - with beforePush listener that syncs transform', async function (assert) {
     assert.expect(4);
 
     let planet: Record = {
@@ -197,7 +197,7 @@ module('LocalStorageSource', function(hooks) {
       record: planet
     } as AddRecordOperation);
 
-    source.on('beforePush', async function(transform: Transform) {
+    source.on('beforePush', async function (transform: Transform) {
       await source.sync(transform);
     });
 
@@ -217,7 +217,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - updateRecord', async function(assert) {
+  test('#push - updateRecord', async function (assert) {
     assert.expect(2);
 
     let original: Record = {
@@ -269,8 +269,8 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(original));
-    await source.push(t => t.updateRecord(updates));
+    await source.push((t) => t.addRecord(original));
+    await source.push((t) => t.updateRecord(updates));
 
     assert.deepEqual(
       getRecordFromLocalStorage(source, expected),
@@ -284,7 +284,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - updateRecord - when record does not exist', async function(assert) {
+  test('#push - updateRecord - when record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -297,7 +297,7 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.updateRecord(revised));
+    await source.push((t) => t.updateRecord(revised));
 
     assert.deepEqual(
       getRecordFromLocalStorage(source, revised),
@@ -306,7 +306,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - removeRecord', async function(assert) {
+  test('#push - removeRecord', async function (assert) {
     assert.expect(1);
 
     let planet = {
@@ -318,8 +318,8 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(planet));
-    await source.push(t => t.removeRecord(planet));
+    await source.push((t) => t.addRecord(planet));
+    await source.push((t) => t.removeRecord(planet));
 
     assert.deepEqual(
       getRecordFromLocalStorage(source, planet),
@@ -328,7 +328,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - removeRecord when part of has many relationship', async function(assert) {
+  test('#push - removeRecord when part of has many relationship', async function (assert) {
     assert.expect(2);
 
     let moon1 = { type: 'moon', id: 'moon1' };
@@ -347,7 +347,7 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => [
+    await source.push((t) => [
       t.addRecord(moon1),
       t.addRecord(moon2),
       t.addRecord(planet)
@@ -358,7 +358,7 @@ module('LocalStorageSource', function(hooks) {
       2,
       'record has 2 moons'
     );
-    await source.push(t => t.removeRecord(moon1));
+    await source.push((t) => t.removeRecord(moon1));
     assert.deepEqual(
       (await getRecordFromLocalStorage(source, planet)).relationships.moons.data
         .length,
@@ -367,7 +367,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - removeRecord - when record does not exist', async function(assert) {
+  test('#push - removeRecord - when record does not exist', async function (assert) {
     assert.expect(1);
 
     let planet = {
@@ -375,7 +375,7 @@ module('LocalStorageSource', function(hooks) {
       id: 'jupiter'
     };
 
-    await source.push(t => t.removeRecord(planet));
+    await source.push((t) => t.removeRecord(planet));
 
     assert.equal(
       getRecordFromLocalStorage(source, planet),
@@ -384,7 +384,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - replaceKey', async function(assert) {
+  test('#push - replaceKey', async function (assert) {
     assert.expect(2);
 
     let original: Record = {
@@ -408,8 +408,8 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(original));
-    await source.push(t => t.replaceKey(original, 'remoteId', '123'));
+    await source.push((t) => t.addRecord(original));
+    await source.push((t) => t.replaceKey(original, 'remoteId', '123'));
 
     assert.deepEqual(
       getRecordFromLocalStorage(source, revised),
@@ -423,7 +423,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - replaceKey - when base record does not exist', async function(assert) {
+  test('#push - replaceKey - when base record does not exist', async function (assert) {
     assert.expect(2);
 
     let revised: Record = {
@@ -434,7 +434,7 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t =>
+    await source.push((t) =>
       t.replaceKey({ type: 'planet', id: 'jupiter' }, 'remoteId', '123')
     );
 
@@ -450,7 +450,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - replaceAttribute', async function(assert) {
+  test('#push - replaceAttribute', async function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -472,8 +472,8 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(original));
-    await source.push(t => t.replaceAttribute(original, 'order', 5));
+    await source.push((t) => t.addRecord(original));
+    await source.push((t) => t.replaceAttribute(original, 'order', 5));
 
     assert.deepEqual(
       getRecordFromLocalStorage(source, revised),
@@ -482,7 +482,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - replaceAttribute - when base record does not exist', async function(assert) {
+  test('#push - replaceAttribute - when base record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -493,7 +493,7 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t =>
+    await source.push((t) =>
       t.replaceAttribute({ type: 'planet', id: 'jupiter' }, 'order', 5)
     );
 
@@ -504,7 +504,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - addToRelatedRecords', async function(assert) {
+  test('#push - addToRelatedRecords', async function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -535,8 +535,8 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(original));
-    await source.push(t =>
+    await source.push((t) => t.addRecord(original));
+    await source.push((t) =>
       t.addToRelatedRecords(original, 'moons', { type: 'moon', id: 'moon1' })
     );
 
@@ -547,7 +547,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - addToRelatedRecords - when base record does not exist', async function(assert) {
+  test('#push - addToRelatedRecords - when base record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -560,7 +560,7 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t =>
+    await source.push((t) =>
       t.addToRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', {
         type: 'moon',
         id: 'moon1'
@@ -574,7 +574,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - removeFromRelatedRecords', async function(assert) {
+  test('#push - removeFromRelatedRecords', async function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -608,8 +608,8 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(original));
-    await source.push(t =>
+    await source.push((t) => t.addRecord(original));
+    await source.push((t) =>
       t.removeFromRelatedRecords(original, 'moons', {
         type: 'moon',
         id: 'moon2'
@@ -623,7 +623,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - removeFromRelatedRecords - when base record does not exist', async function(assert) {
+  test('#push - removeFromRelatedRecords - when base record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -636,7 +636,7 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t =>
+    await source.push((t) =>
       t.removeFromRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', {
         type: 'moon',
         id: 'moon2'
@@ -650,7 +650,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - replaceRelatedRecords', async function(assert) {
+  test('#push - replaceRelatedRecords', async function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -684,8 +684,8 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(original));
-    await source.push(t =>
+    await source.push((t) => t.addRecord(original));
+    await source.push((t) =>
       t.replaceRelatedRecords(original, 'moons', [
         { type: 'moon', id: 'moon2' },
         { type: 'moon', id: 'moon3' }
@@ -699,7 +699,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - replaceRelatedRecords - when base record does not exist', async function(assert) {
+  test('#push - replaceRelatedRecords - when base record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -715,7 +715,7 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t =>
+    await source.push((t) =>
       t.replaceRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', [
         { type: 'moon', id: 'moon2' },
         { type: 'moon', id: 'moon3' }
@@ -729,7 +729,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - replaceRelatedRecord - with record', async function(assert) {
+  test('#push - replaceRelatedRecord - with record', async function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -760,8 +760,8 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(original));
-    await source.push(t =>
+    await source.push((t) => t.addRecord(original));
+    await source.push((t) =>
       t.replaceRelatedRecord(original, 'solarSystem', {
         type: 'solarSystem',
         id: 'ss1'
@@ -775,7 +775,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - replaceRelatedRecord - with record - when base record does not exist', async function(assert) {
+  test('#push - replaceRelatedRecord - with record - when base record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -788,7 +788,7 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t =>
+    await source.push((t) =>
       t.replaceRelatedRecord({ type: 'planet', id: 'jupiter' }, 'solarSystem', {
         type: 'solarSystem',
         id: 'ss1'
@@ -801,7 +801,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - replaceRelatedRecord - with null', async function(assert) {
+  test('#push - replaceRelatedRecord - with null', async function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -832,8 +832,8 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(original));
-    await source.push(t =>
+    await source.push((t) => t.addRecord(original));
+    await source.push((t) =>
       t.replaceRelatedRecord(original, 'solarSystem', null)
     );
     assert.deepEqual(
@@ -843,7 +843,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#push - replaceRelatedRecord - with null - when base record does not exist', async function(assert) {
+  test('#push - replaceRelatedRecord - with null - when base record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -856,7 +856,7 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t =>
+    await source.push((t) =>
       t.replaceRelatedRecord(
         { type: 'planet', id: 'jupiter' },
         'solarSystem',
@@ -870,7 +870,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#reset - clears records for source', async function(assert) {
+  test('#reset - clears records for source', async function (assert) {
     assert.expect(2);
 
     let planet = {
@@ -878,7 +878,7 @@ module('LocalStorageSource', function(hooks) {
       id: 'jupiter'
     };
 
-    await source.push(t => t.addRecord(planet));
+    await source.push((t) => t.addRecord(planet));
 
     assert.deepEqual(
       getRecordFromLocalStorage(source, planet),
@@ -891,7 +891,7 @@ module('LocalStorageSource', function(hooks) {
     assert.ok(isLocalStorageEmpty(source), 'local storage is empty');
   });
 
-  test('#reset - ignores local-storage-bucket entries', async function(assert) {
+  test('#reset - ignores local-storage-bucket entries', async function (assert) {
     assert.expect(2);
 
     let planet = {
@@ -899,7 +899,7 @@ module('LocalStorageSource', function(hooks) {
       id: 'jupiter'
     };
 
-    await source.push(t => t.addRecord(planet));
+    await source.push((t) => t.addRecord(planet));
 
     Orbit.globals.localStorage.setItem('orbit-bucket/foo', '{}');
 
@@ -910,7 +910,7 @@ module('LocalStorageSource', function(hooks) {
     assert.equal(Orbit.globals.localStorage.getItem('orbit-bucket/foo'), '{}');
   });
 
-  test('#pull - all records', async function(assert) {
+  test('#pull - all records', async function (assert) {
     assert.expect(6);
 
     let earth = {
@@ -950,7 +950,7 @@ module('LocalStorageSource', function(hooks) {
 
     await source.reset();
 
-    await source.push(t => [
+    await source.push((t) => [
       t.addRecord(earth),
       t.addRecord(jupiter),
       t.addRecord(io)
@@ -959,7 +959,7 @@ module('LocalStorageSource', function(hooks) {
     // reset keyMap to verify that pulling records also adds keys
     keyMap.reset();
 
-    let transforms = await source.pull(q => q.findRecords());
+    let transforms = await source.pull((q) => q.findRecords());
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(
@@ -967,7 +967,7 @@ module('LocalStorageSource', function(hooks) {
       'log contains transform'
     );
     assert.deepEqual(
-      transforms[0].operations.map(o => o.op),
+      transforms[0].operations.map((o) => o.op),
       ['updateRecord', 'updateRecord', 'updateRecord'],
       'operations match expectations'
     );
@@ -988,7 +988,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#pull - records of one type', async function(assert) {
+  test('#pull - records of one type', async function (assert) {
     assert.expect(4);
 
     let earth = {
@@ -1019,13 +1019,13 @@ module('LocalStorageSource', function(hooks) {
 
     await source.reset();
 
-    await source.push(t => [
+    await source.push((t) => [
       t.addRecord(earth),
       t.addRecord(jupiter),
       t.addRecord(io)
     ]);
 
-    let transforms = await source.pull(q => q.findRecords('planet'));
+    let transforms = await source.pull((q) => q.findRecords('planet'));
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(
@@ -1037,13 +1037,13 @@ module('LocalStorageSource', function(hooks) {
       'log contains transform'
     );
     assert.deepEqual(
-      transforms[0].operations.map(o => o.op),
+      transforms[0].operations.map((o) => o.op),
       ['updateRecord', 'updateRecord'],
       'operations match expectations'
     );
   });
 
-  test('#pull - specific records', async function(assert) {
+  test('#pull - specific records', async function (assert) {
     assert.expect(4);
 
     let earth: Record = {
@@ -1072,13 +1072,13 @@ module('LocalStorageSource', function(hooks) {
       }
     };
 
-    await source.push(t => [
+    await source.push((t) => [
       t.addRecord(earth),
       t.addRecord(jupiter),
       t.addRecord(io)
     ]);
 
-    let transforms = await source.pull(q =>
+    let transforms = await source.pull((q) =>
       q.findRecords([earth, io, { type: 'moon', id: 'FAKE' }])
     );
 
@@ -1088,7 +1088,7 @@ module('LocalStorageSource', function(hooks) {
       'log contains transform'
     );
     assert.deepEqual(
-      transforms[0].operations.map(o => o.op),
+      transforms[0].operations.map((o) => o.op),
       ['updateRecord', 'updateRecord'],
       'operations match expectations'
     );
@@ -1099,7 +1099,7 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#pull - a specific record', async function(assert) {
+  test('#pull - a specific record', async function (assert) {
     assert.expect(4);
 
     let earth = {
@@ -1133,7 +1133,7 @@ module('LocalStorageSource', function(hooks) {
 
     await source.reset();
 
-    await source.push(t => [
+    await source.push((t) => [
       t.addRecord(earth),
       t.addRecord(jupiter),
       t.addRecord(io)
@@ -1142,7 +1142,7 @@ module('LocalStorageSource', function(hooks) {
     // reset keyMap to verify that pulling records also adds keys
     keyMap.reset();
 
-    let transforms = await source.pull(q => q.findRecord(jupiter));
+    let transforms = await source.pull((q) => q.findRecord(jupiter));
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(
@@ -1150,7 +1150,7 @@ module('LocalStorageSource', function(hooks) {
       'log contains transform'
     );
     assert.deepEqual(
-      transforms[0].operations.map(o => o.op),
+      transforms[0].operations.map((o) => o.op),
       ['updateRecord'],
       'operations match expectations'
     );
@@ -1161,14 +1161,14 @@ module('LocalStorageSource', function(hooks) {
     );
   });
 
-  test('#pull - ignores local-storage-bucket entries', async function(assert) {
+  test('#pull - ignores local-storage-bucket entries', async function (assert) {
     assert.expect(3);
 
     await source.reset();
 
     await Orbit.globals.localStorage.setItem('orbit-bucket/foo', '{}');
 
-    let transforms = await source.pull(q => q.findRecords());
+    let transforms = await source.pull((q) => q.findRecords());
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(

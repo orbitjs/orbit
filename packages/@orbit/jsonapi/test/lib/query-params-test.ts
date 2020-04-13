@@ -5,25 +5,25 @@ import {
 
 const { module, test } = QUnit;
 
-module('QueryParams', function() {
-  module('encodeQueryParams', function() {
-    test('empty', function(assert) {
+module('QueryParams', function () {
+  module('encodeQueryParams', function () {
+    test('empty', function (assert) {
       assert.strictEqual(encodeQueryParams({}), '');
     });
 
-    test('simple', function(assert) {
+    test('simple', function (assert) {
       assert.deepEqual(encodeQueryParams({ a: 'b' }), 'a=b');
     });
 
-    test('null value', function(assert) {
+    test('null value', function (assert) {
       assert.deepEqual(encodeQueryParams({ a: null }), 'a=null');
     });
 
-    test('multiple', function(assert) {
+    test('multiple', function (assert) {
       assert.deepEqual(encodeQueryParams({ a: 'b', b: 'c' }), 'a=b&b=c');
     });
 
-    test('multi-layered and encoded', function(assert) {
+    test('multi-layered and encoded', function (assert) {
       assert.deepEqual(
         encodeQueryParams({
           a: 'b',
@@ -50,22 +50,22 @@ module('QueryParams', function() {
     });
   });
 
-  module('appendQueryParams', function() {
-    test('empty', function(assert) {
+  module('appendQueryParams', function () {
+    test('empty', function (assert) {
       assert.strictEqual(
         appendQueryParams('http://example.com', {}),
         'http://example.com'
       );
     });
 
-    test('simple', function(assert) {
+    test('simple', function (assert) {
       assert.strictEqual(
         appendQueryParams('http://example.com', { a: 'b' }),
         'http://example.com?a=b'
       );
     });
 
-    test('appended to existing query params', function(assert) {
+    test('appended to existing query params', function (assert) {
       assert.strictEqual(
         appendQueryParams('http://example.com?c=d', { a: 'b' }),
         'http://example.com?c=d&a=b'

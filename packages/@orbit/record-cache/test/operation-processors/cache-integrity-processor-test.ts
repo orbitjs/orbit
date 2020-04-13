@@ -14,7 +14,7 @@ import Cache from '../support/example-sync-record-cache';
 
 const { module, test } = QUnit;
 
-module('CacheIntegrityProcessor', function(hooks) {
+module('CacheIntegrityProcessor', function (hooks) {
   let schema: Schema;
   let cache: Cache;
   let processor: SyncCacheIntegrityProcessor;
@@ -63,7 +63,7 @@ module('CacheIntegrityProcessor', function(hooks) {
   const earthId = { type: 'planet', id: 'earth' };
   const humanId = { type: 'inhabitant', id: 'human' };
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     let keyMap = new KeyMap();
     schema = new Schema(schemaDefinition);
     cache = new Cache({
@@ -74,13 +74,13 @@ module('CacheIntegrityProcessor', function(hooks) {
     processor = cache.processors[0] as SyncCacheIntegrityProcessor;
   });
 
-  hooks.afterEach(function() {
+  hooks.afterEach(function () {
     schema = null;
     cache = null;
     processor = null;
   });
 
-  test('reset empty cache', function(assert) {
+  test('reset empty cache', function (assert) {
     const saturn = {
       type: 'planet',
       id: 'saturn',
@@ -109,7 +109,7 @@ module('CacheIntegrityProcessor', function(hooks) {
       relationships: { planet: { data: jupiterId } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(saturn),
       t.addRecord(jupiter),
       t.addRecord(titan),
@@ -149,7 +149,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     ]);
   });
 
-  test('add to hasOne => hasMany', function(assert) {
+  test('add to hasOne => hasMany', function (assert) {
     const saturn = {
       type: 'planet',
       id: 'saturn',
@@ -178,7 +178,7 @@ module('CacheIntegrityProcessor', function(hooks) {
       relationships: { planet: { data: jupiterId } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(saturn),
       t.addRecord(jupiter),
       t.addRecord(titan),
@@ -262,7 +262,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     ]);
   });
 
-  test('replace hasOne => hasMany', function(assert) {
+  test('replace hasOne => hasMany', function (assert) {
     const saturn = {
       type: 'planet',
       id: 'saturn',
@@ -291,7 +291,7 @@ module('CacheIntegrityProcessor', function(hooks) {
       relationships: { planet: { data: jupiterId } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(saturn),
       t.addRecord(jupiter),
       t.addRecord(titan),
@@ -375,7 +375,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     ]);
   });
 
-  test('replace hasMany => hasOne with empty array', function(assert) {
+  test('replace hasMany => hasOne with empty array', function (assert) {
     const saturn = {
       type: 'planet',
       id: 'saturn',
@@ -390,7 +390,7 @@ module('CacheIntegrityProcessor', function(hooks) {
       relationships: { planet: { data: saturnId } }
     };
 
-    cache.patch(t => [t.addRecord(saturn), t.addRecord(titan)]);
+    cache.patch((t) => [t.addRecord(saturn), t.addRecord(titan)]);
 
     assert.deepEqual(cache.getInverseRelationshipsSync(titan), [
       {
@@ -432,7 +432,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     ]);
   });
 
-  test('replace hasMany => hasOne with populated array', function(assert) {
+  test('replace hasMany => hasOne with populated array', function (assert) {
     const saturn = {
       type: 'planet',
       id: 'saturn',
@@ -453,7 +453,7 @@ module('CacheIntegrityProcessor', function(hooks) {
       relationships: { planet: { data: saturnId } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(saturn),
       t.addRecord(jupiter),
       t.addRecord(titan)
@@ -505,7 +505,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     ]);
   });
 
-  test('replace hasMany => hasOne with populated array, when already populated', function(assert) {
+  test('replace hasMany => hasOne with populated array, when already populated', function (assert) {
     const saturn = {
       type: 'planet',
       id: 'saturn',
@@ -534,7 +534,7 @@ module('CacheIntegrityProcessor', function(hooks) {
       relationships: { planet: { data: jupiterId } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(saturn),
       t.addRecord(jupiter),
       t.addRecord(titan),
@@ -618,7 +618,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     ]);
   });
 
-  test('replace hasMany => hasMany', function(assert) {
+  test('replace hasMany => hasMany', function (assert) {
     const human = {
       type: 'inhabitant',
       id: 'human',
@@ -630,7 +630,7 @@ module('CacheIntegrityProcessor', function(hooks) {
       relationships: { inhabitants: { data: [humanId] } }
     };
 
-    cache.patch(t => [t.addRecord(human), t.addRecord(earth)]);
+    cache.patch((t) => [t.addRecord(human), t.addRecord(earth)]);
 
     assert.deepEqual(cache.getInverseRelationshipsSync(earth), [
       {
@@ -670,7 +670,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     assert.deepEqual(cache.getInverseRelationshipsSync(human), []);
   });
 
-  test('remove hasOne => hasMany', function(assert) {
+  test('remove hasOne => hasMany', function (assert) {
     const saturn = {
       type: 'planet',
       id: 'saturn',
@@ -699,7 +699,7 @@ module('CacheIntegrityProcessor', function(hooks) {
       relationships: { planet: { data: jupiterId } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(saturn),
       t.addRecord(jupiter),
       t.addRecord(titan),
@@ -778,7 +778,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     ]);
   });
 
-  test('add to hasOne => hasOne', function(assert) {
+  test('add to hasOne => hasOne', function (assert) {
     const saturn = {
       type: 'planet',
       id: 'saturn',
@@ -799,7 +799,7 @@ module('CacheIntegrityProcessor', function(hooks) {
       attributes: { name: 'Earth' }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(saturn),
       t.addRecord(jupiter),
       t.addRecord(earth)
@@ -856,7 +856,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     ]);
   });
 
-  test('replace hasOne => hasOne with existing value', function(assert) {
+  test('replace hasOne => hasOne with existing value', function (assert) {
     const saturn = {
       type: 'planet',
       id: 'saturn',
@@ -877,7 +877,7 @@ module('CacheIntegrityProcessor', function(hooks) {
       attributes: { name: 'Earth' }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(saturn),
       t.addRecord(jupiter),
       t.addRecord(earth)
@@ -934,11 +934,11 @@ module('CacheIntegrityProcessor', function(hooks) {
     ]);
   });
 
-  test('add to hasMany => hasMany', function(assert) {
+  test('add to hasMany => hasMany', function (assert) {
     const earth = earthId;
     const human = humanId;
 
-    cache.patch(t => [t.addRecord(earth), t.addRecord(human)]);
+    cache.patch((t) => [t.addRecord(earth), t.addRecord(human)]);
 
     assert.deepEqual(cache.getInverseRelationshipsSync(earth), []);
     assert.deepEqual(cache.getInverseRelationshipsSync(human), []);
@@ -965,7 +965,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     ]);
   });
 
-  test('remove from hasMany => hasMany', function(assert) {
+  test('remove from hasMany => hasMany', function (assert) {
     const earth = {
       type: 'planet',
       id: 'earth',
@@ -977,7 +977,7 @@ module('CacheIntegrityProcessor', function(hooks) {
       relationships: { planets: { data: [earthId] } }
     };
 
-    cache.patch(t => [t.addRecord(earth), t.addRecord(human)]);
+    cache.patch((t) => [t.addRecord(earth), t.addRecord(human)]);
 
     assert.deepEqual(cache.getInverseRelationshipsSync(earth), [
       {
@@ -1019,7 +1019,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     ]);
   });
 
-  test('remove record with hasMany relationships - verify processor', function(assert) {
+  test('remove record with hasMany relationships - verify processor', function (assert) {
     const earth = {
       type: 'planet',
       id: 'earth',
@@ -1031,7 +1031,7 @@ module('CacheIntegrityProcessor', function(hooks) {
       relationships: { planets: { data: [earthId] } }
     };
 
-    cache.patch(t => [t.addRecord(earth), t.addRecord(human)]);
+    cache.patch((t) => [t.addRecord(earth), t.addRecord(human)]);
 
     assert.deepEqual(cache.getInverseRelationshipsSync(earth), [
       {
@@ -1068,7 +1068,7 @@ module('CacheIntegrityProcessor', function(hooks) {
     ]);
   });
 
-  test('remove record with hasMany relationships - verify inverse relationships are cleared', function(assert) {
+  test('remove record with hasMany relationships - verify inverse relationships are cleared', function (assert) {
     const earth = {
       type: 'planet',
       id: 'earth',
@@ -1080,7 +1080,7 @@ module('CacheIntegrityProcessor', function(hooks) {
       relationships: { planets: { data: [earthId] } }
     };
 
-    cache.patch(t => [t.addRecord(earth), t.addRecord(human)]);
+    cache.patch((t) => [t.addRecord(earth), t.addRecord(human)]);
 
     assert.deepEqual(cache.getInverseRelationshipsSync(earth), [
       {
@@ -1098,17 +1098,17 @@ module('CacheIntegrityProcessor', function(hooks) {
       }
     ]);
 
-    cache.patch(t => t.removeRecord(humanId));
+    cache.patch((t) => t.removeRecord(humanId));
 
     assert.deepEqual(cache.getInverseRelationshipsSync(earth), []);
     assert.deepEqual(cache.getInverseRelationshipsSync(human), []);
   });
 
-  test('updateRecord', function(assert) {
+  test('updateRecord', function (assert) {
     const earth = earthId;
     const human = humanId;
 
-    cache.patch(t => [t.addRecord(earth), t.addRecord(human)]);
+    cache.patch((t) => [t.addRecord(earth), t.addRecord(human)]);
 
     assert.deepEqual(cache.getInverseRelationshipsSync(earth), []);
     assert.deepEqual(cache.getInverseRelationshipsSync(human), []);

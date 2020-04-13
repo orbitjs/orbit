@@ -10,7 +10,7 @@ import {
 
 const { module, test } = QUnit;
 
-module('RequestStrategy', function(hooks) {
+module('RequestStrategy', function (hooks) {
   const t = new TransformBuilder();
   const tA = buildTransform(
     [t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })],
@@ -28,7 +28,7 @@ module('RequestStrategy', function(hooks) {
   let s1: any;
   let s2: any;
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     @pushable
     @updatable
     class MySource extends Source {}
@@ -37,7 +37,7 @@ module('RequestStrategy', function(hooks) {
     s2 = new MySource({ name: 's2' });
   });
 
-  test('can be instantiated', function(assert) {
+  test('can be instantiated', function (assert) {
     strategy = new RequestStrategy({
       source: 's1',
       target: 's2',
@@ -58,7 +58,7 @@ module('RequestStrategy', function(hooks) {
     );
   });
 
-  test('assigns source and target when activated', async function(assert) {
+  test('assigns source and target when activated', async function (assert) {
     strategy = new RequestStrategy({
       source: 's1',
       target: 's2',
@@ -76,7 +76,7 @@ module('RequestStrategy', function(hooks) {
     assert.strictEqual(strategy.target, s2, 'target is set');
   });
 
-  test('installs listeners on activate and removes them on deactivate', async function(assert) {
+  test('installs listeners on activate and removes them on deactivate', async function (assert) {
     assert.expect(6);
 
     strategy = new RequestStrategy({
@@ -121,7 +121,7 @@ module('RequestStrategy', function(hooks) {
     );
   });
 
-  test('observes source `on` event and invokes `action` on target', async function(assert) {
+  test('observes source `on` event and invokes `action` on target', async function (assert) {
     assert.expect(3);
 
     strategy = new RequestStrategy({
@@ -136,7 +136,7 @@ module('RequestStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function(transform: Transform): Promise<any> {
+    s1._update = async function (transform: Transform): Promise<any> {
       assert.strictEqual(
         transform,
         tA,
@@ -144,7 +144,7 @@ module('RequestStrategy', function(hooks) {
       );
     };
 
-    s2._push = async function(transform: Transform): Promise<Transform[]> {
+    s2._push = async function (transform: Transform): Promise<Transform[]> {
       assert.strictEqual(
         transform,
         tA,
@@ -158,7 +158,7 @@ module('RequestStrategy', function(hooks) {
     await s1.update(tA);
   });
 
-  test('with `passHints: true` and `blocking: true`, will pass `hints` that result from applying the target action', async function(assert) {
+  test('with `passHints: true` and `blocking: true`, will pass `hints` that result from applying the target action', async function (assert) {
     assert.expect(5);
 
     strategy = new RequestStrategy({
@@ -175,7 +175,7 @@ module('RequestStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function(
+    s1._update = async function (
       transform: Transform,
       hints: any
     ): Promise<any> {
@@ -187,7 +187,7 @@ module('RequestStrategy', function(hooks) {
       assert.deepEqual(hints.data, [tA], 'result is passed as a hint');
     };
 
-    s2._push = async function(
+    s2._push = async function (
       transform: Transform,
       hints: any
     ): Promise<Transform[]> {
@@ -205,7 +205,7 @@ module('RequestStrategy', function(hooks) {
     await s1.update(tA);
   });
 
-  test('can apply a `filter` function', async function(assert) {
+  test('can apply a `filter` function', async function (assert) {
     assert.expect(4);
 
     strategy = new RequestStrategy({
@@ -224,9 +224,9 @@ module('RequestStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function(): Promise<any> {};
+    s1._update = async function (): Promise<any> {};
 
-    s2._push = async function(transform: Transform): Promise<Transform[]> {
+    s2._push = async function (transform: Transform): Promise<Transform[]> {
       assert.strictEqual(
         transform,
         tB,
@@ -241,7 +241,7 @@ module('RequestStrategy', function(hooks) {
     await s1.update(tB);
   });
 
-  test('if `blocking` is a function it gets invoked with the query', async function(assert) {
+  test('if `blocking` is a function it gets invoked with the query', async function (assert) {
     assert.expect(5);
 
     strategy = new RequestStrategy({
@@ -268,7 +268,7 @@ module('RequestStrategy', function(hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function(transform: Transform): Promise<any> {
+    s1._update = async function (transform: Transform): Promise<any> {
       assert.strictEqual(
         transform,
         tA,
@@ -276,7 +276,7 @@ module('RequestStrategy', function(hooks) {
       );
     };
 
-    s2._push = async function(transform: Transform): Promise<Transform[]> {
+    s2._push = async function (transform: Transform): Promise<Transform[]> {
       assert.strictEqual(
         transform,
         tA,
@@ -290,7 +290,7 @@ module('RequestStrategy', function(hooks) {
     await s1.update(tA);
   });
 
-  test('for events that are invoked with more than one arg, pass all args to any custom handler functions', async function(assert) {
+  test('for events that are invoked with more than one arg, pass all args to any custom handler functions', async function (assert) {
     assert.expect(9);
 
     strategy = new RequestStrategy({

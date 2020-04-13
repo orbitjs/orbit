@@ -3,11 +3,11 @@ import Store from '../src/index';
 
 const { module, test } = QUnit;
 
-module('Store', function(hooks) {
+module('Store', function (hooks) {
   let schema;
   let store;
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     schema = new Schema({
       models: {
         planet: {}
@@ -16,12 +16,12 @@ module('Store', function(hooks) {
     store = new Store({ schema });
   });
 
-  hooks.afterEach(function() {
+  hooks.afterEach(function () {
     schema = null;
     store = null;
   });
 
-  test('its prototype chain is correct', function(assert) {
+  test('its prototype chain is correct', function (assert) {
     assert.ok(store instanceof Source, 'instanceof Source');
     assert.ok(store instanceof Store, 'instanceof Store');
     assert.equal(store.name, 'store', 'should have default name');

@@ -64,9 +64,9 @@ export function expose(destination: any, source: any): void {
     properties = Object.keys(source);
   }
 
-  properties.forEach(p => {
+  properties.forEach((p) => {
     if (typeof source[p] === 'function') {
-      destination[p] = function() {
+      destination[p] = function () {
         return source[p].apply(source, arguments);
       };
     } else {
@@ -84,7 +84,7 @@ export function expose(destination: any, source: any): void {
  * @returns {any}
  */
 export function extend(destination: any, ...sources: any[]): any {
-  sources.forEach(source => {
+  sources.forEach((source) => {
     for (let p in source) {
       if (source.hasOwnProperty(p)) {
         destination[p] = source[p];
@@ -156,8 +156,8 @@ export function isNone(obj: any): boolean {
  * @returns {*}
  */
 export function merge(object: any, ...sources: any[]): any {
-  sources.forEach(source => {
-    Object.keys(source).forEach(field => {
+  sources.forEach((source) => {
+    Object.keys(source).forEach((field) => {
       if (source.hasOwnProperty(field)) {
         let value = source[field];
         if (value !== undefined) {
@@ -182,8 +182,8 @@ export function merge(object: any, ...sources: any[]): any {
  * @returns {*}
  */
 export function deepMerge(object: any, ...sources: any[]): any {
-  sources.forEach(source => {
-    Object.keys(source).forEach(field => {
+  sources.forEach((source) => {
+    Object.keys(source).forEach((field) => {
       if (source.hasOwnProperty(field)) {
         let a = object[field];
         let b = source[field];
@@ -274,6 +274,6 @@ export function objectValues(obj: any): any[] {
   if (Object.values) {
     return Object.values(obj);
   } else {
-    return Object.keys(obj).map(k => obj[k]);
+    return Object.keys(obj).map((k) => obj[k]);
   }
 }

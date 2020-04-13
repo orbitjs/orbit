@@ -11,7 +11,7 @@ export interface Param {
 function flattenObjectToParams(obj: any, path: string[] = []): RawParam[] {
   let params: RawParam[] = [];
 
-  Object.keys(obj).forEach(key => {
+  Object.keys(obj).forEach((key) => {
     if (!obj.hasOwnProperty(key)) {
       return;
     }
@@ -37,7 +37,7 @@ function flattenObjectToParams(obj: any, path: string[] = []): RawParam[] {
 
 export function encodeQueryParams(obj: any) {
   return flattenObjectToParams(obj)
-    .map(rawParam => {
+    .map((rawParam) => {
       let path: string;
       let val = rawParam.val;
 
@@ -51,7 +51,7 @@ export function encodeQueryParams(obj: any) {
       return { path, val };
     })
     .map(
-      param =>
+      (param) =>
         encodeURIComponent(param.path) + '=' + encodeURIComponent(param.val)
     )
     .join('&');

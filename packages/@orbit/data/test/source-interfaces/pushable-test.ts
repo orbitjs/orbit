@@ -12,7 +12,7 @@ import '../test-helper';
 
 const { module, test } = QUnit;
 
-module('@pushable', function(hooks) {
+module('@pushable', function (hooks) {
   @pushable
   class MySource extends Source implements Pushable {
     push: (
@@ -25,15 +25,15 @@ module('@pushable', function(hooks) {
 
   let source: MySource;
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     source = new MySource({ name: 'src1' });
   });
 
-  hooks.afterEach(function() {
+  hooks.afterEach(function () {
     source = null;
   });
 
-  test('isPushable - tests for the application of the @pushable decorator', function(assert) {
+  test('isPushable - tests for the application of the @pushable decorator', function (assert) {
     assert.ok(isPushable(source));
   });
 
@@ -47,10 +47,10 @@ module('@pushable', function(hooks) {
   //   'assertion raised');
   // });
 
-  test('#push should resolve as a failure when `transform` fails', async function(assert) {
+  test('#push should resolve as a failure when `transform` fails', async function (assert) {
     assert.expect(2);
 
-    source._push = function() {
+    source._push = function () {
       return Promise.reject(':(');
     };
 
@@ -62,7 +62,7 @@ module('@pushable', function(hooks) {
     }
   });
 
-  test('#push should trigger `push` event after a successful action in which `transform` returns an array of transforms', async function(assert) {
+  test('#push should trigger `push` event after a successful action in which `transform` returns an array of transforms', async function (assert) {
     assert.expect(12);
 
     let order = 0;
@@ -74,12 +74,12 @@ module('@pushable', function(hooks) {
 
     const resultingTransforms = [addRecordTransform, replaceAttributeTransform];
 
-    source.on('beforePush', transform => {
+    source.on('beforePush', (transform) => {
       assert.equal(++order, 1, 'beforePush triggered first');
       assert.strictEqual(transform, addRecordTransform, 'transform matches');
     });
 
-    source._push = async function(transform) {
+    source._push = async function (transform) {
       assert.equal(++order, 2, 'action performed after beforePush');
       assert.strictEqual(
         transform,
@@ -91,7 +91,7 @@ module('@pushable', function(hooks) {
     };
 
     let transformCount = 0;
-    source.on('transform', transform => {
+    source.on('transform', (transform) => {
       assert.equal(
         ++order,
         3 + transformCount,
@@ -105,7 +105,7 @@ module('@pushable', function(hooks) {
       return Promise.resolve();
     });
 
-    source.on('push', transform => {
+    source.on('push', (transform) => {
       assert.equal(
         ++order,
         5,
@@ -124,14 +124,14 @@ module('@pushable', function(hooks) {
     );
   });
 
-  test('#push should trigger `pushFail` event after an unsuccessful push', async function(assert) {
+  test('#push should trigger `pushFail` event after an unsuccessful push', async function (assert) {
     assert.expect(7);
 
     const addRecordTransform = buildTransform({ op: 'addRecord' });
 
     let order = 0;
 
-    source._push = function(transform) {
+    source._push = function (transform) {
       assert.equal(++order, 1, 'action performed after willPush');
       assert.strictEqual(transform, addRecordTransform, 'transform matches');
       return Promise.reject(':(');
@@ -155,7 +155,7 @@ module('@pushable', function(hooks) {
     }
   });
 
-  test('#push should resolve all promises returned from `beforePush` before calling `_push`', async function(assert) {
+  test('#push should resolve all promises returned from `beforePush` before calling `_push`', async function (assert) {
     assert.expect(7);
 
     let order = 0;
@@ -182,7 +182,7 @@ module('@pushable', function(hooks) {
       return Promise.resolve();
     });
 
-    source._push = async function() {
+    source._push = async function () {
       assert.equal(++order, 4, '_push invoked after all `beforePush` handlers');
       return resultingTransforms;
     };
@@ -205,7 +205,7 @@ module('@pushable', function(hooks) {
     );
   });
 
-  test('#push should still call `_push` if the transform has been applied as a result of `beforePush` resolution', async function(assert) {
+  test('#push should still call `_push` if the transform has been applied as a result of `beforePush` resolution', async function (assert) {
     assert.expect(5);
 
     let order = 0;
@@ -221,7 +221,7 @@ module('@pushable', function(hooks) {
       return Promise.resolve();
     });
 
-    source._push = async function(): Promise<Transform[]> {
+    source._push = async function (): Promise<Transform[]> {
       assert.ok(true, '_push should still be reached');
       assert.ok(
         this.transformLog.contains(addRecordTransform.id),
@@ -239,7 +239,7 @@ module('@pushable', function(hooks) {
     assert.equal(++order, 2, 'promise resolved last');
   });
 
-  test('#push should resolve all promises returned from `beforePush` and fail if any fail', async function(assert) {
+  test('#push should resolve all promises returned from `beforePush` and fail if any fail', async function (assert) {
     assert.expect(5);
 
     let order = 0;
@@ -256,7 +256,7 @@ module('@pushable', function(hooks) {
       return Promise.reject(':(');
     });
 
-    source._push = async function(): Promise<Transform[]> {
+    source._push = async function (): Promise<Transform[]> {
       assert.ok(false, '_push should not be invoked');
       return [];
     };
@@ -277,7 +277,7 @@ module('@pushable', function(hooks) {
     }
   });
 
-  test('#push should pass a common `hints` object to all `beforePush` events and forward it to `_push`', async function(assert) {
+  test('#push should pass a common `hints` object to all `beforePush` events and forward it to `_push`', async function (assert) {
     assert.expect(11);
 
     let order = 0;
@@ -289,24 +289,24 @@ module('@pushable', function(hooks) {
     let h: any;
     const resultingTransforms = [addRecordTransform, replaceAttributeTransform];
 
-    source.on('beforePush', async function(transform: Transform, hints: any) {
+    source.on('beforePush', async function (transform: Transform, hints: any) {
       assert.equal(++order, 1, 'beforePush triggered first');
       assert.deepEqual(hints, {}, 'beforePush is passed empty `hints` object');
       h = hints;
       hints.foo = 'bar';
     });
 
-    source.on('beforePush', async function(transform: Transform, hints: any) {
+    source.on('beforePush', async function (transform: Transform, hints: any) {
       assert.equal(++order, 2, 'beforePush triggered second');
       assert.strictEqual(hints, h, 'beforePush is passed same hints instance');
     });
 
-    source.on('beforePush', async function(transform: Transform, hints: any) {
+    source.on('beforePush', async function (transform: Transform, hints: any) {
       assert.equal(++order, 3, 'beforePush triggered third');
       assert.strictEqual(hints, h, 'beforePush is passed same hints instance');
     });
 
-    source._push = async function(transform: Transform, hints: any) {
+    source._push = async function (transform: Transform, hints: any) {
       assert.equal(++order, 4, '_push invoked after all `beforePush` handlers');
       assert.strictEqual(hints, h, '_push is passed same hints instance');
       return resultingTransforms;

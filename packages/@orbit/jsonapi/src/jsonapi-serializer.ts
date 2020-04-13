@@ -101,7 +101,7 @@ export class JSONAPISerializer
   }
 
   resourceIds(type: string, ids: string[]): string[] {
-    return ids.map(id => this.resourceId(type, id));
+    return ids.map((id) => this.resourceId(type, id));
   }
 
   resourceId(type: string, id: string): string {
@@ -170,7 +170,7 @@ export class JSONAPISerializer
   }
 
   serializeOperations(operations: RecordOperation[]): ResourceOperation[] {
-    return operations.map(operation => this.serializeOperation(operation));
+    return operations.map((operation) => this.serializeOperation(operation));
   }
 
   serializeOperation(operation: RecordOperation): ResourceOperation {
@@ -259,7 +259,7 @@ export class JSONAPISerializer
     return {
       op: 'update',
       ref: { relationship: operation.relationship, ...ref },
-      data: operation.relatedRecords.map(record =>
+      data: operation.relatedRecords.map((record) =>
         this.serializeIdentity(record)
       )
     };
@@ -309,7 +309,7 @@ export class JSONAPISerializer
   }
 
   serializeRecords(records: Record[]): Resource[] {
-    return records.map(record => this.serializeRecord(record));
+    return records.map((record) => this.serializeRecord(record));
   }
 
   serializeRecord(record: Record): Resource {
@@ -349,7 +349,7 @@ export class JSONAPISerializer
     model: ModelDefinition
   ): void {
     if (record.attributes) {
-      Object.keys(record.attributes).forEach(attr => {
+      Object.keys(record.attributes).forEach((attr) => {
         this.serializeAttribute(resource, record, attr, model);
       });
     }
@@ -389,7 +389,7 @@ export class JSONAPISerializer
     model: ModelDefinition
   ): void {
     if (record.relationships) {
-      Object.keys(record.relationships).forEach(relationship => {
+      Object.keys(record.relationships).forEach((relationship) => {
         this.serializeRelationship(resource, record, relationship, model);
       });
     }
@@ -413,7 +413,7 @@ export class JSONAPISerializer
     let data;
 
     if (Array.isArray(value)) {
-      data = (value as RecordIdentity[]).map(id => this.resourceIdentity(id));
+      data = (value as RecordIdentity[]).map((id) => this.resourceIdentity(id));
     } else if (value !== null) {
       data = this.resourceIdentity(value as RecordIdentity);
     } else {
@@ -442,7 +442,7 @@ export class JSONAPISerializer
           return this.deserializeResource(entry, primaryRecords[i]);
         });
       } else {
-        data = (document.data as Resource[]).map(entry =>
+        data = (document.data as Resource[]).map((entry) =>
           this.deserializeResource(entry)
         );
       }
@@ -462,7 +462,9 @@ export class JSONAPISerializer
     result = { data };
 
     if (document.included) {
-      result.included = document.included.map(e => this.deserializeResource(e));
+      result.included = document.included.map((e) =>
+        this.deserializeResource(e)
+      );
     }
 
     if (document.links) {
@@ -483,7 +485,7 @@ export class JSONAPISerializer
   }
 
   deserializeOperations(operations: ResourceOperation[]): RecordOperation[] {
-    return operations.map(operation => this.deserializeOperation(operation));
+    return operations.map((operation) => this.deserializeOperation(operation));
   }
 
   deserializeOperation(operation: ResourceOperation): RecordOperation {
@@ -543,7 +545,7 @@ export class JSONAPISerializer
           op: 'replaceRelatedRecords',
           relationship: operation.ref.relationship,
           record: this.deserializeResourceIdentity(operation.ref),
-          relatedRecords: (operation.data as RecordIdentity[]).map(record =>
+          relatedRecords: (operation.data as RecordIdentity[]).map((record) =>
             this.deserializeResourceIdentity(record)
           )
         };
@@ -668,7 +670,7 @@ export class JSONAPISerializer
     model: ModelDefinition
   ): void {
     if (resource.attributes) {
-      Object.keys(resource.attributes).forEach(resourceAttribute => {
+      Object.keys(resource.attributes).forEach((resourceAttribute) => {
         let attribute = this.recordAttribute(record.type, resourceAttribute);
         if (this.schema.hasAttribute(record.type, attribute)) {
           let value = resource.attributes[resourceAttribute];
@@ -704,7 +706,7 @@ export class JSONAPISerializer
     model: ModelDefinition
   ): void {
     if (resource.relationships) {
-      Object.keys(resource.relationships).forEach(resourceRel => {
+      Object.keys(resource.relationships).forEach((resourceRel) => {
         let relationship = this.recordRelationship(record.type, resourceRel);
         if (this.schema.hasRelationship(record.type, relationship)) {
           let value = resource.relationships[resourceRel];
@@ -728,7 +730,7 @@ export class JSONAPISerializer
       if (resourceData === null) {
         data = null;
       } else if (Array.isArray(resourceData)) {
-        data = (resourceData as ResourceIdentity[]).map(resourceIdentity =>
+        data = (resourceData as ResourceIdentity[]).map((resourceIdentity) =>
           this.recordIdentity(resourceIdentity)
         );
       } else {

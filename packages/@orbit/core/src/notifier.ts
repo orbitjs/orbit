@@ -71,6 +71,6 @@ export default class Notifier {
    * Notify registered listeners.
    */
   emit(...args: any[]) {
-    this.listeners.slice(0).forEach(listener => listener(...args));
+    this.listeners.slice(0).forEach((listener) => listener(...args));
   }
 }

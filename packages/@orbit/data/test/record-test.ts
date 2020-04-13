@@ -13,29 +13,29 @@ import './test-helper';
 
 const { module, test } = QUnit;
 
-module('Record', function() {
-  test('`cloneRecordIdentity` returns a simple { type, id } identity object from any object with a `type` and `id`', function(assert) {
+module('Record', function () {
+  test('`cloneRecordIdentity` returns a simple { type, id } identity object from any object with a `type` and `id`', function (assert) {
     assert.deepEqual(cloneRecordIdentity({ type: 'planet', id: '1' }), {
       type: 'planet',
       id: '1'
     });
   });
 
-  test('`serializeRecordIdentity` - serializes type:id of a record into a string', function(assert) {
+  test('`serializeRecordIdentity` - serializes type:id of a record into a string', function (assert) {
     assert.equal(
       serializeRecordIdentity({ type: 'planet', id: '1' }),
       'planet:1'
     );
   });
 
-  test('`deserializeRecordIdentity` - deserializes type:id string into an identity object', function(assert) {
+  test('`deserializeRecordIdentity` - deserializes type:id string into an identity object', function (assert) {
     assert.deepEqual(deserializeRecordIdentity('planet:1'), {
       type: 'planet',
       id: '1'
     });
   });
 
-  test('`equalRecordIdentities` compares the type/id identity of two objects', function(assert) {
+  test('`equalRecordIdentities` compares the type/id identity of two objects', function (assert) {
     assert.ok(
       equalRecordIdentities(
         { type: 'planet', id: '1' },
@@ -61,7 +61,7 @@ module('Record', function() {
     );
   });
 
-  test('`equalRecordIdentitySets` compares the membership of two arrays of identity objects', function(assert) {
+  test('`equalRecordIdentitySets` compares the membership of two arrays of identity objects', function (assert) {
     assert.ok(equalRecordIdentitySets([], []), 'empty sets are equal');
     assert.ok(
       equalRecordIdentitySets(
@@ -105,7 +105,7 @@ module('Record', function() {
     );
   });
 
-  test('`uniqueRecordIdentities` returns the identities in the first set that are not in the second', function(assert) {
+  test('`uniqueRecordIdentities` returns the identities in the first set that are not in the second', function (assert) {
     assert.deepEqual(
       uniqueRecordIdentities([], []),
       [],
@@ -157,7 +157,7 @@ module('Record', function() {
     );
   });
 
-  test('`recordsInclude` checks for the presence of an identity in an array of records', function(assert) {
+  test('`recordsInclude` checks for the presence of an identity in an array of records', function (assert) {
     assert.notOk(recordsInclude([], { type: 'planet', id: 'p1' }), 'empty set');
     assert.ok(
       recordsInclude([{ type: 'planet', id: 'p1' }], {
@@ -188,7 +188,7 @@ module('Record', function() {
     );
   });
 
-  test('`recordsIncludeAll` checks for the presence of all identities in an array of records', function(assert) {
+  test('`recordsIncludeAll` checks for the presence of all identities in an array of records', function (assert) {
     assert.ok(recordsIncludeAll([], []), 'empty sets are equal');
     assert.ok(
       recordsIncludeAll(
@@ -232,7 +232,7 @@ module('Record', function() {
     );
   });
 
-  test('`mergeRecords` returns a clone of the updates if no current record is supplied', function(assert) {
+  test('`mergeRecords` returns a clone of the updates if no current record is supplied', function (assert) {
     let earth = {
       type: 'planet',
       id: 'earth',
@@ -244,7 +244,7 @@ module('Record', function() {
     assert.notStrictEqual(mergeRecords(null, earth), earth);
   });
 
-  test('`mergeRecords` merges individual attributes and keys', function(assert) {
+  test('`mergeRecords` merges individual attributes and keys', function (assert) {
     let earth = {
       type: 'planet',
       id: 'earth',
@@ -289,7 +289,7 @@ module('Record', function() {
     assert.deepEqual(mergeRecords(earth, updates), expected);
   });
 
-  test("`mergeRecords` adds meta and links objects if they don't previously exist", function(assert) {
+  test("`mergeRecords` adds meta and links objects if they don't previously exist", function (assert) {
     let earth = {
       type: 'planet',
       id: 'earth'
@@ -322,7 +322,7 @@ module('Record', function() {
     assert.deepEqual(mergeRecords(earth, updates), expected);
   });
 
-  test('`mergeRecords` carries forward meta and links objects if they exist', function(assert) {
+  test('`mergeRecords` carries forward meta and links objects if they exist', function (assert) {
     let earth = {
       type: 'planet',
       id: 'earth',
@@ -355,7 +355,7 @@ module('Record', function() {
     assert.deepEqual(mergeRecords(earth, updates), expected);
   });
 
-  test('`mergeRecords` replaces existing meta and links objects completely', function(assert) {
+  test('`mergeRecords` replaces existing meta and links objects completely', function (assert) {
     let earth = {
       type: 'planet',
       id: 'earth',
@@ -395,7 +395,7 @@ module('Record', function() {
     assert.deepEqual(mergeRecords(earth, updates), expected);
   });
 
-  test('`mergeRecords` handles meta, links, and data within relationships separately', function(assert) {
+  test('`mergeRecords` handles meta, links, and data within relationships separately', function (assert) {
     let earth = {
       type: 'planet',
       id: 'earth',

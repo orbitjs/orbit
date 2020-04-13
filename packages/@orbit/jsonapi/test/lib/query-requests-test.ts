@@ -10,7 +10,7 @@ import { jsonapiResponse } from '../support/jsonapi';
 declare const sinon: SinonStatic;
 const { module, test } = QUnit;
 
-module('QueryRequests', function(hooks) {
+module('QueryRequests', function (hooks) {
   let schema: Schema;
   let requestProcessor: JSONAPIRequestProcessor;
   let qb: QueryBuilder;
@@ -82,7 +82,7 @@ module('QueryRequests', function(hooks) {
     fetchStub.restore();
   });
 
-  test('meta and links', async function(assert) {
+  test('meta and links', async function (assert) {
     fetchStub.withArgs('/planets').returns(
       jsonapiResponse(200, {
         data: [

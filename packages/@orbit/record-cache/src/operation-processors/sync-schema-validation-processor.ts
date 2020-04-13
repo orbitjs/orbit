@@ -108,7 +108,7 @@ export default class SyncSchemaValidationProcessor extends SyncOperationProcesso
   ) {
     this._validateRecordIdentity(record);
 
-    relatedRecords.forEach(relatedRecord => {
+    relatedRecords.forEach((relatedRecord) => {
       this._validateRecordIdentity(relatedRecord);
       this._validateRelationship(record, relationship, relatedRecord);
     });

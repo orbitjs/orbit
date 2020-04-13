@@ -3,7 +3,7 @@ import IndexedDBBucket from '../src/bucket';
 
 const { module, test } = QUnit;
 
-module('IndexedDBBucket', function(hooks) {
+module('IndexedDBBucket', function (hooks) {
   let bucket: IndexedDBBucket;
 
   hooks.beforeEach(() => {
@@ -14,15 +14,15 @@ module('IndexedDBBucket', function(hooks) {
     return bucket.deleteDB();
   });
 
-  test('it exists', function(assert) {
+  test('it exists', function (assert) {
     assert.ok(bucket);
   });
 
-  test('its prototype chain is correct', function(assert) {
+  test('its prototype chain is correct', function (assert) {
     assert.ok(bucket instanceof Bucket, 'instanceof Bucket');
   });
 
-  test('is assigned a default `name`, `namespace`, and `version`', function(assert) {
+  test('is assigned a default `name`, `namespace`, and `version`', function (assert) {
     assert.equal(bucket.name, 'indexedDB', '`name` is `indexedDB` by default');
     assert.equal(
       bucket.namespace,
@@ -32,7 +32,7 @@ module('IndexedDBBucket', function(hooks) {
     assert.equal(bucket.version, 1, '`version` is `1` by default');
   });
 
-  test('is assigned a default `dbName` and `dbStoreName`', function(assert) {
+  test('is assigned a default `dbName` and `dbStoreName`', function (assert) {
     assert.equal(
       bucket.dbName,
       'orbit-bucket',
@@ -45,7 +45,7 @@ module('IndexedDBBucket', function(hooks) {
     );
   });
 
-  test('can override `dbName` and `dbStoreName` via `namespace` and `storeName` settings', function(assert) {
+  test('can override `dbName` and `dbStoreName` via `namespace` and `storeName` settings', function (assert) {
     const custom = new IndexedDBBucket({
       namespace: 'orbit-settings',
       storeName: 'settings'
@@ -62,10 +62,10 @@ module('IndexedDBBucket', function(hooks) {
     );
   });
 
-  test('#upgrade changes the version, calls migrateDB, and then reopens the DB', function(assert) {
+  test('#upgrade changes the version, calls migrateDB, and then reopens the DB', function (assert) {
     assert.expect(5);
 
-    bucket.migrateDB = function(db, event) {
+    bucket.migrateDB = function (db, event) {
       assert.equal(
         event.oldVersion,
         1,
@@ -90,7 +90,7 @@ module('IndexedDBBucket', function(hooks) {
       });
   });
 
-  test('#setItem sets a value, #getItem gets a value, #removeItem removes a value', function(assert) {
+  test('#setItem sets a value, #getItem gets a value, #removeItem removes a value', function (assert) {
     assert.expect(3);
 
     let planet = {
@@ -104,16 +104,16 @@ module('IndexedDBBucket', function(hooks) {
 
     return bucket
       .getItem('planet')
-      .then(item => assert.equal(item, null, 'bucket does not contain item'))
+      .then((item) => assert.equal(item, null, 'bucket does not contain item'))
       .then(() => bucket.setItem('planet', planet))
       .then(() => bucket.getItem('planet'))
-      .then(item => assert.deepEqual(item, planet, 'bucket contains item'))
+      .then((item) => assert.deepEqual(item, planet, 'bucket contains item'))
       .then(() => bucket.removeItem('planet'))
       .then(() => bucket.getItem('planet'))
-      .then(item => assert.equal(item, null, 'bucket does not contain item'));
+      .then((item) => assert.equal(item, null, 'bucket does not contain item'));
   });
 
-  test('#clear clears all keys', async function(assert) {
+  test('#clear clears all keys', async function (assert) {
     assert.expect(2);
 
     let planet = {
@@ -124,9 +124,9 @@ module('IndexedDBBucket', function(hooks) {
     return bucket
       .setItem('planet', planet)
       .then(() => bucket.getItem('planet'))
-      .then(item => assert.deepEqual(item, planet, 'bucket contains item'))
+      .then((item) => assert.deepEqual(item, planet, 'bucket contains item'))
       .then(() => bucket.clear())
       .then(() => bucket.getItem('planet'))
-      .then(item => assert.equal(item, null, 'bucket does not contain item'));
+      .then((item) => assert.equal(item, null, 'bucket does not contain item'));
   });
 });

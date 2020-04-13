@@ -139,7 +139,7 @@ export abstract class LiveQuery {
       expression.relationship
     );
 
-    if (Array.isArray(type) && type.find(type => type === change.type)) {
+    if (Array.isArray(type) && type.find((type) => type === change.type)) {
       return true;
     } else if (type === change.type) {
       return true;
@@ -156,7 +156,7 @@ const isNode =
   typeof process === 'object' && typeof process.nextTick === 'function';
 let resolvedPromise: Promise<void>;
 const nextTick = isNode
-  ? function(fn: () => void) {
+  ? function (fn: () => void) {
       if (!resolvedPromise) {
         resolvedPromise = Promise.resolve();
       }

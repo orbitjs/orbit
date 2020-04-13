@@ -3,22 +3,22 @@ import LocalStorageBucket from '../src/bucket';
 
 const { module, test } = QUnit;
 
-module('LocalStorageBucket', function(hooks) {
+module('LocalStorageBucket', function (hooks) {
   let bucket: LocalStorageBucket;
 
   hooks.beforeEach(() => {
     bucket = new LocalStorageBucket();
   });
 
-  test('it exists', function(assert) {
+  test('it exists', function (assert) {
     assert.ok(bucket);
   });
 
-  test('its prototype chain is correct', function(assert) {
+  test('its prototype chain is correct', function (assert) {
     assert.ok(bucket instanceof Bucket, 'instanceof Bucket');
   });
 
-  test('is assigned a default name, namespace, and delimiter', function(assert) {
+  test('is assigned a default name, namespace, and delimiter', function (assert) {
     assert.equal(
       bucket.name,
       'localStorage',
@@ -32,7 +32,7 @@ module('LocalStorageBucket', function(hooks) {
     assert.equal(bucket.delimiter, '/', '`delimiter` is `/` by default');
   });
 
-  test('#setItem sets a value, #getItem gets a value, #removeItem removes a value', async function(assert) {
+  test('#setItem sets a value, #getItem gets a value, #removeItem removes a value', async function (assert) {
     assert.expect(3);
 
     let planet = {
@@ -56,7 +56,7 @@ module('LocalStorageBucket', function(hooks) {
     assert.equal(item, null, 'bucket does not contain item');
   });
 
-  test('#clear clears all keys', async function(assert) {
+  test('#clear clears all keys', async function (assert) {
     assert.expect(2);
 
     let planet = {

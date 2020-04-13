@@ -2,18 +2,18 @@ import { mergeJSONAPIRequestOptions } from '../../src/lib/jsonapi-request-option
 
 const { module, test } = QUnit;
 
-module('JSONAPIRequestOptions', function() {
-  module('mergeJSONAPIRequestOptions', function() {
+module('JSONAPIRequestOptions', function () {
+  module('mergeJSONAPIRequestOptions', function () {
     const OPTIONS = {
       filter: [{ foo: 'bar' }],
       include: ['baz.bay']
     };
 
-    test('merge empty options', function(assert) {
+    test('merge empty options', function (assert) {
       assert.deepEqual(mergeJSONAPIRequestOptions(OPTIONS, {}), OPTIONS);
     });
 
-    test('add sort', function(assert) {
+    test('add sort', function (assert) {
       assert.deepEqual(mergeJSONAPIRequestOptions(OPTIONS, { sort: ['qay'] }), {
         filter: [{ foo: 'bar' }],
         include: ['baz.bay'],
@@ -21,7 +21,7 @@ module('JSONAPIRequestOptions', function() {
       });
     });
 
-    test('merge includes', function(assert) {
+    test('merge includes', function (assert) {
       assert.deepEqual(
         mergeJSONAPIRequestOptions(OPTIONS, {
           include: ['baz.bay', 'snoop.dog']
@@ -33,7 +33,7 @@ module('JSONAPIRequestOptions', function() {
       );
     });
 
-    test('merge filters', function(assert) {
+    test('merge filters', function (assert) {
       assert.deepEqual(
         mergeJSONAPIRequestOptions(OPTIONS, {
           filter: [{ intelligence: 'low' }]
@@ -45,7 +45,7 @@ module('JSONAPIRequestOptions', function() {
       );
     });
 
-    test('override filter', function(assert) {
+    test('override filter', function (assert) {
       assert.deepEqual(
         mergeJSONAPIRequestOptions(OPTIONS, { filter: [{ foo: 'zaz' }] }),
         {
@@ -55,7 +55,7 @@ module('JSONAPIRequestOptions', function() {
       );
     });
 
-    test('add page', function(assert) {
+    test('add page', function (assert) {
       assert.deepEqual(
         mergeJSONAPIRequestOptions(OPTIONS, {
           page: {

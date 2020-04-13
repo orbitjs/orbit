@@ -6,7 +6,7 @@ import { SinonStatic, SinonStub } from 'sinon';
 
 declare const sinon: SinonStatic;
 
-module('JSONAPIRequestProcessor', function(hooks) {
+module('JSONAPIRequestProcessor', function (hooks) {
   let fetchStub: SinonStub;
   let keyMap: KeyMap;
   let schema: Schema;
@@ -69,7 +69,7 @@ module('JSONAPIRequestProcessor', function(hooks) {
       keyMap,
       sourceName: 'foo'
     });
-    processor.serializer.resourceKey = function() {
+    processor.serializer.resourceKey = function () {
       return 'remoteId';
     };
   });
@@ -79,11 +79,11 @@ module('JSONAPIRequestProcessor', function(hooks) {
     fetchStub.restore();
   });
 
-  test('it exists', function(assert) {
+  test('it exists', function (assert) {
     assert.ok(processor);
   });
 
-  test('processor has default settings', function(assert) {
+  test('processor has default settings', function (assert) {
     assert.deepEqual(
       processor.allowedContentTypes,
       ['application/vnd.api+json', 'application/json'],
@@ -91,7 +91,7 @@ module('JSONAPIRequestProcessor', function(hooks) {
     );
   });
 
-  test('#initFetchSettings will override defaults with custom settings provided', function(assert) {
+  test('#initFetchSettings will override defaults with custom settings provided', function (assert) {
     assert.deepEqual(
       processor.initFetchSettings({
         headers: {
@@ -113,7 +113,7 @@ module('JSONAPIRequestProcessor', function(hooks) {
     );
   });
 
-  test('#initFetchSettings will convert json to a stringified body', function(assert) {
+  test('#initFetchSettings will convert json to a stringified body', function (assert) {
     assert.deepEqual(
       processor.initFetchSettings({
         headers: {
@@ -135,7 +135,7 @@ module('JSONAPIRequestProcessor', function(hooks) {
     );
   });
 
-  test('#initFetchSettings will not include a `Content-Type` header with no body', function(assert) {
+  test('#initFetchSettings will not include a `Content-Type` header with no body', function (assert) {
     assert.deepEqual(
       processor.initFetchSettings({
         method: 'GET'
@@ -150,7 +150,7 @@ module('JSONAPIRequestProcessor', function(hooks) {
     );
   });
 
-  test('#fetch - successful if one of the `allowedContentTypes` appears anywhere in `Content-Type` header', async function(assert) {
+  test('#fetch - successful if one of the `allowedContentTypes` appears anywhere in `Content-Type` header', async function (assert) {
     assert.expect(6);
     fetchStub.withArgs('/planets/12345/relationships/moons').returns(
       jsonapiResponse(

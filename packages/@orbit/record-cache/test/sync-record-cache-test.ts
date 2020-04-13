@@ -13,10 +13,10 @@ import { arrayMembershipMatches } from './support/matchers';
 
 const { module, test } = QUnit;
 
-module('SyncRecordCache', function(hooks) {
+module('SyncRecordCache', function (hooks) {
   let schema: Schema, keyMap: KeyMap;
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     schema = new Schema({
       models: {
         star: {
@@ -55,12 +55,12 @@ module('SyncRecordCache', function(hooks) {
     keyMap = new KeyMap();
   });
 
-  hooks.afterEach(function() {
+  hooks.afterEach(function () {
     schema = null;
     keyMap = null;
   });
 
-  test('it exists', function(assert) {
+  test('it exists', function (assert) {
     const cache = new Cache({ schema });
 
     assert.ok(cache);
@@ -71,12 +71,12 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('it requires a schema', function(assert) {
+  test('it requires a schema', function (assert) {
     assert.expect(1);
     assert.throws(() => new Cache({ schema: null }));
   });
 
-  test('can be assigned processors', function(assert) {
+  test('can be assigned processors', function (assert) {
     let cache = new Cache({
       schema,
       processors: [SyncSchemaValidationProcessor]
@@ -90,7 +90,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch sets data and #records retrieves it', function(assert) {
+  test('#patch sets data and #records retrieves it', function (assert) {
     assert.expect(4);
 
     const cache = new Cache({ schema, keyMap });
@@ -110,7 +110,7 @@ module('SyncRecordCache', function(hooks) {
       assert.deepEqual(data, earth);
     });
 
-    cache.patch(t => t.addRecord(earth));
+    cache.patch((t) => t.addRecord(earth));
 
     assert.strictEqual(
       cache.getRecordSync({ type: 'planet', id: '1' }),
@@ -124,7 +124,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch can replace records', function(assert) {
+  test('#patch can replace records', function (assert) {
     assert.expect(5);
 
     const cache = new Cache({ schema, keyMap });
@@ -144,7 +144,7 @@ module('SyncRecordCache', function(hooks) {
       assert.deepEqual(data, earth);
     });
 
-    cache.patch(t => t.updateRecord(earth));
+    cache.patch((t) => t.updateRecord(earth));
 
     assert.deepEqual(
       cache.getRecordSync({ type: 'planet', id: '1' }),
@@ -163,7 +163,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch can replace keys', function(assert) {
+  test('#patch can replace keys', function (assert) {
     assert.expect(4);
 
     const cache = new Cache({ schema, keyMap });
@@ -184,7 +184,7 @@ module('SyncRecordCache', function(hooks) {
       });
     });
 
-    cache.patch(t => t.replaceKey(earth, 'remoteId', 'a'));
+    cache.patch((t) => t.replaceKey(earth, 'remoteId', 'a'));
 
     assert.deepEqual(
       cache.getRecordSync({ type: 'planet', id: '1' }),
@@ -198,13 +198,13 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch updates the cache and returns arrays of primary data and inverse ops', function(assert) {
+  test('#patch updates the cache and returns arrays of primary data and inverse ops', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     let p1 = { type: 'planet', id: '1', attributes: { name: 'Earth' } };
     let p2 = { type: 'planet', id: '2' };
 
-    let result = cache.patch(t => [t.addRecord(p1), t.removeRecord(p2)]);
+    let result = cache.patch((t) => [t.addRecord(p1), t.removeRecord(p2)]);
 
     assert.deepEqual(
       result,
@@ -219,7 +219,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch updates inverse hasOne relationship when a record with relationships unspecified is added - record added after', function(assert) {
+  test('#patch updates inverse hasOne relationship when a record with relationships unspecified is added - record added after', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -230,7 +230,7 @@ module('SyncRecordCache', function(hooks) {
     };
     const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' } };
 
-    cache.patch(t => [t.updateRecord(jupiter), t.updateRecord(io)]);
+    cache.patch((t) => [t.updateRecord(jupiter), t.updateRecord(io)]);
 
     assert.deepEqual(
       cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons
@@ -245,7 +245,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch updates inverse hasOne relationship when a record with relationships unspecified is added - record added before', function(assert) {
+  test('#patch updates inverse hasOne relationship when a record with relationships unspecified is added - record added before', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -256,7 +256,7 @@ module('SyncRecordCache', function(hooks) {
     };
     const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' } };
 
-    cache.patch(t => [t.updateRecord(io), t.updateRecord(jupiter)]);
+    cache.patch((t) => [t.updateRecord(io), t.updateRecord(jupiter)]);
 
     assert.deepEqual(
       cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons
@@ -271,7 +271,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch updates inverse hasMany relationship when a record with relationships unspecified is added - record added after', function(assert) {
+  test('#patch updates inverse hasMany relationship when a record with relationships unspecified is added - record added after', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const io: Record = {
@@ -286,7 +286,7 @@ module('SyncRecordCache', function(hooks) {
       attributes: { name: 'Jupiter' }
     };
 
-    cache.patch(t => [t.updateRecord(io), t.updateRecord(jupiter)]);
+    cache.patch((t) => [t.updateRecord(io), t.updateRecord(jupiter)]);
 
     assert.deepEqual(
       cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons
@@ -301,7 +301,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch updates inverse hasMany relationship when a record with relationships unspecified is added - record added before', function(assert) {
+  test('#patch updates inverse hasMany relationship when a record with relationships unspecified is added - record added before', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const io: Record = {
@@ -316,7 +316,7 @@ module('SyncRecordCache', function(hooks) {
       attributes: { name: 'Jupiter' }
     };
 
-    cache.patch(t => [t.updateRecord(jupiter), t.updateRecord(io)]);
+    cache.patch((t) => [t.updateRecord(jupiter), t.updateRecord(io)]);
 
     assert.deepEqual(
       cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons
@@ -331,7 +331,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch updates inverse hasOne relationship when a record with an empty relationship is added', function(assert) {
+  test('#patch updates inverse hasOne relationship when a record with an empty relationship is added', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const io: Record = {
@@ -347,7 +347,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: { moons: { data: [] } }
     };
 
-    cache.patch(t => [t.updateRecord(io), t.updateRecord(jupiter)]);
+    cache.patch((t) => [t.updateRecord(io), t.updateRecord(jupiter)]);
 
     assert.deepEqual(
       cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons
@@ -362,7 +362,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch updates inverse hasMany relationship when a record with an empty relationship is added', function(assert) {
+  test('#patch updates inverse hasMany relationship when a record with an empty relationship is added', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -378,7 +378,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: { planet: { data: null } }
     };
 
-    cache.patch(t => [t.updateRecord(jupiter), t.updateRecord(io)]);
+    cache.patch((t) => [t.updateRecord(jupiter), t.updateRecord(io)]);
 
     assert.deepEqual(
       cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons
@@ -393,7 +393,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch updates inverse hasMany polymorphic relationship', function(assert) {
+  test('#patch updates inverse hasMany polymorphic relationship', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const sun: Record = {
@@ -416,7 +416,7 @@ module('SyncRecordCache', function(hooks) {
     };
     const io: Record = { type: 'moon', id: 'm1', attributes: { name: 'Io' } };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.updateRecord(sun),
       t.updateRecord(jupiter),
       t.updateRecord(io)
@@ -443,7 +443,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch updates inverse hasOne polymorphic relationship', function(assert) {
+  test('#patch updates inverse hasOne polymorphic relationship', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -460,7 +460,7 @@ module('SyncRecordCache', function(hooks) {
     };
     const sun: Record = { type: 'star', id: 's1', attributes: { name: 'Sun' } };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.updateRecord(jupiter),
       t.updateRecord(io),
       t.updateRecord(sun)
@@ -487,7 +487,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch tracks refs and clears them from hasOne relationships when a referenced record is removed', function(assert) {
+  test('#patch tracks refs and clears them from hasOne relationships when a referenced record is removed', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -509,7 +509,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(jupiter),
       t.addRecord(io),
       t.addRecord(europa)
@@ -526,7 +526,7 @@ module('SyncRecordCache', function(hooks) {
       'Jupiter has been assigned to Europa'
     );
 
-    cache.patch(t => t.removeRecord(jupiter));
+    cache.patch((t) => t.removeRecord(jupiter));
 
     assert.equal(
       cache.getRecordSync({ type: 'planet', id: 'p1' }),
@@ -546,7 +546,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch tracks refs and clears them from hasMany relationships when a referenced record is removed', function(assert) {
+  test('#patch tracks refs and clears them from hasMany relationships when a referenced record is removed', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const io: Record = {
@@ -575,7 +575,7 @@ module('SyncRecordCache', function(hooks) {
       }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(io),
       t.addRecord(europa),
       t.addRecord(jupiter)
@@ -598,7 +598,7 @@ module('SyncRecordCache', function(hooks) {
       'Jupiter has been assigned to Io and Europa'
     );
 
-    cache.patch(t => t.removeRecord(io));
+    cache.patch((t) => t.removeRecord(io));
 
     assert.equal(
       cache.getRecordSync({ type: 'moon', id: 'm1' }),
@@ -606,7 +606,7 @@ module('SyncRecordCache', function(hooks) {
       'Io is GONE'
     );
 
-    cache.patch(t => t.removeRecord(europa));
+    cache.patch((t) => t.removeRecord(europa));
 
     assert.equal(
       cache.getRecordSync({ type: 'moon', id: 'm2' }),
@@ -621,17 +621,17 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test("#patch adds link to hasMany if record doesn't exist", function(assert) {
+  test("#patch adds link to hasMany if record doesn't exist", function (assert) {
     const cache = new Cache({ schema, keyMap });
 
-    cache.patch(t =>
+    cache.patch((t) =>
       t.addToRelatedRecords({ type: 'planet', id: 'p1' }, 'moons', {
         type: 'moon',
         id: 'm1'
       })
     );
 
-    cache.patch(t =>
+    cache.patch((t) =>
       t.addToRelatedRecords({ type: 'planet', id: 'p1' }, 'moons', {
         type: 'moon',
         id: 'm1'
@@ -646,7 +646,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test("#patch does not remove hasMany relationship if record doesn't exist", function(assert) {
+  test("#patch does not remove hasMany relationship if record doesn't exist", function (assert) {
     assert.expect(1);
 
     const cache = new Cache({ schema, keyMap });
@@ -655,7 +655,7 @@ module('SyncRecordCache', function(hooks) {
       assert.ok(false, 'no operations were applied');
     });
 
-    cache.patch(t =>
+    cache.patch((t) =>
       t.removeFromRelatedRecords({ type: 'planet', id: 'p1' }, 'moons', {
         type: 'moon',
         id: 'moon1'
@@ -669,7 +669,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test("#patch adds hasOne if record doesn't exist", function(assert) {
+  test("#patch adds hasOne if record doesn't exist", function (assert) {
     assert.expect(2);
 
     const cache = new Cache({ schema, keyMap });
@@ -688,7 +688,7 @@ module('SyncRecordCache', function(hooks) {
     );
 
     let order = 0;
-    cache.on('patch', op => {
+    cache.on('patch', (op) => {
       order++;
       if (order === 1) {
         assert.deepEqual(op, replacePlanet, 'applied replacePlanet operation');
@@ -702,7 +702,7 @@ module('SyncRecordCache', function(hooks) {
     cache.patch([replacePlanet]);
   });
 
-  test("#patch will add empty hasOne link if record doesn't exist", function(assert) {
+  test("#patch will add empty hasOne link if record doesn't exist", function (assert) {
     assert.expect(2);
 
     const cache = new Cache({ schema, keyMap });
@@ -715,7 +715,7 @@ module('SyncRecordCache', function(hooks) {
     );
 
     let order = 0;
-    cache.on('patch', op => {
+    cache.on('patch', (op) => {
       order++;
       if (order === 1) {
         assert.deepEqual(op, clearPlanet, 'applied clearPlanet operation');
@@ -729,7 +729,7 @@ module('SyncRecordCache', function(hooks) {
     assert.ok(true, 'patch applied');
   });
 
-  test('#patch does not add link to hasMany if link already exists', function(assert) {
+  test('#patch does not add link to hasMany if link already exists', function (assert) {
     assert.expect(1);
 
     const cache = new Cache({ schema, keyMap });
@@ -741,20 +741,20 @@ module('SyncRecordCache', function(hooks) {
       relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
     };
 
-    cache.patch(t => t.addRecord(jupiter));
+    cache.patch((t) => t.addRecord(jupiter));
 
     cache.on('patch', () => {
       assert.ok(false, 'no operations were applied');
     });
 
-    cache.patch(t =>
+    cache.patch((t) =>
       t.addToRelatedRecords(jupiter, 'moons', { type: 'moon', id: 'm1' })
     );
 
     assert.ok(true, 'patch completed');
   });
 
-  test("#patch does not remove relationship from hasMany if relationship doesn't exist", function(assert) {
+  test("#patch does not remove relationship from hasMany if relationship doesn't exist", function (assert) {
     assert.expect(1);
 
     const cache = new Cache({ schema, keyMap });
@@ -765,31 +765,31 @@ module('SyncRecordCache', function(hooks) {
       attributes: { name: 'Jupiter' }
     };
 
-    cache.patch(t => t.addRecord(jupiter));
+    cache.patch((t) => t.addRecord(jupiter));
 
     cache.on('patch', () => {
       assert.ok(false, 'no operations were applied');
     });
 
-    cache.patch(t =>
+    cache.patch((t) =>
       t.removeFromRelatedRecords(jupiter, 'moons', { type: 'moon', id: 'm1' })
     );
 
     assert.ok(true, 'patch completed');
   });
 
-  test('#patch can add and remove to has-many relationship', function(assert) {
+  test('#patch can add and remove to has-many relationship', function (assert) {
     assert.expect(2);
 
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = { id: 'jupiter', type: 'planet' };
-    cache.patch(t => t.addRecord(jupiter));
+    cache.patch((t) => t.addRecord(jupiter));
 
     const callisto: Record = { id: 'callisto', type: 'moon' };
-    cache.patch(t => t.addRecord(callisto));
+    cache.patch((t) => t.addRecord(callisto));
 
-    cache.patch(t =>
+    cache.patch((t) =>
       t.addToRelatedRecords(jupiter, 'moons', { type: 'moon', id: 'callisto' })
     );
 
@@ -798,7 +798,7 @@ module('SyncRecordCache', function(hooks) {
       'moon added'
     );
 
-    cache.patch(t =>
+    cache.patch((t) =>
       t.removeFromRelatedRecords(jupiter, 'moons', {
         type: 'moon',
         id: 'callisto'
@@ -811,18 +811,18 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch can add and clear has-one relationship', function(assert) {
+  test('#patch can add and clear has-one relationship', function (assert) {
     assert.expect(2);
 
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = { id: 'jupiter', type: 'planet' };
-    cache.patch(t => t.addRecord(jupiter));
+    cache.patch((t) => t.addRecord(jupiter));
 
     const callisto: Record = { id: 'callisto', type: 'moon' };
-    cache.patch(t => t.addRecord(callisto));
+    cache.patch((t) => t.addRecord(callisto));
 
-    cache.patch(t =>
+    cache.patch((t) =>
       t.replaceRelatedRecord(callisto, 'planet', {
         type: 'planet',
         id: 'jupiter'
@@ -837,7 +837,7 @@ module('SyncRecordCache', function(hooks) {
       'relationship added'
     );
 
-    cache.patch(t => t.replaceRelatedRecord(callisto, 'planet', null));
+    cache.patch((t) => t.replaceRelatedRecord(callisto, 'planet', null));
 
     assert.notOk(
       equalRecordIdentities(
@@ -848,7 +848,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('does not replace hasOne if relationship already exists', function(assert) {
+  test('does not replace hasOne if relationship already exists', function (assert) {
     assert.expect(1);
 
     const cache = new Cache({ schema, keyMap });
@@ -860,20 +860,20 @@ module('SyncRecordCache', function(hooks) {
       relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
     };
 
-    cache.patch(t => t.addRecord(europa));
+    cache.patch((t) => t.addRecord(europa));
 
     cache.on('patch', () => {
       assert.ok(false, 'no operations were applied');
     });
 
-    cache.patch(t =>
+    cache.patch((t) =>
       t.replaceRelatedRecord(europa, 'planet', { type: 'planet', id: 'p1' })
     );
 
     assert.ok(true, 'patch completed');
   });
 
-  test("does not remove hasOne if relationship doesn't exist", function(assert) {
+  test("does not remove hasOne if relationship doesn't exist", function (assert) {
     assert.expect(1);
 
     const cache = new Cache({ schema, keyMap });
@@ -885,18 +885,18 @@ module('SyncRecordCache', function(hooks) {
       relationships: { planet: { data: null } }
     };
 
-    cache.patch(t => t.addRecord(europa));
+    cache.patch((t) => t.addRecord(europa));
 
     cache.on('patch', () => {
       assert.ok(false, 'no operations were applied');
     });
 
-    cache.patch(t => t.replaceRelatedRecord(europa, 'planet', null));
+    cache.patch((t) => t.replaceRelatedRecord(europa, 'planet', null));
 
     assert.ok(true, 'patch completed');
   });
 
-  test('#patch removing model with a bi-directional hasOne', function(assert) {
+  test('#patch removing model with a bi-directional hasOne', function (assert) {
     assert.expect(5);
 
     const hasOneSchema = new Schema({
@@ -916,7 +916,7 @@ module('SyncRecordCache', function(hooks) {
 
     const cache = new Cache({ schema: hasOneSchema, keyMap });
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord({
         id: '1',
         type: 'one',
@@ -948,7 +948,7 @@ module('SyncRecordCache', function(hooks) {
       'two links to one'
     );
 
-    cache.patch(t => t.removeRecord(two));
+    cache.patch((t) => t.removeRecord(two));
 
     assert.equal(
       cache.getRecordSync({ type: 'one', id: '1' }).relationships.two.data,
@@ -957,7 +957,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch removes dependent records in a hasOne relationship', function(assert) {
+  test('#patch removes dependent records in a hasOne relationship', function (assert) {
     const dependentSchema = new Schema({
       models: {
         planet: {
@@ -993,7 +993,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(jupiter),
       t.addRecord(io),
       t.addRecord(europa),
@@ -1001,7 +1001,7 @@ module('SyncRecordCache', function(hooks) {
       t.addToRelatedRecords(jupiter, 'moons', europa)
     ]);
 
-    cache.patch(t => t.removeRecord(io));
+    cache.patch((t) => t.removeRecord(io));
 
     assert.equal(
       cache.getRecordsSync('moon').length,
@@ -1015,7 +1015,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch removes dependent records in a hasMany relationship', function(assert) {
+  test('#patch removes dependent records in a hasMany relationship', function (assert) {
     const dependentSchema = new Schema({
       models: {
         planet: {
@@ -1051,7 +1051,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.updateRecord(jupiter),
       t.updateRecord(io),
       t.updateRecord(europa),
@@ -1059,7 +1059,7 @@ module('SyncRecordCache', function(hooks) {
       t.addToRelatedRecords(jupiter, 'moons', europa)
     ]);
 
-    cache.patch(t => t.removeRecord(jupiter));
+    cache.patch((t) => t.removeRecord(jupiter));
 
     assert.equal(
       cache.getRecordsSync('planet').length,
@@ -1073,7 +1073,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch does not remove non-dependent records', function(assert) {
+  test('#patch does not remove non-dependent records', function (assert) {
     const dependentSchema = new Schema({
       models: {
         planet: {
@@ -1109,7 +1109,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(jupiter),
       t.addRecord(io),
       t.addRecord(europa),
@@ -1119,7 +1119,7 @@ module('SyncRecordCache', function(hooks) {
 
     // Since there are no dependent relationships, no other records will be
     // removed
-    cache.patch(t => t.removeRecord(io));
+    cache.patch((t) => t.removeRecord(io));
 
     assert.equal(
       cache.getRecordsSync('moon').length,
@@ -1133,11 +1133,11 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch merges records when "replacing" and will not stomp on attributes and relationships that are not replaced', function(assert) {
+  test('#patch merges records when "replacing" and will not stomp on attributes and relationships that are not replaced', function (assert) {
     const cache = new Cache({ schema, keyMap });
     const tb = cache.transformBuilder;
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord({
         type: 'planet',
         id: '1',
@@ -1146,7 +1146,7 @@ module('SyncRecordCache', function(hooks) {
       })
     ]);
 
-    let result = cache.patch(t => [
+    let result = cache.patch((t) => [
       t.updateRecord({
         type: 'planet',
         id: '1',
@@ -1155,7 +1155,7 @@ module('SyncRecordCache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(q => q.findRecord({ type: 'planet', id: '1' })),
+      cache.query((q) => q.findRecord({ type: 'planet', id: '1' })),
       {
         type: 'planet',
         id: '1',
@@ -1195,11 +1195,11 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch can replace related records but only if they are different', function(assert) {
+  test('#patch can replace related records but only if they are different', function (assert) {
     const cache = new Cache({ schema, keyMap });
     const tb = cache.transformBuilder;
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord({
         type: 'planet',
         id: '1',
@@ -1208,7 +1208,7 @@ module('SyncRecordCache', function(hooks) {
       })
     ]);
 
-    let result = cache.patch(t => [
+    let result = cache.patch((t) => [
       t.replaceRelatedRecords({ type: 'planet', id: '1' }, 'moons', [
         { type: 'moon', id: 'm1' }
       ])
@@ -1223,14 +1223,14 @@ module('SyncRecordCache', function(hooks) {
       'nothing has changed so there are no inverse ops'
     );
 
-    result = cache.patch(t => [
+    result = cache.patch((t) => [
       t.replaceRelatedRecords({ type: 'planet', id: '1' }, 'moons', [
         { type: 'moon', id: 'm2' }
       ])
     ]);
 
     assert.deepEqual(
-      cache.query(q => q.findRecord({ type: 'planet', id: '1' })),
+      cache.query((q) => q.findRecord({ type: 'planet', id: '1' })),
       {
         type: 'planet',
         id: '1',
@@ -1268,7 +1268,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch merges records when "replacing" and _will_ replace specified attributes and relationships', function(assert) {
+  test('#patch merges records when "replacing" and _will_ replace specified attributes and relationships', function (assert) {
     const cache = new Cache({ schema, keyMap });
     const tb = cache.transformBuilder;
 
@@ -1319,7 +1319,7 @@ module('SyncRecordCache', function(hooks) {
     });
 
     assert.deepEqual(
-      cache.query(q => q.findRecord({ type: 'planet', id: '1' })),
+      cache.query((q) => q.findRecord({ type: 'planet', id: '1' })),
       {
         type: 'planet',
         id: '1',
@@ -1330,11 +1330,11 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch can update existing record with empty relationship', function(assert) {
+  test('#patch can update existing record with empty relationship', function (assert) {
     const cache = new Cache({ schema, keyMap });
     const tb = cache.transformBuilder;
 
-    let result = cache.patch(t => [t.addRecord({ id: '1', type: 'planet' })]);
+    let result = cache.patch((t) => [t.addRecord({ id: '1', type: 'planet' })]);
 
     assert.deepEqual(result, {
       data: [{ id: '1', type: 'planet' }],
@@ -1346,7 +1346,7 @@ module('SyncRecordCache', function(hooks) {
       ]
     });
 
-    result = cache.patch(t => [
+    result = cache.patch((t) => [
       t.updateRecord({
         id: '1',
         type: 'planet',
@@ -1386,11 +1386,11 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#patch will not overwrite an existing relationship with a missing relationship', function(assert) {
+  test('#patch will not overwrite an existing relationship with a missing relationship', function (assert) {
     const cache = new Cache({ schema, keyMap });
     const tb = cache.transformBuilder;
 
-    let result = cache.patch(t => [
+    let result = cache.patch((t) => [
       t.addRecord({
         id: '1',
         type: 'planet',
@@ -1433,7 +1433,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#query can retrieve an individual record', function(assert) {
+  test('#query can retrieve an individual record', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -1445,15 +1445,15 @@ module('SyncRecordCache', function(hooks) {
         atmosphere: true
       }
     };
-    cache.patch(t => [t.addRecord(jupiter)]);
+    cache.patch((t) => [t.addRecord(jupiter)]);
 
     assert.deepEqual(
-      cache.query(q => q.findRecord({ type: 'planet', id: 'jupiter' })),
+      cache.query((q) => q.findRecord({ type: 'planet', id: 'jupiter' })),
       jupiter
     );
   });
 
-  test('#query can retrieve multiple expressions', function(assert) {
+  test('#query can retrieve multiple expressions', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -1474,10 +1474,10 @@ module('SyncRecordCache', function(hooks) {
         atmosphere: true
       }
     };
-    cache.patch(t => [t.addRecord(jupiter), t.addRecord(earth)]);
+    cache.patch((t) => [t.addRecord(jupiter), t.addRecord(earth)]);
 
     assert.deepEqual(
-      cache.query(q => [
+      cache.query((q) => [
         q.findRecord({ type: 'planet', id: 'jupiter' }),
         q.findRecord({ type: 'planet', id: 'earth' })
       ]),
@@ -1485,7 +1485,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#query can find records by type', function(assert) {
+  test('#query can find records by type', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -1525,7 +1525,7 @@ module('SyncRecordCache', function(hooks) {
       }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(jupiter),
       t.addRecord(earth),
       t.addRecord(venus),
@@ -1534,12 +1534,12 @@ module('SyncRecordCache', function(hooks) {
 
     arrayMembershipMatches(
       assert,
-      cache.query(q => q.findRecords('planet')),
+      cache.query((q) => q.findRecords('planet')),
       [jupiter, earth, venus, mercury]
     );
   });
 
-  test('#query can find records by identities', function(assert) {
+  test('#query can find records by identities', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -1579,7 +1579,7 @@ module('SyncRecordCache', function(hooks) {
       }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(jupiter),
       t.addRecord(earth),
       t.addRecord(venus),
@@ -1588,7 +1588,7 @@ module('SyncRecordCache', function(hooks) {
 
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q.findRecords([
           { type: 'planet', id: 'jupiter' },
           { type: 'planet', id: 'venus' },
@@ -1599,7 +1599,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#query can perform a simple attribute filter by value equality', function(assert) {
+  test('#query can perform a simple attribute filter by value equality', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -1639,7 +1639,7 @@ module('SyncRecordCache', function(hooks) {
       }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(jupiter),
       t.addRecord(earth),
       t.addRecord(venus),
@@ -1648,14 +1648,14 @@ module('SyncRecordCache', function(hooks) {
 
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q.findRecords('planet').filter({ attribute: 'name', value: 'Jupiter' })
       ),
       [jupiter]
     );
   });
 
-  test('#query can perform a simple attribute filter by value comparison (gt, lt, gte & lte)', function(assert) {
+  test('#query can perform a simple attribute filter by value comparison (gt, lt, gte & lte)', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -1699,7 +1699,7 @@ module('SyncRecordCache', function(hooks) {
       }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(jupiter),
       t.addRecord(earth),
       t.addRecord(venus),
@@ -1707,7 +1707,7 @@ module('SyncRecordCache', function(hooks) {
     ]);
     arrayMembershipMatches(
       assert,
-      cache.query(q => {
+      cache.query((q) => {
         let tmp = q.findRecords('planet');
         return tmp.filter({ attribute: 'sequence', value: 2, op: 'gt' });
       }),
@@ -1715,7 +1715,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q => {
+      cache.query((q) => {
         let tmp = q.findRecords('planet');
         return tmp.filter({ attribute: 'sequence', value: 2, op: 'gte' });
       }),
@@ -1723,7 +1723,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q => {
+      cache.query((q) => {
         let tmp = q.findRecords('planet');
         return tmp.filter({ attribute: 'sequence', value: 2, op: 'lt' });
       }),
@@ -1731,7 +1731,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q => {
+      cache.query((q) => {
         let tmp = q.findRecords('planet');
         return tmp.filter({ attribute: 'sequence', value: 2, op: 'lte' });
       }),
@@ -1739,7 +1739,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#query can perform relatedRecords filters with operators `equal`, `all`, `some` and `none`', function(assert) {
+  test('#query can perform relatedRecords filters with operators `equal`, `all`, `some` and `none`', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -1843,7 +1843,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: {}
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(jupiter),
       t.addRecord(earth),
       t.addRecord(mars),
@@ -1858,7 +1858,7 @@ module('SyncRecordCache', function(hooks) {
     ]);
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [theMoon], op: 'equal' })
@@ -1867,7 +1867,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [phobos], op: 'equal' })
@@ -1876,7 +1876,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [phobos], op: 'all' })
@@ -1885,7 +1885,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [phobos, callisto], op: 'all' })
@@ -1894,7 +1894,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q.findRecords('planet').filter({
           relation: 'moons',
           records: [phobos, callisto],
@@ -1905,7 +1905,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [titan], op: 'some' })
@@ -1914,7 +1914,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [ganymede], op: 'none' })
@@ -1923,7 +1923,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#query can perform relatedRecord filters', function(assert) {
+  test('#query can perform relatedRecord filters', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -2027,7 +2027,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: { planet: { data: null } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(jupiter),
       t.addRecord(earth),
       t.addRecord(mars),
@@ -2042,35 +2042,35 @@ module('SyncRecordCache', function(hooks) {
     ]);
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q.findRecords('moon').filter({ relation: 'planet', record: null })
       ),
       [titan]
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q.findRecords('moon').filter({ relation: 'planet', record: earth })
       ),
       [theMoon]
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q.findRecords('moon').filter({ relation: 'planet', record: jupiter })
       ),
       [europa, ganymede, callisto]
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q.findRecords('moon').filter({ relation: 'planet', record: mercury })
       ),
       []
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRecords('moon')
           .filter({ relation: 'planet', record: [earth, mars] })
@@ -2079,7 +2079,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#query can perform a complex attribute filter by value', function(assert) {
+  test('#query can perform a complex attribute filter by value', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -2119,7 +2119,7 @@ module('SyncRecordCache', function(hooks) {
       }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(jupiter),
       t.addRecord(earth),
       t.addRecord(venus),
@@ -2128,7 +2128,7 @@ module('SyncRecordCache', function(hooks) {
 
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRecords('planet')
           .filter(
@@ -2140,7 +2140,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#query can perform a filter on attributes, even when a particular record has none', function(assert) {
+  test('#query can perform a filter on attributes, even when a particular record has none', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = { type: 'planet', id: 'jupiter' };
@@ -2172,7 +2172,7 @@ module('SyncRecordCache', function(hooks) {
       }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(jupiter),
       t.addRecord(earth),
       t.addRecord(venus),
@@ -2181,7 +2181,7 @@ module('SyncRecordCache', function(hooks) {
 
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRecords('planet')
           .filter(
@@ -2193,7 +2193,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#query can sort by an attribute', function(assert) {
+  test('#query can sort by an attribute', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -2233,7 +2233,7 @@ module('SyncRecordCache', function(hooks) {
       }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(jupiter),
       t.addRecord(earth),
       t.addRecord(venus),
@@ -2241,12 +2241,12 @@ module('SyncRecordCache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(q => q.findRecords('planet').sort('name')),
+      cache.query((q) => q.findRecords('planet').sort('name')),
       [earth, jupiter, mercury, venus]
     );
   });
 
-  test('#query can sort by an attribute, even when a particular record has none', function(assert) {
+  test('#query can sort by an attribute, even when a particular record has none', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = { type: 'planet', id: 'jupiter' };
@@ -2278,7 +2278,7 @@ module('SyncRecordCache', function(hooks) {
       }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(jupiter),
       t.addRecord(earth),
       t.addRecord(venus),
@@ -2286,12 +2286,12 @@ module('SyncRecordCache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(q => q.findRecords('planet').sort('name')),
+      cache.query((q) => q.findRecords('planet').sort('name')),
       [earth, mercury, venus, jupiter]
     );
   });
 
-  test('#query can filter and sort by attributes', function(assert) {
+  test('#query can filter and sort by attributes', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -2331,7 +2331,7 @@ module('SyncRecordCache', function(hooks) {
       }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(jupiter),
       t.addRecord(earth),
       t.addRecord(venus),
@@ -2339,7 +2339,7 @@ module('SyncRecordCache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRecords('planet')
           .filter(
@@ -2352,7 +2352,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#query can sort by an attribute in descending order', function(assert) {
+  test('#query can sort by an attribute in descending order', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -2392,7 +2392,7 @@ module('SyncRecordCache', function(hooks) {
       }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(jupiter),
       t.addRecord(earth),
       t.addRecord(venus),
@@ -2400,12 +2400,12 @@ module('SyncRecordCache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(q => q.findRecords('planet').sort('-name')),
+      cache.query((q) => q.findRecords('planet').sort('-name')),
       [venus, mercury, jupiter, earth]
     );
   });
 
-  test('#query can sort by according to multiple criteria', function(assert) {
+  test('#query can sort by according to multiple criteria', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -2445,7 +2445,7 @@ module('SyncRecordCache', function(hooks) {
       }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(jupiter),
       t.addRecord(earth),
       t.addRecord(venus),
@@ -2453,12 +2453,14 @@ module('SyncRecordCache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(q => q.findRecords('planet').sort('classification', 'name')),
+      cache.query((q) =>
+        q.findRecords('planet').sort('classification', 'name')
+      ),
       [jupiter, earth, mercury, venus]
     );
   });
 
-  test('#query - findRecord - finds record', function(assert) {
+  test('#query - findRecord - finds record', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -2468,24 +2470,24 @@ module('SyncRecordCache', function(hooks) {
       relationships: { moons: { data: [{ type: 'moon', id: 'callisto' }] } }
     };
 
-    cache.patch(t => [t.addRecord(jupiter)]);
+    cache.patch((t) => [t.addRecord(jupiter)]);
 
     assert.deepEqual(
-      cache.query(q => q.findRecord({ type: 'planet', id: 'jupiter' })),
+      cache.query((q) => q.findRecord({ type: 'planet', id: 'jupiter' })),
       jupiter
     );
   });
 
-  test("#query - findRecord - throws RecordNotFoundException if record doesn't exist", function(assert) {
+  test("#query - findRecord - throws RecordNotFoundException if record doesn't exist", function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     assert.throws(
-      () => cache.query(q => q.findRecord({ type: 'planet', id: 'jupiter' })),
+      () => cache.query((q) => q.findRecord({ type: 'planet', id: 'jupiter' })),
       RecordNotFoundException
     );
   });
 
-  test('#query - findRecords - finds matching records', function(assert) {
+  test('#query - findRecords - finds matching records', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -2502,15 +2504,15 @@ module('SyncRecordCache', function(hooks) {
       relationships: { planet: { data: [{ type: 'planet', id: 'jupiter' }] } }
     };
 
-    cache.patch(t => [t.addRecord(jupiter), t.addRecord(callisto)]);
+    cache.patch((t) => [t.addRecord(jupiter), t.addRecord(callisto)]);
 
     assert.deepEqual(
-      cache.query(q => q.findRecords('planet')),
+      cache.query((q) => q.findRecords('planet')),
       [jupiter]
     );
   });
 
-  test('#query - page - can paginate records by offset and limit', function(assert) {
+  test('#query - page - can paginate records by offset and limit', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -2537,7 +2539,7 @@ module('SyncRecordCache', function(hooks) {
       attributes: { name: 'Mars' }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(jupiter),
       t.addRecord(earth),
       t.addRecord(venus),
@@ -2545,32 +2547,26 @@ module('SyncRecordCache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(q => q.findRecords('planet').sort('name')),
+      cache.query((q) => q.findRecords('planet').sort('name')),
       [earth, jupiter, mars, venus]
     );
 
     assert.deepEqual(
-      cache.query(q =>
-        q
-          .findRecords('planet')
-          .sort('name')
-          .page({ limit: 3 })
+      cache.query((q) =>
+        q.findRecords('planet').sort('name').page({ limit: 3 })
       ),
       [earth, jupiter, mars]
     );
 
     assert.deepEqual(
-      cache.query(q =>
-        q
-          .findRecords('planet')
-          .sort('name')
-          .page({ offset: 1, limit: 2 })
+      cache.query((q) =>
+        q.findRecords('planet').sort('name').page({ offset: 1, limit: 2 })
       ),
       [jupiter, mars]
     );
   });
 
-  test('#query - findRelatedRecords', function(assert) {
+  test('#query - findRelatedRecords', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -2587,17 +2583,17 @@ module('SyncRecordCache', function(hooks) {
       relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
     };
 
-    cache.patch(t => [t.addRecord(jupiter), t.addRecord(callisto)]);
+    cache.patch((t) => [t.addRecord(jupiter), t.addRecord(callisto)]);
 
     assert.deepEqual(
-      cache.query(q =>
+      cache.query((q) =>
         q.findRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons')
       ),
       [callisto]
     );
   });
 
-  test('#query - findRelatedRecords - returns empty array if there are no related records', function(assert) {
+  test('#query - findRelatedRecords - returns empty array if there are no related records', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -2606,29 +2602,29 @@ module('SyncRecordCache', function(hooks) {
       attributes: { name: 'Jupiter' }
     };
 
-    cache.patch(t => [t.addRecord(jupiter)]);
+    cache.patch((t) => [t.addRecord(jupiter)]);
 
     assert.deepEqual(
-      cache.query(q =>
+      cache.query((q) =>
         q.findRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons')
       ),
       []
     );
   });
 
-  test("#query - findRelatedRecords - throws RecordNotFoundException if primary record doesn't exist", function(assert) {
+  test("#query - findRelatedRecords - throws RecordNotFoundException if primary record doesn't exist", function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     assert.throws(
       () =>
-        cache.query(q =>
+        cache.query((q) =>
           q.findRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons')
         ),
       RecordNotFoundException
     );
   });
 
-  test('#query - findRelatedRecord', function(assert) {
+  test('#query - findRelatedRecord', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -2645,17 +2641,17 @@ module('SyncRecordCache', function(hooks) {
       relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
     };
 
-    cache.patch(t => [t.addRecord(jupiter), t.addRecord(callisto)]);
+    cache.patch((t) => [t.addRecord(jupiter), t.addRecord(callisto)]);
 
     assert.deepEqual(
-      cache.query(q =>
+      cache.query((q) =>
         q.findRelatedRecord({ type: 'moon', id: 'callisto' }, 'planet')
       ),
       jupiter
     );
   });
 
-  test('#query - findRelatedRecord - return null if no related record is found', function(assert) {
+  test('#query - findRelatedRecord - return null if no related record is found', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const callisto: Record = {
@@ -2664,29 +2660,29 @@ module('SyncRecordCache', function(hooks) {
       attributes: { name: 'Callisto' }
     };
 
-    cache.patch(t => [t.addRecord(callisto)]);
+    cache.patch((t) => [t.addRecord(callisto)]);
 
     assert.deepEqual(
-      cache.query(q =>
+      cache.query((q) =>
         q.findRelatedRecord({ type: 'moon', id: 'callisto' }, 'planet')
       ),
       null
     );
   });
 
-  test("#query - findRelatedRecord - throws RecordNotFoundException if primary record doesn't exist", function(assert) {
+  test("#query - findRelatedRecord - throws RecordNotFoundException if primary record doesn't exist", function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     assert.throws(
       () =>
-        cache.query(q =>
+        cache.query((q) =>
           q.findRelatedRecord({ type: 'moon', id: 'callisto' }, 'planet')
         ),
       RecordNotFoundException
     );
   });
 
-  test('#query - findRelatedRecords can perform a simple attribute filter by value equality', function(assert) {
+  test('#query - findRelatedRecords can perform a simple attribute filter by value equality', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const sun: Record = {
@@ -2745,7 +2741,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(sun),
       t.addRecord(jupiter),
       t.addRecord(earth),
@@ -2755,7 +2751,7 @@ module('SyncRecordCache', function(hooks) {
 
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ attribute: 'name', value: 'Jupiter' })
@@ -2764,7 +2760,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#query - findRelatedRecords - can perform a simple attribute filter by value comparison (gt, lt, gte & lte)', function(assert) {
+  test('#query - findRelatedRecords - can perform a simple attribute filter by value comparison (gt, lt, gte & lte)', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const sun: Record = {
@@ -2827,7 +2823,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(sun),
       t.addRecord(jupiter),
       t.addRecord(earth),
@@ -2836,7 +2832,7 @@ module('SyncRecordCache', function(hooks) {
     ]);
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ attribute: 'sequence', value: 2, op: 'gt' })
@@ -2845,7 +2841,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ attribute: 'sequence', value: 2, op: 'gte' })
@@ -2854,7 +2850,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ attribute: 'sequence', value: 2, op: 'lt' })
@@ -2863,7 +2859,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ attribute: 'sequence', value: 2, op: 'lte' })
@@ -2872,7 +2868,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#query - findRelatedRecords - can perform relatedRecords filters with operators `equal`, `all`, `some` and `none`', function(assert) {
+  test('#query - findRelatedRecords - can perform relatedRecords filters with operators `equal`, `all`, `some` and `none`', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const sun: Record = {
@@ -2997,7 +2993,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: {}
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(sun),
       t.addRecord(jupiter),
       t.addRecord(earth),
@@ -3013,7 +3009,7 @@ module('SyncRecordCache', function(hooks) {
     ]);
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [theMoon], op: 'equal' })
@@ -3022,7 +3018,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [phobos], op: 'equal' })
@@ -3031,7 +3027,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [phobos], op: 'all' })
@@ -3040,7 +3036,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [phobos, callisto], op: 'all' })
@@ -3049,7 +3045,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q.findRelatedRecords(sun, 'celestialObjects').filter({
           relation: 'moons',
           records: [phobos, callisto],
@@ -3060,7 +3056,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [titan], op: 'some' })
@@ -3069,7 +3065,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [ganymede], op: 'none' })
@@ -3078,7 +3074,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#query - findRelatedRecords - can perform relatedRecord filters', function(assert) {
+  test('#query - findRelatedRecords - can perform relatedRecord filters', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const sun: Record = {
@@ -3230,7 +3226,7 @@ module('SyncRecordCache', function(hooks) {
       }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(sun),
       t.addRecord(jupiter),
       t.addRecord(earth),
@@ -3246,7 +3242,7 @@ module('SyncRecordCache', function(hooks) {
     ]);
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'planet', record: null })
@@ -3255,7 +3251,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(earth, 'moons')
           .filter({ relation: 'planet', record: earth })
@@ -3264,7 +3260,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(jupiter, 'moons')
           .filter({ relation: 'planet', record: jupiter })
@@ -3273,7 +3269,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(mercury, 'moons')
           .filter({ relation: 'planet', record: mercury })
@@ -3282,7 +3278,7 @@ module('SyncRecordCache', function(hooks) {
     );
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'planet', record: [earth, mars] })
@@ -3291,7 +3287,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#query - findRelatedRecords - can perform a complex attribute filter by value', function(assert) {
+  test('#query - findRelatedRecords - can perform a complex attribute filter by value', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const sun: Record = {
@@ -3350,7 +3346,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(sun),
       t.addRecord(jupiter),
       t.addRecord(earth),
@@ -3360,7 +3356,7 @@ module('SyncRecordCache', function(hooks) {
 
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter(
@@ -3372,7 +3368,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#query - findRelatedRecords - can perform a filter on attributes, even when a particular record has none', function(assert) {
+  test('#query - findRelatedRecords - can perform a filter on attributes, even when a particular record has none', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const sun: Record = {
@@ -3426,7 +3422,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(sun),
       t.addRecord(jupiter),
       t.addRecord(earth),
@@ -3436,7 +3432,7 @@ module('SyncRecordCache', function(hooks) {
 
     arrayMembershipMatches(
       assert,
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter(
@@ -3448,7 +3444,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#query - findRelatedRecords - can sort by an attribute', function(assert) {
+  test('#query - findRelatedRecords - can sort by an attribute', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const sun: Record = {
@@ -3507,7 +3503,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(sun),
       t.addRecord(jupiter),
       t.addRecord(earth),
@@ -3516,14 +3512,14 @@ module('SyncRecordCache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(q =>
+      cache.query((q) =>
         q.findRelatedRecords(sun, 'celestialObjects').sort('name')
       ),
       [earth, jupiter, mercury, venus]
     );
   });
 
-  test('#query - findRelatedRecords - can sort by an attribute, even when a particular record has none', function(assert) {
+  test('#query - findRelatedRecords - can sort by an attribute, even when a particular record has none', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const sun: Record = {
@@ -3573,7 +3569,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(sun),
       t.addRecord(jupiter),
       t.addRecord(earth),
@@ -3582,14 +3578,14 @@ module('SyncRecordCache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(q =>
+      cache.query((q) =>
         q.findRelatedRecords(sun, 'celestialObjects').sort('name')
       ),
       [earth, mercury, venus, jupiter]
     );
   });
 
-  test('#query - findRelatedRecords - can filter and sort by attributes', function(assert) {
+  test('#query - findRelatedRecords - can filter and sort by attributes', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const sun: Record = {
@@ -3648,7 +3644,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(sun),
       t.addRecord(jupiter),
       t.addRecord(earth),
@@ -3657,7 +3653,7 @@ module('SyncRecordCache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter(
@@ -3670,7 +3666,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#query - findRelatedRecords - can sort by an attribute in descending order', function(assert) {
+  test('#query - findRelatedRecords - can sort by an attribute in descending order', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const sun: Record = {
@@ -3729,7 +3725,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(sun),
       t.addRecord(jupiter),
       t.addRecord(earth),
@@ -3738,14 +3734,14 @@ module('SyncRecordCache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(q =>
+      cache.query((q) =>
         q.findRelatedRecords(sun, 'celestialObjects').sort('-name')
       ),
       [venus, mercury, jupiter, earth]
     );
   });
 
-  test('#query - findRelatedRecords - can sort by according to multiple criteria', function(assert) {
+  test('#query - findRelatedRecords - can sort by according to multiple criteria', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const sun: Record = {
@@ -3804,7 +3800,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(sun),
       t.addRecord(jupiter),
       t.addRecord(earth),
@@ -3813,7 +3809,7 @@ module('SyncRecordCache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .sort('classification', 'name')
@@ -3822,7 +3818,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#query - findRelatedRecords - page - can paginate records by offset and limit', function(assert) {
+  test('#query - findRelatedRecords - page - can paginate records by offset and limit', function (assert) {
     const cache = new Cache({ schema, keyMap });
 
     const sun: Record = {
@@ -3868,7 +3864,7 @@ module('SyncRecordCache', function(hooks) {
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
 
-    cache.patch(t => [
+    cache.patch((t) => [
       t.addRecord(sun),
       t.addRecord(jupiter),
       t.addRecord(earth),
@@ -3877,14 +3873,14 @@ module('SyncRecordCache', function(hooks) {
     ]);
 
     assert.deepEqual(
-      cache.query(q =>
+      cache.query((q) =>
         q.findRelatedRecords(sun, 'celestialObjects').sort('name')
       ),
       [earth, jupiter, mars, venus]
     );
 
     assert.deepEqual(
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .sort('name')
@@ -3894,7 +3890,7 @@ module('SyncRecordCache', function(hooks) {
     );
 
     assert.deepEqual(
-      cache.query(q =>
+      cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .sort('name')
@@ -3904,7 +3900,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#liveQuery', async function(assert) {
+  test('#liveQuery', async function (assert) {
     let cache = new Cache({ schema, keyMap });
 
     const jupiter: Record = {
@@ -3930,14 +3926,14 @@ module('SyncRecordCache', function(hooks) {
       relationships: { moons: { data: [{ type: 'moon', id: 'callisto' }] } }
     };
 
-    const livePlanet = cache.liveQuery(q =>
+    const livePlanet = cache.liveQuery((q) =>
       q.findRecord({ type: 'planet', id: 'jupiter' })
     );
-    const livePlanets = cache.liveQuery(q => q.findRecords('planet'));
-    const livePlanetMoons = cache.liveQuery(q =>
+    const livePlanets = cache.liveQuery((q) => q.findRecords('planet'));
+    const livePlanetMoons = cache.liveQuery((q) =>
       q.findRelatedRecords(jupiter, 'moons')
     );
-    const liveMoonPlanet = cache.liveQuery(q =>
+    const liveMoonPlanet = cache.liveQuery((q) =>
       q.findRelatedRecord(callisto, 'planet')
     );
 
@@ -3950,7 +3946,7 @@ module('SyncRecordCache', function(hooks) {
       let defer: Deferred = {};
       defer.promise = new Promise((resolve, reject) => {
         defer.resolve = resolve;
-        defer.reject = message => reject(new Error(message));
+        defer.reject = (message) => reject(new Error(message));
       });
       return defer;
     }
@@ -3976,7 +3972,7 @@ module('SyncRecordCache', function(hooks) {
     }
 
     let n = 0;
-    let livePlanetUnsubscribe = livePlanet.subscribe(update => {
+    let livePlanetUnsubscribe = livePlanet.subscribe((update) => {
       n++;
       try {
         const result = update.query();
@@ -4008,7 +4004,7 @@ module('SyncRecordCache', function(hooks) {
     });
 
     let i = 0;
-    let livePlanetsUnsubscribe = livePlanets.subscribe(update => {
+    let livePlanetsUnsubscribe = livePlanets.subscribe((update) => {
       i++;
       try {
         const result = update.query();
@@ -4035,7 +4031,7 @@ module('SyncRecordCache', function(hooks) {
     });
 
     let j = 0;
-    let livePlanetMoonsUnsubscribe = livePlanetMoons.subscribe(update => {
+    let livePlanetMoonsUnsubscribe = livePlanetMoons.subscribe((update) => {
       j++;
       try {
         const result = update.query();
@@ -4063,7 +4059,7 @@ module('SyncRecordCache', function(hooks) {
     });
 
     let k = 0;
-    let liveMoonPlanetUnsubscribe = liveMoonPlanet.subscribe(update => {
+    let liveMoonPlanetUnsubscribe = liveMoonPlanet.subscribe((update) => {
       k++;
       try {
         const result = update.query();
@@ -4096,16 +4092,16 @@ module('SyncRecordCache', function(hooks) {
       jupiterRemoved.reject('reject jupiterRemoved');
     }, 500);
 
-    cache.patch(t => t.addRecord(jupiter));
+    cache.patch((t) => t.addRecord(jupiter));
     await jupiterAdded.promise;
 
-    cache.patch(t => t.updateRecord(jupiter2));
+    cache.patch((t) => t.updateRecord(jupiter2));
     await jupiterUpdated.promise;
 
-    cache.patch(t => t.addRecord(callisto));
+    cache.patch((t) => t.addRecord(callisto));
     await callistoAdded.promise;
 
-    cache.patch(t => t.removeRecord(jupiter));
+    cache.patch((t) => t.removeRecord(jupiter));
     await jupiterRemoved.promise;
 
     assert.expect(16);
@@ -4119,7 +4115,7 @@ module('SyncRecordCache', function(hooks) {
     livePlanetMoonsUnsubscribe();
     liveMoonPlanetUnsubscribe();
 
-    cache.patch(t =>
+    cache.patch((t) =>
       t.addRecord({
         type: 'planet',
         id: 'mercury',
@@ -4130,7 +4126,7 @@ module('SyncRecordCache', function(hooks) {
     );
   });
 
-  test('#liveQuery findRecords (debounce)', async function(assert) {
+  test('#liveQuery findRecords (debounce)', async function (assert) {
     let cache = new Cache({ schema, keyMap });
 
     const planets: Record[] = [
@@ -4151,24 +4147,24 @@ module('SyncRecordCache', function(hooks) {
       }
     ];
 
-    const livePlanets = cache.liveQuery(q => q.findRecords('planet'));
+    const livePlanets = cache.liveQuery((q) => q.findRecords('planet'));
 
     let i = 0;
     cache.on('patch', () => i++);
 
     const done = assert.async();
-    livePlanets.subscribe(update => {
+    livePlanets.subscribe((update) => {
       const result = update.query();
       assert.deepEqual(result, planets);
       assert.equal(i, 3);
       done();
     });
 
-    cache.patch(t => planets.map(planet => t.addRecord(planet)));
+    cache.patch((t) => planets.map((planet) => t.addRecord(planet)));
     assert.expect(2);
   });
 
-  test('#liveQuery findRecords (no debounce)', async function(assert) {
+  test('#liveQuery findRecords (no debounce)', async function (assert) {
     let cache = new Cache({ schema, keyMap, debounceLiveQueries: false });
 
     const planets: Record[] = [
@@ -4189,13 +4185,13 @@ module('SyncRecordCache', function(hooks) {
       }
     ];
 
-    const livePlanets = cache.liveQuery(q => q.findRecords('planet'));
+    const livePlanets = cache.liveQuery((q) => q.findRecords('planet'));
 
     let i = 0;
     cache.on('patch', () => i++);
 
     const done = assert.async();
-    livePlanets.subscribe(update => {
+    livePlanets.subscribe((update) => {
       const result = update.query() as Record[];
       assert.equal(result.length, i);
 
@@ -4204,7 +4200,7 @@ module('SyncRecordCache', function(hooks) {
       }
     });
 
-    cache.patch(t => planets.map(planet => t.addRecord(planet)));
+    cache.patch((t) => planets.map((planet) => t.addRecord(planet)));
     assert.expect(3);
   });
 });

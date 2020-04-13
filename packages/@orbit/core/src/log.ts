@@ -188,7 +188,7 @@ export default class Log implements Evented {
     if (!data && this._bucket) {
       this.reified = this._bucket
         .getItem(this._name)
-        .then(bucketData => this._initData(bucketData));
+        .then((bucketData) => this._initData(bucketData));
     } else {
       this._initData(data);
       this.reified = Promise.resolve();

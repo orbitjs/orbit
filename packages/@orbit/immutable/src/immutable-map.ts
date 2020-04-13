@@ -29,7 +29,7 @@ export default class ImmutableMap<K, V> {
 
   setMany(entries: [K, V][]): void {
     let data = this._data.beginMutation();
-    entries.forEach(entry => {
+    entries.forEach((entry) => {
       data.set(entry[0], entry[1]);
     });
     this._data = data.endMutation();
@@ -41,7 +41,7 @@ export default class ImmutableMap<K, V> {
 
   removeMany(keys: K[]): void {
     let data = this._data.beginMutation();
-    keys.forEach(key => {
+    keys.forEach((key) => {
       data.remove(key);
     });
     this._data = data.endMutation();

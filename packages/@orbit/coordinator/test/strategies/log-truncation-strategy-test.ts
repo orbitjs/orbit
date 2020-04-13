@@ -3,7 +3,7 @@ import { Source, TransformBuilder, buildTransform } from '@orbit/data';
 
 const { module, test } = QUnit;
 
-module('LogTruncationStrategy', function(hooks) {
+module('LogTruncationStrategy', function (hooks) {
   const t = new TransformBuilder();
   const tA = buildTransform(
     [t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })],
@@ -32,7 +32,7 @@ module('LogTruncationStrategy', function(hooks) {
   let s2: any;
   let s3: any;
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     class MySource extends Source {}
 
     s1 = new MySource({ name: 's1' });
@@ -40,13 +40,13 @@ module('LogTruncationStrategy', function(hooks) {
     s3 = new MySource({ name: 's3' });
   });
 
-  test('can be instantiated', function(assert) {
+  test('can be instantiated', function (assert) {
     logTruncationStrategy = new LogTruncationStrategy();
 
     assert.ok(logTruncationStrategy);
   });
 
-  test('installs listeners on activate and removes them on deactivate', async function(assert) {
+  test('installs listeners on activate and removes them on deactivate', async function (assert) {
     assert.expect(18);
 
     logTruncationStrategy = new LogTruncationStrategy();
@@ -154,7 +154,7 @@ module('LogTruncationStrategy', function(hooks) {
     );
   });
 
-  test('observes source transforms and truncates any common history up to the most recent match', async function(assert) {
+  test('observes source transforms and truncates any common history up to the most recent match', async function (assert) {
     assert.expect(3);
 
     logTruncationStrategy = new LogTruncationStrategy();
@@ -176,7 +176,7 @@ module('LogTruncationStrategy', function(hooks) {
     assert.ok(!s3.transformLog.contains('a'), 's3 has removed a');
   });
 
-  test('observes source transforms and truncates their history to after the most recent common entry', async function(assert) {
+  test('observes source transforms and truncates their history to after the most recent common entry', async function (assert) {
     assert.expect(10);
 
     logTruncationStrategy = new LogTruncationStrategy();

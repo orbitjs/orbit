@@ -38,23 +38,23 @@ export class EventLoggingStrategy extends Strategy {
   ): Promise<void> {
     await super.activate(coordinator, options);
     this._eventListeners = {};
-    this._sources.forEach(source => this._activateSource(source));
+    this._sources.forEach((source) => this._activateSource(source));
   }
 
   async deactivate(): Promise<void> {
     await super.deactivate();
-    this._sources.forEach(source => this._deactivateSource(source));
+    this._sources.forEach((source) => this._deactivateSource(source));
     this._eventListeners = null;
   }
 
   protected _activateSource(source: Source): void {
-    this._sourceEvents(source).forEach(event => {
+    this._sourceEvents(source).forEach((event) => {
       this._addListener(source, event);
     });
   }
 
   protected _deactivateSource(source: Source): void {
-    this._sourceEvents(source).forEach(event => {
+    this._sourceEvents(source).forEach((event) => {
       this._removeListener(source, event);
     });
   }
@@ -66,7 +66,7 @@ export class EventLoggingStrategy extends Strategy {
       let events: string[] = [];
       let interfaces = this._interfaces || this._sourceInterfaces(source);
 
-      interfaces.forEach(i => {
+      interfaces.forEach((i) => {
         Array.prototype.push.apply(events, this._interfaceEvents(i));
       });
 

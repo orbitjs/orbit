@@ -10,7 +10,7 @@ const { module, test } = QUnit;
 
 module(
   'Store + JSONAPISource + remote IDs + pessimistic coordination',
-  function(hooks) {
+  function (hooks) {
     let fetchStub: SinonStub;
     let keyMap: KeyMap;
     let schema: Schema;
@@ -75,7 +75,7 @@ module(
       memory = new MemorySource({ schema, keyMap });
 
       remote = new JSONAPISource({ schema, keyMap, name: 'remote' });
-      remote.requestProcessor.serializer.resourceKey = function() {
+      remote.requestProcessor.serializer.resourceKey = function () {
         return 'remoteId';
       };
 
@@ -122,7 +122,7 @@ module(
       fetchStub.restore();
     });
 
-    test('Adding a record to the memory source immediately pushes the update to the remote', async function(assert) {
+    test('Adding a record to the memory source immediately pushes the update to the remote', async function (assert) {
       assert.expect(4);
 
       await coordinator.activate();
@@ -143,8 +143,8 @@ module(
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       };
 
-      let createdRecord = await memory.update(t => t.addRecord(planet));
-      let result = memory.cache.query(q => q.findRecord(planet));
+      let createdRecord = await memory.update((t) => t.addRecord(planet));
+      let result = memory.cache.query((q) => q.findRecord(planet));
 
       assert.deepEqual(result, {
         type: 'planet',

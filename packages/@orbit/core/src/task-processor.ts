@@ -38,12 +38,12 @@ export default class TaskProcessor {
     this._started = false;
     this._settled = false;
     this._settlement = new Promise((resolve, reject) => {
-      this._success = r => {
+      this._success = (r) => {
         this._settled = true;
         resolve(r);
       };
 
-      this._fail = e => {
+      this._fail = (e) => {
         this._settled = true;
         reject(e);
       };

@@ -3,16 +3,16 @@ import { Source, TransformBuilder } from '@orbit/data';
 
 const { module, test } = QUnit;
 
-module('EventLoggingStrategy', function(hooks) {
+module('EventLoggingStrategy', function (hooks) {
   let eventLoggingStrategy: EventLoggingStrategy;
 
-  test('can be instantiated', function(assert) {
+  test('can be instantiated', function (assert) {
     eventLoggingStrategy = new EventLoggingStrategy();
 
     assert.ok(eventLoggingStrategy);
   });
 
-  test('can be added to a coordinator', function(assert) {
+  test('can be added to a coordinator', function (assert) {
     let coordinator = new Coordinator();
 
     eventLoggingStrategy = new EventLoggingStrategy();
@@ -25,7 +25,7 @@ module('EventLoggingStrategy', function(hooks) {
     );
   });
 
-  test('for basic sources, installs `transform` listeners on activatation and removes them on deactivation', async function(assert) {
+  test('for basic sources, installs `transform` listeners on activatation and removes them on deactivation', async function (assert) {
     assert.expect(6);
 
     class MySource extends Source {}

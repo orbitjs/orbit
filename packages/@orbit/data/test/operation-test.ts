@@ -3,9 +3,9 @@ import './test-helper';
 
 const { module, test } = QUnit;
 
-module('Operation', function() {
-  module('`coalesceRecordOperations`', function() {
-    test('can coalesce replaceAttribute + replaceAttribute for the same record', function(assert) {
+module('Operation', function () {
+  module('`coalesceRecordOperations`', function () {
+    test('can coalesce replaceAttribute + replaceAttribute for the same record', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -32,7 +32,7 @@ module('Operation', function() {
       );
     });
 
-    test('will not coalesce replaceAttribute + replaceAttribute for different records', function(assert) {
+    test('will not coalesce replaceAttribute + replaceAttribute for different records', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -65,7 +65,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + replaceAttribute for the same record', function(assert) {
+    test('can coalesce addRecord + replaceAttribute for the same record', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -88,7 +88,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + replaceAttribute for a couple records', function(assert) {
+    test('can coalesce addRecord + replaceAttribute for a couple records', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -133,7 +133,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + replaceRelatedRecords for the same record', function(assert) {
+    test('can coalesce addRecord + replaceRelatedRecords for the same record', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -165,7 +165,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + replaceRelatedRecord for the same record', function(assert) {
+    test('can coalesce addRecord + replaceRelatedRecord for the same record', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -197,7 +197,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce replaceAttribute + replaceRelatedRecord with null', function(assert) {
+    test('can coalesce replaceAttribute + replaceRelatedRecord with null', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -233,7 +233,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + addToRelatedRecords for the same record', function(assert) {
+    test('can coalesce addRecord + addToRelatedRecords for the same record', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -265,7 +265,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + replaceRelatedRecord for the same record', function(assert) {
+    test('can coalesce addRecord + replaceRelatedRecord for the same record', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -297,7 +297,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + replaceRelatedRecord for the same record + relationship', function(assert) {
+    test('can coalesce addRecord + replaceRelatedRecord for the same record + relationship', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -338,7 +338,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce replaceRelatedRecord + replaceRelatedRecord for the same record + relationship', function(assert) {
+    test('can coalesce replaceRelatedRecord + replaceRelatedRecord for the same record + relationship', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -365,7 +365,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + removeRecord for the same record', function(assert) {
+    test('can coalesce addRecord + removeRecord for the same record', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -381,7 +381,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + replaceRelatedRecord + removeRecord for the same record', function(assert) {
+    test('can coalesce addRecord + replaceRelatedRecord + removeRecord for the same record', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -412,7 +412,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + replaceRelatedRecord + removeRecord for the same record in non-contiguous ops', function(assert) {
+    test('can coalesce addRecord + replaceRelatedRecord + removeRecord for the same record in non-contiguous ops', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -452,7 +452,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + addToRelatedRecords + removeRecord for the same record', function(assert) {
+    test('can coalesce addRecord + addToRelatedRecords + removeRecord for the same record', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -474,7 +474,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce removeRecord + removeRecord for the same record', function(assert) {
+    test('can coalesce removeRecord + removeRecord for the same record', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -495,7 +495,7 @@ module('Operation', function() {
       );
     });
 
-    test("coalesces operations, but doesn't allow reordering of ops that affect relationships", function(assert) {
+    test("coalesces operations, but doesn't allow reordering of ops that affect relationships", function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -558,7 +558,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addToRelatedRecords + removeFromRelatedRecords for the same record + relationship', function(assert) {
+    test('can coalesce addToRelatedRecords + removeFromRelatedRecords for the same record + relationship', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -578,7 +578,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + addToRelatedRecords for the same record', function(assert) {
+    test('can coalesce addRecord + addToRelatedRecords for the same record', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -622,7 +622,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce updateRecord + addToRelatedRecords for the same record', function(assert) {
+    test('can coalesce updateRecord + addToRelatedRecords for the same record', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -666,7 +666,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce removeFromRelatedRecords + addToRelatedRecords for the same record + relationship', function(assert) {
+    test('can coalesce removeFromRelatedRecords + addToRelatedRecords for the same record + relationship', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {
@@ -686,7 +686,7 @@ module('Operation', function() {
       );
     });
 
-    test('can coalesce addRecord + removeFromRelatedRecords for the same record', function(assert) {
+    test('can coalesce addRecord + removeFromRelatedRecords for the same record', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
           {

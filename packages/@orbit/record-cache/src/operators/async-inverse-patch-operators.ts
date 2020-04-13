@@ -62,9 +62,9 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
       let result = { type, id };
       let changed = false;
 
-      ['attributes', 'keys'].forEach(grouping => {
+      ['attributes', 'keys'].forEach((grouping) => {
         if ((replacement as any)[grouping]) {
-          Object.keys((replacement as any)[grouping]).forEach(field => {
+          Object.keys((replacement as any)[grouping]).forEach((field) => {
             let value = (replacement as any)[grouping][field];
             let currentValue = deepGet(current, [grouping, field]);
             if (!eq(value, currentValue)) {
@@ -80,7 +80,7 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
       });
 
       if (replacement.relationships) {
-        Object.keys(replacement.relationships).forEach(field => {
+        Object.keys(replacement.relationships).forEach((field) => {
           let data = deepGet(replacement, ['relationships', field, 'data']);
           if (data !== undefined) {
             let currentData = deepGet(current, [

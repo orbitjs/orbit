@@ -121,7 +121,7 @@ export default class MemoryCache extends SyncRecordCache {
   addInverseRelationshipsSync(
     relationships: RecordRelationshipIdentity[]
   ): void {
-    relationships.forEach(r => {
+    relationships.forEach((r) => {
       let rels = this._inverseRelationships[r.relatedRecord.type].get(
         r.relatedRecord.id
       );
@@ -137,13 +137,13 @@ export default class MemoryCache extends SyncRecordCache {
   removeInverseRelationshipsSync(
     relationships: RecordRelationshipIdentity[]
   ): void {
-    relationships.forEach(r => {
+    relationships.forEach((r) => {
       let rels = this._inverseRelationships[r.relatedRecord.type].get(
         r.relatedRecord.id
       );
       if (rels) {
         let newRels = rels.filter(
-          rel =>
+          (rel) =>
             !(
               equalRecordIdentities(rel.record, r.record) &&
               rel.relationship === r.relationship
@@ -170,7 +170,7 @@ export default class MemoryCache extends SyncRecordCache {
   reset(base?: MemoryCache): void {
     this._records = {};
 
-    Object.keys(this._schema.models).forEach(type => {
+    Object.keys(this._schema.models).forEach((type) => {
       let baseRecords = base && base._records[type];
 
       this._records[type] = new ImmutableMap<string, Record>(baseRecords);
@@ -178,7 +178,7 @@ export default class MemoryCache extends SyncRecordCache {
 
     this._resetInverseRelationships(base);
 
-    this._processors.forEach(processor => processor.reset(base));
+    this._processors.forEach((processor) => processor.reset(base));
 
     this.emit('reset');
   }
@@ -187,14 +187,14 @@ export default class MemoryCache extends SyncRecordCache {
    * Upgrade the cache based on the current state of the schema.
    */
   upgrade() {
-    Object.keys(this._schema.models).forEach(type => {
+    Object.keys(this._schema.models).forEach((type) => {
       if (!this._records[type]) {
         this._records[type] = new ImmutableMap<string, Record>();
       }
     });
 
     this._resetInverseRelationships();
-    this._processors.forEach(processor => processor.upgrade());
+    this._processors.forEach((processor) => processor.upgrade());
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -206,7 +206,7 @@ export default class MemoryCache extends SyncRecordCache {
       string,
       RecordRelationshipIdentity[]
     >> = {};
-    Object.keys(this._schema.models).forEach(type => {
+    Object.keys(this._schema.models).forEach((type) => {
       let baseRelationships = base && base._inverseRelationships[type];
       inverseRelationships[type] = new ImmutableMap(baseRelationships);
     });

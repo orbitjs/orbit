@@ -3,7 +3,7 @@ import { KeyMap, Schema } from '@orbit/data';
 import { JSONAPIURLBuilder } from '../src/index';
 import { JSONAPISerializer } from '../src/index';
 
-module('JSONAPIRequestProcessor', function(hooks) {
+module('JSONAPIRequestProcessor', function (hooks) {
   let keyMap: KeyMap;
   let urlBuilder: JSONAPIURLBuilder;
 
@@ -59,7 +59,7 @@ module('JSONAPIRequestProcessor', function(hooks) {
     });
     let serializer = new JSONAPISerializer({ schema, keyMap });
     urlBuilder = new JSONAPIURLBuilder({ serializer, keyMap });
-    urlBuilder.serializer.resourceKey = function() {
+    urlBuilder.serializer.resourceKey = function () {
       return 'remoteId';
     };
   });
@@ -68,11 +68,11 @@ module('JSONAPIRequestProcessor', function(hooks) {
     keyMap = urlBuilder = null;
   });
 
-  test('it exists', function(assert) {
+  test('it exists', function (assert) {
     assert.ok(urlBuilder);
   });
 
-  test('#resourceURL - respects options to construct URLs', function(assert) {
+  test('#resourceURL - respects options to construct URLs', function (assert) {
     assert.expect(1);
     urlBuilder.host = 'http://127.0.0.1:8888';
     urlBuilder.namespace = 'api';
@@ -90,7 +90,7 @@ module('JSONAPIRequestProcessor', function(hooks) {
     );
   });
 
-  test("#resourcePath - returns resource's path without its host and namespace", function(assert) {
+  test("#resourcePath - returns resource's path without its host and namespace", function (assert) {
     assert.expect(1);
     urlBuilder.host = 'http://127.0.0.1:8888';
     urlBuilder.namespace = 'api';
@@ -108,7 +108,7 @@ module('JSONAPIRequestProcessor', function(hooks) {
     );
   });
 
-  test('#resourceRelationshipURL - constructs relationship URLs based upon base resourceURL', function(assert) {
+  test('#resourceRelationshipURL - constructs relationship URLs based upon base resourceURL', function (assert) {
     assert.expect(1);
     keyMap.pushRecord({
       type: 'planet',

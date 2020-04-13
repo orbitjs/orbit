@@ -3,11 +3,11 @@ import { Cache } from '../src/index';
 
 const { module, test } = QUnit;
 
-module('Cache', function(hooks) {
+module('Cache', function (hooks) {
   let schema: Schema;
   let cache: Cache;
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     schema = new Schema({
       models: {
         planet: {}
@@ -16,12 +16,12 @@ module('Cache', function(hooks) {
     cache = new Cache({ schema });
   });
 
-  hooks.afterEach(function() {
+  hooks.afterEach(function () {
     schema = null;
     cache = null;
   });
 
-  test('it exists', function(assert) {
+  test('it exists', function (assert) {
     assert.ok(cache instanceof Cache, 'instanceof Cache');
   });
 });

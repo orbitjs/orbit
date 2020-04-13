@@ -76,7 +76,7 @@ export default function pushable(Klass: SourceClass): void {
 
   proto[PUSHABLE] = true;
 
-  proto.push = async function(
+  proto.push = async function (
     transformOrOperations: TransformOrOperations,
     options?: RequestOptions,
     id?: string
@@ -96,7 +96,7 @@ export default function pushable(Klass: SourceClass): void {
     return this._enqueueRequest('push', transform);
   };
 
-  proto.__push__ = async function(transform: Transform): Promise<Transform[]> {
+  proto.__push__ = async function (transform: Transform): Promise<Transform[]> {
     if (this.transformLog.contains(transform.id)) {
       return [];
     }

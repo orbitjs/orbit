@@ -5,18 +5,18 @@ const { module, test } = QUnit;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module('buildTransform', function() {
-  test('can instantiate a transform from an empty array of operations', function(assert) {
+module('buildTransform', function () {
+  test('can instantiate a transform from an empty array of operations', function (assert) {
     let transform = buildTransform([]);
     assert.ok(transform);
   });
 
-  test('can instantiate a transform that will be assigned an `id`', function(assert) {
+  test('can instantiate a transform that will be assigned an `id`', function (assert) {
     let transform = buildTransform([]);
     assert.ok(transform.id, 'transform has an id');
   });
 
-  test('can instantiate a transform with operations, options, and an id', function(assert) {
+  test('can instantiate a transform with operations, options, and an id', function (assert) {
     let operations = [{ op: 'addRecord' }];
     let options = { sources: { jsonapi: { include: 'comments' } } };
     let id = 'abc123';
@@ -32,12 +32,12 @@ module('buildTransform', function() {
     assert.strictEqual(transform.options, options, 'options was populated');
   });
 
-  test('will return a transform passed into it', function(assert) {
+  test('will return a transform passed into it', function (assert) {
     let transform = buildTransform([]);
     assert.strictEqual(buildTransform(transform), transform);
   });
 
-  test('will create a transform using a TransformBuilder if a function is passed into it', function(assert) {
+  test('will create a transform using a TransformBuilder if a function is passed into it', function (assert) {
     let tb = new TransformBuilder();
     let planet = { type: 'planet', id: 'earth' };
     let operation = {
@@ -45,7 +45,7 @@ module('buildTransform', function() {
       record: planet
     };
 
-    let query = buildTransform(t => t.addRecord(planet), null, null, tb);
+    let query = buildTransform((t) => t.addRecord(planet), null, null, tb);
     assert.deepEqual(query.operations, [operation], 'operations was populated');
   });
 });

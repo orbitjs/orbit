@@ -25,13 +25,13 @@ import { ResourceDocument } from '../dist/types';
 declare const sinon: SinonStatic;
 const { module, test } = QUnit;
 
-module('JSONAPISource', function() {
+module('JSONAPISource', function () {
   let fetchStub: SinonStub;
   let keyMap: KeyMap;
   let schema: Schema;
   let source: JSONAPISource;
 
-  module('with a secondary key', function(hooks) {
+  module('with a secondary key', function (hooks) {
     hooks.beforeEach(() => {
       fetchStub = sinon.stub(self, 'fetch');
 
@@ -92,7 +92,7 @@ module('JSONAPISource', function() {
       keyMap = new KeyMap();
       source = new JSONAPISource({ schema, keyMap });
 
-      source.requestProcessor.serializer.resourceKey = function() {
+      source.requestProcessor.serializer.resourceKey = function () {
         return 'remoteId';
       };
     });
@@ -102,15 +102,15 @@ module('JSONAPISource', function() {
       fetchStub.restore();
     });
 
-    test('it exists', function(assert) {
+    test('it exists', function (assert) {
       assert.ok(source);
     });
 
-    test('its prototype chain is correct', function(assert) {
+    test('its prototype chain is correct', function (assert) {
       assert.ok(source instanceof Source, 'instanceof Source');
     });
 
-    test('source has default settings', function(assert) {
+    test('source has default settings', function (assert) {
       assert.expect(2);
 
       let schema = new Schema({} as SchemaSettings);
@@ -123,7 +123,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('source saves options', function(assert) {
+    test('source saves options', function (assert) {
       assert.expect(5);
 
       let schema = new Schema({} as SchemaSettings);
@@ -163,7 +163,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#defaultFetchSettings - include JSONAPI Accept and Content-Type headers and a 5000ms timeout by default', function(assert) {
+    test('#defaultFetchSettings - include JSONAPI Accept and Content-Type headers and a 5000ms timeout by default', function (assert) {
       assert.deepEqual(source.defaultFetchSettings, {
         headers: {
           Accept: 'application/vnd.api+json',
@@ -173,7 +173,7 @@ module('JSONAPISource', function() {
       });
     });
 
-    test('#defaultFetchSettings can be passed and will override any defaults set', function(assert) {
+    test('#defaultFetchSettings can be passed and will override any defaults set', function (assert) {
       let customSource = new JSONAPISource({
         schema,
         defaultFetchSettings: {
@@ -192,7 +192,7 @@ module('JSONAPISource', function() {
       });
     });
 
-    test('#push - can add records', async function(assert) {
+    test('#push - can add records', async function (assert) {
       assert.expect(9);
 
       let transformCount = 0;
@@ -223,7 +223,7 @@ module('JSONAPISource', function() {
         value: '12345'
       } as ReplaceKeyOperation;
 
-      source.on('transform', function(transform: Transform) {
+      source.on('transform', function (transform: Transform) {
         transformCount++;
 
         if (transformCount === 1) {
@@ -288,7 +288,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#push - will not issue fetch if beforePush listener logs transform', async function(assert) {
+    test('#push - will not issue fetch if beforePush listener logs transform', async function (assert) {
       assert.expect(2);
 
       let planet: Record = source.requestProcessor.serializer.deserializeResource(
@@ -303,7 +303,7 @@ module('JSONAPISource', function() {
         record: planet
       } as AddRecordOperation);
 
-      source.on('beforePush', async function(transform: Transform) {
+      source.on('beforePush', async function (transform: Transform) {
         await source.transformLog.append(t.id);
       });
 
@@ -313,7 +313,7 @@ module('JSONAPISource', function() {
       assert.ok(source.transformLog.contains(t.id), 'log contains transform');
     });
 
-    test('#push - can add sideloaded records', async function(assert) {
+    test('#push - can add sideloaded records', async function (assert) {
       assert.expect(8);
 
       let transformCount = 0;
@@ -374,7 +374,7 @@ module('JSONAPISource', function() {
             'transform event then returns add-remote-id op'
           );
         } else if (transformCount === 3) {
-          let operationsWithoutId = transform.operations.map(op => {
+          let operationsWithoutId = transform.operations.map((op) => {
             let clonedOp = Object.assign({}, op) as RecordOperation;
             delete clonedOp.record.id;
             return clonedOp;
@@ -407,7 +407,7 @@ module('JSONAPISource', function() {
         })
       );
 
-      await source.push(t => t.addRecord(planet));
+      await source.push((t) => t.addRecord(planet));
 
       assert.ok(true, 'transform resolves successfully');
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
@@ -436,7 +436,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#push - options can be passed in at the root level or source-specific level', async function(assert) {
+    test('#push - options can be passed in at the root level or source-specific level', async function (assert) {
       assert.expect(1);
 
       let planet: Record = source.requestProcessor.serializer.deserializeResource(
@@ -466,14 +466,14 @@ module('JSONAPISource', function() {
         })
       );
 
-      await source.push(t => t.addRecord(planet), {
+      await source.push((t) => t.addRecord(planet), {
         include: ['moons']
       });
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
     });
 
-    test('#push - can transform records', async function(assert) {
+    test('#push - can transform records', async function (assert) {
       assert.expect(6);
 
       let transformCount = 0;
@@ -524,7 +524,7 @@ module('JSONAPISource', function() {
         })
       );
 
-      await source.push(t => t.updateRecord(planet));
+      await source.push((t) => t.updateRecord(planet));
 
       assert.ok(true, 'transform resolves successfully');
 
@@ -555,7 +555,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#push - can replace a single attribute', async function(assert) {
+    test('#push - can replace a single attribute', async function (assert) {
       assert.expect(5);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -569,7 +569,7 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(204));
 
-      await source.push(t =>
+      await source.push((t) =>
         t.replaceAttribute(planet, 'classification', 'terrestrial')
       );
 
@@ -601,7 +601,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#push - can accept remote changes', async function(assert) {
+    test('#push - can accept remote changes', async function (assert) {
       assert.expect(2);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -626,12 +626,12 @@ module('JSONAPISource', function() {
         })
       );
 
-      let transforms = await source.push(t =>
+      let transforms = await source.push((t) =>
         t.replaceAttribute(planet, 'classification', 'terrestrial')
       );
 
       assert.deepEqual(
-        transforms[1].operations.map(o => o.op),
+        transforms[1].operations.map((o) => o.op),
         ['replaceAttribute', 'replaceKey']
       );
       assert.deepEqual(
@@ -640,7 +640,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#push - can delete records', async function(assert) {
+    test('#push - can delete records', async function (assert) {
       assert.expect(4);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -650,7 +650,7 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(200));
 
-      await source.push(t => t.removeRecord(planet));
+      await source.push((t) => t.removeRecord(planet));
 
       assert.ok(true, 'record deleted');
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
@@ -666,7 +666,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#push - can add a hasMany relationship with POST', async function(assert) {
+    test('#push - can add a hasMany relationship with POST', async function (assert) {
       assert.expect(5);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -683,7 +683,7 @@ module('JSONAPISource', function() {
         .withArgs('/planets/12345/relationships/moons')
         .returns(jsonapiResponse(204));
 
-      await source.push(t => t.addToRelatedRecords(planet, 'moons', moon));
+      await source.push((t) => t.addToRelatedRecords(planet, 'moons', moon));
 
       assert.ok(true, 'records linked');
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
@@ -704,7 +704,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#push - can remove a relationship with DELETE', async function(assert) {
+    test('#push - can remove a relationship with DELETE', async function (assert) {
       assert.expect(4);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -721,7 +721,9 @@ module('JSONAPISource', function() {
         .withArgs('/planets/12345/relationships/moons')
         .returns(jsonapiResponse(200));
 
-      await source.push(t => t.removeFromRelatedRecords(planet, 'moons', moon));
+      await source.push((t) =>
+        t.removeFromRelatedRecords(planet, 'moons', moon)
+      );
 
       assert.ok(true, 'records unlinked');
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
@@ -737,7 +739,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#push - can update a hasOne relationship with PATCH', async function(assert) {
+    test('#push - can update a hasOne relationship with PATCH', async function (assert) {
       assert.expect(5);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -752,7 +754,7 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/moons/987').returns(jsonapiResponse(200));
 
-      await source.push(t => t.replaceRelatedRecord(moon, 'planet', planet));
+      await source.push((t) => t.replaceRelatedRecord(moon, 'planet', planet));
 
       assert.ok(true, 'relationship replaced');
 
@@ -782,7 +784,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#push - can update a hasOne relationship with PATCH with newly created record', async function(assert) {
+    test('#push - can update a hasOne relationship with PATCH with newly created record', async function (assert) {
       assert.expect(5);
 
       let planet = {
@@ -808,7 +810,7 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/moons/987').returns(jsonapiResponse(200));
 
-      await source.push(t => [
+      await source.push((t) => [
         t.addRecord(planet),
         t.replaceRelatedRecord(moon, 'planet', planet)
       ]);
@@ -841,7 +843,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#push - can clear a hasOne relationship with PATCH', async function(assert) {
+    test('#push - can clear a hasOne relationship with PATCH', async function (assert) {
       assert.expect(5);
 
       let moon = source.requestProcessor.serializer.deserializeResource({
@@ -851,7 +853,7 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/moons/987').returns(jsonapiResponse(200));
 
-      await source.push(t => t.replaceRelatedRecord(moon, 'planet', null));
+      await source.push((t) => t.replaceRelatedRecord(moon, 'planet', null));
 
       assert.ok(true, 'relationship replaced');
 
@@ -879,7 +881,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#push - can replace a hasMany relationship with PATCH', async function(assert) {
+    test('#push - can replace a hasMany relationship with PATCH', async function (assert) {
       assert.expect(5);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -894,7 +896,9 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(200));
 
-      await source.push(t => t.replaceRelatedRecords(planet, 'moons', [moon]));
+      await source.push((t) =>
+        t.replaceRelatedRecords(planet, 'moons', [moon])
+      );
 
       assert.ok(true, 'relationship replaced');
 
@@ -922,7 +926,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#push - a single transform can result in multiple requests', async function(assert) {
+    test('#push - a single transform can result in multiple requests', async function (assert) {
       assert.expect(6);
 
       let planet1 = source.requestProcessor.serializer.deserializeResource({
@@ -938,7 +942,7 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/planets/2').returns(jsonapiResponse(200));
 
-      await source.push(t => [
+      await source.push((t) => [
         t.removeRecord(planet1),
         t.removeRecord(planet2)
       ]);
@@ -970,7 +974,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#push - source can limit the number of allowed requests per transform with `maxRequestsPerTransform`', async function(assert) {
+    test('#push - source can limit the number of allowed requests per transform with `maxRequestsPerTransform`', async function (assert) {
       assert.expect(1);
 
       let planet1 = source.requestProcessor.serializer.deserializeResource({
@@ -985,7 +989,7 @@ module('JSONAPISource', function() {
       source.maxRequestsPerTransform = 1;
 
       try {
-        await source.push(t => [
+        await source.push((t) => [
           t.removeRecord(planet1),
           t.removeRecord(planet2)
         ]);
@@ -997,7 +1001,7 @@ module('JSONAPISource', function() {
       }
     });
 
-    test('#push - request can timeout', async function(assert) {
+    test('#push - request can timeout', async function (assert) {
       assert.expect(2);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -1017,7 +1021,7 @@ module('JSONAPISource', function() {
         .returns(jsonapiResponse(200, null, 20)); // 20ms delay
 
       try {
-        await source.push(t =>
+        await source.push((t) =>
           t.replaceAttribute(planet, 'classification', 'terrestrial')
         );
         assert.ok(false, 'should not be reached');
@@ -1027,7 +1031,7 @@ module('JSONAPISource', function() {
       }
     });
 
-    test('#push - allowed timeout can be specified per-request', async function(assert) {
+    test('#push - allowed timeout can be specified per-request', async function (assert) {
       assert.expect(2);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -1055,7 +1059,7 @@ module('JSONAPISource', function() {
 
       try {
         await source.push(
-          t => t.replaceAttribute(planet, 'classification', 'terrestrial'),
+          (t) => t.replaceAttribute(planet, 'classification', 'terrestrial'),
           options
         );
         assert.ok(false, 'should not be reached');
@@ -1065,7 +1069,7 @@ module('JSONAPISource', function() {
       }
     });
 
-    test('#push - fetch can reject with a NetworkError', async function(assert) {
+    test('#push - fetch can reject with a NetworkError', async function (assert) {
       assert.expect(2);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -1080,7 +1084,7 @@ module('JSONAPISource', function() {
       fetchStub.withArgs('/planets/12345').returns(Promise.reject(':('));
 
       try {
-        await source.push(t =>
+        await source.push((t) =>
           t.replaceAttribute(planet, 'classification', 'terrestrial')
         );
         assert.ok(false, 'should not be reached');
@@ -1090,7 +1094,7 @@ module('JSONAPISource', function() {
       }
     });
 
-    test('#push - response can trigger a ClientError', async function(assert) {
+    test('#push - response can trigger a ClientError', async function (assert) {
       assert.expect(3);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -1114,7 +1118,7 @@ module('JSONAPISource', function() {
         .returns(jsonapiResponse(422, { errors }));
 
       try {
-        await source.push(t =>
+        await source.push((t) =>
           t.replaceAttribute(planet, 'classification', 'terrestrial')
         );
         assert.ok(false, 'should not be reached');
@@ -1125,7 +1129,7 @@ module('JSONAPISource', function() {
       }
     });
 
-    test('#update - can add records', async function(assert) {
+    test('#update - can add records', async function (assert) {
       assert.expect(7);
 
       let transformCount = 0;
@@ -1156,7 +1160,7 @@ module('JSONAPISource', function() {
         value: '12345'
       } as ReplaceKeyOperation;
 
-      source.on('transform', function(transform: Transform) {
+      source.on('transform', function (transform: Transform) {
         transformCount++;
 
         if (transformCount === 1) {
@@ -1185,7 +1189,7 @@ module('JSONAPISource', function() {
         })
       );
 
-      await source.update(t => t.addRecord(planet));
+      await source.update((t) => t.addRecord(planet));
 
       assert.ok(true, 'transform resolves successfully');
 
@@ -1215,7 +1219,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#update - can add sideloaded records', async function(assert) {
+    test('#update - can add sideloaded records', async function (assert) {
       assert.expect(8);
 
       let transformCount = 0;
@@ -1276,7 +1280,7 @@ module('JSONAPISource', function() {
             'transform event then returns add-remote-id op'
           );
         } else if (transformCount === 3) {
-          let operationsWithoutId = transform.operations.map(op => {
+          let operationsWithoutId = transform.operations.map((op) => {
             let clonedOp = Object.assign({}, op) as RecordOperation;
             delete clonedOp.record.id;
             return clonedOp;
@@ -1309,7 +1313,7 @@ module('JSONAPISource', function() {
         })
       );
 
-      await source.update(t => t.addRecord(planet));
+      await source.update((t) => t.addRecord(planet));
 
       assert.ok(true, 'transform resolves successfully');
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
@@ -1338,7 +1342,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#update - can transform records', async function(assert) {
+    test('#update - can transform records', async function (assert) {
       assert.expect(6);
 
       let transformCount = 0;
@@ -1389,7 +1393,7 @@ module('JSONAPISource', function() {
         })
       );
 
-      await source.update(t => t.updateRecord(planet));
+      await source.update((t) => t.updateRecord(planet));
 
       assert.ok(true, 'transform resolves successfully');
 
@@ -1420,7 +1424,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#update - can replace a single attribute', async function(assert) {
+    test('#update - can replace a single attribute', async function (assert) {
       assert.expect(5);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -1434,7 +1438,7 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(204));
 
-      await source.update(t =>
+      await source.update((t) =>
         t.replaceAttribute(planet, 'classification', 'terrestrial')
       );
 
@@ -1466,7 +1470,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#update - can accept remote changes', async function(assert) {
+    test('#update - can accept remote changes', async function (assert) {
       assert.expect(3);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -1496,12 +1500,12 @@ module('JSONAPISource', function() {
         transforms.push(transform);
       });
 
-      let data = await source.update(t =>
+      let data = await source.update((t) =>
         t.replaceAttribute(planet, 'classification', 'terrestrial')
       );
 
       assert.deepEqual(
-        transforms[1].operations.map(o => o.op),
+        transforms[1].operations.map((o) => o.op),
         ['replaceAttribute', 'replaceKey']
       );
       assert.deepEqual(
@@ -1521,7 +1525,7 @@ module('JSONAPISource', function() {
       });
     });
 
-    test('#update - can delete records', async function(assert) {
+    test('#update - can delete records', async function (assert) {
       assert.expect(4);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -1531,7 +1535,7 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(200));
 
-      await source.update(t => t.removeRecord(planet));
+      await source.update((t) => t.removeRecord(planet));
 
       assert.ok(true, 'record deleted');
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
@@ -1547,7 +1551,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#update - can add a hasMany relationship with POST', async function(assert) {
+    test('#update - can add a hasMany relationship with POST', async function (assert) {
       assert.expect(5);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -1564,7 +1568,7 @@ module('JSONAPISource', function() {
         .withArgs('/planets/12345/relationships/moons')
         .returns(jsonapiResponse(204));
 
-      await source.update(t => t.addToRelatedRecords(planet, 'moons', moon));
+      await source.update((t) => t.addToRelatedRecords(planet, 'moons', moon));
 
       assert.ok(true, 'records linked');
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
@@ -1585,7 +1589,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#update - can remove a relationship with DELETE', async function(assert) {
+    test('#update - can remove a relationship with DELETE', async function (assert) {
       assert.expect(4);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -1602,7 +1606,7 @@ module('JSONAPISource', function() {
         .withArgs('/planets/12345/relationships/moons')
         .returns(jsonapiResponse(200));
 
-      await source.update(t =>
+      await source.update((t) =>
         t.removeFromRelatedRecords(planet, 'moons', moon)
       );
 
@@ -1620,7 +1624,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#update - can update a hasOne relationship with PATCH', async function(assert) {
+    test('#update - can update a hasOne relationship with PATCH', async function (assert) {
       assert.expect(5);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -1635,7 +1639,9 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/moons/987').returns(jsonapiResponse(200));
 
-      await source.update(t => t.replaceRelatedRecord(moon, 'planet', planet));
+      await source.update((t) =>
+        t.replaceRelatedRecord(moon, 'planet', planet)
+      );
 
       assert.ok(true, 'relationship replaced');
 
@@ -1665,7 +1671,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#update - can update a hasOne relationship with PATCH with newly created record', async function(assert) {
+    test('#update - can update a hasOne relationship with PATCH with newly created record', async function (assert) {
       assert.expect(5);
 
       let planet = {
@@ -1691,7 +1697,7 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/moons/987').returns(jsonapiResponse(200));
 
-      await source.update(t => [
+      await source.update((t) => [
         t.addRecord(planet),
         t.replaceRelatedRecord(moon, 'planet', planet)
       ]);
@@ -1724,7 +1730,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#update - can clear a hasOne relationship with PATCH', async function(assert) {
+    test('#update - can clear a hasOne relationship with PATCH', async function (assert) {
       assert.expect(5);
 
       let moon = source.requestProcessor.serializer.deserializeResource({
@@ -1734,7 +1740,7 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/moons/987').returns(jsonapiResponse(200));
 
-      await source.update(t => t.replaceRelatedRecord(moon, 'planet', null));
+      await source.update((t) => t.replaceRelatedRecord(moon, 'planet', null));
 
       assert.ok(true, 'relationship replaced');
 
@@ -1762,7 +1768,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#update - can replace a hasMany relationship with PATCH', async function(assert) {
+    test('#update - can replace a hasMany relationship with PATCH', async function (assert) {
       assert.expect(5);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -1777,7 +1783,7 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(200));
 
-      await source.update(t =>
+      await source.update((t) =>
         t.replaceRelatedRecords(planet, 'moons', [moon])
       );
 
@@ -1807,7 +1813,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#update - a single transform can result in multiple requests', async function(assert) {
+    test('#update - a single transform can result in multiple requests', async function (assert) {
       assert.expect(6);
 
       let planet1 = source.requestProcessor.serializer.deserializeResource({
@@ -1823,7 +1829,7 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/planets/2').returns(jsonapiResponse(200));
 
-      await source.update(t => [
+      await source.update((t) => [
         t.removeRecord(planet1),
         t.removeRecord(planet2)
       ]);
@@ -1855,7 +1861,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#update - source can limit the number of allowed requests per transform with `maxRequestsPerTransform`', async function(assert) {
+    test('#update - source can limit the number of allowed requests per transform with `maxRequestsPerTransform`', async function (assert) {
       assert.expect(1);
 
       let planet1 = source.requestProcessor.serializer.deserializeResource({
@@ -1870,7 +1876,7 @@ module('JSONAPISource', function() {
       source.maxRequestsPerTransform = 1;
 
       try {
-        await source.update(t => [
+        await source.update((t) => [
           t.removeRecord(planet1),
           t.removeRecord(planet2)
         ]);
@@ -1882,7 +1888,7 @@ module('JSONAPISource', function() {
       }
     });
 
-    test('#update - request can timeout', async function(assert) {
+    test('#update - request can timeout', async function (assert) {
       assert.expect(2);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -1902,7 +1908,7 @@ module('JSONAPISource', function() {
         .returns(jsonapiResponse(200, null, 20)); // 20ms delay
 
       try {
-        await source.update(t =>
+        await source.update((t) =>
           t.replaceAttribute(planet, 'classification', 'terrestrial')
         );
         assert.ok(false, 'should not be reached');
@@ -1912,7 +1918,7 @@ module('JSONAPISource', function() {
       }
     });
 
-    test('#update - allowed timeout can be specified per-request', async function(assert) {
+    test('#update - allowed timeout can be specified per-request', async function (assert) {
       assert.expect(2);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -1940,7 +1946,7 @@ module('JSONAPISource', function() {
 
       try {
         await source.update(
-          t => t.replaceAttribute(planet, 'classification', 'terrestrial'),
+          (t) => t.replaceAttribute(planet, 'classification', 'terrestrial'),
           options
         );
         assert.ok(false, 'should not be reached');
@@ -1950,7 +1956,7 @@ module('JSONAPISource', function() {
       }
     });
 
-    test('#update - fetch can reject with a NetworkError', async function(assert) {
+    test('#update - fetch can reject with a NetworkError', async function (assert) {
       assert.expect(2);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -1965,7 +1971,7 @@ module('JSONAPISource', function() {
       fetchStub.withArgs('/planets/12345').returns(Promise.reject(':('));
 
       try {
-        await source.update(t =>
+        await source.update((t) =>
           t.replaceAttribute(planet, 'classification', 'terrestrial')
         );
         assert.ok(false, 'should not be reached');
@@ -1975,7 +1981,7 @@ module('JSONAPISource', function() {
       }
     });
 
-    test('#update - response can trigger a ClientError', async function(assert) {
+    test('#update - response can trigger a ClientError', async function (assert) {
       assert.expect(3);
 
       let planet = source.requestProcessor.serializer.deserializeResource({
@@ -1999,7 +2005,7 @@ module('JSONAPISource', function() {
         .returns(jsonapiResponse(422, { errors }));
 
       try {
-        await source.update(t =>
+        await source.update((t) =>
           t.replaceAttribute(planet, 'classification', 'terrestrial')
         );
         assert.ok(false, 'should not be reached');
@@ -2010,7 +2016,7 @@ module('JSONAPISource', function() {
       }
     });
 
-    test('#pull - record', async function(assert) {
+    test('#pull - record', async function (assert) {
       assert.expect(6);
 
       const data: Resource = {
@@ -2028,7 +2034,7 @@ module('JSONAPISource', function() {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q.findRecord({ type: 'planet', id: planet.id })
       );
 
@@ -2038,7 +2044,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         ['updateRecord']
       );
       assert.deepEqual(
@@ -2056,7 +2062,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - record (with a 304 response)', async function(assert) {
+    test('#pull - record (with a 304 response)', async function (assert) {
       assert.expect(3);
 
       const planet = source.requestProcessor.serializer.deserializeResource({
@@ -2066,7 +2072,7 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(304));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q.findRecord({ type: 'planet', id: planet.id })
       );
 
@@ -2079,7 +2085,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - request can timeout', async function(assert) {
+    test('#pull - request can timeout', async function (assert) {
       assert.expect(2);
 
       const data: Resource = {
@@ -2102,7 +2108,9 @@ module('JSONAPISource', function() {
         .returns(jsonapiResponse(200, { data }, 20)); // 20ms delay
 
       try {
-        await source.pull(q => q.findRecord({ type: 'planet', id: planet.id }));
+        await source.pull((q) =>
+          q.findRecord({ type: 'planet', id: planet.id })
+        );
         assert.ok(false, 'should not be reached');
       } catch (e) {
         assert.ok(e instanceof NetworkError, 'Network error raised');
@@ -2110,7 +2118,7 @@ module('JSONAPISource', function() {
       }
     });
 
-    test('#pull - allowed timeout can be specified per-request', async function(assert) {
+    test('#pull - allowed timeout can be specified per-request', async function (assert) {
       assert.expect(2);
 
       const data: Resource = {
@@ -2141,7 +2149,7 @@ module('JSONAPISource', function() {
 
       try {
         await source.pull(
-          q => q.findRecord({ type: 'planet', id: planet.id }),
+          (q) => q.findRecord({ type: 'planet', id: planet.id }),
           options
         );
         assert.ok(false, 'should not be reached');
@@ -2151,7 +2159,7 @@ module('JSONAPISource', function() {
       }
     });
 
-    test('#pull - fetch can reject with a NetworkError', async function(assert) {
+    test('#pull - fetch can reject with a NetworkError', async function (assert) {
       assert.expect(2);
 
       const planet = source.requestProcessor.serializer.deserializeResource({
@@ -2162,7 +2170,9 @@ module('JSONAPISource', function() {
       fetchStub.withArgs('/planets/12345').returns(Promise.reject(':('));
 
       try {
-        await source.pull(q => q.findRecord({ type: 'planet', id: planet.id }));
+        await source.pull((q) =>
+          q.findRecord({ type: 'planet', id: planet.id })
+        );
         assert.ok(false, 'should not be reached');
       } catch (e) {
         assert.ok(e instanceof NetworkError, 'Network error raised');
@@ -2170,7 +2180,7 @@ module('JSONAPISource', function() {
       }
     });
 
-    test('#pull - record with include', async function(assert) {
+    test('#pull - record with include', async function (assert) {
       assert.expect(2);
 
       const data: Resource = {
@@ -2198,7 +2208,7 @@ module('JSONAPISource', function() {
         .returns(jsonapiResponse(200, { data }));
 
       await source.pull(
-        q => q.findRecord({ type: 'planet', id: planet.id }),
+        (q) => q.findRecord({ type: 'planet', id: planet.id }),
         options
       );
 
@@ -2210,7 +2220,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records', async function(assert) {
+    test('#pull - records', async function (assert) {
       assert.expect(6);
 
       const data: Resource[] = [
@@ -2230,7 +2240,7 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/planets').returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q => q.findRecords('planet'));
+      let transforms = await source.pull((q) => q.findRecords('planet'));
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -2238,7 +2248,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         ['updateRecord', 'updateRecord', 'updateRecord']
       );
       assert.deepEqual(
@@ -2256,12 +2266,12 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records (with a 304 response)', async function(assert) {
+    test('#pull - records (with a 304 response)', async function (assert) {
       assert.expect(3);
 
       fetchStub.withArgs('/planets').returns(jsonapiResponse(304));
 
-      let transforms = await source.pull(q => q.findRecords('planet'));
+      let transforms = await source.pull((q) => q.findRecords('planet'));
 
       assert.equal(transforms.length, 0, 'no transforms returned');
 
@@ -2273,7 +2283,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records with attribute filter', async function(assert) {
+    test('#pull - records with attribute filter', async function (assert) {
       assert.expect(5);
 
       const data: Resource[] = [
@@ -2291,13 +2301,13 @@ module('JSONAPISource', function() {
         .withArgs(`/planets?${encodeURIComponent('filter[length-of-day]')}=24`)
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q.findRecords('planet').filter({ attribute: 'lengthOfDay', value: 24 })
       );
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         ['updateRecord']
       );
       assert.deepEqual(
@@ -2315,7 +2325,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records with attribute filters', async function(assert) {
+    test('#pull - records with attribute filters', async function (assert) {
       assert.expect(6);
 
       const data: Resource[] = [
@@ -2336,7 +2346,7 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs(expectedUrl).returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q
           .findRecords('planet')
           .filter(
@@ -2351,7 +2361,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         ['updateRecord']
       );
       assert.deepEqual(
@@ -2369,7 +2379,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records with relatedRecord filter (single value)', async function(assert) {
+    test('#pull - records with relatedRecord filter (single value)', async function (assert) {
       assert.expect(6);
 
       const data: Resource[] = [
@@ -2387,7 +2397,7 @@ module('JSONAPISource', function() {
         .withArgs(`/moons?${encodeURIComponent('filter[planet]')}=earth`)
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q.findRecords('moon').filter({
           relation: 'planet',
           record: { id: 'earth', type: 'planets' }
@@ -2400,7 +2410,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         ['updateRecord']
       );
       assert.deepEqual(
@@ -2418,7 +2428,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records with relatedRecord filter (multiple values)', async function(assert) {
+    test('#pull - records with relatedRecord filter (multiple values)', async function (assert) {
       assert.expect(6);
 
       const data: Resource[] = [
@@ -2456,7 +2466,7 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q.findRecords('moon').filter({
           relation: 'planet',
           record: [
@@ -2472,7 +2482,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         ['updateRecord', 'updateRecord', 'updateRecord']
       );
       assert.deepEqual(
@@ -2490,7 +2500,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records with relatedRecords filter', async function(assert) {
+    test('#pull - records with relatedRecords filter', async function (assert) {
       assert.expect(6);
 
       const data: Resource[] = [
@@ -2517,7 +2527,7 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q.findRecords('planet').filter({
           relation: 'moons',
           records: [
@@ -2534,7 +2544,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         ['updateRecord']
       );
       assert.deepEqual(
@@ -2552,7 +2562,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records with sort by an attribute in ascending order', async function(assert) {
+    test('#pull - records with sort by an attribute in ascending order', async function (assert) {
       assert.expect(6);
 
       const data: Resource[] = [
@@ -2574,7 +2584,7 @@ module('JSONAPISource', function() {
         .withArgs('/planets?sort=name')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q.findRecords('planet').sort('name')
       );
 
@@ -2584,7 +2594,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         ['updateRecord', 'updateRecord', 'updateRecord']
       );
       assert.deepEqual(
@@ -2602,7 +2612,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records with sort by an attribute in descending order', async function(assert) {
+    test('#pull - records with sort by an attribute in descending order', async function (assert) {
       assert.expect(6);
 
       const data: Resource[] = [
@@ -2624,7 +2634,7 @@ module('JSONAPISource', function() {
         .withArgs('/planets?sort=-name')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q.findRecords('planet').sort('-name')
       );
 
@@ -2634,7 +2644,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         ['updateRecord', 'updateRecord', 'updateRecord']
       );
       assert.deepEqual(
@@ -2652,7 +2662,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records with sort by multiple fields', async function(assert) {
+    test('#pull - records with sort by multiple fields', async function (assert) {
       assert.expect(6);
 
       const data: Resource[] = [
@@ -2686,7 +2696,7 @@ module('JSONAPISource', function() {
         .withArgs(`/planets?sort=${encodeURIComponent('length-of-day,name')}`)
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q.findRecords('planet').sort('lengthOfDay', 'name')
       );
 
@@ -2696,7 +2706,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         ['updateRecord', 'updateRecord', 'updateRecord']
       );
       assert.deepEqual(
@@ -2714,7 +2724,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records with pagination', async function(assert) {
+    test('#pull - records with pagination', async function (assert) {
       assert.expect(6);
 
       const data: Resource[] = [
@@ -2740,7 +2750,7 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q.findRecords('planet').page({ offset: 1, limit: 10 })
       );
 
@@ -2750,7 +2760,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         ['updateRecord', 'updateRecord', 'updateRecord']
       );
       assert.deepEqual(
@@ -2768,7 +2778,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - related records with attribute filter', async function(assert) {
+    test('#pull - related records with attribute filter', async function (assert) {
       assert.expect(6);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
@@ -2805,7 +2815,7 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q
           .findRelatedRecords(solarSystem, 'planets')
           .filter({ attribute: 'lengthOfDay', value: 24 })
@@ -2817,7 +2827,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         ['updateRecord', 'addToRelatedRecords']
       );
 
@@ -2833,7 +2843,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - related records with attribute filters', async function(assert) {
+    test('#pull - related records with attribute filters', async function (assert) {
       assert.expect(6);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
@@ -2861,7 +2871,7 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs(expectedUrl).returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q
           .findRelatedRecords(solarSystem, 'planets')
           .filter(
@@ -2876,7 +2886,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         ['updateRecord', 'addToRelatedRecords']
       );
 
@@ -2892,7 +2902,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records with relatedRecord filter (single value)', async function(assert) {
+    test('#pull - records with relatedRecord filter (single value)', async function (assert) {
       assert.expect(6);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
@@ -2921,7 +2931,7 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q.findRelatedRecords(solarSystem, 'moons').filter({
           relation: 'planet',
           record: { id: 'earth', type: 'planet' }
@@ -2934,7 +2944,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         ['updateRecord', 'addToRelatedRecords']
       );
 
@@ -2950,7 +2960,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records with relatedRecord filter (multiple values)', async function(assert) {
+    test('#pull - records with relatedRecord filter (multiple values)', async function (assert) {
       assert.expect(6);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
@@ -2995,7 +3005,7 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q.findRelatedRecords(solarSystem, 'moons').filter({
           relation: 'planet',
           record: [
@@ -3011,7 +3021,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         [
           'updateRecord',
           'updateRecord',
@@ -3027,7 +3037,7 @@ module('JSONAPISource', function() {
       let op3 = transforms[0].operations[2] as UpdateRecordOperation;
 
       assert.deepEqual(
-        [op1, op2, op3].map(o => o.record.attributes.name),
+        [op1, op2, op3].map((o) => o.record.attributes.name),
         ['Moon', 'Phobos', 'Deimos']
       );
 
@@ -3039,7 +3049,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records with relatedRecords filter', async function(assert) {
+    test('#pull - records with relatedRecords filter', async function (assert) {
       assert.expect(6);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
@@ -3073,7 +3083,7 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q.findRelatedRecords(solarSystem, 'planets').filter({
           relation: 'moons',
           records: [
@@ -3090,7 +3100,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         ['updateRecord', 'addToRelatedRecords']
       );
 
@@ -3106,7 +3116,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records with sort by an attribute in ascending order', async function(assert) {
+    test('#pull - records with sort by an attribute in ascending order', async function (assert) {
       assert.expect(6);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
@@ -3135,7 +3145,7 @@ module('JSONAPISource', function() {
         .withArgs('/solar-systems/sun/planets?sort=name')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('name')
       );
 
@@ -3145,7 +3155,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         [
           'updateRecord',
           'updateRecord',
@@ -3161,7 +3171,7 @@ module('JSONAPISource', function() {
       let op3 = transforms[0].operations[2] as UpdateRecordOperation;
 
       assert.deepEqual(
-        [op1, op2, op3].map(o => o.record.attributes.name),
+        [op1, op2, op3].map((o) => o.record.attributes.name),
         ['Earth', 'Jupiter', 'Saturn']
       );
 
@@ -3173,7 +3183,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records with sort by an attribute in descending order', async function(assert) {
+    test('#pull - records with sort by an attribute in descending order', async function (assert) {
       assert.expect(6);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
@@ -3202,7 +3212,7 @@ module('JSONAPISource', function() {
         .withArgs('/solar-systems/sun/planets?sort=-name')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('-name')
       );
 
@@ -3212,7 +3222,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         [
           'updateRecord',
           'updateRecord',
@@ -3228,7 +3238,7 @@ module('JSONAPISource', function() {
       let op3 = transforms[0].operations[2] as UpdateRecordOperation;
 
       assert.deepEqual(
-        [op1, op2, op3].map(o => o.record.attributes.name),
+        [op1, op2, op3].map((o) => o.record.attributes.name),
         ['Saturn', 'Jupiter', 'Earth']
       );
 
@@ -3240,7 +3250,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records with sort by multiple fields', async function(assert) {
+    test('#pull - records with sort by multiple fields', async function (assert) {
       assert.expect(6);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
@@ -3285,7 +3295,7 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('lengthOfDay', 'name')
       );
 
@@ -3295,7 +3305,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         [
           'updateRecord',
           'updateRecord',
@@ -3311,7 +3321,7 @@ module('JSONAPISource', function() {
       let op3 = transforms[0].operations[2] as UpdateRecordOperation;
 
       assert.deepEqual(
-        [op1, op2, op3].map(o => o.record.attributes.name),
+        [op1, op2, op3].map((o) => o.record.attributes.name),
         ['Jupiter', 'Saturn', 'Earth']
       );
 
@@ -3323,7 +3333,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records with pagination', async function(assert) {
+    test('#pull - records with pagination', async function (assert) {
       assert.expect(6);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
@@ -3356,7 +3366,7 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q
           .findRelatedRecords(solarSystem, 'planets')
           .page({ offset: 1, limit: 10 })
@@ -3368,7 +3378,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         [
           'updateRecord',
           'updateRecord',
@@ -3384,7 +3394,7 @@ module('JSONAPISource', function() {
       let op3 = transforms[0].operations[2] as UpdateRecordOperation;
 
       assert.deepEqual(
-        [op1, op2, op3].map(o => o.record.attributes.name),
+        [op1, op2, op3].map((o) => o.record.attributes.name),
         ['Jupiter', 'Earth', 'Saturn']
       );
 
@@ -3396,7 +3406,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records with include', async function(assert) {
+    test('#pull - records with include', async function (assert) {
       assert.expect(2);
 
       const options = {
@@ -3411,7 +3421,7 @@ module('JSONAPISource', function() {
         .withArgs('/planets?include=moons')
         .returns(jsonapiResponse(200, { data: [] }));
 
-      await source.pull(q => q.findRecords('planet'), options);
+      await source.pull((q) => q.findRecords('planet'), options);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -3421,7 +3431,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - records with include many relationships', async function(assert) {
+    test('#pull - records with include many relationships', async function (assert) {
       assert.expect(2);
 
       const options = {
@@ -3438,7 +3448,7 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data: [] }));
 
-      await source.pull(q => q.findRecords('planet'), options);
+      await source.pull((q) => q.findRecords('planet'), options);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -3448,7 +3458,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - relatedRecord', async function(assert) {
+    test('#pull - relatedRecord', async function (assert) {
       assert.expect(13);
 
       const planetRecord: Record = source.requestProcessor.serializer.deserialize(
@@ -3472,7 +3482,7 @@ module('JSONAPISource', function() {
         .withArgs('/planets/jupiter/solar-system')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q.findRelatedRecord(planetRecord, 'solarSystem')
       );
 
@@ -3487,7 +3497,7 @@ module('JSONAPISource', function() {
       const ssId = keyMap.keyToId('solarSystem', 'remoteId', 'ours');
 
       assert.deepEqual(
-        operations.map(o => o.op),
+        operations.map((o) => o.op),
         ['updateRecord', 'replaceRelatedRecord']
       );
 
@@ -3511,7 +3521,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - relatedRecords', async function(assert) {
+    test('#pull - relatedRecords', async function (assert) {
       assert.expect(9);
 
       let planetRecord: Record = source.requestProcessor.serializer.deserialize(
@@ -3537,7 +3547,7 @@ module('JSONAPISource', function() {
         .withArgs('/planets/jupiter/moons')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull(q =>
+      let transforms = await source.pull((q) =>
         q.findRelatedRecords(planetRecord, 'moons')
       );
 
@@ -3547,7 +3557,7 @@ module('JSONAPISource', function() {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map(o => o.op),
+        transforms[0].operations.map((o) => o.op),
         ['updateRecord', 'replaceRelatedRecords']
       );
 
@@ -3558,7 +3568,7 @@ module('JSONAPISource', function() {
       assert.equal(op2.record.id, planetRecord.id);
       assert.equal(op2.relationship, 'moons');
       assert.deepEqual(
-        op2.relatedRecords.map(r => r.id),
+        op2.relatedRecords.map((r) => r.id),
         [op1.record.id]
       );
 
@@ -3570,7 +3580,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#pull - relatedRecords with include', async function(assert) {
+    test('#pull - relatedRecords with include', async function (assert) {
       assert.expect(2);
 
       const planetRecord = source.requestProcessor.serializer.deserialize({
@@ -3593,7 +3603,7 @@ module('JSONAPISource', function() {
         .returns(jsonapiResponse(200, { data: [] }));
 
       await source.pull(
-        q => q.findRelatedRecords(planetRecord, 'moons'),
+        (q) => q.findRelatedRecords(planetRecord, 'moons'),
         options
       );
 
@@ -3605,7 +3615,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - record', async function(assert) {
+    test('#query - record', async function (assert) {
       assert.expect(4);
 
       const data: Resource = {
@@ -3623,7 +3633,7 @@ module('JSONAPISource', function() {
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, { data }));
 
-      let record = await source.query(q =>
+      let record = await source.query((q) =>
         q.findRecord({ type: 'planet', id: planet.id })
       );
 
@@ -3641,7 +3651,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - record (304 response)', async function(assert) {
+    test('#query - record (304 response)', async function (assert) {
       assert.expect(3);
 
       const planet = source.requestProcessor.serializer.deserializeResource({
@@ -3651,7 +3661,7 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(304));
 
-      let record = await source.query(q =>
+      let record = await source.query((q) =>
         q.findRecord({ type: 'planet', id: planet.id })
       );
 
@@ -3665,7 +3675,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - can query with multiple expressions', async function(assert) {
+    test('#query - can query with multiple expressions', async function (assert) {
       assert.expect(6);
 
       const data1: Resource = {
@@ -3697,7 +3707,7 @@ module('JSONAPISource', function() {
         .withArgs('/planets/1234')
         .returns(jsonapiResponse(200, { data: data2 }));
 
-      let records = await source.query(q => [
+      let records = await source.query((q) => [
         q.findRecord({ type: 'planet', id: planet1.id }),
         q.findRecord({ type: 'planet', id: planet2.id })
       ]);
@@ -3719,7 +3729,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - invokes preprocessResponseDocument when response has content', async function(assert) {
+    test('#query - invokes preprocessResponseDocument when response has content', async function (assert) {
       assert.expect(1);
 
       const data: Resource = {
@@ -3746,7 +3756,9 @@ module('JSONAPISource', function() {
         'preprocessResponseDocument'
       );
 
-      await source.query(q => q.findRecord({ type: 'planet', id: planet.id }));
+      await source.query((q) =>
+        q.findRecord({ type: 'planet', id: planet.id })
+      );
 
       assert.ok(
         preprocessResponseDocumentSpy.calledOnceWith(
@@ -3757,7 +3769,7 @@ module('JSONAPISource', function() {
       preprocessResponseDocumentSpy.restore();
     });
 
-    test('#query - request can timeout', async function(assert) {
+    test('#query - request can timeout', async function (assert) {
       assert.expect(2);
 
       const data: Resource = {
@@ -3780,7 +3792,7 @@ module('JSONAPISource', function() {
         .returns(jsonapiResponse(200, { data }, 20)); // 20ms delay
 
       try {
-        await source.query(q =>
+        await source.query((q) =>
           q.findRecord({ type: 'planet', id: planet.id })
         );
         assert.ok(false, 'should not be reached');
@@ -3790,7 +3802,7 @@ module('JSONAPISource', function() {
       }
     });
 
-    test('#query - allowed timeout can be specified per-request', async function(assert) {
+    test('#query - allowed timeout can be specified per-request', async function (assert) {
       assert.expect(2);
 
       const data: Resource = {
@@ -3821,7 +3833,7 @@ module('JSONAPISource', function() {
 
       try {
         await source.query(
-          q => q.findRecord({ type: 'planet', id: planet.id }),
+          (q) => q.findRecord({ type: 'planet', id: planet.id }),
           options
         );
         assert.ok(false, 'should not be reached');
@@ -3831,7 +3843,7 @@ module('JSONAPISource', function() {
       }
     });
 
-    test('#query - fetch can reject with a NetworkError', async function(assert) {
+    test('#query - fetch can reject with a NetworkError', async function (assert) {
       assert.expect(2);
 
       const planet = source.requestProcessor.serializer.deserializeResource({
@@ -3842,7 +3854,7 @@ module('JSONAPISource', function() {
       fetchStub.withArgs('/planets/12345').returns(Promise.reject(':('));
 
       try {
-        await source.query(q =>
+        await source.query((q) =>
           q.findRecord({ type: 'planet', id: planet.id })
         );
         assert.ok(false, 'should not be reached');
@@ -3852,7 +3864,7 @@ module('JSONAPISource', function() {
       }
     });
 
-    test('#query - record with include', async function(assert) {
+    test('#query - record with include', async function (assert) {
       assert.expect(2);
 
       const data: Resource = {
@@ -3880,7 +3892,7 @@ module('JSONAPISource', function() {
         .returns(jsonapiResponse(200, { data }));
 
       await source.query(
-        q => q.findRecord({ type: 'planet', id: planet.id }),
+        (q) => q.findRecord({ type: 'planet', id: planet.id }),
         options
       );
 
@@ -3892,7 +3904,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - options can be passed in at the root level or source-specific level', async function(assert) {
+    test('#query - options can be passed in at the root level or source-specific level', async function (assert) {
       assert.expect(1);
 
       const data: Resource = {
@@ -3911,15 +3923,18 @@ module('JSONAPISource', function() {
         .withArgs('/planets/12345?include=moons')
         .returns(jsonapiResponse(200, { data }));
 
-      await source.query(q => q.findRecord({ type: 'planet', id: planet.id }), {
-        label: 'Fetch planet with moons',
-        include: ['moons']
-      });
+      await source.query(
+        (q) => q.findRecord({ type: 'planet', id: planet.id }),
+        {
+          label: 'Fetch planet with moons',
+          include: ['moons']
+        }
+      );
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
     });
 
-    test('#query - records', async function(assert) {
+    test('#query - records', async function (assert) {
       assert.expect(5);
 
       const data: Resource[] = [
@@ -3939,12 +3954,14 @@ module('JSONAPISource', function() {
 
       fetchStub.withArgs('/planets').returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query(q => q.findRecords('planet'));
+      let records: Record[] = await source.query((q) =>
+        q.findRecords('planet')
+      );
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
       assert.deepEqual(
-        records.map(o => o.attributes.name),
+        records.map((o) => o.attributes.name),
         ['Jupiter', 'Earth', 'Saturn']
       );
 
@@ -3956,12 +3973,12 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - records (304 response)', async function(assert) {
+    test('#query - records (304 response)', async function (assert) {
       assert.expect(3);
 
       fetchStub.withArgs('/planets').returns(jsonapiResponse(304));
 
-      let records = await source.query(q => q.findRecords('planet'));
+      let records = await source.query((q) => q.findRecords('planet'));
 
       assert.strictEqual(records, undefined);
 
@@ -3973,7 +3990,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - records with attribute filter', async function(assert) {
+    test('#query - records with attribute filter', async function (assert) {
       assert.expect(5);
 
       const data: Resource[] = [
@@ -3991,14 +4008,14 @@ module('JSONAPISource', function() {
         .withArgs(`/planets?${encodeURIComponent('filter[length-of-day]')}=24`)
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query(q =>
+      let records: Record[] = await source.query((q) =>
         q.findRecords('planet').filter({ attribute: 'lengthOfDay', value: 24 })
       );
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
       assert.deepEqual(
-        records.map(o => o.attributes.name),
+        records.map((o) => o.attributes.name),
         ['Earth']
       );
 
@@ -4010,7 +4027,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - records with relatedRecord filter (single value)', async function(assert) {
+    test('#query - records with relatedRecord filter (single value)', async function (assert) {
       assert.expect(5);
 
       const data: Resource[] = [
@@ -4028,7 +4045,7 @@ module('JSONAPISource', function() {
         .withArgs(`/moons?${encodeURIComponent('filter[planet]')}=earth`)
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query(q =>
+      let records: Record[] = await source.query((q) =>
         q.findRecords('moon').filter({
           relation: 'planet',
           record: { id: 'earth', type: 'planets' }
@@ -4038,7 +4055,7 @@ module('JSONAPISource', function() {
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
       assert.deepEqual(
-        records.map(o => o.attributes.name),
+        records.map((o) => o.attributes.name),
         ['Moon']
       );
 
@@ -4050,7 +4067,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - records with relatedRecord filter (multiple values)', async function(assert) {
+    test('#query - records with relatedRecord filter (multiple values)', async function (assert) {
       assert.expect(5);
 
       const data: Resource[] = [
@@ -4088,7 +4105,7 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query(q =>
+      let records: Record[] = await source.query((q) =>
         q.findRecords('moon').filter({
           relation: 'planet',
           record: [
@@ -4101,7 +4118,7 @@ module('JSONAPISource', function() {
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
       assert.deepEqual(
-        records.map(o => o.attributes.name),
+        records.map((o) => o.attributes.name),
         ['Moon', 'Phobos', 'Deimos']
       );
 
@@ -4113,7 +4130,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - records with relatedRecords filter', async function(assert) {
+    test('#query - records with relatedRecords filter', async function (assert) {
       assert.expect(5);
 
       const data: Resource[] = [
@@ -4140,7 +4157,7 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query(q =>
+      let records: Record[] = await source.query((q) =>
         q.findRecords('planet').filter({
           relation: 'moons',
           records: [
@@ -4154,7 +4171,7 @@ module('JSONAPISource', function() {
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
       assert.deepEqual(
-        records.map(o => o.attributes.name),
+        records.map((o) => o.attributes.name),
         ['Mars']
       );
 
@@ -4166,7 +4183,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - records with sort by an attribute in ascending order', async function(assert) {
+    test('#query - records with sort by an attribute in ascending order', async function (assert) {
       assert.expect(5);
 
       const data: Resource[] = [
@@ -4188,14 +4205,14 @@ module('JSONAPISource', function() {
         .withArgs('/planets?sort=name')
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query(q =>
+      let records: Record[] = await source.query((q) =>
         q.findRecords('planet').sort('name')
       );
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
       assert.deepEqual(
-        records.map(o => o.attributes.name),
+        records.map((o) => o.attributes.name),
         ['Earth', 'Jupiter', 'Saturn']
       );
 
@@ -4207,7 +4224,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - records with sort by an attribute in descending order', async function(assert) {
+    test('#query - records with sort by an attribute in descending order', async function (assert) {
       assert.expect(5);
 
       const data: Resource[] = [
@@ -4229,14 +4246,14 @@ module('JSONAPISource', function() {
         .withArgs('/planets?sort=-name')
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query(q =>
+      let records: Record[] = await source.query((q) =>
         q.findRecords('planet').sort('-name')
       );
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
       assert.deepEqual(
-        records.map(o => o.attributes.name),
+        records.map((o) => o.attributes.name),
         ['Saturn', 'Jupiter', 'Earth']
       );
 
@@ -4248,7 +4265,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - records with sort by multiple fields', async function(assert) {
+    test('#query - records with sort by multiple fields', async function (assert) {
       assert.expect(5);
 
       const data: Resource[] = [
@@ -4282,14 +4299,14 @@ module('JSONAPISource', function() {
         .withArgs(`/planets?sort=${encodeURIComponent('length-of-day,name')}`)
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query(q =>
+      let records: Record[] = await source.query((q) =>
         q.findRecords('planet').sort('lengthOfDay', 'name')
       );
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
       assert.deepEqual(
-        records.map(o => o.attributes.name),
+        records.map((o) => o.attributes.name),
         ['Jupiter', 'Saturn', 'Earth']
       );
 
@@ -4301,7 +4318,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - records with pagination', async function(assert) {
+    test('#query - records with pagination', async function (assert) {
       assert.expect(5);
 
       const data: Resource[] = [
@@ -4327,14 +4344,14 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query(q =>
+      let records: Record[] = await source.query((q) =>
         q.findRecords('planet').page({ offset: 1, limit: 10 })
       );
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
       assert.deepEqual(
-        records.map(o => o.attributes.name),
+        records.map((o) => o.attributes.name),
         ['Jupiter', 'Earth', 'Saturn']
       );
 
@@ -4346,7 +4363,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - related records with attribute filter', async function(assert) {
+    test('#query - related records with attribute filter', async function (assert) {
       assert.expect(5);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
@@ -4383,7 +4400,7 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query(q =>
+      let records: Record[] = await source.query((q) =>
         q
           .findRelatedRecords(solarSystem, 'planets')
           .filter({ attribute: 'lengthOfDay', value: 24 })
@@ -4392,7 +4409,7 @@ module('JSONAPISource', function() {
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
       assert.deepEqual(
-        records.map(o => o.attributes.name),
+        records.map((o) => o.attributes.name),
         ['Earth']
       );
 
@@ -4404,7 +4421,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - related records with relatedRecord filter (single value)', async function(assert) {
+    test('#query - related records with relatedRecord filter (single value)', async function (assert) {
       assert.expect(5);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
@@ -4433,7 +4450,7 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query(q =>
+      let records: Record[] = await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'moons').filter({
           relation: 'planet',
           record: { id: 'earth', type: 'planets' }
@@ -4443,7 +4460,7 @@ module('JSONAPISource', function() {
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
       assert.deepEqual(
-        records.map(o => o.attributes.name),
+        records.map((o) => o.attributes.name),
         ['Moon']
       );
 
@@ -4455,7 +4472,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - related records with relatedRecord filter (multiple values)', async function(assert) {
+    test('#query - related records with relatedRecord filter (multiple values)', async function (assert) {
       assert.expect(5);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
@@ -4500,7 +4517,7 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query(q =>
+      let records: Record[] = await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'moons').filter({
           relation: 'planet',
           record: [
@@ -4513,7 +4530,7 @@ module('JSONAPISource', function() {
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
       assert.deepEqual(
-        records.map(o => o.attributes.name),
+        records.map((o) => o.attributes.name),
         ['Moon', 'Phobos', 'Deimos']
       );
 
@@ -4525,7 +4542,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - related records with relatedRecords filter', async function(assert) {
+    test('#query - related records with relatedRecords filter', async function (assert) {
       assert.expect(5);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
@@ -4559,7 +4576,7 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query(q =>
+      let records: Record[] = await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'planets').filter({
           relation: 'moons',
           records: [
@@ -4573,7 +4590,7 @@ module('JSONAPISource', function() {
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
       assert.deepEqual(
-        records.map(o => o.attributes.name),
+        records.map((o) => o.attributes.name),
         ['Mars']
       );
 
@@ -4585,7 +4602,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - related records with sort by an attribute in ascending order', async function(assert) {
+    test('#query - related records with sort by an attribute in ascending order', async function (assert) {
       assert.expect(5);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
@@ -4614,14 +4631,14 @@ module('JSONAPISource', function() {
         .withArgs('/solar-systems/sun/planets?sort=name')
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query(q =>
+      let records: Record[] = await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('name')
       );
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
       assert.deepEqual(
-        records.map(o => o.attributes.name),
+        records.map((o) => o.attributes.name),
         ['Earth', 'Jupiter', 'Saturn']
       );
 
@@ -4633,7 +4650,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - related records with sort by an attribute in descending order', async function(assert) {
+    test('#query - related records with sort by an attribute in descending order', async function (assert) {
       assert.expect(5);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
@@ -4662,14 +4679,14 @@ module('JSONAPISource', function() {
         .withArgs('/solar-systems/sun/planets?sort=-name')
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query(q =>
+      let records: Record[] = await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('-name')
       );
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
       assert.deepEqual(
-        records.map(o => o.attributes.name),
+        records.map((o) => o.attributes.name),
         ['Saturn', 'Jupiter', 'Earth']
       );
 
@@ -4681,7 +4698,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - related records with sort by multiple fields', async function(assert) {
+    test('#query - related records with sort by multiple fields', async function (assert) {
       assert.expect(5);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
@@ -4726,14 +4743,14 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query(q =>
+      let records: Record[] = await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('lengthOfDay', 'name')
       );
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
       assert.deepEqual(
-        records.map(o => o.attributes.name),
+        records.map((o) => o.attributes.name),
         ['Jupiter', 'Saturn', 'Earth']
       );
 
@@ -4745,7 +4762,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - related records with pagination', async function(assert) {
+    test('#query - related records with pagination', async function (assert) {
       assert.expect(5);
 
       const solarSystem = source.requestProcessor.serializer.deserializeResource(
@@ -4778,7 +4795,7 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query(q =>
+      let records: Record[] = await source.query((q) =>
         q
           .findRelatedRecords(solarSystem, 'planets')
           .page({ offset: 1, limit: 10 })
@@ -4787,7 +4804,7 @@ module('JSONAPISource', function() {
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
       assert.deepEqual(
-        records.map(o => o.attributes.name),
+        records.map((o) => o.attributes.name),
         ['Jupiter', 'Earth', 'Saturn']
       );
 
@@ -4799,7 +4816,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - related record (304 response)', async function(assert) {
+    test('#query - related record (304 response)', async function (assert) {
       assert.expect(3);
 
       fetchStub
@@ -4811,7 +4828,7 @@ module('JSONAPISource', function() {
         id: 'earth'
       });
 
-      let records = await source.query(q =>
+      let records = await source.query((q) =>
         q.findRelatedRecord({ type: 'planet', id: earth.id }, 'solarSystem')
       );
 
@@ -4825,7 +4842,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - related records (304 response)', async function(assert) {
+    test('#query - related records (304 response)', async function (assert) {
       assert.expect(3);
 
       fetchStub
@@ -4839,7 +4856,7 @@ module('JSONAPISource', function() {
         }
       );
 
-      let records = await source.query(q =>
+      let records = await source.query((q) =>
         q.findRelatedRecords(
           { type: 'solarSystem', id: solarSystem.id },
           'planets'
@@ -4856,7 +4873,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - records with include', async function(assert) {
+    test('#query - records with include', async function (assert) {
       assert.expect(2);
 
       const options = {
@@ -4871,7 +4888,7 @@ module('JSONAPISource', function() {
         .withArgs('/planets?include=moons')
         .returns(jsonapiResponse(200, { data: [] }));
 
-      await source.query(q => q.findRecords('planet'), options);
+      await source.query((q) => q.findRecords('planet'), options);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -4881,7 +4898,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - records with include: verify only primary data array is returned', async function(assert) {
+    test('#query - records with include: verify only primary data array is returned', async function (assert) {
       assert.expect(6);
 
       const options = {
@@ -4906,7 +4923,7 @@ module('JSONAPISource', function() {
       );
 
       let records: Record[] = await source.query(
-        q => q.findRecords('planet'),
+        (q) => q.findRecords('planet'),
         options
       );
 
@@ -4920,11 +4937,11 @@ module('JSONAPISource', function() {
         'query result length equals primary data length'
       );
       assert.deepEqual(
-        records.map(planet => planet.type),
+        records.map((planet) => planet.type),
         ['planet', 'planet']
       );
       assert.deepEqual(
-        records.map(planet => planet.keys.remoteId),
+        records.map((planet) => planet.keys.remoteId),
         ['1', '2'],
         'returned IDs match primary data (including sorting)'
       );
@@ -4937,7 +4954,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - records with include many relationships', async function(assert) {
+    test('#query - records with include many relationships', async function (assert) {
       assert.expect(2);
 
       const options = {
@@ -4954,7 +4971,7 @@ module('JSONAPISource', function() {
         )
         .returns(jsonapiResponse(200, { data: [] }));
 
-      await source.query(q => q.findRecords('planet'), options);
+      await source.query((q) => q.findRecords('planet'), options);
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -4964,7 +4981,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - records invokes preprocessResponseDocument when response has content', async function(assert) {
+    test('#query - records invokes preprocessResponseDocument when response has content', async function (assert) {
       assert.expect(1);
       const responseDoc: ResourceDocument = {
         meta: { interesting: 'info' },
@@ -4976,7 +4993,7 @@ module('JSONAPISource', function() {
         'preprocessResponseDocument'
       );
 
-      await source.query(q => q.findRecords('planet'), {});
+      await source.query((q) => q.findRecords('planet'), {});
 
       assert.ok(
         preprocessResponseDocumentSpy.calledOnceWith(
@@ -4987,7 +5004,7 @@ module('JSONAPISource', function() {
       preprocessResponseDocumentSpy.restore();
     });
 
-    test('#query - relatedRecords', async function(assert) {
+    test('#query - relatedRecords', async function (assert) {
       assert.expect(5);
 
       let planetRecord: Record = source.requestProcessor.serializer.deserialize(
@@ -5013,14 +5030,14 @@ module('JSONAPISource', function() {
         .withArgs('/planets/jupiter/moons')
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query(q =>
+      let records: Record[] = await source.query((q) =>
         q.findRelatedRecords(planetRecord, 'moons')
       );
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
       assert.deepEqual(
-        records.map(o => o.attributes.name),
+        records.map((o) => o.attributes.name),
         ['Io']
       );
 
@@ -5032,7 +5049,7 @@ module('JSONAPISource', function() {
       );
     });
 
-    test('#query - relatedRecords with include', async function(assert) {
+    test('#query - relatedRecords with include', async function (assert) {
       assert.expect(2);
 
       const planetRecord = source.requestProcessor.serializer.deserialize({
@@ -5055,7 +5072,7 @@ module('JSONAPISource', function() {
         .returns(jsonapiResponse(200, { data: [] }));
 
       await source.query(
-        q => q.findRelatedRecords(planetRecord, 'moons'),
+        (q) => q.findRelatedRecords(planetRecord, 'moons'),
         options
       );
 
@@ -5068,8 +5085,8 @@ module('JSONAPISource', function() {
     });
   });
 
-  module('with no secondary keys', function(hooks) {
-    hooks.beforeEach(function() {
+  module('with no secondary keys', function (hooks) {
+    hooks.beforeEach(function () {
       fetchStub = sinon.stub(self, 'fetch');
 
       let schema = new Schema({
@@ -5097,12 +5114,12 @@ module('JSONAPISource', function() {
       source = new JSONAPISource({ schema });
     });
 
-    hooks.afterEach(function() {
+    hooks.afterEach(function () {
       schema = source = null;
       fetchStub.restore();
     });
 
-    test('#push - can add records', async function(assert) {
+    test('#push - can add records', async function (assert) {
       assert.expect(5);
 
       let transformCount = 0;
@@ -5147,7 +5164,7 @@ module('JSONAPISource', function() {
         })
       );
 
-      await source.push(t => t.addRecord(planet));
+      await source.push((t) => t.addRecord(planet));
 
       assert.ok(true, 'transform resolves successfully');
 

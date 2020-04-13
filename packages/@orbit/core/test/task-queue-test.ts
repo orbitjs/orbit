@@ -5,8 +5,8 @@ const { module, test } = QUnit;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module('TaskQueue', function() {
-  test('can be instantiated', function(assert) {
+module('TaskQueue', function () {
+  test('can be instantiated', function (assert) {
     const performer: Performer = {
       perform(task: Task): Promise<void> {
         return Promise.resolve();
@@ -16,7 +16,7 @@ module('TaskQueue', function() {
     assert.ok(queue);
   });
 
-  test('#autoProcess is enabled by default', function(assert) {
+  test('#autoProcess is enabled by default', function (assert) {
     const performer: Performer = {
       perform(task: Task): Promise<void> {
         return Promise.resolve();
@@ -26,7 +26,7 @@ module('TaskQueue', function() {
     assert.equal(queue.autoProcess, true, 'autoProcess === true');
   });
 
-  test('auto-processes pushed tasks sequentially by default', function(assert) {
+  test('auto-processes pushed tasks sequentially by default', function (assert) {
     assert.expect(21);
     const done = assert.async();
     let order = 0;
@@ -59,7 +59,7 @@ module('TaskQueue', function() {
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let transformCount = 0;
 
-    queue.on('beforeTask', function(task: Task) {
+    queue.on('beforeTask', function (task: Task) {
       if (transformCount === 0) {
         assert.equal(order++, 0, 'op1 - order of beforeTask event');
         assert.strictEqual(task.data, op1, 'op1 - beforeTask - data correct');
@@ -79,7 +79,7 @@ module('TaskQueue', function() {
       }
     });
 
-    queue.on('task', function(task: Task) {
+    queue.on('task', function (task: Task) {
       if (transformCount === 1) {
         assert.equal(order++, 2, 'op1 - order of task event');
         assert.strictEqual(task.data, op1, 'op1 processed');
@@ -111,7 +111,7 @@ module('TaskQueue', function() {
       }
     });
 
-    queue.on('complete', function() {
+    queue.on('complete', function () {
       assert.equal(order++, 6, 'order of complete event');
       done();
     });
@@ -127,7 +127,7 @@ module('TaskQueue', function() {
     });
   });
 
-  test('with `autoProcess` disabled, will process pushed functions sequentially when `process` is called', function(assert) {
+  test('with `autoProcess` disabled, will process pushed functions sequentially when `process` is called', function (assert) {
     assert.expect(5);
 
     const performer: Performer = {
@@ -156,7 +156,7 @@ module('TaskQueue', function() {
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let transformCount = 0;
 
-    queue.on('task', function(task) {
+    queue.on('task', function (task) {
       if (transformCount === 1) {
         assert.strictEqual(task.data, op1, 'op1 processed');
       } else if (transformCount === 2) {
@@ -164,7 +164,7 @@ module('TaskQueue', function() {
       }
     });
 
-    queue.on('complete', function() {
+    queue.on('complete', function () {
       assert.ok(true, 'queue completed');
     });
 
@@ -181,7 +181,7 @@ module('TaskQueue', function() {
     return queue.process();
   });
 
-  test('can enqueue tasks while another task is being processed', function(assert) {
+  test('can enqueue tasks while another task is being processed', function (assert) {
     assert.expect(7);
 
     const performer: Performer = {
@@ -203,7 +203,7 @@ module('TaskQueue', function() {
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let order = 0;
 
-    queue.on('task', function(task) {
+    queue.on('task', function (task) {
       if (task.data === op1) {
         assert.equal(++order, 2, 'op1 completed');
       } else if (task.data === op2) {
@@ -211,7 +211,7 @@ module('TaskQueue', function() {
       }
     });
 
-    queue.on('complete', function() {
+    queue.on('complete', function () {
       assert.equal(++order, 5, 'queue completed');
     });
 
@@ -225,13 +225,13 @@ module('TaskQueue', function() {
       data: op2
     });
 
-    return queue.process().then(function() {
+    return queue.process().then(function () {
       assert.equal(queue.empty, true, 'queue processing complete');
       assert.equal(++order, 6, 'queue resolves last');
     });
   });
 
-  test('will stop processing when a task errors', function(assert) {
+  test('will stop processing when a task errors', function (assert) {
     assert.expect(9);
 
     const performer: Performer = {
@@ -259,7 +259,7 @@ module('TaskQueue', function() {
     let op3 = { op: 'add', path: ['planets', '345'], value: 'Mars' };
     let transformCount = 0;
 
-    queue.on('task', function(task) {
+    queue.on('task', function (task) {
       if (transformCount === 1) {
         assert.strictEqual(task.data, op1, 'task - op1 processed');
       } else {
@@ -267,12 +267,12 @@ module('TaskQueue', function() {
       }
     });
 
-    queue.on('fail', function(task, err) {
+    queue.on('fail', function (task, err) {
       assert.strictEqual(task.data, op2, 'fail - op2 failed processing');
       assert.equal(err.message, ':(', 'fail - error matches expectation');
     });
 
-    queue.on('complete', function() {
+    queue.on('complete', function () {
       assert.ok(false, 'queue should not complete');
     });
 
@@ -281,7 +281,7 @@ module('TaskQueue', function() {
         type: 'transform',
         data: op1
       })
-      .catch(e => {
+      .catch((e) => {
         assert.ok(false, 'successful transform should not error');
       });
 
@@ -290,7 +290,7 @@ module('TaskQueue', function() {
         type: 'transform',
         data: op2
       })
-      .catch(e => {
+      .catch((e) => {
         assert.equal(e.message, ':(', 'error can be caught from `push`');
       });
 
@@ -299,11 +299,11 @@ module('TaskQueue', function() {
         type: 'transform',
         data: op3
       })
-      .catch(e => {
+      .catch((e) => {
         assert.ok(false, 'additional transforms should not be performed');
       });
 
-    return queue.process().catch(e => {
+    return queue.process().catch((e) => {
       assert.equal(e.message, ':(', 'error can be caught from `process`');
       assert.equal(
         queue.empty,
@@ -319,7 +319,7 @@ module('TaskQueue', function() {
     });
   });
 
-  test('when autoprocessing, will stop processing when a task errors', function(assert) {
+  test('when autoprocessing, will stop processing when a task errors', function (assert) {
     assert.expect(9);
 
     const performer: Performer = {
@@ -347,7 +347,7 @@ module('TaskQueue', function() {
     let op3 = { op: 'add', path: ['planets', '345'], value: 'Mars' };
     let transformCount = 0;
 
-    queue.on('task', function(task) {
+    queue.on('task', function (task) {
       if (transformCount === 1) {
         assert.strictEqual(task.data, op1, 'task - op1 processed');
       } else {
@@ -355,12 +355,12 @@ module('TaskQueue', function() {
       }
     });
 
-    queue.on('fail', function(task, err) {
+    queue.on('fail', function (task, err) {
       assert.strictEqual(task.data, op2, 'fail - op2 failed processing');
       assert.equal(err.message, ':(', 'fail - error matches expectation');
     });
 
-    queue.on('complete', function() {
+    queue.on('complete', function () {
       assert.ok(false, 'queue should not complete');
     });
 
@@ -369,7 +369,7 @@ module('TaskQueue', function() {
         type: 'transform',
         data: op1
       })
-      .catch(e => {
+      .catch((e) => {
         assert.ok(false, 'successful transform should not error');
       });
 
@@ -378,7 +378,7 @@ module('TaskQueue', function() {
         type: 'transform',
         data: op2
       })
-      .catch(e => {
+      .catch((e) => {
         assert.equal(e.message, ':(', 'error can be caught from `push`');
       });
 
@@ -387,11 +387,11 @@ module('TaskQueue', function() {
         type: 'transform',
         data: op3
       })
-      .catch(e => {
+      .catch((e) => {
         assert.ok(false, 'additional transforms should not be performed');
       });
 
-    return queue.process().catch(e => {
+    return queue.process().catch((e) => {
       assert.equal(e.message, ':(', 'error can be caught from `process`');
       assert.equal(
         queue.empty,
@@ -407,7 +407,7 @@ module('TaskQueue', function() {
     });
   });
 
-  test('#retry resets the current task in an inactive queue and restarts processing', async function(assert) {
+  test('#retry resets the current task in an inactive queue and restarts processing', async function (assert) {
     assert.expect(14);
 
     const performer: Performer = {
@@ -434,7 +434,7 @@ module('TaskQueue', function() {
     let op3 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let transformCount = 0;
 
-    queue.on('task', function(task) {
+    queue.on('task', function (task) {
       if (transformCount === 1) {
         assert.strictEqual(task.data, op1, 'task - op1 processed');
       } else if (transformCount === 3) {
@@ -444,12 +444,12 @@ module('TaskQueue', function() {
       }
     });
 
-    queue.on('fail', function(task, err) {
+    queue.on('fail', function (task, err) {
       assert.strictEqual(task.data, op2, 'fail - op2 failed processing');
       assert.equal(err.message, ':(', 'fail - error matches expectation');
     });
 
-    queue.on('complete', function() {
+    queue.on('complete', function () {
       assert.ok(true, 'queue should complete after processing has restarted');
     });
 
@@ -499,7 +499,7 @@ module('TaskQueue', function() {
     } catch {}
   });
 
-  test('#skip removes the current task from an inactive queue', async function(assert) {
+  test('#skip removes the current task from an inactive queue', async function (assert) {
     assert.expect(9);
 
     const performer: Performer = {
@@ -523,7 +523,7 @@ module('TaskQueue', function() {
     let op3 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let transformCount = 0;
 
-    queue.on('task', function(task) {
+    queue.on('task', function (task) {
       if (transformCount === 1) {
         assert.strictEqual(task.data, op1, 'task - op1 processed');
       } else if (transformCount === 2) {
@@ -531,12 +531,12 @@ module('TaskQueue', function() {
       }
     });
 
-    queue.on('fail', function(task, err) {
+    queue.on('fail', function (task, err) {
       assert.strictEqual(task.data, op2, 'fail - op2 failed processing');
       assert.equal(err.message, ':(', 'fail - error matches expectation');
     });
 
-    queue.on('complete', function() {
+    queue.on('complete', function () {
       assert.ok(true, 'queue should complete after processing has restarted');
     });
 
@@ -557,7 +557,7 @@ module('TaskQueue', function() {
       .then(() => {
         assert.ok(false, 'op2 should fail');
       })
-      .catch(e => {
+      .catch((e) => {
         assert.ok(true, 'op2 should fail');
       });
 
@@ -598,7 +598,7 @@ module('TaskQueue', function() {
     } catch {}
   });
 
-  test('#skip removes the current task from an inactive queue and restarts processing if autoProcess=true', async function(assert) {
+  test('#skip removes the current task from an inactive queue and restarts processing if autoProcess=true', async function (assert) {
     assert.expect(10);
 
     const performer: Performer = {
@@ -622,7 +622,7 @@ module('TaskQueue', function() {
     let op3 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let transformCount = 0;
 
-    queue.on('task', function(task) {
+    queue.on('task', function (task) {
       if (transformCount === 1) {
         assert.strictEqual(task.data, op1, 'task - op1 processed');
       } else if (transformCount === 2) {
@@ -630,12 +630,12 @@ module('TaskQueue', function() {
       }
     });
 
-    queue.on('fail', function(task, err) {
+    queue.on('fail', function (task, err) {
       assert.strictEqual(task.data, op2, 'fail - op2 failed processing');
       assert.equal(err.message, ':(', 'fail - error matches expectation');
     });
 
-    queue.on('complete', function() {
+    queue.on('complete', function () {
       assert.ok(true, 'queue should complete after processing has restarted');
     });
 
@@ -684,7 +684,7 @@ module('TaskQueue', function() {
     }
   });
 
-  test('#skip will cancel tasks with a default error message', async function(assert) {
+  test('#skip will cancel tasks with a default error message', async function (assert) {
     assert.expect(2);
 
     const performer: Performer = {
@@ -699,11 +699,11 @@ module('TaskQueue', function() {
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
 
-    queue.on('task', function() {
+    queue.on('task', function () {
       assert.ok(false, 'no tasks should be processed');
     });
 
-    queue.on('complete', function() {
+    queue.on('complete', function () {
       assert.ok(true, 'queue completed after clear');
     });
 
@@ -732,7 +732,7 @@ module('TaskQueue', function() {
     assert.equal(queue.length, 1, 'queue now has one member');
   });
 
-  test('#skip can cancel tasks with a custom error message', async function(assert) {
+  test('#skip can cancel tasks with a custom error message', async function (assert) {
     assert.expect(2);
 
     const performer: Performer = {
@@ -747,11 +747,11 @@ module('TaskQueue', function() {
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
 
-    queue.on('task', function() {
+    queue.on('task', function () {
       assert.ok(false, 'no tasks should be processed');
     });
 
-    queue.on('complete', function() {
+    queue.on('complete', function () {
       assert.ok(true, 'queue completed after clear');
     });
 
@@ -776,7 +776,7 @@ module('TaskQueue', function() {
     assert.equal(queue.length, 1, 'queue now has one member');
   });
 
-  test('#skip just restarts processing if there are no tasks in the queue', async function(assert) {
+  test('#skip just restarts processing if there are no tasks in the queue', async function (assert) {
     assert.expect(2);
 
     const performer: Performer = {
@@ -789,11 +789,11 @@ module('TaskQueue', function() {
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
 
-    queue.on('complete', function() {
+    queue.on('complete', function () {
       assert.ok(true, 'queue completed');
     });
 
-    queue.on('task', function(task) {
+    queue.on('task', function (task) {
       assert.strictEqual(task.data, op1, 'op1 processed');
     });
 
@@ -803,7 +803,7 @@ module('TaskQueue', function() {
     });
   });
 
-  test('#shift can remove failed tasks from an inactive queue, allowing processing to be restarted', async function(assert) {
+  test('#shift can remove failed tasks from an inactive queue, allowing processing to be restarted', async function (assert) {
     assert.expect(11);
 
     const performer: Performer = {
@@ -827,7 +827,7 @@ module('TaskQueue', function() {
     let op3 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
     let transformCount = 0;
 
-    queue.on('task', function(task) {
+    queue.on('task', function (task) {
       if (transformCount === 1) {
         assert.strictEqual(task.data, op1, 'task - op1 processed');
       } else if (transformCount === 2) {
@@ -835,12 +835,12 @@ module('TaskQueue', function() {
       }
     });
 
-    queue.on('fail', function(task, err) {
+    queue.on('fail', function (task, err) {
       assert.strictEqual(task.data, op2, 'fail - op2 failed processing');
       assert.equal(err.message, ':(', 'fail - error matches expectation');
     });
 
-    queue.on('complete', function() {
+    queue.on('complete', function () {
       assert.ok(true, 'queue should complete after processing has restarted');
     });
 
@@ -896,7 +896,7 @@ module('TaskQueue', function() {
     }
   });
 
-  test('#shift will cancel the current task with a default error message', async function(assert) {
+  test('#shift will cancel the current task with a default error message', async function (assert) {
     assert.expect(2);
 
     const performer: Performer = {
@@ -911,11 +911,11 @@ module('TaskQueue', function() {
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
 
-    queue.on('task', function() {
+    queue.on('task', function () {
       assert.ok(false, 'no tasks should be processed');
     });
 
-    queue.on('complete', function() {
+    queue.on('complete', function () {
       assert.ok(true, 'queue completed after clear');
     });
 
@@ -944,7 +944,7 @@ module('TaskQueue', function() {
     assert.equal(queue.length, 1, 'queue now has one member');
   });
 
-  test('#shift can cancel the current task with a custom error message', async function(assert) {
+  test('#shift can cancel the current task with a custom error message', async function (assert) {
     assert.expect(2);
 
     const performer: Performer = {
@@ -959,11 +959,11 @@ module('TaskQueue', function() {
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
 
-    queue.on('task', function() {
+    queue.on('task', function () {
       assert.ok(false, 'no tasks should be processed');
     });
 
-    queue.on('complete', function() {
+    queue.on('complete', function () {
       assert.ok(true, 'queue completed after clear');
     });
 
@@ -988,7 +988,7 @@ module('TaskQueue', function() {
     assert.equal(queue.length, 1, 'queue now has one member');
   });
 
-  test('#shift just restarts processing if there are no tasks in the queue', async function(assert) {
+  test('#shift just restarts processing if there are no tasks in the queue', async function (assert) {
     assert.expect(2);
 
     const performer: Performer = {
@@ -1001,11 +1001,11 @@ module('TaskQueue', function() {
 
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
 
-    queue.on('complete', function() {
+    queue.on('complete', function () {
       assert.ok(true, 'queue completed');
     });
 
-    queue.on('task', function(task) {
+    queue.on('task', function (task) {
       assert.strictEqual(task.data, op1, 'op1 processed');
     });
 
@@ -1015,7 +1015,7 @@ module('TaskQueue', function() {
     });
   });
 
-  test('#unshift can add a new task to the beginning of an inactive queue', function(assert) {
+  test('#unshift can add a new task to the beginning of an inactive queue', function (assert) {
     assert.expect(9);
 
     const performer: Performer = {
@@ -1038,7 +1038,7 @@ module('TaskQueue', function() {
     let transformCount = 0;
 
     let changeCount = 0;
-    queue.on('change', function() {
+    queue.on('change', function () {
       changeCount++;
       if (changeCount === 1) {
         assert.equal(queue.entries.length, 1);
@@ -1053,7 +1053,7 @@ module('TaskQueue', function() {
       }
     });
 
-    queue.on('task', function(task) {
+    queue.on('task', function (task) {
       if (transformCount === 1) {
         assert.strictEqual(task.data, op2, 'op2 processed');
       } else if (transformCount === 2) {
@@ -1061,7 +1061,7 @@ module('TaskQueue', function() {
       }
     });
 
-    queue.on('complete', function() {
+    queue.on('complete', function () {
       assert.ok(true, 'queue completed');
     });
 
@@ -1072,7 +1072,7 @@ module('TaskQueue', function() {
     return queue.process();
   });
 
-  test('#clear removes all tasks from an inactive queue', async function(assert) {
+  test('#clear removes all tasks from an inactive queue', async function (assert) {
     assert.expect(4);
 
     const performer: Performer = {
@@ -1087,11 +1087,11 @@ module('TaskQueue', function() {
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
 
-    queue.on('task', function() {
+    queue.on('task', function () {
       assert.ok(false, 'no tasks should be processed');
     });
 
-    queue.on('complete', function() {
+    queue.on('complete', function () {
       assert.ok(true, 'queue completed after clear');
     });
 
@@ -1130,7 +1130,7 @@ module('TaskQueue', function() {
     assert.ok(true, 'queue was cleared');
   });
 
-  test('#clear can cancel tasks with a custom error message', async function(assert) {
+  test('#clear can cancel tasks with a custom error message', async function (assert) {
     assert.expect(4);
 
     const performer: Performer = {
@@ -1145,11 +1145,11 @@ module('TaskQueue', function() {
     let op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     let op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
 
-    queue.on('task', function() {
+    queue.on('task', function () {
       assert.ok(false, 'no tasks should be processed');
     });
 
-    queue.on('complete', function() {
+    queue.on('complete', function () {
       assert.ok(true, 'queue completed after clear');
     });
 
@@ -1180,23 +1180,23 @@ module('TaskQueue', function() {
     assert.ok(true, 'queue was cleared');
   });
 
-  module('assigned a bucket', function(hooks) {
+  module('assigned a bucket', function (hooks) {
     const op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     const op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
 
     let bucket: Bucket;
 
-    hooks.beforeEach(function() {
+    hooks.beforeEach(function () {
       bucket = new FakeBucket({ name: 'fake-bucket' });
     });
 
-    hooks.afterEach(function() {
+    hooks.afterEach(function () {
       bucket = null;
     });
 
-    test('requires a name for lookups in the bucket', function(assert) {
+    test('requires a name for lookups in the bucket', function (assert) {
       assert.throws(
-        function() {
+        function () {
           const performer: Performer = {
             perform(task: Task): Promise<void> {
               return Promise.resolve();
@@ -1209,7 +1209,7 @@ module('TaskQueue', function() {
       );
     });
 
-    test('will be reified with the tasks serialized in its bucket and immediately process them', async function(assert) {
+    test('will be reified with the tasks serialized in its bucket and immediately process them', async function (assert) {
       assert.expect(3);
 
       const performer: Performer = {
@@ -1238,7 +1238,7 @@ module('TaskQueue', function() {
 
       assert.equal(queue.length, 2, 'queue has two tasks');
 
-      queue.on('complete', async function() {
+      queue.on('complete', async function () {
         assert.ok(true, 'queue completed');
 
         let serialized = await bucket.getItem('queue');
@@ -1247,7 +1247,7 @@ module('TaskQueue', function() {
       });
     });
 
-    test('if `autoActivate = false`, will wait for `activate` to begin processing', async function(assert) {
+    test('if `autoActivate = false`, will wait for `activate` to begin processing', async function (assert) {
       assert.expect(3);
 
       const performer: Performer = {
@@ -1283,7 +1283,7 @@ module('TaskQueue', function() {
 
       await queue.activate();
 
-      queue.on('complete', async function() {
+      queue.on('complete', async function () {
         assert.ok(true, 'queue completed');
 
         let serialized = await bucket.getItem('queue');
@@ -1292,7 +1292,7 @@ module('TaskQueue', function() {
       });
     });
 
-    test('#push - tasks pushed to a queue are persisted to its bucket', function(assert) {
+    test('#push - tasks pushed to a queue are persisted to its bucket', function (assert) {
       const done = assert.async();
       assert.expect(9);
 
@@ -1306,29 +1306,29 @@ module('TaskQueue', function() {
 
       let transformCount = 0;
 
-      queue.on('beforeTask', function(task) {
+      queue.on('beforeTask', function (task) {
         transformCount++;
 
         if (transformCount === 1) {
           assert.strictEqual(task.data, op1, 'op1 processed');
-          bucket.getItem('queue').then(serialized => {
+          bucket.getItem('queue').then((serialized) => {
             assert.equal(serialized.length, 2);
             assert.deepEqual(serialized[0].data, op1);
             assert.deepEqual(serialized[1].data, op2);
           });
         } else if (transformCount === 2) {
           assert.strictEqual(task.data, op2, 'op2 processed');
-          bucket.getItem('queue').then(serialized => {
+          bucket.getItem('queue').then((serialized) => {
             assert.equal(serialized.length, 1);
             assert.deepEqual(serialized[0].data, op2);
           });
         }
       });
 
-      queue.on('complete', function() {
+      queue.on('complete', function () {
         assert.ok(true, 'queue completed');
 
-        bucket.getItem('queue').then(serialized => {
+        bucket.getItem('queue').then((serialized) => {
           assert.deepEqual(serialized, [], 'no serialized ops remain');
           done();
         });

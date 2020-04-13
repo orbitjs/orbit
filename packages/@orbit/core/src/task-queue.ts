@@ -396,7 +396,7 @@ export default class TaskQueue implements Evented {
               .then(() => this._settleEach(resolution));
           }
         })
-        .catch(e => {
+        .catch((e) => {
           if (resolution === this._resolution) {
             return this._fail(task, e);
           }
@@ -413,7 +413,7 @@ export default class TaskQueue implements Evented {
         if (tasks) {
           this._tasks = tasks;
           this._processors = tasks.map(
-            task => new TaskProcessor(this._performer, task)
+            (task) => new TaskProcessor(this._performer, task)
           );
         }
       });

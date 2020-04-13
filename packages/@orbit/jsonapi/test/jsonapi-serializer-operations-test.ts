@@ -5,7 +5,7 @@ import { JSONAPISerializer, ResourceOperationsDocument } from '../src/index';
 
 const { module, test } = QUnit;
 
-module('JSONAPISerializer', function(hooks) {
+module('JSONAPISerializer', function (hooks) {
   const modelDefinitions: Dict<ModelDefinition> = {
     planet: {
       keys: {
@@ -137,16 +137,16 @@ module('JSONAPISerializer', function(hooks) {
 
   let serializer: JSONAPISerializer;
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     let schema: Schema = new Schema({ models: modelDefinitions });
     serializer = new JSONAPISerializer({ schema });
   });
 
-  hooks.afterEach(function() {
+  hooks.afterEach(function () {
     serializer = null;
   });
 
-  test('deserializeOperationsDocument', function(assert) {
+  test('deserializeOperationsDocument', function (assert) {
     const operations = serializer.deserializeOperationsDocument(
       operationsDocument
     );
@@ -228,7 +228,7 @@ module('JSONAPISerializer', function(hooks) {
     ]);
   });
 
-  test('deserializeOperations', function(assert) {
+  test('deserializeOperations', function (assert) {
     const operations = serializer.deserializeOperations([
       {
         op: 'update',
@@ -283,7 +283,7 @@ module('JSONAPISerializer', function(hooks) {
     ]);
   });
 
-  test('deserializeOperation', function(assert) {
+  test('deserializeOperation', function (assert) {
     const operation = serializer.deserializeOperation({
       op: 'update',
       ref: {
@@ -310,7 +310,7 @@ module('JSONAPISerializer', function(hooks) {
     });
   });
 
-  test('deserializeOperation throws on get', function(assert) {
+  test('deserializeOperation throws on get', function (assert) {
     assert.throws(() => {
       serializer.deserializeOperation({
         op: 'get',
@@ -322,7 +322,7 @@ module('JSONAPISerializer', function(hooks) {
     }, '"get" operation recieved');
   });
 
-  test('serializeOperation', function(assert) {
+  test('serializeOperation', function (assert) {
     const operation = serializer.serializeOperation({
       op: 'updateRecord',
       record: {
@@ -350,7 +350,7 @@ module('JSONAPISerializer', function(hooks) {
     });
   });
 
-  test('serializeOperations', function(assert) {
+  test('serializeOperations', function (assert) {
     const operations = serializer.serializeOperations([
       {
         op: 'updateRecord',

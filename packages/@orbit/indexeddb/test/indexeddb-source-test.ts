@@ -11,7 +11,7 @@ import IndexedDBSource from '../src/indexeddb-source';
 
 const { module, test, skip } = QUnit;
 
-module('IndexedDBSource', function(hooks) {
+module('IndexedDBSource', function (hooks) {
   let schema: Schema, source: IndexedDBSource, keyMap: KeyMap;
 
   hooks.beforeEach(async () => {
@@ -69,13 +69,13 @@ module('IndexedDBSource', function(hooks) {
     await source.cache.deleteDB();
   });
 
-  test('it exists', function(assert) {
+  test('it exists', function (assert) {
     assert.ok(source);
     assert.strictEqual(source.schema, schema, 'schema has been assigned');
     assert.strictEqual(source.keyMap, keyMap, 'keyMap has been assigned');
   });
 
-  test('is assigned a default dbName', function(assert) {
+  test('is assigned a default dbName', function (assert) {
     assert.equal(
       source.cache.dbName,
       'orbit',
@@ -84,14 +84,14 @@ module('IndexedDBSource', function(hooks) {
   });
 
   // TODO: Skipped for CI
-  skip('will reopen the database when the schema is upgraded', async function(assert) {
+  skip('will reopen the database when the schema is upgraded', async function (assert) {
     const done = assert.async();
 
     assert.expect(5);
 
     assert.equal(source.cache.dbVersion, 1, 'db starts with version == 1');
 
-    source.cache.migrateDB = function(db, event) {
+    source.cache.migrateDB = function (db, event) {
       assert.equal(
         event.oldVersion,
         1,
@@ -105,7 +105,7 @@ module('IndexedDBSource', function(hooks) {
       done();
     };
 
-    schema.on('upgrade', version => {
+    schema.on('upgrade', (version) => {
       assert.equal(version, 2, 'schema has upgraded to v2');
       assert.equal(source.cache.dbVersion, 2, 'db has the correct version');
     });
@@ -128,7 +128,7 @@ module('IndexedDBSource', function(hooks) {
     });
   });
 
-  test('#reset is idempotent', async function(assert) {
+  test('#reset is idempotent', async function (assert) {
     await source.cache.openDB();
     await source.reset();
     await source.reset();
@@ -137,7 +137,7 @@ module('IndexedDBSource', function(hooks) {
     assert.ok(true, 'db has been reset twice and can still be reopened');
   });
 
-  test('data persists across re-instantiating source', async function(assert) {
+  test('data persists across re-instantiating source', async function (assert) {
     assert.expect(2);
 
     let planet: Record = {
@@ -152,7 +152,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(planet));
+    await source.push((t) => t.addRecord(planet));
     assert.deepEqual(
       await getRecordFromIndexedDB(source.cache, planet),
       planet,
@@ -171,7 +171,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#sync - addRecord', async function(assert) {
+  test('#sync - addRecord', async function (assert) {
     assert.expect(3);
 
     let planet: Record = {
@@ -206,7 +206,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - addRecord', async function(assert) {
+  test('#push - addRecord', async function (assert) {
     assert.expect(3);
 
     let planet: Record = {
@@ -241,7 +241,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - addRecord - with beforePush listener that syncs transform', async function(assert) {
+  test('#push - addRecord - with beforePush listener that syncs transform', async function (assert) {
     assert.expect(4);
 
     let planet: Record = {
@@ -261,7 +261,7 @@ module('IndexedDBSource', function(hooks) {
       record: planet
     } as AddRecordOperation);
 
-    source.on('beforePush', async function(transform: Transform) {
+    source.on('beforePush', async function (transform: Transform) {
       await source.sync(transform);
     });
 
@@ -281,7 +281,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - updateRecord', async function(assert) {
+  test('#push - updateRecord', async function (assert) {
     assert.expect(2);
 
     let original: Record = {
@@ -333,8 +333,8 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(original));
-    await source.push(t => t.updateRecord(updates));
+    await source.push((t) => t.addRecord(original));
+    await source.push((t) => t.updateRecord(updates));
     assert.deepEqual(
       await getRecordFromIndexedDB(source.cache, expected),
       expected,
@@ -347,7 +347,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - updateRecord - when record does not exist', async function(assert) {
+  test('#push - updateRecord - when record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -360,7 +360,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.updateRecord(revised));
+    await source.push((t) => t.updateRecord(revised));
     assert.deepEqual(
       await getRecordFromIndexedDB(source.cache, revised),
       revised,
@@ -368,7 +368,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - removeRecord', async function(assert) {
+  test('#push - removeRecord', async function (assert) {
     assert.expect(1);
 
     let planet: Record = {
@@ -380,8 +380,8 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(planet));
-    await source.push(t => t.removeRecord(planet));
+    await source.push((t) => t.addRecord(planet));
+    await source.push((t) => t.removeRecord(planet));
     assert.equal(
       await getRecordFromIndexedDB(source.cache, planet),
       undefined,
@@ -389,7 +389,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - removeRecord when part of has many relationship', async function(assert) {
+  test('#push - removeRecord when part of has many relationship', async function (assert) {
     assert.expect(2);
 
     let moon1 = { type: 'moon', id: 'moon1' };
@@ -408,7 +408,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => [
+    await source.push((t) => [
       t.addRecord(moon1),
       t.addRecord(moon2),
       t.addRecord(planet)
@@ -419,7 +419,7 @@ module('IndexedDBSource', function(hooks) {
       2,
       'record has 2 moons'
     );
-    await source.push(t => t.removeRecord(moon1));
+    await source.push((t) => t.removeRecord(moon1));
     assert.deepEqual(
       (await getRecordFromIndexedDB(source.cache, planet)).relationships.moons
         .data.length,
@@ -428,7 +428,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - removeRecord - when record does not exist', async function(assert) {
+  test('#push - removeRecord - when record does not exist', async function (assert) {
     assert.expect(1);
 
     let planet: Record = {
@@ -436,7 +436,7 @@ module('IndexedDBSource', function(hooks) {
       id: 'jupiter'
     };
 
-    await source.push(t => t.removeRecord(planet));
+    await source.push((t) => t.removeRecord(planet));
     assert.equal(
       await getRecordFromIndexedDB(source.cache, planet),
       undefined,
@@ -444,7 +444,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - replaceKey', async function(assert) {
+  test('#push - replaceKey', async function (assert) {
     assert.expect(2);
 
     let original: Record = {
@@ -468,8 +468,8 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(original));
-    await source.push(t => t.replaceKey(original, 'remoteId', '123'));
+    await source.push((t) => t.addRecord(original));
+    await source.push((t) => t.replaceKey(original, 'remoteId', '123'));
     assert.deepEqual(
       await getRecordFromIndexedDB(source.cache, revised),
       revised,
@@ -483,7 +483,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - replaceKey - when base record does not exist', async function(assert) {
+  test('#push - replaceKey - when base record does not exist', async function (assert) {
     assert.expect(2);
 
     let revised: Record = {
@@ -494,7 +494,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t =>
+    await source.push((t) =>
       t.replaceKey({ type: 'planet', id: 'jupiter' }, 'remoteId', '123')
     );
     assert.deepEqual(
@@ -510,7 +510,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - replaceAttribute', async function(assert) {
+  test('#push - replaceAttribute', async function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -532,8 +532,8 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(original));
-    await source.push(t => t.replaceAttribute(original, 'order', 5));
+    await source.push((t) => t.addRecord(original));
+    await source.push((t) => t.replaceAttribute(original, 'order', 5));
     assert.deepEqual(
       await getRecordFromIndexedDB(source.cache, revised),
       revised,
@@ -541,7 +541,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - replaceAttribute - when base record does not exist', async function(assert) {
+  test('#push - replaceAttribute - when base record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -552,7 +552,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t =>
+    await source.push((t) =>
       t.replaceAttribute({ type: 'planet', id: 'jupiter' }, 'order', 5)
     );
     assert.deepEqual(
@@ -562,7 +562,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - addToRelatedRecords', async function(assert) {
+  test('#push - addToRelatedRecords', async function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -593,8 +593,8 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(original));
-    await source.push(t =>
+    await source.push((t) => t.addRecord(original));
+    await source.push((t) =>
       t.addToRelatedRecords(original, 'moons', { type: 'moon', id: 'moon1' })
     );
     assert.deepEqual(
@@ -604,7 +604,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - addToRelatedRecords - when base record does not exist', async function(assert) {
+  test('#push - addToRelatedRecords - when base record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -617,7 +617,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t =>
+    await source.push((t) =>
       t.addToRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', {
         type: 'moon',
         id: 'moon1'
@@ -630,7 +630,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - removeFromRelatedRecords', async function(assert) {
+  test('#push - removeFromRelatedRecords', async function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -664,8 +664,8 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(original));
-    await source.push(t =>
+    await source.push((t) => t.addRecord(original));
+    await source.push((t) =>
       t.removeFromRelatedRecords(original, 'moons', {
         type: 'moon',
         id: 'moon2'
@@ -678,7 +678,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - removeFromRelatedRecords - when base record does not exist', async function(assert) {
+  test('#push - removeFromRelatedRecords - when base record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -691,7 +691,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t =>
+    await source.push((t) =>
       t.removeFromRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', {
         type: 'moon',
         id: 'moon2'
@@ -704,7 +704,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - replaceRelatedRecords', async function(assert) {
+  test('#push - replaceRelatedRecords', async function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -738,8 +738,8 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(original));
-    await source.push(t =>
+    await source.push((t) => t.addRecord(original));
+    await source.push((t) =>
       t.replaceRelatedRecords(original, 'moons', [
         { type: 'moon', id: 'moon2' },
         { type: 'moon', id: 'moon3' }
@@ -752,7 +752,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - replaceRelatedRecords - when base record does not exist', async function(assert) {
+  test('#push - replaceRelatedRecords - when base record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -768,7 +768,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t =>
+    await source.push((t) =>
       t.replaceRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', [
         { type: 'moon', id: 'moon2' },
         { type: 'moon', id: 'moon3' }
@@ -781,7 +781,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - replaceRelatedRecord - with record', async function(assert) {
+  test('#push - replaceRelatedRecord - with record', async function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -812,8 +812,8 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(original));
-    await source.push(t =>
+    await source.push((t) => t.addRecord(original));
+    await source.push((t) =>
       t.replaceRelatedRecord(original, 'solarSystem', {
         type: 'solarSystem',
         id: 'ss1'
@@ -826,7 +826,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - replaceRelatedRecord - with record - when base record does not exist', async function(assert) {
+  test('#push - replaceRelatedRecord - with record - when base record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -839,7 +839,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t =>
+    await source.push((t) =>
       t.replaceRelatedRecord({ type: 'planet', id: 'jupiter' }, 'solarSystem', {
         type: 'solarSystem',
         id: 'ss1'
@@ -852,7 +852,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - replaceRelatedRecord - with null', async function(assert) {
+  test('#push - replaceRelatedRecord - with null', async function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -883,8 +883,8 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => t.addRecord(original));
-    await source.push(t =>
+    await source.push((t) => t.addRecord(original));
+    await source.push((t) =>
       t.replaceRelatedRecord(original, 'solarSystem', null)
     );
     assert.deepEqual(
@@ -894,7 +894,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - replaceRelatedRecord - with null - when base record does not exist', async function(assert) {
+  test('#push - replaceRelatedRecord - with null - when base record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -907,7 +907,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t =>
+    await source.push((t) =>
       t.replaceRelatedRecord(
         { type: 'planet', id: 'jupiter' },
         'solarSystem',
@@ -921,7 +921,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#push - inverse relationships are created', async function(assert) {
+  test('#push - inverse relationships are created', async function (assert) {
     assert.expect(2);
 
     let ss = {
@@ -970,7 +970,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => [
+    await source.push((t) => [
       t.addRecord(ss),
       t.addRecord(earth),
       t.addRecord(jupiter),
@@ -1020,7 +1020,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#pull - all records', async function(assert) {
+  test('#pull - all records', async function (assert) {
     assert.expect(5);
 
     let earth: Record = {
@@ -1058,7 +1058,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => [
+    await source.push((t) => [
       t.addRecord(earth),
       t.addRecord(jupiter),
       t.addRecord(io)
@@ -1067,11 +1067,11 @@ module('IndexedDBSource', function(hooks) {
     // reset keyMap to verify that pulling records also adds keys
     keyMap.reset();
 
-    let transforms = await source.pull(q => q.findRecords());
+    let transforms = await source.pull((q) => q.findRecords());
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.deepEqual(
-      transforms[0].operations.map(o => o.op),
+      transforms[0].operations.map((o) => o.op),
       ['updateRecord', 'updateRecord', 'updateRecord'],
       'operations match expectations'
     );
@@ -1092,7 +1092,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#pull - records of one type', async function(assert) {
+  test('#pull - records of one type', async function (assert) {
     assert.expect(4);
 
     let earth: Record = {
@@ -1121,13 +1121,13 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => [
+    await source.push((t) => [
       t.addRecord(earth),
       t.addRecord(jupiter),
       t.addRecord(io)
     ]);
 
-    let transforms = await source.pull(q => q.findRecords('planet'));
+    let transforms = await source.pull((q) => q.findRecords('planet'));
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(
@@ -1135,7 +1135,7 @@ module('IndexedDBSource', function(hooks) {
       'log contains transform'
     );
     assert.deepEqual(
-      transforms[0].operations.map(o => o.op),
+      transforms[0].operations.map((o) => o.op),
       ['updateRecord', 'updateRecord'],
       'operations match expectations'
     );
@@ -1146,7 +1146,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#pull - specific records', async function(assert) {
+  test('#pull - specific records', async function (assert) {
     assert.expect(4);
 
     let earth: Record = {
@@ -1175,13 +1175,13 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => [
+    await source.push((t) => [
       t.addRecord(earth),
       t.addRecord(jupiter),
       t.addRecord(io)
     ]);
 
-    let transforms = await source.pull(q =>
+    let transforms = await source.pull((q) =>
       q.findRecords([earth, io, { type: 'moon', id: 'FAKE' }])
     );
 
@@ -1191,7 +1191,7 @@ module('IndexedDBSource', function(hooks) {
       'log contains transform'
     );
     assert.deepEqual(
-      transforms[0].operations.map(o => o.op),
+      transforms[0].operations.map((o) => o.op),
       ['updateRecord', 'updateRecord'],
       'operations match expectations'
     );
@@ -1202,7 +1202,7 @@ module('IndexedDBSource', function(hooks) {
     );
   });
 
-  test('#pull - a specific record', async function(assert) {
+  test('#pull - a specific record', async function (assert) {
     assert.expect(4);
 
     let earth: Record = {
@@ -1234,7 +1234,7 @@ module('IndexedDBSource', function(hooks) {
       }
     };
 
-    await source.push(t => [
+    await source.push((t) => [
       t.addRecord(earth),
       t.addRecord(jupiter),
       t.addRecord(io)
@@ -1243,7 +1243,7 @@ module('IndexedDBSource', function(hooks) {
     // reset keyMap to verify that pulling records also adds keys
     keyMap.reset();
 
-    let transforms = await source.pull(q => q.findRecord(jupiter));
+    let transforms = await source.pull((q) => q.findRecord(jupiter));
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(
@@ -1251,7 +1251,7 @@ module('IndexedDBSource', function(hooks) {
       'log contains transform'
     );
     assert.deepEqual(
-      transforms[0].operations.map(o => o.op),
+      transforms[0].operations.map((o) => o.op),
       ['updateRecord'],
       'operations match expectations'
     );

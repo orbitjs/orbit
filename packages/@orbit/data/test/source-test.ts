@@ -10,23 +10,23 @@ import { FakeBucket } from './test-helper';
 
 const { module, test } = QUnit;
 
-module('Source', function(hooks) {
+module('Source', function (hooks) {
   let source: any;
   let schema: Schema;
 
   class MySource extends Source {}
 
-  hooks.beforeEach(function() {
+  hooks.beforeEach(function () {
     schema = new Schema();
   });
 
-  test('it can be instantiated', function(assert) {
+  test('it can be instantiated', function (assert) {
     source = new MySource();
     assert.ok(source);
     assert.ok(source.transformLog, 'has a transform log');
   });
 
-  test('it can be assigned a schema, which will be observed for upgrades by default', async function(assert) {
+  test('it can be assigned a schema, which will be observed for upgrades by default', async function (assert) {
     assert.expect(2);
 
     class MyDynamicSource extends Source {
@@ -42,7 +42,7 @@ module('Source', function(hooks) {
     assert.ok(true, 'after upgrade');
   });
 
-  test('it will not be auto-upgraded if autoUpgrade: false option is specified', function(assert) {
+  test('it will not be auto-upgraded if autoUpgrade: false option is specified', function (assert) {
     assert.expect(1);
 
     class MyDynamicSource extends Source {
@@ -56,7 +56,7 @@ module('Source', function(hooks) {
     assert.ok(true, 'after upgrade');
   });
 
-  test('creates a `transformLog`, `requestQueue`, and `syncQueue`, and assigns each the same bucket as the Source', function(assert) {
+  test('creates a `transformLog`, `requestQueue`, and `syncQueue`, and assigns each the same bucket as the Source', function (assert) {
     assert.expect(8);
     const bucket = new FakeBucket();
     source = new MySource({ name: 'src1', schema, bucket });
@@ -98,7 +98,7 @@ module('Source', function(hooks) {
     );
   });
 
-  test('overrides default requestQueue settings with injected requestQueueSettings', async function(assert) {
+  test('overrides default requestQueue settings with injected requestQueueSettings', async function (assert) {
     assert.expect(3);
 
     const defaultBucket = new FakeBucket();
@@ -135,7 +135,7 @@ module('Source', function(hooks) {
     );
   });
 
-  test('overrides default syncQueue settings with injected syncQueueSettings', async function(assert) {
+  test('overrides default syncQueue settings with injected syncQueueSettings', async function (assert) {
     assert.expect(3);
 
     const defaultBucket = new FakeBucket();
@@ -172,7 +172,7 @@ module('Source', function(hooks) {
     );
   });
 
-  test('disables queue activation by default until source activation', async function(assert) {
+  test('disables queue activation by default until source activation', async function (assert) {
     assert.expect(4);
 
     const bucket = new FakeBucket();
@@ -198,7 +198,7 @@ module('Source', function(hooks) {
     });
 
     let i = 0;
-    source.perform = async function(task) {
+    source.perform = async function (task) {
       i++;
       if (i === 1) {
         assert.strictEqual(task.data, op1, 'op1 - first task in sync queue');
@@ -216,7 +216,7 @@ module('Source', function(hooks) {
     await source.activate();
   });
 
-  test('creates a `queryBuilder` upon first access', function(assert) {
+  test('creates a `queryBuilder` upon first access', function (assert) {
     const qb = source.queryBuilder;
     assert.ok(qb, 'queryBuilder created');
     assert.strictEqual(
@@ -226,7 +226,7 @@ module('Source', function(hooks) {
     );
   });
 
-  test('creates a `transformBuilder` upon first access', function(assert) {
+  test('creates a `transformBuilder` upon first access', function (assert) {
     const tb = source.transformBuilder;
     assert.ok(tb, 'transformBuilder created');
     assert.strictEqual(
@@ -241,7 +241,7 @@ module('Source', function(hooks) {
     );
   });
 
-  test('it can be instantiated with a `queryBuilder` and/or `transformBuilder`', function(assert) {
+  test('it can be instantiated with a `queryBuilder` and/or `transformBuilder`', function (assert) {
     const queryBuilder = new QueryBuilder();
     const transformBuilder = new TransformBuilder();
     source = new MySource({ queryBuilder, transformBuilder });
@@ -257,7 +257,7 @@ module('Source', function(hooks) {
     );
   });
 
-  test('#transformed should trigger `transform` event BEFORE resolving', async function(assert) {
+  test('#transformed should trigger `transform` event BEFORE resolving', async function (assert) {
     assert.expect(3);
 
     source = new MySource();
@@ -282,7 +282,7 @@ module('Source', function(hooks) {
     assert.equal(++order, 2, 'transformed promise resolved last');
   });
 
-  test('#transformLog contains transforms applied', async function(assert) {
+  test('#transformLog contains transforms applied', async function (assert) {
     assert.expect(2);
 
     source = new MySource();
@@ -295,7 +295,7 @@ module('Source', function(hooks) {
     assert.ok(source.transformLog.contains(appliedTransform.id));
   });
 
-  test('autoActivate', async function(assert) {
+  test('autoActivate', async function (assert) {
     assert.expect(2);
 
     source = new MySource({ autoActivate: false });

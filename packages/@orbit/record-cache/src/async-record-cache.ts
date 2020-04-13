@@ -101,7 +101,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
           AsyncSchemaConsistencyProcessor,
           AsyncCacheIntegrityProcessor
         ];
-    this._processors = processors.map(Processor => {
+    this._processors = processors.map((Processor) => {
       let processor = new Processor(this);
       assert(
         'Each processor must extend AsyncOperationProcessor',
