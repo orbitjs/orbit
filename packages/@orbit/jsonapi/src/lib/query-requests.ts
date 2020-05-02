@@ -181,12 +181,13 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
     request: FindRecordRequest
   ): Promise<QueryProcessorResponse> {
     const { record } = request;
+    const options = request.options || {};
+    const settings = requestProcessor.buildFetchSettings(options);
+    const url =
+      options.url ||
+      requestProcessor.urlBuilder.resourceURL(record.type, record.id);
 
-    const settings = requestProcessor.buildFetchSettings(request.options);
-    const document = await requestProcessor.fetch(
-      requestProcessor.urlBuilder.resourceURL(record.type, record.id),
-      settings
-    );
+    const document = await requestProcessor.fetch(url, settings);
     requestProcessor.preprocessResponseDocument(document, request);
 
     if (document) {
@@ -209,12 +210,11 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
     request: FindRecordsRequest
   ): Promise<QueryProcessorResponse> {
     const { type } = request;
+    const options = request.options || {};
+    const settings = requestProcessor.buildFetchSettings(options);
+    const url = options.url || requestProcessor.urlBuilder.resourceURL(type);
 
-    const settings = requestProcessor.buildFetchSettings(request.options);
-    const document = await requestProcessor.fetch(
-      requestProcessor.urlBuilder.resourceURL(type),
-      settings
-    );
+    const document = await requestProcessor.fetch(url, settings);
     requestProcessor.preprocessResponseDocument(document, request);
 
     if (document) {
@@ -237,16 +237,17 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
     request: FindRelatedRecordRequest
   ): Promise<QueryProcessorResponse> {
     const { record, relationship } = request;
-
-    const settings = requestProcessor.buildFetchSettings(request.options);
-    const document = await requestProcessor.fetch(
+    const options = request.options || {};
+    const settings = requestProcessor.buildFetchSettings(options);
+    const url =
+      options.url ||
       requestProcessor.urlBuilder.relatedResourceURL(
         record.type,
         record.id,
         relationship
-      ),
-      settings
-    );
+      );
+
+    const document = await requestProcessor.fetch(url, settings);
     requestProcessor.preprocessResponseDocument(document, request);
 
     if (document) {
@@ -276,21 +277,18 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
     request: FindRelatedRecordsRequest
   ): Promise<QueryProcessorResponse> {
     const { record, relationship } = request;
-    const isFiltered = !!(
-      request.options.filter ||
-      request.options.sort ||
-      request.options.page
-    );
-
-    const settings = requestProcessor.buildFetchSettings(request.options);
-    const document = await requestProcessor.fetch(
+    const options = request.options || {};
+    const isFiltered = !!(options.filter || options.sort || options.page);
+    const settings = requestProcessor.buildFetchSettings(options);
+    const url =
+      options.url ||
       requestProcessor.urlBuilder.relatedResourceURL(
         record.type,
         record.id,
         relationship
-      ),
-      settings
-    );
+      );
+
+    const document = await requestProcessor.fetch(url, settings);
     requestProcessor.preprocessResponseDocument(document, request);
 
     if (document) {

@@ -5118,7 +5118,7 @@ module('JSONAPISource', function () {
       fetchStub.restore();
     });
 
-    test('#push - can add records', async function (assert) {
+    test('#push - addRecord', async function (assert) {
       assert.expect(5);
 
       let transformCount = 0;
@@ -5187,6 +5187,224 @@ module('JSONAPISource', function () {
         },
         'fetch called with expected data'
       );
+    });
+
+    test('#push - addRecord - url option can be passed', async function (assert) {
+      assert.expect(1);
+
+      const planetResource = {
+        id: '12345',
+        type: 'planets',
+        attributes: { name: 'Jupiter' }
+      };
+
+      const planet = source.requestProcessor.serializer.deserializeResource(
+        planetResource
+      );
+
+      fetchStub.withArgs('/custom/path/here').returns(
+        jsonapiResponse(201, {
+          data: planetResource
+        })
+      );
+
+      await source.push((t) => t.addRecord(planet), {
+        url: '/custom/path/here'
+      });
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+    });
+
+    test('#push - updateRecord - url option can be passed', async function (assert) {
+      assert.expect(1);
+
+      fetchStub.withArgs('/custom/path/here').returns(jsonapiResponse(200));
+
+      await source.push((t) => t.updateRecord({ type: 'planet', id: '123' }), {
+        url: '/custom/path/here'
+      });
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+    });
+
+    test('#push - removeRecord - url option can be passed', async function (assert) {
+      assert.expect(1);
+
+      fetchStub.withArgs('/custom/path/here').returns(jsonapiResponse(200));
+
+      await source.push((t) => t.removeRecord({ type: 'planet', id: '123' }), {
+        url: '/custom/path/here'
+      });
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+    });
+
+    test('#push - addToRelatedRecords - url option can be passed', async function (assert) {
+      assert.expect(1);
+
+      fetchStub.withArgs('/custom/path/here').returns(jsonapiResponse(200));
+
+      await source.push(
+        (t) =>
+          t.addToRelatedRecords({ type: 'planet', id: '123' }, 'moons', {
+            type: 'moon',
+            id: 'io'
+          }),
+        {
+          url: '/custom/path/here'
+        }
+      );
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+    });
+
+    test('#push - removeFromRelatedRecords - url option can be passed', async function (assert) {
+      assert.expect(1);
+
+      fetchStub.withArgs('/custom/path/here').returns(jsonapiResponse(200));
+
+      await source.push(
+        (t) =>
+          t.removeFromRelatedRecords({ type: 'planet', id: '123' }, 'moons', {
+            type: 'moon',
+            id: 'io'
+          }),
+        {
+          url: '/custom/path/here'
+        }
+      );
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+    });
+
+    test('#push - replaceRelatedRecords - url option can be passed', async function (assert) {
+      assert.expect(1);
+
+      fetchStub.withArgs('/custom/path/here').returns(jsonapiResponse(200));
+
+      await source.push(
+        (t) =>
+          t.replaceRelatedRecords({ type: 'planet', id: '123' }, 'moons', [
+            {
+              type: 'moon',
+              id: 'io'
+            }
+          ]),
+        {
+          url: '/custom/path/here'
+        }
+      );
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+    });
+
+    test('#push - replaceRelatedRecord - url option can be passed', async function (assert) {
+      assert.expect(1);
+
+      fetchStub.withArgs('/custom/path/here').returns(jsonapiResponse(200));
+
+      await source.push(
+        (t) =>
+          t.replaceRelatedRecord({ type: 'planet', id: '123' }, 'sun', {
+            type: 'star',
+            id: '1'
+          }),
+        {
+          url: '/custom/path/here'
+        }
+      );
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+    });
+
+    test('#query - findRecord - url option can be passed', async function (assert) {
+      assert.expect(1);
+
+      const planetResource = {
+        id: '12345',
+        type: 'planets',
+        attributes: { name: 'Jupiter' }
+      };
+
+      const planet = source.requestProcessor.serializer.deserializeResource(
+        planetResource
+      );
+
+      fetchStub.withArgs('/custom/path/here').returns(
+        jsonapiResponse(200, {
+          data: planetResource
+        })
+      );
+
+      await source.query((q) => q.findRecord(planet), {
+        url: '/custom/path/here'
+      });
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+    });
+
+    test('#query - findRecords - url option can be passed', async function (assert) {
+      assert.expect(1);
+
+      const planetResource = {
+        id: '12345',
+        type: 'planets',
+        attributes: { name: 'Jupiter' }
+      };
+
+      fetchStub.withArgs('/custom/path/here').returns(
+        jsonapiResponse(200, {
+          data: [planetResource]
+        })
+      );
+
+      await source.query((q) => q.findRecords('planet'), {
+        url: '/custom/path/here'
+      });
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+    });
+
+    test('#query - findRelatedRecord - url option can be passed', async function (assert) {
+      assert.expect(1);
+
+      const planet = {
+        id: '12345',
+        type: 'planet'
+      };
+
+      fetchStub.withArgs('/custom/path/here').returns(
+        jsonapiResponse(200, {
+          data: null
+        })
+      );
+
+      await source.query((q) => q.findRelatedRecord(planet, 'star'), {
+        url: '/custom/path/here'
+      });
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+    });
+
+    test('#query - findRelatedRecords - url option can be passed', async function (assert) {
+      assert.expect(1);
+
+      const planet = {
+        id: '12345',
+        type: 'planet'
+      };
+
+      fetchStub.withArgs('/custom/path/here').returns(
+        jsonapiResponse(200, {
+          data: []
+        })
+      );
+
+      await source.query((q) => q.findRelatedRecords(planet, 'moons'), {
+        url: '/custom/path/here'
+      });
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
     });
   });
 });
