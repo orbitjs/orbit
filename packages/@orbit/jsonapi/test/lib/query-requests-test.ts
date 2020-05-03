@@ -1,13 +1,13 @@
-import { Schema, QueryBuilder, buildQuery } from '@orbit/data';
+import { Schema, QueryBuilder, buildQuery, Operation } from '@orbit/data';
 import {
   QueryRequestProcessors,
   getQueryRequests
 } from '../../src/lib/query-requests';
 import JSONAPIRequestProcessor from '../../src/jsonapi-request-processor';
-import { SinonStatic, SinonStub } from 'sinon';
 import { jsonapiResponse } from '../support/jsonapi';
+import { SinonStub } from 'sinon';
+import * as sinon from 'sinon';
 
-declare const sinon: SinonStatic;
 const { module, test } = QUnit;
 
 module('QueryRequests', function (hooks) {
@@ -151,7 +151,7 @@ module('QueryRequests', function (hooks) {
                 id: 'jupiter',
                 attributes: { name: 'Jupiter' }
               }
-            }
+            } as Operation
           ],
           options: undefined
         }

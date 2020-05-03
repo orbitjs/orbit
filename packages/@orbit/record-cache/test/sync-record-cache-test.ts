@@ -85,8 +85,7 @@ module('SyncRecordCache', function (hooks) {
 
     class FakeProcessor {}
     assert.throws(
-      //@ts-ignore
-      () => (cache = new Cache({ schema, processors: [FakeProcessor] }))
+      () => (cache = new Cache({ schema, processors: [FakeProcessor as any] }))
     );
   });
 
@@ -4024,7 +4023,7 @@ module('SyncRecordCache', function (hooks) {
         } else {
           assert.ok(false, 'findRecords should not execute');
         }
-      } catch {
+      } catch (e) {
         assert.ok(false, 'findRecords should not throw error');
       }
       next();
@@ -4079,7 +4078,7 @@ module('SyncRecordCache', function (hooks) {
         } else {
           assert.ok(false, 'findRelatedRecord should not execute');
         }
-      } catch {
+      } catch (e) {
         assert.ok(false, 'findRelatedRecord should not throw error');
       }
       next();

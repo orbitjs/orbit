@@ -18,11 +18,10 @@ import {
   Transform
 } from '@orbit/data';
 import { jsonapiResponse } from './support/jsonapi';
-import JSONAPISource, { Resource } from '../src/index';
-import { SinonStatic, SinonStub } from 'sinon';
-import { ResourceDocument } from '../dist/types';
+import JSONAPISource, { Resource, ResourceDocument } from '../src/index';
+import { SinonStub } from 'sinon';
+import * as sinon from 'sinon';
 
-declare const sinon: SinonStatic;
 const { module, test } = QUnit;
 
 module('JSONAPISource', function () {
@@ -1495,7 +1494,7 @@ module('JSONAPISource', function () {
         })
       );
 
-      let transforms = [];
+      let transforms: Transform[] = [];
       source.on('transform', (transform: Transform) => {
         transforms.push(transform);
       });

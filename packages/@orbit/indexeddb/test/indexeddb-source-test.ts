@@ -5,7 +5,8 @@ import {
   Schema,
   KeyMap,
   AddRecordOperation,
-  Transform
+  Transform,
+  RecordIdentity
 } from '@orbit/data';
 import IndexedDBSource from '../src/indexeddb-source';
 
@@ -413,19 +414,15 @@ module('IndexedDBSource', function (hooks) {
       t.addRecord(moon2),
       t.addRecord(planet)
     ]);
-    assert.deepEqual(
-      (await getRecordFromIndexedDB(source.cache, planet)).relationships.moons
-        .data.length,
-      2,
-      'record has 2 moons'
-    );
+
+    let moons = (await getRecordFromIndexedDB(source.cache, planet))
+      .relationships.moons.data as RecordIdentity[];
+    assert.deepEqual(moons.length, 2, 'record has 2 moons');
+
     await source.push((t) => t.removeRecord(moon1));
-    assert.deepEqual(
-      (await getRecordFromIndexedDB(source.cache, planet)).relationships.moons
-        .data.length,
-      1,
-      'record has 1 moon'
-    );
+    moons = (await getRecordFromIndexedDB(source.cache, planet)).relationships
+      .moons.data as RecordIdentity[];
+    assert.deepEqual(moons.length, 1, 'record has 1 moon');
   });
 
   test('#push - removeRecord - when record does not exist', async function (assert) {

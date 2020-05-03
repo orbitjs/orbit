@@ -4,10 +4,10 @@ import {
   TransformRequestProcessors
 } from '../../src/lib/transform-requests';
 import JSONAPIRequestProcessor from '../../src/jsonapi-request-processor';
-import { SinonStatic, SinonStub } from 'sinon';
 import { jsonapiResponse } from '../support/jsonapi';
+import { SinonStub } from 'sinon';
+import * as sinon from 'sinon';
 
-declare const sinon: SinonStatic;
 const { module, test } = QUnit;
 
 module('TransformRequests', function (/* hooks */) {

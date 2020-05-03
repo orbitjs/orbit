@@ -5,13 +5,23 @@ Provides a Bucket implementation that persists to
 
 ## Installation
 
+Install with yarn:
+
 ```
 yarn add @orbit/indexeddb-bucket
+```
+
+Or with npm:
+
+```
+npm install @orbit/indexeddb-bucket
 ```
 
 ## Contributing
 
 ### Installation
+
+To install dependencies:
 
 ```
 yarn install
@@ -38,7 +48,7 @@ yarn test
 #### Browser Testing
 
 Test within a browser
-(at [http://localhost:4200/tests/](http://localhost:4200/tests/)) by running:
+(at [http://localhost:7357/](http://localhost:7357/)) by running:
 
 ```
 yarn testem
@@ -46,4 +56,4 @@ yarn testem
 
 ## License
 
-Copyright 2014-2019 Cerebris Corporation. MIT License (see LICENSE for details).
+Copyright 2014-2020 Cerebris Corporation. MIT License (see LICENSE for details).

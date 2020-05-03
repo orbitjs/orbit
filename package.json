@@ -17,13 +17,14 @@
     "postinstall": "lerna bootstrap",
     "build": "lerna run build",
     "test": "lerna run build && lerna run --concurrency 1 test",
-    "lint:ts": "lerna run lint:ts",
+    "lint": "lerna run lint",
     "typedoc": "typedoc"
   },
   "devDependencies": {
     "lerna": "^3.20.2",
     "typedoc": "^0.17.3",
-    "typedoc-plugin-lerna-packages": "^0.3.0"
+    "typedoc-plugin-lerna-packages": "^0.3.0",
+    "walk-sync": "^2.1.0"
   },
   "workspaces": [
     "packages/@orbit/*"

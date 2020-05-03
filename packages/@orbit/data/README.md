@@ -19,15 +19,25 @@ elements:
   and/or `updatable` - each decorator provides a unique interface that allows
   for transforms and queries to be applied as appropriate.
 
-## Installation
+### Installation
+
+Install with yarn:
 
 ```
 yarn add @orbit/data
 ```
 
+Or with npm:
+
+```
+npm install @orbit/data
+```
+
 ## Contributing
 
 ### Installation
+
+To install dependencies:
 
 ```
 yarn install
@@ -54,7 +64,7 @@ yarn test
 #### Browser Testing
 
 Test within a browser
-(at [http://localhost:4200/tests/](http://localhost:4200/tests/)) by running:
+(at [http://localhost:7357/](http://localhost:7357/)) by running:
 
 ```
 yarn testem
@@ -62,4 +72,4 @@ yarn testem
 
 ## License
 
-Copyright 2014-2019 Cerebris Corporation. MIT License (see LICENSE for details).
+Copyright 2014-2020 Cerebris Corporation. MIT License (see LICENSE for details).

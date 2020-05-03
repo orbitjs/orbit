@@ -59,7 +59,7 @@ export default class ImmutableMap<K, V> {
     return this._data.values();
   }
 
-  entries(): IterableIterator<[number, V]> {
+  entries(): IterableIterator<[K, V]> {
     return this._data.entries();
   }
 

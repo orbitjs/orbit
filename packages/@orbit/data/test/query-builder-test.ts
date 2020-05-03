@@ -108,8 +108,8 @@ module('QueryBuilder', function (hooks) {
     assert.throws(() => {
       oqb
         .findRecords('planet')
-        // @ts-ignore: testing a common mistake for a new Orbiteer not using TypeScript
-        .filter({ name: 'Pluto' })
+        // testing a common mistake for a new Orbiteer not using TypeScript
+        .filter({ name: 'Pluto' } as any)
         .toQueryExpression();
     }, new Error('Unrecognized filter param.'));
   });
@@ -455,8 +455,8 @@ module('QueryBuilder', function (hooks) {
     assert.throws(() => {
       oqb
         .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
-        // @ts-ignore: testing a common mistake for a new Orbiteer not using TypeScript
-        .filter({ name: 'Pluto' })
+        // testing a common mistake for a new Orbiteer not using TypeScript
+        .filter({ name: 'Pluto' } as any)
         .toQueryExpression();
     }, new Error('Unrecognized filter param.'));
   });

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { SyncRecordAccessor } from './record-accessor';
 import { RecordOperation } from '@orbit/data';
 

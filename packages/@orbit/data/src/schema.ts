@@ -155,6 +155,7 @@ export default class Schema implements Evented, RecordInitializer {
   /**
    * Generate an id for a given model type.
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   generateId(type?: string): string {
     return Orbit.uuid();
   }

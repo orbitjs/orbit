@@ -2,7 +2,7 @@ module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    ecmaVersion: 2018,
+    ecmaVersion: 2019,
     sourceType: 'module'
   },
   extends: [
@@ -14,11 +14,14 @@ module.exports = {
     browser: true
   },
   rules: {
+    '@typescript-eslint/no-empty-function': ['off'],
     '@typescript-eslint/no-use-before-define': ['off'],
     '@typescript-eslint/explicit-function-return-type': ['off'],
     '@typescript-eslint/explicit-member-accessibility': ['off'],
     '@typescript-eslint/no-explicit-any': ['off'],
-    'prefer-const': ['off']
+    'prefer-const': ['off'],
+    'prefer-rest-params': ['off'],
+    'prefer-spread': ['off']
   },
   overrides: [{
     files: ['test/**/*.ts'],

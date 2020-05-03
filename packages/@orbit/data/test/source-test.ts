@@ -198,7 +198,7 @@ module('Source', function (hooks) {
     });
 
     let i = 0;
-    source.perform = async function (task) {
+    source.perform = async function (task: any) {
       i++;
       if (i === 1) {
         assert.strictEqual(task.data, op1, 'op1 - first task in sync queue');

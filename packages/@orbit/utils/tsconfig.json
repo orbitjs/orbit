@@ -1,16 +1,8 @@
 {
+  "extends": "../../../tsconfig",
   "compilerOptions": {
-    "target": "es2017",
-    "module": "es2015",
-    "moduleResolution": "node",
     "strict": true,
-    "experimentalDecorators": true,
-    "inlineSources": true,
-    "inlineSourceMap": true,
-    "declaration": true,
-    "newLine": "LF",
-    "outDir": "dist",
-    "noImplicitAny": true
+    "outDir": "./dist/modules"
   },
   "include": [
     "src/**/*.ts"

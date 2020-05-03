@@ -2,7 +2,7 @@ import { Dict } from '@orbit/utils';
 import { KeyMap, ModelDefinition, Record, Schema } from '@orbit/data';
 
 import { JSONAPISerializer } from '../src/index';
-import { Serializer } from '../../serializers/dist/types';
+import { Serializer } from '@orbit/serializers';
 
 const { module, test } = QUnit;
 
@@ -913,7 +913,7 @@ module('JSONAPISerializer', function (hooks) {
           },
           relationships: {
             moons: { data: [{ type: 'moons', id: '5' }] },
-            unknownRelationship: { type: 'solarSystem', id: 'ss1' }
+            unknownRelationship: { data: { type: 'solarSystem', id: 'ss1' } }
           }
         }
       });

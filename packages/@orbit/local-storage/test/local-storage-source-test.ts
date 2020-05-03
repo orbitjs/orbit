@@ -6,6 +6,7 @@ import {
   buildTransform,
   AddRecordOperation,
   Record,
+  RecordIdentity,
   Schema,
   Source,
   KeyMap,
@@ -352,19 +353,15 @@ module('LocalStorageSource', function (hooks) {
       t.addRecord(moon2),
       t.addRecord(planet)
     ]);
-    assert.deepEqual(
-      (await getRecordFromLocalStorage(source, planet)).relationships.moons.data
-        .length,
-      2,
-      'record has 2 moons'
-    );
+
+    let moons = (await getRecordFromLocalStorage(source, planet)).relationships
+      .moons.data as RecordIdentity[];
+    assert.deepEqual(moons.length, 2, 'record has 2 moons');
+
     await source.push((t) => t.removeRecord(moon1));
-    assert.deepEqual(
-      (await getRecordFromLocalStorage(source, planet)).relationships.moons.data
-        .length,
-      1,
-      'record has 1 moon'
-    );
+    moons = (await getRecordFromLocalStorage(source, planet)).relationships
+      .moons.data as RecordIdentity[];
+    assert.deepEqual(moons.length, 1, 'record has 1 moon');
   });
 
   test('#push - removeRecord - when record does not exist', async function (assert) {

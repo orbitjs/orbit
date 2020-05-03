@@ -154,7 +154,7 @@ module('Schema', function () {
       }
     });
 
-    let attributes = {};
+    let attributes: any = {};
 
     schema.eachAttribute('planet', (name, attribute) => {
       attributes[name] = attribute;
@@ -198,7 +198,7 @@ module('Schema', function () {
       }
     });
 
-    let relationships = {};
+    let relationships: any = {};
 
     schema.eachRelationship('planet', (name, relationship) => {
       relationships[name] = relationship;
