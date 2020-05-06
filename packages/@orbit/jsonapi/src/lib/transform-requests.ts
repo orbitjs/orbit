@@ -23,27 +23,27 @@ import { ResourceDocument } from '../resource-document';
 import { RecordDocument } from '../record-document';
 import { JSONAPIRequestOptions } from './jsonapi-request-options';
 
-export interface TransformRecordRequest {
+export interface BaseTransformRecordRequest {
   op: string;
   options?: JSONAPIRequestOptions;
   record: RecordIdentity;
 }
 
 export interface TransformRecordRelationshipRequest
-  extends TransformRecordRequest {
+  extends BaseTransformRecordRequest {
   relationship: string;
 }
 
-export interface AddRecordRequest extends TransformRecordRequest {
+export interface AddRecordRequest extends BaseTransformRecordRequest {
   op: 'addRecord';
   record: Record;
 }
 
-export interface RemoveRecordRequest extends TransformRecordRequest {
+export interface RemoveRecordRequest extends BaseTransformRecordRequest {
   op: 'removeRecord';
 }
 
-export interface UpdateRecordRequest extends TransformRecordRequest {
+export interface UpdateRecordRequest extends BaseTransformRecordRequest {
   op: 'updateRecord';
   record: Record;
 }
@@ -71,6 +71,15 @@ export interface ReplaceRelatedRecordsRequest
   op: 'replaceRelatedRecord';
   relatedRecords: RecordIdentity[];
 }
+
+export type TransformRecordRequest =
+  | AddRecordRequest
+  | RemoveRecordRequest
+  | UpdateRecordRequest
+  | AddToRelatedRecordsRequest
+  | RemoveFromRelatedRecordsRequest
+  | ReplaceRelatedRecordRequest
+  | ReplaceRelatedRecordsRequest;
 
 export interface TransformRequestProcessor {
   (

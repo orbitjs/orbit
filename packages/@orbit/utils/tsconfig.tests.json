@@ -1,19 +1,13 @@
 {
+  "extends": "./tsconfig",
   "compilerOptions": {
-    "target": "es2017",
-    "module": "es2015",
-    "moduleResolution": "node",
-    "strict": true,
-    "experimentalDecorators": true,
-    "inlineSources": true,
-    "inlineSourceMap": true,
-    "declaration": false,
-    "newLine": "LF",
-    "types": ["qunit"],
-    "noImplicitAny": true
+    "allowJs": true,
+    "outDir": "./tests",
+    "types": ["qunit"]
   },
   "include": [
     "src/**/*.ts",
-    "test/**/*.ts"
+    "test/**/*.ts",
+    "test/**/*.js"
   ]
 }

@@ -496,7 +496,7 @@ module('TaskQueue', function () {
     // prevent failed promise from leaking into test harness
     try {
       await failedPush;
-    } catch {}
+    } catch (e) {}
   });
 
   test('#skip removes the current task from an inactive queue', async function (assert) {
@@ -595,7 +595,7 @@ module('TaskQueue', function () {
     // prevent failed promise from leaking into test harness
     try {
       await failedPush;
-    } catch {}
+    } catch (e) {}
   });
 
   test('#skip removes the current task from an inactive queue and restarts processing if autoProcess=true', async function (assert) {

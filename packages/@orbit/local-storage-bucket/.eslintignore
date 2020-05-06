@@ -1,6 +1,8 @@
 # compiled output
 /dist/
 /tmp/
+/tests/
+/.cache/
 
 # dependencies
 /node_modules/
@@ -9,3 +11,6 @@
 /coverage/
 !.*
 .eslintrc.*
+.npmignore
+.prettierrc.js
+testem.js

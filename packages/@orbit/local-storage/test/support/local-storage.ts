@@ -1,5 +1,5 @@
 import Orbit from '@orbit/core';
-import LocalStorageSource from '../../src/source';
+import LocalStorageSource from '../../src/index';
 import { Record } from '@orbit/data';
 
 export function getRecordFromLocalStorage(

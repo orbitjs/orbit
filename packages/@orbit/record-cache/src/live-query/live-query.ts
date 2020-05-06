@@ -153,7 +153,8 @@ export abstract class LiveQuery {
 }
 
 const isNode =
-  typeof process === 'object' && typeof process.nextTick === 'function';
+  typeof Orbit.globals.process === 'object' &&
+  typeof Orbit.globals.process.nextTick === 'function';
 let resolvedPromise: Promise<void>;
 const nextTick = isNode
   ? function (fn: () => void) {
@@ -161,10 +162,10 @@ const nextTick = isNode
         resolvedPromise = Promise.resolve();
       }
       resolvedPromise.then(() => {
-        process.nextTick(fn);
+        Orbit.globals.process.nextTick(fn);
       });
     }
-  : window.setImmediate || setTimeout;
+  : Orbit.globals.setImmediate || setTimeout;
 
 function onceTick(fn: () => void) {
   return function tick() {

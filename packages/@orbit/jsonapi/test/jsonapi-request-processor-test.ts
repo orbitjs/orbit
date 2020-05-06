@@ -2,9 +2,8 @@ const { module, test } = QUnit;
 import Orbit, { KeyMap, Schema } from '@orbit/data';
 import { JSONAPIRequestProcessor } from '../src/index';
 import { jsonapiResponse } from './support/jsonapi';
-import { SinonStatic, SinonStub } from 'sinon';
-
-declare const sinon: SinonStatic;
+import { SinonStub } from 'sinon';
+import * as sinon from 'sinon';
 
 module('JSONAPIRequestProcessor', function (hooks) {
   let fetchStub: SinonStub;

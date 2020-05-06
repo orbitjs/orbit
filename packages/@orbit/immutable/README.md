@@ -8,15 +8,25 @@ A lightweight library of immutable data structures, including:
 Internally, this library relies upon a modernized version of Matt Bierner's
 [HAMT](https://github.com/mattbierner/hamt).
 
-## Installation
+### Installation
+
+Install with yarn:
 
 ```
 yarn add @orbit/immutable
 ```
 
+Or with npm:
+
+```
+npm install @orbit/immutable
+```
+
 ## Contributing
 
 ### Installation
+
+To install dependencies:
 
 ```
 yarn install
@@ -43,7 +53,7 @@ yarn test
 #### Browser Testing
 
 Test within a browser
-(at [http://localhost:4200/tests/](http://localhost:4200/tests/)) by running:
+(at [http://localhost:7357/](http://localhost:7357/)) by running:
 
 ```
 yarn testem
@@ -51,4 +61,4 @@ yarn testem
 
 ## License
 
-Copyright 2014-2019 Cerebris Corporation. MIT License (see LICENSE for details).
+Copyright 2014-2020 Cerebris Corporation. MIT License (see LICENSE for details).

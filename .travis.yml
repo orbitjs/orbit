@@ -17,7 +17,7 @@ jobs:
   include:
     - stage: tests
       name: "Linting"
-      script: yarn lint:ts
+      script: yarn lint
     - name: "Tests"
       script: yarn test
 

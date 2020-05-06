@@ -1,15 +1,8 @@
 {
+  "extends": "./tsconfig",
   "compilerOptions": {
-    "target": "es2017",
-    "module": "es2015",
-    "moduleResolution": "node",
-    "experimentalDecorators": true,
-    "inlineSources": true,
-    "inlineSourceMap": true,
-    "declaration": false,
-    "newLine": "LF",
-    "types": ["qunit"],
-    "noImplicitAny": true
+    "outDir": "./tests",
+    "types": ["qunit", "sinon"]
   },
   "include": [
     "src/**/*.ts",

@@ -85,8 +85,7 @@ module('AsyncRecordCache', function (hooks) {
 
     class FakeProcessor {}
     assert.throws(
-      //@ts-ignore
-      () => (cache = new Cache({ schema, processors: [FakeProcessor] }))
+      () => (cache = new Cache({ schema, processors: [FakeProcessor as any] }))
     );
   });
 
