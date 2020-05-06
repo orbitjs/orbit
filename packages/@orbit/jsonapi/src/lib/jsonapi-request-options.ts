@@ -14,6 +14,7 @@ export interface JSONAPIRequestOptions {
   page?: any;
   include?: any;
   settings?: FetchSettings;
+  url?: string;
 }
 
 export function buildFetchSettings(
