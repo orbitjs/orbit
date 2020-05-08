@@ -1,6 +1,6 @@
 {
   "name": "@orbit/local-storage-bucket",
-  "version": "0.17.0-beta.2",
+  "version": "0.17.0-beta.3",
   "description": "A local storage bucket implementation for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -28,8 +28,8 @@
     "lint": "eslint . --ext .ts"
   },
   "dependencies": {
-    "@orbit/core": "^0.17.0-beta.2",
-    "@orbit/utils": "^0.17.0-beta.2"
+    "@orbit/core": "^0.17.0-beta.3",
+    "@orbit/utils": "^0.17.0-beta.3"
   },
   "devDependencies": {
     "@types/qunit": "^2.9.0",
