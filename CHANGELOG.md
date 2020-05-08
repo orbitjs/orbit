@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.17.0-beta.3 (2020-05-08)
+
+#### :rocket: Enhancement
+
+- `@orbit/jsonapi`
+  - [#746](https://github.com/orbitjs/orbit/pull/746) [jsonapi] Support `url` request option ([@dgeb](https://github.com/dgeb))
+- `@orbit/data`, `@orbit/indexeddb`, `@orbit/jsonapi`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`
+  - [#742](https://github.com/orbitjs/orbit/pull/742) Standardize request option handling ([@dgeb](https://github.com/dgeb))
+- `@orbit/record-cache`
+  - [#738](https://github.com/orbitjs/orbit/pull/738) Add debounce option to liveQuery ([@tchak](https://github.com/tchak))
+
+#### :house: Internal
+
+- `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/serializers`, `@orbit/store`, `@orbit/utils`
+  - [#747](https://github.com/orbitjs/orbit/pull/747) Refactor builds and remove deprecated @orbit/store ([@dgeb](https://github.com/dgeb))
+  - [#744](https://github.com/orbitjs/orbit/pull/744) Prettier2 ([@tchak](https://github.com/tchak))
+  - [#740](https://github.com/orbitjs/orbit/pull/740) Update some dependencies ([@tchak](https://github.com/tchak))
+
+#### Committers: 2
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+- Paul Chavard ([@tchak](https://github.com/tchak))
+
 ## v0.16.5 (2020-03-12)
 
 #### :rocket: Enhancement
