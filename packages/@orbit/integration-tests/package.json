@@ -1,0 +1,50 @@
+{
+  "name": "@orbit/integration-tests",
+  "private": true,
+  "version": "0.17.0-beta.3",
+  "description": "Integration tests for core Orbit packages.",
+  "contributors": [
+    "Dan Gebhardt <dan@cerebris.com>"
+  ],
+  "repository": "https://github.com/orbitjs/orbit",
+  "license": "MIT",
+  "scripts": {
+    "build:tests": "node ../../../build-test-index.js && tsc --project ./tsconfig.tests.json && parcel build tests/index.js --no-minify --out-dir ./tests",
+    "prepare:tests": "rm -rf ./tests && mkdir ./tests && cp ./test/index.html ./tests && cp ../../../node_modules/qunit/qunit/* ./tests",
+    "clean": "git clean -x -f",
+    "prepare": "yarn build",
+    "test": "testem ci",
+    "lint": "eslint . --ext .ts"
+  },
+  "dependencies": {
+    "@orbit/coordinator": "^0.17.0-beta.3",
+    "@orbit/core": "^0.17.0-beta.3",
+    "@orbit/data": "^0.17.0-beta.3",
+    "@orbit/immutable": "^0.17.0-beta.3",
+    "@orbit/indexeddb": "^0.17.0-beta.3",
+    "@orbit/indexeddb-bucket": "^0.17.0-beta.3",
+    "@orbit/jsonapi": "^0.17.0-beta.3",
+    "@orbit/local-storage": "^0.17.0-beta.3",
+    "@orbit/local-storage-bucket": "^0.17.0-beta.3",
+    "@orbit/memory": "^0.17.0-beta.3",
+    "@orbit/record-cache": "^0.17.0-beta.3",
+    "@orbit/serializers": "^0.17.0-beta.3",
+    "@orbit/utils": "^0.17.0-beta.3"
+  },
+  "devDependencies": {
+    "@types/qunit": "^2.9.0",
+    "@types/sinon": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^2.30.0",
+    "@typescript-eslint/parser": "^2.30.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.3",
+    "parcel-bundler": "^1.12.4",
+    "prettier": "^2.0.5",
+    "qunit": "^2.10.0",
+    "sinon": "^9.0.2",
+    "testem": "^3.1.0",
+    "typescript": "^3.8.3",
+    "whatwg-fetch": "^3.0.0"
+  }
+}
