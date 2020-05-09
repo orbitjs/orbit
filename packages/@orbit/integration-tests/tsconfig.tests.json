@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "outDir": "./tests/test",
+    "types": ["qunit", "sinon"]
+  },
+  "include": [
+    "test/**/*.ts"
+  ]
+}

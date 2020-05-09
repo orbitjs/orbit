@@ -1,0 +1,15 @@
+docs
+node_modules
+test
+tests
+tmp
+.cache
+.eslintignore
+.eslintrc.js
+.prettierrc.js
+*.log
+*.DS_Store
+*.editorconfig
+*.gitignore
+*.travis.yml
+testem.json
