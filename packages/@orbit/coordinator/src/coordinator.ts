@@ -82,7 +82,7 @@ export default class Coordinator {
     delete this._sources[name];
   }
 
-  getSource(name: string) {
+  getSource(name: string): Source {
     return this._sources[name];
   }
 

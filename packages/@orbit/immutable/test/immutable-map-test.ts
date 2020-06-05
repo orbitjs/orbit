@@ -4,12 +4,12 @@ const { module, test } = QUnit;
 
 module('ImmutableMap', function () {
   test('it can be instantiated with no data', function (assert) {
-    let map = new ImmutableMap<string, object>();
+    let map = new ImmutableMap<string, any>();
     assert.ok(map, 'map exists');
   });
 
   test('records can be added and removed', function (assert) {
-    let map = new ImmutableMap<string, object>();
+    let map = new ImmutableMap<string, any>();
 
     assert.equal(map.size, 0, 'size matches expectations');
 
@@ -73,7 +73,7 @@ module('ImmutableMap', function () {
   });
 
   test('maps can be instantiated based on other maps and their contents will be equal (but then will diverge)', function (assert) {
-    let map = new ImmutableMap<string, object>();
+    let map = new ImmutableMap<string, any>();
 
     let jupiter = {
       type: 'planet',
@@ -89,7 +89,7 @@ module('ImmutableMap', function () {
     );
 
     // create a new map based on the original
-    let map2 = new ImmutableMap<string, object>(map);
+    let map2 = new ImmutableMap<string, any>(map);
 
     assert.strictEqual(
       map2.get('jupiter'),
@@ -153,7 +153,7 @@ module('ImmutableMap', function () {
     let pluto = { type: 'planet', id: 'pluto', attributes: { name: 'Pluto' } };
     let earth = { type: 'planet', id: 'earth', attributes: { name: 'Earth' } };
 
-    let map = new ImmutableMap<string, object>();
+    let map = new ImmutableMap<string, any>();
     map.setMany([
       ['jupiter', jupiter],
       ['jupiter', jupiter2],

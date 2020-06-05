@@ -10,49 +10,34 @@ const { assert } = Orbit;
 export interface SyncStrategyOptions extends StrategyOptions {
   /**
    * The name of the source to be observed.
-   *
-   * @type {string}
-   * @memberOf SyncStrategyOptions
    */
   source: string;
 
   /**
    * The name of the source which will be acted upon.
-   *
-   * @type {string}
-   * @memberOf SyncStrategyOptions
    */
   target: string;
 
   /**
    * A handler for any errors thrown as a result of the sync operation.
-   *
-   * @type {Function}
-   * @memberOf SyncStrategyOptions
    */
-  catch?: Function;
+  catch?: (error: Error, ...args: any[]) => void;
 
   /**
    * A filter function that returns `true` if the sync should be performed.
    *
    * `filter` will be invoked in the context of this strategy (and thus will
    * have access to both `this.source` and `this.target`).
-   *
-   * @type {Function}
-   * @memberOf SyncStrategyOptionss
    */
-  filter?: Function;
+  filter?: (...args: any[]) => boolean;
 
   /**
    * Should resolution of the target's `sync` block the completion of the
    * source's `transform`?
    *
    * By default, `blocking` is false.
-   *
-   * @type {(boolean | Function)}
-   * @memberOf SyncStrategyOptionss
    */
-  blocking?: boolean | Function;
+  blocking?: boolean | ((...args: any[]) => boolean);
 }
 
 export class SyncStrategy extends ConnectionStrategy {

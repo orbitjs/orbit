@@ -10,6 +10,7 @@ import Orbit, {
   Transform,
   requestOptionsForSource
 } from '@orbit/data';
+import { Dict } from '@orbit/utils';
 import { InvalidServerResponse } from './lib/exceptions';
 import { TransformRecordRequest } from './lib/transform-requests';
 import { QueryRequest } from './lib/query-requests';
@@ -30,11 +31,11 @@ import {
 const { assert, deprecate } = Orbit;
 
 export interface FetchSettings {
-  headers?: object;
+  headers?: Dict<any>;
   method?: string;
-  json?: object;
+  json?: Dict<any>;
   body?: string;
-  params?: any;
+  params?: Dict<any>;
   timeout?: number;
   credentials?: string;
   cache?: string;
@@ -54,7 +55,7 @@ export interface JSONAPIRequestProcessorSettings {
   ) => JSONAPIURLBuilder;
   namespace?: string;
   host?: string;
-  defaultFetchHeaders?: object;
+  defaultFetchHeaders?: Dict<any>;
   defaultFetchTimeout?: number;
   defaultFetchSettings?: FetchSettings;
   allowedContentTypes?: string[];

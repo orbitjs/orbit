@@ -50,7 +50,7 @@ export default class Notifier {
   /**
    * Remove a listener so that it will no longer receive notifications.
    */
-  removeListener(listener: Listener) {
+  removeListener(listener: Listener): void {
     if (arguments.length > 1) {
       deprecate(
         '`binding` argument is no longer supported for individual `Notifier` listeners. Please pre-bind listeners before calling `removeListener`.'
@@ -70,7 +70,7 @@ export default class Notifier {
   /**
    * Notify registered listeners.
    */
-  emit(...args: any[]) {
+  emit(...args: any[]): void {
     this.listeners.slice(0).forEach((listener) => listener(...args));
   }
 }

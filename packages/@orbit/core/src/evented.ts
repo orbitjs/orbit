@@ -199,8 +199,8 @@ function removeNotifierForEvent(object: any, eventName: string) {
 function fulfillEach(
   listeners: Listener[],
   args: any[],
-  resolve: Function,
-  reject: Function
+  resolve: () => void,
+  reject: (error: Error) => void
 ): Promise<any> {
   if (listeners.length === 0) {
     resolve();

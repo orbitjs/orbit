@@ -15,7 +15,7 @@ export default class ImmutableMap<K, V> {
     return this._data.size;
   }
 
-  clear() {
+  clear(): void {
     this._data = new HAMTMap();
   }
 
