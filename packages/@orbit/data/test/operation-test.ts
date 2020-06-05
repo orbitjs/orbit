@@ -1,4 +1,4 @@
-import { coalesceRecordOperations } from '../src/index';
+import { coalesceRecordOperations } from '../src/operation';
 import './test-helper';
 
 const { module, test } = QUnit;

@@ -1,7 +1,7 @@
 import { Dict } from '@orbit/utils';
 import { ModelDefinition, Schema } from '@orbit/data';
-
-import { JSONAPISerializer, ResourceOperationsDocument } from '../src/index';
+import { JSONAPISerializer } from '../src/jsonapi-serializer';
+import { ResourceOperationsDocument } from '../src/resource-document';
 
 const { module, test } = QUnit;
 

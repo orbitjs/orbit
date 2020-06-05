@@ -1,7 +1,6 @@
 import { Dict } from '@orbit/utils';
 import { KeyMap, ModelDefinition, Record, Schema } from '@orbit/data';
-
-import { JSONAPISerializer } from '../src/index';
+import { JSONAPISerializer } from '../src/jsonapi-serializer';
 import { Serializer } from '@orbit/serializers';
 
 const { module, test } = QUnit;

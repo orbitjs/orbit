@@ -1,13 +1,14 @@
 import {
-  Source,
-  Pushable,
-  pushable,
-  isPushable,
   buildTransform,
   Transform,
-  TransformOrOperations,
-  RequestOptions
-} from '../../src/index';
+  TransformOrOperations
+} from '../../src/transform';
+import { Source } from '../../src/source';
+import { RequestOptions } from '../../src/request';
+import pushable, {
+  isPushable,
+  Pushable
+} from '../../src/source-interfaces/pushable';
 import '../test-helper';
 
 const { module, test } = QUnit;

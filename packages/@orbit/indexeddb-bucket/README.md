@@ -48,10 +48,10 @@ yarn test
 #### Browser Testing
 
 Test within a browser
-(at [http://localhost:7357/](http://localhost:7357/)) by running:
+(at [http://localhost:8080/](http://localhost:8080/)) by running:
 
 ```
-yarn testem
+yarn start
 ```
 
 ## License

@@ -1,4 +1,4 @@
-import { DateTimeSerializer } from '../src/index';
+import { DateTimeSerializer } from '../src/date-time-serializer';
 
 const { module, test } = QUnit;
 

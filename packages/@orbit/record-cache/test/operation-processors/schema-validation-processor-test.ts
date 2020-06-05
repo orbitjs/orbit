@@ -7,7 +7,7 @@ import {
   IncorrectRelatedRecordType
 } from '@orbit/data';
 import Cache from '../support/example-sync-record-cache';
-import { SyncSchemaValidationProcessor } from '../../src/index';
+import SyncSchemaValidationProcessor from '../../src/operation-processors/sync-schema-validation-processor';
 
 const { module, test } = QUnit;
 

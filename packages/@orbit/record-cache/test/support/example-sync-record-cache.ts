@@ -1,11 +1,11 @@
 /* eslint-disable valid-jsdoc */
 import { clone, deepGet, deepSet, Dict, objectValues } from '@orbit/utils';
 import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/data';
+import { RecordRelationshipIdentity } from '../../src/record-accessor';
 import {
-  RecordRelationshipIdentity,
   SyncRecordCache,
   SyncRecordCacheSettings
-} from '../../src/index';
+} from '../../src/sync-record-cache';
 
 /**
  * A minimal implementation of `SyncRecordCache`.

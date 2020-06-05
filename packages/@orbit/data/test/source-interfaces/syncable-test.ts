@@ -1,11 +1,9 @@
-import {
-  Source,
-  syncable,
+import { buildTransform, Transform } from '../../src/transform';
+import { Source } from '../../src/source';
+import syncable, {
   isSyncable,
-  Syncable,
-  buildTransform,
-  Transform
-} from '../../src/index';
+  Syncable
+} from '../../src/source-interfaces/syncable';
 import '../test-helper';
 
 const { module, test } = QUnit;

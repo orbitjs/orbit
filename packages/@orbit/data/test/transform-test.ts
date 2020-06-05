@@ -1,4 +1,5 @@
-import { buildTransform, TransformBuilder } from '../src/index';
+import TransformBuilder from '../src/transform-builder';
+import { buildTransform } from '../src/transform';
 import './test-helper';
 
 const { module, test } = QUnit;

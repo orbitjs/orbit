@@ -1,7 +1,7 @@
 const { module, test } = QUnit;
 import { KeyMap, Schema } from '@orbit/data';
-import { JSONAPIURLBuilder } from '../src/index';
-import { JSONAPISerializer } from '../src/index';
+import JSONAPIURLBuilder from '../src/jsonapi-url-builder';
+import { JSONAPISerializer } from '../src/jsonapi-serializer';
 
 module('JSONAPIRequestProcessor', function (hooks) {
   let keyMap: KeyMap;

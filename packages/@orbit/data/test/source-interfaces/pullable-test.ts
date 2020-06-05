@@ -1,14 +1,11 @@
-import {
-  Query,
-  QueryOrExpressions,
-  Source,
-  Transform,
-  pullable,
+import { Query, QueryOrExpressions } from '../../src/query';
+import { Source } from '../../src/source';
+import { buildTransform, Transform } from '../../src/transform';
+import { RequestOptions } from '../../src/request';
+import pullable, {
   isPullable,
-  buildTransform,
-  Pullable,
-  RequestOptions
-} from '../../src/index';
+  Pullable
+} from '../../src/source-interfaces/pullable';
 import '../test-helper';
 
 const { module, test } = QUnit;

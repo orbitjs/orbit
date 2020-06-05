@@ -1,13 +1,14 @@
 import {
-  Source,
-  updatable,
-  isUpdatable,
-  Updatable,
   buildTransform,
   Transform,
-  TransformOrOperations,
-  RequestOptions
-} from '../../src/index';
+  TransformOrOperations
+} from '../../src/transform';
+import { Source } from '../../src/source';
+import { RequestOptions } from '../../src/request';
+import updatable, {
+  isUpdatable,
+  Updatable
+} from '../../src/source-interfaces/updatable';
 import '../test-helper';
 
 const { module, test } = QUnit;

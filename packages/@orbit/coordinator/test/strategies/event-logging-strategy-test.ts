@@ -1,5 +1,6 @@
-import Coordinator, { EventLoggingStrategy } from '../../src/index';
-import { Source, TransformBuilder } from '@orbit/data';
+import Coordinator from '../../src/coordinator';
+import { EventLoggingStrategy } from '../../src/strategies/event-logging-strategy';
+import { Source } from '@orbit/data';
 
 const { module, test } = QUnit;
 

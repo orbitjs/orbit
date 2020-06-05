@@ -22,13 +22,12 @@
     "build": "rm -rf ./dist && yarn build:modules && yarn build:commonjs",
     "build:modules": "tsc",
     "build:commonjs": "tsc --project ./tsconfig.commonjs.json",
-    "build:tests": "node ../../../build-test-index.js && tsc --project ./tsconfig.tests.json && parcel build tests/index.js --no-minify --out-dir ./tests",
-    "prepare:tests": "rm -rf ./tests && mkdir ./tests && cp ./test/index.html ./tests && cp ../../../node_modules/qunit/qunit/* ./tests",
     "clean": "git clean -x -f",
+    "lint": "eslint . --ext .ts",
     "prepare": "yarn build",
     "prepublishOnly": "yarn clean",
-    "test": "testem ci",
-    "lint": "eslint . --ext .ts"
+    "start": "node ../build dev && snowpack dev",
+    "test": "node ../build ci && snowpack build && testem ci"
   },
   "dependencies": {
     "@orbit/core": "^0.17.0-beta.3",
@@ -37,19 +36,9 @@
     "@orbit/utils": "^0.17.0-beta.3"
   },
   "devDependencies": {
-    "@types/qunit": "^2.9.0",
+    "@orbit/build": "^0.17.0-beta.3",
     "@types/sinon": "^9.0.0",
-    "@typescript-eslint/eslint-plugin": "^2.30.0",
-    "@typescript-eslint/parser": "^2.30.0",
-    "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.11.0",
-    "eslint-plugin-prettier": "^3.1.3",
-    "parcel-bundler": "^1.12.4",
-    "prettier": "^2.0.5",
-    "qunit": "^2.10.0",
     "sinon": "^9.0.2",
-    "testem": "^3.1.0",
-    "typescript": "^3.8.3",
     "whatwg-fetch": "^3.0.0"
   }
 }

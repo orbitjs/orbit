@@ -1,7 +1,8 @@
 docs
 node_modules
 test
-tests
+tests-build
+tests-static
 tmp
 .cache
 .eslintignore
@@ -13,3 +14,5 @@ tmp
 *.gitignore
 *.travis.yml
 testem.json
+babel.config.json
+snowpack.config.json

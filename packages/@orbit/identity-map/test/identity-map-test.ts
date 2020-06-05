@@ -1,5 +1,5 @@
 import { RecordIdentity } from '@orbit/data';
-import IdentityMap from '../src/index';
+import IdentityMap from '../src/identity-map';
 import RecordIdentitySerializer from './support/record-identity-serializer';
 
 const { module, test } = QUnit;

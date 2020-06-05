@@ -11,10 +11,8 @@ import {
   RemoveRecordOperation,
   UpdateRecordOperation
 } from '@orbit/data';
-import {
-  SyncCacheIntegrityProcessor,
-  SyncSchemaConsistencyProcessor
-} from '../../src/index';
+import SyncCacheIntegrityProcessor from '../../src/operation-processors/sync-cache-integrity-processor';
+import SyncSchemaConsistencyProcessor from '../../src/operation-processors/sync-schema-consistency-processor';
 import Cache from '../support/example-sync-record-cache';
 
 const { module, test } = QUnit;

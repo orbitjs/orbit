@@ -8,7 +8,7 @@ import {
   deserializeRecordIdentity,
   serializeRecordIdentity,
   mergeRecords
-} from '../src/index';
+} from '../src/record';
 import './test-helper';
 
 const { module, test } = QUnit;

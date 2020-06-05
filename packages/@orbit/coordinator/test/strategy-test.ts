@@ -1,9 +1,5 @@
-import Coordinator, {
-  ActivationOptions,
-  LogLevel,
-  Strategy,
-  StrategyOptions
-} from '../src/index';
+import Coordinator, { ActivationOptions, LogLevel } from '../src/coordinator';
+import { Strategy, StrategyOptions } from '../src/strategy';
 import { Source } from '@orbit/data';
 
 const { module, test } = QUnit;
