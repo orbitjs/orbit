@@ -28,12 +28,12 @@ export interface ConnectionStrategyOptions extends StrategyOptions {
    * invoked in the context of this strategy (and thus will have access to
    * both `this.source` and `this.target`).
    */
-  action: string | Function;
+  action: string | ((...args: any[]) => any);
 
   /**
    * A handler for any errors thrown as a result of performing the action.
    */
-  catch?: Function;
+  catch?: (error: Error, ...args: any[]) => void;
 
   /**
    * A filter function that returns `true` if the `action` should be performed.
@@ -41,7 +41,7 @@ export interface ConnectionStrategyOptions extends StrategyOptions {
    * `filter` will be invoked in the context of this strategy (and thus will
    * have access to both `this.source` and `this.target`).
    */
-  filter?: Function;
+  filter?: (...args: any[]) => boolean;
 
   /**
    * Should resolution of `action` on the the target block the completion
@@ -49,16 +49,16 @@ export interface ConnectionStrategyOptions extends StrategyOptions {
    *
    * By default, `blocking` is false.
    */
-  blocking?: boolean | Function;
+  blocking?: boolean | ((...args: any[]) => boolean);
 }
 
 export class ConnectionStrategy extends Strategy {
-  protected _blocking: boolean | Function;
+  protected _blocking: boolean | ((...args: any[]) => boolean);
   protected _event: string;
-  protected _action: string | Function;
-  protected _catch: Function;
+  protected _action: string | ((...args: any[]) => any);
+  protected _catch: (error: Error, ...args: any[]) => void;
   protected _listener: Listener;
-  protected _filter: Function;
+  protected _filter: (...args: any[]) => boolean;
 
   constructor(options: ConnectionStrategyOptions) {
     assert(
@@ -109,7 +109,7 @@ export class ConnectionStrategy extends Strategy {
     return this._sources[1];
   }
 
-  get blocking(): boolean | Function {
+  get blocking(): boolean | ((...args: any[]) => boolean) {
     return this._blocking;
   }
 

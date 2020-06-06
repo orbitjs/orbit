@@ -21,6 +21,7 @@ import Orbit, {
   TransformNotAllowed,
   QueryNotAllowed
 } from '@orbit/data';
+import { Dict } from '@orbit/utils';
 import JSONAPIRequestProcessor, {
   JSONAPIRequestProcessorSettings,
   FetchSettings
@@ -53,7 +54,7 @@ export interface JSONAPISourceSettings extends SourceSettings {
   name?: string;
   namespace?: string;
   host?: string;
-  defaultFetchHeaders?: object;
+  defaultFetchHeaders?: Dict<any>;
   defaultFetchTimeout?: number;
   defaultFetchSettings?: FetchSettings;
   allowedContentTypes?: string[];
@@ -362,14 +363,14 @@ export default class JSONAPISource extends Source
     this.requestProcessor.defaultFetchSettings = settings;
   }
 
-  get defaultFetchHeaders(): object {
+  get defaultFetchHeaders(): Dict<any> {
     deprecate(
       'JSONAPISource: Access `defaultFetchSettings.headers` instead of `defaultFetchHeaders`'
     );
     return this.requestProcessor.defaultFetchSettings.headers;
   }
 
-  set defaultFetchHeaders(headers: object) {
+  set defaultFetchHeaders(headers: Dict<any>) {
     deprecate(
       'JSONAPISource: Access `defaultFetchSettings.headers` instead of `defaultFetchHeaders`'
     );

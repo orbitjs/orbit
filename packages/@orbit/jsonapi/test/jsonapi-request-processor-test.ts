@@ -1,6 +1,6 @@
 const { module, test } = QUnit;
-import Orbit, { KeyMap, Schema } from '@orbit/data';
-import { JSONAPIRequestProcessor } from '../src/index';
+import { KeyMap, Schema } from '@orbit/data';
+import JSONAPIRequestProcessor from '../src/jsonapi-request-processor';
 import { jsonapiResponse } from './support/jsonapi';
 import { SinonStub } from 'sinon';
 import * as sinon from 'sinon';

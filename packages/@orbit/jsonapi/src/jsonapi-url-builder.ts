@@ -9,7 +9,7 @@ import {
   RelatedRecordsFilterSpecifier,
   SortSpecifier
 } from '@orbit/data';
-import { clone } from '@orbit/utils';
+import { clone, Dict } from '@orbit/utils';
 import { JSONAPISerializer } from './jsonapi-serializer';
 import { Filter } from './lib/jsonapi-request-options';
 import { appendQueryParams } from './lib/query-params';
@@ -169,7 +169,7 @@ export default class JSONAPIURLBuilder {
       .join(',');
   }
 
-  buildPageParam(pageSpecifier: PageSpecifier): object {
+  buildPageParam(pageSpecifier: PageSpecifier): Dict<any> {
     let pageParam = clone(pageSpecifier);
     delete pageParam.kind;
     return pageParam;

@@ -1,12 +1,10 @@
-import {
-  Source,
-  queryable,
+import { Query, QueryOrExpressions } from '../../src/query';
+import { Source } from '../../src/source';
+import { RequestOptions } from '../../src/request';
+import queryable, {
   isQueryable,
-  Query,
-  Queryable,
-  QueryOrExpressions,
-  RequestOptions
-} from '../../src/index';
+  Queryable
+} from '../../src/source-interfaces/queryable';
 import '../test-helper';
 
 const { module, test } = QUnit;

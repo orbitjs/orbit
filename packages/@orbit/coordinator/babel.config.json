@@ -1,0 +1,3 @@
+{
+  "extends": "../build/babel.config.json"
+}

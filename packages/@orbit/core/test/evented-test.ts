@@ -1,11 +1,11 @@
 import {
-  evented,
+  default as evented,
   isEvented,
   fulfillInSeries,
   settleInSeries,
-  Evented,
-  Listener
-} from '../src/index';
+  Evented
+} from '../src/evented';
+import { Listener } from '../src/notifier';
 
 const { module, test } = QUnit;
 
@@ -43,6 +43,7 @@ module('Evented', function (hooks) {
 
   test('isEvented - tests for the application of the @evented decorator', function (assert) {
     assert.ok(isEvented(obj));
+    assert.ok(true);
   });
 
   test('#emit - notifies listeners when emitting a simple message', function (assert) {

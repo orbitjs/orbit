@@ -1,4 +1,5 @@
-import Coordinator, { RequestStrategy } from '../../src/index';
+import Coordinator from '../../src/coordinator';
+import { RequestStrategy } from '../../src/strategies/request-strategy';
 import {
   Source,
   Transform,

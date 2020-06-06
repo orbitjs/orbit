@@ -15,7 +15,7 @@ import {
   SyncCacheIntegrityProcessor,
   SyncSchemaConsistencyProcessor
 } from '@orbit/record-cache';
-import MemorySource from '../src/index';
+import MemorySource from '../src/memory-source';
 
 const { module, test } = QUnit;
 

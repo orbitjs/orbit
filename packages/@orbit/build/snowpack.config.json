@@ -1,0 +1,13 @@
+{
+  "devOptions": {
+    "bundle": false,
+    "out": "tests-build"
+  },
+  "plugins": ["@snowpack/plugin-babel"],
+  "scripts": {
+    "mount:static": "mount tests-static --to /",
+    "mount:src": "mount src --to /_dist_/src",
+    "mount:test": "mount test --to /_dist_/test",
+    "build:js,jsx,ts,tsx": "@snowpack/plugin-babel"
+  }
+}

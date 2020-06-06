@@ -7,7 +7,7 @@ import {
   recordsInclude,
   recordsIncludeAll
 } from '@orbit/data';
-import { AsyncSchemaValidationProcessor } from '../src/index';
+import AsyncSchemaValidationProcessor from '../src/operation-processors/async-schema-validation-processor';
 import Cache from './support/example-async-record-cache';
 import { arrayMembershipMatches } from './support/matchers';
 

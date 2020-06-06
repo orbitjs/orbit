@@ -809,7 +809,7 @@ export class HAMTMapIterator<T> implements IterableIterator<T> {
     return v0;
   }
 
-  [Symbol.iterator] = function() {
+  [Symbol.iterator] () {
     return this;
   }
 }
@@ -939,7 +939,7 @@ export default class HAMTMap {
     return forEach(f, this);
   }
 
-  [Symbol.iterator] = function() {
+  [Symbol.iterator] () {
     return entries(this);
   }
 }

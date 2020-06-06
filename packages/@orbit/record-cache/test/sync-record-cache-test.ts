@@ -7,7 +7,7 @@ import {
   recordsIncludeAll,
   Record
 } from '@orbit/data';
-import { SyncSchemaValidationProcessor } from '../src/index';
+import SyncSchemaValidationProcessor from '../src/operation-processors/sync-schema-validation-processor';
 import Cache from './support/example-sync-record-cache';
 import { arrayMembershipMatches } from './support/matchers';
 

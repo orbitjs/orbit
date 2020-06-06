@@ -151,7 +151,10 @@ export abstract class Source implements Evented, Performer {
 
   // Performer interface
   perform(task: Task): Promise<any> {
-    let method = (this as any)[`__${task.type}__`] as Function;
+    let method = (this as any)[`__${task.type}__`] as (
+      source: Source,
+      data: any
+    ) => void;
     return method.call(this, task.data);
   }
 

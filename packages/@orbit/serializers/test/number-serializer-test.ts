@@ -1,4 +1,4 @@
-import { NumberSerializer } from '../src/index';
+import { NumberSerializer } from '../src/number-serializer';
 
 const { module, test } = QUnit;
 

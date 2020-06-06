@@ -1,4 +1,4 @@
-import { BooleanSerializer } from '../src/index';
+import { BooleanSerializer } from '../src/boolean-serializer';
 
 const { module, test } = QUnit;
 

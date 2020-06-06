@@ -1,10 +1,7 @@
 module.exports = {
-  test_page: 'tests/index.html',
-  on_start: 'yarn prepare:tests && yarn build:tests',
-  on_change: 'yarn build:tests',
-  src_files: ['src/**/*', 'test/**/*'],
+  cwd: 'tests-build',
+  test_page: 'index.html',
   launch_in_ci: ['Chrome'],
-  launch_in_dev: ['Chrome'],
   browser_start_timeout: 120,
   browser_args: {
     Chrome: {

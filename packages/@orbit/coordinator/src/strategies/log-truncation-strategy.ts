@@ -58,7 +58,10 @@ export class LogTruncationStrategy extends Strategy {
     }
   }
 
-  _truncateSources(transformId: string, relativePosition: number) {
+  _truncateSources(
+    transformId: string,
+    relativePosition: number
+  ): Promise<void> {
     return this._sources.reduce((chain, source) => {
       return chain.then(() =>
         source.transformLog.truncate(transformId, relativePosition)
@@ -66,7 +69,7 @@ export class LogTruncationStrategy extends Strategy {
     }, Promise.resolve());
   }
 
-  _connectSource(source: Source) {
+  _connectSource(source: Source): void {
     const listener = (this._transformListeners[source.name] = (): Promise<
       void
     > => {
@@ -79,7 +82,7 @@ export class LogTruncationStrategy extends Strategy {
     source.requestQueue.on('complete', listener);
   }
 
-  _disconnectSource(source: Source) {
+  _disconnectSource(source: Source): void {
     const listener = this._transformListeners[source.name];
     source.syncQueue.off('complete', listener);
     source.requestQueue.off('complete', listener);

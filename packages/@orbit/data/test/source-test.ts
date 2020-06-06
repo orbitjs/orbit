@@ -1,11 +1,8 @@
-import {
-  Source,
-  Schema,
-  buildTransform,
-  Transform,
-  TransformBuilder,
-  QueryBuilder
-} from '../src/index';
+import { Source } from '../src/source';
+import Schema from '../src/schema';
+import { buildTransform, Transform } from '../src/transform';
+import TransformBuilder from '../src/transform-builder';
+import QueryBuilder from '../src/query-builder';
 import { FakeBucket } from './test-helper';
 
 const { module, test } = QUnit;

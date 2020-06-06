@@ -1,4 +1,4 @@
-import { StringSerializer } from '../src/index';
+import { StringSerializer } from '../src/string-serializer';
 
 const { module, test } = QUnit;
 
