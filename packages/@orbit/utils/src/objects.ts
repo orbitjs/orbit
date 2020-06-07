@@ -95,20 +95,6 @@ export function extend(destination: any, ...sources: any[]): any {
 }
 
 /**
- * Checks whether an object is an instance of an `Array`
- *
- * @export
- * @param {*} obj
- * @returns {boolean}
- */
-export function isArray(obj: any): boolean {
-  console.warn(
-    '`isArray` from `@orbit/utils` is deprecated and will be removed in the next release. Please use `Array.isArray`.'
-  );
-  return Array.isArray(obj);
-}
-
-/**
  * Converts an object to an `Array` if it's not already.
  *
  * @export

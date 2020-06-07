@@ -1,5 +1,5 @@
 import { dasherize, camelize, deepSet, Dict } from '@orbit/utils';
-import Orbit, {
+import {
   Schema,
   KeyMap,
   Record,
@@ -39,8 +39,6 @@ import {
   UpdateResourceOperation
 } from './resource-document';
 import { RecordDocument } from './record-document';
-
-const { deprecate } = Orbit;
 
 export interface DeserializeOptions {
   primaryRecord?: Record;
@@ -156,17 +154,6 @@ export class JSONAPISerializer
         ? this.serializeRecords(data as Record[])
         : this.serializeRecord(data as Record)
     };
-  }
-
-  /**
-   * @deprecated
-   * @param data
-   */
-  serializeDocument(data: Record | Record[]): ResourceDocument {
-    deprecate(
-      'JSONAPISerializer: `serializeDocument()` has been deprecated. Call `serialize(document: RecordDocument)` instead.'
-    );
-    return this.serialize({ data });
   }
 
   serializeOperations(operations: RecordOperation[]): ResourceOperation[] {
@@ -585,29 +572,6 @@ export class JSONAPISerializer
         record: this.deserializeResourceIdentity(operation.ref)
       };
     }
-  }
-
-  /**
-   * @deprecated
-   * @param document
-   * @param primaryRecordData
-   */
-  deserializeDocument(
-    document: ResourceDocument,
-    primaryRecordData?: Record | Record[]
-  ): RecordDocument {
-    deprecate(
-      'JSONAPISerializer: `deserializeDocument()` has been deprecated. Call `deserialize(document: RecordDocument, options?: DeserializeOptions)` instead.'
-    );
-    let options: DeserializeOptions = {};
-    if (primaryRecordData) {
-      if (Array.isArray(primaryRecordData)) {
-        options.primaryRecords = primaryRecordData as Record[];
-      } else {
-        options.primaryRecord = primaryRecordData as Record;
-      }
-    }
-    return this.deserialize(document, options);
   }
 
   deserializeResourceIdentity(

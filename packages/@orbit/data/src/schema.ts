@@ -5,6 +5,8 @@ import { Dict } from '@orbit/utils';
 import { evented, Evented, Listener } from '@orbit/core';
 import { Record, RecordInitializer } from './record';
 
+const { uuid, deprecate } = Orbit;
+
 export interface AttributeDefinition {
   type?: string;
   serializationOptions?: Dict<any>;
@@ -157,7 +159,7 @@ export default class Schema implements Evented, RecordInitializer {
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   generateId(type?: string): string {
-    return Orbit.uuid();
+    return uuid();
   }
 
   /**
@@ -252,7 +254,7 @@ export default class Schema implements Evented, RecordInitializer {
         Object.keys(models[type].relationships).forEach((name) => {
           let relationship = models[type].relationships[name];
           if (relationship.model) {
-            Orbit.deprecate(
+            deprecate(
               'RelationshipDefinition.model is deprecated, use `type` and `kind` instead.'
             );
           }

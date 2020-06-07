@@ -1,4 +1,4 @@
-import Orbit, {
+import {
   cloneRecordIdentity,
   equalRecordIdentities,
   recordDiffs,
@@ -390,16 +390,6 @@ const OperationToRequestMap: Dict<OperationToRequestConverter> = {
   },
 
   updateRecord(operation: UpdateRecordOperation): TransformRecordRequest {
-    return {
-      op: 'updateRecord',
-      record: clone(operation.record)
-    };
-  },
-
-  replaceRecord(operation: UpdateRecordOperation): TransformRecordRequest {
-    Orbit.deprecate(
-      'The `replaceRecord` operation has been deprecated - use `updateRecord` instead.'
-    );
     return {
       op: 'updateRecord',
       record: clone(operation.record)
