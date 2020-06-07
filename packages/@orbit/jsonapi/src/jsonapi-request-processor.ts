@@ -28,7 +28,7 @@ import {
   JSONAPISerializer,
   JSONAPISerializerSettings
 } from './jsonapi-serializer';
-const { assert, deprecate } = Orbit;
+const { assert } = Orbit;
 
 export interface FetchSettings {
   headers?: Dict<any>;
@@ -55,8 +55,6 @@ export interface JSONAPIRequestProcessorSettings {
   ) => JSONAPIURLBuilder;
   namespace?: string;
   host?: string;
-  defaultFetchHeaders?: Dict<any>;
-  defaultFetchTimeout?: number;
   defaultFetchSettings?: FetchSettings;
   allowedContentTypes?: string[];
   schema: Schema;
@@ -235,22 +233,6 @@ export default class JSONAPIRequestProcessor {
       },
       timeout: 5000
     };
-
-    if (settings.defaultFetchHeaders || settings.defaultFetchTimeout) {
-      deprecate(
-        'Pass `defaultFetchSettings` with `headers` instead of `defaultFetchHeaders` to initialize requestProcessor',
-        settings.defaultFetchHeaders === undefined
-      );
-      deprecate(
-        'Pass `defaultFetchSettings` with `timeout` instead of `defaultFetchTimeout` to initialize requestProcessor',
-        settings.defaultFetchTimeout === undefined
-      );
-
-      deepMerge(this.defaultFetchSettings, {
-        headers: settings.defaultFetchHeaders,
-        timeout: settings.defaultFetchTimeout
-      });
-    }
 
     if (settings.defaultFetchSettings) {
       deepMerge(this.defaultFetchSettings, settings.defaultFetchSettings);

@@ -1,5 +1,4 @@
 /* eslint-disable valid-jsdoc */
-import Orbit from '@orbit/core';
 import { clone, Dict } from '@orbit/utils';
 import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/data';
 import {
@@ -8,8 +7,6 @@ import {
   SyncRecordCacheSettings
 } from '@orbit/record-cache';
 import { ImmutableMap } from '@orbit/immutable';
-
-const { deprecate } = Orbit;
 
 export interface MemoryCacheSettings extends SyncRecordCacheSettings {
   base?: MemoryCache;
@@ -35,17 +32,6 @@ export default class MemoryCache extends SyncRecordCache {
 
   getRecordSync(identity: RecordIdentity): Record | undefined {
     return this._records[identity.type].get(identity.id);
-  }
-
-  records(type: string) {
-    deprecate(
-      '`records(type).get(id)` is deprecated, use `getRecordSync(identity)`.'
-    );
-    return {
-      get: (id: string) => {
-        return this.getRecordSync({ type, id });
-      }
-    };
   }
 
   getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[] {

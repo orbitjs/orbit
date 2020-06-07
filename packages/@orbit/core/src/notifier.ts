@@ -1,7 +1,3 @@
-import Orbit from './main';
-
-const { deprecate } = Orbit;
-
 export type Listener = (...args: any[]) => any;
 
 /**
@@ -36,12 +32,6 @@ export default class Notifier {
    * notifications.
    */
   addListener(listener: Listener): () => void {
-    if (arguments.length > 1) {
-      deprecate(
-        '`binding` argument is no longer supported for individual `Notifier` listeners. Please pre-bind listeners before calling `addListener`.'
-      );
-    }
-
     this.listeners.push(listener);
 
     return () => this.removeListener(listener);
@@ -51,12 +41,6 @@ export default class Notifier {
    * Remove a listener so that it will no longer receive notifications.
    */
   removeListener(listener: Listener): void {
-    if (arguments.length > 1) {
-      deprecate(
-        '`binding` argument is no longer supported for individual `Notifier` listeners. Please pre-bind listeners before calling `removeListener`.'
-      );
-    }
-
     const listeners = this.listeners;
 
     for (let i = 0, len = listeners.length; i < len; i++) {

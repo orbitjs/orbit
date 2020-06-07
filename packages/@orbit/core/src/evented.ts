@@ -1,7 +1,4 @@
-import Orbit from './main';
 import Notifier, { Listener } from './notifier';
-
-const { deprecate } = Orbit;
 
 export const EVENTED = '__evented__';
 
@@ -82,22 +79,10 @@ export default function evented(Klass: any): void {
   proto[EVENTED] = true;
 
   proto.on = function (eventName: string, listener: Listener): () => void {
-    if (arguments.length > 2) {
-      deprecate(
-        '`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `on`.'
-      );
-    }
-
     return notifierForEvent(this, eventName, true).addListener(listener);
   };
 
   proto.off = function (eventName: string, listener: Listener) {
-    if (arguments.length > 2) {
-      deprecate(
-        '`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `off`.'
-      );
-    }
-
     const notifier = notifierForEvent(this, eventName);
 
     if (notifier) {
@@ -110,12 +95,6 @@ export default function evented(Klass: any): void {
   };
 
   proto.one = function (eventName: string, listener: Listener): () => void {
-    if (arguments.length > 2) {
-      deprecate(
-        '`binding` argument is no longer supported when configuring `Evented` listeners. Please pre-bind listeners before calling `off`.'
-      );
-    }
-
     const notifier = notifierForEvent(this, eventName, true);
 
     const callOnce = function () {

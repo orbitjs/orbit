@@ -1,4 +1,4 @@
-import { clone, expose, extend, isArray, toArray, isObject, isNone, merge, deepMerge, deepGet, deepSet, objectValues } from '../src/objects';
+import { clone, expose, extend, toArray, isObject, isNone, merge, deepMerge, deepGet, deepSet, objectValues } from '../src/objects';
 
 const { module, test } = QUnit;
 
@@ -114,16 +114,6 @@ module('Lib / Object', function() {
     assert.equal(blank.age, 5, 'age came from jupiter');
     assert.equal(blank.hasPeople, true, 'hasPeople came from earth, and was not overridden');
     assert.equal(blank.greeting(), 'hi from jupiter', 'greeting came from earth but was evaluated in destination context');
-  });
-
-  test('`isArray` checks whether an object is an array', function(assert) {
-    var obj = { length: 1 };
-
-    var arr = [];
-
-    assert.equal(isArray(obj), false, 'Fake array is not an array');
-
-    assert.equal(isArray(arr), true, 'Array can be identified');
   });
 
   test('`toArray` converts an argument into an array', function(assert) {

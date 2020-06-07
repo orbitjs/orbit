@@ -117,14 +117,14 @@ module('JSONAPISource', function () {
       source = new JSONAPISource({ schema });
       assert.equal(source.name, 'jsonapi', 'name is set to default');
       assert.deepEqual(
-        source.allowedContentTypes,
+        source.requestProcessor.allowedContentTypes,
         ['application/vnd.api+json', 'application/json'],
         'allowedContentTypes are set to default'
       );
     });
 
     test('source saves options', function (assert) {
-      assert.expect(5);
+      assert.expect(4);
 
       let schema = new Schema({} as SchemaSettings);
       source = new JSONAPISource({
@@ -140,16 +140,9 @@ module('JSONAPISource', function () {
       });
       assert.equal(source.name, 'custom', 'name is custom');
       assert.deepEqual(
-        source.allowedContentTypes,
+        source.requestProcessor.allowedContentTypes,
         ['application/custom'],
         'allowedContentTypes are custom'
-      );
-
-      const headers = source.defaultFetchSettings.headers as any;
-      assert.equal(
-        headers['User-Agent'],
-        'CERN-LineMode/2.15 libwww/2.17b3',
-        'Headers should be defined'
       );
       assert.equal(
         source.requestProcessor.urlBuilder.resourceNamespace(),
@@ -164,7 +157,7 @@ module('JSONAPISource', function () {
     });
 
     test('#defaultFetchSettings - include JSONAPI Accept and Content-Type headers and a 5000ms timeout by default', function (assert) {
-      assert.deepEqual(source.defaultFetchSettings, {
+      assert.deepEqual(source.requestProcessor.defaultFetchSettings, {
         headers: {
           Accept: 'application/vnd.api+json',
           'Content-Type': 'application/vnd.api+json'
@@ -183,7 +176,7 @@ module('JSONAPISource', function () {
           timeout: null
         }
       });
-      assert.deepEqual(customSource.defaultFetchSettings, {
+      assert.deepEqual(customSource.requestProcessor.defaultFetchSettings, {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/vnd.api+json'
@@ -1014,7 +1007,7 @@ module('JSONAPISource', function () {
       });
 
       // 10ms timeout
-      source.defaultFetchSettings.timeout = 10;
+      source.requestProcessor.defaultFetchSettings.timeout = 10;
 
       fetchStub
         .withArgs('/planets/12345')
@@ -1901,7 +1894,7 @@ module('JSONAPISource', function () {
       });
 
       // 10ms timeout
-      source.defaultFetchSettings.timeout = 10;
+      source.requestProcessor.defaultFetchSettings.timeout = 10;
 
       fetchStub
         .withArgs('/planets/12345')
@@ -2101,7 +2094,7 @@ module('JSONAPISource', function () {
       });
 
       // 10ms timeout
-      source.defaultFetchSettings.timeout = 10;
+      source.requestProcessor.defaultFetchSettings.timeout = 10;
 
       fetchStub
         .withArgs('/planets/12345')
@@ -3785,7 +3778,7 @@ module('JSONAPISource', function () {
       });
 
       // 10ms timeout
-      source.defaultFetchSettings.timeout = 10;
+      source.requestProcessor.defaultFetchSettings.timeout = 10;
 
       fetchStub
         .withArgs('/planets/12345')

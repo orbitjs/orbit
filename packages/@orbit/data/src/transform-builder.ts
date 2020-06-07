@@ -1,4 +1,3 @@
-import Orbit from '@orbit/core';
 import { Record, RecordIdentity, RecordInitializer } from './record';
 import {
   AddRecordOperation,
@@ -35,18 +34,6 @@ export default class TransformBuilder {
       this._recordInitializer.initializeRecord(record);
     }
     return { op: 'addRecord', record };
-  }
-
-  /**
-   * Instantiate a new `updateRecord` operation.
-   *
-   * @deprecated
-   */
-  replaceRecord(record: Record): UpdateRecordOperation {
-    Orbit.deprecate(
-      'The `replaceRecord` operation is deprecated in favor of `updateRecord`'
-    );
-    return { op: 'updateRecord', record };
   }
 
   /**

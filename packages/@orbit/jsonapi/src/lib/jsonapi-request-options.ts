@@ -1,8 +1,5 @@
 import { clone, deepMerge, deepSet, merge } from '@orbit/utils';
 import { FetchSettings } from '../jsonapi-request-processor';
-import Orbit from '@orbit/data';
-
-const { deprecate } = Orbit;
 
 export interface Filter {
   [filterOn: string]: any;
@@ -37,12 +34,6 @@ export function buildFetchSettings(
       deepSet(settings, ['params', param], value);
     }
   });
-
-  let timeout = (options as any)['timeout'];
-  if (timeout) {
-    deprecate('JSONAPI: Specify `timeout` option inside a `settings` object.');
-    settings.timeout = timeout;
-  }
 
   return settings;
 }

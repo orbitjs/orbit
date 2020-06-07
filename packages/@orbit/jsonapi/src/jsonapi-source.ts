@@ -21,7 +21,6 @@ import Orbit, {
   TransformNotAllowed,
   QueryNotAllowed
 } from '@orbit/data';
-import { Dict } from '@orbit/utils';
 import JSONAPIRequestProcessor, {
   JSONAPIRequestProcessorSettings,
   FetchSettings
@@ -46,7 +45,7 @@ import {
   getTransformRequests
 } from './lib/transform-requests';
 
-const { assert, deprecate } = Orbit;
+const { assert } = Orbit;
 
 export interface JSONAPISourceSettings extends SourceSettings {
   maxRequestsPerTransform?: number;
@@ -54,8 +53,6 @@ export interface JSONAPISourceSettings extends SourceSettings {
   name?: string;
   namespace?: string;
   host?: string;
-  defaultFetchHeaders?: Dict<any>;
-  defaultFetchTimeout?: number;
   defaultFetchSettings?: FetchSettings;
   allowedContentTypes?: string[];
   SerializerClass?: new (
@@ -311,97 +308,5 @@ export default class JSONAPISource extends Source
     request: TransformRecordRequest
   ): TransformRequestProcessor {
     return TransformRequestProcessors[request.op];
-  }
-  /////////////////////////////////////////////////////////////////////////////
-  // Publicly accessible methods particular to JSONAPISource
-  /////////////////////////////////////////////////////////////////////////////
-
-  /* DEPRECATED METHODS & PROPERTIES
-   *
-   * Note: In addition to deprecations below, the following methods
-   * have moved to JSONAPIRequestProcessor:
-   *
-   *        appendQueryParams
-   *        initFetchSettings
-   *        initDefaultFetchSettings
-   *        handleFetchResponse
-   *        handleFetchResponseError
-   *        handleFetchError
-   *        resourceURL
-   *        resourcePath
-   *        resourceRelationshipURL
-   *        responseHasContent
-   *        relatedResourceURL
-   *        resourceNamespace
-   *        resourceHost
-   */
-
-  fetch(url: string, customSettings?: FetchSettings): Promise<any> {
-    deprecate('JSONAPISource: fetch has moved to the requestProcessor', true);
-    return this.requestProcessor.fetch(url, customSettings);
-  }
-
-  initFetchSettings(customSettings: FetchSettings = {}): FetchSettings {
-    deprecate(
-      'JSONAPISource: initFetchSettings has moved to the requestProcessor',
-      true
-    );
-    return this.requestProcessor.initFetchSettings(customSettings);
-  }
-
-  get defaultFetchSettings(): FetchSettings {
-    deprecate(
-      'JSONAPISource: Access `defaultFetchSettings` on requestProcessor instead of source`'
-    );
-    return this.requestProcessor.defaultFetchSettings;
-  }
-
-  set defaultFetchSettings(settings: FetchSettings) {
-    deprecate(
-      'JSONAPISource: Access `defaultFetchSettings` on requestProcessor instead of source'
-    );
-    this.requestProcessor.defaultFetchSettings = settings;
-  }
-
-  get defaultFetchHeaders(): Dict<any> {
-    deprecate(
-      'JSONAPISource: Access `defaultFetchSettings.headers` instead of `defaultFetchHeaders`'
-    );
-    return this.requestProcessor.defaultFetchSettings.headers;
-  }
-
-  set defaultFetchHeaders(headers: Dict<any>) {
-    deprecate(
-      'JSONAPISource: Access `defaultFetchSettings.headers` instead of `defaultFetchHeaders`'
-    );
-    this.requestProcessor.defaultFetchSettings.headers = headers;
-  }
-
-  get defaultFetchTimeout() {
-    deprecate(
-      'JSONAPISource: Access `defaultFetchSettings.timeout` instead of `defaultFetchTimeout`'
-    );
-    return this.requestProcessor.defaultFetchSettings.timeout;
-  }
-
-  set defaultFetchTimeout(timeout: number) {
-    deprecate(
-      'JSONAPISource: Access `defaultFetchSettings.timeout` instead of `defaultFetchTimeout`'
-    );
-    this.requestProcessor.defaultFetchSettings.timeout = timeout;
-  }
-
-  get allowedContentTypes(): string[] {
-    deprecate(
-      'JSONAPISource: Access `requestProcessor.allowedContentTypes` instead of `allowedContentTypes`'
-    );
-    return this.requestProcessor.allowedContentTypes;
-  }
-
-  set allowedContentTypes(val: string[]) {
-    deprecate(
-      'JSONAPISource: Access `requestProcessor.allowedContentTypes` instead of `allowedContentTypes`'
-    );
-    this.requestProcessor.allowedContentTypes = val;
   }
 }
