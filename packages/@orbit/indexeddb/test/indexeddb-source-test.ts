@@ -10,7 +10,7 @@ import {
 } from '@orbit/data';
 import IndexedDBSource from '../src/indexeddb-source';
 
-const { module, test, skip } = QUnit;
+const { module, test } = QUnit;
 
 module('IndexedDBSource', function (hooks) {
   let schema: Schema, source: IndexedDBSource, keyMap: KeyMap;
@@ -84,10 +84,7 @@ module('IndexedDBSource', function (hooks) {
     );
   });
 
-  // TODO: Skipped for CI
-  skip('will reopen the database when the schema is upgraded', async function (assert) {
-    const done = assert.async();
-
+  test('will reopen the database when the schema is upgraded', async function (assert) {
     assert.expect(5);
 
     assert.equal(source.cache.dbVersion, 1, 'db starts with version == 1');
@@ -103,7 +100,6 @@ module('IndexedDBSource', function (hooks) {
         2,
         'migrateDB called with newVersion == 2'
       );
-      done();
     };
 
     schema.on('upgrade', (version) => {

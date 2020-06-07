@@ -36,6 +36,7 @@ export interface IndexedDBCacheSettings extends AsyncRecordCacheSettings {
 export default class IndexedDBCache extends AsyncRecordCache {
   protected _namespace: string;
   protected _db: IDBDatabase;
+  protected _openingDB: Promise<IDBDatabase>;
 
   constructor(settings: IndexedDBCacheSettings) {
     assert('Your browser does not support IndexedDB!', supportsIndexedDB());
@@ -85,7 +86,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
   }
 
   openDB(): Promise<IDBDatabase> {
-    return new Promise((resolve, reject) => {
+    return (this._openingDB = new Promise((resolve, reject) => {
       if (this._db) {
         resolve(this._db);
       } else {
@@ -112,18 +113,23 @@ export default class IndexedDBCache extends AsyncRecordCache {
           }
         };
       }
-    });
+    }));
   }
 
-  closeDB(): void {
+  async closeDB(): Promise<void> {
     if (this.isDBOpen) {
+      // Finish opening DB before closing it to avoid problems
+      if (this._openingDB) {
+        await this._openingDB;
+        this._openingDB = null;
+      }
       this._db.close();
       this._db = null;
     }
   }
 
-  reopenDB(): Promise<IDBDatabase> {
-    this.closeDB();
+  async reopenDB(): Promise<IDBDatabase> {
+    await this.closeDB();
     return this.openDB();
   }
 
@@ -155,8 +161,8 @@ export default class IndexedDBCache extends AsyncRecordCache {
     );
   }
 
-  deleteDB(): Promise<void> {
-    this.closeDB();
+  async deleteDB(): Promise<void> {
+    await this.closeDB();
 
     return new Promise((resolve, reject) => {
       let request = Orbit.globals.indexedDB.deleteDatabase(this.dbName);
@@ -173,7 +179,7 @@ export default class IndexedDBCache extends AsyncRecordCache {
     });
   }
 
-  registerModel(db: IDBDatabase, type: string) {
+  registerModel(db: IDBDatabase, type: string): void {
     // console.log('registerModel', type);
     db.createObjectStore(type, { keyPath: 'id' });
     // TODO - create indices
