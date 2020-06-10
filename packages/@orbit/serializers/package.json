@@ -27,6 +27,10 @@
     "start": "node ../build dev && snowpack dev",
     "test": "node ../build ci && snowpack build && testem ci"
   },
+  "dependencies": {
+    "@orbit/core": "^0.17.0-beta.3",
+    "@orbit/utils": "^0.17.0-beta.3"
+  },
   "devDependencies": {
     "@orbit/build": "^0.17.0-beta.3"
   }
