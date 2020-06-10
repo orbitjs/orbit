@@ -23,9 +23,6 @@ module(
       schema = new Schema({
         models: {
           planet: {
-            keys: {
-              remoteId: {}
-            },
             attributes: {
               name: { type: 'string' },
               classification: { type: 'string' },
@@ -125,7 +122,7 @@ module(
         jsonapiResponse(201, {
           data: {
             id: planet.id,
-            type: 'planets',
+            type: 'planet',
             attributes: { name: 'Jupiter', classification: 'gas giant' }
           }
         })

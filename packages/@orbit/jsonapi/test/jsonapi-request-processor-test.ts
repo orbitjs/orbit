@@ -1,9 +1,10 @@
-const { module, test } = QUnit;
 import { KeyMap, Schema } from '@orbit/data';
 import JSONAPIRequestProcessor from '../src/jsonapi-request-processor';
 import { jsonapiResponse } from './support/jsonapi';
 import { SinonStub } from 'sinon';
 import * as sinon from 'sinon';
+
+const { module, test } = QUnit;
 
 module('JSONAPIRequestProcessor', function (hooks) {
   let fetchStub: SinonStub;
@@ -16,9 +17,6 @@ module('JSONAPIRequestProcessor', function (hooks) {
     schema = new Schema({
       models: {
         planet: {
-          keys: {
-            remoteId: {}
-          },
           attributes: {
             name: { type: 'string' },
             classification: { type: 'string' },
@@ -34,9 +32,6 @@ module('JSONAPIRequestProcessor', function (hooks) {
           }
         },
         moon: {
-          keys: {
-            remoteId: {}
-          },
           attributes: {
             name: { type: 'string' }
           },
@@ -45,9 +40,6 @@ module('JSONAPIRequestProcessor', function (hooks) {
           }
         },
         solarSystem: {
-          keys: {
-            remoteId: {}
-          },
           attributes: {
             name: { type: 'string' }
           },
@@ -68,9 +60,6 @@ module('JSONAPIRequestProcessor', function (hooks) {
       keyMap,
       sourceName: 'foo'
     });
-    processor.serializer.resourceKey = function () {
-      return 'remoteId';
-    };
   });
 
   hooks.afterEach(() => {

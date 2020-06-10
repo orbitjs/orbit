@@ -23,14 +23,35 @@ import { Resource, ResourceDocument } from '../src/resources';
 import { SinonStub } from 'sinon';
 import * as sinon from 'sinon';
 import { JSONAPISerializers } from '../src/serializers/jsonapi-serializers';
+import { buildSerializerSettingsFor } from '@orbit/serializers';
 
 const { module, test } = QUnit;
 
-module('JSONAPISource', function () {
+module('JSONAPISource with legacy serialization settings', function () {
   let fetchStub: SinonStub;
   let keyMap: KeyMap;
   let schema: Schema;
   let source: JSONAPISource;
+
+  const serializerSettingsFor = buildSerializerSettingsFor({
+    settingsByType: {
+      [JSONAPISerializers.ResourceField]: {
+        serializationOptions: { inflectors: ['dasherize'] }
+      },
+      [JSONAPISerializers.ResourceFieldParam]: {
+        serializationOptions: { inflectors: ['dasherize'] }
+      },
+      [JSONAPISerializers.ResourceFieldPath]: {
+        serializationOptions: { inflectors: ['dasherize'] }
+      },
+      [JSONAPISerializers.ResourceType]: {
+        serializationOptions: { inflectors: ['pluralize', 'dasherize'] }
+      },
+      [JSONAPISerializers.ResourceTypePath]: {
+        serializationOptions: { inflectors: ['pluralize', 'dasherize'] }
+      }
+    }
+  });
 
   module('with a secondary key', function (hooks) {
     hooks.beforeEach(() => {
@@ -93,7 +114,8 @@ module('JSONAPISource', function () {
       keyMap = new KeyMap();
       source = new JSONAPISource({
         schema,
-        keyMap
+        keyMap,
+        serializerSettingsFor
       });
     });
 
@@ -193,7 +215,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         }) as Record;
 
@@ -239,7 +261,7 @@ module('JSONAPISource', function () {
         jsonapiResponse(201, {
           data: {
             id: '12345',
-            type: 'planet',
+            type: 'planets',
             attributes: { name: 'Jupiter', classification: 'gas giant' }
           }
         })
@@ -270,7 +292,7 @@ module('JSONAPISource', function () {
         JSON.parse(fetchStub.getCall(0).args[1].body),
         {
           data: {
-            type: 'planet',
+            type: 'planets',
             attributes: {
               name: 'Jupiter',
               classification: 'gas giant'
@@ -287,7 +309,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         }) as Record;
 
@@ -314,7 +336,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         }) as Record;
 
@@ -384,14 +406,14 @@ module('JSONAPISource', function () {
         jsonapiResponse(201, {
           data: {
             id: '12345',
-            type: 'planet',
+            type: 'planets',
             attributes: { name: 'Jupiter', classification: 'gas giant' },
-            relationships: { moons: [{ id: '321', type: 'moon' }] }
+            relationships: { moons: [{ id: '321', type: 'moons' }] }
           },
           included: [
             {
               id: '321',
-              type: 'moon',
+              type: 'moons',
               attributes: {
                 name: 'Europa'
               }
@@ -418,7 +440,7 @@ module('JSONAPISource', function () {
         JSON.parse(fetchStub.getCall(0).args[1].body),
         {
           data: {
-            type: 'planet',
+            type: 'planets',
             attributes: {
               name: 'Jupiter',
               classification: 'gas giant'
@@ -435,7 +457,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         }) as Record;
 
@@ -443,14 +465,14 @@ module('JSONAPISource', function () {
         jsonapiResponse(201, {
           data: {
             id: '12345',
-            type: 'planet',
+            type: 'planets',
             attributes: { name: 'Jupiter', classification: 'gas giant' },
-            relationships: { moons: [{ id: '321', type: 'moon' }] }
+            relationships: { moons: [{ id: '321', type: 'moons' }] }
           },
           included: [
             {
               id: '321',
-              type: 'moon',
+              type: 'moons',
               attributes: {
                 name: 'Europa'
               }
@@ -474,7 +496,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345',
           attributes: {
             name: 'Jupiter',
@@ -513,7 +535,7 @@ module('JSONAPISource', function () {
         jsonapiResponse(200, {
           data: {
             id: '12345',
-            type: 'planet',
+            type: 'planets',
             attributes: { name: 'Jupiter', classification: 'gas giant' }
           }
         })
@@ -538,7 +560,7 @@ module('JSONAPISource', function () {
         JSON.parse(fetchStub.getCall(0).args[1].body),
         {
           data: {
-            type: 'planet',
+            type: 'planets',
             id: '12345',
             attributes: {
               name: 'Jupiter',
@@ -556,7 +578,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345',
           attributes: {
             name: 'Jupiter',
@@ -587,7 +609,7 @@ module('JSONAPISource', function () {
         JSON.parse(fetchStub.getCall(0).args[1].body),
         {
           data: {
-            type: 'planet',
+            type: 'planets',
             id: '12345',
             attributes: {
               classification: 'terrestrial'
@@ -604,7 +626,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345',
           attributes: {
             name: 'Jupiter',
@@ -615,7 +637,7 @@ module('JSONAPISource', function () {
       fetchStub.withArgs('/planets/12345').returns(
         jsonapiResponse(200, {
           data: {
-            type: 'planet',
+            type: 'planets',
             id: 'remote-id-123',
             attributes: {
               name: 'Mars',
@@ -645,7 +667,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
@@ -673,14 +695,14 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
       let moon = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'moon',
+          type: 'moons',
           id: '987'
         }) as Record;
 
@@ -704,7 +726,7 @@ module('JSONAPISource', function () {
       );
       assert.deepEqual(
         JSON.parse(fetchStub.getCall(0).args[1].body),
-        { data: [{ type: 'moon', id: '987' }] },
+        { data: [{ type: 'moons', id: '987' }] },
         'fetch called with expected data'
       );
     });
@@ -715,14 +737,14 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
       let moon = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'moon',
+          type: 'moons',
           id: '987'
         }) as Record;
 
@@ -743,7 +765,7 @@ module('JSONAPISource', function () {
       );
       assert.deepEqual(
         JSON.parse(fetchStub.getCall(0).args[1].body),
-        { data: [{ type: 'moon', id: '987' }] },
+        { data: [{ type: 'moons', id: '987' }] },
         'fetch called with expected data'
       );
     });
@@ -754,14 +776,14 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
       let moon = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'moon',
+          type: 'moons',
           id: '987'
         }) as Record;
 
@@ -786,10 +808,10 @@ module('JSONAPISource', function () {
         JSON.parse(fetchStub.getCall(0).args[1].body),
         {
           data: {
-            type: 'moon',
+            type: 'moons',
             id: '987',
             relationships: {
-              planet: { data: { type: 'planet', id: '12345' } }
+              planet: { data: { type: 'planets', id: '12345' } }
             }
           }
         },
@@ -809,7 +831,7 @@ module('JSONAPISource', function () {
       let moon = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'moon',
+          type: 'moons',
           id: '987'
         }) as Record;
 
@@ -817,7 +839,7 @@ module('JSONAPISource', function () {
         jsonapiResponse(201, {
           data: {
             id: 'planet-remote-id',
-            type: 'planet',
+            type: 'planets',
             attributes: { name: 'Jupiter', classification: 'gas giant' }
           }
         })
@@ -847,10 +869,10 @@ module('JSONAPISource', function () {
         JSON.parse(fetchStub.getCall(1).args[1].body),
         {
           data: {
-            type: 'moon',
+            type: 'moons',
             id: '987',
             relationships: {
-              planet: { data: { type: 'planet', id: 'planet-remote-id' } }
+              planet: { data: { type: 'planets', id: 'planet-remote-id' } }
             }
           }
         },
@@ -864,7 +886,7 @@ module('JSONAPISource', function () {
       let moon = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'moon',
+          type: 'moons',
           id: '987'
         }) as Record;
 
@@ -889,7 +911,7 @@ module('JSONAPISource', function () {
         JSON.parse(fetchStub.getCall(0).args[1].body),
         {
           data: {
-            type: 'moon',
+            type: 'moons',
             id: '987',
             relationships: { planet: { data: null } }
           }
@@ -904,14 +926,14 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
       let moon = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'moon',
+          type: 'moons',
           id: '987'
         }) as Record;
 
@@ -938,9 +960,9 @@ module('JSONAPISource', function () {
         JSON.parse(fetchStub.getCall(0).args[1].body),
         {
           data: {
-            type: 'planet',
+            type: 'planets',
             id: '12345',
-            relationships: { moons: { data: [{ type: 'moon', id: '987' }] } }
+            relationships: { moons: { data: [{ type: 'moons', id: '987' }] } }
           }
         },
         'fetch called with expected data'
@@ -953,13 +975,13 @@ module('JSONAPISource', function () {
       let planet1 = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '1'
         }) as Record;
       let planet2 = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '2'
         }) as Record;
 
@@ -1005,13 +1027,13 @@ module('JSONAPISource', function () {
       let planet1 = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '1'
         }) as Record;
       let planet2 = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '2'
         }) as Record;
 
@@ -1036,7 +1058,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345',
           attributes: {
             name: 'Jupiter',
@@ -1068,7 +1090,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345',
           attributes: {
             name: 'Jupiter',
@@ -1108,7 +1130,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345',
           attributes: {
             name: 'Jupiter',
@@ -1135,7 +1157,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345',
           attributes: {
             name: 'Jupiter',
@@ -1174,7 +1196,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         }) as Record;
 
@@ -1220,7 +1242,7 @@ module('JSONAPISource', function () {
         jsonapiResponse(201, {
           data: {
             id: '12345',
-            type: 'planet',
+            type: 'planets',
             attributes: { name: 'Jupiter', classification: 'gas giant' }
           }
         })
@@ -1245,7 +1267,7 @@ module('JSONAPISource', function () {
         JSON.parse(fetchStub.getCall(0).args[1].body),
         {
           data: {
-            type: 'planet',
+            type: 'planets',
             attributes: {
               name: 'Jupiter',
               classification: 'gas giant'
@@ -1264,7 +1286,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         }) as Record;
 
@@ -1334,14 +1356,14 @@ module('JSONAPISource', function () {
         jsonapiResponse(201, {
           data: {
             id: '12345',
-            type: 'planet',
+            type: 'planets',
             attributes: { name: 'Jupiter', classification: 'gas giant' },
-            relationships: { moons: [{ id: '321', type: 'moon' }] }
+            relationships: { moons: [{ id: '321', type: 'moons' }] }
           },
           included: [
             {
               id: '321',
-              type: 'moon',
+              type: 'moons',
               attributes: {
                 name: 'Europa'
               }
@@ -1368,7 +1390,7 @@ module('JSONAPISource', function () {
         JSON.parse(fetchStub.getCall(0).args[1].body),
         {
           data: {
-            type: 'planet',
+            type: 'planets',
             attributes: {
               name: 'Jupiter',
               classification: 'gas giant'
@@ -1387,7 +1409,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345',
           attributes: {
             name: 'Jupiter',
@@ -1426,7 +1448,7 @@ module('JSONAPISource', function () {
         jsonapiResponse(200, {
           data: {
             id: '12345',
-            type: 'planet',
+            type: 'planets',
             attributes: { name: 'Jupiter', classification: 'gas giant' }
           }
         })
@@ -1451,7 +1473,7 @@ module('JSONAPISource', function () {
         JSON.parse(fetchStub.getCall(0).args[1].body),
         {
           data: {
-            type: 'planet',
+            type: 'planets',
             id: '12345',
             attributes: {
               name: 'Jupiter',
@@ -1469,7 +1491,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345',
           attributes: {
             name: 'Jupiter',
@@ -1500,7 +1522,7 @@ module('JSONAPISource', function () {
         JSON.parse(fetchStub.getCall(0).args[1].body),
         {
           data: {
-            type: 'planet',
+            type: 'planets',
             id: '12345',
             attributes: {
               classification: 'terrestrial'
@@ -1517,7 +1539,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345',
           attributes: {
             name: 'Jupiter',
@@ -1528,7 +1550,7 @@ module('JSONAPISource', function () {
       fetchStub.withArgs('/planets/12345').returns(
         jsonapiResponse(200, {
           data: {
-            type: 'planet',
+            type: 'planets',
             id: 'remote-id-123',
             attributes: {
               name: 'Mars',
@@ -1574,7 +1596,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
@@ -1602,14 +1624,14 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
       let moon = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'moon',
+          type: 'moons',
           id: '987'
         }) as Record;
 
@@ -1633,7 +1655,7 @@ module('JSONAPISource', function () {
       );
       assert.deepEqual(
         JSON.parse(fetchStub.getCall(0).args[1].body),
-        { data: [{ type: 'moon', id: '987' }] },
+        { data: [{ type: 'moons', id: '987' }] },
         'fetch called with expected data'
       );
     });
@@ -1644,14 +1666,14 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
       let moon = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'moon',
+          type: 'moons',
           id: '987'
         }) as Record;
 
@@ -1672,7 +1694,7 @@ module('JSONAPISource', function () {
       );
       assert.deepEqual(
         JSON.parse(fetchStub.getCall(0).args[1].body),
-        { data: [{ type: 'moon', id: '987' }] },
+        { data: [{ type: 'moons', id: '987' }] },
         'fetch called with expected data'
       );
     });
@@ -1683,14 +1705,14 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
       let moon = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'moon',
+          type: 'moons',
           id: '987'
         }) as Record;
 
@@ -1717,10 +1739,10 @@ module('JSONAPISource', function () {
         JSON.parse(fetchStub.getCall(0).args[1].body),
         {
           data: {
-            type: 'moon',
+            type: 'moons',
             id: '987',
             relationships: {
-              planet: { data: { type: 'planet', id: '12345' } }
+              planet: { data: { type: 'planets', id: '12345' } }
             }
           }
         },
@@ -1740,7 +1762,7 @@ module('JSONAPISource', function () {
       let moon = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'moon',
+          type: 'moons',
           id: '987'
         }) as Record;
 
@@ -1748,7 +1770,7 @@ module('JSONAPISource', function () {
         jsonapiResponse(201, {
           data: {
             id: 'planet-remote-id',
-            type: 'planet',
+            type: 'planets',
             attributes: { name: 'Jupiter', classification: 'gas giant' }
           }
         })
@@ -1778,10 +1800,10 @@ module('JSONAPISource', function () {
         JSON.parse(fetchStub.getCall(1).args[1].body),
         {
           data: {
-            type: 'moon',
+            type: 'moons',
             id: '987',
             relationships: {
-              planet: { data: { type: 'planet', id: 'planet-remote-id' } }
+              planet: { data: { type: 'planets', id: 'planet-remote-id' } }
             }
           }
         },
@@ -1795,7 +1817,7 @@ module('JSONAPISource', function () {
       let moon = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'moon',
+          type: 'moons',
           id: '987'
         }) as Record;
 
@@ -1820,7 +1842,7 @@ module('JSONAPISource', function () {
         JSON.parse(fetchStub.getCall(0).args[1].body),
         {
           data: {
-            type: 'moon',
+            type: 'moons',
             id: '987',
             relationships: { planet: { data: null } }
           }
@@ -1835,14 +1857,14 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
       let moon = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'moon',
+          type: 'moons',
           id: '987'
         }) as Record;
 
@@ -1869,9 +1891,9 @@ module('JSONAPISource', function () {
         JSON.parse(fetchStub.getCall(0).args[1].body),
         {
           data: {
-            type: 'planet',
+            type: 'planets',
             id: '12345',
-            relationships: { moons: { data: [{ type: 'moon', id: '987' }] } }
+            relationships: { moons: { data: [{ type: 'moons', id: '987' }] } }
           }
         },
         'fetch called with expected data'
@@ -1884,13 +1906,13 @@ module('JSONAPISource', function () {
       let planet1 = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '1'
         }) as Record;
       let planet2 = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '2'
         }) as Record;
 
@@ -1936,13 +1958,13 @@ module('JSONAPISource', function () {
       let planet1 = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '1'
         }) as Record;
       let planet2 = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '2'
         }) as Record;
 
@@ -1967,7 +1989,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345',
           attributes: {
             name: 'Jupiter',
@@ -1999,7 +2021,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345',
           attributes: {
             name: 'Jupiter',
@@ -2039,7 +2061,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345',
           attributes: {
             name: 'Jupiter',
@@ -2066,7 +2088,7 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345',
           attributes: {
             name: 'Jupiter',
@@ -2101,7 +2123,7 @@ module('JSONAPISource', function () {
       assert.expect(6);
 
       const data: Resource = {
-        type: 'planet',
+        type: 'planets',
         id: '12345',
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       };
@@ -2109,7 +2131,7 @@ module('JSONAPISource', function () {
       const planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
@@ -2151,7 +2173,7 @@ module('JSONAPISource', function () {
       const planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
@@ -2174,7 +2196,7 @@ module('JSONAPISource', function () {
       assert.expect(2);
 
       const data: Resource = {
-        type: 'planet',
+        type: 'planets',
         id: '12345',
         attributes: { name: 'Jupiter', classification: 'gas giant' },
         relationships: { moons: { data: [] } }
@@ -2183,7 +2205,7 @@ module('JSONAPISource', function () {
       const planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
@@ -2209,7 +2231,7 @@ module('JSONAPISource', function () {
       assert.expect(2);
 
       const data: Resource = {
-        type: 'planet',
+        type: 'planets',
         id: '12345',
         attributes: { name: 'Jupiter', classification: 'gas giant' },
         relationships: { moons: { data: [] } }
@@ -2218,7 +2240,7 @@ module('JSONAPISource', function () {
       const planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
@@ -2254,7 +2276,7 @@ module('JSONAPISource', function () {
       const planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
@@ -2275,7 +2297,7 @@ module('JSONAPISource', function () {
       assert.expect(2);
 
       const data: Resource = {
-        type: 'planet',
+        type: 'planets',
         id: '12345',
         attributes: { name: 'Jupiter', classification: 'gas giant' },
         relationships: { moons: { data: [] } }
@@ -2284,7 +2306,7 @@ module('JSONAPISource', function () {
       const planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
@@ -2318,15 +2340,15 @@ module('JSONAPISource', function () {
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Earth', classification: 'terrestrial' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Saturn', classification: 'gas giant' }
         }
       ];
@@ -2381,7 +2403,7 @@ module('JSONAPISource', function () {
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: {
             name: 'Earth',
             classification: 'terrestrial',
@@ -2391,7 +2413,7 @@ module('JSONAPISource', function () {
       ];
 
       fetchStub
-        .withArgs(`/planets?${encodeURIComponent('filter[lengthOfDay]')}=24`)
+        .withArgs(`/planets?${encodeURIComponent('filter[length-of-day]')}=24`)
         .returns(jsonapiResponse(200, { data }));
 
       let transforms = await source.pull((q) =>
@@ -2423,7 +2445,7 @@ module('JSONAPISource', function () {
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: {
             name: 'Earth',
             classification: 'terrestrial',
@@ -2434,7 +2456,7 @@ module('JSONAPISource', function () {
 
       const value1 = encodeURIComponent('le:24');
       const value2 = encodeURIComponent('ge:24');
-      const attribute = encodeURIComponent('filter[lengthOfDay]');
+      const attribute = encodeURIComponent('filter[length-of-day]');
       const expectedUrl = `/planets?${attribute}=${value1}&${attribute}=${value2}`;
 
       fetchStub.withArgs(expectedUrl).returns(jsonapiResponse(200, { data }));
@@ -2478,10 +2500,10 @@ module('JSONAPISource', function () {
       const data: Resource[] = [
         {
           id: 'moon',
-          type: 'moon',
+          type: 'moons',
           attributes: { name: 'Moon' },
           relationships: {
-            planet: { data: { id: 'earth', type: 'planet' } }
+            planet: { data: { id: 'earth', type: 'planets' } }
           }
         }
       ];
@@ -2493,7 +2515,7 @@ module('JSONAPISource', function () {
       let transforms = await source.pull((q) =>
         q.findRecords('moon').filter({
           relation: 'planet',
-          record: { id: 'earth', type: 'planet' }
+          record: { id: 'earth', type: 'planets' }
         })
       );
 
@@ -2527,26 +2549,26 @@ module('JSONAPISource', function () {
       const data: Resource[] = [
         {
           id: 'moon',
-          type: 'moon',
+          type: 'moons',
           attributes: { name: 'Moon' },
           relationships: {
-            planet: { data: { id: 'earth', type: 'planet' } }
+            planet: { data: { id: 'earth', type: 'planets' } }
           }
         },
         {
           id: 'phobos',
-          type: 'moon',
+          type: 'moons',
           attributes: { name: 'Phobos' },
           relationships: {
-            planet: { data: { id: 'mars', type: 'planet' } }
+            planet: { data: { id: 'mars', type: 'planets' } }
           }
         },
         {
           id: 'deimos',
-          type: 'moon',
+          type: 'moons',
           attributes: { name: 'Deimos' },
           relationships: {
-            planet: { data: { id: 'mars', type: 'planet' } }
+            planet: { data: { id: 'mars', type: 'planets' } }
           }
         }
       ];
@@ -2563,8 +2585,8 @@ module('JSONAPISource', function () {
         q.findRecords('moon').filter({
           relation: 'planet',
           record: [
-            { id: 'earth', type: 'planet' },
-            { id: 'mars', type: 'planet' }
+            { id: 'earth', type: 'planets' },
+            { id: 'mars', type: 'planets' }
           ]
         })
       );
@@ -2599,13 +2621,13 @@ module('JSONAPISource', function () {
       const data: Resource[] = [
         {
           id: 'mars',
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Mars' },
           relationships: {
             moons: {
               data: [
-                { id: 'phobos', type: 'moon' },
-                { id: 'deimos', type: 'moon' }
+                { id: 'phobos', type: 'moons' },
+                { id: 'deimos', type: 'moons' }
               ]
             }
           }
@@ -2624,8 +2646,8 @@ module('JSONAPISource', function () {
         q.findRecords('planet').filter({
           relation: 'moons',
           records: [
-            { id: 'phobos', type: 'moon' },
-            { id: 'deimos', type: 'moon' }
+            { id: 'phobos', type: 'moons' },
+            { id: 'deimos', type: 'moons' }
           ],
           op: 'equal'
         })
@@ -2660,15 +2682,15 @@ module('JSONAPISource', function () {
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Earth', classification: 'terrestrial' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Saturn', classification: 'gas giant' }
         }
       ];
@@ -2710,15 +2732,15 @@ module('JSONAPISource', function () {
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Saturn', classification: 'gas giant' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Earth', classification: 'terrestrial' }
         }
       ];
@@ -2760,7 +2782,7 @@ module('JSONAPISource', function () {
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: {
             name: 'Jupiter',
             classification: 'gas giant',
@@ -2768,7 +2790,7 @@ module('JSONAPISource', function () {
           }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: {
             name: 'Saturn',
             classification: 'gas giant',
@@ -2776,7 +2798,7 @@ module('JSONAPISource', function () {
           }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: {
             name: 'Earth',
             classification: 'terrestrial',
@@ -2786,7 +2808,7 @@ module('JSONAPISource', function () {
       ];
 
       fetchStub
-        .withArgs(`/planets?sort=${encodeURIComponent('lengthOfDay,name')}`)
+        .withArgs(`/planets?sort=${encodeURIComponent('length-of-day,name')}`)
         .returns(jsonapiResponse(200, { data }));
 
       let transforms = await source.pull((q) =>
@@ -2822,15 +2844,15 @@ module('JSONAPISource', function () {
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Earth', classification: 'terrestrial' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Saturn', classification: 'gas giant' }
         }
       ];
@@ -2877,13 +2899,13 @@ module('JSONAPISource', function () {
       const solarSystem = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'solarSystem',
+          type: 'solar-systems',
           id: 'sun'
         }) as Record;
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: {
             name: 'Earth',
             classification: 'terrestrial',
@@ -2892,7 +2914,7 @@ module('JSONAPISource', function () {
           relationships: {
             solarSystem: {
               data: {
-                type: 'solarSystem',
+                type: 'solar-systems',
                 id: 'sun'
               }
             }
@@ -2903,7 +2925,7 @@ module('JSONAPISource', function () {
       fetchStub
         .withArgs(
           `/solar-systems/sun/planets?${encodeURIComponent(
-            'filter[lengthOfDay]'
+            'filter[length-of-day]'
           )}=24`
         )
         .returns(jsonapiResponse(200, { data }));
@@ -2942,13 +2964,13 @@ module('JSONAPISource', function () {
       const solarSystem = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'solarSystem',
+          type: 'solar-systems',
           id: 'sun'
         }) as Record;
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: {
             name: 'Earth',
             classification: 'terrestrial',
@@ -2959,7 +2981,7 @@ module('JSONAPISource', function () {
 
       const value1 = encodeURIComponent('le:24');
       const value2 = encodeURIComponent('ge:24');
-      const attribute = encodeURIComponent('filter[lengthOfDay]');
+      const attribute = encodeURIComponent('filter[length-of-day]');
       const expectedUrl = `/solar-systems/sun/planets?${attribute}=${value1}&${attribute}=${value2}`;
 
       fetchStub.withArgs(expectedUrl).returns(jsonapiResponse(200, { data }));
@@ -3001,17 +3023,17 @@ module('JSONAPISource', function () {
       const solarSystem = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'solarSystem',
+          type: 'solar-systems',
           id: 'sun'
         }) as Record;
 
       const data: Resource[] = [
         {
           id: 'moon',
-          type: 'moon',
+          type: 'moons',
           attributes: { name: 'Moon' },
           relationships: {
-            planet: { data: { id: 'earth', type: 'planet' } }
+            planet: { data: { id: 'earth', type: 'planets' } }
           }
         }
       ];
@@ -3059,33 +3081,33 @@ module('JSONAPISource', function () {
       const solarSystem = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'solarSystem',
+          type: 'solar-systems',
           id: 'sun'
         }) as Record;
 
       const data: Resource[] = [
         {
           id: 'moon',
-          type: 'moon',
+          type: 'moons',
           attributes: { name: 'Moon' },
           relationships: {
-            planet: { data: { id: 'earth', type: 'planet' } }
+            planet: { data: { id: 'earth', type: 'planets' } }
           }
         },
         {
           id: 'phobos',
-          type: 'moon',
+          type: 'moons',
           attributes: { name: 'Phobos' },
           relationships: {
-            planet: { data: { id: 'mars', type: 'planet' } }
+            planet: { data: { id: 'mars', type: 'planets' } }
           }
         },
         {
           id: 'deimos',
-          type: 'moon',
+          type: 'moons',
           attributes: { name: 'Deimos' },
           relationships: {
-            planet: { data: { id: 'mars', type: 'planet' } }
+            planet: { data: { id: 'mars', type: 'planets' } }
           }
         }
       ];
@@ -3148,20 +3170,20 @@ module('JSONAPISource', function () {
       const solarSystem = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'solarSystem',
+          type: 'solar-systems',
           id: 'sun'
         }) as Record;
 
       const data: Resource[] = [
         {
           id: 'mars',
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Mars' },
           relationships: {
             moons: {
               data: [
-                { id: 'phobos', type: 'moon' },
-                { id: 'deimos', type: 'moon' }
+                { id: 'phobos', type: 'moons' },
+                { id: 'deimos', type: 'moons' }
               ]
             }
           }
@@ -3215,21 +3237,21 @@ module('JSONAPISource', function () {
       const solarSystem = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'solarSystem',
+          type: 'solar-systems',
           id: 'sun'
         }) as Record;
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Earth', classification: 'terrestrial' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Saturn', classification: 'gas giant' }
         }
       ];
@@ -3282,21 +3304,21 @@ module('JSONAPISource', function () {
       const solarSystem = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'solarSystem',
+          type: 'solar-systems',
           id: 'sun'
         }) as Record;
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Saturn', classification: 'gas giant' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Earth', classification: 'terrestrial' }
         }
       ];
@@ -3349,13 +3371,13 @@ module('JSONAPISource', function () {
       const solarSystem = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'solarSystem',
+          type: 'solar-systems',
           id: 'sun'
         }) as Record;
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: {
             name: 'Jupiter',
             classification: 'gas giant',
@@ -3363,7 +3385,7 @@ module('JSONAPISource', function () {
           }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: {
             name: 'Saturn',
             classification: 'gas giant',
@@ -3371,7 +3393,7 @@ module('JSONAPISource', function () {
           }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: {
             name: 'Earth',
             classification: 'terrestrial',
@@ -3383,7 +3405,7 @@ module('JSONAPISource', function () {
       fetchStub
         .withArgs(
           `/solar-systems/sun/planets?sort=${encodeURIComponent(
-            'lengthOfDay,name'
+            'length-of-day,name'
           )}`
         )
         .returns(jsonapiResponse(200, { data }));
@@ -3432,21 +3454,21 @@ module('JSONAPISource', function () {
       const solarSystem = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'solarSystem',
+          type: 'solar-systems',
           id: 'sun'
         }) as Record;
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Earth', classification: 'terrestrial' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Saturn', classification: 'gas giant' }
         }
       ];
@@ -3557,12 +3579,12 @@ module('JSONAPISource', function () {
       const planetRecord = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: 'jupiter'
         }) as Record;
 
       const data: Resource = {
-        type: 'solarSystem',
+        type: 'solar-systems',
         id: 'ours',
         attributes: {
           name: 'Our Solar System'
@@ -3618,13 +3640,13 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: 'jupiter'
         }) as Record;
 
       let data = [
         {
-          type: 'moon',
+          type: 'moons',
           id: 'io',
           attributes: {
             name: 'Io'
@@ -3675,7 +3697,7 @@ module('JSONAPISource', function () {
       const planetRecord = source.requestProcessor
         .serializerFor(JSONAPISerializers.ResourceIdentity)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: 'jupiter'
         }) as RecordIdentity;
 
@@ -3708,7 +3730,7 @@ module('JSONAPISource', function () {
       assert.expect(4);
 
       const data: Resource = {
-        type: 'planet',
+        type: 'planets',
         id: '12345',
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       };
@@ -3716,7 +3738,7 @@ module('JSONAPISource', function () {
       const planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
@@ -3748,7 +3770,7 @@ module('JSONAPISource', function () {
       const planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
@@ -3772,7 +3794,7 @@ module('JSONAPISource', function () {
       assert.expect(6);
 
       const data1: Resource = {
-        type: 'planet',
+        type: 'planets',
         id: '12345',
         attributes: { name: 'Jupiter' }
       };
@@ -3780,12 +3802,12 @@ module('JSONAPISource', function () {
       const planet1 = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
       const data2: Resource = {
-        type: 'planet',
+        type: 'planets',
         id: '1234',
         attributes: { name: 'Earth' }
       };
@@ -3793,7 +3815,7 @@ module('JSONAPISource', function () {
       const planet2 = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '1234'
         }) as Record;
 
@@ -3830,7 +3852,7 @@ module('JSONAPISource', function () {
       assert.expect(1);
 
       const data: Resource = {
-        type: 'planet',
+        type: 'planets',
         id: '12345',
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       };
@@ -3842,7 +3864,7 @@ module('JSONAPISource', function () {
       const planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
@@ -3872,7 +3894,7 @@ module('JSONAPISource', function () {
       assert.expect(2);
 
       const data: Resource = {
-        type: 'planet',
+        type: 'planets',
         id: '12345',
         attributes: { name: 'Jupiter', classification: 'gas giant' },
         relationships: { moons: { data: [] } }
@@ -3881,7 +3903,7 @@ module('JSONAPISource', function () {
       const planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
@@ -3907,7 +3929,7 @@ module('JSONAPISource', function () {
       assert.expect(2);
 
       const data: Resource = {
-        type: 'planet',
+        type: 'planets',
         id: '12345',
         attributes: { name: 'Jupiter', classification: 'gas giant' },
         relationships: { moons: { data: [] } }
@@ -3916,7 +3938,7 @@ module('JSONAPISource', function () {
       const planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
@@ -3952,7 +3974,7 @@ module('JSONAPISource', function () {
       const planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
@@ -3973,7 +3995,7 @@ module('JSONAPISource', function () {
       assert.expect(2);
 
       const data: Resource = {
-        type: 'planet',
+        type: 'planets',
         id: '12345',
         attributes: { name: 'Jupiter', classification: 'gas giant' },
         relationships: { moons: { data: [] } }
@@ -3982,7 +4004,7 @@ module('JSONAPISource', function () {
       const planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
@@ -4015,7 +4037,7 @@ module('JSONAPISource', function () {
       assert.expect(1);
 
       const data: Resource = {
-        type: 'planet',
+        type: 'planets',
         id: '12345',
         attributes: { name: 'Jupiter', classification: 'gas giant' },
         relationships: { moons: { data: [] } }
@@ -4024,7 +4046,7 @@ module('JSONAPISource', function () {
       const planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: '12345'
         }) as Record;
 
@@ -4048,15 +4070,15 @@ module('JSONAPISource', function () {
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Earth', classification: 'terrestrial' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Saturn', classification: 'gas giant' }
         }
       ];
@@ -4104,7 +4126,7 @@ module('JSONAPISource', function () {
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: {
             name: 'Earth',
             classification: 'terrestrial',
@@ -4114,7 +4136,7 @@ module('JSONAPISource', function () {
       ];
 
       fetchStub
-        .withArgs(`/planets?${encodeURIComponent('filter[lengthOfDay]')}=24`)
+        .withArgs(`/planets?${encodeURIComponent('filter[length-of-day]')}=24`)
         .returns(jsonapiResponse(200, { data }));
 
       let records: Record[] = await source.query((q) =>
@@ -4142,10 +4164,10 @@ module('JSONAPISource', function () {
       const data: Resource[] = [
         {
           id: 'moon',
-          type: 'moon',
+          type: 'moons',
           attributes: { name: 'Moon' },
           relationships: {
-            planet: { data: { id: 'earth', type: 'planet' } }
+            planet: { data: { id: 'earth', type: 'planets' } }
           }
         }
       ];
@@ -4157,7 +4179,7 @@ module('JSONAPISource', function () {
       let records: Record[] = await source.query((q) =>
         q.findRecords('moon').filter({
           relation: 'planet',
-          record: { id: 'earth', type: 'planet' }
+          record: { id: 'earth', type: 'planets' }
         })
       );
 
@@ -4182,26 +4204,26 @@ module('JSONAPISource', function () {
       const data: Resource[] = [
         {
           id: 'moon',
-          type: 'moon',
+          type: 'moons',
           attributes: { name: 'Moon' },
           relationships: {
-            planet: { data: { id: 'earth', type: 'planet' } }
+            planet: { data: { id: 'earth', type: 'planets' } }
           }
         },
         {
           id: 'phobos',
-          type: 'moon',
+          type: 'moons',
           attributes: { name: 'Phobos' },
           relationships: {
-            planet: { data: { id: 'mars', type: 'planet' } }
+            planet: { data: { id: 'mars', type: 'planets' } }
           }
         },
         {
           id: 'deimos',
-          type: 'moon',
+          type: 'moons',
           attributes: { name: 'Deimos' },
           relationships: {
-            planet: { data: { id: 'mars', type: 'planet' } }
+            planet: { data: { id: 'mars', type: 'planets' } }
           }
         }
       ];
@@ -4218,8 +4240,8 @@ module('JSONAPISource', function () {
         q.findRecords('moon').filter({
           relation: 'planet',
           record: [
-            { id: 'earth', type: 'planet' },
-            { id: 'mars', type: 'planet' }
+            { id: 'earth', type: 'planets' },
+            { id: 'mars', type: 'planets' }
           ]
         })
       );
@@ -4245,13 +4267,13 @@ module('JSONAPISource', function () {
       const data: Resource[] = [
         {
           id: 'mars',
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Mars' },
           relationships: {
             moons: {
               data: [
-                { id: 'phobos', type: 'moon' },
-                { id: 'deimos', type: 'moon' }
+                { id: 'phobos', type: 'moons' },
+                { id: 'deimos', type: 'moons' }
               ]
             }
           }
@@ -4270,8 +4292,8 @@ module('JSONAPISource', function () {
         q.findRecords('planet').filter({
           relation: 'moons',
           records: [
-            { id: 'phobos', type: 'moon' },
-            { id: 'deimos', type: 'moon' }
+            { id: 'phobos', type: 'moons' },
+            { id: 'deimos', type: 'moons' }
           ],
           op: 'equal'
         })
@@ -4297,15 +4319,15 @@ module('JSONAPISource', function () {
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Earth', classification: 'terrestrial' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Saturn', classification: 'gas giant' }
         }
       ];
@@ -4338,15 +4360,15 @@ module('JSONAPISource', function () {
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Saturn', classification: 'gas giant' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Earth', classification: 'terrestrial' }
         }
       ];
@@ -4379,7 +4401,7 @@ module('JSONAPISource', function () {
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: {
             name: 'Jupiter',
             classification: 'gas giant',
@@ -4387,7 +4409,7 @@ module('JSONAPISource', function () {
           }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: {
             name: 'Saturn',
             classification: 'gas giant',
@@ -4395,7 +4417,7 @@ module('JSONAPISource', function () {
           }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: {
             name: 'Earth',
             classification: 'terrestrial',
@@ -4405,7 +4427,7 @@ module('JSONAPISource', function () {
       ];
 
       fetchStub
-        .withArgs(`/planets?sort=${encodeURIComponent('lengthOfDay,name')}`)
+        .withArgs(`/planets?sort=${encodeURIComponent('length-of-day,name')}`)
         .returns(jsonapiResponse(200, { data }));
 
       let records: Record[] = await source.query((q) =>
@@ -4432,15 +4454,15 @@ module('JSONAPISource', function () {
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Earth', classification: 'terrestrial' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Saturn', classification: 'gas giant' }
         }
       ];
@@ -4478,13 +4500,13 @@ module('JSONAPISource', function () {
       const solarSystem = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'solarSystem',
+          type: 'solar-systems',
           id: 'sun'
         }) as Record;
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: {
             name: 'Earth',
             classification: 'terrestrial',
@@ -4493,7 +4515,7 @@ module('JSONAPISource', function () {
           relationships: {
             solarSystem: {
               data: {
-                type: 'solarSystem',
+                type: 'solar-systems',
                 id: 'sun'
               }
             }
@@ -4504,7 +4526,7 @@ module('JSONAPISource', function () {
       fetchStub
         .withArgs(
           `/solar-systems/sun/planets?${encodeURIComponent(
-            'filter[lengthOfDay]'
+            'filter[length-of-day]'
           )}=24`
         )
         .returns(jsonapiResponse(200, { data }));
@@ -4536,17 +4558,17 @@ module('JSONAPISource', function () {
       const solarSystem = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'solarSystem',
+          type: 'solar-systems',
           id: 'sun'
         }) as Record;
 
       const data: Resource[] = [
         {
           id: 'moon',
-          type: 'moon',
+          type: 'moons',
           attributes: { name: 'Moon' },
           relationships: {
-            planet: { data: { id: 'earth', type: 'planet' } }
+            planet: { data: { id: 'earth', type: 'planets' } }
           }
         }
       ];
@@ -4562,7 +4584,7 @@ module('JSONAPISource', function () {
       let records: Record[] = await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'moons').filter({
           relation: 'planet',
-          record: { id: 'earth', type: 'planet' }
+          record: { id: 'earth', type: 'planets' }
         })
       );
 
@@ -4587,33 +4609,33 @@ module('JSONAPISource', function () {
       const solarSystem = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'solarSystem',
+          type: 'solar-systems',
           id: 'sun'
         }) as Record;
 
       const data: Resource[] = [
         {
           id: 'moon',
-          type: 'moon',
+          type: 'moons',
           attributes: { name: 'Moon' },
           relationships: {
-            planet: { data: { id: 'earth', type: 'planet' } }
+            planet: { data: { id: 'earth', type: 'planets' } }
           }
         },
         {
           id: 'phobos',
-          type: 'moon',
+          type: 'moons',
           attributes: { name: 'Phobos' },
           relationships: {
-            planet: { data: { id: 'mars', type: 'planet' } }
+            planet: { data: { id: 'mars', type: 'planets' } }
           }
         },
         {
           id: 'deimos',
-          type: 'moon',
+          type: 'moons',
           attributes: { name: 'Deimos' },
           relationships: {
-            planet: { data: { id: 'mars', type: 'planet' } }
+            planet: { data: { id: 'mars', type: 'planets' } }
           }
         }
       ];
@@ -4630,8 +4652,8 @@ module('JSONAPISource', function () {
         q.findRelatedRecords(solarSystem, 'moons').filter({
           relation: 'planet',
           record: [
-            { id: 'earth', type: 'planet' },
-            { id: 'mars', type: 'planet' }
+            { id: 'earth', type: 'planets' },
+            { id: 'mars', type: 'planets' }
           ]
         })
       );
@@ -4657,20 +4679,20 @@ module('JSONAPISource', function () {
       const solarSystem = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'solarSystem',
+          type: 'solar-systems',
           id: 'sun'
         }) as Record;
 
       const data: Resource[] = [
         {
           id: 'mars',
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Mars' },
           relationships: {
             moons: {
               data: [
-                { id: 'phobos', type: 'moon' },
-                { id: 'deimos', type: 'moon' }
+                { id: 'phobos', type: 'moons' },
+                { id: 'deimos', type: 'moons' }
               ]
             }
           }
@@ -4689,8 +4711,8 @@ module('JSONAPISource', function () {
         q.findRelatedRecords(solarSystem, 'planets').filter({
           relation: 'moons',
           records: [
-            { id: 'phobos', type: 'moon' },
-            { id: 'deimos', type: 'moon' }
+            { id: 'phobos', type: 'moons' },
+            { id: 'deimos', type: 'moons' }
           ],
           op: 'equal'
         })
@@ -4717,21 +4739,21 @@ module('JSONAPISource', function () {
       const solarSystem = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'solarSystem',
+          type: 'solar-systems',
           id: 'sun'
         }) as Record;
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Earth', classification: 'terrestrial' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Saturn', classification: 'gas giant' }
         }
       ];
@@ -4765,21 +4787,21 @@ module('JSONAPISource', function () {
       const solarSystem = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'solarSystem',
+          type: 'solar-systems',
           id: 'sun'
         }) as Record;
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Saturn', classification: 'gas giant' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Earth', classification: 'terrestrial' }
         }
       ];
@@ -4813,13 +4835,13 @@ module('JSONAPISource', function () {
       const solarSystem = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'solarSystem',
+          type: 'solar-systems',
           id: 'sun'
         }) as Record;
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: {
             name: 'Jupiter',
             classification: 'gas giant',
@@ -4827,7 +4849,7 @@ module('JSONAPISource', function () {
           }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: {
             name: 'Saturn',
             classification: 'gas giant',
@@ -4835,7 +4857,7 @@ module('JSONAPISource', function () {
           }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: {
             name: 'Earth',
             classification: 'terrestrial',
@@ -4847,7 +4869,7 @@ module('JSONAPISource', function () {
       fetchStub
         .withArgs(
           `/solar-systems/sun/planets?sort=${encodeURIComponent(
-            'lengthOfDay,name'
+            'length-of-day,name'
           )}`
         )
         .returns(jsonapiResponse(200, { data }));
@@ -4877,21 +4899,21 @@ module('JSONAPISource', function () {
       const solarSystem = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'solarSystem',
+          type: 'solar-systems',
           id: 'sun'
         }) as Record;
 
       const data: Resource[] = [
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Jupiter', classification: 'gas giant' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Earth', classification: 'terrestrial' }
         },
         {
-          type: 'planet',
+          type: 'planets',
           attributes: { name: 'Saturn', classification: 'gas giant' }
         }
       ];
@@ -4935,7 +4957,7 @@ module('JSONAPISource', function () {
       const earth = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: 'earth'
         }) as Record;
 
@@ -4963,7 +4985,7 @@ module('JSONAPISource', function () {
       const solarSystem = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'solarSystem',
+          type: 'solar-systems',
           id: 'sun'
         }) as Record;
 
@@ -5023,12 +5045,12 @@ module('JSONAPISource', function () {
       fetchStub.withArgs('/planets?include=moons').returns(
         jsonapiResponse(200, {
           data: [
-            { type: 'planet', id: '1' },
-            { type: 'planet', id: '2' }
+            { type: 'planets', id: '1' },
+            { type: 'planets', id: '2' }
           ],
           included: [
-            { type: 'moon', id: '1' },
-            { type: 'moon', id: '2' }
+            { type: 'moons', id: '1' },
+            { type: 'moons', id: '2' }
           ]
         })
       );
@@ -5121,13 +5143,13 @@ module('JSONAPISource', function () {
       let planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.Resource)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: 'jupiter'
         }) as Record;
 
       let data = [
         {
-          type: 'moon',
+          type: 'moons',
           id: 'io',
           attributes: {
             name: 'Io'
@@ -5164,7 +5186,7 @@ module('JSONAPISource', function () {
       const planet = source.requestProcessor
         .serializerFor(JSONAPISerializers.ResourceIdentity)
         .deserialize({
-          type: 'planet',
+          type: 'planets',
           id: 'jupiter'
         }) as RecordIdentity;
 
@@ -5217,7 +5239,7 @@ module('JSONAPISource', function () {
         }
       });
 
-      source = new JSONAPISource({ schema });
+      source = new JSONAPISource({ schema, serializerSettingsFor });
     });
 
     hooks.afterEach(function () {
@@ -5264,7 +5286,7 @@ module('JSONAPISource', function () {
         jsonapiResponse(201, {
           data: {
             id: planet.id,
-            type: 'planet',
+            type: 'planets',
             attributes: { name: 'Jupiter', classification: 'gas giant' }
           }
         })
@@ -5284,7 +5306,7 @@ module('JSONAPISource', function () {
         JSON.parse(fetchStub.getCall(0).args[1].body),
         {
           data: {
-            type: 'planet',
+            type: 'planets',
             id: planet.id,
             attributes: {
               name: 'Jupiter',
@@ -5301,7 +5323,7 @@ module('JSONAPISource', function () {
 
       const planetResource = {
         id: '12345',
-        type: 'planet',
+        type: 'planets',
         attributes: { name: 'Jupiter' }
       };
 
@@ -5429,7 +5451,7 @@ module('JSONAPISource', function () {
 
       const planetResource = {
         id: '12345',
-        type: 'planet',
+        type: 'planets',
         attributes: { name: 'Jupiter' }
       };
 
@@ -5455,7 +5477,7 @@ module('JSONAPISource', function () {
 
       const planetResource = {
         id: '12345',
-        type: 'planet',
+        type: 'planets',
         attributes: { name: 'Jupiter' }
       };
 
