@@ -21,7 +21,7 @@
     "typedoc": "typedoc"
   },
   "devDependencies": {
-    "lerna": "^3.22.0",
+    "lerna": "^3.22.1",
     "typedoc": "^0.17.7",
     "typedoc-plugin-lerna-packages": "^0.3.0"
   },
