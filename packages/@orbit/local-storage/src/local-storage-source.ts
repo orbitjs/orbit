@@ -31,7 +31,7 @@ const { assert } = Orbit;
 export interface LocalStorageSourceSettings extends SourceSettings {
   delimiter?: string;
   namespace?: string;
-  cacheSettings?: LocalStorageCacheSettings;
+  cacheSettings?: Partial<LocalStorageCacheSettings>;
 }
 
 /**
@@ -75,9 +75,8 @@ export default class LocalStorageSource extends Source
 
     super(settings);
 
-    let cacheSettings: LocalStorageCacheSettings = settings.cacheSettings || {
-      schema: settings.schema
-    };
+    let cacheSettings: Partial<LocalStorageCacheSettings> =
+      settings.cacheSettings || {};
     cacheSettings.schema = settings.schema;
     cacheSettings.keyMap = settings.keyMap;
     cacheSettings.queryBuilder =
@@ -87,7 +86,9 @@ export default class LocalStorageSource extends Source
     cacheSettings.namespace = cacheSettings.namespace || settings.namespace;
     cacheSettings.delimiter = cacheSettings.delimiter || settings.delimiter;
 
-    this._cache = new LocalStorageCache(cacheSettings);
+    this._cache = new LocalStorageCache(
+      cacheSettings as LocalStorageCacheSettings
+    );
   }
 
   get namespace(): string {

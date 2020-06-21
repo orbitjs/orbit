@@ -26,7 +26,7 @@ const { assert } = Orbit;
 
 export interface IndexedDBSourceSettings extends SourceSettings {
   namespace?: string;
-  cacheSettings?: IndexedDBCacheSettings;
+  cacheSettings?: Partial<IndexedDBCacheSettings>;
 }
 
 /**
@@ -69,9 +69,8 @@ export default class IndexedDBSource extends Source
 
     super(settings);
 
-    let cacheSettings: IndexedDBCacheSettings = settings.cacheSettings || {
-      schema: settings.schema
-    };
+    let cacheSettings: Partial<IndexedDBCacheSettings> =
+      settings.cacheSettings || {};
     cacheSettings.schema = settings.schema;
     cacheSettings.keyMap = settings.keyMap;
     cacheSettings.queryBuilder =
@@ -80,7 +79,7 @@ export default class IndexedDBSource extends Source
       cacheSettings.transformBuilder || this.transformBuilder;
     cacheSettings.namespace = cacheSettings.namespace || settings.namespace;
 
-    this._cache = new IndexedDBCache(cacheSettings);
+    this._cache = new IndexedDBCache(cacheSettings as IndexedDBCacheSettings);
     if (autoActivate) {
       this.activate();
     }
