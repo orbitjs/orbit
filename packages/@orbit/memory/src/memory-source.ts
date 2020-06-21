@@ -27,7 +27,7 @@ const { assert } = Orbit;
 
 export interface MemorySourceSettings extends SourceSettings {
   base?: MemorySource;
-  cacheSettings?: MemoryCacheSettings;
+  cacheSettings?: Partial<MemoryCacheSettings>;
 }
 
 export interface MemorySourceMergeOptions {
@@ -84,9 +84,8 @@ export default class MemorySource extends Source
     this.transformLog.on('truncate', this._logTruncated.bind(this));
     this.transformLog.on('rollback', this._logRolledback.bind(this));
 
-    let cacheSettings: MemoryCacheSettings = settings.cacheSettings || {
-      schema
-    };
+    let cacheSettings: Partial<MemoryCacheSettings> =
+      settings.cacheSettings || {};
     cacheSettings.schema = schema;
     cacheSettings.keyMap = keyMap;
     cacheSettings.queryBuilder =
@@ -98,7 +97,7 @@ export default class MemorySource extends Source
       this._forkPoint = this._base.transformLog.head;
       cacheSettings.base = this._base.cache;
     }
-    this._cache = new MemoryCache(cacheSettings);
+    this._cache = new MemoryCache(cacheSettings as MemoryCacheSettings);
   }
 
   get cache(): MemoryCache {
