@@ -47,6 +47,24 @@ module('MemorySource', function (hooks) {
         relationships: {
           planet: { kind: 'hasOne', type: 'planet', inverse: 'moons' }
         }
+      },
+      binaryStar: {
+        attributes: {
+          name: { type: 'string' }
+        },
+        relationships: {
+          starOne: { kind: 'hasOne', type: 'star' },
+          starTwo: { kind: 'hasOne', type: 'star' }
+        }
+      },
+      planetarySystem: {
+        attributes: {
+          name: { type: 'string' }
+        },
+        relationships: {
+          star: { kind: 'hasOne', type: ['star', 'binaryStar'] },
+          bodies: { kind: 'hasMany', type: ['planet', 'moon'] }
+        }
       }
     }
   };
@@ -163,6 +181,64 @@ module('MemorySource', function (hooks) {
       records,
       [jupiter, earth],
       'results array should be returned'
+    );
+  });
+
+  test('#update - replaceRelatedRecord can be followed up by removing the replaced record', async function (assert) {
+    assert.expect(2);
+
+    const star1 = {
+      id: 'star1',
+      type: 'star',
+      attributes: { name: 'sun' }
+    };
+
+    const star2 = {
+      id: 'star2',
+      type: 'star',
+      attributes: { name: 'sun2' }
+    };
+
+    const home = {
+      id: 'home',
+      type: 'planetarySystem',
+      attributes: { name: 'Home' },
+      relationships: {
+        star: {
+          data: { id: 'star1', type: 'star' }
+        }
+      }
+    };
+
+    await source.update((t) => [
+      t.addRecord(star1),
+      t.addRecord(star2),
+      t.addRecord(home)
+    ]);
+
+    let latestHome = source.cache.getRecordSync({
+      id: 'home',
+      type: 'planetarySystem'
+    });
+    assert.deepEqual(
+      (latestHome.relationships.star.data as Record).id,
+      star1.id,
+      'The original related record is in place.'
+    );
+
+    await source.update((t) => [
+      t.replaceRelatedRecord(home, 'star', star2),
+      t.removeRecord(star1)
+    ]);
+
+    latestHome = source.cache.getRecordSync({
+      id: 'home',
+      type: 'planetarySystem'
+    });
+    assert.deepEqual(
+      (latestHome.relationships.star.data as Record).id,
+      star2.id,
+      'The related record was replaced.'
     );
   });
 
