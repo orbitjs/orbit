@@ -194,7 +194,7 @@ module('MemorySource', function (hooks) {
     };
 
     const star2 = {
-      id: 'star1',
+      id: 'star2',
       type: 'star',
       attributes: { name: 'sun2' }
     };
@@ -204,7 +204,9 @@ module('MemorySource', function (hooks) {
       type: 'planetarySystem',
       attributes: { name: 'Home' },
       relationships: {
-        star: { id: 'star1', type: 'star' }
+        star: {
+          data: { id: 'star1', type: 'star' }
+        }
       }
     };
 
@@ -219,14 +221,14 @@ module('MemorySource', function (hooks) {
       type: 'planetarySystem'
     });
     assert.deepEqual(
-      latestHome.relationships.star.id,
+      (latestHome.relationships.star.data as Record).id,
       star1.id,
       'The original related record is in place.'
     );
 
     await source.update((t) => [
       t.replaceRelatedRecord(home, 'star', star2),
-      t.removeRecord(star2)
+      t.removeRecord(star1)
     ]);
 
     latestHome = source.cache.getRecordSync({
@@ -234,7 +236,7 @@ module('MemorySource', function (hooks) {
       type: 'planetarySystem'
     });
     assert.deepEqual(
-      latestHome.relationships.star.id,
+      (latestHome.relationships.star.data as Record).id,
       star2.id,
       'The related record was replaced.'
     );
