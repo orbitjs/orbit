@@ -1,7 +1,5 @@
-import {
-  StringSerializer,
-  StringTransformConst
-} from '../src/string-serializer';
+import { StringSerializer } from '../src/string-serializer';
+import { StandardInflectorName } from '../src/standard-inflectors';
 
 const { module, test } = QUnit;
 
@@ -66,12 +64,12 @@ module('StringSerializer', function (hooks) {
     });
   });
 
-  module("serializationOptions: { transforms: ['dasherize'] }", function (
+  module("serializationOptions: { inflectors: ['dasherize'] }", function (
     hooks
   ) {
     hooks.beforeEach(function () {
       serializer = new StringSerializer({
-        serializationOptions: { transforms: ['dasherize'] }
+        serializationOptions: { inflectors: ['dasherize'] }
       });
     });
 
@@ -127,12 +125,12 @@ module('StringSerializer', function (hooks) {
     });
   });
 
-  module("serializationOptions: { transforms: ['underscore'] }", function (
+  module("serializationOptions: { inflectors: ['underscore'] }", function (
     hooks
   ) {
     hooks.beforeEach(function () {
       serializer = new StringSerializer({
-        serializationOptions: { transforms: ['underscore'] }
+        serializationOptions: { inflectors: ['underscore'] }
       });
     });
     test('#serialize underscores strings', function (assert) {
@@ -192,12 +190,12 @@ module('StringSerializer', function (hooks) {
     });
   });
 
-  module("serializationOptions: { transforms: ['camelize'] }", function (
+  module("serializationOptions: { inflectors: ['camelize'] }", function (
     hooks
   ) {
     hooks.beforeEach(function () {
       serializer = new StringSerializer({
-        serializationOptions: { transforms: ['camelize'] }
+        serializationOptions: { inflectors: ['camelize'] }
       });
     });
     test('#serialize camelizes strings', function (assert) {
@@ -237,94 +235,60 @@ module('StringSerializer', function (hooks) {
     });
   });
 
-  module("serializationOptions: { transforms: ['pluralize'] }", function (
+  module("serializationOptions: { inflectors: ['pluralize'] }", function (
     hooks
   ) {
     hooks.beforeEach(function () {
       serializer = new StringSerializer({
-        serializationOptions: { transforms: ['pluralize'] },
-        pluralizeFn: (arg) => `${arg}z`,
-        singularizeFn: (arg) => arg.substr(0, arg.length - 1)
+        serializationOptions: { inflectors: ['pluralize'] },
+        inflectors: {
+          pluralize: (arg) => `${arg}z`,
+          singularize: (arg) => arg.substr(0, arg.length - 1)
+        }
       });
     });
 
-    test('#serialize pluralizes strings with given pluralizeFn', function (assert) {
+    test('#serialize pluralizes strings with given pluralize inflector', function (assert) {
       assert.equal(serializer.serialize('cow'), 'cowz');
       assert.equal(serializer.serialize('person'), 'personz');
     });
 
-    test('#deserialize singularizes strings with given singularizeFn', function (assert) {
+    test('#deserialize singularizes strings with given singularize inflector', function (assert) {
       assert.equal(serializer.deserialize('cowz'), 'cow');
       assert.equal(serializer.deserialize('people'), 'peopl');
     });
-
-    test('#serialize requires pluralizeFn', function (assert) {
-      serializer = new StringSerializer({
-        serializationOptions: { transforms: ['pluralize'] }
-      });
-      assert.throws(() => {
-        serializer.serialize('cow');
-      }, 'StringSerializer must be passed a `pluralizeFn` in order to pluralize a string');
-    });
-
-    test('#deserialize requires singularizeFn', function (assert) {
-      serializer = new StringSerializer({
-        serializationOptions: { transforms: ['pluralize'] }
-      });
-      assert.throws(() => {
-        serializer.deserialize('cow');
-      }, 'StringSerializer must be passed a `singularizeFn` in order to singularize a string');
-    });
   });
 
-  module("serializationOptions: { transforms: ['pluralize'] }", function (
+  module("serializationOptions: { inflectors: ['pluralize'] }", function (
     hooks
   ) {
     hooks.beforeEach(function () {
       serializer = new StringSerializer({
-        serializationOptions: { transforms: ['singularize'] },
-        pluralizeFn: (arg) => `${arg}z`,
-        singularizeFn: (arg) => arg.substr(0, arg.length - 1)
+        serializationOptions: { inflectors: ['singularize'] },
+        inflectors: {
+          pluralize: (arg) => `${arg}z`,
+          singularize: (arg) => arg.substr(0, arg.length - 1)
+        }
       });
     });
 
-    test('#serialize singularizes strings with given singularizeFn', function (assert) {
+    test('#serialize singularizes strings with given singularize inflector', function (assert) {
       assert.equal(serializer.serialize('cowz'), 'cow');
       assert.equal(serializer.serialize('people'), 'peopl');
     });
 
-    test('#deserialize pluralizes strings with given pluralizeFn', function (assert) {
+    test('#deserialize pluralizes strings with given pluralize inflector', function (assert) {
       assert.equal(serializer.deserialize('cow'), 'cowz');
       assert.equal(serializer.deserialize('person'), 'personz');
-    });
-
-    test('#serialize requires singularizeFn', function (assert) {
-      serializer = new StringSerializer({
-        serializationOptions: { transforms: ['singularize'] }
-      });
-      assert.throws(() => {
-        serializer.deserialize('cow');
-      }, "StringSerializer must be passed a 'singularizeFn' in order to singularize a string");
-    });
-
-    test('#deserialize requires pluralizeFn', function (assert) {
-      serializer = new StringSerializer({
-        serializationOptions: { transforms: ['singularize'] }
-      });
-      assert.throws(() => {
-        serializer.deserialize('cow');
-      }, "StringSerializer must be passed a 'pluralizeFn' in order to pluralize a string");
     });
   });
 
   module(
-    "serializationOptions: { transforms: ['pluralize', 'dasherize'] }",
+    "serializationOptions: { inflectors: ['pluralize', 'dasherize'] }, default inflectors",
     function (hooks) {
       hooks.beforeEach(function () {
         serializer = new StringSerializer({
-          serializationOptions: { transforms: ['pluralize', 'dasherize'] },
-          pluralizeFn: (arg) => `${arg}s`,
-          singularizeFn: (arg) => arg.substr(0, arg.length - 1)
+          serializationOptions: { inflectors: ['pluralize', 'dasherize'] }
         });
       });
 
@@ -344,7 +308,7 @@ module('StringSerializer', function (hooks) {
     test('#serialize throws an error due to unrecognized inflection', function (assert) {
       serializer = new StringSerializer({
         serializationOptions: {
-          transforms: ['unrecognized' as StringTransformConst]
+          inflectors: ['unrecognized' as StandardInflectorName]
         }
       });
       assert.throws(() => {

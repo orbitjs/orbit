@@ -1,24 +1,23 @@
-import { BaseSerializer, BaseSerializationOptions } from './base-serializer';
-import { dasherize, camelize, underscore } from '@orbit/utils';
+import { Dict } from '@orbit/utils';
+import { BaseSerializationOptions, BaseSerializer } from './base-serializer';
+import { Inflector } from './inflector';
+import {
+  standardInflectors,
+  standardInverseInflectors,
+  StandardInflectorName
+} from './standard-inflectors';
 
-export type StringTransformFn = (arg: string) => string;
-export type StringTransformConst =
-  | 'camelize'
-  | 'dasherize'
-  | 'underscore'
-  | 'pluralize'
-  | 'singularize';
-export type StringTransform = StringTransformFn | StringTransformConst;
+export type InflectorOrName = Inflector | StandardInflectorName;
 
 export interface StringSerializationOptions extends BaseSerializationOptions {
-  transforms?: StringTransform[];
+  inflectors?: InflectorOrName[];
 }
 
 export interface StringSerializerSettings {
   serializationOptions?: StringSerializationOptions;
   deserializationOptions?: StringSerializationOptions;
-  pluralizeFn?: StringTransformFn;
-  singularizeFn?: StringTransformFn;
+  inflectors?: Dict<Inflector>;
+  inverseInflectors?: Dict<InflectorOrName>;
 }
 
 export class StringSerializer extends BaseSerializer<
@@ -27,22 +26,23 @@ export class StringSerializer extends BaseSerializer<
   StringSerializationOptions,
   StringSerializationOptions
 > {
-  protected pluralizeFn?: StringTransformFn;
-  protected singularizeFn?: StringTransformFn;
+  inflectors: Dict<Inflector>;
+  inverseInflectors: Dict<InflectorOrName>;
 
   constructor(settings?: StringSerializerSettings) {
     super(settings);
-    this.pluralizeFn = settings?.pluralizeFn;
-    this.singularizeFn = settings?.singularizeFn;
+
+    this.inflectors = settings?.inflectors || {};
+    this.inverseInflectors = settings?.inverseInflectors || {};
 
     if (
       this.serializationOptions &&
       this.deserializationOptions === undefined
     ) {
-      const { disallowNull, transforms } = this.serializationOptions;
+      const { disallowNull, inflectors } = this.serializationOptions;
       this.deserializationOptions = {
         disallowNull,
-        transforms: this.buildInverseTransforms(transforms)
+        inflectors: this.buildInverseInflectors(inflectors)
       };
     }
   }
@@ -60,12 +60,12 @@ export class StringSerializer extends BaseSerializer<
       return null;
     }
 
-    const { transforms } = options;
+    const { inflectors } = options;
     let result = arg;
 
-    if (transforms) {
-      for (let transform of transforms) {
-        result = this.applyTransform(transform, result);
+    if (inflectors) {
+      for (let inflector of inflectors) {
+        result = this.applyInflector(inflector, result);
       }
     }
 
@@ -85,98 +85,62 @@ export class StringSerializer extends BaseSerializer<
       return null;
     }
 
-    const { transforms } = options;
+    const { inflectors } = options;
     let result = arg;
 
-    if (transforms) {
-      for (let transform of transforms) {
-        result = this.applyTransform(transform, result);
+    if (inflectors) {
+      for (let inflector of inflectors) {
+        result = this.applyInflector(inflector, result);
       }
     }
 
     return result;
   }
 
-  protected buildInverseTransforms(
-    transforms?: StringTransform[]
-  ): StringTransform[] | undefined {
-    if (transforms) {
-      const inverseTransforms: StringTransformConst[] = [];
+  protected buildInverseInflectors(
+    inflectors?: InflectorOrName[]
+  ): InflectorOrName[] | undefined {
+    if (inflectors) {
+      const inverseInflectors: StandardInflectorName[] = [];
 
-      for (let transform of transforms) {
-        let inverseTransform;
-        if (typeof transform === 'string') {
-          inverseTransform = this.inverseTransformConst(transform);
+      for (let inflector of inflectors) {
+        let inverseInflector;
+        if (typeof inflector === 'string') {
+          inverseInflector =
+            this.inverseInflectors[inflector] ||
+            standardInverseInflectors[inflector];
         }
-        if (inverseTransform) {
-          inverseTransforms.unshift(inverseTransform as StringTransformConst);
+        if (inverseInflector) {
+          inverseInflectors.unshift(inverseInflector as StandardInflectorName);
         } else {
           return;
         }
       }
 
-      return inverseTransforms;
+      return inverseInflectors;
     }
   }
 
-  protected applyTransform(transform: StringTransform, arg: string): string {
-    if (typeof transform === 'function') {
-      return transform(arg);
+  protected applyInflector(
+    inflectorOrName: InflectorOrName,
+    arg: string
+  ): string {
+    let inflector: Inflector;
+
+    if (typeof inflectorOrName === 'function') {
+      inflector = inflectorOrName;
     } else {
-      switch (transform) {
-        case 'pluralize':
-          return this.pluralize(arg);
-        case 'singularize':
-          return this.singularize(arg);
-        case 'dasherize':
-          return dasherize(arg);
-        case 'underscore':
-          return underscore(arg);
-        case 'camelize':
-          return camelize(arg);
-        default:
-          throw new Error(
-            `'StringSerializer does not recognize transform '${transform}'`
-          );
+      inflector =
+        this.inflectors[inflectorOrName] ??
+        standardInflectors[inflectorOrName as StandardInflectorName];
+
+      if (!inflector) {
+        throw new Error(
+          `'StringSerializer does not recognize inflector '${inflectorOrName}'`
+        );
       }
     }
-  }
 
-  protected inverseTransformConst(
-    transform: StringTransformConst
-  ): StringTransformConst | null {
-    switch (transform) {
-      case 'pluralize':
-        return 'singularize';
-      case 'singularize':
-        return 'pluralize';
-      case 'dasherize':
-        return 'camelize';
-      case 'underscore':
-        return 'camelize';
-      case 'camelize': // There's no rational inverse for camelization
-      default:
-        return null;
-    }
-  }
-
-  protected pluralize(arg: string): string {
-    if (this.pluralizeFn) {
-      return this.pluralizeFn(arg);
-    } else {
-      throw new Error(
-        "StringSerializer must be passed a 'pluralizeFn' in order to pluralize a string"
-      );
-    }
-  }
-
-  protected singularize(arg: string): string {
-    if (this.singularizeFn) {
-      return this.singularizeFn(arg);
-    } else {
-      throw new Error(
-        "StringSerializer must be passed a 'singularizeFn' in order to singularize a string"
-      );
-    }
+    return inflector(arg);
   }
 }
