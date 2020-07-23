@@ -74,10 +74,11 @@ module(
 
       memory = new MemorySource({ schema, keyMap });
 
-      remote = new JSONAPISource({ schema, keyMap, name: 'remote' });
-      remote.requestProcessor.serializer.resourceKey = function () {
-        return 'remoteId';
-      };
+      remote = new JSONAPISource({
+        schema,
+        keyMap,
+        name: 'remote'
+      });
 
       coordinator = new Coordinator({
         sources: [memory, remote]
@@ -130,7 +131,7 @@ module(
         jsonapiResponse(201, {
           data: {
             id: '12345',
-            type: 'planets',
+            type: 'planet',
             attributes: { name: 'Jupiter', classification: 'gas giant' }
           }
         })

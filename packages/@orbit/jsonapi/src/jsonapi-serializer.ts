@@ -1,45 +1,36 @@
-import { dasherize, camelize, deepSet, Dict } from '@orbit/utils';
-import {
+import { deepSet, Dict } from '@orbit/utils';
+import Orbit, {
   Schema,
   KeyMap,
   Record,
   RecordIdentity,
-  ModelDefinition,
   RecordOperation,
-  AddToRelatedRecordsOperation,
-  ReplaceRelatedRecordOperation,
-  ReplaceRelatedRecordsOperation,
-  UpdateRecordOperation,
-  RemoveFromRelatedRecordsOperation,
-  RemoveRecordOperation,
-  AddRecordOperation,
-  ReplaceAttributeOperation
+  ModelDefinition
 } from '@orbit/data';
 import {
-  BooleanSerializer,
-  StringSerializer,
-  DateSerializer,
-  DateTimeSerializer,
   Serializer,
-  NumberSerializer,
-  UnknownSerializer
+  UnknownSerializer,
+  SerializerForFn,
+  StringSerializer,
+  buildSerializerSettingsFor
 } from '@orbit/serializers';
 import {
-  AddResourceOperation,
-  AddToRelatedResourcesOperation,
-  RemoveFromRelatedResourcesOperation,
-  RemoveResourceOperation,
-  ReplaceRelatedResourceOperation,
-  ReplaceRelatedResourcesOperation,
+  RecordDocument,
   Resource,
   ResourceDocument,
   ResourceIdentity,
-  ResourceOperation,
-  ResourceOperationsDocument,
-  ResourceRelationship,
-  UpdateResourceOperation
-} from './resource-document';
-import { RecordDocument } from './record-document';
+  ResourceRelationship
+} from './resources';
+import { ResourceOperation } from './resource-operations';
+import { ResourceOperationsDocument } from './resource-operations';
+import { JSONAPIResourceSerializer } from './serializers/jsonapi-resource-serializer';
+import { JSONAPIResourceIdentitySerializer } from './serializers/jsonapi-resource-identity-serializer';
+import { buildJSONAPISerializerFor } from './serializers/jsonapi-serializer-builder';
+import { JSONAPISerializers } from './serializers/jsonapi-serializers';
+import { JSONAPIOperationSerializer } from './serializers/jsonapi-operation-serializer';
+import { JSONAPIResourceFieldSerializer } from './serializers/jsonapi-resource-field-serializer';
+
+const { deprecate } = Orbit;
 
 export interface JSONAPISerializationOptions {
   primaryRecord?: Record;
@@ -52,6 +43,9 @@ export interface JSONAPISerializerSettings {
   serializers?: Dict<UnknownSerializer>;
 }
 
+/**
+ * @deprecated since v0.17, remove in v0.18
+ */
 export class JSONAPISerializer
   implements
     Serializer<
@@ -62,12 +56,38 @@ export class JSONAPISerializer
     > {
   protected _schema: Schema;
   protected _keyMap: KeyMap;
-  protected _serializers: Dict<UnknownSerializer>;
+  protected _serializerFor: SerializerForFn;
 
   constructor(settings: JSONAPISerializerSettings) {
-    this._schema = settings.schema;
-    this._keyMap = settings.keyMap;
-    this._initSerializers(settings.serializers);
+    deprecate(
+      "The 'JSONAPISerializer' class has deprecated. Use 'serializerFor' instead."
+    );
+
+    const { schema, keyMap, serializers } = settings;
+
+    let serializerFor: SerializerForFn;
+    if (serializers) {
+      serializerFor = (type: string) => serializers[type];
+    }
+    const serializerSettingsFor = buildSerializerSettingsFor({
+      settingsByType: {
+        [JSONAPISerializers.ResourceField]: {
+          serializationOptions: { inflectors: ['dasherize'] }
+        },
+        [JSONAPISerializers.ResourceType]: {
+          serializationOptions: { inflectors: ['pluralize', 'dasherize'] }
+        }
+      }
+    });
+
+    this._schema = schema;
+    this._keyMap = keyMap;
+    this._serializerFor = buildJSONAPISerializerFor({
+      schema,
+      keyMap,
+      serializerFor,
+      serializerSettingsFor
+    });
   }
 
   get schema(): Schema {
@@ -78,8 +98,8 @@ export class JSONAPISerializer
     return this._keyMap;
   }
 
-  serializerFor(type: string): UnknownSerializer {
-    return this._serializers[type];
+  get serializerFor(): SerializerForFn {
+    return this._serializerFor;
   }
 
   resourceKey(type: string): string {
@@ -87,15 +107,15 @@ export class JSONAPISerializer
   }
 
   resourceType(type: string): string {
-    return dasherize(this.schema.pluralize(type));
+    return this.typeSerializer.serialize(type);
   }
 
   resourceRelationship(type: string, relationship: string): string {
-    return dasherize(relationship);
+    return this.fieldSerializer.serialize(relationship, { type });
   }
 
   resourceAttribute(type: string, attr: string): string {
-    return dasherize(attr);
+    return this.fieldSerializer.serialize(attr, { type });
   }
 
   resourceIdentity(identity: RecordIdentity): ResourceIdentity {
@@ -136,7 +156,7 @@ export class JSONAPISerializer
   }
 
   recordType(resourceType: string): string {
-    return camelize(this.schema.singularize(resourceType));
+    return this.typeSerializer.deserialize(resourceType);
   }
 
   recordIdentity(resourceIdentity: ResourceIdentity): RecordIdentity {
@@ -146,11 +166,11 @@ export class JSONAPISerializer
   }
 
   recordAttribute(type: string, resourceAttribute: string): string {
-    return camelize(resourceAttribute);
+    return this.fieldSerializer.deserialize(resourceAttribute);
   }
 
   recordRelationship(type: string, resourceRelationship: string): string {
-    return camelize(resourceRelationship);
+    return this.fieldSerializer.deserialize(resourceRelationship);
   }
 
   serialize(document: RecordDocument): ResourceDocument {
@@ -168,138 +188,7 @@ export class JSONAPISerializer
   }
 
   serializeOperation(operation: RecordOperation): ResourceOperation {
-    switch (operation.op) {
-      case 'addRecord':
-        return this.serializeAddRecordOperation(operation);
-      case 'updateRecord':
-        return this.serializeUpdateRecordOperation(operation);
-      case 'removeRecord':
-        return this.serializeRemoveRecordOperation(operation);
-      case 'addToRelatedRecords':
-        return this.serializeAddToRelatedRecordsOperation(operation);
-      case 'removeFromRelatedRecords':
-        return this.serializeRemoveFromRelatedRecordsOperation(operation);
-      case 'replaceRelatedRecord':
-        return this.serializeReplaceRelatedRecordOperation(operation);
-      case 'replaceRelatedRecords':
-        return this.serializeReplaceRelatedRecordsOperation(operation);
-      case 'replaceAttribute':
-        return this.serializeReplaceAttributeOperation(operation);
-    }
-  }
-
-  serializeAddRecordOperation(
-    operation: AddRecordOperation
-  ): AddResourceOperation {
-    const ref = {
-      type: this.resourceType(operation.record.type)
-    } as ResourceIdentity;
-    const id = this.resourceId(operation.record.type, operation.record.id);
-    if (id !== undefined) {
-      ref.id = id;
-    }
-    return {
-      op: 'add',
-      ref,
-      data: this.serializeRecord(operation.record)
-    };
-  }
-
-  serializeUpdateRecordOperation(
-    operation: UpdateRecordOperation
-  ): UpdateResourceOperation {
-    return {
-      op: 'update',
-      ref: this.serializeIdentity(operation.record),
-      data: this.serializeRecord(operation.record)
-    };
-  }
-
-  serializeRemoveRecordOperation(
-    operation: RemoveRecordOperation
-  ): RemoveResourceOperation {
-    return {
-      op: 'remove',
-      ref: this.serializeIdentity(operation.record)
-    };
-  }
-
-  serializeAddToRelatedRecordsOperation(
-    operation: AddToRelatedRecordsOperation
-  ): AddToRelatedResourcesOperation {
-    const ref = this.serializeIdentity(operation.record);
-    return {
-      op: 'add',
-      ref: { relationship: operation.relationship, ...ref },
-      data: this.serializeIdentity(operation.relatedRecord)
-    };
-  }
-
-  serializeRemoveFromRelatedRecordsOperation(
-    operation: RemoveFromRelatedRecordsOperation
-  ): RemoveFromRelatedResourcesOperation {
-    const ref = this.serializeIdentity(operation.record);
-    return {
-      op: 'remove',
-      ref: { relationship: operation.relationship, ...ref },
-      data: this.serializeIdentity(operation.relatedRecord)
-    };
-  }
-
-  serializeReplaceRelatedRecordsOperation(
-    operation: ReplaceRelatedRecordsOperation
-  ): ReplaceRelatedResourcesOperation {
-    const ref = this.serializeIdentity(operation.record);
-    return {
-      op: 'update',
-      ref: { relationship: operation.relationship, ...ref },
-      data: operation.relatedRecords.map((record) =>
-        this.serializeIdentity(record)
-      )
-    };
-  }
-
-  serializeReplaceRelatedRecordOperation(
-    operation: ReplaceRelatedRecordOperation
-  ): ReplaceRelatedResourceOperation {
-    const ref = this.serializeIdentity(operation.record);
-    return {
-      op: 'update',
-      ref: { relationship: operation.relationship, ...ref },
-      data: operation.relatedRecord
-        ? this.serializeIdentity(operation.relatedRecord)
-        : null
-    };
-  }
-
-  serializeReplaceAttributeOperation(
-    operation: ReplaceAttributeOperation
-  ): UpdateResourceOperation {
-    const ref = this.serializeIdentity(operation.record);
-    let value: any = operation.value;
-    const attr = operation.attribute;
-    const type = operation.record.type;
-    const attrName = this.resourceAttribute(type, attr);
-    const attrOptions = this.schema.getModel(type).attributes[attr];
-
-    if (attrOptions && value !== undefined) {
-      const serializer = this._serializers[attrOptions.type];
-      if (serializer) {
-        value = serializer.serialize(value, attrOptions.serializationOptions);
-      }
-    }
-
-    return {
-      op: 'update',
-      ref,
-      data: {
-        id: ref.id,
-        type: ref.type,
-        attributes: {
-          [attrName]: value
-        }
-      }
-    };
+    return this.operationSerializer.serialize(operation);
   }
 
   serializeRecords(records: Record[]): Resource[] {
@@ -363,7 +252,7 @@ export class JSONAPISerializer
     if (attrOptions === undefined) {
       return;
     }
-    const serializer = this._serializers[attrOptions.type];
+    const serializer = this.serializerFor(attrOptions.type);
     if (serializer) {
       value =
         value === null
@@ -483,102 +372,7 @@ export class JSONAPISerializer
   }
 
   deserializeOperation(operation: ResourceOperation): RecordOperation {
-    if (isAddOperation(operation)) {
-      return this.deserializeAddOperation(operation);
-    } else if (isUpdateOperation(operation)) {
-      return this.deserializeUpdateOperation(operation);
-    } else if (isRemoveOperation(operation)) {
-      return this.deserializeRemoveOperation(operation);
-    } else {
-      throw new Error(
-        `JSONAPISerializer: "get" operation recieved but only "add", "update" and "remove" operations are supported as input at this time.`
-      );
-    }
-  }
-
-  deserializeAddOperation(
-    operation: AddResourceOperation | AddToRelatedResourcesOperation
-  ): AddRecordOperation | AddToRelatedRecordsOperation {
-    if (isRelatedResourceOperation(operation)) {
-      return {
-        op: 'addToRelatedRecords',
-        relationship: operation.ref.relationship,
-        record: this.deserializeResourceIdentity(operation.ref),
-        relatedRecord: this.deserializeResourceIdentity(
-          operation.data as RecordIdentity
-        )
-      };
-    } else {
-      return {
-        op: 'addRecord',
-        record: this.deserializeResource(operation.data)
-      };
-    }
-  }
-
-  deserializeUpdateOperation(
-    operation:
-      | UpdateResourceOperation
-      | ReplaceRelatedResourceOperation
-      | ReplaceRelatedResourcesOperation
-  ):
-    | ReplaceRelatedRecordOperation
-    | ReplaceRelatedRecordsOperation
-    | UpdateRecordOperation {
-    if (isRelatedResourceOperation(operation)) {
-      const type = this.recordType(operation.ref.type);
-      const relationshipDef = this._schema.getRelationship(
-        type,
-        operation.ref.relationship
-      );
-      if (
-        relationshipDef &&
-        (relationshipDef.kind || relationshipDef.type) === 'hasMany'
-      ) {
-        return {
-          op: 'replaceRelatedRecords',
-          relationship: operation.ref.relationship,
-          record: this.deserializeResourceIdentity(operation.ref),
-          relatedRecords: (operation.data as RecordIdentity[]).map((record) =>
-            this.deserializeResourceIdentity(record)
-          )
-        };
-      } else {
-        return {
-          op: 'replaceRelatedRecord',
-          relationship: operation.ref.relationship,
-          record: this.deserializeResourceIdentity(operation.ref),
-          relatedRecord: operation.data
-            ? this.deserializeResourceIdentity(operation.data as RecordIdentity)
-            : null
-        };
-      }
-    } else {
-      return {
-        op: 'updateRecord',
-        record: this.deserializeResource(operation.data as Resource)
-      };
-    }
-  }
-
-  deserializeRemoveOperation(
-    operation: RemoveResourceOperation | RemoveFromRelatedResourcesOperation
-  ): RemoveFromRelatedRecordsOperation | RemoveRecordOperation {
-    if (isRelatedResourceOperation(operation)) {
-      return {
-        op: 'removeFromRelatedRecords',
-        relationship: operation.ref.relationship,
-        record: this.deserializeResourceIdentity(operation.ref),
-        relatedRecord: this.deserializeResourceIdentity(
-          operation.data as RecordIdentity
-        )
-      };
-    } else {
-      return {
-        op: 'removeRecord',
-        record: this.deserializeResourceIdentity(operation.ref)
-      };
-    }
+    return this.operationSerializer.deserialize(operation);
   }
 
   deserializeResourceIdentity(
@@ -660,7 +454,7 @@ export class JSONAPISerializer
     record.attributes = record.attributes || {};
     if (value !== undefined && value !== null) {
       const attrOptions = model.attributes[attr];
-      const serializer = this._serializers[attrOptions.type];
+      const serializer = this.serializerFor(attrOptions.type);
       if (serializer) {
         value = serializer.deserialize(
           value,
@@ -734,16 +528,43 @@ export class JSONAPISerializer
     }
   }
 
-  protected _initSerializers(serializers: Dict<UnknownSerializer> = {}) {
-    this._serializers = serializers;
-    serializers.boolean = serializers.boolean || new BooleanSerializer();
-    serializers.string = serializers.string || new StringSerializer();
-    serializers.date = serializers.date || new DateSerializer();
-    serializers.datetime = serializers.datetime || new DateTimeSerializer();
-    serializers.number = serializers.number || new NumberSerializer();
+  // Protected / Private
+
+  protected get resourceSerializer(): JSONAPIResourceSerializer {
+    return this.serializerFor(
+      JSONAPISerializers.Resource
+    ) as JSONAPIResourceSerializer;
   }
 
-  protected _generateNewId(type: string, keyName: string, keyValue: string) {
+  protected get identitySerializer(): JSONAPIResourceIdentitySerializer {
+    return this.serializerFor(
+      JSONAPISerializers.ResourceIdentity
+    ) as JSONAPIResourceIdentitySerializer;
+  }
+
+  protected get typeSerializer(): StringSerializer {
+    return this.serializerFor(
+      JSONAPISerializers.ResourceType
+    ) as StringSerializer;
+  }
+
+  protected get fieldSerializer(): JSONAPIResourceFieldSerializer {
+    return this.serializerFor(
+      JSONAPISerializers.ResourceField
+    ) as JSONAPIResourceFieldSerializer;
+  }
+
+  protected get operationSerializer(): JSONAPIOperationSerializer {
+    return this.serializerFor(
+      JSONAPISerializers.ResourceOperation
+    ) as JSONAPIOperationSerializer;
+  }
+
+  protected _generateNewId(
+    type: string,
+    keyName: string,
+    keyValue: string
+  ): string {
     let id = this.schema.generateId(type);
 
     this.keyMap.pushRecord({
@@ -756,35 +577,4 @@ export class JSONAPISerializer
 
     return id;
   }
-}
-
-function isRelatedResourceOperation(
-  operation: ResourceOperation
-): operation is
-  | AddToRelatedResourcesOperation
-  | RemoveFromRelatedResourcesOperation
-  | ReplaceRelatedResourceOperation
-  | ReplaceRelatedResourcesOperation {
-  return !!operation.ref.relationship;
-}
-
-function isAddOperation(
-  operation: ResourceOperation
-): operation is AddResourceOperation | AddToRelatedResourcesOperation {
-  return operation.op === 'add';
-}
-
-function isUpdateOperation(
-  operation: ResourceOperation
-): operation is
-  | UpdateResourceOperation
-  | ReplaceRelatedResourcesOperation
-  | ReplaceRelatedResourcesOperation {
-  return operation.op === 'update';
-}
-
-function isRemoveOperation(
-  operation: ResourceOperation
-): operation is RemoveResourceOperation | RemoveFromRelatedResourcesOperation {
-  return operation.op === 'remove';
 }

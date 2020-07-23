@@ -22,9 +22,6 @@ module('QueryRequests', function (hooks) {
     schema = new Schema({
       models: {
         planet: {
-          keys: {
-            remoteId: {}
-          },
           attributes: {
             name: { type: 'string' },
             classification: { type: 'string' },
@@ -40,9 +37,6 @@ module('QueryRequests', function (hooks) {
           }
         },
         moon: {
-          keys: {
-            remoteId: {}
-          },
           attributes: {
             name: { type: 'string' }
           },
@@ -51,9 +45,6 @@ module('QueryRequests', function (hooks) {
           }
         },
         solarSystem: {
-          keys: {
-            remoteId: {}
-          },
           attributes: {
             name: { type: 'string' }
           },
@@ -87,7 +78,7 @@ module('QueryRequests', function (hooks) {
       jsonapiResponse(200, {
         data: [
           {
-            type: 'planets',
+            type: 'planet',
             id: 'jupiter',
             attributes: { name: 'Jupiter' }
           }

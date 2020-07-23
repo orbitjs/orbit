@@ -24,9 +24,6 @@ module('TransformRequests', function (/* hooks */) {
       schema = new Schema({
         models: {
           planet: {
-            keys: {
-              remoteId: {}
-            },
             attributes: {
               name: { type: 'string' },
               classification: { type: 'string' },
@@ -42,9 +39,6 @@ module('TransformRequests', function (/* hooks */) {
             }
           },
           moon: {
-            keys: {
-              remoteId: {}
-            },
             attributes: {
               name: { type: 'string' }
             },
@@ -53,9 +47,6 @@ module('TransformRequests', function (/* hooks */) {
             }
           },
           solarSystem: {
-            keys: {
-              remoteId: {}
-            },
             attributes: {
               name: { type: 'string' }
             },
@@ -357,7 +348,7 @@ module('TransformRequests', function (/* hooks */) {
       fetchStub.withArgs('/planets').returns(
         jsonapiResponse(201, {
           data: {
-            type: 'planets',
+            type: 'planet',
             id: 'jupiter',
             attributes: { name: 'Jupiter' }
           },

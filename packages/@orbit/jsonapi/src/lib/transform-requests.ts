@@ -19,9 +19,9 @@ import {
 } from '@orbit/data';
 import { clone, deepSet, Dict } from '@orbit/utils';
 import JSONAPIRequestProcessor from '../jsonapi-request-processor';
-import { ResourceDocument } from '../resource-document';
-import { RecordDocument } from '../record-document';
+import { ResourceDocument, RecordDocument } from '../resources';
 import { JSONAPIRequestOptions } from './jsonapi-request-options';
+import { JSONAPISerializers } from '../serializers/jsonapi-serializers';
 
 export interface BaseTransformRecordRequest {
   op: string;
@@ -102,9 +102,11 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
   ): Promise<RequestProcessorResponse> {
     const { record } = request;
     const options = request.options || {};
-    const requestDoc: ResourceDocument = requestProcessor.serializer.serialize({
-      data: record
-    });
+    const requestDoc = requestProcessor
+      .serializerFor(JSONAPISerializers.ResourceDocument)
+      .serialize({
+        data: record
+      }) as ResourceDocument;
     const settings = requestProcessor.buildFetchSettings(options, {
       method: 'POST',
       json: requestDoc
@@ -114,9 +116,11 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
 
     const raw: ResourceDocument = await requestProcessor.fetch(url, settings);
     requestProcessor.preprocessResponseDocument(raw, request);
-    const deserialized = requestProcessor.serializer.deserialize(raw, {
-      primaryRecord: record
-    });
+    const deserialized = requestProcessor
+      .serializerFor(JSONAPISerializers.ResourceDocument)
+      .deserialize(raw, {
+        primaryRecord: record
+      }) as RecordDocument;
     return handleChanges(record, deserialized);
   },
 
@@ -144,9 +148,11 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const { record } = request;
     const options = request.options || {};
     const { type, id } = record;
-    const requestDoc: ResourceDocument = requestProcessor.serializer.serialize({
-      data: record
-    });
+    const requestDoc = requestProcessor
+      .serializerFor(JSONAPISerializers.ResourceDocument)
+      .serialize({
+        data: record
+      }) as ResourceDocument;
     const settings = requestProcessor.buildFetchSettings(options, {
       method: 'PATCH',
       json: requestDoc
@@ -157,9 +163,11 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const raw: ResourceDocument = await requestProcessor.fetch(url, settings);
     if (raw) {
       requestProcessor.preprocessResponseDocument(raw, request);
-      const deserialized = requestProcessor.serializer.deserialize(raw, {
-        primaryRecord: record
-      });
+      const deserialized = requestProcessor
+        .serializerFor(JSONAPISerializers.ResourceDocument)
+        .deserialize(raw, {
+          primaryRecord: record
+        }) as RecordDocument;
       return handleChanges(record, deserialized);
     } else {
       return { transforms: [], primaryData: record };
@@ -173,9 +181,12 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const { relationship, record } = request;
     const options = request.options || {};
     const { type, id } = record;
+    const resourceIdentitySerializer = requestProcessor.serializerFor(
+      JSONAPISerializers.ResourceIdentity
+    );
     const json = {
       data: request.relatedRecords.map((r) =>
-        requestProcessor.serializer.resourceIdentity(r)
+        resourceIdentitySerializer.serialize(r)
       )
     };
     const settings = requestProcessor.buildFetchSettings(options, {
@@ -201,9 +212,12 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const { relationship, record } = request;
     const options = request.options || {};
     const { type, id } = record;
+    const resourceIdentitySerializer = requestProcessor.serializerFor(
+      JSONAPISerializers.ResourceIdentity
+    );
     const json = {
       data: request.relatedRecords.map((r) =>
-        requestProcessor.serializer.resourceIdentity(r)
+        resourceIdentitySerializer.serialize(r)
       )
     };
     const settings = requestProcessor.buildFetchSettings(options, {
@@ -229,9 +243,12 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const { relationship, relatedRecord, record } = request;
     const options = request.options || {};
     const { type, id } = record;
+    const resourceIdentitySerializer = requestProcessor.serializerFor(
+      JSONAPISerializers.ResourceIdentity
+    );
     const json = {
       data: relatedRecord
-        ? requestProcessor.serializer.resourceIdentity(relatedRecord)
+        ? resourceIdentitySerializer.serialize(relatedRecord)
         : null
     };
     const settings = requestProcessor.buildFetchSettings(options, {
@@ -257,10 +274,11 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const { relationship, relatedRecords, record } = request;
     const options = request.options || {};
     const { type, id } = record;
+    const resourceIdentitySerializer = requestProcessor.serializerFor(
+      JSONAPISerializers.ResourceIdentity
+    );
     const json = {
-      data: relatedRecords.map((r) =>
-        requestProcessor.serializer.resourceIdentity(r)
-      )
+      data: relatedRecords.map((r) => resourceIdentitySerializer.serialize(r))
     };
     const settings = requestProcessor.buildFetchSettings(options, {
       method: 'PATCH',
