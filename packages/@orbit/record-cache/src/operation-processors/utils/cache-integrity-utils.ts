@@ -15,15 +15,13 @@ export function getInverseRelationship(
   relatedRecord?: RecordIdentity | null
 ): RecordRelationshipIdentity | null {
   if (relatedRecord) {
-    const relationshipDef = schema.getRelationship(record.type, relationship);
+    const recordIdentity = cloneRecordIdentity(record);
 
-    if (relationshipDef.inverse) {
-      return {
-        record,
-        relationship,
-        relatedRecord
-      };
-    }
+    return {
+      record: recordIdentity,
+      relationship,
+      relatedRecord
+    };
   }
   return null;
 }
@@ -35,19 +33,15 @@ export function getInverseRelationships(
   relatedRecords?: RecordIdentity[]
 ): RecordRelationshipIdentity[] {
   if (relatedRecords && relatedRecords.length > 0) {
-    const relationshipDef = schema.getRelationship(record.type, relationship);
+    const recordIdentity = cloneRecordIdentity(record);
 
-    if (relationshipDef.inverse) {
-      const recordIdentity = cloneRecordIdentity(record);
-
-      return relatedRecords.map(relatedRecord => {
-        return {
-          record: recordIdentity,
-          relationship,
-          relatedRecord
-        };
-      });
-    }
+    return relatedRecords.map(relatedRecord => {
+      return {
+        record: recordIdentity,
+        relationship,
+        relatedRecord
+      };
+    });
   }
   return [];
 }

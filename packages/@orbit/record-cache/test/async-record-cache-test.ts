@@ -48,6 +48,23 @@ module('AsyncRecordCache', function(hooks) {
             planet: { type: 'hasOne', model: 'planet', inverse: 'moons' },
             star: { type: 'hasOne', model: 'star', inverse: 'celestialObjects' }
           }
+        },
+        binaryStar: {
+          attributes: {
+            name: { type: 'string' }
+          },
+          relationships: {
+            starOne: { kind: 'hasOne', type: 'star' }, // no inverse
+            starTwo: { kind: 'hasOne', type: 'star' } // no inverse
+          }
+        },
+        planetarySystem: {
+          attributes: {
+            name: { type: 'string' }
+          },
+          relationships: {
+            star: { kind: 'hasOne', type: ['star', 'binaryStar'] } // no inverse
+          }
         }
       }
     });
@@ -1442,6 +1459,74 @@ module('AsyncRecordCache', function(hooks) {
       planet.relationships.moons.data,
       [{ type: 'moon', id: 'm1' }],
       'planet has a moons relationship'
+    );
+  });
+
+  test('#patch allows replaceRelatedRecord to be called on a relationship with no inverse and to be followed up by removing the replaced record', async function(assert) {
+    assert.expect(2);
+
+    const cache = new Cache({ schema, keyMap });
+
+    const star1 = {
+      id: 'star1',
+      type: 'star',
+      attributes: { name: 'sun1' }
+    };
+
+    const star2 = {
+      id: 'star2',
+      type: 'star',
+      attributes: { name: 'sun2' }
+    };
+
+    const home = {
+      id: 'home',
+      type: 'planetarySystem',
+      attributes: { name: 'Home' },
+      relationships: {
+        star: {
+          data: { id: 'star1', type: 'star' }
+        }
+      }
+    };
+
+    await cache.patch(t => [
+      t.addRecord(star1),
+      t.addRecord(star2),
+      t.addRecord(home)
+    ]);
+
+    let latestHome = await cache.getRecordAsync({
+      id: 'home',
+      type: 'planetarySystem'
+    });
+    assert.deepEqual(
+      (latestHome.relationships.star.data as Record).id,
+      star1.id,
+      'The original related record is in place.'
+    );
+
+    await cache.patch(t => [
+      t.replaceRelatedRecord(
+        {
+          id: 'home',
+          type: 'planetarySystem'
+        },
+        'star',
+        star2
+      ),
+      t.removeRecord(star1)
+    ]);
+
+    latestHome = await cache.getRecordAsync({
+      id: 'home',
+      type: 'planetarySystem'
+    });
+
+    assert.deepEqual(
+      (latestHome.relationships.star.data as Record).id,
+      star2.id,
+      'The related record was replaced.'
     );
   });
 
