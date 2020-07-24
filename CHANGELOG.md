@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.16.6 (2020-07-24)
+
+#### :bug: Bug Fix
+
+- `@orbit/record-cache`
+  - [#763](https://github.com/orbitjs/orbit/pull/763) Backport PR 762 to v0.16 (Fix cache integrity processors' handling of relationships without explicit inverses) ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.3 (2020-05-08)
 
 #### :rocket: Enhancement
