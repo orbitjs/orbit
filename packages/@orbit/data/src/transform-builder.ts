@@ -1,15 +1,15 @@
 import { Record, RecordIdentity, RecordInitializer } from './record';
 import {
-  AddRecordOperation,
-  UpdateRecordOperation,
-  RemoveRecordOperation,
-  ReplaceKeyOperation,
-  ReplaceAttributeOperation,
-  AddToRelatedRecordsOperation,
-  RemoveFromRelatedRecordsOperation,
-  ReplaceRelatedRecordsOperation,
-  ReplaceRelatedRecordOperation
-} from './operation';
+  AddRecordTerm,
+  UpdateRecordTerm,
+  RemoveRecordTerm,
+  ReplaceKeyTerm,
+  ReplaceAttributeTerm,
+  AddToRelatedRecordsTerm,
+  ReplaceRelatedRecordTerm,
+  ReplaceRelatedRecordsTerm,
+  RemoveFromRelatedRecordsTerm
+} from './operation-term';
 
 export interface TransformBuilderSettings {
   recordInitializer?: RecordInitializer;
@@ -29,25 +29,26 @@ export class TransformBuilder {
   /**
    * Instantiate a new `addRecord` operation.
    */
-  addRecord(record: Record): AddRecordOperation {
+  addRecord(record: Record): AddRecordTerm {
     if (this._recordInitializer) {
       this._recordInitializer.initializeRecord(record);
     }
-    return { op: 'addRecord', record };
+
+    return new AddRecordTerm(record);
   }
 
   /**
    * Instantiate a new `updateRecord` operation.
    */
-  updateRecord(record: Record): UpdateRecordOperation {
-    return { op: 'updateRecord', record };
+  updateRecord(record: Record): UpdateRecordTerm {
+    return new UpdateRecordTerm(record);
   }
 
   /**
    * Instantiate a new `removeRecord` operation.
    */
-  removeRecord(record: RecordIdentity): RemoveRecordOperation {
-    return { op: 'removeRecord', record };
+  removeRecord(record: RecordIdentity): RemoveRecordTerm {
+    return new RemoveRecordTerm(record);
   }
 
   /**
@@ -57,8 +58,8 @@ export class TransformBuilder {
     record: RecordIdentity,
     key: string,
     value: string
-  ): ReplaceKeyOperation {
-    return { op: 'replaceKey', record, key, value };
+  ): ReplaceKeyTerm {
+    return new ReplaceKeyTerm(record, key, value);
   }
 
   /**
@@ -67,9 +68,9 @@ export class TransformBuilder {
   replaceAttribute(
     record: RecordIdentity,
     attribute: string,
-    value: any
-  ): ReplaceAttributeOperation {
-    return { op: 'replaceAttribute', record, attribute, value };
+    value: unknown
+  ): ReplaceAttributeTerm {
+    return new ReplaceAttributeTerm(record, attribute, value);
   }
 
   /**
@@ -79,8 +80,8 @@ export class TransformBuilder {
     record: RecordIdentity,
     relationship: string,
     relatedRecord: RecordIdentity
-  ): AddToRelatedRecordsOperation {
-    return { op: 'addToRelatedRecords', record, relationship, relatedRecord };
+  ): AddToRelatedRecordsTerm {
+    return new AddToRelatedRecordsTerm(record, relationship, relatedRecord);
   }
 
   /**
@@ -90,13 +91,12 @@ export class TransformBuilder {
     record: RecordIdentity,
     relationship: string,
     relatedRecord: RecordIdentity
-  ): RemoveFromRelatedRecordsOperation {
-    return {
-      op: 'removeFromRelatedRecords',
+  ): RemoveFromRelatedRecordsTerm {
+    return new RemoveFromRelatedRecordsTerm(
       record,
       relationship,
       relatedRecord
-    };
+    );
   }
 
   /**
@@ -106,13 +106,8 @@ export class TransformBuilder {
     record: RecordIdentity,
     relationship: string,
     relatedRecords: RecordIdentity[]
-  ): ReplaceRelatedRecordsOperation {
-    return {
-      op: 'replaceRelatedRecords',
-      record,
-      relationship,
-      relatedRecords
-    };
+  ): ReplaceRelatedRecordsTerm {
+    return new ReplaceRelatedRecordsTerm(record, relationship, relatedRecords);
   }
 
   /**
@@ -122,7 +117,7 @@ export class TransformBuilder {
     record: RecordIdentity,
     relationship: string,
     relatedRecord: RecordIdentity | null
-  ): ReplaceRelatedRecordOperation {
-    return { op: 'replaceRelatedRecord', record, relationship, relatedRecord };
+  ): ReplaceRelatedRecordTerm {
+    return new ReplaceRelatedRecordTerm(record, relationship, relatedRecord);
   }
 }

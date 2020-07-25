@@ -1,4 +1,4 @@
-import { isObject } from '@orbit/utils';
+import { isObject, deepMerge } from '@orbit/utils';
 import {
   QueryExpression,
   FindRecord,
@@ -17,6 +17,7 @@ import {
   RelatedRecordsFilterSpecifier
 } from './query-expression';
 import { RecordIdentity } from './record';
+import { RequestOptions } from './request';
 
 export interface AttributeSortQBParam {
   attribute: string;
@@ -67,6 +68,11 @@ export class QueryTerm {
 
   toQueryExpression(): QueryExpression {
     return this.expression;
+  }
+
+  options(options: RequestOptions): this {
+    this.expression.options = deepMerge(this.expression.options || {}, options);
+    return this;
   }
 }
 

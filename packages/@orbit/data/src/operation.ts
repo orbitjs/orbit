@@ -1,16 +1,18 @@
+import { eq, deepGet, deepSet } from '@orbit/utils';
 import {
   Record,
   RecordIdentity,
   cloneRecordIdentity,
   equalRecordIdentities
 } from './record';
-import { eq, deepGet, deepSet } from '@orbit/utils';
+import { RequestOptions } from './request';
 
 /**
  * Base Operation interface, which requires just an `op` string.
  */
 export interface Operation {
   op: string;
+  options?: RequestOptions;
 }
 
 /**
@@ -54,7 +56,7 @@ export interface ReplaceAttributeOperation extends Operation {
   op: 'replaceAttribute';
   record: RecordIdentity;
   attribute: string;
-  value: any;
+  value: unknown;
 }
 
 /**
@@ -126,7 +128,10 @@ function mergeOperations(
   superceding: RecordOperation,
   consecutiveOps: boolean
 ): void {
-  if (equalRecordIdentities(superceded.record, superceding.record)) {
+  if (superceded.options || superceding.options) {
+    // do not merge if one of the operations have options
+    return;
+  } else if (equalRecordIdentities(superceded.record, superceding.record)) {
     if (superceding.op === 'removeRecord') {
       markOperationToDelete(superceded);
       if (superceded.op === 'addRecord') {
