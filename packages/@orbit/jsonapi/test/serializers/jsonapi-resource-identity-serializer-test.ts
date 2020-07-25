@@ -1,12 +1,7 @@
 import { Dict } from '@orbit/utils';
 import { KeyMap, ModelDefinition, Record, Schema } from '@orbit/data';
 import { JSONAPIResourceIdentitySerializer } from '../../src/serializers/jsonapi-resource-identity-serializer';
-import {
-  Serializer,
-  SerializerForFn,
-  buildSerializerClassFor,
-  buildSerializerSettingsFor
-} from '@orbit/serializers';
+import { buildSerializerSettingsFor } from '@orbit/serializers';
 import { buildJSONAPISerializerFor } from '../../src/serializers/jsonapi-serializer-builder';
 import { JSONAPISerializers } from '../../src/serializers/jsonapi-serializers';
 

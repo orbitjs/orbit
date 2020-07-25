@@ -1,11 +1,11 @@
-import Orbit, { settleInSeries, fulfillInSeries } from '@orbit/core';
+import { Orbit, settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Query, QueryOrExpressions, buildQuery } from '../query';
 import { Source, SourceClass } from '../source';
 import { RequestOptions } from '../request';
 
 const { assert } = Orbit;
 
-export const QUERYABLE = '__queryable__';
+const QUERYABLE = '__queryable__';
 
 /**
  * Has a source been decorated as `@queryable`?
@@ -55,7 +55,7 @@ export interface Queryable {
  * the processing required for `query` and returns a promise that resolves to a
  * set of results.
  */
-export default function queryable(Klass: SourceClass): void {
+export function queryable(Klass: SourceClass): void {
   let proto = Klass.prototype;
 
   if (isQueryable(proto)) {

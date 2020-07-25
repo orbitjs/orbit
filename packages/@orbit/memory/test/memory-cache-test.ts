@@ -8,7 +8,7 @@ import {
   recordsIncludeAll
 } from '@orbit/data';
 import { clone } from '@orbit/utils';
-import MemoryCache from '../src/memory-cache';
+import { MemoryCache } from '../src/memory-cache';
 import { arrayMembershipMatches } from './support/matchers';
 
 const { module, test } = QUnit;

@@ -15,7 +15,7 @@ export interface TransformBuilderSettings {
   recordInitializer?: RecordInitializer;
 }
 
-export default class TransformBuilder {
+export class TransformBuilder {
   private _recordInitializer: RecordInitializer;
 
   constructor(settings: TransformBuilderSettings = {}) {

@@ -5,7 +5,8 @@ import {
 } from '../../src/transform';
 import { Source } from '../../src/source';
 import { RequestOptions } from '../../src/request';
-import updatable, {
+import {
+  updatable,
   isUpdatable,
   Updatable
 } from '../../src/source-interfaces/updatable';

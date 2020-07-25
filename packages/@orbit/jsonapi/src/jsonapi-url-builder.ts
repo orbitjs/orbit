@@ -27,7 +27,7 @@ export interface JSONAPIURLBuilderSettings {
   keyMap?: KeyMap;
 }
 
-export default class JSONAPIURLBuilder {
+export class JSONAPIURLBuilder {
   host: string;
   namespace: string;
   serializerFor: SerializerForFn;

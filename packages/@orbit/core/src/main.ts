@@ -26,11 +26,9 @@ const globals =
   (typeof global == 'object' && global) ||
   {};
 
-const Orbit: OrbitGlobal = {
+export const Orbit: OrbitGlobal = {
   globals,
   assert,
   deprecate,
   uuid
 };
-
-export default Orbit;

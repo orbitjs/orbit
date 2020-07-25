@@ -1,5 +1,5 @@
 import { Bucket } from '@orbit/core';
-import LocalStorageBucket from '../src/bucket';
+import { LocalStorageBucket } from '../src/bucket';
 
 const { module, test } = QUnit;
 

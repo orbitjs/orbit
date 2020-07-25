@@ -1,5 +1,5 @@
 import { KeyMap, Schema } from '@orbit/data';
-import JSONAPIURLBuilder from '../src/jsonapi-url-builder';
+import { JSONAPIURLBuilder } from '../src/jsonapi-url-builder';
 import { buildJSONAPISerializerFor } from '../src/serializers/jsonapi-serializer-builder';
 
 const { module, test } = QUnit;

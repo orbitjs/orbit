@@ -1,4 +1,4 @@
-import QueryBuilder from '../src/query-builder';
+import { QueryBuilder } from '../src/query-builder';
 import './test-helper';
 import {
   FindRecord,

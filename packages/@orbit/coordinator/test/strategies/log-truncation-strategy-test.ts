@@ -1,4 +1,4 @@
-import Coordinator from '../../src/coordinator';
+import { Coordinator } from '../../src/coordinator';
 import { LogTruncationStrategy } from '../../src/strategies/log-truncation-strategy';
 import { Source, TransformBuilder, buildTransform } from '@orbit/data';
 

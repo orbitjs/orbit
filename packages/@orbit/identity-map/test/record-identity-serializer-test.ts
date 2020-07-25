@@ -1,4 +1,4 @@
-import RecordIdentitySerializer from './support/record-identity-serializer';
+import { RecordIdentitySerializer } from './support/record-identity-serializer';
 
 const { module, test } = QUnit;
 

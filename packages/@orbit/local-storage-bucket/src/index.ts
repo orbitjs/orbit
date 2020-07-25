@@ -1,2 +1,3 @@
-export { default, LocalStorageBucketSettings } from './bucket';
-export { supportsLocalStorage } from './lib/local-storage';
+export { LocalStorageBucket as default } from './bucket';
+export * from './bucket';
+export * from './lib/local-storage';

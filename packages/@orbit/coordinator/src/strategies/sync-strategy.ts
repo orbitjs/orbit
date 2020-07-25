@@ -1,9 +1,9 @@
+import { Orbit } from '@orbit/core';
 import { StrategyOptions } from '../strategy';
 import {
   ConnectionStrategy,
   ConnectionStrategyOptions
 } from './connection-strategy';
-import Orbit from '@orbit/core';
 
 const { assert } = Orbit;
 

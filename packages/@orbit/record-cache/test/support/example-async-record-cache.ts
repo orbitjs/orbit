@@ -10,7 +10,7 @@ import {
 /**
  * A minimal implementation of `AsyncRecordCache`.
  */
-export default class ExampleAsyncRecordCache extends AsyncRecordCache {
+export class ExampleAsyncRecordCache extends AsyncRecordCache {
   protected _records: Dict<Dict<Record>>;
   protected _inverseRelationships: Dict<Dict<RecordRelationshipIdentity[]>>;
 

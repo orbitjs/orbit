@@ -1,4 +1,5 @@
-import Orbit, { Source } from '@orbit/data';
+import { Orbit } from '@orbit/core';
+import { Source } from '@orbit/data';
 import { Dict, objectValues } from '@orbit/utils';
 import { Strategy } from './strategy';
 
@@ -25,7 +26,7 @@ export interface ActivationOptions {
  * The Coordinator class manages a set of sources to which it applies a set of
  * coordination strategies.
  */
-export default class Coordinator {
+export class Coordinator {
   protected _sources: Dict<Source>;
   protected _strategies: Dict<Strategy>;
   protected _activated: Promise<any>;

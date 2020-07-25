@@ -1,7 +1,7 @@
 import { Bucket } from '../src/bucket';
 import { Task, Performer } from '../src/task';
-import { default as TaskQueue } from '../src/task-queue';
-import FakeBucket from './support/fake-bucket';
+import { TaskQueue } from '../src/task-queue';
+import { FakeBucket } from './support/fake-bucket';
 
 const { module, test } = QUnit;
 

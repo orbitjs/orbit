@@ -1,4 +1,4 @@
-import Orbit, { Bucket, BucketSettings } from '@orbit/core';
+import { Orbit, Bucket, BucketSettings } from '@orbit/core';
 import { supportsIndexedDB } from './lib/indexeddb';
 
 const { assert } = Orbit;
@@ -15,7 +15,7 @@ export interface IndexedDBBucketSettings extends BucketSettings {
  * @class IndexedDBBucket
  * @extends Bucket
  */
-export default class IndexedDBBucket extends Bucket {
+export class IndexedDBBucket extends Bucket {
   protected _storeName: string;
   protected _db: any;
 

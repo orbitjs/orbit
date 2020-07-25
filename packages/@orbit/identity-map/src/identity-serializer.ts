@@ -1,4 +1,4 @@
-export default interface IdentitySerializer<Identity> {
+export interface IdentitySerializer<Identity> {
   serialize(identity: Identity): string;
   deserialize(identifier: string): Identity;
 }

@@ -1,11 +1,10 @@
-import IdentitySerializer from './identity-serializer';
+import { IdentitySerializer } from './identity-serializer';
 
 export interface IdentityMapSettings<Identity> {
   serializer: IdentitySerializer<Identity>;
 }
 
-export default class IdentityMap<Identity, Model>
-  implements Map<Identity, Model> {
+export class IdentityMap<Identity, Model> implements Map<Identity, Model> {
   protected _serializer: IdentitySerializer<Identity>;
   protected _map: Map<string, Model>;
 

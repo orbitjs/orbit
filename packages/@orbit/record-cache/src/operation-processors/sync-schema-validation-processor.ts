@@ -11,7 +11,7 @@ import { SyncOperationProcessor } from '../sync-operation-processor';
  * An operation processor that ensures that an operation is compatible with
  * its associated schema.
  */
-export default class SyncSchemaValidationProcessor extends SyncOperationProcessor {
+export class SyncSchemaValidationProcessor extends SyncOperationProcessor {
   validate(operation: RecordOperation) {
     switch (operation.op) {
       case 'addRecord':

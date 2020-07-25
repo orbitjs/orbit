@@ -1,4 +1,5 @@
-import Orbit, {
+import { Orbit } from '@orbit/core';
+import {
   buildTransform,
   Operation,
   pullable,
@@ -22,7 +23,8 @@ import Orbit, {
 } from '@orbit/data';
 import { QueryResultData } from '@orbit/record-cache';
 import { supportsLocalStorage } from './lib/local-storage';
-import LocalStorageCache, {
+import {
+  LocalStorageCache,
   LocalStorageCacheSettings
 } from './local-storage-cache';
 
@@ -40,7 +42,7 @@ export interface LocalStorageSourceSettings extends SourceSettings {
 @pullable
 @pushable
 @syncable
-export default class LocalStorageSource extends Source
+export class LocalStorageSource extends Source
   implements Pullable, Pushable, Resettable, Syncable {
   protected _cache: LocalStorageCache;
 

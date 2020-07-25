@@ -9,14 +9,14 @@ import {
   RemoveRecordOperation,
   UpdateRecordOperation
 } from '@orbit/data';
-import SyncCacheIntegrityProcessor from '../../src/operation-processors/sync-cache-integrity-processor';
-import Cache from '../support/example-sync-record-cache';
+import { SyncCacheIntegrityProcessor } from '../../src/operation-processors/sync-cache-integrity-processor';
+import { ExampleSyncRecordCache } from '../support/example-sync-record-cache';
 
 const { module, test } = QUnit;
 
 module('CacheIntegrityProcessor', function (hooks) {
   let schema: Schema;
-  let cache: Cache;
+  let cache: ExampleSyncRecordCache;
   let processor: SyncCacheIntegrityProcessor;
 
   const schemaDefinition: SchemaSettings = {
@@ -66,7 +66,7 @@ module('CacheIntegrityProcessor', function (hooks) {
   hooks.beforeEach(function () {
     let keyMap = new KeyMap();
     schema = new Schema(schemaDefinition);
-    cache = new Cache({
+    cache = new ExampleSyncRecordCache({
       schema,
       keyMap,
       processors: [SyncCacheIntegrityProcessor]

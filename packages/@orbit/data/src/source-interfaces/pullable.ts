@@ -1,4 +1,4 @@
-import Orbit, { settleInSeries, fulfillInSeries } from '@orbit/core';
+import { Orbit, settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Query, QueryOrExpressions, buildQuery } from '../query';
 import { Transform } from '../transform';
@@ -6,7 +6,7 @@ import { RequestOptions } from '../request';
 
 const { assert } = Orbit;
 
-export const PULLABLE = '__pullable__';
+const PULLABLE = '__pullable__';
 
 /**
  * Has a source been decorated as `@pullable`?
@@ -59,7 +59,7 @@ export interface Pullable {
  * the processing required for `pull` and returns a promise that resolves to an
  * array of `Transform` instances.
  */
-export default function pullable(Klass: SourceClass): void {
+export function pullable(Klass: SourceClass): void {
   let proto = Klass.prototype;
 
   if (isPullable(proto)) {

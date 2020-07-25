@@ -6,7 +6,7 @@ import {
   FindRelatedRecordsTerm
 } from './query-term';
 
-export default class QueryBuilder {
+export class QueryBuilder {
   /**
    * Find a record by its identity.
    */

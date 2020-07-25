@@ -1,6 +1,6 @@
-import Coordinator, { ActivationOptions } from '../coordinator';
+import { Coordinator, ActivationOptions } from '../coordinator';
 import { Strategy, StrategyOptions } from '../strategy';
-import Orbit, { Listener } from '@orbit/core';
+import { Orbit, Listener } from '@orbit/core';
 import { Source } from '@orbit/data';
 
 const { assert } = Orbit;

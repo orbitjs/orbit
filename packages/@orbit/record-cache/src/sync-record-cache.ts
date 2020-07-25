@@ -18,9 +18,9 @@ import {
   SyncOperationProcessor,
   SyncOperationProcessorClass
 } from './sync-operation-processor';
-import SyncCacheIntegrityProcessor from './operation-processors/sync-cache-integrity-processor';
-import SyncSchemaConsistencyProcessor from './operation-processors/sync-schema-consistency-processor';
-import SyncSchemaValidationProcessor from './operation-processors/sync-schema-validation-processor';
+import { SyncCacheIntegrityProcessor } from './operation-processors/sync-cache-integrity-processor';
+import { SyncSchemaConsistencyProcessor } from './operation-processors/sync-schema-consistency-processor';
+import { SyncSchemaValidationProcessor } from './operation-processors/sync-schema-validation-processor';
 import {
   SyncPatchOperators,
   SyncPatchOperator

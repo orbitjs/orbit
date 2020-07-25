@@ -1,4 +1,5 @@
-import Orbit, {
+import { Orbit } from '@orbit/core';
+import {
   serializeRecordIdentity,
   deserializeRecordIdentity,
   Record,
@@ -33,7 +34,7 @@ export interface IndexedDBCacheSettings extends AsyncRecordCacheSettings {
  *
  * Because IndexedDB access is async, this cache extends `AsyncRecordCache`.
  */
-export default class IndexedDBCache extends AsyncRecordCache {
+export class IndexedDBCache extends AsyncRecordCache {
   protected _namespace: string;
   protected _db: IDBDatabase;
   protected _openingDB: Promise<IDBDatabase>;

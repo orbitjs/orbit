@@ -1,4 +1,4 @@
-import Orbit, { Evented } from '@orbit/core';
+import { Orbit, Evented } from '@orbit/core';
 import {
   QueryExpression,
   FindRecord,

@@ -1,5 +1,5 @@
 import {
-  default as evented,
+  evented,
   isEvented,
   fulfillInSeries,
   settleInSeries,

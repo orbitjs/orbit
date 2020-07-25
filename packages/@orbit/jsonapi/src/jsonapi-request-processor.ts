@@ -20,7 +20,8 @@ import {
   JSONAPIRequestOptions,
   buildFetchSettings
 } from './lib/jsonapi-request-options';
-import JSONAPIURLBuilder, {
+import {
+  JSONAPIURLBuilder,
   JSONAPIURLBuilderSettings
 } from './jsonapi-url-builder';
 import {
@@ -71,7 +72,7 @@ export interface JSONAPIRequestProcessorSettings {
   keyMap: KeyMap;
 }
 
-export default class JSONAPIRequestProcessor {
+export class JSONAPIRequestProcessor {
   sourceName: string;
   urlBuilder: JSONAPIURLBuilder;
   allowedContentTypes: string[];

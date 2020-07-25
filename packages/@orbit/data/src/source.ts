@@ -1,4 +1,5 @@
-import Orbit, {
+import {
+  Orbit,
   evented,
   Evented,
   settleInSeries,
@@ -10,11 +11,11 @@ import Orbit, {
   Listener,
   Log
 } from '@orbit/core';
-import KeyMap from './key-map';
-import Schema from './schema';
-import QueryBuilder from './query-builder';
+import { KeyMap } from './key-map';
+import { Schema } from './schema';
+import { QueryBuilder } from './query-builder';
 import { Transform } from './transform';
-import TransformBuilder from './transform-builder';
+import { TransformBuilder } from './transform-builder';
 
 const { assert } = Orbit;
 

@@ -1,8 +1,8 @@
 /* eslint-disable valid-jsdoc */
-import Orbit from './main';
-import { Operation } from './operation';
+import { Orbit } from '@orbit/core';
 import { isObject } from '@orbit/utils';
-import TransformBuilder from './transform-builder';
+import { Operation } from './operation';
+import { TransformBuilder } from './transform-builder';
 import { RequestOptions } from './request';
 
 export type TransformBuilderFunc = (

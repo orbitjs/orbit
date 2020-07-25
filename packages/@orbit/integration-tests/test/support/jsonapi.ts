@@ -1,4 +1,4 @@
-import Orbit from '@orbit/core';
+import { Orbit } from '@orbit/core';
 
 export function jsonapiResponse(
   _options: any,

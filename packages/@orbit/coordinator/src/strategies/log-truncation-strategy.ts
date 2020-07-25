@@ -1,4 +1,4 @@
-import Coordinator, { ActivationOptions } from '../coordinator';
+import { Coordinator, ActivationOptions } from '../coordinator';
 import { Strategy, StrategyOptions } from '../strategy';
 import { Source, Transform } from '@orbit/data';
 import { Dict } from '@orbit/utils';

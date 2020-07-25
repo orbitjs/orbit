@@ -1,6 +1,6 @@
-import Schema from '../src/schema';
-import './test-helper';
+import { Schema } from '../src/schema';
 import { Record } from '../src';
+import './test-helper';
 
 const { module, test } = QUnit;
 

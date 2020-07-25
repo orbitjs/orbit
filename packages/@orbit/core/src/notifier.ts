@@ -20,7 +20,7 @@ export type Listener = (...args: any[]) => any;
  *
  * Calls to `emit` will send along all of their arguments.
  */
-export default class Notifier {
+export class Notifier {
   public listeners: Listener[];
 
   constructor() {

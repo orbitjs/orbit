@@ -1,5 +1,5 @@
 import { Bucket } from '@orbit/core';
-import IndexedDBBucket from '../src/bucket';
+import { IndexedDBBucket } from '../src/bucket';
 
 const { module, test } = QUnit;
 

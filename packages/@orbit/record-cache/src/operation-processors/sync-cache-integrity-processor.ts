@@ -15,7 +15,7 @@ import {
  * record. When a record is removed, any references to it can also be identified
  * and removed.
  */
-export default class SyncCacheIntegrityProcessor extends SyncOperationProcessor {
+export class SyncCacheIntegrityProcessor extends SyncOperationProcessor {
   after(operation: RecordOperation): RecordOperation[] {
     switch (operation.op) {
       case 'replaceRelatedRecord':

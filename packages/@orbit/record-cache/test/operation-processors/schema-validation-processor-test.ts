@@ -6,14 +6,14 @@ import {
   RelationshipNotFound,
   IncorrectRelatedRecordType
 } from '@orbit/data';
-import Cache from '../support/example-sync-record-cache';
-import SyncSchemaValidationProcessor from '../../src/operation-processors/sync-schema-validation-processor';
+import { ExampleSyncRecordCache } from '../support/example-sync-record-cache';
+import { SyncSchemaValidationProcessor } from '../../src/operation-processors/sync-schema-validation-processor';
 
 const { module, test } = QUnit;
 
 module('SchemaValidationProcessor', function (hooks) {
   let schema: Schema;
-  let cache: Cache;
+  let cache: ExampleSyncRecordCache;
 
   const schemaDefinition: SchemaSettings = {
     models: {
@@ -61,7 +61,7 @@ module('SchemaValidationProcessor', function (hooks) {
   hooks.beforeEach(function () {
     let keyMap = new KeyMap();
     schema = new Schema(schemaDefinition);
-    cache = new Cache({
+    cache = new ExampleSyncRecordCache({
       schema,
       keyMap,
       processors: [SyncSchemaValidationProcessor]

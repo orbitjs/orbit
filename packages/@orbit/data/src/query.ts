@@ -1,7 +1,7 @@
-import Orbit from './main';
+import { Orbit } from '@orbit/core';
 import { QueryExpression } from './query-expression';
 import { QueryTerm } from './query-term';
-import QueryBuilder from './query-builder';
+import { QueryBuilder } from './query-builder';
 import { isObject } from '@orbit/utils';
 import { RequestOptions } from './request';
 
