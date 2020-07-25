@@ -1,5 +1,6 @@
-import Coordinator, { ActivationOptions, LogLevel } from './coordinator';
-import Orbit, { Source } from '@orbit/data';
+import { Orbit } from '@orbit/core';
+import { Source } from '@orbit/data';
+import { Coordinator, ActivationOptions, LogLevel } from './coordinator';
 
 const { assert } = Orbit;
 

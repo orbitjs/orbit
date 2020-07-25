@@ -1,7 +1,8 @@
 import { Query, QueryOrExpressions } from '../../src/query';
 import { Source } from '../../src/source';
 import { RequestOptions } from '../../src/request';
-import queryable, {
+import {
+  queryable,
   isQueryable,
   Queryable
 } from '../../src/source-interfaces/queryable';

@@ -18,7 +18,7 @@ import {
   Transform
 } from '@orbit/data';
 import { jsonapiResponse } from './support/jsonapi';
-import JSONAPISource from '../src/jsonapi-source';
+import { JSONAPISource } from '../src/jsonapi-source';
 import { Resource, ResourceDocument } from '../src/resources';
 import { SinonStub } from 'sinon';
 import * as sinon from 'sinon';

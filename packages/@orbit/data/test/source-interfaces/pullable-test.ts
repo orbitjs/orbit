@@ -2,7 +2,8 @@ import { Query, QueryOrExpressions } from '../../src/query';
 import { Source } from '../../src/source';
 import { buildTransform, Transform } from '../../src/transform';
 import { RequestOptions } from '../../src/request';
-import pullable, {
+import {
+  pullable,
   isPullable,
   Pullable
 } from '../../src/source-interfaces/pullable';

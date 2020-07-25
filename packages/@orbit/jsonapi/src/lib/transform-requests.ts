@@ -18,7 +18,7 @@ import {
   Link
 } from '@orbit/data';
 import { clone, deepSet, Dict } from '@orbit/utils';
-import JSONAPIRequestProcessor from '../jsonapi-request-processor';
+import { JSONAPIRequestProcessor } from '../jsonapi-request-processor';
 import { ResourceDocument, RecordDocument } from '../resources';
 import { JSONAPIRequestOptions } from './jsonapi-request-options';
 import { JSONAPISerializers } from '../serializers/jsonapi-serializers';

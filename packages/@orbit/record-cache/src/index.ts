@@ -19,9 +19,9 @@ export * from './operators/sync-patch-operators';
 export * from './operators/sync-query-operators';
 
 // Operation processors
-export { default as AsyncCacheIntegrityProcessor } from './operation-processors/async-cache-integrity-processor';
-export { default as AsyncSchemaConsistencyProcessor } from './operation-processors/async-schema-consistency-processor';
-export { default as AsyncSchemaValidationProcessor } from './operation-processors/async-schema-validation-processor';
-export { default as SyncCacheIntegrityProcessor } from './operation-processors/sync-cache-integrity-processor';
-export { default as SyncSchemaConsistencyProcessor } from './operation-processors/sync-schema-consistency-processor';
-export { default as SyncSchemaValidationProcessor } from './operation-processors/sync-schema-validation-processor';
+export * from './operation-processors/async-cache-integrity-processor';
+export * from './operation-processors/async-schema-consistency-processor';
+export * from './operation-processors/async-schema-validation-processor';
+export * from './operation-processors/sync-cache-integrity-processor';
+export * from './operation-processors/sync-schema-consistency-processor';
+export * from './operation-processors/sync-schema-validation-processor';

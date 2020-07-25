@@ -1,6 +1,6 @@
-import Notifier, { Listener } from './notifier';
+import { Notifier, Listener } from './notifier';
 
-export const EVENTED = '__evented__';
+const EVENTED = '__evented__';
 
 /**
  * Has a class been decorated as `@evented`?
@@ -69,7 +69,7 @@ export interface Evented {
  * source.off('greeting', listener2);
  * ```
  */
-export default function evented(Klass: any): void {
+export function evented(Klass: any): void {
   let proto = Klass.prototype;
 
   if (isEvented(proto)) {

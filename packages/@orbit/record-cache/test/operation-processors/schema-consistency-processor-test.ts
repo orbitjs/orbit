@@ -11,15 +11,15 @@ import {
   RemoveRecordOperation,
   UpdateRecordOperation
 } from '@orbit/data';
-import SyncCacheIntegrityProcessor from '../../src/operation-processors/sync-cache-integrity-processor';
-import SyncSchemaConsistencyProcessor from '../../src/operation-processors/sync-schema-consistency-processor';
-import Cache from '../support/example-sync-record-cache';
+import { SyncCacheIntegrityProcessor } from '../../src/operation-processors/sync-cache-integrity-processor';
+import { SyncSchemaConsistencyProcessor } from '../../src/operation-processors/sync-schema-consistency-processor';
+import { ExampleSyncRecordCache } from '../support/example-sync-record-cache';
 
 const { module, test } = QUnit;
 
 module('SchemaConsistencyProcessor', function (hooks) {
   let schema: Schema;
-  let cache: Cache;
+  let cache: ExampleSyncRecordCache;
   let processor: SyncSchemaConsistencyProcessor;
 
   const schemaDefinition: SchemaSettings = {
@@ -62,7 +62,7 @@ module('SchemaConsistencyProcessor', function (hooks) {
   hooks.beforeEach(function () {
     let keyMap = new KeyMap();
     schema = new Schema(schemaDefinition);
-    cache = new Cache({
+    cache = new ExampleSyncRecordCache({
       schema,
       keyMap,
       processors: [SyncCacheIntegrityProcessor, SyncSchemaConsistencyProcessor]
@@ -1000,7 +1000,7 @@ module('SchemaConsistencyProcessor', function (hooks) {
     });
 
     const keyMap = new KeyMap();
-    const cache = new Cache({
+    const cache = new ExampleSyncRecordCache({
       schema,
       keyMap,
       processors: [SyncSchemaConsistencyProcessor]
@@ -1090,7 +1090,7 @@ module('SchemaConsistencyProcessor', function (hooks) {
     });
 
     const keyMap = new KeyMap();
-    const cache = new Cache({
+    const cache = new ExampleSyncRecordCache({
       schema,
       keyMap,
       processors: [SyncSchemaConsistencyProcessor]

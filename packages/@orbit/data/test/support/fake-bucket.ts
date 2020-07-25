@@ -6,7 +6,7 @@ import { Dict } from '@orbit/utils';
  * object. Not practical, since Buckets are intended to persist values from
  * memory, but useful for testing.
  */
-export default class FakeBucket extends Bucket {
+export class FakeBucket extends Bucket {
   data: Dict<any>;
 
   constructor(settings = {}) {

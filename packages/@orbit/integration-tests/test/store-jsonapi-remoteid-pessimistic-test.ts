@@ -1,7 +1,7 @@
 import { KeyMap, Record, Schema } from '@orbit/data';
-import JSONAPISource from '@orbit/jsonapi';
-import MemorySource from '@orbit/memory';
-import Coordinator, { RequestStrategy, SyncStrategy } from '@orbit/coordinator';
+import { JSONAPISource } from '@orbit/jsonapi';
+import { MemorySource } from '@orbit/memory';
+import { Coordinator, RequestStrategy, SyncStrategy } from '@orbit/coordinator';
 import { jsonapiResponse } from './support/jsonapi';
 import { SinonStub } from 'sinon';
 import * as sinon from 'sinon';

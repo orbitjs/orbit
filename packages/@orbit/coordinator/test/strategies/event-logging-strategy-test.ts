@@ -1,4 +1,4 @@
-import Coordinator from '../../src/coordinator';
+import { Coordinator } from '../../src/coordinator';
 import { EventLoggingStrategy } from '../../src/strategies/event-logging-strategy';
 import { Source } from '@orbit/data';
 

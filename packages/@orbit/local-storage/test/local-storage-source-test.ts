@@ -2,6 +2,7 @@ import {
   getRecordFromLocalStorage,
   isLocalStorageEmpty
 } from './support/local-storage';
+import { Orbit } from '@orbit/core';
 import {
   buildTransform,
   AddRecordOperation,
@@ -12,8 +13,7 @@ import {
   KeyMap,
   Transform
 } from '@orbit/data';
-import Orbit from '@orbit/core';
-import LocalStorageSource from '../src/local-storage-source';
+import { LocalStorageSource } from '../src/local-storage-source';
 
 const { module, test } = QUnit;
 

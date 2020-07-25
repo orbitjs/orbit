@@ -1,5 +1,5 @@
-import Orbit from './main';
-import evented, { Evented } from './evented';
+import { Orbit } from './main';
+import { evented, Evented } from './evented';
 import { Listener } from './notifier';
 import { Bucket } from './bucket';
 import { NotLoggedException, OutOfRangeException } from './exception';
@@ -20,7 +20,7 @@ export interface LogOptions {
  * Logs can automatically be persisted by assigning them a bucket.
  */
 @evented
-export default class Log implements Evented {
+export class Log implements Evented {
   private _name: string;
   private _bucket: Bucket;
   private _data: string[];

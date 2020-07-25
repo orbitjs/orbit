@@ -1,10 +1,7 @@
 /* eslint-disable valid-jsdoc */
 import { isNone } from '@orbit/utils';
-import Orbit, {
-  Record,
-  RecordIdentity,
-  equalRecordIdentities
-} from '@orbit/data';
+import { Orbit } from '@orbit/core';
+import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/data';
 import {
   RecordRelationshipIdentity,
   SyncRecordCache,
@@ -21,7 +18,7 @@ export interface LocalStorageCacheSettings extends SyncRecordCacheSettings {
  *
  * Because local storage access is synchronous, this cache extends `SyncRecordCache`.
  */
-export default class LocalStorageCache extends SyncRecordCache {
+export class LocalStorageCache extends SyncRecordCache {
   protected _namespace: string;
   protected _delimiter: string;
 

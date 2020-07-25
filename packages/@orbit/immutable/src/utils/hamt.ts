@@ -819,7 +819,7 @@ export interface HAMTMapConfig {
   hash?: Function // TODO
 }
 
-export default class HAMTMap {
+export class HAMTMap {
   private _map: any;
   private _editable: boolean;
   private _edit: any;

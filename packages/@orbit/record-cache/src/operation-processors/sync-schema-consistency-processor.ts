@@ -15,7 +15,7 @@ import {
  * its associated schema. This includes maintenance of inverse and dependent
  * relationships.
  */
-export default class SyncSchemaConsistencyProcessor extends SyncOperationProcessor {
+export class SyncSchemaConsistencyProcessor extends SyncOperationProcessor {
   after(operation: RecordOperation): RecordOperation[] {
     switch (operation.op) {
       case 'addRecord':

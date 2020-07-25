@@ -15,7 +15,7 @@ import {
  * its associated schema. This includes maintenance of inverse and dependent
  * relationships.
  */
-export default class AsyncSchemaConsistencyProcessor extends AsyncOperationProcessor {
+export class AsyncSchemaConsistencyProcessor extends AsyncOperationProcessor {
   async after(operation: RecordOperation): Promise<RecordOperation[]> {
     switch (operation.op) {
       case 'addRecord':

@@ -1,7 +1,7 @@
 import { buildQuery } from '../src/query';
 import { QueryTerm } from '../src/query-term';
 import { FindRecords } from '../src/query-expression';
-import QueryBuilder from '../src/query-builder';
+import { QueryBuilder } from '../src/query-builder';
 import './test-helper';
 
 const { module, test } = QUnit;

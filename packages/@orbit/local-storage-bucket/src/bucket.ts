@@ -1,4 +1,4 @@
-import Orbit, { Bucket, BucketSettings } from '@orbit/core';
+import { Orbit, Bucket, BucketSettings } from '@orbit/core';
 import { supportsLocalStorage } from './lib/local-storage';
 
 const { assert } = Orbit;
@@ -13,7 +13,7 @@ export interface LocalStorageBucketSettings extends BucketSettings {
  * @class LocalStorageBucket
  * @extends Bucket
  */
-export default class LocalStorageBucket extends Bucket {
+export class LocalStorageBucket extends Bucket {
   private _delimiter: string;
 
   /**

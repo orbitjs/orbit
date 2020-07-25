@@ -1,8 +1,8 @@
-import Orbit from './main';
+import { Orbit } from './main';
 import { Task, Performer } from './task';
-import TaskProcessor from './task-processor';
+import { TaskProcessor } from './task-processor';
 import { Bucket } from './bucket';
-import evented, { Evented, settleInSeries } from './evented';
+import { evented, Evented, settleInSeries } from './evented';
 import { Listener } from './notifier';
 
 const { assert } = Orbit;
@@ -52,7 +52,7 @@ export interface TaskQueueSettings {
  * processing.
  */
 @evented
-export default class TaskQueue implements Evented {
+export class TaskQueue implements Evented {
   public autoProcess: boolean;
 
   private _name: string;

@@ -15,7 +15,7 @@ import {
  * record. When a record is removed, any references to it can also be identified
  * and removed.
  */
-export default class AsyncCacheIntegrityProcessor extends AsyncOperationProcessor {
+export class AsyncCacheIntegrityProcessor extends AsyncOperationProcessor {
   async after(operation: RecordOperation): Promise<RecordOperation[]> {
     switch (operation.op) {
       case 'replaceRelatedRecord':

@@ -1,6 +1,6 @@
 import { Schema } from '@orbit/data';
-import MemorySource from '@orbit/memory';
-import IndexedDBBucket from '@orbit/indexeddb-bucket';
+import { MemorySource } from '@orbit/memory';
+import { IndexedDBBucket } from '@orbit/indexeddb-bucket';
 
 const { module, test } = QUnit;
 

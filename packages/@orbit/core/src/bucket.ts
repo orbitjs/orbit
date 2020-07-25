@@ -1,4 +1,4 @@
-import evented, { Evented } from './evented';
+import { evented, Evented } from './evented';
 import { Listener } from './notifier';
 
 /**

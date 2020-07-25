@@ -18,7 +18,7 @@ export interface MemoryCacheSettings extends SyncRecordCacheSettings {
  * Because data is stored in immutable maps, this type of cache can be forked
  * efficiently.
  */
-export default class MemoryCache extends SyncRecordCache {
+export class MemoryCache extends SyncRecordCache {
   protected _records: Dict<ImmutableMap<string, Record>>;
   protected _inverseRelationships: Dict<
     ImmutableMap<string, RecordRelationshipIdentity[]>

@@ -1,4 +1,4 @@
-import Orbit, { evented, Evented, Listener } from '@orbit/core';
+import { Orbit, evented, Evented, Listener } from '@orbit/core';
 import { deepGet, Dict } from '@orbit/utils';
 import {
   KeyMap,
@@ -18,9 +18,9 @@ import {
   AsyncOperationProcessor,
   AsyncOperationProcessorClass
 } from './async-operation-processor';
-import AsyncCacheIntegrityProcessor from './operation-processors/async-cache-integrity-processor';
-import AsyncSchemaConsistencyProcessor from './operation-processors/async-schema-consistency-processor';
-import AsyncSchemaValidationProcessor from './operation-processors/async-schema-validation-processor';
+import { AsyncCacheIntegrityProcessor } from './operation-processors/async-cache-integrity-processor';
+import { AsyncSchemaConsistencyProcessor } from './operation-processors/async-schema-consistency-processor';
+import { AsyncSchemaValidationProcessor } from './operation-processors/async-schema-validation-processor';
 import {
   AsyncPatchOperators,
   AsyncPatchOperator

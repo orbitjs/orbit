@@ -1,4 +1,4 @@
-import Coordinator from '../../src/coordinator';
+import { Coordinator } from '../../src/coordinator';
 import { ConnectionStrategy } from '../../src/strategies/connection-strategy';
 import {
   Source,

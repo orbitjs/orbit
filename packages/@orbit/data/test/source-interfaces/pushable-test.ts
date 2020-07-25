@@ -5,7 +5,8 @@ import {
 } from '../../src/transform';
 import { Source } from '../../src/source';
 import { RequestOptions } from '../../src/request';
-import pushable, {
+import {
+  pushable,
   isPushable,
   Pushable
 } from '../../src/source-interfaces/pushable';

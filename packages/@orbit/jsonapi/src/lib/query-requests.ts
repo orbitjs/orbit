@@ -15,7 +15,7 @@ import {
   QueryExpression,
   cloneRecordIdentity
 } from '@orbit/data';
-import JSONAPIRequestProcessor from '../jsonapi-request-processor';
+import { JSONAPIRequestProcessor } from '../jsonapi-request-processor';
 import {
   JSONAPIRequestOptions,
   mergeJSONAPIRequestOptions

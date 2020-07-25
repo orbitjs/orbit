@@ -1,4 +1,4 @@
-import KeyMap from '../src/key-map';
+import { KeyMap } from '../src/key-map';
 import './test-helper';
 
 const { module, test } = QUnit;

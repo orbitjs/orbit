@@ -1,6 +1,6 @@
-import Orbit from '../src/main';
+import { Orbit } from '../src/main';
 import { Task, Performer } from '../src/task';
-import TaskProcessor from '../src/task-processor';
+import { TaskProcessor } from '../src/task-processor';
 
 const { module, test } = QUnit;
 

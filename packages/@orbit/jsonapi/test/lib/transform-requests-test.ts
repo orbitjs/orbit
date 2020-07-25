@@ -3,7 +3,7 @@ import {
   getTransformRequests,
   TransformRequestProcessors
 } from '../../src/lib/transform-requests';
-import JSONAPIRequestProcessor from '../../src/jsonapi-request-processor';
+import { JSONAPIRequestProcessor } from '../../src/jsonapi-request-processor';
 import { jsonapiResponse } from '../support/jsonapi';
 import { SinonStub } from 'sinon';
 import * as sinon from 'sinon';

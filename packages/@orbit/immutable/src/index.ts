@@ -1,1 +1,1 @@
-export { default as ImmutableMap } from './immutable-map';
+export * from './immutable-map';

@@ -11,7 +11,7 @@ import { AsyncOperationProcessor } from '../async-operation-processor';
  * An operation processor that ensures that an operation is compatible with
  * its associated schema.
  */
-export default class AsyncSchemaValidationProcessor extends AsyncOperationProcessor {
+export class AsyncSchemaValidationProcessor extends AsyncOperationProcessor {
   async validate(operation: RecordOperation): Promise<void> {
     switch (operation.op) {
       case 'addRecord':

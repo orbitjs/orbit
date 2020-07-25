@@ -1,11 +1,11 @@
-import Orbit, { settleInSeries, fulfillInSeries } from '@orbit/core';
+import { Orbit, settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Transform, TransformOrOperations, buildTransform } from '../transform';
 import { RequestOptions } from '../request';
 
 const { assert } = Orbit;
 
-export const UPDATABLE = '__updatable__';
+const UPDATABLE = '__updatable__';
 
 /**
  * Has a source been decorated as `@updatable`?
@@ -56,7 +56,7 @@ export interface Updatable {
  * the processing required for `update` and returns a promise that resolves when
  * complete.
  */
-export default function updatable(Klass: SourceClass): void {
+export function updatable(Klass: SourceClass): void {
   let proto = Klass.prototype;
 
   if (isUpdatable(proto)) {

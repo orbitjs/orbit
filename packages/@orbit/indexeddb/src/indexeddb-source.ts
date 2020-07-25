@@ -1,4 +1,5 @@
-import Orbit, {
+import { Orbit } from '@orbit/core';
+import {
   buildTransform,
   pullable,
   Pullable,
@@ -20,7 +21,7 @@ import Orbit, {
 } from '@orbit/data';
 import { QueryResultData } from '@orbit/record-cache';
 import { supportsIndexedDB } from './lib/indexeddb';
-import IndexedDBCache, { IndexedDBCacheSettings } from './indexeddb-cache';
+import { IndexedDBCache, IndexedDBCacheSettings } from './indexeddb-cache';
 
 const { assert } = Orbit;
 
@@ -35,7 +36,7 @@ export interface IndexedDBSourceSettings extends SourceSettings {
 @pullable
 @pushable
 @syncable
-export default class IndexedDBSource extends Source
+export class IndexedDBSource extends Source
   implements Pullable, Pushable, Resettable, Syncable {
   protected _cache: IndexedDBCache;
 

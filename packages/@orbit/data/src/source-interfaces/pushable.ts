@@ -1,11 +1,11 @@
-import Orbit, { settleInSeries, fulfillInSeries } from '@orbit/core';
+import { Orbit, settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Transform, TransformOrOperations, buildTransform } from '../transform';
 import { RequestOptions } from '../request';
 
 const { assert } = Orbit;
 
-export const PUSHABLE = '__pushable__';
+const PUSHABLE = '__pushable__';
 
 /**
  * Has a source been decorated as `@pushable`?
@@ -62,7 +62,7 @@ export interface Pushable {
  * the processing required for `push` and returns a promise that resolves to an
  * array of `Transform` instances.
  */
-export default function pushable(Klass: SourceClass): void {
+export function pushable(Klass: SourceClass): void {
   let proto = Klass.prototype;
 
   if (isPushable(proto)) {

@@ -1,10 +1,10 @@
-import Orbit, { fulfillInSeries, settleInSeries } from '@orbit/core';
+import { Orbit, fulfillInSeries, settleInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Transform } from '../transform';
 
 const { assert } = Orbit;
 
-export const SYNCABLE = '__syncable__';
+const SYNCABLE = '__syncable__';
 
 /**
  * Has a source been decorated as `@syncable`?
@@ -38,7 +38,7 @@ export interface Syncable {
  * `transform` event, which is emitted whenever a new `Transform` is applied to
  * a source.
  */
-export default function syncable(Klass: SourceClass): void {
+export function syncable(Klass: SourceClass): void {
   let proto = Klass.prototype;
 
   if (isSyncable(proto)) {

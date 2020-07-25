@@ -1,6 +1,7 @@
 import { buildTransform, Transform } from '../../src/transform';
 import { Source } from '../../src/source';
-import syncable, {
+import {
+  syncable,
   isSyncable,
   Syncable
 } from '../../src/source-interfaces/syncable';

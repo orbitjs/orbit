@@ -1,4 +1,4 @@
-import Notifier from '../src/notifier';
+import { Notifier } from '../src/notifier';
 
 const { module, test } = QUnit;
 

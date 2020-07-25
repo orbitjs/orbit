@@ -1,6 +1,4 @@
-export { default, IndexedDBSourceSettings } from './indexeddb-source';
-export {
-  default as IndexedDBCache,
-  IndexedDBCacheSettings
-} from './indexeddb-cache';
-export { supportsIndexedDB } from './lib/indexeddb';
+export { IndexedDBSource as default } from './indexeddb-source';
+export * from './indexeddb-source';
+export * from './indexeddb-cache';
+export * from './lib/indexeddb';

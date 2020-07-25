@@ -1,5 +1,5 @@
 /* eslint-disable valid-jsdoc */
-import Orbit from './main';
+import { Orbit } from '@orbit/core';
 import { ModelNotFound } from './exception';
 import { Dict } from '@orbit/utils';
 import { evented, Evented, Listener } from '@orbit/core';
@@ -85,7 +85,7 @@ export interface SchemaSettings {
  * @implements {Evented}
  */
 @evented
-export default class Schema implements Evented, RecordInitializer {
+export class Schema implements Evented, RecordInitializer {
   private _models: Dict<ModelDefinition>;
 
   private _version: number;

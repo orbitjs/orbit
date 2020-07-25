@@ -1,6 +1,6 @@
-import HAMTMap from './utils/hamt';
+import { HAMTMap } from './utils/hamt';
 
-export default class ImmutableMap<K, V> {
+export class ImmutableMap<K, V> {
   private _data: HAMTMap;
 
   constructor(base?: ImmutableMap<K, V>) {

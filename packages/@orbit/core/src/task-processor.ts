@@ -11,7 +11,7 @@ import { Task, Performer } from './task';
  * A task can be re-tried by first calling `reset()` on the processor. This
  * will clear the processor's state and allow `process()` to be invoked again.
  */
-export default class TaskProcessor {
+export class TaskProcessor {
   target: Performer;
   task: Task;
 

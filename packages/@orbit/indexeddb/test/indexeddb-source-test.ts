@@ -8,7 +8,7 @@ import {
   Transform,
   RecordIdentity
 } from '@orbit/data';
-import IndexedDBSource from '../src/indexeddb-source';
+import { IndexedDBSource } from '../src/indexeddb-source';
 
 const { module, test } = QUnit;
 

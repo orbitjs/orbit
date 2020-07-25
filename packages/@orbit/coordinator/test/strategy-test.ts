@@ -1,4 +1,4 @@
-import Coordinator, { ActivationOptions, LogLevel } from '../src/coordinator';
+import { Coordinator, ActivationOptions, LogLevel } from '../src/coordinator';
 import { Strategy, StrategyOptions } from '../src/strategy';
 import { Source } from '@orbit/data';
 

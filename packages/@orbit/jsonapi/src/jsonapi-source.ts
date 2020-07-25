@@ -21,7 +21,8 @@ import Orbit, {
   TransformNotAllowed,
   QueryNotAllowed
 } from '@orbit/data';
-import JSONAPIRequestProcessor, {
+import {
+  JSONAPIRequestProcessor,
   JSONAPIRequestProcessorSettings,
   FetchSettings
 } from './jsonapi-request-processor';
@@ -29,7 +30,8 @@ import {
   JSONAPISerializer,
   JSONAPISerializerSettings
 } from './jsonapi-serializer';
-import JSONAPIURLBuilder, {
+import {
+  JSONAPIURLBuilder,
   JSONAPIURLBuilderSettings
 } from './jsonapi-url-builder';
 import {
@@ -94,7 +96,7 @@ export interface JSONAPISourceSettings extends SourceSettings {
 @pushable
 @queryable
 @updatable
-export default class JSONAPISource extends Source
+export class JSONAPISource extends Source
   implements Pullable, Pushable, Queryable, Updatable {
   maxRequestsPerTransform?: number;
   maxRequestsPerQuery?: number;

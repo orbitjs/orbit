@@ -5,7 +5,7 @@ import {
 } from '@orbit/data';
 import { IdentitySerializer } from '../../src/index';
 
-export default class RecordIdentitySerializer
+export class RecordIdentitySerializer
   implements IdentitySerializer<RecordIdentity> {
   serialize(identity: RecordIdentity): string {
     return serializeRecordIdentity(identity);

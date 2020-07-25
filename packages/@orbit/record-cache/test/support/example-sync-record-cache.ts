@@ -10,7 +10,7 @@ import {
 /**
  * A minimal implementation of `SyncRecordCache`.
  */
-export default class ExampleSyncRecordCache extends SyncRecordCache {
+export class ExampleSyncRecordCache extends SyncRecordCache {
   protected _records: Dict<Dict<Record>>;
   protected _inverseRelationships: Dict<Dict<RecordRelationshipIdentity[]>>;
 

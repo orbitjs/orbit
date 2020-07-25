@@ -1,4 +1,5 @@
-import Orbit, {
+import { Orbit } from '@orbit/core';
+import {
   KeyMap,
   RecordOperation,
   Schema,
@@ -20,7 +21,7 @@ import Orbit, {
   RecordIdentity
 } from '@orbit/data';
 import { Dict } from '@orbit/utils';
-import MemoryCache, { MemoryCacheSettings } from './memory-cache';
+import { MemoryCache, MemoryCacheSettings } from './memory-cache';
 import { PatchResultData } from '@orbit/record-cache';
 
 const { assert } = Orbit;
@@ -39,7 +40,7 @@ export interface MemorySourceMergeOptions {
 @syncable
 @queryable
 @updatable
-export default class MemorySource extends Source
+export class MemorySource extends Source
   implements Syncable, Queryable, Updatable {
   private _cache: MemoryCache;
   private _base: MemorySource;
