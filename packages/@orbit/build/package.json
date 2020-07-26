@@ -25,7 +25,7 @@
     "eslint-plugin-prettier": "^3.1.4",
     "prettier": "^2.0.5",
     "qunit": "^2.10.0",
-    "snowpack": "^2.6.4",
+    "snowpack": "~2.2.4",
     "testem": "^3.2.0",
     "typescript": "^3.9.5",
     "walk-sync": "^2.1.0"
