@@ -1,4 +1,5 @@
 import { RecordIdentity } from './record';
+import { RequestOptions } from './request';
 
 export type SortOrder = 'ascending' | 'descending';
 
@@ -69,6 +70,7 @@ export type PageSpecifier = BasePageSpecifier | OffsetLimitPageSpecifier;
  */
 export interface QueryExpression {
   op: string;
+  options?: RequestOptions;
 }
 
 export interface FindRecord extends QueryExpression {

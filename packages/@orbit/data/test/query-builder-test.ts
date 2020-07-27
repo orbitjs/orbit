@@ -3,7 +3,8 @@ import './test-helper';
 import {
   FindRecord,
   FindRecords,
-  FindRelatedRecords
+  FindRelatedRecords,
+  FindRelatedRecord
 } from '../src/query-expression';
 
 const { module, test } = QUnit;
@@ -20,6 +21,50 @@ module('QueryBuilder', function (hooks) {
       oqb.findRecord({ type: 'planet', id: '123' }).toQueryExpression(),
       {
         op: 'findRecord',
+        record: {
+          type: 'planet',
+          id: '123'
+        }
+      } as FindRecord
+    );
+  });
+
+  test('findRecord + options', function (assert) {
+    assert.deepEqual(
+      oqb
+        .findRecord({ type: 'planet', id: '123' })
+        .options({ url: '/test' })
+        .toQueryExpression(),
+      {
+        op: 'findRecord',
+        options: {
+          url: '/test'
+        },
+        record: {
+          type: 'planet',
+          id: '123'
+        }
+      } as FindRecord
+    );
+  });
+
+  test('findRecord + merged options', function (assert) {
+    assert.deepEqual(
+      oqb
+        .findRecord({ type: 'planet', id: '123' })
+        .options({ source: { remote: { url: '/test' } } })
+        .options({ source: { remote: { reload: true } } })
+        .toQueryExpression(),
+      {
+        op: 'findRecord',
+        options: {
+          source: {
+            remote: {
+              url: '/test',
+              reload: true
+            }
+          }
+        },
         record: {
           type: 'planet',
           id: '123'
@@ -49,6 +94,17 @@ module('QueryBuilder', function (hooks) {
           { type: 'planet', id: 'earth' },
           { type: 'planet', id: 'mars' }
         ]
+      } as FindRecords
+    );
+  });
+
+  test('findRecords + options', function (assert) {
+    assert.deepEqual(
+      oqb.findRecords('planet').options({ url: '/test' }).toQueryExpression(),
+      {
+        op: 'findRecords',
+        type: 'planet',
+        options: { url: '/test' }
       } as FindRecords
     );
   });
@@ -376,6 +432,40 @@ module('QueryBuilder', function (hooks) {
     );
   });
 
+  test('findRelatedRecord', function (assert) {
+    assert.deepEqual(
+      oqb
+        .findRelatedRecord({ type: 'moon', id: '123' }, 'planet')
+        .toQueryExpression(),
+      {
+        op: 'findRelatedRecord',
+        record: {
+          id: '123',
+          type: 'moon'
+        },
+        relationship: 'planet'
+      } as FindRelatedRecord
+    );
+  });
+
+  test('findRelatedRecord + options', function (assert) {
+    assert.deepEqual(
+      oqb
+        .findRelatedRecord({ type: 'moon', id: '123' }, 'planet')
+        .options({ url: '/test' })
+        .toQueryExpression(),
+      {
+        op: 'findRelatedRecord',
+        record: {
+          id: '123',
+          type: 'moon'
+        },
+        relationship: 'planet',
+        options: { url: '/test' }
+      } as FindRelatedRecord
+    );
+  });
+
   test('findRelatedRecords', function (assert) {
     assert.deepEqual(
       oqb
@@ -388,6 +478,24 @@ module('QueryBuilder', function (hooks) {
           type: 'planet'
         },
         relationship: 'moons'
+      } as FindRelatedRecords
+    );
+  });
+
+  test('findRelatedRecords + options', function (assert) {
+    assert.deepEqual(
+      oqb
+        .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
+        .options({ url: '/test' })
+        .toQueryExpression(),
+      {
+        op: 'findRelatedRecords',
+        record: {
+          id: '123',
+          type: 'planet'
+        },
+        relationship: 'moons',
+        options: { url: '/test' }
       } as FindRelatedRecords
     );
   });

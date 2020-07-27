@@ -25,7 +25,7 @@ module('buildTransform', function () {
     let transform = buildTransform(operations, options, id);
 
     assert.strictEqual(transform.id, id, 'id was populated');
-    assert.strictEqual(
+    assert.deepEqual(
       transform.operations,
       operations,
       'operations was populated'

@@ -75,7 +75,7 @@ export function getQueryRequests(
       requestProcessor
     );
 
-    let options = requestProcessor.customRequestOptions(query);
+    let options = requestProcessor.customRequestOptions(query, expression);
     if (options) {
       if (request.options) {
         request.options = mergeJSONAPIRequestOptions(request.options, options);

@@ -363,7 +363,7 @@ export function getTransformRequests(
     }
 
     if (request) {
-      let options = requestProcessor.customRequestOptions(transform);
+      let options = requestProcessor.customRequestOptions(transform, operation);
       if (options) {
         request.options = options;
       }

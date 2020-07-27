@@ -2,16 +2,19 @@
 import { Orbit } from '@orbit/core';
 import { isObject } from '@orbit/utils';
 import { Operation } from './operation';
+import { OperationTerm } from './operation-term';
 import { TransformBuilder } from './transform-builder';
 import { RequestOptions } from './request';
 
 export type TransformBuilderFunc = (
   TransformBuilder: TransformBuilder
-) => Operation | Operation[];
+) => Operation | Operation[] | OperationTerm | OperationTerm[];
 export type TransformOrOperations =
   | Transform
   | Operation
   | Operation[]
+  | OperationTerm
+  | OperationTerm[]
   | TransformBuilderFunc;
 
 /**
@@ -52,15 +55,25 @@ export function buildTransform(
     let operations: Operation[];
     let options: RequestOptions;
 
-    if (isObject(transform) && transform.operations) {
+    if (isTransform(transform)) {
       if (transform.id && !transformOptions && !transformId) {
         return transform;
       }
       operations = transform.operations;
       options = transformOptions || transform.options;
+    } else if (Array.isArray(transformOrOperations)) {
+      operations = [];
+      for (let transformOrOperation of transformOrOperations) {
+        if (transformOrOperation instanceof OperationTerm) {
+          operations.push(transformOrOperation.toOperation());
+        } else {
+          operations.push(transformOrOperation);
+        }
+      }
+      options = transformOptions;
     } else {
-      if (Array.isArray(transformOrOperations)) {
-        operations = transformOrOperations as Operation[];
+      if (transformOrOperations instanceof OperationTerm) {
+        operations = [transformOrOperations.toOperation()];
       } else {
         operations = [transformOrOperations as Operation];
       }
@@ -71,4 +84,8 @@ export function buildTransform(
 
     return { operations, options, id };
   }
+}
+
+function isTransform(transform: TransformOrOperations): transform is Transform {
+  return isObject(transform) && (transform as any).operations;
 }

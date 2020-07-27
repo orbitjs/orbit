@@ -2,6 +2,7 @@ export { default } from '@orbit/core';
 export * from './exception';
 export * from './key-map';
 export * from './operation';
+export * from './operation-term';
 export * from './options';
 export * from './query-builder';
 export * from './query-expression';

@@ -1,4 +1,11 @@
-import { KeyMap, Schema } from '@orbit/data';
+import {
+  KeyMap,
+  Schema,
+  QueryExpression,
+  Query,
+  Operation,
+  Transform
+} from '@orbit/data';
 import { JSONAPIRequestProcessor } from '../src/jsonapi-request-processor';
 import { jsonapiResponse } from './support/jsonapi';
 import { SinonStub } from 'sinon';
@@ -264,5 +271,71 @@ module('JSONAPIRequestProcessor', function (hooks) {
       result === undefined,
       'A 204 - No Content response has no content'
     );
+  });
+
+  test('#customRequestOptions', function (assert) {
+    const queryExpression: QueryExpression = {
+      op: 'findRecord',
+      options: {
+        url: 'url2',
+        sources: {
+          foo: {
+            page: 'page2'
+          }
+        }
+      }
+    };
+    const query: Query = {
+      id: '1',
+      expressions: [queryExpression],
+      options: {
+        sort: 'sort',
+        url: 'url',
+        sources: {
+          foo: {
+            page: 'page',
+            include: 'include'
+          }
+        }
+      }
+    };
+    const operation: Operation = {
+      op: 'addRecord',
+      options: {
+        url: 'url2',
+        sources: {
+          foo: {
+            page: 'page2'
+          }
+        }
+      }
+    };
+    const transform: Transform = {
+      id: '1',
+      operations: [operation],
+      options: {
+        sort: 'sort',
+        url: 'url',
+        sources: {
+          foo: {
+            page: 'page',
+            include: 'include'
+          }
+        }
+      }
+    };
+
+    assert.deepEqual(processor.customRequestOptions(query, queryExpression), {
+      sort: 'sort',
+      include: 'include',
+      page: 'page2',
+      url: 'url2'
+    });
+    assert.deepEqual(processor.customRequestOptions(transform, operation), {
+      sort: 'sort',
+      include: 'include',
+      page: 'page2',
+      url: 'url2'
+    });
   });
 });

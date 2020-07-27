@@ -475,9 +475,17 @@ module('MemoryCache', function (hooks) {
     cache.on('patch', (op) => {
       order++;
       if (order === 1) {
-        assert.deepEqual(op, replacePlanet, 'applied replacePlanet operation');
+        assert.deepEqual(
+          op,
+          replacePlanet.toOperation(),
+          'applied replacePlanet operation'
+        );
       } else if (order === 2) {
-        assert.deepEqual(op, addToMoons, 'applied addToMoons operation');
+        assert.deepEqual(
+          op,
+          addToMoons.toOperation(),
+          'applied addToMoons operation'
+        );
       } else {
         assert.ok(false, 'too many ops');
       }
@@ -502,7 +510,11 @@ module('MemoryCache', function (hooks) {
     cache.on('patch', (op) => {
       order++;
       if (order === 1) {
-        assert.deepEqual(op, clearPlanet, 'applied clearPlanet operation');
+        assert.deepEqual(
+          op,
+          clearPlanet.toOperation(),
+          'applied clearPlanet operation'
+        );
       } else {
         assert.ok(false, 'too many ops');
       }
@@ -792,11 +804,13 @@ module('MemoryCache', function (hooks) {
           }
         ],
         inverse: [
-          tb.updateRecord({
-            type: 'planet',
-            id: '1',
-            attributes: { classification: null }
-          })
+          tb
+            .updateRecord({
+              type: 'planet',
+              id: '1',
+              attributes: { classification: null }
+            })
+            .toOperation()
         ]
       },
       'ignores ops that are noops'
@@ -862,14 +876,20 @@ module('MemoryCache', function (hooks) {
           }
         ],
         inverse: [
-          tb.replaceRelatedRecord({ type: 'moon', id: 'm2' }, 'planet', null),
-          tb.replaceRelatedRecord({ type: 'moon', id: 'm1' }, 'planet', {
-            type: 'planet',
-            id: '1'
-          }),
-          tb.replaceRelatedRecords({ type: 'planet', id: '1' }, 'moons', [
-            { type: 'moon', id: 'm1' }
-          ])
+          tb
+            .replaceRelatedRecord({ type: 'moon', id: 'm2' }, 'planet', null)
+            .toOperation(),
+          tb
+            .replaceRelatedRecord({ type: 'moon', id: 'm1' }, 'planet', {
+              type: 'planet',
+              id: '1'
+            })
+            .toOperation(),
+          tb
+            .replaceRelatedRecords({ type: 'planet', id: '1' }, 'moons', [
+              { type: 'moon', id: 'm1' }
+            ])
+            .toOperation()
         ]
       },
       'ignores ops that are noops'
@@ -899,11 +919,15 @@ module('MemoryCache', function (hooks) {
     assert.deepEqual(result, {
       data: [earth],
       inverse: [
-        tb.replaceRelatedRecord({ type: 'moon', id: 'm1' }, 'planet', null),
-        tb.removeRecord({
-          type: 'planet',
-          id: '1'
-        })
+        tb
+          .replaceRelatedRecord({ type: 'moon', id: 'm1' }, 'planet', null)
+          .toOperation(),
+        tb
+          .removeRecord({
+            type: 'planet',
+            id: '1'
+          })
+          .toOperation()
       ]
     });
 
@@ -912,17 +936,23 @@ module('MemoryCache', function (hooks) {
     assert.deepEqual(result, {
       data: [jupiter],
       inverse: [
-        tb.replaceRelatedRecord({ type: 'moon', id: 'm2' }, 'planet', null),
-        tb.replaceRelatedRecord({ type: 'moon', id: 'm1' }, 'planet', {
-          type: 'planet',
-          id: '1'
-        }),
-        tb.updateRecord({
-          type: 'planet',
-          id: '1',
-          attributes: { name: 'Earth', classification: null },
-          relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
-        })
+        tb
+          .replaceRelatedRecord({ type: 'moon', id: 'm2' }, 'planet', null)
+          .toOperation(),
+        tb
+          .replaceRelatedRecord({ type: 'moon', id: 'm1' }, 'planet', {
+            type: 'planet',
+            id: '1'
+          })
+          .toOperation(),
+        tb
+          .updateRecord({
+            type: 'planet',
+            id: '1',
+            attributes: { name: 'Earth', classification: null },
+            relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
+          })
+          .toOperation()
       ]
     });
 

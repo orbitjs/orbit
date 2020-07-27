@@ -8,7 +8,8 @@ import Orbit, {
   Schema,
   ServerError,
   Transform,
-  requestOptionsForSource
+  requestOptionsForSource,
+  QueryExpression
 } from '@orbit/data';
 import { Dict } from '@orbit/utils';
 import { InvalidServerResponse } from './lib/exceptions';
@@ -244,14 +245,30 @@ export class JSONAPIRequestProcessor {
   }
 
   customRequestOptions(
-    queryOrTransform: Query | Transform
-  ): JSONAPIRequestOptions {
-    let options = queryOrTransform.options;
-    if (options) {
-      return requestOptionsForSource(
-        options,
+    queryOrTransform: Query | Transform,
+    queryExpressionOrOperation: QueryExpression | Operation
+  ): JSONAPIRequestOptions | undefined {
+    let options: JSONAPIRequestOptions;
+
+    if (queryOrTransform.options) {
+      options = requestOptionsForSource(
+        queryOrTransform.options,
         this.sourceName
-      ) as JSONAPIRequestOptions;
+      );
+    }
+
+    if (queryExpressionOrOperation.options) {
+      options = {
+        ...options,
+        ...requestOptionsForSource(
+          queryExpressionOrOperation.options,
+          this.sourceName
+        )
+      };
+    }
+
+    if (options) {
+      return options;
     }
   }
 
