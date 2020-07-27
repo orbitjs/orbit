@@ -12,7 +12,8 @@ import {
   buildQuery,
   TransformBuilder,
   TransformBuilderFunc,
-  RecordIdentity
+  RecordIdentity,
+  OperationTerm
 } from '@orbit/data';
 import {
   AsyncOperationProcessor,
@@ -219,12 +220,14 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
     operationOrOperations:
       | RecordOperation
       | RecordOperation[]
+      | OperationTerm
+      | OperationTerm[]
       | TransformBuilderFunc
   ): Promise<PatchResult> {
     if (typeof operationOrOperations === 'function') {
       operationOrOperations = operationOrOperations(this._transformBuilder) as
-        | RecordOperation
-        | RecordOperation[];
+        | OperationTerm
+        | OperationTerm[];
     }
 
     const result: PatchResult = {
@@ -294,20 +297,24 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   }
 
   protected async _applyPatchOperations(
-    ops: RecordOperation[],
+    ops: RecordOperation[] | OperationTerm[],
     result: PatchResult,
     primary = false
-  ) {
+  ): Promise<void> {
     for (let op of ops) {
       await this._applyPatchOperation(op, result, primary);
     }
   }
 
   protected async _applyPatchOperation(
-    operation: RecordOperation,
+    operation: RecordOperation | OperationTerm,
     result: PatchResult,
     primary = false
-  ) {
+  ): Promise<void> {
+    if (operation instanceof OperationTerm) {
+      operation = operation.toOperation() as RecordOperation;
+    }
+
     for (let processor of this._processors) {
       await processor.validate(operation);
     }

@@ -12,7 +12,8 @@ import {
   TransformBuilder,
   TransformBuilderFunc,
   RecordIdentity,
-  RequestOptions
+  RequestOptions,
+  OperationTerm
 } from '@orbit/data';
 import {
   SyncOperationProcessor,
@@ -215,12 +216,14 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
     operationOrOperations:
       | RecordOperation
       | RecordOperation[]
+      | OperationTerm
+      | OperationTerm[]
       | TransformBuilderFunc
   ): PatchResult {
     if (typeof operationOrOperations === 'function') {
       operationOrOperations = operationOrOperations(this._transformBuilder) as
-        | RecordOperation
-        | RecordOperation[];
+        | OperationTerm
+        | OperationTerm[];
     }
 
     const result: PatchResult = {
@@ -288,39 +291,46 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   }
 
   protected _applyPatchOperations(
-    ops: RecordOperation[],
+    ops: RecordOperation[] | OperationTerm[],
     result: PatchResult,
     primary = false
-  ) {
-    ops.forEach((op) => this._applyPatchOperation(op, result, primary));
+  ): void {
+    for (const op of ops) {
+      this._applyPatchOperation(op, result, primary);
+    }
   }
 
   protected _applyPatchOperation(
-    operation: RecordOperation,
+    operation: RecordOperation | OperationTerm,
     result: PatchResult,
     primary = false
-  ) {
-    this._processors.forEach((processor) => processor.validate(operation));
+  ): void {
+    if (operation instanceof OperationTerm) {
+      operation = operation.toOperation() as RecordOperation;
+    }
+    for (let processor of this._processors) {
+      processor.validate(operation);
+    }
 
     const inversePatchOperator = this.getInversePatchOperator(operation.op);
     const inverseOp: RecordOperation | undefined = inversePatchOperator(
       this,
       operation
     );
-
     if (inverseOp) {
       result.inverse.push(inverseOp);
 
       // Query and perform related `before` operations
-      this._processors
-        .map((processor) => processor.before(operation))
-        .forEach((ops) => this._applyPatchOperations(ops, result));
+      for (let processor of this._processors) {
+        this._applyPatchOperations(processor.before(operation), result);
+      }
 
       // Query related `after` operations before performing
       // the requested operation. These will be applied on success.
-      let preparedOps = this._processors.map((processor) =>
-        processor.after(operation)
-      );
+      let preparedOps = [];
+      for (let processor of this._processors) {
+        preparedOps.push(processor.after(operation));
+      }
 
       // Perform the requested operation
       let patchOperator = this.getPatchOperator(operation.op);
@@ -330,18 +340,22 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
       }
 
       // Query and perform related `immediate` operations
-      this._processors.forEach((processor) => processor.immediate(operation));
+      for (let processor of this._processors) {
+        processor.immediate(operation);
+      }
 
       // Emit event
       this.emit('patch', operation, data);
 
       // Perform prepared operations after performing the requested operation
-      preparedOps.forEach((ops) => this._applyPatchOperations(ops, result));
+      for (let ops of preparedOps) {
+        this._applyPatchOperations(ops, result);
+      }
 
       // Query and perform related `finally` operations
-      this._processors
-        .map((processor) => processor.finally(operation))
-        .forEach((ops) => this._applyPatchOperations(ops, result));
+      for (let processor of this._processors) {
+        this._applyPatchOperations(processor.finally(operation), result);
+      }
     } else if (primary) {
       result.data.push(null);
     }
