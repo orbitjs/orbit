@@ -59,14 +59,14 @@ export type FilterQBParam =
  * Query terms are used by query builders to allow for the construction of
  * query expressions in composable patterns.
  */
-export class QueryTerm {
-  expression: QueryExpression;
+export class QueryTerm<T extends QueryExpression = QueryExpression> {
+  expression: T;
 
-  constructor(expression?: QueryExpression) {
+  constructor(expression?: T) {
     this.expression = expression;
   }
 
-  toQueryExpression(): QueryExpression {
+  toQueryExpression(): T {
     return this.expression;
   }
 
@@ -79,9 +79,7 @@ export class QueryTerm {
 /**
  * A query term representing a single record.
  */
-export class FindRecordTerm extends QueryTerm {
-  expression: FindRecord;
-
+export class FindRecordTerm extends QueryTerm<FindRecord> {
   constructor(record: RecordIdentity) {
     let expression: FindRecord = {
       op: 'findRecord',
@@ -92,9 +90,7 @@ export class FindRecordTerm extends QueryTerm {
   }
 }
 
-export class FindRelatedRecordTerm extends QueryTerm {
-  expression: FindRelatedRecord;
-
+export class FindRelatedRecordTerm extends QueryTerm<FindRelatedRecord> {
   constructor(record: RecordIdentity, relationship: string) {
     let expression: FindRelatedRecord = {
       op: 'findRelatedRecord',
@@ -106,9 +102,7 @@ export class FindRelatedRecordTerm extends QueryTerm {
   }
 }
 
-export class FindRelatedRecordsTerm extends QueryTerm {
-  expression: FindRelatedRecords;
-
+export class FindRelatedRecordsTerm extends QueryTerm<FindRelatedRecords> {
   constructor(record: RecordIdentity, relationship: string) {
     let expression: FindRelatedRecords = {
       op: 'findRelatedRecords',
@@ -136,7 +130,7 @@ export class FindRelatedRecordsTerm extends QueryTerm {
    * 'name'  // ascending order
    * ```
    */
-  sort(...params: SortQBParam[]): FindRelatedRecordsTerm {
+  sort(...params: SortQBParam[]): this {
     const specifiers = params.map(sortParamToSpecifier);
     this.expression.sort = (this.expression.sort || []).concat(specifiers);
     return this;
@@ -145,7 +139,7 @@ export class FindRelatedRecordsTerm extends QueryTerm {
   /**
    * Applies pagination to a collection query.
    */
-  page(param: PageQBParam): FindRelatedRecordsTerm {
+  page(param: PageQBParam): this {
     this.expression.page = pageParamToSpecifier(param);
     return this;
   }
@@ -162,16 +156,14 @@ export class FindRelatedRecordsTerm extends QueryTerm {
    *           { attribute: 'classification', value: 'terrestrial' });
    * ```
    */
-  filter(...params: FilterQBParam[]): FindRelatedRecordsTerm {
+  filter(...params: FilterQBParam[]): this {
     const specifiers = params.map(filterParamToSpecifier);
     this.expression.filter = (this.expression.filter || []).concat(specifiers);
     return this;
   }
 }
 
-export class FindRecordsTerm extends QueryTerm {
-  expression: FindRecords;
-
+export class FindRecordsTerm extends QueryTerm<FindRecords> {
   constructor(typeOrIdentities?: string | RecordIdentity[]) {
     let expression: FindRecords = {
       op: 'findRecords'
@@ -203,7 +195,7 @@ export class FindRecordsTerm extends QueryTerm {
    * 'name'  // ascending order
    * ```
    */
-  sort(...params: SortQBParam[]): FindRecordsTerm {
+  sort(...params: SortQBParam[]): this {
     const specifiers = params.map(sortParamToSpecifier);
     this.expression.sort = (this.expression.sort || []).concat(specifiers);
     return this;
@@ -212,7 +204,7 @@ export class FindRecordsTerm extends QueryTerm {
   /**
    * Applies pagination to a collection query.
    */
-  page(param: PageQBParam): FindRecordsTerm {
+  page(param: PageQBParam): this {
     this.expression.page = pageParamToSpecifier(param);
     return this;
   }
@@ -229,7 +221,7 @@ export class FindRecordsTerm extends QueryTerm {
    *           { attribute: 'classification', value: 'terrestrial' });
    * ```
    */
-  filter(...params: FilterQBParam[]): FindRecordsTerm {
+  filter(...params: FilterQBParam[]): this {
     const specifiers = params.map(filterParamToSpecifier);
     this.expression.filter = (this.expression.filter || []).concat(specifiers);
     return this;

@@ -18,14 +18,14 @@ import { RecordIdentity } from './record';
  * Operation terms are used by transform builders to allow for the construction of
  * operations in composable patterns.
  */
-export class OperationTerm {
-  operation: Operation;
+export class OperationTerm<T extends Operation = Operation> {
+  operation: T;
 
-  constructor(operation?: Operation) {
+  constructor(operation?: T) {
     this.operation = operation;
   }
 
-  toOperation(): Operation {
+  toOperation(): T {
     return this.operation;
   }
 
@@ -35,9 +35,7 @@ export class OperationTerm {
   }
 }
 
-export class AddRecordTerm extends OperationTerm {
-  operation: AddRecordOperation;
-
+export class AddRecordTerm extends OperationTerm<AddRecordOperation> {
   constructor(record: RecordIdentity) {
     const operation: AddRecordOperation = {
       op: 'addRecord',
@@ -48,9 +46,7 @@ export class AddRecordTerm extends OperationTerm {
   }
 }
 
-export class UpdateRecordTerm extends OperationTerm {
-  operation: UpdateRecordOperation;
-
+export class UpdateRecordTerm extends OperationTerm<UpdateRecordOperation> {
   constructor(record: RecordIdentity) {
     const operation: UpdateRecordOperation = {
       op: 'updateRecord',
@@ -61,9 +57,7 @@ export class UpdateRecordTerm extends OperationTerm {
   }
 }
 
-export class RemoveRecordTerm extends OperationTerm {
-  operation: RemoveRecordOperation;
-
+export class RemoveRecordTerm extends OperationTerm<RemoveRecordOperation> {
   constructor(record: RecordIdentity) {
     const operation: RemoveRecordOperation = {
       op: 'removeRecord',
@@ -74,9 +68,9 @@ export class RemoveRecordTerm extends OperationTerm {
   }
 }
 
-export class ReplaceAttributeTerm extends OperationTerm {
-  operation: ReplaceAttributeOperation;
-
+export class ReplaceAttributeTerm extends OperationTerm<
+  ReplaceAttributeOperation
+> {
   constructor(record: RecordIdentity, attribute: string, value: unknown) {
     const operation: ReplaceAttributeOperation = {
       op: 'replaceAttribute',
@@ -89,9 +83,7 @@ export class ReplaceAttributeTerm extends OperationTerm {
   }
 }
 
-export class ReplaceKeyTerm extends OperationTerm {
-  operation: ReplaceKeyOperation;
-
+export class ReplaceKeyTerm extends OperationTerm<ReplaceKeyOperation> {
   constructor(record: RecordIdentity, key: string, value: string) {
     const operation: ReplaceKeyOperation = {
       op: 'replaceKey',
@@ -104,9 +96,9 @@ export class ReplaceKeyTerm extends OperationTerm {
   }
 }
 
-export class AddToRelatedRecordsTerm extends OperationTerm {
-  operation: AddToRelatedRecordsOperation;
-
+export class AddToRelatedRecordsTerm extends OperationTerm<
+  AddToRelatedRecordsOperation
+> {
   constructor(
     record: RecordIdentity,
     relationship: string,
@@ -123,9 +115,9 @@ export class AddToRelatedRecordsTerm extends OperationTerm {
   }
 }
 
-export class RemoveFromRelatedRecordsTerm extends OperationTerm {
-  operation: RemoveFromRelatedRecordsOperation;
-
+export class RemoveFromRelatedRecordsTerm extends OperationTerm<
+  RemoveFromRelatedRecordsOperation
+> {
   constructor(
     record: RecordIdentity,
     relationship: string,
@@ -142,9 +134,9 @@ export class RemoveFromRelatedRecordsTerm extends OperationTerm {
   }
 }
 
-export class ReplaceRelatedRecordsTerm extends OperationTerm {
-  operation: ReplaceRelatedRecordsOperation;
-
+export class ReplaceRelatedRecordsTerm extends OperationTerm<
+  ReplaceRelatedRecordsOperation
+> {
   constructor(
     record: RecordIdentity,
     relationship: string,
@@ -161,9 +153,9 @@ export class ReplaceRelatedRecordsTerm extends OperationTerm {
   }
 }
 
-export class ReplaceRelatedRecordTerm extends OperationTerm {
-  operation: ReplaceRelatedRecordOperation;
-
+export class ReplaceRelatedRecordTerm extends OperationTerm<
+  ReplaceRelatedRecordOperation
+> {
   constructor(
     record: RecordIdentity,
     relationship: string,
