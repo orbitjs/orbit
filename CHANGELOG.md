@@ -1,5 +1,54 @@
 # Changelog
 
+## v0.17.0-beta.4 (2020-07-27)
+
+#### :boom: Breaking Change
+
+- `@orbit/integration-tests`, `@orbit/jsonapi`
+  - [#758](https://github.com/orbitjs/orbit/pull/758) Refactor JSON:API serializers ([@dgeb](https://github.com/dgeb))
+- `@orbit/core`, `@orbit/data`, `@orbit/indexeddb`, `@orbit/jsonapi`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/utils`
+  - [#751](https://github.com/orbitjs/orbit/pull/751) Remove v0.16 deprecations ([@dgeb](https://github.com/dgeb))
+
+#### :rocket: Enhancement
+
+- `@orbit/data`, `@orbit/jsonapi`, `@orbit/memory`, `@orbit/record-cache`
+  - [#765](https://github.com/orbitjs/orbit/pull/765) Add options to QueryExpression and Operation ([@tchak](https://github.com/tchak))
+- `@orbit/integration-tests`, `@orbit/jsonapi`
+  - [#758](https://github.com/orbitjs/orbit/pull/758) Refactor JSON:API serializers ([@dgeb](https://github.com/dgeb))
+- `@orbit/serializers`, `@orbit/utils`
+  - [#761](https://github.com/orbitjs/orbit/pull/761) Introduce inflectors to @orbit/serializers ([@dgeb](https://github.com/dgeb))
+- `@orbit/jsonapi`, `@orbit/serializers`
+  - [#757](https://github.com/orbitjs/orbit/pull/757) Refactor @orbit/serializers ([@dgeb](https://github.com/dgeb))
+- `@orbit/indexeddb`, `@orbit/local-storage`, `@orbit/memory`
+  - [#759](https://github.com/orbitjs/orbit/pull/759) cache settings as part of source settings should be partial ([@tchak](https://github.com/tchak))
+
+#### :bug: Bug Fix
+
+- `@orbit/memory`, `@orbit/record-cache`
+  - [#762](https://github.com/orbitjs/orbit/pull/762) Fix cache integrity processors' handling of relationships without explicit inverses. ([@dgeb](https://github.com/dgeb))
+- `@orbit/indexeddb`
+  - [#752](https://github.com/orbitjs/orbit/pull/752) Finish opening/upgrading indexeddb dbs before closing them ([@dgeb](https://github.com/dgeb))
+
+#### :house: Internal
+
+- `@orbit/build`
+  - [#770](https://github.com/orbitjs/orbit/pull/770) Update snowpack ([@dgeb](https://github.com/dgeb))
+  - [#756](https://github.com/orbitjs/orbit/pull/756) Update build deps ([@dgeb](https://github.com/dgeb))
+- `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`
+  - [#766](https://github.com/orbitjs/orbit/pull/766) Refactor internal modules to remove default module exports ([@dgeb](https://github.com/dgeb))
+- Other
+  - [#764](https://github.com/orbitjs/orbit/pull/764) Upgrade build dependencies (except snowpack) ([@dgeb](https://github.com/dgeb))
+  - [#753](https://github.com/orbitjs/orbit/pull/753) Test on travis with updated ubuntu (and thus updated Chrome) ([@dgeb](https://github.com/dgeb))
+- `@orbit/build`, `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/serializers`, `@orbit/utils`
+  - [#750](https://github.com/orbitjs/orbit/pull/750) Introduce @orbit/build ([@dgeb](https://github.com/dgeb))
+- `@orbit/integration-tests`
+  - [#748](https://github.com/orbitjs/orbit/pull/748) Reintroduce @orbit/integration-tests ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 2
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+- Paul Chavard ([@tchak](https://github.com/tchak))
+
 ## v0.16.6 (2020-07-24)
 
 #### :bug: Bug Fix
