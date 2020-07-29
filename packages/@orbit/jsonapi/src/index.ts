@@ -1,5 +1,6 @@
 export { JSONAPISource as default } from './jsonapi-source';
 export * from './jsonapi-source';
+export * from './jsonapi-serializer';
 export * from './serializers/jsonapi-base-serializer';
 export * from './serializers/jsonapi-document-serializer';
 export * from './serializers/jsonapi-operation-serializer';
@@ -16,3 +17,5 @@ export * from './resource-operations';
 export * from './lib/exceptions';
 export * from './lib/jsonapi-request-options';
 export * from './lib/query-params';
+export * from './lib/query-requests';
+export * from './lib/transform-requests';
