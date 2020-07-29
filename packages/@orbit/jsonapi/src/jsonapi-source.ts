@@ -293,7 +293,7 @@ export class JSONAPISource extends Source
     }
   }
 
-  private getQueryRequests(query: Query): QueryRequest[] {
+  protected getQueryRequests(query: Query): QueryRequest[] {
     const queryRequests = getQueryRequests(this.requestProcessor, query);
     if (
       this.maxRequestsPerQuery &&
@@ -307,13 +307,15 @@ export class JSONAPISource extends Source
     return queryRequests;
   }
 
-  private getQueryRequestProcessor(
+  protected getQueryRequestProcessor(
     request: QueryRequest
   ): QueryRequestProcessor {
     return QueryRequestProcessors[request.op];
   }
 
-  private getTransformRequests(transform: Transform): TransformRecordRequest[] {
+  protected getTransformRequests(
+    transform: Transform
+  ): TransformRecordRequest[] {
     const transformRequests = getTransformRequests(
       this.requestProcessor,
       transform
@@ -330,7 +332,7 @@ export class JSONAPISource extends Source
     return transformRequests;
   }
 
-  private getTransformRequestProcessor(
+  protected getTransformRequestProcessor(
     request: TransformRecordRequest
   ): TransformRequestProcessor {
     return TransformRequestProcessors[request.op];

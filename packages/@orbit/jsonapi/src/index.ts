@@ -17,3 +17,5 @@ export * from './resource-operations';
 export * from './lib/exceptions';
 export * from './lib/jsonapi-request-options';
 export * from './lib/query-params';
+export * from './lib/query-requests';
+export * from './lib/transform-requests';
