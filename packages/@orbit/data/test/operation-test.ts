@@ -1,4 +1,4 @@
-import { coalesceRecordOperations } from '../src/operation';
+import { coalesceRecordOperations, recordDiffs } from '../src/operation';
 import './test-helper';
 
 const { module, test } = QUnit;
@@ -724,6 +724,199 @@ module('Operation', function () {
             }
           }
         ]
+      );
+    });
+  });
+
+  module('recordDiffs', function () {
+    test('can identify updated attributes and keys individually', function (assert) {
+      assert.deepEqual(
+        recordDiffs(
+          {
+            type: 'planet',
+            id: 'jupiter',
+            attributes: {
+              name: 'Jupiter',
+              size: 'L',
+              weight: 9000
+            }
+          },
+          {
+            type: 'planet',
+            id: 'jupiter',
+            attributes: {
+              name: 'Jupiter2',
+              size: 'M'
+            },
+            keys: {
+              remoteId: 'abc123'
+            }
+          }
+        ),
+        [
+          {
+            op: 'replaceAttribute',
+            record: {
+              type: 'planet',
+              id: 'jupiter'
+            },
+            attribute: 'name',
+            value: 'Jupiter2'
+          },
+          {
+            op: 'replaceAttribute',
+            record: {
+              type: 'planet',
+              id: 'jupiter'
+            },
+            attribute: 'size',
+            value: 'M'
+          },
+          {
+            op: 'replaceKey',
+            record: {
+              type: 'planet',
+              id: 'jupiter'
+            },
+            key: 'remoteId',
+            value: 'abc123'
+          }
+        ]
+      );
+    });
+
+    test('any `meta` updates will be part of a full record update', function (assert) {
+      assert.deepEqual(
+        recordDiffs(
+          {
+            type: 'planet',
+            id: 'jupiter',
+            attributes: {
+              name: 'Jupiter',
+              size: 'L',
+              weight: 9000
+            }
+          },
+          {
+            type: 'planet',
+            id: 'jupiter',
+            attributes: {
+              name: 'Jupiter2',
+              size: 'M'
+            },
+            keys: {
+              remoteId: 'abc123'
+            },
+            meta: {
+              version: 20
+            }
+          }
+        ),
+        [
+          {
+            op: 'updateRecord',
+            record: {
+              type: 'planet',
+              id: 'jupiter',
+              attributes: {
+                name: 'Jupiter2',
+                size: 'M'
+              },
+              keys: {
+                remoteId: 'abc123'
+              },
+              meta: {
+                version: 20
+              }
+            }
+          }
+        ]
+      );
+    });
+
+    test('any `relationship` updates will be part of a full record update', function (assert) {
+      assert.deepEqual(
+        recordDiffs(
+          {
+            type: 'planet',
+            id: 'jupiter'
+          },
+          {
+            type: 'planet',
+            id: 'jupiter',
+            relationships: {
+              moons: {
+                meta: {
+                  version: 10
+                }
+              },
+              sun: {
+                data: {
+                  type: 'sun',
+                  id: '123'
+                }
+              }
+            }
+          }
+        ),
+        [
+          {
+            op: 'updateRecord',
+            record: {
+              type: 'planet',
+              id: 'jupiter',
+              relationships: {
+                moons: {
+                  meta: {
+                    version: 10
+                  }
+                },
+                sun: {
+                  data: {
+                    type: 'sun',
+                    id: '123'
+                  }
+                }
+              }
+            }
+          }
+        ]
+      );
+    });
+
+    test('if a record is identical, no ops will be returned', function (assert) {
+      assert.deepEqual(
+        recordDiffs(
+          {
+            type: 'planet',
+            id: 'jupiter',
+            relationships: {
+              moons: {
+                meta: {
+                  version: 10
+                }
+              }
+            },
+            meta: {
+              version: 20
+            }
+          },
+          {
+            type: 'planet',
+            id: 'jupiter',
+            relationships: {
+              moons: {
+                meta: {
+                  version: 10
+                }
+              }
+            },
+            meta: {
+              version: 20
+            }
+          }
+        ),
+        []
       );
     });
   });

@@ -414,49 +414,84 @@ export function recordDiffs(
   record: Record,
   updatedRecord: Record
 ): RecordOperation[] {
-  const diffs: RecordOperation[] = [];
+  const ops: RecordOperation[] = [];
 
   if (record && updatedRecord) {
+    let fullRecordUpdate = false;
     const recordIdentity = cloneRecordIdentity(record);
+    const diffRecord: Record = { ...recordIdentity };
 
-    if (updatedRecord.attributes) {
-      Object.keys(updatedRecord.attributes).forEach((attribute) => {
-        let value = updatedRecord.attributes[attribute];
+    Object.keys(updatedRecord).forEach((member) => {
+      if (member !== 'id' && member !== 'type') {
+        let value: unknown;
+        let updatedValue: unknown;
 
-        if (
-          record.attributes === undefined ||
-          !eq(record.attributes[attribute], value)
-        ) {
+        switch (member) {
+          case 'attributes':
+          case 'keys':
+          case 'relationships':
+            Object.keys(updatedRecord[member]).forEach((field) => {
+              value = record[member]?.[field];
+              updatedValue = updatedRecord[member][field];
+
+              if (!eq(value, updatedValue)) {
+                if (member === 'relationships') {
+                  fullRecordUpdate = true;
+                }
+                diffRecord[member] = diffRecord[member] || {};
+                diffRecord[member][field] = updatedValue;
+              }
+            });
+            break;
+
+          default:
+            value = (record as any)[member];
+            updatedValue = (updatedRecord as any)[member];
+
+            if (!eq(updatedValue, value)) {
+              (diffRecord as any)[member] = updatedValue;
+              fullRecordUpdate = true;
+            }
+        }
+      }
+    });
+
+    // If updates consist solely of attributes and keys, update fields
+    // with individual operations. Otherwise, update the record as a
+    // whole.
+    if (fullRecordUpdate) {
+      let op: UpdateRecordOperation = {
+        op: 'updateRecord',
+        record: diffRecord
+      };
+      ops.push(op);
+    } else {
+      if (diffRecord.attributes) {
+        Object.keys(diffRecord.attributes).forEach((attribute) => {
+          let value = diffRecord.attributes[attribute];
           let op: ReplaceAttributeOperation = {
             op: 'replaceAttribute',
             record: recordIdentity,
             attribute,
             value
           };
-
-          diffs.push(op);
-        }
-      });
-    }
-
-    if (updatedRecord.keys) {
-      Object.keys(updatedRecord.keys).forEach((key) => {
-        let value = updatedRecord.keys[key];
-        if (record.keys === undefined || !eq(record.keys[key], value)) {
+          ops.push(op);
+        });
+      }
+      if (diffRecord.keys) {
+        Object.keys(diffRecord.keys).forEach((key) => {
+          let value = diffRecord.keys[key];
           let op: ReplaceKeyOperation = {
             op: 'replaceKey',
             record: recordIdentity,
             key,
             value
           };
-
-          diffs.push(op);
-        }
-      });
+          ops.push(op);
+        });
+      }
     }
-
-    // TODO - handle relationships
   }
 
-  return diffs;
+  return ops;
 }
