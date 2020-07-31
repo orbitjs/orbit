@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.17.0-beta.5 (2020-07-31)
+
+#### :rocket: Enhancement
+
+- `@orbit/data`
+  - [#772](https://github.com/orbitjs/orbit/pull/772) Fill out recordDiffs implementation ([@dgeb](https://github.com/dgeb))
+- `@orbit/jsonapi`
+  - [#771](https://github.com/orbitjs/orbit/pull/771) Expand exports in @orbit/jsonapi ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.4 (2020-07-27)
 
 #### :boom: Breaking Change
