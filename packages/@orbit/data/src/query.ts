@@ -2,7 +2,6 @@ import { Orbit } from '@orbit/core';
 import { QueryExpression } from './query-expression';
 import { QueryTerm } from './query-term';
 import { QueryBuilder } from './query-builder';
-import { isObject } from '@orbit/utils';
 import { RequestOptions } from './request';
 
 export type QueryBuilderFunc = (
@@ -59,19 +58,13 @@ export function buildQuery(
     } else if (Array.isArray(queryOrExpressions)) {
       expressions = [];
       for (let queryOrExpression of queryOrExpressions) {
-        if (queryOrExpression instanceof QueryTerm) {
-          expressions.push(queryOrExpression.toQueryExpression());
-        } else {
-          expressions.push(queryOrExpression);
-        }
+        expressions.push(toQueryExpression(queryOrExpression));
       }
       options = queryOptions;
     } else {
-      if (queryOrExpressions instanceof QueryTerm) {
-        expressions = [queryOrExpressions.toQueryExpression()];
-      } else {
-        expressions = [queryOrExpressions] as QueryExpression[];
-      }
+      expressions = [
+        toQueryExpression(queryOrExpressions as QueryExpression | QueryTerm)
+      ];
       options = queryOptions;
     }
 
@@ -85,6 +78,22 @@ export function buildQuery(
   }
 }
 
+function toQueryExpression(
+  expression: QueryExpression | QueryTerm
+): QueryExpression {
+  if (isQueryTerm(expression)) {
+    return expression.toQueryExpression();
+  } else {
+    return expression;
+  }
+}
+
+function isQueryTerm(
+  expression: QueryExpression | QueryTerm
+): expression is QueryTerm {
+  return typeof (expression as QueryTerm).toQueryExpression === 'function';
+}
+
 function isQuery(query: QueryOrExpressions): query is Query {
-  return isObject(query) && (query as any).expressions;
+  return Array.isArray((query as Query).expressions);
 }

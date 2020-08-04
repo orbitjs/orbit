@@ -1,6 +1,5 @@
 /* eslint-disable valid-jsdoc */
 import { Orbit } from '@orbit/core';
-import { isObject } from '@orbit/utils';
 import { Operation } from './operation';
 import { OperationTerm } from './operation-term';
 import { TransformBuilder } from './transform-builder';
@@ -64,19 +63,13 @@ export function buildTransform(
     } else if (Array.isArray(transformOrOperations)) {
       operations = [];
       for (let transformOrOperation of transformOrOperations) {
-        if (transformOrOperation instanceof OperationTerm) {
-          operations.push(transformOrOperation.toOperation());
-        } else {
-          operations.push(transformOrOperation);
-        }
+        operations.push(toOperation(transformOrOperation));
       }
       options = transformOptions;
     } else {
-      if (transformOrOperations instanceof OperationTerm) {
-        operations = [transformOrOperations.toOperation()];
-      } else {
-        operations = [transformOrOperations as Operation];
-      }
+      operations = [
+        toOperation(transformOrOperations as Operation | OperationTerm)
+      ];
       options = transformOptions;
     }
 
@@ -86,6 +79,20 @@ export function buildTransform(
   }
 }
 
+function toOperation(operation: Operation | OperationTerm): Operation {
+  if (isOperationTerm(operation)) {
+    return operation.toOperation();
+  } else {
+    return operation;
+  }
+}
+
+function isOperationTerm(
+  operation: Operation | OperationTerm
+): operation is OperationTerm {
+  return typeof (operation as OperationTerm).toOperation === 'function';
+}
+
 function isTransform(transform: TransformOrOperations): transform is Transform {
-  return isObject(transform) && (transform as any).operations;
+  return Array.isArray((transform as Transform).operations);
 }
