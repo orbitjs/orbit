@@ -25,7 +25,7 @@ module('buildQuery', function () {
     assert.ok(query.id, 'query has an id');
   });
 
-  test('can instantiate a query with an expression, options, and an id', function (assert) {
+  test('can instantiate a query with a single expression, options, and an id', function (assert) {
     let expression: FindRecords = {
       op: 'findRecords'
     };
@@ -36,6 +36,65 @@ module('buildQuery', function () {
     assert.strictEqual(
       query.expressions[0],
       expression,
+      'expression was populated'
+    );
+    assert.strictEqual(query.options, options, 'options was populated');
+  });
+
+  test('can instantiate a query with an array of expressions, options, and an id', function (assert) {
+    let expression: FindRecords = {
+      op: 'findRecords'
+    };
+    let expressions = [expression];
+    let options = { sources: { jsonapi: { include: 'comments' } } };
+    let query = buildQuery(expression, options, 'abc123');
+
+    assert.strictEqual(query.id, 'abc123', 'id was populated');
+    assert.deepEqual(
+      query.expressions,
+      expressions,
+      'expression was populated'
+    );
+    assert.strictEqual(query.options, options, 'options was populated');
+  });
+
+  test('can instantiate a query with a single query expression term, options, and an id', function (assert) {
+    let term1 = {
+      toQueryExpression: () => {
+        return { op: 'findRecords' };
+      }
+    } as QueryTerm;
+    let options = { sources: { jsonapi: { include: 'comments' } } };
+    let query = buildQuery(term1, options, 'abc123');
+
+    assert.strictEqual(query.id, 'abc123', 'id was populated');
+    assert.deepEqual(
+      query.expressions,
+      [{ op: 'findRecords' }],
+      'expression was populated'
+    );
+    assert.strictEqual(query.options, options, 'options was populated');
+  });
+
+  test('can instantiate a query with a single query expression term, options, and an id', function (assert) {
+    let term1 = {
+      toQueryExpression: () => {
+        return { op: 'findRecords' };
+      }
+    } as QueryTerm;
+    let term2 = {
+      toQueryExpression: () => {
+        return { op: 'findRecord' };
+      }
+    } as QueryTerm;
+    let expressions = [term1, term2];
+    let options = { sources: { jsonapi: { include: 'comments' } } };
+    let query = buildQuery(expressions, options, 'abc123');
+
+    assert.strictEqual(query.id, 'abc123', 'id was populated');
+    assert.deepEqual(
+      query.expressions,
+      [{ op: 'findRecords' }, { op: 'findRecord' }],
       'expression was populated'
     );
     assert.strictEqual(query.options, options, 'options was populated');
