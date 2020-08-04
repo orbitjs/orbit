@@ -1,7 +1,7 @@
 {
   "name": "@orbit/integration-tests",
   "private": true,
-  "version": "0.17.0-beta.5",
+  "version": "0.17.0-beta.6",
   "description": "Integration tests for core Orbit packages.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -15,17 +15,17 @@
     "test": "node ../build ci && snowpack build && testem ci"
   },
   "dependencies": {
-    "@orbit/coordinator": "^0.17.0-beta.5",
+    "@orbit/coordinator": "^0.17.0-beta.6",
     "@orbit/core": "^0.17.0-beta.4",
-    "@orbit/data": "^0.17.0-beta.5",
+    "@orbit/data": "^0.17.0-beta.6",
     "@orbit/immutable": "^0.17.0-beta.4",
-    "@orbit/indexeddb": "^0.17.0-beta.5",
+    "@orbit/indexeddb": "^0.17.0-beta.6",
     "@orbit/indexeddb-bucket": "^0.17.0-beta.4",
-    "@orbit/jsonapi": "^0.17.0-beta.5",
-    "@orbit/local-storage": "^0.17.0-beta.5",
+    "@orbit/jsonapi": "^0.17.0-beta.6",
+    "@orbit/local-storage": "^0.17.0-beta.6",
     "@orbit/local-storage-bucket": "^0.17.0-beta.4",
-    "@orbit/memory": "^0.17.0-beta.5",
-    "@orbit/record-cache": "^0.17.0-beta.5",
+    "@orbit/memory": "^0.17.0-beta.6",
+    "@orbit/record-cache": "^0.17.0-beta.6",
     "@orbit/serializers": "^0.17.0-beta.4",
     "@orbit/utils": "^0.17.0-beta.4"
   },
