@@ -1842,35 +1842,51 @@ module('SyncRecordCache', function (hooks) {
     ]);
     arrayMembershipMatches(
       assert,
-      cache.query((q) => {
-        let tmp = q.findRecords('planet');
-        return tmp.filter({ attribute: 'sequence', value: 2, op: 'gt' });
-      }),
+      cache.query((q) =>
+        q
+          .findRecords('planet')
+          .filter({ attribute: 'sequence', value: 2, op: 'gt' })
+      ),
       [earth, jupiter]
     );
     arrayMembershipMatches(
       assert,
-      cache.query((q) => {
-        let tmp = q.findRecords('planet');
-        return tmp.filter({ attribute: 'sequence', value: 2, op: 'gte' });
-      }),
+      cache.query((q) =>
+        q
+          .findRecords('planet')
+          .filter({ attribute: 'sequence', value: 2, op: 'gte' })
+      ),
       [venus, earth, jupiter]
     );
     arrayMembershipMatches(
       assert,
-      cache.query((q) => {
-        let tmp = q.findRecords('planet');
-        return tmp.filter({ attribute: 'sequence', value: 2, op: 'lt' });
-      }),
+      cache.query((q) =>
+        q
+          .findRecords('planet')
+          .filter({ attribute: 'sequence', value: 2, op: 'lt' })
+      ),
       [mercury]
     );
     arrayMembershipMatches(
       assert,
-      cache.query((q) => {
-        let tmp = q.findRecords('planet');
-        return tmp.filter({ attribute: 'sequence', value: 2, op: 'lte' });
-      }),
+      cache.query((q) =>
+        q
+          .findRecords('planet')
+          .filter({ attribute: 'sequence', value: 2, op: 'lte' })
+      ),
       [venus, mercury]
+    );
+    arrayMembershipMatches(
+      assert,
+      cache.query((q) =>
+        q
+          .findRecords('planet')
+          .filter(
+            { attribute: 'sequence', value: 2, op: 'gte' },
+            { attribute: 'sequence', value: 4, op: 'lt' }
+          )
+      ),
+      [venus, earth]
     );
   });
 
@@ -4341,5 +4357,77 @@ module('SyncRecordCache', function (hooks) {
 
     cache.patch((t) => planets.map((planet) => t.addRecord(planet)));
     assert.expect(3);
+  });
+
+  test('#liveQuery can apply attribute filters', function (assert) {
+    const cache = new ExampleSyncRecordCache({ schema, keyMap });
+
+    const jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: {
+        name: 'Jupiter',
+        sequence: 5,
+        classification: 'gas giant',
+        atmosphere: true
+      }
+    };
+    const earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      attributes: {
+        name: 'Earth',
+        sequence: 3,
+        classification: 'terrestrial',
+        atmosphere: true
+      }
+    };
+    const venus: Record = {
+      type: 'planet',
+      id: 'venus',
+      attributes: {
+        name: 'Venus',
+        sequence: 2,
+        classification: 'terrestrial',
+        atmosphere: true
+      }
+    };
+    const mercury: Record = {
+      type: 'planet',
+      id: 'mercury',
+      attributes: {
+        name: 'Mercury',
+        sequence: 1,
+        classification: 'terrestrial',
+        atmosphere: false
+      }
+    };
+
+    const livePlanets = cache.liveQuery((q) =>
+      q
+        .findRecords('planet')
+        .filter(
+          { attribute: 'sequence', value: 2, op: 'gte' },
+          { attribute: 'sequence', value: 4, op: 'lt' }
+        )
+    );
+
+    const done = assert.async();
+    livePlanets.subscribe((update) => {
+      const result = update.query();
+      arrayMembershipMatches(assert, result, [venus, earth]);
+      done();
+    });
+
+    // liveQuery results are initially empty
+    arrayMembershipMatches(assert, livePlanets.query(), []);
+
+    // adding records should update liveQuery results
+    cache.patch((t) => [
+      t.addRecord(jupiter),
+      t.addRecord(earth),
+      t.addRecord(venus),
+      t.addRecord(mercury)
+    ]);
   });
 });
