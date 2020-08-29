@@ -213,7 +213,7 @@ module('Operation', function() {
                 address: {
                   data: { type: 'address', id: 'abc' }
                 }
-              }
+              },
               type: 'contact',
             }
           }
