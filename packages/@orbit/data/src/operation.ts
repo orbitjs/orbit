@@ -3,7 +3,8 @@ import {
   Record,
   RecordIdentity,
   cloneRecordIdentity,
-  equalRecordIdentities
+  equalRecordIdentities,
+  mergeRecords
 } from './record';
 import { RequestOptions } from './request';
 
@@ -208,6 +209,15 @@ function mergeOperations(
           superceded.op = 'updateRecord';
           markOperationToDelete(superceding);
         }
+      } else if (
+        (superceded.op === 'addRecord' ||
+          superceded.op === 'updateRecord' ||
+          (superceded as any).op === 'replaceRecord') &&
+        (superceding.op === 'updateRecord' ||
+          (superceding as any).op === 'replaceRecord')
+      ) {
+        superceded.record = mergeRecords(superceded.record, superceding.record);
+        markOperationToDelete(superceding);
       } else if (
         (superceded.op === 'addRecord' ||
           superceded.op === 'updateRecord' ||
