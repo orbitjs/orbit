@@ -197,6 +197,90 @@ module('Operation', function () {
       );
     });
 
+    test('can coalesce addRecord + updateRecord for the same record', function (assert) {
+      assert.deepEqual(
+        coalesceRecordOperations([
+          {
+            op: 'addRecord',
+            record: {
+              type: 'contact',
+              id: '1234'
+            }
+          },
+          {
+            op: 'updateRecord',
+            record: {
+              type: 'contact',
+              id: '1234',
+              attributes: { name: 'Joe' },
+              relationships: {
+                address: {
+                  data: { type: 'address', id: 'abc' }
+                }
+              }
+            }
+          }
+        ]),
+        [
+          {
+            op: 'addRecord',
+            record: {
+              type: 'contact',
+              id: '1234',
+              attributes: { name: 'Joe' },
+              relationships: {
+                address: {
+                  data: { type: 'address', id: 'abc' }
+                }
+              }
+            }
+          }
+        ]
+      );
+    });
+
+    test('can coalesce updateRecord + updateRecord for the same record', function (assert) {
+      assert.deepEqual(
+        coalesceRecordOperations([
+          {
+            op: 'updateRecord',
+            record: {
+              type: 'contact',
+              id: '1234',
+              attributes: { name: 'Joe' }
+            }
+          },
+          {
+            op: 'updateRecord',
+            record: {
+              type: 'contact',
+              id: '1234',
+              relationships: {
+                address: {
+                  data: { type: 'address', id: 'abc' }
+                }
+              }
+            }
+          }
+        ]),
+        [
+          {
+            op: 'updateRecord',
+            record: {
+              type: 'contact',
+              id: '1234',
+              attributes: { name: 'Joe' },
+              relationships: {
+                address: {
+                  data: { type: 'address', id: 'abc' }
+                }
+              }
+            }
+          }
+        ]
+      );
+    });
+
     test('can coalesce replaceAttribute + replaceRelatedRecord with null', function (assert) {
       assert.deepEqual(
         coalesceRecordOperations([
