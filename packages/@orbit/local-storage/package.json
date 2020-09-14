@@ -1,6 +1,6 @@
 {
   "name": "@orbit/local-storage",
-  "version": "0.16.6",
+  "version": "0.16.7",
   "description": "Local storage support for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -26,8 +26,8 @@
   },
   "dependencies": {
     "@orbit/core": "^0.16.3",
-    "@orbit/data": "^0.16.5",
-    "@orbit/record-cache": "^0.16.6",
+    "@orbit/data": "^0.16.7",
+    "@orbit/record-cache": "^0.16.7",
     "@orbit/utils": "^0.16.3"
   },
   "devDependencies": {

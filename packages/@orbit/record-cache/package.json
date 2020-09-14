@@ -1,6 +1,6 @@
 {
   "name": "@orbit/record-cache",
-  "version": "0.16.6",
+  "version": "0.16.7",
   "description": "Orbit base classes used to access and maintain a set of records.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@orbit/core": "^0.16.3",
-    "@orbit/data": "^0.16.5",
+    "@orbit/data": "^0.16.7",
     "@orbit/utils": "^0.16.3"
   },
   "devDependencies": {
