@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.16.7 (2020-09-14)
+
+#### :bug: Bug Fix
+
+- `@orbit/data`
+  - [#781](https://github.com/orbitjs/orbit/pull/781) Backport PR 780 to v0.16 ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.5 (2020-07-31)
 
 #### :rocket: Enhancement
