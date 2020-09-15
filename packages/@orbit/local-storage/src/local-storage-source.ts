@@ -42,7 +42,8 @@ export interface LocalStorageSourceSettings extends SourceSettings {
 @pullable
 @pushable
 @syncable
-export class LocalStorageSource extends Source
+export class LocalStorageSource
+  extends Source
   implements Pullable, Pushable, Resettable, Syncable {
   protected _cache: LocalStorageCache;
 
