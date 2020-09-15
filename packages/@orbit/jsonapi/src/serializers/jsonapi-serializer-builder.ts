@@ -1,5 +1,6 @@
 import { deepMerge } from '@orbit/utils';
 import {
+  NoopSerializer,
   BooleanSerializer,
   StringSerializer,
   DateSerializer,
@@ -30,6 +31,7 @@ export function buildJSONAPISerializerFor(settings: {
   const { schema, keyMap } = settings;
 
   const defaultSerializerClassFor = buildSerializerClassFor({
+    unknown: NoopSerializer,
     boolean: BooleanSerializer,
     string: StringSerializer,
     date: DateSerializer,
@@ -47,7 +49,7 @@ export function buildJSONAPISerializerFor(settings: {
   });
   let serializerClassFor: SerializerClassForFn;
   if (settings.serializerClassFor) {
-    serializerClassFor = (type: string) => {
+    serializerClassFor = (type = 'unknown') => {
       return (
         settings.serializerClassFor(type) || defaultSerializerClassFor(type)
       );
@@ -73,7 +75,7 @@ export function buildJSONAPISerializerFor(settings: {
   });
   let customSerializerSettingsFor = settings.serializerSettingsFor;
   if (customSerializerSettingsFor) {
-    serializerSettingsFor = (type: string) => {
+    serializerSettingsFor = (type = 'unknown') => {
       let defaultSerializerSettings = defaultSerializerSettingsFor(type) || {};
       let customSerializerSettings = customSerializerSettingsFor(type) || {};
       return deepMerge(defaultSerializerSettings, customSerializerSettings);
@@ -88,9 +90,9 @@ export function buildJSONAPISerializerFor(settings: {
     serializerSettingsFor
   });
   if (customSerializerFor) {
-    return (type: string) =>
+    return (type = 'unknown') =>
       customSerializerFor(type) || backupSerializerFor(type);
   } else {
-    return (type: string) => backupSerializerFor(type);
+    return (type = 'unknown') => backupSerializerFor(type);
   }
 }

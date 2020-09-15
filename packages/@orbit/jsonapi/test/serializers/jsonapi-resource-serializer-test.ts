@@ -17,7 +17,8 @@ module('JSONAPIResourceSerializer', function (hooks) {
       planet: {
         attributes: {
           name: { type: 'string' },
-          classification: { type: 'string' }
+          classification: { type: 'string' },
+          mystery: {}
         },
         relationships: {
           moons: { kind: 'hasMany', type: 'moon', inverse: 'planet' },
@@ -72,6 +73,30 @@ module('JSONAPIResourceSerializer', function (hooks) {
           {
             type: 'planet',
             id: '123'
+          },
+          'serialized resource matches'
+        );
+      });
+
+      test('#serialize - serializes attributes without a type using the NoopSerializer by default', function (assert) {
+        assert.deepEqual(
+          serializer.serialize({
+            type: 'planet',
+            id: '123',
+            attributes: {
+              mystery: {
+                whatDoWeHaveHere: 234
+              }
+            }
+          }),
+          {
+            type: 'planet',
+            id: '123',
+            attributes: {
+              mystery: {
+                whatDoWeHaveHere: 234
+              }
+            }
           },
           'serialized resource matches'
         );
@@ -430,7 +455,8 @@ module('JSONAPIResourceSerializer', function (hooks) {
               serializationOptions: { format: 'cm', digits: 2 },
               deserializationOptions: { format: 'cm' }
             },
-            isAdult: { type: 'boolean' }
+            isAdult: { type: 'boolean' },
+            mystery: {}
           }
         }
       };
@@ -460,12 +486,30 @@ module('JSONAPIResourceSerializer', function (hooks) {
         }
       }
 
+      interface SerializedMystery {
+        whatDoWeHaveHere: unknown;
+      }
+
+      class MysterySerializer
+        implements Serializer<unknown, SerializedMystery, any, any> {
+        serialize(arg: unknown, options?: any): SerializedMystery {
+          return {
+            whatDoWeHaveHere: arg
+          };
+        }
+
+        deserialize(arg: SerializedMystery, options?: any): unknown {
+          return arg.whatDoWeHaveHere;
+        }
+      }
+
       let serializer: JSONAPIResourceSerializer;
 
       hooks.beforeEach(function () {
         let schema = new Schema({ models: modelDefinitions });
         const serializerClassFor = buildSerializerClassFor({
-          distance: DistanceSerializer
+          distance: DistanceSerializer,
+          unknown: MysterySerializer
         });
         const serializerSettingsFor = buildSerializerSettingsFor({
           settingsByType: {
@@ -497,8 +541,9 @@ module('JSONAPIResourceSerializer', function (hooks) {
         assert.ok(serializer.serializerFor('datetime'));
         assert.ok(serializer.serializerFor('number'));
 
-        // custom serializer
+        // custom serializers
         assert.ok(serializer.serializerFor('distance'));
+        assert.ok(serializer.serializerFor('unknown'));
 
         // nonexistent serializer (as sanity check)
         assert.notOk(serializer.serializerFor('fake'));
@@ -514,7 +559,10 @@ module('JSONAPIResourceSerializer', function (hooks) {
               birthday: new Date(2000, 11, 31),
               birthtime: new Date('2000-12-31T10:00:00.000Z'),
               height: 1.0, // meters
-              isAdult: true
+              isAdult: true,
+              mystery: {
+                foo: 'bar'
+              }
             }
           }),
           {
@@ -525,7 +573,12 @@ module('JSONAPIResourceSerializer', function (hooks) {
               birthday: '2000-12-31',
               birthtime: '2000-12-31T10:00:00.000Z',
               height: '100.00', // cm (with 2 digits)
-              'is-adult': true
+              'is-adult': true,
+              mystery: {
+                whatDoWeHaveHere: {
+                  foo: 'bar'
+                }
+              }
             }
           },
           'serialized resource matches'
