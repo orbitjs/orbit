@@ -21,10 +21,13 @@
     "typedoc": "typedoc"
   },
   "devDependencies": {
+    "@orbit/prettier-config": "^1.0.0",
     "lerna": "^3.22.1",
+    "prettier": "^2.1.1",
     "typedoc": "^0.17.7",
     "typedoc-plugin-lerna-packages": "^0.3.0"
   },
+  "prettier": "@orbit/prettier-config",
   "workspaces": [
     "packages/@orbit/*"
   ]
