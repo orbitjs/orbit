@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.17.0-beta.7 (2020-09-16)
+
+#### :rocket: Enhancement
+
+- `@orbit/jsonapi`
+  - [#783](https://github.com/orbitjs/orbit/pull/783) [jsonapi] Register `object` and `array` types to use NoopSerializer by default ([@dgeb](https://github.com/dgeb))
+  - [#775](https://github.com/orbitjs/orbit/pull/775) Add unknown serializer ([@tchak](https://github.com/tchak))
+
+#### :bug: Bug Fix
+
+- `@orbit/data`
+  - [#780](https://github.com/orbitjs/orbit/pull/780) Support coalescing of addRecord/updateRecord + updateRecord ([@dgeb](https://github.com/dgeb))
+
+#### :house: Internal
+
+- `@orbit/build`, `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/serializers`, `@orbit/utils`
+  - [#782](https://github.com/orbitjs/orbit/pull/782) Use @orbit/prettier-config ([@dgeb](https://github.com/dgeb))
+- `@orbit/record-cache`
+  - [#776](https://github.com/orbitjs/orbit/pull/776) Expand record-cache tests for liveQuery ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 3
+
+- Chris Bonser ([@chbonser](https://github.com/chbonser))
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+- Paul Chavard ([@tchak](https://github.com/tchak))
+
 ## v0.16.7 (2020-09-14)
 
 #### :bug: Bug Fix
