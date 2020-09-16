@@ -18,7 +18,9 @@ module('JSONAPIResourceSerializer', function (hooks) {
         attributes: {
           name: { type: 'string' },
           classification: { type: 'string' },
-          mystery: {}
+          mystery: {}, // an example of the 'unknown' type
+          object1: { type: 'object' }, // an example of the 'object' type
+          array1: { type: 'array' } // an example of the 'array' type
         },
         relationships: {
           moons: { kind: 'hasMany', type: 'moon', inverse: 'planet' },
@@ -96,6 +98,32 @@ module('JSONAPIResourceSerializer', function (hooks) {
               mystery: {
                 whatDoWeHaveHere: 234
               }
+            }
+          },
+          'serialized resource matches'
+        );
+      });
+
+      test('#serialize - serializes attributes with `object` and `array` types with NoopSerializer by default', function (assert) {
+        assert.deepEqual(
+          serializer.serialize({
+            type: 'planet',
+            id: '123',
+            attributes: {
+              object1: {
+                whatDoWeHaveHere: 234
+              },
+              array1: ['a', 'b', 'c']
+            }
+          }),
+          {
+            type: 'planet',
+            id: '123',
+            attributes: {
+              object1: {
+                whatDoWeHaveHere: 234
+              },
+              array1: ['a', 'b', 'c']
             }
           },
           'serialized resource matches'
