@@ -1,6 +1,6 @@
 {
   "name": "@orbit/utils",
-  "version": "0.17.0-beta.4",
+  "version": "0.17.0-beta.7",
   "description": "Core utilities for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -28,7 +28,7 @@
     "test": "node ../build ci && snowpack build && testem ci"
   },
   "devDependencies": {
-    "@orbit/build": "^0.17.0-beta.4"
+    "@orbit/build": "^0.17.0-beta.7"
   },
   "prettier": "@orbit/prettier-config"
 }

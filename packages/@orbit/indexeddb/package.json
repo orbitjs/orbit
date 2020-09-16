@@ -1,6 +1,6 @@
 {
   "name": "@orbit/indexeddb",
-  "version": "0.17.0-beta.6",
+  "version": "0.17.0-beta.7",
   "description": "IndexedDB support for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -27,13 +27,13 @@
     "test": "node ../build ci && snowpack build && testem ci"
   },
   "dependencies": {
-    "@orbit/core": "^0.17.0-beta.4",
-    "@orbit/data": "^0.17.0-beta.6",
-    "@orbit/record-cache": "^0.17.0-beta.6",
-    "@orbit/utils": "^0.17.0-beta.4"
+    "@orbit/core": "^0.17.0-beta.7",
+    "@orbit/data": "^0.17.0-beta.7",
+    "@orbit/record-cache": "^0.17.0-beta.7",
+    "@orbit/utils": "^0.17.0-beta.7"
   },
   "devDependencies": {
-    "@orbit/build": "^0.17.0-beta.4"
+    "@orbit/build": "^0.17.0-beta.7"
   },
   "prettier": "@orbit/prettier-config"
 }
