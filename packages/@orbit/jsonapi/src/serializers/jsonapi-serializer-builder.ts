@@ -32,6 +32,8 @@ export function buildJSONAPISerializerFor(settings: {
 
   const defaultSerializerClassFor = buildSerializerClassFor({
     unknown: NoopSerializer,
+    object: NoopSerializer,
+    array: NoopSerializer,
     boolean: BooleanSerializer,
     string: StringSerializer,
     date: DateSerializer,
