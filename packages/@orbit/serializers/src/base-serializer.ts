@@ -10,8 +10,7 @@ export abstract class BaseSerializer<
   To,
   SerializationOptions,
   DeserializationOptions
->
-  implements
+> implements
     Serializer<From, To, SerializationOptions, DeserializationOptions> {
   serializerFor?: SerializerForFn;
   protected serializationOptions?: SerializationOptions;

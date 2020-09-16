@@ -36,5 +36,6 @@
   },
   "devDependencies": {
     "@orbit/build": "^0.17.0-beta.4"
-  }
+  },
+  "prettier": "@orbit/prettier-config"
 }

@@ -96,7 +96,8 @@ export interface JSONAPISourceSettings extends SourceSettings {
 @pushable
 @queryable
 @updatable
-export class JSONAPISource extends Source
+export class JSONAPISource
+  extends Source
   implements Pullable, Pushable, Queryable, Updatable {
   maxRequestsPerTransform?: number;
   maxRequestsPerQuery?: number;

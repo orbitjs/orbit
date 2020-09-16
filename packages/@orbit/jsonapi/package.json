@@ -40,5 +40,6 @@
     "@types/sinon": "^9.0.0",
     "sinon": "^9.0.2",
     "whatwg-fetch": "^3.0.0"
-  }
+  },
+  "prettier": "@orbit/prettier-config"
 }

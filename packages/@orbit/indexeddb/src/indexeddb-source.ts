@@ -36,7 +36,8 @@ export interface IndexedDBSourceSettings extends SourceSettings {
 @pullable
 @pushable
 @syncable
-export class IndexedDBSource extends Source
+export class IndexedDBSource
+  extends Source
   implements Pullable, Pushable, Resettable, Syncable {
   protected _cache: IndexedDBCache;
 

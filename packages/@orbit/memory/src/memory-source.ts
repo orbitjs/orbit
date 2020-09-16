@@ -40,7 +40,8 @@ export interface MemorySourceMergeOptions {
 @syncable
 @queryable
 @updatable
-export class MemorySource extends Source
+export class MemorySource
+  extends Source
   implements Syncable, Queryable, Updatable {
   private _cache: MemoryCache;
   private _base: MemorySource;
