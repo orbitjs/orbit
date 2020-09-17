@@ -1,4 +1,4 @@
-import { Record } from '../src/record';
+import { Record, UninitializedRecord } from '../src/record';
 import { TransformBuilder } from '../src/transform-builder';
 import {
   AddRecordOperation,
@@ -235,20 +235,35 @@ module('TransformBuilder', function (hooks) {
 
   test('#addRecord - when a recordInitializer has been set', function (assert) {
     const recordInitializer = {
-      initializeRecord(record: Record) {
+      initializeRecord(record: UninitializedRecord): Record {
         if (record.id === undefined) {
           record.id = 'abc123';
         }
+        return record as Record;
       }
     };
 
     tb = new TransformBuilder({ recordInitializer });
 
-    let record = { type: 'planet' };
+    let record: UninitializedRecord = { type: 'planet' };
 
-    assert.deepEqual(tb.addRecord(record as Record).toOperation(), {
+    assert.deepEqual(tb.addRecord(record).toOperation(), {
       op: 'addRecord',
       record: { type: 'planet', id: 'abc123' }
     } as AddRecordOperation);
+  });
+
+  test('#addRecord - requires records to have an `id` when a recordInitializer has not been set', function (assert) {
+    tb = new TransformBuilder();
+
+    assert.throws(
+      function () {
+        tb.addRecord({ type: 'planet' }).toOperation();
+      },
+      Error(
+        'Assertion failed: New records must be assigned an `id` - either directly or via a `RecordInitializer` assigned to the `TransformBuilder`.'
+      ),
+      'assertion raised'
+    );
   });
 });

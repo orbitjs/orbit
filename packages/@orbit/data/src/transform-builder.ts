@@ -1,4 +1,10 @@
-import { Record, RecordIdentity, RecordInitializer } from './record';
+import { Orbit } from '@orbit/core';
+import {
+  Record,
+  RecordIdentity,
+  RecordInitializer,
+  UninitializedRecord
+} from './record';
 import {
   AddRecordTerm,
   UpdateRecordTerm,
@@ -10,6 +16,8 @@ import {
   ReplaceRelatedRecordsTerm,
   RemoveFromRelatedRecordsTerm
 } from './operation-term';
+
+const { assert, deprecate } = Orbit;
 
 export interface TransformBuilderSettings {
   recordInitializer?: RecordInitializer;
@@ -29,10 +37,27 @@ export class TransformBuilder {
   /**
    * Instantiate a new `addRecord` operation.
    */
-  addRecord(record: Record): AddRecordTerm {
+  addRecord(newRecord: Record | UninitializedRecord): AddRecordTerm {
+    let record: Record;
+
     if (this._recordInitializer) {
-      this._recordInitializer.initializeRecord(record);
+      record = this._recordInitializer.initializeRecord(newRecord);
+
+      if (!record) {
+        deprecate(
+          'The `RecordInitializer` assigned to the `TransformBuilder` exhibits deprecated behavior. `initializeRecord` should return a record.'
+        );
+        // Assume that `initializeRecord` is following its old signature and initializing the passed `record`.
+        record = newRecord as Record;
+      }
+    } else {
+      record = newRecord as Record;
     }
+
+    assert(
+      'New records must be assigned an `id` - either directly or via a `RecordInitializer` assigned to the `TransformBuilder`.',
+      record.id !== undefined
+    );
 
     return new AddRecordTerm(record);
   }
