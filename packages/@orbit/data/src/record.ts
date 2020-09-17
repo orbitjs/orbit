@@ -28,7 +28,7 @@ export type RecordRelationship =
   | RecordHasOneRelationship
   | RecordHasManyRelationship;
 
-export interface Record extends RecordIdentity {
+export interface RecordFields {
   keys?: Dict<string>;
   attributes?: Dict<any>;
   relationships?: Dict<RecordRelationship>;
@@ -36,8 +36,15 @@ export interface Record extends RecordIdentity {
   meta?: Dict<any>;
 }
 
+export interface Record extends RecordFields, RecordIdentity {}
+
+export interface UninitializedRecord extends RecordFields {
+  type: string;
+  id?: string;
+}
+
 export interface RecordInitializer {
-  initializeRecord(record: Record): void;
+  initializeRecord(record: UninitializedRecord): Record;
 }
 
 export function cloneRecordIdentity(identity: RecordIdentity): RecordIdentity {
