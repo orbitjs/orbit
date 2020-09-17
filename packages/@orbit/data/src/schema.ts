@@ -33,43 +33,35 @@ export interface ModelDefinition {
 
 /**
  * Settings used to initialze and/or upgrade schemas.
- *
- * @export
- * @interface SchemaSettings
  */
 export interface SchemaSettings {
   /**
    * Schema version. Defaults to 1.
-   *
-   * @type {number}@memberof SchemaSettings
    */
   version?: number;
 
   /**
    * Function used to generate record IDs.
-   *
-   * @memberof SchemaSettings
    */
   generateId?: (model?: string) => string;
 
   /**
    * Function used to pluralize names.
    *
-   * @memberof SchemaSettings
+   * @deprecated
    */
   pluralize?: (word: string) => string;
 
   /**
    * Function used to singularize names.
    *
-   * @memberof SchemaSettings
+   * @deprecated
    */
   singularize?: (word: string) => string;
 
   /**
    * Map of model definitions.
    *
-   * @type {Dict<ModelDefinition>}
    * @memberof SchemaSettings
    */
   models?: Dict<ModelDefinition>;
@@ -141,9 +133,15 @@ export class Schema implements Evented, RecordInitializer {
       this.generateId = settings.generateId;
     }
     if (settings.pluralize) {
+      deprecate(
+        'Schema#pluralize has been deprecated. Use inflectors from in @orbit/serializers instead.'
+      );
       this.pluralize = settings.pluralize;
     }
     if (settings.singularize) {
+      deprecate(
+        'Schema#singularize has been deprecated. Use inflectors from @orbit/serializers instead.'
+      );
       this.singularize = settings.singularize;
     }
 
@@ -165,20 +163,28 @@ export class Schema implements Evented, RecordInitializer {
   /**
    * A naive pluralization method.
    *
-   * Override with a more robust general purpose inflector or provide an
-   * inflector tailored to the vocabulary of your application.
+   * Deprecated in favor of inflectors now in @orbit/serializers
+   *
+   * @deprecated
    */
   pluralize(word: string): string {
+    deprecate(
+      'Schema#pluralize has been deprecated. Use inflectors from @orbit/serializers instead.'
+    );
     return word + 's';
   }
 
   /**
    * A naive singularization method.
    *
-   * Override with a more robust general purpose inflector or provide an
-   * inflector tailored to the vocabulary of your application.
+   * Deprecated in favor of inflectors now in @orbit/serializers
+   *
+   * @deprecated
    */
   singularize(word: string): string {
+    deprecate(
+      'Schema#singularize has been deprecated. Use inflectors from @orbit/serializers instead.'
+    );
     if (word.lastIndexOf('s') === word.length - 1) {
       return word.substr(0, word.length - 1);
     } else {
