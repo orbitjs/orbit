@@ -285,10 +285,10 @@ export class MemorySource
   }
 
   /**
-   * Rolls back the source to a particular transformId
+   * Rolls back the source to a particular `transformId`.
    *
-   * @param transformId - The ID of the transform to roll back to
-   * @param relativePosition - A positive or negative integer to specify a position relative to `transformId`
+   * `relativePosition` can be a positive or negative integer used to specify a
+   * position relative to `transformId`.
    */
   rollback(transformId: string, relativePosition = 0): Promise<void> {
     return this.transformLog.rollback(transformId, relativePosition);
@@ -296,8 +296,6 @@ export class MemorySource
 
   /**
    * Returns all transforms since a particular `transformId`.
-   *
-   * @param transformId - The ID of the transform to start with.
    */
   transformsSince(transformId: string): Transform[] {
     return this.transformLog

@@ -8,11 +8,6 @@
  *
  * Includes special handling for strings, numbers, dates, booleans, regexes, and
  * arrays
- *
- * @export
- * @param {*} a
- * @param {*} b
- * @returns {boolean} are `a` and `b` equal?
  */
 export function eq(a: any, b: any): boolean {
   // Some elements of this function come from underscore

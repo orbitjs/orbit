@@ -61,8 +61,6 @@ export interface SchemaSettings {
 
   /**
    * Map of model definitions.
-   *
-   * @memberof SchemaSettings
    */
   models?: Dict<ModelDefinition>;
 }
@@ -71,10 +69,6 @@ export interface SchemaSettings {
  * A `Schema` defines the models allowed in a source, including their keys,
  * attributes, and relationships. A single schema may be shared across multiple
  * sources.
- *
- * @export
- * @class Schema
- * @implements {Evented}
  */
 @evented
 export class Schema implements Evented, RecordInitializer {
@@ -165,7 +159,7 @@ export class Schema implements Evented, RecordInitializer {
    *
    * Deprecated in favor of inflectors now in @orbit/serializers
    *
-   * @deprecated
+   * @deprecated since v0.17
    */
   pluralize(word: string): string {
     deprecate(
@@ -179,7 +173,7 @@ export class Schema implements Evented, RecordInitializer {
    *
    * Deprecated in favor of inflectors now in @orbit/serializers
    *
-   * @deprecated
+   * @deprecated since v0.17
    */
   singularize(word: string): string {
     deprecate(

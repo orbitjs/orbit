@@ -5,10 +5,6 @@
  * created.
  *
  * Traverses all object properties (but not prototype properties).
- *
- * @export
- * @param {*} obj
- * @returns {*} Clone of the input `obj`
  */
 export function clone(obj: any): any {
   if (obj === undefined || obj === null || typeof obj !== 'object') {
@@ -153,11 +149,6 @@ export function merge(object: any, ...sources: any[]): any {
  *
  * Properties that resolve to `undefined` will not overwrite properties on the
  * base object that already exist.
- *
- * @export
- * @param {*} base
- * @param {...any[]} sources
- * @returns {*}
  */
 export function deepMerge(object: any, ...sources: any[]): any {
   sources.forEach((source) => {
@@ -185,11 +176,6 @@ export function deepMerge(object: any, ...sources: any[]): any {
  * Retrieves a value from a nested path on an object.
  *
  * Returns any falsy value encountered while traversing the path.
- *
- * @export
- * @param {*} obj
- * @param {string[]} path
- * @returns {*}
  */
 export function deepGet(obj: any, path: string[]): any {
   let index = -1;
@@ -213,12 +199,6 @@ export function deepGet(obj: any, path: string[]): any {
  *
  * Returns `false` only if the current value is already strictly equal to the
  * requested `value` argument. Otherwise returns `true`.
- *
- * @export
- * @param {*} obj
- * @param {string[]} path
- * @param {*} value
- * @returns {boolean} was the value was actually changed?
  */
 export function deepSet(obj: any, path: string[], value: any): boolean {
   let ptr = obj;
@@ -243,10 +223,6 @@ export function deepSet(obj: any, path: string[], value: any): boolean {
  * Find an array of values that correspond to the keys of an object.
  *
  * This is a ponyfill for `Object.values`, which is still experimental.
- *
- * @export
- * @param {*} obj
- * @returns {any[]}
  */
 export function objectValues(obj: any): any[] {
   if (Object.values) {

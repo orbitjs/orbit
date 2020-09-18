@@ -9,18 +9,12 @@ export interface StrategyOptions {
    * Name of strategy.
    *
    * Used to uniquely identify this strategy in a coordinator's collection.
-   *
-   * @type {string}
-   * @memberOf StrategyOptions
    */
   name?: string;
 
   /**
    * The names of sources to include in this strategy. Leave undefined
    * to include all sources registered with a coordinator.
-   *
-   * @type {string[]}
-   * @memberOf LogTruncationOptions
    */
   sources?: string[];
 
@@ -28,9 +22,6 @@ export interface StrategyOptions {
    * The prefix to use for logging from this strategy.
    *
    * Defaults to `[${name}]`.
-   *
-   * @type {string}
-   * @memberOf StrategyOptions
    */
   logPrefix?: string;
 
@@ -38,9 +29,6 @@ export interface StrategyOptions {
    * A specific log level for this strategy.
    *
    * Overrides the log level used when activating the coordinator.
-   *
-   * @type {LogLevel}
-   * @memberOf StrategyOptions
    */
   logLevel?: LogLevel;
 }

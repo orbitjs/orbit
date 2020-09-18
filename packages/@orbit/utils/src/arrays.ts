@@ -2,11 +2,6 @@
  * Like the Lodash _.every function, this function takes an array and a
  * predicate function and returns true or false depending on whether the
  * predicate is true for every item in the array.
- *
- * @export
- * @param {any[]} array
- * @param {(member: any, index: number) => boolean} predicate
- * @returns {boolean}
  */
 export function every(
   array: any[],
@@ -28,11 +23,6 @@ export function every(
  * Like the Lodash _.some function, this function takes an array and a predicate
  * function and returns true or false depending on whether the predicate is true
  * for any of the items in the array.
- *
- * @export
- * @param {any[]} array
- * @param {(member: any, index: number) => boolean} predicate
- * @returns {boolean}
  */
 export function some(
   array: any[],
@@ -53,11 +43,6 @@ export function some(
 /**
  * This function is similar to Array.prototype.find, but it returns the result
  * of calling the value function rather than an item of the array.
- *
- * @export
- * @param {any[]} array
- * @param {(member: any, index: number) => any} valueFn
- * @returns {*} the first result of `valueFn` that returned true or undefined
  */
 export function firstResult(
   array: any[],
