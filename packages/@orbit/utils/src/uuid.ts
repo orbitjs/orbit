@@ -14,9 +14,6 @@ for (let i = 0; i < 256; i++) {
 /**
  * `uuid` generates a Version 4 UUID using Jeff Ward's high performance
  * generator.
- *
- * @export
- * @returns {string}
  */
 export function uuid(): string {
   let d0 = (Math.random() * 0xffffffff) | 0;

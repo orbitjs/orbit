@@ -161,9 +161,6 @@ export abstract class Source implements Evented, Performer {
 
   /**
    * Upgrade source as part of a schema upgrade.
-   *
-   * @returns {Promise<void>}
-   * @memberof Source
    */
   upgrade(): Promise<void> {
     return Promise.resolve();

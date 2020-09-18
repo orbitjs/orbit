@@ -6,9 +6,6 @@
  * purposes.
  *
  * A task's optional `data` can be applied during processing.
- *
- * @export
- * @interface Task
  */
 export interface Task {
   type: string;
@@ -18,9 +15,6 @@ export interface Task {
 
 /**
  * Classes that can perform tasks should implement the Performer interface.
- *
- * @export
- * @interface Performer
  */
 export interface Performer {
   perform(task: Task): Promise<any>;
