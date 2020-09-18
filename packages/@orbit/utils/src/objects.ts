@@ -52,9 +52,7 @@ export function clone(obj: any): any {
  *
  * Methods will be called on `source` and will maintain `source` as the context.
  *
- * @export
- * @param {*} destination
- * @param {*} source
+ * @deprecated since v0.17
  */
 export function expose(destination: any, source: any): void {
   let properties: string[];
@@ -78,10 +76,7 @@ export function expose(destination: any, source: any): void {
 /**
  * Extend an object with the properties of one or more other objects.
  *
- * @export
- * @param {*} destination
- * @param {...any[]} sources
- * @returns {any}
+ * @deprecated since v0.17
  */
 export function extend(destination: any, ...sources: any[]): any {
   sources.forEach((source) => {
@@ -136,10 +131,7 @@ export function isNone(obj: any): boolean {
  * resolve to `undefined` will not overwrite properties on the base object
  * that already exist.
  *
- * @export
- * @param {*} base
- * @param {...any[]} sources
- * @returns {*}
+ * @deprecated since v0.17
  */
 export function merge(object: any, ...sources: any[]): any {
   sources.forEach((source) => {
