@@ -363,7 +363,7 @@ function canEditNode(edit: any, node: any): boolean {
 
 /* Editing
  ******************************************************************************/
-function Leaf__modify(edit: any, keyEq: any, shift: any, f: any, h: any, k: any, size: any): any {
+function Leaf__modify(this: any, edit: any, keyEq: any, shift: any, f: any, h: any, k: any, size: any): any {
   if (keyEq(k, this.key)) {
     var _v = f(this.value);
     if (_v === this.value) return this;else if (_v === nothing) {
@@ -382,7 +382,7 @@ function Leaf__modify(edit: any, keyEq: any, shift: any, f: any, h: any, k: any,
   return mergeLeaves(edit, shift, this.hash, this, h, Leaf(edit, h, k, v));
 }
 
-function Collision__modify(edit: any, keyEq: any, shift: any, f: any, h: any, k: any, size: any): any {
+function Collision__modify(this: any, edit: any, keyEq: any, shift: any, f: any, h: any, k: any, size: any): any {
   if (h === this.hash) {
     var canEdit = canEditNode(edit, this);
     var list = updateCollisionList(canEdit, edit, keyEq, this.hash, this.children, f, k, size);
@@ -396,7 +396,7 @@ function Collision__modify(edit: any, keyEq: any, shift: any, f: any, h: any, k:
   return mergeLeaves(edit, shift, this.hash, this, h, Leaf(edit, h, k, v));
 }
 
-function IndexedNode__modify(edit: any, keyEq: any, shift: any, f: any, h: any, k: any, size: any): any {
+function IndexedNode__modify(this: any, edit: any, keyEq: any, shift: any, f: any, h: any, k: any, size: any): any {
   var mask = this.mask;
   var children = this.children;
   var frag = hashFragment(shift, h);
@@ -437,7 +437,7 @@ function IndexedNode__modify(edit: any, keyEq: any, shift: any, f: any, h: any, 
   return IndexedNode(edit, bitmap, newChildren);
 }
 
-function ArrayNode__modify(edit: any, keyEq: any, shift: any, f: any, h: any, k: any, size: any): any {
+function ArrayNode__modify(this: any, edit: any, keyEq: any, shift: any, f: any, h: any, k: any, size: any): any {
   var count = this.size;
   var children = this.children;
   var frag = hashFragment(shift, h);
