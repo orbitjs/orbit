@@ -69,11 +69,11 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   protected _debounceLiveQueries: boolean;
 
   // Evented interface stubs
-  on: (event: string, listener: Listener) => () => void;
-  off: (event: string, listener?: Listener) => void;
-  one: (event: string, listener: Listener) => () => void;
-  emit: (event: string, ...args: any[]) => void;
-  listeners: (event: string) => Listener[];
+  on!: (event: string, listener: Listener) => () => void;
+  off!: (event: string, listener?: Listener) => void;
+  one!: (event: string, listener: Listener) => () => void;
+  emit!: (event: string, ...args: any[]) => void;
+  listeners!: (event: string) => Listener[];
 
   constructor(settings: SyncRecordCacheSettings) {
     assert(
@@ -156,7 +156,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   // Abstract methods for setting records and relationships
   abstract setRecordSync(record: Record): void;
   abstract setRecordsSync(records: Record[]): void;
-  abstract removeRecordSync(recordIdentity: RecordIdentity): Record;
+  abstract removeRecordSync(recordIdentity: RecordIdentity): Record | undefined;
   abstract removeRecordsSync(recordIdentities: RecordIdentity[]): Record[];
   abstract addInverseRelationshipsSync(
     relationships: RecordRelationshipIdentity[]

@@ -19,14 +19,17 @@ import {
 import { SyncRecordAccessor } from '../record-accessor';
 
 export interface SyncInversePatchOperator {
-  (cache: SyncRecordAccessor, op: RecordOperation): RecordOperation | undefined;
+  (cache: SyncRecordAccessor, operation: RecordOperation):
+    | RecordOperation
+    | undefined;
 }
 
 export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
   addRecord(
     cache: SyncRecordAccessor,
-    op: AddRecordOperation
+    operation: RecordOperation
   ): RecordOperation | undefined {
+    const op = operation as AddRecordOperation;
     const { type, id } = op.record;
     const current = cache.getRecordSync(op.record);
 
@@ -49,8 +52,9 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
 
   updateRecord(
     cache: SyncRecordAccessor,
-    op: UpdateRecordOperation
+    operation: RecordOperation
   ): RecordOperation | undefined {
+    const op = operation as UpdateRecordOperation;
     const current = cache.getRecordSync(op.record);
     const replacement: Record = op.record;
     const { type, id } = replacement;
@@ -132,8 +136,9 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
 
   removeRecord(
     cache: SyncRecordAccessor,
-    op: RemoveRecordOperation
+    operation: RecordOperation
   ): RecordOperation | undefined {
+    const op = operation as RemoveRecordOperation;
     const current = cache.getRecordSync(op.record);
 
     if (current) {
@@ -148,8 +153,9 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
 
   replaceKey(
     cache: SyncRecordAccessor,
-    op: ReplaceKeyOperation
+    operation: RecordOperation
   ): RecordOperation | undefined {
+    const op = operation as ReplaceKeyOperation;
     const { key } = op;
     const record = cache.getRecordSync(op.record);
     const current = record && deepGet(record, ['keys', key]);
@@ -169,8 +175,9 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
 
   replaceAttribute(
     cache: SyncRecordAccessor,
-    op: ReplaceAttributeOperation
+    operation: RecordOperation
   ): RecordOperation | undefined {
+    const op = operation as ReplaceAttributeOperation;
     const { attribute } = op;
     const record = cache.getRecordSync(op.record);
     const current = record && deepGet(record, ['attributes', attribute]);
@@ -190,8 +197,9 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
 
   addToRelatedRecords(
     cache: SyncRecordAccessor,
-    op: AddToRelatedRecordsOperation
+    operation: RecordOperation
   ): RecordOperation | undefined {
+    const op = operation as AddToRelatedRecordsOperation;
     const { record, relationship, relatedRecord } = op;
     const currentRelatedRecords = cache.getRelatedRecordsSync(
       record,
@@ -214,8 +222,9 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
 
   removeFromRelatedRecords(
     cache: SyncRecordAccessor,
-    op: RemoveFromRelatedRecordsOperation
+    operation: RecordOperation
   ): RecordOperation | undefined {
+    const op = operation as RemoveFromRelatedRecordsOperation;
     const { record, relationship, relatedRecord } = op;
     const currentRelatedRecords = cache.getRelatedRecordsSync(
       record,
@@ -238,8 +247,9 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
 
   replaceRelatedRecords(
     cache: SyncRecordAccessor,
-    op: ReplaceRelatedRecordsOperation
+    operation: RecordOperation
   ): RecordOperation | undefined {
+    const op = operation as ReplaceRelatedRecordsOperation;
     const { record, relationship, relatedRecords } = op;
     const currentRelatedRecords = cache.getRelatedRecordsSync(
       record,
@@ -262,8 +272,9 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
 
   replaceRelatedRecord(
     cache: SyncRecordAccessor,
-    op: ReplaceRelatedRecordOperation
+    operation: RecordOperation
   ): RecordOperation | undefined {
+    const op = operation as ReplaceRelatedRecordOperation;
     const { record, relationship, relatedRecord } = op;
     const currentRelatedRecord = cache.getRelatedRecordSync(
       record,

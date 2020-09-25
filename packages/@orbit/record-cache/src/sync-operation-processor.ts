@@ -20,7 +20,7 @@ export abstract class SyncOperationProcessor {
   /**
    * The `SyncRecordAccessor` that is monitored.
    */
-  get accessor() {
+  get accessor(): SyncRecordAccessor {
     return this._accessor;
   }
 

@@ -9,6 +9,7 @@ import {
   RelationshipDefinition,
   Schema
 } from '@orbit/data';
+import { getRelationshipDef } from './schema-utils';
 
 export function recordAdded(schema: Schema, record: Record): RecordOperation[] {
   const ops: RecordOperation[] = [];
@@ -53,7 +54,8 @@ export function relatedRecordAdded(
   const ops: RecordOperation[] = [];
 
   if (relatedRecord) {
-    const relationshipDef = schema.getRelationship(record.type, relationship);
+    const { type } = record;
+    const relationshipDef = getRelationshipDef(schema, type, relationship);
     const inverseRelationship = relationshipDef.inverse;
 
     if (inverseRelationship) {
@@ -76,7 +78,8 @@ export function relatedRecordRemoved(
   const ops: RecordOperation[] = [];
 
   if (currentRelatedRecord) {
-    const relationshipDef = schema.getRelationship(record.type, relationship);
+    const { type } = record;
+    const relationshipDef = getRelationshipDef(schema, type, relationship);
     const inverseRelationship = relationshipDef.inverse;
 
     if (inverseRelationship) {
@@ -104,7 +107,8 @@ export function relatedRecordReplaced(
       currentRelatedRecord as RecordIdentity
     )
   ) {
-    const relationshipDef = schema.getRelationship(record.type, relationship);
+    const { type } = record;
+    const relationshipDef = getRelationshipDef(schema, type, relationship);
     const inverseRelationship = relationshipDef.inverse;
 
     if (inverseRelationship) {
@@ -138,7 +142,8 @@ export function relatedRecordsReplaced(
   currentRelatedRecords?: RecordIdentity[]
 ): RecordOperation[] {
   const ops: RecordOperation[] = [];
-  const relationshipDef = schema.getRelationship(record.type, relationship);
+  const { type } = record;
+  const relationshipDef = getRelationshipDef(schema, type, relationship);
 
   let addedRecords: RecordIdentity[];
 
@@ -301,7 +306,8 @@ export function addRelationshipOp(
   relationship: string,
   relatedRecord: RecordIdentity
 ): RecordOperation {
-  const relationshipDef = schema.getRelationship(record.type, relationship);
+  const { type } = record;
+  const relationshipDef = getRelationshipDef(schema, type, relationship);
   const isHasMany =
     (relationshipDef.kind || relationshipDef.type) === 'hasMany';
 
@@ -319,7 +325,8 @@ export function removeRelationshipOp(
   relationship: string,
   relatedRecord: RecordIdentity
 ): RecordOperation {
-  const relationshipDef = schema.getRelationship(record.type, relationship);
+  const { type } = record;
+  const relationshipDef = getRelationshipDef(schema, type, relationship);
   const isHasMany =
     (relationshipDef.kind || relationshipDef.type) === 'hasMany';
 
@@ -331,7 +338,9 @@ export function removeRelationshipOp(
   } as RecordOperation;
 }
 
-export function recordArrayFromData(data: any): RecordIdentity[] {
+export function recordArrayFromData(
+  data: RecordIdentity | RecordIdentity[] | null
+): RecordIdentity[] {
   if (Array.isArray(data)) {
     return data;
   } else if (data) {

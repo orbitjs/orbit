@@ -2,10 +2,10 @@ import {
   Record,
   RecordIdentity,
   RecordOperation,
-  RelationshipNotFound,
   IncorrectRelatedRecordType
 } from '@orbit/data';
 import { AsyncOperationProcessor } from '../async-operation-processor';
+import { getModelDef, getRelationshipDef } from './utils/schema-utils';
 
 /**
  * An operation processor that ensures that an operation is compatible with
@@ -62,23 +62,23 @@ export class AsyncSchemaValidationProcessor extends AsyncOperationProcessor {
     }
   }
 
-  protected _recordAdded(record: Record) {
+  protected _recordAdded(record: Record): void {
     this._validateRecord(record);
   }
 
-  protected _recordReplaced(record: Record) {
+  protected _recordReplaced(record: Record): void {
     this._validateRecord(record);
   }
 
-  protected _recordRemoved(record: RecordIdentity) {
+  protected _recordRemoved(record: RecordIdentity): void {
     this._validateRecordIdentity(record);
   }
 
-  protected _keyReplaced(record: RecordIdentity) {
+  protected _keyReplaced(record: RecordIdentity): void {
     this._validateRecordIdentity(record);
   }
 
-  protected _attributeReplaced(record: RecordIdentity) {
+  protected _attributeReplaced(record: RecordIdentity): void {
     this._validateRecordIdentity(record);
   }
 
@@ -86,7 +86,7 @@ export class AsyncSchemaValidationProcessor extends AsyncOperationProcessor {
     record: RecordIdentity,
     relationship: string,
     relatedRecord: RecordIdentity
-  ) {
+  ): void {
     this._validateRecordIdentity(record);
     this._validateRecordIdentity(relatedRecord);
     this._validateRelationship(record, relationship, relatedRecord);
@@ -96,7 +96,7 @@ export class AsyncSchemaValidationProcessor extends AsyncOperationProcessor {
     record: RecordIdentity,
     relationship: string,
     relatedRecord: RecordIdentity
-  ) {
+  ): void {
     this._validateRecordIdentity(record);
     this._validateRecordIdentity(relatedRecord);
   }
@@ -105,7 +105,7 @@ export class AsyncSchemaValidationProcessor extends AsyncOperationProcessor {
     record: RecordIdentity,
     relationship: string,
     relatedRecords: RecordIdentity[]
-  ) {
+  ): void {
     this._validateRecordIdentity(record);
 
     relatedRecords.forEach((relatedRecord) => {
@@ -118,7 +118,7 @@ export class AsyncSchemaValidationProcessor extends AsyncOperationProcessor {
     record: RecordIdentity,
     relationship: string,
     relatedRecord: RecordIdentity | null
-  ) {
+  ): void {
     this._validateRecordIdentity(record);
 
     if (relatedRecord) {
@@ -127,25 +127,24 @@ export class AsyncSchemaValidationProcessor extends AsyncOperationProcessor {
     }
   }
 
-  protected _validateRecord(record: Record) {
+  protected _validateRecord(record: Record): void {
     this._validateRecordIdentity(record);
   }
 
-  protected _validateRecordIdentity(record: RecordIdentity) {
-    this._getModelSchema(record.type);
+  protected _validateRecordIdentity(record: RecordIdentity): void {
+    getModelDef(this.accessor.schema, record.type);
   }
 
   protected _validateRelationship(
     record: Record,
     relationship: string,
     relatedRecord: RecordIdentity
-  ) {
-    const modelSchema = this._getModelSchema(record.type);
-    const relationshipDef =
-      modelSchema.relationships && modelSchema.relationships[relationship];
-    if (relationshipDef === undefined) {
-      throw new RelationshipNotFound(relationship, record.type);
-    }
+  ): void {
+    const relationshipDef = getRelationshipDef(
+      this.accessor.schema,
+      record.type,
+      relationship
+    );
     const type = relationshipDef.kind
       ? relationshipDef.type
       : relationshipDef.model;
@@ -166,9 +165,5 @@ export class AsyncSchemaValidationProcessor extends AsyncOperationProcessor {
         );
       }
     }
-  }
-
-  private _getModelSchema(type: string) {
-    return this.accessor.schema.getModel(type);
   }
 }

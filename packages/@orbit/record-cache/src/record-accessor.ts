@@ -35,7 +35,7 @@ export interface SyncRecordAccessor extends BaseRecordAccessor {
   // Setters
   setRecordSync(record: Record): void;
   setRecordsSync(records: Record[]): void;
-  removeRecordSync(recordIdentity: RecordIdentity): Record;
+  removeRecordSync(recordIdentity: RecordIdentity): Record | undefined;
   removeRecordsSync(recordIdentities: RecordIdentity[]): Record[];
   addInverseRelationshipsSync(
     relationships: RecordRelationshipIdentity[]
@@ -66,7 +66,9 @@ export interface AsyncRecordAccessor extends BaseRecordAccessor {
   // Setters
   setRecordAsync(record: Record): Promise<void>;
   setRecordsAsync(records: Record[]): Promise<void>;
-  removeRecordAsync(recordIdentity: RecordIdentity): Promise<Record>;
+  removeRecordAsync(
+    recordIdentity: RecordIdentity
+  ): Promise<Record | undefined>;
   removeRecordsAsync(recordIdentities: RecordIdentity[]): Promise<Record[]>;
   addInverseRelationshipsAsync(
     relationships: RecordRelationshipIdentity[]

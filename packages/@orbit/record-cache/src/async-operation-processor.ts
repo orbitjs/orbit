@@ -20,7 +20,7 @@ export abstract class AsyncOperationProcessor {
   /**
    * The `AsyncRecordAccessor` that is monitored.
    */
-  get accessor() {
+  get accessor(): AsyncRecordAccessor {
     return this._accessor;
   }
 
