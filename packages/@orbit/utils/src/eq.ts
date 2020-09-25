@@ -1,4 +1,4 @@
-/* eslint-disable eqeqeq, no-eq-null, valid-jsdoc */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types, eqeqeq, no-eq-null, valid-jsdoc */
 
 /**
  * `eq` checks the equality of two objects.
