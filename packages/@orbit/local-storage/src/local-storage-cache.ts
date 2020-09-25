@@ -70,13 +70,13 @@ export class LocalStorageCache extends SyncRecordCache {
     if (Array.isArray(typeOrIdentities)) {
       const identities: RecordIdentity[] = typeOrIdentities;
       for (let identity of identities) {
-        let record: Record = this.getRecordSync(identity);
+        let record = this.getRecordSync(identity);
         if (record) {
           records.push(record);
         }
       }
     } else {
-      const type: string = typeOrIdentities;
+      const type: string | undefined = typeOrIdentities;
 
       for (let key in Orbit.globals.localStorage) {
         if (key.indexOf(this.namespace + this.delimiter) === 0) {
@@ -120,14 +120,14 @@ export class LocalStorageCache extends SyncRecordCache {
     }
   }
 
-  removeRecordSync(recordIdentity: RecordIdentity): Record {
+  removeRecordSync(recordIdentity: RecordIdentity): Record | undefined {
     const record = this.getRecordSync(recordIdentity);
     if (record) {
       const key = this.getKeyForRecord(record);
       Orbit.globals.localStorage.removeItem(key);
       return record;
     } else {
-      return null;
+      return undefined;
     }
   }
 
@@ -199,7 +199,7 @@ export class LocalStorageCache extends SyncRecordCache {
     this._processors.forEach((processor) => processor.reset());
   }
 
-  upgrade() {
+  upgrade(): void {
     this._processors.forEach((processor) => processor.upgrade());
   }
 }
