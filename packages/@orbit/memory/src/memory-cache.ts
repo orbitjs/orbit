@@ -1,5 +1,6 @@
 /* eslint-disable valid-jsdoc */
 import { clone, Dict } from '@orbit/utils';
+import { Assertion } from '@orbit/core';
 import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/data';
 import {
   RecordRelationshipIdentity,
@@ -19,8 +20,8 @@ export interface MemoryCacheSettings extends SyncRecordCacheSettings {
  * efficiently.
  */
 export class MemoryCache extends SyncRecordCache {
-  protected _records: Dict<ImmutableMap<string, Record>>;
-  protected _inverseRelationships: Dict<
+  protected _records!: Dict<ImmutableMap<string, Record>>;
+  protected _inverseRelationships!: Dict<
     ImmutableMap<string, RecordRelationshipIdentity[]>
   >;
 
@@ -39,16 +40,22 @@ export class MemoryCache extends SyncRecordCache {
       const records: Record[] = [];
       const identities: RecordIdentity[] = typeOrIdentities;
       for (let identity of identities) {
-        let record: Record = this.getRecordSync(identity);
+        let record = this.getRecordSync(identity);
         if (record) {
           records.push(record);
         }
       }
       return records;
     } else {
-      const type: string = typeOrIdentities;
+      const type: string | undefined = typeOrIdentities;
 
-      return Array.from(this._records[type].values());
+      if (type) {
+        return Array.from(this._records[type].values());
+      } else {
+        throw new Assertion(
+          `MemoryCache does not support getting all records without specifying a 'type'`
+        );
+      }
     }
   }
 
@@ -67,14 +74,14 @@ export class MemoryCache extends SyncRecordCache {
     }
   }
 
-  removeRecordSync(recordIdentity: RecordIdentity): Record {
+  removeRecordSync(recordIdentity: RecordIdentity): Record | undefined {
     const recordMap = this._records[recordIdentity.type];
     const record = recordMap.get(recordIdentity.id);
     if (record) {
       recordMap.remove(recordIdentity.id);
       return record;
     } else {
-      return null;
+      return undefined;
     }
   }
 
@@ -172,7 +179,7 @@ export class MemoryCache extends SyncRecordCache {
   /**
    * Upgrade the cache based on the current state of the schema.
    */
-  upgrade() {
+  upgrade(): void {
     Object.keys(this._schema.models).forEach((type) => {
       if (!this._records[type]) {
         this._records[type] = new ImmutableMap<string, Record>();
@@ -187,7 +194,7 @@ export class MemoryCache extends SyncRecordCache {
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
 
-  protected _resetInverseRelationships(base?: MemoryCache) {
+  protected _resetInverseRelationships(base?: MemoryCache): void {
     const inverseRelationships: Dict<ImmutableMap<
       string,
       RecordRelationshipIdentity[]
