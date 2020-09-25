@@ -15,6 +15,7 @@ import { supportsIndexedDB } from './lib/indexeddb';
 const { assert } = Orbit;
 
 const INVERSE_RELS = '__inverseRels__';
+const DB_NOT_OPEN = 'IndexedDB database is not yet open';
 
 interface InverseRelationshipForIDB {
   id: string;
@@ -36,8 +37,8 @@ export interface IndexedDBCacheSettings extends AsyncRecordCacheSettings {
  */
 export class IndexedDBCache extends AsyncRecordCache {
   protected _namespace: string;
-  protected _db: IDBDatabase;
-  protected _openingDB: Promise<IDBDatabase>;
+  protected _db?: IDBDatabase;
+  protected _openingDB?: Promise<IDBDatabase>;
 
   constructor(settings: IndexedDBCacheSettings) {
     assert('Your browser does not support IndexedDB!', supportsIndexedDB());
@@ -122,10 +123,12 @@ export class IndexedDBCache extends AsyncRecordCache {
       // Finish opening DB before closing it to avoid problems
       if (this._openingDB) {
         await this._openingDB;
-        this._openingDB = null;
+        this._openingDB = undefined;
       }
-      this._db.close();
-      this._db = null;
+      if (this._db) {
+        this._db.close();
+        this._db = undefined;
+      }
     }
   }
 
@@ -190,6 +193,8 @@ export class IndexedDBCache extends AsyncRecordCache {
     // console.log('clearRecords', type);
 
     return new Promise((resolve, reject) => {
+      if (!this._db) return reject(DB_NOT_OPEN);
+
       const transaction = this._db.transaction([type], 'readwrite');
       const objectStore = transaction.objectStore(type);
       const request = objectStore.clear();
@@ -210,6 +215,8 @@ export class IndexedDBCache extends AsyncRecordCache {
     // console.log('getRecordAsync', record);
 
     return new Promise((resolve, reject) => {
+      if (!this._db) return reject(DB_NOT_OPEN);
+
       const transaction = this._db.transaction([record.type]);
       const objectStore = transaction.objectStore(record.type);
       const request = objectStore.get(record.id);
@@ -239,6 +246,7 @@ export class IndexedDBCache extends AsyncRecordCache {
     typeOrIdentities?: string | RecordIdentity[]
   ): Promise<Record[]> {
     // console.log('getRecordsAsync', typeOrIdentities);
+    if (!this._db) return Promise.reject(DB_NOT_OPEN);
 
     if (!typeOrIdentities) {
       return this._getAllRecords();
@@ -246,6 +254,8 @@ export class IndexedDBCache extends AsyncRecordCache {
       const type: string = typeOrIdentities;
 
       return new Promise((resolve, reject) => {
+        if (!this._db) return reject(DB_NOT_OPEN);
+
         const transaction = this._db.transaction([type]);
         const objectStore = transaction.objectStore(type);
         const request = objectStore.openCursor();
@@ -274,7 +284,7 @@ export class IndexedDBCache extends AsyncRecordCache {
           }
         };
       });
-    } else if (Array.isArray(typeOrIdentities)) {
+    } else {
       const identities: RecordIdentity[] = typeOrIdentities;
       const records: Record[] = [];
 
@@ -326,6 +336,8 @@ export class IndexedDBCache extends AsyncRecordCache {
   }
 
   setRecordAsync(record: Record): Promise<void> {
+    if (!this._db) return Promise.reject(DB_NOT_OPEN);
+
     const transaction = this._db.transaction([record.type], 'readwrite');
     const objectStore = transaction.objectStore(record.type);
 
@@ -349,6 +361,8 @@ export class IndexedDBCache extends AsyncRecordCache {
   }
 
   setRecordsAsync(records: Record[]): Promise<void> {
+    if (!this._db) return Promise.reject(DB_NOT_OPEN);
+
     if (records.length > 0) {
       const types: string[] = [];
       for (let record of records) {
@@ -378,11 +392,15 @@ export class IndexedDBCache extends AsyncRecordCache {
 
         putNext();
       });
+    } else {
+      return Promise.resolve();
     }
   }
 
   removeRecordAsync(recordIdentity: RecordIdentity): Promise<Record> {
     return new Promise((resolve, reject) => {
+      if (!this._db) return reject(DB_NOT_OPEN);
+
       const transaction = this._db.transaction(
         [recordIdentity.type],
         'readwrite'
@@ -403,6 +421,8 @@ export class IndexedDBCache extends AsyncRecordCache {
   }
 
   removeRecordsAsync(records: RecordIdentity[]): Promise<Record[]> {
+    if (!this._db) return Promise.reject(DB_NOT_OPEN);
+
     if (records.length > 0) {
       const types: string[] = [];
       for (let record of records) {
@@ -426,12 +446,14 @@ export class IndexedDBCache extends AsyncRecordCache {
               reject(request.error);
             };
           } else {
-            resolve();
+            resolve(records);
           }
         };
 
         removeNext();
       });
+    } else {
+      return Promise.resolve([]);
     }
   }
 
@@ -441,6 +463,8 @@ export class IndexedDBCache extends AsyncRecordCache {
     // console.log('getInverseRelationshipsAsync', recordIdentity);
 
     return new Promise((resolve, reject) => {
+      if (!this._db) return reject(DB_NOT_OPEN);
+
       const transaction = this._db.transaction([INVERSE_RELS]);
       const objectStore = transaction.objectStore(INVERSE_RELS);
       const results: RecordRelationshipIdentity[] = [];
@@ -472,6 +496,7 @@ export class IndexedDBCache extends AsyncRecordCache {
     relationships: RecordRelationshipIdentity[]
   ): Promise<void> {
     // console.log('addInverseRelationshipsAsync', relationships);
+    if (!this._db) return Promise.reject(DB_NOT_OPEN);
 
     if (relationships.length > 0) {
       const transaction = this._db.transaction([INVERSE_RELS], 'readwrite');
@@ -506,6 +531,7 @@ export class IndexedDBCache extends AsyncRecordCache {
     relationships: RecordRelationshipIdentity[]
   ): Promise<void> {
     // console.log('removeInverseRelationshipsAsync', relationships);
+    if (!this._db) return Promise.reject(DB_NOT_OPEN);
 
     if (relationships.length > 0) {
       const transaction = this._db.transaction([INVERSE_RELS], 'readwrite');
@@ -541,6 +567,8 @@ export class IndexedDBCache extends AsyncRecordCache {
   /////////////////////////////////////////////////////////////////////////////
 
   protected _getAllRecords(): Promise<Record[]> {
+    if (!this._db) return Promise.reject(DB_NOT_OPEN);
+
     const allRecords: Record[] = [];
 
     const objectStoreNames = this._db.objectStoreNames;
@@ -548,7 +576,7 @@ export class IndexedDBCache extends AsyncRecordCache {
     for (let i = 0; i < objectStoreNames.length; i++) {
       let type = objectStoreNames.item(i);
       if (type !== INVERSE_RELS) {
-        types.push(type);
+        types.push(type as string);
       }
     }
 
