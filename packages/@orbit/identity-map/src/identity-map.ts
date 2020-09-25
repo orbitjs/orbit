@@ -13,26 +13,36 @@ export class IdentityMap<Identity, Model> implements Map<Identity, Model> {
     this._map = new Map();
   }
 
-  get(identity: Identity): Model {
+  get(identity: Identity): Model | undefined {
     const identifier = this._serializer.serialize(identity);
-    return this._map.get(identifier);
+    if (identifier !== undefined) {
+      return this._map.get(identifier);
+    }
   }
 
   set(identity: Identity, record: Model): this {
     const identifier = this._serializer.serialize(identity);
-    this._map.set(identifier, record);
+    if (identifier !== undefined) {
+      this._map.set(identifier, record);
+    }
     return this;
   }
 
   has(identity: Identity): boolean {
     const identifier = this._serializer.serialize(identity);
-    return this._map.has(identifier);
+    if (identifier !== undefined) {
+      return this._map.has(identifier);
+    } else {
+      return false;
+    }
   }
 
   delete(identity: Identity): boolean {
     const identifier = this._serializer.serialize(identity);
     const result = this._map.has(identifier);
-    this._map.delete(identifier);
+    if (result) {
+      this._map.delete(identifier);
+    }
     return result;
   }
 
@@ -69,7 +79,7 @@ export class IdentityMap<Identity, Model> implements Map<Identity, Model> {
       identity: Identity,
       map: IdentityMap<Identity, Model>
     ) => void,
-    thisArg?: any
+    thisArg?: unknown
   ): void {
     for (let [identity, record] of this) {
       callbackFn.call(thisArg, record, identity, this);
