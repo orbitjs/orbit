@@ -55,23 +55,23 @@ export interface TaskQueueSettings {
 export class TaskQueue implements Evented {
   public autoProcess: boolean;
 
-  private _name: string;
   private _performer: Performer;
-  private _bucket: Bucket;
-  private _tasks: Task[];
-  private _processors: TaskProcessor[];
-  private _error: Error;
-  private _resolution: Promise<void>;
-  private _resolve: any;
-  private _reject: any;
-  private _reified: Promise<any>;
+  private _name?: string;
+  private _bucket?: Bucket;
+  private _tasks: Task[] = [];
+  private _processors: TaskProcessor[] = [];
+  private _error?: Error;
+  private _resolution?: Promise<void>;
+  private _resolve?: () => void;
+  private _reject?: (e: Error) => void;
+  private _reified!: Promise<void>;
 
   // Evented interface stubs
-  on: (event: string, listener: Listener) => () => void;
-  off: (event: string, listener?: Listener) => void;
-  one: (event: string, listener: Listener) => () => void;
-  emit: (event: string, ...args: any[]) => void;
-  listeners: (event: string) => Listener[];
+  on!: (event: string, listener: Listener) => () => void;
+  off!: (event: string, listener?: Listener) => void;
+  one!: (event: string, listener: Listener) => () => void;
+  emit!: (event: string, ...args: any[]) => void;
+  listeners!: (event: string) => Listener[];
 
   /**
    * Creates an instance of `TaskQueue`.
@@ -108,7 +108,7 @@ export class TaskQueue implements Evented {
   /**
    * Name used for tracking / debugging this queue.
    */
-  get name(): string {
+  get name(): string | undefined {
     return this._name;
   }
 
@@ -122,7 +122,7 @@ export class TaskQueue implements Evented {
   /**
    * A bucket used to persist the state of this queue.
    */
-  get bucket(): Bucket {
+  get bucket(): Bucket | undefined {
     return this._bucket;
   }
 
@@ -130,7 +130,7 @@ export class TaskQueue implements Evented {
    * The number of tasks in the queue.
    */
   get length(): number {
-    return this._tasks ? this._tasks.length : 0;
+    return this._tasks.length;
   }
 
   /**
@@ -145,7 +145,7 @@ export class TaskQueue implements Evented {
    * task to be processed (if not actively processing).
    */
   get current(): Task {
-    return this._tasks && this._tasks[0];
+    return this._tasks[0];
   }
 
   /**
@@ -153,7 +153,7 @@ export class TaskQueue implements Evented {
    * if none are being processed).
    */
   get currentProcessor(): TaskProcessor {
-    return this._processors && this._processors[0];
+    return this._processors[0];
   }
 
   /**
@@ -161,7 +161,7 @@ export class TaskQueue implements Evented {
    * `fail` event will be emitted, and this property will reflect the error
    * encountered.
    */
-  get error(): Error {
+  get error(): Error | undefined {
     return this._error;
   }
 
@@ -195,36 +195,31 @@ export class TaskQueue implements Evented {
    * If `autoProcess` is enabled, this will automatically trigger processing of
    * the queue.
    *
-   * Returns a promise that resolves when the pushed task has been processed.
+   * Returns the result of processing the pushed task.
    */
-  push(task: Task): Promise<void> {
-    let processor = new TaskProcessor(this._performer, task);
+  async push(task: Task): Promise<unknown> {
+    await this._reified;
 
-    return this._reified
-      .then(() => {
-        this._tasks.push(task);
-        this._processors.push(processor);
-        return this._persist();
-      })
-      .then(() => this._settle(processor));
+    let processor = new TaskProcessor(this._performer, task);
+    this._tasks.push(task);
+    this._processors.push(processor);
+    await this._persist();
+    return this._settle(processor);
   }
 
   /**
    * Cancels and re-tries processing the current task.
    *
-   * Returns a promise that resolves when the pushed task has been processed.
+   * Returns the result of the retried task.
    */
-  retry(): Promise<void> {
-    let processor: TaskProcessor;
+  async retry(): Promise<unknown> {
+    await this._reified;
 
-    return this._reified
-      .then(() => {
-        this._cancel();
-        processor = this.currentProcessor;
-        processor.reset();
-        return this._persist();
-      })
-      .then(() => this._settle(processor, true));
+    this._cancel();
+    let processor: TaskProcessor = this.currentProcessor;
+    processor.reset();
+    await this._persist();
+    return this._settle(processor, true);
   }
 
   /**
@@ -233,41 +228,39 @@ export class TaskQueue implements Evented {
    * If `autoProcess` is enabled, this will automatically trigger processing of
    * the queue.
    */
-  skip(e?: Error): Promise<void> {
-    return this._reified
-      .then(() => {
-        this._cancel();
-        this._tasks.shift();
-        let processor = this._processors.shift();
-        if (processor !== undefined && !processor.settled) {
-          processor.reject(
-            e || new Error('Processing cancelled via `TaskQueue#skip`')
-          );
-        }
-        return this._persist();
-      })
-      .then(() => this._settle());
+  async skip(e?: Error): Promise<void> {
+    await this._reified;
+
+    this._cancel();
+    this._tasks.shift();
+    let processor = this._processors.shift();
+    if (processor !== undefined && !processor.settled) {
+      processor.reject(
+        e || new Error('Processing cancelled via `TaskQueue#skip`')
+      );
+    }
+    await this._persist();
+    await this._settle();
   }
 
   /**
    * Cancels the current task and completely clears the queue.
    */
-  clear(e?: Error): Promise<void> {
-    return this._reified
-      .then(() => {
-        this._cancel();
-        this._tasks = [];
-        for (let processor of this._processors) {
-          if (!processor.settled) {
-            processor.reject(
-              e || new Error('Processing cancelled via `TaskQueue#clear`')
-            );
-          }
-        }
-        this._processors = [];
-        return this._persist();
-      })
-      .then(() => this._settle(null, true));
+  async clear(e?: Error): Promise<void> {
+    await this._reified;
+
+    this._cancel();
+    this._tasks = [];
+    for (let processor of this._processors) {
+      if (!processor.settled) {
+        processor.reject(
+          e || new Error('Processing cancelled via `TaskQueue#clear`')
+        );
+      }
+    }
+    this._processors = [];
+    await this._persist();
+    await this._settle(undefined, true);
   }
 
   /**
@@ -275,65 +268,60 @@ export class TaskQueue implements Evented {
    *
    * Returns the canceled and removed task.
    */
-  shift(e?: Error): Promise<Task> {
-    let task: Task;
+  async shift(e?: Error): Promise<Task | undefined> {
+    await this._reified;
 
-    return this._reified
-      .then(() => {
-        this._cancel();
-        task = this._tasks.shift();
-        let processor = this._processors.shift();
-        if (processor !== undefined && !processor.settled) {
-          processor.reject(
-            e || new Error('Processing cancelled via `TaskQueue#shift`')
-          );
-        }
-        return this._persist();
-      })
-      .then(() => task);
+    let task = this._tasks.shift();
+    if (task) {
+      this._cancel();
+      let processor = this._processors.shift();
+      if (processor !== undefined && !processor.settled) {
+        processor.reject(
+          e || new Error('Processing cancelled via `TaskQueue#shift`')
+        );
+      }
+      await this._persist();
+    }
+    return task;
   }
 
   /**
    * Cancels processing the current task and inserts a new task at the beginning
    * of the queue. This new task will be processed next.
    *
-   * Returns a promise that resolves when the new task has been processed.
+   * Returns the result of processing the new task.
    */
-  unshift(task: Task): Promise<void> {
-    let processor = new TaskProcessor(this._performer, task);
+  async unshift(task: Task): Promise<void> {
+    await this._reified;
 
-    return this._reified
-      .then(() => {
-        this._cancel();
-        this._tasks.unshift(task);
-        this._processors.unshift(processor);
-        return this._persist();
-      })
-      .then(() => this._settle(processor));
+    let processor = new TaskProcessor(this._performer, task);
+    this._cancel();
+    this._tasks.unshift(task);
+    this._processors.unshift(processor);
+    await this._persist();
+    return this._settle(processor);
   }
 
   /**
    * Processes all the tasks in the queue. Resolves when the queue is empty.
    */
-  process(): Promise<any> {
-    return this._reified.then(() => {
-      let resolution = this._resolution;
+  async process(): Promise<void> {
+    await this._reified;
 
-      if (!resolution) {
-        if (this._tasks.length === 0) {
-          resolution = this._complete();
-        } else {
-          this._error = null;
-          this._resolution = resolution = new Promise((resolve, reject) => {
-            this._resolve = resolve;
-            this._reject = reject;
-          });
-          this._settleEach(resolution);
-        }
+    let resolution = this._resolution;
+    if (!resolution) {
+      if (this._tasks.length === 0) {
+        resolution = this._complete();
+      } else {
+        this._error = undefined;
+        this._resolution = resolution = new Promise((resolve, reject) => {
+          this._resolve = resolve;
+          this._reject = reject;
+        });
+        await this._settleEach(resolution);
       }
-
-      return resolution;
-    });
+    }
+    return resolution;
   }
 
   private _settle(
@@ -354,10 +342,10 @@ export class TaskQueue implements Evented {
     if (this._resolve) {
       this._resolve();
     }
-    this._resolve = null;
-    this._reject = null;
-    this._error = null;
-    this._resolution = null;
+    this._resolve = undefined;
+    this._reject = undefined;
+    this._error = undefined;
+    this._resolution = undefined;
     return settleInSeries(this, 'complete');
   }
 
@@ -365,16 +353,16 @@ export class TaskQueue implements Evented {
     if (this._reject) {
       this._reject(e);
     }
-    this._resolve = null;
-    this._reject = null;
+    this._resolve = undefined;
+    this._reject = undefined;
     this._error = e;
-    this._resolution = null;
+    this._resolution = undefined;
     return settleInSeries(this, 'fail', task, e);
   }
 
   private _cancel(): void {
-    this._error = null;
-    this._resolution = null;
+    this._error = undefined;
+    this._resolution = undefined;
   }
 
   private _settleEach(resolution: any): Promise<void> {
@@ -408,28 +396,30 @@ export class TaskQueue implements Evented {
     this._tasks = [];
     this._processors = [];
 
-    if (this._bucket) {
-      this._reified = this._bucket.getItem(this._name).then((tasks: Task[]) => {
+    this._reified = this._loadTasksFromBucket().then(
+      (tasks: Task[] | undefined) => {
         if (tasks) {
           this._tasks = tasks;
           this._processors = tasks.map(
             (task) => new TaskProcessor(this._performer, task)
           );
         }
-      });
-    } else {
-      this._reified = Promise.resolve();
-    }
+      }
+    );
 
     return this._reified;
   }
 
-  private _persist(): Promise<void> {
+  private async _loadTasksFromBucket(): Promise<Task[] | undefined> {
+    if (this._bucket && this._name) {
+      return (await this._bucket.getItem(this._name)) as Task[] | undefined;
+    }
+  }
+
+  private async _persist(): Promise<void> {
     this.emit('change');
-    if (this._bucket) {
-      return this._bucket.setItem(this._name, this._tasks);
-    } else {
-      return Promise.resolve();
+    if (this._bucket && this._name) {
+      await this._bucket.setItem(this._name, this._tasks);
     }
   }
 }

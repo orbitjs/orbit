@@ -1,8 +1,10 @@
+import { Assertion } from './exception';
+
 /**
  * Throw an exception if `test` is not truthy.
  */
-export function assert(description: string, test: boolean): void {
+export function assert(description: string, test: boolean): void | never {
   if (!test) {
-    throw new Error('Assertion failed: ' + description);
+    throw new Assertion(description);
   }
 }

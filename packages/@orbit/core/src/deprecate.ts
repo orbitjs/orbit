@@ -9,13 +9,9 @@ export function deprecate(
   test?: boolean | (() => boolean)
 ): void {
   if (typeof test === 'function') {
-    if (test()) {
-      return;
-    }
+    if (test()) return;
   } else {
-    if (test) {
-      return;
-    }
+    if (test) return;
   }
   console.warn(message);
 }

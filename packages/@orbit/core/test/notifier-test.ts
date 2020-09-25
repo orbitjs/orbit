@@ -9,10 +9,6 @@ module('Notifier', function (hooks) {
     notifier = new Notifier();
   });
 
-  hooks.afterEach(function () {
-    notifier = null;
-  });
-
   test('it exists', function (assert) {
     assert.ok(notifier);
   });

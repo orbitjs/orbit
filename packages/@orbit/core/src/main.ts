@@ -7,7 +7,7 @@ declare const global: any;
 
 export interface OrbitGlobal {
   globals: any;
-  assert: (description: string, test: boolean) => void;
+  assert: (description: string, test: boolean) => void | never;
   deprecate: (message: string, test?: boolean | (() => boolean)) => void;
   uuid: () => string;
 }

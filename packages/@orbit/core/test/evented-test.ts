@@ -24,21 +24,17 @@ function failedOperation() {
 module('Evented', function (hooks) {
   @evented
   class Foo implements Evented {
-    on: (event: string, listener: Listener) => () => void;
-    off: (event: string, listener?: Listener) => void;
-    one: (event: string, listener: Listener) => () => void;
-    emit: (event: string, ...args: any[]) => void;
-    listeners: (event: string) => Listener[];
+    on!: (event: string, listener: Listener) => () => void;
+    off!: (event: string, listener?: Listener) => void;
+    one!: (event: string, listener: Listener) => () => void;
+    emit!: (event: string, ...args: any[]) => void;
+    listeners!: (event: string) => Listener[];
   }
 
   let obj: Foo;
 
   hooks.beforeEach(function () {
     obj = new Foo();
-  });
-
-  hooks.afterEach(function () {
-    obj = null;
   });
 
   test('isEvented - tests for the application of the @evented decorator', function (assert) {
