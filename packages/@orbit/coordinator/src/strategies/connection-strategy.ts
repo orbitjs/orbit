@@ -28,12 +28,12 @@ export interface ConnectionStrategyOptions extends StrategyOptions {
    * invoked in the context of this strategy (and thus will have access to
    * both `this.source` and `this.target`).
    */
-  action: string | ((...args: any[]) => any);
+  action: string | ((...args: unknown[]) => unknown);
 
   /**
    * A handler for any errors thrown as a result of performing the action.
    */
-  catch?: (error: Error, ...args: any[]) => void;
+  catch?: (error: Error, ...args: unknown[]) => void;
 
   /**
    * A filter function that returns `true` if the `action` should be performed.
@@ -41,7 +41,7 @@ export interface ConnectionStrategyOptions extends StrategyOptions {
    * `filter` will be invoked in the context of this strategy (and thus will
    * have access to both `this.source` and `this.target`).
    */
-  filter?: (...args: any[]) => boolean;
+  filter?: (...args: unknown[]) => boolean;
 
   /**
    * Should resolution of `action` on the the target block the completion
@@ -49,16 +49,19 @@ export interface ConnectionStrategyOptions extends StrategyOptions {
    *
    * By default, `blocking` is false.
    */
-  blocking?: boolean | ((...args: any[]) => boolean);
+  blocking?: boolean | ((...args: unknown[]) => boolean);
 }
 
+declare type CatchFn = (error: Error, ...args: unknown[]) => void;
+declare type FilterFn = (...args: unknown[]) => boolean;
+
 export class ConnectionStrategy extends Strategy {
-  protected _blocking: boolean | ((...args: any[]) => boolean);
+  protected _blocking: boolean | ((...args: unknown[]) => boolean);
   protected _event: string;
-  protected _action: string | ((...args: any[]) => any);
-  protected _catch: (error: Error, ...args: any[]) => void;
-  protected _listener: Listener;
-  protected _filter: (...args: any[]) => boolean;
+  protected _action: string | ((...args: unknown[]) => unknown);
+  protected _catch?: CatchFn;
+  protected _listener?: Listener;
+  protected _filter?: FilterFn;
 
   constructor(options: ConnectionStrategyOptions) {
     assert(
@@ -75,7 +78,7 @@ export class ConnectionStrategy extends Strategy {
     );
     options.sources = [options.source];
     let defaultName = `${options.source}:${options.on}`;
-    delete options.source;
+    delete (options as any).source;
     if (options.target) {
       assert(
         '`target` should be a Source name specified as a string',
@@ -125,7 +128,7 @@ export class ConnectionStrategy extends Strategy {
   async deactivate(): Promise<void> {
     await super.deactivate();
     this.source.off(this._event, this._listener);
-    this._listener = null;
+    this._listener = undefined;
   }
 
   protected generateListener(): Listener {
@@ -148,8 +151,7 @@ export class ConnectionStrategy extends Strategy {
 
       if (this._catch && result && result.catch) {
         result = result.catch((e: Error) => {
-          args.unshift(e);
-          return this._catch.apply(this, args);
+          return (this._catch as CatchFn).apply(this, [e, ...args]);
         });
       }
 

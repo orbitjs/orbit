@@ -4,13 +4,13 @@ import { Source, Transform } from '@orbit/data';
 import { Dict } from '@orbit/utils';
 
 export class LogTruncationStrategy extends Strategy {
-  protected _reviewing: Promise<void>;
-  protected _extraReviewNeeded: boolean;
-  protected _transformListeners: Dict<(transform: Transform) => void>;
+  protected _transformListeners: Dict<(transform: Transform) => void> = {};
 
   constructor(options: StrategyOptions = {}) {
-    options.name = options.name || 'log-truncation';
-    super(options);
+    super({
+      ...options,
+      name: options.name || 'log-truncation'
+    });
   }
 
   async activate(
@@ -29,10 +29,10 @@ export class LogTruncationStrategy extends Strategy {
     for (let source of this._sources) {
       this._disconnectSource(source);
     }
-    this._transformListeners = null;
+    this._transformListeners = {};
   }
 
-  _review(source: Source): Promise<void> {
+  async _review(source: Source): Promise<void> {
     let sources = this._sources;
     let transformId = source.transformLog.head;
 
@@ -70,22 +70,22 @@ export class LogTruncationStrategy extends Strategy {
   }
 
   _connectSource(source: Source): void {
-    const listener = (this._transformListeners[source.name] = (): Promise<
-      void
-    > => {
+    const listener = async (): Promise<void> => {
       if (source.requestQueue.empty && source.syncQueue.empty) {
         return this._review(source);
       }
-    });
-
+    };
+    const sourceName = this.getSourceName(source);
+    this._transformListeners[sourceName] = listener;
     source.syncQueue.on('complete', listener);
     source.requestQueue.on('complete', listener);
   }
 
   _disconnectSource(source: Source): void {
-    const listener = this._transformListeners[source.name];
+    const sourceName = this.getSourceName(source);
+    const listener = this._transformListeners[sourceName];
     source.syncQueue.off('complete', listener);
     source.requestQueue.off('complete', listener);
-    delete this._transformListeners[source.name];
+    delete this._transformListeners[sourceName];
   }
 }

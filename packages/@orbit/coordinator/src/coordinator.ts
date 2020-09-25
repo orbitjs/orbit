@@ -29,9 +29,9 @@ export interface ActivationOptions {
 export class Coordinator {
   protected _sources: Dict<Source>;
   protected _strategies: Dict<Strategy>;
-  protected _activated: Promise<any>;
+  protected _activated?: Promise<void>;
   protected _defaultActivationOptions: ActivationOptions;
-  protected _currentActivationOptions: ActivationOptions;
+  protected _currentActivationOptions?: ActivationOptions;
 
   constructor(options: CoordinatorOptions = {}) {
     this._sources = {};
@@ -54,18 +54,19 @@ export class Coordinator {
 
   addSource(source: Source): void {
     const name = source.name;
-
-    assert(`Sources require a 'name' to be added to a coordinator.`, !!name);
-    assert(
-      `A source named '${name}' has already been added to this coordinator.`,
-      !this._sources[name]
-    );
-    assert(
-      `A coordinator's sources can not be changed while it is active.`,
-      !this._activated
-    );
-
-    this._sources[name] = source;
+    if (name) {
+      assert(
+        `A source named '${name}' has already been added to this coordinator.`,
+        !this._sources[name]
+      );
+      assert(
+        `A coordinator's sources can not be changed while it is active.`,
+        !this._activated
+      );
+      this._sources[name] = source;
+    } else {
+      assert(`Sources require a 'name' to be added to a coordinator.`, !!name);
+    }
   }
 
   removeSource(name: string): void {
@@ -137,7 +138,7 @@ export class Coordinator {
     return Object.keys(this._strategies);
   }
 
-  get activated(): Promise<void> {
+  get activated(): Promise<void> | undefined {
     return this._activated;
   }
 

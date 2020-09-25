@@ -21,11 +21,13 @@ export interface EventLoggingStrategyOptions extends StrategyOptions {
 export class EventLoggingStrategy extends Strategy {
   protected _events?: string[];
   protected _interfaces?: string[];
-  protected _eventListeners: Dict<Dict<Listener>>;
+  protected _eventListeners?: Dict<Dict<Listener>>;
 
   constructor(options: EventLoggingStrategyOptions = {}) {
-    options.name = options.name || 'event-logging';
-    super(options);
+    super({
+      ...options,
+      name: options.name || 'event-logging'
+    });
 
     this._events = options.events;
     this._interfaces = options.interfaces;
@@ -44,7 +46,7 @@ export class EventLoggingStrategy extends Strategy {
   async deactivate(): Promise<void> {
     await super.deactivate();
     this._sources.forEach((source) => this._deactivateSource(source));
-    this._eventListeners = null;
+    this._eventListeners = undefined;
   }
 
   protected _activateSource(source: Source): void {
@@ -110,7 +112,7 @@ export class EventLoggingStrategy extends Strategy {
         case 'transformable':
           return ['transform'];
       }
-    } else if (this._logLevel > LogLevel.None) {
+    } else if (this._logLevel !== undefined && this._logLevel > LogLevel.None) {
       switch (interfaceName) {
         case 'pullable':
           return ['pullFail'];
@@ -124,23 +126,30 @@ export class EventLoggingStrategy extends Strategy {
           return ['updateFail'];
       }
     }
+    return [];
   }
 
   protected _addListener(source: Source, event: string): void {
     const listener = this._generateListener(source, event);
-    deepSet(this._eventListeners, [source.name, event], listener);
+    const sourceName = this.getSourceName(source);
+    deepSet(this._eventListeners, [sourceName, event], listener);
     source.on(event, listener);
   }
 
   protected _removeListener(source: Source, event: string): void {
-    const listener = deepGet(this._eventListeners, [source.name, event]);
+    const sourceName = this.getSourceName(source);
+    const listener = deepGet(this._eventListeners, [
+      sourceName,
+      event
+    ]) as Listener;
     source.off(event, listener);
-    this._eventListeners[source.name][event] = null;
+    deepSet(this._eventListeners, [sourceName, event], undefined);
   }
 
   protected _generateListener(source: Source, event: string): Listener {
+    const sourceName = this.getSourceName(source);
     return (...args: any[]) => {
-      console.log(this._logPrefix, source.name, event, ...args);
+      console.log(this._logPrefix, sourceName, event, ...args);
     };
   }
 }

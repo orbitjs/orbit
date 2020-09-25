@@ -27,13 +27,13 @@ export class RequestStrategy extends ConnectionStrategy {
   constructor(options: RequestStrategyOptions) {
     super(options);
 
-    this.passHints = options.passHints;
+    this.passHints = !!options.passHints;
   }
 
   protected generateListener(): Listener {
-    const target = this.target as any;
+    const target = this.target;
 
-    return (...args: any[]): any => {
+    return (...args: unknown[]): unknown => {
       let result;
 
       if (this._filter) {
@@ -43,14 +43,14 @@ export class RequestStrategy extends ConnectionStrategy {
       }
 
       if (typeof this._action === 'string') {
-        result = target[this._action](args[0]);
+        result = (target as any)[this._action](args[0]);
       } else {
         result = this._action(...args);
       }
 
       if (this._catch && result && result.catch) {
         result = result.catch((e: Error) => {
-          return this._catch(e, ...args);
+          return this._catch && this._catch(e, ...args);
         });
       }
 
@@ -68,7 +68,7 @@ export class RequestStrategy extends ConnectionStrategy {
           if (this.passHints) {
             const hints = args[1];
             if (typeof hints === 'object') {
-              return this.applyHint(hints, result);
+              return this.applyHint(hints as { data?: unknown }, result);
             }
           }
           return result;
@@ -77,7 +77,10 @@ export class RequestStrategy extends ConnectionStrategy {
     };
   }
 
-  protected async applyHint(hints: any, result: Promise<any>): Promise<void> {
-    return (hints.data = await result);
+  protected async applyHint(
+    hints: { data?: unknown },
+    result: Promise<unknown>
+  ): Promise<void> {
+    hints.data = await result;
   }
 }
