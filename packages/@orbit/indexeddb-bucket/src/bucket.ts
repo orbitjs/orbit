@@ -16,7 +16,7 @@ export interface IndexedDBBucketSettings extends BucketSettings {
  * @extends Bucket
  */
 export class IndexedDBBucket extends Bucket {
-  protected _storeName: string;
+  protected _storeName!: string;
   protected _db: any;
 
   /**
@@ -38,7 +38,9 @@ export class IndexedDBBucket extends Bucket {
   }
 
   async _applySettings(settings: IndexedDBBucketSettings): Promise<void> {
-    this._storeName = settings.storeName;
+    if (settings.storeName) {
+      this._storeName = settings.storeName;
+    }
     await super._applySettings(settings);
   }
 
@@ -171,7 +173,7 @@ export class IndexedDBBucket extends Bucket {
     });
   }
 
-  async setItem(key: string, value: any): Promise<void> {
+  async setItem(key: string, value: unknown): Promise<void> {
     await this.openDB();
 
     const transaction = this._db.transaction([this.dbStoreName], 'readwrite');
