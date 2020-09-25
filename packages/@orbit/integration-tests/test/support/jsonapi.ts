@@ -1,8 +1,8 @@
 import { Orbit } from '@orbit/core';
 
 export function jsonapiResponse(
-  _options: any,
-  body?: any,
+  _options: unknown,
+  body?: unknown,
   timeout?: number
 ): Promise<Response> {
   let options: any;
@@ -38,7 +38,7 @@ export function jsonapiResponse(
   }
 }
 
-function statusText(code: number): string {
+function statusText(code: number): string | undefined {
   switch (code) {
     case 200:
       return 'OK';
