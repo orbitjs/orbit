@@ -24,13 +24,13 @@ export interface TransformBuilderSettings {
 }
 
 export class TransformBuilder {
-  private _recordInitializer: RecordInitializer;
+  private _recordInitializer?: RecordInitializer;
 
   constructor(settings: TransformBuilderSettings = {}) {
     this._recordInitializer = settings.recordInitializer;
   }
 
-  get recordInitializer(): RecordInitializer {
+  get recordInitializer(): RecordInitializer | undefined {
     return this._recordInitializer;
   }
 

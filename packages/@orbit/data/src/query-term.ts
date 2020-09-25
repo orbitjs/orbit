@@ -62,7 +62,7 @@ export type FilterQBParam =
 export class QueryTerm<T extends QueryExpression = QueryExpression> {
   expression: T;
 
-  constructor(expression?: T) {
+  constructor(expression: T) {
     this.expression = expression;
   }
 

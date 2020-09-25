@@ -72,16 +72,15 @@ export interface SchemaSettings {
  */
 @evented
 export class Schema implements Evented, RecordInitializer {
-  private _models: Dict<ModelDefinition>;
-
-  private _version: number;
+  private _models!: Dict<ModelDefinition>;
+  private _version!: number;
 
   // Evented interface stubs
-  on: (event: string, listener: Listener) => () => void;
-  off: (event: string, listener?: Listener) => void;
-  one: (event: string, listener: Listener) => () => void;
-  emit: (event: string, ...args: any[]) => void;
-  listeners: (event: string) => Listener[];
+  on!: (event: string, listener: Listener) => () => void;
+  off!: (event: string, listener?: Listener) => void;
+  one!: (event: string, listener: Listener) => () => void;
+  emit!: (event: string, ...args: any[]) => void;
+  listeners!: (event: string) => Listener[];
 
   constructor(settings: SchemaSettings = {}) {
     if (settings.version === undefined) {
@@ -120,7 +119,9 @@ export class Schema implements Evented, RecordInitializer {
    */
   protected _applySettings(settings: SchemaSettings): void {
     // Version
-    this._version = settings.version;
+    if (settings.version !== undefined) {
+      this._version = settings.version;
+    }
 
     // Allow overrides
     if (settings.generateId) {
@@ -209,12 +210,18 @@ export class Schema implements Evented, RecordInitializer {
     }
   }
 
-  getAttribute(type: string, attribute: string): AttributeDefinition {
+  getAttribute(
+    type: string,
+    attribute: string
+  ): AttributeDefinition | undefined {
     const model = this.getModel(type);
     return model.attributes && model.attributes[attribute];
   }
 
-  getRelationship(type: string, relationship: string): RelationshipDefinition {
+  getRelationship(
+    type: string,
+    relationship: string
+  ): RelationshipDefinition | undefined {
     const model = this.getModel(type);
     return model.relationships && model.relationships[relationship];
   }
@@ -249,18 +256,21 @@ export class Schema implements Evented, RecordInitializer {
     }
   }
 
-  _deprecateRelationshipModel(models: Dict<ModelDefinition>) {
-    Object.keys(models).forEach((type) => {
+  _deprecateRelationshipModel(models: Dict<ModelDefinition>): void {
+    for (let type in models) {
       if (models[type].relationships) {
-        Object.keys(models[type].relationships).forEach((name) => {
-          let relationship = models[type].relationships[name];
+        let relationships = models[type].relationships as Dict<
+          RelationshipDefinition
+        >;
+        for (let name in relationships) {
+          let relationship = relationships[name];
           if (relationship.model) {
             deprecate(
               'RelationshipDefinition.model is deprecated, use `type` and `kind` instead.'
             );
           }
-        });
+        }
       }
-    });
+    }
   }
 }

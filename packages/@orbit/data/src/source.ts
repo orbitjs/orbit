@@ -39,23 +39,23 @@ export type SourceClass = new () => Source;
  */
 @evented
 export abstract class Source implements Evented, Performer {
-  protected _name: string;
-  protected _bucket: Bucket;
-  protected _keyMap: KeyMap;
-  protected _schema: Schema;
+  protected _name?: string;
+  protected _bucket?: Bucket;
+  protected _keyMap?: KeyMap;
+  protected _schema?: Schema;
   protected _transformLog: Log;
   protected _requestQueue: TaskQueue;
   protected _syncQueue: TaskQueue;
-  protected _queryBuilder: QueryBuilder;
-  protected _transformBuilder: TransformBuilder;
+  protected _queryBuilder?: QueryBuilder;
+  protected _transformBuilder?: TransformBuilder;
   private _activated?: Promise<void>;
 
   // Evented interface stubs
-  on: (event: string, listener: Listener) => () => void;
-  off: (event: string, listener?: Listener) => void;
-  one: (event: string, listener: Listener) => () => void;
-  emit: (event: string, ...args: any[]) => void;
-  listeners: (event: string) => Listener[];
+  on!: (event: string, listener: Listener) => () => void;
+  off!: (event: string, listener?: Listener) => void;
+  one!: (event: string, listener: Listener) => () => void;
+  emit!: (event: string, ...args: any[]) => void;
+  listeners!: (event: string) => Listener[];
 
   constructor(settings: SourceSettings = {}) {
     this._schema = settings.schema;
@@ -104,19 +104,19 @@ export abstract class Source implements Evented, Performer {
     }
   }
 
-  get name(): string {
+  get name(): string | undefined {
     return this._name;
   }
 
-  get schema(): Schema {
+  get schema(): Schema | undefined {
     return this._schema;
   }
 
-  get keyMap(): KeyMap {
+  get keyMap(): KeyMap | undefined {
     return this._keyMap;
   }
 
-  get bucket(): Bucket {
+  get bucket(): Bucket | undefined {
     return this._bucket;
   }
 
@@ -151,11 +151,10 @@ export abstract class Source implements Evented, Performer {
   }
 
   // Performer interface
-  perform(task: Task): Promise<any> {
+  perform(task: Task): Promise<unknown> {
     let method = (this as any)[`__${task.type}__`] as (
-      source: Source,
       data: any
-    ) => void;
+    ) => Promise<unknown>;
     return method.call(this, task.data);
   }
 
@@ -223,11 +222,11 @@ export abstract class Source implements Evented, Performer {
       .then(() => transforms);
   }
 
-  private _enqueueRequest(type: string, data: any): Promise<void> {
+  private _enqueueRequest(type: string, data: any): Promise<unknown> {
     return this._requestQueue.push({ type, data });
   }
 
-  private _enqueueSync(type: string, data: any): Promise<void> {
+  private _enqueueSync(type: string, data: any): Promise<unknown> {
     return this._syncQueue.push({ type, data });
   }
 }

@@ -7,18 +7,18 @@ import { Dict } from '@orbit/utils';
  * memory, but useful for testing.
  */
 export class FakeBucket extends Bucket {
-  data: Dict<any>;
+  data: Dict<unknown>;
 
   constructor(settings = {}) {
     super(settings);
     this.data = {};
   }
 
-  async getItem(key: string): Promise<any> {
+  async getItem(key: string): Promise<unknown> {
     return this.data[key];
   }
 
-  async setItem(key: string, value: any): Promise<void> {
+  async setItem(key: string, value: unknown): Promise<void> {
     this.data[key] = value;
   }
 

@@ -10,8 +10,8 @@ const QUERYABLE = '__queryable__';
 /**
  * Has a source been decorated as `@queryable`?
  */
-export function isQueryable(source: any) {
-  return !!source[QUERYABLE];
+export function isQueryable(source: Source): boolean {
+  return !!(source as { [QUERYABLE]?: boolean })[QUERYABLE];
 }
 
 /**
@@ -27,9 +27,9 @@ export interface Queryable {
     queryOrExpressions: QueryOrExpressions,
     options?: RequestOptions,
     id?: string
-  ): Promise<any>;
+  ): Promise<unknown>;
 
-  _query(query: Query, hints?: any): Promise<any>;
+  _query(query: Query, hints?: unknown): Promise<unknown>;
 }
 
 /**

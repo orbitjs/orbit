@@ -11,8 +11,8 @@ const PULLABLE = '__pullable__';
 /**
  * Has a source been decorated as `@pullable`?
  */
-export function isPullable(source: any) {
-  return !!source[PULLABLE];
+export function isPullable(source: Source): boolean {
+  return !!(source as { [PULLABLE]?: boolean })[PULLABLE];
 }
 
 /**
@@ -32,7 +32,7 @@ export interface Pullable {
     id?: string
   ): Promise<Transform[]>;
 
-  _pull(query: Query, hints?: any): Promise<Transform[]>;
+  _pull(query: Query, hints?: unknown): Promise<Transform[]>;
 }
 
 /**

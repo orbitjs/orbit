@@ -1,4 +1,7 @@
 import { Exception } from '@orbit/core';
+import { Query } from './query';
+import { QueryExpression } from './query-expression';
+import { Transform } from './transform';
 
 /**
  * An client-side error occurred while communicating with a remote server.
@@ -42,9 +45,9 @@ export class NetworkError extends Exception {
  */
 export class QueryExpressionParseError extends Exception {
   public description: string;
-  public expression: any;
+  public expression?: QueryExpression;
 
-  constructor(description: string, expression: any) {
+  constructor(description: string, expression?: QueryExpression) {
     super(`Query expression parse error: ${description}`);
     this.description = description;
     this.expression = expression;
@@ -56,9 +59,9 @@ export class QueryExpressionParseError extends Exception {
  */
 export class QueryNotAllowed extends Exception {
   public description: string;
-  public query: any;
+  public query: Query;
 
-  constructor(description: string, query: any) {
+  constructor(description: string, query: Query) {
     super(`Query not allowed: ${description}`);
     this.description = description;
     this.query = query;
@@ -70,9 +73,9 @@ export class QueryNotAllowed extends Exception {
  */
 export class TransformNotAllowed extends Exception {
   public description: string;
-  public transform: any;
+  public transform: Transform;
 
-  constructor(description: string, transform: any) {
+  constructor(description: string, transform: Transform) {
     super(`Transform not allowed: ${description}`);
     this.description = description;
     this.transform = transform;
@@ -133,7 +136,7 @@ export abstract class RecordException extends Exception {
   public description: string;
   public type: string;
   public id: string;
-  public relationship: string;
+  public relationship?: string;
 
   constructor(
     description: string,
