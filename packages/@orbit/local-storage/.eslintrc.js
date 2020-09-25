@@ -23,10 +23,12 @@ module.exports = {
     'prefer-rest-params': ['off'],
     'prefer-spread': ['off']
   },
-  overrides: [{
-    files: ['test/**/*.ts'],
-    rules: {
-      '@typescript-eslint/no-unused-vars': ['off']
+  overrides: [
+    {
+      files: ['test/**/*.ts'],
+      rules: {
+        '@typescript-eslint/no-unused-vars': ['off']
+      }
     }
-  }]
+  ]
 };
