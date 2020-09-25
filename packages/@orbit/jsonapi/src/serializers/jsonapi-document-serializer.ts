@@ -72,6 +72,7 @@ export class JSONAPIDocumentSerializer extends JSONAPIBaseSerializer<
     return this.resourceSerializer.serialize(record);
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   protected serializeLinks(
     document: RecordDocument,
     resDocument: ResourceDocument
@@ -81,6 +82,7 @@ export class JSONAPIDocumentSerializer extends JSONAPIBaseSerializer<
     document: RecordDocument,
     resDocument: ResourceDocument
   ): void {}
+  /* eslint-enable @typescript-eslint/no-unused-vars */
 
   protected deserializeResources(
     resources: Resource[],

@@ -1,4 +1,5 @@
-import Orbit, {
+import Orbit from '@orbit/core';
+import {
   ClientError,
   KeyMap,
   NetworkError,
@@ -70,17 +71,17 @@ export interface JSONAPIRequestProcessorSettings {
   defaultFetchSettings?: FetchSettings;
   allowedContentTypes?: string[];
   schema: Schema;
-  keyMap: KeyMap;
+  keyMap?: KeyMap;
 }
 
 export class JSONAPIRequestProcessor {
   sourceName: string;
   urlBuilder: JSONAPIURLBuilder;
   allowedContentTypes: string[];
-  defaultFetchSettings: FetchSettings;
+  defaultFetchSettings!: FetchSettings;
   schema: Schema;
-  keyMap: KeyMap;
-  protected _serializer: JSONAPISerializer;
+  keyMap?: KeyMap;
+  protected _serializer?: JSONAPISerializer;
   protected _serializerFor: SerializerForFn;
 
   constructor(settings: JSONAPIRequestProcessorSettings) {
@@ -102,11 +103,6 @@ export class JSONAPIRequestProcessor {
     ];
     this.schema = schema;
     this.keyMap = keyMap;
-    const urlBuilderOptions: JSONAPIURLBuilderSettings = {
-      host: settings.host,
-      namespace: settings.namespace,
-      keyMap: settings.keyMap
-    };
     if (SerializerClass) {
       deprecate(
         "The 'SerializerClass' setting for 'JSONAPIRequestProcessor' has been deprecated. Pass 'serializerFor', 'serializerClassFor', and/or 'serializerSettingsFor' instead."
@@ -115,7 +111,6 @@ export class JSONAPIRequestProcessor {
         schema,
         keyMap
       });
-      urlBuilderOptions.serializer = this._serializer;
     }
     this._serializerFor = buildJSONAPISerializerFor({
       schema,
@@ -124,8 +119,14 @@ export class JSONAPIRequestProcessor {
       serializerClassFor,
       serializerSettingsFor
     });
-    urlBuilderOptions.serializerFor = this._serializerFor;
-    let URLBuilderClass = settings.URLBuilderClass || JSONAPIURLBuilder;
+    const URLBuilderClass = settings.URLBuilderClass || JSONAPIURLBuilder;
+    const urlBuilderOptions: JSONAPIURLBuilderSettings = {
+      host: settings.host,
+      namespace: settings.namespace,
+      keyMap: settings.keyMap,
+      serializer: this._serializer,
+      serializerFor: this._serializerFor
+    };
     this.urlBuilder = new URLBuilderClass(urlBuilderOptions);
     this.initDefaultFetchSettings(settings);
   }
@@ -248,7 +249,7 @@ export class JSONAPIRequestProcessor {
     queryOrTransform: Query | Transform,
     queryExpressionOrOperation: QueryExpression | Operation
   ): JSONAPIRequestOptions | undefined {
-    let options: JSONAPIRequestOptions;
+    let options: JSONAPIRequestOptions | undefined;
 
     if (queryOrTransform.options) {
       options = requestOptionsForSource(
@@ -272,10 +273,12 @@ export class JSONAPIRequestProcessor {
     }
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   preprocessResponseDocument(
     document: ResourceDocument,
     queryRequestOrTransformRecordRequest: QueryRequest | TransformRecordRequest
-  ) {}
+  ): void {}
+  /* eslint-enable @typescript-eslint/no-unused-vars */
 
   protected responseHasContent(response: Response): boolean {
     if (response.status === 204) {
@@ -341,8 +344,8 @@ export class JSONAPIRequestProcessor {
 
   protected async handleFetchResponseError(
     response: Response,
-    data?: any
-  ): Promise<any> {
+    data?: unknown
+  ): Promise<Error> {
     let error: any;
     if (response.status >= 400 && response.status < 500) {
       error = new ClientError(response.statusText);
@@ -354,7 +357,11 @@ export class JSONAPIRequestProcessor {
     throw error;
   }
 
-  protected async handleFetchError(e: any): Promise<any> {
-    throw new NetworkError(e);
+  protected async handleFetchError(e: Error | string): Promise<Error> {
+    if (typeof e === 'string') {
+      throw new NetworkError(e);
+    } else {
+      throw e;
+    }
   }
 }

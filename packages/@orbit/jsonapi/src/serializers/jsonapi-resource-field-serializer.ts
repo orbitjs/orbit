@@ -1,20 +1,14 @@
-import { Schema, KeyMap } from '@orbit/data';
 import {
-  SerializerForFn,
   StringSerializer,
   StringSerializationOptions
 } from '@orbit/serializers';
 
 export interface JSONAPIResourceFieldSerializationOptions
   extends StringSerializationOptions {
-  type: string;
+  type?: string;
 }
 
 export class JSONAPIResourceFieldSerializer extends StringSerializer {
-  serializerFor: SerializerForFn;
-  protected _schema: Schema;
-  protected _keyMap: KeyMap;
-
   serialize(
     arg: string | null,
     customOptions?: JSONAPIResourceFieldSerializationOptions

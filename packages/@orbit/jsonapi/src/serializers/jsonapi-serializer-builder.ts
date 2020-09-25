@@ -11,7 +11,8 @@ import {
   buildSerializerSettingsFor,
   SerializerForFn,
   SerializerClassForFn,
-  SerializerSettingsForFn
+  SerializerSettingsForFn,
+  UnknownSerializerClass
 } from '@orbit/serializers';
 import { JSONAPIOperationSerializer } from './jsonapi-operation-serializer';
 import { JSONAPIResourceSerializer } from './jsonapi-resource-serializer';
@@ -34,26 +35,27 @@ export function buildJSONAPISerializerFor(settings: {
     unknown: NoopSerializer,
     object: NoopSerializer,
     array: NoopSerializer,
-    boolean: BooleanSerializer,
-    string: StringSerializer,
-    date: DateSerializer,
-    datetime: DateTimeSerializer,
-    number: NumberSerializer,
-    [JSONAPISerializers.Resource]: JSONAPIResourceSerializer,
-    [JSONAPISerializers.ResourceDocument]: JSONAPIDocumentSerializer,
-    [JSONAPISerializers.ResourceIdentity]: JSONAPIResourceIdentitySerializer,
-    [JSONAPISerializers.ResourceOperation]: JSONAPIOperationSerializer,
-    [JSONAPISerializers.ResourceType]: StringSerializer,
-    [JSONAPISerializers.ResourceTypePath]: StringSerializer,
-    [JSONAPISerializers.ResourceField]: JSONAPIResourceFieldSerializer,
-    [JSONAPISerializers.ResourceFieldParam]: JSONAPIResourceFieldSerializer,
-    [JSONAPISerializers.ResourceFieldPath]: JSONAPIResourceFieldSerializer
+    boolean: BooleanSerializer as UnknownSerializerClass,
+    string: StringSerializer as UnknownSerializerClass,
+    date: DateSerializer as UnknownSerializerClass,
+    datetime: DateTimeSerializer as UnknownSerializerClass,
+    number: NumberSerializer as UnknownSerializerClass,
+    [JSONAPISerializers.Resource as string]: JSONAPIResourceSerializer as UnknownSerializerClass,
+    [JSONAPISerializers.ResourceDocument as string]: JSONAPIDocumentSerializer as UnknownSerializerClass,
+    [JSONAPISerializers.ResourceIdentity as string]: JSONAPIResourceIdentitySerializer as UnknownSerializerClass,
+    [JSONAPISerializers.ResourceOperation as string]: JSONAPIOperationSerializer as UnknownSerializerClass,
+    [JSONAPISerializers.ResourceType as string]: StringSerializer as UnknownSerializerClass,
+    [JSONAPISerializers.ResourceTypePath as string]: StringSerializer as UnknownSerializerClass,
+    [JSONAPISerializers.ResourceField as string]: JSONAPIResourceFieldSerializer as UnknownSerializerClass,
+    [JSONAPISerializers.ResourceFieldParam as string]: JSONAPIResourceFieldSerializer as UnknownSerializerClass,
+    [JSONAPISerializers.ResourceFieldPath as string]: JSONAPIResourceFieldSerializer as UnknownSerializerClass
   });
   let serializerClassFor: SerializerClassForFn;
   if (settings.serializerClassFor) {
     serializerClassFor = (type = 'unknown') => {
       return (
-        settings.serializerClassFor(type) || defaultSerializerClassFor(type)
+        (settings.serializerClassFor as SerializerClassForFn)(type) ||
+        defaultSerializerClassFor(type)
       );
     };
   } else {
@@ -79,7 +81,8 @@ export function buildJSONAPISerializerFor(settings: {
   if (customSerializerSettingsFor) {
     serializerSettingsFor = (type = 'unknown') => {
       let defaultSerializerSettings = defaultSerializerSettingsFor(type) || {};
-      let customSerializerSettings = customSerializerSettingsFor(type) || {};
+      let customSerializerSettings =
+        (customSerializerSettingsFor as SerializerSettingsForFn)(type) || {};
       return deepMerge(defaultSerializerSettings, customSerializerSettings);
     };
   } else {
@@ -93,7 +96,8 @@ export function buildJSONAPISerializerFor(settings: {
   });
   if (customSerializerFor) {
     return (type = 'unknown') =>
-      customSerializerFor(type) || backupSerializerFor(type);
+      (customSerializerFor as SerializerForFn)(type) ||
+      backupSerializerFor(type);
   } else {
     return (type = 'unknown') => backupSerializerFor(type);
   }

@@ -1,4 +1,5 @@
-import Orbit, { Record, Schema, KeyMap } from '@orbit/data';
+import Orbit, { Assertion } from '@orbit/core';
+import { Record, Schema, KeyMap } from '@orbit/data';
 import { Dict } from '@orbit/utils';
 import { Resource } from '../resources';
 import { JSONAPIBaseSerializer } from './jsonapi-base-serializer';
@@ -12,7 +13,7 @@ export interface JSONAPIResourceIdentityDeserializationOptions {
 }
 
 export interface JSONAPIResourceIdentitySerializerSettings {
-  serializerFor?: SerializerForFn;
+  serializerFor: SerializerForFn;
   deserializationOptions?: JSONAPIResourceIdentityDeserializationOptions;
   schema: Schema;
   keyMap?: KeyMap;
@@ -79,9 +80,10 @@ export class JSONAPIResourceIdentitySerializer extends JSONAPIBaseSerializer<
   serialize(recordIdentity: Record): Resource {
     const { type, id } = recordIdentity;
     const resourceKey = this.getResourceKey(type);
-    const resourceType = this.typeSerializer.serialize(type);
+    const resourceType = this.typeSerializer.serialize(type) as string;
+    const keyMap = this.keyMap as KeyMap;
     const resourceId =
-      resourceKey === 'id' ? id : this.keyMap.idToKey(type, resourceKey, id);
+      resourceKey === 'id' ? id : keyMap.idToKey(type, resourceKey, id);
 
     const resource: Resource = {
       type: resourceType
@@ -99,15 +101,21 @@ export class JSONAPIResourceIdentitySerializer extends JSONAPIBaseSerializer<
     customOptions?: JSONAPIResourceIdentityDeserializationOptions
   ): Record {
     const options = this.buildDeserializationOptions(customOptions);
-    const type = this.typeSerializer.deserialize(resource.type);
+    const type = this.typeSerializer.deserialize(resource.type) as string;
     const resourceKey = this.getResourceKey(type);
 
     if (resourceKey === 'id') {
-      return { type: type, id: resource.id };
+      const { id } = resource;
+      if (id) {
+        return { type, id };
+      } else {
+        throw new Assertion(`Resource of type '${type}' is missing 'id'`);
+      }
     } else {
+      const keyMap = this.keyMap as KeyMap;
       const primaryRecord = options?.primaryRecord;
       let id: string;
-      let keys: Dict<string>;
+      let keys: Dict<string> | null;
 
       if (resource.id) {
         keys = {
@@ -116,21 +124,22 @@ export class JSONAPIResourceIdentitySerializer extends JSONAPIBaseSerializer<
 
         id =
           options.primaryRecord?.id ||
-          this.keyMap?.idFromKeys(type, keys) ||
+          keyMap.idFromKeys(type, keys) ||
           this.schema.generateId(type);
       } else {
+        keys = null;
         id =
           (primaryRecord && primaryRecord.id) || this.schema.generateId(type);
       }
 
       const record: Record = { type, id };
 
-      if (keys && this.keyMap) {
+      if (keys) {
         if (options.includeKeys) {
           record.keys = keys;
-          this.keyMap.pushRecord(record);
+          keyMap.pushRecord(record);
         } else {
-          this.keyMap.pushRecord({
+          keyMap.pushRecord({
             type,
             id,
             keys

@@ -31,15 +31,23 @@ export interface Resource {
   links?: Dict<Link>;
 }
 
+export type PrimaryResourceData =
+  | Resource
+  | Resource[]
+  | ResourceIdentity
+  | ResourceIdentity[];
+
 export interface ResourceDocument {
-  data: Resource | Resource[] | ResourceIdentity | ResourceIdentity[];
+  data: PrimaryResourceData;
   included?: Resource[];
   links?: Dict<Link>;
   meta?: Dict<any>;
 }
 
+export type PrimaryRecordData = Record | Record[] | null;
+
 export interface RecordDocument {
-  data: Record | Record[];
+  data: PrimaryRecordData;
   included?: Record[];
   links?: Dict<Link>;
   meta?: Dict<any>;

@@ -1,5 +1,6 @@
 import { deepSet, Dict } from '@orbit/utils';
-import Orbit, {
+import Orbit, { Assertion } from '@orbit/core';
+import {
   Schema,
   KeyMap,
   Record,
@@ -55,7 +56,7 @@ export class JSONAPISerializer
       JSONAPISerializationOptions
     > {
   protected _schema: Schema;
-  protected _keyMap: KeyMap;
+  protected _keyMap?: KeyMap;
   protected _serializerFor: SerializerForFn;
 
   constructor(settings: JSONAPISerializerSettings) {
@@ -65,7 +66,7 @@ export class JSONAPISerializer
 
     const { schema, keyMap, serializers } = settings;
 
-    let serializerFor: SerializerForFn;
+    let serializerFor: SerializerForFn | undefined;
     if (serializers) {
       serializerFor = (type: string) => serializers[type];
     }
@@ -94,7 +95,7 @@ export class JSONAPISerializer
     return this._schema;
   }
 
-  get keyMap(): KeyMap {
+  get keyMap(): KeyMap | undefined {
     return this._keyMap;
   }
 
@@ -102,20 +103,21 @@ export class JSONAPISerializer
     return this._serializerFor;
   }
 
+  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
   resourceKey(type: string): string {
     return 'id';
   }
 
   resourceType(type: string): string {
-    return this.typeSerializer.serialize(type);
+    return this.typeSerializer.serialize(type) as string;
   }
 
-  resourceRelationship(type: string, relationship: string): string {
-    return this.fieldSerializer.serialize(relationship, { type });
+  resourceRelationship(type: string | undefined, relationship: string): string {
+    return this.fieldSerializer.serialize(relationship, { type }) as string;
   }
 
-  resourceAttribute(type: string, attr: string): string {
-    return this.fieldSerializer.serialize(attr, { type });
+  resourceAttribute(type: string | undefined, attr: string): string {
+    return this.fieldSerializer.serialize(attr, { type }) as string;
   }
 
   resourceIdentity(identity: RecordIdentity): ResourceIdentity {
@@ -134,8 +136,12 @@ export class JSONAPISerializer
 
     if (resourceKey === 'id') {
       return id;
-    } else {
+    } else if (this.keyMap) {
       return this.keyMap.idToKey(type, resourceKey, id);
+    } else {
+      throw new Assertion(
+        `A keyMap is required to determine an id from the key '${resourceKey}'`
+      );
     }
   }
 
@@ -146,17 +152,23 @@ export class JSONAPISerializer
       return resourceId;
     }
 
-    let existingId = this.keyMap.keyToId(type, resourceKey, resourceId);
-
-    if (existingId) {
-      return existingId;
+    let existingId;
+    if (this.keyMap) {
+      existingId = this.keyMap.keyToId(type, resourceKey, resourceId);
+      if (existingId) {
+        return existingId;
+      }
+    } else {
+      throw new Assertion(
+        `A keyMap is required to determine an id from the key '${resourceKey}'`
+      );
     }
 
     return this._generateNewId(type, resourceKey, resourceId);
   }
 
   recordType(resourceType: string): string {
-    return this.typeSerializer.deserialize(resourceType);
+    return this.typeSerializer.deserialize(resourceType) as string;
   }
 
   recordIdentity(resourceIdentity: ResourceIdentity): RecordIdentity {
@@ -166,11 +178,11 @@ export class JSONAPISerializer
   }
 
   recordAttribute(type: string, resourceAttribute: string): string {
-    return this.fieldSerializer.deserialize(resourceAttribute);
+    return this.fieldSerializer.deserialize(resourceAttribute) as string;
   }
 
   recordRelationship(type: string, resourceRelationship: string): string {
-    return this.fieldSerializer.deserialize(resourceRelationship);
+    return this.fieldSerializer.deserialize(resourceRelationship) as string;
   }
 
   serialize(document: RecordDocument): ResourceDocument {
@@ -218,6 +230,7 @@ export class JSONAPISerializer
   serializeId(
     resource: Resource,
     record: RecordIdentity,
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     model: ModelDefinition
   ): void {
     let value = this.resourceId(record.type, record.id);
@@ -244,15 +257,15 @@ export class JSONAPISerializer
     attr: string,
     model: ModelDefinition
   ): void {
-    let value: any = record.attributes[attr];
+    let value: any = record.attributes?.[attr];
     if (value === undefined) {
       return;
     }
-    const attrOptions = model.attributes[attr];
+    const attrOptions = model.attributes?.[attr];
     if (attrOptions === undefined) {
       return;
     }
-    const serializer = this.serializerFor(attrOptions.type);
+    const serializer = this.serializerFor(attrOptions.type || 'unknown');
     if (serializer) {
       value =
         value === null
@@ -284,12 +297,12 @@ export class JSONAPISerializer
     relationship: string,
     model: ModelDefinition
   ): void {
-    const value = record.relationships[relationship].data;
+    const value = record.relationships?.[relationship].data;
 
     if (value === undefined) {
       return;
     }
-    if (model.relationships[relationship] === undefined) {
+    if (model.relationships?.[relationship] === undefined) {
       return;
     }
 
@@ -319,10 +332,10 @@ export class JSONAPISerializer
     let data;
 
     if (Array.isArray(document.data)) {
-      let primaryRecords = options && options.primaryRecords;
+      let primaryRecords = options?.primaryRecords;
       if (primaryRecords) {
         data = (document.data as Resource[]).map((entry, i) => {
-          return this.deserializeResource(entry, primaryRecords[i]);
+          return this.deserializeResource(entry, primaryRecords?.[i]);
         });
       } else {
         data = (document.data as Resource[]).map((entry) =>
@@ -384,10 +397,14 @@ export class JSONAPISerializer
     const resourceKey = this.resourceKey(type);
 
     if (resourceKey === 'id') {
-      record = { type, id: resource.id };
-    } else {
+      if (resource.id) {
+        record = { type, id: resource.id };
+      } else {
+        throw new Assertion(`A resource has been enountered without an id`);
+      }
+    } else if (this.keyMap) {
       let id: string;
-      let keys: Dict<string>;
+      let keys: Dict<string> | undefined;
 
       if (resource.id) {
         keys = {
@@ -408,6 +425,10 @@ export class JSONAPISerializer
       if (keys) {
         record.keys = keys;
       }
+    } else {
+      throw new Assertion(
+        `A keyMap is required to determine an id from the key '${resourceKey}'`
+      );
     }
 
     if (this.keyMap) {
@@ -438,8 +459,10 @@ export class JSONAPISerializer
       Object.keys(resource.attributes).forEach((resourceAttribute) => {
         let attribute = this.recordAttribute(record.type, resourceAttribute);
         if (this.schema.hasAttribute(record.type, attribute)) {
-          let value = resource.attributes[resourceAttribute];
-          this.deserializeAttribute(record, attribute, value, model);
+          let value = resource.attributes?.[resourceAttribute];
+          if (value !== undefined) {
+            this.deserializeAttribute(record, attribute, value, model);
+          }
         }
       });
     }
@@ -448,17 +471,17 @@ export class JSONAPISerializer
   deserializeAttribute(
     record: Record,
     attr: string,
-    value: any,
+    value: unknown,
     model: ModelDefinition
   ): void {
     record.attributes = record.attributes || {};
     if (value !== undefined && value !== null) {
-      const attrOptions = model.attributes[attr];
-      const serializer = this.serializerFor(attrOptions.type);
+      const attrOptions = model.attributes?.[attr];
+      const serializer = this.serializerFor(attrOptions?.type || 'unknown');
       if (serializer) {
         value = serializer.deserialize(
           value,
-          attrOptions.deserializationOptions
+          attrOptions?.deserializationOptions
         );
       }
     }
@@ -474,8 +497,10 @@ export class JSONAPISerializer
       Object.keys(resource.relationships).forEach((resourceRel) => {
         let relationship = this.recordRelationship(record.type, resourceRel);
         if (this.schema.hasRelationship(record.type, relationship)) {
-          let value = resource.relationships[resourceRel];
-          this.deserializeRelationship(record, relationship, value, model);
+          let value = resource.relationships?.[resourceRel];
+          if (value !== undefined) {
+            this.deserializeRelationship(record, relationship, value, model);
+          }
         }
       });
     }
@@ -485,8 +510,9 @@ export class JSONAPISerializer
     record: Record,
     relationship: string,
     value: ResourceRelationship,
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     model: ModelDefinition
-  ) {
+  ): void {
     let resourceData = value.data;
 
     if (resourceData !== undefined) {
@@ -516,13 +542,23 @@ export class JSONAPISerializer
     }
   }
 
-  deserializeLinks(record: Record, resource: Resource, model: ModelDefinition) {
+  deserializeLinks(
+    record: Record,
+    resource: Resource,
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+    model: ModelDefinition
+  ): void {
     if (resource.links) {
       record.links = resource.links;
     }
   }
 
-  deserializeMeta(record: Record, resource: Resource, model: ModelDefinition) {
+  deserializeMeta(
+    record: Record,
+    resource: Resource,
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+    model: ModelDefinition
+  ): void {
     if (resource.meta) {
       record.meta = resource.meta;
     }
@@ -567,13 +603,19 @@ export class JSONAPISerializer
   ): string {
     let id = this.schema.generateId(type);
 
-    this.keyMap.pushRecord({
-      type,
-      id,
-      keys: {
-        [keyName]: keyValue
-      }
-    });
+    if (this.keyMap) {
+      this.keyMap.pushRecord({
+        type,
+        id,
+        keys: {
+          [keyName]: keyValue
+        }
+      });
+    } else {
+      throw new Assertion(
+        `A keyMap is required to generate ids for resource type '${type}'`
+      );
+    }
 
     return id;
   }

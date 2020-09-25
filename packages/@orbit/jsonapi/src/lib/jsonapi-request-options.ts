@@ -1,4 +1,4 @@
-import { clone, deepMerge, deepSet, merge } from '@orbit/utils';
+import { clone, deepMerge, deepSet } from '@orbit/utils';
 import { FetchSettings } from '../jsonapi-request-processor';
 
 export interface Filter {
@@ -41,8 +41,12 @@ export function buildFetchSettings(
 export function mergeJSONAPIRequestOptions(
   options: JSONAPIRequestOptions,
   customOptions: JSONAPIRequestOptions
-) {
-  let result: JSONAPIRequestOptions = merge({}, options, customOptions);
+): JSONAPIRequestOptions {
+  const result: JSONAPIRequestOptions = Object.assign(
+    {},
+    options,
+    customOptions
+  );
   if (options.include && customOptions.include) {
     result.include = mergeIncludePaths(options.include, customOptions.include);
   }
@@ -53,7 +57,7 @@ export function mergeJSONAPIRequestOptions(
 }
 
 function mergeIncludePaths(paths: string[], customPaths: string[]) {
-  let result = clone(paths);
+  const result = clone(paths);
   for (let customPath of customPaths) {
     if (!paths.includes(customPath)) {
       result.push(customPath);
@@ -63,14 +67,17 @@ function mergeIncludePaths(paths: string[], customPaths: string[]) {
 }
 
 function mergeFilters(filters: Filter[], customFilters: Filter[]) {
-  let result: Filter[] = clone(filters);
+  const result: Filter[] = clone(filters);
   let filterKeys: string[] = filters.map((f) => filterKey(f));
   for (let customFilter of customFilters) {
     let customerFilterKey = filterKey(customFilter);
+    let filterToOverride;
     if (filterKeys.includes(customerFilterKey)) {
-      let filterToOverride = result.find(
+      filterToOverride = result.find(
         (f) => filterKey(f) === customerFilterKey
-      );
+      ) as Filter;
+    }
+    if (filterToOverride) {
       setFilterValue(filterToOverride, filterValue(customFilter));
     } else {
       result.push(customFilter);
@@ -87,6 +94,6 @@ function filterValue(filter: Filter): string {
   return Object.values(filter)[0];
 }
 
-function setFilterValue(filter: Filter, value: any) {
+function setFilterValue(filter: Filter, value: unknown): void {
   filter[filterKey(filter)] = value;
 }

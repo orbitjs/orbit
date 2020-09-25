@@ -1,8 +1,8 @@
 import { Orbit } from '@orbit/core';
 
 export function jsonapiResponse(
-  _options: any,
-  body?: any,
+  _options: unknown,
+  body?: unknown,
   timeout?: number
 ): Promise<Response> {
   let options: any;
