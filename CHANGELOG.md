@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.17.0-beta.8 (2020-09-27)
+
+#### :rocket: Enhancement
+
+- `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/serializers`, `@orbit/utils`
+  - [#788](https://github.com/orbitjs/orbit/pull/788) Enable TS strict mode ([@dgeb](https://github.com/dgeb))
+- `@orbit/data`
+  - [#784](https://github.com/orbitjs/orbit/pull/784) Introduce UninitializedRecord interface, with optional `id` ([@dgeb](https://github.com/dgeb))
+
+#### :memo: Documentation
+
+- `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/indexeddb-bucket`, `@orbit/local-storage-bucket`, `@orbit/memory`, `@orbit/utils`
+  - [#787](https://github.com/orbitjs/orbit/pull/787) Remove redundant / unnecessary type-related comments ([@dgeb](https://github.com/dgeb))
+- `@orbit/utils`
+  - [#786](https://github.com/orbitjs/orbit/pull/786) Deprecate `merge`, `extend`, and `expose` utility fns ([@dgeb](https://github.com/dgeb))
+- `@orbit/data`
+  - [#785](https://github.com/orbitjs/orbit/pull/785) Deprecate inflectors (singularize/pluralize) on Schema ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.7 (2020-09-16)
 
 #### :rocket: Enhancement
