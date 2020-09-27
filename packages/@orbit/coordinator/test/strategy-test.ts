@@ -187,19 +187,15 @@ module('Strategy', function (hooks) {
       sources: ['s1', 's2', 's3']
     });
 
-    assert.throws(() => {
-      strategy.sources.map((s) => s.activated);
-    });
+    assert.equal(strategy.sources.length, 0, 'no sources activated');
 
     coordinator.addStrategy(strategy);
     await coordinator.activate();
 
+    assert.equal(strategy.sources.length, 3, '3 sources activated');
+
     assert.ok(strategy.sources.map((s) => s.activated));
 
     await coordinator.deactivate();
-
-    assert.throws(() => {
-      strategy.sources.map((s) => s.activated);
-    });
   });
 });

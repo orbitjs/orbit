@@ -42,17 +42,17 @@ export class IndexedDBSource
   protected _cache: IndexedDBCache;
 
   // Syncable interface stubs
-  sync: (transformOrTransforms: Transform | Transform[]) => Promise<void>;
+  sync!: (transformOrTransforms: Transform | Transform[]) => Promise<void>;
 
   // Pullable interface stubs
-  pull: (
+  pull!: (
     queryOrExpressions: QueryOrExpressions,
     options?: RequestOptions,
     id?: string
   ) => Promise<Transform[]>;
 
   // Pushable interface stubs
-  push: (
+  push!: (
     transformOrOperations: TransformOrOperations,
     options?: RequestOptions,
     id?: string
@@ -154,6 +154,7 @@ export class IndexedDBSource
     if (query.expressions.length === 1) {
       operations = this._operationsFromQueryResult(results as QueryResultData);
     } else {
+      operations = [];
       for (let result of results as QueryResultData[]) {
         operations.push(...this._operationsFromQueryResult(result));
       }

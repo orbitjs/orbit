@@ -41,23 +41,25 @@ export interface BucketSettings {
  */
 @evented
 export abstract class Bucket implements Evented {
-  private _name: string;
-  private _namespace: string;
-  private _version: number;
+  private _name?: string;
+  private _namespace!: string;
+  private _version!: number;
 
   // Evented interface stubs
-  on: (event: string, listener: Listener) => () => void;
-  off: (event: string, listener?: Listener) => void;
-  one: (event: string, listener: Listener) => () => void;
-  emit: (event: string, ...args: any[]) => void;
-  listeners: (event: string) => Listener[];
+  on!: (event: string, listener: Listener) => () => void;
+  off!: (event: string, listener?: Listener) => void;
+  one!: (event: string, listener: Listener) => () => void;
+  emit!: (event: string, ...args: any[]) => void;
+  listeners!: (event: string) => Listener[];
 
   constructor(settings: BucketSettings = {}) {
     if (settings.version === undefined) {
       settings.version = 1;
     }
 
-    settings.namespace = settings.namespace || 'orbit-bucket';
+    if (settings.namespace === undefined) {
+      settings.namespace = 'orbit-bucket';
+    }
 
     this._applySettings(settings);
   }
@@ -65,12 +67,12 @@ export abstract class Bucket implements Evented {
   /**
    * Retrieves an item from the bucket.
    */
-  abstract getItem(key: string): Promise<any>;
+  abstract getItem(key: string): Promise<unknown>;
 
   /**
    * Stores an item in the bucket.
    */
-  abstract setItem(key: string, value: any): Promise<void>;
+  abstract setItem(key: string, value: unknown): Promise<void>;
 
   /**
    * Removes an item from the bucket.
@@ -85,7 +87,7 @@ export abstract class Bucket implements Evented {
   /**
    * Name used for tracking and debugging a bucket instance.
    */
-  get name(): string {
+  get name(): string | undefined {
     return this._name;
   }
 
@@ -124,14 +126,15 @@ export abstract class Bucket implements Evented {
   /**
    * Applies settings passed from a `constructor` or `upgrade`.
    */
-  protected _applySettings(settings: BucketSettings): Promise<void> {
-    if (settings.name) {
+  protected async _applySettings(settings: BucketSettings): Promise<void> {
+    if (settings.name !== undefined) {
       this._name = settings.name;
     }
-    if (settings.namespace) {
+    if (settings.namespace !== undefined) {
       this._namespace = settings.namespace;
     }
-    this._version = settings.version;
-    return Promise.resolve();
+    if (settings.version !== undefined) {
+      this._version = settings.version;
+    }
   }
 }

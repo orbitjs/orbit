@@ -1,5 +1,6 @@
 /* eslint-disable valid-jsdoc */
-import Orbit, {
+import { Assertion } from '@orbit/core';
+import {
   KeyMap,
   Schema,
   Source,
@@ -17,7 +18,6 @@ import Orbit, {
   queryable,
   Updatable,
   updatable,
-  Record,
   TransformNotAllowed,
   QueryNotAllowed
 } from '@orbit/data';
@@ -51,8 +51,7 @@ import {
   SerializerSettingsForFn,
   SerializerForFn
 } from '@orbit/serializers';
-
-const { assert } = Orbit;
+import { PrimaryRecordData } from './resources';
 
 export interface JSONAPISourceSettings extends SourceSettings {
   maxRequestsPerTransform?: number;
@@ -104,44 +103,40 @@ export class JSONAPISource
   requestProcessor: JSONAPIRequestProcessor;
 
   // Pullable interface stubs
-  pull: (
+  pull!: (
     queryOrExpressions: QueryOrExpressions,
     options?: RequestOptions,
     id?: string
   ) => Promise<Transform[]>;
 
   // Pushable interface stubs
-  push: (
+  push!: (
     transformOrOperations: TransformOrOperations,
     options?: RequestOptions,
     id?: string
   ) => Promise<Transform[]>;
 
   // Queryable interface stubs
-  query: (
+  query!: (
     queryOrExpressions: QueryOrExpressions,
     options?: RequestOptions,
     id?: string
   ) => Promise<any>;
 
   // Updatable interface stubs
-  update: (
+  update!: (
     transformOrOperations: TransformOrOperations,
     options?: RequestOptions,
     id?: string
   ) => Promise<any>;
 
   constructor(settings: JSONAPISourceSettings = {}) {
-    assert(
-      "JSONAPISource's `schema` must be specified in `settings.schema` constructor argument",
-      !!settings.schema
-    );
-
     settings.name = settings.name || 'jsonapi';
 
     super(settings);
 
     let {
+      name,
       maxRequestsPerTransform,
       maxRequestsPerQuery,
       namespace,
@@ -154,16 +149,21 @@ export class JSONAPISource
       SerializerClass,
       RequestProcessorClass,
       URLBuilderClass,
-      schema,
       keyMap
     } = settings;
+
+    if (this.schema === undefined) {
+      throw new Assertion(
+        "JSONAPISource's `schema` must be specified in the  `settings` passed to its constructor"
+      );
+    }
 
     this.maxRequestsPerTransform = maxRequestsPerTransform;
     this.maxRequestsPerQuery = maxRequestsPerQuery;
 
     RequestProcessorClass = RequestProcessorClass || JSONAPIRequestProcessor;
     this.requestProcessor = new RequestProcessorClass({
-      sourceName: this.name,
+      sourceName: name,
       serializerFor,
       serializerClassFor,
       serializerSettingsFor,
@@ -173,7 +173,7 @@ export class JSONAPISource
       defaultFetchSettings,
       namespace,
       host,
-      schema,
+      schema: this.schema,
       keyMap
     });
   }
@@ -239,11 +239,13 @@ export class JSONAPISource
 
   async _query(
     query: Query
-  ): Promise<Record | Record[] | (Record | Record[])[]> {
+  ): Promise<
+    PrimaryRecordData | undefined | (PrimaryRecordData | undefined)[]
+  > {
     const transforms: Transform[] = [];
     const { requestProcessor } = this;
     const requests = this.getQueryRequests(query);
-    const records: (Record | Record[] | null)[] = [];
+    const responses: (PrimaryRecordData | undefined)[] = [];
 
     for (let request of requests) {
       let processor = this.getQueryRequestProcessor(request);
@@ -255,12 +257,12 @@ export class JSONAPISource
       if (additionalTransforms.length) {
         Array.prototype.push.apply(transforms, additionalTransforms);
       }
-      records.push(primaryData);
+      responses.push(primaryData);
     }
 
     await this.transformed(transforms);
 
-    return query.expressions.length === 1 ? records[0] : records;
+    return query.expressions.length === 1 ? responses[0] : responses;
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -272,7 +274,7 @@ export class JSONAPISource
       const transforms: Transform[] = [];
       const { requestProcessor } = this;
       const requests = this.getTransformRequests(transform);
-      const records: Record[] = [];
+      const responses: PrimaryRecordData[] = [];
 
       for (let request of requests) {
         let processor = this.getTransformRequestProcessor(request);
@@ -284,13 +286,13 @@ export class JSONAPISource
         if (additionalTransforms.length) {
           Array.prototype.push.apply(transforms, additionalTransforms);
         }
-        records.push(primaryData);
+        responses.push(primaryData);
       }
 
       transforms.unshift(transform);
       await this.transformed(transforms);
 
-      return transform.operations.length === 1 ? records[0] : records;
+      return transform.operations.length === 1 ? responses[0] : responses;
     }
   }
 

@@ -3,5 +3,8 @@
   "compilerOptions": {
     "module": "commonjs",
     "outDir": "./dist/commonjs"
-  }
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
 }

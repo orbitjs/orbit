@@ -14,8 +14,8 @@ const PUSHABLE = '__pushable__';
  * @param {Source} source
  * @returns
  */
-export function isPushable(source: any) {
-  return !!source[PUSHABLE];
+export function isPushable(source: Source): boolean {
+  return !!(source as { [PUSHABLE]?: boolean })[PUSHABLE];
 }
 
 /**
@@ -35,7 +35,7 @@ export interface Pushable {
     id?: string
   ): Promise<Transform[]>;
 
-  _push(transform: Transform, hints?: any): Promise<Transform[]>;
+  _push(transform: Transform, hints?: unknown): Promise<Transform[]>;
 }
 
 /**

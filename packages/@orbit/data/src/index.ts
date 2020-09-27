@@ -1,4 +1,3 @@
-export { default } from '@orbit/core';
 export * from './exception';
 export * from './key-map';
 export * from './operation';

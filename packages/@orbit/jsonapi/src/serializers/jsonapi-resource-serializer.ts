@@ -1,4 +1,5 @@
 import { deepSet } from '@orbit/utils';
+import { Assertion } from '@orbit/core';
 import { Record, RecordIdentity, ModelDefinition } from '@orbit/data';
 import { Resource, ResourceIdentity } from '../resources';
 import { JSONAPIBaseSerializer } from './jsonapi-base-serializer';
@@ -60,12 +61,12 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
     field: string,
     model: ModelDefinition
   ): void {
-    const value: any = record.attributes[field];
+    const value = record.attributes?.[field];
     if (value === undefined) {
       return;
     }
 
-    const fieldOptions = model.attributes[field];
+    const fieldOptions = model.attributes?.[field];
     if (fieldOptions === undefined) {
       return;
     }
@@ -74,15 +75,23 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
     if (value === null) {
       resValue = null;
     } else {
-      resValue = this.serializerFor(fieldOptions.type).serialize(
-        value,
-        fieldOptions.serializationOptions
-      );
+      const type = fieldOptions.type || 'unknown';
+      const serializer = this.serializerFor(type);
+      if (serializer) {
+        resValue = serializer.serialize(
+          value,
+          fieldOptions.serializationOptions
+        );
+      } else {
+        throw new Assertion(
+          `Serializer could not be found for attribute type '${type}'`
+        );
+      }
     }
 
     const resField = this.fieldSerializer.serialize(field, {
       type: record.type
-    });
+    }) as string;
 
     deepSet(resource, ['attributes', resField], resValue);
   }
@@ -105,12 +114,12 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
     field: string,
     model: ModelDefinition
   ): void {
-    const value = record.relationships[field].data;
+    const value = record.relationships?.[field].data;
 
     if (value === undefined) {
       return;
     }
-    if (model.relationships[field] === undefined) {
+    if (model.relationships?.[field] === undefined) {
       return;
     }
 
@@ -132,11 +141,12 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
 
     const resField = this.fieldSerializer.serialize(field, {
       type: record.type
-    });
+    }) as string;
 
     deepSet(resource, ['relationships', resField, 'data'], resValue);
   }
 
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   protected serializeLinks(
     resource: Resource,
     record: Record,
@@ -148,6 +158,7 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
     record: Record,
     model: ModelDefinition
   ): void {}
+  /* eslint-enable @typescript-eslint/no-unused-vars */
 
   protected deserializeAttributes(
     record: Record,
@@ -167,16 +178,16 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
     resField: string,
     model: ModelDefinition
   ): void {
-    const resValue: any = resource.attributes[resField];
+    const resValue: any = resource.attributes?.[resField];
     if (resValue === undefined) {
       return;
     }
 
     const field = this.fieldSerializer.deserialize(resField, {
       type: record.type
-    });
+    }) as string;
 
-    const fieldOptions = model.attributes[field];
+    const fieldOptions = model.attributes?.[field];
     if (fieldOptions === undefined) {
       return;
     }
@@ -185,10 +196,18 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
     if (resValue === null) {
       value = null;
     } else {
-      value = this.serializerFor(fieldOptions.type).deserialize(
-        resValue,
-        fieldOptions.serializationOptions
-      );
+      const type = fieldOptions.type || 'unknown';
+      const serializer = this.serializerFor(type);
+      if (serializer) {
+        value = serializer.deserialize(
+          resValue,
+          fieldOptions.serializationOptions
+        );
+      } else {
+        throw new Assertion(
+          `Serializer could not be found for attribute type '${type}'`
+        );
+      }
     }
 
     deepSet(record, ['attributes', field], value);
@@ -212,16 +231,16 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
     resField: string,
     model: ModelDefinition
   ): void {
-    const resValue: any = resource.relationships[resField];
+    const resValue: any = resource.relationships?.[resField];
     if (!resValue) {
       return;
     }
 
     const field = this.fieldSerializer.deserialize(resField, {
       type: record.type
-    });
+    }) as string;
 
-    const fieldOptions = model.relationships[field];
+    const fieldOptions = model.relationships?.[field];
     if (fieldOptions === undefined) {
       return;
     }
@@ -262,6 +281,7 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
   protected deserializeLinks(
     record: Record,
     resource: Resource,
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     model: ModelDefinition
   ): void {
     if (resource.links) {
@@ -272,6 +292,7 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
   protected deserializeMeta(
     record: Record,
     resource: Resource,
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     model: ModelDefinition
   ): void {
     if (resource.meta) {

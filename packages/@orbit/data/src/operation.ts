@@ -168,7 +168,7 @@ function mergeOperations(
               superceded.attribute,
               superceded.value
             );
-            delete superceded.attribute;
+            delete (superceded as any).attribute;
             delete superceded.value;
           } else if (superceded.op === 'replaceRelatedRecord') {
             updateRecordReplaceHasOne(
@@ -176,16 +176,16 @@ function mergeOperations(
               superceded.relationship,
               superceded.relatedRecord
             );
-            delete superceded.relationship;
-            delete superceded.relatedRecord;
+            delete (superceded as any).relationship;
+            delete (superceded as any).relatedRecord;
           } else if (superceded.op === 'replaceRelatedRecords') {
             updateRecordReplaceHasMany(
               superceded.record,
               superceded.relationship,
               superceded.relatedRecords
             );
-            delete superceded.relationship;
-            delete superceded.relatedRecords;
+            delete (superceded as any).relationship;
+            delete (superceded as any).relatedRecords;
           }
           if (superceding.op === 'replaceAttribute') {
             updateRecordReplaceAttribute(
@@ -306,7 +306,8 @@ function mergeOperations(
     if (
       (superceded as ReplaceRelatedRecordOperation).relatedRecord &&
       equalRecordIdentities(
-        (superceded as ReplaceRelatedRecordOperation).relatedRecord,
+        (superceded as ReplaceRelatedRecordOperation)
+          .relatedRecord as RecordIdentity,
         superceding.record
       )
     ) {
@@ -326,10 +327,9 @@ function isReplaceFieldOp(op: string): boolean {
 function updateRecordReplaceAttribute(
   record: Record,
   attribute: string,
-  value: any
+  value: unknown
 ) {
-  record.attributes = record.attributes || {};
-  record.attributes[attribute] = value;
+  deepSet(record, ['attributes', attribute], value);
 }
 
 function updateRecordReplaceHasOne(
@@ -431,7 +431,7 @@ export function recordDiffs(
     const recordIdentity = cloneRecordIdentity(record);
     const diffRecord: Record = { ...recordIdentity };
 
-    Object.keys(updatedRecord).forEach((member) => {
+    for (let member in updatedRecord) {
       if (member !== 'id' && member !== 'type') {
         let value: unknown;
         let updatedValue: unknown;
@@ -440,18 +440,17 @@ export function recordDiffs(
           case 'attributes':
           case 'keys':
           case 'relationships':
-            Object.keys(updatedRecord[member]).forEach((field) => {
+            for (let field in updatedRecord[member]) {
               value = record[member]?.[field];
-              updatedValue = updatedRecord[member][field];
+              updatedValue = (updatedRecord[member] as any)[field];
 
               if (!eq(value, updatedValue)) {
                 if (member === 'relationships') {
                   fullRecordUpdate = true;
                 }
-                diffRecord[member] = diffRecord[member] || {};
-                diffRecord[member][field] = updatedValue;
+                deepSet(diffRecord, [member, field], updatedValue);
               }
-            });
+            }
             break;
 
           default:
@@ -464,7 +463,7 @@ export function recordDiffs(
             }
         }
       }
-    });
+    }
 
     // If updates consist solely of attributes and keys, update fields
     // with individual operations. Otherwise, update the record as a
@@ -477,7 +476,7 @@ export function recordDiffs(
       ops.push(op);
     } else {
       if (diffRecord.attributes) {
-        Object.keys(diffRecord.attributes).forEach((attribute) => {
+        for (let attribute in diffRecord.attributes) {
           let value = diffRecord.attributes[attribute];
           let op: ReplaceAttributeOperation = {
             op: 'replaceAttribute',
@@ -486,10 +485,10 @@ export function recordDiffs(
             value
           };
           ops.push(op);
-        });
+        }
       }
       if (diffRecord.keys) {
-        Object.keys(diffRecord.keys).forEach((key) => {
+        for (let key in diffRecord.keys) {
           let value = diffRecord.keys[key];
           let op: ReplaceKeyOperation = {
             op: 'replaceKey',
@@ -498,7 +497,7 @@ export function recordDiffs(
             value
           };
           ops.push(op);
-        });
+        }
       }
     }
   }

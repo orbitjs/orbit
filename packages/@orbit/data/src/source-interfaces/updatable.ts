@@ -10,8 +10,8 @@ const UPDATABLE = '__updatable__';
 /**
  * Has a source been decorated as `@updatable`?
  */
-export function isUpdatable(source: any) {
-  return !!source[UPDATABLE];
+export function isUpdatable(source: Source): boolean {
+  return !!(source as { [UPDATABLE]?: boolean })[UPDATABLE];
 }
 
 /**
@@ -28,9 +28,9 @@ export interface Updatable {
     transformOrOperations: TransformOrOperations,
     options?: RequestOptions,
     id?: string
-  ): Promise<any>;
+  ): Promise<unknown>;
 
-  _update(transform: Transform, hints?: any): Promise<any>;
+  _update(transform: Transform, hints?: unknown): Promise<unknown>;
 }
 
 /**

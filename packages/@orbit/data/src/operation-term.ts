@@ -21,7 +21,7 @@ import { RecordIdentity } from './record';
 export class OperationTerm<T extends Operation = Operation> {
   operation: T;
 
-  constructor(operation?: T) {
+  constructor(operation: T) {
     this.operation = operation;
   }
 

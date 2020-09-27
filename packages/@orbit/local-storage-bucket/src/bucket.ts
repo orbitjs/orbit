@@ -9,9 +9,6 @@ export interface LocalStorageBucketSettings extends BucketSettings {
 
 /**
  * Bucket for persisting transient data in localStorage.
- *
- * @class LocalStorageBucket
- * @extends Bucket
  */
 export class LocalStorageBucket extends Bucket {
   private _delimiter: string;
@@ -40,14 +37,14 @@ export class LocalStorageBucket extends Bucket {
     return [this.namespace, key].join(this.delimiter);
   }
 
-  getItem(key: string): Promise<any> {
+  getItem(key: string): Promise<unknown> {
     const fullKey: string = this.getFullKeyForItem(key);
     return Promise.resolve(
       JSON.parse(Orbit.globals.localStorage.getItem(fullKey))
     );
   }
 
-  setItem(key: string, value: any): Promise<void> {
+  setItem(key: string, value: unknown): Promise<void> {
     const fullKey: string = this.getFullKeyForItem(key);
     Orbit.globals.localStorage.setItem(fullKey, JSON.stringify(value));
     return Promise.resolve();

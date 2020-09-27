@@ -19,7 +19,7 @@ import {
 import { AsyncRecordAccessor } from '../record-accessor';
 
 export interface AsyncInversePatchOperator {
-  (cache: AsyncRecordAccessor, op: RecordOperation): Promise<
+  (cache: AsyncRecordAccessor, operation: RecordOperation): Promise<
     RecordOperation | undefined
   >;
 }
@@ -27,8 +27,9 @@ export interface AsyncInversePatchOperator {
 export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
   async addRecord(
     cache: AsyncRecordAccessor,
-    op: AddRecordOperation
+    operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
+    const op = operation as AddRecordOperation;
     const { type, id } = op.record;
     const current = await cache.getRecordAsync(op.record);
 
@@ -52,8 +53,9 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
 
   async updateRecord(
     cache: AsyncRecordAccessor,
-    op: UpdateRecordOperation
+    operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
+    const op = operation as UpdateRecordOperation;
     const current = await cache.getRecordAsync(op.record);
     const replacement: Record = op.record;
     const { type, id } = replacement;
@@ -134,8 +136,9 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
 
   async removeRecord(
     cache: AsyncRecordAccessor,
-    op: RemoveRecordOperation
+    operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
+    const op = operation as RemoveRecordOperation;
     const current = await cache.getRecordAsync(op.record);
 
     if (current) {
@@ -149,8 +152,9 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
 
   async replaceKey(
     cache: AsyncRecordAccessor,
-    op: ReplaceKeyOperation
+    operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
+    const op = operation as ReplaceKeyOperation;
     const { key } = op;
     const record = await cache.getRecordAsync(op.record);
     const current = record && deepGet(record, ['keys', key]);
@@ -170,8 +174,9 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
 
   async replaceAttribute(
     cache: AsyncRecordAccessor,
-    op: ReplaceAttributeOperation
+    operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
+    const op = operation as ReplaceAttributeOperation;
     const { attribute } = op;
     const record = await cache.getRecordAsync(op.record);
     const current = record && deepGet(record, ['attributes', attribute]);
@@ -191,8 +196,9 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
 
   async addToRelatedRecords(
     cache: AsyncRecordAccessor,
-    op: AddToRelatedRecordsOperation
+    operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
+    const op = operation as AddToRelatedRecordsOperation;
     const { record, relationship, relatedRecord } = op;
     const currentRelatedRecords = await cache.getRelatedRecordsAsync(
       record,
@@ -215,8 +221,9 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
 
   async removeFromRelatedRecords(
     cache: AsyncRecordAccessor,
-    op: RemoveFromRelatedRecordsOperation
+    operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
+    const op = operation as RemoveFromRelatedRecordsOperation;
     const { record, relationship, relatedRecord } = op;
     const currentRelatedRecords = await cache.getRelatedRecordsAsync(
       record,
@@ -239,8 +246,9 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
 
   async replaceRelatedRecords(
     cache: AsyncRecordAccessor,
-    op: ReplaceRelatedRecordsOperation
+    operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
+    const op = operation as ReplaceRelatedRecordsOperation;
     const { record, relationship, relatedRecords } = op;
     const currentRelatedRecords = await cache.getRelatedRecordsAsync(
       record,
@@ -263,8 +271,9 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
 
   async replaceRelatedRecord(
     cache: AsyncRecordAccessor,
-    op: ReplaceRelatedRecordOperation
+    operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
+    const op = operation as ReplaceRelatedRecordOperation;
     const { record, relationship, relatedRecord } = op;
     const currentRelatedRecord = await cache.getRelatedRecordAsync(
       record,

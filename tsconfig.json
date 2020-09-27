@@ -8,6 +8,6 @@
     "inlineSourceMap": true,
     "declaration": true,
     "newLine": "LF",
-    "noImplicitAny": true
+    "strict": true
   }
 }

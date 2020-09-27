@@ -1,4 +1,5 @@
-import Orbit, {
+import Orbit from '@orbit/core';
+import {
   AttributeFilterSpecifier,
   AttributeSortSpecifier,
   FilterSpecifier,
@@ -13,9 +14,11 @@ import { clone, Dict } from '@orbit/utils';
 import { JSONAPISerializer } from './jsonapi-serializer';
 import { Filter } from './lib/jsonapi-request-options';
 import { appendQueryParams } from './lib/query-params';
-import { SerializerForFn } from '@orbit/serializers';
+import { SerializerForFn, StringSerializer } from '@orbit/serializers';
 import { JSONAPISerializers } from './serializers/jsonapi-serializers';
 import { ResourceIdentity } from './resources';
+import { JSONAPIResourceIdentitySerializer } from './serializers/jsonapi-resource-identity-serializer';
+import { JSONAPIResourceFieldSerializer } from './serializers/jsonapi-resource-field-serializer';
 
 const { deprecate } = Orbit;
 
@@ -23,13 +26,13 @@ export interface JSONAPIURLBuilderSettings {
   host?: string;
   namespace?: string;
   serializer?: JSONAPISerializer;
-  serializerFor?: SerializerForFn;
+  serializerFor: SerializerForFn;
   keyMap?: KeyMap;
 }
 
 export class JSONAPIURLBuilder {
-  host: string;
-  namespace: string;
+  host?: string;
+  namespace?: string;
   serializerFor: SerializerForFn;
   serializer?: JSONAPISerializer;
   keyMap?: KeyMap;
@@ -37,21 +40,23 @@ export class JSONAPIURLBuilder {
   constructor(settings: JSONAPIURLBuilderSettings) {
     this.host = settings.host;
     this.namespace = settings.namespace;
-    this.serializer = settings.serializer;
-    if (this.serializer) {
+    this.serializerFor = settings.serializerFor;
+    if (settings.serializer) {
+      this.serializer = settings.serializer;
       deprecate(
         "The 'serializer' setting for 'JSONAPIURLBuilder' has been deprecated. Pass 'serializerFor' instead."
       );
     }
-    this.serializerFor = settings.serializerFor;
     this.keyMap = settings.keyMap;
   }
 
-  resourceNamespace(type?: string): string {
+  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+  resourceNamespace(type?: string): string | undefined {
     return this.namespace;
   }
 
-  resourceHost(type?: string): string {
+  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+  resourceHost(type?: string): string | undefined {
     return this.host;
   }
 
@@ -83,13 +88,15 @@ export class JSONAPIURLBuilder {
         resourceId = this.serializer.resourceId(type, id);
       }
     } else {
-      resourceType = this.serializerFor(
+      const resourceTypeSerializer = this.serializerFor(
         JSONAPISerializers.ResourceTypePath
-      ).serialize(type);
+      ) as StringSerializer;
+      resourceType = resourceTypeSerializer.serialize(type);
       if (id) {
-        let identity = this.serializerFor(
+        const resourceIdentitySerializer = this.serializerFor(
           JSONAPISerializers.ResourceIdentity
-        ).serialize({
+        ) as JSONAPIResourceIdentitySerializer;
+        const identity = resourceIdentitySerializer.serialize({
           type,
           id
         }) as ResourceIdentity;
@@ -134,9 +141,9 @@ export class JSONAPIURLBuilder {
       ) {
         const attributeFilter = filterSpecifier as AttributeFilterSpecifier;
 
-        // Note: We don't know the `type` of the attribute here, so passing `null`
+        // Note: We don't know the `type` of the attribute here, so passing `undefined`
         const resourceAttribute = this.serializeAttributeAsParam(
-          null,
+          undefined,
           attributeFilter.attribute
         );
         filters.push({ [resourceAttribute]: attributeFilter.value });
@@ -150,7 +157,7 @@ export class JSONAPIURLBuilder {
           });
         } else {
           filters.push({
-            [relatedRecordFilter.relation]: relatedRecordFilter.record.id
+            [relatedRecordFilter.relation]: relatedRecordFilter?.record?.id
           });
         }
       } else if (filterSpecifier.kind === 'relatedRecords') {
@@ -167,8 +174,7 @@ export class JSONAPIURLBuilder {
         });
       } else {
         throw new QueryExpressionParseError(
-          `Filter operation ${filterSpecifier.op} not recognized for JSONAPISource.`,
-          filterSpecifier
+          `Filter operation ${filterSpecifier.op} not recognized for JSONAPISource.`
         );
       }
     });
@@ -182,9 +188,9 @@ export class JSONAPIURLBuilder {
         if (sortSpecifier.kind === 'attribute') {
           const attributeSort = sortSpecifier as AttributeSortSpecifier;
 
-          // Note: We don't know the `type` of the attribute here, so passing `null`
+          // Note: We don't know the `type` of the attribute here, so passing `undefined`
           const resourceAttribute = this.serializeAttributeAsParam(
-            null,
+            undefined,
             attributeSort.attribute
           );
           return (
@@ -193,8 +199,7 @@ export class JSONAPIURLBuilder {
           );
         }
         throw new QueryExpressionParseError(
-          `Sort specifier ${sortSpecifier.kind} not recognized for JSONAPISource.`,
-          sortSpecifier
+          `Sort specifier ${sortSpecifier.kind} not recognized for JSONAPISource.`
         );
       })
       .join(',');
@@ -206,7 +211,7 @@ export class JSONAPIURLBuilder {
     return pageParam;
   }
 
-  appendQueryParams(url: string, params: any): string {
+  appendQueryParams(url: string, params: Dict<string>): string {
     let fullUrl = url;
     if (params) {
       fullUrl = appendQueryParams(fullUrl, params);
@@ -214,13 +219,17 @@ export class JSONAPIURLBuilder {
     return fullUrl;
   }
 
-  protected serializeAttributeAsParam(type: string, attribute: string): string {
+  protected serializeAttributeAsParam(
+    type: string | undefined,
+    attribute: string
+  ): string {
     if (this.serializer) {
       return this.serializer.resourceAttribute(type, attribute);
     } else {
-      return this.serializerFor(
+      const serializer = this.serializerFor(
         JSONAPISerializers.ResourceFieldParam
-      ).serialize(attribute, { type }) as string;
+      ) as JSONAPIResourceFieldSerializer;
+      return serializer.serialize(attribute, { type }) as string;
     }
   }
 
@@ -231,9 +240,10 @@ export class JSONAPIURLBuilder {
     if (this.serializer) {
       return this.serializer.resourceRelationship(type, relationship);
     } else {
-      return this.serializerFor(
+      const serializer = this.serializerFor(
         JSONAPISerializers.ResourceFieldParam
-      ).serialize(relationship, { type }) as string;
+      ) as JSONAPIResourceFieldSerializer;
+      return serializer.serialize(relationship, { type }) as string;
     }
   }
 
@@ -244,9 +254,10 @@ export class JSONAPIURLBuilder {
     if (this.serializer) {
       return this.serializer.resourceRelationship(type, relationship);
     } else {
-      return this.serializerFor(
+      const serializer = this.serializerFor(
         JSONAPISerializers.ResourceFieldPath
-      ).serialize(relationship, { type }) as string;
+      ) as JSONAPIResourceFieldSerializer;
+      return serializer.serialize(relationship, { type }) as string;
     }
   }
 }

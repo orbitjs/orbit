@@ -5,8 +5,8 @@ const EVENTED = '__evented__';
 /**
  * Has a class been decorated as `@evented`?
  */
-export function isEvented(obj: any): boolean {
-  return !!obj[EVENTED];
+export function isEvented(obj: unknown): boolean {
+  return !!(obj as { [EVENTED]?: boolean })[EVENTED];
 }
 
 /**
@@ -69,7 +69,7 @@ export interface Evented {
  * source.off('greeting', listener2);
  * ```
  */
-export function evented(Klass: any): void {
+export function evented(Klass: { prototype: any }): void {
   let proto = Klass.prototype;
 
   if (isEvented(proto)) {
@@ -127,7 +127,7 @@ export function evented(Klass: any): void {
 export function settleInSeries(
   obj: Evented,
   eventName: string,
-  ...args: any[]
+  ...args: unknown[]
 ): Promise<void> {
   const listeners = obj.listeners(eventName);
 
@@ -142,16 +142,16 @@ export function settleInSeries(
  * Processing will stop if an error is encountered and the returned promise will
  * be rejected.
  */
-export function fulfillInSeries(
+export async function fulfillInSeries(
   obj: Evented,
   eventName: string,
-  ...args: any[]
+  ...args: unknown[]
 ): Promise<void> {
   const listeners = obj.listeners(eventName);
 
-  return new Promise((resolve, reject) => {
-    fulfillEach(listeners, args, resolve, reject);
-  });
+  for (let listener of listeners) {
+    await listener(...args);
+  }
 }
 
 function notifierForEvent(
@@ -172,28 +172,5 @@ function notifierForEvent(
 function removeNotifierForEvent(object: any, eventName: string) {
   if (object._eventedNotifiers && object._eventedNotifiers[eventName]) {
     delete object._eventedNotifiers[eventName];
-  }
-}
-
-function fulfillEach(
-  listeners: Listener[],
-  args: any[],
-  resolve: () => void,
-  reject: (error: Error) => void
-): Promise<any> {
-  if (listeners.length === 0) {
-    resolve();
-  } else {
-    let listener;
-    [listener, ...listeners] = listeners;
-    let response = listener(...args);
-
-    if (response) {
-      return Promise.resolve(response)
-        .then(() => fulfillEach(listeners, args, resolve, reject))
-        .catch((error: Error) => reject(error));
-    } else {
-      fulfillEach(listeners, args, resolve, reject);
-    }
   }
 }

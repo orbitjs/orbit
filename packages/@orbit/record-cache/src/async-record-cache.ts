@@ -69,11 +69,11 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   protected _debounceLiveQueries: boolean;
 
   // Evented interface stubs
-  on: (event: string, listener: Listener) => () => void;
-  off: (event: string, listener?: Listener) => void;
-  one: (event: string, listener: Listener) => () => void;
-  emit: (event: string, ...args: any[]) => void;
-  listeners: (event: string) => Listener[];
+  on!: (event: string, listener: Listener) => () => void;
+  off!: (event: string, listener?: Listener) => void;
+  one!: (event: string, listener: Listener) => () => void;
+  emit!: (event: string, ...args: any[]) => void;
+  listeners!: (event: string) => Listener[];
 
   constructor(settings: AsyncRecordCacheSettings) {
     assert(
@@ -158,7 +158,9 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   // Abstract methods for setting records and relationships
   abstract setRecordAsync(record: Record): Promise<void>;
   abstract setRecordsAsync(records: Record[]): Promise<void>;
-  abstract removeRecordAsync(recordIdentity: RecordIdentity): Promise<Record>;
+  abstract removeRecordAsync(
+    recordIdentity: RecordIdentity
+  ): Promise<Record | undefined>;
   abstract removeRecordsAsync(
     recordIdentities: RecordIdentity[]
   ): Promise<Record[]>;

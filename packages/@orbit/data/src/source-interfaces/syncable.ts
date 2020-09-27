@@ -9,8 +9,8 @@ const SYNCABLE = '__syncable__';
 /**
  * Has a source been decorated as `@syncable`?
  */
-export function isSyncable(source: any) {
-  return !!source[SYNCABLE];
+export function isSyncable(source: Source): boolean {
+  return !!(source as { [SYNCABLE]?: boolean })[SYNCABLE];
 }
 
 /**

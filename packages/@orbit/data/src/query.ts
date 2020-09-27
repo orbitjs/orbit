@@ -43,11 +43,16 @@ export function buildQuery(
   queryBuilder?: QueryBuilder
 ): Query {
   if (typeof queryOrExpressions === 'function') {
-    return buildQuery(queryOrExpressions(queryBuilder), queryOptions, queryId);
+    const queryBuilderFn = queryOrExpressions as QueryBuilderFunc;
+    return buildQuery(
+      queryBuilderFn(queryBuilder as QueryBuilder),
+      queryOptions,
+      queryId
+    );
   } else {
     let query = queryOrExpressions as Query;
     let expressions: QueryExpression[];
-    let options: RequestOptions;
+    let options: RequestOptions | undefined;
 
     if (isQuery(query)) {
       if (query.id && !queryOptions && !queryId) {

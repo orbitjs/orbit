@@ -1,3 +1,5 @@
+import { Dict } from '@orbit/utils';
+
 interface RawParam {
   path: string[];
   val: string;
@@ -35,7 +37,7 @@ function flattenObjectToParams(obj: any, path: string[] = []): RawParam[] {
   return params;
 }
 
-export function encodeQueryParams(obj: any) {
+export function encodeQueryParams(obj: Dict<string>): string {
   return flattenObjectToParams(obj)
     .map((rawParam) => {
       let path: string;
@@ -57,7 +59,7 @@ export function encodeQueryParams(obj: any) {
     .join('&');
 }
 
-export function appendQueryParams(url: string, obj: any): string {
+export function appendQueryParams(url: string, obj: Dict<string>): string {
   let fullUrl = url;
 
   if (obj.filter && Array.isArray(obj.filter)) {

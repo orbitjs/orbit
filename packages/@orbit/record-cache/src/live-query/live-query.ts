@@ -22,8 +22,8 @@ export interface LiveQuerySettings {
 
 export abstract class LiveQuery {
   readonly debounce: boolean;
-  protected cache: Evented;
-  protected schema: Schema;
+  protected abstract get cache(): Evented;
+  protected abstract get schema(): Schema;
 
   protected _query: Query;
   protected _subscribe(onNext: () => void): () => void {
@@ -134,10 +134,11 @@ export abstract class LiveQuery {
     expression: FindRelatedRecords,
     change: RecordChange
   ): boolean {
-    const { type } = this.schema.getRelationship(
+    const relationshipDef = this.schema.getRelationship(
       expression.record.type,
       expression.relationship
     );
+    const type = relationshipDef?.type;
 
     if (Array.isArray(type) && type.find((type) => type === change.type)) {
       return true;

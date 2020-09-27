@@ -44,15 +44,16 @@ export function buildTransform(
   transformBuilder?: TransformBuilder
 ): Transform {
   if (typeof transformOrOperations === 'function') {
+    const transformBuilderFn = transformOrOperations as TransformBuilderFunc;
     return buildTransform(
-      transformOrOperations(transformBuilder),
+      transformBuilderFn(transformBuilder as TransformBuilder),
       transformOptions,
       transformId
     );
   } else {
     let transform = transformOrOperations as Transform;
     let operations: Operation[];
-    let options: RequestOptions;
+    let options: RequestOptions | undefined;
 
     if (isTransform(transform)) {
       if (transform.id && !transformOptions && !transformId) {
@@ -81,7 +82,7 @@ export function buildTransform(
 
 function toOperation(operation: Operation | OperationTerm): Operation {
   if (isOperationTerm(operation)) {
-    return operation.toOperation();
+    return (operation as OperationTerm).toOperation();
   } else {
     return operation;
   }

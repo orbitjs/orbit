@@ -1,17 +1,7 @@
 /**
  * Base exception class.
  */
-export class Exception {
-  public message: string;
-  public error: Error;
-  public stack: string;
-
-  constructor(message: string) {
-    this.message = message;
-    this.error = new Error(this.message);
-    this.stack = this.error.stack;
-  }
-}
+export class Exception extends Error {}
 
 /**
  * Exception raised when an item does not exist in a log.
@@ -34,5 +24,11 @@ export class OutOfRangeException extends Exception {
   constructor(value: number) {
     super(`Out of range: ${value}`);
     this.value = value;
+  }
+}
+
+export class Assertion extends Exception {
+  constructor(message: string) {
+    super(`Assertion failed: ${message}`);
   }
 }

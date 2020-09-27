@@ -1,4 +1,4 @@
-import { Orbit } from '@orbit/core';
+import Orbit, { Assertion } from '@orbit/core';
 import { Source } from '@orbit/data';
 import { Coordinator, ActivationOptions, LogLevel } from './coordinator';
 
@@ -34,19 +34,21 @@ export interface StrategyOptions {
 }
 
 export abstract class Strategy {
-  protected _name: string;
-  protected _coordinator: Coordinator;
-  protected _sourceNames: string[];
-  protected _sources: Source[];
-  protected _activated: Promise<any>;
-  protected _customLogLevel: LogLevel;
-  protected _logLevel: LogLevel;
+  protected _name!: string;
+  protected _coordinator?: Coordinator;
+  protected _sourceNames?: string[];
+  protected _sources: Source[] = [];
+  protected _customLogLevel?: LogLevel;
+  protected _logLevel?: LogLevel;
   protected _logPrefix: string;
 
   constructor(options: StrategyOptions = {}) {
-    assert('Strategy requires a name', !!options.name);
+    if (options.name) {
+      this._name = options.name;
+    } else {
+      assert('Strategy requires a name', false);
+    }
 
-    this._name = options.name;
     this._sourceNames = options.sources;
     this._logPrefix = options.logPrefix || `[${this._name}]`;
     this._logLevel = this._customLogLevel = options.logLevel;
@@ -72,7 +74,7 @@ export abstract class Strategy {
   }
 
   async deactivate(): Promise<void> {
-    this._coordinator = null;
+    this._coordinator = undefined;
   }
 
   async beforeSourceActivation(): Promise<void> {}
@@ -85,7 +87,7 @@ export abstract class Strategy {
     return this._name;
   }
 
-  get coordinator(): Coordinator {
+  get coordinator(): Coordinator | undefined {
     return this._coordinator;
   }
 
@@ -97,7 +99,17 @@ export abstract class Strategy {
     return this._logPrefix;
   }
 
-  get logLevel(): LogLevel {
+  get logLevel(): LogLevel | undefined {
     return this._logLevel;
+  }
+
+  protected getSourceName(source: Source): string {
+    if (source.name) {
+      return source.name;
+    } else {
+      throw new Assertion(
+        `Sources require a 'name' to be used by a coordination strategy.`
+      );
+    }
   }
 }

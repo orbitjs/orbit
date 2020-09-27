@@ -1,8 +1,7 @@
-import { Orbit } from '@orbit/core';
+import { Assertion, Orbit } from '@orbit/core';
 import {
-  KeyMap,
+  Record,
   RecordOperation,
-  Schema,
   Source,
   SourceSettings,
   Syncable,
@@ -44,23 +43,23 @@ export class MemorySource
   extends Source
   implements Syncable, Queryable, Updatable {
   private _cache: MemoryCache;
-  private _base: MemorySource;
-  private _forkPoint: string;
+  private _base?: MemorySource;
+  private _forkPoint?: string;
   private _transforms: Dict<Transform>;
   private _transformInverses: Dict<RecordOperation[]>;
 
   // Syncable interface stubs
-  sync: (transformOrTransforms: Transform | Transform[]) => Promise<void>;
+  sync!: (transformOrTransforms: Transform | Transform[]) => Promise<void>;
 
   // Queryable interface stubs
-  query: (
+  query!: (
     queryOrExpressions: QueryOrExpressions,
     options?: RequestOptions,
     id?: string
   ) => Promise<any>;
 
   // Updatable interface stubs
-  update: (
+  update!: (
     transformOrOperations: TransformOrOperations,
     options?: RequestOptions,
     id?: string
@@ -72,8 +71,7 @@ export class MemorySource
       !!settings.schema
     );
 
-    let keyMap: KeyMap = settings.keyMap;
-    let schema: Schema = settings.schema;
+    const { keyMap, schema } = settings;
 
     settings.name = settings.name || 'memory';
 
@@ -106,11 +104,11 @@ export class MemorySource
     return this._cache;
   }
 
-  get base(): MemorySource {
+  get base(): MemorySource | undefined {
     return this._base;
   }
 
-  get forkPoint(): string {
+  get forkPoint(): string | undefined {
     return this._forkPoint;
   }
 
@@ -134,15 +132,18 @@ export class MemorySource
   // Updatable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _update(transform: Transform, hints?: any): Promise<any> {
-    let results: PatchResultData[];
+  async _update(
+    transform: Transform,
+    hints?: { data: Record | Record[] }
+  ): Promise<any> {
+    let results: PatchResultData[] | undefined;
 
     if (!this.transformLog.contains(transform.id)) {
       results = this._applyTransform(transform);
       await this.transformed([transform]);
     }
 
-    if (hints && hints.data) {
+    if (hints?.data) {
       if (transform.operations.length > 1 && Array.isArray(hints.data)) {
         return hints.data.map((idOrIds: RecordIdentity | RecordIdentity[]) =>
           this._retrieveFromCache(idOrIds)
@@ -163,8 +164,11 @@ export class MemorySource
   // Queryable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _query(query: Query, hints?: any): Promise<any> {
-    if (hints && hints.data) {
+  async _query(
+    query: Query,
+    hints?: { data: Record | Record[] }
+  ): Promise<any> {
+    if (hints?.data) {
       if (query.expressions.length > 1 && Array.isArray(hints.data)) {
         return hints.data.map((idOrIds: RecordIdentity | RecordIdentity[]) =>
           this._retrieveFromCache(idOrIds)
@@ -257,7 +261,11 @@ export class MemorySource
     let base = this._base;
     let forkPoint = this._forkPoint;
 
-    assert('A `base` source must be defined for `rebase` to work', !!base);
+    if (!base) {
+      throw new Assertion(
+        'A `base` source must be defined for `rebase` to work'
+      );
+    }
 
     let baseTransforms: Transform[];
     if (forkPoint === undefined) {
@@ -322,7 +330,9 @@ export class MemorySource
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
 
-  protected _retrieveFromCache(idOrIds: RecordIdentity | RecordIdentity[]) {
+  protected _retrieveFromCache(
+    idOrIds: RecordIdentity | RecordIdentity[]
+  ): Record[] | Record | undefined {
     if (Array.isArray(idOrIds)) {
       return this._cache.getRecordsSync(idOrIds);
     } else {

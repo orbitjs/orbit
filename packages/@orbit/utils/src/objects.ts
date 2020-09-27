@@ -1,4 +1,4 @@
-/* eslint-disable valid-jsdoc */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types, valid-jsdoc */
 
 /**
  * Clones a value. If the value is an object, a deeply nested clone will be
@@ -92,7 +92,7 @@ export function extend(destination: any, ...sources: any[]): any {
  * @param {*} obj
  * @returns {any[]}
  */
-export function toArray(obj: any): any[] {
+export function toArray(obj: unknown): any[] {
   if (isNone(obj)) {
     return [];
   } else {
@@ -107,7 +107,7 @@ export function toArray(obj: any): any[] {
  * @param {*} obj
  * @returns {boolean}
  */
-export function isObject(obj: any): boolean {
+export function isObject(obj: unknown): boolean {
   return obj !== null && typeof obj === 'object';
 }
 
@@ -118,7 +118,7 @@ export function isObject(obj: any): boolean {
  * @param {*} obj
  * @returns {boolean}
  */
-export function isNone(obj: any): boolean {
+export function isNone(obj: unknown): boolean {
   return obj === undefined || obj === null;
 }
 

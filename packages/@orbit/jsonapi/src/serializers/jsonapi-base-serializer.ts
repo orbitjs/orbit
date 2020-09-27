@@ -21,9 +21,9 @@ export abstract class JSONAPIBaseSerializer<
   SerializationOptions,
   DeserializationOptions
 > {
-  serializerFor: SerializerForFn;
+  serializerFor!: SerializerForFn;
   protected _schema: Schema;
-  protected _keyMap: KeyMap;
+  protected _keyMap?: KeyMap;
 
   constructor(settings: {
     serializerFor: SerializerForFn;
@@ -52,7 +52,7 @@ export abstract class JSONAPIBaseSerializer<
     return this._schema;
   }
 
-  get keyMap(): KeyMap {
+  get keyMap(): KeyMap | undefined {
     return this._keyMap;
   }
 

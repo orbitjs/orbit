@@ -5,8 +5,8 @@ import { Record } from './record';
  * Maintains a map between records' ids and keys.
  */
 export class KeyMap {
-  private _idsToKeys: Dict<Dict<string>>;
-  private _keysToIds: Dict<Dict<string>>;
+  private _idsToKeys!: Dict<Dict<string>>;
+  private _keysToIds!: Dict<Dict<string>>;
 
   constructor() {
     this.reset();

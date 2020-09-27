@@ -196,6 +196,7 @@ module('TaskQueue', function () {
           assert.equal(++order, 3, 'transform with op2');
           return Promise.resolve();
         }
+        throw new Error('Unexpected perform called');
       }
     };
 
@@ -313,7 +314,7 @@ module('TaskQueue', function () {
         'queue processing encountered a problem'
       );
       assert.equal(
-        queue.error.message,
+        queue.error?.message,
         ':(',
         'process error matches expectation'
       );
@@ -401,7 +402,7 @@ module('TaskQueue', function () {
         'queue processing encountered a problem'
       );
       assert.equal(
-        queue.error.message,
+        queue.error?.message,
         ':(',
         'process error matches expectation'
       );
@@ -479,7 +480,7 @@ module('TaskQueue', function () {
         'queue processing encountered a problem'
       );
       assert.equal(
-        queue.error.message,
+        queue.error?.message,
         ':(',
         'process error matches expectation'
       );
@@ -584,7 +585,7 @@ module('TaskQueue', function () {
         'queue processing encountered a problem'
       );
       assert.equal(
-        queue.error.message,
+        queue.error?.message,
         ':(',
         'process error matches expectation'
       );
@@ -665,7 +666,7 @@ module('TaskQueue', function () {
         'queue processing encountered a problem'
       );
       assert.equal(
-        queue.error.message,
+        queue.error?.message,
         ':(',
         'process error matches expectation'
       );
@@ -870,7 +871,7 @@ module('TaskQueue', function () {
         'queue processing encountered a problem'
       );
       assert.equal(
-        queue.error.message,
+        queue.error?.message,
         ':(',
         'process error matches expectation'
       );
@@ -879,7 +880,7 @@ module('TaskQueue', function () {
 
     const failedTask = await queue.shift();
     assert.strictEqual(
-      failedTask.data,
+      failedTask?.data,
       op2,
       'op2, which failed, is returned from `shift`'
     );
@@ -1192,10 +1193,6 @@ module('TaskQueue', function () {
       bucket = new FakeBucket({ name: 'fake-bucket' });
     });
 
-    hooks.afterEach(function () {
-      bucket = null;
-    });
-
     test('requires a name for lookups in the bucket', function (assert) {
       assert.throws(
         function () {
@@ -1313,14 +1310,16 @@ module('TaskQueue', function () {
 
         if (transformCount === 1) {
           assert.strictEqual(task.data, op1, 'op1 processed');
-          bucket.getItem('queue').then((serialized) => {
-            assert.equal(serialized.length, 2);
+          bucket.getItem('queue').then((data) => {
+            let serialized = data as { data: any }[];
+            assert.equal(serialized?.length, 2);
             assert.deepEqual(serialized[0].data, op1);
             assert.deepEqual(serialized[1].data, op2);
           });
         } else if (transformCount === 2) {
           assert.strictEqual(task.data, op2, 'op2 processed');
-          bucket.getItem('queue').then((serialized) => {
+          bucket.getItem('queue').then((data) => {
+            let serialized = data as { data: any }[];
             assert.equal(serialized.length, 1);
             assert.deepEqual(serialized[0].data, op2);
           });

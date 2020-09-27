@@ -47,6 +47,10 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
         return this.serializeReplaceRelatedRecordsOperation(operation);
       case 'replaceAttribute':
         return this.serializeReplaceAttributeOperation(operation);
+      default:
+        throw new Error(
+          `JSONAPIOperationSerializer: Unrecognized operation ${operation.op}.`
+        );
     }
   }
 

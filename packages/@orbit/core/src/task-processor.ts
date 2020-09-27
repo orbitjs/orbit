@@ -15,11 +15,11 @@ export class TaskProcessor {
   target: Performer;
   task: Task;
 
-  private _started: boolean;
-  private _settled: boolean;
-  private _settlement: Promise<any>;
-  private _success: (resolution: any) => void;
-  private _fail: (e: Error) => void;
+  private _started!: boolean;
+  private _settled!: boolean;
+  private _settlement!: Promise<unknown>;
+  private _success?: (resolution: unknown) => void;
+  private _fail?: (e: Error) => void;
 
   /**
    * Creates an instance of TaskProcessor.
@@ -86,15 +86,13 @@ export class TaskProcessor {
 
   /**
    * Reject the current promise with a specific error.
-   *
-   * @param e Error associated with rejection
    */
   reject(e: Error): void {
     if (this._settled) {
       throw new Error(
         'TaskProcessor#reject can not be invoked when processing has already settled.'
       );
-    } else {
+    } else if (this._fail) {
       this._fail(e);
     }
   }

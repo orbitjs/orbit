@@ -48,17 +48,17 @@ export class LocalStorageSource
   protected _cache: LocalStorageCache;
 
   // Syncable interface stubs
-  sync: (transformOrTransforms: Transform | Transform[]) => Promise<void>;
+  sync!: (transformOrTransforms: Transform | Transform[]) => Promise<void>;
 
   // Pullable interface stubs
-  pull: (
+  pull!: (
     queryOrExpressions: QueryOrExpressions,
     options?: RequestOptions,
     id?: string
   ) => Promise<Transform[]>;
 
   // Pushable interface stubs
-  push: (
+  push!: (
     transformOrOperations: TransformOrOperations,
     options?: RequestOptions,
     id?: string
@@ -155,6 +155,7 @@ export class LocalStorageSource
     if (query.expressions.length === 1) {
       operations = this._operationsFromQueryResult(results as QueryResultData);
     } else {
+      operations = [];
       for (let result of results as QueryResultData[]) {
         operations.push(...this._operationsFromQueryResult(result));
       }

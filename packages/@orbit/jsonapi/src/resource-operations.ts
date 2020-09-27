@@ -9,7 +9,7 @@ export interface ResourceOperation {
     id?: string;
     relationship?: string;
   };
-  data?: Resource | Resource[];
+  data?: Resource | Resource[] | null;
 }
 
 export interface AddResourceOperation extends ResourceOperation {
@@ -65,7 +65,7 @@ export interface ReplaceRelatedResourceOperation extends ResourceOperation {
     id: string;
     relationship: string;
   };
-  data: Resource;
+  data: Resource | null;
 }
 
 export interface ReplaceRelatedResourcesOperation extends ResourceOperation {

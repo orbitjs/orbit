@@ -20,8 +20,8 @@ export interface SyncQueryOperator {
 }
 
 export const SyncQueryOperators: Dict<SyncQueryOperator> = {
-  findRecord(cache: SyncRecordAccessor, expression: FindRecord): Record {
-    const { record } = expression;
+  findRecord(cache: SyncRecordAccessor, expression: QueryExpression): Record {
+    const { record } = expression as FindRecord;
     const currentRecord = cache.getRecordSync(record);
 
     if (!currentRecord) {
@@ -31,25 +31,30 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
     return currentRecord;
   },
 
-  findRecords(cache: SyncRecordAccessor, expression: FindRecords): Record[] {
-    let results = cache.getRecordsSync(expression.records || expression.type);
-    if (expression.filter) {
-      results = filterRecords(results, expression.filter);
+  findRecords(
+    cache: SyncRecordAccessor,
+    expression: QueryExpression
+  ): Record[] {
+    let exp = expression as FindRecords;
+    let results = cache.getRecordsSync(exp.records || exp.type);
+    if (exp.filter) {
+      results = filterRecords(results, exp.filter);
     }
-    if (expression.sort) {
-      results = sortRecords(results, expression.sort);
+    if (exp.sort) {
+      results = sortRecords(results, exp.sort);
     }
-    if (expression.page) {
-      results = paginateRecords(results, expression.page);
+    if (exp.page) {
+      results = paginateRecords(results, exp.page);
     }
     return results;
   },
 
   findRelatedRecords(
     cache: SyncRecordAccessor,
-    expression: FindRelatedRecords
+    expression: QueryExpression
   ): Record[] {
-    const { record, relationship } = expression;
+    const exp = expression as FindRelatedRecords;
+    const { record, relationship } = exp;
     const relatedIds = cache.getRelatedRecordsSync(record, relationship);
     if (!relatedIds || relatedIds.length === 0) {
       if (!cache.getRecordSync(record)) {
@@ -60,23 +65,24 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
     }
     let results = cache.getRecordsSync(relatedIds);
 
-    if (expression.filter) {
-      results = filterRecords(results, expression.filter);
+    if (exp.filter) {
+      results = filterRecords(results, exp.filter);
     }
-    if (expression.sort) {
-      results = sortRecords(results, expression.sort);
+    if (exp.sort) {
+      results = sortRecords(results, exp.sort);
     }
-    if (expression.page) {
-      results = paginateRecords(results, expression.page);
+    if (exp.page) {
+      results = paginateRecords(results, exp.page);
     }
     return results;
   },
 
   findRelatedRecord(
     cache: SyncRecordAccessor,
-    expression: FindRelatedRecord
+    expression: QueryExpression
   ): Record | null {
-    const { record, relationship } = expression;
+    const exp = expression as FindRelatedRecord;
+    const { record, relationship } = exp;
     const relatedId = cache.getRelatedRecordSync(record, relationship);
     if (relatedId) {
       return cache.getRecordSync(relatedId) || null;
@@ -121,8 +127,7 @@ function applyFilter(record: Record, filter: any): boolean {
         return actual <= expected;
       default:
         throw new QueryExpressionParseError(
-          'Filter operation ${filter.op} not recognized for Store.',
-          filter
+          'Filter operation ${filter.op} not recognized for Store.'
         );
     }
   } else if (filter.kind === 'relatedRecords') {
@@ -157,8 +162,7 @@ function applyFilter(record: Record, filter: any): boolean {
         );
       default:
         throw new QueryExpressionParseError(
-          'Filter operation ${filter.op} not recognized for Store.',
-          filter
+          'Filter operation ${filter.op} not recognized for Store.'
         );
     }
   } else if (filter.kind === 'relatedRecord') {
@@ -184,8 +188,7 @@ function applyFilter(record: Record, filter: any): boolean {
         }
       default:
         throw new QueryExpressionParseError(
-          'Filter operation ${filter.op} not recognized for Store.',
-          filter
+          'Filter operation ${filter.op} not recognized for Store.'
         );
     }
   }
@@ -206,8 +209,7 @@ function sortRecords(records: Record[], sortSpecifiers: SortSpecifier[]) {
           ]);
         } else {
           throw new QueryExpressionParseError(
-            'Sort specifier ${sortSpecifier.kind} not recognized for Store.',
-            sortSpecifier
+            'Sort specifier ${sortSpecifier.kind} not recognized for Store.'
           );
         }
       })
@@ -245,8 +247,7 @@ function paginateRecords(records: Record[], paginationOptions: any) {
     return records.slice(offset, offset + limit);
   } else {
     throw new QueryExpressionParseError(
-      'Pagination options not recognized for Store. Please specify `offset` and `limit`.',
-      paginationOptions
+      'Pagination options not recognized for Store. Please specify `offset` and `limit`.'
     );
   }
 }

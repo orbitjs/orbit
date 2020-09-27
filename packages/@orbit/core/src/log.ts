@@ -21,18 +21,18 @@ export interface LogOptions {
  */
 @evented
 export class Log implements Evented {
-  private _name: string;
-  private _bucket: Bucket;
-  private _data: string[];
+  private _name?: string;
+  private _bucket?: Bucket;
+  private _data: string[] = [];
 
-  public reified: Promise<void>;
+  public reified!: Promise<void>;
 
   // Evented interface stubs
-  on: (event: string, listener: Listener) => () => void;
-  off: (event: string, listener?: Listener) => void;
-  one: (event: string, listener: Listener) => () => void;
-  emit: (event: string, ...args: any[]) => void;
-  listeners: (event: string) => Listener[];
+  on!: (event: string, listener: Listener) => () => void;
+  off!: (event: string, listener?: Listener) => void;
+  one!: (event: string, listener: Listener) => () => void;
+  emit!: (event: string, ...args: any[]) => void;
+  listeners!: (event: string) => Listener[];
 
   constructor(options: LogOptions = {}) {
     this._name = options.name;
@@ -45,11 +45,11 @@ export class Log implements Evented {
     this._reify(options.data);
   }
 
-  get name(): string {
+  get name(): string | undefined {
     return this._name;
   }
 
-  get bucket(): Bucket {
+  get bucket(): Bucket | undefined {
     return this._bucket;
   }
 
@@ -175,31 +175,33 @@ export class Log implements Evented {
     return this._data.indexOf(id) > -1;
   }
 
-  _persist(): Promise<void> {
+  private async _persist(): Promise<void> {
     this.emit('change');
-    if (this.bucket) {
-      return this._bucket.setItem(this.name, this._data);
-    } else {
-      return Promise.resolve();
+    if (this._bucket && this._name) {
+      await this._bucket.setItem(this._name, this._data);
     }
   }
 
-  _reify(data: string[]): void {
-    if (!data && this._bucket) {
-      this.reified = this._bucket
-        .getItem(this._name)
-        .then((bucketData) => this._initData(bucketData));
-    } else {
+  private _reify(data?: string[]): Promise<void> {
+    if (data) {
       this._initData(data);
       this.reified = Promise.resolve();
+    } else {
+      this.reified = this._loadDataFromBucket().then((bucketData) =>
+        this._initData(bucketData)
+      );
+    }
+
+    return this.reified;
+  }
+
+  private async _loadDataFromBucket(): Promise<string[] | undefined> {
+    if (this._bucket && this._name) {
+      return (await this._bucket.getItem(this._name)) as string[] | undefined;
     }
   }
 
-  _initData(data: string[]): void {
-    if (data) {
-      this._data = data;
-    } else {
-      this._data = [];
-    }
+  private _initData(data?: string[]): void {
+    this._data = data ?? [];
   }
 }

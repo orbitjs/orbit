@@ -333,10 +333,6 @@ module('Log', function () {
       bucket = new FakeBucket({ name: 'fake-bucket' });
     });
 
-    hooks.afterEach(function () {
-      bucket = null;
-    });
-
     test('requires a name for lookups in the bucket', function (assert) {
       assert.throws(
         function () {
