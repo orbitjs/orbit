@@ -74,12 +74,6 @@ module('CacheIntegrityProcessor', function (hooks) {
     processor = cache.processors[0] as SyncCacheIntegrityProcessor;
   });
 
-  hooks.afterEach(function () {
-    schema = null;
-    cache = null;
-    processor = null;
-  });
-
   test('reset empty cache', function (assert) {
     const saturn = {
       type: 'planet',

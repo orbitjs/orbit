@@ -72,7 +72,6 @@ module('TransformRequests', function (/* hooks */) {
     });
 
     hooks.afterEach(() => {
-      schema = requestProcessor = null;
       fetchStub.restore();
     });
 

@@ -60,7 +60,7 @@ module('QueryRequests', function (hooks) {
     });
 
     requestProcessor = new JSONAPIRequestProcessor({
-      keyMap: null,
+      keyMap: undefined,
       schema,
       sourceName: 'foo'
     });
@@ -69,7 +69,6 @@ module('QueryRequests', function (hooks) {
   });
 
   hooks.afterEach(() => {
-    schema = requestProcessor = null;
     fetchStub.restore();
   });
 

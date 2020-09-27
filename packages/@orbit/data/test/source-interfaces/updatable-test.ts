@@ -17,22 +17,18 @@ const { module, test } = QUnit;
 module('@updatable', function (hooks) {
   @updatable
   class MySource extends Source implements Updatable {
-    update: (
+    update!: (
       transformOrOperations: TransformOrOperations,
       options?: RequestOptions,
       id?: string
     ) => Promise<any>;
-    _update: (transform: Transform, hints?: any) => Promise<any>;
+    _update!: (transform: Transform, hints?: any) => Promise<any>;
   }
 
   let source: MySource;
 
   hooks.beforeEach(function () {
     source = new MySource({ name: 'src1' });
-  });
-
-  hooks.afterEach(function () {
-    source = null;
   });
 
   test('isUpdatable - tests for the application of the @updatable decorator', function (assert) {

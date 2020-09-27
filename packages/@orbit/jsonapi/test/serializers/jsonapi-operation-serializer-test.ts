@@ -55,10 +55,6 @@ module('JSONAPIOperationSerializer', function (hooks) {
         serializer = new JSONAPIOperationSerializer({ schema, serializerFor });
       });
 
-      hooks.afterEach(function () {
-        serializer = null;
-      });
-
       test('it exists', function (assert) {
         assert.ok(serializer);
       });
@@ -559,10 +555,6 @@ module('JSONAPIOperationSerializer', function (hooks) {
         serializer = new JSONAPIOperationSerializer({ schema, serializerFor });
       });
 
-      hooks.afterEach(function () {
-        serializer = null;
-      });
-
       test('serializer is assigned some standard serializers by default, and any custom serializers passed as settings', function (assert) {
         // default serializers
         assert.ok(serializer.serializerFor('boolean'));
@@ -705,10 +697,6 @@ module('JSONAPIOperationSerializer', function (hooks) {
         schema,
         serializerFor
       });
-    });
-
-    hooks.afterEach(function () {
-      keyMap = serializer = null;
     });
 
     test('it exists', function (assert) {

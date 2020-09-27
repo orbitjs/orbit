@@ -68,11 +68,6 @@ module('SchemaValidationProcessor', function (hooks) {
     });
   });
 
-  hooks.afterEach(function () {
-    schema = null;
-    cache = null;
-  });
-
   test('addRecord with an unknown model type', (assert) => {
     assert.throws(() => {
       cache.patch((t) => t.addRecord(unknown));

@@ -21,11 +21,6 @@ module('Strategy', function (hooks) {
     coordinator = new Coordinator({ sources: [s1, s2, s3] });
   });
 
-  hooks.afterEach(function () {
-    coordinator = null;
-    s1 = s2 = s3 = null;
-  });
-
   test('can be instantiated with a name', function (assert) {
     class CustomStrategy extends Strategy {}
 

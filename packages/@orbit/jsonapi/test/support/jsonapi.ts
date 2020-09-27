@@ -38,7 +38,7 @@ export function jsonapiResponse(
   }
 }
 
-function statusText(code: number): string {
+function statusText(code: number): string | undefined {
   switch (code) {
     case 200:
       return 'OK';

@@ -5,7 +5,8 @@ import {
   Schema,
   equalRecordIdentities,
   recordsInclude,
-  recordsIncludeAll
+  recordsIncludeAll,
+  RecordIdentity
 } from '@orbit/data';
 import { clone } from '@orbit/utils';
 import { MemoryCache } from '../src/memory-cache';
@@ -40,11 +41,6 @@ module('MemoryCache', function (hooks) {
     });
 
     keyMap = new KeyMap();
-  });
-
-  hooks.afterEach(function () {
-    schema = null;
-    keyMap = null;
   });
 
   test('it exists', function (assert) {
@@ -210,7 +206,7 @@ module('MemoryCache', function (hooks) {
     cache1.reset(cache2);
 
     assert.strictEqual(
-      cache1.getRecordSync({ type: 'planet', id: '1' }).attributes.name,
+      cache1.getRecordSync({ type: 'planet', id: '1' })?.attributes?.name,
       'Jupiter'
     );
   });
@@ -308,12 +304,14 @@ module('MemoryCache', function (hooks) {
     ]);
 
     assert.deepEqual(
-      cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.planet.data,
+      cache.getRecordSync({ type: 'moon', id: 'm1' })?.relationships?.planet
+        .data,
       { type: 'planet', id: 'p1' },
       'Jupiter has been assigned to Io'
     );
     assert.deepEqual(
-      cache.getRecordSync({ type: 'moon', id: 'm2' }).relationships.planet.data,
+      cache.getRecordSync({ type: 'moon', id: 'm2' })?.relationships?.planet
+        .data,
       { type: 'planet', id: 'p1' },
       'Jupiter has been assigned to Europa'
     );
@@ -327,12 +325,14 @@ module('MemoryCache', function (hooks) {
     );
 
     assert.equal(
-      cache.getRecordSync({ type: 'moon', id: 'm1' }).relationships.planet.data,
+      cache.getRecordSync({ type: 'moon', id: 'm1' })?.relationships?.planet
+        .data,
       undefined,
       'Jupiter has been cleared from Io'
     );
     assert.equal(
-      cache.getRecordSync({ type: 'moon', id: 'm2' }).relationships.planet.data,
+      cache.getRecordSync({ type: 'moon', id: 'm2' })?.relationships?.planet
+        .data,
       undefined,
       'Jupiter has been cleared from Europa'
     );
@@ -374,7 +374,7 @@ module('MemoryCache', function (hooks) {
     ]);
 
     assert.deepEqual(
-      cache.getRecordSync({ type: 'planet', id: 'p1' }).relationships.moons
+      cache.getRecordSync({ type: 'planet', id: 'p1' })?.relationships?.moons
         .data,
       [
         { type: 'moon', id: 'm1' },
@@ -383,10 +383,10 @@ module('MemoryCache', function (hooks) {
       'Jupiter has been assigned to Io and Europa'
     );
     assert.ok(
-      recordsIncludeAll(cache.getRelatedRecordsSync(jupiter, 'moons'), [
-        io,
-        europa
-      ]),
+      recordsIncludeAll(
+        cache.getRelatedRecordsSync(jupiter, 'moons') as RecordIdentity[],
+        [io, europa]
+      ),
       'Jupiter has been assigned to Io and Europa'
     );
 
@@ -590,7 +590,10 @@ module('MemoryCache', function (hooks) {
     );
 
     assert.ok(
-      recordsInclude(cache.getRelatedRecordsSync(jupiter, 'moons'), callisto),
+      recordsInclude(
+        cache.getRelatedRecordsSync(jupiter, 'moons') as RecordIdentity[],
+        callisto
+      ),
       'moon added'
     );
 
@@ -602,7 +605,10 @@ module('MemoryCache', function (hooks) {
     );
 
     assert.notOk(
-      recordsInclude(cache.getRelatedRecordsSync(jupiter, 'moons'), callisto),
+      recordsInclude(
+        cache.getRelatedRecordsSync(jupiter, 'moons') as RecordIdentity[],
+        callisto
+      ),
       'moon removed'
     );
   });
@@ -627,7 +633,7 @@ module('MemoryCache', function (hooks) {
 
     assert.ok(
       equalRecordIdentities(
-        cache.getRelatedRecordSync(callisto, 'planet'),
+        cache.getRelatedRecordSync(callisto, 'planet') as RecordIdentity,
         jupiter
       ),
       'relationship added'
@@ -637,7 +643,7 @@ module('MemoryCache', function (hooks) {
 
     assert.notOk(
       equalRecordIdentities(
-        cache.getRelatedRecordSync(callisto, 'planet'),
+        cache.getRelatedRecordSync(callisto, 'planet') as RecordIdentity,
         jupiter
       ),
       'relationship cleared'
@@ -729,17 +735,17 @@ module('MemoryCache', function (hooks) {
       })
     ]);
 
-    const one = cache.getRecordSync({ type: 'one', id: '1' });
-    const two = cache.getRecordSync({ type: 'two', id: '2' });
+    const one = cache.getRecordSync({ type: 'one', id: '1' }) as Record;
+    const two = cache.getRecordSync({ type: 'two', id: '2' }) as Record;
     assert.ok(one, 'one exists');
     assert.ok(two, 'two exists');
     assert.deepEqual(
-      one.relationships.two.data,
+      one.relationships?.two.data,
       { type: 'two', id: '2' },
       'one links to two'
     );
     assert.deepEqual(
-      two.relationships.one.data,
+      two.relationships?.one.data,
       { type: 'one', id: '1' },
       'two links to one'
     );
@@ -747,7 +753,7 @@ module('MemoryCache', function (hooks) {
     cache.patch((t) => t.removeRecord(two));
 
     assert.equal(
-      cache.getRecordSync({ type: 'one', id: '1' }).relationships.two.data,
+      cache.getRecordSync({ type: 'one', id: '1' })?.relationships?.two.data,
       null,
       'ones link to two got removed'
     );
@@ -1040,7 +1046,7 @@ module('MemoryCache', function (hooks) {
       assert,
       cache.query((q) =>
         q.findRecords('planet').filter({ attribute: 'name', value: 'Jupiter' })
-      ),
+      ) as Record[],
       [jupiter]
     );
   });
@@ -1101,7 +1107,7 @@ module('MemoryCache', function (hooks) {
       cache.query((q) => {
         let tmp = q.findRecords('planet');
         return tmp.filter({ attribute: 'sequence', value: 2, op: 'gt' });
-      }),
+      }) as Record[],
       [earth, jupiter]
     );
     arrayMembershipMatches(
@@ -1109,7 +1115,7 @@ module('MemoryCache', function (hooks) {
       cache.query((q) => {
         let tmp = q.findRecords('planet');
         return tmp.filter({ attribute: 'sequence', value: 2, op: 'gte' });
-      }),
+      }) as Record[],
       [venus, earth, jupiter]
     );
     arrayMembershipMatches(
@@ -1117,7 +1123,7 @@ module('MemoryCache', function (hooks) {
       cache.query((q) => {
         let tmp = q.findRecords('planet');
         return tmp.filter({ attribute: 'sequence', value: 2, op: 'lt' });
-      }),
+      }) as Record[],
       [mercury]
     );
     arrayMembershipMatches(
@@ -1125,7 +1131,7 @@ module('MemoryCache', function (hooks) {
       cache.query((q) => {
         let tmp = q.findRecords('planet');
         return tmp.filter({ attribute: 'sequence', value: 2, op: 'lte' });
-      }),
+      }) as Record[],
       [venus, mercury]
     );
   });
@@ -1254,7 +1260,7 @@ module('MemoryCache', function (hooks) {
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [theMoon], op: 'equal' })
-      ),
+      ) as Record[],
       [earth]
     );
     arrayMembershipMatches(
@@ -1263,7 +1269,7 @@ module('MemoryCache', function (hooks) {
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [phobos], op: 'equal' })
-      ),
+      ) as Record[],
       []
     );
     arrayMembershipMatches(
@@ -1272,7 +1278,7 @@ module('MemoryCache', function (hooks) {
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [phobos], op: 'all' })
-      ),
+      ) as Record[],
       [mars]
     );
     arrayMembershipMatches(
@@ -1281,7 +1287,7 @@ module('MemoryCache', function (hooks) {
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [phobos, callisto], op: 'all' })
-      ),
+      ) as Record[],
       []
     );
     arrayMembershipMatches(
@@ -1292,7 +1298,7 @@ module('MemoryCache', function (hooks) {
           records: [phobos, callisto],
           op: 'some'
         })
-      ),
+      ) as Record[],
       [mars, jupiter]
     );
     arrayMembershipMatches(
@@ -1301,7 +1307,7 @@ module('MemoryCache', function (hooks) {
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [titan], op: 'some' })
-      ),
+      ) as Record[],
       []
     );
     arrayMembershipMatches(
@@ -1310,7 +1316,7 @@ module('MemoryCache', function (hooks) {
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [ganymede], op: 'none' })
-      ),
+      ) as Record[],
       [earth, mars]
     );
   });
@@ -1437,21 +1443,21 @@ module('MemoryCache', function (hooks) {
       assert,
       cache.query((q) =>
         q.findRecords('moon').filter({ relation: 'planet', record: earth })
-      ),
+      ) as Record[],
       [theMoon]
     );
     arrayMembershipMatches(
       assert,
       cache.query((q) =>
         q.findRecords('moon').filter({ relation: 'planet', record: jupiter })
-      ),
+      ) as Record[],
       [europa, ganymede, callisto]
     );
     arrayMembershipMatches(
       assert,
       cache.query((q) =>
         q.findRecords('moon').filter({ relation: 'planet', record: mercury })
-      ),
+      ) as Record[],
       []
     );
     arrayMembershipMatches(
@@ -1460,7 +1466,7 @@ module('MemoryCache', function (hooks) {
         q
           .findRecords('moon')
           .filter({ relation: 'planet', record: [earth, mars] })
-      ),
+      ) as Record[],
       [theMoon, phobos, deimos]
     );
   });
@@ -1521,7 +1527,7 @@ module('MemoryCache', function (hooks) {
             { attribute: 'atmosphere', value: true },
             { attribute: 'classification', value: 'terrestrial' }
           )
-      ),
+      ) as Record[],
       [earth, venus]
     );
   });
@@ -1574,7 +1580,7 @@ module('MemoryCache', function (hooks) {
             { attribute: 'atmosphere', value: true },
             { attribute: 'classification', value: 'terrestrial' }
           )
-      ),
+      ) as Record[],
       [earth, venus]
     );
   });

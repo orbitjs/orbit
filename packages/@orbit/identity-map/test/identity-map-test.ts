@@ -13,10 +13,6 @@ module('IdentityMap', function (hooks) {
     identityMap = new IdentityMap({ serializer });
   });
 
-  hooks.afterEach(function () {
-    identityMap = null;
-  });
-
   test('it exists', function (assert) {
     assert.ok(identityMap);
   });

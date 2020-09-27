@@ -41,10 +41,13 @@ module('KeyMap', function (hooks) {
   test('#pushRecord does not set incomplete records', function (assert) {
     let keyMap = new KeyMap();
 
-    keyMap.pushRecord({ type: 'planet', id: null, keys: { remoteId: 'a' } });
+    keyMap.pushRecord({ type: 'planet', keys: { remoteId: 'a' } });
     assert.strictEqual(keyMap.keyToId('planet', 'remoteId', 'a'), undefined);
 
-    keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: null } });
+    keyMap.pushRecord({
+      type: 'planet',
+      id: '1'
+    });
     assert.strictEqual(keyMap.idToKey('planet', 'remoteId', '1'), undefined);
   });
 

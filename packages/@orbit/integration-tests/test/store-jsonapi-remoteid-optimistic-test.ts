@@ -117,8 +117,6 @@ module(
     });
 
     hooks.afterEach(() => {
-      keyMap = schema = remote = memory = coordinator = null;
-
       fetchStub.restore();
     });
 

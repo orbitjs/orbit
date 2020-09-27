@@ -70,7 +70,6 @@ module('JSONAPIRequestProcessor', function (hooks) {
   });
 
   hooks.afterEach(() => {
-    keyMap = schema = processor = null;
     fetchStub.restore();
   });
 

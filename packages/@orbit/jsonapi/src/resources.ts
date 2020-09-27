@@ -35,7 +35,8 @@ export type PrimaryResourceData =
   | Resource
   | Resource[]
   | ResourceIdentity
-  | ResourceIdentity[];
+  | ResourceIdentity[]
+  | null;
 
 export interface ResourceDocument {
   data: PrimaryResourceData;

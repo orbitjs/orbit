@@ -8,22 +8,22 @@ module('LogTruncationStrategy', function (hooks) {
   const t = new TransformBuilder();
   const tA = buildTransform(
     [t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })],
-    null,
+    undefined,
     'a'
   );
   const tB = buildTransform(
     [t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })],
-    null,
+    undefined,
     'b'
   );
   const tC = buildTransform(
     [t.addRecord({ type: 'planet', id: 'c', attributes: { name: 'c' } })],
-    null,
+    undefined,
     'c'
   );
   const tD = buildTransform(
     [t.addRecord({ type: 'planet', id: 'd', attributes: { name: 'd' } })],
-    null,
+    undefined,
     'd'
   );
 

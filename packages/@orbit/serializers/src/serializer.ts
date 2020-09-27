@@ -10,5 +10,5 @@ export interface Serializer<
 
 export type UnknownSerializer = Serializer<unknown, unknown, unknown, unknown>;
 export type UnknownSerializerClass = new (
-  options?: unknown
+  settings?: unknown
 ) => UnknownSerializer;

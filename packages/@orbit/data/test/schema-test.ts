@@ -1,5 +1,5 @@
 import { Schema } from '../src/schema';
-import { Record } from '../src';
+import { Record, UninitializedRecord } from '../src';
 import './test-helper';
 
 const { module, test } = QUnit;
@@ -31,7 +31,7 @@ module('Schema', function () {
       assert.equal(version, 2, 'version is passed as argument');
       assert.equal(schema.version, 2, 'version === 2');
       assert.ok(
-        schema.getModel('planet').attributes.name,
+        schema.getModel('planet').attributes?.name,
         'model attribute has been added'
       );
       done();
@@ -245,7 +245,7 @@ module('Schema', function () {
       }
     });
 
-    let moon: Record = { type: 'moon', id: undefined };
+    let moon: UninitializedRecord = { type: 'moon' };
     schema.initializeRecord(moon);
     assert.equal(moon.id, 'moon-123', 'generates an ID if `id` is undefined');
 

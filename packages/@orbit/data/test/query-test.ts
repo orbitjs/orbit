@@ -114,7 +114,12 @@ module('buildQuery', function () {
       op: 'findRecords',
       type: 'planet'
     };
-    let query = buildQuery((q) => q.findRecords('planet'), null, null, qb);
+    let query = buildQuery(
+      (q) => q.findRecords('planet'),
+      undefined,
+      undefined,
+      qb
+    );
     assert.deepEqual(
       query.expressions[0],
       expression,

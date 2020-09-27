@@ -1,4 +1,4 @@
-import { Dict, isObject, isNone, clone, merge } from '@orbit/utils';
+import { Dict, isNone, clone } from '@orbit/utils';
 
 export interface LinkObject {
   href: string;
@@ -53,13 +53,13 @@ export function cloneRecordIdentity(identity: RecordIdentity): RecordIdentity {
 }
 
 export function equalRecordIdentities(
-  record1: RecordIdentity,
-  record2: RecordIdentity
+  record1?: RecordIdentity | null,
+  record2?: RecordIdentity | null
 ): boolean {
   return (
     (isNone(record1) && isNone(record2)) ||
-    (isObject(record1) &&
-      isObject(record2) &&
+    (!!record1 &&
+      !!record2 &&
       record1.type === record2.type &&
       record1.id === record2.id)
   );
@@ -153,7 +153,7 @@ function mergeRecordSection(
     if (replacementDepth === 0) {
       record[section] = clone(update[section]);
     } else if (replacementDepth === 1) {
-      record[section] = merge({}, current[section], update[section]);
+      record[section] = Object.assign({}, current[section], update[section]);
     } else {
       record[section] = {};
       for (let name of Object.keys(current[section])) {

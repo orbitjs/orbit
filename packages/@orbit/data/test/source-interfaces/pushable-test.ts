@@ -17,22 +17,18 @@ const { module, test } = QUnit;
 module('@pushable', function (hooks) {
   @pushable
   class MySource extends Source implements Pushable {
-    push: (
+    push!: (
       transformOrOperations: TransformOrOperations,
       options?: RequestOptions,
       id?: string
     ) => Promise<Transform[]>;
-    _push: (transform: Transform, hints?: any) => Promise<Transform[]>;
+    _push!: (transform: Transform, hints?: any) => Promise<Transform[]>;
   }
 
   let source: MySource;
 
   hooks.beforeEach(function () {
     source = new MySource({ name: 'src1' });
-  });
-
-  hooks.afterEach(function () {
-    source = null;
   });
 
   test('isPushable - tests for the application of the @pushable decorator', function (assert) {

@@ -65,10 +65,6 @@ module('JSONAPIURLBuilder', function (hooks) {
     urlBuilder = new JSONAPIURLBuilder({ serializerFor, keyMap });
   });
 
-  hooks.afterEach(() => {
-    keyMap = urlBuilder = null;
-  });
-
   test('it exists', function (assert) {
     assert.ok(urlBuilder);
   });

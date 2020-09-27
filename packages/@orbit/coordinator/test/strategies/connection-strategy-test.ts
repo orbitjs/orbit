@@ -15,12 +15,12 @@ module('ConnectionStrategy', function (hooks) {
   const t = new TransformBuilder();
   const tA = buildTransform(
     [t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })],
-    null,
+    undefined,
     'a'
   );
   const tB = buildTransform(
     [t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })],
-    null,
+    undefined,
     'b'
   );
 
@@ -167,8 +167,11 @@ module('ConnectionStrategy', function (hooks) {
       target: 's2',
       on: 'update',
       action: 'push',
-      filter(transform: Transform) {
-        assert.strictEqual(this, strategy, 'context is the strategy');
+      filter(transform): boolean {
+        assert.ok(
+          this instanceof ConnectionStrategy,
+          'context is the strategy'
+        );
         return transform === tB;
       }
     });

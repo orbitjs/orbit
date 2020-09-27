@@ -13,22 +13,18 @@ const { module, test } = QUnit;
 module('@queryable', function (hooks) {
   @queryable
   class MySource extends Source implements Queryable {
-    query: (
+    query!: (
       queryOrExpressions: QueryOrExpressions,
       options?: RequestOptions,
       id?: string
     ) => Promise<any>;
-    _query: (query: Query, hints?: any) => Promise<any>;
+    _query!: (query: Query, hints?: any) => Promise<any>;
   }
 
   let source: MySource;
 
   hooks.beforeEach(function () {
     source = new MySource({ name: 'src1' });
-  });
-
-  hooks.afterEach(function () {
-    source = null;
   });
 
   test('isQueryable - tests for the application of the @queryable decorator', function (assert) {

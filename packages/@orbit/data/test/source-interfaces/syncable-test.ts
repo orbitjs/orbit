@@ -12,18 +12,14 @@ const { module, test } = QUnit;
 module('@syncable', function (hooks) {
   @syncable
   class MySource extends Source implements Syncable {
-    sync: (transformOrTransforms: Transform | Transform[]) => Promise<void>;
-    _sync: (transform: Transform) => Promise<void>;
+    sync!: (transformOrTransforms: Transform | Transform[]) => Promise<void>;
+    _sync!: (transform: Transform) => Promise<void>;
   }
 
   let source: MySource;
 
   hooks.beforeEach(function () {
     source = new MySource({ name: 'src1' });
-  });
-
-  hooks.afterEach(function () {
-    source = null;
   });
 
   test('isSyncable - tests for the application of the @syncable decorator', function (assert) {
