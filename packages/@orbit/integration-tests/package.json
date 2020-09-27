@@ -9,6 +9,7 @@
   "repository": "https://github.com/orbitjs/orbit",
   "license": "MIT",
   "scripts": {
+    "compile": "tsc",
     "clean": "git clean -x -f",
     "lint": "eslint . --ext .ts",
     "start": "node ../build dev && snowpack dev",

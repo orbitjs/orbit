@@ -15,9 +15,11 @@ jobs:
 
   include:
     - stage: tests
-      name: "Linting"
+      name: "Lint"
       script: yarn lint
-    - name: "Tests"
+    - name: "Compile"
+      script: yarn compile
+    - name: "Test"
       script: yarn test
 
 notifications:
