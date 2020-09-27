@@ -1,6 +1,6 @@
 {
   "name": "@orbit/local-storage",
-  "version": "0.17.0-beta.7",
+  "version": "0.17.0-beta.8",
   "description": "Local storage support for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -27,10 +27,10 @@
     "test": "node ../build ci && snowpack build && testem ci"
   },
   "dependencies": {
-    "@orbit/core": "^0.17.0-beta.7",
-    "@orbit/data": "^0.17.0-beta.7",
-    "@orbit/record-cache": "^0.17.0-beta.7",
-    "@orbit/utils": "^0.17.0-beta.7"
+    "@orbit/core": "^0.17.0-beta.8",
+    "@orbit/data": "^0.17.0-beta.8",
+    "@orbit/record-cache": "^0.17.0-beta.8",
+    "@orbit/utils": "^0.17.0-beta.8"
   },
   "devDependencies": {
     "@orbit/build": "^0.17.0-beta.7"

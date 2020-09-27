@@ -1,6 +1,6 @@
 {
   "name": "@orbit/jsonapi",
-  "version": "0.17.0-beta.7",
+  "version": "0.17.0-beta.8",
   "description": "JSON:API support for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -30,10 +30,10 @@
     "test": "node ../build ci && snowpack build && testem ci"
   },
   "dependencies": {
-    "@orbit/core": "^0.17.0-beta.7",
-    "@orbit/data": "^0.17.0-beta.7",
-    "@orbit/serializers": "^0.17.0-beta.7",
-    "@orbit/utils": "^0.17.0-beta.7"
+    "@orbit/core": "^0.17.0-beta.8",
+    "@orbit/data": "^0.17.0-beta.8",
+    "@orbit/serializers": "^0.17.0-beta.8",
+    "@orbit/utils": "^0.17.0-beta.8"
   },
   "devDependencies": {
     "@orbit/build": "^0.17.0-beta.7",
