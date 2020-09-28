@@ -5,7 +5,8 @@ import {
   Schema,
   equalRecordIdentities,
   recordsInclude,
-  recordsIncludeAll
+  recordsIncludeAll,
+  RecordIdentity
 } from '@orbit/data';
 import { AsyncSchemaValidationProcessor } from '../src/operation-processors/async-schema-validation-processor';
 import { ExampleAsyncRecordCache } from './support/example-async-record-cache';
@@ -72,11 +73,6 @@ module('AsyncRecordCache', function (hooks) {
     keyMap = new KeyMap();
   });
 
-  hooks.afterEach(function () {
-    schema = null;
-    keyMap = null;
-  });
-
   test('it exists', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema });
 
@@ -90,7 +86,8 @@ module('AsyncRecordCache', function (hooks) {
 
   test('it requires a schema', function (assert) {
     assert.expect(1);
-    assert.throws(() => new ExampleAsyncRecordCache({ schema: null }));
+    let schema = (undefined as unknown) as Schema;
+    assert.throws(() => new ExampleAsyncRecordCache({ schema }));
   });
 
   test('can be assigned processors', async function (assert) {
@@ -256,14 +253,16 @@ module('AsyncRecordCache', function (hooks) {
     await cache.patch((t) => [t.updateRecord(jupiter), t.updateRecord(io)]);
 
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'planet', id: 'p1' })).relationships
-        .moons.data,
+      ((await cache.getRecordAsync({
+        type: 'planet',
+        id: 'p1'
+      })) as Record)?.relationships?.moons.data,
       [{ type: 'moon', id: 'm1' }],
       'Io has been assigned to Jupiter'
     );
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'moon', id: 'm1' })).relationships
-        .planet.data,
+      ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
+        ?.relationships?.planet.data,
       { type: 'planet', id: 'p1' },
       'Jupiter has been assigned to Io'
     );
@@ -283,14 +282,14 @@ module('AsyncRecordCache', function (hooks) {
     await cache.patch((t) => [t.updateRecord(io), t.updateRecord(jupiter)]);
 
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'planet', id: 'p1' })).relationships
-        .moons.data,
+      ((await cache.getRecordAsync({ type: 'planet', id: 'p1' })) as Record)
+        ?.relationships?.moons.data,
       [{ type: 'moon', id: 'm1' }],
       'Io has been assigned to Jupiter'
     );
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'moon', id: 'm1' })).relationships
-        .planet.data,
+      ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
+        ?.relationships?.planet.data,
       { type: 'planet', id: 'p1' },
       'Jupiter has been assigned to Io'
     );
@@ -314,14 +313,14 @@ module('AsyncRecordCache', function (hooks) {
     await cache.patch((t) => [t.updateRecord(io), t.updateRecord(jupiter)]);
 
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'planet', id: 'p1' })).relationships
-        .moons.data,
+      ((await cache.getRecordAsync({ type: 'planet', id: 'p1' })) as Record)
+        ?.relationships?.moons.data,
       [{ type: 'moon', id: 'm1' }],
       'Io has been assigned to Jupiter'
     );
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'moon', id: 'm1' })).relationships
-        .planet.data,
+      ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
+        ?.relationships?.planet.data,
       { type: 'planet', id: 'p1' },
       'Jupiter has been assigned to Io'
     );
@@ -345,14 +344,14 @@ module('AsyncRecordCache', function (hooks) {
     await cache.patch((t) => [t.updateRecord(jupiter), t.updateRecord(io)]);
 
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'planet', id: 'p1' })).relationships
-        .moons.data,
+      ((await cache.getRecordAsync({ type: 'planet', id: 'p1' })) as Record)
+        ?.relationships?.moons.data,
       [{ type: 'moon', id: 'm1' }],
       'Io has been assigned to Jupiter'
     );
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'moon', id: 'm1' })).relationships
-        .planet.data,
+      ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
+        ?.relationships?.planet.data,
       { type: 'planet', id: 'p1' },
       'Jupiter has been assigned to Io'
     );
@@ -377,14 +376,14 @@ module('AsyncRecordCache', function (hooks) {
     await cache.patch((t) => [t.updateRecord(io), t.updateRecord(jupiter)]);
 
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'planet', id: 'p1' })).relationships
-        .moons.data,
+      ((await cache.getRecordAsync({ type: 'planet', id: 'p1' })) as Record)
+        ?.relationships?.moons.data,
       [],
       'Jupiter has no moons'
     );
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'moon', id: 'm1' })).relationships
-        .planet.data,
+      ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
+        ?.relationships?.planet.data,
       null,
       'Jupiter has been cleared to Io'
     );
@@ -409,14 +408,14 @@ module('AsyncRecordCache', function (hooks) {
     await cache.patch((t) => [t.updateRecord(jupiter), t.updateRecord(io)]);
 
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'planet', id: 'p1' })).relationships
-        .moons.data,
+      ((await cache.getRecordAsync({ type: 'planet', id: 'p1' })) as Record)
+        ?.relationships?.moons.data,
       [],
       'Io has been cleared from Jupiter'
     );
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'moon', id: 'm1' })).relationships
-        .planet.data,
+      ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
+        ?.relationships?.planet.data,
       null,
       'Io has no planet'
     );
@@ -452,8 +451,8 @@ module('AsyncRecordCache', function (hooks) {
     ]);
 
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'star', id: 's1' })).relationships
-        .celestialObjects.data,
+      ((await cache.getRecordAsync({ type: 'star', id: 's1' })) as Record)
+        ?.relationships?.celestialObjects.data,
       [
         { type: 'planet', id: 'p1' },
         { type: 'moon', id: 'm1' }
@@ -461,14 +460,14 @@ module('AsyncRecordCache', function (hooks) {
       'Jupiter and Io has been assigned to Sun'
     );
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'planet', id: 'p1' })).relationships
-        .star.data,
+      ((await cache.getRecordAsync({ type: 'planet', id: 'p1' })) as Record)
+        ?.relationships?.star.data,
       { type: 'star', id: 's1' },
       'Sun has been assigned to Jupiter'
     );
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'moon', id: 'm1' })).relationships
-        .star.data,
+      ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
+        ?.relationships?.star.data,
       { type: 'star', id: 's1' },
       'Sun has been assigned to Io'
     );
@@ -498,8 +497,8 @@ module('AsyncRecordCache', function (hooks) {
     ]);
 
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'star', id: 's1' })).relationships
-        .celestialObjects.data,
+      ((await cache.getRecordAsync({ type: 'star', id: 's1' })) as Record)
+        ?.relationships?.celestialObjects.data,
       [
         { type: 'planet', id: 'p1' },
         { type: 'moon', id: 'm1' }
@@ -507,14 +506,14 @@ module('AsyncRecordCache', function (hooks) {
       'Jupiter and Io has been assigned to Sun'
     );
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'planet', id: 'p1' })).relationships
-        .star.data,
+      ((await cache.getRecordAsync({ type: 'planet', id: 'p1' })) as Record)
+        ?.relationships?.star.data,
       { type: 'star', id: 's1' },
       'Sun has been assigned to Jupiter'
     );
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'moon', id: 'm1' })).relationships
-        .star.data,
+      ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
+        ?.relationships?.star.data,
       { type: 'star', id: 's1' },
       'Sun has been assigned to Io'
     );
@@ -549,14 +548,14 @@ module('AsyncRecordCache', function (hooks) {
     ]);
 
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'moon', id: 'm1' })).relationships
-        .planet.data,
+      ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
+        ?.relationships?.planet.data,
       { type: 'planet', id: 'p1' },
       'Jupiter has been assigned to Io'
     );
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'moon', id: 'm2' })).relationships
-        .planet.data,
+      ((await cache.getRecordAsync({ type: 'moon', id: 'm2' })) as Record)
+        ?.relationships?.planet.data,
       { type: 'planet', id: 'p1' },
       'Jupiter has been assigned to Europa'
     );
@@ -570,14 +569,14 @@ module('AsyncRecordCache', function (hooks) {
     );
 
     assert.equal(
-      (await cache.getRecordAsync({ type: 'moon', id: 'm1' })).relationships
-        .planet.data,
+      ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
+        ?.relationships?.planet.data,
       undefined,
       'Jupiter has been cleared from Io'
     );
     assert.equal(
-      (await cache.getRecordAsync({ type: 'moon', id: 'm2' })).relationships
-        .planet.data,
+      ((await cache.getRecordAsync({ type: 'moon', id: 'm2' })) as Record)
+        ?.relationships?.planet.data,
       undefined,
       'Jupiter has been cleared from Europa'
     );
@@ -619,8 +618,8 @@ module('AsyncRecordCache', function (hooks) {
     ]);
 
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'planet', id: 'p1' })).relationships
-        .moons.data,
+      ((await cache.getRecordAsync({ type: 'planet', id: 'p1' })) as Record)
+        ?.relationships?.moons.data,
       [
         { type: 'moon', id: 'm1' },
         { type: 'moon', id: 'm2' }
@@ -628,10 +627,13 @@ module('AsyncRecordCache', function (hooks) {
       'Jupiter has been assigned to Io and Europa'
     );
     assert.ok(
-      recordsIncludeAll(await cache.getRelatedRecordsAsync(jupiter, 'moons'), [
-        io,
-        europa
-      ]),
+      recordsIncludeAll(
+        (await cache.getRelatedRecordsAsync(
+          jupiter,
+          'moons'
+        )) as RecordIdentity[],
+        [io, europa]
+      ),
       'Jupiter has been assigned to Io and Europa'
     );
 
@@ -682,8 +684,8 @@ module('AsyncRecordCache', function (hooks) {
     );
 
     assert.deepEqual(
-      (await cache.getRecordAsync({ type: 'planet', id: 'p1' })).relationships
-        .moons.data,
+      ((await cache.getRecordAsync({ type: 'planet', id: 'p1' })) as Record)
+        ?.relationships?.moons.data,
       [{ type: 'moon', id: 'm1' }],
       'relationship was added'
     );
@@ -853,7 +855,10 @@ module('AsyncRecordCache', function (hooks) {
 
     assert.ok(
       recordsInclude(
-        await cache.getRelatedRecordsAsync(jupiter, 'moons'),
+        (await cache.getRelatedRecordsAsync(
+          jupiter,
+          'moons'
+        )) as RecordIdentity[],
         callisto
       ),
       'moon added'
@@ -868,7 +873,10 @@ module('AsyncRecordCache', function (hooks) {
 
     assert.notOk(
       recordsInclude(
-        await cache.getRelatedRecordsAsync(jupiter, 'moons'),
+        (await cache.getRelatedRecordsAsync(
+          jupiter,
+          'moons'
+        )) as RecordIdentity[],
         callisto
       ),
       'moon removed'
@@ -895,7 +903,10 @@ module('AsyncRecordCache', function (hooks) {
 
     assert.ok(
       equalRecordIdentities(
-        await cache.getRelatedRecordAsync(callisto, 'planet'),
+        (await cache.getRelatedRecordAsync(
+          callisto,
+          'planet'
+        )) as RecordIdentity,
         jupiter
       ),
       'relationship added'
@@ -905,7 +916,10 @@ module('AsyncRecordCache', function (hooks) {
 
     assert.notOk(
       equalRecordIdentities(
-        await cache.getRelatedRecordAsync(callisto, 'planet'),
+        (await cache.getRelatedRecordAsync(
+          callisto,
+          'planet'
+        )) as RecordIdentity,
         jupiter
       ),
       'relationship cleared'
@@ -997,17 +1011,23 @@ module('AsyncRecordCache', function (hooks) {
       })
     ]);
 
-    const one = await cache.getRecordAsync({ type: 'one', id: '1' });
-    const two = await cache.getRecordAsync({ type: 'two', id: '2' });
+    const one = (await cache.getRecordAsync({
+      type: 'one',
+      id: '1'
+    })) as Record;
+    const two = (await cache.getRecordAsync({
+      type: 'two',
+      id: '2'
+    })) as Record;
     assert.ok(one, 'one exists');
     assert.ok(two, 'two exists');
     assert.deepEqual(
-      one.relationships.two.data,
+      one.relationships?.two.data,
       { type: 'two', id: '2' },
       'one links to two'
     );
     assert.deepEqual(
-      two.relationships.one.data,
+      two.relationships?.one.data,
       { type: 'one', id: '1' },
       'two links to one'
     );
@@ -1015,8 +1035,8 @@ module('AsyncRecordCache', function (hooks) {
     await cache.patch((t) => t.removeRecord(two));
 
     assert.equal(
-      (await cache.getRecordAsync({ type: 'one', id: '1' })).relationships.two
-        .data,
+      ((await cache.getRecordAsync({ type: 'one', id: '1' })) as Record)
+        ?.relationships?.two.data,
       null,
       'ones link to two got removed'
     );
@@ -1476,7 +1496,7 @@ module('AsyncRecordCache', function (hooks) {
     const planet = await cache.getRecordAsync({ type: 'planet', id: '1' });
     assert.ok(planet, 'planet exists');
     assert.deepEqual(
-      planet.relationships.moons.data,
+      planet?.relationships?.moons.data,
       [],
       'planet has empty moons relationship'
     );
@@ -1527,7 +1547,7 @@ module('AsyncRecordCache', function (hooks) {
     const planet = await cache.getRecordAsync({ type: 'planet', id: '1' });
     assert.ok(planet, 'planet exists');
     assert.deepEqual(
-      planet.relationships.moons.data,
+      planet?.relationships?.moons.data,
       [{ type: 'moon', id: 'm1' }],
       'planet has a moons relationship'
     );
@@ -1572,7 +1592,7 @@ module('AsyncRecordCache', function (hooks) {
       type: 'planetarySystem'
     });
     assert.deepEqual(
-      (latestHome.relationships.star.data as Record).id,
+      (latestHome?.relationships?.star.data as Record).id,
       star1.id,
       'The original related record is in place.'
     );
@@ -1595,7 +1615,7 @@ module('AsyncRecordCache', function (hooks) {
     });
 
     assert.deepEqual(
-      (latestHome.relationships.star.data as Record).id,
+      (latestHome?.relationships?.star.data as Record).id,
       star2.id,
       'The related record was replaced.'
     );
@@ -1702,7 +1722,7 @@ module('AsyncRecordCache', function (hooks) {
 
     arrayMembershipMatches(
       assert,
-      await cache.query((q) => q.findRecords('planet')),
+      (await cache.query((q) => q.findRecords('planet'))) as Record[],
       [jupiter, earth, venus, mercury]
     );
   });
@@ -1756,13 +1776,13 @@ module('AsyncRecordCache', function (hooks) {
 
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q.findRecords([
           { type: 'planet', id: 'jupiter' },
           { type: 'planet', id: 'venus' },
           { type: 'planet', id: 'FAKE' }
         ])
-      ),
+      )) as Record[],
       [jupiter, venus]
     );
   });
@@ -1816,9 +1836,9 @@ module('AsyncRecordCache', function (hooks) {
 
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q.findRecords('planet').filter({ attribute: 'name', value: 'Jupiter' })
-      ),
+      )) as Record[],
       [jupiter]
     );
   });
@@ -1875,50 +1895,50 @@ module('AsyncRecordCache', function (hooks) {
     ]);
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRecords('planet')
           .filter({ attribute: 'sequence', value: 2, op: 'gt' })
-      ),
+      )) as Record[],
       [earth, jupiter]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRecords('planet')
           .filter({ attribute: 'sequence', value: 2, op: 'gte' })
-      ),
+      )) as Record[],
       [venus, earth, jupiter]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRecords('planet')
           .filter({ attribute: 'sequence', value: 2, op: 'lt' })
-      ),
+      )) as Record[],
       [mercury]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRecords('planet')
           .filter({ attribute: 'sequence', value: 2, op: 'lte' })
-      ),
+      )) as Record[],
       [venus, mercury]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRecords('planet')
           .filter(
             { attribute: 'sequence', value: 2, op: 'gte' },
             { attribute: 'sequence', value: 4, op: 'lt' }
           )
-      ),
+      )) as Record[],
       [venus, earth]
     );
   });
@@ -2042,67 +2062,67 @@ module('AsyncRecordCache', function (hooks) {
     ]);
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [theMoon], op: 'equal' })
-      ),
+      )) as Record[],
       [earth]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [phobos], op: 'equal' })
-      ),
+      )) as Record[],
       []
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [phobos], op: 'all' })
-      ),
+      )) as Record[],
       [mars]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [phobos, callisto], op: 'all' })
-      ),
+      )) as Record[],
       []
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q.findRecords('planet').filter({
           relation: 'moons',
           records: [phobos, callisto],
           op: 'some'
         })
-      ),
+      )) as Record[],
       [mars, jupiter]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [titan], op: 'some' })
-      ),
+      )) as Record[],
       []
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [ganymede], op: 'none' })
-      ),
+      )) as Record[],
       [earth, mars]
     );
   });
@@ -2226,39 +2246,39 @@ module('AsyncRecordCache', function (hooks) {
     ]);
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q.findRecords('moon').filter({ relation: 'planet', record: null })
-      ),
+      )) as Record[],
       [titan]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q.findRecords('moon').filter({ relation: 'planet', record: earth })
-      ),
+      )) as Record[],
       [theMoon]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q.findRecords('moon').filter({ relation: 'planet', record: jupiter })
-      ),
+      )) as Record[],
       [europa, ganymede, callisto]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q.findRecords('moon').filter({ relation: 'planet', record: mercury })
-      ),
+      )) as Record[],
       []
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRecords('moon')
           .filter({ relation: 'planet', record: [earth, mars] })
-      ),
+      )) as Record[],
       [theMoon, phobos, deimos]
     );
   });
@@ -2312,14 +2332,14 @@ module('AsyncRecordCache', function (hooks) {
 
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRecords('planet')
           .filter(
             { attribute: 'atmosphere', value: true },
             { attribute: 'classification', value: 'terrestrial' }
           )
-      ),
+      )) as Record[],
       [earth, venus]
     );
   });
@@ -2365,14 +2385,14 @@ module('AsyncRecordCache', function (hooks) {
 
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRecords('planet')
           .filter(
             { attribute: 'atmosphere', value: true },
             { attribute: 'classification', value: 'terrestrial' }
           )
-      ),
+      )) as Record[],
       [earth, venus]
     );
   });
@@ -2935,11 +2955,11 @@ module('AsyncRecordCache', function (hooks) {
 
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ attribute: 'name', value: 'Jupiter' })
-      ),
+      )) as Record[],
       [jupiter]
     );
   });
@@ -3016,38 +3036,38 @@ module('AsyncRecordCache', function (hooks) {
     ]);
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ attribute: 'sequence', value: 2, op: 'gt' })
-      ),
+      )) as Record[],
       [earth, jupiter]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ attribute: 'sequence', value: 2, op: 'gte' })
-      ),
+      )) as Record[],
       [venus, earth, jupiter]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ attribute: 'sequence', value: 2, op: 'lt' })
-      ),
+      )) as Record[],
       [mercury]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ attribute: 'sequence', value: 2, op: 'lte' })
-      ),
+      )) as Record[],
       [venus, mercury]
     );
   });
@@ -3193,67 +3213,67 @@ module('AsyncRecordCache', function (hooks) {
     ]);
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [theMoon], op: 'equal' })
-      ),
+      )) as Record[],
       [earth]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [phobos], op: 'equal' })
-      ),
+      )) as Record[],
       []
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [phobos], op: 'all' })
-      ),
+      )) as Record[],
       [mars]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [phobos, callisto], op: 'all' })
-      ),
+      )) as Record[],
       []
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q.findRelatedRecords(sun, 'celestialObjects').filter({
           relation: 'moons',
           records: [phobos, callisto],
           op: 'some'
         })
-      ),
+      )) as Record[],
       [mars, jupiter]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [titan], op: 'some' })
-      ),
+      )) as Record[],
       []
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [ganymede], op: 'none' })
-      ),
+      )) as Record[],
       [earth, mars]
     );
   });
@@ -3426,47 +3446,47 @@ module('AsyncRecordCache', function (hooks) {
     ]);
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'planet', record: null })
-      ),
+      )) as Record[],
       [titan]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRelatedRecords(earth, 'moons')
           .filter({ relation: 'planet', record: earth })
-      ),
+      )) as Record[],
       [theMoon]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRelatedRecords(jupiter, 'moons')
           .filter({ relation: 'planet', record: jupiter })
-      ),
+      )) as Record[],
       [europa, ganymede, callisto]
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRelatedRecords(mercury, 'moons')
           .filter({ relation: 'planet', record: mercury })
-      ),
+      )) as Record[],
       []
     );
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'planet', record: [earth, mars] })
-      ),
+      )) as Record[],
       [theMoon, phobos, deimos]
     );
   });
@@ -3540,14 +3560,14 @@ module('AsyncRecordCache', function (hooks) {
 
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter(
             { attribute: 'atmosphere', value: true },
             { attribute: 'classification', value: 'terrestrial' }
           )
-      ),
+      )) as Record[],
       [earth, venus]
     );
   });
@@ -3616,14 +3636,14 @@ module('AsyncRecordCache', function (hooks) {
 
     arrayMembershipMatches(
       assert,
-      await cache.query((q) =>
+      (await cache.query((q) =>
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter(
             { attribute: 'atmosphere', value: true },
             { attribute: 'classification', value: 'terrestrial' }
           )
-      ),
+      )) as Record[],
       [earth, venus]
     );
   });
@@ -4126,7 +4146,7 @@ module('AsyncRecordCache', function (hooks) {
       resolve?: () => void;
       reject?: (message: string) => void;
     }
-    function defer() {
+    function defer(): Deferred {
       let defer: Deferred = {};
       defer.promise = new Promise((resolve, reject) => {
         defer.resolve = resolve;
@@ -4142,16 +4162,16 @@ module('AsyncRecordCache', function (hooks) {
 
     function next() {
       if (n === 1 && i === 1 && j === 0 && k === 0) {
-        jupiterAdded.resolve();
+        jupiterAdded.resolve?.();
       }
       if (n === 2 && i === 2 && j === 0 && k === 0) {
-        jupiterUpdated.resolve();
+        jupiterUpdated.resolve?.();
       }
       if (n === 3 && i === 3 && j === 1 && k === 1) {
-        callistoAdded.resolve();
+        callistoAdded.resolve?.();
       }
       if (n === 4 && i === 4 && j === 2 && k === 2) {
-        jupiterRemoved.resolve();
+        jupiterRemoved.resolve?.();
       }
     }
 
@@ -4278,10 +4298,10 @@ module('AsyncRecordCache', function (hooks) {
     });
 
     setTimeout(() => {
-      jupiterAdded.reject('reject jupiterAdded');
-      jupiterUpdated.reject('reject jupiterUpdated');
-      callistoAdded.reject('reject callistoAdded');
-      jupiterRemoved.reject('reject jupiterRemoved');
+      jupiterAdded.reject?.('reject jupiterAdded');
+      jupiterUpdated.reject?.('reject jupiterUpdated');
+      callistoAdded.reject?.('reject callistoAdded');
+      jupiterRemoved.reject?.('reject jupiterRemoved');
     }, 500);
 
     await cache.patch((t) => t.addRecord(jupiter));
@@ -4455,13 +4475,13 @@ module('AsyncRecordCache', function (hooks) {
 
     const done = assert.async();
     livePlanets.subscribe(async (update) => {
-      const result = await update.query();
+      const result = (await update.query()) as Record[];
       arrayMembershipMatches(assert, result, [venus, earth]);
       done();
     });
 
     // liveQuery results are initially empty
-    arrayMembershipMatches(assert, await livePlanets.query(), []);
+    arrayMembershipMatches(assert, (await livePlanets.query()) as Record[], []);
 
     // adding records should update liveQuery results
     cache.patch((t) => [

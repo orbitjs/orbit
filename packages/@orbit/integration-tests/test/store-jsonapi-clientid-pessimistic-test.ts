@@ -102,8 +102,6 @@ module(
     });
 
     hooks.afterEach(() => {
-      schema = remote = memory = coordinator = null;
-
       fetchStub.restore();
     });
 

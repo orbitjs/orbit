@@ -2,7 +2,7 @@ import { Dict } from '@orbit/utils';
 
 interface RawParam {
   path: string[];
-  val: string;
+  val: any;
 }
 
 export interface Param {
@@ -37,11 +37,15 @@ function flattenObjectToParams(obj: any, path: string[] = []): RawParam[] {
   return params;
 }
 
-export function encodeQueryParams(obj: Dict<string>): string {
+export function encodeQueryParams(obj: Dict<any>): string {
   return flattenObjectToParams(obj)
     .map((rawParam) => {
       let path: string;
       let val = rawParam.val;
+
+      if (val === null) {
+        val = 'null';
+      }
 
       if (rawParam.path.length === 1) {
         path = rawParam.path[0];

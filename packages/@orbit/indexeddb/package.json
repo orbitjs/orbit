@@ -19,6 +19,7 @@
     "build": "rm -rf ./dist && yarn build:modules && yarn build:commonjs",
     "build:modules": "tsc --project ./tsconfig.modules.json",
     "build:commonjs": "tsc --project ./tsconfig.commonjs.json",
+    "compile": "tsc",
     "clean": "git clean -x -f",
     "lint": "eslint . --ext .ts",
     "prepare": "yarn build",

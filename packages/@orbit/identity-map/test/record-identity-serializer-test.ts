@@ -10,10 +10,6 @@ module('RecordIdentitySerializer', function (hooks) {
     serializer = new RecordIdentitySerializer();
   });
 
-  hooks.afterEach(function () {
-    serializer = null;
-  });
-
   test('it exists', function (assert) {
     assert.ok(serializer);
   });

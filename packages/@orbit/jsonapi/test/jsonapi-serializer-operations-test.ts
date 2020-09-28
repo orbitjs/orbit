@@ -133,10 +133,6 @@ module('JSONAPISerializer', function (hooks) {
     serializer = new JSONAPISerializer({ schema });
   });
 
-  hooks.afterEach(function () {
-    serializer = null;
-  });
-
   test('deserializeOperationsDocument', function (assert) {
     const operations = serializer.deserializeOperationsDocument(
       operationsDocument

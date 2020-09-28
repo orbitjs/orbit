@@ -51,7 +51,6 @@ module('LocalStorageSource', function (hooks) {
 
   hooks.afterEach(() => {
     return source.reset().then(() => {
-      schema = source = keyMap = null;
       Orbit.globals.localStorage.removeItem('orbit-bucket/foo');
     });
   });
@@ -354,13 +353,13 @@ module('LocalStorageSource', function (hooks) {
       t.addRecord(planet)
     ]);
 
-    let moons = (await getRecordFromLocalStorage(source, planet)).relationships
-      .moons.data as RecordIdentity[];
+    let moons = (await getRecordFromLocalStorage(source, planet))?.relationships
+      ?.moons.data as RecordIdentity[];
     assert.deepEqual(moons.length, 2, 'record has 2 moons');
 
     await source.push((t) => t.removeRecord(moon1));
-    moons = (await getRecordFromLocalStorage(source, planet)).relationships
-      .moons.data as RecordIdentity[];
+    moons = (await getRecordFromLocalStorage(source, planet))?.relationships
+      ?.moons.data as RecordIdentity[];
     assert.deepEqual(moons.length, 1, 'record has 1 moon');
   });
 
@@ -1090,7 +1089,9 @@ module('LocalStorageSource', function (hooks) {
       'operations match expectations'
     );
     assert.deepEqual(
-      transforms[0].operations.map((o: AddRecordOperation) => o.record.type),
+      transforms[0].operations.map(
+        (o) => (o as AddRecordOperation)?.record?.type
+      ),
       ['planet', 'moon'],
       'operations match expectations'
     );

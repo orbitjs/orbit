@@ -26,8 +26,8 @@ export class ExampleAsyncRecordCache extends AsyncRecordCache {
     });
   }
 
-  async getRecordAsync(identity: RecordIdentity): Promise<Record | null> {
-    return deepGet(this._records, [identity.type, identity.id]) || null;
+  async getRecordAsync(identity: RecordIdentity): Promise<Record | undefined> {
+    return deepGet(this._records, [identity.type, identity.id]);
   }
 
   async getRecordsAsync(
@@ -45,6 +45,8 @@ export class ExampleAsyncRecordCache extends AsyncRecordCache {
         }
       }
       return records;
+    } else {
+      throw new Error('typeOrIdentities must be specified in getRecordsAsync');
     }
   }
 
@@ -60,13 +62,13 @@ export class ExampleAsyncRecordCache extends AsyncRecordCache {
 
   async removeRecordAsync(
     recordIdentity: RecordIdentity
-  ): Promise<Record | null> {
+  ): Promise<Record | undefined> {
     const record = await this.getRecordAsync(recordIdentity);
     if (record) {
       delete this._records[recordIdentity.type][recordIdentity.id];
       return record;
     } else {
-      return null;
+      return undefined;
     }
   }
 

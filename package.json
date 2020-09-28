@@ -16,6 +16,7 @@
   "scripts": {
     "postinstall": "lerna bootstrap",
     "build": "lerna run build",
+    "compile": "lerna run build && lerna run compile",
     "test": "lerna run build && lerna run --concurrency 1 test",
     "lint": "lerna run lint",
     "typedoc": "typedoc"

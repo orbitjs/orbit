@@ -187,16 +187,6 @@ export abstract class Source implements Evented, Performer {
     this._activated = undefined;
   }
 
-  protected async _activate(): Promise<void> {
-    await this._transformLog.reified;
-    await this._syncQueue.activate();
-    await this._requestQueue.activate();
-  }
-
-  /////////////////////////////////////////////////////////////////////////////
-  // Private methods
-  /////////////////////////////////////////////////////////////////////////////
-
   /**
    * Notifies listeners that this source has been transformed by emitting the
    * `transform` event.
@@ -205,7 +195,7 @@ export abstract class Source implements Evented, Performer {
    *
    * Also, adds an entry to the Source's `transformLog` for each transform.
    */
-  protected async transformed(transforms: Transform[]): Promise<Transform[]> {
+  async transformed(transforms: Transform[]): Promise<Transform[]> {
     await this.activated;
     return transforms
       .reduce((chain, transform) => {
@@ -222,11 +212,21 @@ export abstract class Source implements Evented, Performer {
       .then(() => transforms);
   }
 
-  private _enqueueRequest(type: string, data: any): Promise<unknown> {
+  /////////////////////////////////////////////////////////////////////////////
+  // Protected methods
+  /////////////////////////////////////////////////////////////////////////////
+
+  protected async _activate(): Promise<void> {
+    await this._transformLog.reified;
+    await this._syncQueue.activate();
+    await this._requestQueue.activate();
+  }
+
+  protected _enqueueRequest(type: string, data: unknown): Promise<unknown> {
     return this._requestQueue.push({ type, data });
   }
 
-  private _enqueueSync(type: string, data: any): Promise<unknown> {
+  protected _enqueueSync(type: string, data: unknown): Promise<unknown> {
     return this._syncQueue.push({ type, data });
   }
 }

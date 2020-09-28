@@ -70,12 +70,6 @@ module('SchemaConsistencyProcessor', function (hooks) {
     processor = cache.processors[1] as SyncSchemaConsistencyProcessor;
   });
 
-  hooks.afterEach(function () {
-    schema = null;
-    cache = null;
-    processor = null;
-  });
-
   test('add to hasOne => hasMany', function (assert) {
     const saturn = {
       type: 'planet',

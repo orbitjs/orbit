@@ -109,7 +109,12 @@ module('buildTransform', function () {
       record: planet
     };
 
-    let query = buildTransform((t) => t.addRecord(planet), null, null, tb);
+    let query = buildTransform(
+      (t) => t.addRecord(planet),
+      undefined,
+      undefined,
+      tb
+    );
     assert.deepEqual(query.operations, [operation], 'operations was populated');
   });
 });

@@ -412,12 +412,12 @@ module('IndexedDBSource', function (hooks) {
     ]);
 
     let moons = (await getRecordFromIndexedDB(source.cache, planet))
-      .relationships.moons.data as RecordIdentity[];
+      ?.relationships?.moons.data as RecordIdentity[];
     assert.deepEqual(moons.length, 2, 'record has 2 moons');
 
     await source.push((t) => t.removeRecord(moon1));
     moons = (await getRecordFromIndexedDB(source.cache, planet)).relationships
-      .moons.data as RecordIdentity[];
+      ?.moons.data as RecordIdentity[];
     assert.deepEqual(moons.length, 1, 'record has 1 moon');
   });
 
@@ -1133,7 +1133,9 @@ module('IndexedDBSource', function (hooks) {
       'operations match expectations'
     );
     assert.deepEqual(
-      transforms[0].operations.map((o: AddRecordOperation) => o.record.type),
+      transforms[0].operations.map(
+        (o) => (o as AddRecordOperation)?.record?.type
+      ),
       ['planet', 'planet'],
       'operations match expectations'
     );
@@ -1189,7 +1191,9 @@ module('IndexedDBSource', function (hooks) {
       'operations match expectations'
     );
     assert.deepEqual(
-      transforms[0].operations.map((o: AddRecordOperation) => o.record.type),
+      transforms[0].operations.map(
+        (o) => (o as AddRecordOperation).record.type
+      ),
       ['planet', 'moon'],
       'operations match expectations'
     );

@@ -54,10 +54,6 @@ module('JSONAPIResourceIdentitySerializer', function (hooks) {
         });
       });
 
-      hooks.afterEach(function () {
-        serializer = null;
-      });
-
       test('it exists', function (assert) {
         assert.ok(serializer);
       });
@@ -102,10 +98,6 @@ module('JSONAPIResourceIdentitySerializer', function (hooks) {
           schema,
           serializerFor
         });
-      });
-
-      hooks.afterEach(function () {
-        serializer = null;
       });
 
       test('#serialize - will use custom inflectors', function (assert) {
@@ -190,10 +182,6 @@ module('JSONAPIResourceIdentitySerializer', function (hooks) {
         schema,
         serializerFor
       });
-    });
-
-    hooks.afterEach(function () {
-      keyMap = serializer = null;
     });
 
     test('it exists', function (assert) {

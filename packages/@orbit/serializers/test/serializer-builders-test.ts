@@ -1,5 +1,6 @@
 import { NoopSerializer } from '../src/noop-serializer';
 import { BooleanSerializer } from '../src/boolean-serializer';
+import { UnknownSerializerClass } from '../src/serializer';
 import {
   buildSerializerClassFor,
   buildSerializerSettingsFor,
@@ -11,11 +12,14 @@ const { module, test } = QUnit;
 module('Serializer builders', function (hooks) {
   test('buildSerializerClassFor returns fn that returns serializer classes', function (assert) {
     const serializerClassFor = buildSerializerClassFor({
-      boolean: BooleanSerializer,
+      boolean: BooleanSerializer as UnknownSerializerClass,
       noop: NoopSerializer
     });
 
-    assert.strictEqual(serializerClassFor('boolean'), BooleanSerializer);
+    assert.strictEqual(
+      serializerClassFor('boolean'),
+      BooleanSerializer as UnknownSerializerClass
+    );
     assert.strictEqual(serializerClassFor('noop'), NoopSerializer);
     assert.strictEqual(serializerClassFor('unrecognized'), undefined);
   });
@@ -63,7 +67,7 @@ module('Serializer builders', function (hooks) {
 
   test('buildSerializerFor returns fn that returns serializer', function (assert) {
     const serializerClassFor = buildSerializerClassFor({
-      boolean: BooleanSerializer,
+      boolean: BooleanSerializer as UnknownSerializerClass,
       noop: NoopSerializer
     });
 
@@ -95,13 +99,13 @@ module('Serializer builders', function (hooks) {
     });
 
     assert.strictEqual(
-      serializerFor('boolean').serialize(true),
+      (serializerFor('boolean') as BooleanSerializer).serialize(true),
       true,
       'serializerFor returns a serializer created from a provided class'
     );
 
     assert.throws(() => {
-      serializerFor('boolean').serialize(null);
+      (serializerFor('boolean') as BooleanSerializer).serialize(null);
     }, 'type-specific settings (such as disallowNull) will be passed into the constructor');
 
     assert.strictEqual(

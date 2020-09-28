@@ -15,12 +15,12 @@ module('SyncStrategy', function (hooks) {
   const t = new TransformBuilder();
   const tA = buildTransform(
     [t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })],
-    null,
+    undefined,
     'a'
   );
   const tB = buildTransform(
     [t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })],
-    null,
+    undefined,
     'b'
   );
 
@@ -137,7 +137,7 @@ module('SyncStrategy', function (hooks) {
       source: 's1',
       target: 's2',
       filter(transform: Transform): boolean {
-        assert.strictEqual(this, strategy, 'context is the strategy');
+        assert.ok(this instanceof SyncStrategy, 'context is the strategy');
         return transform === tB;
       }
     });
@@ -174,7 +174,7 @@ module('SyncStrategy', function (hooks) {
           tA,
           'argument to catch is expected Transform'
         );
-        assert.strictEqual(this, strategy, 'context is the strategy');
+        assert.ok(this instanceof SyncStrategy, 'context is the strategy');
       }
     });
 
@@ -213,7 +213,7 @@ module('SyncStrategy', function (hooks) {
           tA,
           'argument to catch is expected Transform'
         );
-        assert.strictEqual(this, strategy, 'context is the strategy');
+        assert.ok(this instanceof SyncStrategy, 'context is the strategy');
         throw e;
       }
     });

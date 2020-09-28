@@ -48,10 +48,6 @@ module('JSONAPISerializer', function (hooks) {
         serializer = new JSONAPISerializer({ schema });
       });
 
-      hooks.afterEach(function () {
-        serializer = null;
-      });
-
       test('it exists', function (assert) {
         assert.ok(serializer);
       });
@@ -302,10 +298,6 @@ module('JSONAPISerializer', function (hooks) {
         });
       });
 
-      hooks.afterEach(function () {
-        serializer = null;
-      });
-
       test('serializer is assigned some standard serializers by default, and any custom serializers passed as settings', function (assert) {
         // default serializers
         assert.ok(serializer.serializerFor('boolean'));
@@ -444,10 +436,6 @@ module('JSONAPISerializer', function (hooks) {
       hooks.beforeEach(function () {
         let schema = new Schema({ models: modelDefinitions });
         serializer = new JSONAPISerializer({ schema });
-      });
-
-      hooks.afterEach(function () {
-        serializer = null;
       });
 
       test('it exists', function (assert) {
@@ -831,10 +819,6 @@ module('JSONAPISerializer', function (hooks) {
       };
     });
 
-    hooks.afterEach(function () {
-      keyMap = serializer = null;
-    });
-
     test('it exists', function (assert) {
       assert.ok(serializer);
     });
@@ -1173,8 +1157,8 @@ module('JSONAPISerializer', function (hooks) {
       });
 
       let planet = result.data as Record;
-      let moon = result.included[0];
-      let solarSystem = result.included[1];
+      let moon = result.included?.[0] as Record;
+      let solarSystem = result.included?.[1] as Record;
 
       assert.deepEqual(
         result,

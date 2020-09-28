@@ -15,12 +15,12 @@ module('RequestStrategy', function (hooks) {
   const t = new TransformBuilder();
   const tA = buildTransform(
     [t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })],
-    null,
+    undefined,
     'a'
   );
   const tB = buildTransform(
     [t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })],
-    null,
+    undefined,
     'b'
   );
 
@@ -214,8 +214,8 @@ module('RequestStrategy', function (hooks) {
       target: 's2',
       on: 'update',
       action: 'push',
-      filter(transform: Transform): boolean {
-        assert.strictEqual(this, strategy, 'context is the strategy');
+      filter(transform): boolean {
+        assert.ok(this instanceof RequestStrategy, 'context is the strategy');
         return transform === tB;
       }
     });
@@ -250,7 +250,7 @@ module('RequestStrategy', function (hooks) {
       target: 's2',
       on: 'update',
       action: 'push',
-      blocking(transform: Transform): boolean {
+      blocking(transform): boolean {
         assert.ok(
           this instanceof RequestStrategy,
           'it is bound to the strategy'
@@ -297,30 +297,34 @@ module('RequestStrategy', function (hooks) {
     strategy = new RequestStrategy({
       source: 's1',
       on: 'updateFail',
-      async action(transform: Transform, e: Error): Promise<void> {
+      async action(transform, e): Promise<void> {
         assert.ok(
           this instanceof RequestStrategy,
           '`action` is bound to the strategy'
         );
         assert.strictEqual(transform, tA, 'transform is passed to `action`');
-        assert.equal(e.message, ':(', 'error is passed to `action`');
+        assert.equal((e as Error).message, ':(', 'error is passed to `action`');
       },
-      blocking(transform: Transform, e: Error): boolean {
+      blocking(transform, e): boolean {
         assert.ok(
           this instanceof RequestStrategy,
           '`blocking` is bound to the strategy'
         );
         assert.strictEqual(transform, tA, 'transform is passed to `blocking`');
-        assert.equal(e.message, ':(', 'error is passed to `blocking`');
+        assert.equal(
+          (e as Error).message,
+          ':(',
+          'error is passed to `blocking`'
+        );
         return false;
       },
-      filter(transform: Transform, e: Error): boolean {
+      filter(transform, e): boolean {
         assert.ok(
           this instanceof RequestStrategy,
           '`filter` is bound to the strategy'
         );
         assert.strictEqual(transform, tA, 'transform is passed to `filter`');
-        assert.equal(e.message, ':(', 'error is passed to `filter`');
+        assert.equal((e as Error).message, ':(', 'error is passed to `filter`');
         return true;
       }
     });

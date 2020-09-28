@@ -221,7 +221,7 @@ module('MemorySource', function (hooks) {
       type: 'planetarySystem'
     });
     assert.deepEqual(
-      (latestHome.relationships.star.data as Record).id,
+      (latestHome?.relationships?.star.data as Record).id,
       star1.id,
       'The original related record is in place.'
     );
@@ -236,7 +236,7 @@ module('MemorySource', function (hooks) {
       type: 'planetarySystem'
     });
     assert.deepEqual(
-      (latestHome.relationships.star.data as Record).id,
+      (latestHome?.relationships?.star.data as Record).id,
       star2.id,
       'The related record was replaced.'
     );
@@ -260,7 +260,7 @@ module('MemorySource', function (hooks) {
     source.cache.patch((t) => t.addRecord(earth));
 
     source.on('beforeUpdate', (transform: Transform, hints: any) => {
-      if (transform.options.customizeResults) {
+      if (transform?.options?.customizeResults) {
         hints.data = earth;
       }
     });
@@ -300,7 +300,7 @@ module('MemorySource', function (hooks) {
     };
 
     source.on('beforeUpdate', (transform: Transform, hints: any) => {
-      if (transform.options.customizeResults) {
+      if (transform?.options?.customizeResults) {
         hints.data = [
           { type: 'planet', id: 'uranus' },
           { type: 'planet', id: 'jupiter' }
@@ -350,7 +350,7 @@ module('MemorySource', function (hooks) {
     };
 
     source.on('beforeUpdate', (transform: Transform, hints: any) => {
-      if (transform.options.customizeResults) {
+      if (transform?.options?.customizeResults) {
         hints.data = [
           [
             { type: 'planet', id: 'uranus' },
@@ -459,7 +459,7 @@ module('MemorySource', function (hooks) {
     source.on('beforeQuery', (query: Query, hints: any) => {
       if (
         query.expressions[0].op === 'findRecords' &&
-        query.options.sources.remote.customFilter === 'distantPlanets'
+        query.options?.sources?.remote.customFilter === 'distantPlanets'
       ) {
         hints.data = [
           { type: 'planet', id: 'uranus' },
@@ -969,19 +969,25 @@ module('MemorySource', function (hooks) {
 
     // 4. make sure updates were successful
     assert.equal(
-      child.cache.getRecordSync(id).attributes.name,
+      child.cache.getRecordSync(id)?.attributes?.name,
       'The Gas Giant'
     );
-    assert.equal(source.cache.getRecordSync(id).attributes.name, 'Gassy Giant');
+    assert.equal(
+      source.cache.getRecordSync(id)?.attributes?.name,
+      'Gassy Giant'
+    );
 
     // 5. do the rebase
     child.rebase();
 
     assert.equal(
-      child.cache.getRecordSync(id).attributes.name,
+      child.cache.getRecordSync(id)?.attributes?.name,
       'The Gas Giant'
     );
-    assert.equal(source.cache.getRecordSync(id).attributes.name, 'Gassy Giant');
+    assert.equal(
+      source.cache.getRecordSync(id)?.attributes?.name,
+      'Gassy Giant'
+    );
   });
 
   test('#rebase - calling rebase multiple times', async function (assert) {
@@ -1016,22 +1022,28 @@ module('MemorySource', function (hooks) {
     await source.update((t) => t.replaceAttribute(id, 'name', 'Gassy Giant'));
     // 4. make sure updates were successful
     assert.equal(
-      child.cache.getRecordSync(id).attributes.name,
+      child.cache.getRecordSync(id)?.attributes?.name,
       'The Gas Giant'
     );
-    assert.equal(source.cache.getRecordSync(id).attributes.name, 'Gassy Giant');
+    assert.equal(
+      source.cache.getRecordSync(id)?.attributes?.name,
+      'Gassy Giant'
+    );
 
     // 5. do the rebase
     child.rebase();
     assert.equal(
-      child.cache.getRecordSync(id).attributes.name,
+      child.cache.getRecordSync(id)?.attributes?.name,
       'The Gas Giant'
     );
-    assert.equal(source.cache.getRecordSync(id).attributes.name, 'Gassy Giant');
+    assert.equal(
+      source.cache.getRecordSync(id)?.attributes?.name,
+      'Gassy Giant'
+    );
 
     // 6. do a second update to the parent source
     assert.equal(
-      source.cache.getRecordSync(id).attributes.classification,
+      source.cache.getRecordSync(id)?.attributes?.classification,
       'gas giant'
     );
     await source.update((t) =>
@@ -1045,15 +1057,15 @@ module('MemorySource', function (hooks) {
     );
     // 7. make sure updates were successful
     assert.equal(
-      child.cache.getRecordSync(id).attributes.name,
+      child.cache.getRecordSync(id)?.attributes?.name,
       'The Gas Giant'
     );
     assert.equal(
-      source.cache.getRecordSync(id).attributes.name,
+      source.cache.getRecordSync(id)?.attributes?.name,
       'Gassy Giant II'
     );
     assert.equal(
-      source.cache.getRecordSync(id).attributes.classification,
+      source.cache.getRecordSync(id)?.attributes?.classification,
       'gas giant II'
     );
 
@@ -1061,19 +1073,19 @@ module('MemorySource', function (hooks) {
     // make sure that changes from the child are still winning
     child.rebase();
     assert.equal(
-      child.cache.getRecordSync(id).attributes.name,
+      child.cache.getRecordSync(id)?.attributes?.name,
       'The Gas Giant'
     );
     assert.equal(
-      child.cache.getRecordSync(id).attributes.classification,
+      child.cache.getRecordSync(id)?.attributes?.classification,
       'gas giant II'
     );
     assert.equal(
-      source.cache.getRecordSync(id).attributes.name,
+      source.cache.getRecordSync(id)?.attributes?.name,
       'Gassy Giant II'
     );
     assert.equal(
-      source.cache.getRecordSync(id).attributes.classification,
+      source.cache.getRecordSync(id)?.attributes?.classification,
       'gas giant II'
     );
 
@@ -1083,19 +1095,19 @@ module('MemorySource', function (hooks) {
     );
     // 10. make sure updates were successful
     assert.equal(
-      child.cache.getRecordSync(id).attributes.name,
+      child.cache.getRecordSync(id)?.attributes?.name,
       'The Gas Giant'
     );
     assert.equal(
-      child.cache.getRecordSync(id).attributes.classification,
+      child.cache.getRecordSync(id)?.attributes?.classification,
       'gas giant II'
     );
     assert.equal(
-      source.cache.getRecordSync(id).attributes.name,
+      source.cache.getRecordSync(id)?.attributes?.name,
       'Gassy Giant II'
     );
     assert.equal(
-      source.cache.getRecordSync(id).attributes.classification,
+      source.cache.getRecordSync(id)?.attributes?.classification,
       'gas giant III'
     );
 
@@ -1103,20 +1115,20 @@ module('MemorySource', function (hooks) {
     // make sure that transforms from the parent are applied in correct order
     child.rebase();
     assert.equal(
-      child.cache.getRecordSync(id).attributes.name,
+      child.cache.getRecordSync(id)?.attributes?.name,
       'The Gas Giant'
     );
     assert.equal(
-      child.cache.getRecordSync(id).attributes.classification,
+      child.cache.getRecordSync(id)?.attributes?.classification,
       'gas giant III',
       'classification has not been touched in child source => should be the same as in parent source'
     );
     assert.equal(
-      source.cache.getRecordSync(id).attributes.name,
+      source.cache.getRecordSync(id)?.attributes?.name,
       'Gassy Giant II'
     );
     assert.equal(
-      source.cache.getRecordSync(id).attributes.classification,
+      source.cache.getRecordSync(id)?.attributes?.classification,
       'gas giant III'
     );
   });

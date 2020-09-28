@@ -29,12 +29,10 @@ module('MemorySource + IndexdDBBucket', function (hooks) {
 
   hooks.afterEach(() => {
     bucket.deleteDB();
-    schema = memory = bucket = null;
   });
 
   test('push before pull', async function (assert) {
     const theMoon = {
-      id: undefined as any,
       type: 'moon',
       attributes: {
         name: 'The Moon'

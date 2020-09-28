@@ -52,10 +52,6 @@ module('JSONAPIOperationsDocumentSerializer', function (hooks) {
         });
       });
 
-      hooks.afterEach(function () {
-        serializer = null;
-      });
-
       test('it exists', function (assert) {
         assert.ok(serializer);
       });

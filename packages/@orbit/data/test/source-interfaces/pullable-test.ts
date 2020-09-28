@@ -14,22 +14,18 @@ const { module, test } = QUnit;
 module('@pullable', function (hooks) {
   @pullable
   class MySource extends Source implements Pullable {
-    pull: (
+    pull!: (
       queryOrExpressions: QueryOrExpressions,
       options?: RequestOptions,
       id?: string
     ) => Promise<Transform[]>;
-    _pull: (query: Query, hints?: any) => Promise<Transform[]>;
+    _pull!: (query: Query, hints?: any) => Promise<Transform[]>;
   }
 
   let source: MySource;
 
   hooks.beforeEach(function () {
     source = new MySource();
-  });
-
-  hooks.afterEach(function () {
-    source = null;
   });
 
   test('isPullable - tests for the application of the @pullable decorator', function (assert) {

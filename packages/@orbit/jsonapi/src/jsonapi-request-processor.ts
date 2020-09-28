@@ -161,7 +161,7 @@ export class JSONAPIRequestProcessor {
 
     // console.log('fetch', fullUrl, settings, 'polyfill', fetchFn.polyfill);
 
-    if (settings.timeout) {
+    if (settings.timeout !== undefined && settings.timeout > 0) {
       let timeout = settings.timeout;
       delete settings.timeout;
 

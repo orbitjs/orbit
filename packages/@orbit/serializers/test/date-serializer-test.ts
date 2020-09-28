@@ -16,7 +16,7 @@ module('DateSerializer', function (hooks) {
 
     test('#deserialize returns a Date', function (assert) {
       assert.equal(
-        serializer.deserialize('2017-12-31').toISOString(),
+        serializer.deserialize('2017-12-31')?.toISOString(),
         new Date(2017, 11, 31).toISOString()
       );
     });

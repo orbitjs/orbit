@@ -366,7 +366,7 @@ module('QueryBuilder', function (hooks) {
 
   test('findRecords + sort (invalid sort expression)', function (assert) {
     assert.throws(() => {
-      oqb.findRecords('planet').sort(null);
+      oqb.findRecords('planet').sort(null as any);
     }, new Error('Unrecognized sort param.'));
   });
 
@@ -813,7 +813,9 @@ module('QueryBuilder', function (hooks) {
 
   test('findRelatedRecords + sort (invalid sort expression)', function (assert) {
     assert.throws(() => {
-      oqb.findRelatedRecords({ type: 'planet', id: '123' }, 'moons').sort(null);
+      oqb
+        .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
+        .sort(null as any);
     }, new Error('Unrecognized sort param.'));
   });
 

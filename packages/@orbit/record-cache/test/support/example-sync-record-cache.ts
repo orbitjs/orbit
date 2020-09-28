@@ -26,7 +26,7 @@ export class ExampleSyncRecordCache extends SyncRecordCache {
     });
   }
 
-  getRecordSync(identity: RecordIdentity): Record | null {
+  getRecordSync(identity: RecordIdentity): Record | undefined {
     return deepGet(this._records, [identity.type, identity.id]) || null;
   }
 
@@ -43,6 +43,8 @@ export class ExampleSyncRecordCache extends SyncRecordCache {
         }
       }
       return records;
+    } else {
+      throw new Error('typeOrIdentities must be specified in getRecordsSync');
     }
   }
 
@@ -56,13 +58,13 @@ export class ExampleSyncRecordCache extends SyncRecordCache {
     }
   }
 
-  removeRecordSync(recordIdentity: RecordIdentity): Record | null {
+  removeRecordSync(recordIdentity: RecordIdentity): Record | undefined {
     const record = this.getRecordSync(recordIdentity);
     if (record) {
       delete this._records[recordIdentity.type][recordIdentity.id];
       return record;
     } else {
-      return null;
+      return undefined;
     }
   }
 
