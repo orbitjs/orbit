@@ -1060,6 +1060,77 @@ module('JSONAPISource - pushable', function (hooks) {
       );
     });
 
+    test('#push - can add multiple records in series', async function (assert) {
+      assert.expect(8);
+
+      let planet1 = {
+        type: 'planet',
+        id: 'p1',
+        attributes: { name: 'Jupiter' }
+      } as Record;
+
+      let moon1 = {
+        type: 'moon',
+        id: 'm1',
+        attributes: { name: 'Io' }
+      } as Record;
+
+      fetchStub.withArgs('/planets').returns(
+        jsonapiResponse(201, {
+          data: planet1
+        })
+      );
+      fetchStub.withArgs('/moons').returns(
+        jsonapiResponse(201, {
+          data: moon1
+        })
+      );
+
+      await source.push((t) => [t.addRecord(planet1), t.addRecord(moon1)]);
+
+      assert.ok(true, 'push resolves successfully');
+
+      assert.equal(fetchStub.callCount, 2, 'fetch called twice');
+
+      const firstFetchCall = fetchStub.getCall(0);
+      assert.equal(
+        firstFetchCall.args[1].method,
+        'POST',
+        'fetch called with expected method'
+      );
+      assert.equal(
+        firstFetchCall.args[1].headers['Content-Type'],
+        'application/vnd.api+json',
+        'fetch called with expected content type'
+      );
+      assert.deepEqual(
+        JSON.parse(firstFetchCall.args[1].body),
+        {
+          data: planet1
+        },
+        'fetch called with expected data'
+      );
+
+      const secondFetchCall = fetchStub.getCall(1);
+      assert.equal(
+        secondFetchCall.args[1].method,
+        'POST',
+        'fetch called with expected method'
+      );
+      assert.equal(
+        secondFetchCall.args[1].headers['Content-Type'],
+        'application/vnd.api+json',
+        'fetch called with expected content type'
+      );
+      assert.deepEqual(
+        JSON.parse(secondFetchCall.args[1].body),
+        {
+          data: moon1
+        },
+        'fetch called with expected data'
+      );
+    });
+
     test('#push - addRecord - url option can be passed', async function (assert) {
       assert.expect(1);
 

@@ -13,10 +13,10 @@ import * as sinon from 'sinon';
 import { SinonStub } from 'sinon';
 import {
   JSONAPIResourceIdentitySerializer,
-  JSONAPIResourceSerializer
+  JSONAPIResourceSerializer,
+  Resource
 } from '../src';
 import { JSONAPISource } from '../src/jsonapi-source';
-import { Resource } from '../src/resources';
 import { JSONAPISerializers } from '../src/serializers/jsonapi-serializers';
 import { jsonapiResponse } from './support/jsonapi';
 import {
@@ -1630,14 +1630,115 @@ module('JSONAPISource - pullable', function (hooks) {
     });
   });
 
-  // TODO
-  // module('with no secondary keys', function (hooks) {
-  //   hooks.beforeEach(function () {
-  //     let schema = createSchemaWithoutKeys();
-  //     source = new JSONAPISource({ schema });
-  //     resourceSerializer = source.requestProcessor.serializerFor(
-  //       JSONAPISerializers.Resource
-  //     ) as JSONAPIResourceSerializer;
-  //   });
-  // });
+  module('with no secondary keys', function (hooks) {
+    hooks.beforeEach(function () {
+      let schema = createSchemaWithoutKeys();
+      source = new JSONAPISource({ schema });
+      resourceSerializer = source.requestProcessor.serializerFor(
+        JSONAPISerializers.Resource
+      ) as JSONAPIResourceSerializer;
+    });
+
+    test('#pull - one expression', async function (assert) {
+      assert.expect(3);
+
+      const planetsDoc = {
+        data: [
+          {
+            type: 'planet',
+            id: 'p1',
+            attributes: { name: 'Jupiter' }
+          },
+          {
+            type: 'planet',
+            id: 'p2',
+            attributes: { name: 'Earth' }
+          }
+        ]
+      };
+
+      fetchStub.withArgs('/planets').returns(jsonapiResponse(200, planetsDoc));
+
+      let transforms = await source.pull((q) => [q.findRecords('planet')]);
+
+      assert.equal(transforms.length, 1, 'one transform returned');
+
+      assert.deepEqual(
+        transforms[0].operations.map((o) => o.op),
+        ['updateRecord', 'updateRecord']
+      );
+      assert.deepEqual(
+        transforms[0].operations.map(
+          (o) => (o as UpdateRecordOperation).record.attributes?.name
+        ),
+        ['Jupiter', 'Earth']
+      );
+    });
+
+    test('#pull - can query multiple expressions in series', async function (assert) {
+      assert.expect(5);
+
+      const planetsDoc = {
+        data: [
+          {
+            type: 'planet',
+            id: 'p1',
+            attributes: { name: 'Jupiter' }
+          },
+          {
+            type: 'planet',
+            id: 'p2',
+            attributes: { name: 'Earth' }
+          }
+        ]
+      };
+
+      const moonsDoc = {
+        data: [
+          {
+            type: 'moon',
+            id: 'm1',
+            attributes: { name: 'Io' }
+          },
+          {
+            type: 'moon',
+            id: 'm2',
+            attributes: { name: 'Europa' }
+          }
+        ]
+      };
+
+      fetchStub.withArgs('/planets').returns(jsonapiResponse(200, planetsDoc));
+      fetchStub.withArgs('/moons').returns(jsonapiResponse(200, moonsDoc));
+
+      let transforms = await source.pull((q) => [
+        q.findRecords('planet'),
+        q.findRecords('moon')
+      ]);
+
+      assert.equal(transforms.length, 2, 'two transforms returned');
+
+      assert.deepEqual(
+        transforms[0].operations.map((o) => o.op),
+        ['updateRecord', 'updateRecord']
+      );
+      assert.deepEqual(
+        transforms[0].operations.map(
+          (o) => (o as UpdateRecordOperation).record.attributes?.name
+        ),
+        ['Jupiter', 'Earth']
+      );
+
+      assert.deepEqual(
+        transforms[1].operations.map((o) => o.op),
+        ['updateRecord', 'updateRecord']
+      );
+      assert.deepEqual(
+        transforms[1].operations.map(
+          (o) => (o as UpdateRecordOperation).record.attributes?.name
+        ),
+        ['Io', 'Europa']
+      );
+    });
+  });
 });
