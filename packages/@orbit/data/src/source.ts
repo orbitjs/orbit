@@ -197,19 +197,15 @@ export abstract class Source implements Evented, Performer {
    */
   async transformed(transforms: Transform[]): Promise<Transform[]> {
     await this.activated;
-    return transforms
-      .reduce((chain, transform) => {
-        return chain.then(() => {
-          if (this._transformLog.contains(transform.id)) {
-            return Promise.resolve();
-          }
 
-          return this._transformLog
-            .append(transform.id)
-            .then(() => settleInSeries(this, 'transform', transform));
-        });
-      }, Promise.resolve())
-      .then(() => transforms);
+    for (let transform of transforms) {
+      if (!this._transformLog.contains(transform.id)) {
+        await this._transformLog.append(transform.id);
+        await settleInSeries(this, 'transform', transform);
+      }
+    }
+
+    return transforms;
   }
 
   /////////////////////////////////////////////////////////////////////////////
