@@ -936,8 +936,6 @@ module('JSONAPISource - updatable', function (hooks) {
 
   module('with no secondary keys', function (hooks) {
     hooks.beforeEach(function () {
-      fetchStub = sinon.stub(self, 'fetch');
-
       let schema = createSchemaWithoutKeys();
       source = new JSONAPISource({ schema });
       resourceSerializer = source.requestProcessor.serializerFor(
@@ -945,10 +943,130 @@ module('JSONAPISource - updatable', function (hooks) {
       ) as JSONAPIResourceSerializer;
     });
 
-    hooks.afterEach(function () {
-      fetchStub.restore();
+    test('#update - can add single record', async function (assert) {
+      assert.expect(5);
+
+      let planet = {
+        type: 'planet',
+        id: 'p1',
+        attributes: { name: 'Jupiter' }
+      } as Record;
+
+      fetchStub.withArgs('/planets').returns(
+        jsonapiResponse(201, {
+          data: {
+            type: 'planet',
+            id: 'p1',
+            attributes: { name: 'Jupiter' }
+          }
+        })
+      );
+
+      await source.update((t) => t.addRecord(planet));
+
+      assert.ok(true, 'transform resolves successfully');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        'POST',
+        'fetch called with expected method'
+      );
+      assert.equal(
+        fetchStub.getCall(0).args[1].headers['Content-Type'],
+        'application/vnd.api+json',
+        'fetch called with expected content type'
+      );
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        {
+          data: {
+            type: 'planet',
+            id: 'p1',
+            attributes: {
+              name: 'Jupiter'
+            }
+          }
+        },
+        'fetch called with expected data'
+      );
     });
 
-    // TODO
+    test('#update - can add multiple records in series', async function (assert) {
+      assert.expect(10);
+
+      let planet1 = {
+        type: 'planet',
+        id: 'p1',
+        attributes: { name: 'Jupiter' }
+      } as Record;
+
+      let moon1 = {
+        type: 'moon',
+        id: 'm1',
+        attributes: { name: 'Io' }
+      } as Record;
+
+      fetchStub.withArgs('/planets').returns(
+        jsonapiResponse(201, {
+          data: planet1
+        })
+      );
+      fetchStub.withArgs('/moons').returns(
+        jsonapiResponse(201, {
+          data: moon1
+        })
+      );
+
+      let [planet, moon] = await source.update((t) => [
+        t.addRecord(planet1),
+        t.addRecord(moon1)
+      ]);
+
+      assert.ok(true, 'transform resolves successfully');
+
+      assert.deepEqual(planet, planet1, 'planet matches');
+      assert.deepEqual(moon, moon1, 'moon matches');
+
+      assert.equal(fetchStub.callCount, 2, 'fetch called twice');
+
+      const firstFetchCall = fetchStub.getCall(0);
+      assert.equal(
+        firstFetchCall.args[1].method,
+        'POST',
+        'fetch called with expected method'
+      );
+      assert.equal(
+        firstFetchCall.args[1].headers['Content-Type'],
+        'application/vnd.api+json',
+        'fetch called with expected content type'
+      );
+      assert.deepEqual(
+        JSON.parse(firstFetchCall.args[1].body),
+        {
+          data: planet1
+        },
+        'fetch called with expected data'
+      );
+
+      const secondFetchCall = fetchStub.getCall(1);
+      assert.equal(
+        secondFetchCall.args[1].method,
+        'POST',
+        'fetch called with expected method'
+      );
+      assert.equal(
+        secondFetchCall.args[1].headers['Content-Type'],
+        'application/vnd.api+json',
+        'fetch called with expected content type'
+      );
+      assert.deepEqual(
+        JSON.parse(secondFetchCall.args[1].body),
+        {
+          data: moon1
+        },
+        'fetch called with expected data'
+      );
+    });
   });
 });

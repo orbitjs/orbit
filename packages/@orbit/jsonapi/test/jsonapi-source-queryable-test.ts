@@ -1506,6 +1506,68 @@ module('JSONAPISource - queryable', function (hooks) {
       ) as JSONAPIResourceSerializer;
     });
 
+    test('#query - can query multiple expressions in series', async function (assert) {
+      assert.expect(9);
+
+      const planetsDoc = {
+        data: [
+          {
+            type: 'planet',
+            id: 'p1',
+            attributes: { name: 'Jupiter' }
+          },
+          {
+            type: 'planet',
+            id: 'p2',
+            attributes: { name: 'Earth' }
+          }
+        ]
+      };
+
+      const moonsDoc = {
+        data: [
+          {
+            type: 'moon',
+            id: 'm1',
+            attributes: { name: 'Io' }
+          },
+          {
+            type: 'moon',
+            id: 'm2',
+            attributes: { name: 'Europa' }
+          }
+        ]
+      };
+
+      fetchStub.withArgs('/planets').returns(jsonapiResponse(200, planetsDoc));
+      fetchStub.withArgs('/moons').returns(jsonapiResponse(200, moonsDoc));
+
+      let [planets, moons] = await source.query((q) => [
+        q.findRecords('planet'),
+        q.findRecords('moon')
+      ]);
+
+      assert.equal(planets.length, 2, 'multiple planets returned');
+      assert.equal(planets[0].attributes?.name, 'Jupiter');
+      assert.equal(planets[1].attributes?.name, 'Earth');
+
+      assert.equal(moons.length, 2, 'multiple moons returned');
+      assert.equal(moons[0].attributes?.name, 'Io');
+      assert.equal(moons[1].attributes?.name, 'Europa');
+
+      assert.equal(fetchStub.callCount, 2, 'fetch called twice');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+      assert.equal(
+        fetchStub.getCall(1).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
     test('#query - findRecord - url option can be passed', async function (assert) {
       assert.expect(1);
 
