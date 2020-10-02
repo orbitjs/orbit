@@ -22,13 +22,16 @@ import {
   ResourceIdentity,
   ResourceRelationship
 } from './resources';
-import { ResourceOperation } from './resource-operations';
-import { ResourceOperationsDocument } from './resource-operations';
+import {
+  ResourceAtomicOperation,
+  RecordOperationsDocument
+} from './resource-operations';
+import { ResourceAtomicOperationsDocument } from './resource-operations';
 import { JSONAPIResourceSerializer } from './serializers/jsonapi-resource-serializer';
 import { JSONAPIResourceIdentitySerializer } from './serializers/jsonapi-resource-identity-serializer';
 import { buildJSONAPISerializerFor } from './serializers/jsonapi-serializer-builder';
 import { JSONAPISerializers } from './serializers/jsonapi-serializers';
-import { JSONAPIOperationSerializer } from './serializers/jsonapi-operation-serializer';
+import { JSONAPIAtomicOperationSerializer } from './serializers/jsonapi-atomic-operation-serializer';
 import { JSONAPIResourceFieldSerializer } from './serializers/jsonapi-resource-field-serializer';
 
 const { deprecate } = Orbit;
@@ -195,12 +198,26 @@ export class JSONAPISerializer
     };
   }
 
-  serializeOperations(operations: RecordOperation[]): ResourceOperation[] {
-    return operations.map((operation) => this.serializeOperation(operation));
+  serializeAtomicOperationsDocument(
+    document: RecordOperationsDocument
+  ): ResourceAtomicOperationsDocument {
+    return {
+      'atomic:operations': this.serializeAtomicOperations(document.operations)
+    };
   }
 
-  serializeOperation(operation: RecordOperation): ResourceOperation {
-    return this.operationSerializer.serialize(operation);
+  serializeAtomicOperations(
+    operations: RecordOperation[]
+  ): ResourceAtomicOperation[] {
+    return operations.map((operation) =>
+      this.serializeAtomicOperation(operation)
+    );
+  }
+
+  serializeAtomicOperation(
+    operation: RecordOperation
+  ): ResourceAtomicOperation {
+    return this.atomicOperationSerializer.serialize(operation);
   }
 
   serializeRecords(records: Record[]): Resource[] {
@@ -374,18 +391,38 @@ export class JSONAPISerializer
     return result;
   }
 
-  deserializeOperationsDocument(
-    document: ResourceOperationsDocument
+  deserializeAtomicOperationsDocument(
+    document: ResourceAtomicOperationsDocument
+  ): RecordOperationsDocument {
+    const result: RecordOperationsDocument = {
+      operations: this.deserializeAtomicOperations(
+        document['atomic:operations']
+      )
+    };
+
+    if (document.links) {
+      result.links = document.links;
+    }
+
+    if (document.meta) {
+      result.meta = document.meta;
+    }
+
+    return result;
+  }
+
+  deserializeAtomicOperations(
+    operations: ResourceAtomicOperation[]
   ): RecordOperation[] {
-    return this.deserializeOperations(document.operations);
+    return operations.map((operation) =>
+      this.deserializeAtomicOperation(operation)
+    );
   }
 
-  deserializeOperations(operations: ResourceOperation[]): RecordOperation[] {
-    return operations.map((operation) => this.deserializeOperation(operation));
-  }
-
-  deserializeOperation(operation: ResourceOperation): RecordOperation {
-    return this.operationSerializer.deserialize(operation);
+  deserializeAtomicOperation(
+    operation: ResourceAtomicOperation
+  ): RecordOperation {
+    return this.atomicOperationSerializer.deserialize(operation);
   }
 
   deserializeResourceIdentity(
@@ -590,10 +627,10 @@ export class JSONAPISerializer
     ) as JSONAPIResourceFieldSerializer;
   }
 
-  protected get operationSerializer(): JSONAPIOperationSerializer {
+  protected get atomicOperationSerializer(): JSONAPIAtomicOperationSerializer {
     return this.serializerFor(
-      JSONAPISerializers.ResourceOperation
-    ) as JSONAPIOperationSerializer;
+      JSONAPISerializers.ResourceAtomicOperation
+    ) as JSONAPIAtomicOperationSerializer;
   }
 
   protected _generateNewId(

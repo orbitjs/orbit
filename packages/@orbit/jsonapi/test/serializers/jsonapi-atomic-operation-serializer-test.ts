@@ -1,6 +1,6 @@
 import { Dict } from '@orbit/utils';
 import { KeyMap, ModelDefinition, Schema } from '@orbit/data';
-import { JSONAPIOperationSerializer } from '../../src/serializers/jsonapi-operation-serializer';
+import { JSONAPIAtomicOperationSerializer } from '../../src/serializers/jsonapi-atomic-operation-serializer';
 import {
   Serializer,
   buildSerializerClassFor,
@@ -47,12 +47,15 @@ module('JSONAPIOperationSerializer', function (hooks) {
     };
 
     module('Using standard serializers', function (hooks) {
-      let serializer: JSONAPIOperationSerializer;
+      let serializer: JSONAPIAtomicOperationSerializer;
 
       hooks.beforeEach(function () {
         const schema = new Schema({ models: modelDefinitions });
         const serializerFor = buildJSONAPISerializerFor({ schema });
-        serializer = new JSONAPIOperationSerializer({ schema, serializerFor });
+        serializer = new JSONAPIAtomicOperationSerializer({
+          schema,
+          serializerFor
+        });
       });
 
       test('it exists', function (assert) {
@@ -530,7 +533,7 @@ module('JSONAPIOperationSerializer', function (hooks) {
         }
       }
 
-      let serializer: JSONAPIOperationSerializer;
+      let serializer: JSONAPIAtomicOperationSerializer;
 
       hooks.beforeEach(function () {
         let schema = new Schema({ models: modelDefinitions });
@@ -552,7 +555,10 @@ module('JSONAPIOperationSerializer', function (hooks) {
           serializerClassFor,
           serializerSettingsFor
         });
-        serializer = new JSONAPIOperationSerializer({ schema, serializerFor });
+        serializer = new JSONAPIAtomicOperationSerializer({
+          schema,
+          serializerFor
+        });
       });
 
       test('serializer is assigned some standard serializers by default, and any custom serializers passed as settings', function (assert) {
@@ -685,14 +691,14 @@ module('JSONAPIOperationSerializer', function (hooks) {
         }
       }
     };
-    let serializer: JSONAPIOperationSerializer;
+    let serializer: JSONAPIAtomicOperationSerializer;
     let keyMap: KeyMap;
 
     hooks.beforeEach(function () {
       keyMap = new KeyMap();
       const schema = new Schema({ models: modelDefinitions });
       const serializerFor = buildJSONAPISerializerFor({ keyMap, schema });
-      serializer = new JSONAPIOperationSerializer({
+      serializer = new JSONAPIAtomicOperationSerializer({
         keyMap,
         schema,
         serializerFor

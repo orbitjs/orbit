@@ -1,7 +1,7 @@
 import { Dict } from '@orbit/utils';
 import { ModelDefinition, Schema } from '@orbit/data';
 import { JSONAPISerializer } from '../src/jsonapi-serializer';
-import { ResourceOperationsDocument } from '../src/resource-operations';
+import { ResourceAtomicOperationsDocument } from '../src/resource-operations';
 
 const { module, test } = QUnit;
 
@@ -39,8 +39,8 @@ module('JSONAPISerializer', function (hooks) {
     }
   };
 
-  const operationsDocument: ResourceOperationsDocument = {
-    operations: [
+  const operationsDocument: ResourceAtomicOperationsDocument = {
+    ['atomic:operations']: [
       {
         op: 'update',
         ref: {
@@ -134,89 +134,91 @@ module('JSONAPISerializer', function (hooks) {
   });
 
   test('deserializeOperationsDocument', function (assert) {
-    const operations = serializer.deserializeOperationsDocument(
+    const document = serializer.deserializeAtomicOperationsDocument(
       operationsDocument
     );
-    assert.deepEqual(operations, [
-      {
-        op: 'updateRecord',
-        record: {
-          id: '1',
-          type: 'planet',
-          attributes: {
-            name: 'Earth'
+    assert.deepEqual(document, {
+      operations: [
+        {
+          op: 'updateRecord',
+          record: {
+            id: '1',
+            type: 'planet',
+            attributes: {
+              name: 'Earth'
+            }
           }
-        }
-      },
-      {
-        op: 'replaceRelatedRecords',
-        record: {
-          id: '1',
-          type: 'planet'
         },
-        relatedRecords: [
-          {
+        {
+          op: 'replaceRelatedRecords',
+          record: {
+            id: '1',
+            type: 'planet'
+          },
+          relatedRecords: [
+            {
+              id: '2',
+              type: 'moon'
+            }
+          ],
+          relationship: 'moons'
+        },
+        {
+          op: 'replaceRelatedRecord',
+          record: {
+            id: '1',
+            type: 'planet'
+          },
+          relatedRecord: {
+            id: '3',
+            type: 'solarSystem'
+          },
+          relationship: 'solarSystem'
+        },
+        {
+          op: 'replaceRelatedRecord',
+          record: {
+            id: '2',
+            type: 'planet'
+          },
+          relatedRecord: null,
+          relationship: 'solarSystem'
+        },
+        {
+          op: 'removeRecord',
+          record: {
+            id: '1',
+            type: 'planet'
+          }
+        },
+        {
+          op: 'removeFromRelatedRecords',
+          record: {
+            id: '1',
+            type: 'planet'
+          },
+          relatedRecord: {
             id: '2',
             type: 'moon'
-          }
-        ],
-        relationship: 'moons'
-      },
-      {
-        op: 'replaceRelatedRecord',
-        record: {
-          id: '1',
-          type: 'planet'
+          },
+          relationship: 'moons'
         },
-        relatedRecord: {
-          id: '3',
-          type: 'solarSystem'
-        },
-        relationship: 'solarSystem'
-      },
-      {
-        op: 'replaceRelatedRecord',
-        record: {
-          id: '2',
-          type: 'planet'
-        },
-        relatedRecord: null,
-        relationship: 'solarSystem'
-      },
-      {
-        op: 'removeRecord',
-        record: {
-          id: '1',
-          type: 'planet'
-        }
-      },
-      {
-        op: 'removeFromRelatedRecords',
-        record: {
-          id: '1',
-          type: 'planet'
-        },
-        relatedRecord: {
-          id: '2',
-          type: 'moon'
-        },
-        relationship: 'moons'
-      },
-      {
-        op: 'addRecord',
-        record: {
-          id: '3',
-          type: 'moon',
-          attributes: {
-            name: 'Io'
+        {
+          op: 'addRecord',
+          record: {
+            id: '3',
+            type: 'moon',
+            attributes: {
+              name: 'Io'
+            }
           }
         }
-      }
-    ]);
+      ]
+    });
   });
 
   test('deserializeOperations', function (assert) {
-    const operations = serializer.deserializeOperations([
+    const operations = serializer.deserializeAtomicOperations([
       {
         op: 'update',
         ref: {
@@ -271,7 +273,7 @@ module('JSONAPISerializer', function (hooks) {
   });
 
   test('deserializeOperation', function (assert) {
-    const operation = serializer.deserializeOperation({
+    const operation = serializer.deserializeAtomicOperation({
       op: 'update',
       ref: {
         type: 'planets',
@@ -299,7 +301,7 @@ module('JSONAPISerializer', function (hooks) {
 
   test('deserializeOperation throws on get', function (assert) {
     assert.throws(() => {
-      serializer.deserializeOperation({
+      serializer.deserializeAtomicOperation({
         op: 'get',
         ref: {
           type: 'planet',
@@ -310,7 +312,7 @@ module('JSONAPISerializer', function (hooks) {
   });
 
   test('serializeOperation', function (assert) {
-    const operation = serializer.serializeOperation({
+    const operation = serializer.serializeAtomicOperation({
       op: 'updateRecord',
       record: {
         type: 'planet',
@@ -338,7 +340,7 @@ module('JSONAPISerializer', function (hooks) {
   });
 
   test('serializeOperations', function (assert) {
-    const operations = serializer.serializeOperations([
+    const operations = serializer.serializeAtomicOperations([
       {
         op: 'updateRecord',
         record: {

@@ -1,6 +1,6 @@
 import { Dict } from '@orbit/utils';
 import { ModelDefinition, Schema } from '@orbit/data';
-import { JSONAPIOperationsDocumentSerializer } from '../../src/serializers/jsonapi-operations-document-serializer';
+import { JSONAPIAtomicOperationsDocumentSerializer } from '../../src/serializers/jsonapi-atomic-operations-document-serializer';
 import { buildJSONAPISerializerFor } from '../../src/serializers/jsonapi-serializer-builder';
 
 const { module, test } = QUnit;
@@ -41,12 +41,12 @@ module('JSONAPIOperationsDocumentSerializer', function (hooks) {
     };
 
     module('Using standard serializers', function (hooks) {
-      let serializer: JSONAPIOperationsDocumentSerializer;
+      let serializer: JSONAPIAtomicOperationsDocumentSerializer;
 
       hooks.beforeEach(function () {
         const schema = new Schema({ models: modelDefinitions });
         const serializerFor = buildJSONAPISerializerFor({ schema });
-        serializer = new JSONAPIOperationsDocumentSerializer({
+        serializer = new JSONAPIAtomicOperationsDocumentSerializer({
           schema,
           serializerFor
         });
@@ -137,7 +137,7 @@ module('JSONAPIOperationsDocumentSerializer', function (hooks) {
         });
 
         assert.deepEqual(result, {
-          operations: [
+          'atomic:operations': [
             {
               op: 'update',
               ref: {
@@ -226,7 +226,7 @@ module('JSONAPIOperationsDocumentSerializer', function (hooks) {
 
       test('#deserialize', function (assert) {
         const result = serializer.deserialize({
-          operations: [
+          'atomic:operations': [
             {
               op: 'update',
               ref: {

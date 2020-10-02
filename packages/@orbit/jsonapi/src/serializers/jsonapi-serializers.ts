@@ -2,10 +2,12 @@ export enum JSONAPISerializers {
   Resource = 'resource',
   ResourceField = 'resourceField',
   ResourceIdentity = 'resourceIdentity',
-  ResourceOperation = 'resourceOperation',
   ResourceType = 'resourceType',
   ResourceDocument = 'resourceDocument',
   ResourceTypePath = 'resourceTypePath',
   ResourceFieldPath = 'resourceFieldPath',
-  ResourceFieldParam = 'resourceFieldParam'
+  ResourceFieldParam = 'resourceFieldParam',
+  ResourceAtomicOperation = 'resourceAtomicOperation',
+  ResourceAtomicOperationsDocument = 'resourceAtomicOperationsDocument',
+  ResourceAtomicResultsDocument = 'resourceAtomicResultsDocument'
 }
