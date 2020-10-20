@@ -1,5 +1,4 @@
 export * from './patch-result';
-export * from './query-result';
 export * from './record-accessor';
 
 export * from './async-record-cache';

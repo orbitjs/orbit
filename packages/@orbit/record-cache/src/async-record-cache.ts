@@ -13,7 +13,9 @@ import {
   TransformBuilder,
   TransformBuilderFunc,
   RecordIdentity,
-  OperationTerm
+  OperationTerm,
+  RecordQueryResult,
+  RecordQueryExpressionResult
 } from '@orbit/data';
 import {
   AsyncOperationProcessor,
@@ -39,7 +41,6 @@ import {
   RecordRelationshipIdentity
 } from './record-accessor';
 import { PatchResult } from './patch-result';
-import { QueryResult, QueryResultData } from './query-result';
 import { AsyncLiveQuery } from './live-query/async-live-query';
 
 const { assert } = Orbit;
@@ -200,7 +201,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
     queryOrExpressions: QueryOrExpressions,
     options?: RequestOptions,
     id?: string
-  ): Promise<QueryResult> {
+  ): Promise<RecordQueryResult> {
     const query = buildQuery(
       queryOrExpressions,
       options,
@@ -286,8 +287,8 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
 
   protected async _query(
     expressions: QueryExpression[]
-  ): Promise<QueryResultData[]> {
-    const results: QueryResultData[] = [];
+  ): Promise<RecordQueryExpressionResult[]> {
+    const results: RecordQueryExpressionResult[] = [];
     for (let expression of expressions) {
       const queryOperator = this.getQueryOperator(expression.op);
       if (!queryOperator) {
@@ -372,7 +373,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
         );
       }
     } else if (primary) {
-      result.data.push(null);
+      result.data.push(undefined);
     }
   }
 }

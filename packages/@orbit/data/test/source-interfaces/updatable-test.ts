@@ -10,19 +10,45 @@ import {
   isUpdatable,
   Updatable
 } from '../../src/source-interfaces/updatable';
-import '../test-helper';
+import {
+  FullResponse,
+  DataOrFullResponse,
+  ResponseHints
+} from '../../src/response';
+import {
+  RecordData,
+  RecordResponse,
+  RecordOperation,
+  RecordTransformBuilder
+} from '../support/record-data';
 
 const { module, test } = QUnit;
 
 module('@updatable', function (hooks) {
   @updatable
-  class MySource extends Source implements Updatable {
+  class MySource
+    extends Source
+    implements
+      Updatable<
+        RecordData,
+        RecordResponse,
+        RecordOperation,
+        RecordTransformBuilder
+      > {
     update!: (
-      transformOrOperations: TransformOrOperations,
+      transformOrOperations: TransformOrOperations<
+        RecordOperation,
+        RecordTransformBuilder
+      >,
       options?: RequestOptions,
       id?: string
-    ) => Promise<any>;
-    _update!: (transform: Transform, hints?: any) => Promise<any>;
+    ) => Promise<
+      DataOrFullResponse<RecordData, RecordResponse, RecordOperation>
+    >;
+    _update!: (
+      transform: Transform<RecordOperation>,
+      hints?: ResponseHints<RecordData>
+    ) => Promise<FullResponse<RecordData, RecordResponse, RecordOperation>>;
   }
 
   let source: MySource;
@@ -35,15 +61,20 @@ module('@updatable', function (hooks) {
     assert.ok(isUpdatable(source));
   });
 
-  // TODO
-  // test('should be applied to a Source', function(assert) {
-  //   assert.throws(function() {
-  //     @updatable
-  //     class Vanilla {}
-  //   },
-  //   Error('Assertion failed: Updatable interface can only be applied to a Source'),
-  //   'assertion raised');
-  // });
+  test('should be applied to a Source', function (assert) {
+    assert.throws(
+      function () {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore: Test of bad typing
+        @updatable
+        class Vanilla {}
+      },
+      Error(
+        'Assertion failed: Updatable interface can only be applied to a Source'
+      ),
+      'assertion raised'
+    );
+  });
 
   test('#update should resolve as a failure when `transform` fails', async function (assert) {
     assert.expect(2);
@@ -53,7 +84,10 @@ module('@updatable', function (hooks) {
     };
 
     try {
-      await source.update({ op: 'addRecord' });
+      await source.update({
+        op: 'addRecord',
+        record: { type: 'planet', id: '1' }
+      });
     } catch (error) {
       assert.ok(true, 'update promise resolved as a failure');
       assert.equal(error, ':(', 'failure');
@@ -65,14 +99,24 @@ module('@updatable', function (hooks) {
 
     let order = 0;
 
-    const addRecordTransform = buildTransform({ op: 'addRecord' });
+    const addRecordTransform = buildTransform<RecordOperation>({
+      op: 'addRecord',
+      record: { type: 'planet', id: '1' }
+    });
+    const result1 = [
+      {
+        type: 'planet',
+        id: 'p1'
+      }
+    ];
 
     source.on('beforeUpdate', (transform) => {
       assert.equal(++order, 1, 'beforeUpdate triggered first');
       assert.strictEqual(transform, addRecordTransform, 'transform matches');
+      return result1;
     });
 
-    source._update = async function (transform) {
+    source._update = async function (transform: Transform) {
       assert.equal(++order, 2, 'action performed after beforeUpdate');
       assert.strictEqual(
         transform,
@@ -80,7 +124,7 @@ module('@updatable', function (hooks) {
         'transform object matches'
       );
       await this.transformed([transform]);
-      return ':)';
+      return { data: result1 };
     };
 
     source.on('transform', (transform) => {
@@ -104,13 +148,13 @@ module('@updatable', function (hooks) {
         addRecordTransform,
         'update transform matches'
       );
-      assert.equal(result, ':)', 'result matches');
+      assert.deepEqual(result, result1, 'result matches');
     });
 
     let result = await source.update(addRecordTransform);
 
     assert.equal(++order, 5, 'promise resolved last');
-    assert.equal(result, ':)', 'success!');
+    assert.deepEqual(result, result1, 'success!');
   });
 
   test('`update` event should receive results as the last argument, even if they are an array', async function (assert) {
@@ -118,7 +162,20 @@ module('@updatable', function (hooks) {
 
     let order = 0;
 
-    const addRecordTransform = buildTransform({ op: 'addRecord' });
+    const addRecordTransform = buildTransform<RecordOperation>({
+      op: 'addRecord',
+      record: { type: 'planet', id: '1' }
+    });
+    const result1 = [
+      {
+        type: 'planet',
+        id: 'p1'
+      },
+      {
+        type: 'planet',
+        id: 'p2'
+      }
+    ];
 
     source.on('beforeUpdate', (transform) => {
       assert.equal(++order, 1, 'beforeUpdate triggered first');
@@ -133,7 +190,7 @@ module('@updatable', function (hooks) {
         'transform object matches'
       );
       await this.transformed([transform]);
-      return ['a', 'b', 'c'];
+      return { data: result1 };
     };
 
     source.on('transform', (transform) => {
@@ -157,19 +214,22 @@ module('@updatable', function (hooks) {
         addRecordTransform,
         'update transform matches'
       );
-      assert.deepEqual(result, ['a', 'b', 'c'], 'result matches');
+      assert.deepEqual(result, result1, 'result matches');
     });
 
     let result = await source.update(addRecordTransform);
 
     assert.equal(++order, 5, 'promise resolved last');
-    assert.deepEqual(result, ['a', 'b', 'c'], 'success!');
+    assert.deepEqual(result, result1, 'success!');
   });
 
   test('#update should trigger `updateFail` event after an unsuccessful update', async function (assert) {
     assert.expect(7);
 
-    const addRecordTransform = buildTransform({ op: 'addRecord' });
+    const addRecordTransform = buildTransform<RecordOperation>({
+      op: 'addRecord',
+      record: { type: 'planet', id: '1' }
+    });
 
     let order = 0;
 
@@ -206,7 +266,10 @@ module('@updatable', function (hooks) {
 
     let order = 0;
 
-    const addRecordTransform = buildTransform({ op: 'addRecord' });
+    const addRecordTransform = buildTransform<RecordOperation>({
+      op: 'addRecord',
+      record: { type: 'planet', id: '1' }
+    });
 
     source.on('beforeUpdate', () => {
       assert.equal(++order, 1, 'beforeUpdate triggered first');
@@ -223,12 +286,20 @@ module('@updatable', function (hooks) {
       return Promise.resolve();
     });
 
-    source._update = async function () {
+    const result1 = [
+      {
+        type: 'planet',
+        id: 'p1'
+      }
+    ];
+
+    source._update = async function (transform: Transform) {
       assert.equal(
         ++order,
         4,
         '_update invoked after all `beforeUpdate` handlers'
       );
+      return { data: result1 };
     };
 
     source.on('update', () => {
@@ -249,7 +320,10 @@ module('@updatable', function (hooks) {
 
     let order = 0;
 
-    const addRecordTransform = buildTransform({ op: 'addRecord' });
+    const addRecordTransform = buildTransform<RecordOperation>({
+      op: 'addRecord',
+      record: { type: 'planet', id: '1' }
+    });
 
     source.on('beforeUpdate', () => {
       assert.equal(++order, 1, 'beforeUpdate triggered first');
@@ -260,12 +334,20 @@ module('@updatable', function (hooks) {
       return Promise.resolve();
     });
 
+    const result1 = [
+      {
+        type: 'planet',
+        id: 'p1'
+      }
+    ];
+
     source._update = async function (transform) {
       assert.ok(true, '_update should still be reached');
       assert.ok(
         this.transformLog.contains(transform.id),
         'transform is already contained in the log'
       );
+      return { data: result1 };
     };
 
     source.on('update', () => {
@@ -282,7 +364,10 @@ module('@updatable', function (hooks) {
 
     let order = 0;
 
-    const addRecordTransform = buildTransform({ op: 'addRecord' });
+    const addRecordTransform = buildTransform<RecordOperation>({
+      op: 'addRecord',
+      record: { type: 'planet', id: '1' }
+    });
 
     source.on('beforeUpdate', () => {
       assert.equal(++order, 1, 'beforeUpdate triggered first');
@@ -294,8 +379,16 @@ module('@updatable', function (hooks) {
       return Promise.reject(':(');
     });
 
+    const result1 = [
+      {
+        type: 'planet',
+        id: 'p1'
+      }
+    ];
+
     source._update = async function () {
       assert.ok(false, '_update should not be invoked');
+      return { data: result1 };
     };
 
     source.on('update', () => {
@@ -318,17 +411,16 @@ module('@updatable', function (hooks) {
     assert.expect(11);
 
     let order = 0;
-
-    const addRecordTransform = buildTransform({ op: 'addRecord' });
-    const replaceAttributeTransform = buildTransform({
-      op: 'replaceRecordAttribute'
+    const planet = { type: 'planet', id: 'p1' };
+    const addRecordTransform = buildTransform<RecordOperation>({
+      op: 'addRecord',
+      record: planet
     });
-    let h: any;
-    const resultingTransforms = [addRecordTransform, replaceAttributeTransform];
+    let h: ResponseHints<RecordData>;
 
     source.on('beforeUpdate', async function (
-      transform: Transform,
-      hints: any
+      transform: Transform<RecordOperation>,
+      hints: ResponseHints<RecordData>
     ) {
       assert.equal(++order, 1, 'beforeUpdate triggered first');
       assert.deepEqual(
@@ -337,41 +429,48 @@ module('@updatable', function (hooks) {
         'beforeUpdate is passed empty `hints` object'
       );
       h = hints;
-      hints.foo = 'bar';
+      hints.data = planet;
     });
 
     source.on('beforeUpdate', async function (
-      transform: Transform,
-      hints: any
+      transform: Transform<RecordOperation>,
+      hints: ResponseHints<RecordData>
     ) {
       assert.equal(++order, 2, 'beforeUpdate triggered second');
       assert.strictEqual(
-        hints,
-        h,
+        hints.data,
+        planet,
         'beforeUpdate is passed same hints instance'
       );
     });
 
     source.on('beforeUpdate', async function (
-      transform: Transform,
-      hints: any
+      transform: Transform<RecordOperation>,
+      hints: ResponseHints<RecordData>
     ) {
       assert.equal(++order, 3, 'beforeUpdate triggered third');
       assert.strictEqual(
-        hints,
-        h,
+        hints.data,
+        planet,
         'beforeUpdate is passed same hints instance'
       );
     });
 
-    source._update = async function (transform: Transform, hints: any) {
+    source._update = async function (
+      transform: Transform<RecordOperation>,
+      hints?: ResponseHints<RecordData>
+    ) {
       assert.equal(
         ++order,
         4,
         '_update invoked after all `beforeUpdate` handlers'
       );
-      assert.strictEqual(hints, h, '_update is passed same hints instance');
-      return resultingTransforms;
+      assert.strictEqual(
+        hints?.data,
+        planet,
+        '_update is passed same hints instance'
+      );
+      return { data: hints?.data };
     };
 
     source.on('update', () => {
@@ -387,7 +486,7 @@ module('@updatable', function (hooks) {
     assert.equal(++order, 6, 'promise resolved last');
     assert.deepEqual(
       result,
-      resultingTransforms,
+      planet,
       'applied transforms are returned on success'
     );
   });

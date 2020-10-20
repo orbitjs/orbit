@@ -1,6 +1,5 @@
 import { Assertion, Orbit } from '@orbit/core';
 import {
-  Record,
   RecordOperation,
   Source,
   SourceSettings,
@@ -17,11 +16,17 @@ import {
   TransformOrOperations,
   coalesceRecordOperations,
   buildTransform,
-  RecordIdentity
+  RecordIdentity,
+  RecordQueryResult,
+  RecordTransformResult,
+  RecordOperationResult,
+  FullResponse,
+  Response,
+  RecordQueryExpressionResult
 } from '@orbit/data';
+import { ResponseHints } from '@orbit/data/dist/modules/response';
 import { Dict } from '@orbit/utils';
 import { MemoryCache, MemoryCacheSettings } from './memory-cache';
-import { PatchResultData } from '@orbit/record-cache';
 
 const { assert } = Orbit;
 
@@ -41,7 +46,10 @@ export interface MemorySourceMergeOptions {
 @updatable
 export class MemorySource
   extends Source
-  implements Syncable, Queryable, Updatable {
+  implements
+    Syncable,
+    Queryable<RecordQueryResult, undefined>,
+    Updatable<RecordTransformResult, undefined> {
   private _cache: MemoryCache;
   private _base?: MemorySource;
   private _forkPoint?: string;
@@ -56,14 +64,14 @@ export class MemorySource
     queryOrExpressions: QueryOrExpressions,
     options?: RequestOptions,
     id?: string
-  ) => Promise<any>;
+  ) => Promise<Response<RecordQueryResult, undefined>>;
 
   // Updatable interface stubs
   update!: (
     transformOrOperations: TransformOrOperations,
     options?: RequestOptions,
     id?: string
-  ) => Promise<any>;
+  ) => Promise<Response<RecordTransformResult, undefined>>;
 
   constructor(settings: MemorySourceSettings = {}) {
     assert(
@@ -134,9 +142,10 @@ export class MemorySource
 
   async _update(
     transform: Transform,
-    hints?: { data: Record | Record[] }
-  ): Promise<any> {
-    let results: PatchResultData[] | undefined;
+    hints?: ResponseHints<RecordTransformResult>
+  ): Promise<FullResponse<RecordTransformResult, undefined>> {
+    let results: RecordTransformResult;
+    let data: RecordTransformResult;
 
     if (!this.transformLog.contains(transform.id)) {
       results = this._applyTransform(transform);
@@ -145,19 +154,21 @@ export class MemorySource
 
     if (hints?.data) {
       if (transform.operations.length > 1 && Array.isArray(hints.data)) {
-        return hints.data.map((idOrIds: RecordIdentity | RecordIdentity[]) =>
-          this._retrieveFromCache(idOrIds)
-        );
+        data = hints.data.map((id) => {
+          return id ? this._cache.getRecordSync(id) : undefined;
+        });
       } else {
-        return this._retrieveFromCache(hints.data);
+        data = this._cache.getRecordSync(hints.data as RecordIdentity);
       }
     } else if (results) {
       if (transform.operations.length === 1 && Array.isArray(results)) {
-        return results[0];
+        data = results[0];
       } else {
-        return results;
+        data = results;
       }
     }
+
+    return { data };
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -166,19 +177,23 @@ export class MemorySource
 
   async _query(
     query: Query,
-    hints?: { data: Record | Record[] }
-  ): Promise<any> {
+    hints?: ResponseHints<RecordQueryResult>
+  ): Promise<FullResponse<RecordQueryResult, undefined>> {
+    let data: RecordQueryResult;
+
     if (hints?.data) {
       if (query.expressions.length > 1 && Array.isArray(hints.data)) {
-        return hints.data.map((idOrIds: RecordIdentity | RecordIdentity[]) =>
-          this._retrieveFromCache(idOrIds)
-        );
+        let hintsData = hints.data as (RecordIdentity | RecordIdentity[])[];
+        data = hintsData.map((idOrIds) => this._retrieveFromCache(idOrIds));
       } else {
-        return this._retrieveFromCache(hints.data);
+        let hintsData = hints.data as RecordIdentity | RecordIdentity[];
+        data = this._retrieveFromCache(hintsData);
       }
     } else {
-      return this._cache.query(query);
+      data = this._cache.query(query);
     }
+
+    return { data };
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -331,16 +346,18 @@ export class MemorySource
   /////////////////////////////////////////////////////////////////////////////
 
   protected _retrieveFromCache(
-    idOrIds: RecordIdentity | RecordIdentity[]
-  ): Record[] | Record | undefined {
+    idOrIds: RecordIdentity[] | RecordIdentity | null
+  ): RecordQueryExpressionResult {
     if (Array.isArray(idOrIds)) {
       return this._cache.getRecordsSync(idOrIds);
-    } else {
+    } else if (idOrIds) {
       return this._cache.getRecordSync(idOrIds);
+    } else {
+      return idOrIds;
     }
   }
 
-  protected _applyTransform(transform: Transform): PatchResultData[] {
+  protected _applyTransform(transform: Transform): RecordOperationResult[] {
     const result = this.cache.patch(transform.operations as RecordOperation[]);
     this._transforms[transform.id] = transform;
     this._transformInverses[transform.id] = result.inverse;

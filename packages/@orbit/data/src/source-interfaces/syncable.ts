@@ -1,4 +1,5 @@
 import { Orbit, fulfillInSeries, settleInSeries } from '@orbit/core';
+import { Operation } from '../operation';
 import { Source, SourceClass } from '../source';
 import { Transform } from '../transform';
 
@@ -17,14 +18,14 @@ export function isSyncable(source: Source): boolean {
  * A source decorated as `@syncable` must also implement the `Syncable`
  * interface.
  */
-export interface Syncable {
+export interface Syncable<O extends Operation> {
   /**
    * The `sync` method to a source. This method accepts a `Transform` or array
    * of `Transform`s as an argument and applies it to the source.
    */
-  sync(transformOrTransforms: Transform | Transform[]): Promise<void>;
+  sync(transformOrTransforms: Transform<O> | Transform<O>[]): Promise<void>;
 
-  _sync(transform: Transform): Promise<void>;
+  _sync(transform: Transform<O>): Promise<void>;
 }
 
 /**
@@ -53,17 +54,17 @@ export function syncable(Klass: SourceClass): void {
   proto[SYNCABLE] = true;
 
   proto.sync = async function (
-    transformOrTransforms: Transform | Transform[]
+    transformOrTransforms: Transform<Operation> | Transform<Operation>[]
   ): Promise<void> {
     await this.activated;
     if (Array.isArray(transformOrTransforms)) {
-      const transforms = transformOrTransforms as Transform[];
+      const transforms = transformOrTransforms as Transform<Operation>[];
 
       return transforms.reduce((chain, transform) => {
         return chain.then(() => this.sync(transform));
       }, Promise.resolve());
     } else {
-      const transform = transformOrTransforms as Transform;
+      const transform = transformOrTransforms as Transform<Operation>;
 
       if (this.transformLog.contains(transform.id)) {
         return Promise.resolve();
@@ -73,7 +74,9 @@ export function syncable(Klass: SourceClass): void {
     }
   };
 
-  proto.__sync__ = async function (transform: Transform): Promise<void> {
+  proto.__sync__ = async function (
+    transform: Transform<Operation>
+  ): Promise<void> {
     if (this.transformLog.contains(transform.id)) {
       return;
     }

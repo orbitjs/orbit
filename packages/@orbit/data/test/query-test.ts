@@ -1,8 +1,10 @@
 import { buildQuery } from '../src/query';
 import { QueryTerm } from '../src/query-term';
-import { FindRecords } from '../src/query-expression';
-import { QueryBuilder } from '../src/query-builder';
-import './test-helper';
+import { FindRecords } from './support/record-data';
+import {
+  RecordQueryBuilder,
+  RecordQueryExpression
+} from './support/record-data';
 
 const { module, test } = QUnit;
 
@@ -11,7 +13,8 @@ const { module, test } = QUnit;
 module('buildQuery', function () {
   test('can instantiate a query from an expression', function (assert) {
     let expression: FindRecords = {
-      op: 'findRecords'
+      op: 'findRecords',
+      type: 'planet'
     };
     let query = buildQuery(expression);
     assert.ok(query);
@@ -19,7 +22,8 @@ module('buildQuery', function () {
 
   test('can instantiate a query that will be assigned an `id`', function (assert) {
     let expression: FindRecords = {
-      op: 'findRecords'
+      op: 'findRecords',
+      type: 'planet'
     };
     let query = buildQuery(expression);
     assert.ok(query.id, 'query has an id');
@@ -27,7 +31,8 @@ module('buildQuery', function () {
 
   test('can instantiate a query with a single expression, options, and an id', function (assert) {
     let expression: FindRecords = {
-      op: 'findRecords'
+      op: 'findRecords',
+      type: 'planet'
     };
     let options = { sources: { jsonapi: { include: 'comments' } } };
     let query = buildQuery(expression, options, 'abc123');
@@ -43,7 +48,8 @@ module('buildQuery', function () {
 
   test('can instantiate a query with an array of expressions, options, and an id', function (assert) {
     let expression: FindRecords = {
-      op: 'findRecords'
+      op: 'findRecords',
+      type: 'planet'
     };
     let expressions = [expression];
     let options = { sources: { jsonapi: { include: 'comments' } } };
@@ -61,40 +67,47 @@ module('buildQuery', function () {
   test('can instantiate a query with a single query expression term, options, and an id', function (assert) {
     let term1 = {
       toQueryExpression: () => {
-        return { op: 'findRecords' };
+        return { op: 'findRecords', type: 'planet' };
       }
-    } as QueryTerm;
+    } as QueryTerm<RecordQueryExpression>;
     let options = { sources: { jsonapi: { include: 'comments' } } };
-    let query = buildQuery(term1, options, 'abc123');
+    let query = buildQuery<RecordQueryExpression>(term1, options, 'abc123');
 
     assert.strictEqual(query.id, 'abc123', 'id was populated');
     assert.deepEqual(
       query.expressions,
-      [{ op: 'findRecords' }],
+      [{ op: 'findRecords', type: 'planet' }],
       'expression was populated'
     );
     assert.strictEqual(query.options, options, 'options was populated');
   });
 
-  test('can instantiate a query with a single query expression term, options, and an id', function (assert) {
+  test('can instantiate a query with multiple query expression terms, options, and an id', function (assert) {
     let term1 = {
       toQueryExpression: () => {
-        return { op: 'findRecords' };
+        return { op: 'findRecords', type: 'planet' };
       }
-    } as QueryTerm;
+    } as QueryTerm<RecordQueryExpression>;
     let term2 = {
       toQueryExpression: () => {
-        return { op: 'findRecord' };
+        return { op: 'findRecords', type: 'moon' };
       }
-    } as QueryTerm;
+    } as QueryTerm<RecordQueryExpression>;
     let expressions = [term1, term2];
     let options = { sources: { jsonapi: { include: 'comments' } } };
-    let query = buildQuery(expressions, options, 'abc123');
+    let query = buildQuery<RecordQueryExpression>(
+      expressions,
+      options,
+      'abc123'
+    );
 
     assert.strictEqual(query.id, 'abc123', 'id was populated');
     assert.deepEqual(
       query.expressions,
-      [{ op: 'findRecords' }, { op: 'findRecord' }],
+      [
+        { op: 'findRecords', type: 'planet' },
+        { op: 'findRecords', type: 'moon' }
+      ],
       'expression was populated'
     );
     assert.strictEqual(query.options, options, 'options was populated');
@@ -102,27 +115,28 @@ module('buildQuery', function () {
 
   test('will return a query passed into it', function (assert) {
     let expression: FindRecords = {
-      op: 'findRecords'
+      op: 'findRecords',
+      type: 'planet'
     };
     let query = buildQuery(expression);
     assert.strictEqual(buildQuery(query), query);
   });
 
   test('will create a query using a QueryBuilder if a function is passed into it', function (assert) {
-    let qb = new QueryBuilder();
+    let qb = new RecordQueryBuilder();
     let expression: FindRecords = {
       op: 'findRecords',
       type: 'planet'
     };
-    let query = buildQuery(
+    let query = buildQuery<RecordQueryExpression, RecordQueryBuilder>(
       (q) => q.findRecords('planet'),
       undefined,
       undefined,
       qb
     );
     assert.deepEqual(
-      query.expressions[0],
-      expression,
+      query.expressions,
+      [expression],
       'expression was populated'
     );
   });
@@ -133,7 +147,7 @@ module('buildQuery', function () {
       type: 'planet'
     };
     let queryFactory = new QueryTerm(expression);
-    let query = buildQuery(queryFactory);
+    let query = buildQuery<RecordQueryExpression>(queryFactory);
     assert.strictEqual(
       query.expressions[0],
       expression,
@@ -143,12 +157,14 @@ module('buildQuery', function () {
 
   test('will create a query with multiple expressions', function (assert) {
     let expression1: FindRecords = {
-      op: 'findRecords'
+      op: 'findRecords',
+      type: 'planet'
     };
     let expression2: FindRecords = {
-      op: 'findRecords'
+      op: 'findRecords',
+      type: 'moon'
     };
-    let query = buildQuery([expression1, expression2]);
+    let query = buildQuery<RecordQueryExpression>([expression1, expression2]);
     assert.strictEqual(
       query.expressions[0],
       expression1,

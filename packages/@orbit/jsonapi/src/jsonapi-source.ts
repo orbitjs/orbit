@@ -19,7 +19,11 @@ import {
   Updatable,
   updatable,
   TransformNotAllowed,
-  QueryNotAllowed
+  QueryNotAllowed,
+  RecordQueryResult,
+  RecordTransformResult,
+  Response,
+  FullResponse
 } from '@orbit/data';
 import {
   JSONAPIRequestProcessor,
@@ -51,7 +55,7 @@ import {
   SerializerSettingsForFn,
   SerializerForFn
 } from '@orbit/serializers';
-import { PrimaryRecordData } from './resources';
+import { ResourceDocument } from './resources';
 
 export interface JSONAPISourceSettings extends SourceSettings {
   maxRequestsPerTransform?: number;
@@ -97,7 +101,11 @@ export interface JSONAPISourceSettings extends SourceSettings {
 @updatable
 export class JSONAPISource
   extends Source
-  implements Pullable, Pushable, Queryable, Updatable {
+  implements
+    Pullable<ResourceDocument | ResourceDocument[]>,
+    Pushable<ResourceDocument | ResourceDocument[]>,
+    Queryable<RecordQueryResult, ResourceDocument | ResourceDocument[]>,
+    Updatable<RecordTransformResult, ResourceDocument | ResourceDocument[]> {
   maxRequestsPerTransform?: number;
   maxRequestsPerQuery?: number;
   requestProcessor: JSONAPIRequestProcessor;
@@ -121,14 +129,18 @@ export class JSONAPISource
     queryOrExpressions: QueryOrExpressions,
     options?: RequestOptions,
     id?: string
-  ) => Promise<any>;
+  ) => Promise<
+    Response<RecordQueryResult, ResourceDocument | ResourceDocument[]>
+  >;
 
   // Updatable interface stubs
   update!: (
     transformOrOperations: TransformOrOperations,
     options?: RequestOptions,
     id?: string
-  ) => Promise<any>;
+  ) => Promise<
+    Response<RecordTransformResult, ResourceDocument | ResourceDocument[]>
+  >;
 
   constructor(settings: JSONAPISourceSettings = {}) {
     settings.name = settings.name || 'jsonapi';
@@ -182,7 +194,9 @@ export class JSONAPISource
   // Pushable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _push(transform: Transform): Promise<Transform[]> {
+  async _push(
+    transform: Transform
+  ): Promise<FullResponse<Transform[], ResourceDocument | ResourceDocument[]>> {
     const transforms: Transform[] = [];
 
     if (!this.transformLog.contains(transform.id)) {
@@ -205,14 +219,16 @@ export class JSONAPISource
       await this.transformed(transforms);
     }
 
-    return transforms;
+    return { data: transforms };
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Pullable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _pull(query: Query): Promise<Transform[]> {
+  async _pull(
+    query: Query
+  ): Promise<FullResponse<Transform[], ResourceDocument | ResourceDocument[]>> {
     const transforms: Transform[] = [];
     const { requestProcessor } = this;
     const requests = this.getQueryRequests(query);
@@ -230,7 +246,8 @@ export class JSONAPISource
     }
 
     await this.transformed(transforms);
-    return transforms;
+
+    return { data: transforms };
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -240,12 +257,12 @@ export class JSONAPISource
   async _query(
     query: Query
   ): Promise<
-    PrimaryRecordData | undefined | (PrimaryRecordData | undefined)[]
+    FullResponse<RecordQueryResult, ResourceDocument | ResourceDocument[]>
   > {
     const transforms: Transform[] = [];
     const { requestProcessor } = this;
     const requests = this.getQueryRequests(query);
-    const responses: (PrimaryRecordData | undefined)[] = [];
+    const responses: RecordQueryResult[] = [];
 
     for (let request of requests) {
       let processor = this.getQueryRequestProcessor(request);
@@ -262,19 +279,25 @@ export class JSONAPISource
 
     await this.transformed(transforms);
 
-    return query.expressions.length === 1 ? responses[0] : responses;
+    return { data: query.expressions.length === 1 ? responses[0] : responses };
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Updatable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _update(transform: Transform): Promise<any> {
+  async _update(
+    transform: Transform
+  ): Promise<
+    FullResponse<RecordTransformResult, ResourceDocument | ResourceDocument[]>
+  > {
+    let data;
+
     if (!this.transformLog.contains(transform.id)) {
       const transforms: Transform[] = [];
       const { requestProcessor } = this;
       const requests = this.getTransformRequests(transform);
-      const responses: PrimaryRecordData[] = [];
+      const responses: RecordTransformResult[] = [];
 
       for (let request of requests) {
         let processor = this.getTransformRequestProcessor(request);
@@ -292,8 +315,10 @@ export class JSONAPISource
       transforms.unshift(transform);
       await this.transformed(transforms);
 
-      return transform.operations.length === 1 ? responses[0] : responses;
+      data = transform.operations.length === 1 ? responses[0] : responses;
     }
+
+    return { data };
   }
 
   protected getQueryRequests(query: Query): QueryRequest[] {

@@ -5,6 +5,7 @@ import {
   mergeRecords,
   RecordIdentity,
   RecordOperation,
+  RecordOperationResult,
   AddRecordOperation,
   UpdateRecordOperation,
   RemoveRecordOperation,
@@ -18,11 +19,10 @@ import {
   recordsInclude
 } from '@orbit/data';
 import { AsyncRecordAccessor } from '../record-accessor';
-import { PatchResultData } from '../patch-result';
 
 export interface AsyncPatchOperator {
   (cache: AsyncRecordAccessor, operation: RecordOperation): Promise<
-    PatchResultData
+    RecordOperationResult
   >;
 }
 
@@ -30,7 +30,7 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
   async addRecord(
     cache: AsyncRecordAccessor,
     operation: RecordOperation
-  ): Promise<PatchResultData> {
+  ): Promise<RecordOperationResult> {
     const op = operation as AddRecordOperation;
     const { record } = op;
     await cache.setRecordAsync(record);
@@ -45,7 +45,7 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
   async updateRecord(
     cache: AsyncRecordAccessor,
     operation: RecordOperation
-  ): Promise<PatchResultData> {
+  ): Promise<RecordOperationResult> {
     const op = operation as UpdateRecordOperation;
     const { record } = op;
     const currentRecord = await cache.getRecordAsync(record);
@@ -63,7 +63,7 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
   async removeRecord(
     cache: AsyncRecordAccessor,
     operation: RecordOperation
-  ): Promise<PatchResultData> {
+  ): Promise<RecordOperationResult> {
     const op = operation as RemoveRecordOperation;
     return await cache.removeRecordAsync(op.record);
   },
@@ -71,7 +71,7 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
   async replaceKey(
     cache: AsyncRecordAccessor,
     operation: RecordOperation
-  ): Promise<PatchResultData> {
+  ): Promise<RecordOperationResult> {
     const op = operation as ReplaceKeyOperation;
     const currentRecord = await cache.getRecordAsync(op.record);
     let record: Record;
@@ -95,7 +95,7 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
   async replaceAttribute(
     cache: AsyncRecordAccessor,
     operation: RecordOperation
-  ): Promise<PatchResultData> {
+  ): Promise<RecordOperationResult> {
     const op = operation as ReplaceAttributeOperation;
     const currentRecord = await cache.getRecordAsync(op.record);
     let record: Record;
@@ -115,7 +115,7 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
   async addToRelatedRecords(
     cache: AsyncRecordAccessor,
     operation: RecordOperation
-  ): Promise<PatchResultData> {
+  ): Promise<RecordOperationResult> {
     const op = operation as AddToRelatedRecordsOperation;
     const { relationship, relatedRecord } = op;
     const currentRecord = await cache.getRecordAsync(op.record);
@@ -143,7 +143,7 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
   async removeFromRelatedRecords(
     cache: AsyncRecordAccessor,
     operation: RecordOperation
-  ): Promise<PatchResultData> {
+  ): Promise<RecordOperationResult> {
     const op = operation as RemoveFromRelatedRecordsOperation;
     const currentRecord = await cache.getRecordAsync(op.record);
     const { relationship, relatedRecord } = op;
@@ -174,13 +174,13 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
       return record;
     }
 
-    return null;
+    return undefined;
   },
 
   async replaceRelatedRecords(
     cache: AsyncRecordAccessor,
     operation: RecordOperation
-  ): Promise<PatchResultData> {
+  ): Promise<RecordOperationResult> {
     const op = operation as ReplaceRelatedRecordsOperation;
     const currentRecord = await cache.getRecordAsync(op.record);
     const { relationship, relatedRecords } = op;
@@ -204,7 +204,7 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
   async replaceRelatedRecord(
     cache: AsyncRecordAccessor,
     operation: RecordOperation
-  ): Promise<PatchResultData> {
+  ): Promise<RecordOperationResult> {
     const op = operation as ReplaceRelatedRecordOperation;
     const currentRecord = await cache.getRecordAsync(op.record);
     const { relationship, relatedRecord } = op;

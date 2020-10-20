@@ -267,7 +267,7 @@ module('MemoryCache', function (hooks) {
       {
         data: [
           p1,
-          null // null because p2 didn't exist
+          undefined // undefined because p2 didn't exist
         ],
         inverse: [{ op: 'removeRecord', record: { type: 'planet', id: '1' } }]
       },
@@ -845,7 +845,7 @@ module('MemoryCache', function (hooks) {
     assert.deepEqual(
       result,
       {
-        data: [null],
+        data: [undefined],
         inverse: []
       },
       'nothing has changed so there are no inverse ops'

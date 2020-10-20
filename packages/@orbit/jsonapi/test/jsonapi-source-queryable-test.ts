@@ -389,9 +389,9 @@ module('JSONAPISource - queryable', function (hooks) {
 
       fetchStub.withArgs('/planets').returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRecords('planet')
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -443,9 +443,9 @@ module('JSONAPISource - queryable', function (hooks) {
         .withArgs(`/planets?${encodeURIComponent('filter[lengthOfDay]')}=24`)
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRecords('planet').filter({ attribute: 'lengthOfDay', value: 24 })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -480,12 +480,12 @@ module('JSONAPISource - queryable', function (hooks) {
         .withArgs(`/moons?${encodeURIComponent('filter[planet]')}=earth`)
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRecords('moon').filter({
           relation: 'planet',
           record: { id: 'earth', type: 'planet' }
         })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -540,7 +540,7 @@ module('JSONAPISource - queryable', function (hooks) {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRecords('moon').filter({
           relation: 'planet',
           record: [
@@ -548,7 +548,7 @@ module('JSONAPISource - queryable', function (hooks) {
             { id: 'mars', type: 'planet' }
           ]
         })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -592,7 +592,7 @@ module('JSONAPISource - queryable', function (hooks) {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRecords('planet').filter({
           relation: 'moons',
           records: [
@@ -601,7 +601,7 @@ module('JSONAPISource - queryable', function (hooks) {
           ],
           op: 'equal'
         })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -640,9 +640,9 @@ module('JSONAPISource - queryable', function (hooks) {
         .withArgs('/planets?sort=name')
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRecords('planet').sort('name')
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -681,9 +681,9 @@ module('JSONAPISource - queryable', function (hooks) {
         .withArgs('/planets?sort=-name')
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRecords('planet').sort('-name')
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -734,9 +734,9 @@ module('JSONAPISource - queryable', function (hooks) {
         .withArgs(`/planets?sort=${encodeURIComponent('lengthOfDay,name')}`)
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRecords('planet').sort('lengthOfDay', 'name')
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -779,9 +779,9 @@ module('JSONAPISource - queryable', function (hooks) {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRecords('planet').page({ offset: 1, limit: 10 })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -833,11 +833,11 @@ module('JSONAPISource - queryable', function (hooks) {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q
           .findRelatedRecords(solarSystem, 'planets')
           .filter({ attribute: 'lengthOfDay', value: 24 })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -881,12 +881,12 @@ module('JSONAPISource - queryable', function (hooks) {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'moons').filter({
           relation: 'planet',
           record: { id: 'earth', type: 'planet' }
         })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -946,7 +946,7 @@ module('JSONAPISource - queryable', function (hooks) {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'moons').filter({
           relation: 'planet',
           record: [
@@ -954,7 +954,7 @@ module('JSONAPISource - queryable', function (hooks) {
             { id: 'mars', type: 'planet' }
           ]
         })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -1003,7 +1003,7 @@ module('JSONAPISource - queryable', function (hooks) {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'planets').filter({
           relation: 'moons',
           records: [
@@ -1012,7 +1012,7 @@ module('JSONAPISource - queryable', function (hooks) {
           ],
           op: 'equal'
         })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -1056,9 +1056,9 @@ module('JSONAPISource - queryable', function (hooks) {
         .withArgs('/solar-systems/sun/planets?sort=name')
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('name')
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -1102,9 +1102,9 @@ module('JSONAPISource - queryable', function (hooks) {
         .withArgs('/solar-systems/sun/planets?sort=-name')
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('-name')
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -1164,9 +1164,9 @@ module('JSONAPISource - queryable', function (hooks) {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('lengthOfDay', 'name')
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -1214,11 +1214,11 @@ module('JSONAPISource - queryable', function (hooks) {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q
           .findRelatedRecords(solarSystem, 'planets')
           .page({ offset: 1, limit: 10 })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -1339,10 +1339,10 @@ module('JSONAPISource - queryable', function (hooks) {
         })
       );
 
-      let records: Record[] = await source.query(
+      let records = (await source.query(
         (q) => q.findRecords('planet'),
         options
-      );
+      )) as Record[];
 
       assert.ok(
         Array.isArray(records),
@@ -1443,9 +1443,9 @@ module('JSONAPISource - queryable', function (hooks) {
         .withArgs('/planets/jupiter/moons')
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRelatedRecords(planet, 'moons')
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -1542,10 +1542,10 @@ module('JSONAPISource - queryable', function (hooks) {
       fetchStub.withArgs('/planets').returns(jsonapiResponse(200, planetsDoc));
       fetchStub.withArgs('/moons').returns(jsonapiResponse(200, moonsDoc));
 
-      let [planets, moons] = await source.query((q) => [
+      let [planets, moons] = (await source.query((q) => [
         q.findRecords('planet'),
         q.findRecords('moon')
-      ]);
+      ])) as Record[][];
 
       assert.equal(planets.length, 2, 'multiple planets returned');
       assert.equal(planets[0].attributes?.name, 'Jupiter');

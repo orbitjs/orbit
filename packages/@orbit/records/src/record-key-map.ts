@@ -4,7 +4,7 @@ import { Record, UninitializedRecord } from './record';
 /**
  * Maintains a map between records' ids and keys.
  */
-export class KeyMap {
+export class RecordKeyMap {
   private _idsToKeys!: Dict<Dict<string>>;
   private _keysToIds!: Dict<Dict<string>>;
 

@@ -2,6 +2,14 @@ import { Orbit, settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Transform, TransformOrOperations, buildTransform } from '../transform';
 import { RequestOptions } from '../request';
+import {
+  createRequestedResponse,
+  DataOrFullResponse,
+  NamedResponse,
+  ResponseHints,
+  FullResponse
+} from '../response';
+import { Operation } from '../operation';
 
 const { assert } = Orbit;
 
@@ -18,19 +26,22 @@ export function isUpdatable(source: Source): boolean {
  * A source decorated as `@updatable` must also implement the `Updatable`
  * interface.
  */
-export interface Updatable {
+export interface Updatable<D, R, O extends Operation, TB> {
   /**
    * The `update` method accepts a `Transform` instance or an array of
    * operations which it then converts to a `Transform` instance. The source
    * applies the update and returns a promise that resolves when complete.
    */
   update(
-    transformOrOperations: TransformOrOperations,
+    transformOrOperations: TransformOrOperations<O, TB>,
     options?: RequestOptions,
     id?: string
-  ): Promise<unknown>;
+  ): Promise<DataOrFullResponse<D, R, O>>;
 
-  _update(transform: Transform, hints?: unknown): Promise<unknown>;
+  _update(
+    transform: Transform<O>,
+    hints?: ResponseHints<D>
+  ): Promise<FullResponse<D, R, O>>;
 }
 
 /**
@@ -71,10 +82,10 @@ export function updatable(Klass: SourceClass): void {
   proto[UPDATABLE] = true;
 
   proto.update = async function (
-    transformOrOperations: TransformOrOperations,
+    transformOrOperations: TransformOrOperations<Operation, unknown>,
     options?: RequestOptions,
     id?: string
-  ): Promise<any> {
+  ): Promise<unknown> {
     await this.activated;
     const transform = buildTransform(
       transformOrOperations,
@@ -84,23 +95,34 @@ export function updatable(Klass: SourceClass): void {
     );
 
     if (this.transformLog.contains(transform.id)) {
-      return Promise.resolve();
+      return;
     }
 
     return this._enqueueRequest('update', transform);
   };
 
-  proto.__update__ = async function (transform: Transform): Promise<any> {
+  proto.__update__ = async function (
+    transform: Transform<Operation>
+  ): Promise<DataOrFullResponse<unknown, unknown, Operation>> {
     if (this.transformLog.contains(transform.id)) {
       return;
     }
 
     try {
-      const hints: any = {};
-      await fulfillInSeries(this, 'beforeUpdate', transform, hints);
-      let result = await this._update(transform, hints);
-      await settleInSeries(this, 'update', transform, result);
-      return result;
+      const hints: ResponseHints<unknown> = {};
+      const otherResponses = (await fulfillInSeries(
+        this,
+        'beforeUpdate',
+        transform,
+        hints
+      )) as NamedResponse<unknown, unknown, Operation>[];
+      const response = createRequestedResponse<unknown, unknown, Operation>(
+        await this._update(transform, hints),
+        otherResponses,
+        transform.options
+      );
+      await settleInSeries(this, 'update', transform, response);
+      return response;
     } catch (error) {
       await settleInSeries(this, 'updateFail', transform, error);
       throw error;

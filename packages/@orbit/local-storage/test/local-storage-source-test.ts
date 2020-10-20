@@ -955,7 +955,7 @@ module('LocalStorageSource', function (hooks) {
     // reset keyMap to verify that pulling records also adds keys
     keyMap.reset();
 
-    let transforms = await source.pull((q) => q.findRecords());
+    let transforms = (await source.pull((q) => q.findRecords())) as Transform[];
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(
@@ -1021,7 +1021,9 @@ module('LocalStorageSource', function (hooks) {
       t.addRecord(io)
     ]);
 
-    let transforms = await source.pull((q) => q.findRecords('planet'));
+    let transforms = (await source.pull((q) =>
+      q.findRecords('planet')
+    )) as Transform[];
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(
@@ -1074,9 +1076,9 @@ module('LocalStorageSource', function (hooks) {
       t.addRecord(io)
     ]);
 
-    let transforms = await source.pull((q) =>
+    let transforms = (await source.pull((q) =>
       q.findRecords([earth, io, { type: 'moon', id: 'FAKE' }])
-    );
+    )) as Transform[];
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(
@@ -1140,7 +1142,9 @@ module('LocalStorageSource', function (hooks) {
     // reset keyMap to verify that pulling records also adds keys
     keyMap.reset();
 
-    let transforms = await source.pull((q) => q.findRecord(jupiter));
+    let transforms = (await source.pull((q) =>
+      q.findRecord(jupiter)
+    )) as Transform[];
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(
@@ -1166,7 +1170,7 @@ module('LocalStorageSource', function (hooks) {
 
     await Orbit.globals.localStorage.setItem('orbit-bucket/foo', '{}');
 
-    let transforms = await source.pull((q) => q.findRecords());
+    let transforms = (await source.pull((q) => q.findRecords())) as Transform[];
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(

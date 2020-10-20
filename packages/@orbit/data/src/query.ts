@@ -1,28 +1,28 @@
 import { Orbit } from '@orbit/core';
-import { QueryExpression } from './query-expression';
 import { QueryTerm } from './query-term';
-import { QueryBuilder } from './query-builder';
 import { RequestOptions } from './request';
-
-export type QueryBuilderFunc = (
-  QueryBuilder: QueryBuilder
-) => QueryExpression | QueryExpression[] | QueryTerm | QueryTerm[];
-export type QueryOrExpressions =
-  | Query
-  | QueryExpression
-  | QueryExpression[]
-  | QueryTerm
-  | QueryTerm[]
-  | QueryBuilderFunc;
+import { QueryExpression } from './query-expression';
 
 /**
  * Queries are used to extract data from a source.
  */
-export interface Query {
+export interface Query<QE extends QueryExpression> {
   id: string;
-  expressions: QueryExpression[];
+  expressions: QE[];
   options?: RequestOptions;
 }
+
+export type QueryBuilderFunc<QE extends QueryExpression, QB> = (
+  QueryBuilder: QB
+) => QE | QE[] | QueryTerm<QE> | QueryTerm<QE>[];
+
+export type QueryOrExpressions<QE extends QueryExpression, QB> =
+  | Query<QE>
+  | QE
+  | QE[]
+  | QueryTerm<QE>
+  | QueryTerm<QE>[]
+  | QueryBuilderFunc<QE, QB>;
 
 /**
  * A builder function for creating a Query from its constituent parts.
@@ -36,22 +36,22 @@ export interface Query {
  * Queries will be assigned the specified `queryId` as `id`. If none is
  * specified, a UUID will be generated.
  */
-export function buildQuery(
-  queryOrExpressions: QueryOrExpressions,
+export function buildQuery<QE extends QueryExpression, QB = unknown>(
+  queryOrExpressions: QueryOrExpressions<QE, QB>,
   queryOptions?: RequestOptions,
   queryId?: string,
-  queryBuilder?: QueryBuilder
-): Query {
+  queryBuilder?: QB
+): Query<QE> {
   if (typeof queryOrExpressions === 'function') {
-    const queryBuilderFn = queryOrExpressions as QueryBuilderFunc;
-    return buildQuery(
-      queryBuilderFn(queryBuilder as QueryBuilder),
+    const queryBuilderFn = queryOrExpressions as QueryBuilderFunc<QE, QB>;
+    return buildQuery<QE, QB>(
+      queryBuilderFn(queryBuilder as QB),
       queryOptions,
       queryId
     );
   } else {
-    let query = queryOrExpressions as Query;
-    let expressions: QueryExpression[];
+    let query = queryOrExpressions as Query<QE>;
+    let expressions: QE[];
     let options: RequestOptions | undefined;
 
     if (isQuery(query)) {
@@ -63,12 +63,12 @@ export function buildQuery(
     } else if (Array.isArray(queryOrExpressions)) {
       expressions = [];
       for (let queryOrExpression of queryOrExpressions) {
-        expressions.push(toQueryExpression(queryOrExpression));
+        expressions.push(toQueryExpression<QE>(queryOrExpression));
       }
       options = queryOptions;
     } else {
       expressions = [
-        toQueryExpression(queryOrExpressions as QueryExpression | QueryTerm)
+        toQueryExpression(queryOrExpressions as QE | QueryTerm<QE>)
       ];
       options = queryOptions;
     }
@@ -83,22 +83,24 @@ export function buildQuery(
   }
 }
 
-function toQueryExpression(
-  expression: QueryExpression | QueryTerm
-): QueryExpression {
+function toQueryExpression<QE extends QueryExpression = QueryExpression>(
+  expression: QE | QueryTerm<QE>
+): QE {
   if (isQueryTerm(expression)) {
-    return expression.toQueryExpression();
+    return (expression as QueryTerm<QE>).toQueryExpression();
   } else {
     return expression;
   }
 }
 
-function isQueryTerm(
-  expression: QueryExpression | QueryTerm
-): expression is QueryTerm {
-  return typeof (expression as QueryTerm).toQueryExpression === 'function';
+function isQueryTerm<QE extends QueryExpression = QueryExpression>(
+  expression: QE | QueryTerm<QE>
+): expression is QueryTerm<QE> {
+  return typeof (expression as QueryTerm<QE>).toQueryExpression === 'function';
 }
 
-function isQuery(query: QueryOrExpressions): query is Query {
-  return Array.isArray((query as Query).expressions);
+function isQuery<QE extends QueryExpression = QueryExpression>(
+  query: QueryOrExpressions<QE, unknown>
+): query is Query<QE> {
+  return Array.isArray((query as Query<QE>).expressions);
 }

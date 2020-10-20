@@ -1,7 +1,7 @@
-import { TransformBuilder } from '../src/transform-builder';
 import { buildTransform } from '../src/transform';
-import './test-helper';
+import { Operation } from '../src/operation';
 import { OperationTerm } from '../src/operation-term';
+import { RecordOperation, RecordTransformBuilder } from './support/record-data';
 
 const { module, test } = QUnit;
 
@@ -55,7 +55,7 @@ module('buildTransform', function () {
       toOperation: () => {
         return { op: 'addRecord' };
       }
-    } as OperationTerm;
+    } as OperationTerm<RecordOperation>;
     let options = { sources: { jsonapi: { include: 'comments' } } };
     let id = 'abc123';
 
@@ -75,12 +75,12 @@ module('buildTransform', function () {
       toOperation: () => {
         return { op: 'addRecord' };
       }
-    } as OperationTerm;
+    } as OperationTerm<RecordOperation>;
     let term2 = {
       toOperation: () => {
         return { op: 'updateRecord' };
       }
-    } as OperationTerm;
+    } as OperationTerm<RecordOperation>;
     let operations = [term1, term2];
     let options = { sources: { jsonapi: { include: 'comments' } } };
     let id = 'abc123';
@@ -102,19 +102,23 @@ module('buildTransform', function () {
   });
 
   test('will create a transform using a TransformBuilder if a function is passed into it', function (assert) {
-    let tb = new TransformBuilder();
+    let tb = new RecordTransformBuilder();
     let planet = { type: 'planet', id: 'earth' };
     let operation = {
       op: 'addRecord',
       record: planet
     };
 
-    let query = buildTransform(
+    let transform = buildTransform<Operation, RecordTransformBuilder>(
       (t) => t.addRecord(planet),
       undefined,
       undefined,
       tb
     );
-    assert.deepEqual(query.operations, [operation], 'operations was populated');
+    assert.deepEqual(
+      transform.operations,
+      [operation],
+      'operations was populated'
+    );
   });
 });

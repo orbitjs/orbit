@@ -1,19 +1,18 @@
-import { QueryBuilder } from '../src/query-builder';
-import './test-helper';
+import { RecordQueryBuilder } from '../src/record-query-builder';
 import {
   FindRecord,
   FindRecords,
   FindRelatedRecords,
   FindRelatedRecord
-} from '../src/query-expression';
+} from '../src/record-query-expression';
 
 const { module, test } = QUnit;
 
-module('QueryBuilder', function (hooks) {
-  let oqb: QueryBuilder;
+module('RecordQueryBuilder', function (hooks) {
+  let oqb: RecordQueryBuilder;
 
   hooks.beforeEach(function () {
-    oqb = new QueryBuilder();
+    oqb = new RecordQueryBuilder();
   });
 
   test('findRecord', function (assert) {

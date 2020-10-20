@@ -1,25 +1,48 @@
 import { Query, QueryOrExpressions } from '../../src/query';
 import { Source } from '../../src/source';
-import { buildTransform, Transform } from '../../src/transform';
+import { buildTransform } from '../../src/transform';
 import { RequestOptions } from '../../src/request';
 import {
   pullable,
   isPullable,
   Pullable
 } from '../../src/source-interfaces/pullable';
-import '../test-helper';
+import { FullResponse, TransformsOrFullResponse } from '../../src/response';
+import {
+  FindRecords,
+  RecordResponse,
+  RecordOperation,
+  RecordQueryExpression,
+  RecordQueryBuilder
+} from '../support/record-data';
 
 const { module, test } = QUnit;
 
 module('@pullable', function (hooks) {
   @pullable
-  class MySource extends Source implements Pullable {
+  class MySource
+    extends Source
+    implements
+      Pullable<
+        RecordResponse,
+        RecordOperation,
+        RecordQueryExpression,
+        RecordQueryBuilder
+      > {
     pull!: (
-      queryOrExpressions: QueryOrExpressions,
+      queryOrExpressions: QueryOrExpressions<
+        RecordQueryExpression,
+        RecordQueryBuilder
+      >,
       options?: RequestOptions,
       id?: string
-    ) => Promise<Transform[]>;
-    _pull!: (query: Query, hints?: any) => Promise<Transform[]>;
+    ) => Promise<
+      TransformsOrFullResponse<undefined, RecordResponse, RecordOperation>
+    >;
+
+    _pull!: (
+      query: Query<RecordQueryExpression>
+    ) => Promise<FullResponse<undefined, RecordResponse, RecordOperation>>;
   }
 
   let source: MySource;
@@ -32,15 +55,20 @@ module('@pullable', function (hooks) {
     assert.ok(isPullable(source));
   });
 
-  // TODO
-  // test('should be applied to a Source', function(assert) {
-  //   assert.throws(function() {
-  //     @pullable
-  //     class Vanilla {}
-  //   },
-  //   Error('Assertion failed: Pullable interface can only be applied to a Source'),
-  //   'assertion raised');
-  // });
+  test('should be applied to a Source', function (assert) {
+    assert.throws(
+      function () {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore: Test of bad typing
+        @pullable
+        class Vanilla {}
+      },
+      Error(
+        'Assertion failed: Pullable interface can only be applied to a Source'
+      ),
+      'assertion raised'
+    );
+  });
 
   test('#pull should resolve as a failure when _pull fails', async function (assert) {
     assert.expect(2);
@@ -50,7 +78,7 @@ module('@pullable', function (hooks) {
     };
 
     try {
-      await source.pull((q) => q.findRecords('planet'));
+      await source.pull({ op: 'findRecords', type: 'planet' });
     } catch (error) {
       assert.ok(true, 'pull promise resolved as a failure');
       assert.equal(error, ':(', 'failure');
@@ -61,18 +89,24 @@ module('@pullable', function (hooks) {
     assert.expect(9);
 
     let order = 0;
-    let qe = { op: 'findRecords', type: 'planet' };
+    let qe = { op: 'findRecords', type: 'planet' } as FindRecords;
 
     const resultingTransforms = [
-      buildTransform({ op: 'addRecord' }),
-      buildTransform({ op: 'replaceRecordAttribute' })
+      buildTransform<RecordOperation>({
+        op: 'updateRecord',
+        record: { type: 'planet', id: '1' }
+      }),
+      buildTransform<RecordOperation>({
+        op: 'updateRecord',
+        record: { type: 'planet', id: '2' }
+      })
     ];
 
     source._pull = async function (query) {
       assert.equal(++order, 1, 'action performed after willPull');
       assert.strictEqual(query.expressions[0], qe, 'query object matches');
       await this.transformed(resultingTransforms);
-      return resultingTransforms;
+      return { transforms: resultingTransforms };
     };
 
     let transformCount = 0;
@@ -105,11 +139,17 @@ module('@pullable', function (hooks) {
     assert.expect(12);
 
     let order = 0;
-    let qe = { op: 'findRecords', type: 'planet' };
+    let qe = { op: 'findRecords', type: 'planet' } as FindRecords;
 
     const resultingTransforms = [
-      buildTransform({ op: 'addRecord' }),
-      buildTransform({ op: 'replaceRecordAttribute' })
+      buildTransform<RecordOperation>({
+        op: 'updateRecord',
+        record: { type: 'planet', id: '1' }
+      }),
+      buildTransform<RecordOperation>({
+        op: 'updateRecord',
+        record: { type: 'planet', id: '2' }
+      })
     ];
 
     source.on('beforePull', () => {
@@ -131,7 +171,7 @@ module('@pullable', function (hooks) {
       assert.equal(++order, 4, 'action performed after willPull');
       assert.strictEqual(query.expressions[0], qe, 'query object matches');
       await this.transformed(resultingTransforms);
-      return resultingTransforms;
+      return { transforms: resultingTransforms };
     };
 
     let transformCount = 0;
@@ -164,7 +204,7 @@ module('@pullable', function (hooks) {
     assert.expect(7);
 
     let order = 0;
-    let qe = { op: 'findRecords', type: 'planet' };
+    let qe = { op: 'findRecords', type: 'planet' } as FindRecords;
 
     source.on('beforePull', () => {
       assert.equal(++order, 1, 'beforePull triggered third');
@@ -176,9 +216,9 @@ module('@pullable', function (hooks) {
       return Promise.reject(':(');
     });
 
-    source._pull = async function (query: Query): Promise<Transform[]> {
+    source._pull = async function (query) {
       assert.ok(false, '_pull should not be invoked');
-      return [];
+      return { transforms: [] };
     };
 
     source.on('pull', () => {
@@ -207,7 +247,7 @@ module('@pullable', function (hooks) {
     assert.expect(7);
 
     let order = 0;
-    let qe = { op: 'findRecords', type: 'planet' };
+    let qe = { op: 'findRecords', type: 'planet' } as FindRecords;
 
     source._pull = function (query) {
       assert.equal(++order, 1, 'action performed after willPull');
@@ -231,66 +271,5 @@ module('@pullable', function (hooks) {
       assert.equal(++order, 3, 'promise resolved last');
       assert.equal(error, ':(', 'failure');
     }
-  });
-
-  test('#pull should pass a common `hints` object to all `beforePull` events and forward it to `_pull`', async function (assert) {
-    assert.expect(16);
-
-    let order = 0;
-    let qe = { op: 'findRecords', type: 'planet' };
-    let h: any;
-    const resultingTransforms = [
-      buildTransform({ op: 'addRecord' }),
-      buildTransform({ op: 'replaceRecordAttribute' })
-    ];
-
-    source.on('beforePull', async function (query: Query, hints: any) {
-      assert.equal(++order, 1, 'beforePull triggered first');
-      assert.deepEqual(hints, {}, 'beforePull is passed empty `hints` object');
-      h = hints;
-      hints.data = resultingTransforms;
-    });
-
-    source.on('beforePull', async function (query: Query, hints: any) {
-      assert.equal(++order, 2, 'beforePull triggered second');
-      assert.strictEqual(hints, h, 'beforePull is passed same hints instance');
-    });
-
-    source.on('beforePull', async function (query: Query, hints: any) {
-      assert.equal(++order, 3, 'beforePull triggered third');
-      assert.strictEqual(hints, h, 'beforePull is passed same hints instance');
-    });
-
-    source._pull = async function (query: Query, hints: any) {
-      assert.equal(++order, 4, 'action performed after willPull');
-      assert.strictEqual(query.expressions[0], qe, 'query object matches');
-      assert.strictEqual(hints, h, '_pull is passed same hints instance');
-      await this.transformed(resultingTransforms);
-      return hints.data;
-    };
-
-    let transformCount = 0;
-    source.on('transform', async function (transform) {
-      assert.strictEqual(
-        transform,
-        resultingTransforms[transformCount++],
-        'transform matches'
-      );
-    });
-
-    source.on('pull', (query, result) => {
-      assert.equal(
-        ++order,
-        5,
-        'pull triggered after action performed successfully'
-      );
-      assert.strictEqual(query.expressions[0], qe, 'query matches');
-      assert.strictEqual(result, resultingTransforms, 'result matches');
-    });
-
-    let result = await source.pull(qe);
-
-    assert.equal(++order, 6, 'promise resolved last');
-    assert.strictEqual(result, resultingTransforms, 'success!');
   });
 });

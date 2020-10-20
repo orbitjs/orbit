@@ -10,13 +10,16 @@ import {
   SortSpecifier,
   AttributeSortSpecifier,
   Record,
-  RecordIdentity
+  RecordIdentity,
+  RecordQueryExpressionResult
 } from '@orbit/data';
 import { SyncRecordAccessor } from '../record-accessor';
-import { QueryResultData } from '../query-result';
 
 export interface SyncQueryOperator {
-  (cache: SyncRecordAccessor, expression: QueryExpression): QueryResultData;
+  (
+    cache: SyncRecordAccessor,
+    expression: QueryExpression
+  ): RecordQueryExpressionResult;
 }
 
 export const SyncQueryOperators: Dict<SyncQueryOperator> = {

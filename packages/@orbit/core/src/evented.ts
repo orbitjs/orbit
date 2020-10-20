@@ -26,7 +26,7 @@ export interface Evented {
   on: (event: string, listener: Listener) => () => void;
   off: (event: string, listener?: Listener) => void;
   one: (event: string, listener: Listener) => () => void;
-  emit: (event: string, ...args: any[]) => void;
+  emit: (event: string, ...args: unknown[]) => void;
   listeners: (event: string) => Listener[];
 }
 
@@ -105,7 +105,7 @@ export function evented(Klass: { prototype: any }): void {
     return notifier.addListener(callOnce);
   };
 
-  proto.emit = function (eventName: string, ...args: any[]) {
+  proto.emit = function (eventName: string, ...args: unknown[]) {
     let notifier = notifierForEvent(this, eventName);
 
     if (notifier) {
@@ -122,36 +122,50 @@ export function evented(Klass: { prototype: any }): void {
 /**
  * Settle any promises returned by event listeners in series.
  *
- * If any errors are encountered during processing, they will be ignored.
+ * Returns an array of results (or `undefined`) returned by listeners.
+ *
+ * If any errors are encountered during processing, they will be caught and
+ * returned with other results. Errors will not interrupt further processing.
  */
-export function settleInSeries(
+export async function settleInSeries(
   obj: Evented,
   eventName: string,
   ...args: unknown[]
-): Promise<void> {
+): Promise<unknown[]> {
   const listeners = obj.listeners(eventName);
+  const results: unknown[] = [];
 
-  return listeners.reduce((chain, listener) => {
-    return chain.then(() => listener(...args)).catch(() => {});
-  }, Promise.resolve());
+  for (let listener of listeners) {
+    try {
+      results.push(await listener(...args));
+    } catch (e) {
+      results.push(e);
+    }
+  }
+  return results;
 }
 
 /**
- * Fulfill any promises returned by event listeners in series.
+ * Fulfills any promises returned by event listeners in series.
  *
- * Processing will stop if an error is encountered and the returned promise will
- * be rejected.
+ * Returns an array of results (or `undefined`) returned by listeners.
+ *
+ * On error, processing will stop and the returned promise will be rejected with
+ * the error that was encountered.
  */
 export async function fulfillInSeries(
   obj: Evented,
   eventName: string,
   ...args: unknown[]
-): Promise<void> {
+): Promise<unknown[]> {
   const listeners = obj.listeners(eventName);
+  const results: unknown[] = [];
 
   for (let listener of listeners) {
-    await listener(...args);
+    results.push(await listener(...args));
   }
+
+  return results;
 }
 
 function notifierForEvent(

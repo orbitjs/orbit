@@ -338,7 +338,7 @@ export class TaskQueue implements Evented {
     }
   }
 
-  private _complete(): Promise<void> {
+  private async _complete(): Promise<void> {
     if (this._resolve) {
       this._resolve();
     }
@@ -346,10 +346,10 @@ export class TaskQueue implements Evented {
     this._reject = undefined;
     this._error = undefined;
     this._resolution = undefined;
-    return settleInSeries(this, 'complete');
+    await settleInSeries(this, 'complete');
   }
 
-  private _fail(task: Task, e: Error): Promise<void> {
+  private async _fail(task: Task, e: Error): Promise<void> {
     if (this._reject) {
       this._reject(e);
     }
@@ -357,7 +357,7 @@ export class TaskQueue implements Evented {
     this._reject = undefined;
     this._error = e;
     this._resolution = undefined;
-    return settleInSeries(this, 'fail', task, e);
+    await settleInSeries(this, 'fail', task, e);
   }
 
   private _cancel(): void {

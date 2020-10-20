@@ -45,10 +45,8 @@ export interface ResourceDocument {
   meta?: Dict<any>;
 }
 
-export type PrimaryRecordData = Record | Record[] | null;
-
 export interface RecordDocument {
-  data: PrimaryRecordData;
+  data: Record | Record[] | null;
   included?: Record[];
   links?: Dict<Link>;
   meta?: Dict<any>;

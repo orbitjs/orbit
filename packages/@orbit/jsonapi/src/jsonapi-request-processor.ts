@@ -9,7 +9,7 @@ import {
   Schema,
   ServerError,
   Transform,
-  requestOptionsForSource,
+  getRequestOptions,
   QueryExpression
 } from '@orbit/data';
 import { Dict } from '@orbit/utils';
@@ -252,16 +252,13 @@ export class JSONAPIRequestProcessor {
     let options: JSONAPIRequestOptions | undefined;
 
     if (queryOrTransform.options) {
-      options = requestOptionsForSource(
-        queryOrTransform.options,
-        this.sourceName
-      );
+      options = getRequestOptions(queryOrTransform.options, this.sourceName);
     }
 
     if (queryExpressionOrOperation.options) {
       options = {
         ...options,
-        ...requestOptionsForSource(
+        ...getRequestOptions(
           queryExpressionOrOperation.options,
           this.sourceName
         )

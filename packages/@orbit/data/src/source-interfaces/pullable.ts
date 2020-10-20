@@ -1,8 +1,15 @@
 import { Orbit, settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Query, QueryOrExpressions, buildQuery } from '../query';
-import { Transform } from '../transform';
 import { RequestOptions } from '../request';
+import {
+  FullResponse,
+  NamedResponse,
+  createRequestedFullResponse,
+  TransformsOrFullResponse
+} from '../response';
+import { Operation } from '../operation';
+import { QueryExpression } from '../query-expression';
 
 const { assert } = Orbit;
 
@@ -19,20 +26,25 @@ export function isPullable(source: Source): boolean {
  * A source decorated as `@pullable` must also implement the `Pullable`
  * interface.
  */
-export interface Pullable {
+export interface Pullable<
+  R,
+  O extends Operation,
+  QE extends QueryExpression,
+  QB
+> {
   /**
-   * The `pull` method accepts a query or expression and returns a promise that
-   * resolves to an array of `Transform` instances that represent the changeset
-   * that resulted from applying the query. In other words, a `pull` request
-   * retrieves the results of a query in `Transform` form.
+   * The `pull` method accepts a query or expression(s) and returns a promise
+   * that resolves to an array of `Transform` instances that represent the
+   * changeset that resulted from applying the query. In other words, a `pull`
+   * request retrieves the results of a query in `Transform` form.
    */
   pull(
-    queryOrExpressions: QueryOrExpressions,
+    queryOrExpressions: QueryOrExpressions<QE, QB>,
     options?: RequestOptions,
     id?: string
-  ): Promise<Transform[]>;
+  ): Promise<TransformsOrFullResponse<undefined, R, O>>;
 
-  _pull(query: Query, hints?: unknown): Promise<Transform[]>;
+  _pull(query: Query<QE>): Promise<FullResponse<undefined, R, O>>;
 }
 
 /**
@@ -74,10 +86,10 @@ export function pullable(Klass: SourceClass): void {
   proto[PULLABLE] = true;
 
   proto.pull = async function (
-    queryOrExpressions: QueryOrExpressions,
+    queryOrExpressions: QueryOrExpressions<QueryExpression, unknown>,
     options?: RequestOptions,
     id?: string
-  ): Promise<Transform[]> {
+  ): Promise<TransformsOrFullResponse<undefined, unknown, Operation>> {
     await this.activated;
     const query = buildQuery(
       queryOrExpressions,
@@ -88,14 +100,29 @@ export function pullable(Klass: SourceClass): void {
     return this._enqueueRequest('pull', query);
   };
 
-  proto.__pull__ = async function (query: Query): Promise<Transform[]> {
+  proto.__pull__ = async function (
+    query: Query<QueryExpression>
+  ): Promise<TransformsOrFullResponse<undefined, unknown, Operation>> {
     try {
-      const hints: any = {};
+      const otherResponses = (await fulfillInSeries(
+        this,
+        'beforePull',
+        query
+      )) as NamedResponse<unknown, unknown, Operation>[];
+      const fullResponse = await this._pull(query);
+      let response;
 
-      await fulfillInSeries(this, 'beforePull', query, hints);
-      let result = await this._pull(query, hints);
-      await settleInSeries(this, 'pull', query, result);
-      return result;
+      if (query.options?.fullResponse) {
+        response = createRequestedFullResponse<undefined, unknown, Operation>(
+          fullResponse,
+          otherResponses,
+          query.options
+        );
+      } else {
+        response = fullResponse.transforms;
+      }
+      await settleInSeries(this, 'pull', query, response);
+      return response;
     } catch (error) {
       await settleInSeries(this, 'pullFail', query, error);
       throw error;

@@ -1,5 +1,5 @@
 import { Record, UninitializedRecord } from '../src/record';
-import { TransformBuilder } from '../src/transform-builder';
+import { RecordTransformBuilder } from '../src/record-transform-builder';
 import {
   AddRecordOperation,
   UpdateRecordOperation,
@@ -10,16 +10,15 @@ import {
   RemoveFromRelatedRecordsOperation,
   ReplaceRelatedRecordOperation,
   ReplaceRelatedRecordsOperation
-} from '../src/operation';
-import './test-helper';
+} from '../src/record-operation';
 
 const { module, test } = QUnit;
 
-module('TransformBuilder', function (hooks) {
-  let tb: TransformBuilder;
+module('RecordTransformBuilder', function (hooks) {
+  let tb: RecordTransformBuilder;
 
   hooks.beforeEach(function () {
-    tb = new TransformBuilder();
+    tb = new RecordTransformBuilder();
   });
 
   test('#addRecord', function (assert) {
@@ -243,7 +242,7 @@ module('TransformBuilder', function (hooks) {
       }
     };
 
-    tb = new TransformBuilder({ recordInitializer });
+    tb = new RecordTransformBuilder({ recordInitializer });
 
     let record: UninitializedRecord = { type: 'planet' };
 
@@ -254,14 +253,14 @@ module('TransformBuilder', function (hooks) {
   });
 
   test('#addRecord - requires records to have an `id` when a recordInitializer has not been set', function (assert) {
-    tb = new TransformBuilder();
+    tb = new RecordTransformBuilder();
 
     assert.throws(
       function () {
         tb.addRecord({ type: 'planet' }).toOperation();
       },
       Error(
-        'Assertion failed: New records must be assigned an `id` - either directly or via a `RecordInitializer` assigned to the `TransformBuilder`.'
+        'Assertion failed: New records must be assigned an `id` - either directly or via a `RecordInitializer` assigned to the `RecordTransformBuilder`.'
       ),
       'assertion raised'
     );

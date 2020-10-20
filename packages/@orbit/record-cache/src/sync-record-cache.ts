@@ -13,7 +13,9 @@ import {
   TransformBuilderFunc,
   RecordIdentity,
   RequestOptions,
-  OperationTerm
+  OperationTerm,
+  RecordQueryResult,
+  RecordQueryExpressionResult
 } from '@orbit/data';
 import {
   SyncOperationProcessor,
@@ -39,7 +41,6 @@ import {
   RecordRelationshipIdentity
 } from './record-accessor';
 import { PatchResult } from './patch-result';
-import { QueryResult, QueryResultData } from './query-result';
 import { SyncLiveQuery } from './live-query/sync-live-query';
 
 const { assert } = Orbit;
@@ -194,7 +195,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
     queryOrExpressions: QueryOrExpressions,
     options?: RequestOptions,
     id?: string
-  ): QueryResult {
+  ): RecordQueryResult {
     const query = buildQuery(
       queryOrExpressions,
       options,
@@ -278,8 +279,10 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
 
-  protected _query(expressions: QueryExpression[]): QueryResultData[] {
-    const results: QueryResultData[] = [];
+  protected _query(
+    expressions: QueryExpression[]
+  ): RecordQueryExpressionResult[] {
+    const results: RecordQueryExpressionResult[] = [];
     for (let expression of expressions) {
       const queryOperator = this.getQueryOperator(expression.op);
       if (!queryOperator) {
@@ -357,7 +360,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
         this._applyPatchOperations(processor.finally(operation), result);
       }
     } else if (primary) {
-      result.data.push(null);
+      result.data.push(undefined);
     }
   }
 }

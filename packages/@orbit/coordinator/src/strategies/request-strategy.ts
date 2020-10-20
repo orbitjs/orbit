@@ -3,6 +3,7 @@ import {
   ConnectionStrategyOptions
 } from './connection-strategy';
 import { Listener } from '@orbit/core';
+import { ResponseHints } from '@orbit/data';
 
 export interface RequestStrategyOptions extends ConnectionStrategyOptions {
   /**
@@ -54,7 +55,7 @@ export class RequestStrategy extends ConnectionStrategy {
         });
       }
 
-      if (result && result.then) {
+      if (result) {
         let blocking = false;
         if (typeof this._blocking === 'function') {
           if (this._blocking(...args)) {
@@ -67,7 +68,7 @@ export class RequestStrategy extends ConnectionStrategy {
         if (blocking) {
           if (this.passHints) {
             const hints = args[1];
-            if (typeof hints === 'object') {
+            if (hints && typeof hints === 'object') {
               return this.applyHint(hints as { data?: unknown }, result);
             }
           }
@@ -78,7 +79,7 @@ export class RequestStrategy extends ConnectionStrategy {
   }
 
   protected async applyHint(
-    hints: { data?: unknown },
+    hints: ResponseHints<unknown>,
     result: Promise<unknown>
   ): Promise<void> {
     hints.data = await result;

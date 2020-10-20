@@ -6,7 +6,10 @@ import {
   TransformBuilder,
   pushable,
   updatable,
-  buildTransform
+  buildTransform,
+  RecordTransformResult,
+  FullResponse,
+  ResponseHints
 } from '@orbit/data';
 
 const { module, test } = QUnit;
@@ -137,22 +140,27 @@ module('RequestStrategy', function (hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function (transform: Transform): Promise<any> {
+    s1._update = async function (
+      transform: Transform
+    ): Promise<FullResponse<RecordTransformResult, undefined>> {
       assert.strictEqual(
         transform,
         tA,
         'argument to _update is expected Transform'
       );
+      return { data: undefined };
     };
 
-    s2._push = async function (transform: Transform): Promise<Transform[]> {
+    s2._push = async function (
+      transform: Transform
+    ): Promise<FullResponse<Transform[], undefined>> {
       assert.strictEqual(
         transform,
         tA,
         'argument to _push is expected Transform'
       );
       assert.strictEqual(this, s2, 'context is that of the target');
-      return [];
+      return { data: [] };
     };
 
     await coordinator.activate();
@@ -162,11 +170,13 @@ module('RequestStrategy', function (hooks) {
   test('with `passHints: true` and `blocking: true`, will pass `hints` that result from applying the target action', async function (assert) {
     assert.expect(5);
 
+    const record = { type: 'planet', id: 'a' };
+
     strategy = new RequestStrategy({
       source: 's1',
       target: 's2',
       on: 'beforeUpdate',
-      action: 'push',
+      action: 'update',
       blocking: true,
       passHints: true
     });
@@ -178,28 +188,29 @@ module('RequestStrategy', function (hooks) {
 
     s1._update = async function (
       transform: Transform,
-      hints: any
-    ): Promise<any> {
+      hints: ResponseHints<RecordTransformResult>
+    ): Promise<FullResponse<RecordTransformResult, undefined>> {
       assert.strictEqual(
         transform,
         tA,
         'argument to _update is expected Transform'
       );
-      assert.deepEqual(hints.data, [tA], 'result is passed as a hint');
+      assert.deepEqual(hints.data, [record], 'result is passed as a hint');
+      return { data: [record] };
     };
 
-    s2._push = async function (
+    s2._update = async function (
       transform: Transform,
       hints: any
-    ): Promise<Transform[]> {
-      assert.deepEqual(hints, {}, 'no hints are passed to `push`');
+    ): Promise<FullResponse<RecordTransformResult, undefined>> {
+      assert.deepEqual(hints, {}, 'no hints are passed to `s2._update`');
       assert.strictEqual(
         transform,
         tA,
         'argument to _push is expected Transform'
       );
       assert.strictEqual(this, s2, 'context is that of the target');
-      return [tA];
+      return { data: [record] };
     };
 
     await coordinator.activate();
@@ -225,16 +236,22 @@ module('RequestStrategy', function (hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function (): Promise<any> {};
+    s1._update = async function (): Promise<
+      FullResponse<RecordTransformResult, undefined>
+    > {
+      return {};
+    };
 
-    s2._push = async function (transform: Transform): Promise<Transform[]> {
+    s2._push = async function (
+      transform: Transform
+    ): Promise<FullResponse<Transform[], undefined>> {
       assert.strictEqual(
         transform,
         tB,
         'argument to _push is expected Transform'
       );
       assert.strictEqual(this, s2, 'context is that of the target');
-      return [];
+      return { data: [] };
     };
 
     await coordinator.activate();
@@ -269,22 +286,27 @@ module('RequestStrategy', function (hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function (transform: Transform): Promise<any> {
+    s1._update = async function (
+      transform: Transform
+    ): Promise<FullResponse<RecordTransformResult, undefined>> {
       assert.strictEqual(
         transform,
         tA,
         'argument to _update is expected Transform'
       );
+      return {};
     };
 
-    s2._push = async function (transform: Transform): Promise<Transform[]> {
+    s2._push = async function (
+      transform: Transform
+    ): Promise<FullResponse<Transform[], undefined>> {
       assert.strictEqual(
         transform,
         tA,
         'argument to _push is expected Transform'
       );
       assert.strictEqual(this, s2, 'context is that of the target');
-      return [];
+      return { data: [] };
     };
 
     await coordinator.activate();

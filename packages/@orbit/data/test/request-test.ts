@@ -1,5 +1,4 @@
 import { requestOptionsForSource } from '../src/request';
-import './test-helper';
 
 const { module, test } = QUnit;
 

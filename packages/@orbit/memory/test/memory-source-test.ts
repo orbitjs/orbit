@@ -8,7 +8,9 @@ import {
   Source,
   buildTransform,
   RecordOperation,
-  Transform
+  Transform,
+  RecordTransformResult,
+  ResponseHints
 } from '@orbit/data';
 import { clone } from '@orbit/utils';
 import {
@@ -299,14 +301,17 @@ module('MemorySource', function (hooks) {
       attributes: { name: 'Uranus' }
     };
 
-    source.on('beforeUpdate', (transform: Transform, hints: any) => {
-      if (transform?.options?.customizeResults) {
-        hints.data = [
-          { type: 'planet', id: 'uranus' },
-          { type: 'planet', id: 'jupiter' }
-        ];
+    source.on(
+      'beforeUpdate',
+      (transform: Transform, hints: ResponseHints<RecordTransformResult>) => {
+        if (transform?.options?.customizeResults) {
+          hints.data = [
+            { type: 'planet', id: 'uranus' },
+            { type: 'planet', id: 'jupiter' }
+          ];
+        }
       }
-    });
+    );
 
     let planets = await source.update(
       (t) => [t.addRecord(jupiter), t.addRecord(earth), t.addRecord(uranus)],
@@ -349,17 +354,18 @@ module('MemorySource', function (hooks) {
       attributes: { name: 'Uranus' }
     };
 
-    source.on('beforeUpdate', (transform: Transform, hints: any) => {
-      if (transform?.options?.customizeResults) {
-        hints.data = [
-          [
+    source.on(
+      'beforeUpdate',
+      (transform: Transform, hints: ResponseHints<RecordTransformResult>) => {
+        if (transform?.options?.customizeResults) {
+          hints.data = [
             { type: 'planet', id: 'uranus' },
-            { type: 'planet', id: 'earth' }
-          ],
-          { type: 'planet', id: 'jupiter' }
-        ];
+            { type: 'planet', id: 'earth' },
+            undefined
+          ];
+        }
       }
-    });
+    );
 
     let planets = await source.update(
       (t) => [t.addRecord(jupiter), t.addRecord(earth), t.addRecord(uranus)],
@@ -376,7 +382,7 @@ module('MemorySource', function (hooks) {
 
     assert.deepEqual(
       planets,
-      [[uranus, earth], jupiter],
+      [uranus, earth, undefined],
       'planets match hinted records'
     );
   });

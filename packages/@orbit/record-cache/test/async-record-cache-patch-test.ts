@@ -144,7 +144,7 @@ module('AsyncRecordCache - patch', function (hooks) {
       {
         data: [
           p1,
-          null // null because p2 didn't exist
+          undefined // p2 didn't exist
         ],
         inverse: [{ op: 'removeRecord', record: { type: 'planet', id: '1' } }]
       },
@@ -1224,7 +1224,7 @@ module('AsyncRecordCache - patch', function (hooks) {
     assert.deepEqual(
       result,
       {
-        data: [null],
+        data: [undefined],
         inverse: []
       },
       'nothing has changed so there are no inverse ops'
@@ -1442,7 +1442,7 @@ module('AsyncRecordCache - patch', function (hooks) {
             moons: { data: [{ type: 'moon', id: 'm1' }] }
           }
         },
-        null
+        undefined
       ],
       inverse: [
         tb

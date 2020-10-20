@@ -1,11 +1,10 @@
-import { KeyMap } from '../src/key-map';
-import './test-helper';
+import { RecordKeyMap } from '../src/record-key-map';
 
 const { module, test } = QUnit;
 
 module('KeyMap', function (hooks) {
   test('#pushRecord adds mappings; #keyToId and #idToKey access them', function (assert) {
-    let keyMap = new KeyMap();
+    let keyMap = new RecordKeyMap();
 
     keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
     keyMap.pushRecord({ type: 'planet', id: '2', keys: { remoteId: 'b' } });
@@ -25,7 +24,7 @@ module('KeyMap', function (hooks) {
   });
 
   test('#reset clears mappings', function (assert) {
-    let keyMap = new KeyMap();
+    let keyMap = new RecordKeyMap();
 
     keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
 
@@ -39,7 +38,7 @@ module('KeyMap', function (hooks) {
   });
 
   test('#pushRecord does not set incomplete records', function (assert) {
-    let keyMap = new KeyMap();
+    let keyMap = new RecordKeyMap();
 
     keyMap.pushRecord({ type: 'planet', keys: { remoteId: 'a' } });
     assert.strictEqual(keyMap.keyToId('planet', 'remoteId', 'a'), undefined);
@@ -52,7 +51,7 @@ module('KeyMap', function (hooks) {
   });
 
   test('#idFromKeys retrieves an id given a set of keys', function (assert) {
-    let keyMap = new KeyMap();
+    let keyMap = new RecordKeyMap();
 
     keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
 

@@ -1,21 +1,17 @@
 import { Source } from '../src/source';
-import { Schema } from '../src/schema';
 import { buildTransform, Transform } from '../src/transform';
-import { TransformBuilder } from '../src/transform-builder';
-import { QueryBuilder } from '../src/query-builder';
-import { FakeBucket } from './test-helper';
+import { FakeBucket } from './support/fake-bucket';
+import {
+  RecordQueryBuilder,
+  RecordTransformBuilder
+} from './support/record-data';
 
 const { module, test } = QUnit;
 
 module('Source', function (hooks) {
   let source: any;
-  let schema: Schema;
 
-  class MySource extends Source {}
-
-  hooks.beforeEach(function () {
-    schema = new Schema();
-  });
+  class MySource extends Source<RecordQueryBuilder, RecordTransformBuilder> {}
 
   test('it can be instantiated', function (assert) {
     source = new MySource();
@@ -23,40 +19,10 @@ module('Source', function (hooks) {
     assert.ok(source.transformLog, 'has a transform log');
   });
 
-  test('it can be assigned a schema, which will be observed for upgrades by default', async function (assert) {
-    assert.expect(2);
-
-    class MyDynamicSource extends Source {
-      async upgrade() {
-        assert.ok(true, 'upgrade called');
-      }
-    }
-
-    source = new MyDynamicSource({ schema });
-
-    schema.upgrade({});
-
-    assert.ok(true, 'after upgrade');
-  });
-
-  test('it will not be auto-upgraded if autoUpgrade: false option is specified', function (assert) {
-    assert.expect(1);
-
-    class MyDynamicSource extends Source {
-      async upgrade(): Promise<void> {
-        assert.ok(false, 'upgrade should not be called');
-      }
-    }
-
-    source = new MyDynamicSource({ schema, autoUpgrade: false });
-    schema.upgrade({});
-    assert.ok(true, 'after upgrade');
-  });
-
   test('creates a `transformLog`, `requestQueue`, and `syncQueue`, and assigns each the same bucket as the Source', function (assert) {
     assert.expect(8);
     const bucket = new FakeBucket();
-    source = new MySource({ name: 'src1', schema, bucket });
+    source = new MySource({ name: 'src1', bucket });
     assert.equal(source.name, 'src1', 'source has been assigned name');
     assert.equal(
       source.transformLog.name,
@@ -213,34 +179,9 @@ module('Source', function (hooks) {
     await source.activate();
   });
 
-  test('creates a `queryBuilder` upon first access', function (assert) {
-    const qb = source.queryBuilder;
-    assert.ok(qb, 'queryBuilder created');
-    assert.strictEqual(
-      qb,
-      source.queryBuilder,
-      'queryBuilder remains the same'
-    );
-  });
-
-  test('creates a `transformBuilder` upon first access', function (assert) {
-    const tb = source.transformBuilder;
-    assert.ok(tb, 'transformBuilder created');
-    assert.strictEqual(
-      tb,
-      source.transformBuilder,
-      'transformBuilder remains the same'
-    );
-    assert.strictEqual(
-      source.transformBuilder.recordInitializer,
-      source.schema,
-      'transformBuilder uses the schema to initialize records'
-    );
-  });
-
   test('it can be instantiated with a `queryBuilder` and/or `transformBuilder`', function (assert) {
-    const queryBuilder = new QueryBuilder();
-    const transformBuilder = new TransformBuilder();
+    const queryBuilder = new RecordQueryBuilder();
+    const transformBuilder = new RecordTransformBuilder();
     source = new MySource({ queryBuilder, transformBuilder });
     assert.strictEqual(
       queryBuilder,

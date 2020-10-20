@@ -3691,10 +3691,10 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs('/planets/1234')
         .returns(jsonapiResponse(200, { data: data2 }));
 
-      let records = await source.query((q) => [
+      let records = (await source.query((q) => [
         q.findRecord({ type: 'planet', id: planet1.id }),
         q.findRecord({ type: 'planet', id: planet2.id })
-      ]);
+      ])) as Record[];
 
       assert.ok(Array.isArray(records), 'multiple primary records returned');
       assert.equal((records[0] as Record).attributes?.name, 'Jupiter');
@@ -3938,9 +3938,9 @@ module('JSONAPISource with legacy serialization settings', function () {
 
       fetchStub.withArgs('/planets').returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRecords('planet')
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -3992,9 +3992,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs(`/planets?${encodeURIComponent('filter[length-of-day]')}=24`)
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRecords('planet').filter({ attribute: 'lengthOfDay', value: 24 })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -4029,12 +4029,12 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs(`/moons?${encodeURIComponent('filter[planet]')}=earth`)
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRecords('moon').filter({
           relation: 'planet',
           record: { id: 'earth', type: 'planets' }
         })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -4089,7 +4089,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRecords('moon').filter({
           relation: 'planet',
           record: [
@@ -4097,7 +4097,7 @@ module('JSONAPISource with legacy serialization settings', function () {
             { id: 'mars', type: 'planets' }
           ]
         })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -4141,7 +4141,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRecords('planet').filter({
           relation: 'moons',
           records: [
@@ -4150,7 +4150,7 @@ module('JSONAPISource with legacy serialization settings', function () {
           ],
           op: 'equal'
         })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -4189,9 +4189,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs('/planets?sort=name')
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRecords('planet').sort('name')
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -4230,9 +4230,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs('/planets?sort=-name')
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRecords('planet').sort('-name')
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -4283,9 +4283,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs(`/planets?sort=${encodeURIComponent('length-of-day,name')}`)
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRecords('planet').sort('lengthOfDay', 'name')
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -4328,9 +4328,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRecords('planet').page({ offset: 1, limit: 10 })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -4382,11 +4382,11 @@ module('JSONAPISource with legacy serialization settings', function () {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q
           .findRelatedRecords(solarSystem, 'planets')
           .filter({ attribute: 'lengthOfDay', value: 24 })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -4430,12 +4430,12 @@ module('JSONAPISource with legacy serialization settings', function () {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'moons').filter({
           relation: 'planet',
           record: { id: 'earth', type: 'planets' }
         })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -4495,7 +4495,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'moons').filter({
           relation: 'planet',
           record: [
@@ -4503,7 +4503,7 @@ module('JSONAPISource with legacy serialization settings', function () {
             { id: 'mars', type: 'planets' }
           ]
         })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -4552,7 +4552,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'planets').filter({
           relation: 'moons',
           records: [
@@ -4561,7 +4561,7 @@ module('JSONAPISource with legacy serialization settings', function () {
           ],
           op: 'equal'
         })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -4605,9 +4605,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs('/solar-systems/sun/planets?sort=name')
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('name')
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -4651,9 +4651,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs('/solar-systems/sun/planets?sort=-name')
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('-name')
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -4713,9 +4713,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('lengthOfDay', 'name')
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -4763,11 +4763,11 @@ module('JSONAPISource with legacy serialization settings', function () {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q
           .findRelatedRecords(solarSystem, 'planets')
           .page({ offset: 1, limit: 10 })
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -4888,10 +4888,10 @@ module('JSONAPISource with legacy serialization settings', function () {
         })
       );
 
-      let records: Record[] = await source.query(
+      let records = (await source.query(
         (q) => q.findRecords('planet'),
         options
-      );
+      )) as Record[];
 
       assert.ok(
         Array.isArray(records),
@@ -4992,9 +4992,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs('/planets/jupiter/moons')
         .returns(jsonapiResponse(200, { data }));
 
-      let records: Record[] = await source.query((q) =>
+      let records = (await source.query((q) =>
         q.findRelatedRecords(planet, 'moons')
-      );
+      )) as Record[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');

@@ -15,18 +15,18 @@ import {
   ReplaceRelatedRecordTerm,
   ReplaceRelatedRecordsTerm,
   RemoveFromRelatedRecordsTerm
-} from './operation-term';
+} from './record-operation-term';
 
 const { assert, deprecate } = Orbit;
 
-export interface TransformBuilderSettings {
+export interface RecordTransformBuilderSettings {
   recordInitializer?: RecordInitializer;
 }
 
-export class TransformBuilder {
+export class RecordTransformBuilder {
   private _recordInitializer?: RecordInitializer;
 
-  constructor(settings: TransformBuilderSettings = {}) {
+  constructor(settings: RecordTransformBuilderSettings = {}) {
     this._recordInitializer = settings.recordInitializer;
   }
 
@@ -55,7 +55,7 @@ export class TransformBuilder {
     }
 
     assert(
-      'New records must be assigned an `id` - either directly or via a `RecordInitializer` assigned to the `TransformBuilder`.',
+      'New records must be assigned an `id` - either directly or via a `RecordInitializer` assigned to the `RecordTransformBuilder`.',
       record.id !== undefined
     );
 

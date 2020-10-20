@@ -9,7 +9,6 @@ import {
   serializeRecordIdentity,
   mergeRecords
 } from '../src/record';
-import './test-helper';
 
 const { module, test } = QUnit;
 

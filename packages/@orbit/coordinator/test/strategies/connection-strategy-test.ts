@@ -6,7 +6,9 @@ import {
   TransformBuilder,
   pushable,
   updatable,
-  buildTransform
+  buildTransform,
+  FullResponse,
+  RecordTransformResult
 } from '@orbit/data';
 
 const { module, test } = QUnit;
@@ -137,22 +139,27 @@ module('ConnectionStrategy', function (hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function (transform: Transform): Promise<any> {
+    s1._update = async function (
+      transform: Transform
+    ): Promise<FullResponse<RecordTransformResult, undefined>> {
       assert.strictEqual(
         transform,
         tA,
         'argument to _update is expected Transform'
       );
+      return { data: undefined };
     };
 
-    s2._push = async function (transform: Transform): Promise<Transform[]> {
+    s2._push = async function (
+      transform: Transform
+    ): Promise<FullResponse<Transform[], undefined>> {
       assert.strictEqual(
         transform,
         tA,
-        'argument to _push is expected Transform'
+        'argument to _update is expected Transform'
       );
       assert.strictEqual(this, s2, 'context is that of the target');
-      return [];
+      return { data: [] };
     };
 
     await coordinator.activate();
@@ -181,16 +188,22 @@ module('ConnectionStrategy', function (hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function (transform: Transform): Promise<any> {};
+    s1._update = async function (
+      transform: Transform
+    ): Promise<FullResponse<RecordTransformResult, undefined>> {
+      return {};
+    };
 
-    s2._push = async function (transform: Transform): Promise<Transform[]> {
+    s2._push = async function (
+      transform: Transform
+    ): Promise<FullResponse<Transform[], undefined>> {
       assert.strictEqual(
         transform,
         tB,
         'argument to _push is expected Transform'
       );
       assert.strictEqual(this, s2, 'context is that of the target');
-      return [];
+      return { data: [] };
     };
 
     await coordinator.activate();

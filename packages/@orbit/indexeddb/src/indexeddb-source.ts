@@ -17,9 +17,11 @@ import {
   TransformOrOperations,
   RecordOperation,
   Operation,
-  UpdateRecordOperation
+  UpdateRecordOperation,
+  FullResponse,
+  RecordQueryExpressionResult,
+  Response
 } from '@orbit/data';
-import { QueryResultData } from '@orbit/record-cache';
 import { supportsIndexedDB } from './lib/indexeddb';
 import { IndexedDBCache, IndexedDBCacheSettings } from './indexeddb-cache';
 
@@ -38,7 +40,7 @@ export interface IndexedDBSourceSettings extends SourceSettings {
 @syncable
 export class IndexedDBSource
   extends Source
-  implements Pullable, Pushable, Resettable, Syncable {
+  implements Pullable<undefined>, Pushable<undefined>, Resettable, Syncable {
   protected _cache: IndexedDBCache;
 
   // Syncable interface stubs
@@ -49,14 +51,14 @@ export class IndexedDBSource
     queryOrExpressions: QueryOrExpressions,
     options?: RequestOptions,
     id?: string
-  ) => Promise<Transform[]>;
+  ) => Promise<Response<Transform[], undefined>>;
 
   // Pushable interface stubs
   push!: (
     transformOrOperations: TransformOrOperations,
     options?: RequestOptions,
     id?: string
-  ) => Promise<Transform[]>;
+  ) => Promise<Response<Transform[], undefined>>;
 
   constructor(settings: IndexedDBSourceSettings = {}) {
     assert(
@@ -128,7 +130,9 @@ export class IndexedDBSource
   // Pushable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _push(transform: Transform): Promise<Transform[]> {
+  async _push(
+    transform: Transform
+  ): Promise<FullResponse<Transform[], undefined>> {
     let results: Transform[];
 
     if (!this.transformLog.contains(transform.id)) {
@@ -139,23 +143,25 @@ export class IndexedDBSource
       results = [];
     }
 
-    return results;
+    return { data: results };
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Pullable implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _pull(query: Query): Promise<Transform[]> {
+  async _pull(query: Query): Promise<FullResponse<Transform[], undefined>> {
     let operations: Operation[];
 
     const results = await this._cache.query(query);
 
     if (query.expressions.length === 1) {
-      operations = this._operationsFromQueryResult(results as QueryResultData);
+      operations = this._operationsFromQueryResult(
+        results as RecordQueryExpressionResult
+      );
     } else {
       operations = [];
-      for (let result of results as QueryResultData[]) {
+      for (let result of results as RecordQueryExpressionResult[]) {
         operations.push(...this._operationsFromQueryResult(result));
       }
     }
@@ -164,10 +170,10 @@ export class IndexedDBSource
 
     await this.transformed(transforms);
 
-    return transforms;
+    return { data: transforms };
   }
 
-  _operationsFromQueryResult(result: QueryResultData): Operation[] {
+  _operationsFromQueryResult(result: RecordQueryExpressionResult): Operation[] {
     if (Array.isArray(result)) {
       return result.map((r) => {
         return {

@@ -1,6 +1,5 @@
-import { Schema } from '../src/schema';
-import { Record, UninitializedRecord } from '../src';
-import './test-helper';
+import { RecordSchema } from '../src/record-schema';
+import { UninitializedRecord } from '../src/record';
 
 const { module, test } = QUnit;
 
@@ -8,19 +7,19 @@ const { module, test } = QUnit;
 
 module('Schema', function () {
   test('can be instantiated', function (assert) {
-    const schema = new Schema();
+    const schema = new RecordSchema();
     assert.ok(schema);
   });
 
   test('#version is assigned `1` by default', function (assert) {
-    const schema = new Schema();
+    const schema = new RecordSchema();
     assert.equal(schema.version, 1, 'version === 1');
   });
 
   test('#upgrade bumps the current version', function (assert) {
     const done = assert.async();
 
-    const schema = new Schema({
+    const schema = new RecordSchema({
       models: {
         planet: {}
       }
@@ -55,7 +54,7 @@ module('Schema', function () {
       }
     };
 
-    const schema = new Schema({
+    const schema = new RecordSchema({
       models: {
         planet: planetDefinition
       }
@@ -74,7 +73,7 @@ module('Schema', function () {
       }
     };
 
-    const schema = new Schema({
+    const schema = new RecordSchema({
       models: {
         planet: planetDefinition
       }
@@ -87,7 +86,7 @@ module('Schema', function () {
   });
 
   test('#getModel throws an exception if a model definition is not found', function (assert) {
-    const schema = new Schema();
+    const schema = new RecordSchema();
 
     assert.throws(function () {
       schema.getModel('planet');
@@ -95,7 +94,7 @@ module('Schema', function () {
   });
 
   test('#hasAttribute', function (assert) {
-    const schema = new Schema({
+    const schema = new RecordSchema({
       models: {
         planet: {
           attributes: {
@@ -110,7 +109,7 @@ module('Schema', function () {
   });
 
   test('#hasRelationship', function (assert) {
-    const schema = new Schema({
+    const schema = new RecordSchema({
       models: {
         planet: {
           relationships: {
@@ -126,7 +125,7 @@ module('Schema', function () {
   });
 
   test('#getAttribute', function (assert) {
-    const schema = new Schema({
+    const schema = new RecordSchema({
       models: {
         planet: {
           attributes: {
@@ -140,7 +139,7 @@ module('Schema', function () {
   });
 
   test('#eachAttribute', function (assert) {
-    const schema = new Schema({
+    const schema = new RecordSchema({
       models: {
         planet: {
           attributes: {
@@ -166,7 +165,7 @@ module('Schema', function () {
   });
 
   test('#getRelationship', function (assert) {
-    const schema = new Schema({
+    const schema = new RecordSchema({
       models: {
         planet: {
           relationships: {
@@ -184,7 +183,7 @@ module('Schema', function () {
   });
 
   test('#eachRelationship', function (assert) {
-    const schema = new Schema({
+    const schema = new RecordSchema({
       models: {
         planet: {
           attributes: {
@@ -210,18 +209,18 @@ module('Schema', function () {
   });
 
   test('#pluralize simply adds an `s` to the end of words', function (assert) {
-    const schema = new Schema();
+    const schema = new RecordSchema();
     assert.equal(schema.pluralize('cow'), 'cows', 'no kine here');
   });
 
   test('#singularize simply removes a trailing `s` if present at the end of words', function (assert) {
-    const schema = new Schema();
+    const schema = new RecordSchema();
     assert.equal(schema.singularize('cows'), 'cow', 'no kine here');
     assert.equal(schema.singularize('data'), 'data', 'no Latin knowledge here');
   });
 
   test('#generateId', function (assert) {
-    const schema = new Schema({
+    const schema = new RecordSchema({
       generateId: (modelName) => `${modelName}-123`,
 
       models: {
@@ -237,7 +236,7 @@ module('Schema', function () {
   });
 
   test('#initializeRecord', function (assert) {
-    const schema = new Schema({
+    const schema = new RecordSchema({
       generateId: (modelName) => `${modelName}-123`,
 
       models: {

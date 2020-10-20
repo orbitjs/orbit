@@ -1,9 +1,8 @@
-import { coalesceRecordOperations, recordDiffs } from '../src/operation';
-import './test-helper';
+import { coalesceRecordOperations, recordDiffs } from '../src/record-operation';
 
 const { module, test } = QUnit;
 
-module('Operation', function () {
+module('RecordOperation', function () {
   module('`coalesceRecordOperations`', function () {
     test('can coalesce replaceAttribute + replaceAttribute for the same record', function (assert) {
       assert.deepEqual(

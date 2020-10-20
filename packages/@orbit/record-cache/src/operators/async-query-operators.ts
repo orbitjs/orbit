@@ -10,14 +10,14 @@ import {
   SortSpecifier,
   AttributeSortSpecifier,
   Record,
-  RecordIdentity
+  RecordIdentity,
+  RecordQueryExpressionResult
 } from '@orbit/data';
 import { AsyncRecordAccessor } from '../record-accessor';
-import { QueryResultData } from '../query-result';
 
 export interface AsyncQueryOperator {
   (cache: AsyncRecordAccessor, expression: QueryExpression): Promise<
-    QueryResultData
+    RecordQueryExpressionResult
   >;
 }
 
@@ -25,7 +25,7 @@ export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
   async findRecord(
     cache: AsyncRecordAccessor,
     expression: QueryExpression
-  ): Promise<QueryResultData> {
+  ): Promise<RecordQueryExpressionResult> {
     const { record } = expression as FindRecord;
     const currentRecord = await cache.getRecordAsync(record);
 

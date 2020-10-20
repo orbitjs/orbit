@@ -4,9 +4,9 @@ import {
   FindRecordsTerm,
   FindRelatedRecordTerm,
   FindRelatedRecordsTerm
-} from './query-term';
+} from './record-query-term';
 
-export class QueryBuilder {
+export class RecordQueryBuilder {
   /**
    * Find a record by its identity.
    */

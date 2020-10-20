@@ -11,43 +11,38 @@ import {
   Listener,
   Log
 } from '@orbit/core';
-import { KeyMap } from './key-map';
-import { Schema } from './schema';
-import { QueryBuilder } from './query-builder';
 import { Transform } from './transform';
-import { TransformBuilder } from './transform-builder';
 
 const { assert } = Orbit;
 
-export interface SourceSettings {
+export interface SourceSettings<QueryBuilder, TransformBuilder> {
   name?: string;
-  schema?: Schema;
-  keyMap?: KeyMap;
   bucket?: Bucket;
   queryBuilder?: QueryBuilder;
   transformBuilder?: TransformBuilder;
-  autoUpgrade?: boolean;
   autoActivate?: boolean;
   requestQueueSettings?: TaskQueueSettings;
   syncQueueSettings?: TaskQueueSettings;
 }
 
-export type SourceClass = new () => Source;
+export type SourceClass<
+  QueryBuilder = unknown,
+  TransformBuilder = unknown
+> = new () => Source<QueryBuilder, TransformBuilder>;
 
 /**
  * Base class for sources.
  */
 @evented
-export abstract class Source implements Evented, Performer {
+export abstract class Source<QueryBuilder = unknown, TransformBuilder = unknown>
+  implements Evented, Performer {
   protected _name?: string;
   protected _bucket?: Bucket;
-  protected _keyMap?: KeyMap;
-  protected _schema?: Schema;
   protected _transformLog: Log;
   protected _requestQueue: TaskQueue;
   protected _syncQueue: TaskQueue;
-  protected _queryBuilder?: QueryBuilder;
-  protected _transformBuilder?: TransformBuilder;
+  protected queryBuilder?: QueryBuilder;
+  protected transformBuilder?: TransformBuilder;
   private _activated?: Promise<void>;
 
   // Evented interface stubs
@@ -57,13 +52,11 @@ export abstract class Source implements Evented, Performer {
   emit!: (event: string, ...args: any[]) => void;
   listeners!: (event: string) => Listener[];
 
-  constructor(settings: SourceSettings = {}) {
-    this._schema = settings.schema;
-    this._keyMap = settings.keyMap;
+  constructor(settings: SourceSettings<QueryBuilder, TransformBuilder> = {}) {
     const name = (this._name = settings.name);
     const bucket = (this._bucket = settings.bucket);
-    this._queryBuilder = settings.queryBuilder;
-    this._transformBuilder = settings.transformBuilder;
+    this.queryBuilder = settings.queryBuilder;
+    this.transformBuilder = settings.transformBuilder;
     const requestQueueSettings = settings.requestQueueSettings || {};
     const syncQueueSettings = settings.syncQueueSettings || {};
     const autoActivate =
@@ -92,13 +85,6 @@ export abstract class Source implements Evented, Performer {
       ...requestQueueSettings
     });
 
-    if (
-      this._schema &&
-      (settings.autoUpgrade === undefined || settings.autoUpgrade)
-    ) {
-      this._schema.on('upgrade', () => this.upgrade());
-    }
-
     if (autoActivate) {
       this.activate();
     }
@@ -106,14 +92,6 @@ export abstract class Source implements Evented, Performer {
 
   get name(): string | undefined {
     return this._name;
-  }
-
-  get schema(): Schema | undefined {
-    return this._schema;
-  }
-
-  get keyMap(): KeyMap | undefined {
-    return this._keyMap;
   }
 
   get bucket(): Bucket | undefined {
@@ -130,24 +108,6 @@ export abstract class Source implements Evented, Performer {
 
   get syncQueue(): TaskQueue {
     return this._syncQueue;
-  }
-
-  get queryBuilder(): QueryBuilder {
-    let qb = this._queryBuilder;
-    if (qb === undefined) {
-      qb = this._queryBuilder = new QueryBuilder();
-    }
-    return qb;
-  }
-
-  get transformBuilder(): TransformBuilder {
-    let tb = this._transformBuilder;
-    if (tb === undefined) {
-      tb = this._transformBuilder = new TransformBuilder({
-        recordInitializer: this._schema
-      });
-    }
-    return tb;
   }
 
   // Performer interface

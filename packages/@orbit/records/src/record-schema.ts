@@ -1,6 +1,6 @@
 /* eslint-disable valid-jsdoc */
 import { Orbit } from '@orbit/core';
-import { ModelNotFound } from './exception';
+import { ModelNotFound } from './record-exceptions';
 import { Dict } from '@orbit/utils';
 import { evented, Evented, Listener } from '@orbit/core';
 import { Record, RecordInitializer, UninitializedRecord } from './record';
@@ -34,7 +34,7 @@ export interface ModelDefinition {
 /**
  * Settings used to initialze and/or upgrade schemas.
  */
-export interface SchemaSettings {
+export interface RecordSchemaSettings {
   /**
    * Schema version. Defaults to 1.
    */
@@ -71,7 +71,7 @@ export interface SchemaSettings {
  * sources.
  */
 @evented
-export class Schema implements Evented, RecordInitializer {
+export class RecordSchema implements Evented, RecordInitializer {
   private _models!: Dict<ModelDefinition>;
   private _version!: number;
 
@@ -82,7 +82,7 @@ export class Schema implements Evented, RecordInitializer {
   emit!: (event: string, ...args: any[]) => void;
   listeners!: (event: string) => Listener[];
 
-  constructor(settings: SchemaSettings = {}) {
+  constructor(settings: RecordSchemaSettings = {}) {
     if (settings.version === undefined) {
       settings.version = 1;
     }
@@ -106,7 +106,7 @@ export class Schema implements Evented, RecordInitializer {
    *
    * Emits the `upgrade` event to cue sources to upgrade their data.
    */
-  upgrade(settings: SchemaSettings = {}): void {
+  upgrade(settings: RecordSchemaSettings = {}): void {
     if (settings.version === undefined) {
       settings.version = this._version + 1;
     }
@@ -117,7 +117,7 @@ export class Schema implements Evented, RecordInitializer {
   /**
    * Registers a complete set of settings
    */
-  protected _applySettings(settings: SchemaSettings): void {
+  protected _applySettings(settings: RecordSchemaSettings): void {
     // Version
     if (settings.version !== undefined) {
       this._version = settings.version;
