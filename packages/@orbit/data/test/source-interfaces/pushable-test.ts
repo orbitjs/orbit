@@ -96,8 +96,9 @@ module('@pushable', function (hooks) {
       op: 'addRecord',
       record: { type: 'planet', id: '2' }
     });
-
-    const resultingTransforms = [addPlanet1, addPlanet2];
+    const fullResponse = {
+      transforms: [addPlanet1, addPlanet2]
+    };
 
     source.on('beforePush', (transform) => {
       assert.equal(++order, 1, 'beforePush triggered first');
@@ -107,8 +108,7 @@ module('@pushable', function (hooks) {
     source._push = async function (transform) {
       assert.equal(++order, 2, 'action performed after beforePush');
       assert.strictEqual(transform, addPlanet1, 'transform object matches');
-      await this.transformed(resultingTransforms);
-      return { transforms: resultingTransforms };
+      return fullResponse;
     };
 
     let transformCount = 0;
@@ -120,7 +120,7 @@ module('@pushable', function (hooks) {
       );
       assert.strictEqual(
         transform,
-        resultingTransforms[transformCount++],
+        fullResponse.transforms[transformCount++],
         'transform matches'
       );
       return Promise.resolve();
@@ -140,7 +140,7 @@ module('@pushable', function (hooks) {
     assert.equal(++order, 6, 'promise resolved last');
     assert.deepEqual(
       result,
-      resultingTransforms,
+      fullResponse.transforms,
       'applied transforms are returned on success'
     );
   });

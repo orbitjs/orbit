@@ -91,29 +91,30 @@ module('@pullable', function (hooks) {
     let order = 0;
     let qe = { op: 'findRecords', type: 'planet' } as FindRecords;
 
-    const resultingTransforms = [
-      buildTransform<RecordOperation>({
-        op: 'updateRecord',
-        record: { type: 'planet', id: '1' }
-      }),
-      buildTransform<RecordOperation>({
-        op: 'updateRecord',
-        record: { type: 'planet', id: '2' }
-      })
-    ];
+    const fullResponse = {
+      transforms: [
+        buildTransform<RecordOperation>({
+          op: 'updateRecord',
+          record: { type: 'planet', id: '1' }
+        }),
+        buildTransform<RecordOperation>({
+          op: 'updateRecord',
+          record: { type: 'planet', id: '2' }
+        })
+      ]
+    };
 
     source._pull = async function (query) {
       assert.equal(++order, 1, 'action performed after willPull');
       assert.strictEqual(query.expressions[0], qe, 'query object matches');
-      await this.transformed(resultingTransforms);
-      return { transforms: resultingTransforms };
+      return fullResponse;
     };
 
     let transformCount = 0;
     source.on('transform', (transform) => {
       assert.strictEqual(
         transform,
-        resultingTransforms[transformCount++],
+        fullResponse.transforms[transformCount++],
         'transform matches'
       );
       return Promise.resolve();
@@ -126,13 +127,13 @@ module('@pullable', function (hooks) {
         'pull triggered after action performed successfully'
       );
       assert.strictEqual(query.expressions[0], qe, 'query matches');
-      assert.strictEqual(result, resultingTransforms, 'result matches');
+      assert.strictEqual(result, fullResponse, 'result matches');
     });
 
     let result = await source.pull(qe);
 
     assert.equal(++order, 3, 'promise resolved last');
-    assert.strictEqual(result, resultingTransforms, 'success!');
+    assert.strictEqual(result, fullResponse.transforms, 'success!');
   });
 
   test('#pull should resolve all promises returned from `beforePull` before calling `_transform`', async function (assert) {
@@ -141,16 +142,18 @@ module('@pullable', function (hooks) {
     let order = 0;
     let qe = { op: 'findRecords', type: 'planet' } as FindRecords;
 
-    const resultingTransforms = [
-      buildTransform<RecordOperation>({
-        op: 'updateRecord',
-        record: { type: 'planet', id: '1' }
-      }),
-      buildTransform<RecordOperation>({
-        op: 'updateRecord',
-        record: { type: 'planet', id: '2' }
-      })
-    ];
+    const fullResponse = {
+      transforms: [
+        buildTransform<RecordOperation>({
+          op: 'updateRecord',
+          record: { type: 'planet', id: '1' }
+        }),
+        buildTransform<RecordOperation>({
+          op: 'updateRecord',
+          record: { type: 'planet', id: '2' }
+        })
+      ]
+    };
 
     source.on('beforePull', () => {
       assert.equal(++order, 1, 'beforePull triggered first');
@@ -170,15 +173,14 @@ module('@pullable', function (hooks) {
     source._pull = async function (query) {
       assert.equal(++order, 4, 'action performed after willPull');
       assert.strictEqual(query.expressions[0], qe, 'query object matches');
-      await this.transformed(resultingTransforms);
-      return { transforms: resultingTransforms };
+      return fullResponse;
     };
 
     let transformCount = 0;
     source.on('transform', (transform) => {
       assert.strictEqual(
         transform,
-        resultingTransforms[transformCount++],
+        fullResponse.transforms[transformCount++],
         'transform matches'
       );
       return Promise.resolve();
@@ -191,13 +193,13 @@ module('@pullable', function (hooks) {
         'pull triggered after action performed successfully'
       );
       assert.strictEqual(query.expressions[0], qe, 'query matches');
-      assert.strictEqual(result, resultingTransforms, 'result matches');
+      assert.strictEqual(result, fullResponse, 'result matches');
     });
 
     let result = await source.pull(qe);
 
     assert.equal(++order, 6, 'promise resolved last');
-    assert.strictEqual(result, resultingTransforms, 'success!');
+    assert.strictEqual(result, fullResponse.transforms, 'success!');
   });
 
   test('#pull should resolve all promises returned from `beforePull` and fail if any fail', async function (assert) {
@@ -205,6 +207,9 @@ module('@pullable', function (hooks) {
 
     let order = 0;
     let qe = { op: 'findRecords', type: 'planet' } as FindRecords;
+    const fullResponse = {
+      transforms: []
+    };
 
     source.on('beforePull', () => {
       assert.equal(++order, 1, 'beforePull triggered third');
@@ -218,7 +223,7 @@ module('@pullable', function (hooks) {
 
     source._pull = async function (query) {
       assert.ok(false, '_pull should not be invoked');
-      return { transforms: [] };
+      return fullResponse;
     };
 
     source.on('pull', () => {

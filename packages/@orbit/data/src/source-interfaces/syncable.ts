@@ -84,6 +84,7 @@ export function syncable(Klass: SourceClass): void {
     try {
       await fulfillInSeries(this, 'beforeSync', transform);
       await this._sync(transform);
+      await this.transformed([transform]);
       await settleInSeries(this, 'sync', transform);
     } catch (error) {
       await settleInSeries(this, 'syncFail', transform, error);

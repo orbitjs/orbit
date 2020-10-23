@@ -3,11 +3,10 @@ import { Source, SourceClass } from '../source';
 import { Transform, TransformOrOperations, buildTransform } from '../transform';
 import { RequestOptions } from '../request';
 import {
-  DataOrFullResponse,
   FullResponse,
-  NamedResponse,
-  createRequestedFullResponse,
-  TransformsOrFullResponse
+  NamedFullResponse,
+  TransformsOrFullResponse,
+  mapNamedFullResponses
 } from '../response';
 import { Operation } from '../operation';
 
@@ -102,7 +101,7 @@ export function pushable(Klass: SourceClass): void {
 
   proto.__push__ = async function (
     transform: Transform
-  ): Promise<DataOrFullResponse<undefined, unknown, Operation>> {
+  ): Promise<TransformsOrFullResponse<undefined, unknown, Operation>> {
     if (this.transformLog.contains(transform.id)) {
       return {
         transforms: []
@@ -110,25 +109,27 @@ export function pushable(Klass: SourceClass): void {
     }
 
     try {
+      const options = transform.options || {};
       const otherResponses = (await fulfillInSeries(
         this,
         'beforePush',
         transform
-      )) as NamedResponse<unknown, unknown, Operation>[];
+      )) as (NamedFullResponse<unknown, unknown, Operation> | undefined)[];
       const fullResponse = await this._push(transform);
-      let response;
-
-      if (transform.options?.fullResponse) {
-        response = createRequestedFullResponse<undefined, unknown, Operation>(
-          fullResponse,
-          otherResponses,
-          transform.options
-        );
-      } else {
-        response = fullResponse.transforms;
+      if (options.includeSources) {
+        fullResponse.sources = otherResponses
+          ? mapNamedFullResponses<unknown, unknown, Operation>(otherResponses)
+          : {};
       }
-      await settleInSeries(this, 'push', transform, response);
-      return response;
+      if (fullResponse.transforms?.length > 0) {
+        await this.transformed(fullResponse.transforms);
+      }
+      await settleInSeries(this, 'push', transform, fullResponse);
+      if (options.fullResponse) {
+        return fullResponse;
+      } else {
+        return fullResponse.transforms || [];
+      }
     } catch (error) {
       await settleInSeries(this, 'pushFail', transform, error);
       throw error;

@@ -108,7 +108,6 @@ module('@syncable', function (hooks) {
         addRecordTransform,
         'transform object matches'
       );
-      await this.transformed([transform]);
     };
 
     source.on('transform', (transform) => {

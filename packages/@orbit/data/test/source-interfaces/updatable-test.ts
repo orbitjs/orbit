@@ -109,6 +109,7 @@ module('@updatable', function (hooks) {
         id: 'p1'
       }
     ];
+    const fullResponse = { data: result1, transforms: [addRecordTransform] };
 
     source.on('beforeUpdate', (transform) => {
       assert.equal(++order, 1, 'beforeUpdate triggered first');
@@ -123,8 +124,7 @@ module('@updatable', function (hooks) {
         addRecordTransform,
         'transform object matches'
       );
-      await this.transformed([transform]);
-      return { data: result1 };
+      return fullResponse;
     };
 
     source.on('transform', (transform) => {
@@ -148,7 +148,7 @@ module('@updatable', function (hooks) {
         addRecordTransform,
         'update transform matches'
       );
-      assert.deepEqual(result, result1, 'result matches');
+      assert.deepEqual(result, fullResponse, 'result matches');
     });
 
     let result = await source.update(addRecordTransform);
@@ -176,6 +176,7 @@ module('@updatable', function (hooks) {
         id: 'p2'
       }
     ];
+    const fullResponse = { data: result1, transforms: [addRecordTransform] };
 
     source.on('beforeUpdate', (transform) => {
       assert.equal(++order, 1, 'beforeUpdate triggered first');
@@ -189,8 +190,7 @@ module('@updatable', function (hooks) {
         addRecordTransform,
         'transform object matches'
       );
-      await this.transformed([transform]);
-      return { data: result1 };
+      return fullResponse;
     };
 
     source.on('transform', (transform) => {
@@ -214,7 +214,7 @@ module('@updatable', function (hooks) {
         addRecordTransform,
         'update transform matches'
       );
-      assert.deepEqual(result, result1, 'result matches');
+      assert.deepEqual(result, fullResponse, 'result matches');
     });
 
     let result = await source.update(addRecordTransform);

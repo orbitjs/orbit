@@ -3,11 +3,11 @@ import { Source, SourceClass } from '../source';
 import { Transform, TransformOrOperations, buildTransform } from '../transform';
 import { RequestOptions } from '../request';
 import {
-  createRequestedResponse,
   DataOrFullResponse,
-  NamedResponse,
+  NamedFullResponse,
   ResponseHints,
-  FullResponse
+  FullResponse,
+  mapNamedFullResponses
 } from '../response';
 import { Operation } from '../operation';
 
@@ -85,7 +85,7 @@ export function updatable(Klass: SourceClass): void {
     transformOrOperations: TransformOrOperations<Operation, unknown>,
     options?: RequestOptions,
     id?: string
-  ): Promise<unknown> {
+  ): Promise<DataOrFullResponse<unknown, unknown, Operation>> {
     await this.activated;
     const transform = buildTransform(
       transformOrOperations,
@@ -109,20 +109,25 @@ export function updatable(Klass: SourceClass): void {
     }
 
     try {
+      const options = transform.options || {};
       const hints: ResponseHints<unknown> = {};
       const otherResponses = (await fulfillInSeries(
         this,
         'beforeUpdate',
         transform,
         hints
-      )) as NamedResponse<unknown, unknown, Operation>[];
-      const response = createRequestedResponse<unknown, unknown, Operation>(
-        await this._update(transform, hints),
-        otherResponses,
-        transform.options
-      );
-      await settleInSeries(this, 'update', transform, response);
-      return response;
+      )) as (NamedFullResponse<unknown, unknown, Operation> | undefined)[];
+      const fullResponse = await this._update(transform, hints);
+      if (options.includeSources) {
+        fullResponse.sources = otherResponses
+          ? mapNamedFullResponses<unknown, unknown, Operation>(otherResponses)
+          : {};
+      }
+      if (fullResponse.transforms?.length > 0) {
+        await this.transformed(fullResponse.transforms);
+      }
+      await settleInSeries(this, 'update', transform, fullResponse);
+      return options.fullResponse ? fullResponse : fullResponse.data;
     } catch (error) {
       await settleInSeries(this, 'updateFail', transform, error);
       throw error;

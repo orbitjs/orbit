@@ -4,9 +4,9 @@ import { Query, QueryOrExpressions, buildQuery } from '../query';
 import { RequestOptions } from '../request';
 import {
   FullResponse,
-  NamedResponse,
-  createRequestedFullResponse,
-  TransformsOrFullResponse
+  NamedFullResponse,
+  TransformsOrFullResponse,
+  mapNamedFullResponses
 } from '../response';
 import { Operation } from '../operation';
 import { QueryExpression } from '../query-expression';
@@ -104,25 +104,27 @@ export function pullable(Klass: SourceClass): void {
     query: Query<QueryExpression>
   ): Promise<TransformsOrFullResponse<undefined, unknown, Operation>> {
     try {
+      const options = query.options || {};
       const otherResponses = (await fulfillInSeries(
         this,
         'beforePull',
         query
-      )) as NamedResponse<unknown, unknown, Operation>[];
+      )) as (NamedFullResponse<unknown, unknown, Operation> | undefined)[];
       const fullResponse = await this._pull(query);
-      let response;
-
-      if (query.options?.fullResponse) {
-        response = createRequestedFullResponse<undefined, unknown, Operation>(
-          fullResponse,
-          otherResponses,
-          query.options
-        );
-      } else {
-        response = fullResponse.transforms;
+      if (options.includeSources) {
+        fullResponse.sources = otherResponses
+          ? mapNamedFullResponses<unknown, unknown, Operation>(otherResponses)
+          : {};
       }
-      await settleInSeries(this, 'pull', query, response);
-      return response;
+      if (fullResponse.transforms?.length > 0) {
+        await this.transformed(fullResponse.transforms);
+      }
+      await settleInSeries(this, 'pull', query, fullResponse);
+      if (options.fullResponse) {
+        return fullResponse;
+      } else {
+        return fullResponse.transforms || [];
+      }
     } catch (error) {
       await settleInSeries(this, 'pullFail', query, error);
       throw error;

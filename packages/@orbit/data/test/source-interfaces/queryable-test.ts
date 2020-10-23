@@ -95,16 +95,19 @@ module('@queryable', function (hooks) {
 
     let order = 0;
     let qe = { op: 'findRecords', type: 'planet' } as FindRecords;
-    const result1 = [
-      {
-        type: 'planet',
-        id: 'p1'
-      }
-    ];
+    const fullResponse = {
+      data: [
+        {
+          type: 'planet',
+          id: 'p1'
+        }
+      ]
+    };
+
     source._query = async function (query) {
       assert.equal(++order, 1, 'action performed after beforeQuery');
       assert.strictEqual(query.expressions[0], qe, 'query object matches');
-      return { data: result1 };
+      return fullResponse;
     };
 
     source.on('query', (query, result) => {
@@ -114,25 +117,28 @@ module('@queryable', function (hooks) {
         'query triggered after action performed successfully'
       );
       assert.strictEqual(query.expressions[0], qe, 'query matches');
-      assert.deepEqual(result, result1, 'result matches');
+      assert.strictEqual(result, fullResponse, 'result matches');
     });
 
     let result = await source.query(qe);
 
     assert.equal(++order, 3, 'promise resolved last');
-    assert.deepEqual(result, result1, 'success!');
+    assert.deepEqual(result, fullResponse.data, 'success!');
   });
 
   test('#query should trigger `query` event after a successful action in which `_query` just returns (not a promise)', async function (assert) {
     assert.expect(7);
 
+    const qe = { op: 'findRecords', type: 'planet' } as FindRecords;
+    const fullResponse = {
+      data: undefined
+    };
     let order = 0;
-    let qe = { op: 'findRecords', type: 'planet' } as FindRecords;
 
     source._query = async function (query) {
       assert.equal(++order, 1, 'action performed after beforeQuery');
       assert.strictEqual(query.expressions[0], qe, 'query object matches');
-      return { data: undefined };
+      return fullResponse;
     };
 
     source.on('query', (query, result) => {
@@ -142,13 +148,13 @@ module('@queryable', function (hooks) {
         'query triggered after action performed successfully'
       );
       assert.strictEqual(query.expressions[0], qe, 'query matches');
-      assert.equal(result, undefined, 'result matches');
+      assert.equal(result, fullResponse, 'result matches');
     });
 
     let result = await source.query(qe);
 
     assert.equal(++order, 3, 'promise resolved last');
-    assert.equal(result, undefined, 'undefined result');
+    assert.equal(result, fullResponse.data, 'undefined result');
   });
 
   test('`query` event should receive results as the last argument, even if they are an array', async function (assert) {
@@ -156,16 +162,19 @@ module('@queryable', function (hooks) {
 
     let order = 0;
     let qe = { op: 'findRecords', type: 'planet' } as FindRecords;
-    const result1 = [
-      {
-        type: 'planet',
-        id: 'p1'
-      }
-    ];
+    const fullResponse = {
+      data: [
+        {
+          type: 'planet',
+          id: 'p1'
+        }
+      ]
+    };
+
     source._query = async function (query) {
       assert.equal(++order, 1, 'action performed after beforeQuery');
       assert.strictEqual(query.expressions[0], qe, 'query object matches');
-      return { data: result1 };
+      return fullResponse;
     };
 
     source.on('query', (query, result) => {
@@ -175,13 +184,13 @@ module('@queryable', function (hooks) {
         'query triggered after action performed successfully'
       );
       assert.strictEqual(query.expressions[0], qe, 'query matches');
-      assert.deepEqual(result, result1, 'result matches');
+      assert.deepEqual(result, fullResponse, 'result matches');
     });
 
     let result = await source.query(qe);
 
     assert.equal(++order, 3, 'promise resolved last');
-    assert.deepEqual(result, result1, 'success!');
+    assert.deepEqual(result, fullResponse.data, 'success!');
   });
 
   test('#query should trigger `queryFail` event after an unsuccessful query', async function (assert) {

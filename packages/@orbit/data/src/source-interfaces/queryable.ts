@@ -3,11 +3,11 @@ import { Query, QueryOrExpressions, buildQuery } from '../query';
 import { Source, SourceClass } from '../source';
 import { RequestOptions } from '../request';
 import {
-  createRequestedResponse,
   DataOrFullResponse,
-  NamedResponse,
+  NamedFullResponse,
   ResponseHints,
-  FullResponse
+  FullResponse,
+  mapNamedFullResponses
 } from '../response';
 import { Operation } from '../operation';
 import { QueryExpression } from '../query-expression';
@@ -91,7 +91,7 @@ export function queryable(Klass: SourceClass): void {
     queryOrExpressions: QueryOrExpressions<QueryExpression, unknown>,
     options?: RequestOptions,
     id?: string
-  ): Promise<unknown> {
+  ): Promise<DataOrFullResponse<unknown, unknown, Operation>> {
     await this.activated;
     const query = buildQuery(
       queryOrExpressions,
@@ -106,20 +106,25 @@ export function queryable(Klass: SourceClass): void {
     query: Query<QueryExpression>
   ): Promise<DataOrFullResponse<unknown, unknown, Operation>> {
     try {
+      const options = query.options || {};
       const hints: ResponseHints<unknown> = {};
       const otherResponses = (await fulfillInSeries(
         this,
         'beforeQuery',
         query,
         hints
-      )) as NamedResponse<unknown, unknown, Operation>[];
-      const response = createRequestedResponse<unknown, unknown, Operation>(
-        await this._query(query, hints),
-        otherResponses,
-        query.options
-      );
-      await settleInSeries(this, 'query', query, response);
-      return response;
+      )) as (NamedFullResponse<unknown, unknown, Operation> | undefined)[];
+      const fullResponse = await this._query(query, hints);
+      if (options.includeSources) {
+        fullResponse.sources = otherResponses
+          ? mapNamedFullResponses<unknown, unknown, Operation>(otherResponses)
+          : {};
+      }
+      if (fullResponse.transforms?.length > 0) {
+        await this.transformed(fullResponse.transforms);
+      }
+      await settleInSeries(this, 'query', query, fullResponse);
+      return options.fullResponse ? fullResponse : fullResponse.data;
     } catch (error) {
       await settleInSeries(this, 'queryFail', query, error);
       throw error;

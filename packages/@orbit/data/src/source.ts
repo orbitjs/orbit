@@ -155,7 +155,7 @@ export abstract class Source<QueryBuilder = unknown, TransformBuilder = unknown>
    *
    * Also, adds an entry to the Source's `transformLog` for each transform.
    */
-  async transformed(transforms: Transform[]): Promise<Transform[]> {
+  async transformed(transforms: Transform[]): Promise<void> {
     await this.activated;
 
     for (let transform of transforms) {
@@ -164,8 +164,6 @@ export abstract class Source<QueryBuilder = unknown, TransformBuilder = unknown>
         await settleInSeries(this, 'transform', transform);
       }
     }
-
-    return transforms;
   }
 
   /////////////////////////////////////////////////////////////////////////////
