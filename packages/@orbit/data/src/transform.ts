@@ -19,7 +19,7 @@ export type TransformOrOperations<O extends Operation, TB> =
 /**
  * A Transform represents a set of operations that can mutate a source.
  */
-export interface Transform<O extends Operation = Operation> {
+export interface Transform<O extends Operation> {
   id: string;
   operations: O[];
   options?: RequestOptions;

@@ -36,7 +36,7 @@ module('@pushable', function (hooks) {
       TransformsOrFullResponse<undefined, RecordResponse, RecordOperation>
     >;
     _push!: (
-      transform: Transform
+      transform: Transform<RecordOperation>
     ) => Promise<FullResponse<undefined, RecordResponse, RecordOperation>>;
   }
 

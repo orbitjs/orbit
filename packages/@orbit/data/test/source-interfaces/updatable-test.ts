@@ -117,7 +117,7 @@ module('@updatable', function (hooks) {
       return result1;
     });
 
-    source._update = async function (transform: Transform) {
+    source._update = async function (transform: Transform<RecordOperation>) {
       assert.equal(++order, 2, 'action performed after beforeUpdate');
       assert.strictEqual(
         transform,
@@ -293,7 +293,7 @@ module('@updatable', function (hooks) {
       }
     ];
 
-    source._update = async function (transform: Transform) {
+    source._update = async function (transform: Transform<RecordOperation>) {
       assert.equal(
         ++order,
         4,

@@ -100,7 +100,7 @@ export function pushable(Klass: SourceClass): void {
   };
 
   proto.__push__ = async function (
-    transform: Transform
+    transform: Transform<Operation>
   ): Promise<TransformsOrFullResponse<undefined, unknown, Operation>> {
     if (this.transformLog.contains(transform.id)) {
       return {

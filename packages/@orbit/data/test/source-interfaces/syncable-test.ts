@@ -53,7 +53,7 @@ module('@syncable', function (hooks) {
       record: { type: 'planet', id: 'jupiter' }
     });
 
-    source._sync = async function (transform: Transform) {
+    source._sync = async function (transform: Transform<RecordOperation>) {
       assert.strictEqual(
         transform,
         addRecordTransform,
@@ -74,7 +74,7 @@ module('@syncable', function (hooks) {
       record: { type: 'planet', id: 'jupiter' }
     });
 
-    source._sync = async function (transform: Transform) {
+    source._sync = async function (transform: Transform<RecordOperation>) {
       return Promise.reject(':(');
     };
 
@@ -148,7 +148,7 @@ module('@syncable', function (hooks) {
 
     let order = 0;
 
-    source._sync = async function (transform: Transform) {
+    source._sync = async function (transform: Transform<RecordOperation>) {
       assert.equal(++order, 1, 'action performed first');
       assert.strictEqual(transform, addRecordTransform, 'transform matches');
       throw new Error(':(');
@@ -191,7 +191,7 @@ module('@syncable', function (hooks) {
       return Promise.resolve();
     });
 
-    source._sync = async function (transform: Transform) {
+    source._sync = async function (transform: Transform<RecordOperation>) {
       assert.ok(true, '_sync should still be reached');
       assert.ok(
         this.transformLog.contains(transform.id),
@@ -233,7 +233,7 @@ module('@syncable', function (hooks) {
       return Promise.resolve();
     });
 
-    source._sync = async function (transform: Transform) {
+    source._sync = async function (transform: Transform<RecordOperation>) {
       assert.equal(++order, 4, '_sync invoked after all `beforeSync` handlers');
     };
 
@@ -270,7 +270,7 @@ module('@syncable', function (hooks) {
       return Promise.reject(':(');
     });
 
-    source._sync = async function (transform: Transform) {
+    source._sync = async function (transform: Transform<RecordOperation>) {
       assert.ok(false, '_sync should not be invoked');
     };
 

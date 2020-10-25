@@ -2,6 +2,7 @@ import { Source } from '../src/source';
 import { buildTransform, Transform } from '../src/transform';
 import { FakeBucket } from './support/fake-bucket';
 import {
+  RecordOperation,
   RecordQueryBuilder,
   RecordTransformBuilder
 } from './support/record-data';
@@ -202,7 +203,7 @@ module('Source', function (hooks) {
     let order = 0;
     const appliedTransform = buildTransform({ op: 'addRecord' });
 
-    source.on('transform', (transform: Transform) => {
+    source.on('transform', (transform: Transform<RecordOperation>) => {
       assert.equal(
         ++order,
         1,

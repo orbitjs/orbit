@@ -11,6 +11,7 @@ import {
   Listener,
   Log
 } from '@orbit/core';
+import { Operation } from './operation';
 import { Transform } from './transform';
 
 const { assert } = Orbit;
@@ -155,7 +156,7 @@ export abstract class Source<QueryBuilder = unknown, TransformBuilder = unknown>
    *
    * Also, adds an entry to the Source's `transformLog` for each transform.
    */
-  async transformed(transforms: Transform[]): Promise<void> {
+  async transformed(transforms: Transform<Operation>[]): Promise<void> {
     await this.activated;
 
     for (let transform of transforms) {
