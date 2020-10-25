@@ -1,15 +1,15 @@
-import { Schema, Query, RecordQueryResult } from '@orbit/data';
+import { RecordSchema, RecordQuery, RecordQueryResult } from '@orbit/records';
 import { SyncRecordCache } from '../sync-record-cache';
 import { LiveQuery, LiveQuerySettings } from './live-query';
 
 export interface SyncLiveQueryUpdateSettings {
   cache: SyncRecordCache;
-  query: Query;
+  query: RecordQuery;
 }
 
 export class SyncLiveQueryUpdate {
   private _cache: SyncRecordCache;
-  private _query: Query;
+  private _query: RecordQuery;
 
   constructor(settings: SyncLiveQueryUpdateSettings) {
     this._cache = settings.cache;
@@ -28,7 +28,7 @@ export interface SyncLiveQuerySettings extends LiveQuerySettings {
 export class SyncLiveQuery extends LiveQuery {
   protected cache: SyncRecordCache;
 
-  protected get schema(): Schema {
+  protected get schema(): RecordSchema {
     return this.cache.schema;
   }
 

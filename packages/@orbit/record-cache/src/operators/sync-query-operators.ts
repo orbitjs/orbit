@@ -1,8 +1,8 @@
 import { Dict, deepGet, isNone } from '@orbit/utils';
+import { QueryExpressionParseError } from '@orbit/data';
 import {
-  QueryExpression,
+  RecordQueryExpression,
   RecordNotFoundException,
-  QueryExpressionParseError,
   FindRecord,
   FindRecords,
   FindRelatedRecord,
@@ -12,18 +12,21 @@ import {
   Record,
   RecordIdentity,
   RecordQueryExpressionResult
-} from '@orbit/data';
+} from '@orbit/records';
 import { SyncRecordAccessor } from '../record-accessor';
 
 export interface SyncQueryOperator {
   (
     cache: SyncRecordAccessor,
-    expression: QueryExpression
+    expression: RecordQueryExpression
   ): RecordQueryExpressionResult;
 }
 
 export const SyncQueryOperators: Dict<SyncQueryOperator> = {
-  findRecord(cache: SyncRecordAccessor, expression: QueryExpression): Record {
+  findRecord(
+    cache: SyncRecordAccessor,
+    expression: RecordQueryExpression
+  ): Record {
     const { record } = expression as FindRecord;
     const currentRecord = cache.getRecordSync(record);
 
@@ -36,7 +39,7 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
 
   findRecords(
     cache: SyncRecordAccessor,
-    expression: QueryExpression
+    expression: RecordQueryExpression
   ): Record[] {
     let exp = expression as FindRecords;
     let results = cache.getRecordsSync(exp.records || exp.type);
@@ -54,7 +57,7 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
 
   findRelatedRecords(
     cache: SyncRecordAccessor,
-    expression: QueryExpression
+    expression: RecordQueryExpression
   ): Record[] {
     const exp = expression as FindRelatedRecords;
     const { record, relationship } = exp;
@@ -82,7 +85,7 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
 
   findRelatedRecord(
     cache: SyncRecordAccessor,
-    expression: QueryExpression
+    expression: RecordQueryExpression
   ): Record | null {
     const exp = expression as FindRelatedRecord;
     const { record, relationship } = exp;

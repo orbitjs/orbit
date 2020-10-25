@@ -1,8 +1,8 @@
 import {
   cloneRecordIdentity as identity,
-  KeyMap,
-  Schema,
-  SchemaSettings,
+  RecordKeyMap,
+  RecordSchema,
+  RecordSchemaSettings,
   Record,
   AddToRelatedRecordsOperation,
   ReplaceRelatedRecordOperation,
@@ -10,7 +10,7 @@ import {
   RemoveFromRelatedRecordsOperation,
   RemoveRecordOperation,
   UpdateRecordOperation
-} from '@orbit/data';
+} from '@orbit/records';
 import { SyncCacheIntegrityProcessor } from '../../src/operation-processors/sync-cache-integrity-processor';
 import { SyncSchemaConsistencyProcessor } from '../../src/operation-processors/sync-schema-consistency-processor';
 import { ExampleSyncRecordCache } from '../support/example-sync-record-cache';
@@ -18,11 +18,11 @@ import { ExampleSyncRecordCache } from '../support/example-sync-record-cache';
 const { module, test } = QUnit;
 
 module('SchemaConsistencyProcessor', function (hooks) {
-  let schema: Schema;
+  let schema: RecordSchema;
   let cache: ExampleSyncRecordCache;
   let processor: SyncSchemaConsistencyProcessor;
 
-  const schemaDefinition: SchemaSettings = {
+  const schemaDefinition: RecordSchemaSettings = {
     models: {
       planet: {
         attributes: {
@@ -60,8 +60,8 @@ module('SchemaConsistencyProcessor', function (hooks) {
   };
 
   hooks.beforeEach(function () {
-    let keyMap = new KeyMap();
-    schema = new Schema(schemaDefinition);
+    let keyMap = new RecordKeyMap();
+    schema = new RecordSchema(schemaDefinition);
     cache = new ExampleSyncRecordCache({
       schema,
       keyMap,
@@ -973,7 +973,7 @@ module('SchemaConsistencyProcessor', function (hooks) {
   });
 
   test('remove record with dependent hasMany relationships - verify dependent relationships deleted', function (assert) {
-    const schema = new Schema({
+    const schema = new RecordSchema({
       models: {
         planet: {
           relationships: {
@@ -993,7 +993,7 @@ module('SchemaConsistencyProcessor', function (hooks) {
       }
     });
 
-    const keyMap = new KeyMap();
+    const keyMap = new RecordKeyMap();
     const cache = new ExampleSyncRecordCache({
       schema,
       keyMap,
@@ -1063,7 +1063,7 @@ module('SchemaConsistencyProcessor', function (hooks) {
   });
 
   test('remove record with dependent hasOne relationships - verify dependent relationships deleted', function (assert) {
-    const schema = new Schema({
+    const schema = new RecordSchema({
       models: {
         planet: {
           relationships: {
@@ -1083,7 +1083,7 @@ module('SchemaConsistencyProcessor', function (hooks) {
       }
     });
 
-    const keyMap = new KeyMap();
+    const keyMap = new RecordKeyMap();
     const cache = new ExampleSyncRecordCache({
       schema,
       keyMap,

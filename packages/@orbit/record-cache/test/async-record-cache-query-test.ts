@@ -1,4 +1,9 @@
-import { KeyMap, Record, RecordNotFoundException, Schema } from '@orbit/data';
+import {
+  RecordKeyMap,
+  Record,
+  RecordNotFoundException,
+  RecordSchema
+} from '@orbit/records';
 import { ExampleAsyncRecordCache } from './support/example-async-record-cache';
 import { arrayMembershipMatches } from './support/matchers';
 import { createSchemaWithRemoteKey } from './support/setup';
@@ -6,11 +11,11 @@ import { createSchemaWithRemoteKey } from './support/setup';
 const { module, test } = QUnit;
 
 module('AsyncRecordCache - query', function (hooks) {
-  let schema: Schema, keyMap: KeyMap;
+  let schema: RecordSchema, keyMap: RecordKeyMap;
 
   hooks.beforeEach(function () {
     schema = createSchemaWithRemoteKey();
-    keyMap = new KeyMap();
+    keyMap = new RecordKeyMap();
   });
 
   test('#query can retrieve an individual record', async function (assert) {

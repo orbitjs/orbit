@@ -1,4 +1,4 @@
-import { KeyMap, Schema } from '@orbit/data';
+import { RecordKeyMap, RecordSchema } from '@orbit/records';
 import { SyncSchemaValidationProcessor } from '../src/operation-processors/sync-schema-validation-processor';
 import { ExampleSyncRecordCache } from './support/example-sync-record-cache';
 import { createSchemaWithRemoteKey } from './support/setup';
@@ -6,11 +6,11 @@ import { createSchemaWithRemoteKey } from './support/setup';
 const { module, test } = QUnit;
 
 module('SyncRecordCache', function (hooks) {
-  let schema: Schema, keyMap: KeyMap;
+  let schema: RecordSchema, keyMap: RecordKeyMap;
 
   hooks.beforeEach(function () {
     schema = createSchemaWithRemoteKey();
-    keyMap = new KeyMap();
+    keyMap = new RecordKeyMap();
   });
 
   test('it exists', function (assert) {
@@ -26,7 +26,7 @@ module('SyncRecordCache', function (hooks) {
 
   test('it requires a schema', function (assert) {
     assert.expect(1);
-    let schema = (undefined as unknown) as Schema;
+    let schema = (undefined as unknown) as RecordSchema;
     assert.throws(() => new ExampleSyncRecordCache({ schema }));
   });
 

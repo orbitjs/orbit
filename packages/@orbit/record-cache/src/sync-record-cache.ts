@@ -1,22 +1,21 @@
 import Orbit, { evented, Evented, Listener } from '@orbit/core';
 import { deepGet, Dict } from '@orbit/utils';
+import { buildQuery, OperationTerm, RequestOptions } from '@orbit/data';
 import {
-  KeyMap,
+  RecordKeyMap,
   Record,
   RecordOperation,
-  Schema,
-  QueryBuilder,
-  QueryOrExpressions,
-  QueryExpression,
-  buildQuery,
-  TransformBuilder,
-  TransformBuilderFunc,
+  RecordSchema,
+  RecordQueryBuilder,
+  RecordTransformBuilder,
   RecordIdentity,
-  RequestOptions,
-  OperationTerm,
+  RecordOperationTerm,
   RecordQueryResult,
-  RecordQueryExpressionResult
-} from '@orbit/data';
+  RecordQueryExpressionResult,
+  RecordQueryOrExpressions,
+  RecordTransformBuilderFunc,
+  RecordQueryExpression
+} from '@orbit/records';
 import {
   SyncOperationProcessor,
   SyncOperationProcessorClass
@@ -46,11 +45,11 @@ import { SyncLiveQuery } from './live-query/sync-live-query';
 const { assert } = Orbit;
 
 export interface SyncRecordCacheSettings {
-  schema: Schema;
-  keyMap?: KeyMap;
+  schema: RecordSchema;
+  keyMap?: RecordKeyMap;
   processors?: SyncOperationProcessorClass[];
-  transformBuilder?: TransformBuilder;
-  queryBuilder?: QueryBuilder;
+  transformBuilder?: RecordTransformBuilder;
+  queryBuilder?: RecordQueryBuilder;
   queryOperators?: Dict<SyncQueryOperator>;
   patchOperators?: Dict<SyncPatchOperator>;
   inversePatchOperators?: Dict<SyncInversePatchOperator>;
@@ -59,10 +58,10 @@ export interface SyncRecordCacheSettings {
 
 @evented
 export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
-  protected _keyMap?: KeyMap;
-  protected _schema: Schema;
-  protected _transformBuilder: TransformBuilder;
-  protected _queryBuilder: QueryBuilder;
+  protected _keyMap?: RecordKeyMap;
+  protected _schema: RecordSchema;
+  protected _transformBuilder: RecordTransformBuilder;
+  protected _queryBuilder: RecordQueryBuilder;
   protected _processors: SyncOperationProcessor[];
   protected _queryOperators: Dict<SyncQueryOperator>;
   protected _patchOperators: Dict<SyncPatchOperator>;
@@ -84,10 +83,10 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
 
     this._schema = settings.schema;
     this._keyMap = settings.keyMap;
-    this._queryBuilder = settings.queryBuilder || new QueryBuilder();
+    this._queryBuilder = settings.queryBuilder || new RecordQueryBuilder();
     this._transformBuilder =
       settings.transformBuilder ||
-      new TransformBuilder({
+      new RecordTransformBuilder({
         recordInitializer: this._schema
       });
     this._queryOperators = settings.queryOperators || SyncQueryOperators;
@@ -113,19 +112,19 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
     });
   }
 
-  get schema(): Schema {
+  get schema(): RecordSchema {
     return this._schema;
   }
 
-  get keyMap(): KeyMap | undefined {
+  get keyMap(): RecordKeyMap | undefined {
     return this._keyMap;
   }
 
-  get queryBuilder(): QueryBuilder {
+  get queryBuilder(): RecordQueryBuilder {
     return this._queryBuilder;
   }
 
-  get transformBuilder(): TransformBuilder {
+  get transformBuilder(): RecordTransformBuilder {
     return this._transformBuilder;
   }
 
@@ -192,7 +191,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
    * Queries the cache.
    */
   query(
-    queryOrExpressions: QueryOrExpressions,
+    queryOrExpressions: RecordQueryOrExpressions,
     options?: RequestOptions,
     id?: string
   ): RecordQueryResult {
@@ -217,14 +216,14 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
     operationOrOperations:
       | RecordOperation
       | RecordOperation[]
-      | OperationTerm
-      | OperationTerm[]
-      | TransformBuilderFunc
+      | RecordOperationTerm
+      | RecordOperationTerm[]
+      | RecordTransformBuilderFunc
   ): PatchResult {
     if (typeof operationOrOperations === 'function') {
       operationOrOperations = operationOrOperations(this._transformBuilder) as
-        | OperationTerm
-        | OperationTerm[];
+        | RecordOperationTerm
+        | RecordOperationTerm[];
     }
 
     const result: PatchResult = {
@@ -252,7 +251,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   }
 
   liveQuery(
-    queryOrExpressions: QueryOrExpressions,
+    queryOrExpressions: RecordQueryOrExpressions,
     options?: RequestOptions,
     id?: string
   ): SyncLiveQuery {
@@ -280,7 +279,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   /////////////////////////////////////////////////////////////////////////////
 
   protected _query(
-    expressions: QueryExpression[]
+    expressions: RecordQueryExpression[]
   ): RecordQueryExpressionResult[] {
     const results: RecordQueryExpressionResult[] = [];
     for (let expression of expressions) {
@@ -294,7 +293,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   }
 
   protected _applyPatchOperations(
-    ops: RecordOperation[] | OperationTerm[],
+    ops: RecordOperation[] | RecordOperationTerm[],
     result: PatchResult,
     primary = false
   ): void {
@@ -304,7 +303,7 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   }
 
   protected _applyPatchOperation(
-    operation: RecordOperation | OperationTerm,
+    operation: RecordOperation | RecordOperationTerm,
     result: PatchResult,
     primary = false
   ): void {

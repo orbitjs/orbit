@@ -1,22 +1,21 @@
 import { Orbit, evented, Evented, Listener } from '@orbit/core';
 import { deepGet, Dict } from '@orbit/utils';
+import { buildQuery, OperationTerm, RequestOptions } from '@orbit/data';
 import {
-  KeyMap,
+  RecordKeyMap,
   Record,
   RecordOperation,
-  Schema,
-  QueryBuilder,
-  QueryOrExpressions,
-  QueryExpression,
-  RequestOptions,
-  buildQuery,
-  TransformBuilder,
-  TransformBuilderFunc,
+  RecordSchema,
+  RecordQueryBuilder,
+  RecordTransformBuilder,
   RecordIdentity,
-  OperationTerm,
+  RecordOperationTerm,
   RecordQueryResult,
-  RecordQueryExpressionResult
-} from '@orbit/data';
+  RecordQueryExpressionResult,
+  RecordQueryOrExpressions,
+  RecordTransformBuilderFunc,
+  RecordQueryExpression
+} from '@orbit/records';
 import {
   AsyncOperationProcessor,
   AsyncOperationProcessorClass
@@ -46,11 +45,11 @@ import { AsyncLiveQuery } from './live-query/async-live-query';
 const { assert } = Orbit;
 
 export interface AsyncRecordCacheSettings {
-  schema: Schema;
-  keyMap?: KeyMap;
+  schema: RecordSchema;
+  keyMap?: RecordKeyMap;
   processors?: AsyncOperationProcessorClass[];
-  transformBuilder?: TransformBuilder;
-  queryBuilder?: QueryBuilder;
+  transformBuilder?: RecordTransformBuilder;
+  queryBuilder?: RecordQueryBuilder;
   queryOperators?: Dict<AsyncQueryOperator>;
   patchOperators?: Dict<AsyncPatchOperator>;
   inversePatchOperators?: Dict<AsyncInversePatchOperator>;
@@ -59,10 +58,10 @@ export interface AsyncRecordCacheSettings {
 
 @evented
 export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
-  protected _keyMap?: KeyMap;
-  protected _schema: Schema;
-  protected _transformBuilder: TransformBuilder;
-  protected _queryBuilder: QueryBuilder;
+  protected _keyMap?: RecordKeyMap;
+  protected _schema: RecordSchema;
+  protected _transformBuilder: RecordTransformBuilder;
+  protected _queryBuilder: RecordQueryBuilder;
   protected _processors: AsyncOperationProcessor[];
   protected _queryOperators: Dict<AsyncQueryOperator>;
   protected _patchOperators: Dict<AsyncPatchOperator>;
@@ -84,10 +83,10 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
 
     this._schema = settings.schema;
     this._keyMap = settings.keyMap;
-    this._queryBuilder = settings.queryBuilder || new QueryBuilder();
+    this._queryBuilder = settings.queryBuilder || new RecordQueryBuilder();
     this._transformBuilder =
       settings.transformBuilder ||
-      new TransformBuilder({
+      new RecordTransformBuilder({
         recordInitializer: this._schema
       });
     this._queryOperators = settings.queryOperators || AsyncQueryOperators;
@@ -113,19 +112,19 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
     });
   }
 
-  get schema(): Schema {
+  get schema(): RecordSchema {
     return this._schema;
   }
 
-  get keyMap(): KeyMap | undefined {
+  get keyMap(): RecordKeyMap | undefined {
     return this._keyMap;
   }
 
-  get queryBuilder(): QueryBuilder {
+  get queryBuilder(): RecordQueryBuilder {
     return this._queryBuilder;
   }
 
-  get transformBuilder(): TransformBuilder {
+  get transformBuilder(): RecordTransformBuilder {
     return this._transformBuilder;
   }
 
@@ -198,7 +197,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
    * Queries the cache.
    */
   async query(
-    queryOrExpressions: QueryOrExpressions,
+    queryOrExpressions: RecordQueryOrExpressions,
     options?: RequestOptions,
     id?: string
   ): Promise<RecordQueryResult> {
@@ -223,14 +222,14 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
     operationOrOperations:
       | RecordOperation
       | RecordOperation[]
-      | OperationTerm
-      | OperationTerm[]
-      | TransformBuilderFunc
+      | RecordOperationTerm
+      | RecordOperationTerm[]
+      | RecordTransformBuilderFunc
   ): Promise<PatchResult> {
     if (typeof operationOrOperations === 'function') {
       operationOrOperations = operationOrOperations(this._transformBuilder) as
-        | OperationTerm
-        | OperationTerm[];
+        | RecordOperationTerm
+        | RecordOperationTerm[];
     }
 
     const result: PatchResult = {
@@ -258,7 +257,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   }
 
   liveQuery(
-    queryOrExpressions: QueryOrExpressions,
+    queryOrExpressions: RecordQueryOrExpressions,
     options?: RequestOptions,
     id?: string
   ): AsyncLiveQuery {
@@ -286,7 +285,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   /////////////////////////////////////////////////////////////////////////////
 
   protected async _query(
-    expressions: QueryExpression[]
+    expressions: RecordQueryExpression[]
   ): Promise<RecordQueryExpressionResult[]> {
     const results: RecordQueryExpressionResult[] = [];
     for (let expression of expressions) {
@@ -300,7 +299,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   }
 
   protected async _applyPatchOperations(
-    ops: RecordOperation[] | OperationTerm[],
+    ops: RecordOperation[] | RecordOperationTerm[],
     result: PatchResult,
     primary = false
   ): Promise<void> {
@@ -310,7 +309,7 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   }
 
   protected async _applyPatchOperation(
-    operation: RecordOperation | OperationTerm,
+    operation: RecordOperation | RecordOperationTerm,
     result: PatchResult,
     primary = false
   ): Promise<void> {

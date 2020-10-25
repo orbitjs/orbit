@@ -1,4 +1,4 @@
-import { RecordOperation } from '@orbit/data';
+import { RecordOperation } from '@orbit/records';
 import { SyncOperationProcessor } from '../sync-operation-processor';
 import {
   recordAdded,

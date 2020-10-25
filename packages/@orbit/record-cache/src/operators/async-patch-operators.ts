@@ -17,7 +17,7 @@ import {
   ReplaceRelatedRecordOperation,
   Record,
   recordsInclude
-} from '@orbit/data';
+} from '@orbit/records';
 import { AsyncRecordAccessor } from '../record-accessor';
 
 export interface AsyncPatchOperator {

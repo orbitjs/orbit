@@ -1,8 +1,8 @@
 import { Dict, deepGet, isNone } from '@orbit/utils';
+import { QueryExpressionParseError } from '@orbit/data';
 import {
-  QueryExpression,
+  RecordQueryExpression,
   RecordNotFoundException,
-  QueryExpressionParseError,
   FindRecord,
   FindRecords,
   FindRelatedRecord,
@@ -12,11 +12,11 @@ import {
   Record,
   RecordIdentity,
   RecordQueryExpressionResult
-} from '@orbit/data';
+} from '@orbit/records';
 import { AsyncRecordAccessor } from '../record-accessor';
 
 export interface AsyncQueryOperator {
-  (cache: AsyncRecordAccessor, expression: QueryExpression): Promise<
+  (cache: AsyncRecordAccessor, expression: RecordQueryExpression): Promise<
     RecordQueryExpressionResult
   >;
 }
@@ -24,7 +24,7 @@ export interface AsyncQueryOperator {
 export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
   async findRecord(
     cache: AsyncRecordAccessor,
-    expression: QueryExpression
+    expression: RecordQueryExpression
   ): Promise<RecordQueryExpressionResult> {
     const { record } = expression as FindRecord;
     const currentRecord = await cache.getRecordAsync(record);
@@ -38,7 +38,7 @@ export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
 
   async findRecords(
     cache: AsyncRecordAccessor,
-    expression: QueryExpression
+    expression: RecordQueryExpression
   ): Promise<Record[]> {
     const exp = expression as FindRecords;
     let results = await cache.getRecordsAsync(exp.records || exp.type);
@@ -56,7 +56,7 @@ export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
 
   async findRelatedRecords(
     cache: AsyncRecordAccessor,
-    expression: QueryExpression
+    expression: RecordQueryExpression
   ): Promise<Record[]> {
     const exp = expression as FindRelatedRecords;
     const { record, relationship } = exp;
@@ -84,7 +84,7 @@ export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
 
   async findRelatedRecord(
     cache: AsyncRecordAccessor,
-    expression: QueryExpression
+    expression: RecordQueryExpression
   ): Promise<Record | null> {
     const exp = expression as FindRelatedRecord;
     const { record, relationship } = exp;

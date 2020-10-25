@@ -15,7 +15,7 @@ import {
   equalRecordIdentitySets,
   recordsInclude,
   RecordIdentity
-} from '@orbit/data';
+} from '@orbit/records';
 import { SyncRecordAccessor } from '../record-accessor';
 
 export interface SyncInversePatchOperator {

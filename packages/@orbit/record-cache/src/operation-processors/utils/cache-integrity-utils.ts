@@ -3,14 +3,14 @@ import {
   Record,
   RecordIdentity,
   RecordOperation,
-  Schema
-} from '@orbit/data';
+  RecordSchema
+} from '@orbit/records';
 import { deepGet } from '@orbit/utils';
 import { RecordRelationshipIdentity } from '../../record-accessor';
 import { getRelationshipDef } from './schema-utils';
 
 export function getInverseRelationship(
-  schema: Schema,
+  schema: RecordSchema,
   record: RecordIdentity,
   relationship: string,
   relatedRecord?: RecordIdentity | null
@@ -28,7 +28,7 @@ export function getInverseRelationship(
 }
 
 export function getInverseRelationships(
-  schema: Schema,
+  schema: RecordSchema,
   record: RecordIdentity,
   relationship: string,
   relatedRecords?: RecordIdentity[]
@@ -48,7 +48,7 @@ export function getInverseRelationships(
 }
 
 export function getAllInverseRelationships(
-  schema: Schema,
+  schema: RecordSchema,
   record: Record
 ): RecordRelationshipIdentity[] {
   const recordIdentity = cloneRecordIdentity(record);
@@ -82,7 +82,7 @@ export function getAllInverseRelationships(
 }
 
 export function getInverseRelationshipRemovalOps(
-  schema: Schema,
+  schema: RecordSchema,
   inverseRelationships: RecordRelationshipIdentity[]
 ): RecordOperation[] {
   const ops: RecordOperation[] = [];

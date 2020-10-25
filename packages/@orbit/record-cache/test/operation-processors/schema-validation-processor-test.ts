@@ -1,21 +1,21 @@
 import {
-  KeyMap,
-  Schema,
-  SchemaSettings,
+  RecordKeyMap,
+  RecordSchema,
+  RecordSchemaSettings,
   ModelNotFound,
   RelationshipNotFound,
   IncorrectRelatedRecordType
-} from '@orbit/data';
+} from '@orbit/records';
 import { ExampleSyncRecordCache } from '../support/example-sync-record-cache';
 import { SyncSchemaValidationProcessor } from '../../src/operation-processors/sync-schema-validation-processor';
 
 const { module, test } = QUnit;
 
 module('SchemaValidationProcessor', function (hooks) {
-  let schema: Schema;
+  let schema: RecordSchema;
   let cache: ExampleSyncRecordCache;
 
-  const schemaDefinition: SchemaSettings = {
+  const schemaDefinition: RecordSchemaSettings = {
     models: {
       node: {
         attributes: {
@@ -59,8 +59,8 @@ module('SchemaValidationProcessor', function (hooks) {
   const unknownError = new ModelNotFound('unknown');
 
   hooks.beforeEach(function () {
-    let keyMap = new KeyMap();
-    schema = new Schema(schemaDefinition);
+    let keyMap = new RecordKeyMap();
+    schema = new RecordSchema(schemaDefinition);
     cache = new ExampleSyncRecordCache({
       schema,
       keyMap,

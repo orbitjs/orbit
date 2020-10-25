@@ -1,4 +1,4 @@
-import { RecordOperation, RecordOperationResult } from '@orbit/data';
+import { RecordOperation, RecordOperationResult } from '@orbit/records';
 
 export interface PatchResult {
   inverse: RecordOperation[];

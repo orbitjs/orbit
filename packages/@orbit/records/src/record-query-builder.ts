@@ -1,10 +1,17 @@
+import { QueryBuilderFunc } from '@orbit/data';
 import { RecordIdentity } from './record';
+import { RecordQueryExpression } from './record-query-expression';
 import {
   FindRecordTerm,
   FindRecordsTerm,
   FindRelatedRecordTerm,
   FindRelatedRecordsTerm
 } from './record-query-term';
+
+export type RecordQueryBuilderFunc = QueryBuilderFunc<
+  RecordQueryExpression,
+  RecordQueryBuilder
+>;
 
 export class RecordQueryBuilder {
   /**

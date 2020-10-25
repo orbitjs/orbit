@@ -15,7 +15,7 @@ import {
   equalRecordIdentitySets,
   recordsInclude,
   RecordIdentity
-} from '@orbit/data';
+} from '@orbit/records';
 import { AsyncRecordAccessor } from '../record-accessor';
 
 export interface AsyncInversePatchOperator {

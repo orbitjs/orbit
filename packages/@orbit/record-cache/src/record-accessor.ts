@@ -1,4 +1,9 @@
-import { KeyMap, Record, Schema, RecordIdentity } from '@orbit/data';
+import {
+  RecordKeyMap,
+  Record,
+  RecordSchema,
+  RecordIdentity
+} from '@orbit/records';
 
 export interface RelatedRecordIdentity {
   record: RecordIdentity;
@@ -12,8 +17,8 @@ export interface RecordRelationshipIdentity {
 }
 
 export interface BaseRecordAccessor {
-  keyMap?: KeyMap;
-  schema: Schema;
+  keyMap?: RecordKeyMap;
+  schema: RecordSchema;
 }
 
 export interface SyncRecordAccessor extends BaseRecordAccessor {

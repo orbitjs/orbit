@@ -1,10 +1,12 @@
 import { Orbit } from '@orbit/core';
+import { TransformBuilderFunc } from '@orbit/data';
 import {
   Record,
   RecordIdentity,
   RecordInitializer,
   UninitializedRecord
 } from './record';
+import { RecordOperation } from './record-operation';
 import {
   AddRecordTerm,
   UpdateRecordTerm,
@@ -18,6 +20,11 @@ import {
 } from './record-operation-term';
 
 const { assert, deprecate } = Orbit;
+
+export type RecordTransformBuilderFunc = TransformBuilderFunc<
+  RecordOperation,
+  RecordTransformBuilder
+>;
 
 export interface RecordTransformBuilderSettings {
   recordInitializer?: RecordInitializer;
