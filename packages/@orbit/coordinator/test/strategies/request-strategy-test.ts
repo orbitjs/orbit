@@ -3,25 +3,30 @@ import { RequestStrategy } from '../../src/strategies/request-strategy';
 import {
   Source,
   Transform,
-  TransformBuilder,
   pushable,
   updatable,
   buildTransform,
-  RecordTransformResult,
   FullResponse,
-  ResponseHints
+  ResponseHints,
+  Operation
 } from '@orbit/data';
+import {
+  RecordData,
+  RecordOperation,
+  RecordResponse,
+  RecordTransformBuilder
+} from '../support/record-data';
 
 const { module, test } = QUnit;
 
 module('RequestStrategy', function (hooks) {
-  const t = new TransformBuilder();
-  const tA = buildTransform(
+  const t = new RecordTransformBuilder();
+  const tA = buildTransform<RecordOperation>(
     [t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })],
     undefined,
     'a'
   );
-  const tB = buildTransform(
+  const tB = buildTransform<RecordOperation>(
     [t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })],
     undefined,
     'b'
@@ -141,8 +146,8 @@ module('RequestStrategy', function (hooks) {
     });
 
     s1._update = async function (
-      transform: Transform
-    ): Promise<FullResponse<RecordTransformResult, undefined>> {
+      transform: Transform<RecordOperation>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
       assert.strictEqual(
         transform,
         tA,
@@ -152,15 +157,20 @@ module('RequestStrategy', function (hooks) {
     };
 
     s2._push = async function (
-      transform: Transform
-    ): Promise<FullResponse<Transform[], undefined>> {
-      assert.strictEqual(
+      transform: Transform<RecordOperation>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
+      assert.deepEqual(
         transform,
-        tA,
-        'argument to _push is expected Transform'
+        {
+          ...tA,
+          options: {
+            fullResponse: true
+          }
+        },
+        'argument to _push is the same transform with `fullResponse: true` option'
       );
       assert.strictEqual(this, s2, 'context is that of the target');
-      return { data: [] };
+      return { transforms: [] };
     };
 
     await coordinator.activate();
@@ -187,9 +197,9 @@ module('RequestStrategy', function (hooks) {
     });
 
     s1._update = async function (
-      transform: Transform,
-      hints: ResponseHints<RecordTransformResult>
-    ): Promise<FullResponse<RecordTransformResult, undefined>> {
+      transform: Transform<RecordOperation>,
+      hints: ResponseHints<RecordData>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
       assert.strictEqual(
         transform,
         tA,
@@ -200,14 +210,19 @@ module('RequestStrategy', function (hooks) {
     };
 
     s2._update = async function (
-      transform: Transform,
-      hints: any
-    ): Promise<FullResponse<RecordTransformResult, undefined>> {
+      transform: Transform<RecordOperation>,
+      hints: ResponseHints<RecordData>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
       assert.deepEqual(hints, {}, 'no hints are passed to `s2._update`');
-      assert.strictEqual(
+      assert.deepEqual(
         transform,
-        tA,
-        'argument to _push is expected Transform'
+        {
+          ...tA,
+          options: {
+            fullResponse: true
+          }
+        },
+        'argument to _update is the same transform with `fullResponse: true` option'
       );
       assert.strictEqual(this, s2, 'context is that of the target');
       return { data: [record] };
@@ -225,9 +240,9 @@ module('RequestStrategy', function (hooks) {
       target: 's2',
       on: 'update',
       action: 'push',
-      filter(transform): boolean {
+      filter(transform: any): boolean {
         assert.ok(this instanceof RequestStrategy, 'context is the strategy');
-        return transform === tB;
+        return transform.id === tB.id;
       }
     });
 
@@ -236,19 +251,24 @@ module('RequestStrategy', function (hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function (): Promise<
-      FullResponse<RecordTransformResult, undefined>
-    > {
+    s1._update = async function (
+      transform: Transform<RecordOperation>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
       return {};
     };
 
     s2._push = async function (
-      transform: Transform
-    ): Promise<FullResponse<Transform[], undefined>> {
-      assert.strictEqual(
+      transform: Transform<RecordOperation>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
+      assert.deepEqual(
         transform,
-        tB,
-        'argument to _push is expected Transform'
+        {
+          ...tB,
+          options: {
+            fullResponse: true
+          }
+        },
+        'argument to _push is the same transform with `fullResponse: true` option'
       );
       assert.strictEqual(this, s2, 'context is that of the target');
       return { data: [] };
@@ -272,10 +292,15 @@ module('RequestStrategy', function (hooks) {
           this instanceof RequestStrategy,
           'it is bound to the strategy'
         );
-        assert.strictEqual(
+        assert.deepEqual(
           transform,
-          tA,
-          'argument to _update is expected Transform'
+          {
+            ...tA,
+            options: {
+              fullResponse: true
+            }
+          },
+          'argument to `blocking` is the expected transform with `fullResponse: true` option'
         );
         return false;
       }
@@ -287,8 +312,8 @@ module('RequestStrategy', function (hooks) {
     });
 
     s1._update = async function (
-      transform: Transform
-    ): Promise<FullResponse<RecordTransformResult, undefined>> {
+      transform: Transform<RecordOperation>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
       assert.strictEqual(
         transform,
         tA,
@@ -298,12 +323,17 @@ module('RequestStrategy', function (hooks) {
     };
 
     s2._push = async function (
-      transform: Transform
-    ): Promise<FullResponse<Transform[], undefined>> {
-      assert.strictEqual(
+      transform: Transform<RecordOperation>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
+      assert.deepEqual(
         transform,
-        tA,
-        'argument to _push is expected Transform'
+        {
+          ...tA,
+          options: {
+            fullResponse: true
+          }
+        },
+        'argument to `_push` is the expected transform with `fullResponse: true` option'
       );
       assert.strictEqual(this, s2, 'context is that of the target');
       return { data: [] };
@@ -324,7 +354,16 @@ module('RequestStrategy', function (hooks) {
           this instanceof RequestStrategy,
           '`action` is bound to the strategy'
         );
-        assert.strictEqual(transform, tA, 'transform is passed to `action`');
+        assert.deepEqual(
+          transform,
+          {
+            ...tA,
+            options: {
+              fullResponse: true
+            }
+          },
+          'argument to `action` is the expected transform with `fullResponse: true` option'
+        );
         assert.equal((e as Error).message, ':(', 'error is passed to `action`');
       },
       blocking(transform, e): boolean {
@@ -332,7 +371,16 @@ module('RequestStrategy', function (hooks) {
           this instanceof RequestStrategy,
           '`blocking` is bound to the strategy'
         );
-        assert.strictEqual(transform, tA, 'transform is passed to `blocking`');
+        assert.deepEqual(
+          transform,
+          {
+            ...tA,
+            options: {
+              fullResponse: true
+            }
+          },
+          'argument to `blocking` is the expected transform with `fullResponse: true` option'
+        );
         assert.equal(
           (e as Error).message,
           ':(',
@@ -345,7 +393,16 @@ module('RequestStrategy', function (hooks) {
           this instanceof RequestStrategy,
           '`filter` is bound to the strategy'
         );
-        assert.strictEqual(transform, tA, 'transform is passed to `filter`');
+        assert.deepEqual(
+          transform,
+          {
+            ...tA,
+            options: {
+              fullResponse: true
+            }
+          },
+          'argument to `filter` is the expected transform with `fullResponse: true` option'
+        );
         assert.equal((e as Error).message, ':(', 'error is passed to `filter`');
         return true;
       }
@@ -360,6 +417,4 @@ module('RequestStrategy', function (hooks) {
 
     s1.emit('updateFail', tA, new Error(':('));
   });
-
-  // TODO - test blocking option
 });

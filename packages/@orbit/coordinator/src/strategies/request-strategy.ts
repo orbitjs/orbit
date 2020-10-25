@@ -3,7 +3,15 @@ import {
   ConnectionStrategyOptions
 } from './connection-strategy';
 import { Listener } from '@orbit/core';
-import { ResponseHints } from '@orbit/data';
+import {
+  FullResponse,
+  NamedFullResponse,
+  Operation,
+  Query,
+  QueryExpression,
+  ResponseHints,
+  Transform
+} from '@orbit/data';
 
 export interface RequestStrategyOptions extends ConnectionStrategyOptions {
   /**
@@ -34,31 +42,46 @@ export class RequestStrategy extends ConnectionStrategy {
   protected generateListener(): Listener {
     const target = this.target;
 
-    return (...args: unknown[]): unknown => {
+    return (
+      request: Query<QueryExpression> | Transform<Operation>,
+      hints: ResponseHints<unknown>
+    ): unknown => {
       let result;
+      let options = request.options;
+
+      if (!options?.fullResponse) {
+        options = {
+          ...options,
+          fullResponse: true
+        };
+        request = {
+          ...request,
+          options
+        };
+      }
 
       if (this._filter) {
-        if (!this._filter(...args)) {
+        if (!this._filter(request, hints)) {
           return;
         }
       }
 
       if (typeof this._action === 'string') {
-        result = (target as any)[this._action](args[0]);
+        result = (target as any)[this._action](request);
       } else {
-        result = this._action(...args);
+        result = this._action(request, hints);
       }
 
       if (this._catch && result && result.catch) {
         result = result.catch((e: Error) => {
-          return this._catch && this._catch(e, ...args);
+          return this._catch && this._catch(e, request, hints);
         });
       }
 
       if (result) {
         let blocking = false;
         if (typeof this._blocking === 'function') {
-          if (this._blocking(...args)) {
+          if (this._blocking(request, hints)) {
             blocking = true;
           }
         } else if (this._blocking) {
@@ -66,22 +89,20 @@ export class RequestStrategy extends ConnectionStrategy {
         }
 
         if (blocking) {
-          if (this.passHints) {
-            const hints = args[1];
-            if (hints && typeof hints === 'object') {
-              return this.applyHint(hints as { data?: unknown }, result);
-            }
-          }
-          return result;
+          return this.blockingResponse(result, hints);
         }
       }
     };
   }
 
-  protected async applyHint(
-    hints: ResponseHints<unknown>,
-    result: Promise<unknown>
-  ): Promise<void> {
-    hints.data = await result;
+  protected async blockingResponse(
+    result: Promise<FullResponse<unknown, unknown, Operation>>,
+    hints?: ResponseHints<unknown>
+  ): Promise<NamedFullResponse<unknown, unknown, Operation>> {
+    const fullResponse = await result;
+    if (this.passHints && hints) {
+      hints.data = fullResponse.data;
+    }
+    return [this.target.name as string, fullResponse];
   }
 }

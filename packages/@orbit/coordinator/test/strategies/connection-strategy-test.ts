@@ -3,18 +3,23 @@ import { ConnectionStrategy } from '../../src/strategies/connection-strategy';
 import {
   Source,
   Transform,
-  TransformBuilder,
   pushable,
   updatable,
   buildTransform,
   FullResponse,
-  RecordTransformResult
+  Operation
 } from '@orbit/data';
+import {
+  RecordTransformBuilder,
+  RecordData,
+  RecordResponse,
+  RecordOperation
+} from '../support/record-data';
 
 const { module, test } = QUnit;
 
 module('ConnectionStrategy', function (hooks) {
-  const t = new TransformBuilder();
+  const t = new RecordTransformBuilder();
   const tA = buildTransform(
     [t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })],
     undefined,
@@ -140,8 +145,8 @@ module('ConnectionStrategy', function (hooks) {
     });
 
     s1._update = async function (
-      transform: Transform
-    ): Promise<FullResponse<RecordTransformResult, undefined>> {
+      transform: Transform<RecordOperation>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
       assert.strictEqual(
         transform,
         tA,
@@ -151,15 +156,15 @@ module('ConnectionStrategy', function (hooks) {
     };
 
     s2._push = async function (
-      transform: Transform
-    ): Promise<FullResponse<Transform[], undefined>> {
+      transform: Transform<RecordOperation>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
       assert.strictEqual(
         transform,
         tA,
         'argument to _update is expected Transform'
       );
       assert.strictEqual(this, s2, 'context is that of the target');
-      return { data: [] };
+      return { transforms: [] };
     };
 
     await coordinator.activate();
@@ -189,21 +194,21 @@ module('ConnectionStrategy', function (hooks) {
     });
 
     s1._update = async function (
-      transform: Transform
-    ): Promise<FullResponse<RecordTransformResult, undefined>> {
+      transform: Transform<RecordOperation>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
       return {};
     };
 
     s2._push = async function (
-      transform: Transform
-    ): Promise<FullResponse<Transform[], undefined>> {
+      transform: Transform<RecordOperation>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
       assert.strictEqual(
         transform,
         tB,
         'argument to _push is expected Transform'
       );
       assert.strictEqual(this, s2, 'context is that of the target');
-      return { data: [] };
+      return { transforms: [] };
     };
 
     await coordinator.activate();
