@@ -65,8 +65,8 @@ export interface Pushable<R, O extends Operation, TB> {
  * the processing required for `push` and returns a promise that resolves to an
  * array of `Transform` instances.
  */
-export function pushable(Klass: SourceClass): void {
-  let proto = Klass.prototype;
+export function pushable(Klass: unknown): void {
+  let proto = (Klass as SourceClass).prototype;
 
   if (isPushable(proto)) {
     return;

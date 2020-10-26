@@ -73,8 +73,8 @@ export interface Queryable<
  * the processing required for `query` and returns a promise that resolves to a
  * set of results.
  */
-export function queryable(Klass: SourceClass): void {
-  let proto = Klass.prototype;
+export function queryable(Klass: unknown): void {
+  let proto = (Klass as SourceClass).prototype;
 
   if (isQueryable(proto)) {
     return;

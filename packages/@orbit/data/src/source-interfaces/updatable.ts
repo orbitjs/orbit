@@ -67,8 +67,8 @@ export interface Updatable<D, R, O extends Operation, TB> {
  * the processing required for `update` and returns a promise that resolves when
  * complete.
  */
-export function updatable(Klass: SourceClass): void {
-  let proto = Klass.prototype;
+export function updatable(Klass: unknown): void {
+  let proto = (Klass as SourceClass).prototype;
 
   if (isUpdatable(proto)) {
     return;

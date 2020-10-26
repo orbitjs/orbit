@@ -39,8 +39,8 @@ export interface Syncable<O extends Operation> {
  * `transform` event, which is emitted whenever a new `Transform` is applied to
  * a source.
  */
-export function syncable(Klass: SourceClass): void {
-  let proto = Klass.prototype;
+export function syncable(Klass: unknown): void {
+  let proto = (Klass as SourceClass).prototype;
 
   if (isSyncable(proto)) {
     return;

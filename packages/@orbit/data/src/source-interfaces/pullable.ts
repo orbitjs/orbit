@@ -71,8 +71,8 @@ export interface Pullable<
  * the processing required for `pull` and returns a promise that resolves to an
  * array of `Transform` instances.
  */
-export function pullable(Klass: SourceClass): void {
-  let proto = Klass.prototype;
+export function pullable(Klass: unknown): void {
+  let proto = (Klass as SourceClass).prototype;
 
   if (isPullable(proto)) {
     return;
