@@ -1,7 +1,7 @@
 /* eslint-disable valid-jsdoc */
 import { clone, Dict } from '@orbit/utils';
 import { Assertion } from '@orbit/core';
-import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/data';
+import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/records';
 import {
   RecordRelationshipIdentity,
   SyncRecordCache,

@@ -1,13 +1,13 @@
 import {
-  KeyMap,
+  RecordKeyMap,
   Record,
   RecordNotFoundException,
-  Schema,
+  RecordSchema,
   equalRecordIdentities,
   recordsInclude,
   recordsIncludeAll,
   RecordIdentity
-} from '@orbit/data';
+} from '@orbit/records';
 import { clone } from '@orbit/utils';
 import { MemoryCache } from '../src/memory-cache';
 import { arrayMembershipMatches } from './support/matchers';
@@ -15,11 +15,11 @@ import { arrayMembershipMatches } from './support/matchers';
 const { module, test } = QUnit;
 
 module('MemoryCache', function (hooks) {
-  let schema: Schema;
-  let keyMap: KeyMap;
+  let schema: RecordSchema;
+  let keyMap: RecordKeyMap;
 
   hooks.beforeEach(function () {
-    schema = new Schema({
+    schema = new RecordSchema({
       models: {
         planet: {
           keys: {
@@ -40,7 +40,7 @@ module('MemoryCache', function (hooks) {
       }
     });
 
-    keyMap = new KeyMap();
+    keyMap = new RecordKeyMap();
   });
 
   test('it exists', function (assert) {
@@ -701,7 +701,7 @@ module('MemoryCache', function (hooks) {
   test('#patch removing model with a bi-directional hasOne', function (assert) {
     assert.expect(5);
 
-    const hasOneSchema = new Schema({
+    const hasOneSchema = new RecordSchema({
       models: {
         one: {
           relationships: {

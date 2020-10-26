@@ -1,17 +1,17 @@
+import { buildTransform, ResponseHints } from '@orbit/data';
 import {
   cloneRecordIdentity as identity,
-  KeyMap,
-  Query,
+  RecordKeyMap,
+  RecordQuery,
   Record,
-  Schema,
-  SchemaSettings,
-  Source,
-  buildTransform,
+  RecordSchema,
+  RecordSchemaSettings,
+  RecordSource,
   RecordOperation,
-  Transform,
+  RecordTransform,
   RecordTransformResult,
-  ResponseHints
-} from '@orbit/data';
+  RecordTransformBuilder
+} from '@orbit/records';
 import { clone } from '@orbit/utils';
 import {
   SyncCacheIntegrityProcessor,
@@ -22,7 +22,7 @@ import { MemorySource } from '../src/memory-source';
 const { module, test } = QUnit;
 
 module('MemorySource', function (hooks) {
-  const schemaDefinition: SchemaSettings = {
+  const schemaDefinition: RecordSchemaSettings = {
     models: {
       star: {
         attributes: {
@@ -71,18 +71,18 @@ module('MemorySource', function (hooks) {
     }
   };
 
-  const schema = new Schema(schemaDefinition);
+  const schema = new RecordSchema(schemaDefinition);
 
   let source: MemorySource;
-  let keyMap: KeyMap;
+  let keyMap: RecordKeyMap;
 
   hooks.beforeEach(function () {
-    keyMap = new KeyMap();
+    keyMap = new RecordKeyMap();
     source = new MemorySource({ schema, keyMap });
   });
 
   test('its prototype chain is correct', function (assert) {
-    assert.ok(source instanceof Source, 'instanceof Source');
+    assert.ok(source instanceof RecordSource, 'instanceof Source');
     assert.ok(source instanceof MemorySource, 'instanceof MemorySource');
     assert.equal(source.name, 'memory', 'should have default name');
   });
@@ -261,7 +261,7 @@ module('MemorySource', function (hooks) {
 
     source.cache.patch((t) => t.addRecord(earth));
 
-    source.on('beforeUpdate', (transform: Transform, hints: any) => {
+    source.on('beforeUpdate', (transform: RecordTransform, hints: any) => {
       if (transform?.options?.customizeResults) {
         hints.data = earth;
       }
@@ -303,7 +303,10 @@ module('MemorySource', function (hooks) {
 
     source.on(
       'beforeUpdate',
-      (transform: Transform, hints: ResponseHints<RecordTransformResult>) => {
+      (
+        transform: RecordTransform,
+        hints: ResponseHints<RecordTransformResult>
+      ) => {
         if (transform?.options?.customizeResults) {
           hints.data = [
             { type: 'planet', id: 'uranus' },
@@ -356,7 +359,10 @@ module('MemorySource', function (hooks) {
 
     source.on(
       'beforeUpdate',
-      (transform: Transform, hints: ResponseHints<RecordTransformResult>) => {
+      (
+        transform: RecordTransform,
+        hints: ResponseHints<RecordTransformResult>
+      ) => {
         if (transform?.options?.customizeResults) {
           hints.data = [
             { type: 'planet', id: 'uranus' },
@@ -420,7 +426,7 @@ module('MemorySource', function (hooks) {
       attributes: { name: 'Jupiter2', classification: 'gas giant' }
     };
 
-    source.on('beforeQuery', (query: Query, hints: any) => {
+    source.on('beforeQuery', (query: RecordQuery, hints: any) => {
       if (query.expressions[0].op === 'findRecord') {
         hints.data = jupiter2;
       }
@@ -462,7 +468,7 @@ module('MemorySource', function (hooks) {
       attributes: { name: 'Uranus' }
     };
 
-    source.on('beforeQuery', (query: Query, hints: any) => {
+    source.on('beforeQuery', (query: RecordQuery, hints: any) => {
       if (
         query.expressions[0].op === 'findRecords' &&
         query.options?.sources?.remote.customFilter === 'distantPlanets'
@@ -1177,7 +1183,10 @@ module('MemorySource', function (hooks) {
       await source.sync(addRecordBTransform),
       await source.sync(addRecordCTransform),
       await source.sync(
-        buildTransform([tb.addRecord(recordD), tb.addRecord(recordE)])
+        buildTransform<RecordOperation, RecordTransformBuilder>([
+          tb.addRecord(recordD),
+          tb.addRecord(recordE)
+        ])
       );
 
     source.cache.on('patch', (operation: RecordOperation) =>

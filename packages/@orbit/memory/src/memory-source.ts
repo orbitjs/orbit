@@ -1,36 +1,39 @@
-import { Assertion, Orbit } from '@orbit/core';
+import { Assertion } from '@orbit/core';
 import {
+  coalesceRecordOperations,
+  RecordIdentity,
   RecordOperation,
-  Source,
-  SourceSettings,
-  Syncable,
+  RecordOperationResult,
+  RecordQueryResult,
+  RecordQueryExpressionResult,
+  RecordTransformResult,
+  RecordSource,
+  RecordSourceSettings,
+  RecordQueryBuilder,
+  RecordTransformBuilder,
+  RecordQueryExpression,
+  RecordTransform,
+  RecordQuery,
+  RecordSyncable,
+  RecordUpdatable,
+  RecordQueryable
+} from '@orbit/records';
+import {
+  DataOrFullResponse,
   syncable,
-  Query,
   QueryOrExpressions,
   RequestOptions,
-  Queryable,
   queryable,
-  Updatable,
   updatable,
-  Transform,
   TransformOrOperations,
-  coalesceRecordOperations,
   buildTransform,
-  RecordIdentity,
-  RecordQueryResult,
-  RecordTransformResult,
-  RecordOperationResult,
-  FullResponse,
-  Response,
-  RecordQueryExpressionResult
+  FullResponse
 } from '@orbit/data';
 import { ResponseHints } from '@orbit/data/dist/modules/response';
 import { Dict } from '@orbit/utils';
 import { MemoryCache, MemoryCacheSettings } from './memory-cache';
 
-const { assert } = Orbit;
-
-export interface MemorySourceSettings extends SourceSettings {
+export interface MemorySourceSettings extends RecordSourceSettings {
   base?: MemorySource;
   cacheSettings?: Partial<MemoryCacheSettings>;
 }
@@ -45,40 +48,47 @@ export interface MemorySourceMergeOptions {
 @queryable
 @updatable
 export class MemorySource
-  extends Source
+  extends RecordSource
   implements
-    Syncable,
-    Queryable<RecordQueryResult, undefined>,
-    Updatable<RecordTransformResult, undefined> {
+    RecordSyncable,
+    RecordUpdatable<undefined>,
+    RecordQueryable<undefined> {
   private _cache: MemoryCache;
   private _base?: MemorySource;
   private _forkPoint?: string;
-  private _transforms: Dict<Transform>;
+  private _transforms: Dict<RecordTransform>;
   private _transformInverses: Dict<RecordOperation[]>;
 
   // Syncable interface stubs
-  sync!: (transformOrTransforms: Transform | Transform[]) => Promise<void>;
+  sync!: (
+    transformOrTransforms: RecordTransform | RecordTransform[]
+  ) => Promise<void>;
 
   // Queryable interface stubs
   query!: (
-    queryOrExpressions: QueryOrExpressions,
+    queryOrExpressions: QueryOrExpressions<
+      RecordQueryExpression,
+      RecordQueryBuilder
+    >,
     options?: RequestOptions,
     id?: string
-  ) => Promise<Response<RecordQueryResult, undefined>>;
+  ) => Promise<
+    DataOrFullResponse<RecordQueryResult, undefined, RecordOperation>
+  >;
 
   // Updatable interface stubs
   update!: (
-    transformOrOperations: TransformOrOperations,
+    transformOrOperations: TransformOrOperations<
+      RecordOperation,
+      RecordTransformBuilder
+    >,
     options?: RequestOptions,
     id?: string
-  ) => Promise<Response<RecordTransformResult, undefined>>;
+  ) => Promise<
+    DataOrFullResponse<RecordTransformResult, undefined, RecordOperation>
+  >;
 
-  constructor(settings: MemorySourceSettings = {}) {
-    assert(
-      "MemorySource's `schema` must be specified in `settings.schema` constructor argument",
-      !!settings.schema
-    );
-
+  constructor(settings: MemorySourceSettings) {
     const { keyMap, schema } = settings;
 
     settings.name = settings.name || 'memory';
@@ -129,7 +139,7 @@ export class MemorySource
   // Syncable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _sync(transform: Transform): Promise<void> {
+  async _sync(transform: RecordTransform): Promise<void> {
     if (!this.transformLog.contains(transform.id)) {
       this._applyTransform(transform);
       await this.transformed([transform]);
@@ -141,34 +151,38 @@ export class MemorySource
   /////////////////////////////////////////////////////////////////////////////
 
   async _update(
-    transform: Transform,
+    transform: RecordTransform,
     hints?: ResponseHints<RecordTransformResult>
-  ): Promise<FullResponse<RecordTransformResult, undefined>> {
+  ): Promise<FullResponse<RecordTransformResult, undefined, RecordOperation>> {
     let results: RecordTransformResult;
-    let data: RecordTransformResult;
+    const response: FullResponse<
+      RecordTransformResult,
+      undefined,
+      RecordOperation
+    > = {};
 
     if (!this.transformLog.contains(transform.id)) {
       results = this._applyTransform(transform);
-      await this.transformed([transform]);
+      response.transforms = [transform];
     }
 
     if (hints?.data) {
       if (transform.operations.length > 1 && Array.isArray(hints.data)) {
-        data = hints.data.map((id) => {
+        response.data = hints.data.map((id) => {
           return id ? this._cache.getRecordSync(id) : undefined;
         });
       } else {
-        data = this._cache.getRecordSync(hints.data as RecordIdentity);
+        response.data = this._cache.getRecordSync(hints.data as RecordIdentity);
       }
     } else if (results) {
       if (transform.operations.length === 1 && Array.isArray(results)) {
-        data = results[0];
+        response.data = results[0];
       } else {
-        data = results;
+        response.data = results;
       }
     }
 
-    return { data };
+    return response;
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -176,9 +190,9 @@ export class MemorySource
   /////////////////////////////////////////////////////////////////////////////
 
   async _query(
-    query: Query,
+    query: RecordQuery,
     hints?: ResponseHints<RecordQueryResult>
-  ): Promise<FullResponse<RecordQueryResult, undefined>> {
+  ): Promise<FullResponse<RecordQueryResult, undefined, RecordOperation>> {
     let data: RecordQueryResult;
 
     if (hints?.data) {
@@ -209,8 +223,8 @@ export class MemorySource
    *
    * @returns The forked source.
    */
-  fork(settings: MemorySourceSettings = {}): MemorySource {
-    const schema = this._schema;
+  fork(settings: MemorySourceSettings = { schema: this.schema }): MemorySource {
+    const schema = this.schema;
 
     settings.schema = schema;
     settings.cacheSettings = settings.cacheSettings || { schema };
@@ -240,7 +254,7 @@ export class MemorySource
     forkedSource: MemorySource,
     options: MemorySourceMergeOptions = {}
   ): Promise<any> {
-    let transforms: Transform[];
+    let transforms: RecordTransform[];
     if (options.sinceTransformId) {
       transforms = forkedSource.transformsSince(options.sinceTransformId);
     } else {
@@ -282,7 +296,7 @@ export class MemorySource
       );
     }
 
-    let baseTransforms: Transform[];
+    let baseTransforms: RecordTransform[];
     if (forkPoint === undefined) {
       // source was empty at fork point
       baseTransforms = base.allTransforms();
@@ -320,7 +334,7 @@ export class MemorySource
   /**
    * Returns all transforms since a particular `transformId`.
    */
-  transformsSince(transformId: string): Transform[] {
+  transformsSince(transformId: string): RecordTransform[] {
     return this.transformLog
       .after(transformId)
       .map((id) => this._transforms[id]);
@@ -329,11 +343,11 @@ export class MemorySource
   /**
    * Returns all tracked transforms.
    */
-  allTransforms(): Transform[] {
+  allTransforms(): RecordTransform[] {
     return this.transformLog.entries.map((id) => this._transforms[id]);
   }
 
-  getTransform(transformId: string): Transform {
+  getTransform(transformId: string): RecordTransform {
     return this._transforms[transformId];
   }
 
@@ -357,7 +371,9 @@ export class MemorySource
     }
   }
 
-  protected _applyTransform(transform: Transform): RecordOperationResult[] {
+  protected _applyTransform(
+    transform: RecordTransform
+  ): RecordOperationResult[] {
     const result = this.cache.patch(transform.operations as RecordOperation[]);
     this._transforms[transform.id] = transform;
     this._transformInverses[transform.id] = result.inverse;
