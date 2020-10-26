@@ -42,8 +42,8 @@ export abstract class Source<QueryBuilder = unknown, TransformBuilder = unknown>
   protected _transformLog: Log;
   protected _requestQueue: TaskQueue;
   protected _syncQueue: TaskQueue;
-  protected queryBuilder?: QueryBuilder;
-  protected transformBuilder?: TransformBuilder;
+  protected _queryBuilder?: QueryBuilder;
+  protected _transformBuilder?: TransformBuilder;
   private _activated?: Promise<void>;
 
   // Evented interface stubs
@@ -56,12 +56,13 @@ export abstract class Source<QueryBuilder = unknown, TransformBuilder = unknown>
   constructor(settings: SourceSettings<QueryBuilder, TransformBuilder> = {}) {
     const name = (this._name = settings.name);
     const bucket = (this._bucket = settings.bucket);
-    this.queryBuilder = settings.queryBuilder;
-    this.transformBuilder = settings.transformBuilder;
     const requestQueueSettings = settings.requestQueueSettings || {};
     const syncQueueSettings = settings.syncQueueSettings || {};
     const autoActivate =
       settings.autoActivate === undefined || settings.autoActivate;
+
+    this._queryBuilder = settings.queryBuilder;
+    this._transformBuilder = settings.transformBuilder;
 
     if (bucket) {
       assert('TransformLog requires a name if it has a bucket', !!name);
@@ -109,6 +110,14 @@ export abstract class Source<QueryBuilder = unknown, TransformBuilder = unknown>
 
   get syncQueue(): TaskQueue {
     return this._syncQueue;
+  }
+
+  get queryBuilder(): QueryBuilder | undefined {
+    return this._queryBuilder;
+  }
+
+  get transformBuilder(): TransformBuilder | undefined {
+    return this._transformBuilder;
   }
 
   // Performer interface

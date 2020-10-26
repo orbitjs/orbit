@@ -1,8 +1,5 @@
 import { RecordSource } from '../src/record-source';
 import { RecordSchema } from '../src/record-schema';
-import { buildTransform, Transform } from '@orbit/data';
-import { RecordTransformBuilder } from '../src/record-transform-builder';
-import { RecordQueryBuilder } from '../src/record-query-builder';
 import { FakeBucket } from './support/fake-bucket';
 
 const { module, test } = QUnit;
@@ -18,7 +15,7 @@ module('Source', function (hooks) {
   });
 
   test('it can be instantiated', function (assert) {
-    source = new MySource();
+    source = new MySource({ schema });
     assert.ok(source);
     assert.ok(source.transformLog, 'has a transform log');
   });

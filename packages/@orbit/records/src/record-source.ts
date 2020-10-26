@@ -2,14 +2,22 @@ import { RecordKeyMap } from './record-key-map';
 import { RecordSchema } from './record-schema';
 import { RecordQueryBuilder } from './record-query-builder';
 import { RecordTransformBuilder } from './record-transform-builder';
-import { Source, SourceSettings } from '@orbit/data';
+import Orbit from '@orbit/core';
+import { Source, SourceClass, SourceSettings } from '@orbit/data';
+
+const { assert } = Orbit;
 
 export interface RecordSourceSettings
   extends SourceSettings<RecordQueryBuilder, RecordTransformBuilder> {
-  schema?: RecordSchema;
+  schema: RecordSchema;
   keyMap?: RecordKeyMap;
   autoUpgrade?: boolean;
 }
+
+export type RecordSourceClass = SourceClass<
+  RecordQueryBuilder,
+  RecordTransformBuilder
+>;
 
 /**
  * Abstract base class for record-based sources.
@@ -19,11 +27,26 @@ export abstract class RecordSource extends Source<
   RecordTransformBuilder
 > {
   protected _keyMap?: RecordKeyMap;
-  protected _schema?: RecordSchema;
+  protected _schema: RecordSchema;
+  protected _queryBuilder!: RecordQueryBuilder;
+  protected _transformBuilder!: RecordTransformBuilder;
 
-  constructor(settings: RecordSourceSettings = {}) {
+  constructor(settings: RecordSourceSettings) {
     const autoActivate =
       settings.autoActivate === undefined || settings.autoActivate;
+
+    assert(
+      "RecordSource's `schema` must be specified in `settings.schema` constructor argument",
+      !!settings.schema
+    );
+
+    if (settings.queryBuilder === undefined) {
+      settings.queryBuilder = new RecordQueryBuilder();
+    }
+
+    if (settings.transformBuilder === undefined) {
+      settings.transformBuilder = new RecordTransformBuilder();
+    }
 
     super({ ...settings, autoActivate: false });
 
@@ -42,12 +65,20 @@ export abstract class RecordSource extends Source<
     }
   }
 
-  get schema(): RecordSchema | undefined {
+  get schema(): RecordSchema {
     return this._schema;
   }
 
   get keyMap(): RecordKeyMap | undefined {
     return this._keyMap;
+  }
+
+  get queryBuilder(): RecordQueryBuilder {
+    return this._queryBuilder;
+  }
+
+  get transformBuilder(): RecordTransformBuilder {
+    return this._transformBuilder;
   }
 
   /**
