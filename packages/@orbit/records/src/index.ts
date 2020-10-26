@@ -11,3 +11,8 @@ export * from './record-schema';
 export * from './record-source';
 export * from './record-transform';
 export * from './record-transform-builder';
+export * from './record-source-interfaces/record-pullable';
+export * from './record-source-interfaces/record-pushable';
+export * from './record-source-interfaces/record-queryable';
+export * from './record-source-interfaces/record-syncable';
+export * from './record-source-interfaces/record-updatable';
