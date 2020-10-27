@@ -14,6 +14,4 @@ export type RecordQueryOrExpressions = QueryOrExpressions<
   RecordQueryBuilder
 >;
 
-export type RecordQueryResult =
-  | RecordQueryExpressionResult
-  | RecordQueryExpressionResult[];
+export type RecordQueryResult = RecordQueryExpressionResult;
