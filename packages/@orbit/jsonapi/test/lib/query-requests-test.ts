@@ -1,4 +1,9 @@
-import { Schema, QueryBuilder, buildQuery, Operation } from '@orbit/data';
+import {
+  RecordOperation,
+  RecordSchema,
+  RecordQueryBuilder
+} from '@orbit/records';
+import { buildQuery } from '@orbit/data';
 import {
   QueryRequestProcessors,
   getQueryRequests
@@ -11,15 +16,15 @@ import * as sinon from 'sinon';
 const { module, test } = QUnit;
 
 module('QueryRequests', function (hooks) {
-  let schema: Schema;
+  let schema: RecordSchema;
   let requestProcessor: JSONAPIRequestProcessor;
-  let qb: QueryBuilder;
+  let qb: RecordQueryBuilder;
   let fetchStub: SinonStub;
 
   hooks.beforeEach(() => {
     fetchStub = sinon.stub(self, 'fetch');
 
-    schema = new Schema({
+    schema = new RecordSchema({
       models: {
         planet: {
           attributes: {
@@ -65,7 +70,7 @@ module('QueryRequests', function (hooks) {
       sourceName: 'foo'
     });
 
-    qb = new QueryBuilder();
+    qb = new RecordQueryBuilder();
   });
 
   hooks.afterEach(() => {
@@ -104,24 +109,10 @@ module('QueryRequests', function (hooks) {
       requestProcessor,
       request
     );
-    const {
-      transforms: [{ id: transformId }]
-    } = response;
+    const transformId = response.transforms?.[0].id as string;
 
     assert.deepEqual(response, {
-      meta: {
-        important: true
-      },
-      links: {
-        self: 'https://api.example.com/self',
-        related: {
-          href: 'https://api.example.com/related',
-          meta: {
-            important: true
-          }
-        }
-      },
-      primaryData: [
+      data: [
         {
           attributes: {
             name: 'Jupiter'
@@ -130,6 +121,30 @@ module('QueryRequests', function (hooks) {
           type: 'planet'
         }
       ],
+      details: {
+        meta: {
+          important: true
+        },
+        links: {
+          self: 'https://api.example.com/self',
+          related: {
+            href: 'https://api.example.com/related',
+            meta: {
+              important: true
+            }
+          }
+        },
+        data: [
+          {
+            attributes: {
+              name: 'Jupiter'
+            },
+            id: 'jupiter',
+            type: 'planet'
+          }
+        ]
+      },
+
       transforms: [
         {
           id: transformId,
@@ -141,7 +156,7 @@ module('QueryRequests', function (hooks) {
                 id: 'jupiter',
                 attributes: { name: 'Jupiter' }
               }
-            } as Operation
+            } as RecordOperation
           ],
           options: undefined
         }

@@ -1,5 +1,10 @@
 import { Dict } from '@orbit/utils';
-import { KeyMap, ModelDefinition, Record, Schema } from '@orbit/data';
+import {
+  RecordKeyMap,
+  ModelDefinition,
+  Record,
+  RecordSchema
+} from '@orbit/records';
 import { JSONAPIResourceSerializer } from '../../src/serializers/jsonapi-resource-serializer';
 import {
   Serializer,
@@ -53,7 +58,7 @@ module('JSONAPIResourceSerializer', function (hooks) {
       let serializer: JSONAPIResourceSerializer;
 
       hooks.beforeEach(function () {
-        const schema = new Schema({ models: modelDefinitions });
+        const schema = new RecordSchema({ models: modelDefinitions });
         const serializerFor = buildJSONAPISerializerFor({ schema });
         serializer = new JSONAPIResourceSerializer({ schema, serializerFor });
       });
@@ -530,7 +535,7 @@ module('JSONAPIResourceSerializer', function (hooks) {
       let serializer: JSONAPIResourceSerializer;
 
       hooks.beforeEach(function () {
-        let schema = new Schema({ models: modelDefinitions });
+        let schema = new RecordSchema({ models: modelDefinitions });
         const serializerClassFor = buildSerializerClassFor({
           distance: DistanceSerializer,
           unknown: MysterySerializer
@@ -722,11 +727,11 @@ module('JSONAPIResourceSerializer', function (hooks) {
       }
     };
     let serializer: JSONAPIResourceSerializer;
-    let keyMap: KeyMap;
+    let keyMap: RecordKeyMap;
 
     hooks.beforeEach(function () {
-      keyMap = new KeyMap();
-      const schema = new Schema({ models: modelDefinitions });
+      keyMap = new RecordKeyMap();
+      const schema = new RecordSchema({ models: modelDefinitions });
       const serializerFor = buildJSONAPISerializerFor({ keyMap, schema });
       serializer = new JSONAPIResourceSerializer({
         keyMap,

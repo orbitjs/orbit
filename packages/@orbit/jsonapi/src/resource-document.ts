@@ -1,5 +1,5 @@
 import { Dict } from '@orbit/utils';
-import { Link, Record } from '@orbit/data';
+import { Link } from '@orbit/records';
 
 export interface ResourceIdentity {
   id: string;
@@ -41,13 +41,6 @@ export type PrimaryResourceData =
 export interface ResourceDocument {
   data: PrimaryResourceData;
   included?: Resource[];
-  links?: Dict<Link>;
-  meta?: Dict<any>;
-}
-
-export interface RecordDocument {
-  data: Record | Record[] | null;
-  included?: Record[];
   links?: Dict<Link>;
   meta?: Dict<any>;
 }

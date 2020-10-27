@@ -1,16 +1,16 @@
-import { KeyMap, Schema } from '@orbit/data';
+import { RecordKeyMap, RecordSchema } from '@orbit/records';
 import { JSONAPIURLBuilder } from '../src/jsonapi-url-builder';
 import { buildJSONAPISerializerFor } from '../src/serializers/jsonapi-serializer-builder';
 
 const { module, test } = QUnit;
 
 module('JSONAPIURLBuilder', function (hooks) {
-  let keyMap: KeyMap;
+  let keyMap: RecordKeyMap;
   let urlBuilder: JSONAPIURLBuilder;
 
   hooks.beforeEach(() => {
-    keyMap = new KeyMap();
-    let schema = new Schema({
+    keyMap = new RecordKeyMap();
+    let schema = new RecordSchema({
       models: {
         planet: {
           keys: {

@@ -1,25 +1,28 @@
 import {
   buildTransform,
-  AddRecordOperation,
   ClientError,
-  KeyMap,
   NetworkError,
+  TransformNotAllowed
+} from '@orbit/data';
+import {
+  AddRecordOperation,
+  RecordKeyMap,
   Record,
   RecordIdentity,
   UpdateRecordOperation,
-  TransformNotAllowed,
-  Schema,
-  Source,
-  SchemaSettings,
+  RecordSchema,
+  RecordSource,
+  RecordSchemaSettings,
   ReplaceKeyOperation,
   RecordOperation,
   ReplaceRelatedRecordOperation,
   ReplaceRelatedRecordsOperation,
-  Transform
-} from '@orbit/data';
+  RecordTransform,
+  RecordTransformBuilder
+} from '@orbit/records';
 import { jsonapiResponse } from './support/jsonapi';
 import { JSONAPISource } from '../src/jsonapi-source';
-import { Resource, ResourceDocument } from '../src/resources';
+import { Resource, ResourceDocument } from '../src/resource-document';
 import { SinonStub } from 'sinon';
 import * as sinon from 'sinon';
 import { JSONAPISerializers } from '../src/serializers/jsonapi-serializers';
@@ -31,8 +34,8 @@ const { module, test } = QUnit;
 
 module('JSONAPISource with legacy serialization settings', function () {
   let fetchStub: SinonStub;
-  let keyMap: KeyMap;
-  let schema: Schema;
+  let keyMap: RecordKeyMap;
+  let schema: RecordSchema;
   let source: JSONAPISource;
   let resourceSerializer: JSONAPIResourceSerializer;
 
@@ -60,7 +63,7 @@ module('JSONAPISource with legacy serialization settings', function () {
     hooks.beforeEach(() => {
       fetchStub = sinon.stub(self, 'fetch');
 
-      schema = new Schema({
+      schema = new RecordSchema({
         models: {
           planet: {
             keys: {
@@ -114,7 +117,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         }
       });
 
-      keyMap = new KeyMap();
+      keyMap = new RecordKeyMap();
       source = new JSONAPISource({
         schema,
         keyMap,
@@ -134,13 +137,13 @@ module('JSONAPISource with legacy serialization settings', function () {
     });
 
     test('its prototype chain is correct', function (assert) {
-      assert.ok(source instanceof Source, 'instanceof Source');
+      assert.ok(source instanceof RecordSource, 'instanceof Source');
     });
 
     test('source has default settings', function (assert) {
       assert.expect(2);
 
-      let schema = new Schema({} as SchemaSettings);
+      let schema = new RecordSchema({} as RecordSchemaSettings);
       source = new JSONAPISource({ schema });
       assert.equal(source.name, 'jsonapi', 'name is set to default');
       assert.deepEqual(
@@ -153,7 +156,7 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('source saves options', function (assert) {
       assert.expect(4);
 
-      let schema = new Schema({} as SchemaSettings);
+      let schema = new RecordSchema({} as RecordSchemaSettings);
       source = new JSONAPISource({
         schema,
         keyMap,
@@ -217,12 +220,12 @@ module('JSONAPISource with legacy serialization settings', function () {
 
       let transformCount = 0;
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         attributes: { name: 'Jupiter', classification: 'gas giant' }
-      }) as Record;
+      });
 
-      let addPlanetOp = {
+      const addPlanetOp: AddRecordOperation = {
         op: 'addRecord',
         record: {
           type: 'planet',
@@ -234,14 +237,14 @@ module('JSONAPISource with legacy serialization settings', function () {
         }
       };
 
-      let addPlanetRemoteIdOp = {
+      const addPlanetRemoteIdOp: ReplaceKeyOperation = {
         op: 'replaceKey',
         record: { type: 'planet', id: planet.id },
         key: 'remoteId',
         value: '12345'
-      } as ReplaceKeyOperation;
+      };
 
-      source.on('transform', function (transform: Transform) {
+      source.on('transform', function (transform: RecordTransform) {
         transformCount++;
 
         if (transformCount === 1) {
@@ -275,7 +278,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         record: planet
       } as AddRecordOperation);
 
-      let result = await source.push(t);
+      let result = (await source.push(t)) as RecordTransform[];
 
       assert.equal(result.length, 2, 'two transforms applied');
       assert.deepEqual(result[0], t, 'result represents transforms applied');
@@ -309,7 +312,7 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#push - will not issue fetch if beforePush listener logs transform', async function (assert) {
       assert.expect(2);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       }) as Record;
@@ -319,11 +322,11 @@ module('JSONAPISource with legacy serialization settings', function () {
         record: planet
       } as AddRecordOperation);
 
-      source.on('beforePush', async function (transform: Transform) {
+      source.on('beforePush', async function (transform: RecordTransform) {
         await source.transformLog.append(t.id);
       });
 
-      let result = await source.push(t);
+      let result = (await source.push(t)) as RecordTransform[];
 
       assert.deepEqual(result, [], 'result represents transforms applied');
       assert.ok(source.transformLog.contains(t.id), 'log contains transform');
@@ -334,12 +337,12 @@ module('JSONAPISource with legacy serialization settings', function () {
 
       let transformCount = 0;
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         attributes: { name: 'Jupiter', classification: 'gas giant' }
-      }) as Record;
+      });
 
-      let addPlanetOp = {
+      const addPlanetOp: AddRecordOperation = {
         op: 'addRecord',
         record: {
           type: 'planet',
@@ -351,14 +354,14 @@ module('JSONAPISource with legacy serialization settings', function () {
         }
       };
 
-      let addPlanetRemoteIdOp = {
+      const addPlanetRemoteIdOp: ReplaceKeyOperation = {
         op: 'replaceKey',
         record: { type: 'planet', id: planet.id },
         key: 'remoteId',
         value: '12345'
       };
 
-      let addMoonOp = {
+      const addMoonOp = {
         op: 'updateRecord',
         record: {
           type: 'moon',
@@ -371,7 +374,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         }
       };
 
-      source.on('transform', (transform: Transform) => {
+      source.on('transform', (transform: RecordTransform) => {
         transformCount++;
 
         if (transformCount === 1) {
@@ -453,7 +456,7 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#push - options can be passed in at the root level or source-specific level', async function (assert) {
       assert.expect(1);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       }) as Record;
@@ -490,16 +493,16 @@ module('JSONAPISource with legacy serialization settings', function () {
 
       let transformCount = 0;
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345',
         attributes: {
           name: 'Jupiter',
           classification: 'gas giant'
         }
-      }) as Record;
+      });
 
-      let replacePlanetOp = {
+      const replacePlanetOp: UpdateRecordOperation = {
         op: 'updateRecord',
         record: {
           type: 'planet',
@@ -514,7 +517,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         }
       };
 
-      source.on('transform', (transform: Transform) => {
+      source.on('transform', (transform: RecordTransform) => {
         transformCount++;
 
         if (transformCount === 1) {
@@ -570,14 +573,14 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#push - can replace a single attribute', async function (assert) {
       assert.expect(5);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345',
         attributes: {
           name: 'Jupiter',
           classification: 'gas giant'
         }
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(204));
 
@@ -616,14 +619,14 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#push - can accept remote changes', async function (assert) {
       assert.expect(2);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345',
         attributes: {
           name: 'Jupiter',
           classification: 'gas giant'
         }
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/12345').returns(
         jsonapiResponse(200, {
@@ -638,9 +641,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         })
       );
 
-      let transforms = await source.push((t) =>
+      let transforms = (await source.push((t) =>
         t.replaceAttribute(planet, 'classification', 'terrestrial')
-      );
+      )) as RecordTransform[];
 
       assert.deepEqual(
         transforms[1].operations.map((o) => o.op),
@@ -655,10 +658,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#push - can delete records', async function (assert) {
       assert.expect(4);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(200));
 
@@ -681,15 +684,15 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#push - can add a hasMany relationship with POST', async function (assert) {
       assert.expect(5);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
-      let moon = resourceSerializer.deserialize({
+      const moon: Record = resourceSerializer.deserialize({
         type: 'moons',
         id: '987'
-      }) as Record;
+      });
 
       fetchStub
         .withArgs('/planets/12345/relationships/moons')
@@ -719,15 +722,15 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#push - can remove a relationship with DELETE', async function (assert) {
       assert.expect(4);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
-      let moon = resourceSerializer.deserialize({
+      const moon: Record = resourceSerializer.deserialize({
         type: 'moons',
         id: '987'
-      }) as Record;
+      });
 
       fetchStub
         .withArgs('/planets/12345/relationships/moons')
@@ -754,15 +757,15 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#push - can update a hasOne relationship with PATCH', async function (assert) {
       assert.expect(5);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
-      let moon = resourceSerializer.deserialize({
+      const moon: Record = resourceSerializer.deserialize({
         type: 'moons',
         id: '987'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/moons/987').returns(jsonapiResponse(200));
 
@@ -805,10 +808,10 @@ module('JSONAPISource with legacy serialization settings', function () {
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       } as Record;
 
-      let moon = resourceSerializer.deserialize({
+      const moon: Record = resourceSerializer.deserialize({
         type: 'moons',
         id: '987'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets').returns(
         jsonapiResponse(201, {
@@ -858,10 +861,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#push - can clear a hasOne relationship with PATCH', async function (assert) {
       assert.expect(5);
 
-      let moon = resourceSerializer.deserialize({
+      const moon: Record = resourceSerializer.deserialize({
         type: 'moons',
         id: '987'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/moons/987').returns(jsonapiResponse(200));
 
@@ -896,15 +899,15 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#push - can replace a hasMany relationship with PATCH', async function (assert) {
       assert.expect(5);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
-      let moon = resourceSerializer.deserialize({
+      const moon: Record = resourceSerializer.deserialize({
         type: 'moons',
         id: '987'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(200));
 
@@ -941,14 +944,15 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#push - a single transform can result in multiple requests', async function (assert) {
       assert.expect(6);
 
-      let planet1 = resourceSerializer.deserialize({
+      const planet1: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '1'
-      }) as Record;
-      let planet2 = resourceSerializer.deserialize({
+      });
+
+      const planet2: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '2'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/1').returns(jsonapiResponse(200));
 
@@ -989,14 +993,15 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#push - source can limit the number of allowed requests per transform with `maxRequestsPerTransform`', async function (assert) {
       assert.expect(1);
 
-      let planet1 = resourceSerializer.deserialize({
+      const planet1: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '1'
-      }) as Record;
-      let planet2 = resourceSerializer.deserialize({
+      });
+
+      const planet2: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '2'
-      }) as Record;
+      });
 
       source.maxRequestsPerTransform = 1;
 
@@ -1016,7 +1021,7 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#push - request can timeout', async function (assert) {
       assert.expect(2);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345',
         attributes: {
@@ -1046,7 +1051,7 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#push - allowed timeout can be specified per-request', async function (assert) {
       assert.expect(2);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345',
         attributes: {
@@ -1084,7 +1089,7 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#push - fetch can reject with a NetworkError', async function (assert) {
       assert.expect(2);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345',
         attributes: {
@@ -1109,7 +1114,7 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#push - response can trigger a ClientError', async function (assert) {
       assert.expect(3);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345',
         attributes: {
@@ -1146,12 +1151,12 @@ module('JSONAPISource with legacy serialization settings', function () {
 
       let transformCount = 0;
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         attributes: { name: 'Jupiter', classification: 'gas giant' }
-      }) as Record;
+      });
 
-      let addPlanetOp = {
+      const addPlanetOp: AddRecordOperation = {
         op: 'addRecord',
         record: {
           type: 'planet',
@@ -1163,14 +1168,14 @@ module('JSONAPISource with legacy serialization settings', function () {
         }
       };
 
-      let addPlanetRemoteIdOp = {
+      const addPlanetRemoteIdOp: ReplaceKeyOperation = {
         op: 'replaceKey',
         record: { type: 'planet', id: planet.id },
         key: 'remoteId',
         value: '12345'
-      } as ReplaceKeyOperation;
+      };
 
-      source.on('transform', function (transform: Transform) {
+      source.on('transform', function (transform: RecordTransform) {
         transformCount++;
 
         if (transformCount === 1) {
@@ -1234,12 +1239,12 @@ module('JSONAPISource with legacy serialization settings', function () {
 
       let transformCount = 0;
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         attributes: { name: 'Jupiter', classification: 'gas giant' }
-      }) as Record;
+      });
 
-      let addPlanetOp = {
+      const addPlanetOp: AddRecordOperation = {
         op: 'addRecord',
         record: {
           type: 'planet',
@@ -1251,7 +1256,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         }
       };
 
-      let addPlanetRemoteIdOp = {
+      const addPlanetRemoteIdOp: ReplaceKeyOperation = {
         op: 'replaceKey',
         record: { type: 'planet', id: planet.id },
         key: 'remoteId',
@@ -1271,7 +1276,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         }
       };
 
-      source.on('transform', (transform: Transform) => {
+      source.on('transform', (transform: RecordTransform) => {
         transformCount++;
 
         if (transformCount === 1) {
@@ -1355,7 +1360,7 @@ module('JSONAPISource with legacy serialization settings', function () {
 
       let transformCount = 0;
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345',
         attributes: {
@@ -1364,7 +1369,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         }
       }) as Record;
 
-      let replacePlanetOp = {
+      const replacePlanetOp: UpdateRecordOperation = {
         op: 'updateRecord',
         record: {
           type: 'planet',
@@ -1379,7 +1384,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         }
       };
 
-      source.on('transform', (transform: Transform) => {
+      source.on('transform', (transform: RecordTransform) => {
         transformCount++;
 
         if (transformCount === 1) {
@@ -1435,14 +1440,14 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#update - can replace a single attribute', async function (assert) {
       assert.expect(5);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345',
         attributes: {
           name: 'Jupiter',
           classification: 'gas giant'
         }
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(204));
 
@@ -1481,14 +1486,14 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#update - can accept remote changes', async function (assert) {
       assert.expect(3);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345',
         attributes: {
           name: 'Jupiter',
           classification: 'gas giant'
         }
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/12345').returns(
         jsonapiResponse(200, {
@@ -1503,8 +1508,8 @@ module('JSONAPISource with legacy serialization settings', function () {
         })
       );
 
-      let transforms: Transform[] = [];
-      source.on('transform', (transform: Transform) => {
+      let transforms: RecordTransform[] = [];
+      source.on('transform', (transform: RecordTransform) => {
         transforms.push(transform);
       });
 
@@ -1536,10 +1541,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#update - can delete records', async function (assert) {
       assert.expect(4);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(200));
 
@@ -1562,15 +1567,15 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#update - can add a hasMany relationship with POST', async function (assert) {
       assert.expect(5);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
-      let moon = resourceSerializer.deserialize({
+      const moon: Record = resourceSerializer.deserialize({
         type: 'moons',
         id: '987'
-      }) as Record;
+      });
 
       fetchStub
         .withArgs('/planets/12345/relationships/moons')
@@ -1600,15 +1605,15 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#update - can remove a relationship with DELETE', async function (assert) {
       assert.expect(4);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
-      let moon = resourceSerializer.deserialize({
+      const moon: Record = resourceSerializer.deserialize({
         type: 'moons',
         id: '987'
-      }) as Record;
+      });
 
       fetchStub
         .withArgs('/planets/12345/relationships/moons')
@@ -1635,15 +1640,15 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#update - can update a hasOne relationship with PATCH', async function (assert) {
       assert.expect(5);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
-      let moon = resourceSerializer.deserialize({
+      const moon: Record = resourceSerializer.deserialize({
         type: 'moons',
         id: '987'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/moons/987').returns(jsonapiResponse(200));
 
@@ -1688,10 +1693,10 @@ module('JSONAPISource with legacy serialization settings', function () {
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       };
 
-      let moon = resourceSerializer.deserialize({
+      const moon: Record = resourceSerializer.deserialize({
         type: 'moons',
         id: '987'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets').returns(
         jsonapiResponse(201, {
@@ -1741,10 +1746,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#update - can clear a hasOne relationship with PATCH', async function (assert) {
       assert.expect(5);
 
-      let moon = resourceSerializer.deserialize({
+      const moon: Record = resourceSerializer.deserialize({
         type: 'moons',
         id: '987'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/moons/987').returns(jsonapiResponse(200));
 
@@ -1779,15 +1784,15 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#update - can replace a hasMany relationship with PATCH', async function (assert) {
       assert.expect(5);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
-      let moon = resourceSerializer.deserialize({
+      const moon: Record = resourceSerializer.deserialize({
         type: 'moons',
         id: '987'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(200));
 
@@ -1824,14 +1829,15 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#update - a single transform can result in multiple requests', async function (assert) {
       assert.expect(6);
 
-      let planet1 = resourceSerializer.deserialize({
+      let planet1: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '1'
-      }) as Record;
-      let planet2 = resourceSerializer.deserialize({
+      });
+
+      let planet2: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '2'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/1').returns(jsonapiResponse(200));
 
@@ -1872,14 +1878,15 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#update - source can limit the number of allowed requests per transform with `maxRequestsPerTransform`', async function (assert) {
       assert.expect(1);
 
-      let planet1 = resourceSerializer.deserialize({
+      const planet1: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '1'
-      }) as Record;
-      let planet2 = resourceSerializer.deserialize({
+      });
+
+      const planet2: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '2'
-      }) as Record;
+      });
 
       source.maxRequestsPerTransform = 1;
 
@@ -1899,7 +1906,7 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#update - request can timeout', async function (assert) {
       assert.expect(2);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345',
         attributes: {
@@ -1929,7 +1936,7 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#update - allowed timeout can be specified per-request', async function (assert) {
       assert.expect(2);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345',
         attributes: {
@@ -1967,14 +1974,14 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#update - fetch can reject with a NetworkError', async function (assert) {
       assert.expect(2);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345',
         attributes: {
           name: 'Jupiter',
           classification: 'gas giant'
         }
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/12345').returns(Promise.reject(':('));
 
@@ -1992,14 +1999,14 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#update - response can trigger a ClientError', async function (assert) {
       assert.expect(3);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345',
         attributes: {
           name: 'Jupiter',
           classification: 'gas giant'
         }
-      }) as Record;
+      });
 
       let errors = [
         {
@@ -2033,18 +2040,18 @@ module('JSONAPISource with legacy serialization settings', function () {
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
       fetchStub
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecord({ type: 'planet', id: planet.id })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -2073,16 +2080,16 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#pull - record (with a 304 response)', async function (assert) {
       assert.expect(3);
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(304));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecord({ type: 'planet', id: planet.id })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 0, 'no transforms returned');
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
@@ -2103,10 +2110,10 @@ module('JSONAPISource with legacy serialization settings', function () {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
       // 10ms timeout
       source.requestProcessor.defaultFetchSettings.timeout = 10;
@@ -2136,10 +2143,10 @@ module('JSONAPISource with legacy serialization settings', function () {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
       const options = {
         sources: {
@@ -2170,10 +2177,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#pull - fetch can reject with a NetworkError', async function (assert) {
       assert.expect(2);
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/12345').returns(Promise.reject(':('));
 
@@ -2198,10 +2205,10 @@ module('JSONAPISource with legacy serialization settings', function () {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
       const options = {
         sources: {
@@ -2248,7 +2255,9 @@ module('JSONAPISource with legacy serialization settings', function () {
 
       fetchStub.withArgs('/planets').returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) => q.findRecords('planet'));
+      let transforms = (await source.pull((q) =>
+        q.findRecords('planet')
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -2279,7 +2288,9 @@ module('JSONAPISource with legacy serialization settings', function () {
 
       fetchStub.withArgs('/planets').returns(jsonapiResponse(304));
 
-      let transforms = await source.pull((q) => q.findRecords('planet'));
+      let transforms = (await source.pull((q) =>
+        q.findRecords('planet')
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 0, 'no transforms returned');
 
@@ -2309,9 +2320,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs(`/planets?${encodeURIComponent('filter[length-of-day]')}=24`)
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecords('planet').filter({ attribute: 'lengthOfDay', value: 24 })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(
@@ -2354,14 +2365,14 @@ module('JSONAPISource with legacy serialization settings', function () {
 
       fetchStub.withArgs(expectedUrl).returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q
           .findRecords('planet')
           .filter(
             { attribute: 'lengthOfDay', value: 'le:24' },
             { attribute: 'lengthOfDay', value: 'ge:24' }
           )
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -2405,12 +2416,12 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs(`/moons?${encodeURIComponent('filter[planet]')}=earth`)
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecords('moon').filter({
           relation: 'planet',
           record: { id: 'earth', type: 'planets' }
         })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -2474,7 +2485,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecords('moon').filter({
           relation: 'planet',
           record: [
@@ -2482,7 +2493,7 @@ module('JSONAPISource with legacy serialization settings', function () {
             { id: 'mars', type: 'planets' }
           ]
         })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -2535,7 +2546,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecords('planet').filter({
           relation: 'moons',
           records: [
@@ -2544,7 +2555,7 @@ module('JSONAPISource with legacy serialization settings', function () {
           ],
           op: 'equal'
         })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -2592,9 +2603,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs('/planets?sort=name')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecords('planet').sort('name')
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -2642,9 +2653,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs('/planets?sort=-name')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecords('planet').sort('-name')
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -2704,9 +2715,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs(`/planets?sort=${encodeURIComponent('length-of-day,name')}`)
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecords('planet').sort('lengthOfDay', 'name')
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -2758,9 +2769,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecords('planet').page({ offset: 1, limit: 10 })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -2789,10 +2800,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#pull - related records with attribute filter', async function (assert) {
       assert.expect(6);
 
-      const solarSystem = resourceSerializer.deserialize({
+      const solarSystem: Record = resourceSerializer.deserialize({
         type: 'solar-systems',
         id: 'sun'
-      }) as Record;
+      });
 
       const data: Resource[] = [
         {
@@ -2821,11 +2832,11 @@ module('JSONAPISource with legacy serialization settings', function () {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q
           .findRelatedRecords(solarSystem, 'planets')
           .filter({ attribute: 'lengthOfDay', value: 24 })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -2852,10 +2863,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#pull - related records with attribute filters', async function (assert) {
       assert.expect(6);
 
-      const solarSystem = resourceSerializer.deserialize({
+      const solarSystem: Record = resourceSerializer.deserialize({
         type: 'solar-systems',
         id: 'sun'
-      }) as Record;
+      });
 
       const data: Resource[] = [
         {
@@ -2875,14 +2886,14 @@ module('JSONAPISource with legacy serialization settings', function () {
 
       fetchStub.withArgs(expectedUrl).returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q
           .findRelatedRecords(solarSystem, 'planets')
           .filter(
             { attribute: 'lengthOfDay', value: 'le:24' },
             { attribute: 'lengthOfDay', value: 'ge:24' }
           )
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -2909,10 +2920,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#pull - records with relatedRecord filter (single value)', async function (assert) {
       assert.expect(6);
 
-      const solarSystem = resourceSerializer.deserialize({
+      const solarSystem: Record = resourceSerializer.deserialize({
         type: 'solar-systems',
         id: 'sun'
-      }) as Record;
+      });
 
       const data: Resource[] = [
         {
@@ -2933,12 +2944,12 @@ module('JSONAPISource with legacy serialization settings', function () {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRelatedRecords(solarSystem, 'moons').filter({
           relation: 'planet',
           record: { id: 'earth', type: 'planet' }
         })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -2965,10 +2976,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#pull - records with relatedRecord filter (multiple values)', async function (assert) {
       assert.expect(6);
 
-      const solarSystem = resourceSerializer.deserialize({
+      const solarSystem: Record = resourceSerializer.deserialize({
         type: 'solar-systems',
         id: 'sun'
-      }) as Record;
+      });
 
       const data: Resource[] = [
         {
@@ -3005,7 +3016,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRelatedRecords(solarSystem, 'moons').filter({
           relation: 'planet',
           record: [
@@ -3013,7 +3024,7 @@ module('JSONAPISource with legacy serialization settings', function () {
             { id: 'mars', type: 'planet' }
           ]
         })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -3052,10 +3063,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#pull - records with relatedRecords filter', async function (assert) {
       assert.expect(6);
 
-      const solarSystem = resourceSerializer.deserialize({
+      const solarSystem: Record = resourceSerializer.deserialize({
         type: 'solar-systems',
         id: 'sun'
-      }) as Record;
+      });
 
       const data: Resource[] = [
         {
@@ -3081,7 +3092,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRelatedRecords(solarSystem, 'planets').filter({
           relation: 'moons',
           records: [
@@ -3090,7 +3101,7 @@ module('JSONAPISource with legacy serialization settings', function () {
           ],
           op: 'equal'
         })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -3117,10 +3128,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#pull - records with sort by an attribute in ascending order', async function (assert) {
       assert.expect(6);
 
-      const solarSystem = resourceSerializer.deserialize({
+      const solarSystem: Record = resourceSerializer.deserialize({
         type: 'solar-systems',
         id: 'sun'
-      }) as Record;
+      });
 
       const data: Resource[] = [
         {
@@ -3141,9 +3152,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs('/solar-systems/sun/planets?sort=name')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('name')
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -3182,10 +3193,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#pull - records with sort by an attribute in descending order', async function (assert) {
       assert.expect(6);
 
-      const solarSystem = resourceSerializer.deserialize({
+      const solarSystem: Record = resourceSerializer.deserialize({
         type: 'solar-systems',
         id: 'sun'
-      }) as Record;
+      });
 
       const data: Resource[] = [
         {
@@ -3206,9 +3217,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs('/solar-systems/sun/planets?sort=-name')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('-name')
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -3247,10 +3258,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#pull - records with sort by multiple fields', async function (assert) {
       assert.expect(6);
 
-      const solarSystem = resourceSerializer.deserialize({
+      const solarSystem: Record = resourceSerializer.deserialize({
         type: 'solar-systems',
         id: 'sun'
-      }) as Record;
+      });
 
       const data: Resource[] = [
         {
@@ -3287,9 +3298,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('lengthOfDay', 'name')
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -3328,10 +3339,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#pull - records with pagination', async function (assert) {
       assert.expect(6);
 
-      const solarSystem = resourceSerializer.deserialize({
+      const solarSystem: Record = resourceSerializer.deserialize({
         type: 'solar-systems',
         id: 'sun'
-      }) as Record;
+      });
 
       const data: Resource[] = [
         {
@@ -3356,11 +3367,11 @@ module('JSONAPISource with legacy serialization settings', function () {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q
           .findRelatedRecords(solarSystem, 'planets')
           .page({ offset: 1, limit: 10 })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -3468,9 +3479,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs('/planets/jupiter/solar-system')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRelatedRecord(planetRecord, 'solarSystem')
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -3510,7 +3521,7 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#pull - relatedRecords', async function (assert) {
       assert.expect(9);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: 'jupiter'
       }) as Record;
@@ -3529,9 +3540,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs('/planets/jupiter/moons')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRelatedRecords(planet, 'moons')
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -3608,10 +3619,10 @@ module('JSONAPISource with legacy serialization settings', function () {
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
       fetchStub
         .withArgs('/planets/12345')
@@ -3638,10 +3649,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#query - record (304 response)', async function (assert) {
       assert.expect(3);
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(304));
 
@@ -3726,10 +3737,10 @@ module('JSONAPISource with legacy serialization settings', function () {
       };
       let responseDoc = { data, meta };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
       fetchStub
         .withArgs('/planets/12345')
@@ -3763,10 +3774,10 @@ module('JSONAPISource with legacy serialization settings', function () {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
       // 10ms timeout
       source.requestProcessor.defaultFetchSettings.timeout = 10;
@@ -3796,10 +3807,10 @@ module('JSONAPISource with legacy serialization settings', function () {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
       const options = {
         sources: {
@@ -3830,10 +3841,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#query - fetch can reject with a NetworkError', async function (assert) {
       assert.expect(2);
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/12345').returns(Promise.reject(':('));
 
@@ -3858,10 +3869,10 @@ module('JSONAPISource with legacy serialization settings', function () {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
       const options = {
         sources: {
@@ -3898,10 +3909,10 @@ module('JSONAPISource with legacy serialization settings', function () {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: '12345'
-      }) as Record;
+      });
 
       fetchStub
         .withArgs('/planets/12345?include=moons')
@@ -4350,10 +4361,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#query - related records with attribute filter', async function (assert) {
       assert.expect(5);
 
-      const solarSystem = resourceSerializer.deserialize({
+      const solarSystem: Record = resourceSerializer.deserialize({
         type: 'solar-systems',
         id: 'sun'
-      }) as Record;
+      });
 
       const data: Resource[] = [
         {
@@ -4406,10 +4417,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#query - related records with relatedRecord filter (single value)', async function (assert) {
       assert.expect(5);
 
-      const solarSystem = resourceSerializer.deserialize({
+      const solarSystem: Record = resourceSerializer.deserialize({
         type: 'solar-systems',
         id: 'sun'
-      }) as Record;
+      });
 
       const data: Resource[] = [
         {
@@ -4455,10 +4466,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#query - related records with relatedRecord filter (multiple values)', async function (assert) {
       assert.expect(5);
 
-      const solarSystem = resourceSerializer.deserialize({
+      const solarSystem: Record = resourceSerializer.deserialize({
         type: 'solar-systems',
         id: 'sun'
-      }) as Record;
+      });
 
       const data: Resource[] = [
         {
@@ -4523,10 +4534,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#query - related records with relatedRecords filter', async function (assert) {
       assert.expect(5);
 
-      const solarSystem = resourceSerializer.deserialize({
+      const solarSystem: Record = resourceSerializer.deserialize({
         type: 'solar-systems',
         id: 'sun'
-      }) as Record;
+      });
 
       const data: Resource[] = [
         {
@@ -4581,10 +4592,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#query - related records with sort by an attribute in ascending order', async function (assert) {
       assert.expect(5);
 
-      const solarSystem = resourceSerializer.deserialize({
+      const solarSystem: Record = resourceSerializer.deserialize({
         type: 'solar-systems',
         id: 'sun'
-      }) as Record;
+      });
 
       const data: Resource[] = [
         {
@@ -4627,10 +4638,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#query - related records with sort by an attribute in descending order', async function (assert) {
       assert.expect(5);
 
-      const solarSystem = resourceSerializer.deserialize({
+      const solarSystem: Record = resourceSerializer.deserialize({
         type: 'solar-systems',
         id: 'sun'
-      }) as Record;
+      });
 
       const data: Resource[] = [
         {
@@ -4673,10 +4684,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#query - related records with sort by multiple fields', async function (assert) {
       assert.expect(5);
 
-      const solarSystem = resourceSerializer.deserialize({
+      const solarSystem: Record = resourceSerializer.deserialize({
         type: 'solar-systems',
         id: 'sun'
-      }) as Record;
+      });
 
       const data: Resource[] = [
         {
@@ -4735,10 +4746,10 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#query - related records with pagination', async function (assert) {
       assert.expect(5);
 
-      const solarSystem = resourceSerializer.deserialize({
+      const solarSystem: Record = resourceSerializer.deserialize({
         type: 'solar-systems',
         id: 'sun'
-      }) as Record;
+      });
 
       const data: Resource[] = [
         {
@@ -4817,10 +4828,10 @@ module('JSONAPISource with legacy serialization settings', function () {
         .withArgs('/solar-systems/sun/planets')
         .returns(jsonapiResponse(304));
 
-      const solarSystem = resourceSerializer.deserialize({
+      const solarSystem: Record = resourceSerializer.deserialize({
         type: 'solar-systems',
         id: 'sun'
-      }) as Record;
+      });
 
       let records = await source.query((q) =>
         q.findRelatedRecords(
@@ -4973,7 +4984,7 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#query - relatedRecords', async function (assert) {
       assert.expect(5);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planets',
         id: 'jupiter'
       }) as Record;
@@ -5050,7 +5061,7 @@ module('JSONAPISource with legacy serialization settings', function () {
     hooks.beforeEach(function () {
       fetchStub = sinon.stub(self, 'fetch');
 
-      let schema = new Schema({
+      let schema = new RecordSchema({
         models: {
           planet: {
             attributes: {
@@ -5084,13 +5095,13 @@ module('JSONAPISource with legacy serialization settings', function () {
 
       let transformCount = 0;
 
-      let planet = {
+      const planet: Record = {
         type: 'planet',
         id: 'jupiter',
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       };
 
-      let addPlanetOp = {
+      const addPlanetOp: AddRecordOperation = {
         op: 'addRecord',
         record: {
           type: 'planet',
@@ -5102,7 +5113,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         }
       };
 
-      source.on('transform', (transform: Transform) => {
+      source.on('transform', (transform: RecordTransform) => {
         transformCount++;
 
         if (transformCount === 1) {

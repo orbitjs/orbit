@@ -1,14 +1,15 @@
+import { NetworkError } from '@orbit/data';
 import {
-  KeyMap,
-  NetworkError,
+  RecordKeyMap,
   Record,
   RecordIdentity,
   RecordOperation,
   ReplaceRelatedRecordOperation,
   ReplaceRelatedRecordsOperation,
-  Schema,
-  UpdateRecordOperation
-} from '@orbit/data';
+  RecordSchema,
+  UpdateRecordOperation,
+  RecordTransform
+} from '@orbit/records';
 import * as sinon from 'sinon';
 import { SinonStub } from 'sinon';
 import {
@@ -28,8 +29,8 @@ const { module, test } = QUnit;
 
 module('JSONAPISource - pullable', function (hooks) {
   let fetchStub: SinonStub;
-  let keyMap: KeyMap;
-  let schema: Schema;
+  let keyMap: RecordKeyMap;
+  let schema: RecordSchema;
   let source: JSONAPISource;
   let resourceSerializer: JSONAPIResourceSerializer;
 
@@ -44,7 +45,7 @@ module('JSONAPISource - pullable', function (hooks) {
   module('with a secondary key', function (hooks) {
     hooks.beforeEach(() => {
       schema = createSchemaWithRemoteKey();
-      keyMap = new KeyMap();
+      keyMap = new RecordKeyMap();
       source = new JSONAPISource({
         schema,
         keyMap
@@ -63,18 +64,18 @@ module('JSONAPISource - pullable', function (hooks) {
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
-      }) as Record;
+      });
 
       fetchStub
         .withArgs('/planets/12345')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecord({ type: 'planet', id: planet.id })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -103,16 +104,16 @@ module('JSONAPISource - pullable', function (hooks) {
     test('#pull - record (with a 304 response)', async function (assert) {
       assert.expect(3);
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(304));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecord({ type: 'planet', id: planet.id })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 0, 'no transforms returned');
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
@@ -133,10 +134,10 @@ module('JSONAPISource - pullable', function (hooks) {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
-      }) as Record;
+      });
 
       // 10ms timeout
       source.requestProcessor.defaultFetchSettings.timeout = 10;
@@ -166,10 +167,10 @@ module('JSONAPISource - pullable', function (hooks) {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
-      }) as Record;
+      });
 
       const options = {
         sources: {
@@ -200,10 +201,10 @@ module('JSONAPISource - pullable', function (hooks) {
     test('#pull - fetch can reject with a NetworkError', async function (assert) {
       assert.expect(2);
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/12345').returns(Promise.reject(':('));
 
@@ -228,10 +229,10 @@ module('JSONAPISource - pullable', function (hooks) {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
-      }) as Record;
+      });
 
       const options = {
         sources: {
@@ -278,7 +279,9 @@ module('JSONAPISource - pullable', function (hooks) {
 
       fetchStub.withArgs('/planets').returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) => q.findRecords('planet'));
+      let transforms = (await source.pull((q) =>
+        q.findRecords('planet')
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -309,7 +312,9 @@ module('JSONAPISource - pullable', function (hooks) {
 
       fetchStub.withArgs('/planets').returns(jsonapiResponse(304));
 
-      let transforms = await source.pull((q) => q.findRecords('planet'));
+      let transforms = (await source.pull((q) =>
+        q.findRecords('planet')
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 0, 'no transforms returned');
 
@@ -339,9 +344,9 @@ module('JSONAPISource - pullable', function (hooks) {
         .withArgs(`/planets?${encodeURIComponent('filter[lengthOfDay]')}=24`)
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecords('planet').filter({ attribute: 'lengthOfDay', value: 24 })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(
@@ -384,14 +389,14 @@ module('JSONAPISource - pullable', function (hooks) {
 
       fetchStub.withArgs(expectedUrl).returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q
           .findRecords('planet')
           .filter(
             { attribute: 'lengthOfDay', value: 'le:24' },
             { attribute: 'lengthOfDay', value: 'ge:24' }
           )
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -435,12 +440,12 @@ module('JSONAPISource - pullable', function (hooks) {
         .withArgs(`/moons?${encodeURIComponent('filter[planet]')}=earth`)
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecords('moon').filter({
           relation: 'planet',
           record: { id: 'earth', type: 'planet' }
         })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -504,7 +509,7 @@ module('JSONAPISource - pullable', function (hooks) {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecords('moon').filter({
           relation: 'planet',
           record: [
@@ -512,7 +517,7 @@ module('JSONAPISource - pullable', function (hooks) {
             { id: 'mars', type: 'planet' }
           ]
         })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -565,7 +570,7 @@ module('JSONAPISource - pullable', function (hooks) {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecords('planet').filter({
           relation: 'moons',
           records: [
@@ -574,7 +579,7 @@ module('JSONAPISource - pullable', function (hooks) {
           ],
           op: 'equal'
         })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -622,9 +627,9 @@ module('JSONAPISource - pullable', function (hooks) {
         .withArgs('/planets?sort=name')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecords('planet').sort('name')
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -672,9 +677,9 @@ module('JSONAPISource - pullable', function (hooks) {
         .withArgs('/planets?sort=-name')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecords('planet').sort('-name')
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -734,9 +739,9 @@ module('JSONAPISource - pullable', function (hooks) {
         .withArgs(`/planets?sort=${encodeURIComponent('lengthOfDay,name')}`)
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecords('planet').sort('lengthOfDay', 'name')
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -788,9 +793,9 @@ module('JSONAPISource - pullable', function (hooks) {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRecords('planet').page({ offset: 1, limit: 10 })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -851,11 +856,11 @@ module('JSONAPISource - pullable', function (hooks) {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q
           .findRelatedRecords(solarSystem, 'planets')
           .filter({ attribute: 'lengthOfDay', value: 24 })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -905,14 +910,14 @@ module('JSONAPISource - pullable', function (hooks) {
 
       fetchStub.withArgs(expectedUrl).returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q
           .findRelatedRecords(solarSystem, 'planets')
           .filter(
             { attribute: 'lengthOfDay', value: 'le:24' },
             { attribute: 'lengthOfDay', value: 'ge:24' }
           )
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -963,12 +968,12 @@ module('JSONAPISource - pullable', function (hooks) {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRelatedRecords(solarSystem, 'moons').filter({
           relation: 'planet',
           record: { id: 'earth', type: 'planet' }
         })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -1035,7 +1040,7 @@ module('JSONAPISource - pullable', function (hooks) {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRelatedRecords(solarSystem, 'moons').filter({
           relation: 'planet',
           record: [
@@ -1043,7 +1048,7 @@ module('JSONAPISource - pullable', function (hooks) {
             { id: 'mars', type: 'planet' }
           ]
         })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -1111,7 +1116,7 @@ module('JSONAPISource - pullable', function (hooks) {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRelatedRecords(solarSystem, 'planets').filter({
           relation: 'moons',
           records: [
@@ -1120,7 +1125,7 @@ module('JSONAPISource - pullable', function (hooks) {
           ],
           op: 'equal'
         })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -1171,9 +1176,9 @@ module('JSONAPISource - pullable', function (hooks) {
         .withArgs('/solar-systems/sun/planets?sort=name')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('name')
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -1236,9 +1241,9 @@ module('JSONAPISource - pullable', function (hooks) {
         .withArgs('/solar-systems/sun/planets?sort=-name')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('-name')
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -1317,9 +1322,9 @@ module('JSONAPISource - pullable', function (hooks) {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('lengthOfDay', 'name')
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -1386,11 +1391,11 @@ module('JSONAPISource - pullable', function (hooks) {
         )
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q
           .findRelatedRecords(solarSystem, 'planets')
           .page({ offset: 1, limit: 10 })
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -1498,9 +1503,9 @@ module('JSONAPISource - pullable', function (hooks) {
         .withArgs('/planets/jupiter/solar-system')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRelatedRecord(planetRecord, 'solarSystem')
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -1540,7 +1545,7 @@ module('JSONAPISource - pullable', function (hooks) {
     test('#pull - relatedRecords', async function (assert) {
       assert.expect(9);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: 'jupiter'
       }) as Record;
@@ -1559,9 +1564,9 @@ module('JSONAPISource - pullable', function (hooks) {
         .withArgs('/planets/jupiter/moons')
         .returns(jsonapiResponse(200, { data }));
 
-      let transforms = await source.pull((q) =>
+      let transforms = (await source.pull((q) =>
         q.findRelatedRecords(planet, 'moons')
-      );
+      )) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.ok(
@@ -1659,7 +1664,9 @@ module('JSONAPISource - pullable', function (hooks) {
 
       fetchStub.withArgs('/planets').returns(jsonapiResponse(200, planetsDoc));
 
-      let transforms = await source.pull((q) => [q.findRecords('planet')]);
+      let transforms = (await source.pull((q) => [
+        q.findRecords('planet')
+      ])) as RecordTransform[];
 
       assert.equal(transforms.length, 1, 'one transform returned');
 
@@ -1711,10 +1718,10 @@ module('JSONAPISource - pullable', function (hooks) {
       fetchStub.withArgs('/planets').returns(jsonapiResponse(200, planetsDoc));
       fetchStub.withArgs('/moons').returns(jsonapiResponse(200, moonsDoc));
 
-      let transforms = await source.pull((q) => [
+      let transforms = (await source.pull((q) => [
         q.findRecords('planet'),
         q.findRecords('moon')
-      ]);
+      ])) as RecordTransform[];
 
       assert.equal(transforms.length, 2, 'two transforms returned');
 

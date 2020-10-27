@@ -1,17 +1,22 @@
-import { KeyMap, Schema, SchemaSettings, Source } from '@orbit/data';
-import * as sinon from 'sinon';
-import { SinonStub } from 'sinon';
+import {
+  RecordKeyMap,
+  RecordSchema,
+  RecordSchemaSettings,
+  RecordSource
+} from '@orbit/records';
 import { JSONAPIResourceSerializer } from '../src';
 import { JSONAPISource } from '../src/jsonapi-source';
 import { JSONAPISerializers } from '../src/serializers/jsonapi-serializers';
 import { createSchemaWithRemoteKey } from './support/setup';
+import * as sinon from 'sinon';
+import { SinonStub } from 'sinon';
 
 const { module, test } = QUnit;
 
 module('JSONAPISource', function (hooks) {
   let fetchStub: SinonStub;
-  let keyMap: KeyMap;
-  let schema: Schema;
+  let keyMap: RecordKeyMap;
+  let schema: RecordSchema;
   let source: JSONAPISource;
   let resourceSerializer: JSONAPIResourceSerializer;
 
@@ -19,7 +24,7 @@ module('JSONAPISource', function (hooks) {
     fetchStub = sinon.stub(self, 'fetch');
 
     schema = createSchemaWithRemoteKey();
-    keyMap = new KeyMap();
+    keyMap = new RecordKeyMap();
     source = new JSONAPISource({
       schema,
       keyMap
@@ -38,13 +43,13 @@ module('JSONAPISource', function (hooks) {
   });
 
   test('its prototype chain is correct', function (assert) {
-    assert.ok(source instanceof Source, 'instanceof Source');
+    assert.ok(source instanceof RecordSource, 'instanceof RecordSource');
   });
 
   test('source has default settings', function (assert) {
     assert.expect(2);
 
-    let schema = new Schema({} as SchemaSettings);
+    let schema = new RecordSchema({} as RecordSchemaSettings);
     source = new JSONAPISource({ schema });
     assert.equal(source.name, 'jsonapi', 'name is set to default');
     assert.deepEqual(
@@ -57,7 +62,7 @@ module('JSONAPISource', function (hooks) {
   test('source saves options', function (assert) {
     assert.expect(4);
 
-    let schema = new Schema({} as SchemaSettings);
+    let schema = new RecordSchema({} as RecordSchemaSettings);
     source = new JSONAPISource({
       schema,
       keyMap,

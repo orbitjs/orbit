@@ -17,14 +17,14 @@ import {
 import { JSONAPIAtomicOperationSerializer } from './jsonapi-atomic-operation-serializer';
 import { JSONAPIResourceSerializer } from './jsonapi-resource-serializer';
 import { JSONAPIResourceIdentitySerializer } from './jsonapi-resource-identity-serializer';
-import { Schema, KeyMap } from '@orbit/data';
+import { RecordSchema, RecordKeyMap } from '@orbit/records';
 import { JSONAPISerializers } from './jsonapi-serializers';
 import { JSONAPIDocumentSerializer } from './jsonapi-document-serializer';
 import { JSONAPIResourceFieldSerializer } from './jsonapi-resource-field-serializer';
 
 export function buildJSONAPISerializerFor(settings: {
-  schema: Schema;
-  keyMap?: KeyMap;
+  schema: RecordSchema;
+  keyMap?: RecordKeyMap;
   serializerFor?: SerializerForFn;
   serializerClassFor?: SerializerClassForFn;
   serializerSettingsFor?: SerializerSettingsForFn;

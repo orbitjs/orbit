@@ -1,5 +1,5 @@
 import { Dict } from '@orbit/utils';
-import { ModelDefinition, Schema } from '@orbit/data';
+import { ModelDefinition, RecordSchema } from '@orbit/records';
 import { JSONAPIAtomicOperationsDocumentSerializer } from '../../src/serializers/jsonapi-atomic-operations-document-serializer';
 import { buildJSONAPISerializerFor } from '../../src/serializers/jsonapi-serializer-builder';
 
@@ -44,7 +44,7 @@ module('JSONAPIOperationsDocumentSerializer', function (hooks) {
       let serializer: JSONAPIAtomicOperationsDocumentSerializer;
 
       hooks.beforeEach(function () {
-        const schema = new Schema({ models: modelDefinitions });
+        const schema = new RecordSchema({ models: modelDefinitions });
         const serializerFor = buildJSONAPISerializerFor({ schema });
         serializer = new JSONAPIAtomicOperationsDocumentSerializer({
           schema,

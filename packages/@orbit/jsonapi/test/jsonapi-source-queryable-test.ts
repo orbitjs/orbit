@@ -1,10 +1,10 @@
+import { NetworkError } from '@orbit/data';
 import {
-  KeyMap,
-  NetworkError,
+  RecordKeyMap,
   Record,
   RecordIdentity,
-  Schema
-} from '@orbit/data';
+  RecordSchema
+} from '@orbit/records';
 import * as sinon from 'sinon';
 import { SinonStub } from 'sinon';
 import {
@@ -12,7 +12,7 @@ import {
   JSONAPIResourceSerializer
 } from '../src';
 import { JSONAPISource } from '../src/jsonapi-source';
-import { Resource, ResourceDocument } from '../src/resources';
+import { Resource, ResourceDocument } from '../src/resource-document';
 import { JSONAPISerializers } from '../src/serializers/jsonapi-serializers';
 import { jsonapiResponse } from './support/jsonapi';
 import {
@@ -24,8 +24,8 @@ const { module, test } = QUnit;
 
 module('JSONAPISource - queryable', function (hooks) {
   let fetchStub: SinonStub;
-  let keyMap: KeyMap;
-  let schema: Schema;
+  let keyMap: RecordKeyMap;
+  let schema: RecordSchema;
   let source: JSONAPISource;
   let resourceSerializer: JSONAPIResourceSerializer;
 
@@ -40,7 +40,7 @@ module('JSONAPISource - queryable', function (hooks) {
   module('with a secondary key', function (hooks) {
     hooks.beforeEach(() => {
       schema = createSchemaWithRemoteKey();
-      keyMap = new KeyMap();
+      keyMap = new RecordKeyMap();
       source = new JSONAPISource({
         schema,
         keyMap
@@ -59,10 +59,10 @@ module('JSONAPISource - queryable', function (hooks) {
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
-      }) as Record;
+      });
 
       fetchStub
         .withArgs('/planets/12345')
@@ -89,10 +89,10 @@ module('JSONAPISource - queryable', function (hooks) {
     test('#query - record (304 response)', async function (assert) {
       assert.expect(3);
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(304));
 
@@ -177,10 +177,10 @@ module('JSONAPISource - queryable', function (hooks) {
       };
       let responseDoc = { data, meta };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
-      }) as Record;
+      });
 
       fetchStub
         .withArgs('/planets/12345')
@@ -214,10 +214,10 @@ module('JSONAPISource - queryable', function (hooks) {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
-      }) as Record;
+      });
 
       // 10ms timeout
       source.requestProcessor.defaultFetchSettings.timeout = 10;
@@ -247,10 +247,10 @@ module('JSONAPISource - queryable', function (hooks) {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
-      }) as Record;
+      });
 
       const options = {
         sources: {
@@ -281,10 +281,10 @@ module('JSONAPISource - queryable', function (hooks) {
     test('#query - fetch can reject with a NetworkError', async function (assert) {
       assert.expect(2);
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/12345').returns(Promise.reject(':('));
 
@@ -309,10 +309,10 @@ module('JSONAPISource - queryable', function (hooks) {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
-      }) as Record;
+      });
 
       const options = {
         sources: {
@@ -349,10 +349,10 @@ module('JSONAPISource - queryable', function (hooks) {
         relationships: { moons: { data: [] } }
       };
 
-      const planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
-      }) as Record;
+      });
 
       fetchStub
         .withArgs('/planets/12345?include=moons')
@@ -1424,7 +1424,7 @@ module('JSONAPISource - queryable', function (hooks) {
     test('#query - relatedRecords', async function (assert) {
       assert.expect(5);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: 'jupiter'
       }) as Record;

@@ -1,7 +1,7 @@
-import { Schema } from '@orbit/data';
+import { RecordSchema } from '@orbit/records';
 
-export function createSchemaWithRemoteKey(): Schema {
-  return new Schema({
+export function createSchemaWithRemoteKey(): RecordSchema {
+  return new RecordSchema({
     models: {
       planet: {
         keys: {
@@ -56,8 +56,8 @@ export function createSchemaWithRemoteKey(): Schema {
   });
 }
 
-export function createSchemaWithoutKeys(): Schema {
-  return new Schema({
+export function createSchemaWithoutKeys(): RecordSchema {
+  return new RecordSchema({
     models: {
       planet: {
         attributes: {

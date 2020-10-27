@@ -1,7 +1,7 @@
 import { deepSet } from '@orbit/utils';
 import { Assertion } from '@orbit/core';
-import { Record, RecordIdentity, ModelDefinition } from '@orbit/data';
-import { Resource, ResourceIdentity } from '../resources';
+import { Record, RecordIdentity, ModelDefinition } from '@orbit/records';
+import { Resource, ResourceIdentity } from '../resource-document';
 import { JSONAPIBaseSerializer } from './jsonapi-base-serializer';
 import { JSONAPIResourceIdentityDeserializationOptions } from './jsonapi-resource-identity-serializer';
 

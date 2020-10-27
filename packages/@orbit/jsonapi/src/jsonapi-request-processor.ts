@@ -1,23 +1,25 @@
 import Orbit from '@orbit/core';
 import {
   ClientError,
-  KeyMap,
   NetworkError,
-  Operation,
-  Query,
-  Record,
-  Schema,
-  ServerError,
-  Transform,
-  getRequestOptions,
-  QueryExpression
+  requestOptionsForSource,
+  ServerError
 } from '@orbit/data';
+import {
+  RecordKeyMap,
+  Record,
+  RecordSchema,
+  RecordQueryExpression,
+  RecordTransform,
+  RecordQuery
+} from '@orbit/records';
 import { Dict } from '@orbit/utils';
 import { InvalidServerResponse } from './lib/exceptions';
-import { TransformRecordRequest } from './lib/transform-requests';
-import { QueryRequest } from './lib/query-requests';
+import { RecordTransformRequest } from './lib/transform-requests';
+import { RecordQueryRequest } from './lib/query-requests';
 import { deepMerge, toArray } from '@orbit/utils';
-import { RecordDocument, ResourceDocument } from './resources';
+import { ResourceDocument } from './resource-document';
+import { RecordDocument } from './record-document';
 import {
   JSONAPIRequestOptions,
   buildFetchSettings
@@ -37,6 +39,7 @@ import {
 } from '@orbit/serializers';
 import { buildJSONAPISerializerFor } from './serializers/jsonapi-serializer-builder';
 import { JSONAPISerializers } from './serializers/jsonapi-serializers';
+import { RecordOperation } from '@orbit/records';
 
 const { assert, deprecate } = Orbit;
 
@@ -70,8 +73,8 @@ export interface JSONAPIRequestProcessorSettings {
   host?: string;
   defaultFetchSettings?: FetchSettings;
   allowedContentTypes?: string[];
-  schema: Schema;
-  keyMap?: KeyMap;
+  schema: RecordSchema;
+  keyMap?: RecordKeyMap;
 }
 
 export class JSONAPIRequestProcessor {
@@ -79,8 +82,8 @@ export class JSONAPIRequestProcessor {
   urlBuilder: JSONAPIURLBuilder;
   allowedContentTypes: string[];
   defaultFetchSettings!: FetchSettings;
-  schema: Schema;
-  keyMap?: KeyMap;
+  schema: RecordSchema;
+  keyMap?: RecordKeyMap;
   protected _serializer?: JSONAPISerializer;
   protected _serializerFor: SerializerForFn;
 
@@ -222,7 +225,7 @@ export class JSONAPIRequestProcessor {
 
   operationsFromDeserializedDocument(
     deserialized: RecordDocument
-  ): Operation[] {
+  ): RecordOperation[] {
     const records: Record[] = [];
     Array.prototype.push.apply(records, toArray(deserialized.data));
 
@@ -246,19 +249,22 @@ export class JSONAPIRequestProcessor {
   }
 
   customRequestOptions(
-    queryOrTransform: Query | Transform,
-    queryExpressionOrOperation: QueryExpression | Operation
+    queryOrTransform: RecordQuery | RecordTransform,
+    queryExpressionOrOperation: RecordQueryExpression | RecordOperation
   ): JSONAPIRequestOptions | undefined {
     let options: JSONAPIRequestOptions | undefined;
 
     if (queryOrTransform.options) {
-      options = getRequestOptions(queryOrTransform.options, this.sourceName);
+      options = requestOptionsForSource(
+        queryOrTransform.options,
+        this.sourceName
+      );
     }
 
     if (queryExpressionOrOperation.options) {
       options = {
         ...options,
-        ...getRequestOptions(
+        ...requestOptionsForSource(
           queryExpressionOrOperation.options,
           this.sourceName
         )
@@ -273,7 +279,7 @@ export class JSONAPIRequestProcessor {
   /* eslint-disable @typescript-eslint/no-unused-vars */
   preprocessResponseDocument(
     document: ResourceDocument,
-    queryRequestOrTransformRecordRequest: QueryRequest | TransformRecordRequest
+    request: RecordQueryRequest | RecordTransformRequest
   ): void {}
   /* eslint-enable @typescript-eslint/no-unused-vars */
 
