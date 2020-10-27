@@ -118,8 +118,7 @@ export class MemoryCache extends SyncRecordCache {
       let rels = this._inverseRelationships[r.relatedRecord.type].get(
         r.relatedRecord.id
       );
-      rels = rels ? clone(rels) : [];
-      rels.push(r);
+      rels = rels ? [...rels, clone(r)] : [clone(r)];
       this._inverseRelationships[r.relatedRecord.type].set(
         r.relatedRecord.id,
         rels
