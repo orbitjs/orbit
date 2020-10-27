@@ -3,6 +3,7 @@ import { Transform } from './transform';
 
 export type DataOrFullResponse<D, R, O extends Operation> =
   | D
+  | D[]
   | FullResponse<D, R, O>;
 
 export type TransformsOrFullResponse<D, R, O extends Operation> =
@@ -19,8 +20,8 @@ export interface NamedFullResponseMap<D, R, O extends Operation> {
 }
 
 export interface FullResponse<D, R, O extends Operation> {
-  data?: D;
-  details?: R;
+  data?: D | D[];
+  details?: R | R[];
   transforms?: Transform<O>[];
 
   // Note: Response `data` and `details` from other sources do not necessarily
