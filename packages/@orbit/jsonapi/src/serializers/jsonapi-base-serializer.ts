@@ -7,8 +7,11 @@ import {
 import { JSONAPIResourceIdentitySerializer } from './jsonapi-resource-identity-serializer';
 import { JSONAPIResourceSerializer } from './jsonapi-resource-serializer';
 import { JSONAPISerializers } from './jsonapi-serializers';
-import { JSONAPIOperationSerializer } from './jsonapi-operation-serializer';
+import { JSONAPIAtomicOperationSerializer } from './jsonapi-atomic-operation-serializer';
 import { JSONAPIResourceFieldSerializer } from './jsonapi-resource-field-serializer';
+import { JSONAPIAtomicOperationsDocumentSerializer } from './jsonapi-atomic-operations-document-serializer';
+import { JSONAPIAtomicResultsDocumentSerializer } from './jsonapi-atomic-results-document-serializer';
+import { JSONAPIDocumentSerializer } from './jsonapi-document-serializer';
 
 export abstract class JSONAPIBaseSerializer<
   From,
@@ -62,6 +65,12 @@ export abstract class JSONAPIBaseSerializer<
     ) as JSONAPIResourceSerializer;
   }
 
+  protected get documentSerializer(): JSONAPIDocumentSerializer {
+    return this.serializerFor(
+      JSONAPISerializers.ResourceDocument
+    ) as JSONAPIDocumentSerializer;
+  }
+
   protected get identitySerializer(): JSONAPIResourceIdentitySerializer {
     return this.serializerFor(
       JSONAPISerializers.ResourceIdentity
@@ -80,9 +89,21 @@ export abstract class JSONAPIBaseSerializer<
     ) as JSONAPIResourceFieldSerializer;
   }
 
-  protected get operationSerializer(): JSONAPIOperationSerializer {
+  protected get atomicOperationSerializer(): JSONAPIAtomicOperationSerializer {
     return this.serializerFor(
-      JSONAPISerializers.ResourceOperation
-    ) as JSONAPIOperationSerializer;
+      JSONAPISerializers.ResourceAtomicOperation
+    ) as JSONAPIAtomicOperationSerializer;
+  }
+
+  protected get atomicOperationsDocumentSerializer(): JSONAPIAtomicOperationsDocumentSerializer {
+    return this.serializerFor(
+      JSONAPISerializers.ResourceAtomicOperationsDocument
+    ) as JSONAPIAtomicOperationsDocumentSerializer;
+  }
+
+  protected get atomicResultsDocumentSerializer(): JSONAPIAtomicResultsDocumentSerializer {
+    return this.serializerFor(
+      JSONAPISerializers.ResourceAtomicResultsDocument
+    ) as JSONAPIAtomicResultsDocumentSerializer;
   }
 }

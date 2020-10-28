@@ -11,25 +11,25 @@ import {
   ReplaceAttributeOperation
 } from '@orbit/data';
 import {
-  AddResourceOperation,
-  AddToRelatedResourcesOperation,
-  RemoveFromRelatedResourcesOperation,
-  RemoveResourceOperation,
-  ReplaceRelatedResourceOperation,
-  ReplaceRelatedResourcesOperation,
-  ResourceOperation,
-  UpdateResourceOperation
+  AddResourceAtomicOperation,
+  AddToRelatedResourcesAtomicOperation,
+  RemoveFromRelatedResourcesAtomicOperation,
+  RemoveResourceAtomicOperation,
+  ReplaceRelatedResourceAtomicOperation,
+  ReplaceRelatedResourcesAtomicOperation,
+  ResourceAtomicOperation,
+  UpdateResourceAtomicOperation
 } from '../resource-operations';
 import { Resource, ResourceIdentity } from '../resources';
 import { JSONAPIBaseSerializer } from './jsonapi-base-serializer';
 
-export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
+export class JSONAPIAtomicOperationSerializer extends JSONAPIBaseSerializer<
   RecordOperation,
-  ResourceOperation,
+  ResourceAtomicOperation,
   unknown,
   unknown
 > {
-  serialize(operation: RecordOperation): ResourceOperation {
+  serialize(operation: RecordOperation): ResourceAtomicOperation {
     switch (operation.op) {
       case 'addRecord':
         return this.serializeAddRecordOperation(operation);
@@ -54,7 +54,7 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
     }
   }
 
-  deserialize(operation: ResourceOperation): RecordOperation {
+  deserialize(operation: ResourceAtomicOperation): RecordOperation {
     if (isAddOperation(operation)) {
       return this.deserializeAddOperation(operation);
     } else if (isUpdateOperation(operation)) {
@@ -70,7 +70,7 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
 
   protected serializeAddRecordOperation(
     operation: AddRecordOperation
-  ): AddResourceOperation {
+  ): AddResourceAtomicOperation {
     const ref = this.identitySerializer.serialize(operation.record);
     return {
       op: 'add',
@@ -81,7 +81,7 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
 
   protected serializeUpdateRecordOperation(
     operation: UpdateRecordOperation
-  ): UpdateResourceOperation {
+  ): UpdateResourceAtomicOperation {
     return {
       op: 'update',
       ref: this.identitySerializer.serialize(
@@ -93,7 +93,7 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
 
   protected serializeRemoveRecordOperation(
     operation: RemoveRecordOperation
-  ): RemoveResourceOperation {
+  ): RemoveResourceAtomicOperation {
     return {
       op: 'remove',
       ref: this.identitySerializer.serialize(
@@ -104,7 +104,7 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
 
   protected serializeAddToRelatedRecordsOperation(
     operation: AddToRelatedRecordsOperation
-  ): AddToRelatedResourcesOperation {
+  ): AddToRelatedResourcesAtomicOperation {
     const ref = this.identitySerializer.serialize(
       operation.record
     ) as ResourceIdentity;
@@ -117,7 +117,7 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
 
   protected serializeRemoveFromRelatedRecordsOperation(
     operation: RemoveFromRelatedRecordsOperation
-  ): RemoveFromRelatedResourcesOperation {
+  ): RemoveFromRelatedResourcesAtomicOperation {
     const ref = this.identitySerializer.serialize(
       operation.record
     ) as ResourceIdentity;
@@ -130,7 +130,7 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
 
   protected serializeReplaceRelatedRecordsOperation(
     operation: ReplaceRelatedRecordsOperation
-  ): ReplaceRelatedResourcesOperation {
+  ): ReplaceRelatedResourcesAtomicOperation {
     const ref = this.identitySerializer.serialize(
       operation.record
     ) as ResourceIdentity;
@@ -145,7 +145,7 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
 
   protected serializeReplaceRelatedRecordOperation(
     operation: ReplaceRelatedRecordOperation
-  ): ReplaceRelatedResourceOperation {
+  ): ReplaceRelatedResourceAtomicOperation {
     const ref = this.identitySerializer.serialize(
       operation.record
     ) as ResourceIdentity;
@@ -160,7 +160,7 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
 
   protected serializeReplaceAttributeOperation(
     operation: ReplaceAttributeOperation
-  ): UpdateResourceOperation {
+  ): UpdateResourceAtomicOperation {
     const record = {
       id: operation.record.id,
       type: operation.record.type,
@@ -182,7 +182,7 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
   }
 
   protected deserializeAddOperation(
-    operation: AddResourceOperation | AddToRelatedResourcesOperation
+    operation: AddResourceAtomicOperation | AddToRelatedResourcesAtomicOperation
   ): AddRecordOperation | AddToRelatedRecordsOperation {
     if (isRelatedResourceOperation(operation)) {
       return {
@@ -203,9 +203,9 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
 
   protected deserializeUpdateOperation(
     operation:
-      | UpdateResourceOperation
-      | ReplaceRelatedResourceOperation
-      | ReplaceRelatedResourcesOperation
+      | UpdateResourceAtomicOperation
+      | ReplaceRelatedResourceAtomicOperation
+      | ReplaceRelatedResourcesAtomicOperation
   ):
     | ReplaceRelatedRecordOperation
     | ReplaceRelatedRecordsOperation
@@ -241,7 +241,9 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
   }
 
   protected deserializeRemoveOperation(
-    operation: RemoveResourceOperation | RemoveFromRelatedResourcesOperation
+    operation:
+      | RemoveResourceAtomicOperation
+      | RemoveFromRelatedResourcesAtomicOperation
   ): RemoveFromRelatedRecordsOperation | RemoveRecordOperation {
     if (isRelatedResourceOperation(operation)) {
       return {
@@ -262,32 +264,36 @@ export class JSONAPIOperationSerializer extends JSONAPIBaseSerializer<
 }
 
 function isRelatedResourceOperation(
-  operation: ResourceOperation
+  operation: ResourceAtomicOperation
 ): operation is
-  | AddToRelatedResourcesOperation
-  | RemoveFromRelatedResourcesOperation
-  | ReplaceRelatedResourceOperation
-  | ReplaceRelatedResourcesOperation {
+  | AddToRelatedResourcesAtomicOperation
+  | RemoveFromRelatedResourcesAtomicOperation
+  | ReplaceRelatedResourceAtomicOperation
+  | ReplaceRelatedResourcesAtomicOperation {
   return !!operation.ref.relationship;
 }
 
 function isAddOperation(
-  operation: ResourceOperation
-): operation is AddResourceOperation | AddToRelatedResourcesOperation {
+  operation: ResourceAtomicOperation
+): operation is
+  | AddResourceAtomicOperation
+  | AddToRelatedResourcesAtomicOperation {
   return operation.op === 'add';
 }
 
 function isUpdateOperation(
-  operation: ResourceOperation
+  operation: ResourceAtomicOperation
 ): operation is
-  | UpdateResourceOperation
-  | ReplaceRelatedResourcesOperation
-  | ReplaceRelatedResourcesOperation {
+  | UpdateResourceAtomicOperation
+  | ReplaceRelatedResourcesAtomicOperation
+  | ReplaceRelatedResourcesAtomicOperation {
   return operation.op === 'update';
 }
 
 function isRemoveOperation(
-  operation: ResourceOperation
-): operation is RemoveResourceOperation | RemoveFromRelatedResourcesOperation {
+  operation: ResourceAtomicOperation
+): operation is
+  | RemoveResourceAtomicOperation
+  | RemoveFromRelatedResourcesAtomicOperation {
   return operation.op === 'remove';
 }

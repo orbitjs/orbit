@@ -14,7 +14,7 @@ import {
   SerializerSettingsForFn,
   UnknownSerializerClass
 } from '@orbit/serializers';
-import { JSONAPIOperationSerializer } from './jsonapi-operation-serializer';
+import { JSONAPIAtomicOperationSerializer } from './jsonapi-atomic-operation-serializer';
 import { JSONAPIResourceSerializer } from './jsonapi-resource-serializer';
 import { JSONAPIResourceIdentitySerializer } from './jsonapi-resource-identity-serializer';
 import { Schema, KeyMap } from '@orbit/data';
@@ -43,7 +43,7 @@ export function buildJSONAPISerializerFor(settings: {
     [JSONAPISerializers.Resource as string]: JSONAPIResourceSerializer as UnknownSerializerClass,
     [JSONAPISerializers.ResourceDocument as string]: JSONAPIDocumentSerializer as UnknownSerializerClass,
     [JSONAPISerializers.ResourceIdentity as string]: JSONAPIResourceIdentitySerializer as UnknownSerializerClass,
-    [JSONAPISerializers.ResourceOperation as string]: JSONAPIOperationSerializer as UnknownSerializerClass,
+    [JSONAPISerializers.ResourceAtomicOperation as string]: JSONAPIAtomicOperationSerializer as UnknownSerializerClass,
     [JSONAPISerializers.ResourceType as string]: StringSerializer as UnknownSerializerClass,
     [JSONAPISerializers.ResourceTypePath as string]: StringSerializer as UnknownSerializerClass,
     [JSONAPISerializers.ResourceField as string]: JSONAPIResourceFieldSerializer as UnknownSerializerClass,

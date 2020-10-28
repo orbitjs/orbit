@@ -1,8 +1,8 @@
 import { Resource } from './resources';
 import { Dict } from '@orbit/utils';
-import { Link, RecordOperation } from '@orbit/data';
+import { Link, RecordOperation, Record } from '@orbit/data';
 
-export interface ResourceOperation {
+export interface ResourceAtomicOperation {
   op: 'get' | 'add' | 'update' | 'remove';
   ref: {
     type: string;
@@ -12,7 +12,7 @@ export interface ResourceOperation {
   data?: Resource | Resource[] | null;
 }
 
-export interface AddResourceOperation extends ResourceOperation {
+export interface AddResourceAtomicOperation extends ResourceAtomicOperation {
   op: 'add';
   ref: {
     type: string;
@@ -21,7 +21,7 @@ export interface AddResourceOperation extends ResourceOperation {
   data: Resource;
 }
 
-export interface UpdateResourceOperation extends ResourceOperation {
+export interface UpdateResourceAtomicOperation extends ResourceAtomicOperation {
   op: 'update';
   ref: {
     type: string;
@@ -30,7 +30,7 @@ export interface UpdateResourceOperation extends ResourceOperation {
   data: Resource;
 }
 
-export interface RemoveResourceOperation extends ResourceOperation {
+export interface RemoveResourceAtomicOperation extends ResourceAtomicOperation {
   op: 'remove';
   ref: {
     type: string;
@@ -38,7 +38,8 @@ export interface RemoveResourceOperation extends ResourceOperation {
   };
 }
 
-export interface AddToRelatedResourcesOperation extends ResourceOperation {
+export interface AddToRelatedResourcesAtomicOperation
+  extends ResourceAtomicOperation {
   op: 'add';
   ref: {
     type: string;
@@ -48,7 +49,8 @@ export interface AddToRelatedResourcesOperation extends ResourceOperation {
   data: Resource;
 }
 
-export interface RemoveFromRelatedResourcesOperation extends ResourceOperation {
+export interface RemoveFromRelatedResourcesAtomicOperation
+  extends ResourceAtomicOperation {
   op: 'remove';
   ref: {
     type: string;
@@ -58,7 +60,8 @@ export interface RemoveFromRelatedResourcesOperation extends ResourceOperation {
   data: Resource;
 }
 
-export interface ReplaceRelatedResourceOperation extends ResourceOperation {
+export interface ReplaceRelatedResourceAtomicOperation
+  extends ResourceAtomicOperation {
   op: 'update';
   ref: {
     type: string;
@@ -68,7 +71,8 @@ export interface ReplaceRelatedResourceOperation extends ResourceOperation {
   data: Resource | null;
 }
 
-export interface ReplaceRelatedResourcesOperation extends ResourceOperation {
+export interface ReplaceRelatedResourcesAtomicOperation
+  extends ResourceAtomicOperation {
   op: 'update';
   ref: {
     type: string;
@@ -78,14 +82,26 @@ export interface ReplaceRelatedResourcesOperation extends ResourceOperation {
   data: Resource[];
 }
 
-export interface ResourceOperationsDocument {
+export interface ResourceAtomicOperationsDocument {
+  'atomic:operations': ResourceAtomicOperation[];
   links?: Dict<Link>;
   meta?: Dict<any>;
-  operations: ResourceOperation[];
+}
+
+export interface ResourceAtomicResultsDocument {
+  'atomic:results': Resource[];
+  links?: Dict<Link>;
+  meta?: Dict<any>;
 }
 
 export interface RecordOperationsDocument {
+  operations: RecordOperation[];
   links?: Dict<Link>;
   meta?: Dict<any>;
-  operations: RecordOperation[];
+}
+
+export interface RecordResultsDocument {
+  results: Record[];
+  links?: Dict<Link>;
+  meta?: Dict<any>;
 }
