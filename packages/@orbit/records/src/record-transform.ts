@@ -1,5 +1,5 @@
 import { RecordOperation, RecordOperationResult } from './record-operation';
-import { Transform, TransformOrOperations } from '@orbit/data';
+import { FullResponse, Transform, TransformOrOperations } from '@orbit/data';
 import { RecordTransformBuilder } from './record-transform-builder';
 
 export interface RecordTransform extends Transform<RecordOperation> {
@@ -14,3 +14,9 @@ export type RecordTransformOrOperations = TransformOrOperations<
 export type RecordTransformResult =
   | RecordOperationResult
   | RecordOperationResult[];
+
+export type RecordTransformFullResponse<Details> = FullResponse<
+  RecordOperationResult,
+  Details,
+  RecordOperation
+>;

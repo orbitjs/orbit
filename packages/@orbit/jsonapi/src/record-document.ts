@@ -1,12 +1,5 @@
 import { Dict } from '@orbit/utils';
-import {
-  Link,
-  Record,
-  RecordOperation,
-  RecordQueryResult,
-  RecordTransformResult
-} from '@orbit/records';
-import { FullResponse } from '@orbit/data';
+import { Link, Record } from '@orbit/records';
 
 export interface RecordDocument {
   data: Record | Record[] | null;
@@ -14,15 +7,3 @@ export interface RecordDocument {
   links?: Dict<Link>;
   meta?: Dict<any>;
 }
-
-export type RecordQueryFullResponse = FullResponse<
-  RecordQueryResult,
-  RecordDocument,
-  RecordOperation
->;
-
-export type RecordTransformFullResponse = FullResponse<
-  RecordTransformResult,
-  RecordDocument,
-  RecordOperation
->;
