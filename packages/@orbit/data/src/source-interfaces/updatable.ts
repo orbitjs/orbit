@@ -26,22 +26,27 @@ export function isUpdatable(source: Source): boolean {
  * A source decorated as `@updatable` must also implement the `Updatable`
  * interface.
  */
-export interface Updatable<D, R, O extends Operation, TB> {
+export interface Updatable<
+  Data,
+  Details,
+  O extends Operation,
+  TransformBuilder
+> {
   /**
    * The `update` method accepts a `Transform` instance or an array of
    * operations which it then converts to a `Transform` instance. The source
    * applies the update and returns a promise that resolves when complete.
    */
   update(
-    transformOrOperations: TransformOrOperations<O, TB>,
+    transformOrOperations: TransformOrOperations<O, TransformBuilder>,
     options?: RequestOptions,
     id?: string
-  ): Promise<DataOrFullResponse<D, R, O>>;
+  ): Promise<DataOrFullResponse<Data, Details, O>>;
 
   _update(
     transform: Transform<O>,
-    hints?: ResponseHints<D>
-  ): Promise<FullResponse<D, R, O>>;
+    hints?: ResponseHints<Data>
+  ): Promise<FullResponse<Data, Details, O>>;
 }
 
 /**

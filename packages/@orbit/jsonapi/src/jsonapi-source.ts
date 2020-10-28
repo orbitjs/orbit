@@ -29,8 +29,8 @@ import {
   RecordQuery,
   RecordQueryExpressionResult,
   RecordOperationResult,
-  RecordQueryFullResponse,
-  RecordTransformFullResponse
+  RecordQueryResult,
+  RecordTransformResult
 } from '@orbit/records';
 import {
   JSONAPIRequestProcessor,
@@ -62,7 +62,7 @@ import {
   SerializerSettingsForFn,
   SerializerForFn
 } from '@orbit/serializers';
-import { RecordDocument } from './record-document';
+import { RecordDocument, RecordDocumentOrDocuments } from './record-document';
 
 export interface JSONAPISourceSettings extends RecordSourceSettings {
   maxRequestsPerTransform?: number;
@@ -107,10 +107,10 @@ export interface JSONAPISourceSettings extends RecordSourceSettings {
 export class JSONAPISource
   extends RecordSource
   implements
-    RecordPullable<RecordDocument>,
-    RecordPushable<RecordDocument>,
-    RecordQueryable<RecordDocument>,
-    RecordUpdatable<RecordDocument> {
+    RecordPullable<RecordDocumentOrDocuments>,
+    RecordPushable<RecordDocumentOrDocuments>,
+    RecordQueryable<RecordDocumentOrDocuments>,
+    RecordUpdatable<RecordDocumentOrDocuments> {
   maxRequestsPerTransform?: number;
   maxRequestsPerQuery?: number;
   requestProcessor: JSONAPIRequestProcessor;
@@ -124,7 +124,11 @@ export class JSONAPISource
     options?: RequestOptions,
     id?: string
   ) => Promise<
-    TransformsOrFullResponse<undefined, RecordDocument, RecordOperation>
+    TransformsOrFullResponse<
+      undefined,
+      RecordDocumentOrDocuments,
+      RecordOperation
+    >
   >;
 
   // Pushable interface stubs
@@ -136,7 +140,11 @@ export class JSONAPISource
     options?: RequestOptions,
     id?: string
   ) => Promise<
-    TransformsOrFullResponse<undefined, RecordDocument, RecordOperation>
+    TransformsOrFullResponse<
+      undefined,
+      RecordDocumentOrDocuments,
+      RecordOperation
+    >
   >;
 
   // Queryable interface stubs
@@ -149,8 +157,8 @@ export class JSONAPISource
     id?: string
   ) => Promise<
     DataOrFullResponse<
-      RecordQueryExpressionResult,
-      RecordDocument,
+      RecordQueryResult,
+      RecordDocumentOrDocuments,
       RecordOperation
     >
   >;
@@ -164,7 +172,11 @@ export class JSONAPISource
     options?: RequestOptions,
     id?: string
   ) => Promise<
-    DataOrFullResponse<RecordOperationResult, RecordDocument, RecordOperation>
+    DataOrFullResponse<
+      RecordTransformResult,
+      RecordDocumentOrDocuments,
+      RecordOperation
+    >
   >;
 
   constructor(settings: JSONAPISourceSettings) {
@@ -221,10 +233,12 @@ export class JSONAPISource
 
   async _push(
     transform: RecordTransform
-  ): Promise<FullResponse<undefined, RecordDocument, RecordOperation>> {
+  ): Promise<
+    FullResponse<undefined, RecordDocumentOrDocuments, RecordOperation>
+  > {
     const fullResponse: FullResponse<
       undefined,
-      RecordDocument,
+      RecordDocumentOrDocuments,
       RecordOperation
     > = {};
 
@@ -261,10 +275,12 @@ export class JSONAPISource
 
   async _pull(
     query: RecordQuery
-  ): Promise<FullResponse<undefined, RecordDocument, RecordOperation>> {
+  ): Promise<
+    FullResponse<undefined, RecordDocumentOrDocuments, RecordOperation>
+  > {
     const fullResponse: FullResponse<
       undefined,
-      RecordDocument,
+      RecordDocumentOrDocuments,
       RecordOperation
     > = {};
     const requests = this.getQueryRequests(query);
@@ -298,8 +314,14 @@ export class JSONAPISource
 
   async _query(
     query: RecordQuery
-  ): Promise<RecordQueryFullResponse<RecordDocument>> {
-    const fullResponse: RecordQueryFullResponse<RecordDocument> = {};
+  ): Promise<
+    FullResponse<RecordQueryResult, RecordDocumentOrDocuments, RecordOperation>
+  > {
+    const fullResponse: FullResponse<
+      RecordQueryResult,
+      RecordDocumentOrDocuments,
+      RecordOperation
+    > = {};
     const requests = this.getQueryRequests(query);
     const documents: RecordDocument[] = [];
     const transforms: RecordTransform[] = [];
@@ -335,8 +357,18 @@ export class JSONAPISource
 
   async _update(
     transform: RecordTransform
-  ): Promise<RecordTransformFullResponse<RecordDocument>> {
-    const fullResponse: RecordTransformFullResponse<RecordDocument> = {};
+  ): Promise<
+    FullResponse<
+      RecordTransformResult,
+      RecordDocumentOrDocuments,
+      RecordOperation
+    >
+  > {
+    const fullResponse: FullResponse<
+      RecordTransformResult,
+      RecordDocumentOrDocuments,
+      RecordOperation
+    > = {};
 
     if (!this.transformLog.contains(transform.id)) {
       const requests = this.getTransformRequests(transform);

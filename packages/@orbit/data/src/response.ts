@@ -1,27 +1,26 @@
 import { Operation } from './operation';
 import { Transform } from './transform';
 
-export type DataOrFullResponse<D, R, O extends Operation> =
-  | D
-  | D[]
-  | FullResponse<D, R, O>;
+export type DataOrFullResponse<Data, Details, O extends Operation> =
+  | Data
+  | FullResponse<Data, Details, O>;
 
-export type TransformsOrFullResponse<D, R, O extends Operation> =
+export type TransformsOrFullResponse<Data, Details, O extends Operation> =
   | Transform<O>[]
-  | FullResponse<D, R, O>;
+  | FullResponse<Data, Details, O>;
 
-export type NamedFullResponse<D, R, O extends Operation> = [
+export type NamedFullResponse<Data, Details, O extends Operation> = [
   string,
-  FullResponse<D, R, O>
+  FullResponse<Data, Details, O>
 ];
 
-export interface NamedFullResponseMap<D, R, O extends Operation> {
-  [name: string]: FullResponse<D, R, O>;
+export interface NamedFullResponseMap<Data, Details, O extends Operation> {
+  [name: string]: FullResponse<Data, Details, O>;
 }
 
-export interface FullResponse<D, R, O extends Operation> {
-  data?: D | D[];
-  details?: R | R[];
+export interface FullResponse<Data, Details, O extends Operation> {
+  data?: Data;
+  details?: Details;
   transforms?: Transform<O>[];
 
   // Note: Response `data` and `details` from other sources do not necessarily
@@ -29,14 +28,14 @@ export interface FullResponse<D, R, O extends Operation> {
   sources?: NamedFullResponseMap<unknown, unknown, O>;
 }
 
-export interface ResponseHints<D> {
-  data?: D;
+export interface ResponseHints<Data> {
+  data?: Data;
 }
 
-export function mapNamedFullResponses<D, R, O extends Operation>(
-  responses: (NamedFullResponse<D, R, O> | undefined)[]
-): NamedFullResponseMap<D, R, O> {
-  let map: NamedFullResponseMap<D, R, O> = {};
+export function mapNamedFullResponses<Data, Details, O extends Operation>(
+  responses: (NamedFullResponse<Data, Details, O> | undefined)[]
+): NamedFullResponseMap<Data, Details, O> {
+  let map: NamedFullResponseMap<Data, Details, O> = {};
   for (let r of responses) {
     if (r) {
       map[r[0] as string] = r[1];

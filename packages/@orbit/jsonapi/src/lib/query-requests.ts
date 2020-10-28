@@ -12,9 +12,9 @@ import {
   RecordQueryExpression,
   cloneRecordIdentity,
   RecordOperation,
-  RecordQueryFullResponse
+  RecordQueryExpressionResult
 } from '@orbit/records';
-import { buildTransform } from '@orbit/data';
+import { buildTransform, FullResponse } from '@orbit/data';
 import { JSONAPIRequestProcessor } from '../jsonapi-request-processor';
 import {
   JSONAPIRequestOptions,
@@ -57,11 +57,17 @@ export type RecordQueryRequest =
   | FindRelatedRecordRequest
   | FindRelatedRecordsRequest;
 
+export type QueryRequestProcessorResponse = FullResponse<
+  RecordQueryExpressionResult,
+  RecordDocument,
+  RecordOperation
+>;
+
 export interface QueryRequestProcessor {
   (
     requestProcessor: JSONAPIRequestProcessor,
     request: RecordQueryRequest
-  ): Promise<RecordQueryFullResponse<RecordDocument>>;
+  ): Promise<QueryRequestProcessorResponse>;
 }
 
 export function getQueryRequests(
@@ -176,7 +182,7 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
   async findRecord(
     requestProcessor: JSONAPIRequestProcessor,
     request: RecordQueryRequest
-  ): Promise<RecordQueryFullResponse<RecordDocument>> {
+  ): Promise<QueryRequestProcessorResponse> {
     const { record } = request as FindRecordRequest;
     const options = request.options || {};
     const settings = requestProcessor.buildFetchSettings(options);
@@ -206,7 +212,7 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
   async findRecords(
     requestProcessor: JSONAPIRequestProcessor,
     request: RecordQueryRequest
-  ): Promise<RecordQueryFullResponse<RecordDocument>> {
+  ): Promise<QueryRequestProcessorResponse> {
     const { type } = request as FindRecordsRequest;
     const options = request.options || {};
     const settings = requestProcessor.buildFetchSettings(options);
@@ -234,7 +240,7 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
   async findRelatedRecord(
     requestProcessor: JSONAPIRequestProcessor,
     request: RecordQueryRequest
-  ): Promise<RecordQueryFullResponse<RecordDocument>> {
+  ): Promise<QueryRequestProcessorResponse> {
     const { record, relationship } = request as FindRelatedRecordRequest;
     const options = request.options || {};
     const settings = requestProcessor.buildFetchSettings(options);
@@ -275,7 +281,7 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
   async findRelatedRecords(
     requestProcessor: JSONAPIRequestProcessor,
     request: RecordQueryRequest
-  ): Promise<RecordQueryFullResponse<RecordDocument>> {
+  ): Promise<QueryRequestProcessorResponse> {
     const { record, relationship } = request as FindRelatedRecordsRequest;
     const options = request.options || {};
     const isFiltered = !!(options.filter || options.sort || options.page);

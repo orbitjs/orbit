@@ -25,7 +25,7 @@ export function isPushable(source: Source): boolean {
  * A source decorated as `@pushable` must also implement the `Pushable`
  * interface.
  */
-export interface Pushable<R, O extends Operation, TB> {
+export interface Pushable<Details, O extends Operation, TransformBuilder> {
   /**
    * The `push` method accepts a `Transform` instance as an argument and returns
    * a promise that resolves to an array of `Transform` instances that are
@@ -33,12 +33,12 @@ export interface Pushable<R, O extends Operation, TB> {
    * _and_ side effects of applying a `Transform` to a source.
    */
   push(
-    transformOrOperations: TransformOrOperations<O, TB>,
+    transformOrOperations: TransformOrOperations<O, TransformBuilder>,
     options?: RequestOptions,
     id?: string
-  ): Promise<TransformsOrFullResponse<undefined, R, O>>;
+  ): Promise<TransformsOrFullResponse<undefined, Details, O>>;
 
-  _push(transform: Transform<O>): Promise<FullResponse<undefined, R, O>>;
+  _push(transform: Transform<O>): Promise<FullResponse<undefined, Details, O>>;
 }
 
 /**

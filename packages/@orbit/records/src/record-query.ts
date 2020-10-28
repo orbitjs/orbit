@@ -1,5 +1,4 @@
-import { FullResponse, Query, QueryOrExpressions } from '@orbit/data';
-import { RecordOperation } from '.';
+import { Query, QueryOrExpressions } from '@orbit/data';
 import { RecordQueryBuilder } from './record-query-builder';
 import {
   RecordQueryExpression,
@@ -18,9 +17,3 @@ export type RecordQueryOrExpressions = QueryOrExpressions<
 export type RecordQueryResult =
   | RecordQueryExpressionResult
   | RecordQueryExpressionResult[];
-
-export type RecordQueryFullResponse<Details> = FullResponse<
-  RecordQueryExpressionResult,
-  Details,
-  RecordOperation
->;

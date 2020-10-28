@@ -27,10 +27,10 @@ export function isPullable(source: Source): boolean {
  * interface.
  */
 export interface Pullable<
-  R,
+  Details,
   O extends Operation,
   QE extends QueryExpression,
-  QB
+  QueryBuilder
 > {
   /**
    * The `pull` method accepts a query or expression(s) and returns a promise
@@ -39,12 +39,12 @@ export interface Pullable<
    * request retrieves the results of a query in `Transform` form.
    */
   pull(
-    queryOrExpressions: QueryOrExpressions<QE, QB>,
+    queryOrExpressions: QueryOrExpressions<QE, QueryBuilder>,
     options?: RequestOptions,
     id?: string
-  ): Promise<TransformsOrFullResponse<undefined, R, O>>;
+  ): Promise<TransformsOrFullResponse<undefined, Details, O>>;
 
-  _pull(query: Query<QE>): Promise<FullResponse<undefined, R, O>>;
+  _pull(query: Query<QE>): Promise<FullResponse<undefined, Details, O>>;
 }
 
 /**

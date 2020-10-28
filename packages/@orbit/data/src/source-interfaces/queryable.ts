@@ -28,26 +28,26 @@ export function isQueryable(source: Source): boolean {
  * interface.
  */
 export interface Queryable<
-  D,
-  R,
+  Data,
+  Details,
   O extends Operation,
   QE extends QueryExpression,
-  QB
+  QueryBuilder
 > {
   /**
    * The `query` method accepts a `Query` instance. It evaluates the query and
    * returns a promise that resolves to a static set of results.
    */
   query(
-    queryOrExpressions: QueryOrExpressions<QE, QB>,
+    queryOrExpressions: QueryOrExpressions<QE, QueryBuilder>,
     options?: RequestOptions,
     id?: string
-  ): Promise<DataOrFullResponse<D, R, O>>;
+  ): Promise<DataOrFullResponse<Data, Details, O>>;
 
   _query(
     query: Query<QE>,
-    hints?: ResponseHints<D>
-  ): Promise<FullResponse<D, R, O>>;
+    hints?: ResponseHints<Data>
+  ): Promise<FullResponse<Data, Details, O>>;
 }
 
 /**

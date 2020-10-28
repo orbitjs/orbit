@@ -14,9 +14,9 @@ import {
   ReplaceRelatedRecordOperation,
   ReplaceRelatedRecordsOperation,
   RecordTransform,
-  RecordTransformFullResponse
+  RecordOperationResult
 } from '@orbit/records';
-import { buildTransform } from '@orbit/data';
+import { buildTransform, FullResponse } from '@orbit/data';
 import { JSONAPIRequestProcessor } from '../jsonapi-request-processor';
 import { ResourceDocument } from '../resource-document';
 import { RecordDocument } from '../record-document';
@@ -83,18 +83,24 @@ export type RecordTransformRequest =
   | ReplaceRelatedRecordRequest
   | ReplaceRelatedRecordsRequest;
 
+export type TransformRequestProcessorResponse = FullResponse<
+  RecordOperationResult,
+  RecordDocument,
+  RecordOperation
+>;
+
 export interface TransformRequestProcessor {
   (
     requestProcessor: JSONAPIRequestProcessor,
     request: RecordTransformRequest
-  ): Promise<RecordTransformFullResponse<RecordDocument>>;
+  ): Promise<TransformRequestProcessorResponse>;
 }
 
 export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
   async addRecord(
     requestProcessor: JSONAPIRequestProcessor,
     request: RecordTransformRequest
-  ): Promise<RecordTransformFullResponse<RecordDocument>> {
+  ): Promise<TransformRequestProcessorResponse> {
     const { record } = request as AddRecordRequest;
     const options = request.options || {};
     const serializer = requestProcessor.serializerFor(
@@ -121,7 +127,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
   async removeRecord(
     requestProcessor: JSONAPIRequestProcessor,
     request: RecordTransformRequest
-  ): Promise<RecordTransformFullResponse<RecordDocument>> {
+  ): Promise<TransformRequestProcessorResponse> {
     const { record } = request as RemoveRecordRequest;
     const options = request.options || {};
     const { type, id } = record;
@@ -138,7 +144,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
   async updateRecord(
     requestProcessor: JSONAPIRequestProcessor,
     request: RecordTransformRequest
-  ): Promise<RecordTransformFullResponse<RecordDocument>> {
+  ): Promise<TransformRequestProcessorResponse> {
     const { record } = request as UpdateRecordRequest;
     const options = request.options || {};
     const { type, id } = record;
@@ -170,7 +176,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
   async addToRelatedRecords(
     requestProcessor: JSONAPIRequestProcessor,
     request: RecordTransformRequest
-  ): Promise<RecordTransformFullResponse<RecordDocument>> {
+  ): Promise<TransformRequestProcessorResponse> {
     const {
       relationship,
       record,
@@ -203,7 +209,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
   async removeFromRelatedRecords(
     requestProcessor: JSONAPIRequestProcessor,
     request: RecordTransformRequest
-  ): Promise<RecordTransformFullResponse<RecordDocument>> {
+  ): Promise<TransformRequestProcessorResponse> {
     const {
       relationship,
       record,
@@ -236,7 +242,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
   async replaceRelatedRecord(
     requestProcessor: JSONAPIRequestProcessor,
     request: RecordTransformRequest
-  ): Promise<RecordTransformFullResponse<RecordDocument>> {
+  ): Promise<TransformRequestProcessorResponse> {
     const {
       relationship,
       relatedRecord,
@@ -271,7 +277,7 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
   async replaceRelatedRecords(
     requestProcessor: JSONAPIRequestProcessor,
     request: RecordTransformRequest
-  ): Promise<RecordTransformFullResponse<RecordDocument>> {
+  ): Promise<TransformRequestProcessorResponse> {
     const {
       relationship,
       relatedRecords,
@@ -519,7 +525,7 @@ function replaceRecordHasMany(
 function handleChanges(
   record: Record,
   recordDoc: RecordDocument
-): RecordTransformFullResponse<RecordDocument> {
+): TransformRequestProcessorResponse {
   let updatedRecord: Record = recordDoc.data as Record;
   let transforms: RecordTransform[] = [];
   let updateOps = recordDiffs(record, updatedRecord);

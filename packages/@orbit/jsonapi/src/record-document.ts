@@ -7,3 +7,5 @@ export interface RecordDocument {
   links?: Dict<Link>;
   meta?: Dict<any>;
 }
+
+export type RecordDocumentOrDocuments = RecordDocument | RecordDocument[];
