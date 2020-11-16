@@ -35,9 +35,11 @@ export abstract class RecordSource extends Source<
     const autoActivate =
       settings.autoActivate === undefined || settings.autoActivate;
 
+    const schema = settings.schema;
+
     assert(
       "RecordSource's `schema` must be specified in `settings.schema` constructor argument",
-      !!settings.schema
+      !!schema
     );
 
     if (settings.queryBuilder === undefined) {
@@ -45,18 +47,17 @@ export abstract class RecordSource extends Source<
     }
 
     if (settings.transformBuilder === undefined) {
-      settings.transformBuilder = new RecordTransformBuilder();
+      settings.transformBuilder = new RecordTransformBuilder({
+        recordInitializer: schema
+      });
     }
 
     super({ ...settings, autoActivate: false });
 
-    this._schema = settings.schema;
+    this._schema = schema;
     this._keyMap = settings.keyMap;
 
-    if (
-      this._schema &&
-      (settings.autoUpgrade === undefined || settings.autoUpgrade)
-    ) {
+    if (settings.autoUpgrade === undefined || settings.autoUpgrade) {
       this._schema.on('upgrade', () => this.upgrade());
     }
 
