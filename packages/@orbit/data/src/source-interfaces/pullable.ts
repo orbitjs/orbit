@@ -6,7 +6,8 @@ import {
   FullResponse,
   NamedFullResponse,
   TransformsOrFullResponse,
-  mapNamedFullResponses
+  mapNamedFullResponses,
+  ResponseHints
 } from '../response';
 import { Operation } from '../operation';
 import { QueryExpression } from '../query-expression';
@@ -27,6 +28,7 @@ export function isPullable(source: Source): boolean {
  * interface.
  */
 export interface Pullable<
+  Data,
   Details,
   O extends Operation,
   QE extends QueryExpression,
@@ -42,9 +44,9 @@ export interface Pullable<
     queryOrExpressions: QueryOrExpressions<QE, QueryBuilder>,
     options?: RequestOptions,
     id?: string
-  ): Promise<TransformsOrFullResponse<undefined, Details, O>>;
+  ): Promise<TransformsOrFullResponse<Data, Details, O>>;
 
-  _pull(query: Query<QE>): Promise<FullResponse<undefined, Details, O>>;
+  _pull(query: Query<QE>): Promise<FullResponse<Data, Details, O>>;
 }
 
 /**
@@ -89,7 +91,7 @@ export function pullable(Klass: unknown): void {
     queryOrExpressions: QueryOrExpressions<QueryExpression, unknown>,
     options?: RequestOptions,
     id?: string
-  ): Promise<TransformsOrFullResponse<undefined, unknown, Operation>> {
+  ): Promise<TransformsOrFullResponse<unknown, unknown, Operation>> {
     await this.activated;
     const query = buildQuery(
       queryOrExpressions,
@@ -102,15 +104,17 @@ export function pullable(Klass: unknown): void {
 
   proto.__pull__ = async function (
     query: Query<QueryExpression>
-  ): Promise<TransformsOrFullResponse<undefined, unknown, Operation>> {
+  ): Promise<TransformsOrFullResponse<unknown, unknown, Operation>> {
     try {
       const options = query.options || {};
+      const hints: ResponseHints<unknown, unknown> = {};
       const otherResponses = (await fulfillInSeries(
         this,
         'beforePull',
-        query
+        query,
+        hints
       )) as (NamedFullResponse<unknown, unknown, Operation> | undefined)[];
-      const fullResponse = await this._pull(query);
+      const fullResponse = await this._pull(query, hints);
       if (options.includeSources) {
         fullResponse.sources = otherResponses
           ? mapNamedFullResponses<unknown, unknown, Operation>(otherResponses)

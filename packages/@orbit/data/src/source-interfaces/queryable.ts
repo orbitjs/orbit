@@ -46,7 +46,7 @@ export interface Queryable<
 
   _query(
     query: Query<QE>,
-    hints?: ResponseHints<Data>
+    hints?: ResponseHints<Data, Details>
   ): Promise<FullResponse<Data, Details, O>>;
 }
 
@@ -107,7 +107,7 @@ export function queryable(Klass: unknown): void {
   ): Promise<DataOrFullResponse<unknown, unknown, Operation>> {
     try {
       const options = query.options || {};
-      const hints: ResponseHints<unknown> = {};
+      const hints: ResponseHints<unknown, unknown> = {};
       const otherResponses = (await fulfillInSeries(
         this,
         'beforeQuery',

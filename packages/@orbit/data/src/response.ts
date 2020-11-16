@@ -28,8 +28,9 @@ export interface FullResponse<Data, Details, O extends Operation> {
   sources?: NamedFullResponseMap<unknown, unknown, O>;
 }
 
-export interface ResponseHints<Data> {
+export interface ResponseHints<Data, Details> {
   data?: Data;
+  details?: Details;
 }
 
 export function mapNamedFullResponses<Data, Details, O extends Operation>(

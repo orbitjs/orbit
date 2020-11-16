@@ -45,7 +45,7 @@ export interface Updatable<
 
   _update(
     transform: Transform<O>,
-    hints?: ResponseHints<Data>
+    hints?: ResponseHints<Data, Details>
   ): Promise<FullResponse<Data, Details, O>>;
 }
 
@@ -115,7 +115,7 @@ export function updatable(Klass: unknown): void {
 
     try {
       const options = transform.options || {};
-      const hints: ResponseHints<unknown> = {};
+      const hints: ResponseHints<unknown, unknown> = {};
       const otherResponses = (await fulfillInSeries(
         this,
         'beforeUpdate',

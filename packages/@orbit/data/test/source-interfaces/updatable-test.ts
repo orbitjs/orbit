@@ -47,7 +47,7 @@ module('@updatable', function (hooks) {
     >;
     _update!: (
       transform: Transform<RecordOperation>,
-      hints?: ResponseHints<RecordData>
+      hints?: ResponseHints<RecordData, RecordResponse>
     ) => Promise<FullResponse<RecordData, RecordResponse, RecordOperation>>;
   }
 
@@ -416,11 +416,11 @@ module('@updatable', function (hooks) {
       op: 'addRecord',
       record: planet
     });
-    let h: ResponseHints<RecordData>;
+    let h: ResponseHints<RecordData, RecordResponse>;
 
     source.on('beforeUpdate', async function (
       transform: Transform<RecordOperation>,
-      hints: ResponseHints<RecordData>
+      hints: ResponseHints<RecordData, RecordResponse>
     ) {
       assert.equal(++order, 1, 'beforeUpdate triggered first');
       assert.deepEqual(
@@ -434,7 +434,7 @@ module('@updatable', function (hooks) {
 
     source.on('beforeUpdate', async function (
       transform: Transform<RecordOperation>,
-      hints: ResponseHints<RecordData>
+      hints: ResponseHints<RecordData, RecordResponse>
     ) {
       assert.equal(++order, 2, 'beforeUpdate triggered second');
       assert.strictEqual(
@@ -446,7 +446,7 @@ module('@updatable', function (hooks) {
 
     source.on('beforeUpdate', async function (
       transform: Transform<RecordOperation>,
-      hints: ResponseHints<RecordData>
+      hints: ResponseHints<RecordData, RecordResponse>
     ) {
       assert.equal(++order, 3, 'beforeUpdate triggered third');
       assert.strictEqual(
@@ -458,7 +458,7 @@ module('@updatable', function (hooks) {
 
     source._update = async function (
       transform: Transform<RecordOperation>,
-      hints?: ResponseHints<RecordData>
+      hints?: ResponseHints<RecordData, RecordResponse>
     ) {
       assert.equal(
         ++order,

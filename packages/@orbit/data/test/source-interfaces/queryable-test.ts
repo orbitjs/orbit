@@ -46,7 +46,7 @@ module('@queryable', function (hooks) {
     >;
     _query!: (
       query: Query<RecordQueryExpression>,
-      hints?: ResponseHints<RecordData>
+      hints?: ResponseHints<RecordData, RecordResponse>
     ) => Promise<FullResponse<RecordData, RecordResponse, RecordOperation>>;
   }
 
@@ -60,7 +60,7 @@ module('@queryable', function (hooks) {
     assert.ok(isQueryable(source));
   });
 
-  test('it should be applied to a Source', function (assert) {
+  test('should be applied to a Source', function (assert) {
     assert.throws(
       function () {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -320,11 +320,11 @@ module('@queryable', function (hooks) {
 
     let order = 0;
     let qe = { op: 'findRecords', type: 'planet' } as FindRecords;
-    let h: ResponseHints<RecordData>;
+    let h: ResponseHints<RecordData, RecordResponse>;
 
     source.on('beforeQuery', async function (
       query: Query<RecordQueryExpression>,
-      hints: ResponseHints<RecordData>
+      hints: ResponseHints<RecordData, RecordResponse>
     ) {
       assert.equal(++order, 1, 'beforeQuery triggered first');
       assert.deepEqual(hints, {}, 'beforeQuery is passed empty `hints` object');
@@ -337,7 +337,7 @@ module('@queryable', function (hooks) {
 
     source.on('beforeQuery', async function (
       query: Query<RecordQueryExpression>,
-      hints: ResponseHints<RecordData>
+      hints: ResponseHints<RecordData, RecordResponse>
     ) {
       assert.equal(++order, 2, 'beforeQuery triggered second');
       assert.strictEqual(hints, h, 'beforeQuery is passed same hints instance');
@@ -345,7 +345,7 @@ module('@queryable', function (hooks) {
 
     source.on('beforeQuery', async function (
       query: Query<RecordQueryExpression>,
-      hints: ResponseHints<RecordData>
+      hints: ResponseHints<RecordData, RecordResponse>
     ) {
       assert.equal(++order, 3, 'beforeQuery triggered third');
       assert.strictEqual(hints, h, 'beforeQuery is passed same hints instance');
@@ -353,7 +353,7 @@ module('@queryable', function (hooks) {
 
     source._query = async function (
       query: Query<RecordQueryExpression>,
-      hints?: ResponseHints<RecordData>
+      hints?: ResponseHints<RecordData, RecordResponse>
     ) {
       assert.equal(
         ++order,
@@ -457,8 +457,7 @@ module('@queryable', function (hooks) {
     });
 
     let result = await source.query(qe, {
-      fullResponse: true,
-      includeDetails: true
+      fullResponse: true
     });
 
     assert.equal(++order, 3, 'promise resolved last');

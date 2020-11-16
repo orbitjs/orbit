@@ -5,7 +5,11 @@ import {
 } from '../../src/transform';
 import { Source } from '../../src/source';
 import { RequestOptions } from '../../src/request';
-import { FullResponse, TransformsOrFullResponse } from '../../src/response';
+import {
+  FullResponse,
+  ResponseHints,
+  TransformsOrFullResponse
+} from '../../src/response';
 import {
   pushable,
   isPushable,
@@ -14,7 +18,8 @@ import {
 import {
   RecordResponse,
   RecordOperation,
-  RecordTransformBuilder
+  RecordTransformBuilder,
+  RecordData
 } from '../support/record-data';
 
 const { module, test } = QUnit;
@@ -24,7 +29,12 @@ module('@pushable', function (hooks) {
   class MySource
     extends Source
     implements
-      Pushable<RecordResponse, RecordOperation, RecordTransformBuilder> {
+      Pushable<
+        RecordData,
+        RecordResponse,
+        RecordOperation,
+        RecordTransformBuilder
+      > {
     push!: (
       transformOrOperations: TransformOrOperations<
         RecordOperation,
@@ -33,11 +43,11 @@ module('@pushable', function (hooks) {
       options?: RequestOptions,
       id?: string
     ) => Promise<
-      TransformsOrFullResponse<undefined, RecordResponse, RecordOperation>
+      TransformsOrFullResponse<RecordData, RecordResponse, RecordOperation>
     >;
     _push!: (
       transform: Transform<RecordOperation>
-    ) => Promise<FullResponse<undefined, RecordResponse, RecordOperation>>;
+    ) => Promise<FullResponse<RecordData, RecordResponse, RecordOperation>>;
   }
 
   let source: MySource;
@@ -309,5 +319,185 @@ module('@pushable', function (hooks) {
       assert.equal(++order, 4, 'promise failed because no actions succeeded');
       assert.equal(error, ':(', 'failure');
     }
+  });
+
+  test('#push should pass a common `hints` object to all `beforePush` events and forward it to `_push`', async function (assert) {
+    assert.expect(11);
+
+    let order = 0;
+    const updatePlanet1 = buildTransform<RecordOperation>({
+      op: 'updateRecord',
+      record: { type: 'planet', id: '1' }
+    });
+    const updatePlanet2 = buildTransform<RecordOperation>({
+      op: 'updateRecord',
+      record: { type: 'planet', id: '2' }
+    });
+    const fullResponse = {
+      transforms: [updatePlanet1, updatePlanet2]
+    };
+    let h: ResponseHints<RecordData, RecordResponse>;
+
+    source.on('beforePush', async function (
+      transform: Transform<RecordOperation>,
+      hints: ResponseHints<RecordData, RecordResponse>
+    ) {
+      assert.equal(++order, 1, 'beforePush triggered first');
+      assert.deepEqual(hints, {}, 'beforePush is passed empty `hints` object');
+      h = hints;
+      hints.data = [
+        { type: 'planet', id: 'venus' },
+        { type: 'planet', id: 'mars' }
+      ];
+    });
+
+    source.on('beforePush', async function (
+      transform: Transform<RecordOperation>,
+      hints: ResponseHints<RecordData, RecordResponse>
+    ) {
+      assert.equal(++order, 2, 'beforePush triggered second');
+      assert.strictEqual(hints, h, 'beforePush is passed same hints instance');
+    });
+
+    source.on('beforePush', async function (
+      transform: Transform<RecordOperation>,
+      hints: ResponseHints<RecordData, RecordResponse>
+    ) {
+      assert.equal(++order, 3, 'beforePush triggered third');
+      assert.strictEqual(hints, h, 'beforePush is passed same hints instance');
+    });
+
+    source._push = async function (
+      transform: Transform<RecordOperation>,
+      hints?: ResponseHints<RecordData, RecordResponse>
+    ) {
+      assert.equal(
+        ++order,
+        4,
+        '_query invoked after all `beforePush` handlers'
+      );
+      assert.strictEqual(hints, h, '_query is passed same hints instance');
+      return { data: hints?.data, transforms: fullResponse.transforms };
+    };
+
+    source.on('push', async function () {
+      assert.equal(
+        ++order,
+        5,
+        'push triggered after action performed successfully'
+      );
+    });
+
+    let result = await source.push(updatePlanet1);
+
+    assert.equal(++order, 6, 'promise resolved last');
+    assert.deepEqual(result, fullResponse.transforms, 'success!');
+  });
+
+  test('#push can return a full response, with `transforms` nested in a response object', async function (assert) {
+    assert.expect(7);
+
+    let order = 0;
+    const updatePlanet1 = buildTransform<RecordOperation>({
+      op: 'updateRecord',
+      record: { type: 'planet', id: '1' }
+    });
+    const updatePlanet2 = buildTransform<RecordOperation>({
+      op: 'updateRecord',
+      record: { type: 'planet', id: '2' }
+    });
+    const fullResponse = {
+      transforms: [updatePlanet1, updatePlanet2]
+    };
+
+    source._push = async function (transform) {
+      assert.equal(++order, 1, 'action performed after beforePush');
+      assert.deepEqual(
+        transform.operations,
+        updatePlanet1.operations,
+        'operations match'
+      );
+      return fullResponse;
+    };
+
+    source.on('push', (transform, result) => {
+      assert.equal(
+        ++order,
+        2,
+        'push triggered after action performed successfully'
+      );
+      assert.deepEqual(
+        transform.operations,
+        updatePlanet1.operations,
+        'operations match'
+      );
+      assert.deepEqual(result, fullResponse, 'result matches');
+    });
+
+    let result = await source.push(updatePlanet1, { fullResponse: true });
+
+    assert.equal(++order, 3, 'promise resolved last');
+    assert.deepEqual(result, fullResponse, 'success!');
+  });
+
+  test('#push can return a full response, with `transforms` and `details` nested in a response object', async function (assert) {
+    assert.expect(7);
+
+    let order = 0;
+    const updatePlanet1 = buildTransform<RecordOperation>({
+      op: 'updateRecord',
+      record: { type: 'planet', id: '1' }
+    });
+    const updatePlanet2 = buildTransform<RecordOperation>({
+      op: 'updateRecord',
+      record: { type: 'planet', id: '2' }
+    });
+    const result1 = [
+      {
+        type: 'planet',
+        id: 'p1'
+      }
+    ];
+    const response1 = {
+      data: result1,
+      links: {
+        self: 'https://example.com/api/planets'
+      }
+    };
+    const fullResponse = {
+      transforms: [updatePlanet1, updatePlanet2],
+      details: response1
+    };
+
+    source._push = async function (transform) {
+      assert.equal(++order, 1, 'action performed after beforePush');
+      assert.deepEqual(
+        transform.operations,
+        updatePlanet1.operations,
+        'operations match'
+      );
+      return fullResponse;
+    };
+
+    source.on('push', (transform, result) => {
+      assert.equal(
+        ++order,
+        2,
+        'push triggered after action performed successfully'
+      );
+      assert.deepEqual(
+        transform.operations,
+        updatePlanet1.operations,
+        'operations match'
+      );
+      assert.deepEqual(result, fullResponse, 'result matches');
+    });
+
+    let result = await source.push(updatePlanet1, {
+      fullResponse: true
+    });
+
+    assert.equal(++order, 3, 'promise resolved last');
+    assert.deepEqual(result, fullResponse, 'success!');
   });
 });

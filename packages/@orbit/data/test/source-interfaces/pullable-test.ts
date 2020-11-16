@@ -7,13 +7,18 @@ import {
   isPullable,
   Pullable
 } from '../../src/source-interfaces/pullable';
-import { FullResponse, TransformsOrFullResponse } from '../../src/response';
+import {
+  FullResponse,
+  ResponseHints,
+  TransformsOrFullResponse
+} from '../../src/response';
 import {
   FindRecords,
   RecordResponse,
   RecordOperation,
   RecordQueryExpression,
-  RecordQueryBuilder
+  RecordQueryBuilder,
+  RecordData
 } from '../support/record-data';
 
 const { module, test } = QUnit;
@@ -24,6 +29,7 @@ module('@pullable', function (hooks) {
     extends Source
     implements
       Pullable<
+        RecordData,
         RecordResponse,
         RecordOperation,
         RecordQueryExpression,
@@ -37,12 +43,12 @@ module('@pullable', function (hooks) {
       options?: RequestOptions,
       id?: string
     ) => Promise<
-      TransformsOrFullResponse<undefined, RecordResponse, RecordOperation>
+      TransformsOrFullResponse<RecordData, RecordResponse, RecordOperation>
     >;
 
     _pull!: (
       query: Query<RecordQueryExpression>
-    ) => Promise<FullResponse<undefined, RecordResponse, RecordOperation>>;
+    ) => Promise<FullResponse<RecordData, RecordResponse, RecordOperation>>;
   }
 
   let source: MySource;
@@ -136,7 +142,7 @@ module('@pullable', function (hooks) {
     assert.strictEqual(result, fullResponse.transforms, 'success!');
   });
 
-  test('#pull should resolve all promises returned from `beforePull` before calling `_transform`', async function (assert) {
+  test('#pull should resolve all promises returned from `beforePull` before calling `_pull`', async function (assert) {
     assert.expect(12);
 
     let order = 0;
@@ -276,5 +282,176 @@ module('@pullable', function (hooks) {
       assert.equal(++order, 3, 'promise resolved last');
       assert.equal(error, ':(', 'failure');
     }
+  });
+
+  test('#pull should pass a common `hints` object to all `beforePull` events and forward it to `_pull`', async function (assert) {
+    assert.expect(11);
+
+    let order = 0;
+    let qe = { op: 'findRecords', type: 'planet' } as FindRecords;
+    let h: ResponseHints<RecordData, RecordResponse>;
+
+    const fullResponse = {
+      transforms: [
+        buildTransform<RecordOperation>({
+          op: 'updateRecord',
+          record: { type: 'planet', id: '1' }
+        }),
+        buildTransform<RecordOperation>({
+          op: 'updateRecord',
+          record: { type: 'planet', id: '2' }
+        })
+      ]
+    };
+
+    source.on('beforePull', async function (
+      query: Query<RecordQueryExpression>,
+      hints: ResponseHints<RecordData, RecordResponse>
+    ) {
+      assert.equal(++order, 1, 'beforePull triggered first');
+      assert.deepEqual(hints, {}, 'beforePull is passed empty `hints` object');
+      h = hints;
+      hints.data = [
+        { type: 'planet', id: 'venus' },
+        { type: 'planet', id: 'mars' }
+      ];
+    });
+
+    source.on('beforePull', async function (
+      query: Query<RecordQueryExpression>,
+      hints: ResponseHints<RecordData, RecordResponse>
+    ) {
+      assert.equal(++order, 2, 'beforePull triggered second');
+      assert.strictEqual(hints, h, 'beforePull is passed same hints instance');
+    });
+
+    source.on('beforePull', async function (
+      query: Query<RecordQueryExpression>,
+      hints: ResponseHints<RecordData, RecordResponse>
+    ) {
+      assert.equal(++order, 3, 'beforePull triggered third');
+      assert.strictEqual(hints, h, 'beforePull is passed same hints instance');
+    });
+
+    source._pull = async function (
+      query: Query<RecordQueryExpression>,
+      hints?: ResponseHints<RecordData, RecordResponse>
+    ) {
+      assert.equal(
+        ++order,
+        4,
+        '_query invoked after all `beforeQuery` handlers'
+      );
+      assert.strictEqual(hints, h, '_query is passed same hints instance');
+      return { data: hints?.data, transforms: fullResponse.transforms };
+    };
+
+    source.on('pull', async function () {
+      assert.equal(
+        ++order,
+        5,
+        'pull triggered after action performed successfully'
+      );
+    });
+
+    let result = await source.pull(qe);
+
+    assert.equal(++order, 6, 'promise resolved last');
+    assert.deepEqual(result, fullResponse.transforms, 'success!');
+  });
+
+  test('#pull can return a full response, with `transforms` nested in a response object', async function (assert) {
+    assert.expect(7);
+
+    let order = 0;
+    let qe = { op: 'findRecords', type: 'planet' } as FindRecords;
+    const fullResponse = {
+      transforms: [
+        buildTransform<RecordOperation>({
+          op: 'updateRecord',
+          record: { type: 'planet', id: '1' }
+        }),
+        buildTransform<RecordOperation>({
+          op: 'updateRecord',
+          record: { type: 'planet', id: '2' }
+        })
+      ]
+    };
+
+    source._pull = async function (query) {
+      assert.equal(++order, 1, 'action performed after beforeQuery');
+      assert.strictEqual(query.expressions[0], qe, 'query object matches');
+      return fullResponse;
+    };
+
+    source.on('pull', (query, result) => {
+      assert.equal(
+        ++order,
+        2,
+        'pull triggered after action performed successfully'
+      );
+      assert.strictEqual(query.expressions[0], qe, 'query matches');
+      assert.deepEqual(result, fullResponse, 'result matches');
+    });
+
+    let result = await source.pull(qe, { fullResponse: true });
+
+    assert.equal(++order, 3, 'promise resolved last');
+    assert.deepEqual(result, fullResponse, 'success!');
+  });
+
+  test('#pull can return a full response, with `transforms` and `details` nested in a response object', async function (assert) {
+    assert.expect(7);
+
+    let order = 0;
+    let qe = { op: 'findRecords', type: 'planet' } as FindRecords;
+    const result1 = [
+      {
+        type: 'planet',
+        id: 'p1'
+      }
+    ];
+    const response1 = {
+      data: result1,
+      links: {
+        self: 'https://example.com/api/planets'
+      }
+    };
+    const fullResponse = {
+      transforms: [
+        buildTransform<RecordOperation>({
+          op: 'updateRecord',
+          record: { type: 'planet', id: '1' }
+        }),
+        buildTransform<RecordOperation>({
+          op: 'updateRecord',
+          record: { type: 'planet', id: '2' }
+        })
+      ],
+      details: response1
+    };
+
+    source._pull = async function (query) {
+      assert.equal(++order, 1, 'action performed after beforeQuery');
+      assert.strictEqual(query.expressions[0], qe, 'query object matches');
+      return fullResponse;
+    };
+
+    source.on('pull', (query, result) => {
+      assert.equal(
+        ++order,
+        2,
+        'pull triggered after action performed successfully'
+      );
+      assert.strictEqual(query.expressions[0], qe, 'query matches');
+      assert.deepEqual(result, fullResponse, 'result matches');
+    });
+
+    let result = await source.pull(qe, {
+      fullResponse: true
+    });
+
+    assert.equal(++order, 3, 'promise resolved last');
+    assert.deepEqual(result, fullResponse, 'success!');
   });
 });

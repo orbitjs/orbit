@@ -6,7 +6,8 @@ import {
   FullResponse,
   NamedFullResponse,
   TransformsOrFullResponse,
-  mapNamedFullResponses
+  mapNamedFullResponses,
+  ResponseHints
 } from '../response';
 import { Operation } from '../operation';
 
@@ -25,7 +26,12 @@ export function isPushable(source: Source): boolean {
  * A source decorated as `@pushable` must also implement the `Pushable`
  * interface.
  */
-export interface Pushable<Details, O extends Operation, TransformBuilder> {
+export interface Pushable<
+  Data,
+  Details,
+  O extends Operation,
+  TransformBuilder
+> {
   /**
    * The `push` method accepts a `Transform` instance as an argument and returns
    * a promise that resolves to an array of `Transform` instances that are
@@ -36,9 +42,12 @@ export interface Pushable<Details, O extends Operation, TransformBuilder> {
     transformOrOperations: TransformOrOperations<O, TransformBuilder>,
     options?: RequestOptions,
     id?: string
-  ): Promise<TransformsOrFullResponse<undefined, Details, O>>;
+  ): Promise<TransformsOrFullResponse<Data, Details, O>>;
 
-  _push(transform: Transform<O>): Promise<FullResponse<undefined, Details, O>>;
+  _push(
+    transform: Transform<O>,
+    hints?: ResponseHints<Data, Details>
+  ): Promise<FullResponse<Data, Details, O>>;
 }
 
 /**
@@ -83,7 +92,7 @@ export function pushable(Klass: unknown): void {
     transformOrOperations: TransformOrOperations<Operation, unknown>,
     options?: RequestOptions,
     id?: string
-  ): Promise<TransformsOrFullResponse<undefined, unknown, Operation>> {
+  ): Promise<TransformsOrFullResponse<unknown, unknown, Operation>> {
     await this.activated;
     const transform = buildTransform(
       transformOrOperations,
@@ -101,7 +110,7 @@ export function pushable(Klass: unknown): void {
 
   proto.__push__ = async function (
     transform: Transform<Operation>
-  ): Promise<TransformsOrFullResponse<undefined, unknown, Operation>> {
+  ): Promise<TransformsOrFullResponse<unknown, unknown, Operation>> {
     if (this.transformLog.contains(transform.id)) {
       return {
         transforms: []
@@ -110,12 +119,14 @@ export function pushable(Klass: unknown): void {
 
     try {
       const options = transform.options || {};
+      const hints: ResponseHints<unknown, unknown> = {};
       const otherResponses = (await fulfillInSeries(
         this,
         'beforePush',
-        transform
+        transform,
+        hints
       )) as (NamedFullResponse<unknown, unknown, Operation> | undefined)[];
-      const fullResponse = await this._push(transform);
+      const fullResponse = await this._push(transform, hints);
       if (options.includeSources) {
         fullResponse.sources = otherResponses
           ? mapNamedFullResponses<unknown, unknown, Operation>(otherResponses)
