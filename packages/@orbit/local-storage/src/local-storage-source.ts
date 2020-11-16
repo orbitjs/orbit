@@ -1,29 +1,35 @@
 import { Orbit } from '@orbit/core';
 import {
   buildTransform,
-  Operation,
   pullable,
-  Pullable,
   pushable,
-  Pushable,
   Resettable,
   syncable,
-  Syncable,
-  Query,
   QueryOrExpressions,
   RequestOptions,
-  Source,
-  SourceSettings,
-  Transform,
   TransformOrOperations,
+  FullResponse,
+  TransformsOrFullResponse
+} from '@orbit/data';
+import {
   Record,
   RecordIdentity,
   RecordOperation,
-  Response,
   UpdateRecordOperation,
-  FullResponse,
-  RecordQueryExpressionResult
-} from '@orbit/data';
+  RecordQueryExpressionResult,
+  RecordSourceSettings,
+  RecordPullable,
+  RecordPushable,
+  RecordSyncable,
+  RecordTransform,
+  RecordQueryExpression,
+  RecordQueryBuilder,
+  RecordTransformResult,
+  RecordTransformBuilder,
+  RecordQueryResult,
+  RecordSource,
+  RecordQuery
+} from '@orbit/records';
 import { supportsLocalStorage } from './lib/local-storage';
 import {
   LocalStorageCache,
@@ -32,7 +38,7 @@ import {
 
 const { assert } = Orbit;
 
-export interface LocalStorageSourceSettings extends SourceSettings {
+export interface LocalStorageSourceSettings extends RecordSourceSettings {
   delimiter?: string;
   namespace?: string;
   cacheSettings?: Partial<LocalStorageCacheSettings>;
@@ -45,28 +51,44 @@ export interface LocalStorageSourceSettings extends SourceSettings {
 @pushable
 @syncable
 export class LocalStorageSource
-  extends Source
-  implements Pullable<undefined>, Pushable<undefined>, Resettable, Syncable {
+  extends RecordSource
+  implements
+    RecordSyncable,
+    RecordPullable<unknown>,
+    RecordPushable<unknown>,
+    Resettable {
   protected _cache: LocalStorageCache;
 
   // Syncable interface stubs
-  sync!: (transformOrTransforms: Transform | Transform[]) => Promise<void>;
+  sync!: (
+    transformOrTransforms: RecordTransform | RecordTransform[]
+  ) => Promise<void>;
 
   // Pullable interface stubs
   pull!: (
-    queryOrExpressions: QueryOrExpressions,
+    queryOrExpressions: QueryOrExpressions<
+      RecordQueryExpression,
+      RecordQueryBuilder
+    >,
     options?: RequestOptions,
     id?: string
-  ) => Promise<Response<Transform[], undefined>>;
+  ) => Promise<
+    TransformsOrFullResponse<RecordQueryResult, unknown, RecordOperation>
+  >;
 
   // Pushable interface stubs
   push!: (
-    transformOrOperations: TransformOrOperations,
+    transformOrOperations: TransformOrOperations<
+      RecordOperation,
+      RecordTransformBuilder
+    >,
     options?: RequestOptions,
     id?: string
-  ) => Promise<Response<Transform[], undefined>>;
+  ) => Promise<
+    TransformsOrFullResponse<RecordTransformResult, unknown, RecordOperation>
+  >;
 
-  constructor(settings: LocalStorageSourceSettings = {}) {
+  constructor(settings: LocalStorageSourceSettings) {
     assert(
       "LocalStorageSource's `schema` must be specified in `settings.schema` constructor argument",
       !!settings.schema
@@ -120,7 +142,7 @@ export class LocalStorageSource
   // Syncable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _sync(transform: Transform): Promise<void> {
+  async _sync(transform: RecordTransform): Promise<void> {
     if (!this.transformLog.contains(transform.id)) {
       this._cache.patch(transform.operations as RecordOperation[]);
       await this.transformed([transform]);
@@ -132,27 +154,27 @@ export class LocalStorageSource
   /////////////////////////////////////////////////////////////////////////////
 
   async _push(
-    transform: Transform
-  ): Promise<FullResponse<Transform[], undefined>> {
-    let results: Transform[];
+    transform: RecordTransform
+  ): Promise<FullResponse<undefined, unknown, RecordOperation>> {
+    const fullResponse: FullResponse<undefined, unknown, RecordOperation> = {};
 
     if (!this.transformLog.contains(transform.id)) {
       this._cache.patch(transform.operations as RecordOperation[]);
-      results = [transform];
-      await this.transformed(results);
-    } else {
-      results = [];
+      fullResponse.transforms = [transform];
     }
 
-    return { data: results };
+    return fullResponse;
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Pullable implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _pull(query: Query): Promise<FullResponse<Transform[], undefined>> {
-    let operations: Operation[];
+  async _pull(
+    query: RecordQuery
+  ): Promise<FullResponse<undefined, unknown, RecordOperation>> {
+    const fullResponse: FullResponse<undefined, unknown, RecordOperation> = {};
+    let operations: RecordOperation[];
 
     const results = this._cache.query(query);
 
@@ -167,14 +189,14 @@ export class LocalStorageSource
       }
     }
 
-    const transforms = [buildTransform(operations)];
+    fullResponse.transforms = [buildTransform(operations)];
 
-    await this.transformed(transforms);
-
-    return { data: transforms };
+    return fullResponse;
   }
 
-  _operationsFromQueryResult(result: RecordQueryExpressionResult): Operation[] {
+  protected _operationsFromQueryResult(
+    result: RecordQueryExpressionResult
+  ): RecordOperation[] {
     if (Array.isArray(result)) {
       return result.map((r) => {
         return {

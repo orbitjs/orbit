@@ -3,25 +3,25 @@ import {
   isLocalStorageEmpty
 } from './support/local-storage';
 import { Orbit } from '@orbit/core';
+import { buildTransform } from '@orbit/data';
 import {
-  buildTransform,
   AddRecordOperation,
   Record,
   RecordIdentity,
-  Schema,
-  Source,
-  KeyMap,
-  Transform
-} from '@orbit/data';
+  RecordSchema,
+  RecordSource,
+  RecordKeyMap,
+  RecordTransform
+} from '@orbit/records';
 import { LocalStorageSource } from '../src/local-storage-source';
 
 const { module, test } = QUnit;
 
 module('LocalStorageSource', function (hooks) {
-  let schema: Schema, source: LocalStorageSource, keyMap: KeyMap;
+  let schema: RecordSchema, source: LocalStorageSource, keyMap: RecordKeyMap;
 
   hooks.beforeEach(() => {
-    schema = new Schema({
+    schema = new RecordSchema({
       models: {
         planet: {
           keys: { remoteId: {} },
@@ -44,7 +44,7 @@ module('LocalStorageSource', function (hooks) {
       }
     });
 
-    keyMap = new KeyMap();
+    keyMap = new RecordKeyMap();
 
     source = new LocalStorageSource({ schema, keyMap });
   });
@@ -62,7 +62,7 @@ module('LocalStorageSource', function (hooks) {
   });
 
   test('its prototype chain is correct', function (assert) {
-    assert.ok(source instanceof Source, 'instanceof Source');
+    assert.ok(source instanceof RecordSource, 'instanceof Source');
   });
 
   test('is assigned a default namespace and delimiter', function (assert) {
@@ -197,7 +197,7 @@ module('LocalStorageSource', function (hooks) {
       record: planet
     } as AddRecordOperation);
 
-    source.on('beforePush', async function (transform: Transform) {
+    source.on('beforePush', async function (transform: RecordTransform) {
       await source.sync(transform);
     });
 
@@ -955,7 +955,9 @@ module('LocalStorageSource', function (hooks) {
     // reset keyMap to verify that pulling records also adds keys
     keyMap.reset();
 
-    let transforms = (await source.pull((q) => q.findRecords())) as Transform[];
+    let transforms = (await source.pull((q) =>
+      q.findRecords()
+    )) as RecordTransform[];
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(
@@ -1023,7 +1025,7 @@ module('LocalStorageSource', function (hooks) {
 
     let transforms = (await source.pull((q) =>
       q.findRecords('planet')
-    )) as Transform[];
+    )) as RecordTransform[];
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(
@@ -1078,7 +1080,7 @@ module('LocalStorageSource', function (hooks) {
 
     let transforms = (await source.pull((q) =>
       q.findRecords([earth, io, { type: 'moon', id: 'FAKE' }])
-    )) as Transform[];
+    )) as RecordTransform[];
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(
@@ -1144,7 +1146,7 @@ module('LocalStorageSource', function (hooks) {
 
     let transforms = (await source.pull((q) =>
       q.findRecord(jupiter)
-    )) as Transform[];
+    )) as RecordTransform[];
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(
@@ -1170,7 +1172,9 @@ module('LocalStorageSource', function (hooks) {
 
     await Orbit.globals.localStorage.setItem('orbit-bucket/foo', '{}');
 
-    let transforms = (await source.pull((q) => q.findRecords())) as Transform[];
+    let transforms = (await source.pull((q) =>
+      q.findRecords()
+    )) as RecordTransform[];
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(
