@@ -39,70 +39,52 @@ export class RequestStrategy extends ConnectionStrategy {
     this.passHints = !!options.passHints;
   }
 
-  protected generateListener(): Listener {
-    const target = this.target;
-
-    return (
-      request: Query<QueryExpression> | Transform<Operation>,
-      hints: ResponseHints<unknown>
-    ): unknown => {
-      let result;
+  protected invokeAction(
+    request: Query<QueryExpression> | Transform<Operation>
+  ): Promise<NamedFullResponse<unknown, unknown, Operation>> {
+    if (typeof this._action === 'string') {
       let options = request.options;
 
+      // Ensure that requests return full responses
       if (!options?.fullResponse) {
-        options = {
-          ...options,
-          fullResponse: true
-        };
         request = {
           ...request,
-          options
+          options: {
+            ...options,
+            fullResponse: true
+          }
         };
       }
 
-      if (this._filter) {
-        if (!this._filter(request, hints)) {
-          return;
-        }
-      }
-
-      if (typeof this._action === 'string') {
-        result = (target as any)[this._action](request);
-      } else {
-        result = this._action(request, hints);
-      }
-
-      if (this._catch && result && result.catch) {
-        result = result.catch((e: Error) => {
-          return this._catch && this._catch(e, request, hints);
-        });
-      }
-
-      if (result) {
-        let blocking = false;
-        if (typeof this._blocking === 'function') {
-          if (this._blocking(request, hints)) {
-            blocking = true;
-          }
-        } else if (this._blocking) {
-          blocking = true;
-        }
-
-        if (blocking) {
-          return this.blockingResponse(result, hints);
-        }
-      }
-    };
+      return (this.target as any)[this._action](request);
+    } else {
+      return super.invokeAction(...arguments) as Promise<
+        NamedFullResponse<unknown, unknown, Operation>
+      >;
+    }
   }
 
-  protected async blockingResponse(
+  protected async handleBlockingResponse(
     result: Promise<FullResponse<unknown, unknown, Operation>>,
-    hints?: ResponseHints<unknown>
+    request: Query<QueryExpression> | Transform<Operation>,
+    hints?: ResponseHints<unknown, unknown>
   ): Promise<NamedFullResponse<unknown, unknown, Operation>> {
     const fullResponse = await result;
     if (this.passHints && hints) {
-      hints.data = fullResponse.data;
+      this.assignHints(hints, fullResponse);
     }
     return [this.target.name as string, fullResponse];
+  }
+
+  protected assignHints(
+    hints: ResponseHints<unknown, unknown>,
+    fullResponse: FullResponse<unknown, unknown, Operation>
+  ): void {
+    if (fullResponse.data !== undefined) {
+      hints.data = fullResponse.data;
+    }
+    if (fullResponse.details !== undefined) {
+      hints.details = fullResponse.details;
+    }
   }
 }

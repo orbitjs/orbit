@@ -3,11 +3,9 @@ import { ConnectionStrategy } from '../../src/strategies/connection-strategy';
 import {
   Source,
   Transform,
-  pushable,
   updatable,
   buildTransform,
-  FullResponse,
-  Operation
+  FullResponse
 } from '@orbit/data';
 import {
   RecordTransformBuilder,
@@ -24,12 +22,12 @@ module('ConnectionStrategy', function (hooks) {
     [t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })],
     undefined,
     'a'
-  );
+  ) as Transform<RecordOperation>;
   const tB = buildTransform(
     [t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })],
     undefined,
     'b'
-  );
+  ) as Transform<RecordOperation>;
 
   let strategy: ConnectionStrategy;
   let coordinator: Coordinator;
@@ -37,7 +35,6 @@ module('ConnectionStrategy', function (hooks) {
   let s2: any;
 
   hooks.beforeEach(function () {
-    @pushable
     @updatable
     class MySource extends Source {}
 
@@ -135,8 +132,8 @@ module('ConnectionStrategy', function (hooks) {
     strategy = new ConnectionStrategy({
       source: 's1',
       target: 's2',
-      on: 'update',
-      action: 'push'
+      on: 'foo',
+      action: 'foo'
     });
 
     coordinator = new Coordinator({
@@ -144,41 +141,35 @@ module('ConnectionStrategy', function (hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function (
-      transform: Transform<RecordOperation>
-    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
-      assert.strictEqual(
+    s2.foo = async function (
+      transform: Transform<RecordOperation>,
+      hints: any
+    ): Promise<void> {
+      assert.deepEqual(
         transform,
         tA,
-        'argument to _update is expected Transform'
+        '1st argument to s2.foo is expected Transform'
       );
-      return { data: undefined };
-    };
-
-    s2._push = async function (
-      transform: Transform<RecordOperation>
-    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
-      assert.strictEqual(
-        transform,
-        tA,
-        'argument to _update is expected Transform'
+      assert.deepEqual(
+        hints,
+        { data: { foo: 'bar' } },
+        '2nd argument to s2.foo is expected Transform'
       );
       assert.strictEqual(this, s2, 'context is that of the target');
-      return { transforms: [] };
     };
 
     await coordinator.activate();
-    await s1.update(tA);
+    await s1.emit('foo', tA, { data: { foo: 'bar' } });
   });
 
   test('can apply a `filter` function', async function (assert) {
-    assert.expect(4);
+    assert.expect(5);
 
     strategy = new ConnectionStrategy({
       source: 's1',
       target: 's2',
-      on: 'update',
-      action: 'push',
+      on: 'foo',
+      action: 'foo',
       filter(transform): boolean {
         assert.ok(
           this instanceof ConnectionStrategy,
@@ -193,27 +184,26 @@ module('ConnectionStrategy', function (hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function (
-      transform: Transform<RecordOperation>
-    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
-      return {};
-    };
-
-    s2._push = async function (
-      transform: Transform<RecordOperation>
-    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
-      assert.strictEqual(
+    s2.foo = async function (
+      transform: Transform<RecordOperation>,
+      hints: any
+    ): Promise<void> {
+      assert.deepEqual(
         transform,
         tB,
-        'argument to _push is expected Transform'
+        '1st argument to s2.foo is expected Transform'
+      );
+      assert.deepEqual(
+        hints,
+        { data: { foo: 'b' } },
+        '2nd argument to s2.foo is expected Transform'
       );
       assert.strictEqual(this, s2, 'context is that of the target');
-      return { transforms: [] };
     };
 
     await coordinator.activate();
-    await s1.update(tA);
-    await s1.update(tB);
+    await s1.emit('foo', tA, { data: { foo: 'a' } });
+    await s1.emit('foo', tB, { data: { foo: 'b' } });
   });
 
   // TODO - test blocking option

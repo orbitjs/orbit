@@ -132,36 +132,55 @@ export class ConnectionStrategy extends Strategy {
   }
 
   protected generateListener(): Listener {
-    const target = this.target as any;
+    return (...args: any[]) => this.defaultListener(...args);
+  }
 
-    return (...args: any[]) => {
-      let result;
-
-      if (this._filter) {
-        if (!this._filter.apply(this, args)) {
-          return;
-        }
+  protected async defaultListener(...args: any[]): Promise<any> {
+    if (this._filter) {
+      if (!this._filter.apply(this, args)) {
+        return;
       }
+    }
 
-      if (typeof this._action === 'string') {
-        result = target[this._action](...args);
-      } else {
-        result = this._action.apply(this, args);
-      }
+    let result = this.invokeAction(...args) as any;
 
-      if (this._catch && result && result.catch) {
-        result = result.catch((e: Error) => {
-          return (this._catch as CatchFn).apply(this, [e, ...args]);
-        });
-      }
+    if (this._catch && result && result.catch) {
+      result = result.catch((e: Error) => {
+        return (this._catch as CatchFn).apply(this, [e, ...args]);
+      });
+    }
 
+    if (result) {
+      let blocking = false;
       if (typeof this._blocking === 'function') {
-        if (this._blocking.apply(this, args)) {
-          return result;
+        if (this._blocking(...args)) {
+          blocking = true;
         }
       } else if (this._blocking) {
-        return result;
+        blocking = true;
       }
-    };
+
+      if (blocking) {
+        return this.handleBlockingResponse(result, ...args);
+      }
+    }
+  }
+
+  protected invokeAction(...args: any[]): unknown {
+    const target = this.target as any;
+
+    if (typeof this._action === 'string') {
+      return target[this._action](...args);
+    } else {
+      return this._action.apply(this, args);
+    }
+  }
+
+  protected async handleBlockingResponse(
+    result: Promise<any>,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ...args: any[]
+  ): Promise<any> {
+    await result;
   }
 }
