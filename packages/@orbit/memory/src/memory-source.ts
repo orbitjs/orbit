@@ -29,7 +29,7 @@ import {
   buildTransform,
   FullResponse
 } from '@orbit/data';
-import { ResponseHints } from '@orbit/data/dist/modules/response';
+import { ResponseHints } from '@orbit/data';
 import { Dict } from '@orbit/utils';
 import { MemoryCache, MemoryCacheSettings } from './memory-cache';
 
@@ -51,8 +51,8 @@ export class MemorySource
   extends RecordSource
   implements
     RecordSyncable,
-    RecordUpdatable<undefined>,
-    RecordQueryable<undefined> {
+    RecordUpdatable<unknown>,
+    RecordQueryable<unknown> {
   private _cache: MemoryCache;
   private _base?: MemorySource;
   private _forkPoint?: string;
@@ -72,9 +72,7 @@ export class MemorySource
     >,
     options?: RequestOptions,
     id?: string
-  ) => Promise<
-    DataOrFullResponse<RecordQueryResult, undefined, RecordOperation>
-  >;
+  ) => Promise<DataOrFullResponse<RecordQueryResult, unknown, RecordOperation>>;
 
   // Updatable interface stubs
   update!: (
@@ -85,7 +83,7 @@ export class MemorySource
     options?: RequestOptions,
     id?: string
   ) => Promise<
-    DataOrFullResponse<RecordTransformResult, undefined, RecordOperation>
+    DataOrFullResponse<RecordTransformResult, unknown, RecordOperation>
   >;
 
   constructor(settings: MemorySourceSettings) {
@@ -152,12 +150,12 @@ export class MemorySource
 
   async _update(
     transform: RecordTransform,
-    hints?: ResponseHints<RecordTransformResult>
-  ): Promise<FullResponse<RecordTransformResult, undefined, RecordOperation>> {
+    hints?: ResponseHints<RecordTransformResult, unknown>
+  ): Promise<FullResponse<RecordTransformResult, unknown, RecordOperation>> {
     let results: RecordTransformResult;
     const response: FullResponse<
       RecordTransformResult,
-      undefined,
+      unknown,
       RecordOperation
     > = {};
 
@@ -182,6 +180,10 @@ export class MemorySource
       }
     }
 
+    if (hints?.details) {
+      response.details = hints.details;
+    }
+
     return response;
   }
 
@@ -191,23 +193,33 @@ export class MemorySource
 
   async _query(
     query: RecordQuery,
-    hints?: ResponseHints<RecordQueryResult>
-  ): Promise<FullResponse<RecordQueryResult, undefined, RecordOperation>> {
-    let data: RecordQueryResult;
+    hints?: ResponseHints<RecordQueryResult, unknown>
+  ): Promise<FullResponse<RecordQueryResult, unknown, RecordOperation>> {
+    const response: FullResponse<
+      RecordQueryResult,
+      unknown,
+      RecordOperation
+    > = {};
 
     if (hints?.data) {
       if (query.expressions.length > 1 && Array.isArray(hints.data)) {
         let hintsData = hints.data as (RecordIdentity | RecordIdentity[])[];
-        data = hintsData.map((idOrIds) => this._retrieveFromCache(idOrIds));
+        response.data = hintsData.map((idOrIds) =>
+          this._retrieveFromCache(idOrIds)
+        );
       } else {
         let hintsData = hints.data as RecordIdentity | RecordIdentity[];
-        data = this._retrieveFromCache(hintsData);
+        response.data = this._retrieveFromCache(hintsData);
       }
     } else {
-      data = this._cache.query(query);
+      response.data = this._cache.query(query);
     }
 
-    return { data };
+    if (hints?.details) {
+      response.details = hints.details;
+    }
+
+    return response;
   }
 
   /////////////////////////////////////////////////////////////////////////////

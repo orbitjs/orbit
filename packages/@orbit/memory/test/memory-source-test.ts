@@ -1,4 +1,4 @@
-import { buildTransform, ResponseHints } from '@orbit/data';
+import { buildTransform, FullResponse, ResponseHints } from '@orbit/data';
 import {
   cloneRecordIdentity as identity,
   RecordKeyMap,
@@ -305,7 +305,7 @@ module('MemorySource', function (hooks) {
       'beforeUpdate',
       (
         transform: RecordTransform,
-        hints: ResponseHints<RecordTransformResult>
+        hints: ResponseHints<RecordTransformResult, unknown>
       ) => {
         if (transform?.options?.customizeResults) {
           hints.data = [
@@ -361,7 +361,7 @@ module('MemorySource', function (hooks) {
       'beforeUpdate',
       (
         transform: RecordTransform,
-        hints: ResponseHints<RecordTransformResult>
+        hints: ResponseHints<RecordTransformResult, unknown>
       ) => {
         if (transform?.options?.customizeResults) {
           hints.data = [
@@ -369,6 +369,9 @@ module('MemorySource', function (hooks) {
             { type: 'planet', id: 'earth' },
             undefined
           ];
+          hints.details = {
+            foo: 'bar'
+          };
         }
       }
     );
@@ -391,6 +394,55 @@ module('MemorySource', function (hooks) {
       [uranus, earth, undefined],
       'planets match hinted records'
     );
+  });
+
+  test('#update - hint details can be returned in a full response', async function (assert) {
+    assert.expect(2);
+
+    let jupiter = {
+      id: 'jupiter',
+      type: 'planet',
+      attributes: { name: 'Jupiter' }
+    };
+
+    let earth = {
+      id: 'earth',
+      type: 'planet',
+      attributes: { name: 'Earth' }
+    };
+
+    let uranus = {
+      id: 'uranus',
+      type: 'planet',
+      attributes: { name: 'Uranus' }
+    };
+
+    source.on(
+      'beforeUpdate',
+      (
+        transform: RecordTransform,
+        hints: ResponseHints<RecordTransformResult, unknown>
+      ) => {
+        hints.data = [
+          { type: 'planet', id: 'uranus' },
+          { type: 'planet', id: 'earth' }
+        ];
+        hints.details = {
+          foo: 'bar'
+        };
+      }
+    );
+
+    let { data, details } = (await source.update(
+      (t) => [t.addRecord(jupiter), t.addRecord(earth), t.addRecord(uranus)],
+      {
+        fullResponse: true,
+        // includeDetails: true
+      }
+    )) as FullResponse<RecordTransformResult, unknown, RecordOperation>;
+
+    assert.deepEqual(data, [uranus, earth], 'data matches hinted data');
+    assert.deepEqual(details, { foo: 'bar' }, 'details match hinted details');
   });
 
   test("#query - queries the source's cache", async function (assert) {
