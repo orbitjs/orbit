@@ -1,14 +1,14 @@
 import { getRecordFromIndexedDB } from './support/indexeddb';
-import { Record, Schema, KeyMap } from '@orbit/data';
+import { Record, RecordSchema, RecordKeyMap } from '@orbit/records';
 import { IndexedDBCache } from '../src/indexeddb-cache';
 
 const { module, test } = QUnit;
 
 module('IndexedDBCache', function (hooks) {
-  let schema: Schema, cache: IndexedDBCache, keyMap: KeyMap;
+  let schema: RecordSchema, cache: IndexedDBCache, keyMap: RecordKeyMap;
 
   hooks.beforeEach(async () => {
-    schema = new Schema({
+    schema = new RecordSchema({
       models: {
         planet: {
           keys: { remoteId: {} },
@@ -51,7 +51,7 @@ module('IndexedDBCache', function (hooks) {
       }
     });
 
-    keyMap = new KeyMap();
+    keyMap = new RecordKeyMap();
 
     cache = new IndexedDBCache({ schema, keyMap });
     await cache.openDB();

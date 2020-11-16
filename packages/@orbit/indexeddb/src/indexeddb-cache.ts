@@ -4,7 +4,7 @@ import {
   deserializeRecordIdentity,
   Record,
   RecordIdentity
-} from '@orbit/data';
+} from '@orbit/records';
 import {
   RecordRelationshipIdentity,
   AsyncRecordCache,

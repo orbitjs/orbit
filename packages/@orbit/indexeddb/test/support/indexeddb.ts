@@ -1,5 +1,5 @@
 import { IndexedDBCache } from '../../src/index';
-import { Record } from '@orbit/data';
+import { Record } from '@orbit/records';
 
 export async function getRecordFromIndexedDB(
   cache: IndexedDBCache,

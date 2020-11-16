@@ -1,22 +1,22 @@
 import { getRecordFromIndexedDB } from './support/indexeddb';
+import { buildTransform } from '@orbit/data';
 import {
-  buildTransform,
-  Record,
-  Schema,
-  KeyMap,
   AddRecordOperation,
-  Transform,
+  Record,
+  RecordSchema,
+  RecordKeyMap,
+  RecordTransform,
   RecordIdentity
-} from '@orbit/data';
+} from '@orbit/records';
 import { IndexedDBSource } from '../src/indexeddb-source';
 
 const { module, test } = QUnit;
 
 module('IndexedDBSource', function (hooks) {
-  let schema: Schema, source: IndexedDBSource, keyMap: KeyMap;
+  let schema: RecordSchema, source: IndexedDBSource, keyMap: RecordKeyMap;
 
   hooks.beforeEach(async () => {
-    schema = new Schema({
+    schema = new RecordSchema({
       models: {
         planet: {
           keys: { remoteId: {} },
@@ -59,7 +59,7 @@ module('IndexedDBSource', function (hooks) {
       }
     });
 
-    keyMap = new KeyMap();
+    keyMap = new RecordKeyMap();
 
     source = new IndexedDBSource({ schema, keyMap });
     await source.activated;
@@ -258,7 +258,7 @@ module('IndexedDBSource', function (hooks) {
       record: planet
     } as AddRecordOperation);
 
-    source.on('beforePush', async function (transform: Transform) {
+    source.on('beforePush', async function (transform: RecordTransform) {
       await source.sync(transform);
     });
 
@@ -1060,7 +1060,9 @@ module('IndexedDBSource', function (hooks) {
     // reset keyMap to verify that pulling records also adds keys
     keyMap.reset();
 
-    let transforms = (await source.pull((q) => q.findRecords())) as Transform[];
+    let transforms = (await source.pull((q) =>
+      q.findRecords()
+    )) as RecordTransform[];
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.deepEqual(
@@ -1122,7 +1124,7 @@ module('IndexedDBSource', function (hooks) {
 
     let transforms = (await source.pull((q) =>
       q.findRecords('planet')
-    )) as Transform[];
+    )) as RecordTransform[];
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(
@@ -1180,7 +1182,7 @@ module('IndexedDBSource', function (hooks) {
 
     let transforms = (await source.pull((q) =>
       q.findRecords([earth, io, { type: 'moon', id: 'FAKE' }])
-    )) as Transform[];
+    )) as RecordTransform[];
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(
@@ -1244,7 +1246,7 @@ module('IndexedDBSource', function (hooks) {
 
     let transforms = (await source.pull((q) =>
       q.findRecord(jupiter)
-    )) as Transform[];
+    )) as RecordTransform[];
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.ok(
