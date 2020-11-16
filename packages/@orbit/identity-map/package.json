@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@orbit/build": "^0.17.0-beta.7",
-    "@orbit/data": "^0.17.0-beta.8"
+    "@orbit/records": "^0.17.0-beta.8"
   },
   "prettier": "@orbit/prettier-config"
 }

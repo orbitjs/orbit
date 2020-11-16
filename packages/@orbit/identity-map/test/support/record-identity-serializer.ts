@@ -2,7 +2,7 @@ import {
   RecordIdentity,
   serializeRecordIdentity,
   deserializeRecordIdentity
-} from '@orbit/data';
+} from '@orbit/records';
 import { IdentitySerializer } from '../../src/index';
 
 export class RecordIdentitySerializer

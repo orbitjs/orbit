@@ -1,4 +1,4 @@
-import { RecordIdentity } from '@orbit/data';
+import { RecordIdentity } from '@orbit/records';
 import { IdentityMap } from '../src/identity-map';
 import { RecordIdentitySerializer } from './support/record-identity-serializer';
 
