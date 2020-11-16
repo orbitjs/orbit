@@ -1,4 +1,4 @@
-import { KeyMap, Record, Schema } from '@orbit/data';
+import { RecordKeyMap, Record, RecordSchema } from '@orbit/records';
 import { JSONAPISource } from '@orbit/jsonapi';
 import { MemorySource } from '@orbit/memory';
 import { Coordinator, RequestStrategy, SyncStrategy } from '@orbit/coordinator';
@@ -12,8 +12,8 @@ module(
   'Store + JSONAPISource + remote IDs + optimistic coordination',
   function (hooks) {
     let fetchStub: SinonStub;
-    let keyMap: KeyMap;
-    let schema: Schema;
+    let keyMap: RecordKeyMap;
+    let schema: RecordSchema;
     let remote: JSONAPISource;
     let memory: MemorySource;
     let coordinator: Coordinator;
@@ -21,7 +21,7 @@ module(
     hooks.beforeEach(() => {
       fetchStub = sinon.stub(self, 'fetch');
 
-      schema = new Schema({
+      schema = new RecordSchema({
         models: {
           planet: {
             keys: {
@@ -70,7 +70,7 @@ module(
         }
       });
 
-      keyMap = new KeyMap();
+      keyMap = new RecordKeyMap();
 
       memory = new MemorySource({ schema, keyMap });
 
@@ -141,7 +141,9 @@ module(
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       };
 
-      let createdRecord = await memory.update((t) => t.addRecord(planet));
+      let createdRecord = (await memory.update((t) =>
+        t.addRecord(planet)
+      )) as Record;
       let result = memory.cache.query((q) => q.findRecord(planet));
 
       assert.deepEqual(

@@ -27,6 +27,7 @@
     "@orbit/local-storage-bucket": "^0.17.0-beta.8",
     "@orbit/memory": "^0.17.0-beta.8",
     "@orbit/record-cache": "^0.17.0-beta.8",
+    "@orbit/records": "^0.17.0-beta.8",
     "@orbit/serializers": "^0.17.0-beta.8",
     "@orbit/utils": "^0.17.0-beta.8"
   },
