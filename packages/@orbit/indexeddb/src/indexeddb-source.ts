@@ -12,8 +12,6 @@ import {
   TransformOrOperations
 } from '@orbit/data';
 import {
-  Record,
-  RecordIdentity,
   RecordOperation,
   UpdateRecordOperation,
   RecordQueryExpressionResult,

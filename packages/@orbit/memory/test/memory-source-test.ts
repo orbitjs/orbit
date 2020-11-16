@@ -436,8 +436,7 @@ module('MemorySource', function (hooks) {
     let { data, details } = (await source.update(
       (t) => [t.addRecord(jupiter), t.addRecord(earth), t.addRecord(uranus)],
       {
-        fullResponse: true,
-        // includeDetails: true
+        fullResponse: true
       }
     )) as FullResponse<RecordTransformResult, unknown, RecordOperation>;
 

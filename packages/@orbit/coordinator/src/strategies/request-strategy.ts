@@ -2,7 +2,6 @@ import {
   ConnectionStrategy,
   ConnectionStrategyOptions
 } from './connection-strategy';
-import { Listener } from '@orbit/core';
 import {
   FullResponse,
   NamedFullResponse,
