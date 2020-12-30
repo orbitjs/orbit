@@ -1,0 +1,38 @@
+name: CI Build
+
+on:
+  pull_request: {}
+  push:
+    branches:
+      - master
+    tags:
+      - v*
+
+jobs:
+  test:
+    name: "Tests with frozen dependencies"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: volta-cli/action@v1
+        with:
+          node-version: 10.x
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint
+      - run: yarn compile
+      - run: yarn test
+
+  floating-dependencies:
+    name: "Tests with floating dependencies"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: volta-cli/action@v1
+        with:
+          node-version: 10.x
+      - run: yarn install --no-lockfile
+      - run: yarn lint
+      - run: yarn compile
+      - run: yarn test
