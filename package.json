@@ -29,6 +29,10 @@
     "typedoc-plugin-lerna-packages": "^0.3.0"
   },
   "prettier": "@orbit/prettier-config",
+  "volta": {
+    "node": "10.23.0",
+    "yarn": "1.22.10"
+  },
   "workspaces": [
     "packages/@orbit/*"
   ]
