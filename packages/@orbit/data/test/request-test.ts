@@ -26,6 +26,20 @@ module('Request', function () {
       }
     };
 
+    let custom2 = {
+      label: 'expression',
+      sources: {
+        memory: {
+          label: 'memoryExpression',
+          memoryMeta: 'abc'
+        },
+        remote: {
+          label: 'remoteExpression',
+          url: 'http://example.com/1'
+        }
+      }
+    };
+
     assert.strictEqual(
       requestOptionsForSource(vanilla, 'memory'),
       vanilla,
@@ -49,6 +63,53 @@ module('Request', function () {
         counter: 10
       },
       'options are merged with source-specific options'
+    );
+
+    assert.deepEqual(
+      requestOptionsForSource(custom),
+      {
+        label: 'request',
+        counter: 10
+      },
+      'if no source name is specified, return source-less options'
+    );
+
+    assert.deepEqual(
+      requestOptionsForSource([custom, custom2], 'memory'),
+      {
+        label: 'memoryExpression',
+        counter: 10,
+        memoryMeta: 'abc'
+      },
+      'multiple options are merged, with source-specific options taking precedence'
+    );
+
+    assert.deepEqual(
+      requestOptionsForSource([custom, custom2]),
+      {
+        label: 'expression',
+        counter: 10
+      },
+      'multiple options are merged even when no source is provided'
+    );
+
+    assert.deepEqual(
+      requestOptionsForSource(
+        [custom, undefined, undefined, custom2],
+        'memory'
+      ),
+      {
+        label: 'memoryExpression',
+        counter: 10,
+        memoryMeta: 'abc'
+      },
+      'undefined options are ignored when merging'
+    );
+
+    assert.deepEqual(
+      requestOptionsForSource(undefined, 'memory'),
+      undefined,
+      'undefined may be returned'
     );
   });
 });

@@ -252,28 +252,10 @@ export class JSONAPIRequestProcessor {
     queryOrTransform: RecordQuery | RecordTransform,
     queryExpressionOrOperation: RecordQueryExpression | RecordOperation
   ): JSONAPIRequestOptions | undefined {
-    let options: JSONAPIRequestOptions | undefined;
-
-    if (queryOrTransform.options) {
-      options = requestOptionsForSource(
-        queryOrTransform.options,
-        this.sourceName
-      );
-    }
-
-    if (queryExpressionOrOperation.options) {
-      options = {
-        ...options,
-        ...requestOptionsForSource(
-          queryExpressionOrOperation.options,
-          this.sourceName
-        )
-      };
-    }
-
-    if (options) {
-      return options;
-    }
+    return requestOptionsForSource(
+      [queryOrTransform.options, queryExpressionOrOperation.options],
+      this.sourceName
+    ) as JSONAPIRequestOptions | undefined;
   }
 
   /* eslint-disable @typescript-eslint/no-unused-vars */
