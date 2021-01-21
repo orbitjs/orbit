@@ -19,12 +19,30 @@ export interface NamedFullResponseMap<Data, Details, O extends Operation> {
 }
 
 export interface FullResponse<Data, Details, O extends Operation> {
+  /**
+   * Primary data for this response.
+   */
   data?: Data;
+
+  /**
+   * Source-specific response details. For example, a request that uses `fetch`
+   * might include the raw response document in `details`.
+   */
   details?: Details;
+
+  /**
+   * Transforms should be returned if fulfilling a request results in mutations
+   * to a source.
+   */
   transforms?: Transform<O>[];
 
-  // Note: Response `data` and `details` from other sources do not necessarily
-  // match the types of the primary response
+  /**
+   * If fulfilling this request triggers downstream requests in other sources,
+   * those full responses may be returned in the `sources` map.
+   *
+   * Note: Response `data` and `details` from other sources do not necessarily
+   * match the types of the primary response
+   */
   sources?: NamedFullResponseMap<unknown, unknown, O>;
 }
 
