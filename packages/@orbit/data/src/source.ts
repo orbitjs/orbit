@@ -12,6 +12,9 @@ import {
   Log
 } from '@orbit/core';
 import { Operation } from './operation';
+import { Query } from './query';
+import { QueryExpression } from './query-expression';
+import { RequestOptions, requestOptionsForSource } from './request';
 import { Transform } from './transform';
 
 const { assert } = Orbit;
@@ -24,6 +27,8 @@ export interface SourceSettings<QueryBuilder, TransformBuilder> {
   autoActivate?: boolean;
   requestQueueSettings?: TaskQueueSettings;
   syncQueueSettings?: TaskQueueSettings;
+  defaultQueryOptions?: RequestOptions;
+  defaultTransformOptions?: RequestOptions;
 }
 
 export type SourceClass<
@@ -44,6 +49,8 @@ export abstract class Source<QueryBuilder = unknown, TransformBuilder = unknown>
   protected _syncQueue: TaskQueue;
   protected _queryBuilder?: QueryBuilder;
   protected _transformBuilder?: TransformBuilder;
+  protected _defaultQueryOptions?: RequestOptions;
+  protected _defaultTransformOptions?: RequestOptions;
   private _activated?: Promise<void>;
 
   // Evented interface stubs
@@ -63,6 +70,9 @@ export abstract class Source<QueryBuilder = unknown, TransformBuilder = unknown>
 
     this._queryBuilder = settings.queryBuilder;
     this._transformBuilder = settings.transformBuilder;
+
+    this._defaultQueryOptions = settings.defaultQueryOptions;
+    this._defaultTransformOptions = settings.defaultTransformOptions;
 
     if (bucket) {
       assert('TransformLog requires a name if it has a bucket', !!name);
@@ -118,6 +128,34 @@ export abstract class Source<QueryBuilder = unknown, TransformBuilder = unknown>
 
   get transformBuilder(): TransformBuilder | undefined {
     return this._transformBuilder;
+  }
+
+  get defaultQueryOptions(): RequestOptions | undefined {
+    return this._defaultQueryOptions;
+  }
+
+  get defaultTransformOptions(): RequestOptions | undefined {
+    return this._defaultTransformOptions;
+  }
+
+  getQueryOptions(
+    query: Query<QueryExpression>,
+    expression?: QueryExpression
+  ): RequestOptions | undefined {
+    return requestOptionsForSource(
+      [this._defaultQueryOptions, query.options, expression?.options],
+      this._name
+    );
+  }
+
+  getTransformOptions(
+    transform: Transform<Operation>,
+    operation?: Operation
+  ): RequestOptions | undefined {
+    return requestOptionsForSource(
+      [this._defaultTransformOptions, transform.options, operation?.options],
+      this._name
+    );
   }
 
   // Performer interface

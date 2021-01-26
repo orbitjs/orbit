@@ -1,5 +1,6 @@
 import { Source } from '../src/source';
 import { buildTransform, Transform } from '../src/transform';
+import { buildQuery, Query } from '../src/query';
 import { FakeBucket } from './support/fake-bucket';
 import {
   RecordOperation,
@@ -193,6 +194,92 @@ module('Source', function (hooks) {
       transformBuilder,
       source.transformBuilder,
       'transformBuilder remains the same'
+    );
+  });
+
+  test('it can be instantiated with `defaultQueryOptions` and/or `defaultTransformOptions`', function (assert) {
+    const defaultQueryOptions = {
+      fullResponse: true
+    };
+
+    const defaultTransformOptions = {
+      fullResponse: true
+    };
+
+    source = new MySource({ defaultQueryOptions, defaultTransformOptions });
+
+    assert.strictEqual(
+      source.defaultQueryOptions,
+      defaultQueryOptions,
+      'defaultQueryOptions remains the same'
+    );
+
+    assert.strictEqual(
+      source.defaultTransformOptions,
+      defaultTransformOptions,
+      'defaultTransformOptions remains the same'
+    );
+  });
+
+  test('it can get query options that merge default, query, and expression options', function (assert) {
+    const defaultQueryOptions = {
+      fullResponse: true,
+      a: '1',
+      b: '1',
+      c: '1'
+    };
+
+    source = new MySource({ defaultQueryOptions, name: 'mySource' });
+
+    const queryExpression = {
+      op: 'findRecords',
+      options: { sources: { mySource: { c: '3' } } }
+    };
+    const query = buildQuery(queryExpression, { page: 2, b: '2', c: '2' });
+
+    assert.deepEqual(
+      source.getQueryOptions(query, queryExpression),
+      {
+        fullResponse: true,
+        page: 2,
+        a: '1',
+        b: '2',
+        c: '3'
+      },
+      'query options are merged with defaults'
+    );
+  });
+
+  test('it can get transform options that merge default, transform, and operation options', function (assert) {
+    const defaultTransformOptions = {
+      fullResponse: true,
+      a: '1',
+      b: '1',
+      c: '1'
+    };
+
+    source = new MySource({ defaultTransformOptions, name: 'mySource' });
+
+    const operation = {
+      op: 'addRecord',
+      options: { sources: { mySource: { c: '3' } } }
+    };
+    const transform = buildTransform(operation, {
+      auth: 'abc123',
+      b: '2',
+      c: '2'
+    });
+
+    assert.deepEqual(
+      source.getTransformOptions(transform, operation),
+      {
+        fullResponse: true,
+        auth: 'abc123',
+        a: '1',
+        b: '2',
+        c: '3'
+      },
+      'transform options are merged with defaults'
     );
   });
 
