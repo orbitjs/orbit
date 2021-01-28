@@ -1,5 +1,6 @@
 export * from './patch-result';
 export * from './record-accessor';
+export * from './record-cache';
 
 export * from './async-record-cache';
 export * from './async-operation-processor';
