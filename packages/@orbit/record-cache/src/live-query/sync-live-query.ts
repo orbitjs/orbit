@@ -1,4 +1,10 @@
-import { RecordSchema, RecordQuery, RecordQueryResult } from '@orbit/records';
+import { DataOrFullResponse } from '@orbit/data';
+import {
+  RecordSchema,
+  RecordQuery,
+  RecordQueryResult,
+  RecordOperation
+} from '@orbit/records';
 import { SyncRecordCache } from '../sync-record-cache';
 import { LiveQuery, LiveQuerySettings } from './live-query';
 
@@ -16,7 +22,7 @@ export class SyncLiveQueryUpdate {
     this._query = settings.query;
   }
 
-  query(): RecordQueryResult {
+  query(): DataOrFullResponse<RecordQueryResult, undefined, RecordOperation> {
     return this._cache.query(this._query);
   }
 }
@@ -44,7 +50,7 @@ export class SyncLiveQuery extends LiveQuery {
     this.cache = settings.cache;
   }
 
-  query(): RecordQueryResult {
+  query(): DataOrFullResponse<RecordQueryResult, undefined, RecordOperation> {
     return this._update.query();
   }
 

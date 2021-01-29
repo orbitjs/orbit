@@ -17,6 +17,7 @@ export interface RecordRelationshipIdentity {
 }
 
 export interface BaseRecordAccessor {
+  name?: string;
   keyMap?: RecordKeyMap;
   schema: RecordSchema;
 }

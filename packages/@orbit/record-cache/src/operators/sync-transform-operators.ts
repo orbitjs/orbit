@@ -16,20 +16,23 @@ import {
   ReplaceRelatedRecordsOperation,
   ReplaceRelatedRecordOperation,
   Record,
-  recordsInclude
+  recordsInclude,
+  RecordTransform
 } from '@orbit/records';
-import { SyncRecordAccessor } from '../record-accessor';
+import { SyncRecordCache } from '../sync-record-cache';
 
-export interface SyncPatchOperator {
+export interface SyncTransformOperator {
   (
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperationResult;
 }
 
-export const SyncPatchOperators: Dict<SyncPatchOperator> = {
+export const SyncTransformOperators: Dict<SyncTransformOperator> = {
   addRecord(
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperationResult {
     const op = operation as AddRecordOperation;
@@ -44,7 +47,8 @@ export const SyncPatchOperators: Dict<SyncPatchOperator> = {
   },
 
   updateRecord(
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperationResult {
     const op = operation as UpdateRecordOperation;
@@ -62,7 +66,8 @@ export const SyncPatchOperators: Dict<SyncPatchOperator> = {
   },
 
   removeRecord(
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperationResult {
     const op = operation as RemoveRecordOperation;
@@ -70,7 +75,8 @@ export const SyncPatchOperators: Dict<SyncPatchOperator> = {
   },
 
   replaceKey(
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperationResult {
     const op = operation as ReplaceKeyOperation;
@@ -94,7 +100,8 @@ export const SyncPatchOperators: Dict<SyncPatchOperator> = {
   },
 
   replaceAttribute(
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperationResult {
     const op = operation as ReplaceAttributeOperation;
@@ -114,7 +121,8 @@ export const SyncPatchOperators: Dict<SyncPatchOperator> = {
   },
 
   addToRelatedRecords(
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperationResult {
     const op = operation as AddToRelatedRecordsOperation;
@@ -142,7 +150,8 @@ export const SyncPatchOperators: Dict<SyncPatchOperator> = {
   },
 
   removeFromRelatedRecords(
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperationResult {
     const op = operation as RemoveFromRelatedRecordsOperation;
@@ -177,7 +186,8 @@ export const SyncPatchOperators: Dict<SyncPatchOperator> = {
   },
 
   replaceRelatedRecords(
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperationResult {
     const op = operation as ReplaceRelatedRecordsOperation;
@@ -201,7 +211,8 @@ export const SyncPatchOperators: Dict<SyncPatchOperator> = {
   },
 
   replaceRelatedRecord(
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperationResult {
     const op = operation as ReplaceRelatedRecordOperation;

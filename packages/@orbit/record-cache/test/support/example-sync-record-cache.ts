@@ -27,7 +27,7 @@ export class ExampleSyncRecordCache extends SyncRecordCache {
   }
 
   getRecordSync(identity: RecordIdentity): Record | undefined {
-    return deepGet(this._records, [identity.type, identity.id]) || null;
+    return deepGet(this._records, [identity.type, identity.id]);
   }
 
   getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[] {

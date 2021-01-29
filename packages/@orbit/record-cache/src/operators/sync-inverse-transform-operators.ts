@@ -14,19 +14,23 @@ import {
   equalRecordIdentities,
   equalRecordIdentitySets,
   recordsInclude,
-  RecordIdentity
+  RecordIdentity,
+  RecordTransform
 } from '@orbit/records';
-import { SyncRecordAccessor } from '../record-accessor';
+import { SyncRecordCache } from '../sync-record-cache';
 
-export interface SyncInversePatchOperator {
-  (cache: SyncRecordAccessor, operation: RecordOperation):
-    | RecordOperation
-    | undefined;
+export interface SyncInverseTransformOperator {
+  (
+    cache: SyncRecordCache,
+    transform: RecordTransform,
+    operation: RecordOperation
+  ): RecordOperation | undefined;
 }
 
-export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
+export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> = {
   addRecord(
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperation | undefined {
     const op = operation as AddRecordOperation;
@@ -51,7 +55,8 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
   },
 
   updateRecord(
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperation | undefined {
     const op = operation as UpdateRecordOperation;
@@ -135,7 +140,8 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
   },
 
   removeRecord(
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperation | undefined {
     const op = operation as RemoveRecordOperation;
@@ -152,7 +158,8 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
   },
 
   replaceKey(
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperation | undefined {
     const op = operation as ReplaceKeyOperation;
@@ -174,7 +181,8 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
   },
 
   replaceAttribute(
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperation | undefined {
     const op = operation as ReplaceAttributeOperation;
@@ -196,7 +204,8 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
   },
 
   addToRelatedRecords(
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperation | undefined {
     const op = operation as AddToRelatedRecordsOperation;
@@ -221,7 +230,8 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
   },
 
   removeFromRelatedRecords(
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperation | undefined {
     const op = operation as RemoveFromRelatedRecordsOperation;
@@ -246,7 +256,8 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
   },
 
   replaceRelatedRecords(
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperation | undefined {
     const op = operation as ReplaceRelatedRecordsOperation;
@@ -271,7 +282,8 @@ export const SyncInversePatchOperators: Dict<SyncInversePatchOperator> = {
   },
 
   replaceRelatedRecord(
-    cache: SyncRecordAccessor,
+    cache: SyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): RecordOperation | undefined {
     const op = operation as ReplaceRelatedRecordOperation;
