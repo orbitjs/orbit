@@ -11,8 +11,8 @@ export * from './sync-operation-processor';
 export * from './live-query/sync-live-query';
 
 // Operators
-export * from './operators/async-inverse-patch-operators';
-export * from './operators/async-patch-operators';
+export * from './operators/async-inverse-transform-operators';
+export * from './operators/async-transform-operators';
 export * from './operators/async-query-operators';
 export * from './operators/sync-inverse-transform-operators';
 export * from './operators/sync-transform-operators';

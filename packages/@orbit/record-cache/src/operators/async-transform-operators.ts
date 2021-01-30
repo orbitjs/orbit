@@ -16,19 +16,23 @@ import {
   ReplaceRelatedRecordsOperation,
   ReplaceRelatedRecordOperation,
   Record,
-  recordsInclude
+  recordsInclude,
+  RecordTransform
 } from '@orbit/records';
-import { AsyncRecordAccessor } from '../record-accessor';
+import { AsyncRecordCache } from '../async-record-cache';
 
-export interface AsyncPatchOperator {
-  (cache: AsyncRecordAccessor, operation: RecordOperation): Promise<
-    RecordOperationResult
-  >;
+export interface AsyncTransformOperator {
+  (
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
+    operation: RecordOperation
+  ): Promise<RecordOperationResult>;
 }
 
-export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
+export const AsyncTransformOperators: Dict<AsyncTransformOperator> = {
   async addRecord(
-    cache: AsyncRecordAccessor,
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): Promise<RecordOperationResult> {
     const op = operation as AddRecordOperation;
@@ -43,7 +47,8 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
   },
 
   async updateRecord(
-    cache: AsyncRecordAccessor,
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): Promise<RecordOperationResult> {
     const op = operation as UpdateRecordOperation;
@@ -61,7 +66,8 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
   },
 
   async removeRecord(
-    cache: AsyncRecordAccessor,
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): Promise<RecordOperationResult> {
     const op = operation as RemoveRecordOperation;
@@ -69,7 +75,8 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
   },
 
   async replaceKey(
-    cache: AsyncRecordAccessor,
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): Promise<RecordOperationResult> {
     const op = operation as ReplaceKeyOperation;
@@ -93,7 +100,8 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
   },
 
   async replaceAttribute(
-    cache: AsyncRecordAccessor,
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): Promise<RecordOperationResult> {
     const op = operation as ReplaceAttributeOperation;
@@ -113,7 +121,8 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
   },
 
   async addToRelatedRecords(
-    cache: AsyncRecordAccessor,
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): Promise<RecordOperationResult> {
     const op = operation as AddToRelatedRecordsOperation;
@@ -141,7 +150,8 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
   },
 
   async removeFromRelatedRecords(
-    cache: AsyncRecordAccessor,
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): Promise<RecordOperationResult> {
     const op = operation as RemoveFromRelatedRecordsOperation;
@@ -173,12 +183,11 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
       }
       return record;
     }
-
-    return undefined;
   },
 
   async replaceRelatedRecords(
-    cache: AsyncRecordAccessor,
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): Promise<RecordOperationResult> {
     const op = operation as ReplaceRelatedRecordsOperation;
@@ -202,7 +211,8 @@ export const AsyncPatchOperators: Dict<AsyncPatchOperator> = {
   },
 
   async replaceRelatedRecord(
-    cache: AsyncRecordAccessor,
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): Promise<RecordOperationResult> {
     const op = operation as ReplaceRelatedRecordOperation;

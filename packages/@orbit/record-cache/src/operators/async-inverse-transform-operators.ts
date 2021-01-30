@@ -14,19 +14,23 @@ import {
   equalRecordIdentities,
   equalRecordIdentitySets,
   recordsInclude,
-  RecordIdentity
+  RecordIdentity,
+  RecordTransform
 } from '@orbit/records';
-import { AsyncRecordAccessor } from '../record-accessor';
+import { AsyncRecordCache } from '../async-record-cache';
 
-export interface AsyncInversePatchOperator {
-  (cache: AsyncRecordAccessor, operation: RecordOperation): Promise<
-    RecordOperation | undefined
-  >;
+export interface AsyncInverseTransformOperator {
+  (
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
+    operation: RecordOperation
+  ): Promise<RecordOperation | undefined>;
 }
 
-export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
+export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator> = {
   async addRecord(
-    cache: AsyncRecordAccessor,
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
     const op = operation as AddRecordOperation;
@@ -52,7 +56,8 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
   },
 
   async updateRecord(
-    cache: AsyncRecordAccessor,
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
     const op = operation as UpdateRecordOperation;
@@ -135,7 +140,8 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
   },
 
   async removeRecord(
-    cache: AsyncRecordAccessor,
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
     const op = operation as RemoveRecordOperation;
@@ -147,11 +153,13 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
         record: current
       };
     }
+
     return;
   },
 
   async replaceKey(
-    cache: AsyncRecordAccessor,
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
     const op = operation as ReplaceKeyOperation;
@@ -173,7 +181,8 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
   },
 
   async replaceAttribute(
-    cache: AsyncRecordAccessor,
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
     const op = operation as ReplaceAttributeOperation;
@@ -195,7 +204,8 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
   },
 
   async addToRelatedRecords(
-    cache: AsyncRecordAccessor,
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
     const op = operation as AddToRelatedRecordsOperation;
@@ -220,7 +230,8 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
   },
 
   async removeFromRelatedRecords(
-    cache: AsyncRecordAccessor,
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
     const op = operation as RemoveFromRelatedRecordsOperation;
@@ -245,7 +256,8 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
   },
 
   async replaceRelatedRecords(
-    cache: AsyncRecordAccessor,
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
     const op = operation as ReplaceRelatedRecordsOperation;
@@ -270,7 +282,8 @@ export const AsyncInversePatchOperators: Dict<AsyncInversePatchOperator> = {
   },
 
   async replaceRelatedRecord(
-    cache: AsyncRecordAccessor,
+    cache: AsyncRecordCache,
+    transform: RecordTransform,
     operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
     const op = operation as ReplaceRelatedRecordOperation;

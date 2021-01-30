@@ -1,20 +1,26 @@
-import { Orbit, evented, Evented, Listener } from '@orbit/core';
+import Orbit from '@orbit/core';
 import { deepGet, Dict } from '@orbit/utils';
-import { buildQuery, OperationTerm, RequestOptions } from '@orbit/data';
 import {
-  RecordKeyMap,
+  buildQuery,
+  buildTransform,
+  DataOrFullResponse,
+  FullResponse,
+  OperationTerm,
+  RequestOptions
+} from '@orbit/data';
+import {
   Record,
   RecordOperation,
-  RecordSchema,
-  RecordQueryBuilder,
-  RecordTransformBuilder,
   RecordIdentity,
   RecordOperationTerm,
   RecordQueryResult,
   RecordQueryExpressionResult,
   RecordQueryOrExpressions,
+  RecordTransformOrOperations,
   RecordTransformBuilderFunc,
-  RecordQueryExpression
+  RecordTransformResult,
+  RecordOperationResult,
+  RecordTransform
 } from '@orbit/records';
 import {
   AsyncOperationProcessor,
@@ -24,75 +30,52 @@ import { AsyncCacheIntegrityProcessor } from './operation-processors/async-cache
 import { AsyncSchemaConsistencyProcessor } from './operation-processors/async-schema-consistency-processor';
 import { AsyncSchemaValidationProcessor } from './operation-processors/async-schema-validation-processor';
 import {
-  AsyncPatchOperators,
-  AsyncPatchOperator
-} from './operators/async-patch-operators';
+  AsyncTransformOperators,
+  AsyncTransformOperator
+} from './operators/async-transform-operators';
 import {
   AsyncQueryOperators,
   AsyncQueryOperator
 } from './operators/async-query-operators';
 import {
-  AsyncInversePatchOperators,
-  AsyncInversePatchOperator
-} from './operators/async-inverse-patch-operators';
+  AsyncInverseTransformOperators,
+  AsyncInverseTransformOperator
+} from './operators/async-inverse-transform-operators';
 import {
   AsyncRecordAccessor,
   RecordRelationshipIdentity
 } from './record-accessor';
-import { PatchResult } from './patch-result';
+import { PatchResult, RecordCacheUpdateDetails } from './response';
 import { AsyncLiveQuery } from './live-query/async-live-query';
+import { RecordCache, RecordCacheSettings } from './record-cache';
 
-const { assert } = Orbit;
+const { assert, deprecate } = Orbit;
 
-export interface AsyncRecordCacheSettings {
-  schema: RecordSchema;
-  keyMap?: RecordKeyMap;
+export interface AsyncRecordCacheSettings extends RecordCacheSettings {
   processors?: AsyncOperationProcessorClass[];
-  transformBuilder?: RecordTransformBuilder;
-  queryBuilder?: RecordQueryBuilder;
   queryOperators?: Dict<AsyncQueryOperator>;
-  patchOperators?: Dict<AsyncPatchOperator>;
-  inversePatchOperators?: Dict<AsyncInversePatchOperator>;
+  transformOperators?: Dict<AsyncTransformOperator>;
+  inverseTransformOperators?: Dict<AsyncInverseTransformOperator>;
   debounceLiveQueries?: boolean;
 }
 
-@evented
-export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
-  protected _keyMap?: RecordKeyMap;
-  protected _schema: RecordSchema;
-  protected _transformBuilder: RecordTransformBuilder;
-  protected _queryBuilder: RecordQueryBuilder;
+export abstract class AsyncRecordCache
+  extends RecordCache
+  implements AsyncRecordAccessor {
   protected _processors: AsyncOperationProcessor[];
   protected _queryOperators: Dict<AsyncQueryOperator>;
-  protected _patchOperators: Dict<AsyncPatchOperator>;
-  protected _inversePatchOperators: Dict<AsyncInversePatchOperator>;
+  protected _transformOperators: Dict<AsyncTransformOperator>;
+  protected _inverseTransformOperators: Dict<AsyncInverseTransformOperator>;
   protected _debounceLiveQueries: boolean;
 
-  // Evented interface stubs
-  on!: (event: string, listener: Listener) => () => void;
-  off!: (event: string, listener?: Listener) => void;
-  one!: (event: string, listener: Listener) => () => void;
-  emit!: (event: string, ...args: any[]) => void;
-  listeners!: (event: string) => Listener[];
-
   constructor(settings: AsyncRecordCacheSettings) {
-    assert(
-      "AsyncRecordCache's `schema` must be specified in `settings.schema` constructor argument",
-      !!settings.schema
-    );
+    super(settings);
 
-    this._schema = settings.schema;
-    this._keyMap = settings.keyMap;
-    this._queryBuilder = settings.queryBuilder || new RecordQueryBuilder();
-    this._transformBuilder =
-      settings.transformBuilder ||
-      new RecordTransformBuilder({
-        recordInitializer: this._schema
-      });
     this._queryOperators = settings.queryOperators || AsyncQueryOperators;
-    this._patchOperators = settings.patchOperators || AsyncPatchOperators;
-    this._inversePatchOperators =
-      settings.inversePatchOperators || AsyncInversePatchOperators;
+    this._transformOperators =
+      settings.transformOperators || AsyncTransformOperators;
+    this._inverseTransformOperators =
+      settings.inverseTransformOperators || AsyncInverseTransformOperators;
     this._debounceLiveQueries = settings.debounceLiveQueries !== false;
 
     const processors: AsyncOperationProcessorClass[] = settings.processors
@@ -112,22 +95,6 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
     });
   }
 
-  get schema(): RecordSchema {
-    return this._schema;
-  }
-
-  get keyMap(): RecordKeyMap | undefined {
-    return this._keyMap;
-  }
-
-  get queryBuilder(): RecordQueryBuilder {
-    return this._queryBuilder;
-  }
-
-  get transformBuilder(): RecordTransformBuilder {
-    return this._transformBuilder;
-  }
-
   get processors(): AsyncOperationProcessor[] {
     return this._processors;
   }
@@ -136,12 +103,12 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
     return this._queryOperators[op];
   }
 
-  getPatchOperator(op: string): AsyncPatchOperator {
-    return this._patchOperators[op];
+  getTransformOperator(op: string): AsyncTransformOperator {
+    return this._transformOperators[op];
   }
 
-  getInversePatchOperator(op: string): AsyncInversePatchOperator {
-    return this._inversePatchOperators[op];
+  getInverseTransformOperator(op: string): AsyncInverseTransformOperator {
+    return this._inverseTransformOperators[op];
   }
 
   // Abstract methods for getting records and relationships
@@ -200,23 +167,102 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
     queryOrExpressions: RecordQueryOrExpressions,
     options?: RequestOptions,
     id?: string
-  ): Promise<RecordQueryResult> {
+  ): Promise<
+    DataOrFullResponse<RecordQueryResult, undefined, RecordOperation>
+  > {
     const query = buildQuery(
       queryOrExpressions,
       options,
       id,
       this._queryBuilder
     );
-    const results = await this._query(query.expressions);
+    const requestOptions = this.getQueryOptions(query);
 
-    if (query.expressions.length === 1) {
-      return results[0];
+    const results: RecordQueryExpressionResult[] = [];
+    for (let expression of query.expressions) {
+      const queryOperator = this.getQueryOperator(expression.op);
+      if (!queryOperator) {
+        throw new Error(`Unable to find query operator: ${expression.op}`);
+      }
+      results.push(await queryOperator(this, query, expression));
     }
-    return results;
+
+    const data = query.expressions.length === 1 ? results[0] : results;
+
+    if (requestOptions?.fullResponse) {
+      return { data };
+    } else {
+      return data;
+    }
+  }
+
+  /**
+   * Updates the cache.
+   */
+  async update(
+    transformOrOperations: RecordTransformOrOperations,
+    options?: RequestOptions,
+    id?: string
+  ): Promise<
+    DataOrFullResponse<
+      RecordTransformResult,
+      RecordCacheUpdateDetails,
+      RecordOperation
+    >
+  > {
+    const transform = buildTransform(
+      transformOrOperations,
+      options,
+      id,
+      this._transformBuilder
+    );
+    const requestOptions = this.getTransformOptions(transform);
+
+    const response = {
+      data: []
+    } as FullResponse<
+      RecordOperationResult[],
+      RecordCacheUpdateDetails,
+      RecordOperation
+    >;
+
+    if (requestOptions?.fullResponse) {
+      response.details = {
+        appliedOperations: [],
+        inverseOperations: []
+      };
+    }
+
+    await this._applyTransformOperations(
+      transform,
+      transform.operations,
+      response,
+      true
+    );
+
+    response.details?.inverseOperations.reverse();
+
+    let data: RecordTransformResult;
+    if (transform.operations.length === 1) {
+      data = (response.data as RecordOperationResult[])[0];
+    } else {
+      data = response.data;
+    }
+
+    if (requestOptions?.fullResponse) {
+      return {
+        ...response,
+        data
+      };
+    } else {
+      return data;
+    }
   }
 
   /**
    * Patches the cache with an operation or operations.
+   *
+   * @deprecated since v0.17
    */
   async patch(
     operationOrOperations:
@@ -226,34 +272,22 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
       | RecordOperationTerm[]
       | RecordTransformBuilderFunc
   ): Promise<PatchResult> {
-    if (typeof operationOrOperations === 'function') {
-      operationOrOperations = operationOrOperations(this._transformBuilder) as
-        | RecordOperationTerm
-        | RecordOperationTerm[];
-    }
+    deprecate(
+      'AsyncRecordCache#patch has been deprecated. Use AsyncRecordCache#update instead.'
+    );
 
-    const result: PatchResult = {
-      inverse: [],
-      data: []
+    const { data, details } = (await this.update(operationOrOperations, {
+      fullResponse: true
+    })) as FullResponse<
+      RecordTransformResult,
+      RecordCacheUpdateDetails,
+      RecordOperation
+    >;
+
+    return {
+      inverse: details?.inverseOperations || [],
+      data: Array.isArray(data) ? data : [data]
     };
-
-    if (Array.isArray(operationOrOperations)) {
-      await this._applyPatchOperations(
-        operationOrOperations as RecordOperation[],
-        result,
-        true
-      );
-    } else {
-      await this._applyPatchOperation(
-        operationOrOperations as RecordOperation,
-        result,
-        true
-      );
-    }
-
-    result.inverse.reverse();
-
-    return result;
   }
 
   liveQuery(
@@ -284,33 +318,29 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
 
-  protected async _query(
-    expressions: RecordQueryExpression[]
-  ): Promise<RecordQueryExpressionResult[]> {
-    const results: RecordQueryExpressionResult[] = [];
-    for (let expression of expressions) {
-      const queryOperator = this.getQueryOperator(expression.op);
-      if (!queryOperator) {
-        throw new Error(`Unable to find query operator: ${expression.op}`);
-      }
-      results.push(await queryOperator(this, expression));
-    }
-    return results;
-  }
-
-  protected async _applyPatchOperations(
+  protected async _applyTransformOperations(
+    transform: RecordTransform,
     ops: RecordOperation[] | RecordOperationTerm[],
-    result: PatchResult,
+    response: FullResponse<
+      RecordOperationResult[],
+      RecordCacheUpdateDetails,
+      RecordOperation
+    >,
     primary = false
   ): Promise<void> {
     for (let op of ops) {
-      await this._applyPatchOperation(op, result, primary);
+      await this._applyTransformOperation(transform, op, response, primary);
     }
   }
 
-  protected async _applyPatchOperation(
+  protected async _applyTransformOperation(
+    transform: RecordTransform,
     operation: RecordOperation | RecordOperationTerm,
-    result: PatchResult,
+    response: FullResponse<
+      RecordOperationResult[],
+      RecordCacheUpdateDetails,
+      RecordOperation
+    >,
     primary = false
   ): Promise<void> {
     if (operation instanceof OperationTerm) {
@@ -321,19 +351,21 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
       await processor.validate(operation);
     }
 
-    const inversePatchOperator = this.getInversePatchOperator(operation.op);
-    const inverseOp: RecordOperation | undefined = await inversePatchOperator(
-      this,
-      operation
+    const inverseTransformOperator = this.getInverseTransformOperator(
+      operation.op
     );
+    const inverseOp:
+      | RecordOperation
+      | undefined = await inverseTransformOperator(this, transform, operation);
     if (inverseOp) {
-      result.inverse.push(inverseOp);
+      response.details?.inverseOperations?.push(inverseOp);
 
       // Query and perform related `before` operations
       for (let processor of this._processors) {
-        await this._applyPatchOperations(
+        await this._applyTransformOperations(
+          transform,
           await processor.before(operation),
-          result
+          response
         );
       }
 
@@ -345,11 +377,12 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
       }
 
       // Perform the requested operation
-      let patchOperator = this.getPatchOperator(operation.op);
-      let data = await patchOperator(this, operation);
+      let transformOperator = this.getTransformOperator(operation.op);
+      let data = await transformOperator(this, transform, operation);
       if (primary) {
-        result.data.push(data);
+        response.data?.push(data);
       }
+      response.details?.appliedOperations?.push(operation);
 
       // Query and perform related `immediate` operations
       for (let processor of this._processors) {
@@ -361,18 +394,19 @@ export abstract class AsyncRecordCache implements Evented, AsyncRecordAccessor {
 
       // Perform prepared operations after performing the requested operation
       for (let ops of preparedOps) {
-        await this._applyPatchOperations(ops, result);
+        await this._applyTransformOperations(transform, ops, response);
       }
 
       // Query and perform related `finally` operations
       for (let processor of this._processors) {
-        await this._applyPatchOperations(
+        await this._applyTransformOperations(
+          transform,
           await processor.finally(operation),
-          result
+          response
         );
       }
     } else if (primary) {
-      result.data.push(undefined);
+      response.data?.push(undefined);
     }
   }
 }
