@@ -53,37 +53,43 @@ export function buildQuery<QE extends QueryExpression, QB = unknown>(
     let query = queryOrExpressions as Query<QE>;
     let expressions: QE[];
     let options: RequestOptions | undefined;
+    let id: string;
 
     if (isQuery(query)) {
-      if (query.id && !queryOptions && !queryId) {
+      if (queryOptions || queryId) {
+        expressions = query.expressions;
+        if (query.options && queryOptions) {
+          options = {
+            ...query.options,
+            ...queryOptions
+          };
+        } else {
+          options = queryOptions ?? query.options;
+        }
+        id = queryId ?? query.id;
+      } else {
         return query;
       }
-      expressions = query.expressions;
-      options = queryOptions || query.options;
-    } else if (Array.isArray(queryOrExpressions)) {
-      expressions = [];
-      for (let queryOrExpression of queryOrExpressions) {
-        expressions.push(toQueryExpression<QE>(queryOrExpression));
+    } else {
+      if (Array.isArray(queryOrExpressions)) {
+        expressions = [];
+        for (let queryOrExpression of queryOrExpressions) {
+          expressions.push(toQueryExpression<QE>(queryOrExpression));
+        }
+      } else {
+        expressions = [
+          toQueryExpression(queryOrExpressions as QE | QueryTerm<QE>)
+        ];
       }
       options = queryOptions;
-    } else {
-      expressions = [
-        toQueryExpression(queryOrExpressions as QE | QueryTerm<QE>)
-      ];
-      options = queryOptions;
+      id = queryId ?? Orbit.uuid();
     }
 
-    let id: string = queryId || Orbit.uuid();
-
-    return {
-      expressions,
-      options,
-      id
-    };
+    return { expressions, options, id };
   }
 }
 
-function toQueryExpression<QE extends QueryExpression = QueryExpression>(
+export function toQueryExpression<QE extends QueryExpression = QueryExpression>(
   expression: QE | QueryTerm<QE>
 ): QE {
   if (isQueryTerm(expression)) {
@@ -93,14 +99,15 @@ function toQueryExpression<QE extends QueryExpression = QueryExpression>(
   }
 }
 
-function isQueryTerm<QE extends QueryExpression = QueryExpression>(
+export function isQueryTerm<QE extends QueryExpression = QueryExpression>(
   expression: QE | QueryTerm<QE>
 ): expression is QueryTerm<QE> {
   return typeof (expression as QueryTerm<QE>).toQueryExpression === 'function';
 }
 
-function isQuery<QE extends QueryExpression = QueryExpression>(
-  query: QueryOrExpressions<QE, unknown>
-): query is Query<QE> {
+export function isQuery<
+  QE extends QueryExpression = QueryExpression,
+  QB = unknown
+>(query: QueryOrExpressions<QE, QB>): query is Query<QE> {
   return Array.isArray((query as Query<QE>).expressions);
 }

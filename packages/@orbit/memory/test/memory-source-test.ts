@@ -570,8 +570,9 @@ module('MemorySource', function (hooks) {
     );
 
     try {
-      await source.query((q) =>
-        q.findRecord({ type: 'planet', id: 'jupiter' })
+      await source.query(
+        (q) => q.findRecord({ type: 'planet', id: 'jupiter' }),
+        { raiseNotFoundExceptions: true }
       );
     } catch (e) {
       assert.equal(e.message, 'Record not found: planet:jupiter');

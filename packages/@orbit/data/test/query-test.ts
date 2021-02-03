@@ -113,13 +113,37 @@ module('buildQuery', function () {
     assert.strictEqual(query.options, options, 'options was populated');
   });
 
-  test('will return a query passed into it', function (assert) {
+  test('will return a query passed into it if no options or id are passed', function (assert) {
     let expression: FindRecords = {
       op: 'findRecords',
       type: 'planet'
     };
     let query = buildQuery(expression);
     assert.strictEqual(buildQuery(query), query);
+  });
+
+  test('will return a new query if a query is passed as well as options / id', function (assert) {
+    let expression: FindRecords = {
+      op: 'findRecords',
+      type: 'planet'
+    };
+    let query1 = buildQuery(expression, { a: '1', c: '1' }, '1');
+    let query2 = buildQuery(query1, { a: '2', b: '2' }, '2');
+    assert.notStrictEqual(query1, query2);
+    assert.deepEqual(query2, {
+      expressions: [
+        {
+          op: 'findRecords',
+          type: 'planet'
+        }
+      ],
+      options: {
+        a: '2',
+        b: '2',
+        c: '1'
+      },
+      id: '2'
+    });
   });
 
   test('will create a query using a QueryBuilder if a function is passed into it', function (assert) {

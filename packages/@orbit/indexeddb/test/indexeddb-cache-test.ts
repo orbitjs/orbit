@@ -168,7 +168,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - addRecord', async function (assert) {
+  test('#update - addRecord', async function (assert) {
     assert.expect(2);
 
     let planet: Record = {
@@ -183,7 +183,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) => t.addRecord(planet));
+    await cache.update((t) => t.addRecord(planet));
 
     assert.deepEqual(
       await getRecordFromIndexedDB(cache, planet),
@@ -198,7 +198,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - updateRecord', async function (assert) {
+  test('#update - updateRecord', async function (assert) {
     assert.expect(2);
 
     let original: Record = {
@@ -250,8 +250,8 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) => t.addRecord(original));
-    await cache.patch((t) => t.updateRecord(updates));
+    await cache.update((t) => t.addRecord(original));
+    await cache.update((t) => t.updateRecord(updates));
     assert.deepEqual(
       await getRecordFromIndexedDB(cache, expected),
       expected,
@@ -264,7 +264,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - updateRecord - when record does not exist', async function (assert) {
+  test('#update - updateRecord - when record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised = {
@@ -277,7 +277,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) => t.updateRecord(revised));
+    await cache.update((t) => t.updateRecord(revised));
     assert.deepEqual(
       await getRecordFromIndexedDB(cache, revised),
       revised,
@@ -285,7 +285,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - removeRecord', async function (assert) {
+  test('#update - removeRecord', async function (assert) {
     assert.expect(1);
 
     let planet: Record = {
@@ -297,8 +297,8 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) => t.addRecord(planet));
-    await cache.patch((t) => t.removeRecord(planet));
+    await cache.update((t) => t.addRecord(planet));
+    await cache.update((t) => t.removeRecord(planet));
     assert.equal(
       await getRecordFromIndexedDB(cache, planet),
       null,
@@ -306,7 +306,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - removeRecord - when record does not exist', async function (assert) {
+  test('#update - removeRecord - when record does not exist', async function (assert) {
     assert.expect(1);
 
     let planet = {
@@ -314,7 +314,7 @@ module('IndexedDBCache', function (hooks) {
       id: 'jupiter'
     };
 
-    await cache.patch((t) => t.removeRecord(planet));
+    await cache.update((t) => t.removeRecord(planet));
     assert.equal(
       await getRecordFromIndexedDB(cache, planet),
       null,
@@ -322,7 +322,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - replaceKey', async function (assert) {
+  test('#update - replaceKey', async function (assert) {
     assert.expect(2);
 
     let original: Record = {
@@ -346,8 +346,8 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) => t.addRecord(original));
-    await cache.patch((t) => t.replaceKey(original, 'remoteId', '123'));
+    await cache.update((t) => t.addRecord(original));
+    await cache.update((t) => t.replaceKey(original, 'remoteId', '123'));
     assert.deepEqual(
       await getRecordFromIndexedDB(cache, revised),
       revised,
@@ -361,7 +361,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - replaceKey - when base record does not exist', async function (assert) {
+  test('#update - replaceKey - when base record does not exist', async function (assert) {
     assert.expect(2);
 
     let revised: Record = {
@@ -372,7 +372,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) =>
+    await cache.update((t) =>
       t.replaceKey({ type: 'planet', id: 'jupiter' }, 'remoteId', '123')
     );
     assert.deepEqual(
@@ -388,7 +388,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - replaceAttribute', async function (assert) {
+  test('#update - replaceAttribute', async function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -410,8 +410,8 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) => t.addRecord(original));
-    await cache.patch((t) => t.replaceAttribute(original, 'order', 5));
+    await cache.update((t) => t.addRecord(original));
+    await cache.update((t) => t.replaceAttribute(original, 'order', 5));
     assert.deepEqual(
       await getRecordFromIndexedDB(cache, revised),
       revised,
@@ -419,7 +419,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - replaceAttribute - when base record does not exist', async function (assert) {
+  test('#update - replaceAttribute - when base record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -430,7 +430,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) =>
+    await cache.update((t) =>
       t.replaceAttribute({ type: 'planet', id: 'jupiter' }, 'order', 5)
     );
     assert.deepEqual(
@@ -440,7 +440,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - addToRelatedRecords', async function (assert) {
+  test('#update - addToRelatedRecords', async function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -471,8 +471,8 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) => t.addRecord(original));
-    await cache.patch((t) =>
+    await cache.update((t) => t.addRecord(original));
+    await cache.update((t) =>
       t.addToRelatedRecords(original, 'moons', { type: 'moon', id: 'moon1' })
     );
     assert.deepEqual(
@@ -482,7 +482,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - addToRelatedRecords - when base record does not exist', async function (assert) {
+  test('#update - addToRelatedRecords - when base record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -495,7 +495,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) =>
+    await cache.update((t) =>
       t.addToRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', {
         type: 'moon',
         id: 'moon1'
@@ -508,7 +508,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - removeFromRelatedRecords', async function (assert) {
+  test('#update - removeFromRelatedRecords', async function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -542,8 +542,8 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) => t.addRecord(original));
-    await cache.patch((t) =>
+    await cache.update((t) => t.addRecord(original));
+    await cache.update((t) =>
       t.removeFromRelatedRecords(original, 'moons', {
         type: 'moon',
         id: 'moon2'
@@ -556,7 +556,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - removeFromRelatedRecords - when base record does not exist', async function (assert) {
+  test('#update - removeFromRelatedRecords - when base record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -569,7 +569,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) =>
+    await cache.update((t) =>
       t.removeFromRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', {
         type: 'moon',
         id: 'moon2'
@@ -582,7 +582,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - replaceRelatedRecords', async function (assert) {
+  test('#update - replaceRelatedRecords', async function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -616,8 +616,8 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) => t.addRecord(original));
-    await cache.patch((t) =>
+    await cache.update((t) => t.addRecord(original));
+    await cache.update((t) =>
       t.replaceRelatedRecords(original, 'moons', [
         { type: 'moon', id: 'moon2' },
         { type: 'moon', id: 'moon3' }
@@ -630,7 +630,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - replaceRelatedRecords - when base record does not exist', async function (assert) {
+  test('#update - replaceRelatedRecords - when base record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -646,7 +646,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) =>
+    await cache.update((t) =>
       t.replaceRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', [
         { type: 'moon', id: 'moon2' },
         { type: 'moon', id: 'moon3' }
@@ -659,7 +659,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - replaceRelatedRecord - with record', async function (assert) {
+  test('#update - replaceRelatedRecord - with record', async function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -690,8 +690,8 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) => t.addRecord(original));
-    await cache.patch((t) =>
+    await cache.update((t) => t.addRecord(original));
+    await cache.update((t) =>
       t.replaceRelatedRecord(original, 'solarSystem', {
         type: 'solarSystem',
         id: 'ss1'
@@ -704,7 +704,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - replaceRelatedRecord - with record - when base record does not exist', async function (assert) {
+  test('#update - replaceRelatedRecord - with record - when base record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -717,7 +717,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) =>
+    await cache.update((t) =>
       t.replaceRelatedRecord({ type: 'planet', id: 'jupiter' }, 'solarSystem', {
         type: 'solarSystem',
         id: 'ss1'
@@ -730,7 +730,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - replaceRelatedRecord - with null', async function (assert) {
+  test('#update - replaceRelatedRecord - with null', async function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -761,8 +761,8 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) => t.addRecord(original));
-    await cache.patch((t) =>
+    await cache.update((t) => t.addRecord(original));
+    await cache.update((t) =>
       t.replaceRelatedRecord(original, 'solarSystem', null)
     );
     assert.deepEqual(
@@ -772,7 +772,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#patch - replaceRelatedRecord - with null - when base record does not exist', async function (assert) {
+  test('#update - replaceRelatedRecord - with null - when base record does not exist', async function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -785,7 +785,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) =>
+    await cache.update((t) =>
       t.replaceRelatedRecord(
         { type: 'planet', id: 'jupiter' },
         'solarSystem',
@@ -837,7 +837,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) => [
+    await cache.update((t) => [
       t.addRecord(earth),
       t.addRecord(jupiter),
       t.addRecord(io)
@@ -899,7 +899,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) => [
+    await cache.update((t) => [
       t.addRecord(earth),
       t.addRecord(jupiter),
       t.addRecord(io)
@@ -938,7 +938,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) => [
+    await cache.update((t) => [
       t.addRecord(earth),
       t.addRecord(jupiter),
       t.addRecord(io)
@@ -982,7 +982,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.patch((t) => [
+    await cache.update((t) => [
       t.addRecord(earth),
       t.addRecord(jupiter),
       t.addRecord(io)

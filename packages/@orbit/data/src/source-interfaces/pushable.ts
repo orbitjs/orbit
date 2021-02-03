@@ -38,11 +38,11 @@ export interface Pushable<
    * applied as a result. In other words, `push` captures the direct results
    * _and_ side effects of applying a `Transform` to a source.
    */
-  push(
+  push<RO extends RequestOptions>(
     transformOrOperations: TransformOrOperations<O, TransformBuilder>,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
-  ): Promise<TransformsOrFullResponse<Data, Details, O>>;
+  ): Promise<TransformsOrFullResponse<Data, Details, O, RO>>;
 
   _push(
     transform: Transform<O>,
@@ -88,11 +88,11 @@ export function pushable(Klass: unknown): void {
 
   proto[PUSHABLE] = true;
 
-  proto.push = async function (
+  proto.push = async function <RO extends RequestOptions>(
     transformOrOperations: TransformOrOperations<Operation, unknown>,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
-  ): Promise<TransformsOrFullResponse<unknown, unknown, Operation>> {
+  ): Promise<TransformsOrFullResponse<unknown, unknown, Operation, RO>> {
     await this.activated;
     const transform = buildTransform(
       transformOrOperations,
@@ -102,19 +102,25 @@ export function pushable(Klass: unknown): void {
     );
 
     if (this.transformLog.contains(transform.id)) {
-      return [];
+      const transforms: Transform<Operation>[] = [];
+      const response = options?.fullResponse ? { transforms } : transforms;
+      return response as TransformsOrFullResponse<
+        unknown,
+        unknown,
+        Operation,
+        RO
+      >;
+    } else {
+      const response = await this._enqueueRequest('push', transform);
+      return options?.fullResponse ? response : response.transforms || [];
     }
-
-    return this._enqueueRequest('push', transform);
   };
 
   proto.__push__ = async function (
     transform: Transform<Operation>
-  ): Promise<TransformsOrFullResponse<unknown, unknown, Operation>> {
+  ): Promise<FullResponse<unknown, unknown, Operation>> {
     if (this.transformLog.contains(transform.id)) {
-      return {
-        transforms: []
-      };
+      return { transforms: [] };
     }
 
     try {
@@ -136,11 +142,7 @@ export function pushable(Klass: unknown): void {
         await this.transformed(fullResponse.transforms);
       }
       await settleInSeries(this, 'push', transform, fullResponse);
-      if (options.fullResponse) {
-        return fullResponse;
-      } else {
-        return fullResponse.transforms || [];
-      }
+      return fullResponse;
     } catch (error) {
       await settleInSeries(this, 'pushFail', transform, error);
       throw error;

@@ -1,13 +1,22 @@
 import { Operation } from './operation';
+import { FullRequestOptions, RequestOptions } from './request';
 import { Transform } from './transform';
 
-export type DataOrFullResponse<Data, Details, O extends Operation> =
-  | Data
-  | FullResponse<Data, Details, O>;
+export type DataOrFullResponse<
+  Data,
+  Details,
+  O extends Operation,
+  RO extends RequestOptions
+> = RO extends FullRequestOptions ? FullResponse<Data, Details, O> : Data;
 
-export type TransformsOrFullResponse<Data, Details, O extends Operation> =
-  | Transform<O>[]
-  | FullResponse<Data, Details, O>;
+export type TransformsOrFullResponse<
+  Data,
+  Details,
+  O extends Operation,
+  RO extends RequestOptions
+> = RO extends FullRequestOptions
+  ? FullResponse<Data, Details, O>
+  : Transform<O>[];
 
 export type NamedFullResponse<Data, Details, O extends Operation> = [
   string,

@@ -116,39 +116,41 @@ export class JSONAPISource
   requestProcessor: JSONAPIRequestProcessor;
 
   // Pullable interface stubs
-  pull!: (
+  pull!: <RO extends RequestOptions>(
     queryOrExpressions: QueryOrExpressions<
       RecordQueryExpression,
       RecordQueryBuilder
     >,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
   ) => Promise<
     TransformsOrFullResponse<
       undefined,
       RecordDocumentOrDocuments,
-      RecordOperation
+      RecordOperation,
+      RO
     >
   >;
 
   // Pushable interface stubs
-  push!: (
+  push!: <RO extends RequestOptions>(
     transformOrOperations: TransformOrOperations<
       RecordOperation,
       RecordTransformBuilder
     >,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
   ) => Promise<
     TransformsOrFullResponse<
       undefined,
       RecordDocumentOrDocuments,
-      RecordOperation
+      RecordOperation,
+      RO
     >
   >;
 
   // Queryable interface stubs
-  query!: (
+  query!: <RO extends RequestOptions>(
     queryOrExpressions: QueryOrExpressions<
       RecordQueryExpression,
       RecordQueryBuilder
@@ -159,12 +161,13 @@ export class JSONAPISource
     DataOrFullResponse<
       RecordQueryResult,
       RecordDocumentOrDocuments,
-      RecordOperation
+      RecordOperation,
+      RO
     >
   >;
 
   // Updatable interface stubs
-  update!: (
+  update!: <RO extends RequestOptions>(
     transformOrOperations: TransformOrOperations<
       RecordOperation,
       RecordTransformBuilder
@@ -175,7 +178,8 @@ export class JSONAPISource
     DataOrFullResponse<
       RecordTransformResult,
       RecordDocumentOrDocuments,
-      RecordOperation
+      RecordOperation,
+      RO
     >
   >;
 

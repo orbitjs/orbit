@@ -65,27 +65,32 @@ export class LocalStorageSource
   ) => Promise<void>;
 
   // Pullable interface stubs
-  pull!: (
+  pull!: <RO extends RequestOptions>(
     queryOrExpressions: QueryOrExpressions<
       RecordQueryExpression,
       RecordQueryBuilder
     >,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
   ) => Promise<
-    TransformsOrFullResponse<RecordQueryResult, unknown, RecordOperation>
+    TransformsOrFullResponse<RecordQueryResult, unknown, RecordOperation, RO>
   >;
 
   // Pushable interface stubs
-  push!: (
+  push!: <RO extends RequestOptions>(
     transformOrOperations: TransformOrOperations<
       RecordOperation,
       RecordTransformBuilder
     >,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
   ) => Promise<
-    TransformsOrFullResponse<RecordTransformResult, unknown, RecordOperation>
+    TransformsOrFullResponse<
+      RecordTransformResult,
+      unknown,
+      RecordOperation,
+      RO
+    >
   >;
 
   constructor(settings: LocalStorageSourceSettings) {
@@ -144,7 +149,7 @@ export class LocalStorageSource
 
   async _sync(transform: RecordTransform): Promise<void> {
     if (!this.transformLog.contains(transform.id)) {
-      this._cache.patch(transform.operations as RecordOperation[]);
+      this._cache.update(transform);
       await this.transformed([transform]);
     }
   }
@@ -159,7 +164,7 @@ export class LocalStorageSource
     const fullResponse: FullResponse<undefined, unknown, RecordOperation> = {};
 
     if (!this.transformLog.contains(transform.id)) {
-      this._cache.patch(transform.operations as RecordOperation[]);
+      this._cache.update(transform);
       fullResponse.transforms = [transform];
     }
 

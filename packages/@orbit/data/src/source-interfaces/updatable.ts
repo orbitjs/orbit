@@ -37,11 +37,11 @@ export interface Updatable<
    * operations which it then converts to a `Transform` instance. The source
    * applies the update and returns a promise that resolves when complete.
    */
-  update(
+  update<RO extends RequestOptions>(
     transformOrOperations: TransformOrOperations<O, TransformBuilder>,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
-  ): Promise<DataOrFullResponse<Data, Details, O>>;
+  ): Promise<DataOrFullResponse<Data, Details, O, RO>>;
 
   _update(
     transform: Transform<O>,
@@ -86,11 +86,11 @@ export function updatable(Klass: unknown): void {
 
   proto[UPDATABLE] = true;
 
-  proto.update = async function (
+  proto.update = async function <RO extends RequestOptions>(
     transformOrOperations: TransformOrOperations<Operation, unknown>,
     options?: RequestOptions,
     id?: string
-  ): Promise<DataOrFullResponse<unknown, unknown, Operation>> {
+  ): Promise<DataOrFullResponse<unknown, unknown, Operation, RO>> {
     await this.activated;
     const transform = buildTransform(
       transformOrOperations,
@@ -100,17 +100,20 @@ export function updatable(Klass: unknown): void {
     );
 
     if (this.transformLog.contains(transform.id)) {
-      return;
+      const transforms: Transform<Operation>[] = [];
+      const response = options?.fullResponse ? { transforms } : transforms;
+      return response as DataOrFullResponse<unknown, unknown, Operation, RO>;
+    } else {
+      const response = await this._enqueueRequest('update', transform);
+      return options?.fullResponse ? response : response.data;
     }
-
-    return this._enqueueRequest('update', transform);
   };
 
   proto.__update__ = async function (
     transform: Transform<Operation>
-  ): Promise<DataOrFullResponse<unknown, unknown, Operation>> {
+  ): Promise<FullResponse<unknown, unknown, Operation>> {
     if (this.transformLog.contains(transform.id)) {
-      return;
+      return { transforms: [] };
     }
 
     try {
@@ -132,7 +135,7 @@ export function updatable(Klass: unknown): void {
         await this.transformed(fullResponse.transforms);
       }
       await settleInSeries(this, 'update', transform, fullResponse);
-      return options.fullResponse ? fullResponse : fullResponse.data;
+      return fullResponse;
     } catch (error) {
       await settleInSeries(this, 'updateFail', transform, error);
       throw error;

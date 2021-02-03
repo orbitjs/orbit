@@ -1,10 +1,4 @@
-import { DataOrFullResponse } from '@orbit/data';
-import {
-  RecordSchema,
-  RecordQuery,
-  RecordQueryResult,
-  RecordOperation
-} from '@orbit/records';
+import { RecordSchema, RecordQuery, RecordQueryResult } from '@orbit/records';
 import { AsyncRecordCache } from '../async-record-cache';
 import { LiveQuery, LiveQuerySettings } from './live-query';
 
@@ -22,9 +16,7 @@ export class AsyncLiveQueryUpdate {
     this._query = settings.query;
   }
 
-  query(): Promise<
-    DataOrFullResponse<RecordQueryResult, undefined, RecordOperation>
-  > {
+  query(): Promise<RecordQueryResult> {
     return this._cache.query(this._query);
   }
 }
@@ -52,9 +44,7 @@ export class AsyncLiveQuery extends LiveQuery {
     this.cache = settings.cache;
   }
 
-  async query(): Promise<
-    DataOrFullResponse<RecordQueryResult, undefined, RecordOperation>
-  > {
+  async query(): Promise<RecordQueryResult> {
     return this._update.query();
   }
 

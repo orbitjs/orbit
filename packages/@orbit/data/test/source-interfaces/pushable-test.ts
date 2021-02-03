@@ -35,15 +35,15 @@ module('@pushable', function (hooks) {
         RecordOperation,
         RecordTransformBuilder
       > {
-    push!: (
+    push!: <RO extends RequestOptions>(
       transformOrOperations: TransformOrOperations<
         RecordOperation,
         RecordTransformBuilder
       >,
-      options?: RequestOptions,
+      options?: RO,
       id?: string
     ) => Promise<
-      TransformsOrFullResponse<RecordData, RecordResponse, RecordOperation>
+      TransformsOrFullResponse<RecordData, RecordResponse, RecordOperation, RO>
     >;
     _push!: (
       transform: Transform<RecordOperation>

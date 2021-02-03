@@ -157,18 +157,17 @@ export abstract class SyncRecordCache
   /**
    * Queries the cache.
    */
-  query(
+  query<RO extends RequestOptions>(
     queryOrExpressions: RecordQueryOrExpressions,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
-  ): DataOrFullResponse<RecordQueryResult, undefined, RecordOperation> {
+  ): DataOrFullResponse<RecordQueryResult, undefined, RecordOperation, RO> {
     const query = buildQuery(
       queryOrExpressions,
       options,
       id,
       this._queryBuilder
     );
-    const requestOptions = this.getQueryOptions(query);
 
     const results: RecordQueryExpressionResult[] = [];
     for (let expression of query.expressions) {
@@ -181,24 +180,28 @@ export abstract class SyncRecordCache
 
     const data = query.expressions.length === 1 ? results[0] : results;
 
-    if (requestOptions?.fullResponse) {
-      return { data };
-    } else {
-      return data;
-    }
+    const requestedResponse = options?.fullResponse ? { data } : data;
+
+    return requestedResponse as DataOrFullResponse<
+      RecordQueryResult,
+      undefined,
+      RecordOperation,
+      RO
+    >;
   }
 
   /**
    * Updates the cache.
    */
-  update(
+  update<RO extends RequestOptions>(
     transformOrOperations: RecordTransformOrOperations,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
   ): DataOrFullResponse<
     RecordTransformResult,
     RecordCacheUpdateDetails,
-    RecordOperation
+    RecordOperation,
+    RO
   > {
     const transform = buildTransform(
       transformOrOperations,
@@ -206,7 +209,6 @@ export abstract class SyncRecordCache
       id,
       this._transformBuilder
     );
-    const requestOptions = this.getTransformOptions(transform);
 
     const response = {
       data: []
@@ -216,7 +218,7 @@ export abstract class SyncRecordCache
       RecordOperation
     >;
 
-    if (requestOptions?.fullResponse) {
+    if (options?.fullResponse) {
       response.details = {
         appliedOperations: [],
         inverseOperations: []
@@ -230,23 +232,32 @@ export abstract class SyncRecordCache
       true
     );
 
-    response.details?.inverseOperations.reverse();
-
     let data: RecordTransformResult;
-    if (transform.operations.length === 1) {
-      data = (response.data as RecordOperationResult[])[0];
+    if (transform.operations.length === 1 && Array.isArray(response.data)) {
+      data = response.data[0];
     } else {
       data = response.data;
     }
 
-    if (requestOptions?.fullResponse) {
-      return {
+    let requestedResponse;
+
+    if (options?.fullResponse) {
+      response.details?.inverseOperations.reverse();
+
+      requestedResponse = {
         ...response,
         data
       };
     } else {
-      return data;
+      requestedResponse = data;
     }
+
+    return requestedResponse as DataOrFullResponse<
+      RecordTransformResult,
+      RecordCacheUpdateDetails,
+      RecordOperation,
+      RO
+    >;
   }
 
   /**

@@ -14,7 +14,11 @@ import {
 import { Operation } from './operation';
 import { Query } from './query';
 import { QueryExpression } from './query-expression';
-import { RequestOptions, requestOptionsForSource } from './request';
+import {
+  DefaultRequestOptions,
+  RequestOptions,
+  requestOptionsForSource
+} from './request';
 import { Transform } from './transform';
 
 const { assert } = Orbit;
@@ -27,8 +31,8 @@ export interface SourceSettings<QueryBuilder, TransformBuilder> {
   autoActivate?: boolean;
   requestQueueSettings?: TaskQueueSettings;
   syncQueueSettings?: TaskQueueSettings;
-  defaultQueryOptions?: RequestOptions;
-  defaultTransformOptions?: RequestOptions;
+  defaultQueryOptions?: DefaultRequestOptions;
+  defaultTransformOptions?: DefaultRequestOptions;
 }
 
 export type SourceClass<
@@ -49,8 +53,8 @@ export abstract class Source<QueryBuilder = unknown, TransformBuilder = unknown>
   protected _syncQueue: TaskQueue;
   protected _queryBuilder?: QueryBuilder;
   protected _transformBuilder?: TransformBuilder;
-  protected _defaultQueryOptions?: RequestOptions;
-  protected _defaultTransformOptions?: RequestOptions;
+  protected _defaultQueryOptions?: DefaultRequestOptions;
+  protected _defaultTransformOptions?: DefaultRequestOptions;
   private _activated?: Promise<void>;
 
   // Evented interface stubs
@@ -130,11 +134,11 @@ export abstract class Source<QueryBuilder = unknown, TransformBuilder = unknown>
     return this._transformBuilder;
   }
 
-  get defaultQueryOptions(): RequestOptions | undefined {
+  get defaultQueryOptions(): DefaultRequestOptions | undefined {
     return this._defaultQueryOptions;
   }
 
-  get defaultTransformOptions(): RequestOptions | undefined {
+  get defaultTransformOptions(): DefaultRequestOptions | undefined {
     return this._defaultTransformOptions;
   }
 

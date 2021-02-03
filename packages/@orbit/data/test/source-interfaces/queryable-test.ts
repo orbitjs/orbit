@@ -2,8 +2,8 @@ import { Query, QueryOrExpressions } from '../../src/query';
 import { Source } from '../../src/source';
 import { RequestOptions } from '../../src/request';
 import {
-  FullResponse,
   DataOrFullResponse,
+  FullResponse,
   ResponseHints
 } from '../../src/response';
 import {
@@ -17,7 +17,7 @@ import {
   RecordResponse,
   RecordOperation,
   RecordQueryExpression,
-  RecordTransformBuilder
+  RecordQueryBuilder
 } from '../support/record-data';
 
 const { module, test } = QUnit;
@@ -32,18 +32,19 @@ module('@queryable', function (hooks) {
         RecordResponse,
         RecordOperation,
         RecordQueryExpression,
-        RecordTransformBuilder
+        RecordQueryBuilder
       > {
-    query!: (
+    query!: <RO extends RequestOptions>(
       queryOrExpressions: QueryOrExpressions<
         RecordQueryExpression,
-        RecordTransformBuilder
+        RecordQueryBuilder
       >,
-      options?: RequestOptions,
+      options?: RO,
       id?: string
     ) => Promise<
-      DataOrFullResponse<RecordData, RecordResponse, RecordOperation>
+      DataOrFullResponse<RecordData, RecordResponse, RecordOperation, RO>
     >;
+
     _query!: (
       query: Query<RecordQueryExpression>,
       hints?: ResponseHints<RecordData, RecordResponse>

@@ -3,7 +3,6 @@ import {
   coalesceRecordOperations,
   RecordIdentity,
   RecordOperation,
-  RecordOperationResult,
   RecordQueryResult,
   RecordQueryExpressionResult,
   RecordTransformResult,
@@ -65,25 +64,27 @@ export class MemorySource
   ) => Promise<void>;
 
   // Queryable interface stubs
-  query!: (
+  query!: <RO extends RequestOptions>(
     queryOrExpressions: QueryOrExpressions<
       RecordQueryExpression,
       RecordQueryBuilder
     >,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
-  ) => Promise<DataOrFullResponse<RecordQueryResult, unknown, RecordOperation>>;
+  ) => Promise<
+    DataOrFullResponse<RecordQueryResult, unknown, RecordOperation, RO>
+  >;
 
   // Updatable interface stubs
-  update!: (
+  update!: <RO extends RequestOptions>(
     transformOrOperations: TransformOrOperations<
       RecordOperation,
       RecordTransformBuilder
     >,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
   ) => Promise<
-    DataOrFullResponse<RecordTransformResult, unknown, RecordOperation>
+    DataOrFullResponse<RecordTransformResult, unknown, RecordOperation, RO>
   >;
 
   constructor(settings: MemorySourceSettings) {
@@ -195,13 +196,10 @@ export class MemorySource
     query: RecordQuery,
     hints?: ResponseHints<RecordQueryResult, unknown>
   ): Promise<FullResponse<RecordQueryResult, unknown, RecordOperation>> {
-    const response: FullResponse<
-      RecordQueryResult,
-      unknown,
-      RecordOperation
-    > = {};
+    let response: FullResponse<RecordQueryResult, unknown, RecordOperation>;
 
     if (hints?.data) {
+      response = {};
       if (query.expressions.length > 1 && Array.isArray(hints.data)) {
         let hintsData = hints.data as (RecordIdentity | RecordIdentity[])[];
         response.data = hintsData.map((idOrIds) =>
@@ -212,7 +210,7 @@ export class MemorySource
         response.data = this._retrieveFromCache(hintsData);
       }
     } else {
-      response.data = this._cache.query(query);
+      response = this._cache.query(query, { fullResponse: true });
     }
 
     if (hints?.details) {
@@ -383,13 +381,13 @@ export class MemorySource
     }
   }
 
-  protected _applyTransform(
-    transform: RecordTransform
-  ): RecordOperationResult[] {
-    const result = this.cache.patch(transform.operations as RecordOperation[]);
+  protected _applyTransform(transform: RecordTransform): RecordTransformResult {
+    const { data, details } = this.cache.update(transform, {
+      fullResponse: true
+    });
     this._transforms[transform.id] = transform;
-    this._transformInverses[transform.id] = result.inverse;
-    return result.data;
+    this._transformInverses[transform.id] = details?.inverseOperations || [];
+    return data;
   }
 
   protected _clearTransformFromHistory(transformId: string): void {

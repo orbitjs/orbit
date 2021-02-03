@@ -11,8 +11,8 @@ import {
   Updatable
 } from '../../src/source-interfaces/updatable';
 import {
-  FullResponse,
   DataOrFullResponse,
+  FullResponse,
   ResponseHints
 } from '../../src/response';
 import {
@@ -35,15 +35,15 @@ module('@updatable', function (hooks) {
         RecordOperation,
         RecordTransformBuilder
       > {
-    update!: (
+    update!: <RO extends RequestOptions>(
       transformOrOperations: TransformOrOperations<
         RecordOperation,
         RecordTransformBuilder
       >,
-      options?: RequestOptions,
+      options?: RO,
       id?: string
     ) => Promise<
-      DataOrFullResponse<RecordData, RecordResponse, RecordOperation>
+      DataOrFullResponse<RecordData, RecordResponse, RecordOperation, RO>
     >;
     _update!: (
       transform: Transform<RecordOperation>,

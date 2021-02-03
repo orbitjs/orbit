@@ -38,11 +38,11 @@ export interface Queryable<
    * The `query` method accepts a `Query` instance. It evaluates the query and
    * returns a promise that resolves to a static set of results.
    */
-  query(
+  query<RO extends RequestOptions>(
     queryOrExpressions: QueryOrExpressions<QE, QueryBuilder>,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
-  ): Promise<DataOrFullResponse<Data, Details, O>>;
+  ): Promise<DataOrFullResponse<Data, Details, O, RO>>;
 
   _query(
     query: Query<QE>,
@@ -87,11 +87,11 @@ export function queryable(Klass: unknown): void {
 
   proto[QUERYABLE] = true;
 
-  proto.query = async function (
+  proto.query = async function <RO extends RequestOptions>(
     queryOrExpressions: QueryOrExpressions<QueryExpression, unknown>,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
-  ): Promise<DataOrFullResponse<unknown, unknown, Operation>> {
+  ): Promise<DataOrFullResponse<unknown, unknown, Operation, RO>> {
     await this.activated;
     const query = buildQuery(
       queryOrExpressions,
@@ -99,14 +99,14 @@ export function queryable(Klass: unknown): void {
       id,
       this.queryBuilder
     );
-    return this._enqueueRequest('query', query);
+    const response = await this._enqueueRequest('query', query);
+    return options?.fullResponse ? response : response.data;
   };
 
   proto.__query__ = async function (
     query: Query<QueryExpression>
-  ): Promise<DataOrFullResponse<unknown, unknown, Operation>> {
+  ): Promise<FullResponse<unknown, unknown, Operation>> {
     try {
-      const options = query.options || {};
       const hints: ResponseHints<unknown, unknown> = {};
       const otherResponses = (await fulfillInSeries(
         this,
@@ -115,7 +115,7 @@ export function queryable(Klass: unknown): void {
         hints
       )) as (NamedFullResponse<unknown, unknown, Operation> | undefined)[];
       const fullResponse = await this._query(query, hints);
-      if (options.includeSources) {
+      if (query.options?.includeSources) {
         fullResponse.sources = otherResponses
           ? mapNamedFullResponses<unknown, unknown, Operation>(otherResponses)
           : {};
@@ -124,7 +124,7 @@ export function queryable(Klass: unknown): void {
         await this.transformed(fullResponse.transforms);
       }
       await settleInSeries(this, 'query', query, fullResponse);
-      return options.fullResponse ? fullResponse : fullResponse.data;
+      return fullResponse;
     } catch (error) {
       await settleInSeries(this, 'queryFail', query, error);
       throw error;

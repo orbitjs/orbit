@@ -1,9 +1,15 @@
 import { Options } from './options';
 
 export interface RequestOptions extends Options {
-  fullResponse?: boolean;
+  fullResponse?: true;
   includeSources?: boolean | string[];
   sources?: { [name: string]: RequestOptions };
+}
+
+export type DefaultRequestOptions = Exclude<RequestOptions, 'fullResponse'>;
+
+export interface FullRequestOptions extends RequestOptions {
+  fullResponse: true;
 }
 
 /**

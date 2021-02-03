@@ -1,6 +1,6 @@
 import { Source } from '../src/source';
 import { buildTransform, Transform } from '../src/transform';
-import { buildQuery, Query } from '../src/query';
+import { buildQuery } from '../src/query';
 import { FakeBucket } from './support/fake-bucket';
 import {
   RecordOperation,
@@ -199,11 +199,11 @@ module('Source', function (hooks) {
 
   test('it can be instantiated with `defaultQueryOptions` and/or `defaultTransformOptions`', function (assert) {
     const defaultQueryOptions = {
-      fullResponse: true
+      foo: 'bar'
     };
 
     const defaultTransformOptions = {
-      fullResponse: true
+      foo: 'bar'
     };
 
     source = new MySource({ defaultQueryOptions, defaultTransformOptions });
@@ -223,7 +223,7 @@ module('Source', function (hooks) {
 
   test('it can get query options that merge default, query, and expression options', function (assert) {
     const defaultQueryOptions = {
-      fullResponse: true,
+      foo: 'bar',
       a: '1',
       b: '1',
       c: '1'
@@ -240,7 +240,7 @@ module('Source', function (hooks) {
     assert.deepEqual(
       source.getQueryOptions(query, queryExpression),
       {
-        fullResponse: true,
+        foo: 'bar',
         page: 2,
         a: '1',
         b: '2',
@@ -252,7 +252,7 @@ module('Source', function (hooks) {
 
   test('it can get transform options that merge default, transform, and operation options', function (assert) {
     const defaultTransformOptions = {
-      fullResponse: true,
+      foo: 'bar',
       a: '1',
       b: '1',
       c: '1'
@@ -273,7 +273,7 @@ module('Source', function (hooks) {
     assert.deepEqual(
       source.getTransformOptions(transform, operation),
       {
-        fullResponse: true,
+        foo: 'bar',
         auth: 'abc123',
         a: '1',
         b: '2',

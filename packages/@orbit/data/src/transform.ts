@@ -57,25 +57,35 @@ export function buildTransform<O extends Operation, TB = unknown>(
     let transform = transformOrOperations as Transform<O>;
     let operations: O[];
     let options: RequestOptions | undefined;
+    let id: string;
 
     if (isTransform(transform)) {
-      if (transform.id && !transformOptions && !transformId) {
+      if (transformOptions || transformId) {
+        operations = transform.operations;
+        if (transform.options && transformOptions) {
+          options = {
+            ...transform.options,
+            ...transformOptions
+          };
+        } else {
+          options = transformOptions ?? transform.options;
+        }
+        id = transformId ?? transform.id;
+      } else {
         return transform;
       }
-      operations = transform.operations;
-      options = transformOptions || transform.options;
-    } else if (Array.isArray(transformOrOperations)) {
-      operations = [];
-      for (let transformOrOperation of transformOrOperations) {
-        operations.push(toOperation<O>(transformOrOperation));
+    } else {
+      if (Array.isArray(transformOrOperations)) {
+        operations = [];
+        for (let transformOrOperation of transformOrOperations) {
+          operations.push(toOperation<O>(transformOrOperation));
+        }
+      } else {
+        operations = [toOperation<O>(transformOrOperations as O)];
       }
       options = transformOptions;
-    } else {
-      operations = [toOperation<O>(transformOrOperations as O)];
-      options = transformOptions;
+      id = transformId ?? Orbit.uuid();
     }
-
-    let id: string = transformId || Orbit.uuid();
 
     return { operations, options, id };
   }

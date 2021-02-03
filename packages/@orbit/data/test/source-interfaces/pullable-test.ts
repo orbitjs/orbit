@@ -35,15 +35,15 @@ module('@pullable', function (hooks) {
         RecordQueryExpression,
         RecordQueryBuilder
       > {
-    pull!: (
+    pull!: <RO extends RequestOptions>(
       queryOrExpressions: QueryOrExpressions<
         RecordQueryExpression,
         RecordQueryBuilder
       >,
-      options?: RequestOptions,
+      options?: RO,
       id?: string
     ) => Promise<
-      TransformsOrFullResponse<RecordData, RecordResponse, RecordOperation>
+      TransformsOrFullResponse<RecordData, RecordResponse, RecordOperation, RO>
     >;
 
     _pull!: (

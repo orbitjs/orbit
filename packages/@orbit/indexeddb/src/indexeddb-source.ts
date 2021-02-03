@@ -59,27 +59,32 @@ export class IndexedDBSource
   ) => Promise<void>;
 
   // Pullable interface stubs
-  pull!: (
+  pull!: <RO extends RequestOptions>(
     queryOrExpressions: QueryOrExpressions<
       RecordQueryExpression,
       RecordQueryBuilder
     >,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
   ) => Promise<
-    TransformsOrFullResponse<RecordQueryResult, unknown, RecordOperation>
+    TransformsOrFullResponse<RecordQueryResult, unknown, RecordOperation, RO>
   >;
 
   // Pushable interface stubs
-  push!: (
+  push!: <RO extends RequestOptions>(
     transformOrOperations: TransformOrOperations<
       RecordOperation,
       RecordTransformBuilder
     >,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
   ) => Promise<
-    TransformsOrFullResponse<RecordTransformResult, unknown, RecordOperation>
+    TransformsOrFullResponse<
+      RecordTransformResult,
+      unknown,
+      RecordOperation,
+      RO
+    >
   >;
 
   constructor(settings: IndexedDBSourceSettings) {
@@ -143,7 +148,7 @@ export class IndexedDBSource
 
   async _sync(transform: RecordTransform): Promise<void> {
     if (!this.transformLog.contains(transform.id)) {
-      await this._cache.patch(transform.operations as RecordOperation[]);
+      await this._cache.update(transform);
       await this.transformed([transform]);
     }
   }
@@ -158,7 +163,7 @@ export class IndexedDBSource
     const fullResponse: FullResponse<undefined, unknown, RecordOperation> = {};
 
     if (!this.transformLog.contains(transform.id)) {
-      await this._cache.patch(transform.operations as RecordOperation[]);
+      await this._cache.update(transform);
       fullResponse.transforms = [transform];
     }
 

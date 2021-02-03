@@ -42,20 +42,9 @@ export class RequestStrategy extends ConnectionStrategy {
     request: Query<QueryExpression> | Transform<Operation>
   ): Promise<NamedFullResponse<unknown, unknown, Operation>> {
     if (typeof this._action === 'string') {
-      let options = request.options;
-
-      // Ensure that requests return full responses
-      if (!options?.fullResponse) {
-        request = {
-          ...request,
-          options: {
-            ...options,
-            fullResponse: true
-          }
-        };
-      }
-
-      return (this.target as any)[this._action](request);
+      return (this.target as any)[this._action](request, {
+        fullResponse: true
+      });
     } else {
       return super.invokeAction(...arguments) as Promise<
         NamedFullResponse<unknown, unknown, Operation>

@@ -101,6 +101,31 @@ module('buildTransform', function () {
     assert.strictEqual(buildTransform(transform), transform);
   });
 
+  test('will return a new transform if a transform is passed as well as options / id', function (assert) {
+    let term1 = {
+      toOperation: () => {
+        return { op: 'updateRecord' };
+      }
+    } as OperationTerm<RecordOperation>;
+    let operations = [term1];
+    let transform1 = buildTransform(operations, { a: '1', c: '1' }, '1');
+    let transform2 = buildTransform(transform1, { a: '2', b: '2' }, '2');
+    assert.notStrictEqual(transform1, transform2);
+    assert.deepEqual(transform2, {
+      operations: [
+        {
+          op: 'updateRecord'
+        }
+      ],
+      options: {
+        a: '2',
+        b: '2',
+        c: '1'
+      },
+      id: '2'
+    });
+  });
+
   test('will create a transform using a TransformBuilder if a function is passed into it', function (assert) {
     let tb = new RecordTransformBuilder();
     let planet = { type: 'planet', id: 'earth' };

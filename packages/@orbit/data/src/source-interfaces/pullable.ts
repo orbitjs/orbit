@@ -40,11 +40,11 @@ export interface Pullable<
    * changeset that resulted from applying the query. In other words, a `pull`
    * request retrieves the results of a query in `Transform` form.
    */
-  pull(
+  pull<RO extends RequestOptions>(
     queryOrExpressions: QueryOrExpressions<QE, QueryBuilder>,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
-  ): Promise<TransformsOrFullResponse<Data, Details, O>>;
+  ): Promise<TransformsOrFullResponse<Data, Details, O, RO>>;
 
   _pull(query: Query<QE>): Promise<FullResponse<Data, Details, O>>;
 }
@@ -87,11 +87,11 @@ export function pullable(Klass: unknown): void {
 
   proto[PULLABLE] = true;
 
-  proto.pull = async function (
+  proto.pull = async function <RO extends RequestOptions>(
     queryOrExpressions: QueryOrExpressions<QueryExpression, unknown>,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
-  ): Promise<TransformsOrFullResponse<unknown, unknown, Operation>> {
+  ): Promise<TransformsOrFullResponse<unknown, unknown, Operation, RO>> {
     await this.activated;
     const query = buildQuery(
       queryOrExpressions,
@@ -99,12 +99,13 @@ export function pullable(Klass: unknown): void {
       id,
       this.queryBuilder
     );
-    return this._enqueueRequest('pull', query);
+    const response = await this._enqueueRequest('pull', query);
+    return options?.fullResponse ? response : response.transforms || [];
   };
 
   proto.__pull__ = async function (
     query: Query<QueryExpression>
-  ): Promise<TransformsOrFullResponse<unknown, unknown, Operation>> {
+  ): Promise<FullResponse<unknown, unknown, Operation>> {
     try {
       const options = query.options || {};
       const hints: ResponseHints<unknown, unknown> = {};
@@ -124,11 +125,7 @@ export function pullable(Klass: unknown): void {
         await this.transformed(fullResponse.transforms);
       }
       await settleInSeries(this, 'pull', query, fullResponse);
-      if (options.fullResponse) {
-        return fullResponse;
-      } else {
-        return fullResponse.transforms || [];
-      }
+      return fullResponse;
     } catch (error) {
       await settleInSeries(this, 'pullFail', query, error);
       throw error;

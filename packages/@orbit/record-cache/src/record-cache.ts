@@ -1,5 +1,5 @@
 import Orbit, { evented, Evented, Listener } from '@orbit/core';
-import { RequestOptions, requestOptionsForSource } from '@orbit/data';
+import { DefaultRequestOptions, requestOptionsForSource } from '@orbit/data';
 import {
   RecordKeyMap,
   RecordOperation,
@@ -18,8 +18,8 @@ export interface RecordCacheSettings {
   keyMap?: RecordKeyMap;
   transformBuilder?: RecordTransformBuilder;
   queryBuilder?: RecordQueryBuilder;
-  defaultQueryOptions?: RequestOptions;
-  defaultTransformOptions?: RequestOptions;
+  defaultQueryOptions?: DefaultRequestOptions;
+  defaultTransformOptions?: DefaultRequestOptions;
 }
 
 @evented
@@ -29,8 +29,8 @@ export abstract class RecordCache implements Evented {
   protected _schema: RecordSchema;
   protected _transformBuilder: RecordTransformBuilder;
   protected _queryBuilder: RecordQueryBuilder;
-  protected _defaultQueryOptions?: RequestOptions;
-  protected _defaultTransformOptions?: RequestOptions;
+  protected _defaultQueryOptions?: DefaultRequestOptions;
+  protected _defaultTransformOptions?: DefaultRequestOptions;
 
   // Evented interface stubs
   on!: (event: string, listener: Listener) => () => void;
@@ -80,18 +80,18 @@ export abstract class RecordCache implements Evented {
     return this._transformBuilder;
   }
 
-  get defaultQueryOptions(): RequestOptions | undefined {
+  get defaultQueryOptions(): DefaultRequestOptions | undefined {
     return this._defaultQueryOptions;
   }
 
-  get defaultTransformOptions(): RequestOptions | undefined {
+  get defaultTransformOptions(): DefaultRequestOptions | undefined {
     return this._defaultTransformOptions;
   }
 
   getQueryOptions(
     query: RecordQuery,
     expression?: RecordQueryExpression
-  ): RequestOptions | undefined {
+  ): DefaultRequestOptions | undefined {
     return requestOptionsForSource(
       [this._defaultQueryOptions, query.options, expression?.options],
       this._name
@@ -101,7 +101,7 @@ export abstract class RecordCache implements Evented {
   getTransformOptions(
     transform: RecordTransform,
     operation?: RecordOperation
-  ): RequestOptions | undefined {
+  ): DefaultRequestOptions | undefined {
     return requestOptionsForSource(
       [this._defaultTransformOptions, transform.options, operation?.options],
       this._name
