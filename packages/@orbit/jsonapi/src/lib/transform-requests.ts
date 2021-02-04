@@ -24,6 +24,7 @@ import { JSONAPIRequestOptions } from './jsonapi-request-options';
 import { JSONAPISerializers } from '../serializers/jsonapi-serializers';
 import { JSONAPIDocumentSerializer } from '../serializers/jsonapi-document-serializer';
 import { JSONAPIResourceIdentitySerializer } from '../serializers/jsonapi-resource-identity-serializer';
+import { JSONAPIResponse } from '../jsonapi-response';
 
 export interface BaseTransformRecordRequest {
   op: string;
@@ -85,7 +86,7 @@ export type RecordTransformRequest =
 
 export type TransformRequestProcessorResponse = FullResponse<
   RecordOperationResult,
-  RecordDocument,
+  JSONAPIResponse,
   RecordOperation
 >;
 
@@ -116,12 +117,14 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const url =
       options.url || requestProcessor.urlBuilder.resourceURL(record.type);
 
-    const raw: ResourceDocument = await requestProcessor.fetch(url, settings);
-    requestProcessor.preprocessResponseDocument(raw, request);
-    const recordDoc = serializer.deserialize(raw, {
+    const details = await requestProcessor.fetch(url, settings);
+    const document = details.document as ResourceDocument;
+    requestProcessor.preprocessResponseDocument(document, request);
+
+    const recordDoc = serializer.deserialize(document, {
       primaryRecord: record
     });
-    return handleChanges(record, recordDoc);
+    return handleChanges(record, recordDoc, details);
   },
 
   async removeRecord(
@@ -137,8 +140,8 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const url =
       options.url || requestProcessor.urlBuilder.resourceURL(type, id);
 
-    await requestProcessor.fetch(url, settings);
-    return { transforms: [], data: record };
+    const details = await requestProcessor.fetch(url, settings);
+    return { transforms: [], data: record, details };
   },
 
   async updateRecord(
@@ -161,15 +164,16 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const url =
       options.url || requestProcessor.urlBuilder.resourceURL(type, id);
 
-    const raw: ResourceDocument = await requestProcessor.fetch(url, settings);
-    if (raw) {
-      requestProcessor.preprocessResponseDocument(raw, request);
-      const recordDoc = serializer.deserialize(raw, {
+    const details = await requestProcessor.fetch(url, settings);
+    const { document } = details;
+    if (document) {
+      requestProcessor.preprocessResponseDocument(document, request);
+      const recordDoc = serializer.deserialize(document, {
         primaryRecord: record
       });
-      return handleChanges(record, recordDoc);
+      return handleChanges(record, recordDoc, details);
     } else {
-      return { transforms: [], data: record };
+      return { transforms: [], data: record, details };
     }
   },
 
@@ -202,8 +206,8 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
         relationship
       );
 
-    await requestProcessor.fetch(url, settings);
-    return { transforms: [], data: record };
+    const details = await requestProcessor.fetch(url, settings);
+    return { transforms: [], data: record, details };
   },
 
   async removeFromRelatedRecords(
@@ -235,8 +239,8 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
         relationship
       );
 
-    await requestProcessor.fetch(url, settings);
-    return { transforms: [], data: record };
+    const details = await requestProcessor.fetch(url, settings);
+    return { transforms: [], data: record, details };
   },
 
   async replaceRelatedRecord(
@@ -270,8 +274,8 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
         relationship
       );
 
-    await requestProcessor.fetch(url, settings);
-    return { transforms: [], data: record };
+    const details = await requestProcessor.fetch(url, settings);
+    return { transforms: [], data: record, details };
   },
 
   async replaceRelatedRecords(
@@ -303,8 +307,8 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
         relationship
       );
 
-    await requestProcessor.fetch(url, settings);
-    return { transforms: [], data: record };
+    const details = await requestProcessor.fetch(url, settings);
+    return { transforms: [], data: record, details };
   }
 };
 
@@ -524,7 +528,8 @@ function replaceRecordHasMany(
 
 function handleChanges(
   record: Record,
-  recordDoc: RecordDocument
+  recordDoc: RecordDocument,
+  details: JSONAPIResponse
 ): TransformRequestProcessorResponse {
   let updatedRecord: Record = recordDoc.data as Record;
   let transforms: RecordTransform[] = [];
@@ -538,5 +543,5 @@ function handleChanges(
     });
     transforms.push(buildTransform<RecordOperation>(includedOps));
   }
-  return { transforms, data: updatedRecord, details: recordDoc };
+  return { transforms, data: updatedRecord, details };
 }

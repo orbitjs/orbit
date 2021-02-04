@@ -3,7 +3,8 @@ import {
   RecordKeyMap,
   Record,
   RecordIdentity,
-  RecordSchema
+  RecordSchema,
+  RecordNotFoundException
 } from '@orbit/records';
 import * as sinon from 'sinon';
 import { SinonStub } from 'sinon';
@@ -86,6 +87,44 @@ module('JSONAPISource - queryable', function (hooks) {
       );
     });
 
+    test('#query - record - fullResponse', async function (assert) {
+      assert.expect(6);
+
+      const resource: Resource = {
+        type: 'planet',
+        id: '12345',
+        attributes: { name: 'Jupiter', classification: 'gas giant' }
+      };
+
+      const planet: Record = resourceSerializer.deserialize({
+        type: 'planet',
+        id: '12345'
+      });
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(jsonapiResponse(200, { data: resource }));
+
+      let { data, details, transforms } = await source.query(
+        (q) => q.findRecord({ type: 'planet', id: planet.id }),
+        { fullResponse: true }
+      );
+
+      assert.ok(!Array.isArray(data), 'only a single primary record returned');
+      assert.equal((data as Record).attributes?.name, 'Jupiter');
+
+      assert.equal(details?.[0].response.status, 200);
+
+      assert.equal(transforms?.length, 1);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
     test('#query - record (304 response)', async function (assert) {
       assert.expect(3);
 
@@ -150,6 +189,69 @@ module('JSONAPISource - queryable', function (hooks) {
       assert.ok(Array.isArray(records), 'multiple primary records returned');
       assert.equal(records[0].attributes?.name, 'Jupiter');
       assert.equal(records[1].attributes?.name, 'Earth');
+
+      assert.equal(fetchStub.callCount, 2, 'fetch called twice');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+      assert.equal(
+        fetchStub.getCall(1).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#query - can query with multiple expressions - fullResponse', async function (assert) {
+      assert.expect(9);
+
+      const data1: Resource = {
+        type: 'planet',
+        id: '12345',
+        attributes: { name: 'Jupiter' }
+      };
+
+      const planet1 = resourceSerializer.deserialize({
+        type: 'planet',
+        id: '12345'
+      }) as Record;
+
+      const data2: Resource = {
+        type: 'planet',
+        id: '1234',
+        attributes: { name: 'Earth' }
+      };
+
+      const planet2 = resourceSerializer.deserialize({
+        type: 'planet',
+        id: '1234'
+      }) as Record;
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(jsonapiResponse(200, { data: data1 }));
+      fetchStub
+        .withArgs('/planets/1234')
+        .returns(jsonapiResponse(200, { data: data2 }));
+
+      let { data, details, transforms } = await source.query(
+        (q) => [
+          q.findRecord({ type: 'planet', id: planet1.id }),
+          q.findRecord({ type: 'planet', id: planet2.id })
+        ],
+        { fullResponse: true }
+      );
+      let records = data as Record[];
+
+      assert.ok(Array.isArray(records), 'multiple primary records returned');
+      assert.equal(records[0].attributes?.name, 'Jupiter');
+      assert.equal(records[1].attributes?.name, 'Earth');
+
+      assert.equal(details?.[0].response.status, 200);
+      assert.equal(details?.[1].response.status, 200);
+
+      assert.equal(transforms?.length, 2);
 
       assert.equal(fetchStub.callCount, 2, 'fetch called twice');
       assert.equal(
@@ -423,6 +525,50 @@ module('JSONAPISource - queryable', function (hooks) {
         undefined,
         'fetch called with no method (equivalent to GET)'
       );
+    });
+
+    test('#query - record (404 response) - returns undefined by default', async function (assert) {
+      assert.expect(3);
+
+      const planet: Record = resourceSerializer.deserialize({
+        type: 'planet',
+        id: '12345'
+      });
+
+      fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(404));
+
+      let record = await source.query((q) =>
+        q.findRecord({ type: 'planet', id: planet.id })
+      );
+
+      assert.strictEqual(record, undefined);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test("#query - record (404 response) - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", async function (assert) {
+      assert.expect(1);
+
+      const planet: Record = resourceSerializer.deserialize({
+        type: 'planet',
+        id: '12345'
+      });
+
+      fetchStub.withArgs('/planets/12345').returns(jsonapiResponse(404));
+
+      try {
+        await source.query(
+          (q) => q.findRecord({ type: 'planet', id: planet.id }),
+          { raiseNotFoundExceptions: true }
+        );
+      } catch (e) {
+        assert.ok(e instanceof RecordNotFoundException);
+      }
     });
 
     test('#query - records with attribute filter', async function (assert) {
@@ -1261,6 +1407,58 @@ module('JSONAPISource - queryable', function (hooks) {
       );
     });
 
+    test('#query - related record (404 response) - returns undefined by default', async function (assert) {
+      assert.expect(3);
+
+      fetchStub
+        .withArgs('/planets/earth/solar-system')
+        .returns(jsonapiResponse(404));
+
+      const earth = resourceSerializer.deserialize({
+        type: 'planet',
+        id: 'earth'
+      }) as Record;
+
+      let records = await source.query((q) =>
+        q.findRelatedRecord({ type: 'planet', id: earth.id }, 'solarSystem')
+      );
+
+      assert.strictEqual(records, undefined);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test("#query - related record (404 response) - throws RecordNotFoundException if primary record doesn't exist with `raiseNotFoundExceptions` option", async function (assert) {
+      assert.expect(1);
+
+      const earth = resourceSerializer.deserialize({
+        type: 'planet',
+        id: 'earth'
+      }) as Record;
+
+      fetchStub
+        .withArgs('/planets/earth/solar-system')
+        .returns(jsonapiResponse(404));
+
+      try {
+        await source.query(
+          (q) =>
+            q.findRelatedRecord(
+              { type: 'planet', id: earth.id },
+              'solarSystem'
+            ),
+          { raiseNotFoundExceptions: true }
+        );
+      } catch (e) {
+        assert.ok(e instanceof RecordNotFoundException);
+      }
+    });
+
     test('#query - related records (304 response)', async function (assert) {
       assert.expect(3);
 
@@ -1288,6 +1486,61 @@ module('JSONAPISource - queryable', function (hooks) {
         undefined,
         'fetch called with no method (equivalent to GET)'
       );
+    });
+
+    test('#query - related records (404 response) - returns undefined by default', async function (assert) {
+      assert.expect(3);
+
+      fetchStub
+        .withArgs('/solar-systems/sun/planets')
+        .returns(jsonapiResponse(404));
+
+      const solarSystem = resourceSerializer.deserialize({
+        type: 'solarSystem',
+        id: 'sun'
+      }) as Record;
+
+      let records = await source.query((q) =>
+        q.findRelatedRecords(
+          { type: 'solarSystem', id: solarSystem.id },
+          'planets'
+        )
+      );
+
+      assert.strictEqual(records, undefined);
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test("#query - related records (404 response) - throws RecordNotFoundException if primary record doesn't exist with `raiseNotFoundExceptions` option", async function (assert) {
+      assert.expect(1);
+
+      fetchStub
+        .withArgs('/solar-systems/sun/planets')
+        .returns(jsonapiResponse(404));
+
+      const solarSystem = resourceSerializer.deserialize({
+        type: 'solarSystem',
+        id: 'sun'
+      }) as Record;
+
+      try {
+        await source.query(
+          (q) =>
+            q.findRelatedRecords(
+              { type: 'solarSystem', id: solarSystem.id },
+              'planets'
+            ),
+          { raiseNotFoundExceptions: true }
+        );
+      } catch (e) {
+        assert.ok(e instanceof RecordNotFoundException);
+      }
     });
 
     test('#query - records with include', async function (assert) {

@@ -5,7 +5,7 @@ export interface RecordDocument {
   data: Record | Record[] | null;
   included?: Record[];
   links?: Dict<Link>;
-  meta?: Dict<any>;
+  meta?: Dict<unknown>;
 }
 
 export type RecordDocumentOrDocuments = RecordDocument | RecordDocument[];

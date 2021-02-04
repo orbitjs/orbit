@@ -1,3 +1,4 @@
+import { RequestOptions } from '@orbit/data';
 import { clone, deepMerge, deepSet } from '@orbit/utils';
 import { FetchSettings } from '../jsonapi-request-processor';
 
@@ -5,7 +6,8 @@ export interface Filter {
   [filterOn: string]: any;
 }
 
-export interface JSONAPIRequestOptions {
+export interface JSONAPIRequestOptions extends RequestOptions {
+  raiseNotFoundExceptions?: boolean;
   filter?: Filter[];
   sort?: any;
   page?: any;

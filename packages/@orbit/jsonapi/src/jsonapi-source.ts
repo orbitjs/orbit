@@ -62,7 +62,7 @@ import {
   SerializerSettingsForFn,
   SerializerForFn
 } from '@orbit/serializers';
-import { RecordDocument, RecordDocumentOrDocuments } from './record-document';
+import { JSONAPIResponse } from './jsonapi-response';
 
 export interface JSONAPISourceSettings extends RecordSourceSettings {
   maxRequestsPerTransform?: number;
@@ -107,10 +107,10 @@ export interface JSONAPISourceSettings extends RecordSourceSettings {
 export class JSONAPISource
   extends RecordSource
   implements
-    RecordPullable<RecordDocumentOrDocuments>,
-    RecordPushable<RecordDocumentOrDocuments>,
-    RecordQueryable<RecordDocumentOrDocuments>,
-    RecordUpdatable<RecordDocumentOrDocuments> {
+    RecordPullable<JSONAPIResponse[]>,
+    RecordPushable<JSONAPIResponse[]>,
+    RecordQueryable<JSONAPIResponse[]>,
+    RecordUpdatable<JSONAPIResponse[]> {
   maxRequestsPerTransform?: number;
   maxRequestsPerQuery?: number;
   requestProcessor: JSONAPIRequestProcessor;
@@ -124,12 +124,7 @@ export class JSONAPISource
     options?: RO,
     id?: string
   ) => Promise<
-    TransformsOrFullResponse<
-      undefined,
-      RecordDocumentOrDocuments,
-      RecordOperation,
-      RO
-    >
+    TransformsOrFullResponse<undefined, JSONAPIResponse[], RecordOperation, RO>
   >;
 
   // Pushable interface stubs
@@ -141,12 +136,7 @@ export class JSONAPISource
     options?: RO,
     id?: string
   ) => Promise<
-    TransformsOrFullResponse<
-      undefined,
-      RecordDocumentOrDocuments,
-      RecordOperation,
-      RO
-    >
+    TransformsOrFullResponse<undefined, JSONAPIResponse[], RecordOperation, RO>
   >;
 
   // Queryable interface stubs
@@ -155,12 +145,12 @@ export class JSONAPISource
       RecordQueryExpression,
       RecordQueryBuilder
     >,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
   ) => Promise<
     DataOrFullResponse<
       RecordQueryResult,
-      RecordDocumentOrDocuments,
+      JSONAPIResponse[],
       RecordOperation,
       RO
     >
@@ -172,12 +162,12 @@ export class JSONAPISource
       RecordOperation,
       RecordTransformBuilder
     >,
-    options?: RequestOptions,
+    options?: RO,
     id?: string
   ) => Promise<
     DataOrFullResponse<
       RecordTransformResult,
-      RecordDocumentOrDocuments,
+      JSONAPIResponse[],
       RecordOperation,
       RO
     >
@@ -237,40 +227,31 @@ export class JSONAPISource
 
   async _push(
     transform: RecordTransform
-  ): Promise<
-    FullResponse<undefined, RecordDocumentOrDocuments, RecordOperation>
-  > {
-    const fullResponse: FullResponse<
-      undefined,
-      RecordDocumentOrDocuments,
-      RecordOperation
-    > = {};
+  ): Promise<FullResponse<undefined, JSONAPIResponse[], RecordOperation>> {
+    if (this.transformLog.contains(transform.id)) {
+      return {};
+    }
 
-    if (!this.transformLog.contains(transform.id)) {
-      const requests = this.getTransformRequests(transform);
-      const documents: RecordDocument[] = [];
-      const transforms: RecordTransform[] = [];
+    const requests = this.getTransformRequests(transform);
+    const details: JSONAPIResponse[] = [];
+    const transforms: RecordTransform[] = [];
 
-      for (let request of requests) {
-        let processor = this.getTransformRequestProcessor(request);
+    for (let request of requests) {
+      let processor = this.getTransformRequestProcessor(request);
 
-        let response = await processor(this.requestProcessor, request);
-        if (response.transforms) {
-          Array.prototype.push.apply(transforms, response.transforms);
-        }
-        documents.push(response.details as RecordDocument);
+      let response = await processor(this.requestProcessor, request);
+      if (response.transforms) {
+        Array.prototype.push.apply(transforms, response.transforms);
       }
-
-      fullResponse.transforms = [transform, ...transforms];
-
-      if (requests.length === 1) {
-        fullResponse.details = documents[0];
-      } else if (documents.length > 1) {
-        fullResponse.details = documents;
+      if (response.details) {
+        details.push(response.details);
       }
     }
 
-    return fullResponse;
+    return {
+      transforms: [transform, ...transforms],
+      details
+    };
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -279,16 +260,9 @@ export class JSONAPISource
 
   async _pull(
     query: RecordQuery
-  ): Promise<
-    FullResponse<undefined, RecordDocumentOrDocuments, RecordOperation>
-  > {
-    const fullResponse: FullResponse<
-      undefined,
-      RecordDocumentOrDocuments,
-      RecordOperation
-    > = {};
+  ): Promise<FullResponse<undefined, JSONAPIResponse[], RecordOperation>> {
     const requests = this.getQueryRequests(query);
-    const documents: RecordDocument[] = [];
+    const details: JSONAPIResponse[] = [];
     const transforms: RecordTransform[] = [];
 
     for (let request of requests) {
@@ -298,18 +272,15 @@ export class JSONAPISource
       if (response.transforms) {
         Array.prototype.push.apply(transforms, response.transforms);
       }
-      documents.push(response.details as RecordDocument);
+      if (response.details) {
+        details.push(response.details);
+      }
     }
 
-    fullResponse.transforms = transforms;
-
-    if (requests.length === 1) {
-      fullResponse.details = documents[0];
-    } else if (requests.length > 1) {
-      fullResponse.details = documents;
-    }
-
-    return fullResponse;
+    return {
+      transforms,
+      details
+    };
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -319,15 +290,10 @@ export class JSONAPISource
   async _query(
     query: RecordQuery
   ): Promise<
-    FullResponse<RecordQueryResult, RecordDocumentOrDocuments, RecordOperation>
+    FullResponse<RecordQueryResult, JSONAPIResponse[], RecordOperation>
   > {
-    const fullResponse: FullResponse<
-      RecordQueryResult,
-      RecordDocumentOrDocuments,
-      RecordOperation
-    > = {};
     const requests = this.getQueryRequests(query);
-    const documents: RecordDocument[] = [];
+    const details: JSONAPIResponse[] = [];
     const transforms: RecordTransform[] = [];
     const data: RecordQueryExpressionResult[] = [];
 
@@ -338,21 +304,17 @@ export class JSONAPISource
       if (response.transforms) {
         Array.prototype.push.apply(transforms, response.transforms);
       }
-      documents.push(response.details as RecordDocument);
-      data.push(response.data as RecordQueryExpressionResult);
+      if (response.details) {
+        details.push(response.details);
+      }
+      data.push(response.data);
     }
 
-    fullResponse.transforms = transforms;
-
-    if (requests.length === 1) {
-      fullResponse.details = documents[0];
-      fullResponse.data = data[0];
-    } else if (requests.length > 1) {
-      fullResponse.details = documents;
-      fullResponse.data = data;
-    }
-
-    return fullResponse;
+    return {
+      data: requests.length > 1 ? data : data[0],
+      details,
+      transforms
+    };
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -362,47 +324,35 @@ export class JSONAPISource
   async _update(
     transform: RecordTransform
   ): Promise<
-    FullResponse<
-      RecordTransformResult,
-      RecordDocumentOrDocuments,
-      RecordOperation
-    >
+    FullResponse<RecordTransformResult, JSONAPIResponse[], RecordOperation>
   > {
-    const fullResponse: FullResponse<
-      RecordTransformResult,
-      RecordDocumentOrDocuments,
-      RecordOperation
-    > = {};
-
-    if (!this.transformLog.contains(transform.id)) {
-      const requests = this.getTransformRequests(transform);
-      const documents: RecordDocument[] = [];
-      const transforms: RecordTransform[] = [];
-      const data: RecordOperationResult[] = [];
-
-      for (let request of requests) {
-        let processor = this.getTransformRequestProcessor(request);
-
-        let response = await processor(this.requestProcessor, request);
-        if (response.transforms) {
-          Array.prototype.push.apply(transforms, response.transforms);
-        }
-        documents.push(response.details as RecordDocument);
-        data.push(response.data as RecordOperationResult);
-      }
-
-      fullResponse.transforms = [transform, ...transforms];
-
-      if (requests.length === 1) {
-        fullResponse.details = documents[0];
-        fullResponse.data = data[0];
-      } else if (requests.length > 1) {
-        fullResponse.details = documents;
-        fullResponse.data = data;
-      }
+    if (this.transformLog.contains(transform.id)) {
+      return {};
     }
 
-    return fullResponse;
+    const requests = this.getTransformRequests(transform);
+    const details: JSONAPIResponse[] = [];
+    const transforms: RecordTransform[] = [];
+    const data: RecordOperationResult[] = [];
+
+    for (let request of requests) {
+      let processor = this.getTransformRequestProcessor(request);
+
+      let response = await processor(this.requestProcessor, request);
+      if (response.transforms) {
+        Array.prototype.push.apply(transforms, response.transforms);
+      }
+      if (response.details) {
+        details.push(response.details);
+      }
+      data.push(response.data);
+    }
+
+    return {
+      data: requests.length > 1 ? data : data[0],
+      details,
+      transforms: [transform, ...transforms]
+    };
   }
 
   protected getQueryRequests(query: RecordQuery): RecordQueryRequest[] {

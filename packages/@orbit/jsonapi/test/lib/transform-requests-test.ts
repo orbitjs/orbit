@@ -350,27 +350,29 @@ module('TransformRequests', function (/* hooks */) {
     });
 
     test('meta and links', async function (assert) {
-      fetchStub.withArgs('/planets').returns(
-        jsonapiResponse(201, {
-          data: {
-            type: 'planet',
-            id: 'jupiter',
-            attributes: { name: 'Jupiter' }
-          },
-          meta: {
-            important: true
-          },
-          links: {
-            self: 'https://api.example.com/self',
-            related: {
-              href: 'https://api.example.com/related',
-              meta: {
-                important: true
-              }
+      const responseJson = {
+        data: {
+          type: 'planet',
+          id: 'jupiter',
+          attributes: { name: 'Jupiter' }
+        },
+        meta: {
+          important: true
+        },
+        links: {
+          self: 'https://api.example.com/self',
+          related: {
+            href: 'https://api.example.com/related',
+            meta: {
+              important: true
             }
           }
-        })
-      );
+        }
+      };
+
+      fetchStub
+        .withArgs('/planets')
+        .returns(jsonapiResponse(201, responseJson));
 
       const jupiter = {
         type: 'planet',
@@ -386,37 +388,17 @@ module('TransformRequests', function (/* hooks */) {
         request
       );
 
-      assert.deepEqual(response, {
-        data: {
-          attributes: {
-            name: 'Jupiter'
-          },
-          id: 'jupiter',
-          type: 'planet'
+      assert.deepEqual(response.data, {
+        attributes: {
+          name: 'Jupiter'
         },
-        details: {
-          meta: {
-            important: true
-          },
-          links: {
-            self: 'https://api.example.com/self',
-            related: {
-              href: 'https://api.example.com/related',
-              meta: {
-                important: true
-              }
-            }
-          },
-          data: {
-            attributes: {
-              name: 'Jupiter'
-            },
-            id: 'jupiter',
-            type: 'planet'
-          }
-        },
-        transforms: []
+        id: 'jupiter',
+        type: 'planet'
       });
+
+      assert.deepEqual(response.details?.document, responseJson);
+
+      assert.deepEqual(response.transforms, []);
     });
   });
 });

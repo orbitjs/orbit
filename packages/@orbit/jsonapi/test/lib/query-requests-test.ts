@@ -78,29 +78,29 @@ module('QueryRequests', function (hooks) {
   });
 
   test('meta and links', async function (assert) {
-    fetchStub.withArgs('/planets').returns(
-      jsonapiResponse(200, {
-        data: [
-          {
-            type: 'planet',
-            id: 'jupiter',
-            attributes: { name: 'Jupiter' }
-          }
-        ],
-        meta: {
-          important: true
-        },
-        links: {
-          self: 'https://api.example.com/self',
-          related: {
-            href: 'https://api.example.com/related',
-            meta: {
-              important: true
-            }
+    const responseJson = {
+      data: [
+        {
+          type: 'planet',
+          id: 'jupiter',
+          attributes: { name: 'Jupiter' }
+        }
+      ],
+      meta: {
+        important: true
+      },
+      links: {
+        self: 'https://api.example.com/self',
+        related: {
+          href: 'https://api.example.com/related',
+          meta: {
+            important: true
           }
         }
-      })
-    );
+      }
+    };
+
+    fetchStub.withArgs('/planets').returns(jsonapiResponse(200, responseJson));
 
     const query = buildQuery(qb.findRecords('planet'));
 
@@ -111,56 +111,33 @@ module('QueryRequests', function (hooks) {
     );
     const transformId = response.transforms?.[0].id as string;
 
-    assert.deepEqual(response, {
-      data: [
-        {
-          attributes: {
-            name: 'Jupiter'
-          },
-          id: 'jupiter',
-          type: 'planet'
-        }
-      ],
-      details: {
-        meta: {
-          important: true
+    assert.deepEqual(response.data, [
+      {
+        attributes: {
+          name: 'Jupiter'
         },
-        links: {
-          self: 'https://api.example.com/self',
-          related: {
-            href: 'https://api.example.com/related',
-            meta: {
-              important: true
-            }
-          }
-        },
-        data: [
-          {
-            attributes: {
-              name: 'Jupiter'
-            },
-            id: 'jupiter',
-            type: 'planet'
-          }
-        ]
-      },
+        id: 'jupiter',
+        type: 'planet'
+      }
+    ]);
 
-      transforms: [
-        {
-          id: transformId,
-          operations: [
-            {
-              op: 'updateRecord',
-              record: {
-                type: 'planet',
-                id: 'jupiter',
-                attributes: { name: 'Jupiter' }
-              }
-            } as RecordOperation
-          ],
-          options: undefined
-        }
-      ]
-    });
+    assert.deepEqual(response.details?.document, responseJson);
+
+    assert.deepEqual(response.transforms, [
+      {
+        id: transformId,
+        operations: [
+          {
+            op: 'updateRecord',
+            record: {
+              type: 'planet',
+              id: 'jupiter',
+              attributes: { name: 'Jupiter' }
+            }
+          } as RecordOperation
+        ],
+        options: undefined
+      }
+    ]);
   });
 });

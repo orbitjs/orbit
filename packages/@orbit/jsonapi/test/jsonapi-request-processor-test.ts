@@ -232,8 +232,9 @@ module('JSONAPIRequestProcessor', function (hooks) {
       '/planets/12345/relationships/moons',
       {}
     );
-    assert.ok(
-      result == null,
+    assert.strictEqual(
+      result.document,
+      undefined,
       'XML is not acceptable but HTTP Status is good, so just ignore response'
     );
 
@@ -266,8 +267,9 @@ module('JSONAPIRequestProcessor', function (hooks) {
       })
     );
     result = await processor.fetch('/planets/12345/relationships/moons', {});
-    assert.ok(
-      result === undefined,
+    assert.strictEqual(
+      result.document,
+      undefined,
       'A 204 - No Content response has no content'
     );
   });

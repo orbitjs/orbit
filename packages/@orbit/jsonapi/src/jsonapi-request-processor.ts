@@ -40,6 +40,7 @@ import {
 import { buildJSONAPISerializerFor } from './serializers/jsonapi-serializer-builder';
 import { JSONAPISerializers } from './serializers/jsonapi-serializers';
 import { RecordOperation } from '@orbit/records';
+import { JSONAPIResponse } from './jsonapi-response';
 
 const { assert, deprecate } = Orbit;
 
@@ -151,7 +152,7 @@ export class JSONAPIRequestProcessor {
     return this._serializerFor;
   }
 
-  fetch(url: string, customSettings?: FetchSettings): Promise<any> {
+  fetch(url: string, customSettings?: FetchSettings): Promise<JSONAPIResponse> {
     let settings = this.initFetchSettings(customSettings);
 
     let fullUrl = url;
@@ -260,7 +261,7 @@ export class JSONAPIRequestProcessor {
 
   /* eslint-disable @typescript-eslint/no-unused-vars */
   preprocessResponseDocument(
-    document: ResourceDocument,
+    document: ResourceDocument | undefined,
     request: RecordQueryRequest | RecordTransformRequest
   ): void {}
   /* eslint-enable @typescript-eslint/no-unused-vars */
@@ -297,10 +298,15 @@ export class JSONAPIRequestProcessor {
     }
   }
 
-  protected async handleFetchResponse(response: Response): Promise<any> {
+  protected async handleFetchResponse(
+    response: Response
+  ): Promise<JSONAPIResponse> {
+    const responseDetail: JSONAPIResponse = {
+      response
+    };
     if (response.status === 201) {
       if (this.responseHasContent(response)) {
-        return response.json();
+        responseDetail.document = await response.json();
       } else {
         throw new InvalidServerResponse(
           `Server responses with a ${
@@ -312,19 +318,17 @@ export class JSONAPIRequestProcessor {
       }
     } else if (response.status >= 200 && response.status < 300) {
       if (this.responseHasContent(response)) {
-        return response.json();
+        responseDetail.document = await response.json();
       }
-    } else if (response.status === 304) {
-      return;
-    } else {
+    } else if (response.status !== 304 && response.status !== 404) {
       if (this.responseHasContent(response)) {
-        return response
-          .json()
-          .then((data: any) => this.handleFetchResponseError(response, data));
+        const document = await response.json();
+        await this.handleFetchResponseError(response, document);
       } else {
-        return this.handleFetchResponseError(response);
+        await this.handleFetchResponseError(response);
       }
     }
+    return responseDetail;
   }
 
   protected async handleFetchResponseError(

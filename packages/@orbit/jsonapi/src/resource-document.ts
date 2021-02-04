@@ -8,13 +8,13 @@ export interface ResourceIdentity {
 
 export interface ResourceHasOneRelationship {
   data?: ResourceIdentity | null;
-  meta?: Dict<any>;
+  meta?: Dict<unknown>;
   links?: Dict<Link>;
 }
 
 export interface ResourceHasManyRelationship {
   data?: ResourceIdentity[];
-  meta?: Dict<any>;
+  meta?: Dict<unknown>;
   links?: Dict<Link>;
 }
 
@@ -25,9 +25,9 @@ export type ResourceRelationship =
 export interface Resource {
   id?: string;
   type: string;
-  attributes?: Dict<any>;
+  attributes?: Dict<unknown>;
   relationships?: Dict<ResourceRelationship>;
-  meta?: Dict<any>;
+  meta?: Dict<unknown>;
   links?: Dict<Link>;
 }
 
@@ -42,5 +42,5 @@ export interface ResourceDocument {
   data: PrimaryResourceData;
   included?: Resource[];
   links?: Dict<Link>;
-  meta?: Dict<any>;
+  meta?: Dict<unknown>;
 }

@@ -12,6 +12,7 @@ export * from './serializers/jsonapi-resource-serializer';
 export * from './serializers/jsonapi-serializer-builder';
 export * from './serializers/jsonapi-serializers';
 export * from './jsonapi-request-processor';
+export * from './jsonapi-response';
 export * from './jsonapi-url-builder';
 export * from './record-document';
 export * from './resource-document';

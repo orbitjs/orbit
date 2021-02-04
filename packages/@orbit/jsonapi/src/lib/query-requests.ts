@@ -12,7 +12,8 @@ import {
   RecordQueryExpression,
   cloneRecordIdentity,
   RecordOperation,
-  RecordQueryExpressionResult
+  RecordQueryExpressionResult,
+  RecordNotFoundException
 } from '@orbit/records';
 import { buildTransform, FullResponse } from '@orbit/data';
 import { JSONAPIRequestProcessor } from '../jsonapi-request-processor';
@@ -23,6 +24,7 @@ import {
 import { JSONAPISerializers } from '../serializers/jsonapi-serializers';
 import { JSONAPIDocumentSerializer } from '../serializers/jsonapi-document-serializer';
 import { RecordDocument } from '../record-document';
+import { JSONAPIResponse } from '../jsonapi-response';
 
 export interface QueryRequest {
   op: string;
@@ -59,7 +61,7 @@ export type RecordQueryRequest =
 
 export type QueryRequestProcessorResponse = FullResponse<
   RecordQueryExpressionResult,
-  RecordDocument,
+  JSONAPIResponse,
   RecordOperation
 >;
 
@@ -190,7 +192,8 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
       options.url ||
       requestProcessor.urlBuilder.resourceURL(record.type, record.id);
 
-    const document = await requestProcessor.fetch(url, settings);
+    const details = await requestProcessor.fetch(url, settings);
+    const { document } = details;
     requestProcessor.preprocessResponseDocument(document, request);
 
     if (document) {
@@ -203,9 +206,12 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
       );
       const transforms = [buildTransform<RecordOperation>(operations)];
 
-      return { transforms, data: recordDoc.data, details: recordDoc };
+      return { transforms, data: recordDoc.data, details };
     } else {
-      return { transforms: [], data: undefined };
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(record.type, record.id);
+      }
+      return { transforms: [] };
     }
   },
 
@@ -218,7 +224,8 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
     const settings = requestProcessor.buildFetchSettings(options);
     const url = options.url || requestProcessor.urlBuilder.resourceURL(type);
 
-    const document = await requestProcessor.fetch(url, settings);
+    const details = await requestProcessor.fetch(url, settings);
+    const { document } = details;
     requestProcessor.preprocessResponseDocument(document, request);
 
     if (document) {
@@ -231,7 +238,7 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
       );
       const transforms = [buildTransform(operations)];
 
-      return { transforms, data: recordDoc.data, details: recordDoc };
+      return { transforms, data: recordDoc.data, details };
     } else {
       return { transforms: [] };
     }
@@ -252,7 +259,8 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
         relationship
       );
 
-    const document = await requestProcessor.fetch(url, settings);
+    const details = await requestProcessor.fetch(url, settings);
+    const { document } = details;
     requestProcessor.preprocessResponseDocument(document, request);
 
     if (document) {
@@ -272,8 +280,11 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
       } as ReplaceRelatedRecordOperation);
       const transforms = [buildTransform(operations)];
 
-      return { transforms, data: relatedRecord, details: recordDoc };
+      return { transforms, data: relatedRecord, details };
     } else {
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(record.type, record.id);
+      }
       return { transforms: [] };
     }
   },
@@ -294,7 +305,8 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
         relationship
       );
 
-    const document = await requestProcessor.fetch(url, settings);
+    const details = await requestProcessor.fetch(url, settings);
+    const { document } = details;
     requestProcessor.preprocessResponseDocument(document, request);
 
     if (document) {
@@ -325,8 +337,11 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
       }
       const transforms = [buildTransform(operations)];
 
-      return { transforms, data: relatedRecords, details: recordDoc };
+      return { transforms, data: relatedRecords, details };
     } else {
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(record.type, record.id);
+      }
       return { transforms: [] };
     }
   }
