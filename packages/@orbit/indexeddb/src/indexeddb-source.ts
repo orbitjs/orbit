@@ -2,30 +2,39 @@ import { Orbit } from '@orbit/core';
 import {
   buildTransform,
   pullable,
-  Pullable,
   pushable,
-  Pushable,
   Resettable,
   syncable,
-  Syncable,
-  Query,
   QueryOrExpressions,
   RequestOptions,
-  Source,
-  SourceSettings,
-  Transform,
-  TransformOrOperations,
-  RecordOperation,
-  Operation,
-  UpdateRecordOperation
+  FullResponse,
+  TransformsOrFullResponse,
+  TransformOrOperations
 } from '@orbit/data';
-import { QueryResultData } from '@orbit/record-cache';
+import {
+  RecordOperation,
+  UpdateRecordOperation,
+  RecordQueryExpressionResult,
+  RecordSourceSettings,
+  RecordPullable,
+  RecordPushable,
+  RecordSyncable,
+  RecordTransform,
+  RecordQueryExpression,
+  RecordQueryBuilder,
+  RecordTransformResult,
+  RecordTransformBuilder,
+  RecordQueryResult,
+  RecordSource,
+  RecordQuery,
+  RecordSourceQueryOptions
+} from '@orbit/records';
 import { supportsIndexedDB } from './lib/indexeddb';
 import { IndexedDBCache, IndexedDBCacheSettings } from './indexeddb-cache';
 
 const { assert } = Orbit;
 
-export interface IndexedDBSourceSettings extends SourceSettings {
+export interface IndexedDBSourceSettings extends RecordSourceSettings {
   namespace?: string;
   cacheSettings?: Partial<IndexedDBCacheSettings>;
 }
@@ -37,28 +46,49 @@ export interface IndexedDBSourceSettings extends SourceSettings {
 @pushable
 @syncable
 export class IndexedDBSource
-  extends Source
-  implements Pullable, Pushable, Resettable, Syncable {
+  extends RecordSource
+  implements
+    RecordSyncable,
+    RecordPullable<unknown>,
+    RecordPushable<unknown>,
+    Resettable {
   protected _cache: IndexedDBCache;
 
   // Syncable interface stubs
-  sync!: (transformOrTransforms: Transform | Transform[]) => Promise<void>;
+  sync!: (
+    transformOrTransforms: RecordTransform | RecordTransform[]
+  ) => Promise<void>;
 
   // Pullable interface stubs
-  pull!: (
-    queryOrExpressions: QueryOrExpressions,
-    options?: RequestOptions,
+  pull!: <RO extends RecordSourceQueryOptions>(
+    queryOrExpressions: QueryOrExpressions<
+      RecordQueryExpression,
+      RecordQueryBuilder
+    >,
+    options?: RO,
     id?: string
-  ) => Promise<Transform[]>;
+  ) => Promise<
+    TransformsOrFullResponse<RecordQueryResult, unknown, RecordOperation, RO>
+  >;
 
   // Pushable interface stubs
-  push!: (
-    transformOrOperations: TransformOrOperations,
-    options?: RequestOptions,
+  push!: <RO extends RequestOptions>(
+    transformOrOperations: TransformOrOperations<
+      RecordOperation,
+      RecordTransformBuilder
+    >,
+    options?: RO,
     id?: string
-  ) => Promise<Transform[]>;
+  ) => Promise<
+    TransformsOrFullResponse<
+      RecordTransformResult,
+      unknown,
+      RecordOperation,
+      RO
+    >
+  >;
 
-  constructor(settings: IndexedDBSourceSettings = {}) {
+  constructor(settings: IndexedDBSourceSettings) {
     assert(
       "IndexedDBSource's `schema` must be specified in `settings.schema` constructor argument",
       !!settings.schema
@@ -117,9 +147,9 @@ export class IndexedDBSource
   // Syncable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _sync(transform: Transform): Promise<void> {
+  async _sync(transform: RecordTransform): Promise<void> {
     if (!this.transformLog.contains(transform.id)) {
-      await this._cache.patch(transform.operations as RecordOperation[]);
+      await this._cache.update(transform);
       await this.transformed([transform]);
     }
   }
@@ -128,46 +158,50 @@ export class IndexedDBSource
   // Pushable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _push(transform: Transform): Promise<Transform[]> {
-    let results: Transform[];
+  async _push(
+    transform: RecordTransform
+  ): Promise<FullResponse<undefined, unknown, RecordOperation>> {
+    const fullResponse: FullResponse<undefined, unknown, RecordOperation> = {};
 
     if (!this.transformLog.contains(transform.id)) {
-      await this._cache.patch(transform.operations as RecordOperation[]);
-      results = [transform];
-      await this.transformed(results);
-    } else {
-      results = [];
+      await this._cache.update(transform);
+      fullResponse.transforms = [transform];
     }
 
-    return results;
+    return fullResponse;
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Pullable implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _pull(query: Query): Promise<Transform[]> {
-    let operations: Operation[];
+  async _pull(
+    query: RecordQuery
+  ): Promise<FullResponse<undefined, unknown, RecordOperation>> {
+    const fullResponse: FullResponse<undefined, unknown, RecordOperation> = {};
+    let operations: RecordOperation[];
 
     const results = await this._cache.query(query);
 
     if (query.expressions.length === 1) {
-      operations = this._operationsFromQueryResult(results as QueryResultData);
+      operations = this._operationsFromQueryResult(
+        results as RecordQueryExpressionResult
+      );
     } else {
       operations = [];
-      for (let result of results as QueryResultData[]) {
+      for (let result of results as RecordQueryExpressionResult[]) {
         operations.push(...this._operationsFromQueryResult(result));
       }
     }
 
-    const transforms = [buildTransform(operations)];
+    fullResponse.transforms = [buildTransform(operations)];
 
-    await this.transformed(transforms);
-
-    return transforms;
+    return fullResponse;
   }
 
-  _operationsFromQueryResult(result: QueryResultData): Operation[] {
+  protected _operationsFromQueryResult(
+    result: RecordQueryExpressionResult
+  ): RecordOperation[] {
     if (Array.isArray(result)) {
       return result.map((r) => {
         return {

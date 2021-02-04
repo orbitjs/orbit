@@ -1,6 +1,6 @@
-export * from './patch-result';
-export * from './query-result';
+export * from './response';
 export * from './record-accessor';
+export * from './record-cache';
 
 export * from './async-record-cache';
 export * from './async-operation-processor';
@@ -11,11 +11,11 @@ export * from './sync-operation-processor';
 export * from './live-query/sync-live-query';
 
 // Operators
-export * from './operators/async-inverse-patch-operators';
-export * from './operators/async-patch-operators';
+export * from './operators/async-inverse-transform-operators';
+export * from './operators/async-transform-operators';
 export * from './operators/async-query-operators';
-export * from './operators/sync-inverse-patch-operators';
-export * from './operators/sync-patch-operators';
+export * from './operators/sync-inverse-transform-operators';
+export * from './operators/sync-transform-operators';
 export * from './operators/sync-query-operators';
 
 // Operation processors

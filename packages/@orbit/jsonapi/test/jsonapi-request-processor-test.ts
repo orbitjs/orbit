@@ -1,11 +1,11 @@
 import {
-  KeyMap,
-  Schema,
-  QueryExpression,
-  Query,
-  Operation,
-  Transform
-} from '@orbit/data';
+  RecordKeyMap,
+  RecordSchema,
+  RecordQueryExpression,
+  RecordQuery,
+  RecordOperation,
+  RecordTransform
+} from '@orbit/records';
 import { JSONAPIRequestProcessor } from '../src/jsonapi-request-processor';
 import { jsonapiResponse } from './support/jsonapi';
 import { SinonStub } from 'sinon';
@@ -15,13 +15,13 @@ const { module, test } = QUnit;
 
 module('JSONAPIRequestProcessor', function (hooks) {
   let fetchStub: SinonStub;
-  let keyMap: KeyMap;
-  let schema: Schema;
+  let keyMap: RecordKeyMap;
+  let schema: RecordSchema;
   let processor: JSONAPIRequestProcessor;
 
   hooks.beforeEach(() => {
     fetchStub = sinon.stub(self, 'fetch');
-    schema = new Schema({
+    schema = new RecordSchema({
       models: {
         planet: {
           attributes: {
@@ -61,7 +61,7 @@ module('JSONAPIRequestProcessor', function (hooks) {
       }
     });
 
-    keyMap = new KeyMap();
+    keyMap = new RecordKeyMap();
     processor = new JSONAPIRequestProcessor({
       schema,
       keyMap,
@@ -232,8 +232,9 @@ module('JSONAPIRequestProcessor', function (hooks) {
       '/planets/12345/relationships/moons',
       {}
     );
-    assert.ok(
-      result == null,
+    assert.strictEqual(
+      result.document,
+      undefined,
       'XML is not acceptable but HTTP Status is good, so just ignore response'
     );
 
@@ -266,15 +267,17 @@ module('JSONAPIRequestProcessor', function (hooks) {
       })
     );
     result = await processor.fetch('/planets/12345/relationships/moons', {});
-    assert.ok(
-      result === undefined,
+    assert.strictEqual(
+      result.document,
+      undefined,
       'A 204 - No Content response has no content'
     );
   });
 
   test('#customRequestOptions', function (assert) {
-    const queryExpression: QueryExpression = {
+    const queryExpression: RecordQueryExpression = {
       op: 'findRecord',
+      record: { type: 'planet', id: 'p1' },
       options: {
         url: 'url2',
         sources: {
@@ -284,7 +287,7 @@ module('JSONAPIRequestProcessor', function (hooks) {
         }
       }
     };
-    const query: Query = {
+    const query: RecordQuery = {
       id: '1',
       expressions: [queryExpression],
       options: {
@@ -298,8 +301,9 @@ module('JSONAPIRequestProcessor', function (hooks) {
         }
       }
     };
-    const operation: Operation = {
+    const operation: RecordOperation = {
       op: 'addRecord',
+      record: { type: 'planet', id: 'p1' },
       options: {
         url: 'url2',
         sources: {
@@ -309,7 +313,7 @@ module('JSONAPIRequestProcessor', function (hooks) {
         }
       }
     };
-    const transform: Transform = {
+    const transform: RecordTransform = {
       id: '1',
       operations: [operation],
       options: {

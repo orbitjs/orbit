@@ -1,6 +1,6 @@
 import { Orbit } from '@orbit/core';
 
-export function jsonapiResponse(
+export async function jsonapiResponse(
   _options: unknown,
   body?: unknown,
   timeout?: number
@@ -34,7 +34,7 @@ export function jsonapiResponse(
       }, timeout);
     });
   } else {
-    return Promise.resolve(response);
+    return response;
   }
 }
 
@@ -46,6 +46,10 @@ function statusText(code: number): string | undefined {
       return 'Created';
     case 204:
       return 'No Content';
+    case 304:
+      return 'Not Modified';
+    case 404:
+      return 'Not Found';
     case 422:
       return 'Unprocessable Entity';
   }

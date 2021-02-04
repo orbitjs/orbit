@@ -1,0 +1,39 @@
+{
+  "name": "@orbit/records",
+  "version": "0.17.0-beta.8",
+  "description": "A flexible data access and synchronization layer.",
+  "contributors": [
+    "Dan Gebhardt <dan@cerebris.com>"
+  ],
+  "keywords": [
+    "orbit",
+    "orbit.js",
+    "data",
+    "synchronization"
+  ],
+  "repository": "https://github.com/orbitjs/orbit",
+  "license": "MIT",
+  "main": "dist/commonjs/index.js",
+  "module": "dist/modules/index.js",
+  "types": "dist/modules/index.d.ts",
+  "scripts": {
+    "build": "rm -rf ./dist && yarn build:modules && yarn build:commonjs",
+    "build:modules": "tsc --project ./tsconfig.modules.json",
+    "build:commonjs": "tsc --project ./tsconfig.commonjs.json",
+    "compile": "tsc",
+    "clean": "git clean -x -f",
+    "lint": "eslint . --ext .ts",
+    "prepare": "yarn build",
+    "prepublishOnly": "yarn clean",
+    "start": "node ../build dev && snowpack dev",
+    "test": "node ../build ci && snowpack build && testem ci"
+  },
+  "dependencies": {
+    "@orbit/data": "^0.17.0-beta.8",
+    "@orbit/utils": "^0.17.0-beta.8"
+  },
+  "devDependencies": {
+    "@orbit/build": "^0.17.0-beta.7"
+  },
+  "prettier": "@orbit/prettier-config"
+}

@@ -1,7 +1,7 @@
 import Orbit, { Assertion } from '@orbit/core';
-import { Record, Schema, KeyMap } from '@orbit/data';
+import { Record, RecordSchema, RecordKeyMap } from '@orbit/records';
 import { Dict } from '@orbit/utils';
-import { Resource } from '../resources';
+import { Resource } from '../resource-document';
 import { JSONAPIBaseSerializer } from './jsonapi-base-serializer';
 import { SerializerForFn } from '@orbit/serializers';
 
@@ -15,8 +15,8 @@ export interface JSONAPIResourceIdentityDeserializationOptions {
 export interface JSONAPIResourceIdentitySerializerSettings {
   serializerFor: SerializerForFn;
   deserializationOptions?: JSONAPIResourceIdentityDeserializationOptions;
-  schema: Schema;
-  keyMap?: KeyMap;
+  schema: RecordSchema;
+  keyMap?: RecordKeyMap;
   getResourceKey?: (recordType: string) => string;
 }
 
@@ -81,7 +81,7 @@ export class JSONAPIResourceIdentitySerializer extends JSONAPIBaseSerializer<
     const { type, id } = recordIdentity;
     const resourceKey = this.getResourceKey(type);
     const resourceType = this.typeSerializer.serialize(type) as string;
-    const keyMap = this.keyMap as KeyMap;
+    const keyMap = this.keyMap as RecordKeyMap;
     const resourceId =
       resourceKey === 'id' ? id : keyMap.idToKey(type, resourceKey, id);
 
@@ -112,7 +112,7 @@ export class JSONAPIResourceIdentitySerializer extends JSONAPIBaseSerializer<
         throw new Assertion(`Resource of type '${type}' is missing 'id'`);
       }
     } else {
-      const keyMap = this.keyMap as KeyMap;
+      const keyMap = this.keyMap as RecordKeyMap;
       const primaryRecord = options?.primaryRecord;
       let id: string;
       let keys: Dict<string> | null;

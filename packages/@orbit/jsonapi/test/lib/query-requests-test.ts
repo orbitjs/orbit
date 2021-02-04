@@ -1,4 +1,9 @@
-import { Schema, QueryBuilder, buildQuery, Operation } from '@orbit/data';
+import {
+  RecordOperation,
+  RecordSchema,
+  RecordQueryBuilder
+} from '@orbit/records';
+import { buildQuery } from '@orbit/data';
 import {
   QueryRequestProcessors,
   getQueryRequests
@@ -11,15 +16,15 @@ import * as sinon from 'sinon';
 const { module, test } = QUnit;
 
 module('QueryRequests', function (hooks) {
-  let schema: Schema;
+  let schema: RecordSchema;
   let requestProcessor: JSONAPIRequestProcessor;
-  let qb: QueryBuilder;
+  let qb: RecordQueryBuilder;
   let fetchStub: SinonStub;
 
   hooks.beforeEach(() => {
     fetchStub = sinon.stub(self, 'fetch');
 
-    schema = new Schema({
+    schema = new RecordSchema({
       models: {
         planet: {
           attributes: {
@@ -65,7 +70,7 @@ module('QueryRequests', function (hooks) {
       sourceName: 'foo'
     });
 
-    qb = new QueryBuilder();
+    qb = new RecordQueryBuilder();
   });
 
   hooks.afterEach(() => {
@@ -73,42 +78,14 @@ module('QueryRequests', function (hooks) {
   });
 
   test('meta and links', async function (assert) {
-    fetchStub.withArgs('/planets').returns(
-      jsonapiResponse(200, {
-        data: [
-          {
-            type: 'planet',
-            id: 'jupiter',
-            attributes: { name: 'Jupiter' }
-          }
-        ],
-        meta: {
-          important: true
-        },
-        links: {
-          self: 'https://api.example.com/self',
-          related: {
-            href: 'https://api.example.com/related',
-            meta: {
-              important: true
-            }
-          }
+    const responseJson = {
+      data: [
+        {
+          type: 'planet',
+          id: 'jupiter',
+          attributes: { name: 'Jupiter' }
         }
-      })
-    );
-
-    const query = buildQuery(qb.findRecords('planet'));
-
-    const request = getQueryRequests(requestProcessor, query)[0];
-    const response = await QueryRequestProcessors[request.op](
-      requestProcessor,
-      request
-    );
-    const {
-      transforms: [{ id: transformId }]
-    } = response;
-
-    assert.deepEqual(response, {
+      ],
       meta: {
         important: true
       },
@@ -120,32 +97,47 @@ module('QueryRequests', function (hooks) {
             important: true
           }
         }
-      },
-      primaryData: [
-        {
-          attributes: {
-            name: 'Jupiter'
-          },
-          id: 'jupiter',
-          type: 'planet'
-        }
-      ],
-      transforms: [
-        {
-          id: transformId,
-          operations: [
-            {
-              op: 'updateRecord',
-              record: {
-                type: 'planet',
-                id: 'jupiter',
-                attributes: { name: 'Jupiter' }
-              }
-            } as Operation
-          ],
-          options: undefined
-        }
-      ]
-    });
+      }
+    };
+
+    fetchStub.withArgs('/planets').returns(jsonapiResponse(200, responseJson));
+
+    const query = buildQuery(qb.findRecords('planet'));
+
+    const request = getQueryRequests(requestProcessor, query)[0];
+    const response = await QueryRequestProcessors[request.op](
+      requestProcessor,
+      request
+    );
+    const transformId = response.transforms?.[0].id as string;
+
+    assert.deepEqual(response.data, [
+      {
+        attributes: {
+          name: 'Jupiter'
+        },
+        id: 'jupiter',
+        type: 'planet'
+      }
+    ]);
+
+    assert.deepEqual(response.details?.document, responseJson);
+
+    assert.deepEqual(response.transforms, [
+      {
+        id: transformId,
+        operations: [
+          {
+            op: 'updateRecord',
+            record: {
+              type: 'planet',
+              id: 'jupiter',
+              attributes: { name: 'Jupiter' }
+            }
+          } as RecordOperation
+        ],
+        options: undefined
+      }
+    ]);
   });
 });

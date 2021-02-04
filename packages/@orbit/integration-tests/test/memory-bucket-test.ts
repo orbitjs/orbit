@@ -1,16 +1,16 @@
-import { Schema } from '@orbit/data';
+import { RecordSchema } from '@orbit/records';
 import { MemorySource } from '@orbit/memory';
 import { IndexedDBBucket } from '@orbit/indexeddb-bucket';
 
 const { module, test } = QUnit;
 
 module('MemorySource + IndexdDBBucket', function (hooks) {
-  let schema: Schema;
+  let schema: RecordSchema;
   let bucket: IndexedDBBucket;
   let memory: MemorySource;
 
   hooks.beforeEach(() => {
-    schema = new Schema({
+    schema = new RecordSchema({
       models: {
         moon: {
           attributes: {

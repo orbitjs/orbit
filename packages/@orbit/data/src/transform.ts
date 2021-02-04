@@ -2,26 +2,26 @@
 import { Orbit } from '@orbit/core';
 import { Operation } from './operation';
 import { OperationTerm } from './operation-term';
-import { TransformBuilder } from './transform-builder';
 import { RequestOptions } from './request';
 
-export type TransformBuilderFunc = (
-  TransformBuilder: TransformBuilder
-) => Operation | Operation[] | OperationTerm | OperationTerm[];
-export type TransformOrOperations =
-  | Transform
-  | Operation
-  | Operation[]
-  | OperationTerm
-  | OperationTerm[]
-  | TransformBuilderFunc;
+export type TransformBuilderFunc<O extends Operation, TB> = (
+  TransformBuilder: TB
+) => O | O[] | OperationTerm<O> | OperationTerm<O>[];
+
+export type TransformOrOperations<O extends Operation, TB> =
+  | Transform<O>
+  | O
+  | O[]
+  | OperationTerm<O>
+  | OperationTerm<O>[]
+  | TransformBuilderFunc<O, TB>;
 
 /**
  * A Transform represents a set of operations that can mutate a source.
  */
-export interface Transform {
+export interface Transform<O extends Operation> {
   id: string;
-  operations: Operation[];
+  operations: O[];
   options?: RequestOptions;
 }
 
@@ -37,63 +37,78 @@ export interface Transform {
  * Transforms will be assigned the specified `transformId` as `id`. If none
  * is specified, a UUID will be generated.
  */
-export function buildTransform(
-  transformOrOperations: TransformOrOperations,
+export function buildTransform<O extends Operation, TB = unknown>(
+  transformOrOperations: TransformOrOperations<O, TB>,
   transformOptions?: RequestOptions,
   transformId?: string,
-  transformBuilder?: TransformBuilder
-): Transform {
+  transformBuilder?: TB
+): Transform<O> {
   if (typeof transformOrOperations === 'function') {
-    const transformBuilderFn = transformOrOperations as TransformBuilderFunc;
-    return buildTransform(
-      transformBuilderFn(transformBuilder as TransformBuilder),
+    const transformBuilderFn = transformOrOperations as TransformBuilderFunc<
+      O,
+      TB
+    >;
+    return buildTransform<O, TB>(
+      transformBuilderFn(transformBuilder as TB),
       transformOptions,
       transformId
     );
   } else {
-    let transform = transformOrOperations as Transform;
-    let operations: Operation[];
+    let transform = transformOrOperations as Transform<O>;
+    let operations: O[];
     let options: RequestOptions | undefined;
+    let id: string;
 
     if (isTransform(transform)) {
-      if (transform.id && !transformOptions && !transformId) {
+      if (transformOptions || transformId) {
+        operations = transform.operations;
+        if (transform.options && transformOptions) {
+          options = {
+            ...transform.options,
+            ...transformOptions
+          };
+        } else {
+          options = transformOptions ?? transform.options;
+        }
+        id = transformId ?? transform.id;
+      } else {
         return transform;
       }
-      operations = transform.operations;
-      options = transformOptions || transform.options;
-    } else if (Array.isArray(transformOrOperations)) {
-      operations = [];
-      for (let transformOrOperation of transformOrOperations) {
-        operations.push(toOperation(transformOrOperation));
+    } else {
+      if (Array.isArray(transformOrOperations)) {
+        operations = [];
+        for (let transformOrOperation of transformOrOperations) {
+          operations.push(toOperation<O>(transformOrOperation));
+        }
+      } else {
+        operations = [toOperation<O>(transformOrOperations as O)];
       }
       options = transformOptions;
-    } else {
-      operations = [
-        toOperation(transformOrOperations as Operation | OperationTerm)
-      ];
-      options = transformOptions;
+      id = transformId ?? Orbit.uuid();
     }
-
-    let id: string = transformId || Orbit.uuid();
 
     return { operations, options, id };
   }
 }
 
-function toOperation(operation: Operation | OperationTerm): Operation {
+function toOperation<O extends Operation = Operation>(
+  operation: O | OperationTerm<O>
+): O {
   if (isOperationTerm(operation)) {
-    return (operation as OperationTerm).toOperation();
+    return (operation as OperationTerm<O>).toOperation();
   } else {
     return operation;
   }
 }
 
-function isOperationTerm(
-  operation: Operation | OperationTerm
-): operation is OperationTerm {
-  return typeof (operation as OperationTerm).toOperation === 'function';
+function isOperationTerm<O extends Operation = Operation>(
+  operation: O | OperationTerm<O>
+): operation is OperationTerm<O> {
+  return typeof (operation as OperationTerm<O>).toOperation === 'function';
 }
 
-function isTransform(transform: TransformOrOperations): transform is Transform {
-  return Array.isArray((transform as Transform).operations);
+function isTransform<O extends Operation = Operation>(
+  transform: TransformOrOperations<O, unknown>
+): transform is Transform<O> {
+  return Array.isArray((transform as Transform<O>).operations);
 }

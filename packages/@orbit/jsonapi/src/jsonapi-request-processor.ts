@@ -1,23 +1,25 @@
 import Orbit from '@orbit/core';
 import {
   ClientError,
-  KeyMap,
   NetworkError,
-  Operation,
-  Query,
-  Record,
-  Schema,
-  ServerError,
-  Transform,
   requestOptionsForSource,
-  QueryExpression
+  ServerError
 } from '@orbit/data';
+import {
+  RecordKeyMap,
+  Record,
+  RecordSchema,
+  RecordQueryExpression,
+  RecordTransform,
+  RecordQuery
+} from '@orbit/records';
 import { Dict } from '@orbit/utils';
 import { InvalidServerResponse } from './lib/exceptions';
-import { TransformRecordRequest } from './lib/transform-requests';
-import { QueryRequest } from './lib/query-requests';
+import { RecordTransformRequest } from './lib/transform-requests';
+import { RecordQueryRequest } from './lib/query-requests';
 import { deepMerge, toArray } from '@orbit/utils';
-import { RecordDocument, ResourceDocument } from './resources';
+import { ResourceDocument } from './resource-document';
+import { RecordDocument } from './record-document';
 import {
   JSONAPIRequestOptions,
   buildFetchSettings
@@ -37,6 +39,8 @@ import {
 } from '@orbit/serializers';
 import { buildJSONAPISerializerFor } from './serializers/jsonapi-serializer-builder';
 import { JSONAPISerializers } from './serializers/jsonapi-serializers';
+import { RecordOperation } from '@orbit/records';
+import { JSONAPIResponse } from './jsonapi-response';
 
 const { assert, deprecate } = Orbit;
 
@@ -70,8 +74,8 @@ export interface JSONAPIRequestProcessorSettings {
   host?: string;
   defaultFetchSettings?: FetchSettings;
   allowedContentTypes?: string[];
-  schema: Schema;
-  keyMap?: KeyMap;
+  schema: RecordSchema;
+  keyMap?: RecordKeyMap;
 }
 
 export class JSONAPIRequestProcessor {
@@ -79,8 +83,8 @@ export class JSONAPIRequestProcessor {
   urlBuilder: JSONAPIURLBuilder;
   allowedContentTypes: string[];
   defaultFetchSettings!: FetchSettings;
-  schema: Schema;
-  keyMap?: KeyMap;
+  schema: RecordSchema;
+  keyMap?: RecordKeyMap;
   protected _serializer?: JSONAPISerializer;
   protected _serializerFor: SerializerForFn;
 
@@ -148,7 +152,7 @@ export class JSONAPIRequestProcessor {
     return this._serializerFor;
   }
 
-  fetch(url: string, customSettings?: FetchSettings): Promise<any> {
+  fetch(url: string, customSettings?: FetchSettings): Promise<JSONAPIResponse> {
     let settings = this.initFetchSettings(customSettings);
 
     let fullUrl = url;
@@ -222,7 +226,7 @@ export class JSONAPIRequestProcessor {
 
   operationsFromDeserializedDocument(
     deserialized: RecordDocument
-  ): Operation[] {
+  ): RecordOperation[] {
     const records: Record[] = [];
     Array.prototype.push.apply(records, toArray(deserialized.data));
 
@@ -246,37 +250,19 @@ export class JSONAPIRequestProcessor {
   }
 
   customRequestOptions(
-    queryOrTransform: Query | Transform,
-    queryExpressionOrOperation: QueryExpression | Operation
+    queryOrTransform: RecordQuery | RecordTransform,
+    queryExpressionOrOperation: RecordQueryExpression | RecordOperation
   ): JSONAPIRequestOptions | undefined {
-    let options: JSONAPIRequestOptions | undefined;
-
-    if (queryOrTransform.options) {
-      options = requestOptionsForSource(
-        queryOrTransform.options,
-        this.sourceName
-      );
-    }
-
-    if (queryExpressionOrOperation.options) {
-      options = {
-        ...options,
-        ...requestOptionsForSource(
-          queryExpressionOrOperation.options,
-          this.sourceName
-        )
-      };
-    }
-
-    if (options) {
-      return options;
-    }
+    return requestOptionsForSource(
+      [queryOrTransform.options, queryExpressionOrOperation.options],
+      this.sourceName
+    ) as JSONAPIRequestOptions | undefined;
   }
 
   /* eslint-disable @typescript-eslint/no-unused-vars */
   preprocessResponseDocument(
-    document: ResourceDocument,
-    queryRequestOrTransformRecordRequest: QueryRequest | TransformRecordRequest
+    document: ResourceDocument | undefined,
+    request: RecordQueryRequest | RecordTransformRequest
   ): void {}
   /* eslint-enable @typescript-eslint/no-unused-vars */
 
@@ -312,10 +298,15 @@ export class JSONAPIRequestProcessor {
     }
   }
 
-  protected async handleFetchResponse(response: Response): Promise<any> {
+  protected async handleFetchResponse(
+    response: Response
+  ): Promise<JSONAPIResponse> {
+    const responseDetail: JSONAPIResponse = {
+      response
+    };
     if (response.status === 201) {
       if (this.responseHasContent(response)) {
-        return response.json();
+        responseDetail.document = await response.json();
       } else {
         throw new InvalidServerResponse(
           `Server responses with a ${
@@ -327,19 +318,17 @@ export class JSONAPIRequestProcessor {
       }
     } else if (response.status >= 200 && response.status < 300) {
       if (this.responseHasContent(response)) {
-        return response.json();
+        responseDetail.document = await response.json();
       }
-    } else if (response.status === 304) {
-      return;
-    } else {
+    } else if (response.status !== 304 && response.status !== 404) {
       if (this.responseHasContent(response)) {
-        return response
-          .json()
-          .then((data: any) => this.handleFetchResponseError(response, data));
+        const document = await response.json();
+        await this.handleFetchResponseError(response, document);
       } else {
-        return this.handleFetchResponseError(response);
+        await this.handleFetchResponseError(response);
       }
     }
+    return responseDetail;
   }
 
   protected async handleFetchResponseError(

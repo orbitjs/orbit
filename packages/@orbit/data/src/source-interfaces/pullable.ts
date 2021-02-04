@@ -1,8 +1,16 @@
 import { Orbit, settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Query, QueryOrExpressions, buildQuery } from '../query';
-import { Transform } from '../transform';
 import { RequestOptions } from '../request';
+import {
+  FullResponse,
+  NamedFullResponse,
+  TransformsOrFullResponse,
+  mapNamedFullResponses,
+  ResponseHints
+} from '../response';
+import { Operation } from '../operation';
+import { QueryExpression } from '../query-expression';
 
 const { assert } = Orbit;
 
@@ -19,20 +27,26 @@ export function isPullable(source: Source): boolean {
  * A source decorated as `@pullable` must also implement the `Pullable`
  * interface.
  */
-export interface Pullable {
+export interface Pullable<
+  Data,
+  Details,
+  O extends Operation,
+  QE extends QueryExpression,
+  QueryBuilder
+> {
   /**
-   * The `pull` method accepts a query or expression and returns a promise that
-   * resolves to an array of `Transform` instances that represent the changeset
-   * that resulted from applying the query. In other words, a `pull` request
-   * retrieves the results of a query in `Transform` form.
+   * The `pull` method accepts a query or expression(s) and returns a promise
+   * that resolves to an array of `Transform` instances that represent the
+   * changeset that resulted from applying the query. In other words, a `pull`
+   * request retrieves the results of a query in `Transform` form.
    */
-  pull(
-    queryOrExpressions: QueryOrExpressions,
-    options?: RequestOptions,
+  pull<RO extends RequestOptions>(
+    queryOrExpressions: QueryOrExpressions<QE, QueryBuilder>,
+    options?: RO,
     id?: string
-  ): Promise<Transform[]>;
+  ): Promise<TransformsOrFullResponse<Data, Details, O, RO>>;
 
-  _pull(query: Query, hints?: unknown): Promise<Transform[]>;
+  _pull(query: Query<QE>): Promise<FullResponse<Data, Details, O>>;
 }
 
 /**
@@ -59,8 +73,8 @@ export interface Pullable {
  * the processing required for `pull` and returns a promise that resolves to an
  * array of `Transform` instances.
  */
-export function pullable(Klass: SourceClass): void {
-  let proto = Klass.prototype;
+export function pullable(Klass: unknown): void {
+  let proto = (Klass as SourceClass).prototype;
 
   if (isPullable(proto)) {
     return;
@@ -73,11 +87,11 @@ export function pullable(Klass: SourceClass): void {
 
   proto[PULLABLE] = true;
 
-  proto.pull = async function (
-    queryOrExpressions: QueryOrExpressions,
-    options?: RequestOptions,
+  proto.pull = async function <RO extends RequestOptions>(
+    queryOrExpressions: QueryOrExpressions<QueryExpression, unknown>,
+    options?: RO,
     id?: string
-  ): Promise<Transform[]> {
+  ): Promise<TransformsOrFullResponse<unknown, unknown, Operation, RO>> {
     await this.activated;
     const query = buildQuery(
       queryOrExpressions,
@@ -85,17 +99,33 @@ export function pullable(Klass: SourceClass): void {
       id,
       this.queryBuilder
     );
-    return this._enqueueRequest('pull', query);
+    const response = await this._enqueueRequest('pull', query);
+    return options?.fullResponse ? response : response.transforms || [];
   };
 
-  proto.__pull__ = async function (query: Query): Promise<Transform[]> {
+  proto.__pull__ = async function (
+    query: Query<QueryExpression>
+  ): Promise<FullResponse<unknown, unknown, Operation>> {
     try {
-      const hints: any = {};
-
-      await fulfillInSeries(this, 'beforePull', query, hints);
-      let result = await this._pull(query, hints);
-      await settleInSeries(this, 'pull', query, result);
-      return result;
+      const options = query.options || {};
+      const hints: ResponseHints<unknown, unknown> = {};
+      const otherResponses = (await fulfillInSeries(
+        this,
+        'beforePull',
+        query,
+        hints
+      )) as (NamedFullResponse<unknown, unknown, Operation> | undefined)[];
+      const fullResponse = await this._pull(query, hints);
+      if (options.includeSources) {
+        fullResponse.sources = otherResponses
+          ? mapNamedFullResponses<unknown, unknown, Operation>(otherResponses)
+          : {};
+      }
+      if (fullResponse.transforms?.length > 0) {
+        await this.transformed(fullResponse.transforms);
+      }
+      await settleInSeries(this, 'pull', query, fullResponse);
+      return fullResponse;
     } catch (error) {
       await settleInSeries(this, 'pullFail', query, error);
       throw error;

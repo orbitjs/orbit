@@ -54,7 +54,7 @@ export class Notifier {
   /**
    * Notify registered listeners.
    */
-  emit(...args: any[]): void {
+  emit(...args: unknown[]): void {
     this.listeners.slice(0).forEach((listener) => listener(...args));
   }
 }

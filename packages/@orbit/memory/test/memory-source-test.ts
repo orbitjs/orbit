@@ -1,15 +1,17 @@
+import { buildTransform, FullResponse, ResponseHints } from '@orbit/data';
 import {
   cloneRecordIdentity as identity,
-  KeyMap,
-  Query,
+  RecordKeyMap,
+  RecordQuery,
   Record,
-  Schema,
-  SchemaSettings,
-  Source,
-  buildTransform,
+  RecordSchema,
+  RecordSchemaSettings,
+  RecordSource,
   RecordOperation,
-  Transform
-} from '@orbit/data';
+  RecordTransform,
+  RecordTransformResult,
+  RecordTransformBuilder
+} from '@orbit/records';
 import { clone } from '@orbit/utils';
 import {
   SyncCacheIntegrityProcessor,
@@ -20,7 +22,7 @@ import { MemorySource } from '../src/memory-source';
 const { module, test } = QUnit;
 
 module('MemorySource', function (hooks) {
-  const schemaDefinition: SchemaSettings = {
+  const schemaDefinition: RecordSchemaSettings = {
     models: {
       star: {
         attributes: {
@@ -69,18 +71,18 @@ module('MemorySource', function (hooks) {
     }
   };
 
-  const schema = new Schema(schemaDefinition);
+  const schema = new RecordSchema(schemaDefinition);
 
   let source: MemorySource;
-  let keyMap: KeyMap;
+  let keyMap: RecordKeyMap;
 
   hooks.beforeEach(function () {
-    keyMap = new KeyMap();
+    keyMap = new RecordKeyMap();
     source = new MemorySource({ schema, keyMap });
   });
 
   test('its prototype chain is correct', function (assert) {
-    assert.ok(source instanceof Source, 'instanceof Source');
+    assert.ok(source instanceof RecordSource, 'instanceof Source');
     assert.ok(source instanceof MemorySource, 'instanceof MemorySource');
     assert.equal(source.name, 'memory', 'should have default name');
   });
@@ -259,7 +261,7 @@ module('MemorySource', function (hooks) {
 
     source.cache.patch((t) => t.addRecord(earth));
 
-    source.on('beforeUpdate', (transform: Transform, hints: any) => {
+    source.on('beforeUpdate', (transform: RecordTransform, hints: any) => {
       if (transform?.options?.customizeResults) {
         hints.data = earth;
       }
@@ -299,14 +301,20 @@ module('MemorySource', function (hooks) {
       attributes: { name: 'Uranus' }
     };
 
-    source.on('beforeUpdate', (transform: Transform, hints: any) => {
-      if (transform?.options?.customizeResults) {
-        hints.data = [
-          { type: 'planet', id: 'uranus' },
-          { type: 'planet', id: 'jupiter' }
-        ];
+    source.on(
+      'beforeUpdate',
+      (
+        transform: RecordTransform,
+        hints: ResponseHints<RecordTransformResult, unknown>
+      ) => {
+        if (transform?.options?.customizeResults) {
+          hints.data = [
+            { type: 'planet', id: 'uranus' },
+            { type: 'planet', id: 'jupiter' }
+          ];
+        }
       }
-    });
+    );
 
     let planets = await source.update(
       (t) => [t.addRecord(jupiter), t.addRecord(earth), t.addRecord(uranus)],
@@ -349,17 +357,24 @@ module('MemorySource', function (hooks) {
       attributes: { name: 'Uranus' }
     };
 
-    source.on('beforeUpdate', (transform: Transform, hints: any) => {
-      if (transform?.options?.customizeResults) {
-        hints.data = [
-          [
+    source.on(
+      'beforeUpdate',
+      (
+        transform: RecordTransform,
+        hints: ResponseHints<RecordTransformResult, unknown>
+      ) => {
+        if (transform?.options?.customizeResults) {
+          hints.data = [
             { type: 'planet', id: 'uranus' },
-            { type: 'planet', id: 'earth' }
-          ],
-          { type: 'planet', id: 'jupiter' }
-        ];
+            { type: 'planet', id: 'earth' },
+            undefined
+          ];
+          hints.details = {
+            foo: 'bar'
+          };
+        }
       }
-    });
+    );
 
     let planets = await source.update(
       (t) => [t.addRecord(jupiter), t.addRecord(earth), t.addRecord(uranus)],
@@ -376,9 +391,57 @@ module('MemorySource', function (hooks) {
 
     assert.deepEqual(
       planets,
-      [[uranus, earth], jupiter],
+      [uranus, earth, undefined],
       'planets match hinted records'
     );
+  });
+
+  test('#update - hint details can be returned in a full response', async function (assert) {
+    assert.expect(2);
+
+    let jupiter = {
+      id: 'jupiter',
+      type: 'planet',
+      attributes: { name: 'Jupiter' }
+    };
+
+    let earth = {
+      id: 'earth',
+      type: 'planet',
+      attributes: { name: 'Earth' }
+    };
+
+    let uranus = {
+      id: 'uranus',
+      type: 'planet',
+      attributes: { name: 'Uranus' }
+    };
+
+    source.on(
+      'beforeUpdate',
+      (
+        transform: RecordTransform,
+        hints: ResponseHints<RecordTransformResult, unknown>
+      ) => {
+        hints.data = [
+          { type: 'planet', id: 'uranus' },
+          { type: 'planet', id: 'earth' }
+        ];
+        hints.details = {
+          foo: 'bar'
+        };
+      }
+    );
+
+    let { data, details } = (await source.update(
+      (t) => [t.addRecord(jupiter), t.addRecord(earth), t.addRecord(uranus)],
+      {
+        fullResponse: true
+      }
+    )) as FullResponse<RecordTransformResult, unknown, RecordOperation>;
+
+    assert.deepEqual(data, [uranus, earth], 'data matches hinted data');
+    assert.deepEqual(details, { foo: 'bar' }, 'details match hinted details');
   });
 
   test("#query - queries the source's cache", async function (assert) {
@@ -414,7 +477,7 @@ module('MemorySource', function (hooks) {
       attributes: { name: 'Jupiter2', classification: 'gas giant' }
     };
 
-    source.on('beforeQuery', (query: Query, hints: any) => {
+    source.on('beforeQuery', (query: RecordQuery, hints: any) => {
       if (query.expressions[0].op === 'findRecord') {
         hints.data = jupiter2;
       }
@@ -456,7 +519,7 @@ module('MemorySource', function (hooks) {
       attributes: { name: 'Uranus' }
     };
 
-    source.on('beforeQuery', (query: Query, hints: any) => {
+    source.on('beforeQuery', (query: RecordQuery, hints: any) => {
       if (
         query.expressions[0].op === 'findRecords' &&
         query.options?.sources?.remote.customFilter === 'distantPlanets'
@@ -507,8 +570,9 @@ module('MemorySource', function (hooks) {
     );
 
     try {
-      await source.query((q) =>
-        q.findRecord({ type: 'planet', id: 'jupiter' })
+      await source.query(
+        (q) => q.findRecord({ type: 'planet', id: 'jupiter' }),
+        { raiseNotFoundExceptions: true }
       );
     } catch (e) {
       assert.equal(e.message, 'Record not found: planet:jupiter');
@@ -1171,7 +1235,10 @@ module('MemorySource', function (hooks) {
       await source.sync(addRecordBTransform),
       await source.sync(addRecordCTransform),
       await source.sync(
-        buildTransform([tb.addRecord(recordD), tb.addRecord(recordE)])
+        buildTransform<RecordOperation, RecordTransformBuilder>([
+          tb.addRecord(recordD),
+          tb.addRecord(recordE)
+        ])
       );
 
     source.cache.on('patch', (operation: RecordOperation) =>

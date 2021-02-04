@@ -1,16 +1,19 @@
 import {
-  AddRecordOperation,
   buildTransform,
   ClientError,
-  KeyMap,
   NetworkError,
+  TransformNotAllowed
+} from '@orbit/data';
+import {
+  AddRecordOperation,
+  RecordKeyMap,
   Record,
   RecordOperation,
   ReplaceKeyOperation,
-  Schema,
-  Transform,
-  TransformNotAllowed
-} from '@orbit/data';
+  RecordSchema,
+  RecordTransform,
+  UpdateRecordOperation
+} from '@orbit/records';
 import * as sinon from 'sinon';
 import { SinonStub } from 'sinon';
 import { JSONAPIResourceSerializer } from '../src';
@@ -26,8 +29,8 @@ const { module, test } = QUnit;
 
 module('JSONAPISource - pushable', function (hooks) {
   let fetchStub: SinonStub;
-  let keyMap: KeyMap;
-  let schema: Schema;
+  let keyMap: RecordKeyMap;
+  let schema: RecordSchema;
   let source: JSONAPISource;
   let resourceSerializer: JSONAPIResourceSerializer;
 
@@ -42,7 +45,7 @@ module('JSONAPISource - pushable', function (hooks) {
   module('with a secondary key', function (hooks) {
     hooks.beforeEach(() => {
       schema = createSchemaWithRemoteKey();
-      keyMap = new KeyMap();
+      keyMap = new RecordKeyMap();
       source = new JSONAPISource({
         schema,
         keyMap
@@ -57,12 +60,12 @@ module('JSONAPISource - pushable', function (hooks) {
 
       let transformCount = 0;
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       }) as Record;
 
-      let addPlanetOp = {
+      const addPlanetOp: AddRecordOperation = {
         op: 'addRecord',
         record: {
           type: 'planet',
@@ -74,14 +77,14 @@ module('JSONAPISource - pushable', function (hooks) {
         }
       };
 
-      let addPlanetRemoteIdOp = {
+      const addPlanetRemoteIdOp: ReplaceKeyOperation = {
         op: 'replaceKey',
         record: { type: 'planet', id: planet.id },
         key: 'remoteId',
         value: '12345'
-      } as ReplaceKeyOperation;
+      };
 
-      source.on('transform', function (transform: Transform) {
+      source.on('transform', function (transform: RecordTransform) {
         transformCount++;
 
         if (transformCount === 1) {
@@ -115,7 +118,7 @@ module('JSONAPISource - pushable', function (hooks) {
         record: planet
       } as AddRecordOperation);
 
-      let result = await source.push(t);
+      let result = (await source.push(t)) as RecordTransform[];
 
       assert.equal(result.length, 2, 'two transforms applied');
       assert.deepEqual(result[0], t, 'result represents transforms applied');
@@ -149,7 +152,7 @@ module('JSONAPISource - pushable', function (hooks) {
     test('#push - will not issue fetch if beforePush listener logs transform', async function (assert) {
       assert.expect(2);
 
-      let planet = resourceSerializer.deserialize({
+      const planet = resourceSerializer.deserialize({
         type: 'planet',
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       }) as Record;
@@ -159,11 +162,11 @@ module('JSONAPISource - pushable', function (hooks) {
         record: planet
       } as AddRecordOperation);
 
-      source.on('beforePush', async function (transform: Transform) {
+      source.on('beforePush', async function (transform: RecordTransform) {
         await source.transformLog.append(t.id);
       });
 
-      let result = await source.push(t);
+      const result = await source.push(t);
 
       assert.deepEqual(result, [], 'result represents transforms applied');
       assert.ok(source.transformLog.contains(t.id), 'log contains transform');
@@ -174,12 +177,12 @@ module('JSONAPISource - pushable', function (hooks) {
 
       let transformCount = 0;
 
-      let planet = resourceSerializer.deserialize({
+      const planet = resourceSerializer.deserialize({
         type: 'planet',
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       }) as Record;
 
-      let addPlanetOp = {
+      const addPlanetOp: AddRecordOperation = {
         op: 'addRecord',
         record: {
           type: 'planet',
@@ -191,14 +194,14 @@ module('JSONAPISource - pushable', function (hooks) {
         }
       };
 
-      let addPlanetRemoteIdOp = {
+      const addPlanetRemoteIdOp: ReplaceKeyOperation = {
         op: 'replaceKey',
         record: { type: 'planet', id: planet.id },
         key: 'remoteId',
         value: '12345'
       };
 
-      let addMoonOp = {
+      const addMoonOp = {
         op: 'updateRecord',
         record: {
           type: 'moon',
@@ -211,7 +214,7 @@ module('JSONAPISource - pushable', function (hooks) {
         }
       };
 
-      source.on('transform', (transform: Transform) => {
+      source.on('transform', (transform: RecordTransform) => {
         transformCount++;
 
         if (transformCount === 1) {
@@ -293,7 +296,7 @@ module('JSONAPISource - pushable', function (hooks) {
     test('#push - options can be passed in at the root level or source-specific level', async function (assert) {
       assert.expect(1);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       }) as Record;
@@ -330,16 +333,16 @@ module('JSONAPISource - pushable', function (hooks) {
 
       let transformCount = 0;
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345',
         attributes: {
           name: 'Jupiter',
           classification: 'gas giant'
         }
-      }) as Record;
+      });
 
-      let replacePlanetOp = {
+      const replacePlanetOp: UpdateRecordOperation = {
         op: 'updateRecord',
         record: {
           type: 'planet',
@@ -354,7 +357,7 @@ module('JSONAPISource - pushable', function (hooks) {
         }
       };
 
-      source.on('transform', (transform: Transform) => {
+      source.on('transform', (transform: RecordTransform) => {
         transformCount++;
 
         if (transformCount === 1) {
@@ -410,7 +413,7 @@ module('JSONAPISource - pushable', function (hooks) {
     test('#push - can replace a single attribute', async function (assert) {
       assert.expect(5);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345',
         attributes: {
@@ -456,14 +459,14 @@ module('JSONAPISource - pushable', function (hooks) {
     test('#push - can accept remote changes', async function (assert) {
       assert.expect(2);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345',
         attributes: {
           name: 'Jupiter',
           classification: 'gas giant'
         }
-      }) as Record;
+      });
 
       fetchStub.withArgs('/planets/12345').returns(
         jsonapiResponse(200, {
@@ -478,9 +481,9 @@ module('JSONAPISource - pushable', function (hooks) {
         })
       );
 
-      let transforms = await source.push((t) =>
+      let transforms = (await source.push((t) =>
         t.replaceAttribute(planet, 'classification', 'terrestrial')
-      );
+      )) as RecordTransform[];
 
       assert.deepEqual(
         transforms[1].operations.map((o) => o.op),
@@ -496,7 +499,7 @@ module('JSONAPISource - pushable', function (hooks) {
     test('#push - can delete records', async function (assert) {
       assert.expect(4);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       }) as Record;
@@ -522,7 +525,7 @@ module('JSONAPISource - pushable', function (hooks) {
     test('#push - can add a hasMany relationship with POST', async function (assert) {
       assert.expect(5);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       }) as Record;
@@ -560,7 +563,7 @@ module('JSONAPISource - pushable', function (hooks) {
     test('#push - can remove a relationship with DELETE', async function (assert) {
       assert.expect(4);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       }) as Record;
@@ -595,7 +598,7 @@ module('JSONAPISource - pushable', function (hooks) {
     test('#push - can update a hasOne relationship with PATCH', async function (assert) {
       assert.expect(5);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       }) as Record;
@@ -737,7 +740,7 @@ module('JSONAPISource - pushable', function (hooks) {
     test('#push - can replace a hasMany relationship with PATCH', async function (assert) {
       assert.expect(5);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       }) as Record;
@@ -857,7 +860,7 @@ module('JSONAPISource - pushable', function (hooks) {
     test('#push - request can timeout', async function (assert) {
       assert.expect(2);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345',
         attributes: {
@@ -887,7 +890,7 @@ module('JSONAPISource - pushable', function (hooks) {
     test('#push - allowed timeout can be specified per-request', async function (assert) {
       assert.expect(2);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345',
         attributes: {
@@ -925,7 +928,7 @@ module('JSONAPISource - pushable', function (hooks) {
     test('#push - fetch can reject with a NetworkError', async function (assert) {
       assert.expect(2);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345',
         attributes: {
@@ -950,7 +953,7 @@ module('JSONAPISource - pushable', function (hooks) {
     test('#push - response can trigger a ClientError', async function (assert) {
       assert.expect(3);
 
-      let planet = resourceSerializer.deserialize({
+      const planet: Record = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345',
         attributes: {
@@ -994,13 +997,13 @@ module('JSONAPISource - pushable', function (hooks) {
 
       let transformCount = 0;
 
-      let planet = {
+      const planet: Record = {
         type: 'planet',
         id: 'jupiter',
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       };
 
-      let addPlanetOp = {
+      const addPlanetOp: AddRecordOperation = {
         op: 'addRecord',
         record: {
           type: 'planet',
@@ -1012,7 +1015,7 @@ module('JSONAPISource - pushable', function (hooks) {
         }
       };
 
-      source.on('transform', (transform: Transform) => {
+      source.on('transform', (transform: RecordTransform) => {
         transformCount++;
 
         if (transformCount === 1) {

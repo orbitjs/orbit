@@ -9,7 +9,7 @@ import {
   RemoveRecordOperation,
   AddRecordOperation,
   ReplaceAttributeOperation
-} from '@orbit/data';
+} from '@orbit/records';
 import {
   AddResourceAtomicOperation,
   AddToRelatedResourcesAtomicOperation,
@@ -20,7 +20,7 @@ import {
   ResourceAtomicOperation,
   UpdateResourceAtomicOperation
 } from '../resource-operations';
-import { Resource, ResourceIdentity } from '../resources';
+import { Resource, ResourceIdentity } from '../resource-document';
 import { JSONAPIBaseSerializer } from './jsonapi-base-serializer';
 
 export class JSONAPIAtomicOperationSerializer extends JSONAPIBaseSerializer<

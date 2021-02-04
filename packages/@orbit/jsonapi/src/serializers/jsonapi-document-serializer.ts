@@ -1,5 +1,6 @@
-import { Record } from '@orbit/data';
-import { RecordDocument, Resource, ResourceDocument } from '../resources';
+import { Record } from '@orbit/records';
+import { Resource, ResourceDocument } from '../resource-document';
+import { RecordDocument } from '../record-document';
 import { JSONAPIBaseSerializer } from './jsonapi-base-serializer';
 
 export interface JSONAPIDocumentDeserializationOptions {

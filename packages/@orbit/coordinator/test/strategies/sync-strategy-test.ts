@@ -1,18 +1,16 @@
 import { Coordinator } from '../../src/coordinator';
 import { SyncStrategy } from '../../src/strategies/sync-strategy';
-import {
-  Source,
-  Transform,
-  TransformBuilder,
-  syncable,
-  buildTransform
-} from '@orbit/data';
+import { Source, Transform, syncable, buildTransform } from '@orbit/data';
 import { Exception } from '@orbit/core';
+import {
+  RecordOperation,
+  RecordTransformBuilder
+} from '../support/record-data';
 
 const { module, test } = QUnit;
 
 module('SyncStrategy', function (hooks) {
-  const t = new TransformBuilder();
+  const t = new RecordTransformBuilder();
   const tA = buildTransform(
     [t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })],
     undefined,
@@ -117,7 +115,9 @@ module('SyncStrategy', function (hooks) {
       strategies: [strategy]
     });
 
-    s2._sync = async function (transform: Transform): Promise<void> {
+    s2._sync = async function (
+      transform: Transform<RecordOperation>
+    ): Promise<void> {
       assert.strictEqual(
         transform,
         tA,
@@ -136,7 +136,7 @@ module('SyncStrategy', function (hooks) {
     strategy = new SyncStrategy({
       source: 's1',
       target: 's2',
-      filter(transform: Transform): boolean {
+      filter(transform: Transform<RecordOperation>): boolean {
         assert.ok(this instanceof SyncStrategy, 'context is the strategy');
         return transform === tB;
       }
@@ -147,7 +147,9 @@ module('SyncStrategy', function (hooks) {
       strategies: [strategy]
     });
 
-    s2._sync = async function (transform: Transform): Promise<void> {
+    s2._sync = async function (
+      transform: Transform<RecordOperation>
+    ): Promise<void> {
       assert.strictEqual(
         transform,
         tB,
@@ -167,7 +169,7 @@ module('SyncStrategy', function (hooks) {
       source: 's1',
       target: 's2',
       blocking: true,
-      catch(e: Exception, transform: Transform) {
+      catch(e: Exception, transform: Transform<RecordOperation>) {
         assert.equal(e.message, ':(', 'error matches');
         assert.strictEqual(
           transform,
@@ -183,7 +185,9 @@ module('SyncStrategy', function (hooks) {
       strategies: [strategy]
     });
 
-    s2._sync = async function (transform: Transform): Promise<void> {
+    s2._sync = async function (
+      transform: Transform<RecordOperation>
+    ): Promise<void> {
       assert.strictEqual(
         transform,
         tA,
@@ -206,7 +210,7 @@ module('SyncStrategy', function (hooks) {
       source: 's1',
       target: 's2',
       blocking: true,
-      catch(e: Exception, transform: Transform) {
+      catch(e: Exception, transform: Transform<RecordOperation>) {
         assert.equal(e.message, ':(', 'error matches');
         assert.strictEqual(
           transform,
@@ -223,7 +227,7 @@ module('SyncStrategy', function (hooks) {
       strategies: [strategy]
     });
 
-    s2._sync = function (transform: Transform): Promise<void> {
+    s2._sync = function (transform: Transform<RecordOperation>): Promise<void> {
       assert.strictEqual(
         transform,
         tA,

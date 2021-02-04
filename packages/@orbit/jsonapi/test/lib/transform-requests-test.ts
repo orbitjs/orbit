@@ -1,4 +1,10 @@
-import { KeyMap, Schema, TransformBuilder, buildTransform } from '@orbit/data';
+import {
+  RecordKeyMap,
+  RecordOperation,
+  RecordSchema,
+  RecordTransformBuilder
+} from '@orbit/records';
+import { buildTransform } from '@orbit/data';
 import {
   getTransformRequests,
   TransformRequestProcessors
@@ -12,16 +18,16 @@ const { module, test } = QUnit;
 
 module('TransformRequests', function (/* hooks */) {
   module('getTransformRequests', function (hooks) {
-    let keyMap: KeyMap;
-    let schema: Schema;
+    let keyMap: RecordKeyMap;
+    let schema: RecordSchema;
     let requestProcessor: JSONAPIRequestProcessor;
-    let tb: TransformBuilder;
+    let tb: RecordTransformBuilder;
     let fetchStub: SinonStub;
 
     hooks.beforeEach(() => {
       fetchStub = sinon.stub(self, 'fetch');
 
-      schema = new Schema({
+      schema = new RecordSchema({
         models: {
           planet: {
             attributes: {
@@ -61,14 +67,14 @@ module('TransformRequests', function (/* hooks */) {
         }
       });
 
-      keyMap = new KeyMap();
+      keyMap = new RecordKeyMap();
       requestProcessor = new JSONAPIRequestProcessor({
         keyMap,
         schema,
         sourceName: 'foo'
       });
 
-      tb = new TransformBuilder();
+      tb = new RecordTransformBuilder();
     });
 
     hooks.afterEach(() => {
@@ -99,7 +105,7 @@ module('TransformRequests', function (/* hooks */) {
         attributes: { name: 'Jupiter' }
       };
 
-      const t = buildTransform(tb.removeRecord(jupiter));
+      const t = buildTransform<RecordOperation>(tb.removeRecord(jupiter));
 
       assert.deepEqual(getTransformRequests(requestProcessor, t), [
         {
@@ -249,7 +255,7 @@ module('TransformRequests', function (/* hooks */) {
     });
 
     test('addRecord + removeRecord => []', function (assert) {
-      const t = buildTransform([
+      const t = buildTransform<RecordOperation>([
         tb.addRecord({
           type: 'planet',
           id: 'jupiter',
@@ -262,7 +268,7 @@ module('TransformRequests', function (/* hooks */) {
     });
 
     test('removeRecord + removeRecord => [removeRecord]', function (assert) {
-      const t = buildTransform([
+      const t = buildTransform<RecordOperation>([
         tb.removeRecord({ type: 'planet', id: 'jupiter' }),
         tb.removeRecord({ type: 'planet', id: 'jupiter' })
       ]);
@@ -276,7 +282,7 @@ module('TransformRequests', function (/* hooks */) {
     });
 
     test('addRecord + replaceAttribute => [addRecord]', function (assert) {
-      const t = buildTransform([
+      const t = buildTransform<RecordOperation>([
         tb.addRecord({
           type: 'planet',
           id: 'jupiter',
@@ -302,7 +308,7 @@ module('TransformRequests', function (/* hooks */) {
     });
 
     test('replaceAttribute + replaceAttribute => [updateRecord]', function (assert) {
-      const t = buildTransform([
+      const t = buildTransform<RecordOperation>([
         tb.replaceAttribute({ type: 'planet', id: 'jupiter' }, 'name', 'Earth'),
         tb.replaceAttribute(
           { type: 'planet', id: 'jupiter' },
@@ -328,7 +334,7 @@ module('TransformRequests', function (/* hooks */) {
       const io = { type: 'moon', id: 'io' };
       const europa = { type: 'moon', id: 'europa' };
 
-      const t = buildTransform([
+      const t = buildTransform<RecordOperation>([
         tb.addToRelatedRecords(jupiter, 'moons', io),
         tb.addToRelatedRecords(jupiter, 'moons', europa)
       ]);
@@ -344,27 +350,29 @@ module('TransformRequests', function (/* hooks */) {
     });
 
     test('meta and links', async function (assert) {
-      fetchStub.withArgs('/planets').returns(
-        jsonapiResponse(201, {
-          data: {
-            type: 'planet',
-            id: 'jupiter',
-            attributes: { name: 'Jupiter' }
-          },
-          meta: {
-            important: true
-          },
-          links: {
-            self: 'https://api.example.com/self',
-            related: {
-              href: 'https://api.example.com/related',
-              meta: {
-                important: true
-              }
+      const responseJson = {
+        data: {
+          type: 'planet',
+          id: 'jupiter',
+          attributes: { name: 'Jupiter' }
+        },
+        meta: {
+          important: true
+        },
+        links: {
+          self: 'https://api.example.com/self',
+          related: {
+            href: 'https://api.example.com/related',
+            meta: {
+              important: true
             }
           }
-        })
-      );
+        }
+      };
+
+      fetchStub
+        .withArgs('/planets')
+        .returns(jsonapiResponse(201, responseJson));
 
       const jupiter = {
         type: 'planet',
@@ -380,28 +388,17 @@ module('TransformRequests', function (/* hooks */) {
         request
       );
 
-      assert.deepEqual(response, {
-        meta: {
-          important: true
+      assert.deepEqual(response.data, {
+        attributes: {
+          name: 'Jupiter'
         },
-        links: {
-          self: 'https://api.example.com/self',
-          related: {
-            href: 'https://api.example.com/related',
-            meta: {
-              important: true
-            }
-          }
-        },
-        primaryData: {
-          attributes: {
-            name: 'Jupiter'
-          },
-          id: 'jupiter',
-          type: 'planet'
-        },
-        transforms: []
+        id: 'jupiter',
+        type: 'planet'
       });
+
+      assert.deepEqual(response.details?.document, responseJson);
+
+      assert.deepEqual(response.transforms, []);
     });
   });
 });

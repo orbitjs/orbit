@@ -1,25 +1,25 @@
 import {
-  Schema,
-  SchemaSettings,
-  KeyMap,
+  RecordSchema,
+  RecordSchemaSettings,
+  RecordKeyMap,
   ReplaceRelatedRecordOperation,
   ReplaceRelatedRecordsOperation,
   AddToRelatedRecordsOperation,
   RemoveFromRelatedRecordsOperation,
   RemoveRecordOperation,
   UpdateRecordOperation
-} from '@orbit/data';
+} from '@orbit/records';
 import { SyncCacheIntegrityProcessor } from '../../src/operation-processors/sync-cache-integrity-processor';
 import { ExampleSyncRecordCache } from '../support/example-sync-record-cache';
 
 const { module, test } = QUnit;
 
 module('CacheIntegrityProcessor', function (hooks) {
-  let schema: Schema;
+  let schema: RecordSchema;
   let cache: ExampleSyncRecordCache;
   let processor: SyncCacheIntegrityProcessor;
 
-  const schemaDefinition: SchemaSettings = {
+  const schemaDefinition: RecordSchemaSettings = {
     models: {
       planet: {
         attributes: {
@@ -64,8 +64,8 @@ module('CacheIntegrityProcessor', function (hooks) {
   const humanId = { type: 'inhabitant', id: 'human' };
 
   hooks.beforeEach(function () {
-    let keyMap = new KeyMap();
-    schema = new Schema(schemaDefinition);
+    let keyMap = new RecordKeyMap();
+    schema = new RecordSchema(schemaDefinition);
     cache = new ExampleSyncRecordCache({
       schema,
       keyMap,

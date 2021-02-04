@@ -7,11 +7,14 @@ import {
   RecordIdentity,
   RecordOperation,
   RelationshipDefinition,
-  Schema
-} from '@orbit/data';
+  RecordSchema
+} from '@orbit/records';
 import { getRelationshipDef } from './schema-utils';
 
-export function recordAdded(schema: Schema, record: Record): RecordOperation[] {
+export function recordAdded(
+  schema: RecordSchema,
+  record: Record
+): RecordOperation[] {
   const ops: RecordOperation[] = [];
 
   if (record.relationships) {
@@ -46,7 +49,7 @@ export function recordAdded(schema: Schema, record: Record): RecordOperation[] {
 }
 
 export function relatedRecordAdded(
-  schema: Schema,
+  schema: RecordSchema,
   record: RecordIdentity,
   relationship: string,
   relatedRecord: RecordIdentity
@@ -69,7 +72,7 @@ export function relatedRecordAdded(
 }
 
 export function relatedRecordRemoved(
-  schema: Schema,
+  schema: RecordSchema,
   record: RecordIdentity,
   relationship: string,
   relatedRecord: RecordIdentity,
@@ -93,7 +96,7 @@ export function relatedRecordRemoved(
 }
 
 export function relatedRecordReplaced(
-  schema: Schema,
+  schema: RecordSchema,
   record: RecordIdentity,
   relationship: string,
   relatedRecord: RecordIdentity | null,
@@ -135,7 +138,7 @@ export function relatedRecordReplaced(
 }
 
 export function relatedRecordsReplaced(
-  schema: Schema,
+  schema: RecordSchema,
   record: RecordIdentity,
   relationship: string,
   relatedRecords: RecordIdentity[],
@@ -174,7 +177,7 @@ export function relatedRecordsReplaced(
 }
 
 export function recordRemoved(
-  schema: Schema,
+  schema: RecordSchema,
   record?: Record
 ): RecordOperation[] {
   const ops: RecordOperation[] = [];
@@ -211,7 +214,7 @@ export function recordRemoved(
 }
 
 export function recordUpdated(
-  schema: Schema,
+  schema: RecordSchema,
   record: Record,
   currentRecord?: Record
 ): RecordOperation[] {
@@ -267,7 +270,7 @@ export function recordUpdated(
 }
 
 function addRelatedRecordsOps(
-  schema: Schema,
+  schema: RecordSchema,
   record: RecordIdentity,
   relationshipDef: RelationshipDefinition,
   relatedRecords: RecordIdentity[]
@@ -282,7 +285,7 @@ function addRelatedRecordsOps(
 }
 
 export function removeRelatedRecordsOps(
-  schema: Schema,
+  schema: RecordSchema,
   record: RecordIdentity,
   relationshipDef: RelationshipDefinition,
   relatedRecords: RecordIdentity[]
@@ -301,7 +304,7 @@ export function removeRelatedRecordsOps(
 }
 
 export function addRelationshipOp(
-  schema: Schema,
+  schema: RecordSchema,
   record: RecordIdentity,
   relationship: string,
   relatedRecord: RecordIdentity
@@ -320,7 +323,7 @@ export function addRelationshipOp(
 }
 
 export function removeRelationshipOp(
-  schema: Schema,
+  schema: RecordSchema,
   record: RecordIdentity,
   relationship: string,
   relatedRecord: RecordIdentity

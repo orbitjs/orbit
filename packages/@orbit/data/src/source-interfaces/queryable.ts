@@ -2,6 +2,15 @@ import { Orbit, settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Query, QueryOrExpressions, buildQuery } from '../query';
 import { Source, SourceClass } from '../source';
 import { RequestOptions } from '../request';
+import {
+  DataOrFullResponse,
+  NamedFullResponse,
+  ResponseHints,
+  FullResponse,
+  mapNamedFullResponses
+} from '../response';
+import { Operation } from '../operation';
+import { QueryExpression } from '../query-expression';
 
 const { assert } = Orbit;
 
@@ -18,18 +27,27 @@ export function isQueryable(source: Source): boolean {
  * A source decorated as `@queryable` must also implement the `Queryable`
  * interface.
  */
-export interface Queryable {
+export interface Queryable<
+  Data,
+  Details,
+  O extends Operation,
+  QE extends QueryExpression,
+  QueryBuilder
+> {
   /**
    * The `query` method accepts a `Query` instance. It evaluates the query and
    * returns a promise that resolves to a static set of results.
    */
-  query(
-    queryOrExpressions: QueryOrExpressions,
-    options?: RequestOptions,
+  query<RO extends RequestOptions>(
+    queryOrExpressions: QueryOrExpressions<QE, QueryBuilder>,
+    options?: RO,
     id?: string
-  ): Promise<unknown>;
+  ): Promise<DataOrFullResponse<Data, Details, O, RO>>;
 
-  _query(query: Query, hints?: unknown): Promise<unknown>;
+  _query(
+    query: Query<QE>,
+    hints?: ResponseHints<Data, Details>
+  ): Promise<FullResponse<Data, Details, O>>;
 }
 
 /**
@@ -55,8 +73,8 @@ export interface Queryable {
  * the processing required for `query` and returns a promise that resolves to a
  * set of results.
  */
-export function queryable(Klass: SourceClass): void {
-  let proto = Klass.prototype;
+export function queryable(Klass: unknown): void {
+  let proto = (Klass as SourceClass).prototype;
 
   if (isQueryable(proto)) {
     return;
@@ -69,11 +87,11 @@ export function queryable(Klass: SourceClass): void {
 
   proto[QUERYABLE] = true;
 
-  proto.query = async function (
-    queryOrExpressions: QueryOrExpressions,
-    options?: RequestOptions,
+  proto.query = async function <RO extends RequestOptions>(
+    queryOrExpressions: QueryOrExpressions<QueryExpression, unknown>,
+    options?: RO,
     id?: string
-  ): Promise<any> {
+  ): Promise<DataOrFullResponse<unknown, unknown, Operation, RO>> {
     await this.activated;
     const query = buildQuery(
       queryOrExpressions,
@@ -81,16 +99,32 @@ export function queryable(Klass: SourceClass): void {
       id,
       this.queryBuilder
     );
-    return this._enqueueRequest('query', query);
+    const response = await this._enqueueRequest('query', query);
+    return options?.fullResponse ? response : response.data;
   };
 
-  proto.__query__ = async function (query: Query): Promise<any> {
+  proto.__query__ = async function (
+    query: Query<QueryExpression>
+  ): Promise<FullResponse<unknown, unknown, Operation>> {
     try {
-      const hints: any = {};
-
-      await fulfillInSeries(this, 'beforeQuery', query, hints);
-      let result = await this._query(query, hints);
-      return settleInSeries(this, 'query', query, result).then(() => result);
+      const hints: ResponseHints<unknown, unknown> = {};
+      const otherResponses = (await fulfillInSeries(
+        this,
+        'beforeQuery',
+        query,
+        hints
+      )) as (NamedFullResponse<unknown, unknown, Operation> | undefined)[];
+      const fullResponse = await this._query(query, hints);
+      if (query.options?.includeSources) {
+        fullResponse.sources = otherResponses
+          ? mapNamedFullResponses<unknown, unknown, Operation>(otherResponses)
+          : {};
+      }
+      if (fullResponse.transforms?.length > 0) {
+        await this.transformed(fullResponse.transforms);
+      }
+      await settleInSeries(this, 'query', query, fullResponse);
+      return fullResponse;
     } catch (error) {
       await settleInSeries(this, 'queryFail', query, error);
       throw error;

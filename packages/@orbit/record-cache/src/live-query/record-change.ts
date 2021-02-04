@@ -3,7 +3,7 @@ import {
   cloneRecordIdentity,
   RecordIdentity,
   RecordOperation
-} from '@orbit/data';
+} from '@orbit/records';
 
 export interface RecordChange extends RecordIdentity {
   keys: string[];

@@ -1,23 +1,22 @@
-import { Schema, Query } from '@orbit/data';
-import { QueryResult } from '../query-result';
+import { RecordSchema, RecordQuery, RecordQueryResult } from '@orbit/records';
 import { AsyncRecordCache } from '../async-record-cache';
 import { LiveQuery, LiveQuerySettings } from './live-query';
 
 export interface AsyncLiveQueryUpdateSettings {
   cache: AsyncRecordCache;
-  query: Query;
+  query: RecordQuery;
 }
 
 export class AsyncLiveQueryUpdate {
   private _cache: AsyncRecordCache;
-  private _query: Query;
+  private _query: RecordQuery;
 
   constructor(settings: AsyncLiveQueryUpdateSettings) {
     this._cache = settings.cache;
     this._query = settings.query;
   }
 
-  query(): Promise<QueryResult> {
+  query(): Promise<RecordQueryResult> {
     return this._cache.query(this._query);
   }
 }
@@ -29,7 +28,7 @@ export interface AsyncLiveQuerySettings extends LiveQuerySettings {
 export class AsyncLiveQuery extends LiveQuery {
   protected cache: AsyncRecordCache;
 
-  protected get schema(): Schema {
+  protected get schema(): RecordSchema {
     return this.cache.schema;
   }
 
@@ -45,7 +44,7 @@ export class AsyncLiveQuery extends LiveQuery {
     this.cache = settings.cache;
   }
 
-  async query(): Promise<QueryResult> {
+  async query(): Promise<RecordQueryResult> {
     return this._update.query();
   }
 

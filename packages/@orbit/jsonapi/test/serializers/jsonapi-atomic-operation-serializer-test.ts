@@ -1,5 +1,5 @@
 import { Dict } from '@orbit/utils';
-import { KeyMap, ModelDefinition, Schema } from '@orbit/data';
+import { RecordKeyMap, ModelDefinition, RecordSchema } from '@orbit/records';
 import { JSONAPIAtomicOperationSerializer } from '../../src/serializers/jsonapi-atomic-operation-serializer';
 import {
   Serializer,
@@ -50,7 +50,7 @@ module('JSONAPIOperationSerializer', function (hooks) {
       let serializer: JSONAPIAtomicOperationSerializer;
 
       hooks.beforeEach(function () {
-        const schema = new Schema({ models: modelDefinitions });
+        const schema = new RecordSchema({ models: modelDefinitions });
         const serializerFor = buildJSONAPISerializerFor({ schema });
         serializer = new JSONAPIAtomicOperationSerializer({
           schema,
@@ -536,7 +536,7 @@ module('JSONAPIOperationSerializer', function (hooks) {
       let serializer: JSONAPIAtomicOperationSerializer;
 
       hooks.beforeEach(function () {
-        let schema = new Schema({ models: modelDefinitions });
+        let schema = new RecordSchema({ models: modelDefinitions });
         const serializerClassFor = buildSerializerClassFor({
           distance: DistanceSerializer
         });
@@ -692,11 +692,11 @@ module('JSONAPIOperationSerializer', function (hooks) {
       }
     };
     let serializer: JSONAPIAtomicOperationSerializer;
-    let keyMap: KeyMap;
+    let keyMap: RecordKeyMap;
 
     hooks.beforeEach(function () {
-      keyMap = new KeyMap();
-      const schema = new Schema({ models: modelDefinitions });
+      keyMap = new RecordKeyMap();
+      const schema = new RecordSchema({ models: modelDefinitions });
       const serializerFor = buildJSONAPISerializerFor({ keyMap, schema });
       serializer = new JSONAPIAtomicOperationSerializer({
         keyMap,

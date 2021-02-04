@@ -1,4 +1,4 @@
-import { Record, RecordIdentity, RecordOperation } from '@orbit/data';
+import { Record, RecordIdentity, RecordOperation } from '@orbit/records';
 import { SyncOperationProcessor } from '../sync-operation-processor';
 import {
   getInverseRelationship,

@@ -1,6 +1,6 @@
-import { Resource } from './resources';
+import { Resource } from './resource-document';
 import { Dict } from '@orbit/utils';
-import { Link, RecordOperation, Record } from '@orbit/data';
+import { Link, RecordOperation, Record } from '@orbit/records';
 
 export interface ResourceAtomicOperation {
   op: 'get' | 'add' | 'update' | 'remove';
@@ -85,23 +85,23 @@ export interface ReplaceRelatedResourcesAtomicOperation
 export interface ResourceAtomicOperationsDocument {
   'atomic:operations': ResourceAtomicOperation[];
   links?: Dict<Link>;
-  meta?: Dict<any>;
+  meta?: Dict<unknown>;
 }
 
 export interface ResourceAtomicResultsDocument {
   'atomic:results': Resource[];
   links?: Dict<Link>;
-  meta?: Dict<any>;
+  meta?: Dict<unknown>;
 }
 
 export interface RecordOperationsDocument {
   operations: RecordOperation[];
   links?: Dict<Link>;
-  meta?: Dict<any>;
+  meta?: Dict<unknown>;
 }
 
 export interface RecordResultsDocument {
   results: Record[];
   links?: Dict<Link>;
-  meta?: Dict<any>;
+  meta?: Dict<unknown>;
 }

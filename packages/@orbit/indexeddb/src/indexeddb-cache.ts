@@ -4,7 +4,7 @@ import {
   deserializeRecordIdentity,
   Record,
   RecordIdentity
-} from '@orbit/data';
+} from '@orbit/records';
 import {
   RecordRelationshipIdentity,
   AsyncRecordCache,
@@ -397,7 +397,9 @@ export class IndexedDBCache extends AsyncRecordCache {
     }
   }
 
-  removeRecordAsync(recordIdentity: RecordIdentity): Promise<Record> {
+  removeRecordAsync(
+    recordIdentity: RecordIdentity
+  ): Promise<Record | undefined> {
     return new Promise((resolve, reject) => {
       if (!this._db) return reject(DB_NOT_OPEN);
 
@@ -415,7 +417,7 @@ export class IndexedDBCache extends AsyncRecordCache {
 
       request.onsuccess = function (/* event */) {
         // console.log('success - removeRecord');
-        resolve();
+        resolve(undefined);
       };
     });
   }

@@ -1,9 +1,9 @@
-import { Record } from '@orbit/data';
+import { Record } from '@orbit/records';
 import {
   RecordResultsDocument,
   ResourceAtomicResultsDocument
 } from '../resource-operations';
-import { Resource } from '../resources';
+import { Resource } from '../resource-document';
 import { JSONAPIBaseSerializer } from './jsonapi-base-serializer';
 
 export class JSONAPIAtomicResultsDocumentSerializer extends JSONAPIBaseSerializer<

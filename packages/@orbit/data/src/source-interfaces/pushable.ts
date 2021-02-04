@@ -2,6 +2,14 @@ import { Orbit, settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Transform, TransformOrOperations, buildTransform } from '../transform';
 import { RequestOptions } from '../request';
+import {
+  FullResponse,
+  NamedFullResponse,
+  TransformsOrFullResponse,
+  mapNamedFullResponses,
+  ResponseHints
+} from '../response';
+import { Operation } from '../operation';
 
 const { assert } = Orbit;
 
@@ -9,10 +17,6 @@ const PUSHABLE = '__pushable__';
 
 /**
  * Has a source been decorated as `@pushable`?
- *
- * @export
- * @param {Source} source
- * @returns
  */
 export function isPushable(source: Source): boolean {
   return !!(source as { [PUSHABLE]?: boolean })[PUSHABLE];
@@ -22,20 +26,28 @@ export function isPushable(source: Source): boolean {
  * A source decorated as `@pushable` must also implement the `Pushable`
  * interface.
  */
-export interface Pushable {
+export interface Pushable<
+  Data,
+  Details,
+  O extends Operation,
+  TransformBuilder
+> {
   /**
    * The `push` method accepts a `Transform` instance as an argument and returns
    * a promise that resolves to an array of `Transform` instances that are
    * applied as a result. In other words, `push` captures the direct results
    * _and_ side effects of applying a `Transform` to a source.
    */
-  push(
-    transformOrOperations: TransformOrOperations,
-    options?: RequestOptions,
+  push<RO extends RequestOptions>(
+    transformOrOperations: TransformOrOperations<O, TransformBuilder>,
+    options?: RO,
     id?: string
-  ): Promise<Transform[]>;
+  ): Promise<TransformsOrFullResponse<Data, Details, O, RO>>;
 
-  _push(transform: Transform, hints?: unknown): Promise<Transform[]>;
+  _push(
+    transform: Transform<O>,
+    hints?: ResponseHints<Data, Details>
+  ): Promise<FullResponse<Data, Details, O>>;
 }
 
 /**
@@ -62,8 +74,8 @@ export interface Pushable {
  * the processing required for `push` and returns a promise that resolves to an
  * array of `Transform` instances.
  */
-export function pushable(Klass: SourceClass): void {
-  let proto = Klass.prototype;
+export function pushable(Klass: unknown): void {
+  let proto = (Klass as SourceClass).prototype;
 
   if (isPushable(proto)) {
     return;
@@ -76,11 +88,11 @@ export function pushable(Klass: SourceClass): void {
 
   proto[PUSHABLE] = true;
 
-  proto.push = async function (
-    transformOrOperations: TransformOrOperations,
-    options?: RequestOptions,
+  proto.push = async function <RO extends RequestOptions>(
+    transformOrOperations: TransformOrOperations<Operation, unknown>,
+    options?: RO,
     id?: string
-  ): Promise<Transform[]> {
+  ): Promise<TransformsOrFullResponse<unknown, unknown, Operation, RO>> {
     await this.activated;
     const transform = buildTransform(
       transformOrOperations,
@@ -90,23 +102,47 @@ export function pushable(Klass: SourceClass): void {
     );
 
     if (this.transformLog.contains(transform.id)) {
-      return [];
+      const transforms: Transform<Operation>[] = [];
+      const response = options?.fullResponse ? { transforms } : transforms;
+      return response as TransformsOrFullResponse<
+        unknown,
+        unknown,
+        Operation,
+        RO
+      >;
+    } else {
+      const response = await this._enqueueRequest('push', transform);
+      return options?.fullResponse ? response : response.transforms || [];
     }
-
-    return this._enqueueRequest('push', transform);
   };
 
-  proto.__push__ = async function (transform: Transform): Promise<Transform[]> {
+  proto.__push__ = async function (
+    transform: Transform<Operation>
+  ): Promise<FullResponse<unknown, unknown, Operation>> {
     if (this.transformLog.contains(transform.id)) {
-      return [];
+      return { transforms: [] };
     }
 
     try {
-      const hints: any = {};
-      await fulfillInSeries(this, 'beforePush', transform, hints);
-      let result = await this._push(transform, hints);
-      await settleInSeries(this, 'push', transform, result);
-      return result;
+      const options = transform.options || {};
+      const hints: ResponseHints<unknown, unknown> = {};
+      const otherResponses = (await fulfillInSeries(
+        this,
+        'beforePush',
+        transform,
+        hints
+      )) as (NamedFullResponse<unknown, unknown, Operation> | undefined)[];
+      const fullResponse = await this._push(transform, hints);
+      if (options.includeSources) {
+        fullResponse.sources = otherResponses
+          ? mapNamedFullResponses<unknown, unknown, Operation>(otherResponses)
+          : {};
+      }
+      if (fullResponse.transforms?.length > 0) {
+        await this.transformed(fullResponse.transforms);
+      }
+      await settleInSeries(this, 'push', transform, fullResponse);
+      return fullResponse;
     } catch (error) {
       await settleInSeries(this, 'pushFail', transform, error);
       throw error;

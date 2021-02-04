@@ -1,10 +1,12 @@
 import { Coordinator, ActivationOptions } from '../coordinator';
 import { Strategy, StrategyOptions } from '../strategy';
-import { Source, Transform } from '@orbit/data';
+import { Operation, Source, Transform } from '@orbit/data';
 import { Dict } from '@orbit/utils';
 
 export class LogTruncationStrategy extends Strategy {
-  protected _transformListeners: Dict<(transform: Transform) => void> = {};
+  protected _transformListeners: Dict<
+    (transform: Transform<Operation>) => void
+  > = {};
 
   constructor(options: StrategyOptions = {}) {
     super({

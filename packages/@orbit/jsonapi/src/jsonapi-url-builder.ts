@@ -1,22 +1,22 @@
 import Orbit from '@orbit/core';
+import { QueryExpressionParseError } from '@orbit/data';
 import {
   AttributeFilterSpecifier,
   AttributeSortSpecifier,
   FilterSpecifier,
-  KeyMap,
+  RecordKeyMap,
   PageSpecifier,
-  QueryExpressionParseError,
   RelatedRecordFilterSpecifier,
   RelatedRecordsFilterSpecifier,
   SortSpecifier
-} from '@orbit/data';
+} from '@orbit/records';
 import { clone, Dict } from '@orbit/utils';
 import { JSONAPISerializer } from './jsonapi-serializer';
 import { Filter } from './lib/jsonapi-request-options';
 import { appendQueryParams } from './lib/query-params';
 import { SerializerForFn, StringSerializer } from '@orbit/serializers';
 import { JSONAPISerializers } from './serializers/jsonapi-serializers';
-import { ResourceIdentity } from './resources';
+import { ResourceIdentity } from './resource-document';
 import { JSONAPIResourceIdentitySerializer } from './serializers/jsonapi-resource-identity-serializer';
 import { JSONAPIResourceFieldSerializer } from './serializers/jsonapi-resource-field-serializer';
 
@@ -27,7 +27,7 @@ export interface JSONAPIURLBuilderSettings {
   namespace?: string;
   serializer?: JSONAPISerializer;
   serializerFor: SerializerForFn;
-  keyMap?: KeyMap;
+  keyMap?: RecordKeyMap;
 }
 
 export class JSONAPIURLBuilder {
@@ -35,7 +35,7 @@ export class JSONAPIURLBuilder {
   namespace?: string;
   serializerFor: SerializerForFn;
   serializer?: JSONAPISerializer;
-  keyMap?: KeyMap;
+  keyMap?: RecordKeyMap;
 
   constructor(settings: JSONAPIURLBuilderSettings) {
     this.host = settings.host;

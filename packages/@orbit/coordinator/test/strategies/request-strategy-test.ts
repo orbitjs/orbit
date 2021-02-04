@@ -3,22 +3,30 @@ import { RequestStrategy } from '../../src/strategies/request-strategy';
 import {
   Source,
   Transform,
-  TransformBuilder,
   pushable,
   updatable,
-  buildTransform
+  buildTransform,
+  FullResponse,
+  ResponseHints,
+  Operation
 } from '@orbit/data';
+import {
+  RecordData,
+  RecordOperation,
+  RecordResponse,
+  RecordTransformBuilder
+} from '../support/record-data';
 
 const { module, test } = QUnit;
 
 module('RequestStrategy', function (hooks) {
-  const t = new TransformBuilder();
-  const tA = buildTransform(
+  const t = new RecordTransformBuilder();
+  const tA = buildTransform<RecordOperation>(
     [t.addRecord({ type: 'planet', id: 'a', attributes: { name: 'a' } })],
     undefined,
     'a'
   );
-  const tB = buildTransform(
+  const tB = buildTransform<RecordOperation>(
     [t.addRecord({ type: 'planet', id: 'b', attributes: { name: 'b' } })],
     undefined,
     'b'
@@ -43,7 +51,7 @@ module('RequestStrategy', function (hooks) {
       source: 's1',
       target: 's2',
       on: 'update',
-      action: 'push'
+      action: 'update'
     });
 
     assert.ok(strategy);
@@ -54,7 +62,7 @@ module('RequestStrategy', function (hooks) {
     );
     assert.equal(
       strategy.name,
-      's1:update -> s2:push',
+      's1:update -> s2:update',
       'name is based on source names by default'
     );
   });
@@ -64,7 +72,7 @@ module('RequestStrategy', function (hooks) {
       source: 's1',
       target: 's2',
       on: 'update',
-      action: 'push'
+      action: 'update'
     });
 
     coordinator = new Coordinator({
@@ -84,7 +92,7 @@ module('RequestStrategy', function (hooks) {
       source: 's1',
       target: 's2',
       on: 'update',
-      action: 'push'
+      action: 'update'
     });
 
     coordinator = new Coordinator({
@@ -128,8 +136,8 @@ module('RequestStrategy', function (hooks) {
     strategy = new RequestStrategy({
       source: 's1',
       target: 's2',
-      on: 'update',
-      action: 'push'
+      on: 'beforeUpdate',
+      action: 'update'
     });
 
     coordinator = new Coordinator({
@@ -137,22 +145,32 @@ module('RequestStrategy', function (hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function (transform: Transform): Promise<any> {
+    s1._update = async function (
+      transform: Transform<RecordOperation>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
       assert.strictEqual(
         transform,
         tA,
-        'argument to _update is expected Transform'
+        'argument to s1._update is expected Transform'
       );
+      return { data: undefined };
     };
 
-    s2._push = async function (transform: Transform): Promise<Transform[]> {
-      assert.strictEqual(
+    s2._update = async function (
+      transform: Transform<RecordOperation>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
+      assert.deepEqual(
         transform,
-        tA,
-        'argument to _push is expected Transform'
+        {
+          ...tA,
+          options: {
+            fullResponse: true
+          }
+        },
+        'argument to s2._update is the same transform with `fullResponse: true` option'
       );
       assert.strictEqual(this, s2, 'context is that of the target');
-      return [];
+      return { transforms: [] };
     };
 
     await coordinator.activate();
@@ -162,11 +180,14 @@ module('RequestStrategy', function (hooks) {
   test('with `passHints: true` and `blocking: true`, will pass `hints` that result from applying the target action', async function (assert) {
     assert.expect(5);
 
+    const record = { type: 'planet', id: 'a' };
+    const details = { meta: { foo: 'bar' }, data: [record] };
+
     strategy = new RequestStrategy({
       source: 's1',
       target: 's2',
       on: 'beforeUpdate',
-      action: 'push',
+      action: 'update',
       blocking: true,
       passHints: true
     });
@@ -177,29 +198,39 @@ module('RequestStrategy', function (hooks) {
     });
 
     s1._update = async function (
-      transform: Transform,
-      hints: any
-    ): Promise<any> {
+      transform: Transform<RecordOperation>,
+      hints: ResponseHints<RecordData, RecordResponse>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
       assert.strictEqual(
         transform,
         tA,
-        'argument to _update is expected Transform'
+        'argument to s1._update is expected Transform'
       );
-      assert.deepEqual(hints.data, [tA], 'result is passed as a hint');
+      assert.deepEqual(
+        hints,
+        { data: [record], details },
+        'result is passed as a hint'
+      );
+      return { data: [] };
     };
 
-    s2._push = async function (
-      transform: Transform,
-      hints: any
-    ): Promise<Transform[]> {
-      assert.deepEqual(hints, {}, 'no hints are passed to `push`');
-      assert.strictEqual(
+    s2._update = async function (
+      transform: Transform<RecordOperation>,
+      hints: ResponseHints<RecordData, RecordResponse>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
+      assert.deepEqual(hints, {}, 'no hints are passed to `s2._update`');
+      assert.deepEqual(
         transform,
-        tA,
-        'argument to _push is expected Transform'
+        {
+          ...tA,
+          options: {
+            fullResponse: true
+          }
+        },
+        'argument to s2._update is the same transform with `fullResponse: true` option'
       );
       assert.strictEqual(this, s2, 'context is that of the target');
-      return [tA];
+      return { data: [record], details };
     };
 
     await coordinator.activate();
@@ -214,9 +245,9 @@ module('RequestStrategy', function (hooks) {
       target: 's2',
       on: 'update',
       action: 'push',
-      filter(transform): boolean {
+      filter(transform: any): boolean {
         assert.ok(this instanceof RequestStrategy, 'context is the strategy');
-        return transform === tB;
+        return transform.id === tB.id;
       }
     });
 
@@ -225,16 +256,27 @@ module('RequestStrategy', function (hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function (): Promise<any> {};
+    s1._update = async function (
+      transform: Transform<RecordOperation>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
+      return {};
+    };
 
-    s2._push = async function (transform: Transform): Promise<Transform[]> {
-      assert.strictEqual(
+    s2._push = async function (
+      transform: Transform<RecordOperation>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
+      assert.deepEqual(
         transform,
-        tB,
-        'argument to _push is expected Transform'
+        {
+          ...tB,
+          options: {
+            fullResponse: true
+          }
+        },
+        'argument to _push is the same transform with `fullResponse: true` option'
       );
       assert.strictEqual(this, s2, 'context is that of the target');
-      return [];
+      return { data: [] };
     };
 
     await coordinator.activate();
@@ -258,7 +300,7 @@ module('RequestStrategy', function (hooks) {
         assert.strictEqual(
           transform,
           tA,
-          'argument to _update is expected Transform'
+          'argument to `blocking` is the expected transform'
         );
         return false;
       }
@@ -269,22 +311,32 @@ module('RequestStrategy', function (hooks) {
       strategies: [strategy]
     });
 
-    s1._update = async function (transform: Transform): Promise<any> {
+    s1._update = async function (
+      transform: Transform<RecordOperation>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
       assert.strictEqual(
         transform,
         tA,
         'argument to _update is expected Transform'
       );
+      return {};
     };
 
-    s2._push = async function (transform: Transform): Promise<Transform[]> {
-      assert.strictEqual(
+    s2._push = async function (
+      transform: Transform<RecordOperation>
+    ): Promise<FullResponse<RecordData, RecordResponse, RecordOperation>> {
+      assert.deepEqual(
         transform,
-        tA,
-        'argument to _push is expected Transform'
+        {
+          ...tA,
+          options: {
+            fullResponse: true
+          }
+        },
+        'argument to `_push` is the expected transform with `fullResponse: true` option'
       );
       assert.strictEqual(this, s2, 'context is that of the target');
-      return [];
+      return { data: [] };
     };
 
     await coordinator.activate();
@@ -302,7 +354,11 @@ module('RequestStrategy', function (hooks) {
           this instanceof RequestStrategy,
           '`action` is bound to the strategy'
         );
-        assert.strictEqual(transform, tA, 'transform is passed to `action`');
+        assert.strictEqual(
+          transform,
+          tA,
+          'argument to `action` is the expected transform'
+        );
         assert.equal((e as Error).message, ':(', 'error is passed to `action`');
       },
       blocking(transform, e): boolean {
@@ -310,7 +366,11 @@ module('RequestStrategy', function (hooks) {
           this instanceof RequestStrategy,
           '`blocking` is bound to the strategy'
         );
-        assert.strictEqual(transform, tA, 'transform is passed to `blocking`');
+        assert.strictEqual(
+          transform,
+          tA,
+          'argument to `blocking` is the expected transform'
+        );
         assert.equal(
           (e as Error).message,
           ':(',
@@ -323,7 +383,11 @@ module('RequestStrategy', function (hooks) {
           this instanceof RequestStrategy,
           '`filter` is bound to the strategy'
         );
-        assert.strictEqual(transform, tA, 'transform is passed to `filter`');
+        assert.strictEqual(
+          transform,
+          tA,
+          'argument to `filter` is the expected transform'
+        );
         assert.equal((e as Error).message, ':(', 'error is passed to `filter`');
         return true;
       }
@@ -338,6 +402,4 @@ module('RequestStrategy', function (hooks) {
 
     s1.emit('updateFail', tA, new Error(':('));
   });
-
-  // TODO - test blocking option
 });

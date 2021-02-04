@@ -3,11 +3,11 @@ import {
   ModelNotFound,
   RelationshipDefinition,
   RelationshipNotFound,
-  Schema
-} from '@orbit/data';
+  RecordSchema
+} from '@orbit/records';
 
 export function getRelationshipDef(
-  schema: Schema,
+  schema: RecordSchema,
   type: string,
   relationship: string
 ): RelationshipDefinition {
@@ -19,7 +19,10 @@ export function getRelationshipDef(
   }
 }
 
-export function getModelDef(schema: Schema, type: string): ModelDefinition {
+export function getModelDef(
+  schema: RecordSchema,
+  type: string
+): ModelDefinition {
   const modelDef = schema.getModel(type);
   if (modelDef) {
     return modelDef;

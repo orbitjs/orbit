@@ -1,15 +1,15 @@
 import { Orbit, Evented } from '@orbit/core';
 import {
-  QueryExpression,
+  RecordQueryExpression,
   FindRecord,
   FindRecords,
   FindRelatedRecord,
   FindRelatedRecords,
   equalRecordIdentities,
-  Query,
-  Schema,
+  RecordQuery,
+  RecordSchema,
   RecordOperation
-} from '@orbit/data';
+} from '@orbit/records';
 
 import { RecordChange, recordOperationChange } from './record-change';
 
@@ -17,15 +17,15 @@ const { assert } = Orbit;
 
 export interface LiveQuerySettings {
   debounce: boolean;
-  query: Query;
+  query: RecordQuery;
 }
 
 export abstract class LiveQuery {
   readonly debounce: boolean;
   protected abstract get cache(): Evented;
-  protected abstract get schema(): Schema;
+  protected abstract get schema(): RecordSchema;
 
-  protected _query: Query;
+  protected _query: RecordQuery;
   protected _subscribe(onNext: () => void): () => void {
     const execute = this.debounce ? onceTick(onNext) : onNext;
 
@@ -67,7 +67,7 @@ export abstract class LiveQuery {
   }
 
   protected queryExpressionRelevantForChange(
-    expression: QueryExpression,
+    expression: RecordQueryExpression,
     change: RecordChange
   ): boolean {
     switch (expression.op) {

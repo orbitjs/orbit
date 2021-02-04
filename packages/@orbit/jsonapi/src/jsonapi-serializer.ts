@@ -1,13 +1,13 @@
 import { deepSet, Dict } from '@orbit/utils';
 import Orbit, { Assertion } from '@orbit/core';
 import {
-  Schema,
-  KeyMap,
+  RecordSchema,
+  RecordKeyMap,
   Record,
   RecordIdentity,
   RecordOperation,
   ModelDefinition
-} from '@orbit/data';
+} from '@orbit/records';
 import {
   Serializer,
   UnknownSerializer,
@@ -16,17 +16,17 @@ import {
   buildSerializerSettingsFor
 } from '@orbit/serializers';
 import {
-  RecordDocument,
   Resource,
   ResourceDocument,
   ResourceIdentity,
   ResourceRelationship
-} from './resources';
+} from './resource-document';
 import {
   ResourceAtomicOperation,
   RecordOperationsDocument
 } from './resource-operations';
 import { ResourceAtomicOperationsDocument } from './resource-operations';
+import { RecordDocument } from './record-document';
 import { JSONAPIResourceSerializer } from './serializers/jsonapi-resource-serializer';
 import { JSONAPIResourceIdentitySerializer } from './serializers/jsonapi-resource-identity-serializer';
 import { buildJSONAPISerializerFor } from './serializers/jsonapi-serializer-builder';
@@ -42,8 +42,8 @@ export interface JSONAPISerializationOptions {
 }
 
 export interface JSONAPISerializerSettings {
-  schema: Schema;
-  keyMap?: KeyMap;
+  schema: RecordSchema;
+  keyMap?: RecordKeyMap;
   serializers?: Dict<UnknownSerializer>;
 }
 
@@ -58,8 +58,8 @@ export class JSONAPISerializer
       JSONAPISerializationOptions,
       JSONAPISerializationOptions
     > {
-  protected _schema: Schema;
-  protected _keyMap?: KeyMap;
+  protected _schema: RecordSchema;
+  protected _keyMap?: RecordKeyMap;
   protected _serializerFor: SerializerForFn;
 
   constructor(settings: JSONAPISerializerSettings) {
@@ -94,11 +94,11 @@ export class JSONAPISerializer
     });
   }
 
-  get schema(): Schema {
+  get schema(): RecordSchema {
     return this._schema;
   }
 
-  get keyMap(): KeyMap | undefined {
+  get keyMap(): RecordKeyMap | undefined {
     return this._keyMap;
   }
 

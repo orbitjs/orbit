@@ -2,6 +2,14 @@ import { Orbit, settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Transform, TransformOrOperations, buildTransform } from '../transform';
 import { RequestOptions } from '../request';
+import {
+  DataOrFullResponse,
+  NamedFullResponse,
+  ResponseHints,
+  FullResponse,
+  mapNamedFullResponses
+} from '../response';
+import { Operation } from '../operation';
 
 const { assert } = Orbit;
 
@@ -18,19 +26,27 @@ export function isUpdatable(source: Source): boolean {
  * A source decorated as `@updatable` must also implement the `Updatable`
  * interface.
  */
-export interface Updatable {
+export interface Updatable<
+  Data,
+  Details,
+  O extends Operation,
+  TransformBuilder
+> {
   /**
    * The `update` method accepts a `Transform` instance or an array of
    * operations which it then converts to a `Transform` instance. The source
    * applies the update and returns a promise that resolves when complete.
    */
-  update(
-    transformOrOperations: TransformOrOperations,
-    options?: RequestOptions,
+  update<RO extends RequestOptions>(
+    transformOrOperations: TransformOrOperations<O, TransformBuilder>,
+    options?: RO,
     id?: string
-  ): Promise<unknown>;
+  ): Promise<DataOrFullResponse<Data, Details, O, RO>>;
 
-  _update(transform: Transform, hints?: unknown): Promise<unknown>;
+  _update(
+    transform: Transform<O>,
+    hints?: ResponseHints<Data, Details>
+  ): Promise<FullResponse<Data, Details, O>>;
 }
 
 /**
@@ -56,8 +72,8 @@ export interface Updatable {
  * the processing required for `update` and returns a promise that resolves when
  * complete.
  */
-export function updatable(Klass: SourceClass): void {
-  let proto = Klass.prototype;
+export function updatable(Klass: unknown): void {
+  let proto = (Klass as SourceClass).prototype;
 
   if (isUpdatable(proto)) {
     return;
@@ -70,11 +86,11 @@ export function updatable(Klass: SourceClass): void {
 
   proto[UPDATABLE] = true;
 
-  proto.update = async function (
-    transformOrOperations: TransformOrOperations,
+  proto.update = async function <RO extends RequestOptions>(
+    transformOrOperations: TransformOrOperations<Operation, unknown>,
     options?: RequestOptions,
     id?: string
-  ): Promise<any> {
+  ): Promise<DataOrFullResponse<unknown, unknown, Operation, RO>> {
     await this.activated;
     const transform = buildTransform(
       transformOrOperations,
@@ -84,23 +100,42 @@ export function updatable(Klass: SourceClass): void {
     );
 
     if (this.transformLog.contains(transform.id)) {
-      return Promise.resolve();
+      const transforms: Transform<Operation>[] = [];
+      const response = options?.fullResponse ? { transforms } : transforms;
+      return response as DataOrFullResponse<unknown, unknown, Operation, RO>;
+    } else {
+      const response = await this._enqueueRequest('update', transform);
+      return options?.fullResponse ? response : response.data;
     }
-
-    return this._enqueueRequest('update', transform);
   };
 
-  proto.__update__ = async function (transform: Transform): Promise<any> {
+  proto.__update__ = async function (
+    transform: Transform<Operation>
+  ): Promise<FullResponse<unknown, unknown, Operation>> {
     if (this.transformLog.contains(transform.id)) {
-      return;
+      return { transforms: [] };
     }
 
     try {
-      const hints: any = {};
-      await fulfillInSeries(this, 'beforeUpdate', transform, hints);
-      let result = await this._update(transform, hints);
-      await settleInSeries(this, 'update', transform, result);
-      return result;
+      const options = transform.options || {};
+      const hints: ResponseHints<unknown, unknown> = {};
+      const otherResponses = (await fulfillInSeries(
+        this,
+        'beforeUpdate',
+        transform,
+        hints
+      )) as (NamedFullResponse<unknown, unknown, Operation> | undefined)[];
+      const fullResponse = await this._update(transform, hints);
+      if (options.includeSources) {
+        fullResponse.sources = otherResponses
+          ? mapNamedFullResponses<unknown, unknown, Operation>(otherResponses)
+          : {};
+      }
+      if (fullResponse.transforms?.length > 0) {
+        await this.transformed(fullResponse.transforms);
+      }
+      await settleInSeries(this, 'update', transform, fullResponse);
+      return fullResponse;
     } catch (error) {
       await settleInSeries(this, 'updateFail', transform, error);
       throw error;

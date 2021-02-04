@@ -1,23 +1,23 @@
 import {
   equalRecordIdentities,
-  KeyMap,
+  RecordKeyMap,
   Record,
   RecordIdentity,
   recordsInclude,
   recordsIncludeAll,
-  Schema
-} from '@orbit/data';
+  RecordSchema
+} from '@orbit/records';
 import { ExampleAsyncRecordCache } from './support/example-async-record-cache';
 import { createSchemaWithRemoteKey } from './support/setup';
 
 const { module, test } = QUnit;
 
 module('AsyncRecordCache - patch', function (hooks) {
-  let schema: Schema, keyMap: KeyMap;
+  let schema: RecordSchema, keyMap: RecordKeyMap;
 
   hooks.beforeEach(function () {
     schema = createSchemaWithRemoteKey();
-    keyMap = new KeyMap();
+    keyMap = new RecordKeyMap();
   });
 
   test('#patch sets data and #records retrieves it', async function (assert) {
@@ -144,7 +144,7 @@ module('AsyncRecordCache - patch', function (hooks) {
       {
         data: [
           p1,
-          null // null because p2 didn't exist
+          undefined // p2 didn't exist
         ],
         inverse: [{ op: 'removeRecord', record: { type: 'planet', id: '1' } }]
       },
@@ -890,7 +890,7 @@ module('AsyncRecordCache - patch', function (hooks) {
   test('#patch removing model with a bi-directional hasOne', async function (assert) {
     assert.expect(5);
 
-    const hasOneSchema = new Schema({
+    const hasOneSchema = new RecordSchema({
       models: {
         one: {
           relationships: {
@@ -956,7 +956,7 @@ module('AsyncRecordCache - patch', function (hooks) {
   });
 
   test('#patch removes dependent records in a hasOne relationship', async function (assert) {
-    const dependentSchema = new Schema({
+    const dependentSchema = new RecordSchema({
       models: {
         planet: {
           relationships: {
@@ -1017,7 +1017,7 @@ module('AsyncRecordCache - patch', function (hooks) {
   });
 
   test('#patch removes dependent records in a hasMany relationship', async function (assert) {
-    const dependentSchema = new Schema({
+    const dependentSchema = new RecordSchema({
       models: {
         planet: {
           relationships: {
@@ -1078,7 +1078,7 @@ module('AsyncRecordCache - patch', function (hooks) {
   });
 
   test('#patch does not remove non-dependent records', async function (assert) {
-    const dependentSchema = new Schema({
+    const dependentSchema = new RecordSchema({
       models: {
         planet: {
           relationships: {
@@ -1224,7 +1224,7 @@ module('AsyncRecordCache - patch', function (hooks) {
     assert.deepEqual(
       result,
       {
-        data: [null],
+        data: [undefined],
         inverse: []
       },
       'nothing has changed so there are no inverse ops'
@@ -1442,7 +1442,7 @@ module('AsyncRecordCache - patch', function (hooks) {
             moons: { data: [{ type: 'moon', id: 'm1' }] }
           }
         },
-        null
+        undefined
       ],
       inverse: [
         tb

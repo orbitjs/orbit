@@ -1,8 +1,8 @@
 import { Dict, deepGet, isNone } from '@orbit/utils';
+import { QueryExpressionParseError } from '@orbit/data';
 import {
-  QueryExpression,
+  RecordQueryExpression,
   RecordNotFoundException,
-  QueryExpressionParseError,
   FindRecord,
   FindRecords,
   FindRelatedRecord,
@@ -10,30 +10,43 @@ import {
   SortSpecifier,
   AttributeSortSpecifier,
   Record,
-  RecordIdentity
-} from '@orbit/data';
-import { SyncRecordAccessor } from '../record-accessor';
-import { QueryResultData } from '../query-result';
+  RecordIdentity,
+  RecordQueryExpressionResult,
+  RecordQuery
+} from '@orbit/records';
+import { SyncRecordCache } from '../sync-record-cache';
 
 export interface SyncQueryOperator {
-  (cache: SyncRecordAccessor, expression: QueryExpression): QueryResultData;
+  (
+    cache: SyncRecordCache,
+    query: RecordQuery,
+    expression: RecordQueryExpression
+  ): RecordQueryExpressionResult;
 }
 
 export const SyncQueryOperators: Dict<SyncQueryOperator> = {
-  findRecord(cache: SyncRecordAccessor, expression: QueryExpression): Record {
+  findRecord(
+    cache: SyncRecordCache,
+    query: RecordQuery,
+    expression: RecordQueryExpression
+  ): Record | undefined {
     const { record } = expression as FindRecord;
     const currentRecord = cache.getRecordSync(record);
 
     if (!currentRecord) {
-      throw new RecordNotFoundException(record.type, record.id);
+      const options = cache.getQueryOptions(query, expression);
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(record.type, record.id);
+      }
     }
 
     return currentRecord;
   },
 
   findRecords(
-    cache: SyncRecordAccessor,
-    expression: QueryExpression
+    cache: SyncRecordCache,
+    query: RecordQuery,
+    expression: RecordQueryExpression
   ): Record[] {
     let exp = expression as FindRecords;
     let results = cache.getRecordsSync(exp.records || exp.type);
@@ -50,15 +63,21 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
   },
 
   findRelatedRecords(
-    cache: SyncRecordAccessor,
-    expression: QueryExpression
-  ): Record[] {
+    cache: SyncRecordCache,
+    query: RecordQuery,
+    expression: RecordQueryExpression
+  ): Record[] | undefined {
     const exp = expression as FindRelatedRecords;
     const { record, relationship } = exp;
     const relatedIds = cache.getRelatedRecordsSync(record, relationship);
     if (!relatedIds || relatedIds.length === 0) {
       if (!cache.getRecordSync(record)) {
-        throw new RecordNotFoundException(record.type, record.id);
+        const options = cache.getQueryOptions(query, expression);
+        if (options?.raiseNotFoundExceptions) {
+          throw new RecordNotFoundException(record.type, record.id);
+        } else {
+          return undefined;
+        }
       }
 
       return [];
@@ -78,17 +97,24 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
   },
 
   findRelatedRecord(
-    cache: SyncRecordAccessor,
-    expression: QueryExpression
-  ): Record | null {
+    cache: SyncRecordCache,
+    query: RecordQuery,
+    expression: RecordQueryExpression
+  ): Record | null | undefined {
     const exp = expression as FindRelatedRecord;
     const { record, relationship } = exp;
     const relatedId = cache.getRelatedRecordSync(record, relationship);
+
     if (relatedId) {
       return cache.getRecordSync(relatedId) || null;
     } else {
       if (!cache.getRecordSync(record)) {
-        throw new RecordNotFoundException(record.type, record.id);
+        const options = cache.getQueryOptions(query, expression);
+        if (options?.raiseNotFoundExceptions) {
+          throw new RecordNotFoundException(record.type, record.id);
+        } else {
+          return undefined;
+        }
       }
 
       return null;

@@ -1,20 +1,27 @@
-import Orbit, { evented, Evented, Listener } from '@orbit/core';
+import Orbit from '@orbit/core';
 import { deepGet, Dict } from '@orbit/utils';
 import {
-  KeyMap,
+  buildQuery,
+  buildTransform,
+  DataOrFullResponse,
+  FullResponse,
+  OperationTerm,
+  RequestOptions
+} from '@orbit/data';
+import {
   Record,
   RecordOperation,
-  Schema,
-  QueryBuilder,
-  QueryOrExpressions,
-  QueryExpression,
-  buildQuery,
-  TransformBuilder,
-  TransformBuilderFunc,
   RecordIdentity,
-  RequestOptions,
-  OperationTerm
-} from '@orbit/data';
+  RecordOperationTerm,
+  RecordQueryResult,
+  RecordQueryExpressionResult,
+  RecordQueryOrExpressions,
+  RecordTransformOrOperations,
+  RecordTransformBuilderFunc,
+  RecordTransformResult,
+  RecordOperationResult,
+  RecordTransform
+} from '@orbit/records';
 import {
   SyncOperationProcessor,
   SyncOperationProcessorClass
@@ -23,76 +30,64 @@ import { SyncCacheIntegrityProcessor } from './operation-processors/sync-cache-i
 import { SyncSchemaConsistencyProcessor } from './operation-processors/sync-schema-consistency-processor';
 import { SyncSchemaValidationProcessor } from './operation-processors/sync-schema-validation-processor';
 import {
-  SyncPatchOperators,
-  SyncPatchOperator
-} from './operators/sync-patch-operators';
+  SyncTransformOperators,
+  SyncTransformOperator
+} from './operators/sync-transform-operators';
 import {
   SyncQueryOperators,
   SyncQueryOperator
 } from './operators/sync-query-operators';
 import {
-  SyncInversePatchOperators,
-  SyncInversePatchOperator
-} from './operators/sync-inverse-patch-operators';
+  SyncInverseTransformOperators,
+  SyncInverseTransformOperator
+} from './operators/sync-inverse-transform-operators';
 import {
   SyncRecordAccessor,
   RecordRelationshipIdentity
 } from './record-accessor';
-import { PatchResult } from './patch-result';
-import { QueryResult, QueryResultData } from './query-result';
+import { PatchResult, RecordCacheUpdateDetails } from './response';
 import { SyncLiveQuery } from './live-query/sync-live-query';
+import {
+  RecordCache,
+  RecordCacheQueryOptions,
+  RecordCacheSettings
+} from './record-cache';
 
-const { assert } = Orbit;
+const { assert, deprecate } = Orbit;
 
-export interface SyncRecordCacheSettings {
-  schema: Schema;
-  keyMap?: KeyMap;
+export interface SyncRecordCacheSettings<
+  QueryOptions extends RequestOptions = RecordCacheQueryOptions,
+  TransformOptions extends RequestOptions = RequestOptions
+> extends RecordCacheSettings<QueryOptions, TransformOptions> {
   processors?: SyncOperationProcessorClass[];
-  transformBuilder?: TransformBuilder;
-  queryBuilder?: QueryBuilder;
   queryOperators?: Dict<SyncQueryOperator>;
-  patchOperators?: Dict<SyncPatchOperator>;
-  inversePatchOperators?: Dict<SyncInversePatchOperator>;
+  transformOperators?: Dict<SyncTransformOperator>;
+  inverseTransformOperators?: Dict<SyncInverseTransformOperator>;
   debounceLiveQueries?: boolean;
 }
 
-@evented
-export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
-  protected _keyMap?: KeyMap;
-  protected _schema: Schema;
-  protected _transformBuilder: TransformBuilder;
-  protected _queryBuilder: QueryBuilder;
+export abstract class SyncRecordCache<
+    QueryOptions extends RequestOptions = RecordCacheQueryOptions,
+    TransformOptions extends RequestOptions = RequestOptions
+  >
+  extends RecordCache<QueryOptions, TransformOptions>
+  implements SyncRecordAccessor {
   protected _processors: SyncOperationProcessor[];
   protected _queryOperators: Dict<SyncQueryOperator>;
-  protected _patchOperators: Dict<SyncPatchOperator>;
-  protected _inversePatchOperators: Dict<SyncInversePatchOperator>;
+  protected _transformOperators: Dict<SyncTransformOperator>;
+  protected _inverseTransformOperators: Dict<SyncInverseTransformOperator>;
   protected _debounceLiveQueries: boolean;
 
-  // Evented interface stubs
-  on!: (event: string, listener: Listener) => () => void;
-  off!: (event: string, listener?: Listener) => void;
-  one!: (event: string, listener: Listener) => () => void;
-  emit!: (event: string, ...args: any[]) => void;
-  listeners!: (event: string) => Listener[];
+  constructor(
+    settings: SyncRecordCacheSettings<QueryOptions, TransformOptions>
+  ) {
+    super(settings);
 
-  constructor(settings: SyncRecordCacheSettings) {
-    assert(
-      "SyncRecordCache's `schema` must be specified in `settings.schema` constructor argument",
-      !!settings.schema
-    );
-
-    this._schema = settings.schema;
-    this._keyMap = settings.keyMap;
-    this._queryBuilder = settings.queryBuilder || new QueryBuilder();
-    this._transformBuilder =
-      settings.transformBuilder ||
-      new TransformBuilder({
-        recordInitializer: this._schema
-      });
     this._queryOperators = settings.queryOperators || SyncQueryOperators;
-    this._patchOperators = settings.patchOperators || SyncPatchOperators;
-    this._inversePatchOperators =
-      settings.inversePatchOperators || SyncInversePatchOperators;
+    this._transformOperators =
+      settings.transformOperators || SyncTransformOperators;
+    this._inverseTransformOperators =
+      settings.inverseTransformOperators || SyncInverseTransformOperators;
     this._debounceLiveQueries = settings.debounceLiveQueries !== false;
 
     const processors: SyncOperationProcessorClass[] = settings.processors
@@ -112,22 +107,6 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
     });
   }
 
-  get schema(): Schema {
-    return this._schema;
-  }
-
-  get keyMap(): KeyMap | undefined {
-    return this._keyMap;
-  }
-
-  get queryBuilder(): QueryBuilder {
-    return this._queryBuilder;
-  }
-
-  get transformBuilder(): TransformBuilder {
-    return this._transformBuilder;
-  }
-
   get processors(): SyncOperationProcessor[] {
     return this._processors;
   }
@@ -136,12 +115,12 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
     return this._queryOperators[op];
   }
 
-  getPatchOperator(op: string): SyncPatchOperator {
-    return this._patchOperators[op];
+  getTransformOperator(op: string): SyncTransformOperator {
+    return this._transformOperators[op];
   }
 
-  getInversePatchOperator(op: string): SyncInversePatchOperator {
-    return this._inversePatchOperators[op];
+  getInverseTransformOperator(op: string): SyncInverseTransformOperator {
+    return this._inverseTransformOperators[op];
   }
 
   // Abstract methods for getting records and relationships
@@ -190,68 +169,142 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   /**
    * Queries the cache.
    */
-  query(
-    queryOrExpressions: QueryOrExpressions,
-    options?: RequestOptions,
+  query<RO extends RequestOptions>(
+    queryOrExpressions: RecordQueryOrExpressions,
+    options?: RO,
     id?: string
-  ): QueryResult {
+  ): DataOrFullResponse<RecordQueryResult, undefined, RecordOperation, RO> {
     const query = buildQuery(
       queryOrExpressions,
       options,
       id,
       this._queryBuilder
     );
-    const results = this._query(query.expressions);
 
-    if (query.expressions.length === 1) {
-      return results[0];
+    const results: RecordQueryExpressionResult[] = [];
+    for (let expression of query.expressions) {
+      const queryOperator = this.getQueryOperator(expression.op);
+      if (!queryOperator) {
+        throw new Error(`Unable to find query operator: ${expression.op}`);
+      }
+      results.push(queryOperator(this, query, expression));
     }
-    return results;
+
+    const data = query.expressions.length === 1 ? results[0] : results;
+
+    const requestedResponse = options?.fullResponse ? { data } : data;
+
+    return requestedResponse as DataOrFullResponse<
+      RecordQueryResult,
+      undefined,
+      RecordOperation,
+      RO
+    >;
+  }
+
+  /**
+   * Updates the cache.
+   */
+  update<RO extends RequestOptions>(
+    transformOrOperations: RecordTransformOrOperations,
+    options?: RO,
+    id?: string
+  ): DataOrFullResponse<
+    RecordTransformResult,
+    RecordCacheUpdateDetails,
+    RecordOperation,
+    RO
+  > {
+    const transform = buildTransform(
+      transformOrOperations,
+      options,
+      id,
+      this._transformBuilder
+    );
+
+    const response = {
+      data: []
+    } as FullResponse<
+      RecordOperationResult[],
+      RecordCacheUpdateDetails,
+      RecordOperation
+    >;
+
+    if (options?.fullResponse) {
+      response.details = {
+        appliedOperations: [],
+        inverseOperations: []
+      };
+    }
+
+    this._applyTransformOperations(
+      transform,
+      transform.operations,
+      response,
+      true
+    );
+
+    let data: RecordTransformResult;
+    if (transform.operations.length === 1 && Array.isArray(response.data)) {
+      data = response.data[0];
+    } else {
+      data = response.data;
+    }
+
+    let requestedResponse;
+
+    if (options?.fullResponse) {
+      response.details?.inverseOperations.reverse();
+
+      requestedResponse = {
+        ...response,
+        data
+      };
+    } else {
+      requestedResponse = data;
+    }
+
+    return requestedResponse as DataOrFullResponse<
+      RecordTransformResult,
+      RecordCacheUpdateDetails,
+      RecordOperation,
+      RO
+    >;
   }
 
   /**
    * Patches the cache with an operation or operations.
+   *
+   * @deprecated since v0.17
    */
   patch(
     operationOrOperations:
       | RecordOperation
       | RecordOperation[]
-      | OperationTerm
-      | OperationTerm[]
-      | TransformBuilderFunc
+      | RecordOperationTerm
+      | RecordOperationTerm[]
+      | RecordTransformBuilderFunc
   ): PatchResult {
-    if (typeof operationOrOperations === 'function') {
-      operationOrOperations = operationOrOperations(this._transformBuilder) as
-        | OperationTerm
-        | OperationTerm[];
-    }
+    deprecate(
+      'SyncRecordCache#patch has been deprecated. Use SyncRecordCache#update instead.'
+    );
 
-    const result: PatchResult = {
-      inverse: [],
-      data: []
+    const { data, details } = this.update(operationOrOperations, {
+      fullResponse: true
+    }) as FullResponse<
+      RecordTransformResult,
+      RecordCacheUpdateDetails,
+      RecordOperation
+    >;
+
+    return {
+      inverse: details?.inverseOperations || [],
+      data: Array.isArray(data) ? data : [data]
     };
-
-    if (Array.isArray(operationOrOperations)) {
-      this._applyPatchOperations(
-        operationOrOperations as RecordOperation[],
-        result,
-        true
-      );
-    } else {
-      this._applyPatchOperation(
-        operationOrOperations as RecordOperation,
-        result,
-        true
-      );
-    }
-
-    result.inverse.reverse();
-
-    return result;
   }
 
   liveQuery(
-    queryOrExpressions: QueryOrExpressions,
+    queryOrExpressions: RecordQueryOrExpressions,
     options?: RequestOptions,
     id?: string
   ): SyncLiveQuery {
@@ -278,31 +331,29 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
 
-  protected _query(expressions: QueryExpression[]): QueryResultData[] {
-    const results: QueryResultData[] = [];
-    for (let expression of expressions) {
-      const queryOperator = this.getQueryOperator(expression.op);
-      if (!queryOperator) {
-        throw new Error(`Unable to find query operator: ${expression.op}`);
-      }
-      results.push(queryOperator(this, expression));
-    }
-    return results;
-  }
-
-  protected _applyPatchOperations(
-    ops: RecordOperation[] | OperationTerm[],
-    result: PatchResult,
+  protected _applyTransformOperations(
+    transform: RecordTransform,
+    ops: RecordOperation[] | RecordOperationTerm[],
+    response: FullResponse<
+      RecordOperationResult[],
+      RecordCacheUpdateDetails,
+      RecordOperation
+    >,
     primary = false
   ): void {
     for (const op of ops) {
-      this._applyPatchOperation(op, result, primary);
+      this._applyTransformOperation(transform, op, response, primary);
     }
   }
 
-  protected _applyPatchOperation(
-    operation: RecordOperation | OperationTerm,
-    result: PatchResult,
+  protected _applyTransformOperation(
+    transform: RecordTransform,
+    operation: RecordOperation | RecordOperationTerm,
+    response: FullResponse<
+      RecordOperationResult[],
+      RecordCacheUpdateDetails,
+      RecordOperation
+    >,
     primary = false
   ): void {
     if (operation instanceof OperationTerm) {
@@ -312,17 +363,24 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
       processor.validate(operation);
     }
 
-    const inversePatchOperator = this.getInversePatchOperator(operation.op);
-    const inverseOp: RecordOperation | undefined = inversePatchOperator(
+    const inverseTransformOperator = this.getInverseTransformOperator(
+      operation.op
+    );
+    const inverseOp: RecordOperation | undefined = inverseTransformOperator(
       this,
+      transform,
       operation
     );
     if (inverseOp) {
-      result.inverse.push(inverseOp);
+      response.details?.inverseOperations?.push(inverseOp);
 
       // Query and perform related `before` operations
       for (let processor of this._processors) {
-        this._applyPatchOperations(processor.before(operation), result);
+        this._applyTransformOperations(
+          transform,
+          processor.before(operation),
+          response
+        );
       }
 
       // Query related `after` operations before performing
@@ -333,11 +391,12 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
       }
 
       // Perform the requested operation
-      let patchOperator = this.getPatchOperator(operation.op);
-      let data = patchOperator(this, operation);
+      let transformOperator = this.getTransformOperator(operation.op);
+      let data = transformOperator(this, transform, operation);
       if (primary) {
-        result.data.push(data);
+        response.data?.push(data);
       }
+      response.details?.appliedOperations?.push(operation);
 
       // Query and perform related `immediate` operations
       for (let processor of this._processors) {
@@ -349,15 +408,19 @@ export abstract class SyncRecordCache implements Evented, SyncRecordAccessor {
 
       // Perform prepared operations after performing the requested operation
       for (let ops of preparedOps) {
-        this._applyPatchOperations(ops, result);
+        this._applyTransformOperations(transform, ops, response);
       }
 
       // Query and perform related `finally` operations
       for (let processor of this._processors) {
-        this._applyPatchOperations(processor.finally(operation), result);
+        this._applyTransformOperations(
+          transform,
+          processor.finally(operation),
+          response
+        );
       }
     } else if (primary) {
-      result.data.push(null);
+      response.data?.push(undefined);
     }
   }
 }

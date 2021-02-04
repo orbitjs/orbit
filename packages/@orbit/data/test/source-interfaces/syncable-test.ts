@@ -5,15 +5,19 @@ import {
   isSyncable,
   Syncable
 } from '../../src/source-interfaces/syncable';
-import '../test-helper';
+import { RecordOperation } from '../support/record-data';
 
 const { module, test } = QUnit;
 
 module('@syncable', function (hooks) {
   @syncable
-  class MySource extends Source implements Syncable {
-    sync!: (transformOrTransforms: Transform | Transform[]) => Promise<void>;
-    _sync!: (transform: Transform) => Promise<void>;
+  class MySource extends Source implements Syncable<RecordOperation> {
+    sync!: (
+      transformOrTransforms:
+        | Transform<RecordOperation>
+        | Transform<RecordOperation>[]
+    ) => Promise<void>;
+    _sync!: (transform: Transform<RecordOperation>) => Promise<void>;
   }
 
   let source: MySource;
@@ -26,26 +30,30 @@ module('@syncable', function (hooks) {
     assert.ok(isSyncable(source));
   });
 
-  // TODO
-  // test('it should be applied to a Source', function(assert) {
-  //   assert.throws(function() {
-  //     @syncable
-  //     class Vanilla {}
-  //   },
-  //   Error('Assertion failed: Syncable interface can only be applied to a Source'),
-  //   'assertion raised');
-  // });
+  test('should be applied to a Source', function (assert) {
+    assert.throws(
+      function () {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore: Test of bad typing
+        @syncable
+        class Vanilla {}
+      },
+      Error(
+        'Assertion failed: Syncable interface can only be applied to a Source'
+      ),
+      'assertion raised'
+    );
+  });
 
   test('#sync accepts a Transform and calls internal method `_sync`', async function (assert) {
     assert.expect(2);
 
-    const addPlanet = {
+    const addRecordTransform = buildTransform<RecordOperation>({
       op: 'addRecord',
       record: { type: 'planet', id: 'jupiter' }
-    };
-    const addRecordTransform = buildTransform(addPlanet);
+    });
 
-    source._sync = async function (transform: Transform) {
+    source._sync = async function (transform: Transform<RecordOperation>) {
       assert.strictEqual(
         transform,
         addRecordTransform,
@@ -61,13 +69,12 @@ module('@syncable', function (hooks) {
   test('#sync should resolve as a failure when `_sync` fails', async function (assert) {
     assert.expect(2);
 
-    const addPlanet = {
+    const addRecordTransform = buildTransform<RecordOperation>({
       op: 'addRecord',
       record: { type: 'planet', id: 'jupiter' }
-    };
-    const addRecordTransform = buildTransform(addPlanet);
+    });
 
-    source._sync = async function (transform: Transform) {
+    source._sync = async function (transform: Transform<RecordOperation>) {
       return Promise.reject(':(');
     };
 
@@ -84,11 +91,10 @@ module('@syncable', function (hooks) {
 
     let order = 0;
 
-    const addPlanet = {
+    const addRecordTransform = buildTransform<RecordOperation>({
       op: 'addRecord',
       record: { type: 'planet', id: 'jupiter' }
-    };
-    const addRecordTransform = buildTransform(addPlanet);
+    });
 
     source.on('beforeSync', (transform) => {
       assert.equal(++order, 1, 'beforeSync triggered first');
@@ -102,7 +108,6 @@ module('@syncable', function (hooks) {
         addRecordTransform,
         'transform object matches'
       );
-      await this.transformed([transform]);
     };
 
     source.on('transform', (transform) => {
@@ -136,15 +141,14 @@ module('@syncable', function (hooks) {
   test('#sync should trigger `syncFail` event after an unsuccessful sync', async function (assert) {
     assert.expect(7);
 
-    const addPlanet = {
+    const addRecordTransform = buildTransform<RecordOperation>({
       op: 'addRecord',
       record: { type: 'planet', id: 'jupiter' }
-    };
-    const addRecordTransform = buildTransform(addPlanet);
+    });
 
     let order = 0;
 
-    source._sync = async function (transform: Transform) {
+    source._sync = async function (transform: Transform<RecordOperation>) {
       assert.equal(++order, 1, 'action performed first');
       assert.strictEqual(transform, addRecordTransform, 'transform matches');
       throw new Error(':(');
@@ -173,11 +177,10 @@ module('@syncable', function (hooks) {
 
     let order = 0;
 
-    const addPlanet = {
+    const addRecordTransform = buildTransform<RecordOperation>({
       op: 'addRecord',
       record: { type: 'planet', id: 'jupiter' }
-    };
-    const addRecordTransform = buildTransform(addPlanet);
+    });
 
     source.on('beforeSync', () => {
       assert.equal(++order, 1, 'beforeSync triggered first');
@@ -188,7 +191,7 @@ module('@syncable', function (hooks) {
       return Promise.resolve();
     });
 
-    source._sync = async function (transform: Transform) {
+    source._sync = async function (transform: Transform<RecordOperation>) {
       assert.ok(true, '_sync should still be reached');
       assert.ok(
         this.transformLog.contains(transform.id),
@@ -210,11 +213,10 @@ module('@syncable', function (hooks) {
 
     let order = 0;
 
-    const addPlanet = {
+    const addRecordTransform = buildTransform<RecordOperation>({
       op: 'addRecord',
       record: { type: 'planet', id: 'jupiter' }
-    };
-    const addRecordTransform = buildTransform(addPlanet);
+    });
 
     source.on('beforeSync', () => {
       assert.equal(++order, 1, 'beforeSync triggered first');
@@ -231,7 +233,7 @@ module('@syncable', function (hooks) {
       return Promise.resolve();
     });
 
-    source._sync = async function (transform: Transform) {
+    source._sync = async function (transform: Transform<RecordOperation>) {
       assert.equal(++order, 4, '_sync invoked after all `beforeSync` handlers');
     };
 
@@ -253,7 +255,10 @@ module('@syncable', function (hooks) {
 
     let order = 0;
 
-    const addRecordTransform = buildTransform({ op: 'addRecord' });
+    const addRecordTransform = buildTransform<RecordOperation>({
+      op: 'addRecord',
+      record: { type: 'planet', id: 'jupiter' }
+    });
 
     source.on('beforeSync', () => {
       assert.equal(++order, 1, 'beforeSync triggered first');
@@ -265,7 +270,7 @@ module('@syncable', function (hooks) {
       return Promise.reject(':(');
     });
 
-    source._sync = async function (transform: Transform) {
+    source._sync = async function (transform: Transform<RecordOperation>) {
       assert.ok(false, '_sync should not be invoked');
     };
 

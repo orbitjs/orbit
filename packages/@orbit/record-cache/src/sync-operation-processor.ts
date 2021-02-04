@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { SyncRecordAccessor } from './record-accessor';
-import { RecordOperation } from '@orbit/data';
+import { RecordOperation } from '@orbit/records';
 
 export interface SyncOperationProcessorClass {
   new (cache: SyncRecordAccessor): SyncOperationProcessor;

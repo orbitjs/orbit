@@ -1,6 +1,6 @@
 /* eslint-disable valid-jsdoc */
 import { clone, deepGet, deepSet, Dict, objectValues } from '@orbit/utils';
-import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/data';
+import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/records';
 import { RecordRelationshipIdentity } from '../../src/record-accessor';
 import {
   AsyncRecordCache,

@@ -1,6 +1,6 @@
 /* eslint-disable valid-jsdoc */
 import { clone, deepGet, deepSet, Dict, objectValues } from '@orbit/utils';
-import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/data';
+import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/records';
 import { RecordRelationshipIdentity } from '../../src/record-accessor';
 import {
   SyncRecordCache,
@@ -27,7 +27,7 @@ export class ExampleSyncRecordCache extends SyncRecordCache {
   }
 
   getRecordSync(identity: RecordIdentity): Record | undefined {
-    return deepGet(this._records, [identity.type, identity.id]) || null;
+    return deepGet(this._records, [identity.type, identity.id]);
   }
 
   getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[] {

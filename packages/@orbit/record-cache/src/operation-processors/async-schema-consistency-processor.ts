@@ -1,4 +1,4 @@
-import { RecordOperation } from '@orbit/data';
+import { RecordOperation } from '@orbit/records';
 import { AsyncOperationProcessor } from '../async-operation-processor';
 import {
   recordAdded,

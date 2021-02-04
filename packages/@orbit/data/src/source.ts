@@ -11,43 +11,66 @@ import {
   Listener,
   Log
 } from '@orbit/core';
-import { KeyMap } from './key-map';
-import { Schema } from './schema';
-import { QueryBuilder } from './query-builder';
+import { Operation } from './operation';
+import { Query } from './query';
+import { QueryExpression } from './query-expression';
+import {
+  DefaultRequestOptions,
+  RequestOptions,
+  requestOptionsForSource
+} from './request';
 import { Transform } from './transform';
-import { TransformBuilder } from './transform-builder';
 
 const { assert } = Orbit;
 
-export interface SourceSettings {
+export interface SourceSettings<
+  QueryOptions extends RequestOptions = RequestOptions,
+  TransformOptions extends RequestOptions = RequestOptions,
+  QueryBuilder = unknown,
+  TransformBuilder = unknown
+> {
   name?: string;
-  schema?: Schema;
-  keyMap?: KeyMap;
   bucket?: Bucket;
   queryBuilder?: QueryBuilder;
   transformBuilder?: TransformBuilder;
-  autoUpgrade?: boolean;
   autoActivate?: boolean;
   requestQueueSettings?: TaskQueueSettings;
   syncQueueSettings?: TaskQueueSettings;
+  defaultQueryOptions?: DefaultRequestOptions<QueryOptions>;
+  defaultTransformOptions?: DefaultRequestOptions<TransformOptions>;
 }
 
-export type SourceClass = new () => Source;
+export type SourceClass<
+  QueryOptions extends RequestOptions = RequestOptions,
+  TransformOptions extends RequestOptions = RequestOptions,
+  QueryBuilder = unknown,
+  TransformBuilder = unknown
+> = new () => Source<
+  QueryOptions,
+  TransformOptions,
+  QueryBuilder,
+  TransformBuilder
+>;
 
 /**
  * Base class for sources.
  */
 @evented
-export abstract class Source implements Evented, Performer {
+export abstract class Source<
+  QueryOptions extends RequestOptions = RequestOptions,
+  TransformOptions extends RequestOptions = RequestOptions,
+  QueryBuilder = unknown,
+  TransformBuilder = unknown
+> implements Evented, Performer {
   protected _name?: string;
   protected _bucket?: Bucket;
-  protected _keyMap?: KeyMap;
-  protected _schema?: Schema;
   protected _transformLog: Log;
   protected _requestQueue: TaskQueue;
   protected _syncQueue: TaskQueue;
   protected _queryBuilder?: QueryBuilder;
   protected _transformBuilder?: TransformBuilder;
+  protected _defaultQueryOptions?: DefaultRequestOptions<QueryOptions>;
+  protected _defaultTransformOptions?: DefaultRequestOptions<TransformOptions>;
   private _activated?: Promise<void>;
 
   // Evented interface stubs
@@ -57,17 +80,26 @@ export abstract class Source implements Evented, Performer {
   emit!: (event: string, ...args: any[]) => void;
   listeners!: (event: string) => Listener[];
 
-  constructor(settings: SourceSettings = {}) {
-    this._schema = settings.schema;
-    this._keyMap = settings.keyMap;
+  constructor(
+    settings: SourceSettings<
+      QueryOptions,
+      TransformOptions,
+      QueryBuilder,
+      TransformBuilder
+    > = {}
+  ) {
     const name = (this._name = settings.name);
     const bucket = (this._bucket = settings.bucket);
-    this._queryBuilder = settings.queryBuilder;
-    this._transformBuilder = settings.transformBuilder;
     const requestQueueSettings = settings.requestQueueSettings || {};
     const syncQueueSettings = settings.syncQueueSettings || {};
     const autoActivate =
       settings.autoActivate === undefined || settings.autoActivate;
+
+    this._queryBuilder = settings.queryBuilder;
+    this._transformBuilder = settings.transformBuilder;
+
+    this._defaultQueryOptions = settings.defaultQueryOptions;
+    this._defaultTransformOptions = settings.defaultTransformOptions;
 
     if (bucket) {
       assert('TransformLog requires a name if it has a bucket', !!name);
@@ -92,13 +124,6 @@ export abstract class Source implements Evented, Performer {
       ...requestQueueSettings
     });
 
-    if (
-      this._schema &&
-      (settings.autoUpgrade === undefined || settings.autoUpgrade)
-    ) {
-      this._schema.on('upgrade', () => this.upgrade());
-    }
-
     if (autoActivate) {
       this.activate();
     }
@@ -106,14 +131,6 @@ export abstract class Source implements Evented, Performer {
 
   get name(): string | undefined {
     return this._name;
-  }
-
-  get schema(): Schema | undefined {
-    return this._schema;
-  }
-
-  get keyMap(): KeyMap | undefined {
-    return this._keyMap;
   }
 
   get bucket(): Bucket | undefined {
@@ -132,22 +149,50 @@ export abstract class Source implements Evented, Performer {
     return this._syncQueue;
   }
 
-  get queryBuilder(): QueryBuilder {
-    let qb = this._queryBuilder;
-    if (qb === undefined) {
-      qb = this._queryBuilder = new QueryBuilder();
-    }
-    return qb;
+  get queryBuilder(): QueryBuilder | undefined {
+    return this._queryBuilder;
   }
 
-  get transformBuilder(): TransformBuilder {
-    let tb = this._transformBuilder;
-    if (tb === undefined) {
-      tb = this._transformBuilder = new TransformBuilder({
-        recordInitializer: this._schema
-      });
-    }
-    return tb;
+  get transformBuilder(): TransformBuilder | undefined {
+    return this._transformBuilder;
+  }
+
+  get defaultQueryOptions(): DefaultRequestOptions<QueryOptions> | undefined {
+    return this._defaultQueryOptions;
+  }
+
+  get defaultTransformOptions():
+    | DefaultRequestOptions<TransformOptions>
+    | undefined {
+    return this._defaultTransformOptions;
+  }
+
+  getQueryOptions(
+    query: Query<QueryExpression>,
+    expression?: QueryExpression
+  ): QueryOptions | undefined {
+    return requestOptionsForSource<QueryOptions>(
+      [
+        this._defaultQueryOptions,
+        query.options as QueryOptions | undefined,
+        expression?.options as QueryOptions | undefined
+      ],
+      this._name
+    );
+  }
+
+  getTransformOptions(
+    transform: Transform<Operation>,
+    operation?: Operation
+  ): TransformOptions | undefined {
+    return requestOptionsForSource(
+      [
+        this._defaultTransformOptions,
+        transform.options as TransformOptions | undefined,
+        operation?.options as TransformOptions | undefined
+      ],
+      this._name
+    );
   }
 
   // Performer interface
@@ -195,21 +240,15 @@ export abstract class Source implements Evented, Performer {
    *
    * Also, adds an entry to the Source's `transformLog` for each transform.
    */
-  async transformed(transforms: Transform[]): Promise<Transform[]> {
+  async transformed(transforms: Transform<Operation>[]): Promise<void> {
     await this.activated;
-    return transforms
-      .reduce((chain, transform) => {
-        return chain.then(() => {
-          if (this._transformLog.contains(transform.id)) {
-            return Promise.resolve();
-          }
 
-          return this._transformLog
-            .append(transform.id)
-            .then(() => settleInSeries(this, 'transform', transform));
-        });
-      }, Promise.resolve())
-      .then(() => transforms);
+    for (let transform of transforms) {
+      if (!this._transformLog.contains(transform.id)) {
+        await this._transformLog.append(transform.id);
+        await settleInSeries(this, 'transform', transform);
+      }
+    }
   }
 
   /////////////////////////////////////////////////////////////////////////////

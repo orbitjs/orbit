@@ -1,8 +1,8 @@
 import { Dict, deepGet, isNone } from '@orbit/utils';
+import { QueryExpressionParseError } from '@orbit/data';
 import {
-  QueryExpression,
+  RecordQueryExpression,
   RecordNotFoundException,
-  QueryExpressionParseError,
   FindRecord,
   FindRecords,
   FindRelatedRecord,
@@ -10,35 +10,43 @@ import {
   SortSpecifier,
   AttributeSortSpecifier,
   Record,
-  RecordIdentity
-} from '@orbit/data';
-import { AsyncRecordAccessor } from '../record-accessor';
-import { QueryResultData } from '../query-result';
+  RecordIdentity,
+  RecordQueryExpressionResult,
+  RecordQuery
+} from '@orbit/records';
+import { AsyncRecordCache } from '../async-record-cache';
 
 export interface AsyncQueryOperator {
-  (cache: AsyncRecordAccessor, expression: QueryExpression): Promise<
-    QueryResultData
-  >;
+  (
+    cache: AsyncRecordCache,
+    query: RecordQuery,
+    expression: RecordQueryExpression
+  ): Promise<RecordQueryExpressionResult>;
 }
 
 export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
   async findRecord(
-    cache: AsyncRecordAccessor,
-    expression: QueryExpression
-  ): Promise<QueryResultData> {
+    cache: AsyncRecordCache,
+    query: RecordQuery,
+    expression: RecordQueryExpression
+  ): Promise<RecordQueryExpressionResult> {
     const { record } = expression as FindRecord;
     const currentRecord = await cache.getRecordAsync(record);
 
     if (!currentRecord) {
-      throw new RecordNotFoundException(record.type, record.id);
+      const options = cache.getQueryOptions(query, expression);
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(record.type, record.id);
+      }
     }
 
     return currentRecord;
   },
 
   async findRecords(
-    cache: AsyncRecordAccessor,
-    expression: QueryExpression
+    cache: AsyncRecordCache,
+    query: RecordQuery,
+    expression: RecordQueryExpression
   ): Promise<Record[]> {
     const exp = expression as FindRecords;
     let results = await cache.getRecordsAsync(exp.records || exp.type);
@@ -55,15 +63,21 @@ export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
   },
 
   async findRelatedRecords(
-    cache: AsyncRecordAccessor,
-    expression: QueryExpression
-  ): Promise<Record[]> {
+    cache: AsyncRecordCache,
+    query: RecordQuery,
+    expression: RecordQueryExpression
+  ): Promise<Record[] | undefined> {
     const exp = expression as FindRelatedRecords;
     const { record, relationship } = exp;
     const relatedIds = await cache.getRelatedRecordsAsync(record, relationship);
     if (!relatedIds || relatedIds.length === 0) {
       if (!(await cache.getRecordAsync(record))) {
-        throw new RecordNotFoundException(record.type, record.id);
+        const options = cache.getQueryOptions(query, expression);
+        if (options?.raiseNotFoundExceptions) {
+          throw new RecordNotFoundException(record.type, record.id);
+        } else {
+          return undefined;
+        }
       }
 
       return [];
@@ -83,9 +97,10 @@ export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
   },
 
   async findRelatedRecord(
-    cache: AsyncRecordAccessor,
-    expression: QueryExpression
-  ): Promise<Record | null> {
+    cache: AsyncRecordCache,
+    query: RecordQuery,
+    expression: RecordQueryExpression
+  ): Promise<Record | null | undefined> {
     const exp = expression as FindRelatedRecord;
     const { record, relationship } = exp;
     const relatedId = await cache.getRelatedRecordAsync(record, relationship);
@@ -94,7 +109,12 @@ export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
       return (await cache.getRecordAsync(relatedId)) || null;
     } else {
       if (!(await cache.getRecordAsync(record))) {
-        throw new RecordNotFoundException(record.type, record.id);
+        const options = cache.getQueryOptions(query, expression);
+        if (options?.raiseNotFoundExceptions) {
+          throw new RecordNotFoundException(record.type, record.id);
+        } else {
+          return undefined;
+        }
       }
 
       return null;

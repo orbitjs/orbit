@@ -1,4 +1,4 @@
-import { Schema, KeyMap } from '@orbit/data';
+import { RecordSchema, RecordKeyMap } from '@orbit/records';
 import {
   BaseSerializer,
   SerializerForFn,
@@ -25,15 +25,15 @@ export abstract class JSONAPIBaseSerializer<
   DeserializationOptions
 > {
   serializerFor!: SerializerForFn;
-  protected _schema: Schema;
-  protected _keyMap?: KeyMap;
+  protected _schema: RecordSchema;
+  protected _keyMap?: RecordKeyMap;
 
   constructor(settings: {
     serializerFor: SerializerForFn;
     serializationOptions?: SerializationOptions;
     deserializationOptions?: DeserializationOptions;
-    schema: Schema;
-    keyMap?: KeyMap;
+    schema: RecordSchema;
+    keyMap?: RecordKeyMap;
   }) {
     const {
       serializerFor,
@@ -51,11 +51,11 @@ export abstract class JSONAPIBaseSerializer<
     this._keyMap = keyMap;
   }
 
-  get schema(): Schema {
+  get schema(): RecordSchema {
     return this._schema;
   }
 
-  get keyMap(): KeyMap | undefined {
+  get keyMap(): RecordKeyMap | undefined {
     return this._keyMap;
   }
 

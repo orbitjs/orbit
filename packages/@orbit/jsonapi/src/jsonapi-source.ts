@@ -1,26 +1,38 @@
 /* eslint-disable valid-jsdoc */
 import { Assertion } from '@orbit/core';
 import {
-  KeyMap,
-  Schema,
-  Source,
-  SourceSettings,
-  Query,
   QueryOrExpressions,
   RequestOptions,
-  Pullable,
   pullable,
-  Pushable,
   pushable,
-  Transform,
   TransformOrOperations,
-  Queryable,
   queryable,
-  Updatable,
   updatable,
   TransformNotAllowed,
-  QueryNotAllowed
+  QueryNotAllowed,
+  FullResponse,
+  TransformsOrFullResponse,
+  DataOrFullResponse
 } from '@orbit/data';
+import {
+  RecordSource,
+  RecordSourceSettings,
+  RecordQueryExpression,
+  RecordQueryBuilder,
+  RecordPullable,
+  RecordPushable,
+  RecordQueryable,
+  RecordUpdatable,
+  RecordOperation,
+  RecordTransformBuilder,
+  RecordTransform,
+  RecordQuery,
+  RecordQueryExpressionResult,
+  RecordOperationResult,
+  RecordQueryResult,
+  RecordTransformResult,
+  RecordSourceQueryOptions
+} from '@orbit/records';
 import {
   JSONAPIRequestProcessor,
   JSONAPIRequestProcessorSettings,
@@ -37,13 +49,13 @@ import {
 import {
   QueryRequestProcessor,
   QueryRequestProcessors,
-  QueryRequest,
+  RecordQueryRequest,
   getQueryRequests
 } from './lib/query-requests';
 import {
   TransformRequestProcessor,
   TransformRequestProcessors,
-  TransformRecordRequest,
+  RecordTransformRequest,
   getTransformRequests
 } from './lib/transform-requests';
 import {
@@ -51,9 +63,9 @@ import {
   SerializerSettingsForFn,
   SerializerForFn
 } from '@orbit/serializers';
-import { PrimaryRecordData } from './resources';
+import { JSONAPIResponse } from './jsonapi-response';
 
-export interface JSONAPISourceSettings extends SourceSettings {
+export interface JSONAPISourceSettings extends RecordSourceSettings {
   maxRequestsPerTransform?: number;
   maxRequestsPerQuery?: number;
   name?: string;
@@ -73,8 +85,6 @@ export interface JSONAPISourceSettings extends SourceSettings {
   URLBuilderClass?: new (
     settings: JSONAPIURLBuilderSettings
   ) => JSONAPIURLBuilder;
-  schema?: Schema;
-  keyMap?: KeyMap;
 }
 
 /**
@@ -96,41 +106,75 @@ export interface JSONAPISourceSettings extends SourceSettings {
 @queryable
 @updatable
 export class JSONAPISource
-  extends Source
-  implements Pullable, Pushable, Queryable, Updatable {
+  extends RecordSource
+  implements
+    RecordPullable<JSONAPIResponse[]>,
+    RecordPushable<JSONAPIResponse[]>,
+    RecordQueryable<JSONAPIResponse[]>,
+    RecordUpdatable<JSONAPIResponse[]> {
   maxRequestsPerTransform?: number;
   maxRequestsPerQuery?: number;
   requestProcessor: JSONAPIRequestProcessor;
 
   // Pullable interface stubs
-  pull!: (
-    queryOrExpressions: QueryOrExpressions,
-    options?: RequestOptions,
+  pull!: <RO extends RecordSourceQueryOptions>(
+    queryOrExpressions: QueryOrExpressions<
+      RecordQueryExpression,
+      RecordQueryBuilder
+    >,
+    options?: RO,
     id?: string
-  ) => Promise<Transform[]>;
+  ) => Promise<
+    TransformsOrFullResponse<undefined, JSONAPIResponse[], RecordOperation, RO>
+  >;
 
   // Pushable interface stubs
-  push!: (
-    transformOrOperations: TransformOrOperations,
-    options?: RequestOptions,
+  push!: <RO extends RequestOptions>(
+    transformOrOperations: TransformOrOperations<
+      RecordOperation,
+      RecordTransformBuilder
+    >,
+    options?: RO,
     id?: string
-  ) => Promise<Transform[]>;
+  ) => Promise<
+    TransformsOrFullResponse<undefined, JSONAPIResponse[], RecordOperation, RO>
+  >;
 
   // Queryable interface stubs
-  query!: (
-    queryOrExpressions: QueryOrExpressions,
-    options?: RequestOptions,
+  query!: <RO extends RecordSourceQueryOptions>(
+    queryOrExpressions: QueryOrExpressions<
+      RecordQueryExpression,
+      RecordQueryBuilder
+    >,
+    options?: RO,
     id?: string
-  ) => Promise<any>;
+  ) => Promise<
+    DataOrFullResponse<
+      RecordQueryResult,
+      JSONAPIResponse[],
+      RecordOperation,
+      RO
+    >
+  >;
 
   // Updatable interface stubs
-  update!: (
-    transformOrOperations: TransformOrOperations,
-    options?: RequestOptions,
+  update!: <RO extends RequestOptions>(
+    transformOrOperations: TransformOrOperations<
+      RecordOperation,
+      RecordTransformBuilder
+    >,
+    options?: RO,
     id?: string
-  ) => Promise<any>;
+  ) => Promise<
+    DataOrFullResponse<
+      RecordTransformResult,
+      JSONAPIResponse[],
+      RecordOperation,
+      RO
+    >
+  >;
 
-  constructor(settings: JSONAPISourceSettings = {}) {
+  constructor(settings: JSONAPISourceSettings) {
     settings.name = settings.name || 'jsonapi';
 
     super(settings);
@@ -182,55 +226,62 @@ export class JSONAPISource
   // Pushable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _push(transform: Transform): Promise<Transform[]> {
-    const transforms: Transform[] = [];
-
-    if (!this.transformLog.contains(transform.id)) {
-      const { requestProcessor } = this;
-      const requests = this.getTransformRequests(transform);
-
-      for (let request of requests) {
-        let processor = this.getTransformRequestProcessor(request);
-
-        let { transforms: additionalTransforms } = await processor(
-          requestProcessor,
-          request
-        );
-        if (additionalTransforms.length) {
-          Array.prototype.push.apply(transforms, additionalTransforms);
-        }
-      }
-
-      transforms.unshift(transform);
-      await this.transformed(transforms);
+  async _push(
+    transform: RecordTransform
+  ): Promise<FullResponse<undefined, JSONAPIResponse[], RecordOperation>> {
+    if (this.transformLog.contains(transform.id)) {
+      return {};
     }
 
-    return transforms;
+    const requests = this.getTransformRequests(transform);
+    const details: JSONAPIResponse[] = [];
+    const transforms: RecordTransform[] = [];
+
+    for (let request of requests) {
+      let processor = this.getTransformRequestProcessor(request);
+
+      let response = await processor(this.requestProcessor, request);
+      if (response.transforms) {
+        Array.prototype.push.apply(transforms, response.transforms);
+      }
+      if (response.details) {
+        details.push(response.details);
+      }
+    }
+
+    return {
+      transforms: [transform, ...transforms],
+      details
+    };
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Pullable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _pull(query: Query): Promise<Transform[]> {
-    const transforms: Transform[] = [];
-    const { requestProcessor } = this;
+  async _pull(
+    query: RecordQuery
+  ): Promise<FullResponse<undefined, JSONAPIResponse[], RecordOperation>> {
     const requests = this.getQueryRequests(query);
+    const details: JSONAPIResponse[] = [];
+    const transforms: RecordTransform[] = [];
 
     for (let request of requests) {
       let processor = this.getQueryRequestProcessor(request);
 
-      let { transforms: additionalTransforms } = await processor(
-        requestProcessor,
-        request
-      );
-      if (additionalTransforms.length) {
-        Array.prototype.push.apply(transforms, additionalTransforms);
+      let response = await processor(this.requestProcessor, request);
+      if (response.transforms) {
+        Array.prototype.push.apply(transforms, response.transforms);
+      }
+      if (response.details) {
+        details.push(response.details);
       }
     }
 
-    await this.transformed(transforms);
-    return transforms;
+    return {
+      transforms,
+      details
+    };
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -238,65 +289,74 @@ export class JSONAPISource
   /////////////////////////////////////////////////////////////////////////////
 
   async _query(
-    query: Query
+    query: RecordQuery
   ): Promise<
-    PrimaryRecordData | undefined | (PrimaryRecordData | undefined)[]
+    FullResponse<RecordQueryResult, JSONAPIResponse[], RecordOperation>
   > {
-    const transforms: Transform[] = [];
-    const { requestProcessor } = this;
     const requests = this.getQueryRequests(query);
-    const responses: (PrimaryRecordData | undefined)[] = [];
+    const details: JSONAPIResponse[] = [];
+    const transforms: RecordTransform[] = [];
+    const data: RecordQueryExpressionResult[] = [];
 
     for (let request of requests) {
       let processor = this.getQueryRequestProcessor(request);
 
-      let { transforms: additionalTransforms, primaryData } = await processor(
-        requestProcessor,
-        request
-      );
-      if (additionalTransforms.length) {
-        Array.prototype.push.apply(transforms, additionalTransforms);
+      let response = await processor(this.requestProcessor, request);
+      if (response.transforms) {
+        Array.prototype.push.apply(transforms, response.transforms);
       }
-      responses.push(primaryData);
+      if (response.details) {
+        details.push(response.details);
+      }
+      data.push(response.data);
     }
 
-    await this.transformed(transforms);
-
-    return query.expressions.length === 1 ? responses[0] : responses;
+    return {
+      data: requests.length > 1 ? data : data[0],
+      details,
+      transforms
+    };
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // Updatable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
-  async _update(transform: Transform): Promise<any> {
-    if (!this.transformLog.contains(transform.id)) {
-      const transforms: Transform[] = [];
-      const { requestProcessor } = this;
-      const requests = this.getTransformRequests(transform);
-      const responses: PrimaryRecordData[] = [];
-
-      for (let request of requests) {
-        let processor = this.getTransformRequestProcessor(request);
-
-        let { transforms: additionalTransforms, primaryData } = await processor(
-          requestProcessor,
-          request
-        );
-        if (additionalTransforms.length) {
-          Array.prototype.push.apply(transforms, additionalTransforms);
-        }
-        responses.push(primaryData);
-      }
-
-      transforms.unshift(transform);
-      await this.transformed(transforms);
-
-      return transform.operations.length === 1 ? responses[0] : responses;
+  async _update(
+    transform: RecordTransform
+  ): Promise<
+    FullResponse<RecordTransformResult, JSONAPIResponse[], RecordOperation>
+  > {
+    if (this.transformLog.contains(transform.id)) {
+      return {};
     }
+
+    const requests = this.getTransformRequests(transform);
+    const details: JSONAPIResponse[] = [];
+    const transforms: RecordTransform[] = [];
+    const data: RecordOperationResult[] = [];
+
+    for (let request of requests) {
+      let processor = this.getTransformRequestProcessor(request);
+
+      let response = await processor(this.requestProcessor, request);
+      if (response.transforms) {
+        Array.prototype.push.apply(transforms, response.transforms);
+      }
+      if (response.details) {
+        details.push(response.details);
+      }
+      data.push(response.data);
+    }
+
+    return {
+      data: requests.length > 1 ? data : data[0],
+      details,
+      transforms: [transform, ...transforms]
+    };
   }
 
-  protected getQueryRequests(query: Query): QueryRequest[] {
+  protected getQueryRequests(query: RecordQuery): RecordQueryRequest[] {
     const queryRequests = getQueryRequests(this.requestProcessor, query);
     if (
       this.maxRequestsPerQuery &&
@@ -311,14 +371,14 @@ export class JSONAPISource
   }
 
   protected getQueryRequestProcessor(
-    request: QueryRequest
+    request: RecordQueryRequest
   ): QueryRequestProcessor {
     return QueryRequestProcessors[request.op];
   }
 
   protected getTransformRequests(
-    transform: Transform
-  ): TransformRecordRequest[] {
+    transform: RecordTransform
+  ): RecordTransformRequest[] {
     const transformRequests = getTransformRequests(
       this.requestProcessor,
       transform
@@ -336,7 +396,7 @@ export class JSONAPISource
   }
 
   protected getTransformRequestProcessor(
-    request: TransformRecordRequest
+    request: RecordTransformRequest
   ): TransformRequestProcessor {
     return TransformRequestProcessors[request.op];
   }

@@ -3,7 +3,7 @@ import {
   RecordIdentity,
   RecordOperation,
   IncorrectRelatedRecordType
-} from '@orbit/data';
+} from '@orbit/records';
 import { SyncOperationProcessor } from '../sync-operation-processor';
 import { getModelDef, getRelationshipDef } from './utils/schema-utils';
 
