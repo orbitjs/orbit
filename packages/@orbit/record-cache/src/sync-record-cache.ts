@@ -47,11 +47,18 @@ import {
 } from './record-accessor';
 import { PatchResult, RecordCacheUpdateDetails } from './response';
 import { SyncLiveQuery } from './live-query/sync-live-query';
-import { RecordCache, RecordCacheSettings } from './record-cache';
+import {
+  RecordCache,
+  RecordCacheQueryOptions,
+  RecordCacheSettings
+} from './record-cache';
 
 const { assert, deprecate } = Orbit;
 
-export interface SyncRecordCacheSettings extends RecordCacheSettings {
+export interface SyncRecordCacheSettings<
+  QueryOptions extends RequestOptions = RecordCacheQueryOptions,
+  TransformOptions extends RequestOptions = RequestOptions
+> extends RecordCacheSettings<QueryOptions, TransformOptions> {
   processors?: SyncOperationProcessorClass[];
   queryOperators?: Dict<SyncQueryOperator>;
   transformOperators?: Dict<SyncTransformOperator>;
@@ -59,8 +66,11 @@ export interface SyncRecordCacheSettings extends RecordCacheSettings {
   debounceLiveQueries?: boolean;
 }
 
-export abstract class SyncRecordCache
-  extends RecordCache
+export abstract class SyncRecordCache<
+    QueryOptions extends RequestOptions = RecordCacheQueryOptions,
+    TransformOptions extends RequestOptions = RequestOptions
+  >
+  extends RecordCache<QueryOptions, TransformOptions>
   implements SyncRecordAccessor {
   protected _processors: SyncOperationProcessor[];
   protected _queryOperators: Dict<SyncQueryOperator>;
@@ -68,7 +78,9 @@ export abstract class SyncRecordCache
   protected _inverseTransformOperators: Dict<SyncInverseTransformOperator>;
   protected _debounceLiveQueries: boolean;
 
-  constructor(settings: SyncRecordCacheSettings) {
+  constructor(
+    settings: SyncRecordCacheSettings<QueryOptions, TransformOptions>
+  ) {
     super(settings);
 
     this._queryOperators = settings.queryOperators || SyncQueryOperators;

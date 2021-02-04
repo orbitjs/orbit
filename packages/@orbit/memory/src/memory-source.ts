@@ -15,7 +15,8 @@ import {
   RecordQuery,
   RecordSyncable,
   RecordUpdatable,
-  RecordQueryable
+  RecordQueryable,
+  RecordSourceQueryOptions
 } from '@orbit/records';
 import {
   DataOrFullResponse,
@@ -64,7 +65,7 @@ export class MemorySource
   ) => Promise<void>;
 
   // Queryable interface stubs
-  query!: <RO extends RequestOptions>(
+  query!: <RO extends RecordSourceQueryOptions>(
     queryOrExpressions: QueryOrExpressions<
       RecordQueryExpression,
       RecordQueryBuilder

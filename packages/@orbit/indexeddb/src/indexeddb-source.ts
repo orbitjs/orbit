@@ -26,7 +26,8 @@ import {
   RecordTransformBuilder,
   RecordQueryResult,
   RecordSource,
-  RecordQuery
+  RecordQuery,
+  RecordSourceQueryOptions
 } from '@orbit/records';
 import { supportsIndexedDB } from './lib/indexeddb';
 import { IndexedDBCache, IndexedDBCacheSettings } from './indexeddb-cache';
@@ -59,7 +60,7 @@ export class IndexedDBSource
   ) => Promise<void>;
 
   // Pullable interface stubs
-  pull!: <RO extends RequestOptions>(
+  pull!: <RO extends RecordSourceQueryOptions>(
     queryOrExpressions: QueryOrExpressions<
       RecordQueryExpression,
       RecordQueryBuilder

@@ -28,7 +28,8 @@ import {
   RecordTransformBuilder,
   RecordQueryResult,
   RecordSource,
-  RecordQuery
+  RecordQuery,
+  RecordSourceQueryOptions
 } from '@orbit/records';
 import { supportsLocalStorage } from './lib/local-storage';
 import {
@@ -65,7 +66,7 @@ export class LocalStorageSource
   ) => Promise<void>;
 
   // Pullable interface stubs
-  pull!: <RO extends RequestOptions>(
+  pull!: <RO extends RecordSourceQueryOptions>(
     queryOrExpressions: QueryOrExpressions<
       RecordQueryExpression,
       RecordQueryBuilder

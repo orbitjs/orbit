@@ -23,7 +23,12 @@ import { Transform } from './transform';
 
 const { assert } = Orbit;
 
-export interface SourceSettings<QueryBuilder, TransformBuilder> {
+export interface SourceSettings<
+  QueryOptions extends RequestOptions = RequestOptions,
+  TransformOptions extends RequestOptions = RequestOptions,
+  QueryBuilder = unknown,
+  TransformBuilder = unknown
+> {
   name?: string;
   bucket?: Bucket;
   queryBuilder?: QueryBuilder;
@@ -31,21 +36,32 @@ export interface SourceSettings<QueryBuilder, TransformBuilder> {
   autoActivate?: boolean;
   requestQueueSettings?: TaskQueueSettings;
   syncQueueSettings?: TaskQueueSettings;
-  defaultQueryOptions?: DefaultRequestOptions;
-  defaultTransformOptions?: DefaultRequestOptions;
+  defaultQueryOptions?: DefaultRequestOptions<QueryOptions>;
+  defaultTransformOptions?: DefaultRequestOptions<TransformOptions>;
 }
 
 export type SourceClass<
+  QueryOptions extends RequestOptions = RequestOptions,
+  TransformOptions extends RequestOptions = RequestOptions,
   QueryBuilder = unknown,
   TransformBuilder = unknown
-> = new () => Source<QueryBuilder, TransformBuilder>;
+> = new () => Source<
+  QueryOptions,
+  TransformOptions,
+  QueryBuilder,
+  TransformBuilder
+>;
 
 /**
  * Base class for sources.
  */
 @evented
-export abstract class Source<QueryBuilder = unknown, TransformBuilder = unknown>
-  implements Evented, Performer {
+export abstract class Source<
+  QueryOptions extends RequestOptions = RequestOptions,
+  TransformOptions extends RequestOptions = RequestOptions,
+  QueryBuilder = unknown,
+  TransformBuilder = unknown
+> implements Evented, Performer {
   protected _name?: string;
   protected _bucket?: Bucket;
   protected _transformLog: Log;
@@ -53,8 +69,8 @@ export abstract class Source<QueryBuilder = unknown, TransformBuilder = unknown>
   protected _syncQueue: TaskQueue;
   protected _queryBuilder?: QueryBuilder;
   protected _transformBuilder?: TransformBuilder;
-  protected _defaultQueryOptions?: DefaultRequestOptions;
-  protected _defaultTransformOptions?: DefaultRequestOptions;
+  protected _defaultQueryOptions?: DefaultRequestOptions<QueryOptions>;
+  protected _defaultTransformOptions?: DefaultRequestOptions<TransformOptions>;
   private _activated?: Promise<void>;
 
   // Evented interface stubs
@@ -64,7 +80,14 @@ export abstract class Source<QueryBuilder = unknown, TransformBuilder = unknown>
   emit!: (event: string, ...args: any[]) => void;
   listeners!: (event: string) => Listener[];
 
-  constructor(settings: SourceSettings<QueryBuilder, TransformBuilder> = {}) {
+  constructor(
+    settings: SourceSettings<
+      QueryOptions,
+      TransformOptions,
+      QueryBuilder,
+      TransformBuilder
+    > = {}
+  ) {
     const name = (this._name = settings.name);
     const bucket = (this._bucket = settings.bucket);
     const requestQueueSettings = settings.requestQueueSettings || {};
@@ -134,20 +157,26 @@ export abstract class Source<QueryBuilder = unknown, TransformBuilder = unknown>
     return this._transformBuilder;
   }
 
-  get defaultQueryOptions(): DefaultRequestOptions | undefined {
+  get defaultQueryOptions(): DefaultRequestOptions<QueryOptions> | undefined {
     return this._defaultQueryOptions;
   }
 
-  get defaultTransformOptions(): DefaultRequestOptions | undefined {
+  get defaultTransformOptions():
+    | DefaultRequestOptions<TransformOptions>
+    | undefined {
     return this._defaultTransformOptions;
   }
 
   getQueryOptions(
     query: Query<QueryExpression>,
     expression?: QueryExpression
-  ): RequestOptions | undefined {
-    return requestOptionsForSource(
-      [this._defaultQueryOptions, query.options, expression?.options],
+  ): QueryOptions | undefined {
+    return requestOptionsForSource<QueryOptions>(
+      [
+        this._defaultQueryOptions,
+        query.options as QueryOptions | undefined,
+        expression?.options as QueryOptions | undefined
+      ],
       this._name
     );
   }
@@ -155,9 +184,13 @@ export abstract class Source<QueryBuilder = unknown, TransformBuilder = unknown>
   getTransformOptions(
     transform: Transform<Operation>,
     operation?: Operation
-  ): RequestOptions | undefined {
+  ): TransformOptions | undefined {
     return requestOptionsForSource(
-      [this._defaultTransformOptions, transform.options, operation?.options],
+      [
+        this._defaultTransformOptions,
+        transform.options as TransformOptions | undefined,
+        operation?.options as TransformOptions | undefined
+      ],
       this._name
     );
   }

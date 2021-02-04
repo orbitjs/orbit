@@ -1,6 +1,7 @@
 import { Source } from '../src/source';
 import { buildTransform, Transform } from '../src/transform';
 import { buildQuery } from '../src/query';
+import { RequestOptions } from '../src/request';
 import { FakeBucket } from './support/fake-bucket';
 import {
   RecordOperation,
@@ -13,7 +14,12 @@ const { module, test } = QUnit;
 module('Source', function (hooks) {
   let source: any;
 
-  class MySource extends Source<RecordQueryBuilder, RecordTransformBuilder> {}
+  class MySource extends Source<
+    RequestOptions,
+    RequestOptions,
+    RecordQueryBuilder,
+    RecordTransformBuilder
+  > {}
 
   test('it can be instantiated', function (assert) {
     source = new MySource();

@@ -1,8 +1,14 @@
-import { requestOptionsForSource } from '../src/request';
+import { RequestOptions, requestOptionsForSource } from '../src/request';
 
 const { module, test } = QUnit;
 
 ///////////////////////////////////////////////////////////////////////////////
+
+interface ExampleRequestOptions extends RequestOptions {
+  label?: string;
+  counter?: number;
+  meta?: string;
+}
 
 module('Request', function () {
   test('requestOptionsForSource merges any source-specific options with top-level options', function (assert) {
@@ -17,7 +23,7 @@ module('Request', function () {
       sources: {
         memory: {
           label: 'memoryRequest',
-          memoryMeta: 'abc'
+          meta: 'abc'
         },
         remote: {
           label: 'remoteRequest',
@@ -31,7 +37,7 @@ module('Request', function () {
       sources: {
         memory: {
           label: 'memoryExpression',
-          memoryMeta: 'abc'
+          meta: 'abc'
         },
         remote: {
           label: 'remoteExpression',
@@ -47,7 +53,7 @@ module('Request', function () {
     );
 
     assert.deepEqual(
-      requestOptionsForSource(custom, 'backup'),
+      requestOptionsForSource<ExampleRequestOptions>(custom, 'backup'),
       {
         label: 'request',
         counter: 10
@@ -56,17 +62,17 @@ module('Request', function () {
     );
 
     assert.deepEqual(
-      requestOptionsForSource(custom, 'memory'),
+      requestOptionsForSource<ExampleRequestOptions>(custom, 'memory'),
       {
         label: 'memoryRequest',
-        memoryMeta: 'abc',
+        meta: 'abc',
         counter: 10
       },
       'options are merged with source-specific options'
     );
 
     assert.deepEqual(
-      requestOptionsForSource(custom),
+      requestOptionsForSource<ExampleRequestOptions>(custom),
       {
         label: 'request',
         counter: 10
@@ -75,17 +81,20 @@ module('Request', function () {
     );
 
     assert.deepEqual(
-      requestOptionsForSource([custom, custom2], 'memory'),
+      requestOptionsForSource<ExampleRequestOptions>(
+        [custom, custom2],
+        'memory'
+      ),
       {
         label: 'memoryExpression',
         counter: 10,
-        memoryMeta: 'abc'
+        meta: 'abc'
       },
       'multiple options are merged, with source-specific options taking precedence'
     );
 
     assert.deepEqual(
-      requestOptionsForSource([custom, custom2]),
+      requestOptionsForSource<ExampleRequestOptions>([custom, custom2]),
       {
         label: 'expression',
         counter: 10
@@ -94,20 +103,20 @@ module('Request', function () {
     );
 
     assert.deepEqual(
-      requestOptionsForSource(
+      requestOptionsForSource<ExampleRequestOptions>(
         [custom, undefined, undefined, custom2],
         'memory'
       ),
       {
         label: 'memoryExpression',
         counter: 10,
-        memoryMeta: 'abc'
+        meta: 'abc'
       },
       'undefined options are ignored when merging'
     );
 
     assert.deepEqual(
-      requestOptionsForSource(undefined, 'memory'),
+      requestOptionsForSource<ExampleRequestOptions>(undefined, 'memory'),
       undefined,
       'undefined may be returned'
     );

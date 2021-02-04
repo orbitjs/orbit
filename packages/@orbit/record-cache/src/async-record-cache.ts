@@ -47,11 +47,18 @@ import {
 } from './record-accessor';
 import { PatchResult, RecordCacheUpdateDetails } from './response';
 import { AsyncLiveQuery } from './live-query/async-live-query';
-import { RecordCache, RecordCacheSettings } from './record-cache';
+import {
+  RecordCache,
+  RecordCacheQueryOptions,
+  RecordCacheSettings
+} from './record-cache';
 
 const { assert, deprecate } = Orbit;
 
-export interface AsyncRecordCacheSettings extends RecordCacheSettings {
+export interface AsyncRecordCacheSettings<
+  QueryOptions extends RequestOptions = RecordCacheQueryOptions,
+  TransformOptions extends RequestOptions = RequestOptions
+> extends RecordCacheSettings<QueryOptions, TransformOptions> {
   processors?: AsyncOperationProcessorClass[];
   queryOperators?: Dict<AsyncQueryOperator>;
   transformOperators?: Dict<AsyncTransformOperator>;
@@ -59,8 +66,11 @@ export interface AsyncRecordCacheSettings extends RecordCacheSettings {
   debounceLiveQueries?: boolean;
 }
 
-export abstract class AsyncRecordCache
-  extends RecordCache
+export abstract class AsyncRecordCache<
+    QueryOptions extends RequestOptions = RecordCacheQueryOptions,
+    TransformOptions extends RequestOptions = RequestOptions
+  >
+  extends RecordCache<QueryOptions, TransformOptions>
   implements AsyncRecordAccessor {
   protected _processors: AsyncOperationProcessor[];
   protected _queryOperators: Dict<AsyncQueryOperator>;
@@ -68,7 +78,9 @@ export abstract class AsyncRecordCache
   protected _inverseTransformOperators: Dict<AsyncInverseTransformOperator>;
   protected _debounceLiveQueries: boolean;
 
-  constructor(settings: AsyncRecordCacheSettings) {
+  constructor(
+    settings: AsyncRecordCacheSettings<QueryOptions, TransformOptions>
+  ) {
     super(settings);
 
     this._queryOperators = settings.queryOperators || AsyncQueryOperators;

@@ -3,18 +3,39 @@ import { RecordSchema } from './record-schema';
 import { RecordQueryBuilder } from './record-query-builder';
 import { RecordTransformBuilder } from './record-transform-builder';
 import Orbit from '@orbit/core';
-import { Source, SourceClass, SourceSettings } from '@orbit/data';
+import {
+  RequestOptions,
+  Source,
+  SourceClass,
+  SourceSettings
+} from '@orbit/data';
 
 const { assert } = Orbit;
 
-export interface RecordSourceSettings
-  extends SourceSettings<RecordQueryBuilder, RecordTransformBuilder> {
+export interface RecordSourceQueryOptions extends RequestOptions {
+  raiseNotFoundExceptions?: boolean;
+}
+
+export interface RecordSourceSettings<
+  QueryOptions extends RequestOptions = RecordSourceQueryOptions,
+  TransformOptions extends RequestOptions = RequestOptions
+> extends SourceSettings<
+    QueryOptions,
+    TransformOptions,
+    RecordQueryBuilder,
+    RecordTransformBuilder
+  > {
   schema: RecordSchema;
   keyMap?: RecordKeyMap;
   autoUpgrade?: boolean;
 }
 
-export type RecordSourceClass = SourceClass<
+export type RecordSourceClass<
+  QueryOptions extends RequestOptions = RecordSourceQueryOptions,
+  TransformOptions extends RequestOptions = RequestOptions
+> = SourceClass<
+  QueryOptions,
+  TransformOptions,
   RecordQueryBuilder,
   RecordTransformBuilder
 >;
@@ -22,7 +43,12 @@ export type RecordSourceClass = SourceClass<
 /**
  * Abstract base class for record-based sources.
  */
-export abstract class RecordSource extends Source<
+export abstract class RecordSource<
+  QueryOptions extends RequestOptions = RecordSourceQueryOptions,
+  TransformOptions extends RequestOptions = RequestOptions
+> extends Source<
+  QueryOptions,
+  TransformOptions,
   RecordQueryBuilder,
   RecordTransformBuilder
 > {
@@ -31,7 +57,7 @@ export abstract class RecordSource extends Source<
   protected _queryBuilder!: RecordQueryBuilder;
   protected _transformBuilder!: RecordTransformBuilder;
 
-  constructor(settings: RecordSourceSettings) {
+  constructor(settings: RecordSourceSettings<QueryOptions, TransformOptions>) {
     const autoActivate =
       settings.autoActivate === undefined || settings.autoActivate;
 

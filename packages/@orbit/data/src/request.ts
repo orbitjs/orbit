@@ -6,7 +6,10 @@ export interface RequestOptions extends Options {
   sources?: { [name: string]: RequestOptions };
 }
 
-export type DefaultRequestOptions = Exclude<RequestOptions, 'fullResponse'>;
+export type DefaultRequestOptions<RO extends RequestOptions> = Exclude<
+  RO,
+  'fullResponse'
+>;
 
 export interface FullRequestOptions extends RequestOptions {
   fullResponse: true;
@@ -17,17 +20,17 @@ export interface FullRequestOptions extends RequestOptions {
  * specific options override the general options. If an array of options is
  * provided, they will be merged to a single set.
  */
-export function requestOptionsForSource(
-  options: RequestOptions | undefined | (RequestOptions | undefined)[],
+export function requestOptionsForSource<RO extends RequestOptions>(
+  options: RO | undefined | (RO | undefined)[],
   source?: string
-): RequestOptions | undefined {
-  let result: RequestOptions | undefined;
+): RO | undefined {
+  let result: RO | undefined;
 
   if (options !== undefined) {
     if (Array.isArray(options)) {
       for (let o of options) {
         if (o) {
-          let so = extractRequestOptionsForSource(o, source);
+          let so = extractRequestOptionsForSource<RO>(o, source);
           if (result) {
             result = {
               ...result,
@@ -39,17 +42,17 @@ export function requestOptionsForSource(
         }
       }
     } else {
-      result = extractRequestOptionsForSource(options, source);
+      result = extractRequestOptionsForSource<RO>(options, source);
     }
   }
 
   return result;
 }
 
-function extractRequestOptionsForSource(
-  options: RequestOptions,
+function extractRequestOptionsForSource<RO extends RequestOptions>(
+  options: RO,
   source?: string
-): RequestOptions {
+): RO {
   if (options.sources) {
     let { sources, ...rest } = options;
 
@@ -57,9 +60,9 @@ function extractRequestOptionsForSource(
       return {
         ...rest,
         ...sources[source]
-      };
+      } as RO;
     } else {
-      return rest;
+      return rest as RO;
     }
   } else {
     return options;

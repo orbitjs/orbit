@@ -1,5 +1,9 @@
 import Orbit, { evented, Evented, Listener } from '@orbit/core';
-import { DefaultRequestOptions, requestOptionsForSource } from '@orbit/data';
+import {
+  DefaultRequestOptions,
+  RequestOptions,
+  requestOptionsForSource
+} from '@orbit/data';
 import {
   RecordKeyMap,
   RecordOperation,
@@ -12,25 +16,35 @@ import {
 } from '@orbit/records';
 const { assert } = Orbit;
 
-export interface RecordCacheSettings {
+export interface RecordCacheQueryOptions extends RequestOptions {
+  raiseNotFoundExceptions?: boolean;
+}
+
+export interface RecordCacheSettings<
+  QueryOptions extends RequestOptions = RecordCacheQueryOptions,
+  TransformOptions extends RequestOptions = RequestOptions
+> {
   name?: string;
   schema: RecordSchema;
   keyMap?: RecordKeyMap;
   transformBuilder?: RecordTransformBuilder;
   queryBuilder?: RecordQueryBuilder;
-  defaultQueryOptions?: DefaultRequestOptions;
-  defaultTransformOptions?: DefaultRequestOptions;
+  defaultQueryOptions?: DefaultRequestOptions<QueryOptions>;
+  defaultTransformOptions?: DefaultRequestOptions<TransformOptions>;
 }
 
 @evented
-export abstract class RecordCache implements Evented {
+export abstract class RecordCache<
+  QueryOptions extends RequestOptions = RecordCacheQueryOptions,
+  TransformOptions extends RequestOptions = RequestOptions
+> implements Evented {
   protected _name?: string;
   protected _keyMap?: RecordKeyMap;
   protected _schema: RecordSchema;
   protected _transformBuilder: RecordTransformBuilder;
   protected _queryBuilder: RecordQueryBuilder;
-  protected _defaultQueryOptions?: DefaultRequestOptions;
-  protected _defaultTransformOptions?: DefaultRequestOptions;
+  protected _defaultQueryOptions?: DefaultRequestOptions<QueryOptions>;
+  protected _defaultTransformOptions?: DefaultRequestOptions<TransformOptions>;
 
   // Evented interface stubs
   on!: (event: string, listener: Listener) => () => void;
@@ -39,7 +53,7 @@ export abstract class RecordCache implements Evented {
   emit!: (event: string, ...args: any[]) => void;
   listeners!: (event: string) => Listener[];
 
-  constructor(settings: RecordCacheSettings) {
+  constructor(settings: RecordCacheSettings<QueryOptions, TransformOptions>) {
     assert(
       "SyncRecordCache's `schema` must be specified in `settings.schema` constructor argument",
       !!settings.schema
@@ -80,20 +94,26 @@ export abstract class RecordCache implements Evented {
     return this._transformBuilder;
   }
 
-  get defaultQueryOptions(): DefaultRequestOptions | undefined {
+  get defaultQueryOptions(): DefaultRequestOptions<QueryOptions> | undefined {
     return this._defaultQueryOptions;
   }
 
-  get defaultTransformOptions(): DefaultRequestOptions | undefined {
+  get defaultTransformOptions():
+    | DefaultRequestOptions<TransformOptions>
+    | undefined {
     return this._defaultTransformOptions;
   }
 
   getQueryOptions(
     query: RecordQuery,
     expression?: RecordQueryExpression
-  ): DefaultRequestOptions | undefined {
-    return requestOptionsForSource(
-      [this._defaultQueryOptions, query.options, expression?.options],
+  ): QueryOptions | undefined {
+    return requestOptionsForSource<QueryOptions>(
+      [
+        this._defaultQueryOptions,
+        query.options as QueryOptions | undefined,
+        expression?.options as QueryOptions | undefined
+      ],
       this._name
     );
   }
@@ -101,9 +121,13 @@ export abstract class RecordCache implements Evented {
   getTransformOptions(
     transform: RecordTransform,
     operation?: RecordOperation
-  ): DefaultRequestOptions | undefined {
+  ): TransformOptions | undefined {
     return requestOptionsForSource(
-      [this._defaultTransformOptions, transform.options, operation?.options],
+      [
+        this._defaultTransformOptions,
+        transform.options as TransformOptions | undefined,
+        operation?.options as TransformOptions | undefined
+      ],
       this._name
     );
   }

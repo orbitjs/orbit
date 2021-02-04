@@ -30,7 +30,8 @@ import {
   RecordQueryExpressionResult,
   RecordOperationResult,
   RecordQueryResult,
-  RecordTransformResult
+  RecordTransformResult,
+  RecordSourceQueryOptions
 } from '@orbit/records';
 import {
   JSONAPIRequestProcessor,
@@ -116,7 +117,7 @@ export class JSONAPISource
   requestProcessor: JSONAPIRequestProcessor;
 
   // Pullable interface stubs
-  pull!: <RO extends RequestOptions>(
+  pull!: <RO extends RecordSourceQueryOptions>(
     queryOrExpressions: QueryOrExpressions<
       RecordQueryExpression,
       RecordQueryBuilder
@@ -140,7 +141,7 @@ export class JSONAPISource
   >;
 
   // Queryable interface stubs
-  query!: <RO extends RequestOptions>(
+  query!: <RO extends RecordSourceQueryOptions>(
     queryOrExpressions: QueryOrExpressions<
       RecordQueryExpression,
       RecordQueryBuilder
