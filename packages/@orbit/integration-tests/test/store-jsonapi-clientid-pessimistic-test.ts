@@ -1,10 +1,11 @@
 import { Record, RecordSchema } from '@orbit/records';
-import { JSONAPISource } from '@orbit/jsonapi';
+import { JSONAPISource, JSONAPIResponse } from '@orbit/jsonapi';
 import { MemorySource } from '@orbit/memory';
 import { Coordinator, RequestStrategy, SyncStrategy } from '@orbit/coordinator';
 import { jsonapiResponse } from './support/jsonapi';
 import { SinonStub } from 'sinon';
 import * as sinon from 'sinon';
+import { FullResponse } from '@orbit/data';
 
 const { module, test } = QUnit;
 
@@ -17,7 +18,7 @@ module(
     let memory: MemorySource;
     let coordinator: Coordinator;
 
-    hooks.beforeEach(() => {
+    hooks.beforeEach(async () => {
       fetchStub = sinon.stub(self, 'fetch');
 
       schema = new RecordSchema({
@@ -74,8 +75,9 @@ module(
           source: 'memory',
           on: 'beforeQuery',
           target: 'remote',
-          action: 'pull',
-          blocking: true
+          action: 'query',
+          blocking: true,
+          passHints: true
         })
       );
 
@@ -126,8 +128,8 @@ module(
         })
       );
 
-      let createdRecord = await memory.update((t) => t.addRecord(planet));
-      let result = memory.cache.query((q) => q.findRecord(planet)) as Record;
+      const createdRecord = await memory.update((t) => t.addRecord(planet));
+      const result = memory.cache.query((q) => q.findRecord(planet));
 
       assert.deepEqual(result, {
         type: 'planet',
@@ -135,7 +137,48 @@ module(
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       });
 
-      assert.deepEqual(createdRecord, result);
+      assert.strictEqual(createdRecord, result);
+    });
+
+    test('Hints affect both the `data` and `details` returned in a full response', async function (assert) {
+      assert.expect(6);
+
+      await coordinator.activate();
+
+      const planet1: Record = {
+        type: 'planet',
+        id: '1',
+        attributes: { name: 'Jupiter' }
+      };
+
+      const planet2: Record = {
+        type: 'planet',
+        id: '2',
+        attributes: { name: 'Earth' }
+      };
+
+      fetchStub
+        .withArgs('/planets/1')
+        .returns(jsonapiResponse(200, { data: planet1 }));
+      fetchStub
+        .withArgs('/planets/2')
+        .returns(jsonapiResponse(200, { data: planet2 }));
+
+      let { data: records, details, sources } = (await memory.query(
+        (q) => [
+          q.findRecord({ type: 'planet', id: planet1.id }),
+          q.findRecord({ type: 'planet', id: planet2.id })
+        ],
+        { fullResponse: true }
+      )) as FullResponse<Record[], JSONAPIResponse[]>;
+
+      assert.ok(Array.isArray(records), 'multiple primary records returned');
+      assert.equal(records?.[0].attributes?.name, 'Jupiter');
+      assert.equal(records?.[1].attributes?.name, 'Earth');
+
+      assert.equal(details?.[0].response.status, 200);
+      assert.equal(details?.[1].response.status, 200);
+      assert.strictEqual(sources?.remote.details, details);
     });
   }
 );

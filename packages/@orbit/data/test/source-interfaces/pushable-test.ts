@@ -440,64 +440,81 @@ module('@pushable', function (hooks) {
     assert.deepEqual(result, fullResponse, 'success!');
   });
 
-  test('#push can return a full response, with `transforms` and `details` nested in a response object', async function (assert) {
-    assert.expect(7);
+  test('#push can return a full response, with `transforms`, `details`, and `sources` nested in a response object', async function (assert) {
+    assert.expect(9);
 
     let order = 0;
-    const updatePlanet1 = buildTransform<RecordOperation>({
-      op: 'updateRecord',
-      record: { type: 'planet', id: '1' }
-    });
-    const updatePlanet2 = buildTransform<RecordOperation>({
-      op: 'updateRecord',
-      record: { type: 'planet', id: '2' }
-    });
-    const result1 = [
+    const transform1 = buildTransform<RecordOperation>([
+      {
+        op: 'updateRecord',
+        record: { type: 'planet', id: '1' }
+      },
+      {
+        op: 'updateRecord',
+        record: { type: 'planet', id: '2' }
+      }
+    ]);
+    const data1 = [
       {
         type: 'planet',
         id: 'p1'
       }
     ];
-    const response1 = {
-      data: result1,
+    const details1 = {
+      data: data1,
       links: {
         self: 'https://example.com/api/planets'
       }
     };
-    const fullResponse = {
-      transforms: [updatePlanet1, updatePlanet2],
-      details: response1
+    const expectedResult = {
+      transforms: [transform1],
+      details: details1,
+
+      // source-specific responses are based on beforePush responses
+      sources: {
+        remote: { details: details1 }
+      }
     };
 
-    source._push = async function (transform) {
-      assert.equal(++order, 1, 'action performed after beforePush');
-      assert.deepEqual(
+    source.on('beforePush', async (transform) => {
+      assert.equal(++order, 1, 'beforePush triggered first');
+      assert.strictEqual(
         transform.operations,
-        updatePlanet1.operations,
-        'operations match'
+        transform1.operations,
+        'beforePush: transform matches'
       );
-      return fullResponse;
+
+      return ['remote', { details: details1 }];
+    });
+
+    source._push = async function (transform) {
+      assert.equal(++order, 2, '_push performed after beforePush');
+      assert.strictEqual(
+        transform.operations,
+        transform1.operations,
+        '_push: transform matches'
+      );
+      return {
+        transforms: [transform1],
+        details: details1
+      };
     };
 
     source.on('push', (transform, result) => {
-      assert.equal(
-        ++order,
-        2,
-        'push triggered after action performed successfully'
-      );
+      assert.equal(++order, 3, 'push triggered after action');
       assert.deepEqual(
         transform.operations,
-        updatePlanet1.operations,
-        'operations match'
+        transform1.operations,
+        'push: transform matches'
       );
-      assert.deepEqual(result, fullResponse, 'result matches');
+      assert.deepEqual(result, expectedResult, 'push: result matches');
     });
 
-    let result = await source.push(updatePlanet1, {
+    const result = await source.push(transform1, {
       fullResponse: true
     });
 
-    assert.equal(++order, 3, 'promise resolved last');
-    assert.deepEqual(result, fullResponse, 'success!');
+    assert.equal(++order, 4, 'request resolved last');
+    assert.deepEqual(result, expectedResult, 'success!');
   });
 });

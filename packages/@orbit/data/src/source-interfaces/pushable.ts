@@ -124,7 +124,6 @@ export function pushable(Klass: unknown): void {
     }
 
     try {
-      const options = transform.options || {};
       const hints: ResponseHints<unknown, unknown> = {};
       const otherResponses = (await fulfillInSeries(
         this,
@@ -133,10 +132,8 @@ export function pushable(Klass: unknown): void {
         hints
       )) as (NamedFullResponse<unknown, unknown, Operation> | undefined)[];
       const fullResponse = await this._push(transform, hints);
-      if (options.includeSources) {
-        fullResponse.sources = otherResponses
-          ? mapNamedFullResponses<unknown, unknown, Operation>(otherResponses)
-          : {};
+      if (otherResponses.length > 0) {
+        fullResponse.sources = mapNamedFullResponses(otherResponses);
       }
       if (fullResponse.transforms?.length > 0) {
         await this.transformed(fullResponse.transforms);

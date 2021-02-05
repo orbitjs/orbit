@@ -490,4 +490,73 @@ module('@updatable', function (hooks) {
       'applied transforms are returned on success'
     );
   });
+
+  test('#update can return a full response, with `data`, `details`, and `sources` nested in a response object', async function (assert) {
+    assert.expect(9);
+
+    let order = 0;
+    const transform1 = buildTransform<RecordOperation>({
+      op: 'addRecord',
+      record: { type: 'planet', id: '1' }
+    });
+    const data1 = [
+      {
+        type: 'planet',
+        id: 'p1'
+      }
+    ];
+    const details1 = {
+      data: data1,
+      links: {
+        self: 'https://example.com/api/planets'
+      }
+    };
+    const expectedResult = {
+      data: data1,
+      details: details1,
+
+      // source-specific responses are based on beforeQuery responses
+      sources: {
+        remote: { details: details1 }
+      }
+    };
+
+    source.on('beforeUpdate', async (transform) => {
+      assert.equal(++order, 1, 'beforeUpdate triggered first');
+      assert.strictEqual(
+        transform.operations,
+        transform1.operations,
+        'beforeUpdate: transform matches'
+      );
+
+      return ['remote', { details: details1 }];
+    });
+
+    source._update = async function (transform) {
+      assert.equal(++order, 2, '_update performed after beforeUpdate');
+      assert.strictEqual(
+        transform.operations,
+        transform1.operations,
+        '_update: transform matches'
+      );
+      return { data: data1, details: details1 };
+    };
+
+    source.on('update', (transform, result) => {
+      assert.equal(++order, 3, 'update triggered after action');
+      assert.strictEqual(
+        transform.operations,
+        transform1.operations,
+        'update: transform matches'
+      );
+      assert.deepEqual(result, expectedResult, 'update: result matches');
+    });
+
+    let result = await source.update(transform1, {
+      fullResponse: true
+    });
+
+    assert.equal(++order, 4, 'request resolved last');
+    assert.deepEqual(result, expectedResult, 'success!');
+  });
 });

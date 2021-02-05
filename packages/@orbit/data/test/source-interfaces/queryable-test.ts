@@ -419,49 +419,65 @@ module('@queryable', function (hooks) {
     assert.deepEqual(result, { data: result1 }, 'success!');
   });
 
-  test('#query can return a full response, with `data` and `details` nested in a response object', async function (assert) {
-    assert.expect(7);
+  test('#query can return a full response, with `data`, `details`, and `sources` nested in a response object', async function (assert) {
+    assert.expect(9);
 
     let order = 0;
     let qe = { op: 'findRecords', type: 'planet' } as FindRecords;
-    const result1 = [
+    const data1 = [
       {
         type: 'planet',
         id: 'p1'
       }
     ];
-    const response1 = {
-      data: result1,
+    const details1 = {
+      data: data1,
       links: {
         self: 'https://example.com/api/planets'
       }
     };
+    const expectedResult = {
+      data: data1,
+      details: details1,
+
+      // source-specific responses are based on beforeQuery responses
+      sources: {
+        remote: { details: details1 }
+      }
+    };
+
+    source.on('beforeQuery', async (query) => {
+      assert.equal(++order, 1, 'beforeQuery triggered first');
+      assert.strictEqual(
+        query.expressions[0],
+        qe,
+        'beforeQuery: query matches'
+      );
+
+      return ['remote', { details: details1 }];
+    });
 
     source._query = async function (query) {
-      assert.equal(++order, 1, 'action performed after beforeQuery');
-      assert.strictEqual(query.expressions[0], qe, 'query object matches');
-      return { data: result1, details: response1 };
+      assert.equal(++order, 2, 'action performed after beforeQuery');
+      assert.strictEqual(query.expressions[0], qe, '_query: query matches');
+      return { data: data1, details: details1 };
     };
 
     source.on('query', (query, result) => {
       assert.equal(
         ++order,
-        2,
+        3,
         'query triggered after action performed successfully'
       );
-      assert.strictEqual(query.expressions[0], qe, 'query matches');
-      assert.deepEqual(
-        result,
-        { data: result1, details: response1 },
-        'result matches'
-      );
+      assert.strictEqual(query.expressions[0], qe, 'query: query matches');
+      assert.deepEqual(result, expectedResult, 'result matches');
     });
 
-    let result = await source.query(qe, {
+    const result = await source.query(qe, {
       fullResponse: true
     });
 
-    assert.equal(++order, 3, 'promise resolved last');
-    assert.deepEqual(result, { data: result1, details: response1 }, 'success!');
+    assert.equal(++order, 4, 'request resolved last');
+    assert.deepEqual(result, expectedResult, 'success!');
   });
 });
