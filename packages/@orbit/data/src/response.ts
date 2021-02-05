@@ -18,16 +18,25 @@ export type TransformsOrFullResponse<
   ? FullResponse<Data, Details, O>
   : Transform<O>[];
 
-export type NamedFullResponse<Data, Details, O extends Operation> = [
-  string,
-  FullResponse<Data, Details, O>
-];
+export type NamedFullResponse<
+  Data,
+  Details = unknown,
+  O extends Operation = Operation
+> = [string, FullResponse<Data, Details, O>];
 
-export interface NamedFullResponseMap<Data, Details, O extends Operation> {
+export interface NamedFullResponseMap<
+  Data,
+  Details = unknown,
+  O extends Operation = Operation
+> {
   [name: string]: FullResponse<Data, Details, O>;
 }
 
-export interface FullResponse<Data, Details, O extends Operation> {
+export interface FullResponse<
+  Data,
+  Details = unknown,
+  O extends Operation = Operation
+> {
   /**
    * Primary data for this response.
    */
@@ -60,13 +69,17 @@ export interface ResponseHints<Data, Details> {
   details?: Details;
 }
 
-export function mapNamedFullResponses<Data, Details, O extends Operation>(
+export function mapNamedFullResponses<
+  Data = unknown,
+  Details = unknown,
+  O extends Operation = Operation
+>(
   responses: (NamedFullResponse<Data, Details, O> | undefined)[]
 ): NamedFullResponseMap<Data, Details, O> {
   let map: NamedFullResponseMap<Data, Details, O> = {};
   for (let r of responses) {
-    if (r) {
-      map[r[0] as string] = r[1];
+    if (typeof r?.[0] === 'string' && r?.[1] !== undefined) {
+      map[r[0]] = r[1];
     }
   }
   return map;

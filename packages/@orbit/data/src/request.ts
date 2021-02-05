@@ -2,7 +2,6 @@ import { Options } from './options';
 
 export interface RequestOptions extends Options {
   fullResponse?: true;
-  includeSources?: boolean | string[];
   sources?: { [name: string]: RequestOptions };
 }
 

@@ -107,7 +107,6 @@ export function pullable(Klass: unknown): void {
     query: Query<QueryExpression>
   ): Promise<FullResponse<unknown, unknown, Operation>> {
     try {
-      const options = query.options || {};
       const hints: ResponseHints<unknown, unknown> = {};
       const otherResponses = (await fulfillInSeries(
         this,
@@ -116,10 +115,8 @@ export function pullable(Klass: unknown): void {
         hints
       )) as (NamedFullResponse<unknown, unknown, Operation> | undefined)[];
       const fullResponse = await this._pull(query, hints);
-      if (options.includeSources) {
-        fullResponse.sources = otherResponses
-          ? mapNamedFullResponses<unknown, unknown, Operation>(otherResponses)
-          : {};
+      if (otherResponses.length > 0) {
+        fullResponse.sources = mapNamedFullResponses(otherResponses);
       }
       if (fullResponse.transforms?.length > 0) {
         await this.transformed(fullResponse.transforms);

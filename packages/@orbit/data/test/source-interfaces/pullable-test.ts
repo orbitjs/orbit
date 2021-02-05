@@ -400,8 +400,8 @@ module('@pullable', function (hooks) {
     assert.deepEqual(result, fullResponse, 'success!');
   });
 
-  test('#pull can return a full response, with `transforms` and `details` nested in a response object', async function (assert) {
-    assert.expect(7);
+  test('#pull can return a full response, with `transforms`, `details`, and `sources` nested in a response object', async function (assert) {
+    assert.expect(9);
 
     let order = 0;
     let qe = { op: 'findRecords', type: 'planet' } as FindRecords;
@@ -411,47 +411,63 @@ module('@pullable', function (hooks) {
         id: 'p1'
       }
     ];
-    const response1 = {
+    const details1 = {
       data: result1,
       links: {
         self: 'https://example.com/api/planets'
       }
     };
-    const fullResponse = {
-      transforms: [
-        buildTransform<RecordOperation>({
-          op: 'updateRecord',
-          record: { type: 'planet', id: '1' }
-        }),
-        buildTransform<RecordOperation>({
-          op: 'updateRecord',
-          record: { type: 'planet', id: '2' }
-        })
-      ],
-      details: response1
+    const transforms1 = [
+      buildTransform<RecordOperation>({
+        op: 'updateRecord',
+        record: { type: 'planet', id: '1' }
+      }),
+      buildTransform<RecordOperation>({
+        op: 'updateRecord',
+        record: { type: 'planet', id: '2' }
+      })
+    ];
+    const expectedResult = {
+      transforms: transforms1,
+      details: details1,
+
+      // source-specific responses are based on beforePull responses
+      sources: {
+        remote: { details: details1 }
+      }
     };
 
+    source.on('beforePull', async (query) => {
+      assert.equal(++order, 1, 'beforePull triggered first');
+      assert.strictEqual(query.expressions[0], qe, 'beforePull: query matches');
+
+      return ['remote', { details: details1 }];
+    });
+
     source._pull = async function (query) {
-      assert.equal(++order, 1, 'action performed after beforeQuery');
-      assert.strictEqual(query.expressions[0], qe, 'query object matches');
-      return fullResponse;
+      assert.equal(++order, 2, 'action performed after beforeQuery');
+      assert.strictEqual(query.expressions[0], qe, '_pull: query matches');
+      return {
+        transforms: transforms1,
+        details: details1
+      };
     };
 
     source.on('pull', (query, result) => {
       assert.equal(
         ++order,
-        2,
+        3,
         'pull triggered after action performed successfully'
       );
-      assert.strictEqual(query.expressions[0], qe, 'query matches');
-      assert.deepEqual(result, fullResponse, 'result matches');
+      assert.strictEqual(query.expressions[0], qe, 'pull: query matches');
+      assert.deepEqual(result, expectedResult, 'pull: result matches');
     });
 
-    let result = await source.pull(qe, {
+    const result = await source.pull(qe, {
       fullResponse: true
     });
 
-    assert.equal(++order, 3, 'promise resolved last');
-    assert.deepEqual(result, fullResponse, 'success!');
+    assert.equal(++order, 4, 'request resolved last');
+    assert.deepEqual(result, expectedResult, 'success!');
   });
 });
