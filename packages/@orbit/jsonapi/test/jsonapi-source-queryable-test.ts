@@ -1,4 +1,4 @@
-import { NetworkError } from '@orbit/data';
+import { NetworkError, QueryNotAllowed } from '@orbit/data';
 import {
   RecordKeyMap,
   Record,
@@ -304,6 +304,52 @@ module('JSONAPISource - queryable', function (hooks) {
         )
       );
       preprocessResponseDocumentSpy.restore();
+    });
+
+    test('#query - source can limit the number of allowed requests per query with `maxRequests` option', async function (assert) {
+      assert.expect(1);
+
+      const data1: Resource = {
+        type: 'planet',
+        id: '12345',
+        attributes: { name: 'Jupiter' }
+      };
+
+      const planet1 = resourceSerializer.deserialize({
+        type: 'planet',
+        id: '12345'
+      }) as Record;
+
+      const data2: Resource = {
+        type: 'planet',
+        id: '1234',
+        attributes: { name: 'Earth' }
+      };
+
+      const planet2 = resourceSerializer.deserialize({
+        type: 'planet',
+        id: '1234'
+      }) as Record;
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(jsonapiResponse(200, { data: data1 }));
+      fetchStub
+        .withArgs('/planets/1234')
+        .returns(jsonapiResponse(200, { data: data2 }));
+
+      source.defaultQueryOptions = {
+        maxRequests: 1
+      };
+
+      try {
+        await source.query((q) => [
+          q.findRecord({ type: 'planet', id: planet1.id }),
+          q.findRecord({ type: 'planet', id: planet2.id })
+        ]);
+      } catch (e) {
+        assert.ok(e instanceof QueryNotAllowed, 'QueryNotAllowed thrown');
+      }
     });
 
     test('#query - request can timeout', async function (assert) {

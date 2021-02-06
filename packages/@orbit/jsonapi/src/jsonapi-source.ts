@@ -1,5 +1,5 @@
 /* eslint-disable valid-jsdoc */
-import { Assertion } from '@orbit/core';
+import Orbit, { Assertion } from '@orbit/core';
 import {
   QueryOrExpressions,
   RequestOptions,
@@ -65,9 +65,32 @@ import {
 } from '@orbit/serializers';
 import { JSONAPIResponse } from './jsonapi-response';
 
-export interface JSONAPISourceSettings extends RecordSourceSettings {
+const { deprecate } = Orbit;
+
+export interface JSONAPIQueryOptions extends RecordSourceQueryOptions {
+  maxRequests?: number;
+}
+
+export interface JSONAPITransformOptions extends RequestOptions {
+  maxRequests?: number;
+}
+
+export interface JSONAPISourceSettings
+  extends RecordSourceSettings<JSONAPIQueryOptions, JSONAPITransformOptions> {
+  /**
+   * Deprecated in favor of `defaultTransformOptions.maxRequests`
+   *
+   * @deprecated since v0.17, remove in v0.18
+   */
   maxRequestsPerTransform?: number;
+
+  /**
+   * Deprecated in favor of `defaultQueryOptions.maxRequests`
+   *
+   * @deprecated since v0.17, remove in v0.18
+   */
   maxRequestsPerQuery?: number;
+
   name?: string;
   namespace?: string;
   host?: string;
@@ -106,14 +129,12 @@ export interface JSONAPISourceSettings extends RecordSourceSettings {
 @queryable
 @updatable
 export class JSONAPISource
-  extends RecordSource
+  extends RecordSource<JSONAPIQueryOptions, JSONAPITransformOptions>
   implements
     RecordPullable<JSONAPIResponse[]>,
     RecordPushable<JSONAPIResponse[]>,
     RecordQueryable<JSONAPIResponse[]>,
     RecordUpdatable<JSONAPIResponse[]> {
-  maxRequestsPerTransform?: number;
-  maxRequestsPerQuery?: number;
   requestProcessor: JSONAPIRequestProcessor;
 
   // Pullable interface stubs
@@ -202,8 +223,20 @@ export class JSONAPISource
       );
     }
 
-    this.maxRequestsPerTransform = maxRequestsPerTransform;
-    this.maxRequestsPerQuery = maxRequestsPerQuery;
+    if (maxRequestsPerTransform !== undefined) {
+      deprecate(
+        "The 'maxRequestsPerTransform' setting for 'JSONAPSource' has been deprecated in favor of 'defaultTransformOptions.maxRequests'."
+      );
+      this._defaultTransformOptions = this._defaultTransformOptions ?? {};
+      this._defaultTransformOptions.maxRequests = maxRequestsPerTransform;
+    }
+    if (maxRequestsPerQuery !== undefined) {
+      deprecate(
+        "The 'maxRequestsPerQuery' setting for 'JSONAPSource' has been deprecated in favor of 'defaultQueryOptions.maxRequests'."
+      );
+      this._defaultQueryOptions = this._defaultQueryOptions ?? {};
+      this._defaultQueryOptions.maxRequests = maxRequestsPerQuery;
+    }
 
     RequestProcessorClass = RequestProcessorClass || JSONAPIRequestProcessor;
     this.requestProcessor = new RequestProcessorClass({
@@ -220,6 +253,56 @@ export class JSONAPISource
       schema: this.schema,
       keyMap
     });
+  }
+
+  /**
+   * Deprecated in favor of `defaultTransformOptions.maxRequests`
+   *
+   * @deprecated since v0.17, remove in v0.18
+   */
+  get maxRequestsPerTransform(): number | undefined {
+    deprecate(
+      "The 'maxRequestsPerTransform' property for 'JSONAPSource' has been deprecated in favor of 'defaultTransformOptions.maxRequests'."
+    );
+    return this._defaultTransformOptions?.maxRequests;
+  }
+
+  /**
+   * Deprecated in favor of `defaultTransformOptions.maxRequests`
+   *
+   * @deprecated since v0.17, remove in v0.18
+   */
+  set maxRequestsPerTransform(val: number | undefined) {
+    deprecate(
+      "The 'maxRequestsPerTransform' property for 'JSONAPSource' has been deprecated in favor of 'defaultTransformOptions.maxRequests'."
+    );
+    this._defaultTransformOptions = this._defaultTransformOptions ?? {};
+    this._defaultTransformOptions.maxRequests = val;
+  }
+
+  /**
+   * Deprecated in favor of `defaultQueryOptions.maxRequests`
+   *
+   * @deprecated since v0.17, remove in v0.18
+   */
+  get maxRequestsPerQuery(): number | undefined {
+    deprecate(
+      "The 'maxRequestsPerQuery' property for 'JSONAPSource' has been deprecated in favor of 'defaultQueryOptions.maxRequests'."
+    );
+    return this._defaultQueryOptions?.maxRequests;
+  }
+
+  /**
+   * Deprecated in favor of `defaultQueryOptions.maxRequests`
+   *
+   * @deprecated since v0.17, remove in v0.18
+   */
+  set maxRequestsPerQuery(val: number | undefined) {
+    deprecate(
+      "The 'maxRequestsPerQuery' property for 'JSONAPSource' has been deprecated in favor of 'defaultQueryOptions.maxRequests'."
+    );
+    this._defaultQueryOptions = this._defaultQueryOptions ?? {};
+    this._defaultQueryOptions.maxRequests = val;
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -357,13 +440,14 @@ export class JSONAPISource
   }
 
   protected getQueryRequests(query: RecordQuery): RecordQueryRequest[] {
+    const options = this.getQueryOptions(query);
     const queryRequests = getQueryRequests(this.requestProcessor, query);
     if (
-      this.maxRequestsPerQuery &&
-      queryRequests.length > this.maxRequestsPerQuery
+      options?.maxRequests !== undefined &&
+      queryRequests.length > options.maxRequests
     ) {
       throw new QueryNotAllowed(
-        `This query requires ${queryRequests.length} requests, which exceeds the specified limit of ${this.maxRequestsPerQuery} requests per query.`,
+        `This query requires ${queryRequests.length} requests, which exceeds the specified limit of ${options.maxRequests} requests per query.`,
         query
       );
     }
@@ -379,16 +463,17 @@ export class JSONAPISource
   protected getTransformRequests(
     transform: RecordTransform
   ): RecordTransformRequest[] {
+    const options = this.getTransformOptions(transform);
     const transformRequests = getTransformRequests(
       this.requestProcessor,
       transform
     );
     if (
-      this.maxRequestsPerTransform &&
-      transformRequests.length > this.maxRequestsPerTransform
+      options?.maxRequests !== undefined &&
+      transformRequests.length > options.maxRequests
     ) {
       throw new TransformNotAllowed(
-        `This transform requires ${transformRequests.length} requests, which exceeds the specified limit of ${this.maxRequestsPerTransform} requests per transform.`,
+        `This transform requires ${transformRequests.length} requests, which exceeds the specified limit of ${options.maxRequests} requests per transform.`,
         transform
       );
     }
