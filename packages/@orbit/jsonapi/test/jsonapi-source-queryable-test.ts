@@ -1805,8 +1805,8 @@ module('JSONAPISource - queryable', function (hooks) {
       ) as JSONAPIResourceSerializer;
     });
 
-    test('#query - can query multiple expressions in series', async function (assert) {
-      assert.expect(9);
+    test('#query - can query multiple expressions in parallel (by default)', async function (assert) {
+      assert.expect(10);
 
       const planetsDoc = {
         data: [
@@ -1838,13 +1838,108 @@ module('JSONAPISource - queryable', function (hooks) {
         ]
       };
 
-      fetchStub.withArgs('/planets').returns(jsonapiResponse(200, planetsDoc));
-      fetchStub.withArgs('/moons').returns(jsonapiResponse(200, moonsDoc));
+      const REQUEST_DELAY = 10;
+
+      fetchStub
+        .withArgs('/planets')
+        .callsFake(() => jsonapiResponse(200, planetsDoc, REQUEST_DELAY));
+      fetchStub
+        .withArgs('/moons')
+        .callsFake(() => jsonapiResponse(200, moonsDoc, REQUEST_DELAY));
+
+      const startTime = new Date().getTime();
 
       let [planets, moons] = (await source.query((q) => [
         q.findRecords('planet'),
         q.findRecords('moon')
       ])) as Record[][];
+
+      const endTime = new Date().getTime();
+      const elapsedTime = endTime - startTime;
+
+      assert.ok(
+        elapsedTime < 2 * REQUEST_DELAY,
+        'query performed in parallel requests'
+      );
+
+      assert.equal(planets.length, 2, 'multiple planets returned');
+      assert.equal(planets[0].attributes?.name, 'Jupiter');
+      assert.equal(planets[1].attributes?.name, 'Earth');
+
+      assert.equal(moons.length, 2, 'multiple moons returned');
+      assert.equal(moons[0].attributes?.name, 'Io');
+      assert.equal(moons[1].attributes?.name, 'Europa');
+
+      assert.equal(fetchStub.callCount, 2, 'fetch called twice');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+      assert.equal(
+        fetchStub.getCall(1).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#query - can query multiple expressions in series (via `parallelRequests: false` option)', async function (assert) {
+      assert.expect(10);
+
+      const planetsDoc = {
+        data: [
+          {
+            type: 'planet',
+            id: 'p1',
+            attributes: { name: 'Jupiter' }
+          },
+          {
+            type: 'planet',
+            id: 'p2',
+            attributes: { name: 'Earth' }
+          }
+        ]
+      };
+
+      const moonsDoc = {
+        data: [
+          {
+            type: 'moon',
+            id: 'm1',
+            attributes: { name: 'Io' }
+          },
+          {
+            type: 'moon',
+            id: 'm2',
+            attributes: { name: 'Europa' }
+          }
+        ]
+      };
+
+      const REQUEST_DELAY = 10;
+
+      fetchStub
+        .withArgs('/planets')
+        .callsFake(() => jsonapiResponse(200, planetsDoc, REQUEST_DELAY));
+
+      fetchStub
+        .withArgs('/moons')
+        .callsFake(() => jsonapiResponse(200, moonsDoc, REQUEST_DELAY));
+
+      const startTime = new Date().getTime();
+
+      let [planets, moons] = (await source.query(
+        (q) => [q.findRecords('planet'), q.findRecords('moon')],
+        { parallelRequests: false }
+      )) as Record[][];
+
+      const endTime = new Date().getTime();
+      const elapsedTime = endTime - startTime;
+
+      assert.ok(
+        elapsedTime >= 2 * REQUEST_DELAY,
+        'query requests performed in series'
+      );
 
       assert.equal(planets.length, 2, 'multiple planets returned');
       assert.equal(planets[0].attributes?.name, 'Jupiter');

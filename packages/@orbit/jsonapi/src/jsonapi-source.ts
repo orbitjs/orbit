@@ -50,13 +50,15 @@ import {
   QueryRequestProcessor,
   QueryRequestProcessors,
   RecordQueryRequest,
-  getQueryRequests
+  getQueryRequests,
+  QueryRequestProcessorResponse
 } from './lib/query-requests';
 import {
   TransformRequestProcessor,
   TransformRequestProcessors,
   RecordTransformRequest,
-  getTransformRequests
+  getTransformRequests,
+  TransformRequestProcessorResponse
 } from './lib/transform-requests';
 import {
   SerializerClassForFn,
@@ -67,13 +69,17 @@ import { JSONAPIResponse } from './jsonapi-response';
 
 const { deprecate } = Orbit;
 
-export interface JSONAPIQueryOptions extends RecordSourceQueryOptions {
+interface JSONAPISharedRequestOptions {
   maxRequests?: number;
+  parallelRequests?: boolean;
 }
+export interface JSONAPIQueryOptions
+  extends RecordSourceQueryOptions,
+    JSONAPISharedRequestOptions {}
 
-export interface JSONAPITransformOptions extends RequestOptions {
-  maxRequests?: number;
-}
+export interface JSONAPITransformOptions
+  extends RequestOptions,
+    JSONAPISharedRequestOptions {}
 
 export interface JSONAPISourceSettings
   extends RecordSourceSettings<JSONAPIQueryOptions, JSONAPITransformOptions> {
@@ -223,18 +229,24 @@ export class JSONAPISource
       );
     }
 
+    this._defaultTransformOptions = this._defaultTransformOptions ?? {};
+    this._defaultQueryOptions = this._defaultQueryOptions ?? {};
+
+    // Parallelize query requests by default (but not transform requests)
+    if (this._defaultQueryOptions.parallelRequests === undefined) {
+      this._defaultQueryOptions.parallelRequests = true;
+    }
+
     if (maxRequestsPerTransform !== undefined) {
       deprecate(
         "The 'maxRequestsPerTransform' setting for 'JSONAPSource' has been deprecated in favor of 'defaultTransformOptions.maxRequests'."
       );
-      this._defaultTransformOptions = this._defaultTransformOptions ?? {};
       this._defaultTransformOptions.maxRequests = maxRequestsPerTransform;
     }
     if (maxRequestsPerQuery !== undefined) {
       deprecate(
         "The 'maxRequestsPerQuery' setting for 'JSONAPSource' has been deprecated in favor of 'defaultQueryOptions.maxRequests'."
       );
-      this._defaultQueryOptions = this._defaultQueryOptions ?? {};
       this._defaultQueryOptions.maxRequests = maxRequestsPerQuery;
     }
 
@@ -316,14 +328,11 @@ export class JSONAPISource
       return {};
     }
 
-    const requests = this.getTransformRequests(transform);
+    const responses = await this.processTransformRequests(transform);
     const details: JSONAPIResponse[] = [];
     const transforms: RecordTransform[] = [];
 
-    for (let request of requests) {
-      let processor = this.getTransformRequestProcessor(request);
-
-      let response = await processor(this.requestProcessor, request);
+    for (let response of responses) {
       if (response.transforms) {
         Array.prototype.push.apply(transforms, response.transforms);
       }
@@ -345,14 +354,11 @@ export class JSONAPISource
   async _pull(
     query: RecordQuery
   ): Promise<FullResponse<undefined, JSONAPIResponse[], RecordOperation>> {
-    const requests = this.getQueryRequests(query);
+    const responses = await this.processQueryRequests(query);
     const details: JSONAPIResponse[] = [];
     const transforms: RecordTransform[] = [];
 
-    for (let request of requests) {
-      let processor = this.getQueryRequestProcessor(request);
-
-      let response = await processor(this.requestProcessor, request);
+    for (let response of responses) {
       if (response.transforms) {
         Array.prototype.push.apply(transforms, response.transforms);
       }
@@ -376,15 +382,12 @@ export class JSONAPISource
   ): Promise<
     FullResponse<RecordQueryResult, JSONAPIResponse[], RecordOperation>
   > {
-    const requests = this.getQueryRequests(query);
+    const responses = await this.processQueryRequests(query);
     const details: JSONAPIResponse[] = [];
     const transforms: RecordTransform[] = [];
     const data: RecordQueryExpressionResult[] = [];
 
-    for (let request of requests) {
-      let processor = this.getQueryRequestProcessor(request);
-
-      let response = await processor(this.requestProcessor, request);
+    for (let response of responses) {
       if (response.transforms) {
         Array.prototype.push.apply(transforms, response.transforms);
       }
@@ -395,7 +398,7 @@ export class JSONAPISource
     }
 
     return {
-      data: requests.length > 1 ? data : data[0],
+      data: responses.length > 1 ? data : data[0],
       details,
       transforms
     };
@@ -414,15 +417,12 @@ export class JSONAPISource
       return {};
     }
 
-    const requests = this.getTransformRequests(transform);
+    const responses = await this.processTransformRequests(transform);
     const details: JSONAPIResponse[] = [];
     const transforms: RecordTransform[] = [];
     const data: RecordOperationResult[] = [];
 
-    for (let request of requests) {
-      let processor = this.getTransformRequestProcessor(request);
-
-      let response = await processor(this.requestProcessor, request);
+    for (let response of responses) {
       if (response.transforms) {
         Array.prototype.push.apply(transforms, response.transforms);
       }
@@ -433,25 +433,10 @@ export class JSONAPISource
     }
 
     return {
-      data: requests.length > 1 ? data : data[0],
+      data: responses.length > 1 ? data : data[0],
       details,
       transforms: [transform, ...transforms]
     };
-  }
-
-  protected getQueryRequests(query: RecordQuery): RecordQueryRequest[] {
-    const options = this.getQueryOptions(query);
-    const queryRequests = getQueryRequests(this.requestProcessor, query);
-    if (
-      options?.maxRequests !== undefined &&
-      queryRequests.length > options.maxRequests
-    ) {
-      throw new QueryNotAllowed(
-        `This query requires ${queryRequests.length} requests, which exceeds the specified limit of ${options.maxRequests} requests per query.`,
-        query
-      );
-    }
-    return queryRequests;
   }
 
   protected getQueryRequestProcessor(
@@ -460,29 +445,73 @@ export class JSONAPISource
     return QueryRequestProcessors[request.op];
   }
 
-  protected getTransformRequests(
-    transform: RecordTransform
-  ): RecordTransformRequest[] {
-    const options = this.getTransformOptions(transform);
-    const transformRequests = getTransformRequests(
-      this.requestProcessor,
-      transform
-    );
-    if (
-      options?.maxRequests !== undefined &&
-      transformRequests.length > options.maxRequests
-    ) {
-      throw new TransformNotAllowed(
-        `This transform requires ${transformRequests.length} requests, which exceeds the specified limit of ${options.maxRequests} requests per transform.`,
-        transform
-      );
-    }
-    return transformRequests;
-  }
-
   protected getTransformRequestProcessor(
     request: RecordTransformRequest
   ): TransformRequestProcessor {
     return TransformRequestProcessors[request.op];
+  }
+
+  protected async processQueryRequests(
+    query: RecordQuery
+  ): Promise<QueryRequestProcessorResponse[]> {
+    const options = this.getQueryOptions(query);
+    const requests = getQueryRequests(this.requestProcessor, query);
+    if (
+      options?.maxRequests !== undefined &&
+      requests.length > options.maxRequests
+    ) {
+      throw new QueryNotAllowed(
+        `This query requires ${requests.length} requests, which exceeds the specified limit of ${options.maxRequests} requests per query.`,
+        query
+      );
+    }
+
+    if (options?.parallelRequests) {
+      return Promise.all(
+        requests.map((request) => {
+          const processor = this.getQueryRequestProcessor(request);
+          return processor(this.requestProcessor, request);
+        })
+      );
+    } else {
+      const responses = [];
+      for (let request of requests) {
+        const processor = this.getQueryRequestProcessor(request);
+        responses.push(await processor(this.requestProcessor, request));
+      }
+      return responses;
+    }
+  }
+
+  protected async processTransformRequests(
+    transform: RecordTransform
+  ): Promise<TransformRequestProcessorResponse[]> {
+    const options = this.getTransformOptions(transform);
+    const requests = getTransformRequests(this.requestProcessor, transform);
+    if (
+      options?.maxRequests !== undefined &&
+      requests.length > options.maxRequests
+    ) {
+      throw new TransformNotAllowed(
+        `This transform requires ${requests.length} requests, which exceeds the specified limit of ${options.maxRequests} requests per transform.`,
+        transform
+      );
+    }
+
+    if (options?.parallelRequests) {
+      return Promise.all(
+        requests.map((request) => {
+          const processor = this.getTransformRequestProcessor(request);
+          return processor(this.requestProcessor, request);
+        })
+      );
+    } else {
+      const responses = [];
+      for (let request of requests) {
+        const processor = this.getTransformRequestProcessor(request);
+        responses.push(await processor(this.requestProcessor, request));
+      }
+      return responses;
+    }
   }
 }

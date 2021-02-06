@@ -47,8 +47,6 @@ module('JSONAPISource', function (hooks) {
   });
 
   test('source has default settings', function (assert) {
-    assert.expect(2);
-
     let schema = new RecordSchema({} as RecordSchemaSettings);
     source = new JSONAPISource({ schema });
     assert.equal(source.name, 'jsonapi', 'name is set to default');
@@ -56,6 +54,18 @@ module('JSONAPISource', function (hooks) {
       source.requestProcessor.allowedContentTypes,
       ['application/vnd.api+json', 'application/json'],
       'allowedContentTypes are set to default'
+    );
+    assert.deepEqual(
+      source.defaultQueryOptions,
+      {
+        parallelRequests: true
+      },
+      'defaultQueryOptions matches expectation'
+    );
+    assert.deepEqual(
+      source.defaultTransformOptions,
+      {},
+      'defaultTransformOptions matches expectation'
     );
   });
 
