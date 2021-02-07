@@ -5,11 +5,7 @@ import {
   pushable,
   Resettable,
   syncable,
-  QueryOrExpressions,
-  RequestOptions,
-  TransformOrOperations,
-  FullResponse,
-  TransformsOrFullResponse
+  FullResponse
 } from '@orbit/data';
 import {
   Record,
@@ -22,14 +18,8 @@ import {
   RecordPushable,
   RecordSyncable,
   RecordTransform,
-  RecordQueryExpression,
-  RecordQueryBuilder,
-  RecordTransformResult,
-  RecordTransformBuilder,
-  RecordQueryResult,
   RecordSource,
-  RecordQuery,
-  RecordSourceQueryOptions
+  RecordQuery
 } from '@orbit/records';
 import { supportsLocalStorage } from './lib/local-storage';
 import {
@@ -45,54 +35,21 @@ export interface LocalStorageSourceSettings extends RecordSourceSettings {
   cacheSettings?: Partial<LocalStorageCacheSettings>;
 }
 
+export interface LocalStorageSource
+  extends RecordSource,
+    RecordSyncable,
+    RecordPullable<unknown>,
+    RecordPushable<unknown>,
+    Resettable {}
+
 /**
  * Source for storing data in localStorage.
  */
 @pullable
 @pushable
 @syncable
-export class LocalStorageSource
-  extends RecordSource
-  implements
-    RecordSyncable,
-    RecordPullable<unknown>,
-    RecordPushable<unknown>,
-    Resettable {
+export class LocalStorageSource extends RecordSource {
   protected _cache: LocalStorageCache;
-
-  // Syncable interface stubs
-  sync!: (
-    transformOrTransforms: RecordTransform | RecordTransform[]
-  ) => Promise<void>;
-
-  // Pullable interface stubs
-  pull!: <RO extends RecordSourceQueryOptions>(
-    queryOrExpressions: QueryOrExpressions<
-      RecordQueryExpression,
-      RecordQueryBuilder
-    >,
-    options?: RO,
-    id?: string
-  ) => Promise<
-    TransformsOrFullResponse<RecordQueryResult, unknown, RecordOperation, RO>
-  >;
-
-  // Pushable interface stubs
-  push!: <RO extends RequestOptions>(
-    transformOrOperations: TransformOrOperations<
-      RecordOperation,
-      RecordTransformBuilder
-    >,
-    options?: RO,
-    id?: string
-  ) => Promise<
-    TransformsOrFullResponse<
-      RecordTransformResult,
-      unknown,
-      RecordOperation,
-      RO
-    >
-  >;
 
   constructor(settings: LocalStorageSourceSettings) {
     assert(

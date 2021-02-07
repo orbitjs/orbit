@@ -8,24 +8,17 @@ import {
   RecordTransformResult,
   RecordSource,
   RecordSourceSettings,
-  RecordQueryBuilder,
-  RecordTransformBuilder,
-  RecordQueryExpression,
   RecordTransform,
   RecordQuery,
   RecordSyncable,
   RecordUpdatable,
-  RecordQueryable,
-  RecordSourceQueryOptions
+  RecordQueryable
 } from '@orbit/records';
 import {
-  DataOrFullResponse,
   syncable,
-  QueryOrExpressions,
   RequestOptions,
   queryable,
   updatable,
-  TransformOrOperations,
   buildTransform,
   FullResponse
 } from '@orbit/data';
@@ -44,49 +37,21 @@ export interface MemorySourceMergeOptions {
   transformOptions?: RequestOptions;
 }
 
+export interface MemorySource
+  extends RecordSource,
+    RecordSyncable,
+    RecordQueryable<unknown>,
+    RecordUpdatable<unknown> {}
+
 @syncable
 @queryable
 @updatable
-export class MemorySource
-  extends RecordSource
-  implements
-    RecordSyncable,
-    RecordUpdatable<unknown>,
-    RecordQueryable<unknown> {
+export class MemorySource extends RecordSource {
   private _cache: MemoryCache;
   private _base?: MemorySource;
   private _forkPoint?: string;
   private _transforms: Dict<RecordTransform>;
   private _transformInverses: Dict<RecordOperation[]>;
-
-  // Syncable interface stubs
-  sync!: (
-    transformOrTransforms: RecordTransform | RecordTransform[]
-  ) => Promise<void>;
-
-  // Queryable interface stubs
-  query!: <RO extends RecordSourceQueryOptions>(
-    queryOrExpressions: QueryOrExpressions<
-      RecordQueryExpression,
-      RecordQueryBuilder
-    >,
-    options?: RO,
-    id?: string
-  ) => Promise<
-    DataOrFullResponse<RecordQueryResult, unknown, RecordOperation, RO>
-  >;
-
-  // Updatable interface stubs
-  update!: <RO extends RequestOptions>(
-    transformOrOperations: TransformOrOperations<
-      RecordOperation,
-      RecordTransformBuilder
-    >,
-    options?: RO,
-    id?: string
-  ) => Promise<
-    DataOrFullResponse<RecordTransformResult, unknown, RecordOperation, RO>
-  >;
 
   constructor(settings: MemorySourceSettings) {
     const { keyMap, schema } = settings;

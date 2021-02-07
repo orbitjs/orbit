@@ -1,9 +1,12 @@
 import { Orbit, settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Transform, TransformOrOperations, buildTransform } from '../transform';
-import { RequestOptions } from '../request';
 import {
-  DataOrFullResponse,
+  DefaultRequestOptions,
+  FullRequestOptions,
+  RequestOptions
+} from '../request';
+import {
   NamedFullResponse,
   ResponseHints,
   FullResponse,
@@ -30,18 +33,28 @@ export interface Updatable<
   Data,
   Details,
   O extends Operation,
-  TransformBuilder
+  TransformBuilder,
+  Options extends RequestOptions = RequestOptions
 > {
   /**
    * The `update` method accepts a `Transform` instance or an array of
    * operations which it then converts to a `Transform` instance. The source
    * applies the update and returns a promise that resolves when complete.
    */
-  update<RO extends RequestOptions>(
+  update<RequestData extends Data = Data>(
     transformOrOperations: TransformOrOperations<O, TransformBuilder>,
-    options?: RO,
+    options?: DefaultRequestOptions<Options>,
     id?: string
-  ): Promise<DataOrFullResponse<Data, Details, O, RO>>;
+  ): Promise<RequestData>;
+  update<
+    RequestData extends Data = Data,
+    RequestDetails extends Details = Details,
+    RequestOperation extends O = O
+  >(
+    transformOrOperations: TransformOrOperations<O, TransformBuilder>,
+    options: FullRequestOptions<Options>,
+    id?: string
+  ): Promise<FullResponse<RequestData, RequestDetails, RequestOperation>>;
 
   _update(
     transform: Transform<O>,
@@ -86,11 +99,11 @@ export function updatable(Klass: unknown): void {
 
   proto[UPDATABLE] = true;
 
-  proto.update = async function <RO extends RequestOptions>(
+  proto.update = async function (
     transformOrOperations: TransformOrOperations<Operation, unknown>,
     options?: RequestOptions,
     id?: string
-  ): Promise<DataOrFullResponse<unknown, unknown, Operation, RO>> {
+  ): Promise<unknown> {
     await this.activated;
     const transform = buildTransform(
       transformOrOperations,
@@ -102,7 +115,7 @@ export function updatable(Klass: unknown): void {
     if (this.transformLog.contains(transform.id)) {
       const transforms: Transform<Operation>[] = [];
       const response = options?.fullResponse ? { transforms } : transforms;
-      return response as DataOrFullResponse<unknown, unknown, Operation, RO>;
+      return response;
     } else {
       const response = await this._enqueueRequest('update', transform);
       return options?.fullResponse ? response : response.data;

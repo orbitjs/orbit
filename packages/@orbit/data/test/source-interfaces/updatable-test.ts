@@ -1,21 +1,13 @@
-import {
-  buildTransform,
-  Transform,
-  TransformOrOperations
-} from '../../src/transform';
+import { buildTransform, Transform } from '../../src/transform';
 import { Source } from '../../src/source';
-import { RequestOptions } from '../../src/request';
+import { ResponseHints } from '../../src/response';
 import {
   updatable,
   isUpdatable,
   Updatable
 } from '../../src/source-interfaces/updatable';
 import {
-  DataOrFullResponse,
-  FullResponse,
-  ResponseHints
-} from '../../src/response';
-import {
+  Record,
   RecordData,
   RecordResponse,
   RecordOperation,
@@ -25,31 +17,17 @@ import {
 const { module, test } = QUnit;
 
 module('@updatable', function (hooks) {
-  @updatable
-  class MySource
-    extends Source
-    implements
+  interface MySource
+    extends Source,
       Updatable<
         RecordData,
         RecordResponse,
         RecordOperation,
         RecordTransformBuilder
-      > {
-    update!: <RO extends RequestOptions>(
-      transformOrOperations: TransformOrOperations<
-        RecordOperation,
-        RecordTransformBuilder
-      >,
-      options?: RO,
-      id?: string
-    ) => Promise<
-      DataOrFullResponse<RecordData, RecordResponse, RecordOperation, RO>
-    >;
-    _update!: (
-      transform: Transform<RecordOperation>,
-      hints?: ResponseHints<RecordData, RecordResponse>
-    ) => Promise<FullResponse<RecordData, RecordResponse, RecordOperation>>;
-  }
+      > {}
+
+  @updatable
+  class MySource extends Source {}
 
   let source: MySource;
 
@@ -103,12 +81,10 @@ module('@updatable', function (hooks) {
       op: 'addRecord',
       record: { type: 'planet', id: '1' }
     });
-    const result1 = [
-      {
-        type: 'planet',
-        id: 'p1'
-      }
-    ];
+    const result1 = {
+      type: 'planet',
+      id: 'p1'
+    };
     const fullResponse = { data: result1, transforms: [addRecordTransform] };
 
     source.on('beforeUpdate', (transform) => {
@@ -151,7 +127,7 @@ module('@updatable', function (hooks) {
       assert.deepEqual(result, fullResponse, 'result matches');
     });
 
-    let result = await source.update(addRecordTransform);
+    let result = await source.update<Record>(addRecordTransform);
 
     assert.equal(++order, 5, 'promise resolved last');
     assert.deepEqual(result, result1, 'success!');
@@ -552,7 +528,7 @@ module('@updatable', function (hooks) {
       assert.deepEqual(result, expectedResult, 'update: result matches');
     });
 
-    let result = await source.update(transform1, {
+    let result = await source.update<Record[]>(transform1, {
       fullResponse: true
     });
 

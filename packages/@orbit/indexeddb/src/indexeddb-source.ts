@@ -5,11 +5,7 @@ import {
   pushable,
   Resettable,
   syncable,
-  QueryOrExpressions,
-  RequestOptions,
-  FullResponse,
-  TransformsOrFullResponse,
-  TransformOrOperations
+  FullResponse
 } from '@orbit/data';
 import {
   RecordOperation,
@@ -20,14 +16,8 @@ import {
   RecordPushable,
   RecordSyncable,
   RecordTransform,
-  RecordQueryExpression,
-  RecordQueryBuilder,
-  RecordTransformResult,
-  RecordTransformBuilder,
-  RecordQueryResult,
   RecordSource,
-  RecordQuery,
-  RecordSourceQueryOptions
+  RecordQuery
 } from '@orbit/records';
 import { supportsIndexedDB } from './lib/indexeddb';
 import { IndexedDBCache, IndexedDBCacheSettings } from './indexeddb-cache';
@@ -39,54 +29,21 @@ export interface IndexedDBSourceSettings extends RecordSourceSettings {
   cacheSettings?: Partial<IndexedDBCacheSettings>;
 }
 
+export interface IndexedDBSource
+  extends RecordSource,
+    RecordSyncable,
+    RecordPullable<unknown>,
+    RecordPushable<unknown>,
+    Resettable {}
+
 /**
  * Source for storing data in IndexedDB.
  */
 @pullable
 @pushable
 @syncable
-export class IndexedDBSource
-  extends RecordSource
-  implements
-    RecordSyncable,
-    RecordPullable<unknown>,
-    RecordPushable<unknown>,
-    Resettable {
+export class IndexedDBSource extends RecordSource {
   protected _cache: IndexedDBCache;
-
-  // Syncable interface stubs
-  sync!: (
-    transformOrTransforms: RecordTransform | RecordTransform[]
-  ) => Promise<void>;
-
-  // Pullable interface stubs
-  pull!: <RO extends RecordSourceQueryOptions>(
-    queryOrExpressions: QueryOrExpressions<
-      RecordQueryExpression,
-      RecordQueryBuilder
-    >,
-    options?: RO,
-    id?: string
-  ) => Promise<
-    TransformsOrFullResponse<RecordQueryResult, unknown, RecordOperation, RO>
-  >;
-
-  // Pushable interface stubs
-  push!: <RO extends RequestOptions>(
-    transformOrOperations: TransformOrOperations<
-      RecordOperation,
-      RecordTransformBuilder
-    >,
-    options?: RO,
-    id?: string
-  ) => Promise<
-    TransformsOrFullResponse<
-      RecordTransformResult,
-      unknown,
-      RecordOperation,
-      RO
-    >
-  >;
 
   constructor(settings: IndexedDBSourceSettings) {
     assert(

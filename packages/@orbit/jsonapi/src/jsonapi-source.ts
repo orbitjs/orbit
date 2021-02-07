@@ -1,30 +1,23 @@
 /* eslint-disable valid-jsdoc */
 import Orbit, { Assertion } from '@orbit/core';
 import {
-  QueryOrExpressions,
   RequestOptions,
   pullable,
   pushable,
-  TransformOrOperations,
   queryable,
   updatable,
   TransformNotAllowed,
   QueryNotAllowed,
-  FullResponse,
-  TransformsOrFullResponse,
-  DataOrFullResponse
+  FullResponse
 } from '@orbit/data';
 import {
   RecordSource,
   RecordSourceSettings,
-  RecordQueryExpression,
-  RecordQueryBuilder,
   RecordPullable,
   RecordPushable,
   RecordQueryable,
   RecordUpdatable,
   RecordOperation,
-  RecordTransformBuilder,
   RecordTransform,
   RecordQuery,
   RecordQueryExpressionResult,
@@ -116,6 +109,13 @@ export interface JSONAPISourceSettings
   ) => JSONAPIURLBuilder;
 }
 
+export interface JSONAPISource
+  extends RecordSource<JSONAPIQueryOptions, JSONAPITransformOptions>,
+    RecordPullable<JSONAPIResponse[]>,
+    RecordPushable<JSONAPIResponse[]>,
+    RecordQueryable<JSONAPIResponse[]>,
+    RecordUpdatable<JSONAPIResponse[]> {}
+
 /**
  Source for accessing a JSON API compliant RESTful API with a network fetch
  request.
@@ -134,72 +134,11 @@ export interface JSONAPISourceSettings
 @pushable
 @queryable
 @updatable
-export class JSONAPISource
-  extends RecordSource<JSONAPIQueryOptions, JSONAPITransformOptions>
-  implements
-    RecordPullable<JSONAPIResponse[]>,
-    RecordPushable<JSONAPIResponse[]>,
-    RecordQueryable<JSONAPIResponse[]>,
-    RecordUpdatable<JSONAPIResponse[]> {
+export class JSONAPISource extends RecordSource<
+  JSONAPIQueryOptions,
+  JSONAPITransformOptions
+> {
   requestProcessor: JSONAPIRequestProcessor;
-
-  // Pullable interface stubs
-  pull!: <RO extends RecordSourceQueryOptions>(
-    queryOrExpressions: QueryOrExpressions<
-      RecordQueryExpression,
-      RecordQueryBuilder
-    >,
-    options?: RO,
-    id?: string
-  ) => Promise<
-    TransformsOrFullResponse<undefined, JSONAPIResponse[], RecordOperation, RO>
-  >;
-
-  // Pushable interface stubs
-  push!: <RO extends RequestOptions>(
-    transformOrOperations: TransformOrOperations<
-      RecordOperation,
-      RecordTransformBuilder
-    >,
-    options?: RO,
-    id?: string
-  ) => Promise<
-    TransformsOrFullResponse<undefined, JSONAPIResponse[], RecordOperation, RO>
-  >;
-
-  // Queryable interface stubs
-  query!: <RO extends RecordSourceQueryOptions>(
-    queryOrExpressions: QueryOrExpressions<
-      RecordQueryExpression,
-      RecordQueryBuilder
-    >,
-    options?: RO,
-    id?: string
-  ) => Promise<
-    DataOrFullResponse<
-      RecordQueryResult,
-      JSONAPIResponse[],
-      RecordOperation,
-      RO
-    >
-  >;
-
-  // Updatable interface stubs
-  update!: <RO extends RequestOptions>(
-    transformOrOperations: TransformOrOperations<
-      RecordOperation,
-      RecordTransformBuilder
-    >,
-    options?: RO,
-    id?: string
-  ) => Promise<
-    DataOrFullResponse<
-      RecordTransformResult,
-      JSONAPIResponse[],
-      RecordOperation,
-      RO
-    >
-  >;
 
   constructor(settings: JSONAPISourceSettings) {
     settings.name = settings.name || 'jsonapi';

@@ -7,49 +7,33 @@ import {
   isPullable,
   Pullable
 } from '../../src/source-interfaces/pullable';
-import {
-  FullResponse,
-  ResponseHints,
-  TransformsOrFullResponse
-} from '../../src/response';
+import { FullResponse, ResponseHints } from '../../src/response';
 import {
   FindRecords,
   RecordResponse,
   RecordOperation,
   RecordQueryExpression,
   RecordQueryBuilder,
-  RecordData
+  RecordData,
+  UpdateRecordOperation
 } from '../support/record-data';
 
 const { module, test } = QUnit;
 
 module('@pullable', function (hooks) {
-  @pullable
-  class MySource
-    extends Source
-    implements
+  interface MySource
+    extends Source,
       Pullable<
         RecordData,
         RecordResponse,
         RecordOperation,
         RecordQueryExpression,
-        RecordQueryBuilder
-      > {
-    pull!: <RO extends RequestOptions>(
-      queryOrExpressions: QueryOrExpressions<
-        RecordQueryExpression,
-        RecordQueryBuilder
-      >,
-      options?: RO,
-      id?: string
-    ) => Promise<
-      TransformsOrFullResponse<RecordData, RecordResponse, RecordOperation, RO>
-    >;
+        RecordQueryBuilder,
+        RequestOptions
+      > {}
 
-    _pull!: (
-      query: Query<RecordQueryExpression>
-    ) => Promise<FullResponse<RecordData, RecordResponse, RecordOperation>>;
-  }
+  @pullable
+  class MySource extends Source {}
 
   let source: MySource;
 
@@ -136,7 +120,7 @@ module('@pullable', function (hooks) {
       assert.strictEqual(result, fullResponse, 'result matches');
     });
 
-    let result = await source.pull(qe);
+    let result = await source.pull<UpdateRecordOperation>(qe);
 
     assert.equal(++order, 3, 'promise resolved last');
     assert.strictEqual(result, fullResponse.transforms, 'success!');
