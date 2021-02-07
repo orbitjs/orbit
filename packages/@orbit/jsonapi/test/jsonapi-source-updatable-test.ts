@@ -1021,7 +1021,7 @@ module('JSONAPISource - updatable', function (hooks) {
       );
     });
 
-    test('#update - can add multiple records in series', async function (assert) {
+    test('#update - can add multiple records in series (by default)', async function (assert) {
       assert.expect(10);
 
       const planet1: Record = {
@@ -1036,23 +1036,140 @@ module('JSONAPISource - updatable', function (hooks) {
         attributes: { name: 'Io' }
       };
 
-      fetchStub.withArgs('/planets').returns(
-        jsonapiResponse(201, {
-          data: planet1
-        })
+      const REQUEST_DELAY = 10;
+
+      fetchStub.withArgs('/planets').callsFake(() =>
+        jsonapiResponse(
+          201,
+          {
+            data: planet1
+          },
+          REQUEST_DELAY
+        )
       );
-      fetchStub.withArgs('/moons').returns(
-        jsonapiResponse(201, {
-          data: moon1
-        })
+
+      fetchStub.withArgs('/moons').callsFake(() =>
+        jsonapiResponse(
+          201,
+          {
+            data: moon1
+          },
+          REQUEST_DELAY
+        )
       );
+
+      const startTime = new Date().getTime();
 
       let [planet, moon] = (await source.update((t) => [
         t.addRecord(planet1),
         t.addRecord(moon1)
       ])) as Record[];
 
-      assert.ok(true, 'transform resolves successfully');
+      const endTime = new Date().getTime();
+      const elapsedTime = endTime - startTime;
+
+      assert.ok(
+        elapsedTime >= 2 * REQUEST_DELAY,
+        'transform requests performed in series'
+      );
+
+      assert.deepEqual(planet, planet1, 'planet matches');
+      assert.deepEqual(moon, moon1, 'moon matches');
+
+      assert.equal(fetchStub.callCount, 2, 'fetch called twice');
+
+      const firstFetchCall = fetchStub.getCall(0);
+      assert.equal(
+        firstFetchCall.args[1].method,
+        'POST',
+        'fetch called with expected method'
+      );
+      assert.equal(
+        firstFetchCall.args[1].headers['Content-Type'],
+        'application/vnd.api+json',
+        'fetch called with expected content type'
+      );
+      assert.deepEqual(
+        JSON.parse(firstFetchCall.args[1].body),
+        {
+          data: planet1
+        },
+        'fetch called with expected data'
+      );
+
+      const secondFetchCall = fetchStub.getCall(1);
+      assert.equal(
+        secondFetchCall.args[1].method,
+        'POST',
+        'fetch called with expected method'
+      );
+      assert.equal(
+        secondFetchCall.args[1].headers['Content-Type'],
+        'application/vnd.api+json',
+        'fetch called with expected content type'
+      );
+      assert.deepEqual(
+        JSON.parse(secondFetchCall.args[1].body),
+        {
+          data: moon1
+        },
+        'fetch called with expected data'
+      );
+    });
+
+    test('#update - can add multiple records in parallel (via `parallelRequests: true` option)', async function (assert) {
+      assert.expect(10);
+
+      const planet1: Record = {
+        type: 'planet',
+        id: 'p1',
+        attributes: { name: 'Jupiter' }
+      };
+
+      const moon1: Record = {
+        type: 'moon',
+        id: 'm1',
+        attributes: { name: 'Io' }
+      };
+
+      const REQUEST_DELAY = 10;
+
+      fetchStub.withArgs('/planets').callsFake(() =>
+        jsonapiResponse(
+          201,
+          {
+            data: planet1
+          },
+          REQUEST_DELAY
+        )
+      );
+
+      fetchStub.withArgs('/moons').callsFake(() =>
+        jsonapiResponse(
+          201,
+          {
+            data: moon1
+          },
+          REQUEST_DELAY
+        )
+      );
+
+      const startTime = new Date().getTime();
+
+      let [planet, moon] = (await source.update(
+        (t) => [t.addRecord(planet1), t.addRecord(moon1)],
+        {
+          parallelRequests: true
+        }
+      )) as Record[];
+
+      const endTime = new Date().getTime();
+      const elapsedTime = endTime - startTime;
+
+      assert.ok(
+        elapsedTime < 2 * REQUEST_DELAY,
+        'transform requests performed in parallel'
+      );
 
       assert.deepEqual(planet, planet1, 'planet matches');
       assert.deepEqual(moon, moon1, 'moon matches');

@@ -3,7 +3,7 @@ import { Orbit } from '@orbit/core';
 export async function jsonapiResponse(
   _options: unknown,
   body?: unknown,
-  timeout?: number
+  delay?: number
 ): Promise<Response> {
   let options: any;
   let response: Response;
@@ -26,12 +26,12 @@ export async function jsonapiResponse(
 
   // console.log('jsonapiResponse', body, options, response.headers.get('Content-Type'));
 
-  if (timeout) {
+  if (delay) {
     return new Promise((resolve: (response: Response) => void) => {
       let timer = Orbit.globals.setTimeout(() => {
         Orbit.globals.clearTimeout(timer);
         resolve(response);
-      }, timeout);
+      }, delay);
     });
   } else {
     return response;
