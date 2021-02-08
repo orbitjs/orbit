@@ -22,14 +22,11 @@ function failedOperation() {
 }
 
 module('Evented', function (hooks) {
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  interface Foo extends Evented {}
+
   @evented
-  class Foo implements Evented {
-    on!: (event: string, listener: Listener) => () => void;
-    off!: (event: string, listener?: Listener) => void;
-    one!: (event: string, listener: Listener) => () => void;
-    emit!: (event: string, ...args: any[]) => void;
-    listeners!: (event: string) => Listener[];
-  }
+  class Foo {}
 
   let obj: Foo;
 

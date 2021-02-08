@@ -22,12 +22,12 @@ export function isEvented(obj: unknown): boolean {
  * }
  * ```
  */
-export interface Evented {
-  on: (event: string, listener: Listener) => () => void;
-  off: (event: string, listener?: Listener) => void;
-  one: (event: string, listener: Listener) => () => void;
-  emit: (event: string, ...args: unknown[]) => void;
-  listeners: (event: string) => Listener[];
+export interface Evented<Event extends string = string> {
+  on: (event: Event, listener: Listener) => () => void;
+  off: (event: Event, listener?: Listener) => void;
+  one: (event: Event, listener: Listener) => () => void;
+  emit: (event: Event, ...args: unknown[]) => void;
+  listeners: (event: Event) => Listener[];
 }
 
 /**

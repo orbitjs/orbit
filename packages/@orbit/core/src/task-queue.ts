@@ -3,7 +3,6 @@ import { Task, Performer } from './task';
 import { TaskProcessor } from './task-processor';
 import { Bucket } from './bucket';
 import { evented, Evented, settleInSeries } from './evented';
-import { Listener } from './notifier';
 
 const { assert } = Orbit;
 
@@ -39,6 +38,9 @@ export interface TaskQueueSettings {
   autoActivate?: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface TaskQueue extends Evented {}
+
 /**
  * `TaskQueue` is a FIFO queue of asynchronous tasks that should be
  * performed sequentially.
@@ -52,7 +54,7 @@ export interface TaskQueueSettings {
  * processing.
  */
 @evented
-export class TaskQueue implements Evented {
+export class TaskQueue {
   public autoProcess: boolean;
 
   private _performer: Performer;
@@ -65,13 +67,6 @@ export class TaskQueue implements Evented {
   private _resolve?: () => void;
   private _reject?: (e: Error) => void;
   private _reified!: Promise<void>;
-
-  // Evented interface stubs
-  on!: (event: string, listener: Listener) => () => void;
-  off!: (event: string, listener?: Listener) => void;
-  one!: (event: string, listener: Listener) => () => void;
-  emit!: (event: string, ...args: any[]) => void;
-  listeners!: (event: string) => Listener[];
 
   /**
    * Creates an instance of `TaskQueue`.
