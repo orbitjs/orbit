@@ -3,7 +3,8 @@ import { deepGet, Dict } from '@orbit/utils';
 import {
   buildQuery,
   buildTransform,
-  DataOrFullResponse,
+  DefaultRequestOptions,
+  FullRequestOptions,
   FullResponse,
   OperationTerm,
   RequestOptions
@@ -169,11 +170,21 @@ export abstract class SyncRecordCache<
   /**
    * Queries the cache.
    */
-  query<RO extends RequestOptions>(
+  query<RequestData extends RecordQueryResult = RecordQueryResult>(
     queryOrExpressions: RecordQueryOrExpressions,
-    options?: RO,
+    options?: DefaultRequestOptions<QueryOptions>,
     id?: string
-  ): DataOrFullResponse<RecordQueryResult, undefined, RecordOperation, RO> {
+  ): RequestData;
+  query<RequestData extends RecordQueryResult = RecordQueryResult>(
+    queryOrExpressions: RecordQueryOrExpressions,
+    options: FullRequestOptions<QueryOptions>,
+    id?: string
+  ): FullResponse<RequestData, undefined, RecordOperation>;
+  query<RequestData extends RecordQueryResult = RecordQueryResult>(
+    queryOrExpressions: RecordQueryOrExpressions,
+    options?: QueryOptions,
+    id?: string
+  ): RequestData | FullResponse<RequestData, undefined, RecordOperation> {
     const query = buildQuery(
       queryOrExpressions,
       options,
@@ -192,29 +203,33 @@ export abstract class SyncRecordCache<
 
     const data = query.expressions.length === 1 ? results[0] : results;
 
-    const requestedResponse = options?.fullResponse ? { data } : data;
-
-    return requestedResponse as DataOrFullResponse<
-      RecordQueryResult,
-      undefined,
-      RecordOperation,
-      RO
-    >;
+    if (options?.fullResponse) {
+      return { data } as FullResponse<RequestData, undefined, RecordOperation>;
+    } else {
+      return data as RequestData;
+    }
   }
 
   /**
    * Updates the cache.
    */
-  update<RO extends RequestOptions>(
+  update<RequestData extends RecordTransformResult = RecordTransformResult>(
     transformOrOperations: RecordTransformOrOperations,
-    options?: RO,
+    options?: DefaultRequestOptions<TransformOptions>,
     id?: string
-  ): DataOrFullResponse<
-    RecordTransformResult,
-    RecordCacheUpdateDetails,
-    RecordOperation,
-    RO
-  > {
+  ): RequestData;
+  update<RequestData extends RecordTransformResult = RecordTransformResult>(
+    transformOrOperations: RecordTransformOrOperations,
+    options: FullRequestOptions<TransformOptions>,
+    id?: string
+  ): FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>;
+  update<RequestData extends RecordTransformResult = RecordTransformResult>(
+    transformOrOperations: RecordTransformOrOperations,
+    options?: TransformOptions,
+    id?: string
+  ):
+    | RequestData
+    | FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation> {
     const transform = buildTransform(
       transformOrOperations,
       options,
@@ -251,25 +266,16 @@ export abstract class SyncRecordCache<
       data = response.data;
     }
 
-    let requestedResponse;
-
     if (options?.fullResponse) {
       response.details?.inverseOperations.reverse();
 
-      requestedResponse = {
+      return {
         ...response,
         data
-      };
+      } as FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>;
     } else {
-      requestedResponse = data;
+      return data as RequestData;
     }
-
-    return requestedResponse as DataOrFullResponse<
-      RecordTransformResult,
-      RecordCacheUpdateDetails,
-      RecordOperation,
-      RO
-    >;
   }
 
   /**
@@ -289,13 +295,14 @@ export abstract class SyncRecordCache<
       'SyncRecordCache#patch has been deprecated. Use SyncRecordCache#update instead.'
     );
 
-    const { data, details } = this.update(operationOrOperations, {
-      fullResponse: true
-    }) as FullResponse<
-      RecordTransformResult,
-      RecordCacheUpdateDetails,
-      RecordOperation
-    >;
+    // TODO - Why is this `this` cast necessary for TS to understand the correct
+    // method overload?
+    const { data, details } = (this as SyncRecordCache).update(
+      operationOrOperations,
+      {
+        fullResponse: true
+      }
+    );
 
     return {
       inverse: details?.inverseOperations || [],

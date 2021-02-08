@@ -30,12 +30,15 @@ module('SyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    cache.update((t) => [t.addRecord(jupiter)]);
 
-    assert.deepEqual(
-      cache.query((q) => q.findRecord({ type: 'planet', id: 'jupiter' })),
-      jupiter
+    const updatedRecord = cache.update<Record>((t) => [t.addRecord(jupiter)]);
+
+    const foundRecord = cache.query<Record>((q) =>
+      q.findRecord({ type: 'planet', id: 'jupiter' })
     );
+
+    assert.strictEqual(updatedRecord, jupiter);
+    assert.strictEqual(foundRecord, jupiter);
   });
 
   test('#query can retrieve multiple expressions', function (assert) {

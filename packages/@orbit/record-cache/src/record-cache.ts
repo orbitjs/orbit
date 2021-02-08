@@ -1,4 +1,4 @@
-import Orbit, { evented, Evented, Listener } from '@orbit/core';
+import Orbit, { evented, Evented } from '@orbit/core';
 import {
   DefaultRequestOptions,
   RequestOptions,
@@ -33,11 +33,17 @@ export interface RecordCacheSettings<
   defaultTransformOptions?: DefaultRequestOptions<TransformOptions>;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface RecordCache<
+  QueryOptions extends RequestOptions = RecordCacheQueryOptions,
+  TransformOptions extends RequestOptions = RequestOptions
+> extends Evented {}
+
 @evented
 export abstract class RecordCache<
   QueryOptions extends RequestOptions = RecordCacheQueryOptions,
   TransformOptions extends RequestOptions = RequestOptions
-> implements Evented {
+> {
   protected _name?: string;
   protected _keyMap?: RecordKeyMap;
   protected _schema: RecordSchema;
@@ -45,13 +51,6 @@ export abstract class RecordCache<
   protected _queryBuilder: RecordQueryBuilder;
   protected _defaultQueryOptions?: DefaultRequestOptions<QueryOptions>;
   protected _defaultTransformOptions?: DefaultRequestOptions<TransformOptions>;
-
-  // Evented interface stubs
-  on!: (event: string, listener: Listener) => () => void;
-  off!: (event: string, listener?: Listener) => void;
-  one!: (event: string, listener: Listener) => () => void;
-  emit!: (event: string, ...args: any[]) => void;
-  listeners!: (event: string) => Listener[];
 
   constructor(settings: RecordCacheSettings<QueryOptions, TransformOptions>) {
     assert(
