@@ -312,7 +312,7 @@ export abstract class SyncRecordCache<
 
   liveQuery(
     queryOrExpressions: RecordQueryOrExpressions,
-    options?: RequestOptions,
+    options?: DefaultRequestOptions<QueryOptions>,
     id?: string
   ): SyncLiveQuery {
     const query = buildQuery(

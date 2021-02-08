@@ -325,7 +325,7 @@ export abstract class AsyncRecordCache<
 
   liveQuery(
     queryOrExpressions: RecordQueryOrExpressions,
-    options?: RequestOptions,
+    options?: DefaultRequestOptions<QueryOptions>,
     id?: string
   ): AsyncLiveQuery {
     const query = buildQuery(
