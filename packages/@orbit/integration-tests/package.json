@@ -1,7 +1,7 @@
 {
   "name": "@orbit/integration-tests",
   "private": true,
-  "version": "0.17.0-beta.8",
+  "version": "0.17.0-beta.9",
   "description": "Integration tests for core Orbit packages.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -16,23 +16,23 @@
     "test": "node ../build ci && snowpack build && testem ci"
   },
   "dependencies": {
-    "@orbit/coordinator": "^0.17.0-beta.8",
-    "@orbit/core": "^0.17.0-beta.8",
-    "@orbit/data": "^0.17.0-beta.8",
-    "@orbit/immutable": "^0.17.0-beta.8",
-    "@orbit/indexeddb": "^0.17.0-beta.8",
-    "@orbit/indexeddb-bucket": "^0.17.0-beta.8",
-    "@orbit/jsonapi": "^0.17.0-beta.8",
-    "@orbit/local-storage": "^0.17.0-beta.8",
-    "@orbit/local-storage-bucket": "^0.17.0-beta.8",
-    "@orbit/memory": "^0.17.0-beta.8",
-    "@orbit/record-cache": "^0.17.0-beta.8",
-    "@orbit/records": "^0.17.0-beta.8",
-    "@orbit/serializers": "^0.17.0-beta.8",
-    "@orbit/utils": "^0.17.0-beta.8"
+    "@orbit/coordinator": "^0.17.0-beta.9",
+    "@orbit/core": "^0.17.0-beta.9",
+    "@orbit/data": "^0.17.0-beta.9",
+    "@orbit/immutable": "^0.17.0-beta.9",
+    "@orbit/indexeddb": "^0.17.0-beta.9",
+    "@orbit/indexeddb-bucket": "^0.17.0-beta.9",
+    "@orbit/jsonapi": "^0.17.0-beta.9",
+    "@orbit/local-storage": "^0.17.0-beta.9",
+    "@orbit/local-storage-bucket": "^0.17.0-beta.9",
+    "@orbit/memory": "^0.17.0-beta.9",
+    "@orbit/record-cache": "^0.17.0-beta.9",
+    "@orbit/records": "^0.17.0-beta.9",
+    "@orbit/serializers": "^0.17.0-beta.9",
+    "@orbit/utils": "^0.17.0-beta.9"
   },
   "devDependencies": {
-    "@orbit/build": "^0.17.0-beta.7",
+    "@orbit/build": "^0.17.0-beta.9",
     "@types/sinon": "^9.0.0",
     "sinon": "^9.0.2",
     "whatwg-fetch": "^3.0.0"

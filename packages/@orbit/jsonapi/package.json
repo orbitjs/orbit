@@ -1,6 +1,6 @@
 {
   "name": "@orbit/jsonapi",
-  "version": "0.17.0-beta.8",
+  "version": "0.17.0-beta.9",
   "description": "JSON:API support for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -34,14 +34,14 @@
     "test": "node ../build ci && snowpack build && testem ci"
   },
   "dependencies": {
-    "@orbit/core": "^0.17.0-beta.8",
-    "@orbit/data": "^0.17.0-beta.8",
-    "@orbit/records": "^0.17.0-beta.8",
-    "@orbit/serializers": "^0.17.0-beta.8",
-    "@orbit/utils": "^0.17.0-beta.8"
+    "@orbit/core": "^0.17.0-beta.9",
+    "@orbit/data": "^0.17.0-beta.9",
+    "@orbit/records": "^0.17.0-beta.9",
+    "@orbit/serializers": "^0.17.0-beta.9",
+    "@orbit/utils": "^0.17.0-beta.9"
   },
   "devDependencies": {
-    "@orbit/build": "^0.17.0-beta.7",
+    "@orbit/build": "^0.17.0-beta.9",
     "@types/sinon": "^9.0.0",
     "sinon": "^9.0.2",
     "whatwg-fetch": "^3.0.0"
