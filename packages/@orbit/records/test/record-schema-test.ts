@@ -1,11 +1,12 @@
 import { RecordSchema } from '../src/record-schema';
 import { UninitializedRecord } from '../src/record';
+import { delay } from './support/timing';
 
 const { module, test } = QUnit;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-module('Schema', function () {
+module('RecordSchema', function () {
   test('can be instantiated', function (assert) {
     const schema = new RecordSchema();
     assert.ok(schema);
@@ -16,8 +17,8 @@ module('Schema', function () {
     assert.equal(schema.version, 1, 'version === 1');
   });
 
-  test('#upgrade bumps the current version', function (assert) {
-    const done = assert.async();
+  test('#upgrade bumps the current version, emits the `upgrade` event, and awaits any listener responses', async function (assert) {
+    assert.expect(8);
 
     const schema = new RecordSchema({
       models: {
@@ -26,17 +27,31 @@ module('Schema', function () {
     });
     assert.equal(schema.version, 1, 'version === 1');
 
-    schema.on('upgrade', (version) => {
+    const DELAY = 50;
+
+    schema.on('upgrade', async (version) => {
       assert.equal(version, 2, 'version is passed as argument');
       assert.equal(schema.version, 2, 'version === 2');
       assert.ok(
         schema.getModel('planet').attributes?.name,
         'model attribute has been added'
       );
-      done();
+      await delay(DELAY);
     });
 
-    schema.upgrade({
+    schema.on('upgrade', async (version) => {
+      assert.equal(version, 2, 'version is passed as argument');
+      assert.equal(schema.version, 2, 'version === 2');
+      assert.ok(
+        schema.getModel('planet').attributes?.name,
+        'model attribute has been added'
+      );
+      await delay(DELAY);
+    });
+
+    const startTime = new Date().getTime();
+
+    await schema.upgrade({
       models: {
         planet: {
           attributes: {
@@ -45,6 +60,13 @@ module('Schema', function () {
         }
       }
     });
+
+    const endTime = new Date().getTime();
+    const elapsedTime = endTime - startTime;
+    assert.ok(
+      elapsedTime < 2 * DELAY,
+      'upgrade listeners performed in parallel'
+    );
   });
 
   test('#models provides access to model definitions', function (assert) {
