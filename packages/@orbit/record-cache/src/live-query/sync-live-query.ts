@@ -16,7 +16,7 @@ export class SyncLiveQueryUpdate {
     this._query = settings.query;
   }
 
-  query(): RecordQueryResult {
+  query<Result extends RecordQueryResult = RecordQueryResult>(): Result {
     return this._cache.query(this._query);
   }
 }
@@ -44,8 +44,8 @@ export class SyncLiveQuery extends LiveQuery {
     this.cache = settings.cache;
   }
 
-  query(): RecordQueryResult {
-    return this._update.query();
+  query<Result extends RecordQueryResult = RecordQueryResult>(): Result {
+    return this._update.query<Result>();
   }
 
   subscribe(cb: (update: SyncLiveQueryUpdate) => void): () => void {

@@ -1,16 +1,20 @@
 import { Orbit, settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Query, QueryOrExpressions, buildQuery } from '../query';
-import { RequestOptions } from '../request';
+import {
+  DefaultRequestOptions,
+  FullRequestOptions,
+  RequestOptions
+} from '../request';
 import {
   FullResponse,
   NamedFullResponse,
-  TransformsOrFullResponse,
   mapNamedFullResponses,
   ResponseHints
 } from '../response';
 import { Operation } from '../operation';
 import { QueryExpression } from '../query-expression';
+import { Transform } from '../transform';
 
 const { assert } = Orbit;
 
@@ -32,7 +36,8 @@ export interface Pullable<
   Details,
   O extends Operation,
   QE extends QueryExpression,
-  QueryBuilder
+  QueryBuilder,
+  Options extends RequestOptions = RequestOptions
 > {
   /**
    * The `pull` method accepts a query or expression(s) and returns a promise
@@ -40,11 +45,20 @@ export interface Pullable<
    * changeset that resulted from applying the query. In other words, a `pull`
    * request retrieves the results of a query in `Transform` form.
    */
-  pull<RO extends RequestOptions>(
+  pull<RequestOperation extends O = O>(
     queryOrExpressions: QueryOrExpressions<QE, QueryBuilder>,
-    options?: RO,
+    options?: DefaultRequestOptions<Options>,
     id?: string
-  ): Promise<TransformsOrFullResponse<Data, Details, O, RO>>;
+  ): Promise<Transform<RequestOperation>[]>;
+  pull<
+    RequestData extends Data = Data,
+    RequestDetails extends Details = Details,
+    RequestOperation extends O = O
+  >(
+    queryOrExpressions: QueryOrExpressions<QE, QueryBuilder>,
+    options?: FullRequestOptions<Options>,
+    id?: string
+  ): Promise<FullResponse<RequestData, RequestDetails, RequestOperation>>;
 
   _pull(query: Query<QE>): Promise<FullResponse<Data, Details, O>>;
 }
@@ -87,11 +101,11 @@ export function pullable(Klass: unknown): void {
 
   proto[PULLABLE] = true;
 
-  proto.pull = async function <RO extends RequestOptions>(
+  proto.pull = async function (
     queryOrExpressions: QueryOrExpressions<QueryExpression, unknown>,
-    options?: RO,
+    options?: RequestOptions,
     id?: string
-  ): Promise<TransformsOrFullResponse<unknown, unknown, Operation, RO>> {
+  ): Promise<unknown> {
     await this.activated;
     const query = buildQuery(
       queryOrExpressions,

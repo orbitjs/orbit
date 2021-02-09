@@ -1,9 +1,12 @@
 import { Orbit, settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Query, QueryOrExpressions, buildQuery } from '../query';
 import { Source, SourceClass } from '../source';
-import { RequestOptions } from '../request';
 import {
-  DataOrFullResponse,
+  FullRequestOptions,
+  DefaultRequestOptions,
+  RequestOptions
+} from '../request';
+import {
   NamedFullResponse,
   ResponseHints,
   FullResponse,
@@ -32,17 +35,27 @@ export interface Queryable<
   Details,
   O extends Operation,
   QE extends QueryExpression,
-  QueryBuilder
+  QueryBuilder,
+  Options extends RequestOptions = RequestOptions
 > {
   /**
-   * The `query` method accepts a `Query` instance. It evaluates the query and
-   * returns a promise that resolves to a static set of results.
+   * The `query` method accepts a query or expression(s). It evaluates the query
+   * and returns a promise that resolves to a static set of results.
    */
-  query<RO extends RequestOptions>(
+  query<RequestData extends Data = Data>(
     queryOrExpressions: QueryOrExpressions<QE, QueryBuilder>,
-    options?: RO,
+    options?: DefaultRequestOptions<Options>,
     id?: string
-  ): Promise<DataOrFullResponse<Data, Details, O, RO>>;
+  ): Promise<RequestData>;
+  query<
+    RequestData extends Data = Data,
+    RequestDetails extends Details = Details,
+    RequestOperation extends O = O
+  >(
+    queryOrExpressions: QueryOrExpressions<QE, QueryBuilder>,
+    options: FullRequestOptions<Options>,
+    id?: string
+  ): Promise<FullResponse<RequestData, RequestDetails, RequestOperation>>;
 
   _query(
     query: Query<QE>,
@@ -85,13 +98,13 @@ export function queryable(Klass: unknown): void {
     proto instanceof Source
   );
 
-  proto[QUERYABLE] = true;
+  (proto as any)[QUERYABLE] = true;
 
-  proto.query = async function <RO extends RequestOptions>(
+  proto.query = async function (
     queryOrExpressions: QueryOrExpressions<QueryExpression, unknown>,
-    options?: RO,
+    options?: RequestOptions,
     id?: string
-  ): Promise<DataOrFullResponse<unknown, unknown, Operation, RO>> {
+  ): Promise<unknown> {
     await this.activated;
     const query = buildQuery(
       queryOrExpressions,

@@ -8,7 +8,6 @@ import {
   TaskQueueSettings,
   Task,
   Performer,
-  Listener,
   Log
 } from '@orbit/core';
 import { Operation } from './operation';
@@ -52,6 +51,8 @@ export type SourceClass<
   TransformBuilder
 >;
 
+export interface Source extends Evented, Performer {}
+
 /**
  * Base class for sources.
  */
@@ -61,7 +62,7 @@ export abstract class Source<
   TransformOptions extends RequestOptions = RequestOptions,
   QueryBuilder = unknown,
   TransformBuilder = unknown
-> implements Evented, Performer {
+> {
   protected _name?: string;
   protected _bucket?: Bucket;
   protected _transformLog: Log;
@@ -72,13 +73,6 @@ export abstract class Source<
   protected _defaultQueryOptions?: DefaultRequestOptions<QueryOptions>;
   protected _defaultTransformOptions?: DefaultRequestOptions<TransformOptions>;
   private _activated?: Promise<void>;
-
-  // Evented interface stubs
-  on!: (event: string, listener: Listener) => () => void;
-  off!: (event: string, listener?: Listener) => void;
-  one!: (event: string, listener: Listener) => () => void;
-  emit!: (event: string, ...args: any[]) => void;
-  listeners!: (event: string) => Listener[];
 
   constructor(
     settings: SourceSettings<

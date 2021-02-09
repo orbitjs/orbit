@@ -1,6 +1,5 @@
 import { Orbit } from './main';
 import { evented, Evented } from './evented';
-import { Listener } from './notifier';
 import { Bucket } from './bucket';
 import { NotLoggedException, OutOfRangeException } from './exception';
 
@@ -12,6 +11,10 @@ export interface LogOptions {
   bucket?: Bucket;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface Log
+  extends Evented<'append' | 'truncate' | 'rollback' | 'clear' | 'change'> {}
+
 /**
  * Logs track a series of unique events that have occurred. Each event is
  * tracked based on its unique id. The log only tracks the ids but currently
@@ -20,19 +23,12 @@ export interface LogOptions {
  * Logs can automatically be persisted by assigning them a bucket.
  */
 @evented
-export class Log implements Evented {
+export class Log {
   private _name?: string;
   private _bucket?: Bucket;
   private _data: string[] = [];
 
   public reified!: Promise<void>;
-
-  // Evented interface stubs
-  on!: (event: string, listener: Listener) => () => void;
-  off!: (event: string, listener?: Listener) => void;
-  one!: (event: string, listener: Listener) => () => void;
-  emit!: (event: string, ...args: any[]) => void;
-  listeners!: (event: string) => Listener[];
 
   constructor(options: LogOptions = {}) {
     this._name = options.name;

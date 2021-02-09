@@ -1,5 +1,4 @@
 import { evented, Evented } from './evented';
-import { Listener } from './notifier';
 
 /**
  * Settings used to instantiate and/or upgrade a `Bucket`.
@@ -26,6 +25,9 @@ export interface BucketSettings {
   version?: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface Bucket extends Evented<'upgrade'> {}
+
 /**
  * Buckets can persist state. The base `Bucket` class is abstract and should be
  * extended to create buckets with different persistence strategies.
@@ -40,17 +42,10 @@ export interface BucketSettings {
  * The upgrade process allows buckets to migrate their data between versions.
  */
 @evented
-export abstract class Bucket implements Evented {
+export abstract class Bucket {
   private _name?: string;
   private _namespace!: string;
   private _version!: number;
-
-  // Evented interface stubs
-  on!: (event: string, listener: Listener) => () => void;
-  off!: (event: string, listener?: Listener) => void;
-  one!: (event: string, listener: Listener) => () => void;
-  emit!: (event: string, ...args: any[]) => void;
-  listeners!: (event: string) => Listener[];
 
   constructor(settings: BucketSettings = {}) {
     if (settings.version === undefined) {

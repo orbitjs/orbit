@@ -3,7 +3,8 @@ import { deepGet, Dict } from '@orbit/utils';
 import {
   buildQuery,
   buildTransform,
-  DataOrFullResponse,
+  DefaultRequestOptions,
+  FullRequestOptions,
   FullResponse,
   OperationTerm,
   RequestOptions
@@ -175,12 +176,22 @@ export abstract class AsyncRecordCache<
   /**
    * Queries the cache.
    */
-  async query<RO extends RequestOptions>(
+  query<RequestData extends RecordQueryResult = RecordQueryResult>(
     queryOrExpressions: RecordQueryOrExpressions,
-    options?: RO,
+    options?: DefaultRequestOptions<QueryOptions>,
+    id?: string
+  ): Promise<RequestData>;
+  query<RequestData extends RecordQueryResult = RecordQueryResult>(
+    queryOrExpressions: RecordQueryOrExpressions,
+    options: FullRequestOptions<QueryOptions>,
+    id?: string
+  ): Promise<FullResponse<RequestData, undefined, RecordOperation>>;
+  async query<RequestData extends RecordQueryResult = RecordQueryResult>(
+    queryOrExpressions: RecordQueryOrExpressions,
+    options?: QueryOptions,
     id?: string
   ): Promise<
-    DataOrFullResponse<RecordQueryResult, undefined, RecordOperation, RO>
+    RequestData | FullResponse<RequestData, undefined, RecordOperation>
   > {
     const query = buildQuery(
       queryOrExpressions,
@@ -200,30 +211,37 @@ export abstract class AsyncRecordCache<
 
     const data = query.expressions.length === 1 ? results[0] : results;
 
-    const requestedResponse = options?.fullResponse ? { data } : data;
-
-    return requestedResponse as DataOrFullResponse<
-      RecordQueryResult,
-      undefined,
-      RecordOperation,
-      RO
-    >;
+    if (options?.fullResponse) {
+      return { data } as FullResponse<RequestData, undefined, RecordOperation>;
+    } else {
+      return data as RequestData;
+    }
   }
 
   /**
    * Updates the cache.
    */
-  async update<RO extends RequestOptions>(
+  update<RequestData extends RecordTransformResult = RecordTransformResult>(
     transformOrOperations: RecordTransformOrOperations,
-    options?: RO,
+    options?: DefaultRequestOptions<TransformOptions>,
+    id?: string
+  ): Promise<RequestData>;
+  update<RequestData extends RecordTransformResult = RecordTransformResult>(
+    transformOrOperations: RecordTransformOrOperations,
+    options: FullRequestOptions<TransformOptions>,
     id?: string
   ): Promise<
-    DataOrFullResponse<
-      RecordTransformResult,
-      RecordCacheUpdateDetails,
-      RecordOperation,
-      RO
-    >
+    FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>
+  >;
+  async update<
+    RequestData extends RecordTransformResult = RecordTransformResult
+  >(
+    transformOrOperations: RecordTransformOrOperations,
+    options?: TransformOptions,
+    id?: string
+  ): Promise<
+    | RequestData
+    | FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>
   > {
     const transform = buildTransform(
       transformOrOperations,
@@ -261,25 +279,16 @@ export abstract class AsyncRecordCache<
       data = response.data;
     }
 
-    let requestedResponse;
-
     if (options?.fullResponse) {
       response.details?.inverseOperations.reverse();
 
-      requestedResponse = {
+      return {
         ...response,
         data
-      };
+      } as FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>;
     } else {
-      requestedResponse = data;
+      return data as RequestData;
     }
-
-    return requestedResponse as DataOrFullResponse<
-      RecordTransformResult,
-      RecordCacheUpdateDetails,
-      RecordOperation,
-      RO
-    >;
   }
 
   /**
@@ -299,13 +308,14 @@ export abstract class AsyncRecordCache<
       'AsyncRecordCache#patch has been deprecated. Use AsyncRecordCache#update instead.'
     );
 
-    const { data, details } = (await this.update(operationOrOperations, {
-      fullResponse: true
-    })) as FullResponse<
-      RecordTransformResult,
-      RecordCacheUpdateDetails,
-      RecordOperation
-    >;
+    // TODO - Why is this `this` cast necessary for TS to understand the correct
+    // method overload?
+    const { data, details } = await (this as AsyncRecordCache).update(
+      operationOrOperations,
+      {
+        fullResponse: true
+      }
+    );
 
     return {
       inverse: details?.inverseOperations || [],
@@ -315,7 +325,7 @@ export abstract class AsyncRecordCache<
 
   liveQuery(
     queryOrExpressions: RecordQueryOrExpressions,
-    options?: RequestOptions,
+    options?: DefaultRequestOptions<QueryOptions>,
     id?: string
   ): AsyncLiveQuery {
     const query = buildQuery(

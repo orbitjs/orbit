@@ -1,18 +1,17 @@
 import { Options } from './options';
 
 export interface RequestOptions extends Options {
-  fullResponse?: true;
+  fullResponse?: boolean;
   sources?: { [name: string]: RequestOptions };
 }
 
-export type DefaultRequestOptions<RO extends RequestOptions> = Exclude<
-  RO,
-  'fullResponse'
->;
+export type DefaultRequestOptions<RO extends RequestOptions> = RO & {
+  fullResponse?: false;
+};
 
-export interface FullRequestOptions extends RequestOptions {
+export type FullRequestOptions<RO extends RequestOptions> = RO & {
   fullResponse: true;
-}
+};
 
 /**
  * Merges general request options with those specific to a source. The more

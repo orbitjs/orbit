@@ -2,7 +2,7 @@
 import { Orbit } from '@orbit/core';
 import { ModelNotFound } from './record-exceptions';
 import { Dict } from '@orbit/utils';
-import { evented, Evented, Listener } from '@orbit/core';
+import { evented, Evented } from '@orbit/core';
 import { Record, RecordInitializer, UninitializedRecord } from './record';
 
 const { uuid, deprecate } = Orbit;
@@ -65,22 +65,21 @@ export interface RecordSchemaSettings {
   models?: Dict<ModelDefinition>;
 }
 
+export type RecordSchemaEvent = 'upgrade';
+
+export interface RecordSchema
+  extends Evented<RecordSchemaEvent>,
+    RecordInitializer {}
+
 /**
  * A `Schema` defines the models allowed in a source, including their keys,
  * attributes, and relationships. A single schema may be shared across multiple
  * sources.
  */
 @evented
-export class RecordSchema implements Evented, RecordInitializer {
+export class RecordSchema {
   private _models!: Dict<ModelDefinition>;
   private _version!: number;
-
-  // Evented interface stubs
-  on!: (event: string, listener: Listener) => () => void;
-  off!: (event: string, listener?: Listener) => void;
-  one!: (event: string, listener: Listener) => () => void;
-  emit!: (event: string, ...args: any[]) => void;
-  listeners!: (event: string) => Listener[];
 
   constructor(settings: RecordSchemaSettings = {}) {
     if (settings.version === undefined) {

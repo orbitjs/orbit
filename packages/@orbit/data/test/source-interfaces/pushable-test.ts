@@ -1,54 +1,34 @@
-import {
-  buildTransform,
-  Transform,
-  TransformOrOperations
-} from '../../src/transform';
+import { buildTransform, Transform } from '../../src/transform';
 import { Source } from '../../src/source';
-import { RequestOptions } from '../../src/request';
-import {
-  FullResponse,
-  ResponseHints,
-  TransformsOrFullResponse
-} from '../../src/response';
+import { ResponseHints } from '../../src/response';
 import {
   pushable,
   isPushable,
   Pushable
 } from '../../src/source-interfaces/pushable';
 import {
+  RecordData,
   RecordResponse,
   RecordOperation,
   RecordTransformBuilder,
-  RecordData
+  AddRecordOperation,
+  UpdateRecordOperation
 } from '../support/record-data';
 
 const { module, test } = QUnit;
 
 module('@pushable', function (hooks) {
-  @pushable
-  class MySource
-    extends Source
-    implements
+  interface MySource
+    extends Source,
       Pushable<
         RecordData,
         RecordResponse,
         RecordOperation,
         RecordTransformBuilder
-      > {
-    push!: <RO extends RequestOptions>(
-      transformOrOperations: TransformOrOperations<
-        RecordOperation,
-        RecordTransformBuilder
-      >,
-      options?: RO,
-      id?: string
-    ) => Promise<
-      TransformsOrFullResponse<RecordData, RecordResponse, RecordOperation, RO>
-    >;
-    _push!: (
-      transform: Transform<RecordOperation>
-    ) => Promise<FullResponse<RecordData, RecordResponse, RecordOperation>>;
-  }
+      > {}
+
+  @pushable
+  class MySource extends Source {}
 
   let source: MySource;
 
@@ -248,7 +228,7 @@ module('@pushable', function (hooks) {
 
     let order = 0;
 
-    const addPlanet1 = buildTransform<RecordOperation>({
+    const addPlanet1 = buildTransform<AddRecordOperation>({
       op: 'addRecord',
       record: { type: 'planet', id: '1' }
     });
@@ -275,7 +255,7 @@ module('@pushable', function (hooks) {
       assert.ok(true, 'push should still be reached');
     });
 
-    await source.push(addPlanet1);
+    await source.push<AddRecordOperation>(addPlanet1);
 
     assert.equal(++order, 2, 'promise resolved last');
   });
@@ -434,7 +414,9 @@ module('@pushable', function (hooks) {
       assert.deepEqual(result, fullResponse, 'result matches');
     });
 
-    let result = await source.push(updatePlanet1, { fullResponse: true });
+    let result = await source.push(updatePlanet1, {
+      fullResponse: true
+    });
 
     assert.equal(++order, 3, 'promise resolved last');
     assert.deepEqual(result, fullResponse, 'success!');

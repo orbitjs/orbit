@@ -1,17 +1,14 @@
-import { Query, QueryOrExpressions } from '../../src/query';
+import { Query } from '../../src/query';
 import { Source } from '../../src/source';
 import { RequestOptions } from '../../src/request';
-import {
-  DataOrFullResponse,
-  FullResponse,
-  ResponseHints
-} from '../../src/response';
+import { ResponseHints } from '../../src/response';
 import {
   queryable,
   isQueryable,
   Queryable
 } from '../../src/source-interfaces/queryable';
 import {
+  Record,
   FindRecords,
   RecordData,
   RecordResponse,
@@ -23,33 +20,19 @@ import {
 const { module, test } = QUnit;
 
 module('@queryable', function (hooks) {
-  @queryable
-  class MySource
-    extends Source
-    implements
+  interface MySource
+    extends Source,
       Queryable<
         RecordData,
         RecordResponse,
         RecordOperation,
         RecordQueryExpression,
-        RecordQueryBuilder
-      > {
-    query!: <RO extends RequestOptions>(
-      queryOrExpressions: QueryOrExpressions<
-        RecordQueryExpression,
-        RecordQueryBuilder
-      >,
-      options?: RO,
-      id?: string
-    ) => Promise<
-      DataOrFullResponse<RecordData, RecordResponse, RecordOperation, RO>
-    >;
+        RecordQueryBuilder,
+        RequestOptions
+      > {}
 
-    _query!: (
-      query: Query<RecordQueryExpression>,
-      hints?: ResponseHints<RecordData, RecordResponse>
-    ) => Promise<FullResponse<RecordData, RecordResponse, RecordOperation>>;
-  }
+  @queryable
+  class MySource extends Source {}
 
   let source: MySource;
 
@@ -121,7 +104,7 @@ module('@queryable', function (hooks) {
       assert.strictEqual(result, fullResponse, 'result matches');
     });
 
-    let result = await source.query(qe);
+    let result = await source.query<Record[]>(qe);
 
     assert.equal(++order, 3, 'promise resolved last');
     assert.deepEqual(result, fullResponse.data, 'success!');
@@ -152,7 +135,7 @@ module('@queryable', function (hooks) {
       assert.equal(result, fullResponse, 'result matches');
     });
 
-    let result = await source.query(qe);
+    let result = await source.query<Record[]>(qe);
 
     assert.equal(++order, 3, 'promise resolved last');
     assert.equal(result, fullResponse.data, 'undefined result');

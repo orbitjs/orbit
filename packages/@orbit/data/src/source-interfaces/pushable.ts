@@ -1,11 +1,14 @@
 import { Orbit, settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Transform, TransformOrOperations, buildTransform } from '../transform';
-import { RequestOptions } from '../request';
+import {
+  DefaultRequestOptions,
+  FullRequestOptions,
+  RequestOptions
+} from '../request';
 import {
   FullResponse,
   NamedFullResponse,
-  TransformsOrFullResponse,
   mapNamedFullResponses,
   ResponseHints
 } from '../response';
@@ -30,7 +33,8 @@ export interface Pushable<
   Data,
   Details,
   O extends Operation,
-  TransformBuilder
+  TransformBuilder,
+  Options extends RequestOptions = RequestOptions
 > {
   /**
    * The `push` method accepts a `Transform` instance as an argument and returns
@@ -38,11 +42,20 @@ export interface Pushable<
    * applied as a result. In other words, `push` captures the direct results
    * _and_ side effects of applying a `Transform` to a source.
    */
-  push<RO extends RequestOptions>(
+  push<RequestOperation extends O = O>(
     transformOrOperations: TransformOrOperations<O, TransformBuilder>,
-    options?: RO,
+    options?: DefaultRequestOptions<Options>,
     id?: string
-  ): Promise<TransformsOrFullResponse<Data, Details, O, RO>>;
+  ): Promise<Transform<RequestOperation>[]>;
+  push<
+    RequestData extends Data = Data,
+    RequestDetails extends Details = Details,
+    RequestOperation extends O = O
+  >(
+    transformOrOperations: TransformOrOperations<O, TransformBuilder>,
+    options: FullRequestOptions<Options>,
+    id?: string
+  ): Promise<FullResponse<RequestData, RequestDetails, RequestOperation>>;
 
   _push(
     transform: Transform<O>,
@@ -92,7 +105,7 @@ export function pushable(Klass: unknown): void {
     transformOrOperations: TransformOrOperations<Operation, unknown>,
     options?: RO,
     id?: string
-  ): Promise<TransformsOrFullResponse<unknown, unknown, Operation, RO>> {
+  ): Promise<unknown> {
     await this.activated;
     const transform = buildTransform(
       transformOrOperations,
@@ -104,12 +117,7 @@ export function pushable(Klass: unknown): void {
     if (this.transformLog.contains(transform.id)) {
       const transforms: Transform<Operation>[] = [];
       const response = options?.fullResponse ? { transforms } : transforms;
-      return response as TransformsOrFullResponse<
-        unknown,
-        unknown,
-        Operation,
-        RO
-      >;
+      return response;
     } else {
       const response = await this._enqueueRequest('push', transform);
       return options?.fullResponse ? response : response.transforms || [];
