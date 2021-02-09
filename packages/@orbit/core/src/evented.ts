@@ -168,6 +168,30 @@ export async function fulfillInSeries(
   return results;
 }
 
+/**
+ * Fulfills any promises returned by event listeners in parallel, using
+ * `Promise.all`.
+ *
+ * Returns an array of results (or `undefined`) returned by listeners.
+ *
+ * On error, processing will stop and the returned promise will be rejected with
+ * the error that was encountered.
+ */
+export async function fulfillAll(
+  obj: Evented,
+  eventName: string,
+  ...args: unknown[]
+): Promise<unknown[]> {
+  const listeners = obj.listeners(eventName);
+  const promises: Promise<unknown>[] = [];
+
+  for (let listener of listeners) {
+    promises.push(listener(...args));
+  }
+
+  return Promise.all(promises);
+}
+
 function notifierForEvent(
   object: any,
   eventName: string,

@@ -3,9 +3,11 @@ import {
   isEvented,
   fulfillInSeries,
   settleInSeries,
-  Evented
+  Evented,
+  fulfillAll
 } from '../src/evented';
 import { Listener } from '../src/notifier';
+import { delay } from './support/timing';
 
 const { module, test } = QUnit;
 
@@ -342,6 +344,80 @@ module('Evented', function (hooks) {
       })
       .catch((error) => {
         assert.equal(++order, 4, 'error handler triggered last');
+        assert.equal(error, ':(', 'error result returned');
+      });
+  });
+
+  test('fulfillAll - it can fulfill all promises returned by listeners to an event in parallel', async function (assert) {
+    assert.expect(5);
+
+    const DELAY = 10;
+
+    let order = 0;
+    let listener1 = async function (message: string) {
+      assert.equal(message, 'hello', 'notification message should match');
+      await delay(DELAY);
+      return undefined;
+    } as Listener;
+    let listener2 = async function (message: string) {
+      assert.equal(message, 'hello', 'notification message should match');
+      await delay(DELAY);
+      return successfulOperation();
+    } as Listener;
+
+    obj.on('greeting', listener1);
+    obj.on('greeting', listener2);
+
+    const startTime = new Date().getTime();
+
+    const result = await fulfillAll(obj, 'greeting', 'hello');
+
+    const endTime = new Date().getTime();
+    const elapsedTime = endTime - startTime;
+
+    assert.ok(elapsedTime < 2 * DELAY, 'listeners performed in parallel');
+
+    assert.deepEqual(result, [undefined, ':)'], 'results returned in order');
+
+    const listeners = obj.listeners('greeting');
+    assert.equal(listeners.length, 2, 'listeners should not be unregistered');
+  });
+
+  test('fulfillAll - it will fail when any listener fails and return the error', function (assert) {
+    assert.expect(9);
+
+    let order = 0;
+    let listener1 = function (message: string) {
+      assert.equal(message, 'hello', 'notification message should match');
+      assert.equal(++order, 1, 'listener1 triggered');
+      // doesn't return anything
+    } as Listener;
+    let listener2 = function (message: string) {
+      assert.equal(message, 'hello', 'notification message should match');
+      assert.equal(++order, 2, 'listener2 triggered');
+      return successfulOperation();
+    } as Listener;
+    let listener3 = function (message: string) {
+      assert.equal(message, 'hello', 'notification message should match');
+      assert.equal(++order, 3, 'listener3 triggered');
+      return failedOperation();
+    } as Listener;
+    let listener4 = function () {
+      assert.equal(++order, 4, 'listener4 triggered');
+      return successfulOperation();
+    } as Listener;
+
+    obj.on('greeting', listener1);
+    obj.on('greeting', listener2);
+    obj.on('greeting', listener3);
+    obj.on('greeting', listener4);
+
+    return fulfillAll(obj, 'greeting', 'hello')
+      .then(() => {
+        assert.ok(false, 'success handler should not be reached');
+      })
+      .catch((error) => {
+        assert.equal(++order, 5, 'error handler triggered last');
         assert.equal(error, ':(', 'error result returned');
       });
   });
