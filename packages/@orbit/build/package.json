@@ -9,6 +9,9 @@
     "orbit",
     "orbit.js"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": "https://github.com/orbitjs/orbit",
   "license": "MIT",
   "dependencies": {
