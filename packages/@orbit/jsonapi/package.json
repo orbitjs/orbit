@@ -13,6 +13,9 @@
     "API",
     "REST"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": "https://github.com/orbitjs/orbit",
   "license": "MIT",
   "main": "dist/commonjs/index.js",
