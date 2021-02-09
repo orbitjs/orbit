@@ -54,6 +54,7 @@ export class IndexedDBCache extends AsyncRecordCache {
 
   async upgrade(): Promise<void> {
     await this.reopenDB();
+
     for (let processor of this._processors) {
       await processor.upgrade();
     }

@@ -186,7 +186,10 @@ export class MemoryCache extends SyncRecordCache {
     });
 
     this._resetInverseRelationships();
-    this._processors.forEach((processor) => processor.upgrade());
+
+    for (let processor of this._processors) {
+      processor.upgrade();
+    }
   }
 
   /////////////////////////////////////////////////////////////////////////////

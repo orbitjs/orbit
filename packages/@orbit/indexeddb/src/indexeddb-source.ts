@@ -79,7 +79,7 @@ export class IndexedDBSource extends RecordSource {
   }
 
   async upgrade(): Promise<void> {
-    await this._cache.reopenDB();
+    await this._cache.upgrade();
   }
 
   protected async _activate(): Promise<void> {

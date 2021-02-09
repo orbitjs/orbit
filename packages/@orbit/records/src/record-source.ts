@@ -111,7 +111,7 @@ export abstract class RecordSource<
   /**
    * Upgrade source as part of a schema upgrade.
    */
-  upgrade(): Promise<void> {
-    return Promise.resolve();
+  async upgrade(): Promise<void> {
+    return;
   }
 }
