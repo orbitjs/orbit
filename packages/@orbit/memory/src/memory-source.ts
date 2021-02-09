@@ -95,9 +95,8 @@ export class MemorySource extends RecordSource {
     return this._forkPoint;
   }
 
-  upgrade(): Promise<void> {
+  async upgrade(): Promise<void> {
     this._cache.upgrade();
-    return Promise.resolve();
   }
 
   /////////////////////////////////////////////////////////////////////////////

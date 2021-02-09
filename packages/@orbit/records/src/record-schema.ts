@@ -1,5 +1,5 @@
 /* eslint-disable valid-jsdoc */
-import { Orbit } from '@orbit/core';
+import { fulfillAll, Orbit } from '@orbit/core';
 import { ModelNotFound } from './record-exceptions';
 import { Dict } from '@orbit/utils';
 import { evented, Evented } from '@orbit/core';
@@ -105,12 +105,12 @@ export class RecordSchema {
    *
    * Emits the `upgrade` event to cue sources to upgrade their data.
    */
-  upgrade(settings: RecordSchemaSettings = {}): void {
+  async upgrade(settings: RecordSchemaSettings = {}): Promise<void> {
     if (settings.version === undefined) {
       settings.version = this._version + 1;
     }
     this._applySettings(settings);
-    this.emit('upgrade', this._version);
+    await fulfillAll(this as Evented, 'upgrade', this._version);
   }
 
   /**

@@ -93,6 +93,10 @@ export class LocalStorageSource extends RecordSource {
     return this._cache.getKeyForRecord(record);
   }
 
+  async upgrade(): Promise<void> {
+    this._cache.upgrade();
+  }
+
   /////////////////////////////////////////////////////////////////////////////
   // Resettable interface implementation
   /////////////////////////////////////////////////////////////////////////////

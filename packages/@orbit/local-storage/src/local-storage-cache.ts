@@ -196,10 +196,14 @@ export class LocalStorageCache extends SyncRecordCache {
       }
     }
 
-    this._processors.forEach((processor) => processor.reset());
+    for (let processor of this._processors) {
+      processor.reset();
+    }
   }
 
   upgrade(): void {
-    this._processors.forEach((processor) => processor.upgrade());
+    for (let processor of this._processors) {
+      processor.upgrade();
+    }
   }
 }
