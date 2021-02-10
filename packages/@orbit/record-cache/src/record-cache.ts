@@ -97,10 +97,22 @@ export abstract class RecordCache<
     return this._defaultQueryOptions;
   }
 
+  set defaultQueryOptions(
+    options: DefaultRequestOptions<QueryOptions> | undefined
+  ) {
+    this._defaultQueryOptions = options;
+  }
+
   get defaultTransformOptions():
     | DefaultRequestOptions<TransformOptions>
     | undefined {
     return this._defaultTransformOptions;
+  }
+
+  set defaultTransformOptions(
+    options: DefaultRequestOptions<TransformOptions> | undefined
+  ) {
+    this._defaultTransformOptions = options;
   }
 
   getQueryOptions(

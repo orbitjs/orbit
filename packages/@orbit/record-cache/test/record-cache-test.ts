@@ -80,6 +80,42 @@ module('RecordCache', function (hooks) {
     );
   });
 
+  test('`defaultQueryOptions` and `defaultTransformOptions` can be modified', function (assert) {
+    const defaultQueryOptions = {
+      maxRequests: 3
+    };
+
+    const defaultTransformOptions = {
+      maxRequests: 1
+    };
+
+    let cache = new MyRecordCache({
+      schema,
+      defaultQueryOptions,
+      defaultTransformOptions
+    });
+
+    cache.defaultQueryOptions = {
+      ...cache.defaultQueryOptions,
+      type: 'query'
+    };
+
+    assert.deepEqual(cache.defaultQueryOptions, {
+      maxRequests: 3,
+      type: 'query'
+    });
+
+    cache.defaultTransformOptions = {
+      ...cache.defaultTransformOptions,
+      type: 'transform'
+    };
+
+    assert.deepEqual(cache.defaultTransformOptions, {
+      maxRequests: 1,
+      type: 'transform'
+    });
+  });
+
   test('it can get query options that merge default, query, and expression options', function (assert) {
     const defaultQueryOptions = {
       foo: 'bar',
