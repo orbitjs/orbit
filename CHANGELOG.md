@@ -1,5 +1,51 @@
 # Changelog
 
+## v0.17.0-beta.9 (2021-02-09)
+
+#### :boom: Breaking Change
+
+- `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/records`
+  - [#794](https://github.com/orbitjs/orbit/pull/794) Extract @orbit/records from @orbit/data and introduce full, detailed responses across all sources and caches ([@dgeb](https://github.com/dgeb))
+
+#### :rocket: Enhancement
+
+- `@orbit/core`, `@orbit/indexeddb`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/records`
+  - [#808](https://github.com/orbitjs/orbit/pull/808) Ensure that schema + source upgrades are reliably async ([@dgeb](https://github.com/dgeb))
+- `@orbit/core`, `@orbit/data`, `@orbit/indexeddb`, `@orbit/jsonapi`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/records`
+  - [#807](https://github.com/orbitjs/orbit/pull/807) Improve typings via separate interface definitions, overloaded methods, and more generics ([@dgeb](https://github.com/dgeb))
+- `@orbit/integration-tests`, `@orbit/jsonapi`
+  - [#806](https://github.com/orbitjs/orbit/pull/806) JSONAPISource: Introduce parallelRequests option ([@dgeb](https://github.com/dgeb))
+- `@orbit/data`, `@orbit/jsonapi`
+  - [#805](https://github.com/orbitjs/orbit/pull/805) Improve usage of transform / query options ([@dgeb](https://github.com/dgeb))
+- `@orbit/data`, `@orbit/integration-tests`
+  - [#804](https://github.com/orbitjs/orbit/pull/804) Remove includeSources request option ([@dgeb](https://github.com/dgeb))
+- `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/records`
+  - [#794](https://github.com/orbitjs/orbit/pull/794) Extract @orbit/records from @orbit/data and introduce full, detailed responses across all sources and caches ([@dgeb](https://github.com/dgeb))
+- `@orbit/jsonapi`
+  - [#793](https://github.com/orbitjs/orbit/pull/793) Update operations serializers to follow atomic operations extention ([@tchak](https://github.com/tchak))
+- `@orbit/memory`
+  - [#795](https://github.com/orbitjs/orbit/pull/795) Improve perf by cloning only newly added relationship ([@enspandi](https://github.com/enspandi))
+- `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/serializers`, `@orbit/utils`
+  - [#789](https://github.com/orbitjs/orbit/pull/789) Further improvements in typings ([@dgeb](https://github.com/dgeb))
+
+#### :house: Internal
+
+- `@orbit/build`, `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/records`, `@orbit/serializers`, `@orbit/utils`
+  - [#809](https://github.com/orbitjs/orbit/pull/809) Add publishConfig settings to package.json ([@dgeb](https://github.com/dgeb))
+- Other
+  - [#802](https://github.com/orbitjs/orbit/pull/802) CI: Separate lint+compile job from test job ([@dgeb](https://github.com/dgeb))
+  - [#800](https://github.com/orbitjs/orbit/pull/800) Switch CI from Travis to Github ([@dgeb](https://github.com/dgeb))
+- `@orbit/jsonapi`
+  - [#792](https://github.com/orbitjs/orbit/pull/792) Add multi-expression/operation tests for jsonapi ([@dgeb](https://github.com/dgeb))
+- `@orbit/jsonapi`, `@orbit/record-cache`
+  - [#791](https://github.com/orbitjs/orbit/pull/791) Separate extra-long test modules into multiple modules ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 3
+
+- Andreas Minnich ([@enspandi](https://github.com/enspandi))
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+- Paul Chavard ([@tchak](https://github.com/tchak))
+
 ## v0.17.0-beta.8 (2020-09-27)
 
 #### :rocket: Enhancement
