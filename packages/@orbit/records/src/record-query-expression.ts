@@ -102,4 +102,8 @@ export type FindRelatedRecordResult = Record | null | undefined;
 export type FindRelatedRecordsResult = Record[] | undefined;
 export type FindRecordsResult = Record[];
 
-export type RecordQueryExpressionResult = Record | Record[] | null | undefined;
+export type RecordQueryExpressionResult<T = Record> =
+  | T
+  | T[]
+  | null
+  | undefined;
