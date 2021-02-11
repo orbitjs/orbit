@@ -116,7 +116,7 @@ export type RemoveFromRelatedRecordsOperationResult = undefined;
 export type ReplaceRelatedRecordsOperationResult = undefined;
 export type ReplaceRelatedRecordOperationResult = undefined;
 
-export type RecordOperationResult = Record | undefined;
+export type RecordOperationResult<T = Record> = T | undefined;
 
 function markOperationToDelete(operation: Operation): void {
   const o: any = operation;
