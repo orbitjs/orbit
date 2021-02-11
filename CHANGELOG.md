@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.17.0-beta.10 (2021-02-11)
+
+#### :rocket: Enhancement
+
+- `@orbit/records`
+  - [#811](https://github.com/orbitjs/orbit/pull/811) Use generics in typing record query/transform results ([@dgeb](https://github.com/dgeb))
+- `@orbit/indexeddb`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/records`
+  - [#810](https://github.com/orbitjs/orbit/pull/810) Ensure that query/transform options are shared between sources and their caches ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.9 (2021-02-09)
 
 #### :boom: Breaking Change
