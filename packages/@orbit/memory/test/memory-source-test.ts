@@ -71,24 +71,23 @@ module('MemorySource', function (hooks) {
     }
   };
 
-  const schema = new RecordSchema(schemaDefinition);
-
-  let source: MemorySource;
+  let schema: RecordSchema;
   let keyMap: RecordKeyMap;
 
   hooks.beforeEach(function () {
+    schema = new RecordSchema(schemaDefinition);
     keyMap = new RecordKeyMap();
-    source = new MemorySource({ schema, keyMap });
   });
 
   test('its prototype chain is correct', function (assert) {
-    assert.ok(source instanceof RecordSource, 'instanceof Source');
+    const source = new MemorySource({ schema, keyMap });
+    assert.ok(source instanceof RecordSource, 'instanceof RecordSource');
     assert.ok(source instanceof MemorySource, 'instanceof MemorySource');
     assert.equal(source.name, 'memory', 'should have default name');
   });
 
   test("internal cache's settings can be specified with `cacheSettings`", function (assert) {
-    let source = new MemorySource({
+    const source = new MemorySource({
       schema,
       keyMap,
       cacheSettings: {
@@ -99,13 +98,13 @@ module('MemorySource', function (hooks) {
         ]
       }
     });
-    let cache = source.cache as any;
 
-    assert.ok(cache, 'cache exists');
-    assert.equal(cache._processors.length, 2, 'cache has 2 processors');
+    assert.ok(source.cache, 'cache exists');
+    assert.equal(source.cache.processors.length, 2, 'cache has 2 processors');
   });
 
-  test('automatically shares its `transformBuilder` and `queryBuilder` with its cache', function (assert) {
+  test('shares its `transformBuilder` and `queryBuilder` with its cache', function (assert) {
+    const source = new MemorySource({ schema, keyMap });
     assert.strictEqual(
       source.cache.transformBuilder,
       source.transformBuilder,
@@ -118,8 +117,74 @@ module('MemorySource', function (hooks) {
     );
   });
 
+  test('shares its `defaultTransformOptions` and `defaultQueryOptions` with its cache', function (assert) {
+    const source = new MemorySource({
+      schema,
+      keyMap,
+      defaultQueryOptions: {
+        a: 1
+      },
+      defaultTransformOptions: {
+        b: 1
+      }
+    });
+
+    assert.strictEqual(
+      source.cache.defaultTransformOptions,
+      source.defaultTransformOptions,
+      'defaultTransformOptions are shared'
+    );
+    assert.strictEqual(
+      source.cache.defaultTransformOptions?.b,
+      1,
+      'cache.defaultTransformOptions are correct'
+    );
+    assert.strictEqual(
+      source.cache.defaultQueryOptions,
+      source.defaultQueryOptions,
+      'defaultQueryOptions are shared'
+    );
+    assert.strictEqual(
+      source.cache.defaultQueryOptions?.a,
+      1,
+      'cache.defaultQueryOptions are correct'
+    );
+
+    let newQueryOptions = {
+      a: 2
+    };
+    source.defaultQueryOptions = newQueryOptions;
+    assert.strictEqual(
+      source.defaultQueryOptions?.a,
+      2,
+      'defaultQueryOptions are correct'
+    );
+    assert.strictEqual(
+      source.cache.defaultQueryOptions,
+      source.defaultQueryOptions,
+      'updated defaultQueryOptions are shared'
+    );
+
+    let newTransformOptions = {
+      b: 2
+    };
+    source.defaultTransformOptions = newTransformOptions;
+    assert.strictEqual(
+      source.cache.defaultTransformOptions,
+      source.defaultTransformOptions,
+      'updated defaultTransformOptions are shared'
+    );
+    assert.strictEqual(
+      source.cache.defaultTransformOptions?.b,
+      2,
+      'updated cache.defaultTransformOptions are correct'
+    );
+  });
+
   test("#update - transforms the source's cache", async function (assert) {
     assert.expect(4);
+
+    const source = new MemorySource({ schema, keyMap });
 
     const jupiter: Record = {
       id: 'jupiter',
@@ -150,6 +215,8 @@ module('MemorySource', function (hooks) {
 
   test('#update - can perform multiple operations and return the results', async function (assert) {
     assert.expect(3);
+
+    const source = new MemorySource({ schema, keyMap });
 
     const jupiter: Record = {
       type: 'planet',
@@ -188,6 +255,8 @@ module('MemorySource', function (hooks) {
 
   test('#update - replaceRelatedRecord can be followed up by removing the replaced record', async function (assert) {
     assert.expect(2);
+
+    const source = new MemorySource({ schema, keyMap });
 
     const star1 = {
       id: 'star1',
@@ -247,6 +316,8 @@ module('MemorySource', function (hooks) {
   test('#update - accepts hints that can return a single record', async function (assert) {
     assert.expect(2);
 
+    const source = new MemorySource({ schema, keyMap });
+
     let jupiter = {
       id: 'jupiter',
       type: 'planet',
@@ -282,6 +353,8 @@ module('MemorySource', function (hooks) {
 
   test('#update - accepts hints that can return a collection of records', async function (assert) {
     assert.expect(2);
+
+    const source = new MemorySource({ schema, keyMap });
 
     let jupiter = {
       id: 'jupiter',
@@ -338,6 +411,8 @@ module('MemorySource', function (hooks) {
 
   test('#update - accepts hints that can return an array of varied results', async function (assert) {
     assert.expect(2);
+
+    const source = new MemorySource({ schema, keyMap });
 
     let jupiter = {
       id: 'jupiter',
@@ -399,6 +474,8 @@ module('MemorySource', function (hooks) {
   test('#update - hint details can be returned in a full response', async function (assert) {
     assert.expect(2);
 
+    const source = new MemorySource({ schema, keyMap });
+
     let jupiter = {
       id: 'jupiter',
       type: 'planet',
@@ -447,6 +524,8 @@ module('MemorySource', function (hooks) {
   test("#query - queries the source's cache", async function (assert) {
     assert.expect(2);
 
+    const source = new MemorySource({ schema, keyMap });
+
     let jupiter = {
       id: 'jupiter',
       type: 'planet',
@@ -470,6 +549,8 @@ module('MemorySource', function (hooks) {
 
   test('#query - findRecord accepts hints that can influence results', async function (assert) {
     assert.expect(2);
+
+    const source = new MemorySource({ schema, keyMap });
 
     let jupiter2 = {
       id: 'jupiter2',
@@ -500,6 +581,8 @@ module('MemorySource', function (hooks) {
 
   test('#query - findRecords accepts hints that can influence results', async function (assert) {
     assert.expect(2);
+
+    const source = new MemorySource({ schema, keyMap });
 
     let jupiter = {
       id: 'jupiter',
@@ -561,6 +644,8 @@ module('MemorySource', function (hooks) {
   test('#query - catches errors', async function (assert) {
     assert.expect(2);
 
+    const source = new MemorySource({ schema, keyMap });
+
     source.cache.reset();
 
     assert.equal(
@@ -580,6 +665,7 @@ module('MemorySource', function (hooks) {
   });
 
   test('#query - can query with multiple expressions', async function (assert) {
+    const source = new MemorySource({ schema, keyMap });
     const jupiter: Record = {
       type: 'planet',
       id: 'jupiter',
@@ -606,12 +692,12 @@ module('MemorySource', function (hooks) {
   });
 
   test('#sync - appends transform to log', async function (assert) {
+    const source = new MemorySource({ schema, keyMap });
     const recordA = {
       id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter' }
     };
-
     const addRecordATransform = buildTransform(
       source.transformBuilder.addRecord(recordA)
     );
@@ -625,6 +711,8 @@ module('MemorySource', function (hooks) {
   });
 
   test('#getTransform - returns a particular transform given an id', async function (assert) {
+    const source = new MemorySource({ schema, keyMap });
+
     const recordA = {
       id: 'jupiter',
       type: 'planet',
@@ -644,6 +732,7 @@ module('MemorySource', function (hooks) {
   });
 
   test('#getInverseOperations - returns the inverse operations for a particular transform', async function (assert) {
+    const source = new MemorySource({ schema, keyMap });
     const recordA = {
       id: 'jupiter',
       type: 'planet',
@@ -652,7 +741,6 @@ module('MemorySource', function (hooks) {
     const addRecordATransform = buildTransform(
       source.transformBuilder.addRecord(recordA)
     );
-
     await source.sync(addRecordATransform);
 
     assert.deepEqual(source.getInverseOperations(addRecordATransform.id), [
@@ -661,6 +749,7 @@ module('MemorySource', function (hooks) {
   });
 
   test('#transformsSince - returns all transforms since a specified transformId', async function (assert) {
+    const source = new MemorySource({ schema, keyMap });
     const recordA = {
       id: 'jupiter',
       type: 'planet',
@@ -694,6 +783,7 @@ module('MemorySource', function (hooks) {
   });
 
   test('#allTransforms - returns all tracked transforms', async function (assert) {
+    const source = new MemorySource({ schema, keyMap });
     const recordA = {
       id: 'jupiter',
       type: 'planet',
@@ -727,6 +817,7 @@ module('MemorySource', function (hooks) {
   });
 
   test('transformLog.truncate - clears transforms from log as well as tracked transforms before a specified transform', async function (assert) {
+    const source = new MemorySource({ schema, keyMap });
     const recordA = {
       id: 'jupiter',
       type: 'planet',
@@ -762,6 +853,7 @@ module('MemorySource', function (hooks) {
   });
 
   test('transformLog.clear - clears all transforms from log as well as tracked transforms', async function (assert) {
+    const source = new MemorySource({ schema, keyMap });
     const recordA = {
       id: 'jupiter',
       type: 'planet',
@@ -797,6 +889,8 @@ module('MemorySource', function (hooks) {
   });
 
   test('#fork - creates a new source that starts with the same schema, keyMap, and cache contents as the base source', async function (assert) {
+    const source = new MemorySource({ schema, keyMap });
+
     const jupiter: Record = {
       type: 'planet',
       id: 'jupiter-id',
@@ -843,6 +937,8 @@ module('MemorySource', function (hooks) {
   });
 
   test('#merge - merges transforms from a forked source back into a base source', async function (assert) {
+    const source = new MemorySource({ schema, keyMap });
+
     const jupiter: Record = {
       type: 'planet',
       id: 'jupiter-id',
@@ -870,6 +966,8 @@ module('MemorySource', function (hooks) {
 
   test('#merge - can accept options that will be assigned to the resulting transform', async function (assert) {
     assert.expect(3);
+
+    const source = new MemorySource({ schema, keyMap });
 
     const jupiter: Record = {
       type: 'planet',
@@ -903,6 +1001,8 @@ module('MemorySource', function (hooks) {
   test('#rebase - works with empty sources', function (assert) {
     assert.expect(1);
 
+    const source = new MemorySource({ schema, keyMap });
+
     let child = source.fork();
     child.rebase();
 
@@ -917,6 +1017,8 @@ module('MemorySource', function (hooks) {
       id: 'jupiter-id',
       attributes: { name: 'Jupiter', classification: 'gas giant' }
     };
+
+    const source = new MemorySource({ schema, keyMap });
 
     let child = source.fork();
 
@@ -943,6 +1045,7 @@ module('MemorySource', function (hooks) {
   });
 
   test('#rebase - maintains only unique transforms in fork', async function (assert) {
+    const source = new MemorySource({ schema, keyMap });
     const recordA = {
       id: 'jupiter',
       type: 'planet',
@@ -1002,6 +1105,8 @@ module('MemorySource', function (hooks) {
   test('#rebase - rebase orders conflicting transforms in expected way', async function (assert) {
     assert.expect(6);
 
+    const source = new MemorySource({ schema, keyMap });
+
     const jupiter: Record = {
       type: 'planet',
       id: 'jupiter-id',
@@ -1057,6 +1162,7 @@ module('MemorySource', function (hooks) {
   test('#rebase - calling rebase multiple times', async function (assert) {
     assert.expect(22);
 
+    const source = new MemorySource({ schema, keyMap });
     const jupiter: Record = {
       type: 'planet',
       id: 'jupiter-id',
@@ -1198,6 +1304,7 @@ module('MemorySource', function (hooks) {
   });
 
   test('#rollback - rolls back transform log and replays transform inverses against the cache', async function (assert) {
+    const source = new MemorySource({ schema, keyMap });
     const recordA = {
       id: 'jupiter',
       type: 'planet',
@@ -1265,13 +1372,13 @@ module('MemorySource', function (hooks) {
   });
 
   test('#upgrade upgrades the cache to include new models introduced in a schema', async function (assert) {
-    let person = {
+    const source = new MemorySource({ schema, keyMap });
+    const person = {
       type: 'person',
       id: '1',
       relationships: { planet: { data: { type: 'planet', id: 'earth' } } }
     };
-
-    let models = clone(schema.models);
+    const models = clone(schema.models);
     models.planet.relationships.inhabitants = {
       kind: 'hasMany',
       type: 'person',

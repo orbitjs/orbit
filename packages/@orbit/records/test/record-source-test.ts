@@ -103,4 +103,68 @@ module('Source', function (hooks) {
       'syncQueue has been assigned bucket'
     );
   });
+
+  test('it can be instantiated with `defaultQueryOptions` and/or `defaultTransformOptions`', function (assert) {
+    const defaultQueryOptions = {
+      foo: 'bar'
+    };
+
+    const defaultTransformOptions = {
+      foo: 'bar'
+    };
+
+    source = new MySource({
+      schema,
+      defaultQueryOptions,
+      defaultTransformOptions
+    });
+
+    assert.strictEqual(
+      source.defaultQueryOptions,
+      defaultQueryOptions,
+      'defaultQueryOptions remains the same'
+    );
+
+    assert.strictEqual(
+      source.defaultTransformOptions,
+      defaultTransformOptions,
+      'defaultTransformOptions remains the same'
+    );
+  });
+
+  test('`defaultQueryOptions` and `defaultTransformOptions` can be modified', function (assert) {
+    const defaultQueryOptions = {
+      maxRequests: 3
+    };
+
+    const defaultTransformOptions = {
+      maxRequests: 1
+    };
+
+    source = new MySource({
+      schema,
+      defaultQueryOptions,
+      defaultTransformOptions
+    });
+
+    source.defaultQueryOptions = {
+      ...source.defaultQueryOptions,
+      type: 'query'
+    };
+
+    assert.deepEqual(source.defaultQueryOptions, {
+      maxRequests: 3,
+      type: 'query'
+    });
+
+    source.defaultTransformOptions = {
+      ...source.defaultTransformOptions,
+      type: 'transform'
+    };
+
+    assert.deepEqual(source.defaultTransformOptions, {
+      maxRequests: 1,
+      type: 'transform'
+    });
+  });
 });

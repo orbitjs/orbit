@@ -5,7 +5,9 @@ import {
   pushable,
   Resettable,
   syncable,
-  FullResponse
+  FullResponse,
+  DefaultRequestOptions,
+  RequestOptions
 } from '@orbit/data';
 import {
   Record,
@@ -19,7 +21,8 @@ import {
   RecordSyncable,
   RecordTransform,
   RecordSource,
-  RecordQuery
+  RecordQuery,
+  RecordSourceQueryOptions
 } from '@orbit/records';
 import { supportsLocalStorage } from './lib/local-storage';
 import {
@@ -61,24 +64,32 @@ export class LocalStorageSource extends RecordSource {
       supportsLocalStorage()
     );
 
-    settings.name = settings.name || 'localStorage';
+    settings.name = settings.name ?? 'localStorage';
 
     super(settings);
 
     let cacheSettings: Partial<LocalStorageCacheSettings> =
-      settings.cacheSettings || {};
+      settings.cacheSettings ?? {};
     cacheSettings.schema = settings.schema;
     cacheSettings.keyMap = settings.keyMap;
     cacheSettings.queryBuilder =
-      cacheSettings.queryBuilder || this.queryBuilder;
+      cacheSettings.queryBuilder ?? this.queryBuilder;
     cacheSettings.transformBuilder =
-      cacheSettings.transformBuilder || this.transformBuilder;
-    cacheSettings.namespace = cacheSettings.namespace || settings.namespace;
-    cacheSettings.delimiter = cacheSettings.delimiter || settings.delimiter;
+      cacheSettings.transformBuilder ?? this.transformBuilder;
+    cacheSettings.defaultQueryOptions =
+      cacheSettings.defaultQueryOptions ?? settings.defaultQueryOptions;
+    cacheSettings.defaultTransformOptions =
+      cacheSettings.defaultTransformOptions ?? settings.defaultTransformOptions;
+    cacheSettings.namespace = cacheSettings.namespace ?? settings.namespace;
+    cacheSettings.delimiter = cacheSettings.delimiter ?? settings.delimiter;
 
     this._cache = new LocalStorageCache(
       cacheSettings as LocalStorageCacheSettings
     );
+  }
+
+  get cache(): LocalStorageCache {
+    return this._cache;
   }
 
   get namespace(): string {
@@ -87,6 +98,30 @@ export class LocalStorageSource extends RecordSource {
 
   get delimiter(): string {
     return this._cache.delimiter;
+  }
+
+  get defaultQueryOptions():
+    | DefaultRequestOptions<RecordSourceQueryOptions>
+    | undefined {
+    return super.defaultQueryOptions;
+  }
+
+  set defaultQueryOptions(
+    options: DefaultRequestOptions<RecordSourceQueryOptions> | undefined
+  ) {
+    super.defaultQueryOptions = this.cache.defaultQueryOptions = options;
+  }
+
+  get defaultTransformOptions():
+    | DefaultRequestOptions<RequestOptions>
+    | undefined {
+    return super.defaultTransformOptions;
+  }
+
+  set defaultTransformOptions(
+    options: DefaultRequestOptions<RequestOptions> | undefined
+  ) {
+    this._defaultTransformOptions = this.cache.defaultTransformOptions = options;
   }
 
   getKeyForRecord(record: RecordIdentity | Record): string {

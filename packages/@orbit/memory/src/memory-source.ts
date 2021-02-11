@@ -12,7 +12,8 @@ import {
   RecordQuery,
   RecordSyncable,
   RecordUpdatable,
-  RecordQueryable
+  RecordQueryable,
+  RecordSourceQueryOptions
 } from '@orbit/records';
 import {
   syncable,
@@ -20,7 +21,8 @@ import {
   queryable,
   updatable,
   buildTransform,
-  FullResponse
+  FullResponse,
+  DefaultRequestOptions
 } from '@orbit/data';
 import { ResponseHints } from '@orbit/data';
 import { Dict } from '@orbit/utils';
@@ -56,7 +58,7 @@ export class MemorySource extends RecordSource {
   constructor(settings: MemorySourceSettings) {
     const { keyMap, schema } = settings;
 
-    settings.name = settings.name || 'memory';
+    settings.name = settings.name ?? 'memory';
 
     super(settings);
 
@@ -68,18 +70,23 @@ export class MemorySource extends RecordSource {
     this.transformLog.on('rollback', this._logRolledback.bind(this));
 
     let cacheSettings: Partial<MemoryCacheSettings> =
-      settings.cacheSettings || {};
+      settings.cacheSettings ?? {};
     cacheSettings.schema = schema;
     cacheSettings.keyMap = keyMap;
     cacheSettings.queryBuilder =
-      cacheSettings.queryBuilder || this.queryBuilder;
+      cacheSettings.queryBuilder ?? this.queryBuilder;
     cacheSettings.transformBuilder =
-      cacheSettings.transformBuilder || this.transformBuilder;
+      cacheSettings.transformBuilder ?? this.transformBuilder;
+    cacheSettings.defaultQueryOptions =
+      cacheSettings.defaultQueryOptions ?? settings.defaultQueryOptions;
+    cacheSettings.defaultTransformOptions =
+      cacheSettings.defaultTransformOptions ?? settings.defaultTransformOptions;
     if (settings.base) {
       this._base = settings.base;
       this._forkPoint = this._base.transformLog.head;
       cacheSettings.base = this._base.cache;
     }
+
     this._cache = new MemoryCache(cacheSettings as MemoryCacheSettings);
   }
 
@@ -328,6 +335,30 @@ export class MemorySource extends RecordSource {
 
   getInverseOperations(transformId: string): RecordOperation[] {
     return this._transformInverses[transformId];
+  }
+
+  get defaultQueryOptions():
+    | DefaultRequestOptions<RecordSourceQueryOptions>
+    | undefined {
+    return super.defaultQueryOptions;
+  }
+
+  set defaultQueryOptions(
+    options: DefaultRequestOptions<RecordSourceQueryOptions> | undefined
+  ) {
+    super.defaultQueryOptions = this.cache.defaultQueryOptions = options;
+  }
+
+  get defaultTransformOptions():
+    | DefaultRequestOptions<RequestOptions>
+    | undefined {
+    return super.defaultTransformOptions;
+  }
+
+  set defaultTransformOptions(
+    options: DefaultRequestOptions<RequestOptions> | undefined
+  ) {
+    this._defaultTransformOptions = this.cache.defaultTransformOptions = options;
   }
 
   /////////////////////////////////////////////////////////////////////////////
