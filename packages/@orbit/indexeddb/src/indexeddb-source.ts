@@ -5,7 +5,9 @@ import {
   pushable,
   Resettable,
   syncable,
-  FullResponse
+  FullResponse,
+  DefaultRequestOptions,
+  RequestOptions
 } from '@orbit/data';
 import {
   RecordOperation,
@@ -17,7 +19,8 @@ import {
   RecordSyncable,
   RecordTransform,
   RecordSource,
-  RecordQuery
+  RecordQuery,
+  RecordSourceQueryOptions
 } from '@orbit/records';
 import { supportsIndexedDB } from './lib/indexeddb';
 import { IndexedDBCache, IndexedDBCacheSettings } from './indexeddb-cache';
@@ -52,21 +55,25 @@ export class IndexedDBSource extends RecordSource {
     );
     assert('Your browser does not support IndexedDB!', supportsIndexedDB());
 
-    settings.name = settings.name || 'indexedDB';
+    settings.name = settings.name ?? 'indexedDB';
     const autoActivate = settings.autoActivate !== false;
     settings.autoActivate = false;
 
     super(settings);
 
     let cacheSettings: Partial<IndexedDBCacheSettings> =
-      settings.cacheSettings || {};
+      settings.cacheSettings ?? {};
     cacheSettings.schema = settings.schema;
     cacheSettings.keyMap = settings.keyMap;
     cacheSettings.queryBuilder =
-      cacheSettings.queryBuilder || this.queryBuilder;
+      cacheSettings.queryBuilder ?? this.queryBuilder;
     cacheSettings.transformBuilder =
-      cacheSettings.transformBuilder || this.transformBuilder;
-    cacheSettings.namespace = cacheSettings.namespace || settings.namespace;
+      cacheSettings.transformBuilder ?? this.transformBuilder;
+    cacheSettings.namespace = cacheSettings.namespace ?? settings.namespace;
+    cacheSettings.defaultQueryOptions =
+      cacheSettings.defaultQueryOptions ?? settings.defaultQueryOptions;
+    cacheSettings.defaultTransformOptions =
+      cacheSettings.defaultTransformOptions ?? settings.defaultTransformOptions;
 
     this._cache = new IndexedDBCache(cacheSettings as IndexedDBCacheSettings);
     if (autoActivate) {
@@ -76,6 +83,30 @@ export class IndexedDBSource extends RecordSource {
 
   get cache(): IndexedDBCache {
     return this._cache;
+  }
+
+  get defaultQueryOptions():
+    | DefaultRequestOptions<RecordSourceQueryOptions>
+    | undefined {
+    return super.defaultQueryOptions;
+  }
+
+  set defaultQueryOptions(
+    options: DefaultRequestOptions<RecordSourceQueryOptions> | undefined
+  ) {
+    super.defaultQueryOptions = this.cache.defaultQueryOptions = options;
+  }
+
+  get defaultTransformOptions():
+    | DefaultRequestOptions<RequestOptions>
+    | undefined {
+    return super.defaultTransformOptions;
+  }
+
+  set defaultTransformOptions(
+    options: DefaultRequestOptions<RequestOptions> | undefined
+  ) {
+    this._defaultTransformOptions = this.cache.defaultTransformOptions = options;
   }
 
   async upgrade(): Promise<void> {

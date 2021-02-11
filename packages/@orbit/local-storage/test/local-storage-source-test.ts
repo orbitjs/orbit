@@ -70,6 +70,84 @@ module('LocalStorageSource', function (hooks) {
     assert.equal(source.delimiter, '/', 'delimiter is `/` by default');
   });
 
+  test('shares its `transformBuilder` and `queryBuilder` with its cache', function (assert) {
+    assert.strictEqual(
+      source.cache.transformBuilder,
+      source.transformBuilder,
+      'transformBuilder is shared'
+    );
+    assert.strictEqual(
+      source.cache.queryBuilder,
+      source.queryBuilder,
+      'queryBuilder is shared'
+    );
+  });
+
+  test('shares its `defaultTransformOptions` and `defaultQueryOptions` with its cache', function (assert) {
+    source = new LocalStorageSource({
+      schema,
+      keyMap,
+      autoActivate: false,
+      defaultQueryOptions: {
+        a: 1
+      },
+      defaultTransformOptions: {
+        b: 1
+      }
+    });
+
+    assert.strictEqual(
+      source.cache.defaultTransformOptions,
+      source.defaultTransformOptions,
+      'defaultTransformOptions are shared'
+    );
+    assert.strictEqual(
+      source.cache.defaultTransformOptions?.b,
+      1,
+      'cache.defaultTransformOptions are correct'
+    );
+    assert.strictEqual(
+      source.cache.defaultQueryOptions,
+      source.defaultQueryOptions,
+      'defaultQueryOptions are shared'
+    );
+    assert.strictEqual(
+      source.cache.defaultQueryOptions?.a,
+      1,
+      'cache.defaultQueryOptions are correct'
+    );
+
+    let newQueryOptions = {
+      a: 2
+    };
+    source.defaultQueryOptions = newQueryOptions;
+    assert.strictEqual(
+      source.defaultQueryOptions?.a,
+      2,
+      'defaultQueryOptions are correct'
+    );
+    assert.strictEqual(
+      source.cache.defaultQueryOptions,
+      source.defaultQueryOptions,
+      'updated defaultQueryOptions are shared'
+    );
+
+    let newTransformOptions = {
+      b: 2
+    };
+    source.defaultTransformOptions = newTransformOptions;
+    assert.strictEqual(
+      source.cache.defaultTransformOptions,
+      source.defaultTransformOptions,
+      'updated defaultTransformOptions are shared'
+    );
+    assert.strictEqual(
+      source.cache.defaultTransformOptions?.b,
+      2,
+      'updated cache.defaultTransformOptions are correct'
+    );
+  });
+
   test('#getKeyForRecord returns the local storage key that will be used for a record', function (assert) {
     assert.equal(
       source.getKeyForRecord({ type: 'planet', id: 'jupiter' }),
