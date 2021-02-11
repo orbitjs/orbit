@@ -54,8 +54,6 @@ export abstract class RecordSource<
 > {
   protected _keyMap?: RecordKeyMap;
   protected _schema: RecordSchema;
-  protected _queryBuilder!: RecordQueryBuilder;
-  protected _transformBuilder!: RecordTransformBuilder;
 
   constructor(settings: RecordSourceSettings<QueryOptions, TransformOptions>) {
     const autoActivate =
@@ -101,11 +99,11 @@ export abstract class RecordSource<
   }
 
   get queryBuilder(): RecordQueryBuilder {
-    return this._queryBuilder;
+    return this._queryBuilder as RecordQueryBuilder;
   }
 
   get transformBuilder(): RecordTransformBuilder {
-    return this._transformBuilder;
+    return this._transformBuilder as RecordTransformBuilder;
   }
 
   /**
