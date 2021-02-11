@@ -292,7 +292,7 @@ export class MemorySource extends RecordSource {
       localTransforms.reverse().forEach((transform) => {
         const inverseOperations = this._transformInverses[transform.id];
         if (inverseOperations) {
-          this.cache.patch(inverseOperations);
+          this.cache.update(inverseOperations);
         }
         this._clearTransformFromHistory(transform.id);
       });
@@ -412,7 +412,7 @@ export class MemorySource extends RecordSource {
     removed.reverse().forEach((id) => {
       const inverseOperations = this._transformInverses[id];
       if (inverseOperations) {
-        this.cache.patch(inverseOperations);
+        this.cache.update(inverseOperations);
       }
       this._clearTransformFromHistory(id);
     });
