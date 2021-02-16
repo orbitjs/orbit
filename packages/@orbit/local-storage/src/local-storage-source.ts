@@ -3,11 +3,14 @@ import {
   buildTransform,
   pullable,
   pushable,
+  queryable,
   Resettable,
   syncable,
+  updatable,
   FullResponse,
   DefaultRequestOptions,
-  RequestOptions
+  RequestOptions,
+  ResponseHints
 } from '@orbit/data';
 import {
   Record,
@@ -22,7 +25,12 @@ import {
   RecordTransform,
   RecordSource,
   RecordQuery,
-  RecordSourceQueryOptions
+  RecordSourceQueryOptions,
+  RecordUpdatable,
+  RecordQueryable,
+  RecordQueryResult,
+  RecordTransformResult,
+  RecordOperationResult
 } from '@orbit/records';
 import { supportsLocalStorage } from './lib/local-storage';
 import {
@@ -43,6 +51,8 @@ export interface LocalStorageSource
     RecordSyncable,
     RecordPullable<unknown>,
     RecordPushable<unknown>,
+    RecordQueryable<unknown>,
+    RecordUpdatable<unknown>,
     Resettable {}
 
 /**
@@ -50,6 +60,8 @@ export interface LocalStorageSource
  */
 @pullable
 @pushable
+@queryable
+@updatable
 @syncable
 export class LocalStorageSource extends RecordSource {
   protected _cache: LocalStorageCache;
@@ -152,6 +164,83 @@ export class LocalStorageSource extends RecordSource {
   }
 
   /////////////////////////////////////////////////////////////////////////////
+  // Updatable interface implementation
+  /////////////////////////////////////////////////////////////////////////////
+
+  async _update(
+    transform: RecordTransform,
+    hints?: ResponseHints<RecordTransformResult, unknown>
+  ): Promise<FullResponse<RecordTransformResult, unknown, RecordOperation>> {
+    let results: RecordTransformResult;
+    const response: FullResponse<
+      RecordTransformResult,
+      unknown,
+      RecordOperation
+    > = {};
+
+    if (!this.transformLog.contains(transform.id)) {
+      results = this._applyTransform(transform);
+      response.transforms = [transform];
+    }
+
+    if (hints?.data) {
+      if (transform.operations.length > 1 && Array.isArray(hints.data)) {
+        response.data = (hints.data as RecordOperationResult[]).map((h) =>
+          this._retrieveOperationResult(h)
+        );
+      } else {
+        response.data = this._retrieveOperationResult(
+          hints.data as RecordOperationResult
+        );
+      }
+    } else if (results) {
+      if (transform.operations.length === 1 && Array.isArray(results)) {
+        response.data = results[0];
+      } else {
+        response.data = results;
+      }
+    }
+
+    if (hints?.details) {
+      response.details = hints.details;
+    }
+
+    return response;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Queryable interface implementation
+  /////////////////////////////////////////////////////////////////////////////
+
+  async _query(
+    query: RecordQuery,
+    hints?: ResponseHints<RecordQueryResult, unknown>
+  ): Promise<FullResponse<RecordQueryResult, unknown, RecordOperation>> {
+    let response: FullResponse<RecordQueryResult, unknown, RecordOperation>;
+
+    if (hints?.data) {
+      response = {};
+      if (query.expressions.length > 1 && Array.isArray(hints.data)) {
+        response.data = (hints.data as RecordQueryExpressionResult[]).map((h) =>
+          this._retrieveQueryExpressionResult(h)
+        );
+      } else {
+        response.data = this._retrieveQueryExpressionResult(
+          hints.data as RecordQueryExpressionResult
+        );
+      }
+    } else {
+      response = this._cache.query(query, { fullResponse: true });
+    }
+
+    if (hints?.details) {
+      response.details = hints.details;
+    }
+
+    return response;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
   // Pushable interface implementation
   /////////////////////////////////////////////////////////////////////////////
 
@@ -194,6 +283,36 @@ export class LocalStorageSource extends RecordSource {
     fullResponse.transforms = [buildTransform(operations)];
 
     return fullResponse;
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Protected methods
+  /////////////////////////////////////////////////////////////////////////////
+
+  protected _retrieveQueryExpressionResult(
+    result: RecordQueryExpressionResult
+  ): RecordQueryExpressionResult {
+    if (Array.isArray(result)) {
+      return this._cache.getRecordsSync(result);
+    } else if (result) {
+      return this._cache.getRecordSync(result);
+    } else {
+      return result;
+    }
+  }
+
+  protected _retrieveOperationResult(
+    result: RecordOperationResult
+  ): RecordOperationResult {
+    if (result) {
+      return this._cache.getRecordSync(result);
+    } else {
+      return result;
+    }
+  }
+
+  protected _applyTransform(transform: RecordTransform): RecordTransformResult {
+    return this.cache.update(transform);
   }
 
   protected _operationsFromQueryResult(

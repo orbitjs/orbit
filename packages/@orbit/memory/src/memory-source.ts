@@ -1,8 +1,8 @@
 import { Assertion } from '@orbit/core';
 import {
   coalesceRecordOperations,
-  RecordIdentity,
   RecordOperation,
+  RecordOperationResult,
   RecordQueryResult,
   RecordQueryExpressionResult,
   RecordTransformResult,
@@ -139,11 +139,13 @@ export class MemorySource extends RecordSource {
 
     if (hints?.data) {
       if (transform.operations.length > 1 && Array.isArray(hints.data)) {
-        response.data = hints.data.map((id) => {
-          return id ? this._cache.getRecordSync(id) : undefined;
-        });
+        response.data = (hints.data as RecordOperationResult[]).map((h) =>
+          this._retrieveOperationResult(h)
+        );
       } else {
-        response.data = this._cache.getRecordSync(hints.data as RecordIdentity);
+        response.data = this._retrieveOperationResult(
+          hints.data as RecordOperationResult
+        );
       }
     } else if (results) {
       if (transform.operations.length === 1 && Array.isArray(results)) {
@@ -173,13 +175,13 @@ export class MemorySource extends RecordSource {
     if (hints?.data) {
       response = {};
       if (query.expressions.length > 1 && Array.isArray(hints.data)) {
-        let hintsData = hints.data as (RecordIdentity | RecordIdentity[])[];
-        response.data = hintsData.map((idOrIds) =>
-          this._retrieveFromCache(idOrIds)
+        response.data = (hints.data as RecordQueryExpressionResult[]).map((h) =>
+          this._retrieveQueryExpressionResult(h)
         );
       } else {
-        let hintsData = hints.data as RecordIdentity | RecordIdentity[];
-        response.data = this._retrieveFromCache(hintsData);
+        response.data = this._retrieveQueryExpressionResult(
+          hints.data as RecordQueryExpressionResult
+        );
       }
     } else {
       response = this._cache.query(query, { fullResponse: true });
@@ -365,15 +367,25 @@ export class MemorySource extends RecordSource {
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
 
-  protected _retrieveFromCache(
-    idOrIds: RecordIdentity[] | RecordIdentity | null
+  protected _retrieveQueryExpressionResult(
+    result: RecordQueryExpressionResult
   ): RecordQueryExpressionResult {
-    if (Array.isArray(idOrIds)) {
-      return this._cache.getRecordsSync(idOrIds);
-    } else if (idOrIds) {
-      return this._cache.getRecordSync(idOrIds);
+    if (Array.isArray(result)) {
+      return this._cache.getRecordsSync(result);
+    } else if (result) {
+      return this._cache.getRecordSync(result);
     } else {
-      return idOrIds;
+      return result;
+    }
+  }
+
+  protected _retrieveOperationResult(
+    result: RecordOperationResult
+  ): RecordOperationResult {
+    if (result) {
+      return this._cache.getRecordSync(result);
+    } else {
+      return result;
     }
   }
 
