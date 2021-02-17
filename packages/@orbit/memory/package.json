@@ -1,6 +1,6 @@
 {
   "name": "@orbit/memory",
-  "version": "0.17.0-beta.11",
+  "version": "0.17.0-beta.12",
   "description": "Orbit source for managing in-memory records.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -32,15 +32,15 @@
     "test": "node ../build ci && snowpack build && testem ci"
   },
   "dependencies": {
-    "@orbit/core": "^0.17.0-beta.9",
-    "@orbit/data": "^0.17.0-beta.9",
-    "@orbit/immutable": "^0.17.0-beta.9",
-    "@orbit/record-cache": "^0.17.0-beta.10",
-    "@orbit/records": "^0.17.0-beta.10",
-    "@orbit/utils": "^0.17.0-beta.9"
+    "@orbit/core": "^0.17.0-beta.12",
+    "@orbit/data": "^0.17.0-beta.12",
+    "@orbit/immutable": "^0.17.0-beta.12",
+    "@orbit/record-cache": "^0.17.0-beta.12",
+    "@orbit/records": "^0.17.0-beta.12",
+    "@orbit/utils": "^0.17.0-beta.12"
   },
   "devDependencies": {
-    "@orbit/build": "^0.17.0-beta.9"
+    "@orbit/build": "^0.17.0-beta.12"
   },
   "prettier": "@orbit/prettier-config"
 }
