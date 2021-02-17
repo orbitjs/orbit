@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.17.0-beta.12 (2021-02-17)
+
+#### :rocket: Enhancement
+
+- `@orbit/coordinator`
+  - [#814](https://github.com/orbitjs/orbit/pull/814) Coordinator: Allow generic typing of getStrategy & getSource ([@dgeb](https://github.com/dgeb))
+- `@orbit/indexeddb`, `@orbit/local-storage`, `@orbit/memory`
+  - [#813](https://github.com/orbitjs/orbit/pull/813) Implement Queryable + Updatable across all cache-based sources ([@dgeb](https://github.com/dgeb))
+
+#### :house: Internal
+
+- `@orbit/build`, `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/records`, `@orbit/serializers`, `@orbit/utils`
+  - [#815](https://github.com/orbitjs/orbit/pull/815) Update all build deps ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.11 (2021-02-11)
 
 #### :rocket: Enhancement
