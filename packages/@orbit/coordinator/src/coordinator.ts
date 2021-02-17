@@ -84,8 +84,8 @@ export class Coordinator {
     delete this._sources[name];
   }
 
-  getSource(name: string): Source {
-    return this._sources[name];
+  getSource<T extends Source = Source>(name: string): T {
+    return this._sources[name] as T;
   }
 
   get sources(): Source[] {
@@ -126,8 +126,8 @@ export class Coordinator {
     delete this._strategies[name];
   }
 
-  getStrategy(name: string): Strategy {
-    return this._strategies[name];
+  getStrategy<T extends Strategy = Strategy>(name: string): T {
+    return this._strategies[name] as T;
   }
 
   get strategies(): Strategy[] {

@@ -28,9 +28,9 @@ module('Coordinator', function (hooks) {
     assert.deepEqual(coordinator.sources, [s1, s2, s3]);
     assert.deepEqual(coordinator.sourceNames, ['s1', 's2', 's3']);
 
-    assert.strictEqual(coordinator.getSource('s1'), s1);
-    assert.strictEqual(coordinator.getSource('s2'), s2);
-    assert.strictEqual(coordinator.getSource('s3'), s3);
+    assert.strictEqual(coordinator.getSource<MySource>('s1'), s1);
+    assert.strictEqual(coordinator.getSource<MySource>('s2'), s2);
+    assert.strictEqual(coordinator.getSource<MySource>('s3'), s3);
   });
 
   test('can not add a source without a name', function (assert) {
@@ -110,9 +110,9 @@ module('Coordinator', function (hooks) {
     assert.deepEqual(coordinator.strategies, [s1, s2, s3]);
     assert.deepEqual(coordinator.strategyNames, ['s1', 's2', 's3']);
 
-    assert.strictEqual(coordinator.getStrategy('s1'), s1);
-    assert.strictEqual(coordinator.getStrategy('s2'), s2);
-    assert.strictEqual(coordinator.getStrategy('s3'), s3);
+    assert.strictEqual(coordinator.getStrategy<MyStrategy>('s1'), s1);
+    assert.strictEqual(coordinator.getStrategy<MyStrategy>('s2'), s2);
+    assert.strictEqual(coordinator.getStrategy<MyStrategy>('s3'), s3);
   });
 
   test('can not add a strategy with a duplicate name', function (assert) {
