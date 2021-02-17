@@ -1,18 +1,17 @@
-import { buildTransform, Transform } from '../../src/transform';
-import { Source } from '../../src/source';
 import { ResponseHints } from '../../src/response';
+import { Source } from '../../src/source';
 import {
-  pushable,
   isPushable,
+  pushable,
   Pushable
 } from '../../src/source-interfaces/pushable';
+import { buildTransform, Transform } from '../../src/transform';
 import {
-  RecordData,
-  RecordResponse,
-  RecordOperation,
-  RecordTransformBuilder,
   AddRecordOperation,
-  UpdateRecordOperation
+  RecordData,
+  RecordOperation,
+  RecordResponse,
+  RecordTransformBuilder
 } from '../support/record-data';
 
 const { module, test } = QUnit;
@@ -318,34 +317,55 @@ module('@pushable', function (hooks) {
     };
     let h: ResponseHints<RecordData, RecordResponse>;
 
-    source.on('beforePush', async function (
-      transform: Transform<RecordOperation>,
-      hints: ResponseHints<RecordData, RecordResponse>
-    ) {
-      assert.equal(++order, 1, 'beforePush triggered first');
-      assert.deepEqual(hints, {}, 'beforePush is passed empty `hints` object');
-      h = hints;
-      hints.data = [
-        { type: 'planet', id: 'venus' },
-        { type: 'planet', id: 'mars' }
-      ];
-    });
+    source.on(
+      'beforePush',
+      async function (
+        transform: Transform<RecordOperation>,
+        hints: ResponseHints<RecordData, RecordResponse>
+      ) {
+        assert.equal(++order, 1, 'beforePush triggered first');
+        assert.deepEqual(
+          hints,
+          {},
+          'beforePush is passed empty `hints` object'
+        );
+        h = hints;
+        hints.data = [
+          { type: 'planet', id: 'venus' },
+          { type: 'planet', id: 'mars' }
+        ];
+      }
+    );
 
-    source.on('beforePush', async function (
-      transform: Transform<RecordOperation>,
-      hints: ResponseHints<RecordData, RecordResponse>
-    ) {
-      assert.equal(++order, 2, 'beforePush triggered second');
-      assert.strictEqual(hints, h, 'beforePush is passed same hints instance');
-    });
+    source.on(
+      'beforePush',
+      async function (
+        transform: Transform<RecordOperation>,
+        hints: ResponseHints<RecordData, RecordResponse>
+      ) {
+        assert.equal(++order, 2, 'beforePush triggered second');
+        assert.strictEqual(
+          hints,
+          h,
+          'beforePush is passed same hints instance'
+        );
+      }
+    );
 
-    source.on('beforePush', async function (
-      transform: Transform<RecordOperation>,
-      hints: ResponseHints<RecordData, RecordResponse>
-    ) {
-      assert.equal(++order, 3, 'beforePush triggered third');
-      assert.strictEqual(hints, h, 'beforePush is passed same hints instance');
-    });
+    source.on(
+      'beforePush',
+      async function (
+        transform: Transform<RecordOperation>,
+        hints: ResponseHints<RecordData, RecordResponse>
+      ) {
+        assert.equal(++order, 3, 'beforePush triggered third');
+        assert.strictEqual(
+          hints,
+          h,
+          'beforePush is passed same hints instance'
+        );
+      }
+    );
 
     source._push = async function (
       transform: Transform<RecordOperation>,

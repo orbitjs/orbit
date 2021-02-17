@@ -1,16 +1,16 @@
-import { buildTransform, Transform } from '../../src/transform';
-import { Source } from '../../src/source';
 import { ResponseHints } from '../../src/response';
+import { Source } from '../../src/source';
 import {
-  updatable,
   isUpdatable,
+  updatable,
   Updatable
 } from '../../src/source-interfaces/updatable';
+import { buildTransform, Transform } from '../../src/transform';
 import {
   Record,
   RecordData,
-  RecordResponse,
   RecordOperation,
+  RecordResponse,
   RecordTransformBuilder
 } from '../support/record-data';
 
@@ -394,43 +394,52 @@ module('@updatable', function (hooks) {
     });
     let h: ResponseHints<RecordData, RecordResponse>;
 
-    source.on('beforeUpdate', async function (
-      transform: Transform<RecordOperation>,
-      hints: ResponseHints<RecordData, RecordResponse>
-    ) {
-      assert.equal(++order, 1, 'beforeUpdate triggered first');
-      assert.deepEqual(
-        hints,
-        {},
-        'beforeUpdate is passed empty `hints` object'
-      );
-      h = hints;
-      hints.data = planet;
-    });
+    source.on(
+      'beforeUpdate',
+      async function (
+        transform: Transform<RecordOperation>,
+        hints: ResponseHints<RecordData, RecordResponse>
+      ) {
+        assert.equal(++order, 1, 'beforeUpdate triggered first');
+        assert.deepEqual(
+          hints,
+          {},
+          'beforeUpdate is passed empty `hints` object'
+        );
+        h = hints;
+        hints.data = planet;
+      }
+    );
 
-    source.on('beforeUpdate', async function (
-      transform: Transform<RecordOperation>,
-      hints: ResponseHints<RecordData, RecordResponse>
-    ) {
-      assert.equal(++order, 2, 'beforeUpdate triggered second');
-      assert.strictEqual(
-        hints.data,
-        planet,
-        'beforeUpdate is passed same hints instance'
-      );
-    });
+    source.on(
+      'beforeUpdate',
+      async function (
+        transform: Transform<RecordOperation>,
+        hints: ResponseHints<RecordData, RecordResponse>
+      ) {
+        assert.equal(++order, 2, 'beforeUpdate triggered second');
+        assert.strictEqual(
+          hints.data,
+          planet,
+          'beforeUpdate is passed same hints instance'
+        );
+      }
+    );
 
-    source.on('beforeUpdate', async function (
-      transform: Transform<RecordOperation>,
-      hints: ResponseHints<RecordData, RecordResponse>
-    ) {
-      assert.equal(++order, 3, 'beforeUpdate triggered third');
-      assert.strictEqual(
-        hints.data,
-        planet,
-        'beforeUpdate is passed same hints instance'
-      );
-    });
+    source.on(
+      'beforeUpdate',
+      async function (
+        transform: Transform<RecordOperation>,
+        hints: ResponseHints<RecordData, RecordResponse>
+      ) {
+        assert.equal(++order, 3, 'beforeUpdate triggered third');
+        assert.strictEqual(
+          hints.data,
+          planet,
+          'beforeUpdate is passed same hints instance'
+        );
+      }
+    );
 
     source._update = async function (
       transform: Transform<RecordOperation>,
