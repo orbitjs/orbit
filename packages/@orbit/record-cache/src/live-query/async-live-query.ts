@@ -16,9 +16,9 @@ export class AsyncLiveQueryUpdate {
     this._query = settings.query;
   }
 
-  query<Result extends RecordQueryResult = RecordQueryResult>(): Promise<
-    Result
-  > {
+  query<
+    Result extends RecordQueryResult = RecordQueryResult
+  >(): Promise<Result> {
     return this._cache.query(this._query);
   }
 }
@@ -46,9 +46,9 @@ export class AsyncLiveQuery extends LiveQuery {
     this.cache = settings.cache;
   }
 
-  query<Result extends RecordQueryResult = RecordQueryResult>(): Promise<
-    Result
-  > {
+  query<
+    Result extends RecordQueryResult = RecordQueryResult
+  >(): Promise<Result> {
     return this._update.query();
   }
 

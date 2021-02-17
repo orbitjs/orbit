@@ -1,4 +1,4 @@
-import { Query, QueryOrExpressions } from '../../src/query';
+import { Query } from '../../src/query';
 import { Source } from '../../src/source';
 import { buildTransform } from '../../src/transform';
 import { RequestOptions } from '../../src/request';
@@ -7,7 +7,7 @@ import {
   isPullable,
   Pullable
 } from '../../src/source-interfaces/pullable';
-import { FullResponse, ResponseHints } from '../../src/response';
+import { ResponseHints } from '../../src/response';
 import {
   FindRecords,
   RecordResponse,
@@ -288,34 +288,55 @@ module('@pullable', function (hooks) {
       ]
     };
 
-    source.on('beforePull', async function (
-      query: Query<RecordQueryExpression>,
-      hints: ResponseHints<RecordData, RecordResponse>
-    ) {
-      assert.equal(++order, 1, 'beforePull triggered first');
-      assert.deepEqual(hints, {}, 'beforePull is passed empty `hints` object');
-      h = hints;
-      hints.data = [
-        { type: 'planet', id: 'venus' },
-        { type: 'planet', id: 'mars' }
-      ];
-    });
+    source.on(
+      'beforePull',
+      async function (
+        query: Query<RecordQueryExpression>,
+        hints: ResponseHints<RecordData, RecordResponse>
+      ) {
+        assert.equal(++order, 1, 'beforePull triggered first');
+        assert.deepEqual(
+          hints,
+          {},
+          'beforePull is passed empty `hints` object'
+        );
+        h = hints;
+        hints.data = [
+          { type: 'planet', id: 'venus' },
+          { type: 'planet', id: 'mars' }
+        ];
+      }
+    );
 
-    source.on('beforePull', async function (
-      query: Query<RecordQueryExpression>,
-      hints: ResponseHints<RecordData, RecordResponse>
-    ) {
-      assert.equal(++order, 2, 'beforePull triggered second');
-      assert.strictEqual(hints, h, 'beforePull is passed same hints instance');
-    });
+    source.on(
+      'beforePull',
+      async function (
+        query: Query<RecordQueryExpression>,
+        hints: ResponseHints<RecordData, RecordResponse>
+      ) {
+        assert.equal(++order, 2, 'beforePull triggered second');
+        assert.strictEqual(
+          hints,
+          h,
+          'beforePull is passed same hints instance'
+        );
+      }
+    );
 
-    source.on('beforePull', async function (
-      query: Query<RecordQueryExpression>,
-      hints: ResponseHints<RecordData, RecordResponse>
-    ) {
-      assert.equal(++order, 3, 'beforePull triggered third');
-      assert.strictEqual(hints, h, 'beforePull is passed same hints instance');
-    });
+    source.on(
+      'beforePull',
+      async function (
+        query: Query<RecordQueryExpression>,
+        hints: ResponseHints<RecordData, RecordResponse>
+      ) {
+        assert.equal(++order, 3, 'beforePull triggered third');
+        assert.strictEqual(
+          hints,
+          h,
+          'beforePull is passed same hints instance'
+        );
+      }
+    );
 
     source._pull = async function (
       query: Query<RecordQueryExpression>,

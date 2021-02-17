@@ -306,34 +306,55 @@ module('@queryable', function (hooks) {
     let qe = { op: 'findRecords', type: 'planet' } as FindRecords;
     let h: ResponseHints<RecordData, RecordResponse>;
 
-    source.on('beforeQuery', async function (
-      query: Query<RecordQueryExpression>,
-      hints: ResponseHints<RecordData, RecordResponse>
-    ) {
-      assert.equal(++order, 1, 'beforeQuery triggered first');
-      assert.deepEqual(hints, {}, 'beforeQuery is passed empty `hints` object');
-      h = hints;
-      hints.data = [
-        { type: 'planet', id: 'venus' },
-        { type: 'planet', id: 'mars' }
-      ];
-    });
+    source.on(
+      'beforeQuery',
+      async function (
+        query: Query<RecordQueryExpression>,
+        hints: ResponseHints<RecordData, RecordResponse>
+      ) {
+        assert.equal(++order, 1, 'beforeQuery triggered first');
+        assert.deepEqual(
+          hints,
+          {},
+          'beforeQuery is passed empty `hints` object'
+        );
+        h = hints;
+        hints.data = [
+          { type: 'planet', id: 'venus' },
+          { type: 'planet', id: 'mars' }
+        ];
+      }
+    );
 
-    source.on('beforeQuery', async function (
-      query: Query<RecordQueryExpression>,
-      hints: ResponseHints<RecordData, RecordResponse>
-    ) {
-      assert.equal(++order, 2, 'beforeQuery triggered second');
-      assert.strictEqual(hints, h, 'beforeQuery is passed same hints instance');
-    });
+    source.on(
+      'beforeQuery',
+      async function (
+        query: Query<RecordQueryExpression>,
+        hints: ResponseHints<RecordData, RecordResponse>
+      ) {
+        assert.equal(++order, 2, 'beforeQuery triggered second');
+        assert.strictEqual(
+          hints,
+          h,
+          'beforeQuery is passed same hints instance'
+        );
+      }
+    );
 
-    source.on('beforeQuery', async function (
-      query: Query<RecordQueryExpression>,
-      hints: ResponseHints<RecordData, RecordResponse>
-    ) {
-      assert.equal(++order, 3, 'beforeQuery triggered third');
-      assert.strictEqual(hints, h, 'beforeQuery is passed same hints instance');
-    });
+    source.on(
+      'beforeQuery',
+      async function (
+        query: Query<RecordQueryExpression>,
+        hints: ResponseHints<RecordData, RecordResponse>
+      ) {
+        assert.equal(++order, 3, 'beforeQuery triggered third');
+        assert.strictEqual(
+          hints,
+          h,
+          'beforeQuery is passed same hints instance'
+        );
+      }
+    );
 
     source._query = async function (
       query: Query<RecordQueryExpression>,

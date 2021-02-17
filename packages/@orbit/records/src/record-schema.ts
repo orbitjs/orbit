@@ -258,9 +258,8 @@ export class RecordSchema {
   _deprecateRelationshipModel(models: Dict<ModelDefinition>): void {
     for (let type in models) {
       if (models[type].relationships) {
-        let relationships = models[type].relationships as Dict<
-          RelationshipDefinition
-        >;
+        let relationships = models[type]
+          .relationships as Dict<RelationshipDefinition>;
         for (let name in relationships) {
           let relationship = relationships[name];
           if (relationship.model) {

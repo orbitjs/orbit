@@ -45,9 +45,7 @@ export class RemoveRecordTerm extends OperationTerm<RemoveRecordOperation> {
   }
 }
 
-export class ReplaceAttributeTerm extends OperationTerm<
-  ReplaceAttributeOperation
-> {
+export class ReplaceAttributeTerm extends OperationTerm<ReplaceAttributeOperation> {
   constructor(record: RecordIdentity, attribute: string, value: unknown) {
     const operation: ReplaceAttributeOperation = {
       op: 'replaceAttribute',
@@ -73,9 +71,7 @@ export class ReplaceKeyTerm extends OperationTerm<ReplaceKeyOperation> {
   }
 }
 
-export class AddToRelatedRecordsTerm extends OperationTerm<
-  AddToRelatedRecordsOperation
-> {
+export class AddToRelatedRecordsTerm extends OperationTerm<AddToRelatedRecordsOperation> {
   constructor(
     record: RecordIdentity,
     relationship: string,
@@ -92,9 +88,7 @@ export class AddToRelatedRecordsTerm extends OperationTerm<
   }
 }
 
-export class RemoveFromRelatedRecordsTerm extends OperationTerm<
-  RemoveFromRelatedRecordsOperation
-> {
+export class RemoveFromRelatedRecordsTerm extends OperationTerm<RemoveFromRelatedRecordsOperation> {
   constructor(
     record: RecordIdentity,
     relationship: string,
@@ -111,9 +105,7 @@ export class RemoveFromRelatedRecordsTerm extends OperationTerm<
   }
 }
 
-export class ReplaceRelatedRecordsTerm extends OperationTerm<
-  ReplaceRelatedRecordsOperation
-> {
+export class ReplaceRelatedRecordsTerm extends OperationTerm<ReplaceRelatedRecordsOperation> {
   constructor(
     record: RecordIdentity,
     relationship: string,
@@ -130,9 +122,7 @@ export class ReplaceRelatedRecordsTerm extends OperationTerm<
   }
 }
 
-export class ReplaceRelatedRecordTerm extends OperationTerm<
-  ReplaceRelatedRecordOperation
-> {
+export class ReplaceRelatedRecordTerm extends OperationTerm<ReplaceRelatedRecordOperation> {
   constructor(
     record: RecordIdentity,
     relationship: string,
