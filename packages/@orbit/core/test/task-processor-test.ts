@@ -1,6 +1,7 @@
 import { Orbit } from '../src/main';
 import { Task, Performer } from '../src/task';
 import { TaskProcessor } from '../src/task-processor';
+import { delay } from './support/timing';
 
 const { module, test } = QUnit;
 
@@ -21,16 +22,12 @@ module('TaskProcessor', function () {
     assert.expect(5);
 
     const target: Performer = {
-      perform(task: Task): Promise<string> {
+      async perform(task: Task): Promise<string> {
         assert.equal(task.type, 'doSomething', 'perform invoked with task');
         assert.ok(processor.started, 'processor started');
         assert.ok(!processor.settled, 'processor not settled');
-        return new Promise(function (resolve: (value?: string) => void) {
-          function respond() {
-            resolve(':)');
-          }
-          Orbit.globals.setTimeout(respond, 1);
-        });
+        await delay(1);
+        return ':)';
       }
     };
 

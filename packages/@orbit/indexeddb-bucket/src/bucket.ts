@@ -189,7 +189,7 @@ export class IndexedDBBucket extends Bucket {
 
       request.onsuccess = function (/* event */) {
         // console.log('success - setItem');
-        resolve();
+        resolve(undefined);
       };
     });
   }
@@ -208,7 +208,7 @@ export class IndexedDBBucket extends Bucket {
 
       request.onsuccess = function (/* event */) {
         // console.log('success - removeItem');
-        resolve();
+        resolve(undefined);
       };
     });
   }
@@ -227,7 +227,7 @@ export class IndexedDBBucket extends Bucket {
 
       request.onsuccess = function (/* event */) {
         // console.log('success - clear');
-        resolve();
+        resolve(undefined);
       };
     });
   }
