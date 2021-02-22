@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.17.0-beta.14 (2021-02-22)
+
+#### :house: Internal
+
+- `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/records`, `@orbit/serializers`, `@orbit/utils`
+  - [#820](https://github.com/orbitjs/orbit/pull/820) Move all tsconfig settings to each package ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.13 (2021-02-22)
 
 #### :rocket: Enhancement
