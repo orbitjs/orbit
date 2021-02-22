@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.17.0-beta.13 (2021-02-22)
+
+#### :rocket: Enhancement
+
+- Other
+  - [#819](https://github.com/orbitjs/orbit/pull/819) tsconfig: enable alwaysStrict + noFallthroughCasesInSwitch options ([@dgeb](https://github.com/dgeb))
+- `@orbit/indexeddb`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`
+  - [#818](https://github.com/orbitjs/orbit/pull/818) Introduce `raiseNotFoundException` option for transform requests ([@dgeb](https://github.com/dgeb))
+
+#### :house: Internal
+
+- `@orbit/record-cache`
+  - [#817](https://github.com/orbitjs/orbit/pull/817) Fill in tests for `update` for sync+async caches ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.12 (2021-02-17)
 
 #### :rocket: Enhancement
