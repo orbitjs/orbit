@@ -8,6 +8,8 @@
     "inlineSourceMap": true,
     "declaration": true,
     "newLine": "LF",
-    "strict": true
+    "strict": true,
+    "alwaysStrict": true,
+    "noFallthroughCasesInSwitch": true
   }
 }
