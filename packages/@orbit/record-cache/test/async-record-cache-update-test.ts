@@ -5,7 +5,8 @@ import {
   RecordIdentity,
   recordsInclude,
   recordsIncludeAll,
-  RecordSchema
+  RecordSchema,
+  RecordNotFoundException
 } from '@orbit/records';
 import { ExampleAsyncRecordCache } from './support/example-async-record-cache';
 import { createSchemaWithRemoteKey } from './support/setup';
@@ -1684,5 +1685,165 @@ module('AsyncRecordCache', function (hooks) {
       star2.id,
       'The related record was replaced.'
     );
+  });
+
+  test("#update - updateRecord - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", async function (assert) {
+    const cache = new ExampleAsyncRecordCache({ schema, keyMap });
+
+    const earth: Record = {
+      type: 'planet',
+      id: '1',
+      attributes: { name: 'Earth' },
+      keys: { remoteId: 'a' }
+    };
+
+    try {
+      await cache.update((t) =>
+        t.updateRecord(earth).options({
+          raiseNotFoundExceptions: true
+        })
+      );
+    } catch (e) {
+      assert.ok(e instanceof RecordNotFoundException);
+    }
+  });
+
+  test("#update - removeRecord - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", async function (assert) {
+    const cache = new ExampleAsyncRecordCache({ schema, keyMap });
+
+    const earth: Record = {
+      type: 'planet',
+      id: '1'
+    };
+
+    try {
+      await cache.update((t) =>
+        t.removeRecord(earth).options({
+          raiseNotFoundExceptions: true
+        })
+      );
+    } catch (e) {
+      assert.ok(e instanceof RecordNotFoundException);
+    }
+  });
+
+  test("#update - replaceKey - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", async function (assert) {
+    const cache = new ExampleAsyncRecordCache({ schema, keyMap });
+
+    const earth: Record = {
+      type: 'planet',
+      id: '1',
+      attributes: { name: 'Earth' },
+      keys: { remoteId: 'a' }
+    };
+
+    try {
+      await cache.update((t) =>
+        t.replaceKey(earth, 'remoteId', 'b').options({
+          raiseNotFoundExceptions: true
+        })
+      );
+    } catch (e) {
+      assert.ok(e instanceof RecordNotFoundException);
+    }
+  });
+
+  test("#update - replaceAttribute - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", async function (assert) {
+    const cache = new ExampleAsyncRecordCache({ schema, keyMap });
+
+    const earth: Record = {
+      type: 'planet',
+      id: '1',
+      attributes: { name: 'Earth' },
+      keys: { remoteId: 'a' }
+    };
+
+    try {
+      await cache.update((t) =>
+        t.replaceAttribute(earth, 'name', 'Mother Earth').options({
+          raiseNotFoundExceptions: true
+        })
+      );
+    } catch (e) {
+      assert.ok(e instanceof RecordNotFoundException);
+    }
+  });
+
+  test("#update - addToRelatedRecords - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", async function (assert) {
+    const cache = new ExampleAsyncRecordCache({ schema, keyMap });
+
+    try {
+      await cache.update((t) =>
+        t
+          .addToRelatedRecords({ type: 'planet', id: 'p1' }, 'moons', {
+            type: 'moon',
+            id: 'm1'
+          })
+          .options({
+            raiseNotFoundExceptions: true
+          })
+      );
+    } catch (e) {
+      assert.ok(e instanceof RecordNotFoundException);
+    }
+  });
+
+  test("#update - removeFromRelatedRecords - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", async function (assert) {
+    const cache = new ExampleAsyncRecordCache({ schema, keyMap });
+
+    try {
+      await cache.update((t) =>
+        t
+          .removeFromRelatedRecords({ type: 'planet', id: 'p1' }, 'moons', {
+            type: 'moon',
+            id: 'm1'
+          })
+          .options({
+            raiseNotFoundExceptions: true
+          })
+      );
+    } catch (e) {
+      assert.ok(e instanceof RecordNotFoundException);
+    }
+  });
+
+  test("#update - replaceRelatedRecords - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", async function (assert) {
+    const cache = new ExampleAsyncRecordCache({ schema, keyMap });
+
+    try {
+      await cache.update((t) =>
+        t
+          .replaceRelatedRecords({ type: 'planet', id: 'p1' }, 'moons', [
+            {
+              type: 'moon',
+              id: 'm1'
+            }
+          ])
+          .options({
+            raiseNotFoundExceptions: true
+          })
+      );
+    } catch (e) {
+      assert.ok(e instanceof RecordNotFoundException);
+    }
+  });
+
+  test("#update - replaceRelatedRecord - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", async function (assert) {
+    const cache = new ExampleAsyncRecordCache({ schema, keyMap });
+
+    try {
+      await cache.update((t) =>
+        t
+          .replaceRelatedRecord({ type: 'moon', id: 'm1' }, 'planet', {
+            type: 'planet',
+            id: 'p1'
+          })
+          .options({
+            raiseNotFoundExceptions: true
+          })
+      );
+    } catch (e) {
+      assert.ok(e instanceof RecordNotFoundException);
+    }
   });
 });

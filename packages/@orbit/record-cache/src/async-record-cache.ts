@@ -51,6 +51,7 @@ import { AsyncLiveQuery } from './live-query/async-live-query';
 import {
   RecordCache,
   RecordCacheQueryOptions,
+  RecordCacheTransformOptions,
   RecordCacheSettings
 } from './record-cache';
 
@@ -58,7 +59,7 @@ const { assert, deprecate } = Orbit;
 
 export interface AsyncRecordCacheSettings<
   QueryOptions extends RequestOptions = RecordCacheQueryOptions,
-  TransformOptions extends RequestOptions = RequestOptions
+  TransformOptions extends RequestOptions = RecordCacheTransformOptions
 > extends RecordCacheSettings<QueryOptions, TransformOptions> {
   processors?: AsyncOperationProcessorClass[];
   queryOperators?: Dict<AsyncQueryOperator>;
@@ -69,7 +70,7 @@ export interface AsyncRecordCacheSettings<
 
 export abstract class AsyncRecordCache<
     QueryOptions extends RequestOptions = RecordCacheQueryOptions,
-    TransformOptions extends RequestOptions = RequestOptions
+    TransformOptions extends RequestOptions = RecordCacheTransformOptions
   >
   extends RecordCache<QueryOptions, TransformOptions>
   implements AsyncRecordAccessor {

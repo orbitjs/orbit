@@ -112,6 +112,25 @@ module('IndexedDBSource - updatable', function (hooks) {
     assert.strictEqual(record, jupiter, 'result should be returned');
   });
 
+  test('#update - catches errors', async function (assert) {
+    assert.expect(2);
+
+    assert.equal(
+      (await source.cache.getRecordsAsync('planet')).length,
+      0,
+      'cache should contain no planets'
+    );
+
+    try {
+      await source.update(
+        (t) => t.removeRecord({ type: 'planet', id: 'jupiter' }),
+        { raiseNotFoundExceptions: true }
+      );
+    } catch (e) {
+      assert.equal(e.message, 'Record not found: planet:jupiter');
+    }
+  });
+
   test('#update - can perform multiple operations and return the results', async function (assert) {
     assert.expect(3);
 

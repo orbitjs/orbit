@@ -17,7 +17,8 @@ import {
   ReplaceRelatedRecordOperation,
   Record,
   recordsInclude,
-  RecordTransform
+  RecordTransform,
+  RecordNotFoundException
 } from '@orbit/records';
 import { SyncRecordCache } from '../sync-record-cache';
 
@@ -54,6 +55,14 @@ export const SyncTransformOperators: Dict<SyncTransformOperator> = {
     const op = operation as UpdateRecordOperation;
     const { record } = op;
     const currentRecord = cache.getRecordSync(record);
+
+    if (currentRecord === undefined) {
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(record.type, record.id);
+      }
+    }
+
     const mergedRecord = mergeRecords(currentRecord || null, record);
 
     cache.setRecordSync(mergedRecord);
@@ -71,7 +80,16 @@ export const SyncTransformOperators: Dict<SyncTransformOperator> = {
     operation: RecordOperation
   ): RecordOperationResult {
     const op = operation as RemoveRecordOperation;
-    return cache.removeRecordSync(op.record);
+    const record = cache.removeRecordSync(op.record);
+
+    if (record === undefined) {
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(op.record.type, op.record.id);
+      }
+    }
+
+    return record;
   },
 
   replaceKey(
@@ -87,6 +105,11 @@ export const SyncTransformOperators: Dict<SyncTransformOperator> = {
       record = clone(currentRecord);
     } else {
       record = cloneRecordIdentity(op.record);
+
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(record.type, record.id);
+      }
     }
 
     deepSet(record, ['keys', op.key], op.value);
@@ -112,6 +135,11 @@ export const SyncTransformOperators: Dict<SyncTransformOperator> = {
       record = clone(currentRecord);
     } else {
       record = cloneRecordIdentity(op.record);
+
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(record.type, record.id);
+      }
     }
 
     deepSet(record, ['attributes', op.attribute], op.value);
@@ -134,6 +162,11 @@ export const SyncTransformOperators: Dict<SyncTransformOperator> = {
       record = clone(currentRecord);
     } else {
       record = cloneRecordIdentity(op.record);
+
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(record.type, record.id);
+      }
     }
 
     const relatedRecords: RecordIdentity[] =
@@ -182,6 +215,11 @@ export const SyncTransformOperators: Dict<SyncTransformOperator> = {
         }
       }
       return record;
+    } else {
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(op.record.type, op.record.id);
+      }
     }
   },
 
@@ -199,6 +237,11 @@ export const SyncTransformOperators: Dict<SyncTransformOperator> = {
       record = clone(currentRecord);
     } else {
       record = cloneRecordIdentity(op.record);
+
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(record.type, record.id);
+      }
     }
 
     if (
@@ -224,6 +267,11 @@ export const SyncTransformOperators: Dict<SyncTransformOperator> = {
       record = clone(currentRecord);
     } else {
       record = cloneRecordIdentity(op.record);
+
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(record.type, record.id);
+      }
     }
 
     if (

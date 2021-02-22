@@ -15,7 +15,8 @@ import {
   equalRecordIdentitySets,
   recordsInclude,
   RecordIdentity,
-  RecordTransform
+  RecordTransform,
+  RecordNotFoundException
 } from '@orbit/records';
 import { AsyncRecordCache } from '../async-record-cache';
 
@@ -52,7 +53,6 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
         record: { type, id }
       };
     }
-    return;
   },
 
   async updateRecord(
@@ -61,11 +61,11 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
     operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
     const op = operation as UpdateRecordOperation;
-    const current = await cache.getRecordAsync(op.record);
+    const currentRecord = await cache.getRecordAsync(op.record);
     const replacement: Record = op.record;
     const { type, id } = replacement;
 
-    if (current) {
+    if (currentRecord) {
       let result = { type, id };
       let changed = false;
 
@@ -73,7 +73,7 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
         if ((replacement as any)[grouping]) {
           Object.keys((replacement as any)[grouping]).forEach((field) => {
             let value = (replacement as any)[grouping][field];
-            let currentValue = deepGet(current, [grouping, field]);
+            let currentValue = deepGet(currentRecord, [grouping, field]);
             if (!eq(value, currentValue)) {
               changed = true;
               deepSet(
@@ -90,7 +90,7 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
         Object.keys(replacement.relationships).forEach((field) => {
           let data = deepGet(replacement, ['relationships', field, 'data']);
           if (data !== undefined) {
-            let currentData = deepGet(current, [
+            let currentData = deepGet(currentRecord, [
               'relationships',
               field,
               'data'
@@ -131,12 +131,16 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
         };
       }
     } else {
-      return {
-        op: 'removeRecord',
-        record: { type, id }
-      };
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(type, id);
+      } else {
+        return {
+          op: 'removeRecord',
+          record: { type, id }
+        };
+      }
     }
-    return;
   },
 
   async removeRecord(
@@ -145,16 +149,20 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
     operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
     const op = operation as RemoveRecordOperation;
-    const current = await cache.getRecordAsync(op.record);
+    const { record } = op;
+    const currentRecord = await cache.getRecordAsync(record);
 
-    if (current) {
+    if (currentRecord) {
       return {
         op: 'addRecord',
-        record: current
+        record: currentRecord
       };
+    } else {
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(record.type, record.id);
+      }
     }
-
-    return;
   },
 
   async replaceKey(
@@ -163,21 +171,28 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
     operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
     const op = operation as ReplaceKeyOperation;
-    const { key } = op;
-    const record = await cache.getRecordAsync(op.record);
-    const current = record && deepGet(record, ['keys', key]);
+    const { record, key } = op;
+    const currentRecord = await cache.getRecordAsync(record);
 
-    if (!eq(current, op.value)) {
+    if (currentRecord === undefined) {
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(record.type, record.id);
+      }
+    }
+
+    const currentValue = currentRecord && deepGet(currentRecord, ['keys', key]);
+
+    if (!eq(currentValue, op.value)) {
       const { type, id } = op.record;
 
       return {
         op: 'replaceKey',
         record: { type, id },
         key,
-        value: current
+        value: currentValue
       };
     }
-    return;
   },
 
   async replaceAttribute(
@@ -186,21 +201,29 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
     operation: RecordOperation
   ): Promise<RecordOperation | undefined> {
     const op = operation as ReplaceAttributeOperation;
-    const { attribute } = op;
-    const record = await cache.getRecordAsync(op.record);
-    const current = record && deepGet(record, ['attributes', attribute]);
+    const { record, attribute } = op;
+    const currentRecord = await cache.getRecordAsync(record);
 
-    if (!eq(current, op.value)) {
-      const { type, id } = op.record;
+    if (currentRecord === undefined) {
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(record.type, record.id);
+      }
+    }
+
+    const currentValue =
+      currentRecord && deepGet(currentRecord, ['attributes', attribute]);
+
+    if (!eq(currentValue, op.value)) {
+      const { type, id } = record;
 
       return {
         op: 'replaceAttribute',
         record: { type, id },
         attribute,
-        value: current
+        value: currentValue
       };
     }
-    return;
   },
 
   async addToRelatedRecords(
@@ -215,6 +238,15 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
       relationship
     );
 
+    if (currentRelatedRecords === undefined) {
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        if ((await cache.getRecordAsync(record)) === undefined) {
+          throw new RecordNotFoundException(record.type, record.id);
+        }
+      }
+    }
+
     if (
       currentRelatedRecords === undefined ||
       !recordsInclude(currentRelatedRecords, relatedRecord)
@@ -226,7 +258,6 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
         relatedRecord
       };
     }
-    return;
   },
 
   async removeFromRelatedRecords(
@@ -241,6 +272,15 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
       relationship
     );
 
+    if (currentRelatedRecords === undefined) {
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        if ((await cache.getRecordAsync(record)) === undefined) {
+          throw new RecordNotFoundException(record.type, record.id);
+        }
+      }
+    }
+
     if (
       currentRelatedRecords !== undefined &&
       recordsInclude(currentRelatedRecords, relatedRecord)
@@ -252,7 +292,6 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
         relatedRecord
       };
     }
-    return;
   },
 
   async replaceRelatedRecords(
@@ -267,6 +306,15 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
       relationship
     );
 
+    if (currentRelatedRecords === undefined) {
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        if ((await cache.getRecordAsync(record)) === undefined) {
+          throw new RecordNotFoundException(record.type, record.id);
+        }
+      }
+    }
+
     if (
       currentRelatedRecords === undefined ||
       !equalRecordIdentitySets(currentRelatedRecords, relatedRecords)
@@ -278,7 +326,6 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
         relatedRecords: currentRelatedRecords || []
       };
     }
-    return;
   },
 
   async replaceRelatedRecord(
@@ -292,6 +339,15 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
       record,
       relationship
     );
+
+    if (currentRelatedRecord === undefined) {
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        if ((await cache.getRecordAsync(record)) === undefined) {
+          throw new RecordNotFoundException(record.type, record.id);
+        }
+      }
+    }
 
     if (
       currentRelatedRecord === undefined ||
@@ -307,6 +363,5 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
         relatedRecord: currentRelatedRecord || null
       };
     }
-    return;
   }
 };

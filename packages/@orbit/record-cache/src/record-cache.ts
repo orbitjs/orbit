@@ -20,9 +20,13 @@ export interface RecordCacheQueryOptions extends RequestOptions {
   raiseNotFoundExceptions?: boolean;
 }
 
+export interface RecordCacheTransformOptions extends RequestOptions {
+  raiseNotFoundExceptions?: boolean;
+}
+
 export interface RecordCacheSettings<
   QueryOptions extends RequestOptions = RecordCacheQueryOptions,
-  TransformOptions extends RequestOptions = RequestOptions
+  TransformOptions extends RequestOptions = RecordCacheTransformOptions
 > {
   name?: string;
   schema: RecordSchema;
@@ -36,13 +40,13 @@ export interface RecordCacheSettings<
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface RecordCache<
   QueryOptions extends RequestOptions = RecordCacheQueryOptions,
-  TransformOptions extends RequestOptions = RequestOptions
+  TransformOptions extends RequestOptions = RecordCacheTransformOptions
 > extends Evented {}
 
 @evented
 export abstract class RecordCache<
   QueryOptions extends RequestOptions = RecordCacheQueryOptions,
-  TransformOptions extends RequestOptions = RequestOptions
+  TransformOptions extends RequestOptions = RecordCacheTransformOptions
 > {
   protected _name?: string;
   protected _keyMap?: RecordKeyMap;

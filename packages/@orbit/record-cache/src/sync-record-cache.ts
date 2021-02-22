@@ -51,6 +51,7 @@ import { SyncLiveQuery } from './live-query/sync-live-query';
 import {
   RecordCache,
   RecordCacheQueryOptions,
+  RecordCacheTransformOptions,
   RecordCacheSettings
 } from './record-cache';
 
@@ -58,7 +59,7 @@ const { assert, deprecate } = Orbit;
 
 export interface SyncRecordCacheSettings<
   QueryOptions extends RequestOptions = RecordCacheQueryOptions,
-  TransformOptions extends RequestOptions = RequestOptions
+  TransformOptions extends RequestOptions = RecordCacheTransformOptions
 > extends RecordCacheSettings<QueryOptions, TransformOptions> {
   processors?: SyncOperationProcessorClass[];
   queryOperators?: Dict<SyncQueryOperator>;
@@ -69,7 +70,7 @@ export interface SyncRecordCacheSettings<
 
 export abstract class SyncRecordCache<
     QueryOptions extends RequestOptions = RecordCacheQueryOptions,
-    TransformOptions extends RequestOptions = RequestOptions
+    TransformOptions extends RequestOptions = RecordCacheTransformOptions
   >
   extends RecordCache<QueryOptions, TransformOptions>
   implements SyncRecordAccessor {
