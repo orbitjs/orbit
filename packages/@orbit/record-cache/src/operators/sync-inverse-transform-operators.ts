@@ -15,7 +15,8 @@ import {
   equalRecordIdentitySets,
   recordsInclude,
   RecordIdentity,
-  RecordTransform
+  RecordTransform,
+  RecordNotFoundException
 } from '@orbit/records';
 import { SyncRecordCache } from '../sync-record-cache';
 
@@ -60,11 +61,11 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
     operation: RecordOperation
   ): RecordOperation | undefined {
     const op = operation as UpdateRecordOperation;
-    const current = cache.getRecordSync(op.record);
+    const currentRecord = cache.getRecordSync(op.record);
     const replacement: Record = op.record;
     const { type, id } = replacement;
 
-    if (current) {
+    if (currentRecord) {
       let result = { type, id };
       let changed = false;
 
@@ -72,7 +73,7 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
         if ((replacement as any)[grouping]) {
           Object.keys((replacement as any)[grouping]).forEach((field) => {
             let value = (replacement as any)[grouping][field];
-            let currentValue = deepGet(current, [grouping, field]);
+            let currentValue = deepGet(currentRecord, [grouping, field]);
             if (!eq(value, currentValue)) {
               changed = true;
               deepSet(
@@ -89,7 +90,7 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
         Object.keys(replacement.relationships).forEach((field) => {
           let data = deepGet(replacement, ['relationships', field, 'data']);
           if (data !== undefined) {
-            let currentData = deepGet(current, [
+            let currentData = deepGet(currentRecord, [
               'relationships',
               field,
               'data'
@@ -130,13 +131,16 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
         };
       }
     } else {
-      return {
-        op: 'removeRecord',
-        record: { type, id }
-      };
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(type, id);
+      } else {
+        return {
+          op: 'removeRecord',
+          record: { type, id }
+        };
+      }
     }
-
-    return;
   },
 
   removeRecord(
@@ -145,16 +149,20 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
     operation: RecordOperation
   ): RecordOperation | undefined {
     const op = operation as RemoveRecordOperation;
-    const current = cache.getRecordSync(op.record);
+    const { record } = op;
+    const currentRecord = cache.getRecordSync(record);
 
-    if (current) {
+    if (currentRecord) {
       return {
         op: 'addRecord',
-        record: current
+        record: currentRecord
       };
+    } else {
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(record.type, record.id);
+      }
     }
-
-    return;
   },
 
   replaceKey(
@@ -163,21 +171,28 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
     operation: RecordOperation
   ): RecordOperation | undefined {
     const op = operation as ReplaceKeyOperation;
-    const { key } = op;
-    const record = cache.getRecordSync(op.record);
-    const current = record && deepGet(record, ['keys', key]);
+    const { record, key } = op;
+    const currentRecord = cache.getRecordSync(record);
 
-    if (!eq(current, op.value)) {
-      const { type, id } = op.record;
+    if (currentRecord === undefined) {
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(record.type, record.id);
+      }
+    }
+
+    const currentValue = currentRecord && deepGet(currentRecord, ['keys', key]);
+
+    if (!eq(currentValue, op.value)) {
+      const { type, id } = record;
 
       return {
         op: 'replaceKey',
         record: { type, id },
         key,
-        value: current
+        value: currentValue
       };
     }
-    return;
   },
 
   replaceAttribute(
@@ -186,21 +201,29 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
     operation: RecordOperation
   ): RecordOperation | undefined {
     const op = operation as ReplaceAttributeOperation;
-    const { attribute } = op;
-    const record = cache.getRecordSync(op.record);
-    const current = record && deepGet(record, ['attributes', attribute]);
+    const { record, attribute } = op;
+    const currentRecord = cache.getRecordSync(record);
 
-    if (!eq(current, op.value)) {
-      const { type, id } = op.record;
+    if (currentRecord === undefined) {
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        throw new RecordNotFoundException(record.type, record.id);
+      }
+    }
+
+    const currentValue =
+      currentRecord && deepGet(currentRecord, ['attributes', attribute]);
+
+    if (!eq(currentValue, op.value)) {
+      const { type, id } = record;
 
       return {
         op: 'replaceAttribute',
         record: { type, id },
         attribute,
-        value: current
+        value: currentValue
       };
     }
-    return;
   },
 
   addToRelatedRecords(
@@ -215,6 +238,15 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
       relationship
     );
 
+    if (currentRelatedRecords === undefined) {
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        if (cache.getRecordSync(record) === undefined) {
+          throw new RecordNotFoundException(record.type, record.id);
+        }
+      }
+    }
+
     if (
       currentRelatedRecords === undefined ||
       !recordsInclude(currentRelatedRecords, relatedRecord)
@@ -226,7 +258,6 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
         relatedRecord
       };
     }
-    return;
   },
 
   removeFromRelatedRecords(
@@ -241,6 +272,15 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
       relationship
     );
 
+    if (currentRelatedRecords === undefined) {
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        if (cache.getRecordSync(record) === undefined) {
+          throw new RecordNotFoundException(record.type, record.id);
+        }
+      }
+    }
+
     if (
       currentRelatedRecords !== undefined &&
       recordsInclude(currentRelatedRecords, relatedRecord)
@@ -252,7 +292,6 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
         relatedRecord
       };
     }
-    return;
   },
 
   replaceRelatedRecords(
@@ -267,6 +306,15 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
       relationship
     );
 
+    if (currentRelatedRecords === undefined) {
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        if (cache.getRecordSync(record) === undefined) {
+          throw new RecordNotFoundException(record.type, record.id);
+        }
+      }
+    }
+
     if (
       currentRelatedRecords === undefined ||
       !equalRecordIdentitySets(currentRelatedRecords, relatedRecords)
@@ -278,7 +326,6 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
         relatedRecords: currentRelatedRecords || []
       };
     }
-    return;
   },
 
   replaceRelatedRecord(
@@ -292,6 +339,15 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
       record,
       relationship
     );
+
+    if (currentRelatedRecord === undefined) {
+      const options = cache.getTransformOptions(transform, operation);
+      if (options?.raiseNotFoundExceptions) {
+        if (cache.getRecordSync(record) === undefined) {
+          throw new RecordNotFoundException(record.type, record.id);
+        }
+      }
+    }
 
     if (
       currentRelatedRecord === undefined ||
@@ -307,6 +363,5 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
         relatedRecord: currentRelatedRecord || null
       };
     }
-    return;
   }
 };
