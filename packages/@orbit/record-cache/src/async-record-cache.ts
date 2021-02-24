@@ -21,7 +21,8 @@ import {
   RecordTransformBuilderFunc,
   RecordTransformResult,
   RecordOperationResult,
-  RecordTransform
+  RecordTransform,
+  RecordQuery
 } from '@orbit/records';
 import {
   AsyncOperationProcessor,
@@ -201,21 +202,12 @@ export abstract class AsyncRecordCache<
       this._queryBuilder
     );
 
-    const results: RecordQueryExpressionResult[] = [];
-    for (let expression of query.expressions) {
-      const queryOperator = this.getQueryOperator(expression.op);
-      if (!queryOperator) {
-        throw new Error(`Unable to find query operator: ${expression.op}`);
-      }
-      results.push(await queryOperator(this, query, expression));
-    }
-
-    const data = query.expressions.length === 1 ? results[0] : results;
+    const response = await this._query<RequestData>(query, options);
 
     if (options?.fullResponse) {
-      return { data } as FullResponse<RequestData, undefined, RecordOperation>;
+      return response;
     } else {
-      return data as RequestData;
+      return response.data as RequestData;
     }
   }
 
@@ -251,44 +243,12 @@ export abstract class AsyncRecordCache<
       this._transformBuilder
     );
 
-    const response = {
-      data: []
-    } as FullResponse<
-      RecordOperationResult[],
-      RecordCacheUpdateDetails,
-      RecordOperation
-    >;
+    const response = await this._update<RequestData>(transform, options);
 
     if (options?.fullResponse) {
-      response.details = {
-        appliedOperations: [],
-        inverseOperations: []
-      };
-    }
-
-    await this._applyTransformOperations(
-      transform,
-      transform.operations,
-      response,
-      true
-    );
-
-    let data: RecordTransformResult;
-    if (transform.operations.length === 1 && Array.isArray(response.data)) {
-      data = response.data[0];
+      return response;
     } else {
-      data = response.data;
-    }
-
-    if (options?.fullResponse) {
-      response.details?.inverseOperations.reverse();
-
-      return {
-        ...response,
-        data
-      } as FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>;
-    } else {
-      return data as RequestData;
+      return response.data as RequestData;
     }
   }
 
@@ -351,6 +311,75 @@ export abstract class AsyncRecordCache<
   /////////////////////////////////////////////////////////////////////////////
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
+
+  protected async _query<
+    RequestData extends RecordQueryResult = RecordQueryResult
+  >(
+    query: RecordQuery,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    options?: QueryOptions
+  ): Promise<FullResponse<RequestData, undefined, RecordOperation>> {
+    const results: RecordQueryExpressionResult[] = [];
+
+    for (let expression of query.expressions) {
+      const queryOperator = this.getQueryOperator(expression.op);
+      if (!queryOperator) {
+        throw new Error(`Unable to find query operator: ${expression.op}`);
+      }
+      results.push(await queryOperator(this, query, expression));
+    }
+
+    const data = query.expressions.length === 1 ? results[0] : results;
+
+    return { data: data as RequestData };
+  }
+
+  protected async _update<
+    RequestData extends RecordTransformResult = RecordTransformResult
+  >(
+    transform: RecordTransform,
+    options?: TransformOptions
+  ): Promise<
+    FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>
+  > {
+    const response = {
+      data: []
+    } as FullResponse<
+      RecordOperationResult[],
+      RecordCacheUpdateDetails,
+      RecordOperation
+    >;
+
+    if (options?.fullResponse) {
+      response.details = {
+        appliedOperations: [],
+        inverseOperations: []
+      };
+    }
+
+    await this._applyTransformOperations(
+      transform,
+      transform.operations,
+      response,
+      true
+    );
+
+    let data: RecordTransformResult;
+    if (transform.operations.length === 1 && Array.isArray(response.data)) {
+      data = response.data[0];
+    } else {
+      data = response.data;
+    }
+
+    if (options?.fullResponse) {
+      response.details?.inverseOperations.reverse();
+    }
+
+    return {
+      ...response,
+      data
+    } as FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>;
+  }
 
   protected async _applyTransformOperations(
     transform: RecordTransform,
