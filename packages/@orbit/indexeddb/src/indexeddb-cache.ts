@@ -95,15 +95,13 @@ export class IndexedDBCache extends AsyncRecordCache {
       } else {
         let request = Orbit.globals.indexedDB.open(this.dbName, this.dbVersion);
 
-        request.onerror = (/* event */) => {
-          // console.error('error opening indexedDB', this.dbName);
-          reject(request.error);
-        };
-
-        request.onsuccess = (/* event */) => {
-          // console.log('success opening indexedDB', this.dbName);
+        request.onsuccess = () => {
           const db = (this._db = request.result);
           resolve(db);
+        };
+
+        request.onerror = () => {
+          reject(request.error);
         };
 
         request.onupgradeneeded = (event: any) => {
@@ -139,7 +137,6 @@ export class IndexedDBCache extends AsyncRecordCache {
   }
 
   createDB(db: IDBDatabase): void {
-    // console.log('createDB');
     Object.keys(this.schema.models).forEach((model) => {
       this.registerModel(db, model);
     });
@@ -172,27 +169,23 @@ export class IndexedDBCache extends AsyncRecordCache {
     return new Promise((resolve, reject) => {
       let request = Orbit.globals.indexedDB.deleteDatabase(this.dbName);
 
-      request.onerror = (/* event */) => {
-        // console.error('error deleting indexedDB', this.dbName);
-        reject(request.error);
+      request.onsuccess = () => {
+        resolve();
       };
 
-      request.onsuccess = (/* event */) => {
-        // console.log('success deleting indexedDB', this.dbName);
-        resolve();
+      request.onerror = () => {
+        reject(request.error);
       };
     });
   }
 
   registerModel(db: IDBDatabase, type: string): void {
-    // console.log('registerModel', type);
     db.createObjectStore(type, { keyPath: 'id' });
-    // TODO - create indices
+
+    // TODO - override and create appropriate indices
   }
 
   clearRecords(type: string): Promise<void> {
-    // console.log('clearRecords', type);
-
     return new Promise((resolve, reject) => {
       if (!this._db) return reject(DB_NOT_OPEN);
 
@@ -200,21 +193,17 @@ export class IndexedDBCache extends AsyncRecordCache {
       const objectStore = transaction.objectStore(type);
       const request = objectStore.clear();
 
-      request.onerror = function (/* event */) {
-        // console.error('error - removeRecords', request.error);
-        reject(request.error);
+      request.onsuccess = () => {
+        resolve();
       };
 
-      request.onsuccess = function (/* event */) {
-        // console.log('success - removeRecords');
-        resolve();
+      request.onerror = () => {
+        reject(request.error);
       };
     });
   }
 
   getRecordAsync(record: RecordIdentity): Promise<Record | undefined> {
-    // console.log('getRecordAsync', record);
-
     return new Promise((resolve, reject) => {
       if (!this._db) return reject(DB_NOT_OPEN);
 
@@ -222,23 +211,18 @@ export class IndexedDBCache extends AsyncRecordCache {
       const objectStore = transaction.objectStore(record.type);
       const request = objectStore.get(record.id);
 
-      request.onerror = function (/* event */) {
-        // console.error('error - getRecord', request.error);
-        reject(request.error);
-      };
-
-      request.onsuccess = (/* event */) => {
-        // console.log('success - getRecord', request.result);
+      request.onsuccess = () => {
         let result = request.result;
-
         if (result) {
-          if (this._keyMap) {
-            this._keyMap.pushRecord(result);
-          }
+          if (this._keyMap) this._keyMap.pushRecord(result);
           resolve(result);
         } else {
           resolve(undefined);
         }
+      };
+
+      request.onerror = () => {
+        reject(request.error);
       };
     });
   }
@@ -246,7 +230,6 @@ export class IndexedDBCache extends AsyncRecordCache {
   getRecordsAsync(
     typeOrIdentities?: string | RecordIdentity[]
   ): Promise<Record[]> {
-    // console.log('getRecordsAsync', typeOrIdentities);
     if (!this._db) return Promise.reject(DB_NOT_OPEN);
 
     if (!typeOrIdentities) {
@@ -257,32 +240,25 @@ export class IndexedDBCache extends AsyncRecordCache {
       return new Promise((resolve, reject) => {
         if (!this._db) return reject(DB_NOT_OPEN);
 
+        const records: Record[] = [];
         const transaction = this._db.transaction([type]);
         const objectStore = transaction.objectStore(type);
         const request = objectStore.openCursor();
-        const records: Record[] = [];
-
-        request.onerror = function (/* event */) {
-          // console.error('error - getRecords', request.error);
-          reject(request.error);
-        };
 
         request.onsuccess = (event: any) => {
-          // TODO: typing
-          // console.log('success - getRecords', request.result);
           const cursor = event.target.result;
           if (cursor) {
             let record = cursor.value;
-
-            if (this._keyMap) {
-              this._keyMap.pushRecord(record);
-            }
-
+            if (this._keyMap) this._keyMap.pushRecord(record);
             records.push(record);
             cursor.continue();
           } else {
             resolve(records);
           }
+        };
+
+        request.onerror = () => {
+          reject(request.error);
         };
       });
     } else {
@@ -299,36 +275,24 @@ export class IndexedDBCache extends AsyncRecordCache {
         const transaction = this._db.transaction(types);
 
         return new Promise((resolve, reject) => {
-          let i = 0;
+          const len = identities.length;
+          const last = len - 1;
+          for (let i = 0; i < len; i++) {
+            const identity = identities[i];
+            const objectStore = transaction.objectStore(identity.type);
+            const request = objectStore.get(identity.id);
 
-          let getNext = (): any => {
-            if (i < identities.length) {
-              let identity = identities[i++];
-              let objectStore = transaction.objectStore(identity.type);
-              let request = objectStore.get(identity.id);
+            request.onsuccess = () => {
+              const record = request.result;
+              if (record) {
+                if (this._keyMap) this._keyMap.pushRecord(record);
+                records.push(record);
+              }
+              if (i === last) resolve(records);
+            };
 
-              request.onsuccess = (/* event */) => {
-                // console.log('success - getRecords', request.result);
-                let result = request.result;
-
-                if (result) {
-                  if (this._keyMap) {
-                    this._keyMap.pushRecord(result);
-                  }
-                  records.push(result);
-                }
-                getNext();
-              };
-              request.onerror = function (/* event */) {
-                // console.error('error - getRecords', request.error);
-                reject(request.error);
-              };
-            } else {
-              resolve(records);
-            }
-          };
-
-          getNext();
+            request.onerror = () => reject(request.error);
+          }
         });
       } else {
         return Promise.resolve(records);
@@ -345,19 +309,12 @@ export class IndexedDBCache extends AsyncRecordCache {
     return new Promise((resolve, reject) => {
       const request = objectStore.put(record);
 
-      request.onerror = function (/* event */) {
-        // console.error('error - putRecord', request.error);
-        reject(request.error);
-      };
-
-      request.onsuccess = (/* event */) => {
-        // console.log('success - putRecord');
-        if (this._keyMap) {
-          this._keyMap.pushRecord(record);
-        }
-
+      request.onsuccess = () => {
+        if (this._keyMap) this._keyMap.pushRecord(record);
         resolve();
       };
+
+      request.onerror = () => reject(request.error);
     });
   }
 
@@ -374,24 +331,24 @@ export class IndexedDBCache extends AsyncRecordCache {
       const transaction = this._db.transaction(types, 'readwrite');
 
       return new Promise((resolve, reject) => {
-        let i = 0;
+        const len = records.length;
+        const last = len - 1;
+        for (let i = 0; i < len; i++) {
+          const record = records[i];
+          const objectStore = transaction.objectStore(record.type);
+          const request = objectStore.put(record);
 
-        let putNext = (): any => {
-          if (i < records.length) {
-            let record = records[i++];
-            let objectStore = transaction.objectStore(record.type);
-            let request = objectStore.put(record);
-            request.onsuccess = putNext();
-            request.onerror = function (/* event */) {
-              // console.error('error - setRecordsAsync', request.error);
-              reject(request.error);
+          if (i === last) {
+            request.onsuccess = () => {
+              if (this._keyMap) {
+                records.forEach((record) => this._keyMap?.pushRecord(record));
+              }
+              resolve();
             };
-          } else {
-            resolve();
           }
-        };
 
-        putNext();
+          request.onerror = () => reject(request.error);
+        }
       });
     } else {
       return Promise.resolve();
@@ -411,15 +368,8 @@ export class IndexedDBCache extends AsyncRecordCache {
       const objectStore = transaction.objectStore(recordIdentity.type);
       const request = objectStore.delete(recordIdentity.id);
 
-      request.onerror = function (/* event */) {
-        // console.error('error - removeRecord', request.error);
-        reject(request.error);
-      };
-
-      request.onsuccess = function (/* event */) {
-        // console.log('success - removeRecord');
-        resolve(undefined);
-      };
+      request.onsuccess = () => resolve(undefined);
+      request.onerror = () => reject(request.error);
     });
   }
 
@@ -436,24 +386,18 @@ export class IndexedDBCache extends AsyncRecordCache {
       const transaction = this._db.transaction(types, 'readwrite');
 
       return new Promise((resolve, reject) => {
-        let i = 0;
+        const len = records.length;
+        const last = len - 1;
+        for (let i = 0; i < len; i++) {
+          const record = records[i];
+          const objectStore = transaction.objectStore(record.type);
+          const request = objectStore.delete(record.id);
 
-        let removeNext = (): any => {
-          if (i < records.length) {
-            let record = records[i++];
-            let objectStore = transaction.objectStore(record.type);
-            let request = objectStore.delete(record.id);
-            request.onsuccess = removeNext();
-            request.onerror = function (/* event */) {
-              // console.error('error - addInverseRelationshipsAsync', request.error);
-              reject(request.error);
-            };
-          } else {
-            resolve(records);
+          if (i === last) {
+            request.onsuccess = () => resolve(records);
           }
-        };
-
-        removeNext();
+          request.onerror = () => reject(request.error);
+        }
       });
     } else {
       return Promise.resolve([]);
@@ -476,13 +420,7 @@ export class IndexedDBCache extends AsyncRecordCache {
       );
       const request = objectStore.index('recordIdentity').openCursor(keyRange);
 
-      request.onerror = function (/* event */) {
-        // console.error('error - getRecords', request.error);
-        reject(request.error);
-      };
-
       request.onsuccess = (event: any) => {
-        // console.log('success - getInverseRelationshipsAsync', request.result);
         const cursor = event.target.result;
         if (cursor) {
           let result = this._fromInverseRelationshipForIDB(cursor.value);
@@ -492,6 +430,8 @@ export class IndexedDBCache extends AsyncRecordCache {
           resolve(results);
         }
       };
+
+      request.onerror = () => reject(request.error);
     });
   }
 
@@ -506,24 +446,18 @@ export class IndexedDBCache extends AsyncRecordCache {
       const objectStore = transaction.objectStore(INVERSE_RELS);
 
       return new Promise((resolve, reject) => {
-        let i = 0;
+        const len = relationships.length;
+        const last = len - 1;
+        for (let i = 0; i < len; i++) {
+          const relationship = relationships[i];
+          const ir = this._toInverseRelationshipForIDB(relationship);
+          const request = objectStore.put(ir);
 
-        let putNext = (): any => {
-          if (i < relationships.length) {
-            let relationship = relationships[i++];
-            let ir = this._toInverseRelationshipForIDB(relationship);
-            let request = objectStore.put(ir);
-            request.onsuccess = putNext();
-            request.onerror = function (/* event */) {
-              // console.error('error - addInverseRelationshipsAsync', request.error);
-              reject(request.error);
-            };
-          } else {
-            resolve();
+          if (i === last) {
+            request.onsuccess = () => resolve();
           }
-        };
-
-        putNext();
+          request.onerror = () => reject(request.error);
+        }
       });
     } else {
       return Promise.resolve();
@@ -541,24 +475,18 @@ export class IndexedDBCache extends AsyncRecordCache {
       const objectStore = transaction.objectStore(INVERSE_RELS);
 
       return new Promise((resolve, reject) => {
-        let i = 0;
+        const len = relationships.length;
+        const last = len - 1;
+        for (let i = 0; i < len; i++) {
+          const relationship = relationships[i];
+          const id = this._serializeInverseRelationshipIdentity(relationship);
+          const request = objectStore.delete(id);
 
-        let removeNext = (): any => {
-          if (i < relationships.length) {
-            let relationship = relationships[i++];
-            let id = this._serializeInverseRelationshipIdentity(relationship);
-            let request = objectStore.delete(id);
-            request.onsuccess = removeNext();
-            request.onerror = function (/* event */) {
-              // console.error('error - removeInverseRelationshipsAsync');
-              reject(request.error);
-            };
-          } else {
-            resolve();
+          if (i === last) {
+            request.onsuccess = () => resolve();
           }
-        };
-
-        removeNext();
+          request.onerror = () => reject(request.error);
+        }
       });
     } else {
       return Promise.resolve();
@@ -569,29 +497,21 @@ export class IndexedDBCache extends AsyncRecordCache {
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
 
-  protected _getAllRecords(): Promise<Record[]> {
+  protected async _getAllRecords(): Promise<Record[]> {
     if (!this._db) return Promise.reject(DB_NOT_OPEN);
 
+    const types = Object.keys(this.schema.models);
+
+    const recordsets = await Promise.all(
+      types.map((type) => this.getRecordsAsync(type))
+    );
+
     const allRecords: Record[] = [];
+    recordsets.forEach((records) =>
+      Array.prototype.push.apply(allRecords, records)
+    );
 
-    const objectStoreNames = this._db.objectStoreNames;
-    const types: string[] = [];
-    for (let i = 0; i < objectStoreNames.length; i++) {
-      let type = objectStoreNames.item(i);
-      if (type !== INVERSE_RELS) {
-        types.push(type as string);
-      }
-    }
-
-    return types
-      .reduce((chain, type) => {
-        return chain.then(() => {
-          return this.getRecordsAsync(type).then((records) => {
-            Array.prototype.push.apply(allRecords, records);
-          });
-        });
-      }, Promise.resolve())
-      .then(() => allRecords);
+    return allRecords;
   }
 
   protected _serializeInverseRelationshipIdentity(
