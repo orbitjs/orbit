@@ -45,6 +45,7 @@ import {
 } from './operators/async-inverse-transform-operators';
 import {
   AsyncRecordAccessor,
+  RecordChangeset,
   RecordRelationshipIdentity
 } from './record-accessor';
 import { PatchResult, RecordCacheUpdateDetails } from './response';
@@ -152,6 +153,36 @@ export abstract class AsyncRecordCache<
   abstract removeInverseRelationshipsAsync(
     relationships: RecordRelationshipIdentity[]
   ): Promise<void>;
+
+  async applyRecordChangesetAsync(changeset: RecordChangeset): Promise<void> {
+    const {
+      setRecords,
+      removeRecords,
+      addInverseRelationships,
+      removeInverseRelationships
+    } = changeset;
+
+    const promises = [];
+
+    if (setRecords && setRecords.length > 0) {
+      promises.push(await this.setRecordsAsync(setRecords));
+    }
+    if (removeRecords && removeRecords.length > 0) {
+      promises.push(await this.removeRecordsAsync(removeRecords));
+    }
+    if (addInverseRelationships && addInverseRelationships.length > 0) {
+      promises.push(
+        await this.addInverseRelationshipsAsync(addInverseRelationships)
+      );
+    }
+    if (removeInverseRelationships && removeInverseRelationships.length > 0) {
+      promises.push(
+        await this.removeInverseRelationshipsAsync(removeInverseRelationships)
+      );
+    }
+
+    await Promise.all(promises);
+  }
 
   async getRelatedRecordAsync(
     identity: RecordIdentity,

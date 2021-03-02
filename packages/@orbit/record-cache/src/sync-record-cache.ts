@@ -45,7 +45,8 @@ import {
 } from './operators/sync-inverse-transform-operators';
 import {
   SyncRecordAccessor,
-  RecordRelationshipIdentity
+  RecordRelationshipIdentity,
+  RecordChangeset
 } from './record-accessor';
 import { PatchResult, RecordCacheUpdateDetails } from './response';
 import { SyncLiveQuery } from './live-query/sync-live-query';
@@ -146,6 +147,28 @@ export abstract class SyncRecordCache<
   abstract removeInverseRelationshipsSync(
     relationships: RecordRelationshipIdentity[]
   ): void;
+
+  applyRecordChangesetSync(changeset: RecordChangeset): void {
+    const {
+      setRecords,
+      removeRecords,
+      addInverseRelationships,
+      removeInverseRelationships
+    } = changeset;
+
+    if (setRecords && setRecords.length > 0) {
+      this.setRecordsSync(setRecords);
+    }
+    if (removeRecords && removeRecords.length > 0) {
+      this.removeRecordsSync(removeRecords);
+    }
+    if (addInverseRelationships && addInverseRelationships.length > 0) {
+      this.addInverseRelationshipsSync(addInverseRelationships);
+    }
+    if (removeInverseRelationships && removeInverseRelationships.length > 0) {
+      this.removeInverseRelationshipsSync(removeInverseRelationships);
+    }
+  }
 
   getRelatedRecordSync(
     identity: RecordIdentity,

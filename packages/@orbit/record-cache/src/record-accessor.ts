@@ -22,6 +22,13 @@ export interface BaseRecordAccessor {
   schema: RecordSchema;
 }
 
+export interface RecordChangeset {
+  setRecords?: Record[];
+  removeRecords?: RecordIdentity[];
+  addInverseRelationships?: RecordRelationshipIdentity[];
+  removeInverseRelationships?: RecordRelationshipIdentity[];
+}
+
 export interface SyncRecordAccessor extends BaseRecordAccessor {
   // Getters
   getRecordSync(recordIdentity: RecordIdentity): Record | undefined;
@@ -49,6 +56,7 @@ export interface SyncRecordAccessor extends BaseRecordAccessor {
   removeInverseRelationshipsSync(
     relationships: RecordRelationshipIdentity[]
   ): void;
+  applyRecordChangesetSync(changeset: RecordChangeset): void;
 }
 
 export interface AsyncRecordAccessor extends BaseRecordAccessor {
@@ -82,4 +90,5 @@ export interface AsyncRecordAccessor extends BaseRecordAccessor {
   removeInverseRelationshipsAsync(
     relationships: RecordRelationshipIdentity[]
   ): Promise<void>;
+  applyRecordChangesetAsync(changeset: RecordChangeset): Promise<void>;
 }
