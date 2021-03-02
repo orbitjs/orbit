@@ -849,7 +849,7 @@ module('IndexedDBCache', function (hooks) {
     let records = await cache.query((q) => q.findRecords());
     assert.deepEqual(
       records,
-      [io, earth, jupiter],
+      [earth, jupiter, io],
       'query results are expected'
     );
 
