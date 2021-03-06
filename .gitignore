@@ -4,3 +4,6 @@ tmp
 dist
 docs
 tests
+tests-build
+tests-static
+packages/@orbit/*/test/index.ts
