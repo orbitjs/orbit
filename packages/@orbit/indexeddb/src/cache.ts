@@ -165,6 +165,9 @@ export default class IndexedDBCache extends AsyncRecordCache {
     objectStore.createIndex('recordIdentity', 'recordIdentity', {
       unique: false
     });
+    objectStore.createIndex('relatedIdentity', 'relatedIdentity', {
+      unique: false
+    });
   }
 
   /**
@@ -464,7 +467,20 @@ export default class IndexedDBCache extends AsyncRecordCache {
       const keyRange = Orbit.globals.IDBKeyRange.only(
         serializeRecordIdentity(recordIdentity)
       );
-      const request = objectStore.index('recordIdentity').openCursor(keyRange);
+
+      let index;
+      try {
+        index = objectStore.index('relatedIdentity');
+      } catch (e) {
+        console.error(
+          `[@orbit/indexeddb] The 'relatedIdentity' index is missing from the ${INVERSE_RELS} object store in IndexedDB. ` +
+            'Please add this index using a DB migration as described in https://github.com/orbitjs/orbit/pull/825'
+        );
+        resolve([]);
+        return;
+      }
+
+      const request = index.openCursor(keyRange);
 
       request.onerror = function(/* event */) {
         // console.error('error - getRecords', request.error);
