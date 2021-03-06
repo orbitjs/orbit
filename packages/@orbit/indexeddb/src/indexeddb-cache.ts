@@ -149,6 +149,9 @@ export class IndexedDBCache extends AsyncRecordCache {
     objectStore.createIndex('recordIdentity', 'recordIdentity', {
       unique: false
     });
+    objectStore.createIndex('relatedIdentity', 'relatedIdentity', {
+      unique: false
+    });
   }
 
   /**
@@ -418,7 +421,7 @@ export class IndexedDBCache extends AsyncRecordCache {
       const keyRange = Orbit.globals.IDBKeyRange.only(
         serializeRecordIdentity(recordIdentity)
       );
-      const request = objectStore.index('recordIdentity').openCursor(keyRange);
+      const request = objectStore.index('relatedIdentity').openCursor(keyRange);
 
       request.onsuccess = (event: any) => {
         const cursor = event.target.result;
