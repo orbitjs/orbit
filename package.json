@@ -22,6 +22,10 @@
   "devDependencies": {
     "lerna": "^3.16.4"
   },
+  "volta": {
+    "node": "10.23.0",
+    "yarn": "1.22.10"
+  },
   "workspaces": [
     "packages/@orbit/*"
   ]
