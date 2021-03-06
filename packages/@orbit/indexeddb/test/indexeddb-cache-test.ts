@@ -127,11 +127,14 @@ module('IndexedDBCache', function (hooks) {
     assert.deepEqual(await cache.getRecordsAsync([jupiter, io, europa]), []);
   });
 
-  test('sets/gets inverse relationships', async function (assert) {
+  test('sets/gets inverse relationships for a single record', async function (assert) {
     const jupiter = { type: 'planet', id: 'jupiter' };
     const io = { type: 'moon', id: 'io' };
     const europa = { type: 'moon', id: 'europa' };
     const callisto = { type: 'moon', id: 'callisto' };
+
+    const earth = { type: 'planet', id: 'earth' };
+    const earthMoon = { type: 'moon', id: 'earthMoon' };
 
     assert.deepEqual(
       await cache.getInverseRelationshipsAsync(jupiter),
@@ -140,29 +143,43 @@ module('IndexedDBCache', function (hooks) {
     );
 
     await cache.addInverseRelationshipsAsync([
-      { record: jupiter, relationship: 'moons', relatedRecord: io },
-      { record: jupiter, relationship: 'moons', relatedRecord: europa },
-      { record: jupiter, relationship: 'moons', relatedRecord: callisto }
+      { record: callisto, relationship: 'planet', relatedRecord: jupiter },
+      { record: earthMoon, relationship: 'planet', relatedRecord: earth },
+      { record: europa, relationship: 'planet', relatedRecord: jupiter },
+      { record: io, relationship: 'planet', relatedRecord: jupiter }
     ]);
 
     assert.deepEqual(
       await cache.getInverseRelationshipsAsync(jupiter),
       [
-        { record: jupiter, relationship: 'moons', relatedRecord: callisto },
-        { record: jupiter, relationship: 'moons', relatedRecord: europa },
-        { record: jupiter, relationship: 'moons', relatedRecord: io }
+        { record: callisto, relationship: 'planet', relatedRecord: jupiter },
+        { record: europa, relationship: 'planet', relatedRecord: jupiter },
+        { record: io, relationship: 'planet', relatedRecord: jupiter }
       ],
       'inverse relationships have been added'
     );
 
+    assert.deepEqual(
+      await cache.getInverseRelationshipsAsync(earth),
+      [{ record: earthMoon, relationship: 'planet', relatedRecord: earth }],
+      'inverse relationships have been added'
+    );
+
     await cache.removeInverseRelationshipsAsync([
-      { record: jupiter, relationship: 'moons', relatedRecord: io },
-      { record: jupiter, relationship: 'moons', relatedRecord: europa },
-      { record: jupiter, relationship: 'moons', relatedRecord: callisto }
+      { record: callisto, relationship: 'planet', relatedRecord: jupiter },
+      { record: earthMoon, relationship: 'planet', relatedRecord: earth },
+      { record: europa, relationship: 'planet', relatedRecord: jupiter },
+      { record: io, relationship: 'planet', relatedRecord: jupiter }
     ]);
 
     assert.deepEqual(
       await cache.getInverseRelationshipsAsync(jupiter),
+      [],
+      'inverse relationships have been removed'
+    );
+
+    assert.deepEqual(
+      await cache.getInverseRelationshipsAsync(earth),
       [],
       'inverse relationships have been removed'
     );
