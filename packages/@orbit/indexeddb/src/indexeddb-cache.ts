@@ -421,7 +421,20 @@ export class IndexedDBCache extends AsyncRecordCache {
       const keyRange = Orbit.globals.IDBKeyRange.only(
         serializeRecordIdentity(recordIdentity)
       );
-      const request = objectStore.index('relatedIdentity').openCursor(keyRange);
+
+      let index;
+      try {
+        index = objectStore.index('relatedIdentity');
+      } catch (e) {
+        console.error(
+          `[@orbit/indexeddb] The 'relatedIdentity' index is missing from the ${INVERSE_RELS} object store in IndexedDB. ` +
+            'Please add this index using a DB migration as described in https://github.com/orbitjs/orbit/pull/823'
+        );
+        resolve([]);
+        return;
+      }
+
+      const request = index.openCursor(keyRange);
 
       request.onsuccess = (event: any) => {
         const cursor = event.target.result;
