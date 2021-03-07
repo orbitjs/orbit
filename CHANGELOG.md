@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.17.0-beta.15 (2021-03-07)
+
+#### :rocket: Enhancement
+
+- `@orbit/indexeddb`
+  - [#826](https://github.com/orbitjs/orbit/pull/826) Add fallback and error logging guidance to improve PR 823 ([@dgeb](https://github.com/dgeb))
+  - [#821](https://github.com/orbitjs/orbit/pull/821) Improve bulk IndexedDB performance ([@dgeb](https://github.com/dgeb))
+
+#### :bug: Bug Fix
+
+- `@orbit/indexeddb`
+  - [#823](https://github.com/orbitjs/orbit/pull/823) Fix IndexedDBCache getInverseRelationshipsAsync ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.16.8 (2021-03-07)
 
 #### :bug: Bug Fix
