@@ -1,6 +1,6 @@
 {
   "name": "@orbit/indexeddb",
-  "version": "0.16.7",
+  "version": "0.16.8",
   "description": "IndexedDB support for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
