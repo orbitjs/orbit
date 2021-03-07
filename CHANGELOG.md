@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.16.8 (2021-03-07)
+
+#### :bug: Bug Fix
+
+- `@orbit/indexeddb`
+  - [#825](https://github.com/orbitjs/orbit/pull/825) Backport PR 823 to v0.16 ([@dgeb](https://github.com/dgeb))
+
+#### :house: Internal
+
+- [#824](https://github.com/orbitjs/orbit/pull/824) Update release-0-16 branch to use GH actions ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.14 (2021-02-22)
 
 #### :house: Internal
