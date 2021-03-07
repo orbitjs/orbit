@@ -66,7 +66,9 @@ export default class IndexedDBSource extends Source
 
     super(settings);
 
-    let cacheSettings: IndexedDBCacheSettings = settings.cacheSettings || {};
+    let cacheSettings: IndexedDBCacheSettings = settings.cacheSettings || {
+      schema: settings.schema
+    };
     cacheSettings.schema = settings.schema;
     cacheSettings.keyMap = settings.keyMap;
     cacheSettings.queryBuilder =

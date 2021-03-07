@@ -130,11 +130,14 @@ module('Cache', function(hooks) {
     assert.deepEqual(await cache.getRecordsAsync([jupiter, io, europa]), []);
   });
 
-  test('sets/gets inverse relationships', async function(assert) {
+  test('sets/gets inverse relationships for a single record', async function(assert) {
     const jupiter = { type: 'planet', id: 'jupiter' };
     const io = { type: 'moon', id: 'io' };
     const europa = { type: 'moon', id: 'europa' };
     const callisto = { type: 'moon', id: 'callisto' };
+
+    const earth = { type: 'planet', id: 'earth' };
+    const earthMoon = { type: 'moon', id: 'earthMoon' };
 
     await cache.openDB();
 
@@ -145,29 +148,43 @@ module('Cache', function(hooks) {
     );
 
     await cache.addInverseRelationshipsAsync([
-      { record: jupiter, relationship: 'moons', relatedRecord: io },
-      { record: jupiter, relationship: 'moons', relatedRecord: europa },
-      { record: jupiter, relationship: 'moons', relatedRecord: callisto }
+      { record: callisto, relationship: 'planet', relatedRecord: jupiter },
+      { record: earthMoon, relationship: 'planet', relatedRecord: earth },
+      { record: europa, relationship: 'planet', relatedRecord: jupiter },
+      { record: io, relationship: 'planet', relatedRecord: jupiter }
     ]);
 
     assert.deepEqual(
       await cache.getInverseRelationshipsAsync(jupiter),
       [
-        { record: jupiter, relationship: 'moons', relatedRecord: callisto },
-        { record: jupiter, relationship: 'moons', relatedRecord: europa },
-        { record: jupiter, relationship: 'moons', relatedRecord: io }
+        { record: callisto, relationship: 'planet', relatedRecord: jupiter },
+        { record: europa, relationship: 'planet', relatedRecord: jupiter },
+        { record: io, relationship: 'planet', relatedRecord: jupiter }
       ],
       'inverse relationships have been added'
     );
 
+    assert.deepEqual(
+      await cache.getInverseRelationshipsAsync(earth),
+      [{ record: earthMoon, relationship: 'planet', relatedRecord: earth }],
+      'inverse relationships have been added'
+    );
+
     await cache.removeInverseRelationshipsAsync([
-      { record: jupiter, relationship: 'moons', relatedRecord: io },
-      { record: jupiter, relationship: 'moons', relatedRecord: europa },
-      { record: jupiter, relationship: 'moons', relatedRecord: callisto }
+      { record: callisto, relationship: 'planet', relatedRecord: jupiter },
+      { record: earthMoon, relationship: 'planet', relatedRecord: earth },
+      { record: europa, relationship: 'planet', relatedRecord: jupiter },
+      { record: io, relationship: 'planet', relatedRecord: jupiter }
     ]);
 
     assert.deepEqual(
       await cache.getInverseRelationshipsAsync(jupiter),
+      [],
+      'inverse relationships have been removed'
+    );
+
+    assert.deepEqual(
+      await cache.getInverseRelationshipsAsync(earth),
       [],
       'inverse relationships have been removed'
     );
@@ -995,6 +1012,132 @@ module('Cache', function(hooks) {
       keyMap.keyToId('planet', 'remoteId', 'p2'),
       'jupiter',
       'key has been mapped'
+    );
+  });
+
+  test('#patch tracks refs and clears them from hasOne relationships when a referenced record is removed', async function(assert) {
+    const jupiter: Record = {
+      type: 'planet',
+      id: 'p1',
+      attributes: { name: 'Jupiter' },
+      relationships: { moons: { data: undefined } }
+    };
+    const io: Record = {
+      type: 'moon',
+      id: 'm1',
+      attributes: { name: 'Io' },
+      relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
+    };
+    const europa: Record = {
+      type: 'moon',
+      id: 'm2',
+      attributes: { name: 'Europa' },
+      relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
+    };
+
+    await cache.patch(t => [
+      t.addRecord(jupiter),
+      t.addRecord(io),
+      t.addRecord(europa)
+    ]);
+
+    assert.deepEqual(
+      ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
+        .relationships.planet.data,
+      { type: 'planet', id: 'p1' },
+      'Jupiter has been assigned to Io'
+    );
+    assert.deepEqual(
+      ((await cache.getRecordAsync({ type: 'moon', id: 'm2' })) as Record)
+        .relationships.planet.data,
+      { type: 'planet', id: 'p1' },
+      'Jupiter has been assigned to Europa'
+    );
+
+    await cache.patch(t => t.removeRecord(jupiter));
+
+    assert.equal(
+      await cache.getRecordAsync({ type: 'planet', id: 'p1' }),
+      undefined,
+      'Jupiter is GONE'
+    );
+
+    assert.equal(
+      ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
+        .relationships.planet.data,
+      undefined,
+      'Jupiter has been cleared from Io'
+    );
+    assert.equal(
+      ((await cache.getRecordAsync({ type: 'moon', id: 'm2' })) as Record)
+        .relationships.planet.data,
+      undefined,
+      'Jupiter has been cleared from Europa'
+    );
+  });
+
+  test('#patch tracks refs and clears them from hasMany relationships when a referenced record is removed', async function(assert) {
+    const io: Record = {
+      type: 'moon',
+      id: 'm1',
+      attributes: { name: 'Io' },
+      relationships: { planet: { data: null } }
+    };
+    const europa: Record = {
+      type: 'moon',
+      id: 'm2',
+      attributes: { name: 'Europa' },
+      relationships: { planet: { data: null } }
+    };
+    const jupiter: Record = {
+      type: 'planet',
+      id: 'p1',
+      attributes: { name: 'Jupiter' },
+      relationships: {
+        moons: {
+          data: [{ type: 'moon', id: 'm1' }, { type: 'moon', id: 'm2' }]
+        }
+      }
+    };
+
+    await cache.patch(t => [
+      t.addRecord(io),
+      t.addRecord(europa),
+      t.addRecord(jupiter)
+    ]);
+
+    assert.deepEqual(
+      ((await cache.getRecordAsync({ type: 'planet', id: 'p1' })) as Record)
+        .relationships.moons.data,
+      [{ type: 'moon', id: 'm1' }, { type: 'moon', id: 'm2' }],
+      'Jupiter has been assigned to Io and Europa'
+    );
+    assert.deepEqual(
+      await cache.getRelatedRecordsAsync(jupiter, 'moons'),
+      [{ type: 'moon', id: 'm1' }, { type: 'moon', id: 'm2' }],
+      'Jupiter has been assigned to Io and Europa'
+    );
+
+    await cache.patch(t => t.removeRecord(io));
+
+    assert.equal(
+      await cache.getRecordAsync({ type: 'moon', id: 'm1' }),
+      null,
+      'Io is GONE'
+    );
+
+    await cache.patch(t => t.removeRecord(europa));
+
+    assert.equal(
+      await cache.getRecordAsync({ type: 'moon', id: 'm2' }),
+      null,
+      'Europa is GONE'
+    );
+
+    assert.deepEqual(
+      await cache.getRelatedRecordsAsync({ type: 'planet', id: 'p1' }, 'moons'),
+      [],
+      'moons have been cleared from Jupiter'
     );
   });
 });
