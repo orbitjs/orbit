@@ -135,7 +135,7 @@ export abstract class AsyncRecordCache<
     typeOrIdentities?: string | RecordIdentity[]
   ): Promise<Record[]>;
   abstract getInverseRelationshipsAsync(
-    record: RecordIdentity
+    recordIdentityOrIdentities: RecordIdentity | RecordIdentity[]
   ): Promise<RecordRelationshipIdentity[]>;
 
   // Abstract methods for setting records and relationships

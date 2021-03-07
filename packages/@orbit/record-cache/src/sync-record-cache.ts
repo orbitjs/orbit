@@ -133,7 +133,7 @@ export abstract class SyncRecordCache<
     typeOrIdentities?: string | RecordIdentity[]
   ): Record[];
   abstract getInverseRelationshipsSync(
-    record: RecordIdentity
+    recordIdentityOrIdentities: RecordIdentity | RecordIdentity[]
   ): RecordRelationshipIdentity[];
 
   // Abstract methods for setting records and relationships

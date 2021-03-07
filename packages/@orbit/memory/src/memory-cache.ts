@@ -103,12 +103,23 @@ export class MemoryCache extends SyncRecordCache {
   }
 
   getInverseRelationshipsSync(
-    recordIdentity: RecordIdentity
+    recordIdentityOrIdentities: RecordIdentity | RecordIdentity[]
   ): RecordRelationshipIdentity[] {
-    return (
-      this._inverseRelationships[recordIdentity.type].get(recordIdentity.id) ||
-      []
-    );
+    const results: RecordRelationshipIdentity[] = [];
+    const identities: RecordIdentity[] = Array.isArray(
+      recordIdentityOrIdentities
+    )
+      ? recordIdentityOrIdentities
+      : [recordIdentityOrIdentities];
+
+    for (let identity of identities) {
+      const result = this._inverseRelationships[identity.type].get(identity.id);
+      if (result) {
+        Array.prototype.push.apply(results, result);
+      }
+    }
+
+    return results;
   }
 
   addInverseRelationshipsSync(

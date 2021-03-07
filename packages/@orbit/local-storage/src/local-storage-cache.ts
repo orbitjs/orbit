@@ -145,16 +145,25 @@ export class LocalStorageCache extends SyncRecordCache {
   }
 
   getInverseRelationshipsSync(
-    recordIdentity: RecordIdentity
+    recordIdentityOrIdentities: RecordIdentity | RecordIdentity[]
   ): RecordRelationshipIdentity[] {
-    const key = this.getKeyForRecordInverses(recordIdentity);
-    const item = Orbit.globals.localStorage.getItem(key);
+    const results: RecordRelationshipIdentity[] = [];
+    const identities: RecordIdentity[] = Array.isArray(
+      recordIdentityOrIdentities
+    )
+      ? recordIdentityOrIdentities
+      : [recordIdentityOrIdentities];
 
-    if (item) {
-      return JSON.parse(item);
+    for (let identity of identities) {
+      const key = this.getKeyForRecordInverses(identity);
+      const item = Orbit.globals.localStorage.getItem(key);
+
+      if (item) {
+        Array.prototype.push.apply(results, JSON.parse(item));
+      }
     }
 
-    return [];
+    return results;
   }
 
   addInverseRelationshipsSync(

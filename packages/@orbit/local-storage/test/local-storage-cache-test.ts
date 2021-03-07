@@ -1,11 +1,11 @@
-import { getRecordFromIndexedDB } from './support/indexeddb';
+import { getRecordFromLocalStorage } from './support/local-storage';
 import { Record, RecordSchema, RecordKeyMap } from '@orbit/records';
-import { IndexedDBCache } from '../src/indexeddb-cache';
+import { LocalStorageCache } from '../src/local-storage-cache';
 
 const { module, test } = QUnit;
 
-module('IndexedDBCache', function (hooks) {
-  let schema: RecordSchema, cache: IndexedDBCache, keyMap: RecordKeyMap;
+module('LocalStorageCache', function (hooks) {
+  let schema: RecordSchema, cache: LocalStorageCache, keyMap: RecordKeyMap;
 
   hooks.beforeEach(async () => {
     schema = new RecordSchema({
@@ -53,12 +53,11 @@ module('IndexedDBCache', function (hooks) {
 
     keyMap = new RecordKeyMap();
 
-    cache = new IndexedDBCache({ schema, keyMap });
-    await cache.openDB();
+    cache = new LocalStorageCache({ schema, keyMap });
   });
 
   hooks.afterEach(() => {
-    return cache.deleteDB();
+    return cache.reset();
   });
 
   test('it exists', function (assert) {
@@ -67,11 +66,7 @@ module('IndexedDBCache', function (hooks) {
     assert.strictEqual(cache.keyMap, keyMap, 'keyMap has been assigned');
   });
 
-  test('is assigned a default dbName', function (assert) {
-    assert.equal(cache.dbName, 'orbit', '`dbName` is `orbit` by default');
-  });
-
-  test('sets/gets records individually', async function (assert) {
+  test('sets/gets records individually', function (assert) {
     const jupiter = {
       type: 'planet',
       id: 'jupiter',
@@ -84,24 +79,24 @@ module('IndexedDBCache', function (hooks) {
       attributes: { name: 'Europa' }
     };
 
-    await cache.setRecordAsync(jupiter);
-    await cache.setRecordAsync(io);
-    await cache.setRecordAsync(europa);
+    cache.setRecordSync(jupiter);
+    cache.setRecordSync(io);
+    cache.setRecordSync(europa);
 
-    assert.deepEqual(await cache.getRecordAsync(jupiter), jupiter);
-    assert.deepEqual(await cache.getRecordAsync(io), io);
-    assert.deepEqual(await cache.getRecordAsync(europa), europa);
+    assert.deepEqual(cache.getRecordSync(jupiter), jupiter);
+    assert.deepEqual(cache.getRecordSync(io), io);
+    assert.deepEqual(cache.getRecordSync(europa), europa);
 
-    await cache.removeRecordAsync(jupiter);
-    await cache.removeRecordAsync(io);
-    await cache.removeRecordAsync(europa);
+    cache.removeRecordSync(jupiter);
+    cache.removeRecordSync(io);
+    cache.removeRecordSync(europa);
 
-    assert.deepEqual(await cache.getRecordAsync(jupiter), undefined);
-    assert.deepEqual(await cache.getRecordAsync(io), undefined);
-    assert.deepEqual(await cache.getRecordAsync(europa), undefined);
+    assert.deepEqual(cache.getRecordSync(jupiter), undefined);
+    assert.deepEqual(cache.getRecordSync(io), undefined);
+    assert.deepEqual(cache.getRecordSync(europa), undefined);
   });
 
-  test('sets/gets records in bulk', async function (assert) {
+  test('sets/gets records in bulk', function (assert) {
     const jupiter = {
       type: 'planet',
       id: 'jupiter',
@@ -114,20 +109,20 @@ module('IndexedDBCache', function (hooks) {
       attributes: { name: 'Europa' }
     };
 
-    await cache.setRecordsAsync([jupiter, io, europa]);
+    cache.setRecordsSync([jupiter, io, europa]);
 
-    assert.deepEqual(await cache.getRecordsAsync([jupiter, io, europa]), [
+    assert.deepEqual(cache.getRecordsSync([jupiter, io, europa]), [
       jupiter,
       io,
       europa
     ]);
 
-    await cache.removeRecordsAsync([jupiter, io, europa]);
+    cache.removeRecordsSync([jupiter, io, europa]);
 
-    assert.deepEqual(await cache.getRecordsAsync([jupiter, io, europa]), []);
+    assert.deepEqual(cache.getRecordsSync([jupiter, io, europa]), []);
   });
 
-  test('sets/gets inverse relationships for a single record', async function (assert) {
+  test('sets/gets inverse relationships for a single record', function (assert) {
     const jupiter = { type: 'planet', id: 'jupiter' };
     const io = { type: 'moon', id: 'io' };
     const europa = { type: 'moon', id: 'europa' };
@@ -137,12 +132,12 @@ module('IndexedDBCache', function (hooks) {
     const earthMoon = { type: 'moon', id: 'earthMoon' };
 
     assert.deepEqual(
-      await cache.getInverseRelationshipsAsync(jupiter),
+      cache.getInverseRelationshipsSync(jupiter),
       [],
       'no inverse relationships to start'
     );
 
-    await cache.addInverseRelationshipsAsync([
+    cache.addInverseRelationshipsSync([
       { record: callisto, relationship: 'planet', relatedRecord: jupiter },
       { record: earthMoon, relationship: 'planet', relatedRecord: earth },
       { record: europa, relationship: 'planet', relatedRecord: jupiter },
@@ -150,7 +145,7 @@ module('IndexedDBCache', function (hooks) {
     ]);
 
     assert.deepEqual(
-      await cache.getInverseRelationshipsAsync(jupiter),
+      cache.getInverseRelationshipsSync(jupiter),
       [
         { record: callisto, relationship: 'planet', relatedRecord: jupiter },
         { record: europa, relationship: 'planet', relatedRecord: jupiter },
@@ -160,12 +155,12 @@ module('IndexedDBCache', function (hooks) {
     );
 
     assert.deepEqual(
-      await cache.getInverseRelationshipsAsync(earth),
+      cache.getInverseRelationshipsSync(earth),
       [{ record: earthMoon, relationship: 'planet', relatedRecord: earth }],
       'inverse relationships have been added'
     );
 
-    await cache.removeInverseRelationshipsAsync([
+    cache.removeInverseRelationshipsSync([
       { record: callisto, relationship: 'planet', relatedRecord: jupiter },
       { record: earthMoon, relationship: 'planet', relatedRecord: earth },
       { record: europa, relationship: 'planet', relatedRecord: jupiter },
@@ -173,19 +168,19 @@ module('IndexedDBCache', function (hooks) {
     ]);
 
     assert.deepEqual(
-      await cache.getInverseRelationshipsAsync(jupiter),
+      cache.getInverseRelationshipsSync(jupiter),
       [],
       'inverse relationships have been removed'
     );
 
     assert.deepEqual(
-      await cache.getInverseRelationshipsAsync(earth),
+      cache.getInverseRelationshipsSync(earth),
       [],
       'inverse relationships have been removed'
     );
   });
 
-  test('sets/gets inverse relationships for a multiple records', async function (assert) {
+  test('sets/gets inverse relationships for a multiple records', function (assert) {
     const jupiter = { type: 'planet', id: 'jupiter' };
     const io = { type: 'moon', id: 'io' };
     const europa = { type: 'moon', id: 'europa' };
@@ -195,44 +190,44 @@ module('IndexedDBCache', function (hooks) {
     const earthMoon = { type: 'moon', id: 'earthMoon' };
 
     assert.deepEqual(
-      await cache.getInverseRelationshipsAsync([jupiter, earth]),
+      cache.getInverseRelationshipsSync([jupiter, earth]),
       [],
       'no inverse relationships to start'
     );
 
-    await cache.addInverseRelationshipsAsync([
+    cache.addInverseRelationshipsSync([
       { record: callisto, relationship: 'planet', relatedRecord: jupiter },
-      { record: earthMoon, relationship: 'planet', relatedRecord: earth },
       { record: europa, relationship: 'planet', relatedRecord: jupiter },
-      { record: io, relationship: 'planet', relatedRecord: jupiter }
+      { record: io, relationship: 'planet', relatedRecord: jupiter },
+      { record: earthMoon, relationship: 'planet', relatedRecord: earth }
     ]);
 
     assert.deepEqual(
-      await cache.getInverseRelationshipsAsync([jupiter, earth]),
+      cache.getInverseRelationshipsSync([jupiter, earth]),
       [
         { record: callisto, relationship: 'planet', relatedRecord: jupiter },
-        { record: earthMoon, relationship: 'planet', relatedRecord: earth },
         { record: europa, relationship: 'planet', relatedRecord: jupiter },
-        { record: io, relationship: 'planet', relatedRecord: jupiter }
+        { record: io, relationship: 'planet', relatedRecord: jupiter },
+        { record: earthMoon, relationship: 'planet', relatedRecord: earth }
       ],
       'inverse relationships have been added'
     );
 
-    await cache.removeInverseRelationshipsAsync([
+    cache.removeInverseRelationshipsSync([
       { record: callisto, relationship: 'planet', relatedRecord: jupiter },
-      { record: earthMoon, relationship: 'planet', relatedRecord: earth },
       { record: europa, relationship: 'planet', relatedRecord: jupiter },
-      { record: io, relationship: 'planet', relatedRecord: jupiter }
+      { record: io, relationship: 'planet', relatedRecord: jupiter },
+      { record: earthMoon, relationship: 'planet', relatedRecord: earth }
     ]);
 
     assert.deepEqual(
-      await cache.getInverseRelationshipsAsync([jupiter, earth]),
+      cache.getInverseRelationshipsSync([jupiter, earth]),
       [],
       'inverse relationships have been removed'
     );
   });
 
-  test('#update - addRecord', async function (assert) {
+  test('#update - addRecord', function (assert) {
     assert.expect(2);
 
     let planet: Record = {
@@ -247,10 +242,10 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) => t.addRecord(planet));
+    cache.update((t) => t.addRecord(planet));
 
     assert.deepEqual(
-      await getRecordFromIndexedDB(cache, planet),
+      getRecordFromLocalStorage(cache, planet),
       planet,
       'indexeddb contains record'
     );
@@ -262,7 +257,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#update - updateRecord', async function (assert) {
+  test('#update - updateRecord', function (assert) {
     assert.expect(2);
 
     let original: Record = {
@@ -314,10 +309,10 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) => t.addRecord(original));
-    await cache.update((t) => t.updateRecord(updates));
+    cache.update((t) => t.addRecord(original));
+    cache.update((t) => t.updateRecord(updates));
     assert.deepEqual(
-      await getRecordFromIndexedDB(cache, expected),
+      getRecordFromLocalStorage(cache, expected),
       expected,
       'indexeddb contains record'
     );
@@ -328,7 +323,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#update - updateRecord - when record does not exist', async function (assert) {
+  test('#update - updateRecord - when record does not exist', function (assert) {
     assert.expect(1);
 
     let revised = {
@@ -341,15 +336,15 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) => t.updateRecord(revised));
+    cache.update((t) => t.updateRecord(revised));
     assert.deepEqual(
-      await getRecordFromIndexedDB(cache, revised),
+      getRecordFromLocalStorage(cache, revised),
       revised,
       'indexeddb contains record'
     );
   });
 
-  test('#update - removeRecord', async function (assert) {
+  test('#update - removeRecord', function (assert) {
     assert.expect(1);
 
     let planet: Record = {
@@ -361,16 +356,16 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) => t.addRecord(planet));
-    await cache.update((t) => t.removeRecord(planet));
+    cache.update((t) => t.addRecord(planet));
+    cache.update((t) => t.removeRecord(planet));
     assert.equal(
-      await getRecordFromIndexedDB(cache, planet),
+      getRecordFromLocalStorage(cache, planet),
       null,
       'indexeddb does not contain record'
     );
   });
 
-  test('#update - removeRecord - when record does not exist', async function (assert) {
+  test('#update - removeRecord - when record does not exist', function (assert) {
     assert.expect(1);
 
     let planet = {
@@ -378,15 +373,15 @@ module('IndexedDBCache', function (hooks) {
       id: 'jupiter'
     };
 
-    await cache.update((t) => t.removeRecord(planet));
+    cache.update((t) => t.removeRecord(planet));
     assert.equal(
-      await getRecordFromIndexedDB(cache, planet),
+      getRecordFromLocalStorage(cache, planet),
       null,
       'indexeddb does not contain record'
     );
   });
 
-  test('#update - replaceKey', async function (assert) {
+  test('#update - replaceKey', function (assert) {
     assert.expect(2);
 
     let original: Record = {
@@ -410,10 +405,10 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) => t.addRecord(original));
-    await cache.update((t) => t.replaceKey(original, 'remoteId', '123'));
+    cache.update((t) => t.addRecord(original));
+    cache.update((t) => t.replaceKey(original, 'remoteId', '123'));
     assert.deepEqual(
-      await getRecordFromIndexedDB(cache, revised),
+      getRecordFromLocalStorage(cache, revised),
       revised,
       'indexeddb contains record'
     );
@@ -425,7 +420,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#update - replaceKey - when base record does not exist', async function (assert) {
+  test('#update - replaceKey - when base record does not exist', function (assert) {
     assert.expect(2);
 
     let revised: Record = {
@@ -436,11 +431,11 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) =>
+    cache.update((t) =>
       t.replaceKey({ type: 'planet', id: 'jupiter' }, 'remoteId', '123')
     );
     assert.deepEqual(
-      await getRecordFromIndexedDB(cache, revised),
+      getRecordFromLocalStorage(cache, revised),
       revised,
       'indexeddb contains record'
     );
@@ -452,7 +447,7 @@ module('IndexedDBCache', function (hooks) {
     );
   });
 
-  test('#update - replaceAttribute', async function (assert) {
+  test('#update - replaceAttribute', function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -474,16 +469,16 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) => t.addRecord(original));
-    await cache.update((t) => t.replaceAttribute(original, 'order', 5));
+    cache.update((t) => t.addRecord(original));
+    cache.update((t) => t.replaceAttribute(original, 'order', 5));
     assert.deepEqual(
-      await getRecordFromIndexedDB(cache, revised),
+      getRecordFromLocalStorage(cache, revised),
       revised,
       'indexeddb contains record'
     );
   });
 
-  test('#update - replaceAttribute - when base record does not exist', async function (assert) {
+  test('#update - replaceAttribute - when base record does not exist', function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -494,17 +489,17 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) =>
+    cache.update((t) =>
       t.replaceAttribute({ type: 'planet', id: 'jupiter' }, 'order', 5)
     );
     assert.deepEqual(
-      await getRecordFromIndexedDB(cache, revised),
+      getRecordFromLocalStorage(cache, revised),
       revised,
       'indexeddb contains record'
     );
   });
 
-  test('#update - addToRelatedRecords', async function (assert) {
+  test('#update - addToRelatedRecords', function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -535,18 +530,18 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) => t.addRecord(original));
-    await cache.update((t) =>
+    cache.update((t) => t.addRecord(original));
+    cache.update((t) =>
       t.addToRelatedRecords(original, 'moons', { type: 'moon', id: 'moon1' })
     );
     assert.deepEqual(
-      await getRecordFromIndexedDB(cache, revised),
+      getRecordFromLocalStorage(cache, revised),
       revised,
       'indexeddb contains record'
     );
   });
 
-  test('#update - addToRelatedRecords - when base record does not exist', async function (assert) {
+  test('#update - addToRelatedRecords - when base record does not exist', function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -559,20 +554,20 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) =>
+    cache.update((t) =>
       t.addToRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', {
         type: 'moon',
         id: 'moon1'
       })
     );
     assert.deepEqual(
-      await getRecordFromIndexedDB(cache, revised),
+      getRecordFromLocalStorage(cache, revised),
       revised,
       'indexeddb contains record'
     );
   });
 
-  test('#update - removeFromRelatedRecords', async function (assert) {
+  test('#update - removeFromRelatedRecords', function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -606,21 +601,21 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) => t.addRecord(original));
-    await cache.update((t) =>
+    cache.update((t) => t.addRecord(original));
+    cache.update((t) =>
       t.removeFromRelatedRecords(original, 'moons', {
         type: 'moon',
         id: 'moon2'
       })
     );
     assert.deepEqual(
-      await getRecordFromIndexedDB(cache, revised),
+      getRecordFromLocalStorage(cache, revised),
       revised,
       'indexeddb contains record'
     );
   });
 
-  test('#update - removeFromRelatedRecords - when base record does not exist', async function (assert) {
+  test('#update - removeFromRelatedRecords - when base record does not exist', function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -633,20 +628,20 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) =>
+    cache.update((t) =>
       t.removeFromRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', {
         type: 'moon',
         id: 'moon2'
       })
     );
     assert.equal(
-      await getRecordFromIndexedDB(cache, revised),
+      getRecordFromLocalStorage(cache, revised),
       null,
       'indexeddb does not contain record'
     );
   });
 
-  test('#update - replaceRelatedRecords', async function (assert) {
+  test('#update - replaceRelatedRecords', function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -680,21 +675,21 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) => t.addRecord(original));
-    await cache.update((t) =>
+    cache.update((t) => t.addRecord(original));
+    cache.update((t) =>
       t.replaceRelatedRecords(original, 'moons', [
         { type: 'moon', id: 'moon2' },
         { type: 'moon', id: 'moon3' }
       ])
     );
     assert.deepEqual(
-      await getRecordFromIndexedDB(cache, revised),
+      getRecordFromLocalStorage(cache, revised),
       revised,
       'indexeddb contains record'
     );
   });
 
-  test('#update - replaceRelatedRecords - when base record does not exist', async function (assert) {
+  test('#update - replaceRelatedRecords - when base record does not exist', function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -710,20 +705,20 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) =>
+    cache.update((t) =>
       t.replaceRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', [
         { type: 'moon', id: 'moon2' },
         { type: 'moon', id: 'moon3' }
       ])
     );
     assert.deepEqual(
-      await getRecordFromIndexedDB(cache, revised),
+      getRecordFromLocalStorage(cache, revised),
       revised,
       'indexeddb contains record'
     );
   });
 
-  test('#update - replaceRelatedRecord - with record', async function (assert) {
+  test('#update - replaceRelatedRecord - with record', function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -754,21 +749,21 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) => t.addRecord(original));
-    await cache.update((t) =>
+    cache.update((t) => t.addRecord(original));
+    cache.update((t) =>
       t.replaceRelatedRecord(original, 'solarSystem', {
         type: 'solarSystem',
         id: 'ss1'
       })
     );
     assert.deepEqual(
-      await getRecordFromIndexedDB(cache, revised),
+      getRecordFromLocalStorage(cache, revised),
       revised,
       'indexeddb contains record'
     );
   });
 
-  test('#update - replaceRelatedRecord - with record - when base record does not exist', async function (assert) {
+  test('#update - replaceRelatedRecord - with record - when base record does not exist', function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -781,20 +776,20 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) =>
+    cache.update((t) =>
       t.replaceRelatedRecord({ type: 'planet', id: 'jupiter' }, 'solarSystem', {
         type: 'solarSystem',
         id: 'ss1'
       })
     );
     assert.deepEqual(
-      await getRecordFromIndexedDB(cache, revised),
+      getRecordFromLocalStorage(cache, revised),
       revised,
       'indexeddb contains record'
     );
   });
 
-  test('#update - replaceRelatedRecord - with null', async function (assert) {
+  test('#update - replaceRelatedRecord - with null', function (assert) {
     assert.expect(1);
 
     let original: Record = {
@@ -825,18 +820,16 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) => t.addRecord(original));
-    await cache.update((t) =>
-      t.replaceRelatedRecord(original, 'solarSystem', null)
-    );
+    cache.update((t) => t.addRecord(original));
+    cache.update((t) => t.replaceRelatedRecord(original, 'solarSystem', null));
     assert.deepEqual(
-      await getRecordFromIndexedDB(cache, revised),
+      getRecordFromLocalStorage(cache, revised),
       revised,
       'indexeddb contains record'
     );
   });
 
-  test('#update - replaceRelatedRecord - with null - when base record does not exist', async function (assert) {
+  test('#update - replaceRelatedRecord - with null - when base record does not exist', function (assert) {
     assert.expect(1);
 
     let revised: Record = {
@@ -849,7 +842,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) =>
+    cache.update((t) =>
       t.replaceRelatedRecord(
         { type: 'planet', id: 'jupiter' },
         'solarSystem',
@@ -857,84 +850,13 @@ module('IndexedDBCache', function (hooks) {
       )
     );
     assert.deepEqual(
-      await getRecordFromIndexedDB(cache, revised),
+      getRecordFromLocalStorage(cache, revised),
       revised,
       'indexeddb contains record'
     );
   });
 
-  test('#query - all records', async function (assert) {
-    assert.expect(4);
-
-    let earth: Record = {
-      type: 'planet',
-      id: 'earth',
-      keys: {
-        remoteId: 'p1'
-      },
-      attributes: {
-        name: 'Earth',
-        classification: 'terrestrial'
-      }
-    };
-
-    let jupiter: Record = {
-      type: 'planet',
-      id: 'jupiter',
-      keys: {
-        remoteId: 'p2'
-      },
-      attributes: {
-        name: 'Jupiter',
-        classification: 'gas giant'
-      }
-    };
-
-    let io: Record = {
-      type: 'moon',
-      id: 'io',
-      keys: {
-        remoteId: 'm1'
-      },
-      attributes: {
-        name: 'Io'
-      }
-    };
-
-    await cache.update((t) => [
-      t.addRecord(earth),
-      t.addRecord(jupiter),
-      t.addRecord(io)
-    ]);
-
-    // reset keyMap to verify that querying records also adds keys
-    keyMap.reset();
-
-    let records = await cache.query((q) => q.findRecords());
-    assert.deepEqual(
-      records,
-      [earth, jupiter, io],
-      'query results are expected'
-    );
-
-    assert.equal(
-      keyMap.keyToId('planet', 'remoteId', 'p1'),
-      'earth',
-      'key has been mapped'
-    );
-    assert.equal(
-      keyMap.keyToId('planet', 'remoteId', 'p2'),
-      'jupiter',
-      'key has been mapped'
-    );
-    assert.equal(
-      keyMap.keyToId('moon', 'remoteId', 'm1'),
-      'io',
-      'key has been mapped'
-    );
-  });
-
-  test('#query - records of one type', async function (assert) {
+  test('#query - records of one type', function (assert) {
     assert.expect(1);
 
     let earth: Record = {
@@ -963,17 +885,17 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) => [
+    cache.update((t) => [
       t.addRecord(earth),
       t.addRecord(jupiter),
       t.addRecord(io)
     ]);
 
-    let records = await cache.query((q) => q.findRecords('planet'));
+    let records = cache.query((q) => q.findRecords('planet'));
     assert.deepEqual(records, [earth, jupiter], 'query results are expected');
   });
 
-  test('#query - records by identity', async function (assert) {
+  test('#query - records by identity', function (assert) {
     assert.expect(1);
 
     let earth: Record = {
@@ -1002,19 +924,19 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) => [
+    cache.update((t) => [
       t.addRecord(earth),
       t.addRecord(jupiter),
       t.addRecord(io)
     ]);
 
-    let records = await cache.query((q) =>
+    let records = cache.query((q) =>
       q.findRecords([earth, io, { type: 'planet', id: 'FAKE' }])
     );
     assert.deepEqual(records, [earth, io], 'only matches are returned');
   });
 
-  test('#query - a specific record', async function (assert) {
+  test('#query - a specific record', function (assert) {
     assert.expect(2);
 
     let earth: Record = {
@@ -1046,7 +968,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    await cache.update((t) => [
+    cache.update((t) => [
       t.addRecord(earth),
       t.addRecord(jupiter),
       t.addRecord(io)
@@ -1055,7 +977,7 @@ module('IndexedDBCache', function (hooks) {
     // reset keyMap to verify that pulling records also adds keys
     keyMap.reset();
 
-    let record = await cache.query((q) => q.findRecord(jupiter));
+    let record = cache.query((q) => q.findRecord(jupiter));
 
     assert.deepEqual(record, jupiter, 'query results are expected');
 
@@ -1063,141 +985,6 @@ module('IndexedDBCache', function (hooks) {
       keyMap.keyToId('planet', 'remoteId', 'p2'),
       'jupiter',
       'key has been mapped'
-    );
-  });
-
-  test('#update tracks refs and clears them from hasOne relationships when a referenced record is removed', async function (assert) {
-    const jupiter: Record = {
-      type: 'planet',
-      id: 'p1',
-      attributes: { name: 'Jupiter' },
-      relationships: { moons: { data: undefined } }
-    };
-    const io: Record = {
-      type: 'moon',
-      id: 'm1',
-      attributes: { name: 'Io' },
-      relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
-    };
-    const europa: Record = {
-      type: 'moon',
-      id: 'm2',
-      attributes: { name: 'Europa' },
-      relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
-    };
-
-    await cache.update((t) => [
-      t.addRecord(jupiter),
-      t.addRecord(io),
-      t.addRecord(europa)
-    ]);
-
-    assert.deepEqual(
-      ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
-        ?.relationships?.planet.data,
-      { type: 'planet', id: 'p1' },
-      'Jupiter has been assigned to Io'
-    );
-    assert.deepEqual(
-      ((await cache.getRecordAsync({ type: 'moon', id: 'm2' })) as Record)
-        ?.relationships?.planet.data,
-      { type: 'planet', id: 'p1' },
-      'Jupiter has been assigned to Europa'
-    );
-
-    await cache.update((t) => t.removeRecord(jupiter));
-
-    assert.equal(
-      await cache.getRecordAsync({ type: 'planet', id: 'p1' }),
-      undefined,
-      'Jupiter is GONE'
-    );
-
-    assert.equal(
-      ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
-        ?.relationships?.planet.data,
-      undefined,
-      'Jupiter has been cleared from Io'
-    );
-    assert.equal(
-      ((await cache.getRecordAsync({ type: 'moon', id: 'm2' })) as Record)
-        ?.relationships?.planet.data,
-      undefined,
-      'Jupiter has been cleared from Europa'
-    );
-  });
-
-  test('#update tracks refs and clears them from hasMany relationships when a referenced record is removed', async function (assert) {
-    const io: Record = {
-      type: 'moon',
-      id: 'm1',
-      attributes: { name: 'Io' },
-      relationships: { planet: { data: null } }
-    };
-    const europa: Record = {
-      type: 'moon',
-      id: 'm2',
-      attributes: { name: 'Europa' },
-      relationships: { planet: { data: null } }
-    };
-    const jupiter: Record = {
-      type: 'planet',
-      id: 'p1',
-      attributes: { name: 'Jupiter' },
-      relationships: {
-        moons: {
-          data: [
-            { type: 'moon', id: 'm1' },
-            { type: 'moon', id: 'm2' }
-          ]
-        }
-      }
-    };
-
-    await cache.update((t) => [
-      t.addRecord(io),
-      t.addRecord(europa),
-      t.addRecord(jupiter)
-    ]);
-
-    assert.deepEqual(
-      ((await cache.getRecordAsync({ type: 'planet', id: 'p1' })) as Record)
-        ?.relationships?.moons.data,
-      [
-        { type: 'moon', id: 'm1' },
-        { type: 'moon', id: 'm2' }
-      ],
-      'Jupiter has been assigned to Io and Europa'
-    );
-    assert.deepEqual(
-      await cache.getRelatedRecordsAsync(jupiter, 'moons'),
-      [
-        { type: 'moon', id: 'm1' },
-        { type: 'moon', id: 'm2' }
-      ],
-      'Jupiter has been assigned to Io and Europa'
-    );
-
-    await cache.update((t) => t.removeRecord(io));
-
-    assert.equal(
-      await cache.getRecordAsync({ type: 'moon', id: 'm1' }),
-      null,
-      'Io is GONE'
-    );
-
-    await cache.update((t) => t.removeRecord(europa));
-
-    assert.equal(
-      await cache.getRecordAsync({ type: 'moon', id: 'm2' }),
-      null,
-      'Europa is GONE'
-    );
-
-    assert.deepEqual(
-      await cache.getRelatedRecordsAsync({ type: 'planet', id: 'p1' }, 'moons'),
-      [],
-      'moons have been cleared from Jupiter'
     );
   });
 });

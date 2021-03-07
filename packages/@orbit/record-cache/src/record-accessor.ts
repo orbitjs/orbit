@@ -42,7 +42,7 @@ export interface SyncRecordAccessor extends BaseRecordAccessor {
     relationship: string
   ): RecordIdentity[] | undefined;
   getInverseRelationshipsSync(
-    record: RecordIdentity
+    recordIdentityOrIdentities: RecordIdentity | RecordIdentity[]
   ): RecordRelationshipIdentity[];
 
   // Setters
@@ -74,7 +74,7 @@ export interface AsyncRecordAccessor extends BaseRecordAccessor {
     relationship: string
   ): Promise<RecordIdentity[] | undefined>;
   getInverseRelationshipsAsync(
-    recordIdentity: RecordIdentity
+    recordIdentityOrIdentities: RecordIdentity | RecordIdentity[]
   ): Promise<RecordRelationshipIdentity[]>;
 
   // Setters
