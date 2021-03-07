@@ -1,7 +1,7 @@
 {
   "name": "@orbit/integration-tests",
   "private": true,
-  "version": "0.17.0-beta.14",
+  "version": "0.17.0-beta.15",
   "description": "Integration tests for core Orbit packages.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -20,7 +20,7 @@
     "@orbit/core": "^0.17.0-beta.14",
     "@orbit/data": "^0.17.0-beta.14",
     "@orbit/immutable": "^0.17.0-beta.14",
-    "@orbit/indexeddb": "^0.17.0-beta.14",
+    "@orbit/indexeddb": "^0.17.0-beta.15",
     "@orbit/indexeddb-bucket": "^0.17.0-beta.14",
     "@orbit/jsonapi": "^0.17.0-beta.14",
     "@orbit/local-storage": "^0.17.0-beta.14",
