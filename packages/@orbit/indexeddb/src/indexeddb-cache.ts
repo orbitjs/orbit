@@ -235,7 +235,7 @@ export class IndexedDBCache extends AsyncRecordCache {
   ): Promise<Record[]> {
     if (!this._db) return Promise.reject(DB_NOT_OPEN);
 
-    if (!typeOrIdentities) {
+    if (typeOrIdentities === undefined) {
       return this._getAllRecords();
     } else if (typeof typeOrIdentities === 'string') {
       const type: string = typeOrIdentities;

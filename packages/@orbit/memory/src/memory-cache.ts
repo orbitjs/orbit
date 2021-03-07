@@ -36,7 +36,20 @@ export class MemoryCache extends SyncRecordCache {
   }
 
   getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[] {
-    if (Array.isArray(typeOrIdentities)) {
+    if (typeOrIdentities === undefined) {
+      const types = Object.keys(this.schema.models);
+      const records: Record[] = [];
+      types.forEach((type) =>
+        Array.prototype.push.apply(
+          records,
+          Array.from(this._records[type].values())
+        )
+      );
+      return records;
+    } else if (typeof typeOrIdentities === 'string') {
+      const type: string = typeOrIdentities;
+      return Array.from(this._records[type].values());
+    } else {
       const records: Record[] = [];
       const identities: RecordIdentity[] = typeOrIdentities;
       for (let identity of identities) {
@@ -46,16 +59,6 @@ export class MemoryCache extends SyncRecordCache {
         }
       }
       return records;
-    } else {
-      const type: string | undefined = typeOrIdentities;
-
-      if (type) {
-        return Array.from(this._records[type].values());
-      } else {
-        throw new Assertion(
-          `MemoryCache does not support getting all records without specifying a 'type'`
-        );
-      }
     }
   }
 

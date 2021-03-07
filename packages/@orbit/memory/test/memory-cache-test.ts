@@ -2290,6 +2290,76 @@ module('MemoryCache', function (hooks) {
     );
   });
 
+  test('#query - all records', function (assert) {
+    assert.expect(4);
+
+    let cache = new MemoryCache({ schema, keyMap });
+
+    let earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      keys: {
+        remoteId: 'p1'
+      },
+      attributes: {
+        name: 'Earth',
+        classification: 'terrestrial'
+      }
+    };
+
+    let jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      keys: {
+        remoteId: 'p2'
+      },
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant'
+      }
+    };
+
+    let io: Record = {
+      type: 'moon',
+      id: 'io',
+      keys: {
+        remoteId: 'm1'
+      },
+      attributes: {
+        name: 'Io'
+      }
+    };
+
+    cache.update((t) => [
+      t.addRecord(earth),
+      t.addRecord(jupiter),
+      t.addRecord(io)
+    ]);
+
+    assert.equal(
+      keyMap.keyToId('planet', 'remoteId', 'p1'),
+      'earth',
+      'key has been mapped'
+    );
+    assert.equal(
+      keyMap.keyToId('planet', 'remoteId', 'p2'),
+      'jupiter',
+      'key has been mapped'
+    );
+    assert.equal(
+      keyMap.keyToId('moon', 'remoteId', 'm1'),
+      'io',
+      'key has been mapped'
+    );
+
+    let records = cache.query((q) => q.findRecords());
+    assert.deepEqual(
+      records,
+      [earth, jupiter, io],
+      'query results are expected'
+    );
+  });
+
   test('#query - findRelatedRecords', function (assert) {
     let cache = new MemoryCache({ schema, keyMap });
 
