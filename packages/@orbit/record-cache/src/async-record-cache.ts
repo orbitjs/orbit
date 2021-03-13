@@ -476,7 +476,10 @@ export abstract class AsyncRecordCache<
       if (primary) {
         response.data?.push(data);
       }
-      response.details?.appliedOperations?.push(operation);
+      if (response.details) {
+        response.details.appliedOperationResults.push(data);
+        response.details.appliedOperations.push(operation);
+      }
 
       // Query and perform related `immediate` operations
       for (let processor of this._processors) {

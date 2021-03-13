@@ -444,6 +444,9 @@ module('MemoryCache', function (hooks) {
               record: { type: 'planet', id: '1', attributes: { name: 'Earth' } }
             }
           ],
+          appliedOperationResults: [
+            { type: 'planet', id: '1', attributes: { name: 'Earth' } }
+          ],
           inverseOperations: [
             { op: 'removeRecord', record: { type: 'planet', id: '1' } }
           ]
@@ -1019,6 +1022,21 @@ module('MemoryCache', function (hooks) {
               })
               .toOperation()
           ],
+          appliedOperationResults: [
+            {
+              type: 'planet',
+              id: '1',
+              attributes: {
+                name: 'Earth',
+                classification: 'terrestrial'
+              },
+              relationships: {
+                moons: {
+                  data: [{ type: 'moon', id: 'm1' }]
+                }
+              }
+            }
+          ],
           inverseOperations: [
             tb
               .updateRecord({
@@ -1062,6 +1080,7 @@ module('MemoryCache', function (hooks) {
         data: undefined,
         details: {
           appliedOperations: [],
+          appliedOperationResults: [],
           inverseOperations: []
         }
       },
@@ -1115,6 +1134,30 @@ module('MemoryCache', function (hooks) {
                 id: '1'
               })
               .toOperation()
+          ],
+          appliedOperationResults: [
+            {
+              type: 'planet',
+              id: '1',
+              attributes: { name: 'Earth' },
+              relationships: {
+                moons: { data: [{ type: 'moon', id: 'm2' }] }
+              }
+            },
+            {
+              type: 'moon',
+              id: 'm1',
+              relationships: {
+                planet: { data: null }
+              }
+            },
+            {
+              type: 'moon',
+              id: 'm2',
+              relationships: {
+                planet: { data: { type: 'planet', id: '1' } }
+              }
+            }
           ],
           inverseOperations: [
             tb
@@ -1177,6 +1220,21 @@ module('MemoryCache', function (hooks) {
             })
             .toOperation()
         ],
+        appliedOperationResults: [
+          earth,
+          {
+            type: 'moon',
+            id: 'm1',
+            relationships: {
+              planet: {
+                data: {
+                  type: 'planet',
+                  id: '1'
+                }
+              }
+            }
+          }
+        ],
         inverseOperations: [
           tb
             .replaceRelatedRecord({ type: 'moon', id: 'm1' }, 'planet', null)
@@ -1214,6 +1272,32 @@ module('MemoryCache', function (hooks) {
               id: '1'
             })
             .toOperation()
+        ],
+        appliedOperationResults: [
+          {
+            type: 'planet',
+            id: '1',
+            attributes: { name: 'Jupiter', classification: 'terrestrial' },
+            relationships: { moons: { data: [{ type: 'moon', id: 'm2' }] } }
+          },
+          {
+            type: 'moon',
+            id: 'm1',
+            relationships: {
+              planet: {
+                data: null
+              }
+            }
+          },
+          {
+            type: 'moon',
+            id: 'm2',
+            relationships: {
+              planet: {
+                data: { type: 'planet', id: '1' }
+              }
+            }
+          }
         ],
         inverseOperations: [
           tb

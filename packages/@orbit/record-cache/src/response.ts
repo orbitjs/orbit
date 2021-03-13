@@ -10,5 +10,6 @@ export interface PatchResult {
 
 export interface RecordCacheUpdateDetails {
   appliedOperations: RecordOperation[];
+  appliedOperationResults: RecordOperationResult[];
   inverseOperations: RecordOperation[];
 }
