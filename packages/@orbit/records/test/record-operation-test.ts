@@ -1,4 +1,8 @@
-import { coalesceRecordOperations, recordDiffs } from '../src/record-operation';
+import {
+  coalesceRecordOperations,
+  recordsReferencedByOperations,
+  recordDiffs
+} from '../src/record-operation';
 
 const { module, test } = QUnit;
 
@@ -1000,6 +1004,97 @@ module('RecordOperation', function () {
           }
         ),
         []
+      );
+    });
+  });
+
+  module('`recordsReferencedByOperations`', function () {
+    test('returns all the records directly referenced by an array of operations (deduped)', function (assert) {
+      const a1 = {
+        type: 'address',
+        id: 'a1',
+        attributes: { street: 'abc' },
+        relationships: {
+          phoneNumbers: {
+            data: [
+              { type: 'phoneNumber', id: 'pn2' },
+              { type: 'phoneNumber', id: 'pn1' }
+            ]
+          }
+        }
+      };
+
+      const a2 = {
+        type: 'address',
+        id: 'a2',
+        attributes: { street: 'abc' },
+        relationships: {
+          phoneNumbers: {
+            data: [
+              { type: 'phoneNumber', id: 'pn3' },
+              { type: 'phoneNumber', id: 'pn1' }
+            ]
+          }
+        }
+      };
+
+      assert.deepEqual(
+        recordsReferencedByOperations([
+          {
+            op: 'addRecord',
+            record: a1
+          },
+          {
+            op: 'updateRecord',
+            record: a2
+          },
+          {
+            op: 'addToRelatedRecords',
+            record: { type: 'address', id: 'a3' },
+            relationship: 'phoneNumbers',
+            relatedRecord: { type: 'phoneNumber', id: 'pn4' }
+          },
+          {
+            op: 'removeFromRelatedRecords',
+            record: { type: 'address', id: 'a4' },
+            relationship: 'phoneNumbers',
+            relatedRecord: { type: 'phoneNumber', id: 'pn5' }
+          },
+          {
+            op: 'replaceRelatedRecords',
+            record: { type: 'address', id: 'a5' },
+            relationship: 'phoneNumbers',
+            relatedRecords: [{ type: 'phoneNumber', id: 'pn6' }]
+          },
+          {
+            op: 'replaceRelatedRecord',
+            record: { type: 'address', id: 'a6' },
+            relationship: 'person',
+            relatedRecord: { type: 'person', id: 'p1' }
+          },
+          {
+            op: 'replaceRelatedRecord',
+            record: { type: 'address', id: 'a7' },
+            relationship: 'person',
+            relatedRecord: null
+          }
+        ]),
+        [
+          a1,
+          { type: 'phoneNumber', id: 'pn2' },
+          { type: 'phoneNumber', id: 'pn1' },
+          a2,
+          { type: 'phoneNumber', id: 'pn3' },
+          { type: 'address', id: 'a3' },
+          { type: 'phoneNumber', id: 'pn4' },
+          { type: 'address', id: 'a4' },
+          { type: 'phoneNumber', id: 'pn5' },
+          { type: 'address', id: 'a5' },
+          { type: 'phoneNumber', id: 'pn6' },
+          { type: 'address', id: 'a6' },
+          { type: 'person', id: 'p1' },
+          { type: 'address', id: 'a7' }
+        ]
       );
     });
   });
