@@ -22,7 +22,8 @@ import {
   RecordTransformResult,
   RecordOperationResult,
   RecordTransform,
-  RecordQuery
+  RecordQuery,
+  recordsReferencedByOperations
 } from '@orbit/records';
 import {
   AsyncOperationProcessor,
@@ -56,6 +57,11 @@ import {
   RecordCacheTransformOptions,
   RecordCacheSettings
 } from './record-cache';
+import {
+  RecordTransformBuffer,
+  RecordTransformBufferClass
+} from './record-transform-buffer';
+import { SyncRecordCacheSettings } from './sync-record-cache';
 
 const { assert, deprecate } = Orbit;
 
@@ -68,6 +74,11 @@ export interface AsyncRecordCacheSettings<
   transformOperators?: Dict<AsyncTransformOperator>;
   inverseTransformOperators?: Dict<AsyncInverseTransformOperator>;
   debounceLiveQueries?: boolean;
+  transformBufferClass?: RecordTransformBufferClass;
+  transformBufferSettings?: SyncRecordCacheSettings<
+    QueryOptions,
+    TransformOptions
+  >;
 }
 
 export abstract class AsyncRecordCache<
@@ -81,6 +92,12 @@ export abstract class AsyncRecordCache<
   protected _transformOperators: Dict<AsyncTransformOperator>;
   protected _inverseTransformOperators: Dict<AsyncInverseTransformOperator>;
   protected _debounceLiveQueries: boolean;
+  protected _transformBuffer?: RecordTransformBuffer;
+  protected _transformBufferClass?: RecordTransformBufferClass;
+  protected _transformBufferSettings?: SyncRecordCacheSettings<
+    QueryOptions,
+    TransformOptions
+  >;
 
   constructor(
     settings: AsyncRecordCacheSettings<QueryOptions, TransformOptions>
@@ -373,43 +390,104 @@ export abstract class AsyncRecordCache<
   ): Promise<
     FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>
   > {
-    const response = {
-      data: []
-    } as FullResponse<
-      RecordOperationResult[],
-      RecordCacheUpdateDetails,
-      RecordOperation
-    >;
+    if (this.getTransformOptions(transform)?.useBuffer) {
+      const buffer = await this._initTransformBuffer(transform);
 
-    if (options?.fullResponse) {
-      response.details = {
-        appliedOperations: [],
-        inverseOperations: []
-      };
-    }
+      buffer.startTrackingChanges();
 
-    await this._applyTransformOperations(
-      transform,
-      transform.operations,
-      response,
-      true
-    );
+      const response = buffer.update(transform, {
+        fullResponse: true
+      });
 
-    let data: RecordTransformResult;
-    if (transform.operations.length === 1 && Array.isArray(response.data)) {
-      data = response.data[0];
+      const changes = buffer.stopTrackingChanges();
+
+      await this.applyRecordChangesetAsync(changes);
+
+      const {
+        appliedOperations,
+        appliedOperationResults
+      } = response.details as RecordCacheUpdateDetails;
+
+      for (let i = 0, len = appliedOperations.length; i < len; i++) {
+        this.emit('patch', appliedOperations[i], appliedOperationResults[i]);
+      }
+
+      return response as FullResponse<
+        RequestData,
+        RecordCacheUpdateDetails,
+        RecordOperation
+      >;
     } else {
-      data = response.data;
-    }
+      const response = {
+        data: []
+      } as FullResponse<
+        RecordOperationResult[],
+        RecordCacheUpdateDetails,
+        RecordOperation
+      >;
 
-    if (options?.fullResponse) {
-      response.details?.inverseOperations.reverse();
-    }
+      if (options?.fullResponse) {
+        response.details = {
+          appliedOperations: [],
+          appliedOperationResults: [],
+          inverseOperations: []
+        };
+      }
 
-    return {
-      ...response,
-      data
-    } as FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>;
+      await this._applyTransformOperations(
+        transform,
+        transform.operations,
+        response,
+        true
+      );
+      let data: RecordTransformResult;
+      if (transform.operations.length === 1 && Array.isArray(response.data)) {
+        data = response.data[0];
+      } else {
+        data = response.data;
+      }
+
+      if (options?.fullResponse) {
+        response.details?.inverseOperations.reverse();
+      }
+
+      return {
+        ...response,
+        data
+      } as FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>;
+    }
+  }
+
+  protected _getTransformBuffer(): RecordTransformBuffer {
+    if (this._transformBuffer === undefined) {
+      let transformBufferClass =
+        this._transformBufferClass ?? RecordTransformBuffer;
+      let settings = this._transformBufferSettings ?? { schema: this.schema };
+      settings.schema = settings.schema ?? this.schema;
+      settings.keyMap = settings.keyMap ?? this.keyMap;
+      this._transformBuffer = new transformBufferClass(settings);
+    } else {
+      this._transformBuffer.reset();
+    }
+    return this._transformBuffer;
+  }
+
+  protected async _initTransformBuffer(
+    transform: RecordTransform
+  ): Promise<RecordTransformBuffer> {
+    const buffer = this._getTransformBuffer();
+
+    const records = recordsReferencedByOperations(transform.operations);
+    const inverseRelationships = await this.getInverseRelationshipsAsync(
+      records
+    );
+    const relatedRecords = inverseRelationships.map((ir) => ir.record);
+    Array.prototype.push.apply(records, relatedRecords);
+
+    buffer.setRecordsSync(await this.getRecordsAsync(records));
+    buffer.addInverseRelationshipsSync(inverseRelationships);
+
+    return buffer;
   }
 
   protected async _applyTransformOperations(

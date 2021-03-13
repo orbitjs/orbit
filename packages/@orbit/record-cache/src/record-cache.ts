@@ -22,6 +22,7 @@ export interface RecordCacheQueryOptions extends RequestOptions {
 
 export interface RecordCacheTransformOptions extends RequestOptions {
   raiseNotFoundExceptions?: boolean;
+  useBuffer?: boolean;
 }
 
 export interface RecordCacheSettings<
