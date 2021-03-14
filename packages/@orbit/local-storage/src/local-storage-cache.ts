@@ -12,6 +12,10 @@ export interface LocalStorageCacheSettings extends SyncRecordCacheSettings {
   namespace?: string;
 }
 
+export interface LocalStorageCacheClass {
+  new (settings: LocalStorageCacheSettings): LocalStorageCache;
+}
+
 /**
  * A cache used to access records in local storage.
  *

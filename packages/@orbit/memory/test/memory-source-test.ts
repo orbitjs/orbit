@@ -14,6 +14,7 @@ import {
   RecordTransformBuilder
 } from '@orbit/records';
 import { clone } from '@orbit/utils';
+import { MemoryCache } from '../src/memory-cache';
 import { MemorySource } from '../src/memory-source';
 
 const { module, test } = QUnit;
@@ -98,6 +99,22 @@ module('MemorySource', function (hooks) {
 
     assert.ok(source.cache, 'cache exists');
     assert.equal(source.cache.processors.length, 2, 'cache has 2 processors');
+  });
+
+  test('can be assigned a custom `cacheClass`', function (assert) {
+    class CustomCache extends MemoryCache {
+      custom = true;
+    }
+
+    const source = new MemorySource({
+      schema,
+      autoActivate: false,
+      cacheClass: CustomCache
+    });
+    assert.ok(
+      (source.cache as CustomCache).custom,
+      'custom cacheClass has been instantiated'
+    );
   });
 
   test('shares its `transformBuilder` and `queryBuilder` with its cache', function (assert) {

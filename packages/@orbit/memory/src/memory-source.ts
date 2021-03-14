@@ -26,10 +26,15 @@ import {
 } from '@orbit/data';
 import { ResponseHints } from '@orbit/data';
 import { Dict } from '@orbit/utils';
-import { MemoryCache, MemoryCacheSettings } from './memory-cache';
+import {
+  MemoryCache,
+  MemoryCacheClass,
+  MemoryCacheSettings
+} from './memory-cache';
 
 export interface MemorySourceSettings extends RecordSourceSettings {
   base?: MemorySource;
+  cacheClass?: MemoryCacheClass;
   cacheSettings?: Partial<MemoryCacheSettings>;
 }
 
@@ -87,7 +92,8 @@ export class MemorySource extends RecordSource {
       cacheSettings.base = this._base.cache;
     }
 
-    this._cache = new MemoryCache(cacheSettings as MemoryCacheSettings);
+    const cacheClass = settings.cacheClass ?? MemoryCache;
+    this._cache = new cacheClass(cacheSettings as MemoryCacheSettings);
   }
 
   get cache(): MemoryCache {

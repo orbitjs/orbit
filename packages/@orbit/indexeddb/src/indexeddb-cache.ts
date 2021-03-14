@@ -30,6 +30,10 @@ export interface IndexedDBCacheSettings extends AsyncRecordCacheSettings {
   namespace?: string;
 }
 
+export interface IndexedDBCacheClass {
+  new (settings: IndexedDBCacheSettings): IndexedDBCache;
+}
+
 /**
  * A cache used to access records in an IndexedDB database.
  *

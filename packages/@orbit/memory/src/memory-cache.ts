@@ -11,6 +11,10 @@ export interface MemoryCacheSettings extends SyncRecordCacheSettings {
   base?: MemoryCache;
 }
 
+export interface MemoryCacheClass {
+  new (settings: MemoryCacheSettings): MemoryCache;
+}
+
 /**
  * A cache used to access records in memory.
  *
