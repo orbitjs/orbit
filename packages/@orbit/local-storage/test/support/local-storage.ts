@@ -1,9 +1,10 @@
 import { Orbit } from '@orbit/core';
 import { Record } from '@orbit/records';
 import { LocalStorageSource } from '../../src/local-storage-source';
+import { LocalStorageCache } from '../../src/local-storage-cache';
 
 export function getRecordFromLocalStorage(
-  source: LocalStorageSource,
+  source: LocalStorageSource | LocalStorageCache,
   record: Record
 ): Record {
   const recordKey = [source.namespace, record.type, record.id].join(

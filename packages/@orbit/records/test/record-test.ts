@@ -7,7 +7,8 @@ import {
   recordsIncludeAll,
   deserializeRecordIdentity,
   serializeRecordIdentity,
-  mergeRecords
+  mergeRecords,
+  dedupeRecordIdentities
 } from '../src/record';
 
 const { module, test } = QUnit;
@@ -153,6 +154,30 @@ module('Record', function () {
       ),
       [],
       'unequal sets 2'
+    );
+  });
+
+  test('`dedupeRecordIdentities` returns a deduped array of record identities', function (assert) {
+    assert.deepEqual(dedupeRecordIdentities([]), [], 'empty sets are equal');
+    assert.deepEqual(
+      dedupeRecordIdentities([{ type: 'planet', id: 'p1' }]),
+      [{ type: 'planet', id: 'p1' }],
+      'equal sets with one member'
+    );
+    assert.deepEqual(
+      dedupeRecordIdentities([
+        { type: 'moon', id: 'm1' },
+        { type: 'planet', id: 'p1' },
+        { type: 'moon', id: 'm1' },
+        { type: 'moon', id: 'm2' },
+        { type: 'planet', id: 'p1' }
+      ]),
+      [
+        { type: 'moon', id: 'm1' },
+        { type: 'planet', id: 'p1' },
+        { type: 'moon', id: 'm2' }
+      ],
+      'equal sets with two members out of order'
     );
   });
 

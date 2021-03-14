@@ -81,13 +81,28 @@ export class ExampleSyncRecordCache extends SyncRecordCache {
   }
 
   getInverseRelationshipsSync(
+    recordIdentityOrIdentities: RecordIdentity | RecordIdentity[]
+  ): RecordRelationshipIdentity[] {
+    if (Array.isArray(recordIdentityOrIdentities)) {
+      let inverseRelationships: RecordRelationshipIdentity[] = [];
+      recordIdentityOrIdentities.forEach((record) => {
+        let rirs = this._getInverseRelationships(record);
+        Array.prototype.push.apply(inverseRelationships, rirs);
+      });
+      return inverseRelationships;
+    } else {
+      return this._getInverseRelationships(recordIdentityOrIdentities);
+    }
+  }
+
+  _getInverseRelationships(
     recordIdentity: RecordIdentity
   ): RecordRelationshipIdentity[] {
     return (
       deepGet(this._inverseRelationships, [
         recordIdentity.type,
         recordIdentity.id
-      ]) || []
+      ]) ?? []
     );
   }
 

@@ -87,13 +87,28 @@ export class ExampleAsyncRecordCache extends AsyncRecordCache {
   }
 
   async getInverseRelationshipsAsync(
-    recordIdentity: RecordIdentity
+    recordIdentityOrIdentities: RecordIdentity | RecordIdentity[]
   ): Promise<RecordRelationshipIdentity[]> {
+    if (Array.isArray(recordIdentityOrIdentities)) {
+      let inverseRelationships: RecordRelationshipIdentity[] = [];
+      recordIdentityOrIdentities.forEach((record) => {
+        let rirs = this._getInverseRelationships(record);
+        Array.prototype.push.apply(inverseRelationships, rirs);
+      });
+      return inverseRelationships;
+    } else {
+      return this._getInverseRelationships(recordIdentityOrIdentities);
+    }
+  }
+
+  _getInverseRelationships(
+    recordIdentity: RecordIdentity
+  ): RecordRelationshipIdentity[] {
     return (
       deepGet(this._inverseRelationships, [
         recordIdentity.type,
         recordIdentity.id
-      ]) || []
+      ]) ?? []
     );
   }
 

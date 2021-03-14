@@ -8,14 +8,14 @@ import {
   RecordSchema,
   RecordNotFoundException
 } from '@orbit/records';
-import { ExampleAsyncRecordCache } from './support/example-async-record-cache';
+import { IndexedDBCache } from '../src/indexeddb-cache';
 import { createSchemaWithRemoteKey } from './support/setup';
 
 const { module, test } = QUnit;
 
 QUnit.dump.maxDepth = 7;
 
-module('AsyncRecordCache - update', function (hooks) {
+module('IndexedDBCache - update', function (hooks) {
   let schema: RecordSchema, keyMap: RecordKeyMap;
 
   [true, false].forEach((useBuffer) => {
@@ -28,15 +28,22 @@ module('AsyncRecordCache - update', function (hooks) {
       });
 
       module('with standard schema', function (hooks) {
-        let cache: ExampleAsyncRecordCache;
+        let cache: IndexedDBCache;
 
-        hooks.beforeEach(function () {
+        hooks.beforeEach(async function () {
           schema = createSchemaWithRemoteKey();
-          cache = new ExampleAsyncRecordCache({
+          cache = new IndexedDBCache({
             schema,
             keyMap,
             defaultTransformOptions
           });
+          await cache.openDB();
+        });
+
+        hooks.afterEach(async () => {
+          if (cache) {
+            await cache.deleteDB();
+          }
         });
 
         test('#update sets data and #records retrieves it', async function (assert) {
@@ -59,10 +66,10 @@ module('AsyncRecordCache - update', function (hooks) {
 
           await cache.update((t) => t.addRecord(earth));
 
-          assert.strictEqual(
+          assert.deepEqual(
             await cache.getRecordAsync({ type: 'planet', id: '1' }),
             earth,
-            'objects strictly match'
+            'objects match'
           );
           assert.equal(
             keyMap.keyToId('planet', 'remoteId', 'a'),
@@ -1768,6 +1775,14 @@ module('AsyncRecordCache - update', function (hooks) {
       });
 
       module('with alt schema', function (hooks) {
+        let cache: IndexedDBCache;
+
+        hooks.afterEach(async () => {
+          if (cache) {
+            await cache.deleteDB();
+          }
+        });
+
         test('#update removing model with a bi-directional hasOne', async function (assert) {
           assert.expect(5);
 
@@ -1786,11 +1801,12 @@ module('AsyncRecordCache - update', function (hooks) {
             }
           });
 
-          const cache = new ExampleAsyncRecordCache({
+          cache = new IndexedDBCache({
             schema: hasOneSchema,
             keyMap,
             defaultTransformOptions
           });
+          await cache.openDB();
 
           await cache.update((t) => [
             t.addRecord({
@@ -1860,11 +1876,12 @@ module('AsyncRecordCache - update', function (hooks) {
             }
           });
 
-          const cache = new ExampleAsyncRecordCache({
+          cache = new IndexedDBCache({
             schema: dependentSchema,
             keyMap,
             defaultTransformOptions
           });
+          await cache.openDB();
 
           const jupiter: Record = {
             type: 'planet',
@@ -1922,11 +1939,12 @@ module('AsyncRecordCache - update', function (hooks) {
             }
           });
 
-          const cache = new ExampleAsyncRecordCache({
+          cache = new IndexedDBCache({
             schema: dependentSchema,
             keyMap,
             defaultTransformOptions
           });
+          await cache.openDB();
 
           const jupiter: Record = {
             type: 'planet',
@@ -1984,11 +2002,12 @@ module('AsyncRecordCache - update', function (hooks) {
             }
           });
 
-          const cache = new ExampleAsyncRecordCache({
+          cache = new IndexedDBCache({
             schema: dependentSchema,
             keyMap,
             defaultTransformOptions
           });
+          await cache.openDB();
 
           const jupiter: Record = {
             type: 'planet',

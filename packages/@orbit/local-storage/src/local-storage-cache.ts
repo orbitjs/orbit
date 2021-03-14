@@ -1,5 +1,4 @@
 /* eslint-disable valid-jsdoc */
-import { isNone } from '@orbit/utils';
 import { Orbit } from '@orbit/core';
 import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/records';
 import {
@@ -67,25 +66,21 @@ export class LocalStorageCache extends SyncRecordCache {
   getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[] {
     const records: Record[] = [];
 
-    if (Array.isArray(typeOrIdentities)) {
-      const identities: RecordIdentity[] = typeOrIdentities;
-      for (let identity of identities) {
-        let record = this.getRecordSync(identity);
-        if (record) {
-          records.push(record);
-        }
-      }
-    } else {
+    if (
+      typeOrIdentities === undefined ||
+      typeof typeOrIdentities === 'string'
+    ) {
       const type: string | undefined = typeOrIdentities;
-
       for (let key in Orbit.globals.localStorage) {
         if (key.indexOf(this.namespace + this.delimiter) === 0) {
-          let typesMatch = isNone(type);
+          let typesMatch = type === undefined;
 
           if (!typesMatch) {
             let fragments = key.split(this.delimiter);
             let recordType = fragments[1];
-            typesMatch = recordType === type;
+            typesMatch =
+              recordType === type &&
+              this.schema.models[recordType] !== undefined;
           }
 
           if (typesMatch) {
@@ -97,6 +92,14 @@ export class LocalStorageCache extends SyncRecordCache {
 
             records.push(record);
           }
+        }
+      }
+    } else {
+      const identities: RecordIdentity[] = typeOrIdentities;
+      for (let identity of identities) {
+        let record = this.getRecordSync(identity);
+        if (record) {
+          records.push(record);
         }
       }
     }
@@ -145,16 +148,25 @@ export class LocalStorageCache extends SyncRecordCache {
   }
 
   getInverseRelationshipsSync(
-    recordIdentity: RecordIdentity
+    recordIdentityOrIdentities: RecordIdentity | RecordIdentity[]
   ): RecordRelationshipIdentity[] {
-    const key = this.getKeyForRecordInverses(recordIdentity);
-    const item = Orbit.globals.localStorage.getItem(key);
+    const results: RecordRelationshipIdentity[] = [];
+    const identities: RecordIdentity[] = Array.isArray(
+      recordIdentityOrIdentities
+    )
+      ? recordIdentityOrIdentities
+      : [recordIdentityOrIdentities];
 
-    if (item) {
-      return JSON.parse(item);
+    for (let identity of identities) {
+      const key = this.getKeyForRecordInverses(identity);
+      const item = Orbit.globals.localStorage.getItem(key);
+
+      if (item) {
+        Array.prototype.push.apply(results, JSON.parse(item));
+      }
     }
 
-    return [];
+    return results;
   }
 
   addInverseRelationshipsSync(

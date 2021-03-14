@@ -5,7 +5,8 @@ import {
   RecordIdentity,
   cloneRecordIdentity,
   equalRecordIdentities,
-  mergeRecords
+  mergeRecords,
+  dedupeRecordIdentities
 } from './record';
 
 /**
@@ -507,4 +508,49 @@ export function recordDiffs(
   }
 
   return ops;
+}
+
+/**
+ * Returns the deduped identities of all the records directly referenced by an
+ * array of operations.
+ */
+export function recordsReferencedByOperations(
+  operations: RecordOperation[]
+): RecordIdentity[] {
+  const records = [];
+
+  for (let operation of operations) {
+    if (operation.record) {
+      records.push(operation.record);
+
+      if (operation.op === 'addRecord' || operation.op === 'updateRecord') {
+        let record = operation.record;
+        if (record.relationships) {
+          for (let relName in record.relationships) {
+            let rel = record.relationships[relName];
+            if (rel?.data) {
+              if (Array.isArray(rel.data)) {
+                Array.prototype.push.apply(records, rel.data);
+              } else {
+                records.push(rel.data);
+              }
+            }
+          }
+        }
+      }
+    }
+    if (
+      operation.op === 'addToRelatedRecords' ||
+      operation.op === 'removeFromRelatedRecords' ||
+      operation.op === 'replaceRelatedRecord'
+    ) {
+      if (operation.relatedRecord) {
+        records.push(operation.relatedRecord);
+      }
+    } else if (operation.op === 'replaceRelatedRecords') {
+      Array.prototype.push.apply(records, operation.relatedRecords);
+    }
+  }
+
+  return dedupeRecordIdentities(records);
 }

@@ -254,6 +254,172 @@ module('MemoryCache', function (hooks) {
     );
   });
 
+  test('sets/gets records individually', function (assert) {
+    const cache = new MemoryCache({ schema, keyMap });
+    const jupiter = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: { name: 'Jupiter' }
+    };
+    const io = { type: 'moon', id: 'io', attributes: { name: 'Io' } };
+    const europa = {
+      type: 'moon',
+      id: 'europa',
+      attributes: { name: 'Europa' }
+    };
+
+    cache.setRecordSync(jupiter);
+    cache.setRecordSync(io);
+    cache.setRecordSync(europa);
+
+    assert.deepEqual(cache.getRecordSync(jupiter), jupiter);
+    assert.deepEqual(cache.getRecordSync(io), io);
+    assert.deepEqual(cache.getRecordSync(europa), europa);
+
+    cache.removeRecordSync(jupiter);
+    cache.removeRecordSync(io);
+    cache.removeRecordSync(europa);
+
+    assert.deepEqual(cache.getRecordSync(jupiter), undefined);
+    assert.deepEqual(cache.getRecordSync(io), undefined);
+    assert.deepEqual(cache.getRecordSync(europa), undefined);
+  });
+
+  test('sets/gets records in bulk', function (assert) {
+    const cache = new MemoryCache({ schema, keyMap });
+    const jupiter = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: { name: 'Jupiter' }
+    };
+    const io = { type: 'moon', id: 'io', attributes: { name: 'Io' } };
+    const europa = {
+      type: 'moon',
+      id: 'europa',
+      attributes: { name: 'Europa' }
+    };
+
+    cache.setRecordsSync([jupiter, io, europa]);
+
+    assert.deepEqual(cache.getRecordsSync([jupiter, io, europa]), [
+      jupiter,
+      io,
+      europa
+    ]);
+
+    cache.removeRecordsSync([jupiter, io, europa]);
+
+    assert.deepEqual(cache.getRecordsSync([jupiter, io, europa]), []);
+  });
+
+  test('sets/gets inverse relationships for a single record', function (assert) {
+    const cache = new MemoryCache({ schema, keyMap });
+    const jupiter = { type: 'planet', id: 'jupiter' };
+    const io = { type: 'moon', id: 'io' };
+    const europa = { type: 'moon', id: 'europa' };
+    const callisto = { type: 'moon', id: 'callisto' };
+
+    const earth = { type: 'planet', id: 'earth' };
+    const earthMoon = { type: 'moon', id: 'earthMoon' };
+
+    assert.deepEqual(
+      cache.getInverseRelationshipsSync(jupiter),
+      [],
+      'no inverse relationships to start'
+    );
+
+    cache.addInverseRelationshipsSync([
+      { record: callisto, relationship: 'planet', relatedRecord: jupiter },
+      { record: earthMoon, relationship: 'planet', relatedRecord: earth },
+      { record: europa, relationship: 'planet', relatedRecord: jupiter },
+      { record: io, relationship: 'planet', relatedRecord: jupiter }
+    ]);
+
+    assert.deepEqual(
+      cache.getInverseRelationshipsSync(jupiter),
+      [
+        { record: callisto, relationship: 'planet', relatedRecord: jupiter },
+        { record: europa, relationship: 'planet', relatedRecord: jupiter },
+        { record: io, relationship: 'planet', relatedRecord: jupiter }
+      ],
+      'inverse relationships have been added'
+    );
+
+    assert.deepEqual(
+      cache.getInverseRelationshipsSync(earth),
+      [{ record: earthMoon, relationship: 'planet', relatedRecord: earth }],
+      'inverse relationships have been added'
+    );
+
+    cache.removeInverseRelationshipsSync([
+      { record: callisto, relationship: 'planet', relatedRecord: jupiter },
+      { record: earthMoon, relationship: 'planet', relatedRecord: earth },
+      { record: europa, relationship: 'planet', relatedRecord: jupiter },
+      { record: io, relationship: 'planet', relatedRecord: jupiter }
+    ]);
+
+    assert.deepEqual(
+      cache.getInverseRelationshipsSync(jupiter),
+      [],
+      'inverse relationships have been removed'
+    );
+
+    assert.deepEqual(
+      cache.getInverseRelationshipsSync(earth),
+      [],
+      'inverse relationships have been removed'
+    );
+  });
+
+  test('sets/gets inverse relationships for a multiple records', function (assert) {
+    const cache = new MemoryCache({ schema, keyMap });
+
+    const jupiter = { type: 'planet', id: 'jupiter' };
+    const io = { type: 'moon', id: 'io' };
+    const europa = { type: 'moon', id: 'europa' };
+    const callisto = { type: 'moon', id: 'callisto' };
+
+    const earth = { type: 'planet', id: 'earth' };
+    const earthMoon = { type: 'moon', id: 'earthMoon' };
+
+    assert.deepEqual(
+      cache.getInverseRelationshipsSync([jupiter, earth]),
+      [],
+      'no inverse relationships to start'
+    );
+
+    cache.addInverseRelationshipsSync([
+      { record: callisto, relationship: 'planet', relatedRecord: jupiter },
+      { record: europa, relationship: 'planet', relatedRecord: jupiter },
+      { record: io, relationship: 'planet', relatedRecord: jupiter },
+      { record: earthMoon, relationship: 'planet', relatedRecord: earth }
+    ]);
+
+    assert.deepEqual(
+      cache.getInverseRelationshipsSync([jupiter, earth]),
+      [
+        { record: callisto, relationship: 'planet', relatedRecord: jupiter },
+        { record: europa, relationship: 'planet', relatedRecord: jupiter },
+        { record: io, relationship: 'planet', relatedRecord: jupiter },
+        { record: earthMoon, relationship: 'planet', relatedRecord: earth }
+      ],
+      'inverse relationships have been added'
+    );
+
+    cache.removeInverseRelationshipsSync([
+      { record: callisto, relationship: 'planet', relatedRecord: jupiter },
+      { record: europa, relationship: 'planet', relatedRecord: jupiter },
+      { record: io, relationship: 'planet', relatedRecord: jupiter },
+      { record: earthMoon, relationship: 'planet', relatedRecord: earth }
+    ]);
+
+    assert.deepEqual(
+      cache.getInverseRelationshipsSync([jupiter, earth]),
+      [],
+      'inverse relationships have been removed'
+    );
+  });
+
   test('#update can return a full response that includes applied and inverse ops', function (assert) {
     let cache = new MemoryCache({ schema, keyMap });
 
@@ -277,6 +443,9 @@ module('MemoryCache', function (hooks) {
               op: 'addRecord',
               record: { type: 'planet', id: '1', attributes: { name: 'Earth' } }
             }
+          ],
+          appliedOperationResults: [
+            { type: 'planet', id: '1', attributes: { name: 'Earth' } }
           ],
           inverseOperations: [
             { op: 'removeRecord', record: { type: 'planet', id: '1' } }
@@ -853,6 +1022,21 @@ module('MemoryCache', function (hooks) {
               })
               .toOperation()
           ],
+          appliedOperationResults: [
+            {
+              type: 'planet',
+              id: '1',
+              attributes: {
+                name: 'Earth',
+                classification: 'terrestrial'
+              },
+              relationships: {
+                moons: {
+                  data: [{ type: 'moon', id: 'm1' }]
+                }
+              }
+            }
+          ],
           inverseOperations: [
             tb
               .updateRecord({
@@ -896,6 +1080,7 @@ module('MemoryCache', function (hooks) {
         data: undefined,
         details: {
           appliedOperations: [],
+          appliedOperationResults: [],
           inverseOperations: []
         }
       },
@@ -949,6 +1134,30 @@ module('MemoryCache', function (hooks) {
                 id: '1'
               })
               .toOperation()
+          ],
+          appliedOperationResults: [
+            {
+              type: 'planet',
+              id: '1',
+              attributes: { name: 'Earth' },
+              relationships: {
+                moons: { data: [{ type: 'moon', id: 'm2' }] }
+              }
+            },
+            {
+              type: 'moon',
+              id: 'm1',
+              relationships: {
+                planet: { data: null }
+              }
+            },
+            {
+              type: 'moon',
+              id: 'm2',
+              relationships: {
+                planet: { data: { type: 'planet', id: '1' } }
+              }
+            }
           ],
           inverseOperations: [
             tb
@@ -1011,6 +1220,21 @@ module('MemoryCache', function (hooks) {
             })
             .toOperation()
         ],
+        appliedOperationResults: [
+          earth,
+          {
+            type: 'moon',
+            id: 'm1',
+            relationships: {
+              planet: {
+                data: {
+                  type: 'planet',
+                  id: '1'
+                }
+              }
+            }
+          }
+        ],
         inverseOperations: [
           tb
             .replaceRelatedRecord({ type: 'moon', id: 'm1' }, 'planet', null)
@@ -1048,6 +1272,32 @@ module('MemoryCache', function (hooks) {
               id: '1'
             })
             .toOperation()
+        ],
+        appliedOperationResults: [
+          {
+            type: 'planet',
+            id: '1',
+            attributes: { name: 'Jupiter', classification: 'terrestrial' },
+            relationships: { moons: { data: [{ type: 'moon', id: 'm2' }] } }
+          },
+          {
+            type: 'moon',
+            id: 'm1',
+            relationships: {
+              planet: {
+                data: null
+              }
+            }
+          },
+          {
+            type: 'moon',
+            id: 'm2',
+            relationships: {
+              planet: {
+                data: { type: 'planet', id: '1' }
+              }
+            }
+          }
         ],
         inverseOperations: [
           tb
@@ -2121,6 +2371,76 @@ module('MemoryCache', function (hooks) {
         q.findRecords('planet').sort('name').page({ offset: 1, limit: 2 })
       ),
       [jupiter, mars]
+    );
+  });
+
+  test('#query - all records', function (assert) {
+    assert.expect(4);
+
+    let cache = new MemoryCache({ schema, keyMap });
+
+    let earth: Record = {
+      type: 'planet',
+      id: 'earth',
+      keys: {
+        remoteId: 'p1'
+      },
+      attributes: {
+        name: 'Earth',
+        classification: 'terrestrial'
+      }
+    };
+
+    let jupiter: Record = {
+      type: 'planet',
+      id: 'jupiter',
+      keys: {
+        remoteId: 'p2'
+      },
+      attributes: {
+        name: 'Jupiter',
+        classification: 'gas giant'
+      }
+    };
+
+    let io: Record = {
+      type: 'moon',
+      id: 'io',
+      keys: {
+        remoteId: 'm1'
+      },
+      attributes: {
+        name: 'Io'
+      }
+    };
+
+    cache.update((t) => [
+      t.addRecord(earth),
+      t.addRecord(jupiter),
+      t.addRecord(io)
+    ]);
+
+    assert.equal(
+      keyMap.keyToId('planet', 'remoteId', 'p1'),
+      'earth',
+      'key has been mapped'
+    );
+    assert.equal(
+      keyMap.keyToId('planet', 'remoteId', 'p2'),
+      'jupiter',
+      'key has been mapped'
+    );
+    assert.equal(
+      keyMap.keyToId('moon', 'remoteId', 'm1'),
+      'io',
+      'key has been mapped'
+    );
+
+    let records = cache.query((q) => q.findRecords());
+    assert.deepEqual(
+      records,
+      [earth, jupiter, io],
+      'query results are expected'
     );
   });
 

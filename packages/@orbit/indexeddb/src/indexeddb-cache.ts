@@ -235,7 +235,7 @@ export class IndexedDBCache extends AsyncRecordCache {
   ): Promise<Record[]> {
     if (!this._db) return Promise.reject(DB_NOT_OPEN);
 
-    if (!typeOrIdentities) {
+    if (typeOrIdentities === undefined) {
       return this._getAllRecords();
     } else if (typeof typeOrIdentities === 'string') {
       const type: string = typeOrIdentities;
@@ -408,20 +408,16 @@ export class IndexedDBCache extends AsyncRecordCache {
   }
 
   getInverseRelationshipsAsync(
-    recordIdentity: RecordIdentity
+    recordIdentityOrIdentities: RecordIdentity | RecordIdentity[]
   ): Promise<RecordRelationshipIdentity[]> {
-    // console.log('getInverseRelationshipsAsync', recordIdentity);
+    // console.log('getInverseRelationshipsAsync', recordIdentityOrIdentities);
 
     return new Promise((resolve, reject) => {
       if (!this._db) return reject(DB_NOT_OPEN);
 
+      const results: RecordRelationshipIdentity[] = [];
       const transaction = this._db.transaction([INVERSE_RELS]);
       const objectStore = transaction.objectStore(INVERSE_RELS);
-      const results: RecordRelationshipIdentity[] = [];
-      const keyRange = Orbit.globals.IDBKeyRange.only(
-        serializeRecordIdentity(recordIdentity)
-      );
-
       let index;
       try {
         index = objectStore.index('relatedIdentity');
@@ -434,20 +430,37 @@ export class IndexedDBCache extends AsyncRecordCache {
         return;
       }
 
-      const request = index.openCursor(keyRange);
+      const identities: RecordIdentity[] = Array.isArray(
+        recordIdentityOrIdentities
+      )
+        ? recordIdentityOrIdentities
+        : [recordIdentityOrIdentities];
 
-      request.onsuccess = (event: any) => {
-        const cursor = event.target.result;
-        if (cursor) {
-          let result = this._fromInverseRelationshipForIDB(cursor.value);
-          results.push(result);
-          cursor.continue();
-        } else {
-          resolve(results);
-        }
-      };
+      const len = identities.length;
+      let completed = 0;
+      for (let i = 0; i < len; i++) {
+        const identity = identities[i];
+        const keyRange = Orbit.globals.IDBKeyRange.only(
+          serializeRecordIdentity(identity)
+        );
+        const request = index.openCursor(keyRange);
 
-      request.onerror = () => reject(request.error);
+        request.onsuccess = (event: any) => {
+          const cursor = event.target.result;
+          if (cursor) {
+            let result = this._fromInverseRelationshipForIDB(cursor.value);
+            results.push(result);
+            cursor.continue();
+          } else {
+            completed += 1;
+            if (completed === len) {
+              resolve(results);
+            }
+          }
+        };
+
+        request.onerror = () => reject(request.error);
+      }
     });
   }
 

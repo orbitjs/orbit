@@ -21,7 +21,9 @@ import {
   RecordTransformBuilderFunc,
   RecordTransformResult,
   RecordOperationResult,
-  RecordTransform
+  RecordTransform,
+  RecordQuery,
+  recordsReferencedByOperations
 } from '@orbit/records';
 import {
   SyncOperationProcessor,
@@ -44,7 +46,8 @@ import {
 } from './operators/sync-inverse-transform-operators';
 import {
   SyncRecordAccessor,
-  RecordRelationshipIdentity
+  RecordRelationshipIdentity,
+  RecordChangeset
 } from './record-accessor';
 import { PatchResult, RecordCacheUpdateDetails } from './response';
 import { SyncLiveQuery } from './live-query/sync-live-query';
@@ -54,6 +57,10 @@ import {
   RecordCacheTransformOptions,
   RecordCacheSettings
 } from './record-cache';
+import {
+  RecordTransformBuffer,
+  RecordTransformBufferClass
+} from './record-transform-buffer';
 
 const { assert, deprecate } = Orbit;
 
@@ -66,6 +73,11 @@ export interface SyncRecordCacheSettings<
   transformOperators?: Dict<SyncTransformOperator>;
   inverseTransformOperators?: Dict<SyncInverseTransformOperator>;
   debounceLiveQueries?: boolean;
+  transformBufferClass?: RecordTransformBufferClass;
+  transformBufferSettings?: SyncRecordCacheSettings<
+    QueryOptions,
+    TransformOptions
+  >;
 }
 
 export abstract class SyncRecordCache<
@@ -79,6 +91,12 @@ export abstract class SyncRecordCache<
   protected _transformOperators: Dict<SyncTransformOperator>;
   protected _inverseTransformOperators: Dict<SyncInverseTransformOperator>;
   protected _debounceLiveQueries: boolean;
+  protected _transformBuffer?: RecordTransformBuffer;
+  protected _transformBufferClass?: RecordTransformBufferClass;
+  protected _transformBufferSettings?: SyncRecordCacheSettings<
+    QueryOptions,
+    TransformOptions
+  >;
 
   constructor(
     settings: SyncRecordCacheSettings<QueryOptions, TransformOptions>
@@ -131,7 +149,7 @@ export abstract class SyncRecordCache<
     typeOrIdentities?: string | RecordIdentity[]
   ): Record[];
   abstract getInverseRelationshipsSync(
-    record: RecordIdentity
+    recordIdentityOrIdentities: RecordIdentity | RecordIdentity[]
   ): RecordRelationshipIdentity[];
 
   // Abstract methods for setting records and relationships
@@ -145,6 +163,28 @@ export abstract class SyncRecordCache<
   abstract removeInverseRelationshipsSync(
     relationships: RecordRelationshipIdentity[]
   ): void;
+
+  applyRecordChangesetSync(changeset: RecordChangeset): void {
+    const {
+      setRecords,
+      removeRecords,
+      addInverseRelationships,
+      removeInverseRelationships
+    } = changeset;
+
+    if (setRecords && setRecords.length > 0) {
+      this.setRecordsSync(setRecords);
+    }
+    if (removeRecords && removeRecords.length > 0) {
+      this.removeRecordsSync(removeRecords);
+    }
+    if (addInverseRelationships && addInverseRelationships.length > 0) {
+      this.addInverseRelationshipsSync(addInverseRelationships);
+    }
+    if (removeInverseRelationships && removeInverseRelationships.length > 0) {
+      this.removeInverseRelationshipsSync(removeInverseRelationships);
+    }
+  }
 
   getRelatedRecordSync(
     identity: RecordIdentity,
@@ -193,21 +233,12 @@ export abstract class SyncRecordCache<
       this._queryBuilder
     );
 
-    const results: RecordQueryExpressionResult[] = [];
-    for (let expression of query.expressions) {
-      const queryOperator = this.getQueryOperator(expression.op);
-      if (!queryOperator) {
-        throw new Error(`Unable to find query operator: ${expression.op}`);
-      }
-      results.push(queryOperator(this, query, expression));
-    }
-
-    const data = query.expressions.length === 1 ? results[0] : results;
+    const response = this._query<RequestData>(query, options);
 
     if (options?.fullResponse) {
-      return { data } as FullResponse<RequestData, undefined, RecordOperation>;
+      return response;
     } else {
-      return data as RequestData;
+      return response.data as RequestData;
     }
   }
 
@@ -238,44 +269,12 @@ export abstract class SyncRecordCache<
       this._transformBuilder
     );
 
-    const response = {
-      data: []
-    } as FullResponse<
-      RecordOperationResult[],
-      RecordCacheUpdateDetails,
-      RecordOperation
-    >;
+    const response = this._update<RequestData>(transform, options);
 
     if (options?.fullResponse) {
-      response.details = {
-        appliedOperations: [],
-        inverseOperations: []
-      };
-    }
-
-    this._applyTransformOperations(
-      transform,
-      transform.operations,
-      response,
-      true
-    );
-
-    let data: RecordTransformResult;
-    if (transform.operations.length === 1 && Array.isArray(response.data)) {
-      data = response.data[0];
+      return response;
     } else {
-      data = response.data;
-    }
-
-    if (options?.fullResponse) {
-      response.details?.inverseOperations.reverse();
-
-      return {
-        ...response,
-        data
-      } as FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>;
-    } else {
-      return data as RequestData;
+      return response.data as RequestData;
     }
   }
 
@@ -338,6 +337,131 @@ export abstract class SyncRecordCache<
   /////////////////////////////////////////////////////////////////////////////
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
+
+  protected _query<RequestData extends RecordQueryResult = RecordQueryResult>(
+    query: RecordQuery,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    options?: QueryOptions
+  ): FullResponse<RequestData, undefined, RecordOperation> {
+    const results: RecordQueryExpressionResult[] = [];
+
+    for (let expression of query.expressions) {
+      const queryOperator = this.getQueryOperator(expression.op);
+      if (!queryOperator) {
+        throw new Error(`Unable to find query operator: ${expression.op}`);
+      }
+      results.push(queryOperator(this, query, expression));
+    }
+
+    const data = query.expressions.length === 1 ? results[0] : results;
+
+    return { data: data as RequestData };
+  }
+
+  protected _update<
+    RequestData extends RecordTransformResult = RecordTransformResult
+  >(
+    transform: RecordTransform,
+    options?: TransformOptions
+  ): FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation> {
+    if (this.getTransformOptions(transform)?.useBuffer) {
+      const buffer = this._initTransformBuffer(transform);
+
+      buffer.startTrackingChanges();
+
+      const response = buffer.update(transform, {
+        fullResponse: true
+      });
+
+      const changes = buffer.stopTrackingChanges();
+
+      this.applyRecordChangesetSync(changes);
+
+      const {
+        appliedOperations,
+        appliedOperationResults
+      } = response.details as RecordCacheUpdateDetails;
+
+      for (let i = 0, len = appliedOperations.length; i < len; i++) {
+        this.emit('patch', appliedOperations[i], appliedOperationResults[i]);
+      }
+
+      return response as FullResponse<
+        RequestData,
+        RecordCacheUpdateDetails,
+        RecordOperation
+      >;
+    } else {
+      const response = {
+        data: []
+      } as FullResponse<
+        RecordOperationResult[],
+        RecordCacheUpdateDetails,
+        RecordOperation
+      >;
+
+      if (options?.fullResponse) {
+        response.details = {
+          appliedOperations: [],
+          appliedOperationResults: [],
+          inverseOperations: []
+        };
+      }
+
+      this._applyTransformOperations(
+        transform,
+        transform.operations,
+        response,
+        true
+      );
+
+      let data: RecordTransformResult;
+      if (transform.operations.length === 1 && Array.isArray(response.data)) {
+        data = response.data[0];
+      } else {
+        data = response.data;
+      }
+
+      if (options?.fullResponse) {
+        response.details?.inverseOperations.reverse();
+      }
+
+      return {
+        ...response,
+        data
+      } as FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>;
+    }
+  }
+
+  protected _getTransformBuffer(): RecordTransformBuffer {
+    if (this._transformBuffer === undefined) {
+      let transformBufferClass =
+        this._transformBufferClass ?? RecordTransformBuffer;
+      let settings = this._transformBufferSettings ?? { schema: this.schema };
+      settings.schema = settings.schema ?? this.schema;
+      settings.keyMap = settings.keyMap ?? this.keyMap;
+      this._transformBuffer = new transformBufferClass(settings);
+    } else {
+      this._transformBuffer.reset();
+    }
+    return this._transformBuffer;
+  }
+
+  protected _initTransformBuffer(
+    transform: RecordTransform
+  ): RecordTransformBuffer {
+    const buffer = this._getTransformBuffer();
+
+    const records = recordsReferencedByOperations(transform.operations);
+    const inverseRelationships = this.getInverseRelationshipsSync(records);
+    const relatedRecords = inverseRelationships.map((ir) => ir.record);
+    Array.prototype.push.apply(records, relatedRecords);
+
+    buffer.setRecordsSync(this.getRecordsSync(records));
+    buffer.addInverseRelationshipsSync(inverseRelationships);
+
+    return buffer;
+  }
 
   protected _applyTransformOperations(
     transform: RecordTransform,
@@ -404,7 +528,10 @@ export abstract class SyncRecordCache<
       if (primary) {
         response.data?.push(data);
       }
-      response.details?.appliedOperations?.push(operation);
+      if (response.details) {
+        response.details.appliedOperationResults.push(data);
+        response.details.appliedOperations.push(operation);
+      }
 
       // Query and perform related `immediate` operations
       for (let processor of this._processors) {

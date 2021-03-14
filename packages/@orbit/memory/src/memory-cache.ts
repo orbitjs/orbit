@@ -1,6 +1,4 @@
-/* eslint-disable valid-jsdoc */
 import { clone, Dict } from '@orbit/utils';
-import { Assertion } from '@orbit/core';
 import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/records';
 import {
   RecordRelationshipIdentity,
@@ -36,7 +34,20 @@ export class MemoryCache extends SyncRecordCache {
   }
 
   getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[] {
-    if (Array.isArray(typeOrIdentities)) {
+    if (typeOrIdentities === undefined) {
+      const types = Object.keys(this.schema.models);
+      const records: Record[] = [];
+      types.forEach((type) =>
+        Array.prototype.push.apply(
+          records,
+          Array.from(this._records[type].values())
+        )
+      );
+      return records;
+    } else if (typeof typeOrIdentities === 'string') {
+      const type: string = typeOrIdentities;
+      return Array.from(this._records[type].values());
+    } else {
       const records: Record[] = [];
       const identities: RecordIdentity[] = typeOrIdentities;
       for (let identity of identities) {
@@ -46,16 +57,6 @@ export class MemoryCache extends SyncRecordCache {
         }
       }
       return records;
-    } else {
-      const type: string | undefined = typeOrIdentities;
-
-      if (type) {
-        return Array.from(this._records[type].values());
-      } else {
-        throw new Assertion(
-          `MemoryCache does not support getting all records without specifying a 'type'`
-        );
-      }
     }
   }
 
@@ -103,12 +104,23 @@ export class MemoryCache extends SyncRecordCache {
   }
 
   getInverseRelationshipsSync(
-    recordIdentity: RecordIdentity
+    recordIdentityOrIdentities: RecordIdentity | RecordIdentity[]
   ): RecordRelationshipIdentity[] {
-    return (
-      this._inverseRelationships[recordIdentity.type].get(recordIdentity.id) ||
-      []
-    );
+    const results: RecordRelationshipIdentity[] = [];
+    const identities: RecordIdentity[] = Array.isArray(
+      recordIdentityOrIdentities
+    )
+      ? recordIdentityOrIdentities
+      : [recordIdentityOrIdentities];
+
+    for (let identity of identities) {
+      const result = this._inverseRelationships[identity.type].get(identity.id);
+      if (result) {
+        Array.prototype.push.apply(results, result);
+      }
+    }
+
+    return results;
   }
 
   addInverseRelationshipsSync(

@@ -95,6 +95,21 @@ export function uniqueRecordIdentities(
   ).map((id) => deserializeRecordIdentity(id));
 }
 
+export function dedupeRecordIdentities(
+  recordIdentities: RecordIdentity[]
+): RecordIdentity[] {
+  let dict: Dict<true> = {};
+  let deduped: RecordIdentity[] = [];
+  recordIdentities.forEach((ri) => {
+    const sri = serializeRecordIdentity(ri);
+    if (dict[sri] === undefined) {
+      deduped.push(ri);
+      dict[sri] = true;
+    }
+  });
+  return deduped;
+}
+
 export function recordsInclude(
   records: RecordIdentity[],
   match: RecordIdentity

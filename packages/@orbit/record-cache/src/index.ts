@@ -1,6 +1,7 @@
 export * from './response';
 export * from './record-accessor';
 export * from './record-cache';
+export * from './record-transform-buffer';
 
 export * from './async-record-cache';
 export * from './async-operation-processor';
