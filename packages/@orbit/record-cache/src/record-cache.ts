@@ -39,10 +39,7 @@ export interface RecordCacheSettings<
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface RecordCache<
-  QueryOptions extends RequestOptions = RecordCacheQueryOptions,
-  TransformOptions extends RequestOptions = RecordCacheTransformOptions
-> extends Evented {}
+export interface RecordCache extends Evented {}
 
 @evented
 export abstract class RecordCache<
