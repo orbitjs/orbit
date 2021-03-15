@@ -7,13 +7,12 @@ import { buildTransform } from '@orbit/data';
 import {
   AddRecordOperation,
   Record,
-  RecordIdentity,
   RecordSchema,
   RecordSource,
-  RecordKeyMap,
-  RecordTransform
+  RecordKeyMap
 } from '@orbit/records';
 import { LocalStorageSource } from '../src/local-storage-source';
+import { LocalStorageCache } from '../src/local-storage-cache';
 
 const { module, test } = QUnit;
 
@@ -68,6 +67,22 @@ module('LocalStorageSource', function (hooks) {
   test('is assigned a default namespace and delimiter', function (assert) {
     assert.equal(source.namespace, 'orbit', 'namespace is `orbit` by default');
     assert.equal(source.delimiter, '/', 'delimiter is `/` by default');
+  });
+
+  test('can be assigned a custom `cacheClass`', function (assert) {
+    class CustomCache extends LocalStorageCache {
+      custom = true;
+    }
+
+    source = new LocalStorageSource({
+      schema,
+      autoActivate: false,
+      cacheClass: CustomCache
+    });
+    assert.ok(
+      (source.cache as CustomCache).custom,
+      'custom cacheClass has been instantiated'
+    );
   });
 
   test('shares its `transformBuilder` and `queryBuilder` with its cache', function (assert) {

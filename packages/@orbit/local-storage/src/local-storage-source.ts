@@ -35,6 +35,7 @@ import {
 import { supportsLocalStorage } from './lib/local-storage';
 import {
   LocalStorageCache,
+  LocalStorageCacheClass,
   LocalStorageCacheSettings
 } from './local-storage-cache';
 
@@ -43,6 +44,7 @@ const { assert } = Orbit;
 export interface LocalStorageSourceSettings extends RecordSourceSettings {
   delimiter?: string;
   namespace?: string;
+  cacheClass?: LocalStorageCacheClass;
   cacheSettings?: Partial<LocalStorageCacheSettings>;
 }
 
@@ -95,9 +97,8 @@ export class LocalStorageSource extends RecordSource {
     cacheSettings.namespace = cacheSettings.namespace ?? settings.namespace;
     cacheSettings.delimiter = cacheSettings.delimiter ?? settings.delimiter;
 
-    this._cache = new LocalStorageCache(
-      cacheSettings as LocalStorageCacheSettings
-    );
+    const cacheClass = settings.cacheClass ?? LocalStorageCache;
+    this._cache = new cacheClass(cacheSettings as LocalStorageCacheSettings);
   }
 
   get cache(): LocalStorageCache {

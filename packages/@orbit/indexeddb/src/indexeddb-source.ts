@@ -30,13 +30,18 @@ import {
   RecordUpdatable,
   UpdateRecordOperation
 } from '@orbit/records';
-import { IndexedDBCache, IndexedDBCacheSettings } from './indexeddb-cache';
+import {
+  IndexedDBCache,
+  IndexedDBCacheClass,
+  IndexedDBCacheSettings
+} from './indexeddb-cache';
 import { supportsIndexedDB } from './lib/indexeddb';
 
 const { assert } = Orbit;
 
 export interface IndexedDBSourceSettings extends RecordSourceSettings {
   namespace?: string;
+  cacheClass?: IndexedDBCacheClass;
   cacheSettings?: Partial<IndexedDBCacheSettings>;
 }
 
@@ -73,7 +78,7 @@ export class IndexedDBSource extends RecordSource {
 
     super(settings);
 
-    let cacheSettings: Partial<IndexedDBCacheSettings> =
+    const cacheSettings: Partial<IndexedDBCacheSettings> =
       settings.cacheSettings ?? {};
     cacheSettings.schema = settings.schema;
     cacheSettings.keyMap = settings.keyMap;
@@ -87,7 +92,9 @@ export class IndexedDBSource extends RecordSource {
     cacheSettings.defaultTransformOptions =
       cacheSettings.defaultTransformOptions ?? settings.defaultTransformOptions;
 
-    this._cache = new IndexedDBCache(cacheSettings as IndexedDBCacheSettings);
+    const cacheClass = settings.cacheClass ?? IndexedDBCache;
+    this._cache = new cacheClass(cacheSettings as IndexedDBCacheSettings);
+
     if (autoActivate) {
       this.activate();
     }

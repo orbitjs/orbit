@@ -5,6 +5,7 @@ import {
   RecordKeyMap,
   RecordSchema
 } from '@orbit/records';
+import { IndexedDBCache } from '../src';
 import { IndexedDBSource } from '../src/indexeddb-source';
 import { getRecordFromIndexedDB } from './support/indexeddb';
 
@@ -73,6 +74,22 @@ module('IndexedDBSource', function (hooks) {
       source.cache.dbName,
       'orbit',
       '`dbName` is `orbit` by default'
+    );
+  });
+
+  test('can be assigned a custom `cacheClass`', function (assert) {
+    class CustomCache extends IndexedDBCache {
+      custom = true;
+    }
+
+    source = new IndexedDBSource({
+      schema,
+      autoActivate: false,
+      cacheClass: CustomCache
+    });
+    assert.ok(
+      (source.cache as CustomCache).custom,
+      'custom cacheClass has been instantiated'
     );
   });
 
