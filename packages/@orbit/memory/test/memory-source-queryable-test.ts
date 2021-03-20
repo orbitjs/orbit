@@ -1,5 +1,5 @@
 import {
-  Record,
+  InitializedRecord,
   RecordKeyMap,
   RecordQuery,
   RecordSchema,
@@ -212,14 +212,14 @@ module('MemorySource - queryable', function (hooks) {
 
   test('#query - can query with multiple expressions', async function (assert) {
     const source = new MemorySource({ schema, keyMap });
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
         name: 'Jupiter'
       }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {

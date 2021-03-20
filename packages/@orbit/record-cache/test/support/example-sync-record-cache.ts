@@ -1,6 +1,10 @@
 /* eslint-disable valid-jsdoc */
 import { clone, deepGet, deepSet, Dict, objectValues } from '@orbit/utils';
-import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/records';
+import {
+  InitializedRecord,
+  RecordIdentity,
+  equalRecordIdentities
+} from '@orbit/records';
 import { RecordRelationshipIdentity } from '../../src/record-accessor';
 import {
   SyncRecordCache,
@@ -11,7 +15,7 @@ import {
  * A minimal implementation of `SyncRecordCache`.
  */
 export class ExampleSyncRecordCache extends SyncRecordCache {
-  protected _records: Dict<Dict<Record>>;
+  protected _records: Dict<Dict<InitializedRecord>>;
   protected _inverseRelationships: Dict<Dict<RecordRelationshipIdentity[]>>;
 
   constructor(settings: SyncRecordCacheSettings) {
@@ -26,15 +30,17 @@ export class ExampleSyncRecordCache extends SyncRecordCache {
     });
   }
 
-  getRecordSync(identity: RecordIdentity): Record | undefined {
+  getRecordSync(identity: RecordIdentity): InitializedRecord | undefined {
     return deepGet(this._records, [identity.type, identity.id]);
   }
 
-  getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[] {
+  getRecordsSync(
+    typeOrIdentities?: string | RecordIdentity[]
+  ): InitializedRecord[] {
     if (typeof typeOrIdentities === 'string') {
       return objectValues(this._records[typeOrIdentities]);
     } else if (Array.isArray(typeOrIdentities)) {
-      const records: Record[] = [];
+      const records: InitializedRecord[] = [];
       const identities: RecordIdentity[] = typeOrIdentities;
       for (let i of identities) {
         let record = this.getRecordSync(i);
@@ -48,17 +54,19 @@ export class ExampleSyncRecordCache extends SyncRecordCache {
     }
   }
 
-  setRecordSync(record: Record): void {
+  setRecordSync(record: InitializedRecord): void {
     deepSet(this._records, [record.type, record.id], record);
   }
 
-  setRecordsSync(records: Record[]): void {
+  setRecordsSync(records: InitializedRecord[]): void {
     for (let record of records) {
       deepSet(this._records, [record.type, record.id], record);
     }
   }
 
-  removeRecordSync(recordIdentity: RecordIdentity): Record | undefined {
+  removeRecordSync(
+    recordIdentity: RecordIdentity
+  ): InitializedRecord | undefined {
     const record = this.getRecordSync(recordIdentity);
     if (record) {
       delete this._records[recordIdentity.type][recordIdentity.id];
@@ -68,7 +76,7 @@ export class ExampleSyncRecordCache extends SyncRecordCache {
     }
   }
 
-  removeRecordsSync(recordIdentities: RecordIdentity[]): Record[] {
+  removeRecordsSync(recordIdentities: RecordIdentity[]): InitializedRecord[] {
     const records = [];
     for (let recordIdentity of recordIdentities) {
       let record = this.getRecordSync(recordIdentity);

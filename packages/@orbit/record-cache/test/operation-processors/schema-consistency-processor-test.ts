@@ -3,7 +3,6 @@ import {
   RecordKeyMap,
   RecordSchema,
   RecordSchemaSettings,
-  Record,
   AddToRelatedRecordsOperation,
   ReplaceRelatedRecordOperation,
   ReplaceRelatedRecordsOperation,
@@ -1000,7 +999,7 @@ module('SchemaConsistencyProcessor', function (hooks) {
       processors: [SyncSchemaConsistencyProcessor]
     });
     processor = cache.processors[0] as SyncSchemaConsistencyProcessor;
-    const jupiter: Record = {
+    const jupiter = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -1012,12 +1011,12 @@ module('SchemaConsistencyProcessor', function (hooks) {
         }
       }
     };
-    const io: Record = {
+    const io = {
       type: 'moon',
       id: 'io',
       relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
     };
-    const europa: Record = {
+    const europa = {
       type: 'moon',
       id: 'europa',
       relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
@@ -1090,7 +1089,7 @@ module('SchemaConsistencyProcessor', function (hooks) {
       processors: [SyncSchemaConsistencyProcessor]
     });
     processor = cache.processors[0] as SyncSchemaConsistencyProcessor;
-    const jupiter: Record = {
+    const jupiter = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -1102,12 +1101,12 @@ module('SchemaConsistencyProcessor', function (hooks) {
         }
       }
     };
-    const io: Record = {
+    const io = {
       type: 'moon',
       id: 'io',
       relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
     };
-    const europa: Record = {
+    const europa = {
       type: 'moon',
       id: 'europa',
       relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }

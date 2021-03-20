@@ -1,4 +1,4 @@
-import { Record, UninitializedRecord } from '../src/record';
+import { InitializedRecord, UninitializedRecord } from '../src/record';
 import { RecordTransformBuilder } from '../src/record-transform-builder';
 import {
   AddRecordOperation,
@@ -234,11 +234,11 @@ module('RecordTransformBuilder', function (hooks) {
 
   test('#addRecord - when a recordInitializer has been set', function (assert) {
     const recordInitializer = {
-      initializeRecord(record: UninitializedRecord): Record {
+      initializeRecord(record: UninitializedRecord): InitializedRecord {
         if (record.id === undefined) {
           record.id = 'abc123';
         }
-        return record as Record;
+        return record as InitializedRecord;
       }
     };
 

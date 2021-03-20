@@ -1,6 +1,6 @@
 import { Orbit } from '@orbit/core';
 import {
-  Record,
+  InitializedRecord,
   RecordKeyMap,
   RecordQuery,
   RecordSchema
@@ -207,14 +207,14 @@ module('IndexedDBSource - queryable', function (hooks) {
   });
 
   test('#query - can query with multiple expressions', async function (assert) {
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
         name: 'Jupiter'
       }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {

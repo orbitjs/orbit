@@ -1,15 +1,15 @@
 import { IndexedDBCache } from '../../src/index';
-import { Record } from '@orbit/records';
+import { InitializedRecord } from '@orbit/records';
 
 export async function getRecordFromIndexedDB(
   cache: IndexedDBCache,
-  record: Record
-): Promise<Record> {
+  record: InitializedRecord
+): Promise<InitializedRecord> {
   const db = await cache.openDB();
   const transaction = db.transaction([record.type]);
   const objectStore = transaction.objectStore(record.type);
 
-  return new Promise((resolve: (record: Record) => void, reject) => {
+  return new Promise((resolve: (record: InitializedRecord) => void, reject) => {
     const request = objectStore.get(record.id);
 
     request.onerror = function (/* event */) {
@@ -19,7 +19,7 @@ export async function getRecordFromIndexedDB(
 
     request.onsuccess = function (/* event */) {
       // console.log('success - getRecord', request.result);
-      resolve(request.result as Record);
+      resolve(request.result as InitializedRecord);
     };
   });
 }

@@ -1,7 +1,7 @@
 import { Orbit } from '@orbit/core';
 import { FullResponse, ResponseHints } from '@orbit/data';
 import {
-  Record,
+  InitializedRecord,
   RecordKeyMap,
   RecordOperation,
   RecordSchema,
@@ -85,7 +85,7 @@ module('IndexedDBSource - updatable', function (hooks) {
   test("#update - transforms the source's cache", async function (assert) {
     assert.expect(4);
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter', classification: 'gas giant' }
@@ -134,13 +134,13 @@ module('IndexedDBSource - updatable', function (hooks) {
   test('#update - can perform multiple operations and return the results', async function (assert) {
     assert.expect(3);
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: { name: 'Jupiter', classification: 'gas giant' }
     };
 
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: { name: 'Earth', classification: 'terrestrial' }
@@ -206,7 +206,7 @@ module('IndexedDBSource - updatable', function (hooks) {
       type: 'planetarySystem'
     });
     assert.deepEqual(
-      (latestHome?.relationships?.star.data as Record).id,
+      (latestHome?.relationships?.star.data as InitializedRecord).id,
       star1.id,
       'The original related record is in place.'
     );
@@ -221,7 +221,7 @@ module('IndexedDBSource - updatable', function (hooks) {
       type: 'planetarySystem'
     });
     assert.deepEqual(
-      (latestHome?.relationships?.star.data as Record).id,
+      (latestHome?.relationships?.star.data as InitializedRecord).id,
       star2.id,
       'The related record was replaced.'
     );

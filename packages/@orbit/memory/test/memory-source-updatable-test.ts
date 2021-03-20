@@ -1,6 +1,6 @@
 import { FullResponse, ResponseHints } from '@orbit/data';
 import {
-  Record,
+  InitializedRecord,
   RecordKeyMap,
   RecordOperation,
   RecordSchema,
@@ -75,7 +75,7 @@ module('MemorySource - updatable', function (hooks) {
 
     const source = new MemorySource({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter', classification: 'gas giant' }
@@ -130,13 +130,13 @@ module('MemorySource - updatable', function (hooks) {
 
     const source = new MemorySource({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: { name: 'Jupiter', classification: 'gas giant' }
     };
 
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: { name: 'Earth', classification: 'terrestrial' }
@@ -204,7 +204,7 @@ module('MemorySource - updatable', function (hooks) {
       type: 'planetarySystem'
     });
     assert.deepEqual(
-      (latestHome?.relationships?.star.data as Record).id,
+      (latestHome?.relationships?.star.data as InitializedRecord).id,
       star1.id,
       'The original related record is in place.'
     );
@@ -219,7 +219,7 @@ module('MemorySource - updatable', function (hooks) {
       type: 'planetarySystem'
     });
     assert.deepEqual(
-      (latestHome?.relationships?.star.data as Record).id,
+      (latestHome?.relationships?.star.data as InitializedRecord).id,
       star2.id,
       'The related record was replaced.'
     );

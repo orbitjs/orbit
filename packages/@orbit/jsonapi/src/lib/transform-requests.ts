@@ -3,7 +3,7 @@ import {
   cloneRecordIdentity,
   equalRecordIdentities,
   recordDiffs,
-  Record,
+  InitializedRecord,
   RecordIdentity,
   RecordOperation,
   AddRecordOperation,
@@ -39,7 +39,7 @@ export interface TransformRecordRelationshipRequest
 
 export interface AddRecordRequest extends BaseTransformRecordRequest {
   op: 'addRecord';
-  record: Record;
+  record: InitializedRecord;
 }
 
 export interface RemoveRecordRequest extends BaseTransformRecordRequest {
@@ -48,7 +48,7 @@ export interface RemoveRecordRequest extends BaseTransformRecordRequest {
 
 export interface UpdateRecordRequest extends BaseTransformRecordRequest {
   op: 'updateRecord';
-  record: Record;
+  record: InitializedRecord;
 }
 
 export interface AddToRelatedRecordsRequest
@@ -527,11 +527,11 @@ function replaceRecordHasMany(
 }
 
 function handleChanges(
-  record: Record,
+  record: InitializedRecord,
   recordDoc: RecordDocument,
   details: JSONAPIResponse
 ): TransformRequestProcessorResponse {
-  let updatedRecord: Record = recordDoc.data as Record;
+  let updatedRecord: InitializedRecord = recordDoc.data as InitializedRecord;
   let transforms: RecordTransform[] = [];
   let updateOps = recordDiffs(record, updatedRecord);
   if (updateOps.length > 0) {

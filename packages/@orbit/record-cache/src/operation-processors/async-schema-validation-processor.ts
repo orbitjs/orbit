@@ -1,5 +1,5 @@
 import {
-  Record,
+  InitializedRecord,
   RecordIdentity,
   RecordOperation,
   IncorrectRelatedRecordType
@@ -62,11 +62,11 @@ export class AsyncSchemaValidationProcessor extends AsyncOperationProcessor {
     }
   }
 
-  protected _recordAdded(record: Record): void {
+  protected _recordAdded(record: InitializedRecord): void {
     this._validateRecord(record);
   }
 
-  protected _recordReplaced(record: Record): void {
+  protected _recordReplaced(record: InitializedRecord): void {
     this._validateRecord(record);
   }
 
@@ -127,7 +127,7 @@ export class AsyncSchemaValidationProcessor extends AsyncOperationProcessor {
     }
   }
 
-  protected _validateRecord(record: Record): void {
+  protected _validateRecord(record: InitializedRecord): void {
     this._validateRecordIdentity(record);
   }
 
@@ -136,7 +136,7 @@ export class AsyncSchemaValidationProcessor extends AsyncOperationProcessor {
   }
 
   protected _validateRelationship(
-    record: Record,
+    record: InitializedRecord,
     relationship: string,
     relatedRecord: RecordIdentity
   ): void {

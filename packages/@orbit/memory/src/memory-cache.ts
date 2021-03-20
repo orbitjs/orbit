@@ -1,5 +1,9 @@
 import { clone, Dict } from '@orbit/utils';
-import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/records';
+import {
+  InitializedRecord,
+  RecordIdentity,
+  equalRecordIdentities
+} from '@orbit/records';
 import {
   RecordRelationshipIdentity,
   SyncRecordCache,
@@ -22,7 +26,7 @@ export interface MemoryCacheClass {
  * efficiently.
  */
 export class MemoryCache extends SyncRecordCache {
-  protected _records!: Dict<ImmutableMap<string, Record>>;
+  protected _records!: Dict<ImmutableMap<string, InitializedRecord>>;
   protected _inverseRelationships!: Dict<
     ImmutableMap<string, RecordRelationshipIdentity[]>
   >;
@@ -33,14 +37,16 @@ export class MemoryCache extends SyncRecordCache {
     this.reset(settings.base);
   }
 
-  getRecordSync(identity: RecordIdentity): Record | undefined {
+  getRecordSync(identity: RecordIdentity): InitializedRecord | undefined {
     return this._records[identity.type].get(identity.id);
   }
 
-  getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[] {
+  getRecordsSync(
+    typeOrIdentities?: string | RecordIdentity[]
+  ): InitializedRecord[] {
     if (typeOrIdentities === undefined) {
       const types = Object.keys(this.schema.models);
-      const records: Record[] = [];
+      const records: InitializedRecord[] = [];
       types.forEach((type) =>
         Array.prototype.push.apply(
           records,
@@ -52,7 +58,7 @@ export class MemoryCache extends SyncRecordCache {
       const type: string = typeOrIdentities;
       return Array.from(this._records[type].values());
     } else {
-      const records: Record[] = [];
+      const records: InitializedRecord[] = [];
       const identities: RecordIdentity[] = typeOrIdentities;
       for (let identity of identities) {
         let record = this.getRecordSync(identity);
@@ -64,11 +70,11 @@ export class MemoryCache extends SyncRecordCache {
     }
   }
 
-  setRecordSync(record: Record): void {
+  setRecordSync(record: InitializedRecord): void {
     this._records[record.type].set(record.id, record);
   }
 
-  setRecordsSync(records: Record[]): void {
+  setRecordsSync(records: InitializedRecord[]): void {
     let typedMap: any = {};
     for (let record of records) {
       typedMap[record.type] = typedMap[record.type] || [];
@@ -79,7 +85,9 @@ export class MemoryCache extends SyncRecordCache {
     }
   }
 
-  removeRecordSync(recordIdentity: RecordIdentity): Record | undefined {
+  removeRecordSync(
+    recordIdentity: RecordIdentity
+  ): InitializedRecord | undefined {
     const recordMap = this._records[recordIdentity.type];
     const record = recordMap.get(recordIdentity.id);
     if (record) {
@@ -90,7 +98,7 @@ export class MemoryCache extends SyncRecordCache {
     }
   }
 
-  removeRecordsSync(recordIdentities: RecordIdentity[]): Record[] {
+  removeRecordsSync(recordIdentities: RecordIdentity[]): InitializedRecord[] {
     const records = [];
     const typedIds: any = {};
     for (let recordIdentity of recordIdentities) {
@@ -181,7 +189,9 @@ export class MemoryCache extends SyncRecordCache {
     Object.keys(this._schema.models).forEach((type) => {
       let baseRecords = base && base._records[type];
 
-      this._records[type] = new ImmutableMap<string, Record>(baseRecords);
+      this._records[type] = new ImmutableMap<string, InitializedRecord>(
+        baseRecords
+      );
     });
 
     this._resetInverseRelationships(base);
@@ -197,7 +207,7 @@ export class MemoryCache extends SyncRecordCache {
   upgrade(): void {
     Object.keys(this._schema.models).forEach((type) => {
       if (!this._records[type]) {
-        this._records[type] = new ImmutableMap<string, Record>();
+        this._records[type] = new ImmutableMap<string, InitializedRecord>();
       }
     });
 

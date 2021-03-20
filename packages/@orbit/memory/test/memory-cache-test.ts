@@ -1,6 +1,6 @@
 import {
   RecordKeyMap,
-  Record,
+  InitializedRecord,
   RecordNotFoundException,
   RecordSchema,
   equalRecordIdentities,
@@ -69,7 +69,7 @@ module('MemoryCache', function (hooks) {
 
     let cache = new MemoryCache({ schema, keyMap });
 
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: '1',
       attributes: { name: 'Earth' },
@@ -103,7 +103,7 @@ module('MemoryCache', function (hooks) {
 
     let cache = new MemoryCache({ schema, keyMap });
 
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: '1',
       attributes: { name: 'Earth' },
@@ -142,7 +142,7 @@ module('MemoryCache', function (hooks) {
 
     let cache = new MemoryCache({ schema, keyMap });
 
-    const earth: Record = { type: 'planet', id: '1' };
+    const earth: InitializedRecord = { type: 'planet', id: '1' };
 
     cache.on('patch', (operation, data) => {
       assert.deepEqual(operation, {
@@ -480,7 +480,7 @@ module('MemoryCache', function (hooks) {
   test('#update tracks refs and clears them from hasOne relationships when a referenced record is removed', function (assert) {
     let cache = new MemoryCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'p1',
       attributes: { name: 'Jupiter' },
@@ -492,7 +492,7 @@ module('MemoryCache', function (hooks) {
       attributes: { name: 'Io' },
       relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
     };
-    const europa: Record = {
+    const europa: InitializedRecord = {
       type: 'moon',
       id: 'm2',
       attributes: { name: 'Europa' },
@@ -543,19 +543,19 @@ module('MemoryCache', function (hooks) {
   test('#update tracks refs and clears them from hasMany relationships when a referenced record is removed', function (assert) {
     let cache = new MemoryCache({ schema, keyMap });
 
-    const io: Record = {
+    const io: InitializedRecord = {
       type: 'moon',
       id: 'm1',
       attributes: { name: 'Io' },
       relationships: { planet: { data: null } }
     };
-    const europa: Record = {
+    const europa: InitializedRecord = {
       type: 'moon',
       id: 'm2',
       attributes: { name: 'Europa' },
       relationships: { planet: { data: null } }
     };
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'p1',
       attributes: { name: 'Jupiter' },
@@ -732,7 +732,7 @@ module('MemoryCache', function (hooks) {
 
     let cache = new MemoryCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       id: 'p1',
       type: 'planet',
       attributes: { name: 'Jupiter' },
@@ -757,7 +757,7 @@ module('MemoryCache', function (hooks) {
 
     let cache = new MemoryCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       id: 'p1',
       type: 'planet',
       attributes: { name: 'Jupiter' }
@@ -781,7 +781,7 @@ module('MemoryCache', function (hooks) {
 
     let cache = new MemoryCache({ schema, keyMap });
 
-    const jupiter: Record = { id: 'jupiter', type: 'planet' };
+    const jupiter: InitializedRecord = { id: 'jupiter', type: 'planet' };
     cache.update((t) => t.addRecord(jupiter));
 
     const callisto = { id: 'callisto', type: 'moon' };
@@ -820,7 +820,7 @@ module('MemoryCache', function (hooks) {
 
     let cache = new MemoryCache({ schema, keyMap });
 
-    const jupiter: Record = { id: 'jupiter', type: 'planet' };
+    const jupiter: InitializedRecord = { id: 'jupiter', type: 'planet' };
     cache.update((t) => t.addRecord(jupiter));
 
     const callisto = { id: 'callisto', type: 'moon' };
@@ -857,7 +857,7 @@ module('MemoryCache', function (hooks) {
 
     let cache = new MemoryCache({ schema, keyMap });
 
-    const europa: Record = {
+    const europa: InitializedRecord = {
       id: 'm1',
       type: 'moon',
       attributes: { name: 'Europa' },
@@ -882,7 +882,7 @@ module('MemoryCache', function (hooks) {
 
     let cache = new MemoryCache({ schema, keyMap });
 
-    const europa: Record = {
+    const europa: InitializedRecord = {
       type: 'moon',
       id: 'm1',
       attributes: { name: 'Europa' },
@@ -937,8 +937,14 @@ module('MemoryCache', function (hooks) {
       })
     ]);
 
-    const one = cache.getRecordSync({ type: 'one', id: '1' }) as Record;
-    const two = cache.getRecordSync({ type: 'two', id: '2' }) as Record;
+    const one = cache.getRecordSync({
+      type: 'one',
+      id: '1'
+    }) as InitializedRecord;
+    const two = cache.getRecordSync({
+      type: 'two',
+      id: '2'
+    }) as InitializedRecord;
     assert.ok(one, 'one exists');
     assert.ok(two, 'two exists');
     assert.deepEqual(
@@ -1405,7 +1411,7 @@ module('MemoryCache', function (hooks) {
       assert,
       cache.query((q) =>
         q.findRecords('planet').filter({ attribute: 'name', value: 'Jupiter' })
-      ) as Record[],
+      ) as InitializedRecord[],
       [jupiter]
     );
   });
@@ -1466,7 +1472,7 @@ module('MemoryCache', function (hooks) {
       cache.query((q) => {
         let tmp = q.findRecords('planet');
         return tmp.filter({ attribute: 'sequence', value: 2, op: 'gt' });
-      }) as Record[],
+      }) as InitializedRecord[],
       [earth, jupiter]
     );
     arrayMembershipMatches(
@@ -1474,7 +1480,7 @@ module('MemoryCache', function (hooks) {
       cache.query((q) => {
         let tmp = q.findRecords('planet');
         return tmp.filter({ attribute: 'sequence', value: 2, op: 'gte' });
-      }) as Record[],
+      }) as InitializedRecord[],
       [venus, earth, jupiter]
     );
     arrayMembershipMatches(
@@ -1482,7 +1488,7 @@ module('MemoryCache', function (hooks) {
       cache.query((q) => {
         let tmp = q.findRecords('planet');
         return tmp.filter({ attribute: 'sequence', value: 2, op: 'lt' });
-      }) as Record[],
+      }) as InitializedRecord[],
       [mercury]
     );
     arrayMembershipMatches(
@@ -1490,7 +1496,7 @@ module('MemoryCache', function (hooks) {
       cache.query((q) => {
         let tmp = q.findRecords('planet');
         return tmp.filter({ attribute: 'sequence', value: 2, op: 'lte' });
-      }) as Record[],
+      }) as InitializedRecord[],
       [venus, mercury]
     );
   });
@@ -1619,7 +1625,7 @@ module('MemoryCache', function (hooks) {
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [theMoon], op: 'equal' })
-      ) as Record[],
+      ) as InitializedRecord[],
       [earth]
     );
     arrayMembershipMatches(
@@ -1628,7 +1634,7 @@ module('MemoryCache', function (hooks) {
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [phobos], op: 'equal' })
-      ) as Record[],
+      ) as InitializedRecord[],
       []
     );
     arrayMembershipMatches(
@@ -1637,7 +1643,7 @@ module('MemoryCache', function (hooks) {
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [phobos], op: 'all' })
-      ) as Record[],
+      ) as InitializedRecord[],
       [mars]
     );
     arrayMembershipMatches(
@@ -1646,7 +1652,7 @@ module('MemoryCache', function (hooks) {
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [phobos, callisto], op: 'all' })
-      ) as Record[],
+      ) as InitializedRecord[],
       []
     );
     arrayMembershipMatches(
@@ -1657,7 +1663,7 @@ module('MemoryCache', function (hooks) {
           records: [phobos, callisto],
           op: 'some'
         })
-      ) as Record[],
+      ) as InitializedRecord[],
       [mars, jupiter]
     );
     arrayMembershipMatches(
@@ -1666,7 +1672,7 @@ module('MemoryCache', function (hooks) {
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [titan], op: 'some' })
-      ) as Record[],
+      ) as InitializedRecord[],
       []
     );
     arrayMembershipMatches(
@@ -1675,7 +1681,7 @@ module('MemoryCache', function (hooks) {
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [ganymede], op: 'none' })
-      ) as Record[],
+      ) as InitializedRecord[],
       [earth, mars]
     );
   });
@@ -1802,21 +1808,21 @@ module('MemoryCache', function (hooks) {
       assert,
       cache.query((q) =>
         q.findRecords('moon').filter({ relation: 'planet', record: earth })
-      ) as Record[],
+      ) as InitializedRecord[],
       [theMoon]
     );
     arrayMembershipMatches(
       assert,
       cache.query((q) =>
         q.findRecords('moon').filter({ relation: 'planet', record: jupiter })
-      ) as Record[],
+      ) as InitializedRecord[],
       [europa, ganymede, callisto]
     );
     arrayMembershipMatches(
       assert,
       cache.query((q) =>
         q.findRecords('moon').filter({ relation: 'planet', record: mercury })
-      ) as Record[],
+      ) as InitializedRecord[],
       []
     );
     arrayMembershipMatches(
@@ -1825,7 +1831,7 @@ module('MemoryCache', function (hooks) {
         q
           .findRecords('moon')
           .filter({ relation: 'planet', record: [earth, mars] })
-      ) as Record[],
+      ) as InitializedRecord[],
       [theMoon, phobos, deimos]
     );
   });
@@ -1886,7 +1892,7 @@ module('MemoryCache', function (hooks) {
             { attribute: 'atmosphere', value: true },
             { attribute: 'classification', value: 'terrestrial' }
           )
-      ) as Record[],
+      ) as InitializedRecord[],
       [earth, venus]
     );
   });
@@ -1939,7 +1945,7 @@ module('MemoryCache', function (hooks) {
             { attribute: 'atmosphere', value: true },
             { attribute: 'classification', value: 'terrestrial' }
           )
-      ) as Record[],
+      ) as InitializedRecord[],
       [earth, venus]
     );
   });
@@ -2214,7 +2220,7 @@ module('MemoryCache', function (hooks) {
   test('#query - findRecord - finds record', function (assert) {
     let cache = new MemoryCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter' },
@@ -2255,7 +2261,7 @@ module('MemoryCache', function (hooks) {
   test('#query - findRecords - records by type', function (assert) {
     let cache = new MemoryCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter' },
@@ -2282,7 +2288,7 @@ module('MemoryCache', function (hooks) {
 
     let cache = new MemoryCache({ schema, keyMap });
 
-    let earth: Record = {
+    let earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -2291,7 +2297,7 @@ module('MemoryCache', function (hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -2300,7 +2306,7 @@ module('MemoryCache', function (hooks) {
       }
     };
 
-    let io: Record = {
+    let io: InitializedRecord = {
       type: 'moon',
       id: 'io',
       attributes: {
@@ -2323,13 +2329,13 @@ module('MemoryCache', function (hooks) {
   test('#query - page - can paginate records by offset and limit', function (assert) {
     let cache = new MemoryCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter' }
     };
 
-    const earth: Record = {
+    const earth: InitializedRecord = {
       id: 'earth',
       type: 'planet',
       attributes: { name: 'Earth' }
@@ -2379,7 +2385,7 @@ module('MemoryCache', function (hooks) {
 
     let cache = new MemoryCache({ schema, keyMap });
 
-    let earth: Record = {
+    let earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       keys: {
@@ -2391,7 +2397,7 @@ module('MemoryCache', function (hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -2403,7 +2409,7 @@ module('MemoryCache', function (hooks) {
       }
     };
 
-    let io: Record = {
+    let io: InitializedRecord = {
       type: 'moon',
       id: 'io',
       keys: {
@@ -2447,7 +2453,7 @@ module('MemoryCache', function (hooks) {
   test('#query - findRelatedRecords', function (assert) {
     let cache = new MemoryCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter' },
@@ -2474,7 +2480,7 @@ module('MemoryCache', function (hooks) {
   test('#query - findRelatedRecord', function (assert) {
     let cache = new MemoryCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter' },

@@ -1,17 +1,21 @@
 import { deepSet } from '@orbit/utils';
 import { Assertion } from '@orbit/core';
-import { Record, RecordIdentity, ModelDefinition } from '@orbit/records';
+import {
+  InitializedRecord,
+  RecordIdentity,
+  ModelDefinition
+} from '@orbit/records';
 import { Resource, ResourceIdentity } from '../resource-document';
 import { JSONAPIBaseSerializer } from './jsonapi-base-serializer';
 import { JSONAPIResourceIdentityDeserializationOptions } from './jsonapi-resource-identity-serializer';
 
 export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
-  Record,
+  InitializedRecord,
   Resource,
   unknown,
   JSONAPIResourceIdentityDeserializationOptions
 > {
-  serialize(record: Record): Resource {
+  serialize(record: InitializedRecord): Resource {
     const resource: Resource = this.identitySerializer.serialize(record);
     const model: ModelDefinition = this.schema.getModel(record.type);
 
@@ -26,10 +30,10 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
   deserialize(
     resource: Resource,
     customOptions?: JSONAPIResourceIdentityDeserializationOptions
-  ): Record {
+  ): InitializedRecord {
     const options = this.buildDeserializationOptions(customOptions);
     options.includeKeys = true;
-    const record: Record = this.identitySerializer.deserialize(
+    const record: InitializedRecord = this.identitySerializer.deserialize(
       resource as ResourceIdentity,
       options
     );
@@ -45,7 +49,7 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
 
   protected serializeAttributes(
     resource: Resource,
-    record: Record,
+    record: InitializedRecord,
     model: ModelDefinition
   ): void {
     if (record.attributes) {
@@ -57,7 +61,7 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
 
   protected serializeAttribute(
     resource: Resource,
-    record: Record,
+    record: InitializedRecord,
     field: string,
     model: ModelDefinition
   ): void {
@@ -98,7 +102,7 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
 
   protected serializeRelationships(
     resource: Resource,
-    record: Record,
+    record: InitializedRecord,
     model: ModelDefinition
   ): void {
     if (record.relationships) {
@@ -110,7 +114,7 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
 
   protected serializeRelationship(
     resource: Resource,
-    record: Record,
+    record: InitializedRecord,
     field: string,
     model: ModelDefinition
   ): void {
@@ -149,19 +153,19 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
   /* eslint-disable @typescript-eslint/no-unused-vars */
   protected serializeLinks(
     resource: Resource,
-    record: Record,
+    record: InitializedRecord,
     model: ModelDefinition
   ): void {}
 
   protected serializeMeta(
     resource: Resource,
-    record: Record,
+    record: InitializedRecord,
     model: ModelDefinition
   ): void {}
   /* eslint-enable @typescript-eslint/no-unused-vars */
 
   protected deserializeAttributes(
-    record: Record,
+    record: InitializedRecord,
     resource: Resource,
     model: ModelDefinition
   ): void {
@@ -173,7 +177,7 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
   }
 
   protected deserializeAttribute(
-    record: Record,
+    record: InitializedRecord,
     resource: Resource,
     resField: string,
     model: ModelDefinition
@@ -214,7 +218,7 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
   }
 
   protected deserializeRelationships(
-    record: Record,
+    record: InitializedRecord,
     resource: Resource,
     model: ModelDefinition
   ): void {
@@ -226,7 +230,7 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
   }
 
   protected deserializeRelationship(
-    record: Record,
+    record: InitializedRecord,
     resource: Resource,
     resField: string,
     model: ModelDefinition
@@ -279,7 +283,7 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
   }
 
   protected deserializeLinks(
-    record: Record,
+    record: InitializedRecord,
     resource: Resource,
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     model: ModelDefinition
@@ -290,7 +294,7 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
   }
 
   protected deserializeMeta(
-    record: Record,
+    record: InitializedRecord,
     resource: Resource,
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     model: ModelDefinition

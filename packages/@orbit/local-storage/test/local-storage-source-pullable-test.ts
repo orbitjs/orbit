@@ -1,7 +1,7 @@
 import { Orbit } from '@orbit/core';
 import {
   AddRecordOperation,
-  Record,
+  InitializedRecord,
   RecordKeyMap,
   RecordSchema,
   RecordTransform
@@ -188,7 +188,7 @@ module('LocalStorageSource - pullable', function (hooks) {
   test('#pull - specific records', async function (assert) {
     assert.expect(4);
 
-    let earth: Record = {
+    let earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -197,7 +197,7 @@ module('LocalStorageSource - pullable', function (hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -206,7 +206,7 @@ module('LocalStorageSource - pullable', function (hooks) {
       }
     };
 
-    let io: Record = {
+    let io: InitializedRecord = {
       type: 'moon',
       id: 'io',
       attributes: {

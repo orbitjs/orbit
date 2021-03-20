@@ -1,9 +1,9 @@
 import { Dict } from '@orbit/utils';
-import { Link, Record } from '@orbit/records';
+import { Link, InitializedRecord } from '@orbit/records';
 
 export interface RecordDocument {
-  data: Record | Record[] | null;
-  included?: Record[];
+  data: InitializedRecord | InitializedRecord[] | null;
+  included?: InitializedRecord[];
   links?: Dict<Link>;
   meta?: Dict<unknown>;
 }

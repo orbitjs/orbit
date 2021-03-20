@@ -13,7 +13,7 @@ import {
   ResponseHints
 } from '@orbit/data';
 import {
-  Record,
+  InitializedRecord,
   RecordIdentity,
   RecordOperation,
   UpdateRecordOperation,
@@ -137,7 +137,7 @@ export class LocalStorageSource extends RecordSource {
     this._defaultTransformOptions = this.cache.defaultTransformOptions = options;
   }
 
-  getKeyForRecord(record: RecordIdentity | Record): string {
+  getKeyForRecord(record: RecordIdentity | InitializedRecord): string {
     return this._cache.getKeyForRecord(record);
   }
 

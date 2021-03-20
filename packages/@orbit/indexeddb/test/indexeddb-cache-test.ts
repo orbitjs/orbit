@@ -1,5 +1,5 @@
 import { getRecordFromIndexedDB } from './support/indexeddb';
-import { Record, RecordSchema, RecordKeyMap } from '@orbit/records';
+import { InitializedRecord, RecordSchema, RecordKeyMap } from '@orbit/records';
 import { IndexedDBCache } from '../src/indexeddb-cache';
 
 const { module, test } = QUnit;
@@ -235,7 +235,7 @@ module('IndexedDBCache', function (hooks) {
   test('#update - addRecord', async function (assert) {
     assert.expect(2);
 
-    let planet: Record = {
+    let planet: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -265,7 +265,7 @@ module('IndexedDBCache', function (hooks) {
   test('#update - updateRecord', async function (assert) {
     assert.expect(2);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -281,7 +281,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    let updates: Record = {
+    let updates: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -294,7 +294,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    let expected: Record = {
+    let expected: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -352,7 +352,7 @@ module('IndexedDBCache', function (hooks) {
   test('#update - removeRecord', async function (assert) {
     assert.expect(1);
 
-    let planet: Record = {
+    let planet: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -389,7 +389,7 @@ module('IndexedDBCache', function (hooks) {
   test('#update - replaceKey', async function (assert) {
     assert.expect(2);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -398,7 +398,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -428,7 +428,7 @@ module('IndexedDBCache', function (hooks) {
   test('#update - replaceKey - when base record does not exist', async function (assert) {
     assert.expect(2);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -455,7 +455,7 @@ module('IndexedDBCache', function (hooks) {
   test('#update - replaceAttribute', async function (assert) {
     assert.expect(1);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -464,7 +464,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -486,7 +486,7 @@ module('IndexedDBCache', function (hooks) {
   test('#update - replaceAttribute - when base record does not exist', async function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -507,7 +507,7 @@ module('IndexedDBCache', function (hooks) {
   test('#update - addToRelatedRecords', async function (assert) {
     assert.expect(1);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -521,7 +521,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -549,7 +549,7 @@ module('IndexedDBCache', function (hooks) {
   test('#update - addToRelatedRecords - when base record does not exist', async function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -575,7 +575,7 @@ module('IndexedDBCache', function (hooks) {
   test('#update - removeFromRelatedRecords', async function (assert) {
     assert.expect(1);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -592,7 +592,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -623,7 +623,7 @@ module('IndexedDBCache', function (hooks) {
   test('#update - removeFromRelatedRecords - when base record does not exist', async function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -649,7 +649,7 @@ module('IndexedDBCache', function (hooks) {
   test('#update - replaceRelatedRecords', async function (assert) {
     assert.expect(1);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -663,7 +663,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -697,7 +697,7 @@ module('IndexedDBCache', function (hooks) {
   test('#update - replaceRelatedRecords - when base record does not exist', async function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -726,7 +726,7 @@ module('IndexedDBCache', function (hooks) {
   test('#update - replaceRelatedRecord - with record', async function (assert) {
     assert.expect(1);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -740,7 +740,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -771,7 +771,7 @@ module('IndexedDBCache', function (hooks) {
   test('#update - replaceRelatedRecord - with record - when base record does not exist', async function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -797,7 +797,7 @@ module('IndexedDBCache', function (hooks) {
   test('#update - replaceRelatedRecord - with null', async function (assert) {
     assert.expect(1);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -811,7 +811,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -839,7 +839,7 @@ module('IndexedDBCache', function (hooks) {
   test('#update - replaceRelatedRecord - with null - when base record does not exist', async function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -866,7 +866,7 @@ module('IndexedDBCache', function (hooks) {
   test('#query - all records', async function (assert) {
     assert.expect(4);
 
-    let earth: Record = {
+    let earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       keys: {
@@ -878,7 +878,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -890,7 +890,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    let io: Record = {
+    let io: InitializedRecord = {
       type: 'moon',
       id: 'io',
       keys: {
@@ -937,7 +937,7 @@ module('IndexedDBCache', function (hooks) {
   test('#query - records of one type', async function (assert) {
     assert.expect(1);
 
-    let earth: Record = {
+    let earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -946,7 +946,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -955,7 +955,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    let io: Record = {
+    let io: InitializedRecord = {
       type: 'moon',
       id: 'io',
       attributes: {
@@ -976,7 +976,7 @@ module('IndexedDBCache', function (hooks) {
   test('#query - records by identity', async function (assert) {
     assert.expect(1);
 
-    let earth: Record = {
+    let earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -985,7 +985,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -994,7 +994,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    let io: Record = {
+    let io: InitializedRecord = {
       type: 'moon',
       id: 'io',
       attributes: {
@@ -1017,7 +1017,7 @@ module('IndexedDBCache', function (hooks) {
   test('#query - a specific record', async function (assert) {
     assert.expect(2);
 
-    let earth: Record = {
+    let earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -1026,7 +1026,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -1038,7 +1038,7 @@ module('IndexedDBCache', function (hooks) {
       }
     };
 
-    let io: Record = {
+    let io: InitializedRecord = {
       type: 'moon',
       id: 'io',
       attributes: {
@@ -1067,19 +1067,19 @@ module('IndexedDBCache', function (hooks) {
   });
 
   test('#update tracks refs and clears them from hasOne relationships when a referenced record is removed', async function (assert) {
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'p1',
       attributes: { name: 'Jupiter' },
       relationships: { moons: { data: undefined } }
     };
-    const io: Record = {
+    const io: InitializedRecord = {
       type: 'moon',
       id: 'm1',
       attributes: { name: 'Io' },
       relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
     };
-    const europa: Record = {
+    const europa: InitializedRecord = {
       type: 'moon',
       id: 'm2',
       attributes: { name: 'Europa' },
@@ -1093,14 +1093,18 @@ module('IndexedDBCache', function (hooks) {
     ]);
 
     assert.deepEqual(
-      ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
-        ?.relationships?.planet.data,
+      ((await cache.getRecordAsync({
+        type: 'moon',
+        id: 'm1'
+      })) as InitializedRecord)?.relationships?.planet.data,
       { type: 'planet', id: 'p1' },
       'Jupiter has been assigned to Io'
     );
     assert.deepEqual(
-      ((await cache.getRecordAsync({ type: 'moon', id: 'm2' })) as Record)
-        ?.relationships?.planet.data,
+      ((await cache.getRecordAsync({
+        type: 'moon',
+        id: 'm2'
+      })) as InitializedRecord)?.relationships?.planet.data,
       { type: 'planet', id: 'p1' },
       'Jupiter has been assigned to Europa'
     );
@@ -1114,33 +1118,37 @@ module('IndexedDBCache', function (hooks) {
     );
 
     assert.equal(
-      ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
-        ?.relationships?.planet.data,
+      ((await cache.getRecordAsync({
+        type: 'moon',
+        id: 'm1'
+      })) as InitializedRecord)?.relationships?.planet.data,
       undefined,
       'Jupiter has been cleared from Io'
     );
     assert.equal(
-      ((await cache.getRecordAsync({ type: 'moon', id: 'm2' })) as Record)
-        ?.relationships?.planet.data,
+      ((await cache.getRecordAsync({
+        type: 'moon',
+        id: 'm2'
+      })) as InitializedRecord)?.relationships?.planet.data,
       undefined,
       'Jupiter has been cleared from Europa'
     );
   });
 
   test('#update tracks refs and clears them from hasMany relationships when a referenced record is removed', async function (assert) {
-    const io: Record = {
+    const io: InitializedRecord = {
       type: 'moon',
       id: 'm1',
       attributes: { name: 'Io' },
       relationships: { planet: { data: null } }
     };
-    const europa: Record = {
+    const europa: InitializedRecord = {
       type: 'moon',
       id: 'm2',
       attributes: { name: 'Europa' },
       relationships: { planet: { data: null } }
     };
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'p1',
       attributes: { name: 'Jupiter' },
@@ -1161,8 +1169,10 @@ module('IndexedDBCache', function (hooks) {
     ]);
 
     assert.deepEqual(
-      ((await cache.getRecordAsync({ type: 'planet', id: 'p1' })) as Record)
-        ?.relationships?.moons.data,
+      ((await cache.getRecordAsync({
+        type: 'planet',
+        id: 'p1'
+      })) as InitializedRecord)?.relationships?.moons.data,
       [
         { type: 'moon', id: 'm1' },
         { type: 'moon', id: 'm2' }

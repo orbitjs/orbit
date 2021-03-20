@@ -1,6 +1,10 @@
 /* eslint-disable valid-jsdoc */
 import { clone, deepGet, deepSet, Dict, objectValues } from '@orbit/utils';
-import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/records';
+import {
+  InitializedRecord,
+  RecordIdentity,
+  equalRecordIdentities
+} from '@orbit/records';
 import { RecordRelationshipIdentity } from '../../src/record-accessor';
 import {
   AsyncRecordCache,
@@ -11,7 +15,7 @@ import {
  * A minimal implementation of `AsyncRecordCache`.
  */
 export class ExampleAsyncRecordCache extends AsyncRecordCache {
-  protected _records: Dict<Dict<Record>>;
+  protected _records: Dict<Dict<InitializedRecord>>;
   protected _inverseRelationships: Dict<Dict<RecordRelationshipIdentity[]>>;
 
   constructor(settings: AsyncRecordCacheSettings) {
@@ -26,17 +30,19 @@ export class ExampleAsyncRecordCache extends AsyncRecordCache {
     });
   }
 
-  async getRecordAsync(identity: RecordIdentity): Promise<Record | undefined> {
+  async getRecordAsync(
+    identity: RecordIdentity
+  ): Promise<InitializedRecord | undefined> {
     return deepGet(this._records, [identity.type, identity.id]);
   }
 
   async getRecordsAsync(
     typeOrIdentities?: string | RecordIdentity[]
-  ): Promise<Record[]> {
+  ): Promise<InitializedRecord[]> {
     if (typeof typeOrIdentities === 'string') {
       return objectValues(this._records[typeOrIdentities]);
     } else if (Array.isArray(typeOrIdentities)) {
-      const records: Record[] = [];
+      const records: InitializedRecord[] = [];
       const identities: RecordIdentity[] = typeOrIdentities;
       for (let i of identities) {
         let record = await this.getRecordAsync(i);
@@ -50,11 +56,11 @@ export class ExampleAsyncRecordCache extends AsyncRecordCache {
     }
   }
 
-  async setRecordAsync(record: Record): Promise<void> {
+  async setRecordAsync(record: InitializedRecord): Promise<void> {
     deepSet(this._records, [record.type, record.id], record);
   }
 
-  async setRecordsAsync(records: Record[]): Promise<void> {
+  async setRecordsAsync(records: InitializedRecord[]): Promise<void> {
     for (let record of records) {
       deepSet(this._records, [record.type, record.id], record);
     }
@@ -62,7 +68,7 @@ export class ExampleAsyncRecordCache extends AsyncRecordCache {
 
   async removeRecordAsync(
     recordIdentity: RecordIdentity
-  ): Promise<Record | undefined> {
+  ): Promise<InitializedRecord | undefined> {
     const record = await this.getRecordAsync(recordIdentity);
     if (record) {
       delete this._records[recordIdentity.type][recordIdentity.id];
@@ -74,7 +80,7 @@ export class ExampleAsyncRecordCache extends AsyncRecordCache {
 
   async removeRecordsAsync(
     recordIdentities: RecordIdentity[]
-  ): Promise<Record[]> {
+  ): Promise<InitializedRecord[]> {
     const records = [];
     for (let recordIdentity of recordIdentities) {
       let record = await this.getRecordAsync(recordIdentity);

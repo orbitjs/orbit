@@ -10,7 +10,7 @@ import {
   RequestOptions
 } from '@orbit/data';
 import {
-  Record,
+  InitializedRecord,
   RecordOperation,
   RecordIdentity,
   RecordOperationTerm,
@@ -144,19 +144,25 @@ export abstract class SyncRecordCache<
   }
 
   // Abstract methods for getting records and relationships
-  abstract getRecordSync(recordIdentity: RecordIdentity): Record | undefined;
+  abstract getRecordSync(
+    recordIdentity: RecordIdentity
+  ): InitializedRecord | undefined;
   abstract getRecordsSync(
     typeOrIdentities?: string | RecordIdentity[]
-  ): Record[];
+  ): InitializedRecord[];
   abstract getInverseRelationshipsSync(
     recordIdentityOrIdentities: RecordIdentity | RecordIdentity[]
   ): RecordRelationshipIdentity[];
 
   // Abstract methods for setting records and relationships
-  abstract setRecordSync(record: Record): void;
-  abstract setRecordsSync(records: Record[]): void;
-  abstract removeRecordSync(recordIdentity: RecordIdentity): Record | undefined;
-  abstract removeRecordsSync(recordIdentities: RecordIdentity[]): Record[];
+  abstract setRecordSync(record: InitializedRecord): void;
+  abstract setRecordsSync(records: InitializedRecord[]): void;
+  abstract removeRecordSync(
+    recordIdentity: RecordIdentity
+  ): InitializedRecord | undefined;
+  abstract removeRecordsSync(
+    recordIdentities: RecordIdentity[]
+  ): InitializedRecord[];
   abstract addInverseRelationshipsSync(
     relationships: RecordRelationshipIdentity[]
   ): void;

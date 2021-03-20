@@ -1,6 +1,6 @@
 import { Dict, deepGet, deepSet, eq } from '@orbit/utils';
 import {
-  Record,
+  InitializedRecord,
   RecordOperation,
   AddRecordOperation,
   AddToRelatedRecordsOperation,
@@ -62,7 +62,7 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
   ): RecordOperation | undefined {
     const op = operation as UpdateRecordOperation;
     const currentRecord = cache.getRecordSync(op.record);
-    const replacement: Record = op.record;
+    const replacement: InitializedRecord = op.record;
     const { type, id } = replacement;
 
     if (currentRecord) {

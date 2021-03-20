@@ -8,7 +8,7 @@ import {
   FindRecords,
   FindRelatedRecord,
   FindRelatedRecords,
-  Record,
+  RecordIdentity,
   RecordQueryExpression,
   cloneRecordIdentity,
   RecordOperation,
@@ -33,7 +33,7 @@ export interface QueryRequest {
 
 export interface FindRecordRequest extends QueryRequest {
   op: 'findRecord';
-  record: Record;
+  record: RecordIdentity;
 }
 
 export interface FindRecordsRequest extends QueryRequest {
@@ -43,13 +43,13 @@ export interface FindRecordsRequest extends QueryRequest {
 
 export interface FindRelatedRecordRequest extends QueryRequest {
   op: 'findRelatedRecord';
-  record: Record;
+  record: RecordIdentity;
   relationship: string;
 }
 
 export interface FindRelatedRecordsRequest extends QueryRequest {
   op: 'findRelatedRecords';
-  record: Record;
+  record: RecordIdentity;
   relationship: string;
 }
 
@@ -314,7 +314,7 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
         JSONAPISerializers.ResourceDocument
       ) as JSONAPIDocumentSerializer;
       const recordDoc = serializer.deserialize(document) as RecordDocument;
-      const relatedRecords = recordDoc.data as Record[];
+      const relatedRecords = recordDoc.data as RecordIdentity[];
       const operations = requestProcessor.operationsFromDeserializedDocument(
         recordDoc
       );

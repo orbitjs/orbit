@@ -1,7 +1,7 @@
 import { buildTransform } from '@orbit/data';
 import {
   AddRecordOperation,
-  Record,
+  InitializedRecord,
   RecordKeyMap,
   RecordSchema
 } from '@orbit/records';
@@ -236,7 +236,7 @@ module('IndexedDBSource', function (hooks) {
     test('data persists across re-instantiating source', async function (assert) {
       assert.expect(2);
 
-      let planet: Record = {
+      let planet: InitializedRecord = {
         type: 'planet',
         id: 'jupiter',
         keys: {
@@ -270,7 +270,7 @@ module('IndexedDBSource', function (hooks) {
     test('#sync - addRecord', async function (assert) {
       assert.expect(3);
 
-      let planet: Record = {
+      let planet: InitializedRecord = {
         type: 'planet',
         id: 'jupiter',
         keys: {

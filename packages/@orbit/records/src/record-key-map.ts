@@ -1,5 +1,5 @@
 import { deepGet, deepSet, firstResult, Dict } from '@orbit/utils';
-import { Record, UninitializedRecord } from './record';
+import { InitializedRecord, UninitializedRecord } from './record';
 
 /**
  * Maintains a map between records' ids and keys.
@@ -37,7 +37,7 @@ export class RecordKeyMap {
   /**
    * Store the id and key values of a record in this key map.
    */
-  pushRecord(record: Record | UninitializedRecord): void {
+  pushRecord(record: InitializedRecord | UninitializedRecord): void {
     const { type, id, keys } = record;
 
     if (!keys || !id) {

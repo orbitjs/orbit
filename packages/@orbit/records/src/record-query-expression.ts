@@ -1,5 +1,5 @@
 import { QueryExpression } from '@orbit/data';
-import { RecordIdentity, Record } from './record';
+import { RecordIdentity, InitializedRecord } from './record';
 
 export type SortOrder = 'ascending' | 'descending';
 
@@ -97,12 +97,12 @@ export type RecordQueryExpression =
   | FindRelatedRecords
   | FindRecords;
 
-export type FindRecordResult = Record | undefined;
-export type FindRelatedRecordResult = Record | null | undefined;
-export type FindRelatedRecordsResult = Record[] | undefined;
-export type FindRecordsResult = Record[];
+export type FindRecordResult = InitializedRecord | undefined;
+export type FindRelatedRecordResult = InitializedRecord | null | undefined;
+export type FindRelatedRecordsResult = InitializedRecord[] | undefined;
+export type FindRecordsResult = InitializedRecord[];
 
-export type RecordQueryExpressionResult<T = Record> =
+export type RecordQueryExpressionResult<T = InitializedRecord> =
   | T
   | T[]
   | null

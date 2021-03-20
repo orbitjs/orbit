@@ -1,7 +1,7 @@
 import { objectValues, Dict } from '@orbit/utils';
 import {
   deserializeRecordIdentity,
-  Record,
+  InitializedRecord,
   RecordIdentity,
   serializeRecordIdentity
 } from '@orbit/records';
@@ -22,7 +22,7 @@ function deserializeRecordRelationshipIdentity(
 }
 
 export interface RecordTransformBufferState {
-  records: Dict<Record | null>;
+  records: Dict<InitializedRecord | null>;
   inverseRelationships: Dict<Dict<RecordRelationshipIdentity | null>>;
 }
 
@@ -107,15 +107,17 @@ export class RecordTransformBuffer extends SyncRecordCache {
     return changeset;
   }
 
-  getRecordSync(identity: RecordIdentity): Record | undefined {
+  getRecordSync(identity: RecordIdentity): InitializedRecord | undefined {
     return this._state.records[serializeRecordIdentity(identity)] ?? undefined;
   }
 
-  getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[] {
+  getRecordsSync(
+    typeOrIdentities?: string | RecordIdentity[]
+  ): InitializedRecord[] {
     if (typeof typeOrIdentities === 'string') {
       return objectValues(this._state.records[typeOrIdentities]);
     } else if (Array.isArray(typeOrIdentities)) {
-      const records: Record[] = [];
+      const records: InitializedRecord[] = [];
       const identities: RecordIdentity[] = typeOrIdentities;
       for (let i of identities) {
         let record = this.getRecordSync(i);
@@ -129,18 +131,20 @@ export class RecordTransformBuffer extends SyncRecordCache {
     }
   }
 
-  setRecordSync(record: Record): void {
+  setRecordSync(record: InitializedRecord): void {
     this._state.records[serializeRecordIdentity(record)] = record;
     if (this._delta) {
       this._delta.records[serializeRecordIdentity(record)] = record;
     }
   }
 
-  setRecordsSync(records: Record[]): void {
+  setRecordsSync(records: InitializedRecord[]): void {
     records.forEach((record) => this.setRecordSync(record));
   }
 
-  removeRecordSync(recordIdentity: RecordIdentity): Record | undefined {
+  removeRecordSync(
+    recordIdentity: RecordIdentity
+  ): InitializedRecord | undefined {
     const record = this.getRecordSync(recordIdentity);
     if (record) {
       delete this._state.records[serializeRecordIdentity(record)];
@@ -153,7 +157,7 @@ export class RecordTransformBuffer extends SyncRecordCache {
     }
   }
 
-  removeRecordsSync(recordIdentities: RecordIdentity[]): Record[] {
+  removeRecordsSync(recordIdentities: RecordIdentity[]): InitializedRecord[] {
     const records = [];
     for (let recordIdentity of recordIdentities) {
       let record = this.getRecordSync(recordIdentity);

@@ -6,7 +6,7 @@ import { Orbit } from '@orbit/core';
 import { buildTransform } from '@orbit/data';
 import {
   AddRecordOperation,
-  Record,
+  InitializedRecord,
   RecordSchema,
   RecordSource,
   RecordKeyMap
@@ -173,7 +173,7 @@ module('LocalStorageSource', function (hooks) {
   test('data persists across re-instantiating source', async function (assert) {
     assert.expect(2);
 
-    let planet: Record = {
+    let planet: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {

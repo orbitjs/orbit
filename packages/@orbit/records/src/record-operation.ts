@@ -1,7 +1,7 @@
 import { eq, deepGet, deepSet } from '@orbit/utils';
 import { Operation } from '@orbit/data';
 import {
-  Record,
+  InitializedRecord,
   RecordIdentity,
   cloneRecordIdentity,
   equalRecordIdentities,
@@ -14,7 +14,7 @@ import {
  */
 export interface AddRecordOperation extends Operation {
   op: 'addRecord';
-  record: Record;
+  record: InitializedRecord;
 }
 
 /**
@@ -22,7 +22,7 @@ export interface AddRecordOperation extends Operation {
  */
 export interface UpdateRecordOperation extends Operation {
   op: 'updateRecord';
-  record: Record;
+  record: InitializedRecord;
 }
 
 /**
@@ -107,7 +107,7 @@ export type RecordOperation =
   | ReplaceRelatedRecordsOperation
   | ReplaceRelatedRecordOperation;
 
-export type AddRecordOperationResult = Record;
+export type AddRecordOperationResult = InitializedRecord;
 export type UpdateRecordOperationResult = undefined;
 export type RemoveRecordOperationResult = undefined;
 export type ReplaceKeyOperationResult = undefined;
@@ -117,7 +117,7 @@ export type RemoveFromRelatedRecordsOperationResult = undefined;
 export type ReplaceRelatedRecordsOperationResult = undefined;
 export type ReplaceRelatedRecordOperationResult = undefined;
 
-export type RecordOperationResult<T = Record> = T | undefined;
+export type RecordOperationResult<T = InitializedRecord> = T | undefined;
 
 function markOperationToDelete(operation: Operation): void {
   const o: any = operation;
@@ -261,12 +261,8 @@ function mergeOperations(
           superceded.op === 'updateRecord' ||
           (superceded as any).op === 'replaceRecord'
         ) {
-          let record: Record = superceded.record;
-          if (
-            record.relationships &&
-            record.relationships[superceding.relationship] &&
-            record.relationships[superceding.relationship].data
-          ) {
+          let record: InitializedRecord = superceded.record;
+          if (record.relationships?.[superceding.relationship]?.data) {
             updateRecordAddToHasMany(
               superceded.record,
               superceding.relationship,
@@ -291,12 +287,8 @@ function mergeOperations(
           superceded.op === 'updateRecord' ||
           (superceded as any).op === 'replaceRecord'
         ) {
-          let record: Record = superceded.record;
-          if (
-            record.relationships &&
-            record.relationships[superceding.relationship] &&
-            record.relationships[superceding.relationship].data
-          ) {
+          let record: InitializedRecord = superceded.record;
+          if (record.relationships?.[superceding.relationship]?.data) {
             updateRecordRemoveFromHasMany(
               superceded.record,
               superceding.relationship,
@@ -330,7 +322,7 @@ function isReplaceFieldOp(op: string): boolean {
 }
 
 function updateRecordReplaceAttribute(
-  record: Record,
+  record: InitializedRecord,
   attribute: string,
   value: unknown
 ) {
@@ -338,7 +330,7 @@ function updateRecordReplaceAttribute(
 }
 
 function updateRecordReplaceHasOne(
-  record: Record,
+  record: InitializedRecord,
   relationship: string,
   relatedRecord: RecordIdentity | null
 ) {
@@ -350,7 +342,7 @@ function updateRecordReplaceHasOne(
 }
 
 function updateRecordReplaceHasMany(
-  record: Record,
+  record: InitializedRecord,
   relationship: string,
   relatedRecords: RecordIdentity[]
 ) {
@@ -362,7 +354,7 @@ function updateRecordReplaceHasMany(
 }
 
 function updateRecordAddToHasMany(
-  record: Record,
+  record: InitializedRecord,
   relationship: string,
   relatedRecord: RecordIdentity
 ) {
@@ -372,7 +364,7 @@ function updateRecordAddToHasMany(
 }
 
 function updateRecordRemoveFromHasMany(
-  record: Record,
+  record: InitializedRecord,
   relationship: string,
   relatedRecord: RecordIdentity
 ) {
@@ -426,15 +418,15 @@ export function coalesceRecordOperations(
  * of a set of operations.
  */
 export function recordDiffs(
-  record: Record,
-  updatedRecord: Record
+  record: InitializedRecord,
+  updatedRecord: InitializedRecord
 ): RecordOperation[] {
   const ops: RecordOperation[] = [];
 
   if (record && updatedRecord) {
     let fullRecordUpdate = false;
     const recordIdentity = cloneRecordIdentity(record);
-    const diffRecord: Record = { ...recordIdentity };
+    const diffRecord: InitializedRecord = { ...recordIdentity };
 
     for (let member in updatedRecord) {
       if (member !== 'id' && member !== 'type') {

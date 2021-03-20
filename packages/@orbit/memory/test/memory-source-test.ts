@@ -5,7 +5,7 @@ import {
 } from '@orbit/record-cache';
 import {
   cloneRecordIdentity as identity,
-  Record,
+  InitializedRecord,
   RecordKeyMap,
   RecordOperation,
   RecordSchema,
@@ -395,7 +395,7 @@ module('MemorySource', function (hooks) {
   test('#fork - creates a new source that starts with the same schema, keyMap, and cache contents as the base source', async function (assert) {
     const source = new MemorySource({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter-id',
       attributes: { name: 'Jupiter', classification: 'gas giant' }
@@ -443,7 +443,7 @@ module('MemorySource', function (hooks) {
   test('#merge - merges transforms from a forked source back into a base source', async function (assert) {
     const source = new MemorySource({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter-id',
       attributes: { name: 'Jupiter', classification: 'gas giant' }
@@ -473,7 +473,7 @@ module('MemorySource', function (hooks) {
 
     const source = new MemorySource({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter-id',
       attributes: { name: 'Jupiter', classification: 'gas giant' }
@@ -516,7 +516,7 @@ module('MemorySource', function (hooks) {
   test('#rebase - record ends up in child source', async function (assert) {
     assert.expect(3);
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter-id',
       attributes: { name: 'Jupiter', classification: 'gas giant' }
@@ -611,7 +611,7 @@ module('MemorySource', function (hooks) {
 
     const source = new MemorySource({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter-id',
       attributes: { name: 'Jupiter', classification: 'gas giant' }
@@ -667,7 +667,7 @@ module('MemorySource', function (hooks) {
     assert.expect(22);
 
     const source = new MemorySource({ schema, keyMap });
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter-id',
       attributes: { name: 'Jupiter', classification: 'gas giant' }

@@ -1,6 +1,6 @@
 import {
   AddRecordOperation,
-  Record,
+  InitializedRecord,
   RecordKeyMap,
   RecordSchema,
   RecordTransform
@@ -70,7 +70,7 @@ module('IndexedDBSource - pullable', function (hooks) {
   test('#pull - all records', async function (assert) {
     assert.expect(5);
 
-    let earth: Record = {
+    let earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       keys: {
@@ -82,7 +82,7 @@ module('IndexedDBSource - pullable', function (hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -94,7 +94,7 @@ module('IndexedDBSource - pullable', function (hooks) {
       }
     };
 
-    let io: Record = {
+    let io: InitializedRecord = {
       type: 'moon',
       id: 'io',
       keys: {
@@ -144,7 +144,7 @@ module('IndexedDBSource - pullable', function (hooks) {
   test('#pull - records of one type', async function (assert) {
     assert.expect(4);
 
-    let earth: Record = {
+    let earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -153,7 +153,7 @@ module('IndexedDBSource - pullable', function (hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -162,7 +162,7 @@ module('IndexedDBSource - pullable', function (hooks) {
       }
     };
 
-    let io: Record = {
+    let io: InitializedRecord = {
       type: 'moon',
       id: 'io',
       attributes: {
@@ -202,7 +202,7 @@ module('IndexedDBSource - pullable', function (hooks) {
   test('#pull - specific records', async function (assert) {
     assert.expect(4);
 
-    let earth: Record = {
+    let earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -211,7 +211,7 @@ module('IndexedDBSource - pullable', function (hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -220,7 +220,7 @@ module('IndexedDBSource - pullable', function (hooks) {
       }
     };
 
-    let io: Record = {
+    let io: InitializedRecord = {
       type: 'moon',
       id: 'io',
       attributes: {
@@ -260,7 +260,7 @@ module('IndexedDBSource - pullable', function (hooks) {
   test('#pull - a specific record', async function (assert) {
     assert.expect(4);
 
-    let earth: Record = {
+    let earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -269,7 +269,7 @@ module('IndexedDBSource - pullable', function (hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -281,7 +281,7 @@ module('IndexedDBSource - pullable', function (hooks) {
       }
     };
 
-    let io: Record = {
+    let io: InitializedRecord = {
       type: 'moon',
       id: 'io',
       attributes: {

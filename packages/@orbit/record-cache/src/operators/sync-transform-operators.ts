@@ -15,7 +15,7 @@ import {
   RemoveFromRelatedRecordsOperation,
   ReplaceRelatedRecordsOperation,
   ReplaceRelatedRecordOperation,
-  Record,
+  InitializedRecord,
   recordsInclude,
   RecordTransform,
   RecordNotFoundException
@@ -99,7 +99,7 @@ export const SyncTransformOperators: Dict<SyncTransformOperator> = {
   ): RecordOperationResult {
     const op = operation as ReplaceKeyOperation;
     const currentRecord = cache.getRecordSync(op.record);
-    let record: Record;
+    let record: InitializedRecord;
 
     if (currentRecord) {
       record = clone(currentRecord);
@@ -129,7 +129,7 @@ export const SyncTransformOperators: Dict<SyncTransformOperator> = {
   ): RecordOperationResult {
     const op = operation as ReplaceAttributeOperation;
     const currentRecord = cache.getRecordSync(op.record);
-    let record: Record;
+    let record: InitializedRecord;
 
     if (currentRecord) {
       record = clone(currentRecord);
@@ -156,7 +156,7 @@ export const SyncTransformOperators: Dict<SyncTransformOperator> = {
     const op = operation as AddToRelatedRecordsOperation;
     const { relationship, relatedRecord } = op;
     const currentRecord = cache.getRecordSync(op.record);
-    let record: Record;
+    let record: InitializedRecord;
 
     if (currentRecord) {
       record = clone(currentRecord);
@@ -190,7 +190,7 @@ export const SyncTransformOperators: Dict<SyncTransformOperator> = {
     const op = operation as RemoveFromRelatedRecordsOperation;
     const currentRecord = cache.getRecordSync(op.record);
     const { relationship, relatedRecord } = op;
-    let record: Record;
+    let record: InitializedRecord;
 
     if (currentRecord) {
       record = clone(currentRecord);
@@ -231,7 +231,7 @@ export const SyncTransformOperators: Dict<SyncTransformOperator> = {
     const op = operation as ReplaceRelatedRecordsOperation;
     const currentRecord = cache.getRecordSync(op.record);
     const { relationship, relatedRecords } = op;
-    let record: Record;
+    let record: InitializedRecord;
 
     if (currentRecord) {
       record = clone(currentRecord);
@@ -261,7 +261,7 @@ export const SyncTransformOperators: Dict<SyncTransformOperator> = {
     const op = operation as ReplaceRelatedRecordOperation;
     const currentRecord = cache.getRecordSync(op.record);
     const { relationship, relatedRecord } = op;
-    let record: Record;
+    let record: InitializedRecord;
 
     if (currentRecord) {
       record = clone(currentRecord);

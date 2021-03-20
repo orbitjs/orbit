@@ -1,5 +1,5 @@
 import { getRecordFromLocalStorage } from './support/local-storage';
-import { Record, RecordSchema, RecordKeyMap } from '@orbit/records';
+import { InitializedRecord, RecordSchema, RecordKeyMap } from '@orbit/records';
 import { LocalStorageCache } from '../src/local-storage-cache';
 
 const { module, test } = QUnit;
@@ -230,7 +230,7 @@ module('LocalStorageCache', function (hooks) {
   test('#update - addRecord', function (assert) {
     assert.expect(2);
 
-    let planet: Record = {
+    let planet: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -260,7 +260,7 @@ module('LocalStorageCache', function (hooks) {
   test('#update - updateRecord', function (assert) {
     assert.expect(2);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -276,7 +276,7 @@ module('LocalStorageCache', function (hooks) {
       }
     };
 
-    let updates: Record = {
+    let updates: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -289,7 +289,7 @@ module('LocalStorageCache', function (hooks) {
       }
     };
 
-    let expected: Record = {
+    let expected: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -347,7 +347,7 @@ module('LocalStorageCache', function (hooks) {
   test('#update - removeRecord', function (assert) {
     assert.expect(1);
 
-    let planet: Record = {
+    let planet: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -384,7 +384,7 @@ module('LocalStorageCache', function (hooks) {
   test('#update - replaceKey', function (assert) {
     assert.expect(2);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -393,7 +393,7 @@ module('LocalStorageCache', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -423,7 +423,7 @@ module('LocalStorageCache', function (hooks) {
   test('#update - replaceKey - when base record does not exist', function (assert) {
     assert.expect(2);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -450,7 +450,7 @@ module('LocalStorageCache', function (hooks) {
   test('#update - replaceAttribute', function (assert) {
     assert.expect(1);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -459,7 +459,7 @@ module('LocalStorageCache', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -481,7 +481,7 @@ module('LocalStorageCache', function (hooks) {
   test('#update - replaceAttribute - when base record does not exist', function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -502,7 +502,7 @@ module('LocalStorageCache', function (hooks) {
   test('#update - addToRelatedRecords', function (assert) {
     assert.expect(1);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -516,7 +516,7 @@ module('LocalStorageCache', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -544,7 +544,7 @@ module('LocalStorageCache', function (hooks) {
   test('#update - addToRelatedRecords - when base record does not exist', function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -570,7 +570,7 @@ module('LocalStorageCache', function (hooks) {
   test('#update - removeFromRelatedRecords', function (assert) {
     assert.expect(1);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -587,7 +587,7 @@ module('LocalStorageCache', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -618,7 +618,7 @@ module('LocalStorageCache', function (hooks) {
   test('#update - removeFromRelatedRecords - when base record does not exist', function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -644,7 +644,7 @@ module('LocalStorageCache', function (hooks) {
   test('#update - replaceRelatedRecords', function (assert) {
     assert.expect(1);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -658,7 +658,7 @@ module('LocalStorageCache', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -692,7 +692,7 @@ module('LocalStorageCache', function (hooks) {
   test('#update - replaceRelatedRecords - when base record does not exist', function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -721,7 +721,7 @@ module('LocalStorageCache', function (hooks) {
   test('#update - replaceRelatedRecord - with record', function (assert) {
     assert.expect(1);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -735,7 +735,7 @@ module('LocalStorageCache', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -766,7 +766,7 @@ module('LocalStorageCache', function (hooks) {
   test('#update - replaceRelatedRecord - with record - when base record does not exist', function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -792,7 +792,7 @@ module('LocalStorageCache', function (hooks) {
   test('#update - replaceRelatedRecord - with null', function (assert) {
     assert.expect(1);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -806,7 +806,7 @@ module('LocalStorageCache', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -832,7 +832,7 @@ module('LocalStorageCache', function (hooks) {
   test('#update - replaceRelatedRecord - with null - when base record does not exist', function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -857,7 +857,7 @@ module('LocalStorageCache', function (hooks) {
   });
 
   test('#query - all records', function (assert) {
-    let earth: Record = {
+    let earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       keys: {
@@ -869,7 +869,7 @@ module('LocalStorageCache', function (hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -881,7 +881,7 @@ module('LocalStorageCache', function (hooks) {
       }
     };
 
-    let io: Record = {
+    let io: InitializedRecord = {
       type: 'moon',
       id: 'io',
       keys: {
@@ -901,7 +901,7 @@ module('LocalStorageCache', function (hooks) {
     // reset keyMap to verify that querying records also adds keys
     keyMap.reset();
 
-    const records = cache.query<Record[]>((q) => q.findRecords());
+    const records = cache.query<InitializedRecord[]>((q) => q.findRecords());
     assert.deepEqual(
       records.map((r) => r.id).sort(),
       ['earth', 'io', 'jupiter'],
@@ -928,7 +928,7 @@ module('LocalStorageCache', function (hooks) {
   test('#query - records of one type', function (assert) {
     assert.expect(1);
 
-    let earth: Record = {
+    let earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -937,7 +937,7 @@ module('LocalStorageCache', function (hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -946,7 +946,7 @@ module('LocalStorageCache', function (hooks) {
       }
     };
 
-    let io: Record = {
+    let io: InitializedRecord = {
       type: 'moon',
       id: 'io',
       attributes: {
@@ -967,7 +967,7 @@ module('LocalStorageCache', function (hooks) {
   test('#query - records by identity', function (assert) {
     assert.expect(1);
 
-    let earth: Record = {
+    let earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -976,7 +976,7 @@ module('LocalStorageCache', function (hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -985,7 +985,7 @@ module('LocalStorageCache', function (hooks) {
       }
     };
 
-    let io: Record = {
+    let io: InitializedRecord = {
       type: 'moon',
       id: 'io',
       attributes: {
@@ -1008,7 +1008,7 @@ module('LocalStorageCache', function (hooks) {
   test('#query - a specific record', function (assert) {
     assert.expect(2);
 
-    let earth: Record = {
+    let earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -1017,7 +1017,7 @@ module('LocalStorageCache', function (hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -1029,7 +1029,7 @@ module('LocalStorageCache', function (hooks) {
       }
     };
 
-    let io: Record = {
+    let io: InitializedRecord = {
       type: 'moon',
       id: 'io',
       attributes: {

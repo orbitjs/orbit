@@ -2,7 +2,7 @@ import { Dict } from '@orbit/utils';
 import {
   RecordKeyMap,
   ModelDefinition,
-  Record,
+  InitializedRecord,
   RecordSchema
 } from '@orbit/records';
 import { JSONAPISerializer } from '../src/jsonapi-serializer';
@@ -493,7 +493,7 @@ module('JSONAPISerializer', function (hooks) {
             }
           }
         });
-        let planet = result.data as Record;
+        let planet = result.data as InitializedRecord;
         assert.deepEqual(result, {
           data: {
             type: 'planet',
@@ -550,7 +550,7 @@ module('JSONAPISerializer', function (hooks) {
             }
           }
         });
-        let planet = result.data as Record;
+        let planet = result.data as InitializedRecord;
         assert.deepEqual(result, {
           data: {
             type: 'planet',
@@ -614,7 +614,7 @@ module('JSONAPISerializer', function (hooks) {
             }
           }
         });
-        let planet = result.data as Record;
+        let planet = result.data as InitializedRecord;
         assert.deepEqual(result, {
           data: {
             type: 'planet',
@@ -675,7 +675,7 @@ module('JSONAPISerializer', function (hooks) {
             }
           }
         });
-        let planet = result.data as Record;
+        let planet = result.data as InitializedRecord;
         assert.deepEqual(result, {
           data: {
             type: 'planet',
@@ -735,7 +735,7 @@ module('JSONAPISerializer', function (hooks) {
             }
           }
         });
-        let planet = result.data as Record;
+        let planet = result.data as InitializedRecord;
         assert.deepEqual(result, {
           data: {
             type: 'planet',
@@ -1075,7 +1075,7 @@ module('JSONAPISerializer', function (hooks) {
           id: '123'
         }
       });
-      let record = result.data as Record;
+      let record = result.data as InitializedRecord;
 
       assert.deepEqual(
         record,
@@ -1094,7 +1094,7 @@ module('JSONAPISerializer', function (hooks) {
       let localRecord = {
         id: '1a2b3c',
         type: 'planet'
-      } as Record;
+      } as InitializedRecord;
 
       let result = serializer.deserialize(
         {
@@ -1161,9 +1161,9 @@ module('JSONAPISerializer', function (hooks) {
         ]
       });
 
-      let planet = result.data as Record;
-      let moon = result.included?.[0] as Record;
-      let solarSystem = result.included?.[1] as Record;
+      let planet = result.data as InitializedRecord;
+      let moon = result.included?.[0] as InitializedRecord;
+      let solarSystem = result.included?.[1] as InitializedRecord;
 
       assert.deepEqual(
         result,
@@ -1240,7 +1240,7 @@ module('JSONAPISerializer', function (hooks) {
           { type: 'planets', id: '234' }
         ]
       });
-      let records = result.data as Record[];
+      let records = result.data as InitializedRecord[];
 
       assert.deepEqual(
         records,
@@ -1261,7 +1261,10 @@ module('JSONAPISerializer', function (hooks) {
     });
 
     test('#deserialize - can deserialize an array of records and associate them with local records', function (assert) {
-      let localRecords = [{ id: '1a2b3c' }, { id: '4d5e6f' }] as Record[];
+      let localRecords = [
+        { id: '1a2b3c' },
+        { id: '4d5e6f' }
+      ] as InitializedRecord[];
       let result = serializer.deserialize(
         {
           data: [
@@ -1273,7 +1276,7 @@ module('JSONAPISerializer', function (hooks) {
           primaryRecords: localRecords
         }
       );
-      let records = result.data as Record[];
+      let records = result.data as InitializedRecord[];
 
       assert.deepEqual(
         records,

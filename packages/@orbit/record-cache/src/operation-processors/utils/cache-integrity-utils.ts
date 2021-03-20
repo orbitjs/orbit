@@ -1,6 +1,6 @@
 import {
   cloneRecordIdentity,
-  Record,
+  InitializedRecord,
   RecordIdentity,
   RecordOperation,
   RecordSchema
@@ -49,7 +49,7 @@ export function getInverseRelationships(
 
 export function getAllInverseRelationships(
   schema: RecordSchema,
-  record: Record
+  record: InitializedRecord
 ): RecordRelationshipIdentity[] {
   const recordIdentity = cloneRecordIdentity(record);
   const inverseRelationships: RecordRelationshipIdentity[] = [];

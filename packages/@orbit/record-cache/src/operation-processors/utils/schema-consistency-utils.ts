@@ -3,7 +3,7 @@ import {
   cloneRecordIdentity,
   equalRecordIdentities,
   uniqueRecordIdentities,
-  Record,
+  InitializedRecord,
   RecordIdentity,
   RecordOperation,
   RelationshipDefinition,
@@ -13,7 +13,7 @@ import { getRelationshipDef } from './schema-utils';
 
 export function recordAdded(
   schema: RecordSchema,
-  record: Record
+  record: InitializedRecord
 ): RecordOperation[] {
   const ops: RecordOperation[] = [];
 
@@ -178,7 +178,7 @@ export function relatedRecordsReplaced(
 
 export function recordRemoved(
   schema: RecordSchema,
-  record?: Record
+  record?: InitializedRecord
 ): RecordOperation[] {
   const ops: RecordOperation[] = [];
 
@@ -215,8 +215,8 @@ export function recordRemoved(
 
 export function recordUpdated(
   schema: RecordSchema,
-  record: Record,
-  currentRecord?: Record
+  record: InitializedRecord,
+  currentRecord?: InitializedRecord
 ): RecordOperation[] {
   const ops: RecordOperation[] = [];
 

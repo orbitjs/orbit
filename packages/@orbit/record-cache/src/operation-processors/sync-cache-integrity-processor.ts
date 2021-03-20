@@ -1,4 +1,8 @@
-import { Record, RecordIdentity, RecordOperation } from '@orbit/records';
+import {
+  InitializedRecord,
+  RecordIdentity,
+  RecordOperation
+} from '@orbit/records';
 import { SyncOperationProcessor } from '../sync-operation-processor';
 import {
   getInverseRelationship,
@@ -135,7 +139,7 @@ export class SyncCacheIntegrityProcessor extends SyncOperationProcessor {
     }
   }
 
-  protected addAllInverseRelationships(record: Record): void {
+  protected addAllInverseRelationships(record: InitializedRecord): void {
     let inverseRelationships = getAllInverseRelationships(
       this.accessor.schema,
       record
