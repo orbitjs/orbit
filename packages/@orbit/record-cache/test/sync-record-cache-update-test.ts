@@ -1,7 +1,7 @@
 import {
   equalRecordIdentities,
   RecordKeyMap,
-  Record,
+  InitializedRecord,
   RecordIdentity,
   recordsInclude,
   recordsIncludeAll,
@@ -37,7 +37,7 @@ module('SyncRecordCache', function (hooks) {
           defaultTransformOptions
         });
 
-        const earth: Record = {
+        const earth: InitializedRecord = {
           type: 'planet',
           id: '1',
           attributes: { name: 'Earth' },
@@ -71,7 +71,7 @@ module('SyncRecordCache', function (hooks) {
 
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const earth: Record = {
+        const earth: InitializedRecord = {
           type: 'planet',
           id: '1',
           attributes: { name: 'Earth' },
@@ -110,7 +110,7 @@ module('SyncRecordCache', function (hooks) {
 
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const earth: Record = { type: 'planet', id: '1' };
+        const earth: InitializedRecord = { type: 'planet', id: '1' };
 
         cache.on('patch', (operation, data) => {
           assert.deepEqual(operation, {
@@ -193,13 +193,13 @@ module('SyncRecordCache', function (hooks) {
       test('#update updates inverse hasOne relationship when a record with relationships unspecified is added - record added after', function (assert) {
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const jupiter: Record = {
+        const jupiter: InitializedRecord = {
           type: 'planet',
           id: 'p1',
           attributes: { name: 'Jupiter' },
           relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
         };
-        const io: Record = {
+        const io: InitializedRecord = {
           type: 'moon',
           id: 'm1',
           attributes: { name: 'Io' }
@@ -208,13 +208,15 @@ module('SyncRecordCache', function (hooks) {
         cache.update((t) => [t.updateRecord(jupiter), t.updateRecord(io)]);
 
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'planet', id: 'p1' }) as Record)
-            ?.relationships?.moons.data,
+          (cache.getRecordSync({
+            type: 'planet',
+            id: 'p1'
+          }) as InitializedRecord)?.relationships?.moons.data,
           [{ type: 'moon', id: 'm1' }],
           'Io has been assigned to Jupiter'
         );
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as Record)
+          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as InitializedRecord)
             ?.relationships?.planet.data,
           { type: 'planet', id: 'p1' },
           'Jupiter has been assigned to Io'
@@ -224,13 +226,13 @@ module('SyncRecordCache', function (hooks) {
       test('#update updates inverse hasOne relationship when a record with relationships unspecified is added - record added before', function (assert) {
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const jupiter: Record = {
+        const jupiter: InitializedRecord = {
           type: 'planet',
           id: 'p1',
           attributes: { name: 'Jupiter' },
           relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
         };
-        const io: Record = {
+        const io: InitializedRecord = {
           type: 'moon',
           id: 'm1',
           attributes: { name: 'Io' }
@@ -239,13 +241,15 @@ module('SyncRecordCache', function (hooks) {
         cache.update((t) => [t.updateRecord(io), t.updateRecord(jupiter)]);
 
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'planet', id: 'p1' }) as Record)
-            ?.relationships?.moons.data,
+          (cache.getRecordSync({
+            type: 'planet',
+            id: 'p1'
+          }) as InitializedRecord)?.relationships?.moons.data,
           [{ type: 'moon', id: 'm1' }],
           'Io has been assigned to Jupiter'
         );
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as Record)
+          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as InitializedRecord)
             ?.relationships?.planet.data,
           { type: 'planet', id: 'p1' },
           'Jupiter has been assigned to Io'
@@ -255,13 +259,13 @@ module('SyncRecordCache', function (hooks) {
       test('#update updates inverse hasMany relationship when a record with relationships unspecified is added - record added after', function (assert) {
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const io: Record = {
+        const io: InitializedRecord = {
           type: 'moon',
           id: 'm1',
           attributes: { name: 'Io' },
           relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
         };
-        const jupiter: Record = {
+        const jupiter: InitializedRecord = {
           type: 'planet',
           id: 'p1',
           attributes: { name: 'Jupiter' }
@@ -270,13 +274,15 @@ module('SyncRecordCache', function (hooks) {
         cache.update((t) => [t.updateRecord(io), t.updateRecord(jupiter)]);
 
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'planet', id: 'p1' }) as Record)
-            ?.relationships?.moons.data,
+          (cache.getRecordSync({
+            type: 'planet',
+            id: 'p1'
+          }) as InitializedRecord)?.relationships?.moons.data,
           [{ type: 'moon', id: 'm1' }],
           'Io has been assigned to Jupiter'
         );
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as Record)
+          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as InitializedRecord)
             ?.relationships?.planet.data,
           { type: 'planet', id: 'p1' },
           'Jupiter has been assigned to Io'
@@ -286,13 +292,13 @@ module('SyncRecordCache', function (hooks) {
       test('#update updates inverse hasMany relationship when a record with relationships unspecified is added - record added before', function (assert) {
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const io: Record = {
+        const io: InitializedRecord = {
           type: 'moon',
           id: 'm1',
           attributes: { name: 'Io' },
           relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
         };
-        const jupiter: Record = {
+        const jupiter: InitializedRecord = {
           type: 'planet',
           id: 'p1',
           attributes: { name: 'Jupiter' }
@@ -301,13 +307,15 @@ module('SyncRecordCache', function (hooks) {
         cache.update((t) => [t.updateRecord(jupiter), t.updateRecord(io)]);
 
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'planet', id: 'p1' }) as Record)
-            ?.relationships?.moons.data,
+          (cache.getRecordSync({
+            type: 'planet',
+            id: 'p1'
+          }) as InitializedRecord)?.relationships?.moons.data,
           [{ type: 'moon', id: 'm1' }],
           'Io has been assigned to Jupiter'
         );
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as Record)
+          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as InitializedRecord)
             ?.relationships?.planet.data,
           { type: 'planet', id: 'p1' },
           'Jupiter has been assigned to Io'
@@ -317,13 +325,13 @@ module('SyncRecordCache', function (hooks) {
       test('#update updates inverse hasOne relationship when a record with an empty relationship is added', function (assert) {
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const io: Record = {
+        const io: InitializedRecord = {
           type: 'moon',
           id: 'm1',
           attributes: { name: 'Io' },
           relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
         };
-        const jupiter: Record = {
+        const jupiter: InitializedRecord = {
           type: 'planet',
           id: 'p1',
           attributes: { name: 'Jupiter' },
@@ -333,13 +341,15 @@ module('SyncRecordCache', function (hooks) {
         cache.update((t) => [t.updateRecord(io), t.updateRecord(jupiter)]);
 
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'planet', id: 'p1' }) as Record)
-            ?.relationships?.moons.data,
+          (cache.getRecordSync({
+            type: 'planet',
+            id: 'p1'
+          }) as InitializedRecord)?.relationships?.moons.data,
           [],
           'Jupiter has no moons'
         );
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as Record)
+          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as InitializedRecord)
             ?.relationships?.planet.data,
           null,
           'Jupiter has been cleared from Io'
@@ -349,13 +359,13 @@ module('SyncRecordCache', function (hooks) {
       test('#update updates inverse hasMany relationship when a record with an empty relationship is added', function (assert) {
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const jupiter: Record = {
+        const jupiter: InitializedRecord = {
           type: 'planet',
           id: 'p1',
           attributes: { name: 'Jupiter' },
           relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
         };
-        const io: Record = {
+        const io: InitializedRecord = {
           type: 'moon',
           id: 'm1',
           attributes: { name: 'Io' },
@@ -365,13 +375,15 @@ module('SyncRecordCache', function (hooks) {
         cache.update((t) => [t.updateRecord(jupiter), t.updateRecord(io)]);
 
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'planet', id: 'p1' }) as Record)
-            ?.relationships?.moons.data,
+          (cache.getRecordSync({
+            type: 'planet',
+            id: 'p1'
+          }) as InitializedRecord)?.relationships?.moons.data,
           [],
           'Io has been cleared from Jupiter'
         );
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as Record)
+          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as InitializedRecord)
             ?.relationships?.planet.data,
           null,
           'Io has no planet'
@@ -381,7 +393,7 @@ module('SyncRecordCache', function (hooks) {
       test('#update updates inverse hasMany polymorphic relationship', function (assert) {
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const sun: Record = {
+        const sun: InitializedRecord = {
           type: 'star',
           id: 's1',
           attributes: { name: 'Sun' },
@@ -394,12 +406,12 @@ module('SyncRecordCache', function (hooks) {
             }
           }
         };
-        const jupiter: Record = {
+        const jupiter: InitializedRecord = {
           type: 'planet',
           id: 'p1',
           attributes: { name: 'Jupiter' }
         };
-        const io: Record = {
+        const io: InitializedRecord = {
           type: 'moon',
           id: 'm1',
           attributes: { name: 'Io' }
@@ -412,7 +424,7 @@ module('SyncRecordCache', function (hooks) {
         ]);
 
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'star', id: 's1' }) as Record)
+          (cache.getRecordSync({ type: 'star', id: 's1' }) as InitializedRecord)
             ?.relationships?.celestialObjects.data,
           [
             { type: 'planet', id: 'p1' },
@@ -421,13 +433,15 @@ module('SyncRecordCache', function (hooks) {
           'Jupiter and Io has been assigned to Sun'
         );
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'planet', id: 'p1' }) as Record)
-            ?.relationships?.star.data,
+          (cache.getRecordSync({
+            type: 'planet',
+            id: 'p1'
+          }) as InitializedRecord)?.relationships?.star.data,
           { type: 'star', id: 's1' },
           'Sun has been assigned to Jupiter'
         );
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as Record)
+          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as InitializedRecord)
             ?.relationships?.star.data,
           { type: 'star', id: 's1' },
           'Sun has been assigned to Io'
@@ -437,19 +451,19 @@ module('SyncRecordCache', function (hooks) {
       test('#update updates inverse hasOne polymorphic relationship', function (assert) {
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const jupiter: Record = {
+        const jupiter: InitializedRecord = {
           type: 'planet',
           id: 'p1',
           attributes: { name: 'Jupiter' },
           relationships: { star: { data: { type: 'star', id: 's1' } } }
         };
-        const io: Record = {
+        const io: InitializedRecord = {
           type: 'moon',
           id: 'm1',
           attributes: { name: 'Io' },
           relationships: { star: { data: { type: 'star', id: 's1' } } }
         };
-        const sun: Record = {
+        const sun: InitializedRecord = {
           type: 'star',
           id: 's1',
           attributes: { name: 'Sun' }
@@ -462,7 +476,7 @@ module('SyncRecordCache', function (hooks) {
         ]);
 
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'star', id: 's1' }) as Record)
+          (cache.getRecordSync({ type: 'star', id: 's1' }) as InitializedRecord)
             ?.relationships?.celestialObjects.data,
           [
             { type: 'planet', id: 'p1' },
@@ -471,13 +485,15 @@ module('SyncRecordCache', function (hooks) {
           'Jupiter and Io has been assigned to Sun'
         );
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'planet', id: 'p1' }) as Record)
-            ?.relationships?.star.data,
+          (cache.getRecordSync({
+            type: 'planet',
+            id: 'p1'
+          }) as InitializedRecord)?.relationships?.star.data,
           { type: 'star', id: 's1' },
           'Sun has been assigned to Jupiter'
         );
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as Record)
+          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as InitializedRecord)
             ?.relationships?.star.data,
           { type: 'star', id: 's1' },
           'Sun has been assigned to Io'
@@ -487,19 +503,19 @@ module('SyncRecordCache', function (hooks) {
       test('#update tracks refs and clears them from hasOne relationships when a referenced record is removed', function (assert) {
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const jupiter: Record = {
+        const jupiter: InitializedRecord = {
           type: 'planet',
           id: 'p1',
           attributes: { name: 'Jupiter' },
           relationships: { moons: { data: undefined } }
         };
-        const io: Record = {
+        const io: InitializedRecord = {
           type: 'moon',
           id: 'm1',
           attributes: { name: 'Io' },
           relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
         };
-        const europa: Record = {
+        const europa: InitializedRecord = {
           type: 'moon',
           id: 'm2',
           attributes: { name: 'Europa' },
@@ -513,13 +529,13 @@ module('SyncRecordCache', function (hooks) {
         ]);
 
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as Record)
+          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as InitializedRecord)
             ?.relationships?.planet.data,
           { type: 'planet', id: 'p1' },
           'Jupiter has been assigned to Io'
         );
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'moon', id: 'm2' }) as Record)
+          (cache.getRecordSync({ type: 'moon', id: 'm2' }) as InitializedRecord)
             ?.relationships?.planet.data,
           { type: 'planet', id: 'p1' },
           'Jupiter has been assigned to Europa'
@@ -534,13 +550,13 @@ module('SyncRecordCache', function (hooks) {
         );
 
         assert.equal(
-          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as Record)
+          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as InitializedRecord)
             ?.relationships?.planet.data,
           undefined,
           'Jupiter has been cleared from Io'
         );
         assert.equal(
-          (cache.getRecordSync({ type: 'moon', id: 'm2' }) as Record)
+          (cache.getRecordSync({ type: 'moon', id: 'm2' }) as InitializedRecord)
             ?.relationships?.planet.data,
           undefined,
           'Jupiter has been cleared from Europa'
@@ -550,19 +566,19 @@ module('SyncRecordCache', function (hooks) {
       test('#update tracks refs and clears them from hasMany relationships when a referenced record is removed', function (assert) {
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const io: Record = {
+        const io: InitializedRecord = {
           type: 'moon',
           id: 'm1',
           attributes: { name: 'Io' },
           relationships: { planet: { data: null } }
         };
-        const europa: Record = {
+        const europa: InitializedRecord = {
           type: 'moon',
           id: 'm2',
           attributes: { name: 'Europa' },
           relationships: { planet: { data: null } }
         };
-        const jupiter: Record = {
+        const jupiter: InitializedRecord = {
           type: 'planet',
           id: 'p1',
           attributes: { name: 'Jupiter' },
@@ -583,8 +599,10 @@ module('SyncRecordCache', function (hooks) {
         ]);
 
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'planet', id: 'p1' }) as Record)
-            ?.relationships?.moons.data,
+          (cache.getRecordSync({
+            type: 'planet',
+            id: 'p1'
+          }) as InitializedRecord)?.relationships?.moons.data,
           [
             { type: 'moon', id: 'm1' },
             { type: 'moon', id: 'm2' }
@@ -643,8 +661,10 @@ module('SyncRecordCache', function (hooks) {
         );
 
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'planet', id: 'p1' }) as Record)
-            ?.relationships?.moons.data,
+          (cache.getRecordSync({
+            type: 'planet',
+            id: 'p1'
+          }) as InitializedRecord)?.relationships?.moons.data,
           [{ type: 'moon', id: 'm1' }],
           'relationship was added'
         );
@@ -750,7 +770,7 @@ module('SyncRecordCache', function (hooks) {
 
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const jupiter: Record = {
+        const jupiter: InitializedRecord = {
           id: 'p1',
           type: 'planet',
           attributes: { name: 'Jupiter' },
@@ -775,7 +795,7 @@ module('SyncRecordCache', function (hooks) {
 
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const jupiter: Record = {
+        const jupiter: InitializedRecord = {
           id: 'p1',
           type: 'planet',
           attributes: { name: 'Jupiter' }
@@ -802,10 +822,10 @@ module('SyncRecordCache', function (hooks) {
 
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const jupiter: Record = { id: 'jupiter', type: 'planet' };
+        const jupiter: InitializedRecord = { id: 'jupiter', type: 'planet' };
         cache.update((t) => t.addRecord(jupiter));
 
-        const callisto: Record = { id: 'callisto', type: 'moon' };
+        const callisto: InitializedRecord = { id: 'callisto', type: 'moon' };
         cache.update((t) => t.addRecord(callisto));
 
         cache.update((t) =>
@@ -844,10 +864,10 @@ module('SyncRecordCache', function (hooks) {
 
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const jupiter: Record = { id: 'jupiter', type: 'planet' };
+        const jupiter: InitializedRecord = { id: 'jupiter', type: 'planet' };
         cache.update((t) => t.addRecord(jupiter));
 
-        const callisto: Record = { id: 'callisto', type: 'moon' };
+        const callisto: InitializedRecord = { id: 'callisto', type: 'moon' };
         cache.update((t) => t.addRecord(callisto));
 
         cache.update((t) =>
@@ -881,7 +901,7 @@ module('SyncRecordCache', function (hooks) {
 
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const europa: Record = {
+        const europa: InitializedRecord = {
           id: 'm1',
           type: 'moon',
           attributes: { name: 'Europa' },
@@ -906,7 +926,7 @@ module('SyncRecordCache', function (hooks) {
 
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const europa: Record = {
+        const europa: InitializedRecord = {
           type: 'moon',
           id: 'm1',
           attributes: { name: 'Europa' },
@@ -964,8 +984,14 @@ module('SyncRecordCache', function (hooks) {
           })
         ]);
 
-        const one = cache.getRecordSync({ type: 'one', id: '1' }) as Record;
-        const two = cache.getRecordSync({ type: 'two', id: '2' }) as Record;
+        const one = cache.getRecordSync({
+          type: 'one',
+          id: '1'
+        }) as InitializedRecord;
+        const two = cache.getRecordSync({
+          type: 'two',
+          id: '2'
+        }) as InitializedRecord;
         assert.ok(one, 'one exists');
         assert.ok(two, 'two exists');
         assert.deepEqual(
@@ -982,7 +1008,7 @@ module('SyncRecordCache', function (hooks) {
         cache.update((t) => t.removeRecord(two));
 
         assert.equal(
-          (cache.getRecordSync({ type: 'one', id: '1' }) as Record)
+          (cache.getRecordSync({ type: 'one', id: '1' }) as InitializedRecord)
             .relationships?.two.data,
           null,
           'ones link to two got removed'
@@ -1010,18 +1036,18 @@ module('SyncRecordCache', function (hooks) {
           keyMap
         });
 
-        const jupiter: Record = {
+        const jupiter: InitializedRecord = {
           type: 'planet',
           id: 'p1',
           attributes: { name: 'Jupiter' }
         };
-        const io: Record = {
+        const io: InitializedRecord = {
           type: 'moon',
           id: 'm1',
           attributes: { name: 'Io' },
           relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
         };
-        const europa: Record = {
+        const europa: InitializedRecord = {
           type: 'moon',
           id: 'm2',
           attributes: { name: 'Europa' },
@@ -1071,18 +1097,18 @@ module('SyncRecordCache', function (hooks) {
           keyMap
         });
 
-        const jupiter: Record = {
+        const jupiter: InitializedRecord = {
           type: 'planet',
           id: 'p1',
           attributes: { name: 'Jupiter' }
         };
-        const io: Record = {
+        const io: InitializedRecord = {
           type: 'moon',
           id: 'm1',
           attributes: { name: 'Io' },
           relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
         };
-        const europa: Record = {
+        const europa: InitializedRecord = {
           type: 'moon',
           id: 'm2',
           attributes: { name: 'Europa' },
@@ -1132,18 +1158,18 @@ module('SyncRecordCache', function (hooks) {
           keyMap
         });
 
-        const jupiter: Record = {
+        const jupiter: InitializedRecord = {
           type: 'planet',
           id: 'p1',
           attributes: { name: 'Jupiter' }
         };
-        const io: Record = {
+        const io: InitializedRecord = {
           type: 'moon',
           id: 'm1',
           attributes: { name: 'Io' },
           relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
         };
-        const europa: Record = {
+        const europa: InitializedRecord = {
           type: 'moon',
           id: 'm2',
           attributes: { name: 'Europa' },
@@ -1405,14 +1431,14 @@ module('SyncRecordCache', function (hooks) {
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
         const tb = cache.transformBuilder;
 
-        const earth: Record = {
+        const earth: InitializedRecord = {
           type: 'planet',
           id: '1',
           attributes: { name: 'Earth' },
           relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
         };
 
-        const jupiter: Record = {
+        const jupiter: InitializedRecord = {
           type: 'planet',
           id: '1',
           attributes: { name: 'Jupiter', classification: 'terrestrial' },
@@ -1800,7 +1826,7 @@ module('SyncRecordCache', function (hooks) {
           type: 'planetarySystem'
         });
         assert.deepEqual(
-          (latestHome?.relationships?.star.data as Record).id,
+          (latestHome?.relationships?.star.data as InitializedRecord).id,
           star1.id,
           'The original related record is in place.'
         );
@@ -1823,7 +1849,7 @@ module('SyncRecordCache', function (hooks) {
         });
 
         assert.deepEqual(
-          (latestHome?.relationships?.star.data as Record).id,
+          (latestHome?.relationships?.star.data as InitializedRecord).id,
           star2.id,
           'The related record was replaced.'
         );
@@ -1832,7 +1858,7 @@ module('SyncRecordCache', function (hooks) {
       test("#update - updateRecord - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", function (assert) {
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const earth: Record = {
+        const earth: InitializedRecord = {
           type: 'planet',
           id: '1',
           attributes: { name: 'Earth' },
@@ -1853,7 +1879,7 @@ module('SyncRecordCache', function (hooks) {
       test("#update - removeRecord - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", function (assert) {
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const earth: Record = {
+        const earth: InitializedRecord = {
           type: 'planet',
           id: '1'
         };
@@ -1872,7 +1898,7 @@ module('SyncRecordCache', function (hooks) {
       test("#update - replaceKey - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", function (assert) {
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const earth: Record = {
+        const earth: InitializedRecord = {
           type: 'planet',
           id: '1',
           attributes: { name: 'Earth' },
@@ -1893,7 +1919,7 @@ module('SyncRecordCache', function (hooks) {
       test("#update - replaceAttribute - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", function (assert) {
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
 
-        const earth: Record = {
+        const earth: InitializedRecord = {
           type: 'planet',
           id: '1',
           attributes: { name: 'Earth' },

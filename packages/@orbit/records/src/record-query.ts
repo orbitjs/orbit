@@ -1,5 +1,5 @@
 import { Query, QueryOrExpressions } from '@orbit/data';
-import { Record } from './record';
+import { InitializedRecord } from './record';
 import { RecordQueryBuilder } from './record-query-builder';
 import {
   RecordQueryExpression,
@@ -15,6 +15,6 @@ export type RecordQueryOrExpressions = QueryOrExpressions<
   RecordQueryBuilder
 >;
 
-export type RecordQueryResult<T = Record> =
+export type RecordQueryResult<T = InitializedRecord> =
   | RecordQueryExpressionResult<T>
   | RecordQueryExpressionResult<T>[];

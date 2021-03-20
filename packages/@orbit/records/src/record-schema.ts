@@ -3,7 +3,11 @@ import { fulfillAll, Orbit } from '@orbit/core';
 import { ModelNotFound } from './record-exceptions';
 import { Dict } from '@orbit/utils';
 import { evented, Evented } from '@orbit/core';
-import { Record, RecordInitializer, UninitializedRecord } from './record';
+import {
+  InitializedRecord,
+  RecordInitializer,
+  UninitializedRecord
+} from './record';
 
 const { uuid, deprecate } = Orbit;
 
@@ -189,11 +193,11 @@ export class RecordSchema {
     }
   }
 
-  initializeRecord(record: UninitializedRecord): Record {
+  initializeRecord(record: UninitializedRecord): InitializedRecord {
     if (record.id === undefined) {
       record.id = this.generateId(record.type);
     }
-    return record as Record;
+    return record as InitializedRecord;
   }
 
   get models(): Dict<ModelDefinition> {

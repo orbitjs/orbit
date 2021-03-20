@@ -1,7 +1,7 @@
 import { NetworkError } from '@orbit/data';
 import {
   RecordKeyMap,
-  Record,
+  InitializedRecord,
   RecordIdentity,
   RecordOperation,
   ReplaceRelatedRecordOperation,
@@ -64,7 +64,7 @@ module('JSONAPISource - pullable', function (hooks) {
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       };
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       });
@@ -104,7 +104,7 @@ module('JSONAPISource - pullable', function (hooks) {
     test('#pull - record (with a 304 response)', async function (assert) {
       assert.expect(3);
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       });
@@ -134,7 +134,7 @@ module('JSONAPISource - pullable', function (hooks) {
         relationships: { moons: { data: [] } }
       };
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       });
@@ -167,7 +167,7 @@ module('JSONAPISource - pullable', function (hooks) {
         relationships: { moons: { data: [] } }
       };
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       });
@@ -201,7 +201,7 @@ module('JSONAPISource - pullable', function (hooks) {
     test('#pull - fetch can reject with a NetworkError', async function (assert) {
       assert.expect(2);
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       });
@@ -229,7 +229,7 @@ module('JSONAPISource - pullable', function (hooks) {
         relationships: { moons: { data: [] } }
       };
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       });
@@ -827,7 +827,7 @@ module('JSONAPISource - pullable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data: Resource[] = [
         {
@@ -890,7 +890,7 @@ module('JSONAPISource - pullable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data: Resource[] = [
         {
@@ -947,7 +947,7 @@ module('JSONAPISource - pullable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data: Resource[] = [
         {
@@ -1003,7 +1003,7 @@ module('JSONAPISource - pullable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data: Resource[] = [
         {
@@ -1090,7 +1090,7 @@ module('JSONAPISource - pullable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data: Resource[] = [
         {
@@ -1155,7 +1155,7 @@ module('JSONAPISource - pullable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data: Resource[] = [
         {
@@ -1220,7 +1220,7 @@ module('JSONAPISource - pullable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data: Resource[] = [
         {
@@ -1285,7 +1285,7 @@ module('JSONAPISource - pullable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data: Resource[] = [
         {
@@ -1366,7 +1366,7 @@ module('JSONAPISource - pullable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data: Resource[] = [
         {
@@ -1489,7 +1489,7 @@ module('JSONAPISource - pullable', function (hooks) {
       const planetRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: 'jupiter'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data: Resource = {
         type: 'solarSystem',
@@ -1545,10 +1545,10 @@ module('JSONAPISource - pullable', function (hooks) {
     test('#pull - relatedRecords', async function (assert) {
       assert.expect(9);
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: 'jupiter'
-      }) as Record;
+      }) as InitializedRecord;
 
       let data = [
         {

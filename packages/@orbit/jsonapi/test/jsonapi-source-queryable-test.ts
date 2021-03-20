@@ -1,7 +1,7 @@
 import { NetworkError, QueryNotAllowed } from '@orbit/data';
 import {
   RecordKeyMap,
-  Record,
+  InitializedRecord,
   RecordIdentity,
   RecordSchema,
   RecordNotFoundException
@@ -60,7 +60,7 @@ module('JSONAPISource - queryable', function (hooks) {
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       };
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       });
@@ -77,7 +77,7 @@ module('JSONAPISource - queryable', function (hooks) {
         !Array.isArray(record),
         'only a single primary record returned'
       );
-      assert.equal((record as Record).attributes?.name, 'Jupiter');
+      assert.equal((record as InitializedRecord).attributes?.name, 'Jupiter');
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(
@@ -96,7 +96,7 @@ module('JSONAPISource - queryable', function (hooks) {
         attributes: { name: 'Jupiter', classification: 'gas giant' }
       };
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       });
@@ -111,7 +111,7 @@ module('JSONAPISource - queryable', function (hooks) {
       );
 
       assert.ok(!Array.isArray(data), 'only a single primary record returned');
-      assert.equal((data as Record).attributes?.name, 'Jupiter');
+      assert.equal((data as InitializedRecord).attributes?.name, 'Jupiter');
 
       assert.equal(details?.[0].response.status, 200);
 
@@ -128,7 +128,7 @@ module('JSONAPISource - queryable', function (hooks) {
     test('#query - record (304 response)', async function (assert) {
       assert.expect(3);
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       });
@@ -161,7 +161,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const planet1 = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data2: Resource = {
         type: 'planet',
@@ -172,7 +172,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const planet2 = resourceSerializer.deserialize({
         type: 'planet',
         id: '1234'
-      }) as Record;
+      }) as InitializedRecord;
 
       fetchStub
         .withArgs('/planets/12345')
@@ -184,7 +184,7 @@ module('JSONAPISource - queryable', function (hooks) {
       let records = (await source.query((q) => [
         q.findRecord({ type: 'planet', id: planet1.id }),
         q.findRecord({ type: 'planet', id: planet2.id })
-      ])) as Record[];
+      ])) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'multiple primary records returned');
       assert.equal(records[0].attributes?.name, 'Jupiter');
@@ -215,7 +215,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const planet1 = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data2: Resource = {
         type: 'planet',
@@ -226,7 +226,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const planet2 = resourceSerializer.deserialize({
         type: 'planet',
         id: '1234'
-      }) as Record;
+      }) as InitializedRecord;
 
       fetchStub
         .withArgs('/planets/12345')
@@ -242,7 +242,7 @@ module('JSONAPISource - queryable', function (hooks) {
         ],
         { fullResponse: true }
       );
-      let records = data as Record[];
+      let records = data as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'multiple primary records returned');
       assert.equal(records[0].attributes?.name, 'Jupiter');
@@ -279,7 +279,7 @@ module('JSONAPISource - queryable', function (hooks) {
       };
       let responseDoc = { data, meta };
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       });
@@ -318,7 +318,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const planet1 = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data2: Resource = {
         type: 'planet',
@@ -329,7 +329,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const planet2 = resourceSerializer.deserialize({
         type: 'planet',
         id: '1234'
-      }) as Record;
+      }) as InitializedRecord;
 
       fetchStub
         .withArgs('/planets/12345')
@@ -362,7 +362,7 @@ module('JSONAPISource - queryable', function (hooks) {
         relationships: { moons: { data: [] } }
       };
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       });
@@ -395,7 +395,7 @@ module('JSONAPISource - queryable', function (hooks) {
         relationships: { moons: { data: [] } }
       };
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       });
@@ -429,7 +429,7 @@ module('JSONAPISource - queryable', function (hooks) {
     test('#query - fetch can reject with a NetworkError', async function (assert) {
       assert.expect(2);
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       });
@@ -457,7 +457,7 @@ module('JSONAPISource - queryable', function (hooks) {
         relationships: { moons: { data: [] } }
       };
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       });
@@ -497,7 +497,7 @@ module('JSONAPISource - queryable', function (hooks) {
         relationships: { moons: { data: [] } }
       };
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       });
@@ -539,7 +539,7 @@ module('JSONAPISource - queryable', function (hooks) {
 
       let records = (await source.query((q) =>
         q.findRecords('planet')
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -576,7 +576,7 @@ module('JSONAPISource - queryable', function (hooks) {
     test('#query - record (404 response) - returns undefined by default', async function (assert) {
       assert.expect(3);
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       });
@@ -600,7 +600,7 @@ module('JSONAPISource - queryable', function (hooks) {
     test("#query - record (404 response) - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", async function (assert) {
       assert.expect(1);
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: '12345'
       });
@@ -637,7 +637,7 @@ module('JSONAPISource - queryable', function (hooks) {
 
       let records = (await source.query((q) =>
         q.findRecords('planet').filter({ attribute: 'lengthOfDay', value: 24 })
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -677,7 +677,7 @@ module('JSONAPISource - queryable', function (hooks) {
           relation: 'planet',
           record: { id: 'earth', type: 'planet' }
         })
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -740,7 +740,7 @@ module('JSONAPISource - queryable', function (hooks) {
             { id: 'mars', type: 'planet' }
           ]
         })
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -793,7 +793,7 @@ module('JSONAPISource - queryable', function (hooks) {
           ],
           op: 'equal'
         })
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -834,7 +834,7 @@ module('JSONAPISource - queryable', function (hooks) {
 
       let records = (await source.query((q) =>
         q.findRecords('planet').sort('name')
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -875,7 +875,7 @@ module('JSONAPISource - queryable', function (hooks) {
 
       let records = (await source.query((q) =>
         q.findRecords('planet').sort('-name')
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -928,7 +928,7 @@ module('JSONAPISource - queryable', function (hooks) {
 
       let records = (await source.query((q) =>
         q.findRecords('planet').sort('lengthOfDay', 'name')
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -973,7 +973,7 @@ module('JSONAPISource - queryable', function (hooks) {
 
       let records = (await source.query((q) =>
         q.findRecords('planet').page({ offset: 1, limit: 10 })
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -996,7 +996,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data: Resource[] = [
         {
@@ -1029,7 +1029,7 @@ module('JSONAPISource - queryable', function (hooks) {
         q
           .findRelatedRecords(solarSystem, 'planets')
           .filter({ attribute: 'lengthOfDay', value: 24 })
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -1052,7 +1052,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data: Resource[] = [
         {
@@ -1078,7 +1078,7 @@ module('JSONAPISource - queryable', function (hooks) {
           relation: 'planet',
           record: { id: 'earth', type: 'planet' }
         })
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -1101,7 +1101,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data: Resource[] = [
         {
@@ -1146,7 +1146,7 @@ module('JSONAPISource - queryable', function (hooks) {
             { id: 'mars', type: 'planet' }
           ]
         })
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -1169,7 +1169,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data: Resource[] = [
         {
@@ -1204,7 +1204,7 @@ module('JSONAPISource - queryable', function (hooks) {
           ],
           op: 'equal'
         })
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -1227,7 +1227,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data: Resource[] = [
         {
@@ -1250,7 +1250,7 @@ module('JSONAPISource - queryable', function (hooks) {
 
       let records = (await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('name')
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -1273,7 +1273,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data: Resource[] = [
         {
@@ -1296,7 +1296,7 @@ module('JSONAPISource - queryable', function (hooks) {
 
       let records = (await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('-name')
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -1319,7 +1319,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data: Resource[] = [
         {
@@ -1358,7 +1358,7 @@ module('JSONAPISource - queryable', function (hooks) {
 
       let records = (await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'planets').sort('lengthOfDay', 'name')
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -1381,7 +1381,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       const data: Resource[] = [
         {
@@ -1410,7 +1410,7 @@ module('JSONAPISource - queryable', function (hooks) {
         q
           .findRelatedRecords(solarSystem, 'planets')
           .page({ offset: 1, limit: 10 })
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 3, 'three objects in data returned');
@@ -1437,7 +1437,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const earth = resourceSerializer.deserialize({
         type: 'planet',
         id: 'earth'
-      }) as Record;
+      }) as InitializedRecord;
 
       let records = await source.query((q) =>
         q.findRelatedRecord({ type: 'planet', id: earth.id }, 'solarSystem')
@@ -1463,7 +1463,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const earth = resourceSerializer.deserialize({
         type: 'planet',
         id: 'earth'
-      }) as Record;
+      }) as InitializedRecord;
 
       let records = await source.query((q) =>
         q.findRelatedRecord({ type: 'planet', id: earth.id }, 'solarSystem')
@@ -1485,7 +1485,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const earth = resourceSerializer.deserialize({
         type: 'planet',
         id: 'earth'
-      }) as Record;
+      }) as InitializedRecord;
 
       fetchStub
         .withArgs('/planets/earth/solar-system')
@@ -1515,7 +1515,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       let records = await source.query((q) =>
         q.findRelatedRecords(
@@ -1544,7 +1544,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       let records = await source.query((q) =>
         q.findRelatedRecords(
@@ -1573,7 +1573,7 @@ module('JSONAPISource - queryable', function (hooks) {
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
         id: 'sun'
-      }) as Record;
+      }) as InitializedRecord;
 
       try {
         await source.query(
@@ -1641,7 +1641,7 @@ module('JSONAPISource - queryable', function (hooks) {
       let records = (await source.query(
         (q) => q.findRecords('planet'),
         options
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(
         Array.isArray(records),
@@ -1723,10 +1723,10 @@ module('JSONAPISource - queryable', function (hooks) {
     test('#query - relatedRecords', async function (assert) {
       assert.expect(5);
 
-      const planet: Record = resourceSerializer.deserialize({
+      const planet: InitializedRecord = resourceSerializer.deserialize({
         type: 'planet',
         id: 'jupiter'
-      }) as Record;
+      }) as InitializedRecord;
 
       let data = [
         {
@@ -1744,7 +1744,7 @@ module('JSONAPISource - queryable', function (hooks) {
 
       let records = (await source.query((q) =>
         q.findRelatedRecords(planet, 'moons')
-      )) as Record[];
+      )) as InitializedRecord[];
 
       assert.ok(Array.isArray(records), 'returned an array of data');
       assert.equal(records.length, 1, 'one objects in data returned');
@@ -1852,7 +1852,7 @@ module('JSONAPISource - queryable', function (hooks) {
       let [planets, moons] = (await source.query((q) => [
         q.findRecords('planet'),
         q.findRecords('moon')
-      ])) as Record[][];
+      ])) as InitializedRecord[][];
 
       const endTime = new Date().getTime();
       const elapsedTime = endTime - startTime;
@@ -1931,7 +1931,7 @@ module('JSONAPISource - queryable', function (hooks) {
       let [planets, moons] = (await source.query(
         (q) => [q.findRecords('planet'), q.findRecords('moon')],
         { parallelRequests: false }
-      )) as Record[][];
+      )) as InitializedRecord[][];
 
       const endTime = new Date().getTime();
       const elapsedTime = endTime - startTime;
@@ -1971,7 +1971,9 @@ module('JSONAPISource - queryable', function (hooks) {
         attributes: { name: 'Jupiter' }
       };
 
-      const planet = resourceSerializer.deserialize(planetResource) as Record;
+      const planet = resourceSerializer.deserialize(
+        planetResource
+      ) as InitializedRecord;
 
       fetchStub.withArgs('/custom/path/here').returns(
         jsonapiResponse(200, {

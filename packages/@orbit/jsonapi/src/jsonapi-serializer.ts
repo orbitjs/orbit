@@ -3,7 +3,7 @@ import Orbit, { Assertion } from '@orbit/core';
 import {
   RecordSchema,
   RecordKeyMap,
-  Record,
+  InitializedRecord,
   RecordIdentity,
   RecordOperation,
   ModelDefinition
@@ -37,8 +37,8 @@ import { JSONAPIResourceFieldSerializer } from './serializers/jsonapi-resource-f
 const { deprecate } = Orbit;
 
 export interface JSONAPISerializationOptions {
-  primaryRecord?: Record;
-  primaryRecords?: Record[];
+  primaryRecord?: InitializedRecord;
+  primaryRecords?: InitializedRecord[];
 }
 
 export interface JSONAPISerializerSettings {
@@ -193,8 +193,8 @@ export class JSONAPISerializer
 
     return {
       data: Array.isArray(data)
-        ? this.serializeRecords(data as Record[])
-        : this.serializeRecord(data as Record)
+        ? this.serializeRecords(data as InitializedRecord[])
+        : this.serializeRecord(data as InitializedRecord)
     };
   }
 
@@ -220,11 +220,11 @@ export class JSONAPISerializer
     return this.atomicOperationSerializer.serialize(operation);
   }
 
-  serializeRecords(records: Record[]): Resource[] {
+  serializeRecords(records: InitializedRecord[]): Resource[] {
     return records.map((record) => this.serializeRecord(record));
   }
 
-  serializeRecord(record: Record): Resource {
+  serializeRecord(record: InitializedRecord): Resource {
     const resource: Resource = {
       type: this.resourceType(record.type)
     };
@@ -237,7 +237,7 @@ export class JSONAPISerializer
     return resource;
   }
 
-  serializeIdentity(record: Record): ResourceIdentity {
+  serializeIdentity(record: InitializedRecord): ResourceIdentity {
     return {
       type: this.resourceType(record.type),
       id: this.resourceId(record.type, record.id)
@@ -258,7 +258,7 @@ export class JSONAPISerializer
 
   serializeAttributes(
     resource: Resource,
-    record: Record,
+    record: InitializedRecord,
     model: ModelDefinition
   ): void {
     if (record.attributes) {
@@ -270,7 +270,7 @@ export class JSONAPISerializer
 
   serializeAttribute(
     resource: Resource,
-    record: Record,
+    record: InitializedRecord,
     attr: string,
     model: ModelDefinition
   ): void {
@@ -298,7 +298,7 @@ export class JSONAPISerializer
 
   serializeRelationships(
     resource: Resource,
-    record: Record,
+    record: InitializedRecord,
     model: ModelDefinition
   ): void {
     if (record.relationships) {
@@ -310,7 +310,7 @@ export class JSONAPISerializer
 
   serializeRelationship(
     resource: Resource,
-    record: Record,
+    record: InitializedRecord,
     relationship: string,
     model: ModelDefinition
   ): void {
@@ -427,9 +427,9 @@ export class JSONAPISerializer
 
   deserializeResourceIdentity(
     resource: Resource,
-    primaryRecord?: Record
-  ): Record {
-    let record: Record;
+    primaryRecord?: InitializedRecord
+  ): InitializedRecord {
+    let record: InitializedRecord;
     const type: string = this.recordType(resource.type);
     const resourceKey = this.resourceKey(type);
 
@@ -475,7 +475,10 @@ export class JSONAPISerializer
     return record;
   }
 
-  deserializeResource(resource: Resource, primaryRecord?: Record): Record {
+  deserializeResource(
+    resource: Resource,
+    primaryRecord?: InitializedRecord
+  ): InitializedRecord {
     const record = this.deserializeResourceIdentity(resource, primaryRecord);
     const model: ModelDefinition = this._schema.getModel(record.type);
 
@@ -488,7 +491,7 @@ export class JSONAPISerializer
   }
 
   deserializeAttributes(
-    record: Record,
+    record: InitializedRecord,
     resource: Resource,
     model: ModelDefinition
   ): void {
@@ -506,7 +509,7 @@ export class JSONAPISerializer
   }
 
   deserializeAttribute(
-    record: Record,
+    record: InitializedRecord,
     attr: string,
     value: unknown,
     model: ModelDefinition
@@ -526,7 +529,7 @@ export class JSONAPISerializer
   }
 
   deserializeRelationships(
-    record: Record,
+    record: InitializedRecord,
     resource: Resource,
     model: ModelDefinition
   ): void {
@@ -544,7 +547,7 @@ export class JSONAPISerializer
   }
 
   deserializeRelationship(
-    record: Record,
+    record: InitializedRecord,
     relationship: string,
     value: ResourceRelationship,
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
@@ -580,7 +583,7 @@ export class JSONAPISerializer
   }
 
   deserializeLinks(
-    record: Record,
+    record: InitializedRecord,
     resource: Resource,
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     model: ModelDefinition
@@ -591,7 +594,7 @@ export class JSONAPISerializer
   }
 
   deserializeMeta(
-    record: Record,
+    record: InitializedRecord,
     resource: Resource,
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     model: ModelDefinition

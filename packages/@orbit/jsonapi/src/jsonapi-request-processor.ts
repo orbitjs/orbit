@@ -7,7 +7,7 @@ import {
 } from '@orbit/data';
 import {
   RecordKeyMap,
-  Record,
+  InitializedRecord,
   RecordSchema,
   RecordQueryExpression,
   RecordTransform,
@@ -227,7 +227,7 @@ export class JSONAPIRequestProcessor {
   operationsFromDeserializedDocument(
     deserialized: RecordDocument
   ): RecordOperation[] {
-    const records: Record[] = [];
+    const records: InitializedRecord[] = [];
     Array.prototype.push.apply(records, toArray(deserialized.data));
 
     if (deserialized.included) {

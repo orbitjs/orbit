@@ -2,7 +2,7 @@ import { Orbit } from '@orbit/core';
 import {
   serializeRecordIdentity,
   deserializeRecordIdentity,
-  Record,
+  InitializedRecord,
   RecordIdentity
 } from '@orbit/records';
 import {
@@ -210,7 +210,9 @@ export class IndexedDBCache extends AsyncRecordCache {
     });
   }
 
-  getRecordAsync(record: RecordIdentity): Promise<Record | undefined> {
+  getRecordAsync(
+    record: RecordIdentity
+  ): Promise<InitializedRecord | undefined> {
     return new Promise((resolve, reject) => {
       if (!this._db) return reject(DB_NOT_OPEN);
 
@@ -236,7 +238,7 @@ export class IndexedDBCache extends AsyncRecordCache {
 
   getRecordsAsync(
     typeOrIdentities?: string | RecordIdentity[]
-  ): Promise<Record[]> {
+  ): Promise<InitializedRecord[]> {
     if (!this._db) return Promise.reject(DB_NOT_OPEN);
 
     if (typeOrIdentities === undefined) {
@@ -247,7 +249,7 @@ export class IndexedDBCache extends AsyncRecordCache {
       return new Promise((resolve, reject) => {
         if (!this._db) return reject(DB_NOT_OPEN);
 
-        const records: Record[] = [];
+        const records: InitializedRecord[] = [];
         const transaction = this._db.transaction([type]);
         const objectStore = transaction.objectStore(type);
         const request = objectStore.openCursor();
@@ -270,7 +272,7 @@ export class IndexedDBCache extends AsyncRecordCache {
       });
     } else {
       const identities: RecordIdentity[] = typeOrIdentities;
-      const records: Record[] = [];
+      const records: InitializedRecord[] = [];
 
       if (identities.length > 0) {
         const types: string[] = [];
@@ -307,7 +309,7 @@ export class IndexedDBCache extends AsyncRecordCache {
     }
   }
 
-  setRecordAsync(record: Record): Promise<void> {
+  setRecordAsync(record: InitializedRecord): Promise<void> {
     if (!this._db) return Promise.reject(DB_NOT_OPEN);
 
     const transaction = this._db.transaction([record.type], 'readwrite');
@@ -325,7 +327,7 @@ export class IndexedDBCache extends AsyncRecordCache {
     });
   }
 
-  setRecordsAsync(records: Record[]): Promise<void> {
+  setRecordsAsync(records: InitializedRecord[]): Promise<void> {
     if (!this._db) return Promise.reject(DB_NOT_OPEN);
 
     if (records.length > 0) {
@@ -364,7 +366,7 @@ export class IndexedDBCache extends AsyncRecordCache {
 
   removeRecordAsync(
     recordIdentity: RecordIdentity
-  ): Promise<Record | undefined> {
+  ): Promise<InitializedRecord | undefined> {
     return new Promise((resolve, reject) => {
       if (!this._db) return reject(DB_NOT_OPEN);
 
@@ -380,7 +382,7 @@ export class IndexedDBCache extends AsyncRecordCache {
     });
   }
 
-  removeRecordsAsync(records: RecordIdentity[]): Promise<Record[]> {
+  removeRecordsAsync(records: RecordIdentity[]): Promise<InitializedRecord[]> {
     if (!this._db) return Promise.reject(DB_NOT_OPEN);
 
     if (records.length > 0) {
@@ -530,7 +532,7 @@ export class IndexedDBCache extends AsyncRecordCache {
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
 
-  protected async _getAllRecords(): Promise<Record[]> {
+  protected async _getAllRecords(): Promise<InitializedRecord[]> {
     if (!this._db) return Promise.reject(DB_NOT_OPEN);
 
     const types = Object.keys(this.schema.models);
@@ -539,7 +541,7 @@ export class IndexedDBCache extends AsyncRecordCache {
       types.map((type) => this.getRecordsAsync(type))
     );
 
-    const allRecords: Record[] = [];
+    const allRecords: InitializedRecord[] = [];
     recordsets.forEach((records) =>
       Array.prototype.push.apply(allRecords, records)
     );

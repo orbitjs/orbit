@@ -1,6 +1,6 @@
 import {
   RecordKeyMap,
-  Record,
+  InitializedRecord,
   RecordSchema,
   RecordIdentity
 } from '@orbit/records';
@@ -23,7 +23,7 @@ export interface BaseRecordAccessor {
 }
 
 export interface RecordChangeset {
-  setRecords?: Record[];
+  setRecords?: InitializedRecord[];
   removeRecords?: RecordIdentity[];
   addInverseRelationships?: RecordRelationshipIdentity[];
   removeInverseRelationships?: RecordRelationshipIdentity[];
@@ -31,8 +31,10 @@ export interface RecordChangeset {
 
 export interface SyncRecordAccessor extends BaseRecordAccessor {
   // Getters
-  getRecordSync(recordIdentity: RecordIdentity): Record | undefined;
-  getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[];
+  getRecordSync(recordIdentity: RecordIdentity): InitializedRecord | undefined;
+  getRecordsSync(
+    typeOrIdentities?: string | RecordIdentity[]
+  ): InitializedRecord[];
   getRelatedRecordSync(
     identity: RecordIdentity,
     relationship: string
@@ -46,10 +48,12 @@ export interface SyncRecordAccessor extends BaseRecordAccessor {
   ): RecordRelationshipIdentity[];
 
   // Setters
-  setRecordSync(record: Record): void;
-  setRecordsSync(records: Record[]): void;
-  removeRecordSync(recordIdentity: RecordIdentity): Record | undefined;
-  removeRecordsSync(recordIdentities: RecordIdentity[]): Record[];
+  setRecordSync(record: InitializedRecord): void;
+  setRecordsSync(records: InitializedRecord[]): void;
+  removeRecordSync(
+    recordIdentity: RecordIdentity
+  ): InitializedRecord | undefined;
+  removeRecordsSync(recordIdentities: RecordIdentity[]): InitializedRecord[];
   addInverseRelationshipsSync(
     relationships: RecordRelationshipIdentity[]
   ): void;
@@ -61,10 +65,12 @@ export interface SyncRecordAccessor extends BaseRecordAccessor {
 
 export interface AsyncRecordAccessor extends BaseRecordAccessor {
   // Getters
-  getRecordAsync(recordIdentity: RecordIdentity): Promise<Record | undefined>;
+  getRecordAsync(
+    recordIdentity: RecordIdentity
+  ): Promise<InitializedRecord | undefined>;
   getRecordsAsync(
     typeOrIdentities?: string | RecordIdentity[]
-  ): Promise<Record[]>;
+  ): Promise<InitializedRecord[]>;
   getRelatedRecordAsync(
     identity: RecordIdentity,
     relationship: string
@@ -78,12 +84,14 @@ export interface AsyncRecordAccessor extends BaseRecordAccessor {
   ): Promise<RecordRelationshipIdentity[]>;
 
   // Setters
-  setRecordAsync(record: Record): Promise<void>;
-  setRecordsAsync(records: Record[]): Promise<void>;
+  setRecordAsync(record: InitializedRecord): Promise<void>;
+  setRecordsAsync(records: InitializedRecord[]): Promise<void>;
   removeRecordAsync(
     recordIdentity: RecordIdentity
-  ): Promise<Record | undefined>;
-  removeRecordsAsync(recordIdentities: RecordIdentity[]): Promise<Record[]>;
+  ): Promise<InitializedRecord | undefined>;
+  removeRecordsAsync(
+    recordIdentities: RecordIdentity[]
+  ): Promise<InitializedRecord[]>;
   addInverseRelationshipsAsync(
     relationships: RecordRelationshipIdentity[]
   ): Promise<void>;

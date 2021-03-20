@@ -1,6 +1,10 @@
 /* eslint-disable valid-jsdoc */
 import { Orbit } from '@orbit/core';
-import { Record, RecordIdentity, equalRecordIdentities } from '@orbit/records';
+import {
+  InitializedRecord,
+  RecordIdentity,
+  equalRecordIdentities
+} from '@orbit/records';
 import {
   RecordRelationshipIdentity,
   SyncRecordCache,
@@ -40,22 +44,22 @@ export class LocalStorageCache extends SyncRecordCache {
     return this._delimiter;
   }
 
-  getKeyForRecord(record: RecordIdentity | Record): string {
+  getKeyForRecord(record: RecordIdentity | InitializedRecord): string {
     return [this.namespace, record.type, record.id].join(this.delimiter);
   }
 
-  getKeyForRecordInverses(record: RecordIdentity | Record): string {
+  getKeyForRecordInverses(record: RecordIdentity | InitializedRecord): string {
     return [this.namespace, 'inverseRels', record.type, record.id].join(
       this.delimiter
     );
   }
 
-  getRecordSync(identity: RecordIdentity): Record | undefined {
+  getRecordSync(identity: RecordIdentity): InitializedRecord | undefined {
     const key = this.getKeyForRecord(identity);
     const item: string | undefined = Orbit.globals.localStorage.getItem(key);
 
     if (item) {
-      const record: Record = JSON.parse(item);
+      const record: InitializedRecord = JSON.parse(item);
 
       if (this._keyMap) {
         this._keyMap.pushRecord(record);
@@ -67,8 +71,10 @@ export class LocalStorageCache extends SyncRecordCache {
     return undefined;
   }
 
-  getRecordsSync(typeOrIdentities?: string | RecordIdentity[]): Record[] {
-    const records: Record[] = [];
+  getRecordsSync(
+    typeOrIdentities?: string | RecordIdentity[]
+  ): InitializedRecord[] {
+    const records: InitializedRecord[] = [];
 
     if (
       typeOrIdentities === undefined ||
@@ -111,7 +117,7 @@ export class LocalStorageCache extends SyncRecordCache {
     return records;
   }
 
-  setRecordSync(record: Record): void {
+  setRecordSync(record: InitializedRecord): void {
     const key = this.getKeyForRecord(record);
 
     if (this._keyMap) {
@@ -121,13 +127,15 @@ export class LocalStorageCache extends SyncRecordCache {
     Orbit.globals.localStorage.setItem(key, JSON.stringify(record));
   }
 
-  setRecordsSync(records: Record[]): void {
+  setRecordsSync(records: InitializedRecord[]): void {
     for (let record of records) {
       this.setRecordSync(record);
     }
   }
 
-  removeRecordSync(recordIdentity: RecordIdentity): Record | undefined {
+  removeRecordSync(
+    recordIdentity: RecordIdentity
+  ): InitializedRecord | undefined {
     const record = this.getRecordSync(recordIdentity);
     if (record) {
       const key = this.getKeyForRecord(record);
@@ -138,7 +146,7 @@ export class LocalStorageCache extends SyncRecordCache {
     }
   }
 
-  removeRecordsSync(recordIdentities: RecordIdentity[]): Record[] {
+  removeRecordsSync(recordIdentities: RecordIdentity[]): InitializedRecord[] {
     const records = [];
     for (let recordIdentity of recordIdentities) {
       let record = this.getRecordSync(recordIdentity);

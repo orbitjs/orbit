@@ -1,5 +1,5 @@
 import Orbit, { Assertion } from '@orbit/core';
-import { Record, RecordSchema, RecordKeyMap } from '@orbit/records';
+import { InitializedRecord, RecordSchema, RecordKeyMap } from '@orbit/records';
 import { Dict } from '@orbit/utils';
 import { Resource } from '../resource-document';
 import { JSONAPIBaseSerializer } from './jsonapi-base-serializer';
@@ -8,7 +8,7 @@ import { SerializerForFn } from '@orbit/serializers';
 const { assert } = Orbit;
 
 export interface JSONAPIResourceIdentityDeserializationOptions {
-  primaryRecord?: Record;
+  primaryRecord?: InitializedRecord;
   includeKeys?: boolean;
 }
 
@@ -21,7 +21,7 @@ export interface JSONAPIResourceIdentitySerializerSettings {
 }
 
 export class JSONAPIResourceIdentitySerializer extends JSONAPIBaseSerializer<
-  Record,
+  InitializedRecord,
   Resource,
   unknown,
   JSONAPIResourceIdentityDeserializationOptions
@@ -77,7 +77,7 @@ export class JSONAPIResourceIdentitySerializer extends JSONAPIBaseSerializer<
     this._getCustomResourceKey = getResourceKey;
   }
 
-  serialize(recordIdentity: Record): Resource {
+  serialize(recordIdentity: InitializedRecord): Resource {
     const { type, id } = recordIdentity;
     const resourceKey = this.getResourceKey(type);
     const resourceType = this.typeSerializer.serialize(type) as string;
@@ -99,7 +99,7 @@ export class JSONAPIResourceIdentitySerializer extends JSONAPIBaseSerializer<
   deserialize(
     resource: Resource,
     customOptions?: JSONAPIResourceIdentityDeserializationOptions
-  ): Record {
+  ): InitializedRecord {
     const options = this.buildDeserializationOptions(customOptions);
     const type = this.typeSerializer.deserialize(resource.type) as string;
     const resourceKey = this.getResourceKey(type);
@@ -132,7 +132,7 @@ export class JSONAPIResourceIdentitySerializer extends JSONAPIBaseSerializer<
           (primaryRecord && primaryRecord.id) || this.schema.generateId(type);
       }
 
-      const record: Record = { type, id };
+      const record: InitializedRecord = { type, id };
 
       if (keys) {
         if (options.includeKeys) {

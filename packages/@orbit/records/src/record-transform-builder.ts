@@ -1,7 +1,7 @@
 import { Orbit } from '@orbit/core';
 import { TransformBuilderFunc } from '@orbit/data';
 import {
-  Record,
+  InitializedRecord,
   RecordIdentity,
   RecordInitializer,
   UninitializedRecord
@@ -44,8 +44,8 @@ export class RecordTransformBuilder {
   /**
    * Instantiate a new `addRecord` operation.
    */
-  addRecord(newRecord: Record | UninitializedRecord): AddRecordTerm {
-    let record: Record;
+  addRecord(newRecord: UninitializedRecord): AddRecordTerm {
+    let record: InitializedRecord;
 
     if (this._recordInitializer) {
       record = this._recordInitializer.initializeRecord(newRecord);
@@ -55,10 +55,10 @@ export class RecordTransformBuilder {
           'The `RecordInitializer` assigned to the `TransformBuilder` exhibits deprecated behavior. `initializeRecord` should return a record.'
         );
         // Assume that `initializeRecord` is following its old signature and initializing the passed `record`.
-        record = newRecord as Record;
+        record = newRecord as InitializedRecord;
       }
     } else {
-      record = newRecord as Record;
+      record = newRecord as InitializedRecord;
     }
 
     assert(
@@ -72,7 +72,7 @@ export class RecordTransformBuilder {
   /**
    * Instantiate a new `updateRecord` operation.
    */
-  updateRecord(record: Record): UpdateRecordTerm {
+  updateRecord(record: InitializedRecord): UpdateRecordTerm {
     return new UpdateRecordTerm(record);
   }
 

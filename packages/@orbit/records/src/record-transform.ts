@@ -1,5 +1,5 @@
 import { RecordOperation, RecordOperationResult } from './record-operation';
-import { Record } from './record';
+import { InitializedRecord } from './record';
 import { Transform, TransformOrOperations } from '@orbit/data';
 import { RecordTransformBuilder } from './record-transform-builder';
 
@@ -12,6 +12,6 @@ export type RecordTransformOrOperations = TransformOrOperations<
   RecordTransformBuilder
 >;
 
-export type RecordTransformResult<T = Record> =
+export type RecordTransformResult<T = InitializedRecord> =
   | RecordOperationResult<T>
   | RecordOperationResult<T>[];

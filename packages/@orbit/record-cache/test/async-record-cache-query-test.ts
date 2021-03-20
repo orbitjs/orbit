@@ -1,6 +1,6 @@
 import {
   RecordKeyMap,
-  Record,
+  InitializedRecord,
   RecordNotFoundException,
   RecordSchema
 } from '@orbit/records';
@@ -21,7 +21,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query can retrieve an individual record', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -31,11 +31,11 @@ module('AsyncRecordCache - query', function (hooks) {
       }
     };
 
-    const updatedRecord = await cache.update<Record>((t) => [
+    const updatedRecord = await cache.update<InitializedRecord>((t) => [
       t.addRecord(jupiter)
     ]);
 
-    const foundRecord = await cache.query<Record>((q) =>
+    const foundRecord = await cache.query<InitializedRecord>((q) =>
       q.findRecord({ type: 'planet', id: 'jupiter' })
     );
 
@@ -46,7 +46,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query can retrieve multiple expressions', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -55,7 +55,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -78,7 +78,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query can find records by type', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -87,7 +87,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -96,7 +96,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -105,7 +105,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -124,7 +124,9 @@ module('AsyncRecordCache - query', function (hooks) {
 
     arrayMembershipMatches(
       assert,
-      (await cache.query((q) => q.findRecords('planet'))) as Record[],
+      (await cache.query((q) =>
+        q.findRecords('planet')
+      )) as InitializedRecord[],
       [jupiter, earth, venus, mercury]
     );
   });
@@ -132,7 +134,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query can find records by identities', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -141,7 +143,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -150,7 +152,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -159,7 +161,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -184,7 +186,7 @@ module('AsyncRecordCache - query', function (hooks) {
           { type: 'planet', id: 'venus' },
           { type: 'planet', id: 'FAKE' }
         ])
-      )) as Record[],
+      )) as InitializedRecord[],
       [jupiter, venus]
     );
   });
@@ -192,7 +194,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query can perform a simple attribute filter by value equality', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -201,7 +203,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -210,7 +212,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -219,7 +221,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -240,7 +242,7 @@ module('AsyncRecordCache - query', function (hooks) {
       assert,
       (await cache.query((q) =>
         q.findRecords('planet').filter({ attribute: 'name', value: 'Jupiter' })
-      )) as Record[],
+      )) as InitializedRecord[],
       [jupiter]
     );
   });
@@ -248,7 +250,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query can perform a simple attribute filter by value comparison (gt, lt, gte & lte)', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -258,7 +260,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -268,7 +270,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -278,7 +280,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -301,7 +303,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRecords('planet')
           .filter({ attribute: 'sequence', value: 2, op: 'gt' })
-      )) as Record[],
+      )) as InitializedRecord[],
       [earth, jupiter]
     );
     arrayMembershipMatches(
@@ -310,7 +312,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRecords('planet')
           .filter({ attribute: 'sequence', value: 2, op: 'gte' })
-      )) as Record[],
+      )) as InitializedRecord[],
       [venus, earth, jupiter]
     );
     arrayMembershipMatches(
@@ -319,7 +321,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRecords('planet')
           .filter({ attribute: 'sequence', value: 2, op: 'lt' })
-      )) as Record[],
+      )) as InitializedRecord[],
       [mercury]
     );
     arrayMembershipMatches(
@@ -328,7 +330,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRecords('planet')
           .filter({ attribute: 'sequence', value: 2, op: 'lte' })
-      )) as Record[],
+      )) as InitializedRecord[],
       [venus, mercury]
     );
     arrayMembershipMatches(
@@ -340,7 +342,7 @@ module('AsyncRecordCache - query', function (hooks) {
             { attribute: 'sequence', value: 2, op: 'gte' },
             { attribute: 'sequence', value: 4, op: 'lt' }
           )
-      )) as Record[],
+      )) as InitializedRecord[],
       [venus, earth]
     );
   });
@@ -348,7 +350,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query can perform relatedRecords filters with operators `equal`, `all`, `some` and `none`', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -367,7 +369,7 @@ module('AsyncRecordCache - query', function (hooks) {
         }
       }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -378,7 +380,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { moons: { data: [{ type: 'moon', id: 'moon' }] } }
     };
-    const mars: Record = {
+    const mars: InitializedRecord = {
       type: 'planet',
       id: 'mars',
       attributes: {
@@ -396,7 +398,7 @@ module('AsyncRecordCache - query', function (hooks) {
         }
       }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -406,43 +408,43 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: false
       }
     };
-    const theMoon: Record = {
+    const theMoon: InitializedRecord = {
       id: 'moon',
       type: 'moon',
       attributes: { name: 'The moon' },
       relationships: { planet: { data: { type: 'planet', id: 'earth' } } }
     };
-    const europa: Record = {
+    const europa: InitializedRecord = {
       id: 'europa',
       type: 'moon',
       attributes: { name: 'Europa' },
       relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
     };
-    const ganymede: Record = {
+    const ganymede: InitializedRecord = {
       id: 'ganymede',
       type: 'moon',
       attributes: { name: 'Ganymede' },
       relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
     };
-    const callisto: Record = {
+    const callisto: InitializedRecord = {
       id: 'callisto',
       type: 'moon',
       attributes: { name: 'Callisto' },
       relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
     };
-    const phobos: Record = {
+    const phobos: InitializedRecord = {
       id: 'phobos',
       type: 'moon',
       attributes: { name: 'Phobos' },
       relationships: { planet: { data: { type: 'planet', id: 'mars' } } }
     };
-    const deimos: Record = {
+    const deimos: InitializedRecord = {
       id: 'deimos',
       type: 'moon',
       attributes: { name: 'Deimos' },
       relationships: { planet: { data: { type: 'planet', id: 'mars' } } }
     };
-    const titan: Record = {
+    const titan: InitializedRecord = {
       id: 'titan',
       type: 'moon',
       attributes: { name: 'titan' },
@@ -468,7 +470,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [theMoon], op: 'equal' })
-      )) as Record[],
+      )) as InitializedRecord[],
       [earth]
     );
     arrayMembershipMatches(
@@ -477,7 +479,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [phobos], op: 'equal' })
-      )) as Record[],
+      )) as InitializedRecord[],
       []
     );
     arrayMembershipMatches(
@@ -486,7 +488,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [phobos], op: 'all' })
-      )) as Record[],
+      )) as InitializedRecord[],
       [mars]
     );
     arrayMembershipMatches(
@@ -495,7 +497,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [phobos, callisto], op: 'all' })
-      )) as Record[],
+      )) as InitializedRecord[],
       []
     );
     arrayMembershipMatches(
@@ -506,7 +508,7 @@ module('AsyncRecordCache - query', function (hooks) {
           records: [phobos, callisto],
           op: 'some'
         })
-      )) as Record[],
+      )) as InitializedRecord[],
       [mars, jupiter]
     );
     arrayMembershipMatches(
@@ -515,7 +517,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [titan], op: 'some' })
-      )) as Record[],
+      )) as InitializedRecord[],
       []
     );
     arrayMembershipMatches(
@@ -524,7 +526,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRecords('planet')
           .filter({ relation: 'moons', records: [ganymede], op: 'none' })
-      )) as Record[],
+      )) as InitializedRecord[],
       [earth, mars]
     );
   });
@@ -532,7 +534,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query can perform relatedRecord filters', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -551,7 +553,7 @@ module('AsyncRecordCache - query', function (hooks) {
         }
       }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -562,7 +564,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { moons: { data: [{ type: 'moon', id: 'moon' }] } }
     };
-    const mars: Record = {
+    const mars: InitializedRecord = {
       type: 'planet',
       id: 'mars',
       attributes: {
@@ -580,7 +582,7 @@ module('AsyncRecordCache - query', function (hooks) {
         }
       }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -590,43 +592,43 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: false
       }
     };
-    const theMoon: Record = {
+    const theMoon: InitializedRecord = {
       id: 'moon',
       type: 'moon',
       attributes: { name: 'The moon' },
       relationships: { planet: { data: { type: 'planet', id: 'earth' } } }
     };
-    const europa: Record = {
+    const europa: InitializedRecord = {
       id: 'europa',
       type: 'moon',
       attributes: { name: 'Europa' },
       relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
     };
-    const ganymede: Record = {
+    const ganymede: InitializedRecord = {
       id: 'ganymede',
       type: 'moon',
       attributes: { name: 'Ganymede' },
       relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
     };
-    const callisto: Record = {
+    const callisto: InitializedRecord = {
       id: 'callisto',
       type: 'moon',
       attributes: { name: 'Callisto' },
       relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
     };
-    const phobos: Record = {
+    const phobos: InitializedRecord = {
       id: 'phobos',
       type: 'moon',
       attributes: { name: 'Phobos' },
       relationships: { planet: { data: { type: 'planet', id: 'mars' } } }
     };
-    const deimos: Record = {
+    const deimos: InitializedRecord = {
       id: 'deimos',
       type: 'moon',
       attributes: { name: 'Deimos' },
       relationships: { planet: { data: { type: 'planet', id: 'mars' } } }
     };
-    const titan: Record = {
+    const titan: InitializedRecord = {
       id: 'titan',
       type: 'moon',
       attributes: { name: 'titan' },
@@ -650,28 +652,28 @@ module('AsyncRecordCache - query', function (hooks) {
       assert,
       (await cache.query((q) =>
         q.findRecords('moon').filter({ relation: 'planet', record: null })
-      )) as Record[],
+      )) as InitializedRecord[],
       [titan]
     );
     arrayMembershipMatches(
       assert,
       (await cache.query((q) =>
         q.findRecords('moon').filter({ relation: 'planet', record: earth })
-      )) as Record[],
+      )) as InitializedRecord[],
       [theMoon]
     );
     arrayMembershipMatches(
       assert,
       (await cache.query((q) =>
         q.findRecords('moon').filter({ relation: 'planet', record: jupiter })
-      )) as Record[],
+      )) as InitializedRecord[],
       [europa, ganymede, callisto]
     );
     arrayMembershipMatches(
       assert,
       (await cache.query((q) =>
         q.findRecords('moon').filter({ relation: 'planet', record: mercury })
-      )) as Record[],
+      )) as InitializedRecord[],
       []
     );
     arrayMembershipMatches(
@@ -680,7 +682,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRecords('moon')
           .filter({ relation: 'planet', record: [earth, mars] })
-      )) as Record[],
+      )) as InitializedRecord[],
       [theMoon, phobos, deimos]
     );
   });
@@ -688,7 +690,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query can perform a complex attribute filter by value', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -697,7 +699,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -706,7 +708,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -715,7 +717,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -741,7 +743,7 @@ module('AsyncRecordCache - query', function (hooks) {
             { attribute: 'atmosphere', value: true },
             { attribute: 'classification', value: 'terrestrial' }
           )
-      )) as Record[],
+      )) as InitializedRecord[],
       [earth, venus]
     );
   });
@@ -749,8 +751,8 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query can perform a filter on attributes, even when a particular record has none', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = { type: 'planet', id: 'jupiter' };
-    const earth: Record = {
+    const jupiter: InitializedRecord = { type: 'planet', id: 'jupiter' };
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -759,7 +761,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -768,7 +770,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -794,7 +796,7 @@ module('AsyncRecordCache - query', function (hooks) {
             { attribute: 'atmosphere', value: true },
             { attribute: 'classification', value: 'terrestrial' }
           )
-      )) as Record[],
+      )) as InitializedRecord[],
       [earth, venus]
     );
   });
@@ -802,7 +804,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query can sort by an attribute', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -811,7 +813,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -820,7 +822,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -829,7 +831,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -855,8 +857,8 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query can sort by an attribute, even when a particular record has none', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = { type: 'planet', id: 'jupiter' };
-    const earth: Record = {
+    const jupiter: InitializedRecord = { type: 'planet', id: 'jupiter' };
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -865,7 +867,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -874,7 +876,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -900,7 +902,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query can filter and sort by attributes', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -909,7 +911,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -918,7 +920,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -927,7 +929,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -961,7 +963,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query can sort by an attribute in descending order', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -970,7 +972,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -979,7 +981,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -988,7 +990,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -1014,7 +1016,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query can sort by according to multiple criteria', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -1023,7 +1025,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -1032,7 +1034,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -1041,7 +1043,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -1069,7 +1071,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - findRecord - finds record', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter' },
@@ -1110,7 +1112,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - findRecords - finds matching records', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter' },
@@ -1135,7 +1137,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - page - can paginate records by offset and limit', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter' }
@@ -1189,7 +1191,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - findRelatedRecords', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter' },
@@ -1216,7 +1218,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - findRelatedRecords - returns empty array if there are no related records', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter' }
@@ -1262,7 +1264,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - findRelatedRecord', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter' },
@@ -1289,7 +1291,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - findRelatedRecord - return null if no related record is found', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const callisto: Record = {
+    const callisto: InitializedRecord = {
       id: 'callisto',
       type: 'moon',
       attributes: { name: 'Callisto' }
@@ -1335,7 +1337,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - findRelatedRecords can perform a simple attribute filter by value equality', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const sun: Record = {
+    const sun: InitializedRecord = {
       type: 'star',
       id: 'sun',
       relationships: {
@@ -1350,7 +1352,7 @@ module('AsyncRecordCache - query', function (hooks) {
       }
     };
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -1360,7 +1362,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -1370,7 +1372,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -1380,7 +1382,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -1405,7 +1407,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ attribute: 'name', value: 'Jupiter' })
-      )) as Record[],
+      )) as InitializedRecord[],
       [jupiter]
     );
   });
@@ -1413,7 +1415,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - findRelatedRecords - can perform a simple attribute filter by value comparison (gt, lt, gte & lte)', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const sun: Record = {
+    const sun: InitializedRecord = {
       type: 'star',
       id: 'sun',
       relationships: {
@@ -1428,7 +1430,7 @@ module('AsyncRecordCache - query', function (hooks) {
       }
     };
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -1439,7 +1441,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -1450,7 +1452,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -1461,7 +1463,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -1486,7 +1488,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ attribute: 'sequence', value: 2, op: 'gt' })
-      )) as Record[],
+      )) as InitializedRecord[],
       [earth, jupiter]
     );
     arrayMembershipMatches(
@@ -1495,7 +1497,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ attribute: 'sequence', value: 2, op: 'gte' })
-      )) as Record[],
+      )) as InitializedRecord[],
       [venus, earth, jupiter]
     );
     arrayMembershipMatches(
@@ -1504,7 +1506,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ attribute: 'sequence', value: 2, op: 'lt' })
-      )) as Record[],
+      )) as InitializedRecord[],
       [mercury]
     );
     arrayMembershipMatches(
@@ -1513,7 +1515,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ attribute: 'sequence', value: 2, op: 'lte' })
-      )) as Record[],
+      )) as InitializedRecord[],
       [venus, mercury]
     );
   });
@@ -1521,7 +1523,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - findRelatedRecords - can perform relatedRecords filters with operators `equal`, `all`, `some` and `none`', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const sun: Record = {
+    const sun: InitializedRecord = {
       type: 'star',
       id: 'sun',
       relationships: {
@@ -1536,7 +1538,7 @@ module('AsyncRecordCache - query', function (hooks) {
       }
     };
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -1556,7 +1558,7 @@ module('AsyncRecordCache - query', function (hooks) {
         }
       }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -1570,7 +1572,7 @@ module('AsyncRecordCache - query', function (hooks) {
         moons: { data: [{ type: 'moon', id: 'moon' }] }
       }
     };
-    const mars: Record = {
+    const mars: InitializedRecord = {
       type: 'planet',
       id: 'mars',
       attributes: {
@@ -1589,7 +1591,7 @@ module('AsyncRecordCache - query', function (hooks) {
         }
       }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -1600,43 +1602,43 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const theMoon: Record = {
+    const theMoon: InitializedRecord = {
       id: 'moon',
       type: 'moon',
       attributes: { name: 'The moon' },
       relationships: { planet: { data: { type: 'planet', id: 'earth' } } }
     };
-    const europa: Record = {
+    const europa: InitializedRecord = {
       id: 'europa',
       type: 'moon',
       attributes: { name: 'Europa' },
       relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
     };
-    const ganymede: Record = {
+    const ganymede: InitializedRecord = {
       id: 'ganymede',
       type: 'moon',
       attributes: { name: 'Ganymede' },
       relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
     };
-    const callisto: Record = {
+    const callisto: InitializedRecord = {
       id: 'callisto',
       type: 'moon',
       attributes: { name: 'Callisto' },
       relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
     };
-    const phobos: Record = {
+    const phobos: InitializedRecord = {
       id: 'phobos',
       type: 'moon',
       attributes: { name: 'Phobos' },
       relationships: { planet: { data: { type: 'planet', id: 'mars' } } }
     };
-    const deimos: Record = {
+    const deimos: InitializedRecord = {
       id: 'deimos',
       type: 'moon',
       attributes: { name: 'Deimos' },
       relationships: { planet: { data: { type: 'planet', id: 'mars' } } }
     };
-    const titan: Record = {
+    const titan: InitializedRecord = {
       id: 'titan',
       type: 'moon',
       attributes: { name: 'titan' },
@@ -1663,7 +1665,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [theMoon], op: 'equal' })
-      )) as Record[],
+      )) as InitializedRecord[],
       [earth]
     );
     arrayMembershipMatches(
@@ -1672,7 +1674,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [phobos], op: 'equal' })
-      )) as Record[],
+      )) as InitializedRecord[],
       []
     );
     arrayMembershipMatches(
@@ -1681,7 +1683,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [phobos], op: 'all' })
-      )) as Record[],
+      )) as InitializedRecord[],
       [mars]
     );
     arrayMembershipMatches(
@@ -1690,7 +1692,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [phobos, callisto], op: 'all' })
-      )) as Record[],
+      )) as InitializedRecord[],
       []
     );
     arrayMembershipMatches(
@@ -1701,7 +1703,7 @@ module('AsyncRecordCache - query', function (hooks) {
           records: [phobos, callisto],
           op: 'some'
         })
-      )) as Record[],
+      )) as InitializedRecord[],
       [mars, jupiter]
     );
     arrayMembershipMatches(
@@ -1710,7 +1712,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [titan], op: 'some' })
-      )) as Record[],
+      )) as InitializedRecord[],
       []
     );
     arrayMembershipMatches(
@@ -1719,7 +1721,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'moons', records: [ganymede], op: 'none' })
-      )) as Record[],
+      )) as InitializedRecord[],
       [earth, mars]
     );
   });
@@ -1727,7 +1729,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - findRelatedRecords - can perform relatedRecord filters', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const sun: Record = {
+    const sun: InitializedRecord = {
       type: 'star',
       id: 'sun',
       relationships: {
@@ -1748,7 +1750,7 @@ module('AsyncRecordCache - query', function (hooks) {
       }
     };
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -1768,7 +1770,7 @@ module('AsyncRecordCache - query', function (hooks) {
         }
       }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -1782,7 +1784,7 @@ module('AsyncRecordCache - query', function (hooks) {
         moons: { data: [{ type: 'moon', id: 'moon' }] }
       }
     };
-    const mars: Record = {
+    const mars: InitializedRecord = {
       type: 'planet',
       id: 'mars',
       attributes: {
@@ -1801,7 +1803,7 @@ module('AsyncRecordCache - query', function (hooks) {
         }
       }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -1812,7 +1814,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const theMoon: Record = {
+    const theMoon: InitializedRecord = {
       id: 'moon',
       type: 'moon',
       attributes: { name: 'The moon' },
@@ -1821,7 +1823,7 @@ module('AsyncRecordCache - query', function (hooks) {
         star: { data: { type: 'star', id: 'sun' } }
       }
     };
-    const europa: Record = {
+    const europa: InitializedRecord = {
       id: 'europa',
       type: 'moon',
       attributes: { name: 'Europa' },
@@ -1830,7 +1832,7 @@ module('AsyncRecordCache - query', function (hooks) {
         star: { data: { type: 'star', id: 'sun' } }
       }
     };
-    const ganymede: Record = {
+    const ganymede: InitializedRecord = {
       id: 'ganymede',
       type: 'moon',
       attributes: { name: 'Ganymede' },
@@ -1839,7 +1841,7 @@ module('AsyncRecordCache - query', function (hooks) {
         star: { data: { type: 'star', id: 'sun' } }
       }
     };
-    const callisto: Record = {
+    const callisto: InitializedRecord = {
       id: 'callisto',
       type: 'moon',
       attributes: { name: 'Callisto' },
@@ -1848,7 +1850,7 @@ module('AsyncRecordCache - query', function (hooks) {
         star: { data: { type: 'star', id: 'sun' } }
       }
     };
-    const phobos: Record = {
+    const phobos: InitializedRecord = {
       id: 'phobos',
       type: 'moon',
       attributes: { name: 'Phobos' },
@@ -1857,7 +1859,7 @@ module('AsyncRecordCache - query', function (hooks) {
         star: { data: { type: 'star', id: 'sun' } }
       }
     };
-    const deimos: Record = {
+    const deimos: InitializedRecord = {
       id: 'deimos',
       type: 'moon',
       attributes: { name: 'Deimos' },
@@ -1866,7 +1868,7 @@ module('AsyncRecordCache - query', function (hooks) {
         star: { data: { type: 'star', id: 'sun' } }
       }
     };
-    const titan: Record = {
+    const titan: InitializedRecord = {
       id: 'titan',
       type: 'moon',
       attributes: { name: 'titan' },
@@ -1896,7 +1898,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'planet', record: null })
-      )) as Record[],
+      )) as InitializedRecord[],
       [titan]
     );
     arrayMembershipMatches(
@@ -1905,7 +1907,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRelatedRecords(earth, 'moons')
           .filter({ relation: 'planet', record: earth })
-      )) as Record[],
+      )) as InitializedRecord[],
       [theMoon]
     );
     arrayMembershipMatches(
@@ -1914,7 +1916,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRelatedRecords(jupiter, 'moons')
           .filter({ relation: 'planet', record: jupiter })
-      )) as Record[],
+      )) as InitializedRecord[],
       [europa, ganymede, callisto]
     );
     arrayMembershipMatches(
@@ -1923,7 +1925,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRelatedRecords(mercury, 'moons')
           .filter({ relation: 'planet', record: mercury })
-      )) as Record[],
+      )) as InitializedRecord[],
       []
     );
     arrayMembershipMatches(
@@ -1932,7 +1934,7 @@ module('AsyncRecordCache - query', function (hooks) {
         q
           .findRelatedRecords(sun, 'celestialObjects')
           .filter({ relation: 'planet', record: [earth, mars] })
-      )) as Record[],
+      )) as InitializedRecord[],
       [theMoon, phobos, deimos]
     );
   });
@@ -1940,7 +1942,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - findRelatedRecords - can perform a complex attribute filter by value', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const sun: Record = {
+    const sun: InitializedRecord = {
       type: 'star',
       id: 'sun',
       relationships: {
@@ -1955,7 +1957,7 @@ module('AsyncRecordCache - query', function (hooks) {
       }
     };
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -1965,7 +1967,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -1975,7 +1977,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -1985,7 +1987,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -2013,7 +2015,7 @@ module('AsyncRecordCache - query', function (hooks) {
             { attribute: 'atmosphere', value: true },
             { attribute: 'classification', value: 'terrestrial' }
           )
-      )) as Record[],
+      )) as InitializedRecord[],
       [earth, venus]
     );
   });
@@ -2021,7 +2023,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - findRelatedRecords - can perform a filter on attributes, even when a particular record has none', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const sun: Record = {
+    const sun: InitializedRecord = {
       type: 'star',
       id: 'sun',
       relationships: {
@@ -2036,12 +2038,12 @@ module('AsyncRecordCache - query', function (hooks) {
       }
     };
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -2051,7 +2053,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -2061,7 +2063,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -2089,7 +2091,7 @@ module('AsyncRecordCache - query', function (hooks) {
             { attribute: 'atmosphere', value: true },
             { attribute: 'classification', value: 'terrestrial' }
           )
-      )) as Record[],
+      )) as InitializedRecord[],
       [earth, venus]
     );
   });
@@ -2097,7 +2099,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - findRelatedRecords - can sort by an attribute', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const sun: Record = {
+    const sun: InitializedRecord = {
       type: 'star',
       id: 'sun',
       relationships: {
@@ -2112,7 +2114,7 @@ module('AsyncRecordCache - query', function (hooks) {
       }
     };
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -2122,7 +2124,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -2132,7 +2134,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -2142,7 +2144,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -2172,7 +2174,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - findRelatedRecords - can sort by an attribute, even when a particular record has none', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const sun: Record = {
+    const sun: InitializedRecord = {
       type: 'star',
       id: 'sun',
       relationships: {
@@ -2187,8 +2189,8 @@ module('AsyncRecordCache - query', function (hooks) {
       }
     };
 
-    const jupiter: Record = { type: 'planet', id: 'jupiter' };
-    const earth: Record = {
+    const jupiter: InitializedRecord = { type: 'planet', id: 'jupiter' };
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -2198,7 +2200,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -2208,7 +2210,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -2238,7 +2240,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - findRelatedRecords - can filter and sort by attributes', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const sun: Record = {
+    const sun: InitializedRecord = {
       type: 'star',
       id: 'sun',
       relationships: {
@@ -2253,7 +2255,7 @@ module('AsyncRecordCache - query', function (hooks) {
       }
     };
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -2263,7 +2265,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -2273,7 +2275,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -2283,7 +2285,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -2319,7 +2321,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - findRelatedRecords - can sort by an attribute in descending order', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const sun: Record = {
+    const sun: InitializedRecord = {
       type: 'star',
       id: 'sun',
       relationships: {
@@ -2334,7 +2336,7 @@ module('AsyncRecordCache - query', function (hooks) {
       }
     };
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -2344,7 +2346,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -2354,7 +2356,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -2364,7 +2366,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -2394,7 +2396,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - findRelatedRecords - can sort by according to multiple criteria', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const sun: Record = {
+    const sun: InitializedRecord = {
       type: 'star',
       id: 'sun',
       relationships: {
@@ -2409,7 +2411,7 @@ module('AsyncRecordCache - query', function (hooks) {
       }
     };
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -2419,7 +2421,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -2429,7 +2431,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -2439,7 +2441,7 @@ module('AsyncRecordCache - query', function (hooks) {
       },
       relationships: { star: { data: { type: 'star', id: 'sun' } } }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -2471,7 +2473,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#query - findRelatedRecords - page - can paginate records by offset and limit', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const sun: Record = {
+    const sun: InitializedRecord = {
       type: 'star',
       id: 'sun',
       relationships: {
@@ -2486,7 +2488,7 @@ module('AsyncRecordCache - query', function (hooks) {
       }
     };
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter' },
@@ -2553,7 +2555,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#liveQuery', async function (assert) {
     let cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       id: 'jupiter',
       type: 'planet',
       attributes: { name: 'Jupiter' }
@@ -2564,7 +2566,7 @@ module('AsyncRecordCache - query', function (hooks) {
       attributes: { name: 'Jupiter 2' }
     };
 
-    const callisto: Record = {
+    const callisto: InitializedRecord = {
       id: 'callisto',
       type: 'moon',
       attributes: { name: 'Callisto' },
@@ -2777,7 +2779,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#liveQuery findRecords (debounce)', async function (assert) {
     let cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const planets: Record[] = [
+    const planets: InitializedRecord[] = [
       {
         id: 'planet1',
         type: 'planet',
@@ -2819,7 +2821,7 @@ module('AsyncRecordCache - query', function (hooks) {
       debounceLiveQueries: false
     });
 
-    const planets: Record[] = [
+    const planets: InitializedRecord[] = [
       {
         id: 'planet1',
         type: 'planet',
@@ -2844,7 +2846,7 @@ module('AsyncRecordCache - query', function (hooks) {
 
     const done = assert.async();
     livePlanets.subscribe(async (update) => {
-      const result = (await update.query()) as Record[];
+      const result = (await update.query()) as InitializedRecord[];
       assert.equal(result.length, i);
 
       if (i === 3) {
@@ -2859,7 +2861,7 @@ module('AsyncRecordCache - query', function (hooks) {
   test('#liveQuery can apply attribute filters', async function (assert) {
     const cache = new ExampleAsyncRecordCache({ schema, keyMap });
 
-    const jupiter: Record = {
+    const jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -2869,7 +2871,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const earth: Record = {
+    const earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -2879,7 +2881,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const venus: Record = {
+    const venus: InitializedRecord = {
       type: 'planet',
       id: 'venus',
       attributes: {
@@ -2889,7 +2891,7 @@ module('AsyncRecordCache - query', function (hooks) {
         atmosphere: true
       }
     };
-    const mercury: Record = {
+    const mercury: InitializedRecord = {
       type: 'planet',
       id: 'mercury',
       attributes: {
@@ -2911,13 +2913,17 @@ module('AsyncRecordCache - query', function (hooks) {
 
     const done = assert.async();
     livePlanets.subscribe(async (update) => {
-      const result = (await update.query()) as Record[];
+      const result = (await update.query()) as InitializedRecord[];
       arrayMembershipMatches(assert, result, [venus, earth]);
       done();
     });
 
     // liveQuery results are initially empty
-    arrayMembershipMatches(assert, (await livePlanets.query()) as Record[], []);
+    arrayMembershipMatches(
+      assert,
+      (await livePlanets.query()) as InitializedRecord[],
+      []
+    );
 
     // adding records should update liveQuery results
     cache.update((t) => [

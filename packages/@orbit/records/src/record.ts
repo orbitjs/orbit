@@ -36,7 +36,12 @@ export interface RecordFields {
   meta?: Dict<any>;
 }
 
+/**
+ * @deprecated since v0.17, use alias `InitializedRecord` instead
+ */
 export interface Record extends RecordFields, RecordIdentity {}
+
+export interface InitializedRecord extends RecordFields, RecordIdentity {}
 
 export interface UninitializedRecord extends RecordFields {
   type: string;
@@ -44,7 +49,7 @@ export interface UninitializedRecord extends RecordFields {
 }
 
 export interface RecordInitializer {
-  initializeRecord(record: UninitializedRecord): Record;
+  initializeRecord(record: UninitializedRecord): InitializedRecord;
 }
 
 export function cloneRecordIdentity(identity: RecordIdentity): RecordIdentity {
@@ -134,9 +139,12 @@ export function recordsIncludeAll(
   );
 }
 
-export function mergeRecords(current: Record | null, updates: Record): Record {
+export function mergeRecords(
+  current: InitializedRecord | null,
+  updates: InitializedRecord
+): InitializedRecord {
   if (current) {
-    let record: Record = cloneRecordIdentity(current);
+    let record: InitializedRecord = cloneRecordIdentity(current);
 
     // Merge `meta` and `links`, replacing whole sections rather than merging
     // individual members

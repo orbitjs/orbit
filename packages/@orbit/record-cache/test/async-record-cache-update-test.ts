@@ -1,7 +1,7 @@
 import {
   equalRecordIdentities,
   RecordKeyMap,
-  Record,
+  InitializedRecord,
   RecordIdentity,
   recordsInclude,
   recordsIncludeAll,
@@ -42,7 +42,7 @@ module('AsyncRecordCache - update', function (hooks) {
         test('#update sets data and #records retrieves it', async function (assert) {
           assert.expect(4);
 
-          const earth: Record = {
+          const earth: InitializedRecord = {
             type: 'planet',
             id: '1',
             attributes: { name: 'Earth' },
@@ -74,7 +74,7 @@ module('AsyncRecordCache - update', function (hooks) {
         test('#update can replace records', async function (assert) {
           assert.expect(5);
 
-          const earth: Record = {
+          const earth: InitializedRecord = {
             type: 'planet',
             id: '1',
             attributes: { name: 'Earth' },
@@ -111,7 +111,7 @@ module('AsyncRecordCache - update', function (hooks) {
         test('#update can replace keys', async function (assert) {
           assert.expect(4);
 
-          const earth: Record = { type: 'planet', id: '1' };
+          const earth: InitializedRecord = { type: 'planet', id: '1' };
 
           cache.on('patch', (operation, data) => {
             assert.deepEqual(operation, {
@@ -191,13 +191,13 @@ module('AsyncRecordCache - update', function (hooks) {
         });
 
         test('#update updates inverse hasOne relationship when a record with relationships unspecified is added - record added after', async function (assert) {
-          const jupiter: Record = {
+          const jupiter: InitializedRecord = {
             type: 'planet',
             id: 'p1',
             attributes: { name: 'Jupiter' },
             relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
           };
-          const io: Record = {
+          const io: InitializedRecord = {
             type: 'moon',
             id: 'm1',
             attributes: { name: 'Io' }
@@ -212,26 +212,28 @@ module('AsyncRecordCache - update', function (hooks) {
             ((await cache.getRecordAsync({
               type: 'planet',
               id: 'p1'
-            })) as Record)?.relationships?.moons.data,
+            })) as InitializedRecord)?.relationships?.moons.data,
             [{ type: 'moon', id: 'm1' }],
             'Io has been assigned to Jupiter'
           );
           assert.deepEqual(
-            ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
-              ?.relationships?.planet.data,
+            ((await cache.getRecordAsync({
+              type: 'moon',
+              id: 'm1'
+            })) as InitializedRecord)?.relationships?.planet.data,
             { type: 'planet', id: 'p1' },
             'Jupiter has been assigned to Io'
           );
         });
 
         test('#update updates inverse hasOne relationship when a record with relationships unspecified is added - record added before', async function (assert) {
-          const jupiter: Record = {
+          const jupiter: InitializedRecord = {
             type: 'planet',
             id: 'p1',
             attributes: { name: 'Jupiter' },
             relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
           };
-          const io: Record = {
+          const io: InitializedRecord = {
             type: 'moon',
             id: 'm1',
             attributes: { name: 'Io' }
@@ -246,26 +248,28 @@ module('AsyncRecordCache - update', function (hooks) {
             ((await cache.getRecordAsync({
               type: 'planet',
               id: 'p1'
-            })) as Record)?.relationships?.moons.data,
+            })) as InitializedRecord)?.relationships?.moons.data,
             [{ type: 'moon', id: 'm1' }],
             'Io has been assigned to Jupiter'
           );
           assert.deepEqual(
-            ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
-              ?.relationships?.planet.data,
+            ((await cache.getRecordAsync({
+              type: 'moon',
+              id: 'm1'
+            })) as InitializedRecord)?.relationships?.planet.data,
             { type: 'planet', id: 'p1' },
             'Jupiter has been assigned to Io'
           );
         });
 
         test('#update updates inverse hasMany relationship when a record with relationships unspecified is added - record added after', async function (assert) {
-          const io: Record = {
+          const io: InitializedRecord = {
             type: 'moon',
             id: 'm1',
             attributes: { name: 'Io' },
             relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
           };
-          const jupiter: Record = {
+          const jupiter: InitializedRecord = {
             type: 'planet',
             id: 'p1',
             attributes: { name: 'Jupiter' }
@@ -280,26 +284,28 @@ module('AsyncRecordCache - update', function (hooks) {
             ((await cache.getRecordAsync({
               type: 'planet',
               id: 'p1'
-            })) as Record)?.relationships?.moons.data,
+            })) as InitializedRecord)?.relationships?.moons.data,
             [{ type: 'moon', id: 'm1' }],
             'Io has been assigned to Jupiter'
           );
           assert.deepEqual(
-            ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
-              ?.relationships?.planet.data,
+            ((await cache.getRecordAsync({
+              type: 'moon',
+              id: 'm1'
+            })) as InitializedRecord)?.relationships?.planet.data,
             { type: 'planet', id: 'p1' },
             'Jupiter has been assigned to Io'
           );
         });
 
         test('#update updates inverse hasMany relationship when a record with relationships unspecified is added - record added before', async function (assert) {
-          const io: Record = {
+          const io: InitializedRecord = {
             type: 'moon',
             id: 'm1',
             attributes: { name: 'Io' },
             relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
           };
-          const jupiter: Record = {
+          const jupiter: InitializedRecord = {
             type: 'planet',
             id: 'p1',
             attributes: { name: 'Jupiter' }
@@ -314,26 +320,28 @@ module('AsyncRecordCache - update', function (hooks) {
             ((await cache.getRecordAsync({
               type: 'planet',
               id: 'p1'
-            })) as Record)?.relationships?.moons.data,
+            })) as InitializedRecord)?.relationships?.moons.data,
             [{ type: 'moon', id: 'm1' }],
             'Io has been assigned to Jupiter'
           );
           assert.deepEqual(
-            ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
-              ?.relationships?.planet.data,
+            ((await cache.getRecordAsync({
+              type: 'moon',
+              id: 'm1'
+            })) as InitializedRecord)?.relationships?.planet.data,
             { type: 'planet', id: 'p1' },
             'Jupiter has been assigned to Io'
           );
         });
 
         test('#update updates inverse hasOne relationship when a record with an empty relationship is added', async function (assert) {
-          const io: Record = {
+          const io: InitializedRecord = {
             type: 'moon',
             id: 'm1',
             attributes: { name: 'Io' },
             relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
           };
-          const jupiter: Record = {
+          const jupiter: InitializedRecord = {
             type: 'planet',
             id: 'p1',
             attributes: { name: 'Jupiter' },
@@ -349,26 +357,28 @@ module('AsyncRecordCache - update', function (hooks) {
             ((await cache.getRecordAsync({
               type: 'planet',
               id: 'p1'
-            })) as Record)?.relationships?.moons.data,
+            })) as InitializedRecord)?.relationships?.moons.data,
             [],
             'Jupiter has no moons'
           );
           assert.deepEqual(
-            ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
-              ?.relationships?.planet.data,
+            ((await cache.getRecordAsync({
+              type: 'moon',
+              id: 'm1'
+            })) as InitializedRecord)?.relationships?.planet.data,
             null,
             'Jupiter has been cleared from Io'
           );
         });
 
         test('#update updates inverse hasMany relationship when a record with an empty relationship is added', async function (assert) {
-          const jupiter: Record = {
+          const jupiter: InitializedRecord = {
             type: 'planet',
             id: 'p1',
             attributes: { name: 'Jupiter' },
             relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
           };
-          const io: Record = {
+          const io: InitializedRecord = {
             type: 'moon',
             id: 'm1',
             attributes: { name: 'Io' },
@@ -384,20 +394,22 @@ module('AsyncRecordCache - update', function (hooks) {
             ((await cache.getRecordAsync({
               type: 'planet',
               id: 'p1'
-            })) as Record)?.relationships?.moons.data,
+            })) as InitializedRecord)?.relationships?.moons.data,
             [],
             'Io has been cleared from Jupiter'
           );
           assert.deepEqual(
-            ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
-              ?.relationships?.planet.data,
+            ((await cache.getRecordAsync({
+              type: 'moon',
+              id: 'm1'
+            })) as InitializedRecord)?.relationships?.planet.data,
             null,
             'Io has no planet'
           );
         });
 
         test('#update updates inverse hasMany polymorphic relationship', async function (assert) {
-          const sun: Record = {
+          const sun: InitializedRecord = {
             type: 'star',
             id: 's1',
             attributes: { name: 'Sun' },
@@ -410,12 +422,12 @@ module('AsyncRecordCache - update', function (hooks) {
               }
             }
           };
-          const jupiter: Record = {
+          const jupiter: InitializedRecord = {
             type: 'planet',
             id: 'p1',
             attributes: { name: 'Jupiter' }
           };
-          const io: Record = {
+          const io: InitializedRecord = {
             type: 'moon',
             id: 'm1',
             attributes: { name: 'Io' }
@@ -428,8 +440,10 @@ module('AsyncRecordCache - update', function (hooks) {
           ]);
 
           assert.deepEqual(
-            ((await cache.getRecordAsync({ type: 'star', id: 's1' })) as Record)
-              ?.relationships?.celestialObjects.data,
+            ((await cache.getRecordAsync({
+              type: 'star',
+              id: 's1'
+            })) as InitializedRecord)?.relationships?.celestialObjects.data,
             [
               { type: 'planet', id: 'p1' },
               { type: 'moon', id: 'm1' }
@@ -440,32 +454,34 @@ module('AsyncRecordCache - update', function (hooks) {
             ((await cache.getRecordAsync({
               type: 'planet',
               id: 'p1'
-            })) as Record)?.relationships?.star.data,
+            })) as InitializedRecord)?.relationships?.star.data,
             { type: 'star', id: 's1' },
             'Sun has been assigned to Jupiter'
           );
           assert.deepEqual(
-            ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
-              ?.relationships?.star.data,
+            ((await cache.getRecordAsync({
+              type: 'moon',
+              id: 'm1'
+            })) as InitializedRecord)?.relationships?.star.data,
             { type: 'star', id: 's1' },
             'Sun has been assigned to Io'
           );
         });
 
         test('#update updates inverse hasOne polymorphic relationship', async function (assert) {
-          const jupiter: Record = {
+          const jupiter: InitializedRecord = {
             type: 'planet',
             id: 'p1',
             attributes: { name: 'Jupiter' },
             relationships: { star: { data: { type: 'star', id: 's1' } } }
           };
-          const io: Record = {
+          const io: InitializedRecord = {
             type: 'moon',
             id: 'm1',
             attributes: { name: 'Io' },
             relationships: { star: { data: { type: 'star', id: 's1' } } }
           };
-          const sun: Record = {
+          const sun: InitializedRecord = {
             type: 'star',
             id: 's1',
             attributes: { name: 'Sun' }
@@ -478,8 +494,10 @@ module('AsyncRecordCache - update', function (hooks) {
           ]);
 
           assert.deepEqual(
-            ((await cache.getRecordAsync({ type: 'star', id: 's1' })) as Record)
-              ?.relationships?.celestialObjects.data,
+            ((await cache.getRecordAsync({
+              type: 'star',
+              id: 's1'
+            })) as InitializedRecord)?.relationships?.celestialObjects.data,
             [
               { type: 'planet', id: 'p1' },
               { type: 'moon', id: 'm1' }
@@ -490,32 +508,34 @@ module('AsyncRecordCache - update', function (hooks) {
             ((await cache.getRecordAsync({
               type: 'planet',
               id: 'p1'
-            })) as Record)?.relationships?.star.data,
+            })) as InitializedRecord)?.relationships?.star.data,
             { type: 'star', id: 's1' },
             'Sun has been assigned to Jupiter'
           );
           assert.deepEqual(
-            ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
-              ?.relationships?.star.data,
+            ((await cache.getRecordAsync({
+              type: 'moon',
+              id: 'm1'
+            })) as InitializedRecord)?.relationships?.star.data,
             { type: 'star', id: 's1' },
             'Sun has been assigned to Io'
           );
         });
 
         test('#update tracks refs and clears them from hasOne relationships when a referenced record is removed', async function (assert) {
-          const jupiter: Record = {
+          const jupiter: InitializedRecord = {
             type: 'planet',
             id: 'p1',
             attributes: { name: 'Jupiter' },
             relationships: { moons: { data: undefined } }
           };
-          const io: Record = {
+          const io: InitializedRecord = {
             type: 'moon',
             id: 'm1',
             attributes: { name: 'Io' },
             relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
           };
-          const europa: Record = {
+          const europa: InitializedRecord = {
             type: 'moon',
             id: 'm2',
             attributes: { name: 'Europa' },
@@ -529,14 +549,18 @@ module('AsyncRecordCache - update', function (hooks) {
           ]);
 
           assert.deepEqual(
-            ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
-              ?.relationships?.planet.data,
+            ((await cache.getRecordAsync({
+              type: 'moon',
+              id: 'm1'
+            })) as InitializedRecord)?.relationships?.planet.data,
             { type: 'planet', id: 'p1' },
             'Jupiter has been assigned to Io'
           );
           assert.deepEqual(
-            ((await cache.getRecordAsync({ type: 'moon', id: 'm2' })) as Record)
-              ?.relationships?.planet.data,
+            ((await cache.getRecordAsync({
+              type: 'moon',
+              id: 'm2'
+            })) as InitializedRecord)?.relationships?.planet.data,
             { type: 'planet', id: 'p1' },
             'Jupiter has been assigned to Europa'
           );
@@ -550,33 +574,37 @@ module('AsyncRecordCache - update', function (hooks) {
           );
 
           assert.equal(
-            ((await cache.getRecordAsync({ type: 'moon', id: 'm1' })) as Record)
-              ?.relationships?.planet.data,
+            ((await cache.getRecordAsync({
+              type: 'moon',
+              id: 'm1'
+            })) as InitializedRecord)?.relationships?.planet.data,
             undefined,
             'Jupiter has been cleared from Io'
           );
           assert.equal(
-            ((await cache.getRecordAsync({ type: 'moon', id: 'm2' })) as Record)
-              ?.relationships?.planet.data,
+            ((await cache.getRecordAsync({
+              type: 'moon',
+              id: 'm2'
+            })) as InitializedRecord)?.relationships?.planet.data,
             undefined,
             'Jupiter has been cleared from Europa'
           );
         });
 
         test('#update tracks refs and clears them from hasMany relationships when a referenced record is removed', async function (assert) {
-          const io: Record = {
+          const io: InitializedRecord = {
             type: 'moon',
             id: 'm1',
             attributes: { name: 'Io' },
             relationships: { planet: { data: null } }
           };
-          const europa: Record = {
+          const europa: InitializedRecord = {
             type: 'moon',
             id: 'm2',
             attributes: { name: 'Europa' },
             relationships: { planet: { data: null } }
           };
-          const jupiter: Record = {
+          const jupiter: InitializedRecord = {
             type: 'planet',
             id: 'p1',
             attributes: { name: 'Jupiter' },
@@ -600,7 +628,7 @@ module('AsyncRecordCache - update', function (hooks) {
             ((await cache.getRecordAsync({
               type: 'planet',
               id: 'p1'
-            })) as Record)?.relationships?.moons.data,
+            })) as InitializedRecord)?.relationships?.moons.data,
             [
               { type: 'moon', id: 'm1' },
               { type: 'moon', id: 'm2' }
@@ -663,7 +691,7 @@ module('AsyncRecordCache - update', function (hooks) {
             ((await cache.getRecordAsync({
               type: 'planet',
               id: 'p1'
-            })) as Record)?.relationships?.moons.data,
+            })) as InitializedRecord)?.relationships?.moons.data,
             [{ type: 'moon', id: 'm1' }],
             'relationship was added'
           );
@@ -761,7 +789,7 @@ module('AsyncRecordCache - update', function (hooks) {
         test('#update does not add link to hasMany if link already exists', async function (assert) {
           assert.expect(1);
 
-          const jupiter: Record = {
+          const jupiter: InitializedRecord = {
             id: 'p1',
             type: 'planet',
             attributes: { name: 'Jupiter' },
@@ -784,7 +812,7 @@ module('AsyncRecordCache - update', function (hooks) {
         test("#update does not remove relationship from hasMany if relationship doesn't exist", async function (assert) {
           assert.expect(1);
 
-          const jupiter: Record = {
+          const jupiter: InitializedRecord = {
             id: 'p1',
             type: 'planet',
             attributes: { name: 'Jupiter' }
@@ -809,10 +837,10 @@ module('AsyncRecordCache - update', function (hooks) {
         test('#update can add and remove to has-many relationship', async function (assert) {
           assert.expect(2);
 
-          const jupiter: Record = { id: 'jupiter', type: 'planet' };
+          const jupiter: InitializedRecord = { id: 'jupiter', type: 'planet' };
           await cache.update((t) => t.addRecord(jupiter));
 
-          const callisto: Record = { id: 'callisto', type: 'moon' };
+          const callisto: InitializedRecord = { id: 'callisto', type: 'moon' };
           await cache.update((t) => t.addRecord(callisto));
 
           await cache.update((t) =>
@@ -855,10 +883,10 @@ module('AsyncRecordCache - update', function (hooks) {
         test('#update can add and clear has-one relationship', async function (assert) {
           assert.expect(2);
 
-          const jupiter: Record = { id: 'jupiter', type: 'planet' };
+          const jupiter: InitializedRecord = { id: 'jupiter', type: 'planet' };
           await cache.update((t) => t.addRecord(jupiter));
 
-          const callisto: Record = { id: 'callisto', type: 'moon' };
+          const callisto: InitializedRecord = { id: 'callisto', type: 'moon' };
           await cache.update((t) => t.addRecord(callisto));
 
           await cache.update((t) =>
@@ -898,7 +926,7 @@ module('AsyncRecordCache - update', function (hooks) {
         test('does not replace hasOne if relationship already exists', async function (assert) {
           assert.expect(1);
 
-          const europa: Record = {
+          const europa: InitializedRecord = {
             id: 'm1',
             type: 'moon',
             attributes: { name: 'Europa' },
@@ -924,7 +952,7 @@ module('AsyncRecordCache - update', function (hooks) {
         test("does not remove hasOne if relationship doesn't exist", async function (assert) {
           assert.expect(1);
 
-          const europa: Record = {
+          const europa: InitializedRecord = {
             type: 'moon',
             id: 'm1',
             attributes: { name: 'Europa' },
@@ -1184,14 +1212,14 @@ module('AsyncRecordCache - update', function (hooks) {
         test('#update merges records when "replacing" and _will_ replace specified attributes and relationships', async function (assert) {
           const tb = cache.transformBuilder;
 
-          const earth: Record = {
+          const earth: InitializedRecord = {
             type: 'planet',
             id: '1',
             attributes: { name: 'Earth' },
             relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
           };
 
-          const jupiter: Record = {
+          const jupiter: InitializedRecord = {
             type: 'planet',
             id: '1',
             attributes: { name: 'Jupiter', classification: 'terrestrial' },
@@ -1589,7 +1617,7 @@ module('AsyncRecordCache - update', function (hooks) {
             type: 'planetarySystem'
           });
           assert.deepEqual(
-            (latestHome?.relationships?.star.data as Record).id,
+            (latestHome?.relationships?.star.data as InitializedRecord).id,
             star1.id,
             'The original related record is in place.'
           );
@@ -1612,14 +1640,14 @@ module('AsyncRecordCache - update', function (hooks) {
           });
 
           assert.deepEqual(
-            (latestHome?.relationships?.star.data as Record).id,
+            (latestHome?.relationships?.star.data as InitializedRecord).id,
             star2.id,
             'The related record was replaced.'
           );
         });
 
         test("#update - updateRecord - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", async function (assert) {
-          const earth: Record = {
+          const earth: InitializedRecord = {
             type: 'planet',
             id: '1',
             attributes: { name: 'Earth' },
@@ -1638,7 +1666,7 @@ module('AsyncRecordCache - update', function (hooks) {
         });
 
         test("#update - removeRecord - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", async function (assert) {
-          const earth: Record = {
+          const earth: InitializedRecord = {
             type: 'planet',
             id: '1'
           };
@@ -1655,7 +1683,7 @@ module('AsyncRecordCache - update', function (hooks) {
         });
 
         test("#update - replaceKey - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", async function (assert) {
-          const earth: Record = {
+          const earth: InitializedRecord = {
             type: 'planet',
             id: '1',
             attributes: { name: 'Earth' },
@@ -1674,7 +1702,7 @@ module('AsyncRecordCache - update', function (hooks) {
         });
 
         test("#update - replaceAttribute - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", async function (assert) {
-          const earth: Record = {
+          const earth: InitializedRecord = {
             type: 'planet',
             id: '1',
             attributes: { name: 'Earth' },
@@ -1812,11 +1840,11 @@ module('AsyncRecordCache - update', function (hooks) {
           const one = (await cache.getRecordAsync({
             type: 'one',
             id: '1'
-          })) as Record;
+          })) as InitializedRecord;
           const two = (await cache.getRecordAsync({
             type: 'two',
             id: '2'
-          })) as Record;
+          })) as InitializedRecord;
           assert.ok(one, 'one exists');
           assert.ok(two, 'two exists');
           assert.deepEqual(
@@ -1833,8 +1861,10 @@ module('AsyncRecordCache - update', function (hooks) {
           await cache.update((t) => t.removeRecord(two));
 
           assert.equal(
-            ((await cache.getRecordAsync({ type: 'one', id: '1' })) as Record)
-              .relationships?.two.data,
+            ((await cache.getRecordAsync({
+              type: 'one',
+              id: '1'
+            })) as InitializedRecord).relationships?.two.data,
             null,
             'ones link to two got removed'
           );
@@ -1866,18 +1896,18 @@ module('AsyncRecordCache - update', function (hooks) {
             defaultTransformOptions
           });
 
-          const jupiter: Record = {
+          const jupiter: InitializedRecord = {
             type: 'planet',
             id: 'p1',
             attributes: { name: 'Jupiter' }
           };
-          const io: Record = {
+          const io: InitializedRecord = {
             type: 'moon',
             id: 'm1',
             attributes: { name: 'Io' },
             relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
           };
-          const europa: Record = {
+          const europa: InitializedRecord = {
             type: 'moon',
             id: 'm2',
             attributes: { name: 'Europa' },
@@ -1928,18 +1958,18 @@ module('AsyncRecordCache - update', function (hooks) {
             defaultTransformOptions
           });
 
-          const jupiter: Record = {
+          const jupiter: InitializedRecord = {
             type: 'planet',
             id: 'p1',
             attributes: { name: 'Jupiter' }
           };
-          const io: Record = {
+          const io: InitializedRecord = {
             type: 'moon',
             id: 'm1',
             attributes: { name: 'Io' },
             relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
           };
-          const europa: Record = {
+          const europa: InitializedRecord = {
             type: 'moon',
             id: 'm2',
             attributes: { name: 'Europa' },
@@ -1990,18 +2020,18 @@ module('AsyncRecordCache - update', function (hooks) {
             defaultTransformOptions
           });
 
-          const jupiter: Record = {
+          const jupiter: InitializedRecord = {
             type: 'planet',
             id: 'p1',
             attributes: { name: 'Jupiter' }
           };
-          const io: Record = {
+          const io: InitializedRecord = {
             type: 'moon',
             id: 'm1',
             attributes: { name: 'Io' },
             relationships: { planet: { data: { type: 'planet', id: 'p1' } } }
           };
-          const europa: Record = {
+          const europa: InitializedRecord = {
             type: 'moon',
             id: 'm2',
             attributes: { name: 'Europa' },

@@ -1,4 +1,4 @@
-import { Record } from '@orbit/records';
+import { InitializedRecord } from '@orbit/records';
 import {
   RecordResultsDocument,
   ResourceAtomicResultsDocument
@@ -23,7 +23,7 @@ export class JSONAPIAtomicResultsDocumentSerializer extends JSONAPIBaseSerialize
     return result;
   }
 
-  serializeResults(results: Record[]): Resource[] {
+  serializeResults(results: InitializedRecord[]): Resource[] {
     return results.map((record) => this.resourceSerializer.serialize(record));
   }
 
@@ -50,7 +50,7 @@ export class JSONAPIAtomicResultsDocumentSerializer extends JSONAPIBaseSerialize
     return result;
   }
 
-  deserializeAtomicResults(results: Resource[]): Record[] {
+  deserializeAtomicResults(results: Resource[]): InitializedRecord[] {
     return results.map((resource) =>
       this.resourceSerializer.deserialize(resource)
     );

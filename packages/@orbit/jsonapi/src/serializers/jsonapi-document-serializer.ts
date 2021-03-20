@@ -1,11 +1,11 @@
-import { Record } from '@orbit/records';
+import { InitializedRecord } from '@orbit/records';
 import { Resource, ResourceDocument } from '../resource-document';
 import { RecordDocument } from '../record-document';
 import { JSONAPIBaseSerializer } from './jsonapi-base-serializer';
 
 export interface JSONAPIDocumentDeserializationOptions {
-  primaryRecord?: Record;
-  primaryRecords?: Record[];
+  primaryRecord?: InitializedRecord;
+  primaryRecords?: InitializedRecord[];
 }
 
 export class JSONAPIDocumentSerializer extends JSONAPIBaseSerializer<
@@ -17,8 +17,8 @@ export class JSONAPIDocumentSerializer extends JSONAPIBaseSerializer<
   serialize(document: RecordDocument): ResourceDocument {
     let resDocument: ResourceDocument = {
       data: Array.isArray(document.data)
-        ? this.serializeRecords(document.data as Record[])
-        : this.serializeRecord(document.data as Record)
+        ? this.serializeRecords(document.data as InitializedRecord[])
+        : this.serializeRecord(document.data as InitializedRecord)
     };
 
     this.serializeLinks(document, resDocument);
@@ -65,11 +65,11 @@ export class JSONAPIDocumentSerializer extends JSONAPIBaseSerializer<
     return result;
   }
 
-  protected serializeRecords(records: Record[]): Resource[] {
+  protected serializeRecords(records: InitializedRecord[]): Resource[] {
     return records.map((record) => this.serializeRecord(record));
   }
 
-  protected serializeRecord(record: Record): Resource {
+  protected serializeRecord(record: InitializedRecord): Resource {
     return this.resourceSerializer.serialize(record);
   }
 
@@ -87,8 +87,8 @@ export class JSONAPIDocumentSerializer extends JSONAPIBaseSerializer<
 
   protected deserializeResources(
     resources: Resource[],
-    primaryRecords?: Record[]
-  ): Record[] {
+    primaryRecords?: InitializedRecord[]
+  ): InitializedRecord[] {
     if (primaryRecords) {
       return resources.map((entry, i) => {
         return this.deserializeResource(entry, primaryRecords[i]);
@@ -100,8 +100,8 @@ export class JSONAPIDocumentSerializer extends JSONAPIBaseSerializer<
 
   protected deserializeResource(
     resource: Resource,
-    primaryRecord?: Record
-  ): Record {
+    primaryRecord?: InitializedRecord
+  ): InitializedRecord {
     if (primaryRecord) {
       return this.resourceSerializer.deserialize(resource, { primaryRecord });
     } else {

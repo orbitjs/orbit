@@ -2,7 +2,7 @@ import { Dict } from '@orbit/utils';
 import {
   RecordKeyMap,
   ModelDefinition,
-  Record,
+  InitializedRecord,
   RecordSchema
 } from '@orbit/records';
 import { JSONAPIResourceIdentitySerializer } from '../../src/serializers/jsonapi-resource-identity-serializer';
@@ -254,7 +254,7 @@ module('JSONAPIResourceIdentitySerializer', function (hooks) {
       let localRecord = {
         id: '1a2b3c',
         type: 'planet'
-      } as Record;
+      } as InitializedRecord;
 
       assert.deepEqual(
         serializer.deserialize(

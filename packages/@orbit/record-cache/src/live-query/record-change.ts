@@ -1,5 +1,5 @@
 import {
-  Record,
+  InitializedRecord,
   cloneRecordIdentity,
   RecordIdentity,
   RecordOperation
@@ -17,7 +17,7 @@ export interface RecordChange extends RecordIdentity {
 export function recordOperationChange(
   operation: RecordOperation
 ): RecordChange {
-  const record = operation.record as Record;
+  const record = operation.record as InitializedRecord;
   const change: RecordChange = {
     ...cloneRecordIdentity(record),
     remove: false,

@@ -9,7 +9,7 @@ import {
   FindRelatedRecords,
   SortSpecifier,
   AttributeSortSpecifier,
-  Record,
+  InitializedRecord,
   RecordIdentity,
   RecordQueryExpressionResult,
   RecordQuery
@@ -29,7 +29,7 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
     cache: SyncRecordCache,
     query: RecordQuery,
     expression: RecordQueryExpression
-  ): Record | undefined {
+  ): InitializedRecord | undefined {
     const { record } = expression as FindRecord;
     const currentRecord = cache.getRecordSync(record);
 
@@ -47,7 +47,7 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
     cache: SyncRecordCache,
     query: RecordQuery,
     expression: RecordQueryExpression
-  ): Record[] {
+  ): InitializedRecord[] {
     let exp = expression as FindRecords;
     let results = cache.getRecordsSync(exp.records || exp.type);
     if (exp.filter) {
@@ -66,7 +66,7 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
     cache: SyncRecordCache,
     query: RecordQuery,
     expression: RecordQueryExpression
-  ): Record[] | undefined {
+  ): InitializedRecord[] | undefined {
     const exp = expression as FindRelatedRecords;
     const { record, relationship } = exp;
     const relatedIds = cache.getRelatedRecordsSync(record, relationship);
@@ -100,7 +100,7 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
     cache: SyncRecordCache,
     query: RecordQuery,
     expression: RecordQueryExpression
-  ): Record | null | undefined {
+  ): InitializedRecord | null | undefined {
     const exp = expression as FindRelatedRecord;
     const { record, relationship } = exp;
     const relatedId = cache.getRelatedRecordSync(record, relationship);
@@ -122,7 +122,7 @@ export const SyncQueryOperators: Dict<SyncQueryOperator> = {
   }
 };
 
-function filterRecords(records: Record[], filters: any[]) {
+function filterRecords(records: InitializedRecord[], filters: any[]) {
   return records.filter((record) => {
     for (let i = 0, l = filters.length; i < l; i++) {
       if (!applyFilter(record, filters[i])) {
@@ -133,7 +133,7 @@ function filterRecords(records: Record[], filters: any[]) {
   });
 }
 
-function applyFilter(record: Record, filter: any): boolean {
+function applyFilter(record: InitializedRecord, filter: any): boolean {
   if (filter.kind === 'attribute') {
     let actual = deepGet(record, ['attributes', filter.attribute]);
     if (actual === undefined) {
@@ -221,7 +221,10 @@ function applyFilter(record: Record, filter: any): boolean {
   return false;
 }
 
-function sortRecords(records: Record[], sortSpecifiers: SortSpecifier[]) {
+function sortRecords(
+  records: InitializedRecord[],
+  sortSpecifiers: SortSpecifier[]
+): InitializedRecord[] {
   const comparisonValues = new Map();
 
   records.forEach((record) => {
@@ -264,7 +267,10 @@ function sortRecords(records: Record[], sortSpecifiers: SortSpecifier[]) {
   });
 }
 
-function paginateRecords(records: Record[], paginationOptions: any) {
+function paginateRecords(
+  records: InitializedRecord[],
+  paginationOptions: any
+): InitializedRecord[] {
   if (paginationOptions.limit !== undefined) {
     let offset =
       paginationOptions.offset === undefined ? 0 : paginationOptions.offset;

@@ -1,4 +1,8 @@
-import { Record, RecordIdentity, RecordOperation } from '@orbit/records';
+import {
+  InitializedRecord,
+  RecordIdentity,
+  RecordOperation
+} from '@orbit/records';
 import { AsyncOperationProcessor } from '../async-operation-processor';
 import {
   getInverseRelationship,
@@ -135,7 +139,9 @@ export class AsyncCacheIntegrityProcessor extends AsyncOperationProcessor {
     }
   }
 
-  protected async addAllInverseRelationships(record: Record): Promise<void> {
+  protected async addAllInverseRelationships(
+    record: InitializedRecord
+  ): Promise<void> {
     let inverseRelationships = getAllInverseRelationships(
       this.accessor.schema,
       record

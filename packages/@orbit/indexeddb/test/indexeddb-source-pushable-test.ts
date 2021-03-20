@@ -1,7 +1,7 @@
 import { buildTransform } from '@orbit/data';
 import {
   AddRecordOperation,
-  Record,
+  InitializedRecord,
   RecordIdentity,
   RecordKeyMap,
   RecordSchema,
@@ -73,7 +73,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - addRecord', async function (assert) {
     assert.expect(3);
 
-    let planet: Record = {
+    let planet: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -108,7 +108,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - addRecord - with beforePush listener that syncs transform', async function (assert) {
     assert.expect(4);
 
-    let planet: Record = {
+    let planet: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -148,7 +148,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - updateRecord', async function (assert) {
     assert.expect(2);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -164,7 +164,7 @@ module('IndexedDBSource - pushable', function (hooks) {
       }
     };
 
-    let updates: Record = {
+    let updates: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -177,7 +177,7 @@ module('IndexedDBSource - pushable', function (hooks) {
       }
     };
 
-    let expected: Record = {
+    let expected: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -214,7 +214,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - updateRecord - when record does not exist', async function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -235,7 +235,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - removeRecord', async function (assert) {
     assert.expect(1);
 
-    let planet: Record = {
+    let planet: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -258,7 +258,7 @@ module('IndexedDBSource - pushable', function (hooks) {
 
     let moon1 = { type: 'moon', id: 'moon1' };
     let moon2 = { type: 'moon', id: 'moon2' };
-    let planet: Record = {
+    let planet: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -291,7 +291,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - removeRecord - when record does not exist', async function (assert) {
     assert.expect(1);
 
-    let planet: Record = {
+    let planet: InitializedRecord = {
       type: 'planet',
       id: 'jupiter'
     };
@@ -307,7 +307,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - replaceKey', async function (assert) {
     assert.expect(2);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -316,7 +316,7 @@ module('IndexedDBSource - pushable', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -346,7 +346,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - replaceKey - when base record does not exist', async function (assert) {
     assert.expect(2);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       keys: {
@@ -373,7 +373,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - replaceAttribute', async function (assert) {
     assert.expect(1);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -382,7 +382,7 @@ module('IndexedDBSource - pushable', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -404,7 +404,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - replaceAttribute - when base record does not exist', async function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -425,7 +425,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - addToRelatedRecords', async function (assert) {
     assert.expect(1);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -439,7 +439,7 @@ module('IndexedDBSource - pushable', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -467,7 +467,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - addToRelatedRecords - when base record does not exist', async function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -493,7 +493,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - removeFromRelatedRecords', async function (assert) {
     assert.expect(1);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -510,7 +510,7 @@ module('IndexedDBSource - pushable', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -541,7 +541,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - removeFromRelatedRecords - when base record does not exist', async function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -567,7 +567,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - replaceRelatedRecords', async function (assert) {
     assert.expect(1);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -581,7 +581,7 @@ module('IndexedDBSource - pushable', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -615,7 +615,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - replaceRelatedRecords - when base record does not exist', async function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -644,7 +644,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - replaceRelatedRecord - with record', async function (assert) {
     assert.expect(1);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -658,7 +658,7 @@ module('IndexedDBSource - pushable', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -689,7 +689,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - replaceRelatedRecord - with record - when base record does not exist', async function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -715,7 +715,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - replaceRelatedRecord - with null', async function (assert) {
     assert.expect(1);
 
-    let original: Record = {
+    let original: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -729,7 +729,7 @@ module('IndexedDBSource - pushable', function (hooks) {
       }
     };
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -757,7 +757,7 @@ module('IndexedDBSource - pushable', function (hooks) {
   test('#push - replaceRelatedRecord - with null - when base record does not exist', async function (assert) {
     assert.expect(1);
 
-    let revised: Record = {
+    let revised: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       relationships: {
@@ -789,7 +789,7 @@ module('IndexedDBSource - pushable', function (hooks) {
       id: 'ss'
     };
 
-    let earth: Record = {
+    let earth: InitializedRecord = {
       type: 'planet',
       id: 'earth',
       attributes: {
@@ -803,7 +803,7 @@ module('IndexedDBSource - pushable', function (hooks) {
       }
     };
 
-    let jupiter: Record = {
+    let jupiter: InitializedRecord = {
       type: 'planet',
       id: 'jupiter',
       attributes: {
@@ -817,7 +817,7 @@ module('IndexedDBSource - pushable', function (hooks) {
       }
     };
 
-    let io: Record = {
+    let io: InitializedRecord = {
       type: 'moon',
       id: 'io',
       attributes: {

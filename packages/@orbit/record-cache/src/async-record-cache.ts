@@ -10,7 +10,7 @@ import {
   RequestOptions
 } from '@orbit/data';
 import {
-  Record,
+  InitializedRecord,
   RecordOperation,
   RecordIdentity,
   RecordOperationTerm,
@@ -147,23 +147,23 @@ export abstract class AsyncRecordCache<
   // Abstract methods for getting records and relationships
   abstract getRecordAsync(
     recordIdentity: RecordIdentity
-  ): Promise<Record | undefined>;
+  ): Promise<InitializedRecord | undefined>;
   abstract getRecordsAsync(
     typeOrIdentities?: string | RecordIdentity[]
-  ): Promise<Record[]>;
+  ): Promise<InitializedRecord[]>;
   abstract getInverseRelationshipsAsync(
     recordIdentityOrIdentities: RecordIdentity | RecordIdentity[]
   ): Promise<RecordRelationshipIdentity[]>;
 
   // Abstract methods for setting records and relationships
-  abstract setRecordAsync(record: Record): Promise<void>;
-  abstract setRecordsAsync(records: Record[]): Promise<void>;
+  abstract setRecordAsync(record: InitializedRecord): Promise<void>;
+  abstract setRecordsAsync(records: InitializedRecord[]): Promise<void>;
   abstract removeRecordAsync(
     recordIdentity: RecordIdentity
-  ): Promise<Record | undefined>;
+  ): Promise<InitializedRecord | undefined>;
   abstract removeRecordsAsync(
     recordIdentities: RecordIdentity[]
-  ): Promise<Record[]>;
+  ): Promise<InitializedRecord[]>;
   abstract addInverseRelationshipsAsync(
     relationships: RecordRelationshipIdentity[]
   ): Promise<void>;
