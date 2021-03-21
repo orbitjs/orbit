@@ -112,11 +112,12 @@ export abstract class SyncRecordCache<
 
     const processors: SyncOperationProcessorClass[] = settings.processors
       ? settings.processors
-      : [
-          SyncSchemaValidationProcessor,
-          SyncSchemaConsistencyProcessor,
-          SyncCacheIntegrityProcessor
-        ];
+      : [SyncSchemaConsistencyProcessor, SyncCacheIntegrityProcessor];
+
+    if (Orbit.debug && settings.processors === undefined) {
+      processors.push(SyncSchemaValidationProcessor);
+    }
+
     this._processors = processors.map((Processor) => {
       let processor = new Processor(this);
       assert(
