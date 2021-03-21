@@ -1,4 +1,4 @@
-import Orbit, { Assertion } from '@orbit/core';
+import { Orbit, Assertion } from '@orbit/core';
 import { Source } from '@orbit/data';
 import { Coordinator, ActivationOptions, LogLevel } from './coordinator';
 

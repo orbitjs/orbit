@@ -1,4 +1,4 @@
-import Orbit, { Assertion } from '@orbit/core';
+import { Orbit, Assertion } from '@orbit/core';
 import { InitializedRecord, RecordSchema, RecordKeyMap } from '@orbit/records';
 import { Dict } from '@orbit/utils';
 import { Resource } from '../resource-document';

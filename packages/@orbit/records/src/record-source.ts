@@ -2,7 +2,7 @@ import { RecordKeyMap } from './record-key-map';
 import { RecordSchema } from './record-schema';
 import { RecordQueryBuilder } from './record-query-builder';
 import { RecordTransformBuilder } from './record-transform-builder';
-import Orbit from '@orbit/core';
+import { Orbit } from '@orbit/core';
 import {
   RequestOptions,
   Source,

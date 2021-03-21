@@ -1,4 +1,4 @@
-import Orbit, { evented, Evented } from '@orbit/core';
+import { Orbit, evented, Evented } from '@orbit/core';
 import {
   DefaultRequestOptions,
   RequestOptions,

@@ -1,4 +1,4 @@
-import Orbit from '@orbit/core';
+import { Orbit } from '@orbit/core';
 import { deepGet, Dict } from '@orbit/utils';
 import {
   buildQuery,
@@ -113,11 +113,12 @@ export abstract class AsyncRecordCache<
 
     const processors: AsyncOperationProcessorClass[] = settings.processors
       ? settings.processors
-      : [
-          AsyncSchemaValidationProcessor,
-          AsyncSchemaConsistencyProcessor,
-          AsyncCacheIntegrityProcessor
-        ];
+      : [AsyncSchemaConsistencyProcessor, AsyncCacheIntegrityProcessor];
+
+    if (Orbit.debug && settings.processors === undefined) {
+      processors.push(AsyncSchemaValidationProcessor);
+    }
+
     this._processors = processors.map((Processor) => {
       let processor = new Processor(this);
       assert(

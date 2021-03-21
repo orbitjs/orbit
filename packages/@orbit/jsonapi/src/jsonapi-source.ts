@@ -1,5 +1,4 @@
-/* eslint-disable valid-jsdoc */
-import Orbit, { Assertion } from '@orbit/core';
+import { Orbit, Assertion } from '@orbit/core';
 import {
   RequestOptions,
   pullable,
