@@ -1,3 +1,4 @@
+import { Orbit } from './main';
 declare const console: any;
 
 /**
@@ -8,6 +9,8 @@ export function deprecate(
   message: string,
   test?: boolean | (() => boolean)
 ): void {
+  if (!Orbit.debug) return;
+
   if (typeof test === 'function') {
     if (test()) return;
   } else {
