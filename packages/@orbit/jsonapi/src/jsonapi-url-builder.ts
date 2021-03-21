@@ -1,4 +1,4 @@
-import Orbit from '@orbit/core';
+import { Orbit } from '@orbit/core';
 import { QueryExpressionParseError } from '@orbit/data';
 import {
   AttributeFilterSpecifier,

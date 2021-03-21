@@ -1,5 +1,5 @@
 import { deepSet, Dict } from '@orbit/utils';
-import Orbit, { Assertion } from '@orbit/core';
+import { Orbit, Assertion } from '@orbit/core';
 import {
   RecordSchema,
   RecordKeyMap,

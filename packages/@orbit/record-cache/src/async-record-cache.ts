@@ -1,4 +1,4 @@
-import Orbit from '@orbit/core';
+import { Orbit } from '@orbit/core';
 import { deepGet, Dict } from '@orbit/utils';
 import {
   buildQuery,
