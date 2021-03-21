@@ -10,6 +10,7 @@ export interface OrbitGlobal {
   assert: (description: string, test: boolean) => void | never;
   deprecate: (message: string, test?: boolean | (() => boolean)) => void;
   uuid: () => string;
+  debug: boolean;
 }
 
 // Establish the root object, `window` (`self`) in the browser, `global`
@@ -29,6 +30,7 @@ const globals =
 export const Orbit: OrbitGlobal = {
   globals,
   assert,
+  debug: true,
   deprecate,
   uuid
 };
