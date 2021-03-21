@@ -16,7 +16,7 @@ import { Operation } from '../operation';
 import { QueryExpression } from '../query-expression';
 import { Transform } from '../transform';
 
-const { assert } = Orbit;
+const { assert, deprecate } = Orbit;
 
 const PULLABLE = '__pullable__';
 
@@ -30,6 +30,8 @@ export function isPullable(source: Source): boolean {
 /**
  * A source decorated as `@pullable` must also implement the `Pullable`
  * interface.
+ *
+ * @deprecated since v0.17, use `Queryable` instead
  */
 export interface Pullable<
   Data,
@@ -106,6 +108,10 @@ export function pullable(Klass: unknown): void {
     options?: RequestOptions,
     id?: string
   ): Promise<unknown> {
+    deprecate(
+      "'pull' has been deprecated. Please use 'query' instead and create your own transform from the results."
+    );
+
     await this.activated;
     const query = buildQuery(
       queryOrExpressions,
