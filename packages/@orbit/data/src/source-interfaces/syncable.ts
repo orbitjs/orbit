@@ -1,7 +1,7 @@
 import { Orbit, fulfillInSeries, settleInSeries } from '@orbit/core';
 import { Operation } from '../operation';
 import { Source, SourceClass } from '../source';
-import { Transform } from '../transform';
+import { buildTransform, Transform, TransformBuilderFunc } from '../transform';
 
 const { assert } = Orbit;
 
@@ -18,12 +18,18 @@ export function isSyncable(source: Source): boolean {
  * A source decorated as `@syncable` must also implement the `Syncable`
  * interface.
  */
-export interface Syncable<O extends Operation> {
+
+export interface Syncable<O extends Operation, TransformBuilder> {
   /**
    * The `sync` method to a source. This method accepts a `Transform` or array
    * of `Transform`s as an argument and applies it to the source.
    */
-  sync(transformOrTransforms: Transform<O> | Transform<O>[]): Promise<void>;
+  sync(
+    transformOrTransforms:
+      | Transform<O>
+      | Transform<O>[]
+      | TransformBuilderFunc<O, TransformBuilder>
+  ): Promise<void>;
 
   _sync(transform: Transform<O>): Promise<void>;
 }
@@ -54,10 +60,21 @@ export function syncable(Klass: unknown): void {
   proto[SYNCABLE] = true;
 
   proto.sync = async function (
-    transformOrTransforms: Transform<Operation> | Transform<Operation>[]
+    transformOrTransforms:
+      | Transform<Operation>
+      | Transform<Operation>[]
+      | TransformBuilderFunc<Operation, unknown>
   ): Promise<void> {
     await this.activated;
-    if (Array.isArray(transformOrTransforms)) {
+    if (typeof transformOrTransforms === 'function') {
+      const transform = buildTransform(
+        transformOrTransforms,
+        undefined,
+        undefined,
+        this.transformBuilder
+      );
+      return this._enqueueSync('sync', transform);
+    } else if (Array.isArray(transformOrTransforms)) {
       const transforms = transformOrTransforms as Transform<Operation>[];
 
       return transforms.reduce((chain, transform) => {

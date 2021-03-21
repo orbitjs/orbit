@@ -32,7 +32,10 @@ module('@updatable', function (hooks) {
   let source: MySource;
 
   hooks.beforeEach(function () {
-    source = new MySource({ name: 'src1' });
+    source = new MySource({
+      name: 'src1',
+      transformBuilder: new RecordTransformBuilder()
+    });
   });
 
   test('isUpdatable - tests for the application of the @updatable decorator', function (assert) {
@@ -131,6 +134,34 @@ module('@updatable', function (hooks) {
 
     assert.equal(++order, 5, 'promise resolved last');
     assert.deepEqual(result, result1, 'success!');
+  });
+
+  test('#update can accept a transform builder function', async function (assert) {
+    assert.expect(3);
+
+    const earth = { type: 'planet', id: 'earth' };
+    const fullResponse = { data: earth, transforms: [] };
+
+    source._update = async function (transform: Transform<RecordOperation>) {
+      assert.strictEqual(
+        transform.operations.length,
+        1,
+        'transform passed to _update with correct operations count'
+      );
+      assert.deepEqual(
+        transform.operations[0],
+        {
+          op: 'addRecord',
+          record: earth
+        },
+        'expected operation'
+      );
+      return fullResponse;
+    };
+
+    let result = await source.update((t) => [t.addRecord(earth)]);
+
+    assert.strictEqual(result, earth, 'expected data result');
   });
 
   test('`update` event should receive results as the last argument, even if they are an array', async function (assert) {
