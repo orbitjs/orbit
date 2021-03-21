@@ -5,25 +5,27 @@ import {
   isSyncable,
   Syncable
 } from '../../src/source-interfaces/syncable';
-import { RecordOperation } from '../support/record-data';
+import {
+  RecordOperation,
+  RecordTransformBuilder
+} from '../support/record-data';
 
 const { module, test } = QUnit;
 
 module('@syncable', function (hooks) {
+  interface MySource
+    extends Source,
+      Syncable<RecordOperation, RecordTransformBuilder> {}
   @syncable
-  class MySource extends Source implements Syncable<RecordOperation> {
-    sync!: (
-      transformOrTransforms:
-        | Transform<RecordOperation>
-        | Transform<RecordOperation>[]
-    ) => Promise<void>;
-    _sync!: (transform: Transform<RecordOperation>) => Promise<void>;
-  }
+  class MySource extends Source {}
 
   let source: MySource;
 
   hooks.beforeEach(function () {
-    source = new MySource({ name: 'src1' });
+    source = new MySource({
+      name: 'src1',
+      transformBuilder: new RecordTransformBuilder()
+    });
   });
 
   test('isSyncable - tests for the application of the @syncable decorator', function (assert) {
@@ -45,7 +47,7 @@ module('@syncable', function (hooks) {
     );
   });
 
-  test('#sync accepts a Transform and calls internal method `_sync`', async function (assert) {
+  test('#sync can accept a single Transform and call internal method `_sync`', async function (assert) {
     assert.expect(2);
 
     const addRecordTransform = buildTransform<RecordOperation>({
@@ -62,6 +64,84 @@ module('@syncable', function (hooks) {
     };
 
     await source.sync(addRecordTransform);
+
+    assert.ok(true, 'transformed promise resolved');
+  });
+
+  test('#sync can accept an array of Transforms and call internal method `_sync` for each', async function (assert) {
+    assert.expect(3);
+
+    const addEarth = buildTransform<RecordOperation>({
+      op: 'addRecord',
+      record: { type: 'planet', id: 'earth' }
+    });
+    const addJupiter = buildTransform<RecordOperation>({
+      op: 'addRecord',
+      record: { type: 'planet', id: 'jupiter' }
+    });
+
+    let order = 0;
+    source._sync = async function (transform: Transform<RecordOperation>) {
+      order++;
+      if (order === 1) {
+        assert.strictEqual(
+          transform,
+          addEarth,
+          'expected transform passed to _sync'
+        );
+      } else if (order === 2) {
+        assert.strictEqual(
+          transform,
+          addJupiter,
+          'expected transform passed to _sync'
+        );
+      } else {
+        assert.ok(false, 'unexpected');
+      }
+    };
+
+    await source.sync([addEarth, addJupiter]);
+
+    assert.ok(true, 'transformed promise resolved');
+  });
+
+  test('#sync can accept a transform builder function, create a transform, and call internal method `_sync`', async function (assert) {
+    assert.expect(4);
+
+    const earth = { type: 'planet', id: 'earth' };
+    const jupiter = { type: 'planet', id: 'jupiter' };
+
+    let order = 0;
+    source._sync = async function (transform: Transform<RecordOperation>) {
+      order++;
+      if (order === 1) {
+        assert.strictEqual(
+          transform.operations.length,
+          2,
+          'transform passed to _sync with correct operations count'
+        );
+        assert.deepEqual(
+          transform.operations[0],
+          {
+            op: 'addRecord',
+            record: earth
+          },
+          'expected operation'
+        );
+        assert.deepEqual(
+          transform.operations[1],
+          {
+            op: 'addRecord',
+            record: jupiter
+          },
+          'expected operation'
+        );
+      } else {
+        assert.ok(false, 'unexpected');
+      }
+    };
+
+    await source.sync((t) => [t.addRecord(earth), t.addRecord(jupiter)]);
 
     assert.ok(true, 'transformed promise resolved');
   });
