@@ -14,7 +14,7 @@ import {
 } from '../response';
 import { Operation } from '../operation';
 
-const { assert } = Orbit;
+const { assert, deprecate } = Orbit;
 
 const PUSHABLE = '__pushable__';
 
@@ -28,6 +28,8 @@ export function isPushable(source: Source): boolean {
 /**
  * A source decorated as `@pushable` must also implement the `Pushable`
  * interface.
+ *
+ * @deprecated since v0.17, use `Updatable` instead
  */
 export interface Pushable<
   Data,
@@ -106,6 +108,10 @@ export function pushable(Klass: unknown): void {
     options?: RO,
     id?: string
   ): Promise<unknown> {
+    deprecate(
+      "'push' has been deprecated. Please use 'update' instead and specify '{ fullResponse: true }' to access the resultant 'transforms'."
+    );
+
     await this.activated;
     const transform = buildTransform(
       transformOrOperations,
