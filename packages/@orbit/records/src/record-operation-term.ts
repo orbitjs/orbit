@@ -10,10 +10,10 @@ import {
   ReplaceRelatedRecordsOperation,
   ReplaceRelatedRecordOperation
 } from './record-operation';
-import { RecordIdentity } from './record';
+import { InitializedRecord, RecordIdentity } from './record';
 
 export class AddRecordTerm extends OperationTerm<AddRecordOperation> {
-  constructor(record: RecordIdentity) {
+  constructor(record: InitializedRecord) {
     const operation: AddRecordOperation = {
       op: 'addRecord',
       record
@@ -24,7 +24,7 @@ export class AddRecordTerm extends OperationTerm<AddRecordOperation> {
 }
 
 export class UpdateRecordTerm extends OperationTerm<UpdateRecordOperation> {
-  constructor(record: RecordIdentity) {
+  constructor(record: InitializedRecord) {
     const operation: UpdateRecordOperation = {
       op: 'updateRecord',
       record
