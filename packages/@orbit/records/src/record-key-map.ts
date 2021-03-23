@@ -23,14 +23,14 @@ export class RecordKeyMap {
   /**
    * Return a key value given a model type, key name, and id.
    */
-  idToKey(type: string, keyName: string, idValue: string): string {
+  idToKey(type: string, keyName: string, idValue: string): string | undefined {
     return deepGet(this._idsToKeys, [type, keyName, idValue]);
   }
 
   /**
    * Return an id value given a model type, key name, and key value.
    */
-  keyToId(type: string, keyName: string, keyValue: string): string {
+  keyToId(type: string, keyName: string, keyValue: string): string | undefined {
     return deepGet(this._keysToIds, [type, keyName, keyValue]);
   }
 
