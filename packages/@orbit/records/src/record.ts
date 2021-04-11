@@ -48,8 +48,25 @@ export interface UninitializedRecord extends RecordFields {
   id?: string;
 }
 
+export interface RecordKeyValue {
+  type: string;
+  key: string;
+  value: string;
+}
+
+/**
+ * @deprecated since v0.17, replaced by `RecordNormalizer`
+ */
 export interface RecordInitializer {
   initializeRecord(record: UninitializedRecord): InitializedRecord;
+}
+
+export interface RecordNormalizer<
+  RI = RecordIdentity,
+  R = UninitializedRecord
+> {
+  normalizeRecordIdentity(recordIdentity: RI): RecordIdentity;
+  normalizeRecord(record: R): InitializedRecord;
 }
 
 export function cloneRecordIdentity(identity: RecordIdentity): RecordIdentity {

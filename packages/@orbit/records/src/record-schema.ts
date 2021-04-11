@@ -3,11 +3,6 @@ import { fulfillAll, Orbit } from '@orbit/core';
 import { ModelNotFound } from './record-exceptions';
 import { Dict } from '@orbit/utils';
 import { evented, Evented } from '@orbit/core';
-import {
-  InitializedRecord,
-  RecordInitializer,
-  UninitializedRecord
-} from './record';
 
 const { uuid, deprecate } = Orbit;
 
@@ -71,9 +66,8 @@ export interface RecordSchemaSettings {
 
 export type RecordSchemaEvent = 'upgrade';
 
-export interface RecordSchema
-  extends Evented<RecordSchemaEvent>,
-    RecordInitializer {}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface RecordSchema extends Evented<RecordSchemaEvent> {}
 
 /**
  * A `Schema` defines the models allowed in a source, including their keys,
@@ -163,7 +157,7 @@ export class RecordSchema {
    *
    * Deprecated in favor of inflectors now in @orbit/serializers
    *
-   * @deprecated since v0.17
+   * @deprecated since v0.17, remove in v0.18
    */
   pluralize(word: string): string {
     deprecate(
@@ -177,7 +171,7 @@ export class RecordSchema {
    *
    * Deprecated in favor of inflectors now in @orbit/serializers
    *
-   * @deprecated since v0.17
+   * @deprecated since v0.17, remove in v0.18
    */
   singularize(word: string): string {
     deprecate(
@@ -191,13 +185,6 @@ export class RecordSchema {
       );
       return word;
     }
-  }
-
-  initializeRecord(record: UninitializedRecord): InitializedRecord {
-    if (record.id === undefined) {
-      record.id = this.generateId(record.type);
-    }
-    return record as InitializedRecord;
   }
 
   get models(): Dict<ModelDefinition> {

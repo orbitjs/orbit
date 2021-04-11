@@ -256,21 +256,4 @@ module('RecordSchema', function () {
       'provides the default value for the ID'
     );
   });
-
-  test('#initializeRecord', function (assert) {
-    const schema = new RecordSchema({
-      generateId: (modelName) => `${modelName}-123`,
-
-      models: {
-        moon: {}
-      }
-    });
-
-    let moon: UninitializedRecord = { type: 'moon' };
-    schema.initializeRecord(moon);
-    assert.equal(moon.id, 'moon-123', 'generates an ID if `id` is undefined');
-
-    moon = { type: 'moon', id: '234' };
-    assert.equal(moon.id, '234', 'does not alter an `id` that is already set');
-  });
 });
