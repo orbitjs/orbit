@@ -252,7 +252,7 @@ module('RecordTransformBuilder', function (hooks) {
     } as AddRecordOperation);
   });
 
-  test('#addRecord - requires records to have an `id` when a recordInitializer has not been set', function (assert) {
+  test('#addRecord - requires records to have an `id` when a `normalizer` has not been set', function (assert) {
     tb = new RecordTransformBuilder();
 
     assert.throws(
@@ -260,7 +260,7 @@ module('RecordTransformBuilder', function (hooks) {
         tb.addRecord({ type: 'planet' }).toOperation();
       },
       Error(
-        'Assertion failed: New records must be assigned an `id` - either directly or via a `RecordInitializer` assigned to the `RecordTransformBuilder`.'
+        'Assertion failed: All records must be assigned an `id` - either directly or via a `RecordNormalizer` assigned to the `RecordTransformBuilder`.'
       ),
       'assertion raised'
     );

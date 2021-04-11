@@ -1,5 +1,5 @@
 import { QueryBuilderFunc } from '@orbit/data';
-import { RecordIdentity } from './record';
+import { RecordIdentity, RecordNormalizer } from './record';
 import { RecordQueryExpression } from './record-query-expression';
 import {
   FindRecordTerm,
@@ -13,12 +13,26 @@ export type RecordQueryBuilderFunc = QueryBuilderFunc<
   RecordQueryBuilder
 >;
 
-export class RecordQueryBuilder {
+export interface RecordQueryBuilderSettings<RI = RecordIdentity> {
+  normalizer?: RecordNormalizer<RI>;
+}
+
+export class RecordQueryBuilder<RI = RecordIdentity> {
+  protected _normalizer?: RecordNormalizer<RI>;
+
+  constructor(settings: RecordQueryBuilderSettings<RI> = {}) {
+    this._normalizer = settings.normalizer;
+  }
+
+  get normalizer(): RecordNormalizer<RI> | undefined {
+    return this._normalizer;
+  }
+
   /**
    * Find a record by its identity.
    */
-  findRecord(record: RecordIdentity): FindRecordTerm {
-    return new FindRecordTerm(record);
+  findRecord(record: RI): FindRecordTerm {
+    return new FindRecordTerm(this.normalizeRecordIdentity(record));
   }
 
   /**
@@ -26,27 +40,41 @@ export class RecordQueryBuilder {
    *
    * If `type` is unspecified, find all records unfiltered by type.
    */
-  findRecords(typeOrIdentities?: string | RecordIdentity[]): FindRecordsTerm {
-    return new FindRecordsTerm(typeOrIdentities);
+  findRecords(typeOrIdentities?: string | RI[]): FindRecordsTerm {
+    if (Array.isArray(typeOrIdentities)) {
+      return new FindRecordsTerm(
+        typeOrIdentities.map((ri) => this.normalizeRecordIdentity(ri))
+      );
+    } else {
+      return new FindRecordsTerm(typeOrIdentities);
+    }
   }
 
   /**
    * Find a record in a to-one relationship.
    */
-  findRelatedRecord(
-    record: RecordIdentity,
-    relationship: string
-  ): FindRelatedRecordTerm {
-    return new FindRelatedRecordTerm(record, relationship);
+  findRelatedRecord(record: RI, relationship: string): FindRelatedRecordTerm {
+    return new FindRelatedRecordTerm(
+      this.normalizeRecordIdentity(record),
+      relationship
+    );
   }
 
   /**
    * Find records in a to-many relationship.
    */
-  findRelatedRecords(
-    record: RecordIdentity,
-    relationship: string
-  ): FindRelatedRecordsTerm {
-    return new FindRelatedRecordsTerm(record, relationship);
+  findRelatedRecords(record: RI, relationship: string): FindRelatedRecordsTerm {
+    return new FindRelatedRecordsTerm(
+      this.normalizeRecordIdentity(record),
+      relationship
+    );
+  }
+
+  protected normalizeRecordIdentity(recordIdentity: RI): RecordIdentity {
+    if (this._normalizer !== undefined) {
+      return this._normalizer.normalizeRecordIdentity(recordIdentity);
+    } else {
+      return (recordIdentity as unknown) as RecordIdentity;
+    }
   }
 }

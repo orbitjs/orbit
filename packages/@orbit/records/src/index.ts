@@ -16,3 +16,4 @@ export * from './record-source-interfaces/record-pushable';
 export * from './record-source-interfaces/record-queryable';
 export * from './record-source-interfaces/record-syncable';
 export * from './record-source-interfaces/record-updatable';
+export * from './standard-record-normalizer';

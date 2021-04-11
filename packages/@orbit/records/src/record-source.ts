@@ -9,6 +9,8 @@ import {
   SourceClass,
   SourceSettings
 } from '@orbit/data';
+import { StandardRecordNormalizer } from './standard-record-normalizer';
+import { RecordNormalizer } from './record';
 
 const { assert } = Orbit;
 
@@ -18,15 +20,18 @@ export interface RecordSourceQueryOptions extends RequestOptions {
 
 export interface RecordSourceSettings<
   QueryOptions extends RequestOptions = RecordSourceQueryOptions,
-  TransformOptions extends RequestOptions = RequestOptions
+  TransformOptions extends RequestOptions = RequestOptions,
+  QueryBuilder = RecordQueryBuilder,
+  TransformBuilder = RecordTransformBuilder
 > extends SourceSettings<
     QueryOptions,
     TransformOptions,
-    RecordQueryBuilder,
-    RecordTransformBuilder
+    QueryBuilder,
+    TransformBuilder
   > {
   schema: RecordSchema;
   keyMap?: RecordKeyMap;
+  normalizer?: RecordNormalizer;
   autoUpgrade?: boolean;
 }
 
@@ -45,17 +50,26 @@ export type RecordSourceClass<
  */
 export abstract class RecordSource<
   QueryOptions extends RequestOptions = RecordSourceQueryOptions,
-  TransformOptions extends RequestOptions = RequestOptions
+  TransformOptions extends RequestOptions = RequestOptions,
+  QueryBuilder = RecordQueryBuilder,
+  TransformBuilder = RecordTransformBuilder
 > extends Source<
   QueryOptions,
   TransformOptions,
-  RecordQueryBuilder,
-  RecordTransformBuilder
+  QueryBuilder,
+  TransformBuilder
 > {
   protected _keyMap?: RecordKeyMap;
   protected _schema: RecordSchema;
 
-  constructor(settings: RecordSourceSettings<QueryOptions, TransformOptions>) {
+  constructor(
+    settings: RecordSourceSettings<
+      QueryOptions,
+      TransformOptions,
+      QueryBuilder,
+      TransformBuilder
+    >
+  ) {
     const autoActivate =
       settings.autoActivate === undefined || settings.autoActivate;
 
@@ -66,14 +80,30 @@ export abstract class RecordSource<
       !!schema
     );
 
-    if (settings.queryBuilder === undefined) {
-      settings.queryBuilder = new RecordQueryBuilder();
-    }
+    if (
+      settings.queryBuilder === undefined ||
+      settings.transformBuilder === undefined
+    ) {
+      let normalizer = settings.normalizer;
 
-    if (settings.transformBuilder === undefined) {
-      settings.transformBuilder = new RecordTransformBuilder({
-        recordInitializer: schema
-      });
+      if (normalizer === undefined) {
+        normalizer = new StandardRecordNormalizer({
+          schema,
+          keyMap: settings.keyMap
+        });
+      }
+
+      if (settings.queryBuilder === undefined) {
+        (settings as any).queryBuilder = new RecordQueryBuilder({
+          normalizer
+        });
+      }
+
+      if (settings.transformBuilder === undefined) {
+        (settings as any).transformBuilder = new RecordTransformBuilder({
+          normalizer
+        });
+      }
     }
 
     super({ ...settings, autoActivate: false });
@@ -96,14 +126,6 @@ export abstract class RecordSource<
 
   get keyMap(): RecordKeyMap | undefined {
     return this._keyMap;
-  }
-
-  get queryBuilder(): RecordQueryBuilder {
-    return this._queryBuilder as RecordQueryBuilder;
-  }
-
-  get transformBuilder(): RecordTransformBuilder {
-    return this._transformBuilder as RecordTransformBuilder;
   }
 
   /**

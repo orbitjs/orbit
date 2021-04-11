@@ -41,11 +41,6 @@ module('Source', function (hooks) {
 
     assert.ok(source.queryBuilder, 'queryBuilder has been created');
     assert.ok(source.transformBuilder, 'transformBuilder has been created');
-    assert.strictEqual(
-      (source.transformBuilder as any).recordInitializer,
-      schema,
-      'transformBuilder.recordInitializer === schema by default'
-    );
   });
 
   test('it will not be auto-upgraded if autoUpgrade: false option is specified', function (assert) {
