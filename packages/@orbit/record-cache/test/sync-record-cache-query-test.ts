@@ -1121,7 +1121,7 @@ module('SyncRecordCache - query', function (hooks) {
       id: 'callisto',
       type: 'moon',
       attributes: { name: 'Callisto' },
-      relationships: { planet: { data: [{ type: 'planet', id: 'jupiter' }] } }
+      relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
     };
 
     cache.update((t) => [t.addRecord(jupiter), t.addRecord(callisto)]);

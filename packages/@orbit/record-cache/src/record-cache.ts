@@ -12,7 +12,9 @@ import {
   RecordTransformBuilder,
   RecordQueryExpression,
   RecordQuery,
-  RecordTransform
+  RecordTransform,
+  RecordNormalizer,
+  StandardRecordNormalizer
 } from '@orbit/records';
 const { assert } = Orbit;
 
@@ -27,13 +29,16 @@ export interface RecordCacheTransformOptions extends RequestOptions {
 
 export interface RecordCacheSettings<
   QueryOptions extends RequestOptions = RecordCacheQueryOptions,
-  TransformOptions extends RequestOptions = RecordCacheTransformOptions
+  TransformOptions extends RequestOptions = RecordCacheTransformOptions,
+  QueryBuilder = RecordQueryBuilder,
+  TransformBuilder = RecordTransformBuilder
 > {
   name?: string;
   schema: RecordSchema;
   keyMap?: RecordKeyMap;
-  transformBuilder?: RecordTransformBuilder;
-  queryBuilder?: RecordQueryBuilder;
+  normalizer?: RecordNormalizer;
+  queryBuilder?: QueryBuilder;
+  transformBuilder?: TransformBuilder;
   defaultQueryOptions?: DefaultRequestOptions<QueryOptions>;
   defaultTransformOptions?: DefaultRequestOptions<TransformOptions>;
 }
@@ -44,32 +49,65 @@ export interface RecordCache extends Evented {}
 @evented
 export abstract class RecordCache<
   QueryOptions extends RequestOptions = RecordCacheQueryOptions,
-  TransformOptions extends RequestOptions = RecordCacheTransformOptions
+  TransformOptions extends RequestOptions = RecordCacheTransformOptions,
+  QueryBuilder = RecordQueryBuilder,
+  TransformBuilder = RecordTransformBuilder
 > {
   protected _name?: string;
   protected _keyMap?: RecordKeyMap;
   protected _schema: RecordSchema;
-  protected _transformBuilder: RecordTransformBuilder;
-  protected _queryBuilder: RecordQueryBuilder;
+  protected _queryBuilder: QueryBuilder;
+  protected _transformBuilder: TransformBuilder;
   protected _defaultQueryOptions?: DefaultRequestOptions<QueryOptions>;
   protected _defaultTransformOptions?: DefaultRequestOptions<TransformOptions>;
 
-  constructor(settings: RecordCacheSettings<QueryOptions, TransformOptions>) {
+  constructor(
+    settings: RecordCacheSettings<
+      QueryOptions,
+      TransformOptions,
+      QueryBuilder,
+      TransformBuilder
+    >
+  ) {
     assert(
       "SyncRecordCache's `schema` must be specified in `settings.schema` constructor argument",
       !!settings.schema
     );
 
-    this._name = settings.name;
-    this._schema = settings.schema;
-    this._keyMap = settings.keyMap;
+    const { name, schema, keyMap } = settings;
 
-    this._queryBuilder = settings.queryBuilder || new RecordQueryBuilder();
-    this._transformBuilder =
-      settings.transformBuilder ||
-      new RecordTransformBuilder({
-        recordInitializer: this._schema
-      });
+    this._name = name;
+    this._schema = schema;
+    this._keyMap = keyMap;
+
+    if (
+      settings.queryBuilder === undefined ||
+      settings.transformBuilder === undefined
+    ) {
+      let normalizer = settings.normalizer;
+
+      if (normalizer === undefined) {
+        normalizer = new StandardRecordNormalizer({
+          schema,
+          keyMap
+        });
+      }
+
+      if (settings.queryBuilder === undefined) {
+        (settings as any).queryBuilder = new RecordQueryBuilder({
+          normalizer
+        });
+      }
+
+      if (settings.transformBuilder === undefined) {
+        (settings as any).transformBuilder = new RecordTransformBuilder({
+          normalizer
+        });
+      }
+    }
+
+    this._queryBuilder = settings.queryBuilder as QueryBuilder;
+    this._transformBuilder = settings.transformBuilder as TransformBuilder;
 
     this._defaultQueryOptions = settings.defaultQueryOptions;
     this._defaultTransformOptions = settings.defaultTransformOptions;
@@ -87,11 +125,11 @@ export abstract class RecordCache<
     return this._keyMap;
   }
 
-  get queryBuilder(): RecordQueryBuilder {
+  get queryBuilder(): QueryBuilder {
     return this._queryBuilder;
   }
 
-  get transformBuilder(): RecordTransformBuilder {
+  get transformBuilder(): TransformBuilder {
     return this._transformBuilder;
   }
 
