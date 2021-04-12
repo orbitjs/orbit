@@ -1,17 +1,38 @@
-import { RecordSchema, RecordQuery, RecordQueryResult } from '@orbit/records';
+import { RequestOptions } from '@orbit/data';
+import {
+  RecordQuery,
+  RecordQueryBuilder,
+  RecordQueryResult,
+  RecordSchema,
+  RecordTransformBuilder
+} from '@orbit/records';
+import {
+  RecordCacheQueryOptions,
+  RecordCacheTransformOptions
+} from '../record-cache';
 import { SyncRecordCache } from '../sync-record-cache';
 import { LiveQuery, LiveQuerySettings } from './live-query';
 
-export interface SyncLiveQueryUpdateSettings {
-  cache: SyncRecordCache;
+export interface SyncLiveQueryUpdateSettings<
+  QO extends RequestOptions = RecordCacheQueryOptions,
+  TO extends RequestOptions = RecordCacheTransformOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder
+> {
+  cache: SyncRecordCache<QO, TO, QB, TB>;
   query: RecordQuery;
 }
 
-export class SyncLiveQueryUpdate {
-  private _cache: SyncRecordCache;
+export class SyncLiveQueryUpdate<
+  QO extends RequestOptions = RecordCacheQueryOptions,
+  TO extends RequestOptions = RecordCacheTransformOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder
+> {
+  private _cache: SyncRecordCache<QO, TO, QB, TB>;
   private _query: RecordQuery;
 
-  constructor(settings: SyncLiveQueryUpdateSettings) {
+  constructor(settings: SyncLiveQueryUpdateSettings<QO, TO, QB, TB>) {
     this._cache = settings.cache;
     this._query = settings.query;
   }
@@ -21,25 +42,35 @@ export class SyncLiveQueryUpdate {
   }
 }
 
-export interface SyncLiveQuerySettings extends LiveQuerySettings {
-  cache: SyncRecordCache;
+export interface SyncLiveQuerySettings<
+  QO extends RequestOptions = RecordCacheQueryOptions,
+  TO extends RequestOptions = RecordCacheTransformOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder
+> extends LiveQuerySettings {
+  cache: SyncRecordCache<QO, TO, QB, TB>;
 }
 
-export class SyncLiveQuery extends LiveQuery {
-  protected cache: SyncRecordCache;
+export class SyncLiveQuery<
+  QO extends RequestOptions = RecordCacheQueryOptions,
+  TO extends RequestOptions = RecordCacheTransformOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder
+> extends LiveQuery {
+  protected cache: SyncRecordCache<QO, TO, QB, TB>;
 
   protected get schema(): RecordSchema {
     return this.cache.schema;
   }
 
   private get _update() {
-    return new SyncLiveQueryUpdate({
+    return new SyncLiveQueryUpdate<QO, TO, QB, TB>({
       cache: this.cache,
       query: this._query
     });
   }
 
-  constructor(settings: SyncLiveQuerySettings) {
+  constructor(settings: SyncLiveQuerySettings<QO, TO, QB, TB>) {
     super(settings);
     this.cache = settings.cache;
   }
@@ -48,7 +79,9 @@ export class SyncLiveQuery extends LiveQuery {
     return this._update.query<Result>();
   }
 
-  subscribe(cb: (update: SyncLiveQueryUpdate) => void): () => void {
+  subscribe(
+    cb: (update: SyncLiveQueryUpdate<QO, TO, QB, TB>) => void
+  ): () => void {
     return this._subscribe(() => {
       cb(this._update);
     });

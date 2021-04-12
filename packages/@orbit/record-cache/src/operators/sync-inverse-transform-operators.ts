@@ -1,38 +1,39 @@
-import { Dict, deepGet, deepSet, eq } from '@orbit/utils';
+import { RequestOptions } from '@orbit/data';
 import {
-  InitializedRecord,
-  RecordOperation,
   AddRecordOperation,
   AddToRelatedRecordsOperation,
-  ReplaceAttributeOperation,
-  RemoveFromRelatedRecordsOperation,
-  RemoveRecordOperation,
-  ReplaceRelatedRecordsOperation,
-  ReplaceRelatedRecordOperation,
-  ReplaceKeyOperation,
-  UpdateRecordOperation,
   equalRecordIdentities,
   equalRecordIdentitySets,
-  recordsInclude,
+  InitializedRecord,
   RecordIdentity,
-  RecordTransform,
-  RecordNotFoundException
+  RecordNotFoundException,
+  RecordOperation,
+  recordsInclude,
+  RemoveFromRelatedRecordsOperation,
+  RemoveRecordOperation,
+  ReplaceAttributeOperation,
+  ReplaceKeyOperation,
+  ReplaceRelatedRecordOperation,
+  ReplaceRelatedRecordsOperation,
+  UpdateRecordOperation
 } from '@orbit/records';
-import { SyncRecordCache } from '../sync-record-cache';
+import { deepGet, deepSet, Dict, eq } from '@orbit/utils';
+import { SyncRecordAccessor } from '../record-accessor';
 
 export interface SyncInverseTransformOperator {
   (
-    cache: SyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: SyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): RecordOperation | undefined;
 }
 
 export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> = {
   addRecord(
-    cache: SyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: SyncRecordAccessor,
+    operation: RecordOperation,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    options?: RequestOptions
   ): RecordOperation | undefined {
     const op = operation as AddRecordOperation;
     const { type, id } = op.record;
@@ -56,9 +57,9 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
   },
 
   updateRecord(
-    cache: SyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: SyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): RecordOperation | undefined {
     const op = operation as UpdateRecordOperation;
     const currentRecord = cache.getRecordSync(op.record);
@@ -131,7 +132,6 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
         };
       }
     } else {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(type, id);
       } else {
@@ -144,9 +144,9 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
   },
 
   removeRecord(
-    cache: SyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: SyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): RecordOperation | undefined {
     const op = operation as RemoveRecordOperation;
     const { record } = op;
@@ -158,7 +158,6 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
         record: currentRecord
       };
     } else {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(record.type, record.id);
       }
@@ -166,16 +165,15 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
   },
 
   replaceKey(
-    cache: SyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: SyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): RecordOperation | undefined {
     const op = operation as ReplaceKeyOperation;
     const { record, key } = op;
     const currentRecord = cache.getRecordSync(record);
 
     if (currentRecord === undefined) {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(record.type, record.id);
       }
@@ -196,16 +194,15 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
   },
 
   replaceAttribute(
-    cache: SyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: SyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): RecordOperation | undefined {
     const op = operation as ReplaceAttributeOperation;
     const { record, attribute } = op;
     const currentRecord = cache.getRecordSync(record);
 
     if (currentRecord === undefined) {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(record.type, record.id);
       }
@@ -227,9 +224,9 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
   },
 
   addToRelatedRecords(
-    cache: SyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: SyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): RecordOperation | undefined {
     const op = operation as AddToRelatedRecordsOperation;
     const { record, relationship, relatedRecord } = op;
@@ -239,7 +236,6 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
     );
 
     if (currentRelatedRecords === undefined) {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         if (cache.getRecordSync(record) === undefined) {
           throw new RecordNotFoundException(record.type, record.id);
@@ -261,9 +257,9 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
   },
 
   removeFromRelatedRecords(
-    cache: SyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: SyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): RecordOperation | undefined {
     const op = operation as RemoveFromRelatedRecordsOperation;
     const { record, relationship, relatedRecord } = op;
@@ -273,7 +269,6 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
     );
 
     if (currentRelatedRecords === undefined) {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         if (cache.getRecordSync(record) === undefined) {
           throw new RecordNotFoundException(record.type, record.id);
@@ -295,9 +290,9 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
   },
 
   replaceRelatedRecords(
-    cache: SyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: SyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): RecordOperation | undefined {
     const op = operation as ReplaceRelatedRecordsOperation;
     const { record, relationship, relatedRecords } = op;
@@ -307,7 +302,6 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
     );
 
     if (currentRelatedRecords === undefined) {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         if (cache.getRecordSync(record) === undefined) {
           throw new RecordNotFoundException(record.type, record.id);
@@ -329,9 +323,9 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
   },
 
   replaceRelatedRecord(
-    cache: SyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: SyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): RecordOperation | undefined {
     const op = operation as ReplaceRelatedRecordOperation;
     const { record, relationship, relatedRecord } = op;
@@ -341,7 +335,6 @@ export const SyncInverseTransformOperators: Dict<SyncInverseTransformOperator> =
     );
 
     if (currentRelatedRecord === undefined) {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         if (cache.getRecordSync(record) === undefined) {
           throw new RecordNotFoundException(record.type, record.id);

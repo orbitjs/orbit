@@ -1,5 +1,5 @@
 import { Dict, deepGet, isNone } from '@orbit/utils';
-import { QueryExpressionParseError } from '@orbit/data';
+import { QueryExpressionParseError, RequestOptions } from '@orbit/data';
 import {
   RecordQueryExpression,
   RecordNotFoundException,
@@ -14,27 +14,26 @@ import {
   RecordQueryExpressionResult,
   RecordQuery
 } from '@orbit/records';
-import { AsyncRecordCache } from '../async-record-cache';
+import { AsyncRecordAccessor } from '../record-accessor';
 
 export interface AsyncQueryOperator {
   (
-    cache: AsyncRecordCache,
-    query: RecordQuery,
-    expression: RecordQueryExpression
+    cache: AsyncRecordAccessor,
+    expression: RecordQueryExpression,
+    options?: RequestOptions
   ): Promise<RecordQueryExpressionResult>;
 }
 
 export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
   async findRecord(
-    cache: AsyncRecordCache,
-    query: RecordQuery,
-    expression: RecordQueryExpression
+    cache: AsyncRecordAccessor,
+    expression: RecordQueryExpression,
+    options?: RequestOptions
   ): Promise<RecordQueryExpressionResult> {
     const { record } = expression as FindRecord;
     const currentRecord = await cache.getRecordAsync(record);
 
     if (!currentRecord) {
-      const options = cache.getQueryOptions(query, expression);
       if (options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(record.type, record.id);
       }
@@ -44,9 +43,10 @@ export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
   },
 
   async findRecords(
-    cache: AsyncRecordCache,
-    query: RecordQuery,
-    expression: RecordQueryExpression
+    cache: AsyncRecordAccessor,
+    expression: RecordQueryExpression,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    options?: RequestOptions
   ): Promise<InitializedRecord[]> {
     const exp = expression as FindRecords;
     let results = await cache.getRecordsAsync(exp.records || exp.type);
@@ -63,16 +63,15 @@ export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
   },
 
   async findRelatedRecords(
-    cache: AsyncRecordCache,
-    query: RecordQuery,
-    expression: RecordQueryExpression
+    cache: AsyncRecordAccessor,
+    expression: RecordQueryExpression,
+    options?: RequestOptions
   ): Promise<InitializedRecord[] | undefined> {
     const exp = expression as FindRelatedRecords;
     const { record, relationship } = exp;
     const relatedIds = await cache.getRelatedRecordsAsync(record, relationship);
     if (!relatedIds || relatedIds.length === 0) {
       if (!(await cache.getRecordAsync(record))) {
-        const options = cache.getQueryOptions(query, expression);
         if (options?.raiseNotFoundExceptions) {
           throw new RecordNotFoundException(record.type, record.id);
         } else {
@@ -97,9 +96,9 @@ export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
   },
 
   async findRelatedRecord(
-    cache: AsyncRecordCache,
-    query: RecordQuery,
-    expression: RecordQueryExpression
+    cache: AsyncRecordAccessor,
+    expression: RecordQueryExpression,
+    options?: RequestOptions
   ): Promise<InitializedRecord | null | undefined> {
     const exp = expression as FindRelatedRecord;
     const { record, relationship } = exp;
@@ -109,7 +108,6 @@ export const AsyncQueryOperators: Dict<AsyncQueryOperator> = {
       return (await cache.getRecordAsync(relatedId)) || null;
     } else {
       if (!(await cache.getRecordAsync(record))) {
-        const options = cache.getQueryOptions(query, expression);
         if (options?.raiseNotFoundExceptions) {
           throw new RecordNotFoundException(record.type, record.id);
         } else {

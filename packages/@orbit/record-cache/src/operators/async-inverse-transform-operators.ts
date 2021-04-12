@@ -15,24 +15,25 @@ import {
   equalRecordIdentitySets,
   recordsInclude,
   RecordIdentity,
-  RecordTransform,
   RecordNotFoundException
 } from '@orbit/records';
-import { AsyncRecordCache } from '../async-record-cache';
+import { RequestOptions } from '@orbit/data';
+import { AsyncRecordAccessor } from '../record-accessor';
 
 export interface AsyncInverseTransformOperator {
   (
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): Promise<RecordOperation | undefined>;
 }
 
 export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator> = {
   async addRecord(
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    options?: RequestOptions
   ): Promise<RecordOperation | undefined> {
     const op = operation as AddRecordOperation;
     const { type, id } = op.record;
@@ -56,9 +57,9 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
   },
 
   async updateRecord(
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): Promise<RecordOperation | undefined> {
     const op = operation as UpdateRecordOperation;
     const currentRecord = await cache.getRecordAsync(op.record);
@@ -131,7 +132,6 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
         };
       }
     } else {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(type, id);
       } else {
@@ -144,9 +144,9 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
   },
 
   async removeRecord(
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): Promise<RecordOperation | undefined> {
     const op = operation as RemoveRecordOperation;
     const { record } = op;
@@ -158,7 +158,6 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
         record: currentRecord
       };
     } else {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(record.type, record.id);
       }
@@ -166,16 +165,15 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
   },
 
   async replaceKey(
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): Promise<RecordOperation | undefined> {
     const op = operation as ReplaceKeyOperation;
     const { record, key } = op;
     const currentRecord = await cache.getRecordAsync(record);
 
     if (currentRecord === undefined) {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(record.type, record.id);
       }
@@ -196,16 +194,15 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
   },
 
   async replaceAttribute(
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): Promise<RecordOperation | undefined> {
     const op = operation as ReplaceAttributeOperation;
     const { record, attribute } = op;
     const currentRecord = await cache.getRecordAsync(record);
 
     if (currentRecord === undefined) {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(record.type, record.id);
       }
@@ -227,9 +224,9 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
   },
 
   async addToRelatedRecords(
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): Promise<RecordOperation | undefined> {
     const op = operation as AddToRelatedRecordsOperation;
     const { record, relationship, relatedRecord } = op;
@@ -239,7 +236,6 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
     );
 
     if (currentRelatedRecords === undefined) {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         if ((await cache.getRecordAsync(record)) === undefined) {
           throw new RecordNotFoundException(record.type, record.id);
@@ -261,9 +257,9 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
   },
 
   async removeFromRelatedRecords(
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): Promise<RecordOperation | undefined> {
     const op = operation as RemoveFromRelatedRecordsOperation;
     const { record, relationship, relatedRecord } = op;
@@ -273,7 +269,6 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
     );
 
     if (currentRelatedRecords === undefined) {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         if ((await cache.getRecordAsync(record)) === undefined) {
           throw new RecordNotFoundException(record.type, record.id);
@@ -295,9 +290,9 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
   },
 
   async replaceRelatedRecords(
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): Promise<RecordOperation | undefined> {
     const op = operation as ReplaceRelatedRecordsOperation;
     const { record, relationship, relatedRecords } = op;
@@ -307,7 +302,6 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
     );
 
     if (currentRelatedRecords === undefined) {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         if ((await cache.getRecordAsync(record)) === undefined) {
           throw new RecordNotFoundException(record.type, record.id);
@@ -329,9 +323,9 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
   },
 
   async replaceRelatedRecord(
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): Promise<RecordOperation | undefined> {
     const op = operation as ReplaceRelatedRecordOperation;
     const { record, relationship, relatedRecord } = op;
@@ -341,7 +335,6 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
     );
 
     if (currentRelatedRecord === undefined) {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         if ((await cache.getRecordAsync(record)) === undefined) {
           throw new RecordNotFoundException(record.type, record.id);
