@@ -11,6 +11,8 @@ import {
   TransformOrOperations
 } from '@orbit/data';
 import {
+  AsyncRecordQueryable,
+  AsyncRecordUpdatable,
   InitializedRecord,
   RecordIdentity,
   RecordOperation,
@@ -87,10 +89,15 @@ export abstract class AsyncRecordCache<
     QO extends RequestOptions = RecordCacheQueryOptions,
     TO extends RequestOptions = RecordCacheTransformOptions,
     QB = RecordQueryBuilder,
-    TB = RecordTransformBuilder
+    TB = RecordTransformBuilder,
+    QueryResponseDetails = unknown,
+    TransformResponseDetails extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
   >
   extends RecordCache<QO, TO, QB, TB>
-  implements AsyncRecordAccessor {
+  implements
+    AsyncRecordAccessor,
+    AsyncRecordQueryable<QueryResponseDetails, QB, QO>,
+    AsyncRecordUpdatable<TransformResponseDetails, TB, TO> {
   protected _processors: AsyncOperationProcessor[];
   protected _queryOperators: Dict<AsyncQueryOperator>;
   protected _transformOperators: Dict<AsyncTransformOperator>;
@@ -235,13 +242,14 @@ export abstract class AsyncRecordCache<
     queryOrExpressions: QueryOrExpressions<RecordQueryExpression, QB>,
     options: FullRequestOptions<QO>,
     id?: string
-  ): Promise<FullResponse<RequestData, undefined, RecordOperation>>;
+  ): Promise<FullResponse<RequestData, QueryResponseDetails, RecordOperation>>;
   async query<RequestData extends RecordQueryResult = RecordQueryResult>(
     queryOrExpressions: QueryOrExpressions<RecordQueryExpression, QB>,
     options?: QO,
     id?: string
   ): Promise<
-    RequestData | FullResponse<RequestData, undefined, RecordOperation>
+    | RequestData
+    | FullResponse<RequestData, QueryResponseDetails, RecordOperation>
   > {
     const query = buildQuery(
       queryOrExpressions,
@@ -272,7 +280,7 @@ export abstract class AsyncRecordCache<
     options: FullRequestOptions<TO>,
     id?: string
   ): Promise<
-    FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>
+    FullResponse<RequestData, TransformResponseDetails, RecordOperation>
   >;
   async update<
     RequestData extends RecordTransformResult = RecordTransformResult
@@ -282,7 +290,7 @@ export abstract class AsyncRecordCache<
     id?: string
   ): Promise<
     | RequestData
-    | FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>
+    | FullResponse<RequestData, TransformResponseDetails, RecordOperation>
   > {
     const transform = buildTransform(
       transformOrOperations,
@@ -366,7 +374,7 @@ export abstract class AsyncRecordCache<
     query: RecordQuery,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     options?: QO
-  ): Promise<FullResponse<RequestData, undefined, RecordOperation>> {
+  ): Promise<FullResponse<RequestData, QueryResponseDetails, RecordOperation>> {
     const results: RecordQueryExpressionResult[] = [];
 
     for (let expression of query.expressions) {
@@ -394,7 +402,7 @@ export abstract class AsyncRecordCache<
     transform: RecordTransform,
     options?: TO
   ): Promise<
-    FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>
+    FullResponse<RequestData, TransformResponseDetails, RecordOperation>
   > {
     if (this.getTransformOptions(transform)?.useBuffer) {
       const buffer = await this._initTransformBuffer(transform);
@@ -412,7 +420,7 @@ export abstract class AsyncRecordCache<
       const {
         appliedOperations,
         appliedOperationResults
-      } = response.details as RecordCacheUpdateDetails;
+      } = response.details as TransformResponseDetails;
 
       for (let i = 0, len = appliedOperations.length; i < len; i++) {
         this.emit('patch', appliedOperations[i], appliedOperationResults[i]);
@@ -420,7 +428,7 @@ export abstract class AsyncRecordCache<
 
       return response as FullResponse<
         RequestData,
-        RecordCacheUpdateDetails,
+        TransformResponseDetails,
         RecordOperation
       >;
     } else {
@@ -460,7 +468,7 @@ export abstract class AsyncRecordCache<
       return {
         ...response,
         data
-      } as FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>;
+      } as FullResponse<RequestData, TransformResponseDetails, RecordOperation>;
     }
   }
 
