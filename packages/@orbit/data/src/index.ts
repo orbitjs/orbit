@@ -10,6 +10,7 @@ export * from './request';
 export * from './response';
 export * from './source';
 export * from './transform';
+export * from './updatable';
 export * from './source-interfaces/pullable';
 export * from './source-interfaces/pushable';
 export * from './source-interfaces/queryable';
