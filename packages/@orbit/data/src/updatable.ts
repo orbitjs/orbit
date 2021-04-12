@@ -41,7 +41,7 @@ export interface SyncUpdatable<
     transformOrOperations: TransformOrOperations<O, TransformBuilder>,
     options?: DefaultRequestOptions<Options>,
     id?: string
-  ): Promise<RequestData>;
+  ): RequestData;
   update<
     RequestData extends Data = Data,
     RequestDetails extends Details = Details,
@@ -50,5 +50,5 @@ export interface SyncUpdatable<
     transformOrOperations: TransformOrOperations<O, TransformBuilder>,
     options: FullRequestOptions<Options>,
     id?: string
-  ): Promise<FullResponse<RequestData, RequestDetails, RequestOperation>>;
+  ): FullResponse<RequestData, RequestDetails, RequestOperation>;
 }
