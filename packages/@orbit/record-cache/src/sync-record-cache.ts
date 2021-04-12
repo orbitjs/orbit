@@ -25,7 +25,9 @@ import {
   RecordTransform,
   RecordTransformBuilder,
   RecordTransformBuilderFunc,
-  RecordTransformResult
+  RecordTransformResult,
+  SyncRecordQueryable,
+  SyncRecordUpdatable
 } from '@orbit/records';
 import { deepGet, Dict } from '@orbit/utils';
 import { SyncLiveQuery } from './live-query/sync-live-query';
@@ -86,10 +88,15 @@ export abstract class SyncRecordCache<
     QO extends RequestOptions = RecordCacheQueryOptions,
     TO extends RequestOptions = RecordCacheTransformOptions,
     QB = RecordQueryBuilder,
-    TB = RecordTransformBuilder
+    TB = RecordTransformBuilder,
+    QueryResponseDetails = unknown,
+    TransformResponseDetails extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
   >
   extends RecordCache<QO, TO, QB, TB>
-  implements SyncRecordAccessor {
+  implements
+    SyncRecordAccessor,
+    SyncRecordQueryable<QueryResponseDetails, QB, QO>,
+    SyncRecordUpdatable<TransformResponseDetails, TB, TO> {
   protected _processors: SyncOperationProcessor[];
   protected _queryOperators: Dict<SyncQueryOperator>;
   protected _transformOperators: Dict<SyncTransformOperator>;
@@ -226,12 +233,14 @@ export abstract class SyncRecordCache<
     queryOrExpressions: QueryOrExpressions<RecordQueryExpression, QB>,
     options: FullRequestOptions<QO>,
     id?: string
-  ): FullResponse<RequestData, undefined, RecordOperation>;
+  ): FullResponse<RequestData, QueryResponseDetails, RecordOperation>;
   query<RequestData extends RecordQueryResult = RecordQueryResult>(
     queryOrExpressions: QueryOrExpressions<RecordQueryExpression, QB>,
     options?: QO,
     id?: string
-  ): RequestData | FullResponse<RequestData, undefined, RecordOperation> {
+  ):
+    | RequestData
+    | FullResponse<RequestData, QueryResponseDetails, RecordOperation> {
     const query = buildQuery<RecordQueryExpression, QB>(
       queryOrExpressions,
       options,
@@ -260,14 +269,14 @@ export abstract class SyncRecordCache<
     transformOrOperations: TransformOrOperations<RecordOperation, TB>,
     options: FullRequestOptions<TO>,
     id?: string
-  ): FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>;
+  ): FullResponse<RequestData, TransformResponseDetails, RecordOperation>;
   update<RequestData extends RecordTransformResult = RecordTransformResult>(
     transformOrOperations: TransformOrOperations<RecordOperation, TB>,
     options?: TO,
     id?: string
   ):
     | RequestData
-    | FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation> {
+    | FullResponse<RequestData, TransformResponseDetails, RecordOperation> {
     const transform = buildTransform(
       transformOrOperations,
       options,
@@ -345,7 +354,7 @@ export abstract class SyncRecordCache<
     query: RecordQuery,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     options?: QO
-  ): FullResponse<RequestData, undefined, RecordOperation> {
+  ): FullResponse<RequestData, QueryResponseDetails, RecordOperation> {
     const results: RecordQueryExpressionResult[] = [];
 
     for (let expression of query.expressions) {
@@ -368,7 +377,7 @@ export abstract class SyncRecordCache<
   >(
     transform: RecordTransform,
     options?: TO
-  ): FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation> {
+  ): FullResponse<RequestData, TransformResponseDetails, RecordOperation> {
     if (this.getTransformOptions(transform)?.useBuffer) {
       const buffer = this._initTransformBuffer(transform);
 
@@ -385,7 +394,7 @@ export abstract class SyncRecordCache<
       const {
         appliedOperations,
         appliedOperationResults
-      } = response.details as RecordCacheUpdateDetails;
+      } = response.details as TransformResponseDetails;
 
       for (let i = 0, len = appliedOperations.length; i < len; i++) {
         this.emit('patch', appliedOperations[i], appliedOperationResults[i]);
@@ -393,7 +402,7 @@ export abstract class SyncRecordCache<
 
       return response as FullResponse<
         RequestData,
-        RecordCacheUpdateDetails,
+        TransformResponseDetails,
         RecordOperation
       >;
     } else {
@@ -434,7 +443,7 @@ export abstract class SyncRecordCache<
       return {
         ...response,
         data
-      } as FullResponse<RequestData, RecordCacheUpdateDetails, RecordOperation>;
+      } as FullResponse<RequestData, TransformResponseDetails, RecordOperation>;
     }
   }
 
