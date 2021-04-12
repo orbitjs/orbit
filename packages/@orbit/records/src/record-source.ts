@@ -19,16 +19,11 @@ export interface RecordSourceQueryOptions extends RequestOptions {
 }
 
 export interface RecordSourceSettings<
-  QueryOptions extends RequestOptions = RecordSourceQueryOptions,
-  TransformOptions extends RequestOptions = RequestOptions,
-  QueryBuilder = RecordQueryBuilder,
-  TransformBuilder = RecordTransformBuilder
-> extends SourceSettings<
-    QueryOptions,
-    TransformOptions,
-    QueryBuilder,
-    TransformBuilder
-  > {
+  QO extends RequestOptions = RecordSourceQueryOptions,
+  TO extends RequestOptions = RequestOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder
+> extends SourceSettings<QO, TO, QB, TB> {
   schema: RecordSchema;
   keyMap?: RecordKeyMap;
   normalizer?: RecordNormalizer;
@@ -36,40 +31,25 @@ export interface RecordSourceSettings<
 }
 
 export type RecordSourceClass<
-  QueryOptions extends RequestOptions = RecordSourceQueryOptions,
-  TransformOptions extends RequestOptions = RequestOptions
-> = SourceClass<
-  QueryOptions,
-  TransformOptions,
-  RecordQueryBuilder,
-  RecordTransformBuilder
->;
+  QO extends RequestOptions = RecordSourceQueryOptions,
+  TO extends RequestOptions = RequestOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder
+> = SourceClass<QO, TO, QB, TB>;
 
 /**
  * Abstract base class for record-based sources.
  */
 export abstract class RecordSource<
-  QueryOptions extends RequestOptions = RecordSourceQueryOptions,
-  TransformOptions extends RequestOptions = RequestOptions,
-  QueryBuilder = RecordQueryBuilder,
-  TransformBuilder = RecordTransformBuilder
-> extends Source<
-  QueryOptions,
-  TransformOptions,
-  QueryBuilder,
-  TransformBuilder
-> {
+  QO extends RequestOptions = RecordSourceQueryOptions,
+  TO extends RequestOptions = RequestOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder
+> extends Source<QO, TO, QB, TB> {
   protected _keyMap?: RecordKeyMap;
   protected _schema: RecordSchema;
 
-  constructor(
-    settings: RecordSourceSettings<
-      QueryOptions,
-      TransformOptions,
-      QueryBuilder,
-      TransformBuilder
-    >
-  ) {
+  constructor(settings: RecordSourceSettings<QO, TO, QB, TB>) {
     const autoActivate =
       settings.autoActivate === undefined || settings.autoActivate;
 
