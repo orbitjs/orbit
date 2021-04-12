@@ -49,6 +49,10 @@ export abstract class RecordSource<
   protected _keyMap?: RecordKeyMap;
   protected _schema: RecordSchema;
 
+  // Unlike in `Source`, builders will always be set
+  protected _queryBuilder!: QB;
+  protected _transformBuilder!: TB;
+
   constructor(settings: RecordSourceSettings<QO, TO, QB, TB>) {
     const autoActivate =
       settings.autoActivate === undefined || settings.autoActivate;
@@ -106,6 +110,14 @@ export abstract class RecordSource<
 
   get keyMap(): RecordKeyMap | undefined {
     return this._keyMap;
+  }
+
+  get queryBuilder(): QB {
+    return this._queryBuilder;
+  }
+
+  get transformBuilder(): TB {
+    return this._transformBuilder;
   }
 
   /**
