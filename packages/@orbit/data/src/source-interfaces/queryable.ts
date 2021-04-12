@@ -1,20 +1,16 @@
-import { Orbit, settleInSeries, fulfillInSeries } from '@orbit/core';
-import { Query, QueryOrExpressions, buildQuery } from '../query';
-import { Source, SourceClass } from '../source';
-import {
-  FullRequestOptions,
-  DefaultRequestOptions,
-  RequestOptions
-} from '../request';
-import {
-  NamedFullResponse,
-  ResponseHints,
-  FullResponse,
-  mapNamedFullResponses
-} from '../response';
+import { fulfillInSeries, Orbit, settleInSeries } from '@orbit/core';
 import { Operation } from '../operation';
+import { buildQuery, Query, QueryOrExpressions } from '../query';
 import { QueryExpression } from '../query-expression';
 import { AsyncQueryable } from '../queryable';
+import { RequestOptions } from '../request';
+import {
+  FullResponse,
+  mapNamedFullResponses,
+  NamedFullResponse,
+  ResponseHints
+} from '../response';
+import { Source, SourceClass } from '../source';
 
 const { assert } = Orbit;
 
