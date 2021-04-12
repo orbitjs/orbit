@@ -14,6 +14,7 @@ import {
 } from '../response';
 import { Operation } from '../operation';
 import { QueryExpression } from '../query-expression';
+import { AsyncQueryable } from '../queryable';
 
 const { assert } = Orbit;
 
@@ -37,26 +38,7 @@ export interface Queryable<
   QE extends QueryExpression,
   QueryBuilder,
   Options extends RequestOptions = RequestOptions
-> {
-  /**
-   * The `query` method accepts a query or expression(s). It evaluates the query
-   * and returns a promise that resolves to a static set of results.
-   */
-  query<RequestData extends Data = Data>(
-    queryOrExpressions: QueryOrExpressions<QE, QueryBuilder>,
-    options?: DefaultRequestOptions<Options>,
-    id?: string
-  ): Promise<RequestData>;
-  query<
-    RequestData extends Data = Data,
-    RequestDetails extends Details = Details,
-    RequestOperation extends O = O
-  >(
-    queryOrExpressions: QueryOrExpressions<QE, QueryBuilder>,
-    options: FullRequestOptions<Options>,
-    id?: string
-  ): Promise<FullResponse<RequestData, RequestDetails, RequestOperation>>;
-
+> extends AsyncQueryable<Data, Details, O, QE, QueryBuilder, Options> {
   _query(
     query: Query<QE>,
     hints?: ResponseHints<Data, Details>

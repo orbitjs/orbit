@@ -5,6 +5,7 @@ export * from './options';
 export * from './query-expression';
 export * from './query-term';
 export * from './query';
+export * from './queryable';
 export * from './request';
 export * from './response';
 export * from './source';
