@@ -22,6 +22,12 @@ module('MemoryCache', function (hooks) {
     schema = new RecordSchema({
       models: {
         planet: {
+          attributes: {
+            name: { type: 'string' },
+            classification: { type: 'string' },
+            atmosphere: { type: 'string' },
+            sequence: { type: 'number' }
+          },
           keys: {
             remoteId: {}
           },
@@ -30,6 +36,9 @@ module('MemoryCache', function (hooks) {
           }
         },
         moon: {
+          attributes: {
+            name: { type: 'string' }
+          },
           keys: {
             remoteId: {}
           },
@@ -57,11 +66,6 @@ module('MemoryCache', function (hooks) {
   test('creates a `transformBuilder` upon first access', function (assert) {
     let cache = new MemoryCache({ schema });
     assert.ok(cache.transformBuilder, 'transformBuilder has been instantiated');
-    assert.strictEqual(
-      cache.transformBuilder.recordInitializer,
-      schema,
-      'transformBuilder uses the schema to initialize records'
-    );
   });
 
   test('#update sets data and #records retrieves it', function (assert) {
@@ -2272,7 +2276,7 @@ module('MemoryCache', function (hooks) {
       id: 'callisto',
       type: 'moon',
       attributes: { name: 'Callisto' },
-      relationships: { planet: { data: [{ type: 'planet', id: 'jupiter' }] } }
+      relationships: { planet: { data: { type: 'planet', id: 'jupiter' } } }
     };
 
     cache.update((t) => [t.addRecord(jupiter), t.addRecord(callisto)]);
