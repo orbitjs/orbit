@@ -123,18 +123,18 @@ export class JSONAPISerializer
     return this.fieldSerializer.serialize(attr, { type }) as string;
   }
 
-  resourceIdentity(identity: RecordIdentity): ResourceIdentity {
+  resourceIdentity(identity: RecordIdentity): Resource {
     return {
       type: this.resourceType(identity.type),
       id: this.resourceId(identity.type, identity.id)
     };
   }
 
-  resourceIds(type: string, ids: string[]): string[] {
+  resourceIds(type: string, ids: string[]): (string | undefined)[] {
     return ids.map((id) => this.resourceId(type, id));
   }
 
-  resourceId(type: string, id: string): string {
+  resourceId(type: string, id: string): string | undefined {
     let resourceKey = this.resourceKey(type);
 
     if (resourceKey === 'id') {
@@ -237,7 +237,7 @@ export class JSONAPISerializer
     return resource;
   }
 
-  serializeIdentity(record: InitializedRecord): ResourceIdentity {
+  serializeIdentity(record: InitializedRecord): Resource {
     return {
       type: this.resourceType(record.type),
       id: this.resourceId(record.type, record.id)
