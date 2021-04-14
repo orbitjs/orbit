@@ -1250,8 +1250,8 @@ module('JSONAPISource - pushable', function (hooks) {
 
       await source.push(
         (t) =>
-          t.replaceRelatedRecord({ type: 'planet', id: '123' }, 'sun', {
-            type: 'star',
+          t.replaceRelatedRecord({ type: 'planet', id: '123' }, 'solarSystem', {
+            type: 'solarSystem',
             id: '1'
           }),
         {

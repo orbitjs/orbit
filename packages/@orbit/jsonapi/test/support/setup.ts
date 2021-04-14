@@ -62,10 +62,16 @@ export function createSchemaWithoutKeys(): RecordSchema {
       planet: {
         attributes: {
           name: { type: 'string' },
-          classification: { type: 'string' }
+          classification: { type: 'string' },
+          lengthOfDay: { type: 'number' }
         },
         relationships: {
-          moons: { kind: 'hasMany', type: 'moon', inverse: 'planet' }
+          moons: { kind: 'hasMany', type: 'moon', inverse: 'planet' },
+          solarSystem: {
+            kind: 'hasOne',
+            type: 'solarSystem',
+            inverse: 'planets'
+          }
         }
       },
       moon: {
@@ -74,6 +80,23 @@ export function createSchemaWithoutKeys(): RecordSchema {
         },
         relationships: {
           planet: { kind: 'hasOne', type: 'planet', inverse: 'moons' }
+        }
+      },
+      solarSystem: {
+        attributes: {
+          name: { type: 'string' }
+        },
+        relationships: {
+          planets: {
+            kind: 'hasMany',
+            type: 'planet',
+            inverse: 'solarSystem'
+          },
+          moons: {
+            kind: 'hasMany',
+            type: 'moon',
+            inverse: 'solarSystem'
+          }
         }
       }
     }
