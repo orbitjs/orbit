@@ -1890,11 +1890,17 @@ module('IndexedDBCache - update', function (hooks) {
           const dependentSchema = new RecordSchema({
             models: {
               planet: {
+                attributes: {
+                  name: { type: 'string' }
+                },
                 relationships: {
                   moons: { kind: 'hasMany', type: 'moon' }
                 }
               },
               moon: {
+                attributes: {
+                  name: { type: 'string' }
+                },
                 relationships: {
                   planet: {
                     kind: 'hasOne',
@@ -1957,11 +1963,17 @@ module('IndexedDBCache - update', function (hooks) {
           const dependentSchema = new RecordSchema({
             models: {
               planet: {
+                attributes: {
+                  name: { type: 'string' }
+                },
                 relationships: {
                   moons: { kind: 'hasMany', type: 'moon', dependent: 'remove' }
                 }
               },
               moon: {
+                attributes: {
+                  name: { type: 'string' }
+                },
                 relationships: {
                   planet: { kind: 'hasOne', type: 'planet' }
                 }
@@ -2020,11 +2032,17 @@ module('IndexedDBCache - update', function (hooks) {
           const dependentSchema = new RecordSchema({
             models: {
               planet: {
+                attributes: {
+                  name: { type: 'string' }
+                },
                 relationships: {
                   moons: { kind: 'hasMany', type: 'moon' }
                 }
               },
               moon: {
+                attributes: {
+                  name: { type: 'string' }
+                },
                 relationships: {
                   planet: { kind: 'hasOne', type: 'planet' }
                 }
