@@ -10,8 +10,10 @@ import {
   FullResponse,
   DefaultRequestOptions,
   RequestOptions,
-  ResponseHints
+  ResponseHints,
+  FullRequestOptions
 } from '@orbit/data';
+import { RecordCacheUpdateDetails } from '@orbit/record-cache';
 import {
   InitializedRecord,
   RecordIdentity,
@@ -30,7 +32,9 @@ import {
   RecordQueryable,
   RecordQueryResult,
   RecordTransformResult,
-  RecordOperationResult
+  RecordOperationResult,
+  RecordQueryBuilder,
+  RecordTransformBuilder
 } from '@orbit/records';
 import { supportsLocalStorage } from './lib/local-storage';
 import {
@@ -41,20 +45,33 @@ import {
 
 const { assert } = Orbit;
 
-export interface LocalStorageSourceSettings extends RecordSourceSettings {
+export interface LocalStorageSourceSettings<
+  QO extends RequestOptions = RecordSourceQueryOptions,
+  TO extends RequestOptions = RequestOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder,
+  QRD = unknown,
+  TRD extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
+> extends RecordSourceSettings<QO, TO, QB, TB> {
   delimiter?: string;
   namespace?: string;
-  cacheClass?: LocalStorageCacheClass;
-  cacheSettings?: Partial<LocalStorageCacheSettings>;
+  cacheClass?: LocalStorageCacheClass<QO, TO, QB, TB, QRD, TRD>;
+  cacheSettings?: Partial<LocalStorageCacheSettings<QO, TO, QB, TB>>;
 }
 
-export interface LocalStorageSource
-  extends RecordSource,
+export interface LocalStorageSource<
+  QO extends RequestOptions = RecordSourceQueryOptions,
+  TO extends RequestOptions = RequestOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder,
+  QRD = unknown,
+  TRD extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
+> extends RecordSource<QO, TO, QB, TB>,
     RecordSyncable,
-    RecordPullable<unknown>,
-    RecordPushable<unknown>,
-    RecordQueryable<unknown>,
-    RecordUpdatable<unknown>,
+    RecordPullable<QRD>,
+    RecordPushable<TRD>,
+    RecordQueryable<QRD, QB, QO>,
+    RecordUpdatable<TRD, TB, TO>,
     Resettable {}
 
 /**
@@ -65,10 +82,22 @@ export interface LocalStorageSource
 @queryable
 @updatable
 @syncable
-export class LocalStorageSource extends RecordSource {
-  protected _cache: LocalStorageCache;
+export class LocalStorageSource<
+    QO extends RequestOptions = RecordSourceQueryOptions,
+    TO extends RequestOptions = RequestOptions,
+    QB = RecordQueryBuilder,
+    TB = RecordTransformBuilder,
+    QRD = unknown,
+    TRD extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
+  >
+  extends RecordSource<QO, TO, QB, TB>
+  implements
+    RecordSyncable,
+    RecordQueryable<QRD, QB, QO>,
+    RecordUpdatable<TRD, TB, TO> {
+  protected _cache: LocalStorageCache<QO, TO, QB, TB, QRD, TRD>;
 
-  constructor(settings: LocalStorageSourceSettings) {
+  constructor(settings: LocalStorageSourceSettings<QO, TO, QB, TB, QRD, TRD>) {
     assert(
       "LocalStorageSource's `schema` must be specified in `settings.schema` constructor argument",
       !!settings.schema
@@ -82,7 +111,7 @@ export class LocalStorageSource extends RecordSource {
 
     super(settings);
 
-    let cacheSettings: Partial<LocalStorageCacheSettings> =
+    let cacheSettings: Partial<LocalStorageCacheSettings<QO, TO, QB, TB>> =
       settings.cacheSettings ?? {};
     cacheSettings.schema = settings.schema;
     cacheSettings.keyMap = settings.keyMap;
@@ -98,10 +127,12 @@ export class LocalStorageSource extends RecordSource {
     cacheSettings.delimiter = cacheSettings.delimiter ?? settings.delimiter;
 
     const cacheClass = settings.cacheClass ?? LocalStorageCache;
-    this._cache = new cacheClass(cacheSettings as LocalStorageCacheSettings);
+    this._cache = new cacheClass(
+      cacheSettings as LocalStorageCacheSettings<QO, TO, QB, TB>
+    );
   }
 
-  get cache(): LocalStorageCache {
+  get cache(): LocalStorageCache<QO, TO, QB, TB, QRD, TRD> {
     return this._cache;
   }
 
@@ -113,27 +144,19 @@ export class LocalStorageSource extends RecordSource {
     return this._cache.delimiter;
   }
 
-  get defaultQueryOptions():
-    | DefaultRequestOptions<RecordSourceQueryOptions>
-    | undefined {
+  get defaultQueryOptions(): DefaultRequestOptions<QO> | undefined {
     return super.defaultQueryOptions;
   }
 
-  set defaultQueryOptions(
-    options: DefaultRequestOptions<RecordSourceQueryOptions> | undefined
-  ) {
+  set defaultQueryOptions(options: DefaultRequestOptions<QO> | undefined) {
     super.defaultQueryOptions = this.cache.defaultQueryOptions = options;
   }
 
-  get defaultTransformOptions():
-    | DefaultRequestOptions<RequestOptions>
-    | undefined {
+  get defaultTransformOptions(): DefaultRequestOptions<TO> | undefined {
     return super.defaultTransformOptions;
   }
 
-  set defaultTransformOptions(
-    options: DefaultRequestOptions<RequestOptions> | undefined
-  ) {
+  set defaultTransformOptions(options: DefaultRequestOptions<TO> | undefined) {
     this._defaultTransformOptions = this.cache.defaultTransformOptions = options;
   }
 
@@ -170,12 +193,12 @@ export class LocalStorageSource extends RecordSource {
 
   async _update(
     transform: RecordTransform,
-    hints?: ResponseHints<RecordTransformResult, unknown>
-  ): Promise<FullResponse<RecordTransformResult, unknown, RecordOperation>> {
+    hints?: ResponseHints<RecordTransformResult, TRD>
+  ): Promise<FullResponse<RecordTransformResult, TRD, RecordOperation>> {
     let results: RecordTransformResult;
     const response: FullResponse<
       RecordTransformResult,
-      unknown,
+      TRD,
       RecordOperation
     > = {};
 
@@ -215,9 +238,9 @@ export class LocalStorageSource extends RecordSource {
 
   async _query(
     query: RecordQuery,
-    hints?: ResponseHints<RecordQueryResult, unknown>
-  ): Promise<FullResponse<RecordQueryResult, unknown, RecordOperation>> {
-    let response: FullResponse<RecordQueryResult, unknown, RecordOperation>;
+    hints?: ResponseHints<RecordQueryResult, QRD>
+  ): Promise<FullResponse<RecordQueryResult, QRD, RecordOperation>> {
+    let response: FullResponse<RecordQueryResult, QRD, RecordOperation>;
 
     if (hints?.data) {
       response = {};
@@ -231,7 +254,9 @@ export class LocalStorageSource extends RecordSource {
         );
       }
     } else {
-      response = this._cache.query(query, { fullResponse: true });
+      response = this._cache.query(query, {
+        fullResponse: true
+      } as FullRequestOptions<QO>);
     }
 
     if (hints?.details) {
@@ -247,8 +272,8 @@ export class LocalStorageSource extends RecordSource {
 
   async _push(
     transform: RecordTransform
-  ): Promise<FullResponse<undefined, unknown, RecordOperation>> {
-    const fullResponse: FullResponse<undefined, unknown, RecordOperation> = {};
+  ): Promise<FullResponse<undefined, TRD, RecordOperation>> {
+    const fullResponse: FullResponse<undefined, TRD, RecordOperation> = {};
 
     if (!this.transformLog.contains(transform.id)) {
       this._cache.update(transform);
@@ -264,8 +289,8 @@ export class LocalStorageSource extends RecordSource {
 
   async _pull(
     query: RecordQuery
-  ): Promise<FullResponse<undefined, unknown, RecordOperation>> {
-    const fullResponse: FullResponse<undefined, unknown, RecordOperation> = {};
+  ): Promise<FullResponse<undefined, QRD, RecordOperation>> {
+    const fullResponse: FullResponse<undefined, QRD, RecordOperation> = {};
     let operations: RecordOperation[];
 
     const results = this._cache.query(query);

@@ -3,21 +3,46 @@ import { Orbit } from '@orbit/core';
 import {
   InitializedRecord,
   RecordIdentity,
-  equalRecordIdentities
+  equalRecordIdentities,
+  RecordQueryBuilder,
+  RecordTransformBuilder
 } from '@orbit/records';
 import {
+  RecordCacheQueryOptions,
+  RecordCacheTransformOptions,
+  RecordCacheUpdateDetails,
   RecordRelationshipIdentity,
   SyncRecordCache,
   SyncRecordCacheSettings
 } from '@orbit/record-cache';
+import { RequestOptions } from '@orbit/data';
 
-export interface LocalStorageCacheSettings extends SyncRecordCacheSettings {
+export interface LocalStorageCacheSettings<
+  QO extends RequestOptions = RecordCacheQueryOptions,
+  TO extends RequestOptions = RecordCacheTransformOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder
+> extends SyncRecordCacheSettings<QO, TO, QB, TB> {
   delimiter?: string;
   namespace?: string;
 }
 
-export interface LocalStorageCacheClass {
-  new (settings: LocalStorageCacheSettings): LocalStorageCache;
+export interface LocalStorageCacheClass<
+  QO extends RequestOptions = RecordCacheQueryOptions,
+  TO extends RequestOptions = RecordCacheTransformOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder,
+  QRD = unknown,
+  TRD extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
+> {
+  new (settings: LocalStorageCacheSettings<QO, TO, QB, TB>): LocalStorageCache<
+    QO,
+    TO,
+    QB,
+    TB,
+    QRD,
+    TRD
+  >;
 }
 
 /**
@@ -25,11 +50,18 @@ export interface LocalStorageCacheClass {
  *
  * Because local storage access is synchronous, this cache extends `SyncRecordCache`.
  */
-export class LocalStorageCache extends SyncRecordCache {
+export class LocalStorageCache<
+  QO extends RequestOptions = RecordCacheQueryOptions,
+  TO extends RequestOptions = RecordCacheTransformOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder,
+  QRD = unknown,
+  TRD extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
+> extends SyncRecordCache<QO, TO, QB, TB, QRD, TRD> {
   protected _namespace: string;
   protected _delimiter: string;
 
-  constructor(settings: LocalStorageCacheSettings) {
+  constructor(settings: LocalStorageCacheSettings<QO, TO, QB, TB>) {
     super(settings);
 
     this._namespace = settings.namespace || 'orbit';

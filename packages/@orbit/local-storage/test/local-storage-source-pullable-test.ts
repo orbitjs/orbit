@@ -29,9 +29,15 @@ module('LocalStorageSource - pullable', function (hooks) {
           }
         },
         moon: {
+          attributes: {
+            name: { type: 'string' }
+          },
           keys: { remoteId: {} }
         },
         solarSystem: {
+          attributes: {
+            name: { type: 'string' }
+          },
           keys: { remoteId: {} }
         }
       }
