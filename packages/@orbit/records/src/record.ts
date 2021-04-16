@@ -2,7 +2,7 @@ import { Dict, isNone, clone } from '@orbit/utils';
 
 export interface LinkObject {
   href: string;
-  meta?: Dict<any>;
+  meta?: Dict<unknown>;
 }
 
 export type Link = string | LinkObject;
@@ -15,13 +15,13 @@ export interface RecordIdentity {
 export interface RecordHasOneRelationship {
   data?: RecordIdentity | null;
   links?: Dict<Link>;
-  meta?: Dict<any>;
+  meta?: Dict<unknown>;
 }
 
 export interface RecordHasManyRelationship {
   data?: RecordIdentity[];
   links?: Dict<Link>;
-  meta?: Dict<any>;
+  meta?: Dict<unknown>;
 }
 
 export type RecordRelationship =
@@ -30,10 +30,10 @@ export type RecordRelationship =
 
 export interface RecordFields {
   keys?: Dict<string>;
-  attributes?: Dict<any>;
+  attributes?: Dict<unknown>;
   relationships?: Dict<RecordRelationship>;
   links?: Dict<Link>;
-  meta?: Dict<any>;
+  meta?: Dict<unknown>;
 }
 
 /**
