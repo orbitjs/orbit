@@ -1,5 +1,10 @@
-import { RecordSchema } from '../src/record-schema';
-import { UninitializedRecord } from '../src/record';
+import { Dict } from '@orbit/utils';
+import {
+  AttributeDefinition,
+  KeyDefinition,
+  RecordSchema,
+  RelationshipDefinition
+} from '../src/record-schema';
 import { delay } from './support/timing';
 
 const { module, test } = QUnit;
@@ -112,10 +117,10 @@ module('RecordSchema', function () {
 
     assert.throws(function () {
       schema.getModel('planet');
-    }, /Schema error: Model definition for planet not found/);
+    }, /Error: Schema: Model 'planet' not defined./);
   });
 
-  test('#hasAttribute', function (assert) {
+  test('#hasModel', function (assert) {
     const schema = new RecordSchema({
       models: {
         planet: {
@@ -126,24 +131,8 @@ module('RecordSchema', function () {
       }
     });
 
-    assert.equal(schema.hasAttribute('planet', 'name'), true);
-    assert.equal(schema.hasAttribute('planet', 'unknown'), false);
-  });
-
-  test('#hasRelationship', function (assert) {
-    const schema = new RecordSchema({
-      models: {
-        planet: {
-          relationships: {
-            moons: { kind: 'hasMany', type: 'moon' }
-          }
-        },
-        moon: {}
-      }
-    });
-
-    assert.equal(schema.hasRelationship('planet', 'moons'), true);
-    assert.equal(schema.hasRelationship('planet', 'unknown'), false);
+    assert.equal(schema.hasModel('planet'), true);
+    assert.equal(schema.hasModel('unknown'), false);
   });
 
   test('#getAttribute', function (assert) {
@@ -158,6 +147,30 @@ module('RecordSchema', function () {
     });
 
     assert.deepEqual(schema.getAttribute('planet', 'name'), { type: 'string' });
+  });
+
+  test('#getAttribute throws an exception if a model definition is not found', function (assert) {
+    const schema = new RecordSchema();
+
+    assert.throws(function () {
+      schema.getAttribute('planet', 'name');
+    }, /Error: Schema: Model 'planet' not defined./);
+  });
+
+  test('#getAttribute throws an exception if an attribute definition is not found', function (assert) {
+    const schema = new RecordSchema({
+      models: {
+        planet: {
+          attributes: {
+            name: { type: 'string' }
+          }
+        }
+      }
+    });
+
+    assert.throws(function () {
+      schema.getAttribute('planet', 'name2');
+    }, /Error: Schema: Attribute 'name2' not defined for model 'planet'./);
   });
 
   test('#eachAttribute', function (assert) {
@@ -175,7 +188,7 @@ module('RecordSchema', function () {
       }
     });
 
-    let attributes: any = {};
+    let attributes: Dict<AttributeDefinition> = {};
 
     schema.eachAttribute('planet', (name, attribute) => {
       attributes[name] = attribute;
@@ -184,6 +197,140 @@ module('RecordSchema', function () {
     assert.deepEqual(attributes, {
       name: { type: 'string' }
     });
+  });
+
+  test('#eachAttribute throws an exception if a model definition is not found', function (assert) {
+    const schema = new RecordSchema();
+
+    assert.throws(function () {
+      schema.eachAttribute('planet', (name, attribute) => {});
+    }, /Error: Schema: Model 'planet' not defined./);
+  });
+
+  test('#hasAttribute', function (assert) {
+    const schema = new RecordSchema({
+      models: {
+        planet: {
+          attributes: {
+            name: { type: 'string' }
+          }
+        }
+      }
+    });
+
+    assert.equal(schema.hasAttribute('planet', 'name'), true);
+    assert.equal(schema.hasAttribute('planet', 'unknown'), false);
+  });
+
+  test('#hasAttribute throws an exception if a model definition is not found', function (assert) {
+    const schema = new RecordSchema();
+
+    assert.throws(function () {
+      schema.hasAttribute('planet', 'name');
+    }, /Error: Schema: Model 'planet' not defined./);
+  });
+
+  test('#getKey', function (assert) {
+    const schema = new RecordSchema({
+      models: {
+        planet: {
+          keys: {
+            key1: { meta: { description: 'first' } }
+          }
+        }
+      }
+    });
+
+    assert.deepEqual(schema.getKey('planet', 'key1'), {
+      meta: { description: 'first' }
+    });
+  });
+
+  test('#getKey throws an exception if a model definition is not found', function (assert) {
+    const schema = new RecordSchema();
+
+    assert.throws(function () {
+      schema.getKey('planet', 'key1');
+    }, /Error: Schema: Model 'planet' not defined./);
+  });
+
+  test('#getKey throws an exception if a key definition is not found', function (assert) {
+    const schema = new RecordSchema({
+      models: {
+        planet: {
+          keys: {
+            key1: { meta: { description: 'first' } }
+          }
+        }
+      }
+    });
+
+    assert.throws(function () {
+      schema.getKey('planet', 'key2');
+    }, /Error: Schema: Key 'key2' not defined for model 'planet'./);
+  });
+
+  test('#eachKey', function (assert) {
+    const schema = new RecordSchema({
+      models: {
+        planet: {
+          attributes: {
+            name: { type: 'string' }
+          },
+          keys: {
+            key1: { meta: { description: 'first' } },
+            key2: { meta: { description: 'second' } }
+          },
+          relationships: {
+            moons: { kind: 'hasMany', type: 'moon' }
+          }
+        },
+        moon: {}
+      }
+    });
+
+    let keys: Dict<KeyDefinition> = {};
+
+    schema.eachKey('planet', (name, key) => {
+      keys[name] = key;
+    });
+
+    assert.deepEqual(keys, {
+      key1: { meta: { description: 'first' } },
+      key2: { meta: { description: 'second' } }
+    });
+  });
+
+  test('#eachKey throws an exception if a model definition is not found', function (assert) {
+    const schema = new RecordSchema();
+
+    assert.throws(function () {
+      schema.eachKey('planet', (name, key) => {});
+    }, /Error: Schema: Model 'planet' not defined./);
+  });
+
+  test('#hasKey', function (assert) {
+    const schema = new RecordSchema({
+      models: {
+        planet: {
+          keys: {
+            key1: { meta: { description: 'first' } },
+            key2: { meta: { description: 'second' } }
+          }
+        }
+      }
+    });
+
+    assert.equal(schema.hasKey('planet', 'key1'), true);
+    assert.equal(schema.hasKey('planet', 'key3'), false);
+  });
+
+  test('#hasKey throws an exception if a model definition is not found', function (assert) {
+    const schema = new RecordSchema();
+
+    assert.throws(function () {
+      schema.hasKey('planet', 'remoteId');
+    }, /Error: Schema: Model 'planet' not defined./);
   });
 
   test('#getRelationship', function (assert) {
@@ -204,6 +351,30 @@ module('RecordSchema', function () {
     });
   });
 
+  test('#getRelationship throws an exception if a model definition is not found', function (assert) {
+    const schema = new RecordSchema();
+
+    assert.throws(function () {
+      schema.getRelationship('planet', 'moons');
+    }, /Error: Schema: Model 'planet' not defined./);
+  });
+
+  test('#getRelationship throws an exception if a relationship definition is not found', function (assert) {
+    const schema = new RecordSchema({
+      models: {
+        planet: {
+          attributes: {
+            name: { type: 'string' }
+          }
+        }
+      }
+    });
+
+    assert.throws(function () {
+      schema.getRelationship('planet', 'moons');
+    }, /Error: Schema: Relationship 'moons' not defined for model 'planet'./);
+  });
+
   test('#eachRelationship', function (assert) {
     const schema = new RecordSchema({
       models: {
@@ -219,7 +390,7 @@ module('RecordSchema', function () {
       }
     });
 
-    let relationships: any = {};
+    let relationships: Dict<RelationshipDefinition> = {};
 
     schema.eachRelationship('planet', (name, relationship) => {
       relationships[name] = relationship;
@@ -228,6 +399,38 @@ module('RecordSchema', function () {
     assert.deepEqual(relationships, {
       moons: { kind: 'hasMany', type: 'moon' }
     });
+  });
+
+  test('#eachRelationship throws an exception if a model definition is not found', function (assert) {
+    const schema = new RecordSchema();
+
+    assert.throws(function () {
+      schema.eachRelationship('planet', (name, relationship) => {});
+    }, /Error: Schema: Model 'planet' not defined./);
+  });
+
+  test('#hasRelationship', function (assert) {
+    const schema = new RecordSchema({
+      models: {
+        planet: {
+          relationships: {
+            moons: { kind: 'hasMany', type: 'moon' }
+          }
+        },
+        moon: {}
+      }
+    });
+
+    assert.equal(schema.hasRelationship('planet', 'moons'), true);
+    assert.equal(schema.hasRelationship('planet', 'unknown'), false);
+  });
+
+  test('#hasRelationship throws an exception if a model definition is not found', function (assert) {
+    const schema = new RecordSchema();
+
+    assert.throws(function () {
+      schema.hasRelationship('planet', 'moons');
+    }, /Error: Schema: Model 'planet' not defined./);
   });
 
   test('#pluralize simply adds an `s` to the end of words', function (assert) {

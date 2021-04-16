@@ -1,15 +1,20 @@
 /* eslint-disable valid-jsdoc */
-import { fulfillAll, Orbit } from '@orbit/core';
-import { ModelNotFound } from './record-exceptions';
+import { evented, Evented, fulfillAll, Orbit } from '@orbit/core';
 import { Dict } from '@orbit/utils';
-import { evented, Evented } from '@orbit/core';
+import {
+  AttributeNotDefined,
+  KeyNotDefined,
+  ModelNotDefined,
+  RelationshipNotDefined
+} from './record-exceptions';
 
 const { uuid, deprecate } = Orbit;
 
 export interface AttributeDefinition {
   type?: string;
-  serializationOptions?: Dict<any>;
-  deserializationOptions?: Dict<any>;
+  serializationOptions?: Dict<unknown>;
+  deserializationOptions?: Dict<unknown>;
+  meta?: Dict<unknown>;
 }
 
 export interface RelationshipDefinition {
@@ -18,10 +23,12 @@ export interface RelationshipDefinition {
   model?: string | string[];
   inverse?: string;
   dependent?: 'remove';
+  meta?: Dict<unknown>;
 }
 
 export interface KeyDefinition {
   primaryKey?: boolean;
+  meta?: Dict<unknown>;
 }
 
 export interface ModelDefinition {
@@ -192,36 +199,58 @@ export class RecordSchema {
   }
 
   getModel(type: string): ModelDefinition {
-    let model = this.models[type];
+    const model = this.models[type];
     if (model) {
       return model;
     } else {
-      throw new ModelNotFound(type);
+      throw new ModelNotDefined(type);
     }
   }
 
-  getAttribute(
-    type: string,
-    attribute: string
-  ): AttributeDefinition | undefined {
+  getAttribute(type: string, attribute: string): AttributeDefinition {
     const model = this.getModel(type);
-    return model.attributes && model.attributes[attribute];
+    const attributeDef = model.attributes?.[attribute];
+    if (attributeDef) {
+      return attributeDef;
+    } else {
+      throw new AttributeNotDefined(type, attribute);
+    }
   }
 
-  getRelationship(
-    type: string,
-    relationship: string
-  ): RelationshipDefinition | undefined {
+  getKey(type: string, key: string): KeyDefinition {
     const model = this.getModel(type);
-    return model.relationships && model.relationships[relationship];
+    const keyDef = model.keys?.[key];
+    if (keyDef) {
+      return keyDef;
+    } else {
+      throw new KeyNotDefined(type, key);
+    }
+  }
+
+  getRelationship(type: string, relationship: string): RelationshipDefinition {
+    const model = this.getModel(type);
+    const relationshipDef = model.relationships?.[relationship];
+    if (relationshipDef) {
+      return relationshipDef;
+    } else {
+      throw new RelationshipNotDefined(type, relationship);
+    }
+  }
+
+  hasModel(type: string): boolean {
+    return this.models[type] !== undefined;
   }
 
   hasAttribute(type: string, attribute: string): boolean {
-    return !!this.getAttribute(type, attribute);
+    return this.getModel(type).attributes?.[attribute] !== undefined;
+  }
+
+  hasKey(type: string, key: string): boolean {
+    return this.getModel(type).keys?.[key] !== undefined;
   }
 
   hasRelationship(type: string, relationship: string): boolean {
-    return !!this.getRelationship(type, relationship);
+    return this.getModel(type).relationships?.[relationship] !== undefined;
   }
 
   eachAttribute(
@@ -232,6 +261,17 @@ export class RecordSchema {
     const attributes = model.attributes || {};
     for (let name in attributes) {
       callbackFn(name, attributes[name]);
+    }
+  }
+
+  eachKey(
+    type: string,
+    callbackFn: (name: string, key: KeyDefinition) => void
+  ): void {
+    const model = this.getModel(type);
+    const keys = model.keys || {};
+    for (let name in keys) {
+      callbackFn(name, keys[name]);
     }
   }
 
