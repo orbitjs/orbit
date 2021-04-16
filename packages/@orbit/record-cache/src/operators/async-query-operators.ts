@@ -1,19 +1,18 @@
-import { Dict, deepGet, isNone } from '@orbit/utils';
 import { QueryExpressionParseError, RequestOptions } from '@orbit/data';
 import {
-  RecordQueryExpression,
-  RecordNotFoundException,
+  AttributeSortSpecifier,
   FindRecord,
   FindRecords,
   FindRelatedRecord,
   FindRelatedRecords,
-  SortSpecifier,
-  AttributeSortSpecifier,
   InitializedRecord,
   RecordIdentity,
+  RecordNotFoundException,
+  RecordQueryExpression,
   RecordQueryExpressionResult,
-  RecordQuery
+  SortSpecifier
 } from '@orbit/records';
+import { deepGet, Dict, isNone } from '@orbit/utils';
 import { AsyncRecordAccessor } from '../record-accessor';
 
 export interface AsyncQueryOperator {

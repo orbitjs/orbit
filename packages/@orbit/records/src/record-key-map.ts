@@ -1,4 +1,4 @@
-import { deepGet, deepSet, firstResult, Dict } from '@orbit/utils';
+import { deepGet, deepSet, Dict } from '@orbit/utils';
 import { InitializedRecord, UninitializedRecord } from './record';
 
 /**

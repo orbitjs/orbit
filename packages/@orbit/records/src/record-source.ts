@@ -1,7 +1,3 @@
-import { RecordKeyMap } from './record-key-map';
-import { RecordSchema } from './record-schema';
-import { RecordQueryBuilder } from './record-query-builder';
-import { RecordTransformBuilder } from './record-transform-builder';
 import { Orbit } from '@orbit/core';
 import {
   RequestOptions,
@@ -9,8 +5,12 @@ import {
   SourceClass,
   SourceSettings
 } from '@orbit/data';
+import { RecordKeyMap } from './record-key-map';
+import { RecordNormalizer } from './record-normalizer';
+import { RecordQueryBuilder } from './record-query-builder';
+import { RecordSchema } from './record-schema';
+import { RecordTransformBuilder } from './record-transform-builder';
 import { StandardRecordNormalizer } from './standard-record-normalizer';
-import { RecordNormalizer } from './record';
 
 const { assert } = Orbit;
 
@@ -57,7 +57,7 @@ export abstract class RecordSource<
     const autoActivate =
       settings.autoActivate === undefined || settings.autoActivate;
 
-    const schema = settings.schema;
+    const { schema } = settings;
 
     assert(
       "RecordSource's `schema` must be specified in `settings.schema` constructor argument",
@@ -68,7 +68,7 @@ export abstract class RecordSource<
       settings.queryBuilder === undefined ||
       settings.transformBuilder === undefined
     ) {
-      let normalizer = settings.normalizer;
+      let { normalizer } = settings;
 
       if (normalizer === undefined) {
         normalizer = new StandardRecordNormalizer({

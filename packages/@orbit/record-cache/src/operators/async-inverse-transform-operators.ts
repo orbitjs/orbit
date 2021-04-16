@@ -1,23 +1,23 @@
-import { Dict, deepGet, deepSet, eq } from '@orbit/utils';
+import { RequestOptions } from '@orbit/data';
 import {
-  InitializedRecord,
-  RecordOperation,
   AddRecordOperation,
   AddToRelatedRecordsOperation,
-  ReplaceAttributeOperation,
-  RemoveFromRelatedRecordsOperation,
-  RemoveRecordOperation,
-  ReplaceRelatedRecordsOperation,
-  ReplaceRelatedRecordOperation,
-  ReplaceKeyOperation,
-  UpdateRecordOperation,
   equalRecordIdentities,
   equalRecordIdentitySets,
-  recordsInclude,
+  InitializedRecord,
   RecordIdentity,
-  RecordNotFoundException
+  RecordNotFoundException,
+  RecordOperation,
+  recordsInclude,
+  RemoveFromRelatedRecordsOperation,
+  RemoveRecordOperation,
+  ReplaceAttributeOperation,
+  ReplaceKeyOperation,
+  ReplaceRelatedRecordOperation,
+  ReplaceRelatedRecordsOperation,
+  UpdateRecordOperation
 } from '@orbit/records';
-import { RequestOptions } from '@orbit/data';
+import { deepGet, deepSet, Dict, eq } from '@orbit/utils';
 import { AsyncRecordAccessor } from '../record-accessor';
 
 export interface AsyncInverseTransformOperator {

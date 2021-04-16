@@ -1,11 +1,12 @@
 import { QueryBuilderFunc } from '@orbit/data';
-import { RecordIdentity, RecordNormalizer } from './record';
+import { RecordIdentity } from './record';
+import { RecordNormalizer } from './record-normalizer';
 import { RecordQueryExpression } from './record-query-expression';
 import {
-  FindRecordTerm,
   FindRecordsTerm,
-  FindRelatedRecordTerm,
-  FindRelatedRecordsTerm
+  FindRecordTerm,
+  FindRelatedRecordsTerm,
+  FindRelatedRecordTerm
 } from './record-query-term';
 
 export type RecordQueryBuilderFunc = QueryBuilderFunc<
