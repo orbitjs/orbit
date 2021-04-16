@@ -56,14 +56,12 @@ export class RecordKeyMap {
   /**
    * Given a record, find the cached id if it exists.
    */
-  idFromKeys(type: string, keys: Dict<string>): string {
-    let keyNames = Object.keys(keys);
-
-    return firstResult(keyNames, (keyName) => {
-      let keyValue = keys[keyName];
-      if (keyValue) {
-        return this.keyToId(type, keyName, keyValue);
+  idFromKeys(type: string, keys: Dict<string>): string | undefined {
+    for (let key of Object.keys(keys)) {
+      let value = keys[key];
+      if (value) {
+        return this.keyToId(type, key, value);
       }
-    });
+    }
   }
 }
