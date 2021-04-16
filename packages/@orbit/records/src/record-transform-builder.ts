@@ -4,9 +4,9 @@ import {
   InitializedRecord,
   RecordIdentity,
   RecordInitializer,
-  RecordNormalizer,
   UninitializedRecord
 } from './record';
+import { RecordNormalizer } from './record-normalizer';
 import { RecordOperation } from './record-operation';
 import {
   AddRecordTerm,

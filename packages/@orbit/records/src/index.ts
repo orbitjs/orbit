@@ -1,6 +1,7 @@
 export * from './record';
 export * from './record-exceptions';
 export * from './record-key-map';
+export * from './record-normalizer';
 export * from './record-operation';
 export * from './record-operation-term';
 export * from './record-query';

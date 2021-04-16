@@ -6,11 +6,11 @@ import {
   isRecordIdentity,
   RecordIdentity,
   RecordKeyValue,
-  RecordNormalizer,
   UninitializedRecord
 } from './record';
 import { KeyNotDefined, ModelNotDefined } from './record-exceptions';
 import { RecordKeyMap } from './record-key-map';
+import { RecordNormalizer } from './record-normalizer';
 import { RecordSchema } from './record-schema';
 
 const { assert, deprecate } = Orbit;
