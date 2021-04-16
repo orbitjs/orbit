@@ -218,6 +218,13 @@ function mergeRecordSection(
   }
 }
 
+export function isRecordIdentity(
+  identity: RecordIdentity | unknown
+): identity is RecordIdentity {
+  const { id, type } = identity as RecordIdentity;
+  return typeof id === 'string' && typeof type === 'string';
+}
+
 export function serializeRecordIdentity(record: RecordIdentity): string {
   return `${record.type}:${record.id}`;
 }
