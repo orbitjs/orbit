@@ -1,10 +1,10 @@
 import {
+  InvalidRelatedRecordType,
+  ModelNotDefined,
   RecordKeyMap,
   RecordSchema,
   RecordSchemaSettings,
-  ModelNotFound,
-  RelationshipNotFound,
-  IncorrectRelatedRecordType
+  RelationshipNotDefined
 } from '@orbit/records';
 import { ExampleSyncRecordCache } from '../support/example-sync-record-cache';
 import { SyncSchemaValidationProcessor } from '../../src/operation-processors/sync-schema-validation-processor';
@@ -56,7 +56,7 @@ module('SchemaValidationProcessor', function (hooks) {
 
   const node = { type: 'node', id: '1' };
   const unknown = { type: 'unknown', id: '?' };
-  const unknownError = new ModelNotFound('unknown');
+  const unknownError = new ModelNotDefined('unknown');
 
   hooks.beforeEach(function () {
     let keyMap = new RecordKeyMap();
@@ -118,7 +118,7 @@ module('SchemaValidationProcessor', function (hooks) {
           id: '2'
         })
       );
-    }, new RelationshipNotFound('sibling', 'node'));
+    }, new RelationshipNotDefined('node', 'sibling'));
   });
 
   test('addToRelatedRecord with a related record with an invalid type for a non-polymorphic relationship', (assert) => {
@@ -129,7 +129,7 @@ module('SchemaValidationProcessor', function (hooks) {
           id: '1'
         })
       );
-    }, new IncorrectRelatedRecordType('person', 'children', 'node'));
+    }, new InvalidRelatedRecordType('node', '1', 'children', 'person'));
   });
 
   test('addToRelatedRecords with a related record with an invalid type for a polymorphic relationship', (assert) => {
@@ -140,7 +140,7 @@ module('SchemaValidationProcessor', function (hooks) {
           id: '2'
         })
       );
-    }, new IncorrectRelatedRecordType('person', 'pets', 'person'));
+    }, new InvalidRelatedRecordType('person', '1', 'pets', 'person'));
   });
 
   test('removeFromRelatedRecords with an unknown model type', (assert) => {
@@ -174,7 +174,7 @@ module('SchemaValidationProcessor', function (hooks) {
           { type: 'node', id: '2' }
         ])
       );
-    }, new RelationshipNotFound('siblings', 'node'));
+    }, new RelationshipNotDefined('node', 'siblings'));
   });
 
   test('replaceRelatedRecords with a related record with an invalid type for a non-polymorphic relationship', (assert) => {
@@ -184,7 +184,7 @@ module('SchemaValidationProcessor', function (hooks) {
           { type: 'person', id: '1' }
         ])
       );
-    }, new IncorrectRelatedRecordType('person', 'children', 'node'));
+    }, new InvalidRelatedRecordType('node', '1', 'children', 'person'));
   });
 
   test('replaceRelatedRecords with a related record with an invalid type for a polymorphic relationship', (assert) => {
@@ -194,7 +194,7 @@ module('SchemaValidationProcessor', function (hooks) {
           { type: 'person', id: '2' }
         ])
       );
-    }, new IncorrectRelatedRecordType('person', 'pets', 'person'));
+    }, new InvalidRelatedRecordType('person', '1', 'pets', 'person'));
   });
 
   test('replaceRelatedRecord with an unknown model type', (assert) => {
@@ -222,7 +222,7 @@ module('SchemaValidationProcessor', function (hooks) {
           id: '1'
         })
       );
-    }, new RelationshipNotFound('mother', 'node'));
+    }, new RelationshipNotDefined('node', 'mother'));
   });
 
   test('replaceRelatedRecord with a related record with an invalid type for a non-polymorphic relationship', (assert) => {
@@ -233,7 +233,7 @@ module('SchemaValidationProcessor', function (hooks) {
           id: '1'
         })
       );
-    }, new IncorrectRelatedRecordType('person', 'parent', 'node'));
+    }, new InvalidRelatedRecordType('node', '1', 'parent', 'person'));
   });
 
   test('replaceRelatedRecord with a related record with an invalid type for a polymorphic relationship', (assert) => {
@@ -244,6 +244,6 @@ module('SchemaValidationProcessor', function (hooks) {
           id: '2'
         })
       );
-    }, new IncorrectRelatedRecordType('person', 'favoritePet', 'person'));
+    }, new InvalidRelatedRecordType('person', '1', 'favoritePet', 'person'));
   });
 });
