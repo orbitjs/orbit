@@ -1,11 +1,13 @@
+import { Assertion } from '@orbit/core';
 import {
   InitializedRecord,
   RecordIdentity,
   RecordOperation,
-  IncorrectRelatedRecordType
+  ModelNotDefined,
+  isRecordIdentity,
+  InvalidRelatedRecordType
 } from '@orbit/records';
 import { AsyncOperationProcessor } from '../async-operation-processor';
-import { getModelDef, getRelationshipDef } from './utils/schema-utils';
 
 /**
  * An operation processor that ensures that an operation is compatible with
@@ -132,7 +134,14 @@ export class AsyncSchemaValidationProcessor extends AsyncOperationProcessor {
   }
 
   protected _validateRecordIdentity(record: RecordIdentity): void {
-    getModelDef(this.accessor.schema, record.type);
+    if (!isRecordIdentity(record)) {
+      throw new Assertion(
+        'Record identities must be in the form `{ type: string, id: string }`.'
+      );
+    }
+    if (!this.accessor.schema.hasModel(record.type)) {
+      throw new ModelNotDefined(record.type);
+    }
   }
 
   protected _validateRelationship(
@@ -140,8 +149,7 @@ export class AsyncSchemaValidationProcessor extends AsyncOperationProcessor {
     relationship: string,
     relatedRecord: RecordIdentity
   ): void {
-    const relationshipDef = getRelationshipDef(
-      this.accessor.schema,
+    const relationshipDef = this.accessor.schema.getRelationship(
       record.type,
       relationship
     );
@@ -150,18 +158,20 @@ export class AsyncSchemaValidationProcessor extends AsyncOperationProcessor {
       : relationshipDef.model;
     if (Array.isArray(type)) {
       if (!type.includes(relatedRecord.type)) {
-        throw new IncorrectRelatedRecordType(
-          relatedRecord.type,
+        throw new InvalidRelatedRecordType(
+          record.type,
+          record.id,
           relationship,
-          record.type
+          relatedRecord.type
         );
       }
     } else if (typeof type === 'string') {
       if (type !== relatedRecord.type) {
-        throw new IncorrectRelatedRecordType(
-          relatedRecord.type,
+        throw new InvalidRelatedRecordType(
+          record.type,
+          record.id,
           relationship,
-          record.type
+          relatedRecord.type
         );
       }
     }

@@ -4,6 +4,9 @@ export function createSchemaWithRemoteKey(): RecordSchema {
   return new RecordSchema({
     models: {
       star: {
+        attributes: {
+          name: { type: 'string' }
+        },
         keys: {
           remoteId: {}
         },
@@ -16,6 +19,12 @@ export function createSchemaWithRemoteKey(): RecordSchema {
         }
       },
       planet: {
+        attributes: {
+          name: { type: 'string' },
+          classification: { type: 'string' },
+          atmosphere: { type: 'string' },
+          sequence: { type: 'number' }
+        },
         keys: {
           remoteId: {}
         },
@@ -25,6 +34,9 @@ export function createSchemaWithRemoteKey(): RecordSchema {
         }
       },
       moon: {
+        attributes: {
+          name: { type: 'string' }
+        },
         keys: {
           remoteId: {}
         },

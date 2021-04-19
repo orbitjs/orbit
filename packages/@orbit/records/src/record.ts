@@ -2,7 +2,7 @@ import { Dict, isNone, clone } from '@orbit/utils';
 
 export interface LinkObject {
   href: string;
-  meta?: Dict<any>;
+  meta?: Dict<unknown>;
 }
 
 export type Link = string | LinkObject;
@@ -15,13 +15,13 @@ export interface RecordIdentity {
 export interface RecordHasOneRelationship {
   data?: RecordIdentity | null;
   links?: Dict<Link>;
-  meta?: Dict<any>;
+  meta?: Dict<unknown>;
 }
 
 export interface RecordHasManyRelationship {
   data?: RecordIdentity[];
   links?: Dict<Link>;
-  meta?: Dict<any>;
+  meta?: Dict<unknown>;
 }
 
 export type RecordRelationship =
@@ -30,10 +30,10 @@ export type RecordRelationship =
 
 export interface RecordFields {
   keys?: Dict<string>;
-  attributes?: Dict<any>;
+  attributes?: Dict<unknown>;
   relationships?: Dict<RecordRelationship>;
   links?: Dict<Link>;
-  meta?: Dict<any>;
+  meta?: Dict<unknown>;
 }
 
 /**
@@ -48,6 +48,15 @@ export interface UninitializedRecord extends RecordFields {
   id?: string;
 }
 
+export interface RecordKeyValue {
+  type: string;
+  key: string;
+  value: string;
+}
+
+/**
+ * @deprecated since v0.17, replaced by `RecordNormalizer`
+ */
 export interface RecordInitializer {
   initializeRecord(record: UninitializedRecord): InitializedRecord;
 }
@@ -199,6 +208,13 @@ function mergeRecordSection(
   } else if (update[section]) {
     record[section] = clone(update[section]);
   }
+}
+
+export function isRecordIdentity(
+  identity: RecordIdentity | unknown
+): identity is RecordIdentity {
+  const { id, type } = identity as RecordIdentity;
+  return typeof id === 'string' && typeof type === 'string';
 }
 
 export function serializeRecordIdentity(record: RecordIdentity): string {

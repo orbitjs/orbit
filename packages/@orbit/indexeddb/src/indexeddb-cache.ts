@@ -3,14 +3,20 @@ import {
   serializeRecordIdentity,
   deserializeRecordIdentity,
   InitializedRecord,
-  RecordIdentity
+  RecordIdentity,
+  RecordQueryBuilder,
+  RecordTransformBuilder
 } from '@orbit/records';
 import {
   RecordRelationshipIdentity,
   AsyncRecordCache,
-  AsyncRecordCacheSettings
+  AsyncRecordCacheSettings,
+  RecordCacheQueryOptions,
+  RecordCacheTransformOptions,
+  RecordCacheUpdateDetails
 } from '@orbit/record-cache';
 import { supportsIndexedDB } from './lib/indexeddb';
+import { RequestOptions } from '@orbit/data';
 
 const { assert } = Orbit;
 
@@ -26,12 +32,31 @@ interface InverseRelationshipForIDB {
   relatedType: string;
 }
 
-export interface IndexedDBCacheSettings extends AsyncRecordCacheSettings {
+export interface IndexedDBCacheSettings<
+  QO extends RequestOptions = RecordCacheQueryOptions,
+  TO extends RequestOptions = RecordCacheTransformOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder
+> extends AsyncRecordCacheSettings<QO, TO, QB, TB> {
   namespace?: string;
 }
 
-export interface IndexedDBCacheClass {
-  new (settings: IndexedDBCacheSettings): IndexedDBCache;
+export interface IndexedDBCacheClass<
+  QO extends RequestOptions = RecordCacheQueryOptions,
+  TO extends RequestOptions = RecordCacheTransformOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder,
+  QRD = unknown,
+  TRD extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
+> {
+  new (settings: IndexedDBCacheSettings<QO, TO, QB, TB>): IndexedDBCache<
+    QO,
+    TO,
+    QB,
+    TB,
+    QRD,
+    TRD
+  >;
 }
 
 /**
@@ -39,12 +64,19 @@ export interface IndexedDBCacheClass {
  *
  * Because IndexedDB access is async, this cache extends `AsyncRecordCache`.
  */
-export class IndexedDBCache extends AsyncRecordCache {
+export class IndexedDBCache<
+  QO extends RequestOptions = RecordCacheQueryOptions,
+  TO extends RequestOptions = RecordCacheTransformOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder,
+  QRD = unknown,
+  TRD extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
+> extends AsyncRecordCache<QO, TO, QB, TB, QRD, TRD> {
   protected _namespace: string;
   protected _db?: IDBDatabase;
   protected _openingDB?: Promise<IDBDatabase>;
 
-  constructor(settings: IndexedDBCacheSettings) {
+  constructor(settings: IndexedDBCacheSettings<QO, TO, QB, TB>) {
     assert('Your browser does not support IndexedDB!', supportsIndexedDB());
 
     super(settings);

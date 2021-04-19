@@ -2,21 +2,48 @@ import { clone, Dict } from '@orbit/utils';
 import {
   InitializedRecord,
   RecordIdentity,
-  equalRecordIdentities
+  equalRecordIdentities,
+  RecordQueryBuilder,
+  RecordTransformBuilder
 } from '@orbit/records';
 import {
+  RecordCacheQueryOptions,
+  RecordCacheTransformOptions,
+  RecordCacheUpdateDetails,
   RecordRelationshipIdentity,
   SyncRecordCache,
   SyncRecordCacheSettings
 } from '@orbit/record-cache';
 import { ImmutableMap } from '@orbit/immutable';
+import { RequestOptions } from '@orbit/data';
 
-export interface MemoryCacheSettings extends SyncRecordCacheSettings {
-  base?: MemoryCache;
+export interface MemoryCacheSettings<
+  QO extends RequestOptions = RecordCacheQueryOptions,
+  TO extends RequestOptions = RecordCacheTransformOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder,
+  QRD = unknown,
+  TRD extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
+> extends SyncRecordCacheSettings<QO, TO, QB, TB> {
+  base?: MemoryCache<QO, TO, QB, TB, QRD, TRD>;
 }
 
-export interface MemoryCacheClass {
-  new (settings: MemoryCacheSettings): MemoryCache;
+export interface MemoryCacheClass<
+  QO extends RequestOptions = RecordCacheQueryOptions,
+  TO extends RequestOptions = RecordCacheTransformOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder,
+  QRD = unknown,
+  TRD extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
+> {
+  new (settings: MemoryCacheSettings<QO, TO, QB, TB, QRD, TRD>): MemoryCache<
+    QO,
+    TO,
+    QB,
+    TB,
+    QRD,
+    TRD
+  >;
 }
 
 /**
@@ -25,13 +52,20 @@ export interface MemoryCacheClass {
  * Because data is stored in immutable maps, this type of cache can be forked
  * efficiently.
  */
-export class MemoryCache extends SyncRecordCache {
+export class MemoryCache<
+  QO extends RequestOptions = RecordCacheQueryOptions,
+  TO extends RequestOptions = RecordCacheTransformOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder,
+  QRD = unknown,
+  TRD extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
+> extends SyncRecordCache<QO, TO, QB, TB, QRD, TRD> {
   protected _records!: Dict<ImmutableMap<string, InitializedRecord>>;
   protected _inverseRelationships!: Dict<
     ImmutableMap<string, RecordRelationshipIdentity[]>
   >;
 
-  constructor(settings: MemoryCacheSettings) {
+  constructor(settings: MemoryCacheSettings<QO, TO, QB, TB, QRD, TRD>) {
     super(settings);
 
     this.reset(settings.base);
@@ -183,7 +217,7 @@ export class MemoryCache extends SyncRecordCache {
    * cache.reset(cache2); // clones the state of cache2
    * ```
    */
-  reset(base?: MemoryCache): void {
+  reset(base?: MemoryCache<QO, TO, QB, TB, QRD, TRD>): void {
     this._records = {};
 
     Object.keys(this._schema.models).forEach((type) => {
@@ -222,7 +256,9 @@ export class MemoryCache extends SyncRecordCache {
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
 
-  protected _resetInverseRelationships(base?: MemoryCache): void {
+  protected _resetInverseRelationships(
+    base?: MemoryCache<QO, TO, QB, TB, QRD, TRD>
+  ): void {
     const inverseRelationships: Dict<
       ImmutableMap<string, RecordRelationshipIdentity[]>
     > = {};

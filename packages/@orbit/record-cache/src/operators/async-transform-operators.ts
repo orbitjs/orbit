@@ -1,40 +1,41 @@
-import { Dict, clone, deepGet, deepSet } from '@orbit/utils';
+import { RequestOptions } from '@orbit/data';
 import {
+  AddRecordOperation,
+  AddToRelatedRecordsOperation,
   cloneRecordIdentity,
   equalRecordIdentities,
+  InitializedRecord,
   mergeRecords,
   RecordIdentity,
+  RecordNotFoundException,
   RecordOperation,
   RecordOperationResult,
-  AddRecordOperation,
-  UpdateRecordOperation,
-  RemoveRecordOperation,
-  ReplaceKeyOperation,
-  ReplaceAttributeOperation,
-  AddToRelatedRecordsOperation,
-  RemoveFromRelatedRecordsOperation,
-  ReplaceRelatedRecordsOperation,
-  ReplaceRelatedRecordOperation,
-  InitializedRecord,
   recordsInclude,
-  RecordTransform,
-  RecordNotFoundException
+  RemoveFromRelatedRecordsOperation,
+  RemoveRecordOperation,
+  ReplaceAttributeOperation,
+  ReplaceKeyOperation,
+  ReplaceRelatedRecordOperation,
+  ReplaceRelatedRecordsOperation,
+  UpdateRecordOperation
 } from '@orbit/records';
-import { AsyncRecordCache } from '../async-record-cache';
+import { clone, deepGet, deepSet, Dict } from '@orbit/utils';
+import { AsyncRecordAccessor } from '../record-accessor';
 
 export interface AsyncTransformOperator {
   (
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): Promise<RecordOperationResult>;
 }
 
 export const AsyncTransformOperators: Dict<AsyncTransformOperator> = {
   async addRecord(
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    options?: RequestOptions
   ): Promise<RecordOperationResult> {
     const op = operation as AddRecordOperation;
     const { record } = op;
@@ -48,16 +49,15 @@ export const AsyncTransformOperators: Dict<AsyncTransformOperator> = {
   },
 
   async updateRecord(
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): Promise<RecordOperationResult> {
     const op = operation as UpdateRecordOperation;
     const { record } = op;
     const currentRecord = await cache.getRecordAsync(record);
 
     if (currentRecord === undefined) {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(record.type, record.id);
       }
@@ -75,15 +75,14 @@ export const AsyncTransformOperators: Dict<AsyncTransformOperator> = {
   },
 
   async removeRecord(
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): Promise<RecordOperationResult> {
     const op = operation as RemoveRecordOperation;
     const record = await cache.removeRecordAsync(op.record);
 
     if (record === undefined) {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(op.record.type, op.record.id);
       }
@@ -93,9 +92,9 @@ export const AsyncTransformOperators: Dict<AsyncTransformOperator> = {
   },
 
   async replaceKey(
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): Promise<RecordOperationResult> {
     const op = operation as ReplaceKeyOperation;
     const currentRecord = await cache.getRecordAsync(op.record);
@@ -106,7 +105,6 @@ export const AsyncTransformOperators: Dict<AsyncTransformOperator> = {
     } else {
       record = cloneRecordIdentity(op.record);
 
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(record.type, record.id);
       }
@@ -123,9 +121,9 @@ export const AsyncTransformOperators: Dict<AsyncTransformOperator> = {
   },
 
   async replaceAttribute(
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): Promise<RecordOperationResult> {
     const op = operation as ReplaceAttributeOperation;
     const currentRecord = await cache.getRecordAsync(op.record);
@@ -136,7 +134,6 @@ export const AsyncTransformOperators: Dict<AsyncTransformOperator> = {
     } else {
       record = cloneRecordIdentity(op.record);
 
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(record.type, record.id);
       }
@@ -149,9 +146,9 @@ export const AsyncTransformOperators: Dict<AsyncTransformOperator> = {
   },
 
   async addToRelatedRecords(
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): Promise<RecordOperationResult> {
     const op = operation as AddToRelatedRecordsOperation;
     const { relationship, relatedRecord } = op;
@@ -163,7 +160,6 @@ export const AsyncTransformOperators: Dict<AsyncTransformOperator> = {
     } else {
       record = cloneRecordIdentity(op.record);
 
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(record.type, record.id);
       }
@@ -183,9 +179,9 @@ export const AsyncTransformOperators: Dict<AsyncTransformOperator> = {
   },
 
   async removeFromRelatedRecords(
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): Promise<RecordOperationResult> {
     const op = operation as RemoveFromRelatedRecordsOperation;
     const currentRecord = await cache.getRecordAsync(op.record);
@@ -216,7 +212,6 @@ export const AsyncTransformOperators: Dict<AsyncTransformOperator> = {
       }
       return record;
     } else {
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(op.record.type, op.record.id);
       }
@@ -224,9 +219,9 @@ export const AsyncTransformOperators: Dict<AsyncTransformOperator> = {
   },
 
   async replaceRelatedRecords(
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): Promise<RecordOperationResult> {
     const op = operation as ReplaceRelatedRecordsOperation;
     const currentRecord = await cache.getRecordAsync(op.record);
@@ -238,7 +233,6 @@ export const AsyncTransformOperators: Dict<AsyncTransformOperator> = {
     } else {
       record = cloneRecordIdentity(op.record);
 
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(record.type, record.id);
       }
@@ -254,9 +248,9 @@ export const AsyncTransformOperators: Dict<AsyncTransformOperator> = {
   },
 
   async replaceRelatedRecord(
-    cache: AsyncRecordCache,
-    transform: RecordTransform,
-    operation: RecordOperation
+    cache: AsyncRecordAccessor,
+    operation: RecordOperation,
+    options?: RequestOptions
   ): Promise<RecordOperationResult> {
     const op = operation as ReplaceRelatedRecordOperation;
     const currentRecord = await cache.getRecordAsync(op.record);
@@ -268,7 +262,6 @@ export const AsyncTransformOperators: Dict<AsyncTransformOperator> = {
     } else {
       record = cloneRecordIdentity(op.record);
 
-      const options = cache.getTransformOptions(transform, operation);
       if (options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(record.type, record.id);
       }

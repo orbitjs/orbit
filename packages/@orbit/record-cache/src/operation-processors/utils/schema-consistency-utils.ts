@@ -9,7 +9,6 @@ import {
   RelationshipDefinition,
   RecordSchema
 } from '@orbit/records';
-import { getRelationshipDef } from './schema-utils';
 
 export function recordAdded(
   schema: RecordSchema,
@@ -58,7 +57,7 @@ export function relatedRecordAdded(
 
   if (relatedRecord) {
     const { type } = record;
-    const relationshipDef = getRelationshipDef(schema, type, relationship);
+    const relationshipDef = schema.getRelationship(type, relationship);
     const inverseRelationship = relationshipDef.inverse;
 
     if (inverseRelationship) {
@@ -82,7 +81,7 @@ export function relatedRecordRemoved(
 
   if (currentRelatedRecord) {
     const { type } = record;
-    const relationshipDef = getRelationshipDef(schema, type, relationship);
+    const relationshipDef = schema.getRelationship(type, relationship);
     const inverseRelationship = relationshipDef.inverse;
 
     if (inverseRelationship) {
@@ -111,7 +110,7 @@ export function relatedRecordReplaced(
     )
   ) {
     const { type } = record;
-    const relationshipDef = getRelationshipDef(schema, type, relationship);
+    const relationshipDef = schema.getRelationship(type, relationship);
     const inverseRelationship = relationshipDef.inverse;
 
     if (inverseRelationship) {
@@ -146,7 +145,7 @@ export function relatedRecordsReplaced(
 ): RecordOperation[] {
   const ops: RecordOperation[] = [];
   const { type } = record;
-  const relationshipDef = getRelationshipDef(schema, type, relationship);
+  const relationshipDef = schema.getRelationship(type, relationship);
 
   let addedRecords: RecordIdentity[];
 
@@ -310,7 +309,7 @@ export function addRelationshipOp(
   relatedRecord: RecordIdentity
 ): RecordOperation {
   const { type } = record;
-  const relationshipDef = getRelationshipDef(schema, type, relationship);
+  const relationshipDef = schema.getRelationship(type, relationship);
   const isHasMany =
     (relationshipDef.kind || relationshipDef.type) === 'hasMany';
 
@@ -329,7 +328,7 @@ export function removeRelationshipOp(
   relatedRecord: RecordIdentity
 ): RecordOperation {
   const { type } = record;
-  const relationshipDef = getRelationshipDef(schema, type, relationship);
+  const relationshipDef = schema.getRelationship(type, relationship);
   const isHasMany =
     (relationshipDef.kind || relationshipDef.type) === 'hasMany';
 

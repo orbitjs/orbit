@@ -13,7 +13,9 @@ import {
   RecordSyncable,
   RecordUpdatable,
   RecordQueryable,
-  RecordSourceQueryOptions
+  RecordSourceQueryOptions,
+  RecordQueryBuilder,
+  RecordTransformBuilder
 } from '@orbit/records';
 import {
   syncable,
@@ -22,7 +24,8 @@ import {
   updatable,
   buildTransform,
   FullResponse,
-  DefaultRequestOptions
+  DefaultRequestOptions,
+  FullRequestOptions
 } from '@orbit/data';
 import { ResponseHints } from '@orbit/data';
 import { Dict } from '@orbit/utils';
@@ -31,11 +34,19 @@ import {
   MemoryCacheClass,
   MemoryCacheSettings
 } from './memory-cache';
+import { RecordCacheUpdateDetails } from '@orbit/record-cache';
 
-export interface MemorySourceSettings extends RecordSourceSettings {
-  base?: MemorySource;
-  cacheClass?: MemoryCacheClass;
-  cacheSettings?: Partial<MemoryCacheSettings>;
+export interface MemorySourceSettings<
+  QO extends RequestOptions = RecordSourceQueryOptions,
+  TO extends RequestOptions = RequestOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder,
+  QRD = unknown,
+  TRD extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
+> extends RecordSourceSettings<QO, TO, QB, TB> {
+  base?: MemorySource<QO, TO, QB, TB, QRD, TRD>;
+  cacheClass?: MemoryCacheClass<QO, TO, QB, TB, QRD, TRD>;
+  cacheSettings?: Partial<MemoryCacheSettings<QO, TO, QB, TB, QRD, TRD>>;
 }
 
 export interface MemorySourceMergeOptions {
@@ -44,23 +55,41 @@ export interface MemorySourceMergeOptions {
   transformOptions?: RequestOptions;
 }
 
-export interface MemorySource
-  extends RecordSource,
+export interface MemorySource<
+  QO extends RequestOptions = RecordSourceQueryOptions,
+  TO extends RequestOptions = RequestOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder,
+  QRD = unknown,
+  TRD extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
+> extends RecordSource<QO, TO, QB, TB>,
     RecordSyncable,
-    RecordQueryable<unknown>,
-    RecordUpdatable<unknown> {}
+    RecordQueryable<QRD, QB, QO>,
+    RecordUpdatable<TRD, TB, TO> {}
 
 @syncable
 @queryable
 @updatable
-export class MemorySource extends RecordSource {
-  private _cache: MemoryCache;
-  private _base?: MemorySource;
-  private _forkPoint?: string;
-  private _transforms: Dict<RecordTransform>;
-  private _transformInverses: Dict<RecordOperation[]>;
+export class MemorySource<
+    QO extends RequestOptions = RecordSourceQueryOptions,
+    TO extends RequestOptions = RequestOptions,
+    QB = RecordQueryBuilder,
+    TB = RecordTransformBuilder,
+    QRD = unknown,
+    TRD extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
+  >
+  extends RecordSource<QO, TO, QB, TB>
+  implements
+    RecordSyncable,
+    RecordQueryable<QRD, QB, QO>,
+    RecordUpdatable<TRD, TB, TO> {
+  protected _cache: MemoryCache<QO, TO, QB, TB, QRD, TRD>;
+  protected _base?: MemorySource<QO, TO, QB, TB, QRD, TRD>;
+  protected _forkPoint?: string;
+  protected _transforms: Dict<RecordTransform>;
+  protected _transformInverses: Dict<RecordOperation[]>;
 
-  constructor(settings: MemorySourceSettings) {
+  constructor(settings: MemorySourceSettings<QO, TO, QB, TB, QRD, TRD>) {
     const { keyMap, schema } = settings;
 
     settings.name = settings.name ?? 'memory';
@@ -74,7 +103,7 @@ export class MemorySource extends RecordSource {
     this.transformLog.on('truncate', this._logTruncated.bind(this));
     this.transformLog.on('rollback', this._logRolledback.bind(this));
 
-    let cacheSettings: Partial<MemoryCacheSettings> =
+    let cacheSettings: Partial<MemoryCacheSettings<QO, TO, QB, TB, QRD, TRD>> =
       settings.cacheSettings ?? {};
     cacheSettings.schema = schema;
     cacheSettings.keyMap = keyMap;
@@ -86,21 +115,25 @@ export class MemorySource extends RecordSource {
       cacheSettings.defaultQueryOptions ?? settings.defaultQueryOptions;
     cacheSettings.defaultTransformOptions =
       cacheSettings.defaultTransformOptions ?? settings.defaultTransformOptions;
-    if (settings.base) {
-      this._base = settings.base;
-      this._forkPoint = this._base.transformLog.head;
-      cacheSettings.base = this._base.cache;
+
+    const { base } = settings;
+    if (base) {
+      this._base = base;
+      this._forkPoint = base.transformLog.head;
+      cacheSettings.base = base.cache;
     }
 
     const cacheClass = settings.cacheClass ?? MemoryCache;
-    this._cache = new cacheClass(cacheSettings as MemoryCacheSettings);
+    this._cache = new cacheClass(
+      cacheSettings as MemoryCacheSettings<QO, TO, QB, TB, QRD, TRD>
+    );
   }
 
-  get cache(): MemoryCache {
+  get cache(): MemoryCache<QO, TO, QB, TB, QRD, TRD> {
     return this._cache;
   }
 
-  get base(): MemorySource | undefined {
+  get base(): MemorySource<QO, TO, QB, TB, QRD, TRD> | undefined {
     return this._base;
   }
 
@@ -129,12 +162,12 @@ export class MemorySource extends RecordSource {
 
   async _update(
     transform: RecordTransform,
-    hints?: ResponseHints<RecordTransformResult, unknown>
-  ): Promise<FullResponse<RecordTransformResult, unknown, RecordOperation>> {
+    hints?: ResponseHints<RecordTransformResult, TRD>
+  ): Promise<FullResponse<RecordTransformResult, TRD, RecordOperation>> {
     let results: RecordTransformResult;
     const response: FullResponse<
       RecordTransformResult,
-      unknown,
+      TRD,
       RecordOperation
     > = {};
 
@@ -174,9 +207,9 @@ export class MemorySource extends RecordSource {
 
   async _query(
     query: RecordQuery,
-    hints?: ResponseHints<RecordQueryResult, unknown>
-  ): Promise<FullResponse<RecordQueryResult, unknown, RecordOperation>> {
-    let response: FullResponse<RecordQueryResult, unknown, RecordOperation>;
+    hints?: ResponseHints<RecordQueryResult, QRD>
+  ): Promise<FullResponse<RecordQueryResult, QRD, RecordOperation>> {
+    let response: FullResponse<RecordQueryResult, QRD, RecordOperation>;
 
     if (hints?.data) {
       response = {};
@@ -190,7 +223,9 @@ export class MemorySource extends RecordSource {
         );
       }
     } else {
-      response = this._cache.query(query, { fullResponse: true });
+      response = this._cache.query(query, {
+        fullResponse: true
+      } as FullRequestOptions<QO>);
     }
 
     if (hints?.details) {
@@ -213,7 +248,11 @@ export class MemorySource extends RecordSource {
    *
    * @returns The forked source.
    */
-  fork(settings: MemorySourceSettings = { schema: this.schema }): MemorySource {
+  fork(
+    settings: MemorySourceSettings<QO, TO, QB, TB, QRD, TRD> = {
+      schema: this.schema
+    }
+  ): MemorySource<QO, TO, QB, TB, QRD, TRD> {
     const schema = this.schema;
 
     settings.schema = schema;
@@ -223,7 +262,7 @@ export class MemorySource extends RecordSource {
     settings.transformBuilder = this.transformBuilder;
     settings.base = this;
 
-    return new MemorySource(settings);
+    return new MemorySource<QO, TO, QB, TB, QRD, TRD>(settings);
   }
 
   /**
@@ -345,27 +384,19 @@ export class MemorySource extends RecordSource {
     return this._transformInverses[transformId];
   }
 
-  get defaultQueryOptions():
-    | DefaultRequestOptions<RecordSourceQueryOptions>
-    | undefined {
+  get defaultQueryOptions(): DefaultRequestOptions<QO> | undefined {
     return super.defaultQueryOptions;
   }
 
-  set defaultQueryOptions(
-    options: DefaultRequestOptions<RecordSourceQueryOptions> | undefined
-  ) {
+  set defaultQueryOptions(options: DefaultRequestOptions<QO> | undefined) {
     super.defaultQueryOptions = this.cache.defaultQueryOptions = options;
   }
 
-  get defaultTransformOptions():
-    | DefaultRequestOptions<RequestOptions>
-    | undefined {
+  get defaultTransformOptions(): DefaultRequestOptions<TO> | undefined {
     return super.defaultTransformOptions;
   }
 
-  set defaultTransformOptions(
-    options: DefaultRequestOptions<RequestOptions> | undefined
-  ) {
+  set defaultTransformOptions(options: DefaultRequestOptions<TO> | undefined) {
     this._defaultTransformOptions = this.cache.defaultTransformOptions = options;
   }
 
@@ -398,7 +429,7 @@ export class MemorySource extends RecordSource {
   protected _applyTransform(transform: RecordTransform): RecordTransformResult {
     const { data, details } = this.cache.update(transform, {
       fullResponse: true
-    });
+    } as FullRequestOptions<TO>);
     this._transforms[transform.id] = transform;
     this._transformInverses[transform.id] = details?.inverseOperations || [];
     return data;

@@ -7,7 +7,6 @@ import {
 } from '@orbit/records';
 import { deepGet } from '@orbit/utils';
 import { RecordRelationshipIdentity } from '../../record-accessor';
-import { getRelationshipDef } from './schema-utils';
 
 export function getInverseRelationship(
   schema: RecordSchema,
@@ -90,7 +89,7 @@ export function getInverseRelationshipRemovalOps(
   for (let inverseRelationship of inverseRelationships) {
     const { type } = inverseRelationship.record;
     const { relationship } = inverseRelationship;
-    const relationshipDef = getRelationshipDef(schema, type, relationship);
+    const relationshipDef = schema.getRelationship(type, relationship);
 
     if ((relationshipDef.kind || relationshipDef.type) === 'hasMany') {
       ops.push({

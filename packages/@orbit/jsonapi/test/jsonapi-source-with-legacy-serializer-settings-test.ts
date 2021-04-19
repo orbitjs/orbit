@@ -5068,10 +5068,16 @@ module('JSONAPISource with legacy serialization settings', function () {
           planet: {
             attributes: {
               name: { type: 'string' },
-              classification: { type: 'string' }
+              classification: { type: 'string' },
+              lengthOfDay: { type: 'number' }
             },
             relationships: {
-              moons: { kind: 'hasMany', type: 'moon', inverse: 'planet' }
+              moons: { kind: 'hasMany', type: 'moon', inverse: 'planet' },
+              solarSystem: {
+                kind: 'hasOne',
+                type: 'solarSystem',
+                inverse: 'planets'
+              }
             }
           },
           moon: {
@@ -5080,6 +5086,23 @@ module('JSONAPISource with legacy serialization settings', function () {
             },
             relationships: {
               planet: { kind: 'hasOne', type: 'planet', inverse: 'moons' }
+            }
+          },
+          solarSystem: {
+            attributes: {
+              name: { type: 'string' }
+            },
+            relationships: {
+              planets: {
+                kind: 'hasMany',
+                type: 'planet',
+                inverse: 'solarSystem'
+              },
+              moons: {
+                kind: 'hasMany',
+                type: 'moon',
+                inverse: 'solarSystem'
+              }
             }
           }
         }
@@ -5279,8 +5302,8 @@ module('JSONAPISource with legacy serialization settings', function () {
 
       await source.push(
         (t) =>
-          t.replaceRelatedRecord({ type: 'planet', id: '123' }, 'sun', {
-            type: 'star',
+          t.replaceRelatedRecord({ type: 'planet', id: '123' }, 'solarSystem', {
+            type: 'solarSystem',
             id: '1'
           }),
         {

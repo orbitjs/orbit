@@ -878,6 +878,10 @@ module('JSONAPISerializer', function (hooks) {
       assert.equal(serializer.resourceId('planet', '2'), 'b');
     });
 
+    test('#resourceId returns `undefined` when an entry cannot be found in the keyMap', function (assert) {
+      assert.strictEqual(serializer.resourceId('planet', '1'), undefined);
+    });
+
     test('#resourceIds returns an array of matching resource ids given an array of orbit ids', function (assert) {
       keyMap.pushRecord({ type: 'planet', id: '1', keys: { remoteId: 'a' } });
       keyMap.pushRecord({ type: 'planet', id: '2', keys: { remoteId: 'b' } });
@@ -898,6 +902,12 @@ module('JSONAPISerializer', function (hooks) {
     });
 
     test('#serialize - can serialize a simple resource with only attributes', function (assert) {
+      keyMap.pushRecord({
+        type: 'planet',
+        id: 'jupiter',
+        keys: { remoteId: '1' }
+      });
+
       assert.deepEqual(
         serializer.serialize({
           data: {
@@ -912,6 +922,7 @@ module('JSONAPISerializer', function (hooks) {
         {
           data: {
             type: 'planets',
+            id: '1',
             attributes: {
               name: 'Jupiter',
               classification: 'gas giant'

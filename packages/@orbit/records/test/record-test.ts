@@ -1,14 +1,15 @@
 import {
   cloneRecordIdentity,
+  dedupeRecordIdentities,
+  deserializeRecordIdentity,
   equalRecordIdentities,
   equalRecordIdentitySets,
-  uniqueRecordIdentities,
+  isRecordIdentity,
+  mergeRecords,
   recordsInclude,
   recordsIncludeAll,
-  deserializeRecordIdentity,
   serializeRecordIdentity,
-  mergeRecords,
-  dedupeRecordIdentities
+  uniqueRecordIdentities
 } from '../src/record';
 
 const { module, test } = QUnit;
@@ -19,6 +20,16 @@ module('Record', function () {
       type: 'planet',
       id: '1'
     });
+  });
+
+  test('`isRecordIdentity` distinguishes between a RecordIdentity and a RecordKeyValue', function (assert) {
+    assert.ok(isRecordIdentity({ type: 'planet', id: '1' }));
+    assert.notOk(isRecordIdentity({ type: 'planet' }));
+    assert.notOk(isRecordIdentity({ type: 'planet', id: null }));
+    assert.notOk(isRecordIdentity({ type: 'planet', id: 1 }));
+    assert.notOk(
+      isRecordIdentity({ type: 'planet', key: 'remoteId', value: '1' })
+    );
   });
 
   test('`serializeRecordIdentity` - serializes type:id of a record into a string', function (assert) {

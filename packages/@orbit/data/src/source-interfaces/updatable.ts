@@ -1,11 +1,7 @@
 import { Orbit, settleInSeries, fulfillInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Transform, TransformOrOperations, buildTransform } from '../transform';
-import {
-  DefaultRequestOptions,
-  FullRequestOptions,
-  RequestOptions
-} from '../request';
+import { RequestOptions } from '../request';
 import {
   NamedFullResponse,
   ResponseHints,
@@ -13,6 +9,7 @@ import {
   mapNamedFullResponses
 } from '../response';
 import { Operation } from '../operation';
+import { AsyncUpdatable } from '../updatable';
 
 const { assert } = Orbit;
 
@@ -35,27 +32,7 @@ export interface Updatable<
   O extends Operation,
   TransformBuilder,
   Options extends RequestOptions = RequestOptions
-> {
-  /**
-   * The `update` method accepts a `Transform` instance or an array of
-   * operations which it then converts to a `Transform` instance. The source
-   * applies the update and returns a promise that resolves when complete.
-   */
-  update<RequestData extends Data = Data>(
-    transformOrOperations: TransformOrOperations<O, TransformBuilder>,
-    options?: DefaultRequestOptions<Options>,
-    id?: string
-  ): Promise<RequestData>;
-  update<
-    RequestData extends Data = Data,
-    RequestDetails extends Details = Details,
-    RequestOperation extends O = O
-  >(
-    transformOrOperations: TransformOrOperations<O, TransformBuilder>,
-    options: FullRequestOptions<Options>,
-    id?: string
-  ): Promise<FullResponse<RequestData, RequestDetails, RequestOperation>>;
-
+> extends AsyncUpdatable<Data, Details, O, TransformBuilder, Options> {
   _update(
     transform: Transform<O>,
     hints?: ResponseHints<Data, Details>

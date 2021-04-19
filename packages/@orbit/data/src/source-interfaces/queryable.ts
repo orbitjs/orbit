@@ -1,19 +1,16 @@
-import { Orbit, settleInSeries, fulfillInSeries } from '@orbit/core';
-import { Query, QueryOrExpressions, buildQuery } from '../query';
-import { Source, SourceClass } from '../source';
-import {
-  FullRequestOptions,
-  DefaultRequestOptions,
-  RequestOptions
-} from '../request';
-import {
-  NamedFullResponse,
-  ResponseHints,
-  FullResponse,
-  mapNamedFullResponses
-} from '../response';
+import { fulfillInSeries, Orbit, settleInSeries } from '@orbit/core';
 import { Operation } from '../operation';
+import { buildQuery, Query, QueryOrExpressions } from '../query';
 import { QueryExpression } from '../query-expression';
+import { AsyncQueryable } from '../queryable';
+import { RequestOptions } from '../request';
+import {
+  FullResponse,
+  mapNamedFullResponses,
+  NamedFullResponse,
+  ResponseHints
+} from '../response';
+import { Source, SourceClass } from '../source';
 
 const { assert } = Orbit;
 
@@ -37,26 +34,7 @@ export interface Queryable<
   QE extends QueryExpression,
   QueryBuilder,
   Options extends RequestOptions = RequestOptions
-> {
-  /**
-   * The `query` method accepts a query or expression(s). It evaluates the query
-   * and returns a promise that resolves to a static set of results.
-   */
-  query<RequestData extends Data = Data>(
-    queryOrExpressions: QueryOrExpressions<QE, QueryBuilder>,
-    options?: DefaultRequestOptions<Options>,
-    id?: string
-  ): Promise<RequestData>;
-  query<
-    RequestData extends Data = Data,
-    RequestDetails extends Details = Details,
-    RequestOperation extends O = O
-  >(
-    queryOrExpressions: QueryOrExpressions<QE, QueryBuilder>,
-    options: FullRequestOptions<Options>,
-    id?: string
-  ): Promise<FullResponse<RequestData, RequestDetails, RequestOperation>>;
-
+> extends AsyncQueryable<Data, Details, O, QE, QueryBuilder, Options> {
   _query(
     query: Query<QE>,
     hints?: ResponseHints<Data, Details>

@@ -226,6 +226,19 @@ module('JSONAPIResourceIdentitySerializer', function (hooks) {
       );
     });
 
+    test('#serialize - can serialize a resource identity with just a `type` if there is no matching key', function (assert) {
+      assert.deepEqual(
+        serializer.serialize({
+          type: 'planet',
+          id: 'p1'
+        }),
+        {
+          type: 'planet'
+        },
+        'serialized identity matches'
+      );
+    });
+
     test('#deserialize - can deserialize a resource identity and include keys in the response', function (assert) {
       let record = serializer.deserialize(
         {

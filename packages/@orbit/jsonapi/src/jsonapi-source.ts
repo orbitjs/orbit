@@ -7,7 +7,8 @@ import {
   updatable,
   TransformNotAllowed,
   QueryNotAllowed,
-  FullResponse
+  FullResponse,
+  DefaultRequestOptions
 } from '@orbit/data';
 import {
   RecordSource,
@@ -23,7 +24,9 @@ import {
   RecordOperationResult,
   RecordQueryResult,
   RecordTransformResult,
-  RecordSourceQueryOptions
+  RecordSourceQueryOptions,
+  RecordQueryBuilder,
+  RecordTransformBuilder
 } from '@orbit/records';
 import {
   JSONAPIRequestProcessor,
@@ -73,8 +76,12 @@ export interface JSONAPITransformOptions
   extends RequestOptions,
     JSONAPISharedRequestOptions {}
 
-export interface JSONAPISourceSettings
-  extends RecordSourceSettings<JSONAPIQueryOptions, JSONAPITransformOptions> {
+export interface JSONAPISourceSettings<
+  QO extends JSONAPIQueryOptions = JSONAPIQueryOptions,
+  TO extends JSONAPITransformOptions = JSONAPITransformOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder
+> extends RecordSourceSettings<QO, TO, QB, TB> {
   /**
    * Deprecated in favor of `defaultTransformOptions.maxRequests`
    *
@@ -108,12 +115,16 @@ export interface JSONAPISourceSettings
   ) => JSONAPIURLBuilder;
 }
 
-export interface JSONAPISource
-  extends RecordSource<JSONAPIQueryOptions, JSONAPITransformOptions>,
+export interface JSONAPISource<
+  QO extends JSONAPIQueryOptions = JSONAPIQueryOptions,
+  TO extends JSONAPITransformOptions = JSONAPITransformOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder
+> extends RecordSource<QO, TO, QB, TB>,
     RecordPullable<JSONAPIResponse[]>,
     RecordPushable<JSONAPIResponse[]>,
-    RecordQueryable<JSONAPIResponse[]>,
-    RecordUpdatable<JSONAPIResponse[]> {}
+    RecordQueryable<JSONAPIResponse[], QB, QO>,
+    RecordUpdatable<JSONAPIResponse[], TB, TO> {}
 
 /**
  Source for accessing a JSON API compliant RESTful API with a network fetch
@@ -133,13 +144,21 @@ export interface JSONAPISource
 @pushable
 @queryable
 @updatable
-export class JSONAPISource extends RecordSource<
-  JSONAPIQueryOptions,
-  JSONAPITransformOptions
-> {
+export class JSONAPISource<
+    QO extends JSONAPIQueryOptions = JSONAPIQueryOptions,
+    TO extends JSONAPITransformOptions = JSONAPITransformOptions,
+    QB = RecordQueryBuilder,
+    TB = RecordTransformBuilder
+  >
+  extends RecordSource<QO, TO, QB, TB>
+  implements
+    RecordPullable<JSONAPIResponse[]>,
+    RecordPushable<JSONAPIResponse[]>,
+    RecordQueryable<JSONAPIResponse[], QB, QO>,
+    RecordUpdatable<JSONAPIResponse[], TB, TO> {
   requestProcessor: JSONAPIRequestProcessor;
 
-  constructor(settings: JSONAPISourceSettings) {
+  constructor(settings: JSONAPISourceSettings<QO, TO, QB, TB>) {
     settings.name = settings.name || 'jsonapi';
 
     super(settings);
@@ -167,8 +186,12 @@ export class JSONAPISource extends RecordSource<
       );
     }
 
-    this._defaultTransformOptions = this._defaultTransformOptions ?? {};
-    this._defaultQueryOptions = this._defaultQueryOptions ?? {};
+    if (this._defaultQueryOptions === undefined) {
+      this._defaultQueryOptions = {} as DefaultRequestOptions<QO>;
+    }
+    if (this._defaultTransformOptions === undefined) {
+      this._defaultTransformOptions = {} as DefaultRequestOptions<TO>;
+    }
 
     // Parallelize query requests by default (but not transform requests)
     if (this._defaultQueryOptions.parallelRequests === undefined) {
@@ -226,7 +249,9 @@ export class JSONAPISource extends RecordSource<
     deprecate(
       "The 'maxRequestsPerTransform' property for 'JSONAPSource' has been deprecated in favor of 'defaultTransformOptions.maxRequests'."
     );
-    this._defaultTransformOptions = this._defaultTransformOptions ?? {};
+    if (this._defaultTransformOptions === undefined) {
+      this._defaultTransformOptions = {} as DefaultRequestOptions<TO>;
+    }
     this._defaultTransformOptions.maxRequests = val;
   }
 
@@ -251,7 +276,9 @@ export class JSONAPISource extends RecordSource<
     deprecate(
       "The 'maxRequestsPerQuery' property for 'JSONAPSource' has been deprecated in favor of 'defaultQueryOptions.maxRequests'."
     );
-    this._defaultQueryOptions = this._defaultQueryOptions ?? {};
+    if (this._defaultQueryOptions === undefined) {
+      this._defaultQueryOptions = {} as DefaultRequestOptions<QO>;
+    }
     this._defaultQueryOptions.maxRequests = val;
   }
 

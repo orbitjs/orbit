@@ -43,6 +43,8 @@ export function some(
 /**
  * This function is similar to Array.prototype.find, but it returns the result
  * of calling the value function rather than an item of the array.
+ *
+ * @deprecated since v0.17, remove in v0.18
  */
 export function firstResult(
   array: any[],

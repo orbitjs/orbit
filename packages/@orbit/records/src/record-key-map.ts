@@ -1,4 +1,4 @@
-import { deepGet, deepSet, firstResult, Dict } from '@orbit/utils';
+import { deepGet, deepSet, Dict } from '@orbit/utils';
 import { InitializedRecord, UninitializedRecord } from './record';
 
 /**
@@ -23,14 +23,14 @@ export class RecordKeyMap {
   /**
    * Return a key value given a model type, key name, and id.
    */
-  idToKey(type: string, keyName: string, idValue: string): string {
+  idToKey(type: string, keyName: string, idValue: string): string | undefined {
     return deepGet(this._idsToKeys, [type, keyName, idValue]);
   }
 
   /**
    * Return an id value given a model type, key name, and key value.
    */
-  keyToId(type: string, keyName: string, keyValue: string): string {
+  keyToId(type: string, keyName: string, keyValue: string): string | undefined {
     return deepGet(this._keysToIds, [type, keyName, keyValue]);
   }
 
@@ -56,14 +56,12 @@ export class RecordKeyMap {
   /**
    * Given a record, find the cached id if it exists.
    */
-  idFromKeys(type: string, keys: Dict<string>): string {
-    let keyNames = Object.keys(keys);
-
-    return firstResult(keyNames, (keyName) => {
-      let keyValue = keys[keyName];
-      if (keyValue) {
-        return this.keyToId(type, keyName, keyValue);
+  idFromKeys(type: string, keys: Dict<string>): string | undefined {
+    for (let key of Object.keys(keys)) {
+      let value = keys[key];
+      if (value) {
+        return this.keyToId(type, key, value);
       }
-    });
+    }
   }
 }

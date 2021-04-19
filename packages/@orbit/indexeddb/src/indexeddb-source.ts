@@ -2,6 +2,7 @@ import { Orbit } from '@orbit/core';
 import {
   buildTransform,
   DefaultRequestOptions,
+  FullRequestOptions,
   FullResponse,
   pullable,
   pushable,
@@ -12,6 +13,7 @@ import {
   syncable,
   updatable
 } from '@orbit/data';
+import { RecordCacheUpdateDetails } from '@orbit/record-cache';
 import {
   RecordOperation,
   RecordOperationResult,
@@ -19,6 +21,7 @@ import {
   RecordPushable,
   RecordQuery,
   RecordQueryable,
+  RecordQueryBuilder,
   RecordQueryExpressionResult,
   RecordQueryResult,
   RecordSource,
@@ -26,6 +29,7 @@ import {
   RecordSourceSettings,
   RecordSyncable,
   RecordTransform,
+  RecordTransformBuilder,
   RecordTransformResult,
   RecordUpdatable,
   UpdateRecordOperation
@@ -39,19 +43,32 @@ import { supportsIndexedDB } from './lib/indexeddb';
 
 const { assert } = Orbit;
 
-export interface IndexedDBSourceSettings extends RecordSourceSettings {
+export interface IndexedDBSourceSettings<
+  QO extends RequestOptions = RecordSourceQueryOptions,
+  TO extends RequestOptions = RequestOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder,
+  QRD = unknown,
+  TRD extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
+> extends RecordSourceSettings<QO, TO, QB, TB> {
   namespace?: string;
-  cacheClass?: IndexedDBCacheClass;
-  cacheSettings?: Partial<IndexedDBCacheSettings>;
+  cacheClass?: IndexedDBCacheClass<QO, TO, QB, TB, QRD, TRD>;
+  cacheSettings?: Partial<IndexedDBCacheSettings<QO, TO, QB, TB>>;
 }
 
-export interface IndexedDBSource
-  extends RecordSource,
+export interface IndexedDBSource<
+  QO extends RequestOptions = RecordSourceQueryOptions,
+  TO extends RequestOptions = RequestOptions,
+  QB = RecordQueryBuilder,
+  TB = RecordTransformBuilder,
+  QRD = unknown,
+  TRD extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
+> extends RecordSource<QO, TO, QB, TB>,
     RecordSyncable,
-    RecordPullable<unknown>,
-    RecordPushable<unknown>,
-    RecordQueryable<unknown>,
-    RecordUpdatable<unknown>,
+    RecordPullable<QRD>,
+    RecordPushable<TRD>,
+    RecordQueryable<QRD, QB, QO>,
+    RecordUpdatable<TRD, TB, TO>,
     Resettable {}
 
 /**
@@ -62,10 +79,22 @@ export interface IndexedDBSource
 @queryable
 @updatable
 @syncable
-export class IndexedDBSource extends RecordSource {
-  protected _cache: IndexedDBCache;
+export class IndexedDBSource<
+    QO extends RequestOptions = RecordSourceQueryOptions,
+    TO extends RequestOptions = RequestOptions,
+    QB = RecordQueryBuilder,
+    TB = RecordTransformBuilder,
+    QRD = unknown,
+    TRD extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
+  >
+  extends RecordSource<QO, TO, QB, TB>
+  implements
+    RecordSyncable,
+    RecordQueryable<QRD, QB, QO>,
+    RecordUpdatable<TRD, TB, TO> {
+  protected _cache: IndexedDBCache<QO, TO, QB, TB, QRD, TRD>;
 
-  constructor(settings: IndexedDBSourceSettings) {
+  constructor(settings: IndexedDBSourceSettings<QO, TO, QB, TB, QRD, TRD>) {
     assert(
       "IndexedDBSource's `schema` must be specified in `settings.schema` constructor argument",
       !!settings.schema
@@ -78,7 +107,7 @@ export class IndexedDBSource extends RecordSource {
 
     super(settings);
 
-    const cacheSettings: Partial<IndexedDBCacheSettings> =
+    const cacheSettings: Partial<IndexedDBCacheSettings<QO, TO, QB, TB>> =
       settings.cacheSettings ?? {};
     cacheSettings.schema = settings.schema;
     cacheSettings.keyMap = settings.keyMap;
@@ -93,38 +122,32 @@ export class IndexedDBSource extends RecordSource {
       cacheSettings.defaultTransformOptions ?? settings.defaultTransformOptions;
 
     const cacheClass = settings.cacheClass ?? IndexedDBCache;
-    this._cache = new cacheClass(cacheSettings as IndexedDBCacheSettings);
+    this._cache = new cacheClass(
+      cacheSettings as IndexedDBCacheSettings<QO, TO, QB, TB>
+    );
 
     if (autoActivate) {
       this.activate();
     }
   }
 
-  get cache(): IndexedDBCache {
+  get cache(): IndexedDBCache<QO, TO, QB, TB, QRD, TRD> {
     return this._cache;
   }
 
-  get defaultQueryOptions():
-    | DefaultRequestOptions<RecordSourceQueryOptions>
-    | undefined {
+  get defaultQueryOptions(): DefaultRequestOptions<QO> | undefined {
     return super.defaultQueryOptions;
   }
 
-  set defaultQueryOptions(
-    options: DefaultRequestOptions<RecordSourceQueryOptions> | undefined
-  ) {
+  set defaultQueryOptions(options: DefaultRequestOptions<QO> | undefined) {
     super.defaultQueryOptions = this.cache.defaultQueryOptions = options;
   }
 
-  get defaultTransformOptions():
-    | DefaultRequestOptions<RequestOptions>
-    | undefined {
+  get defaultTransformOptions(): DefaultRequestOptions<TO> | undefined {
     return super.defaultTransformOptions;
   }
 
-  set defaultTransformOptions(
-    options: DefaultRequestOptions<RequestOptions> | undefined
-  ) {
+  set defaultTransformOptions(options: DefaultRequestOptions<TO> | undefined) {
     this._defaultTransformOptions = this.cache.defaultTransformOptions = options;
   }
 
@@ -167,12 +190,12 @@ export class IndexedDBSource extends RecordSource {
 
   async _update(
     transform: RecordTransform,
-    hints?: ResponseHints<RecordTransformResult, unknown>
-  ): Promise<FullResponse<RecordTransformResult, unknown, RecordOperation>> {
+    hints?: ResponseHints<RecordTransformResult, TRD>
+  ): Promise<FullResponse<RecordTransformResult, TRD, RecordOperation>> {
     let results: RecordTransformResult;
     const response: FullResponse<
       RecordTransformResult,
-      unknown,
+      TRD,
       RecordOperation
     > = {};
 
@@ -215,9 +238,9 @@ export class IndexedDBSource extends RecordSource {
 
   async _query(
     query: RecordQuery,
-    hints?: ResponseHints<RecordQueryResult, unknown>
-  ): Promise<FullResponse<RecordQueryResult, unknown, RecordOperation>> {
-    let response: FullResponse<RecordQueryResult, unknown, RecordOperation>;
+    hints?: ResponseHints<RecordQueryResult, QRD>
+  ): Promise<FullResponse<RecordQueryResult, QRD, RecordOperation>> {
+    let response: FullResponse<RecordQueryResult, QRD, RecordOperation>;
 
     if (hints?.data) {
       response = {};
@@ -234,7 +257,9 @@ export class IndexedDBSource extends RecordSource {
         );
       }
     } else {
-      response = await this._cache.query(query, { fullResponse: true });
+      response = await this._cache.query(query, {
+        fullResponse: true
+      } as FullRequestOptions<QO>);
     }
 
     if (hints?.details) {
@@ -250,8 +275,8 @@ export class IndexedDBSource extends RecordSource {
 
   async _push(
     transform: RecordTransform
-  ): Promise<FullResponse<undefined, unknown, RecordOperation>> {
-    const fullResponse: FullResponse<undefined, unknown, RecordOperation> = {};
+  ): Promise<FullResponse<undefined, TRD, RecordOperation>> {
+    const fullResponse: FullResponse<undefined, TRD, RecordOperation> = {};
 
     if (!this.transformLog.contains(transform.id)) {
       await this._cache.update(transform);
@@ -267,8 +292,8 @@ export class IndexedDBSource extends RecordSource {
 
   async _pull(
     query: RecordQuery
-  ): Promise<FullResponse<undefined, unknown, RecordOperation>> {
-    const fullResponse: FullResponse<undefined, unknown, RecordOperation> = {};
+  ): Promise<FullResponse<undefined, QRD, RecordOperation>> {
+    const fullResponse: FullResponse<undefined, QRD, RecordOperation> = {};
     let operations: RecordOperation[];
 
     const results = await this._cache.query(query);

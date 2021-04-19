@@ -7,43 +7,44 @@ export class SchemaError extends Exception {
   public description: string;
 
   constructor(description: string) {
-    super(`Schema error: ${description}`);
+    super(`Schema: ${description}`);
     this.description = description;
   }
 }
 
 /**
- * A model could not be found in the schema.
+ * A model is not defined in the schema.
  */
-export class ModelNotFound extends SchemaError {
+export class ModelNotDefined extends SchemaError {
   constructor(type: string) {
-    super(`Model definition for ${type} not found`);
+    super(`Model '${type}' not defined.`);
   }
 }
 
 /**
- * A relationship definition could not be found in the model definition
+ * An attribute definition could not be found in the model definition.
  */
-export class RelationshipNotFound extends SchemaError {
-  constructor(relationshipType: string, recordType: string) {
-    super(
-      `Relationship definition for ${relationshipType} not found for model definition ${recordType}`
-    );
+export class AttributeNotDefined extends SchemaError {
+  constructor(type: string, attribute: string) {
+    super(`Attribute '${attribute}' not defined for model '${type}'.`);
   }
 }
 
 /**
- * A related record of the incorrect type was attempted to be added to a relationship of a model definition
+ * A key definition could not be found in the model definition.
  */
-export class IncorrectRelatedRecordType extends SchemaError {
-  constructor(
-    relatedRecordType: string,
-    relationship: string,
-    recordType: string
-  ) {
-    super(
-      `Relationship definition ${relationship} for model definition ${recordType} does not accept record of type ${relatedRecordType}`
-    );
+export class KeyNotDefined extends SchemaError {
+  constructor(type: string, key: string) {
+    super(`Key '${key}' not defined for model '${type}'.`);
+  }
+}
+
+/**
+ * A relationship definition could not be found in the model definition.
+ */
+export class RelationshipNotDefined extends SchemaError {
+  constructor(type: string, relationship: string) {
+    super(`Relationship '${relationship}' not defined for model '${type}'.`);
   }
 }
 
@@ -54,18 +55,13 @@ export abstract class RecordException extends Exception {
   public description: string;
   public type: string;
   public id: string;
-  public relationship?: string;
+  public field?: string;
 
-  constructor(
-    description: string,
-    type: string,
-    id: string,
-    relationship?: string
-  ) {
+  constructor(description: string, type: string, id: string, field?: string) {
     let message = `${description}: ${type}:${id}`;
 
-    if (relationship) {
-      message += '/' + relationship;
+    if (field) {
+      message += '/' + field;
     }
 
     super(message);
@@ -73,7 +69,7 @@ export abstract class RecordException extends Exception {
     this.description = description;
     this.type = type;
     this.id = id;
-    this.relationship = relationship;
+    this.field = field;
   }
 }
 
@@ -83,5 +79,38 @@ export abstract class RecordException extends Exception {
 export class RecordNotFoundException extends RecordException {
   constructor(type: string, id: string) {
     super('Record not found', type, id);
+  }
+}
+
+/**
+ * Record attribute is an incorrect type.
+ */
+export class InvalidRecordAttributeType extends RecordException {
+  constructor(
+    type: string,
+    id: string,
+    attribute: string,
+    expectedType: string
+  ) {
+    super(`Expected attribute type '${expectedType}'`, type, id, attribute);
+  }
+}
+
+/**
+ * Related record is an incorrect type for a relationship.
+ */
+export class InvalidRelatedRecordType extends RecordException {
+  constructor(
+    type: string,
+    id: string,
+    relationship: string,
+    invalidType: string
+  ) {
+    super(
+      `Record of type '${invalidType}' is not allowed in relationship`,
+      type,
+      id,
+      relationship
+    );
   }
 }

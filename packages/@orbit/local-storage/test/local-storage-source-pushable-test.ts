@@ -31,13 +31,19 @@ module('LocalStorageSource - pushable', function (hooks) {
           },
           relationships: {
             moons: { kind: 'hasMany', type: 'moon' },
-            solarSystem: { kind: 'hasMany', type: 'solarSystem' }
+            solarSystem: { kind: 'hasOne', type: 'solarSystem' }
           }
         },
         moon: {
+          attributes: {
+            name: { type: 'string' }
+          },
           keys: { remoteId: {} }
         },
         solarSystem: {
+          attributes: {
+            name: { type: 'string' }
+          },
           keys: { remoteId: {} }
         }
       }
