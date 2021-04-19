@@ -28,6 +28,7 @@ export type RecordTransformBuilderFunc = TransformBuilderFunc<
 >;
 
 export interface RecordTransformBuilderSettings<
+  RT = string,
   RI = RecordIdentity,
   R = UninitializedRecord
 > {
@@ -36,16 +37,17 @@ export interface RecordTransformBuilderSettings<
    */
   recordInitializer?: RecordInitializer;
 
-  normalizer?: RecordNormalizer<RI, R>;
+  normalizer?: RecordNormalizer<RT, RI, R>;
 }
 
 export class RecordTransformBuilder<
+  RT = string,
   RI = RecordIdentity,
   R = UninitializedRecord
 > {
-  protected _normalizer?: RecordNormalizer<RI, R>;
+  protected _normalizer?: RecordNormalizer<RT, RI, R>;
 
-  constructor(settings: RecordTransformBuilderSettings<RI, R> = {}) {
+  constructor(settings: RecordTransformBuilderSettings<RT, RI, R> = {}) {
     this._normalizer = settings.normalizer;
 
     const { recordInitializer } = settings;
@@ -59,6 +61,9 @@ export class RecordTransformBuilder<
           'A `recordInitializer` has been assigned to the `TransformBuilder`. The `recordInitializer` setting has been deprecated in favor of `normalizer`, and will be treated as if it were a `RecordNormalizer`.'
         );
         this._normalizer = {
+          normalizeRecordType(type: RT): string {
+            return (type as unknown) as string;
+          },
           normalizeRecord(record: R) {
             return recordInitializer.initializeRecord(
               (record as unknown) as UninitializedRecord
@@ -72,7 +77,7 @@ export class RecordTransformBuilder<
     }
   }
 
-  get normalizer(): RecordNormalizer<RI, R> | undefined {
+  get normalizer(): RecordNormalizer<RT, RI, R> | undefined {
     return this._normalizer;
   }
 

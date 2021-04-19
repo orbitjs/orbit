@@ -24,7 +24,11 @@ export interface StandardRecordNormalizerSettings {
 
 export class StandardRecordNormalizer
   implements
-    RecordNormalizer<RecordIdentity | RecordKeyValue, UninitializedRecord> {
+    RecordNormalizer<
+      string,
+      RecordIdentity | RecordKeyValue,
+      UninitializedRecord
+    > {
   schema: RecordSchema;
   keyMap?: RecordKeyMap;
   cloneInputs?: boolean;
@@ -46,6 +50,22 @@ export class StandardRecordNormalizer
     } else {
       this.validateInputs = validateInputs;
     }
+  }
+
+  normalizeRecordType(type: string): string {
+    if (this.validateInputs) {
+      if (typeof type !== 'string') {
+        throw new Assertion(
+          'StandardRecordNormalizer expects record types to be strings'
+        );
+      }
+
+      if (!this.schema.hasModel(type)) {
+        throw new ModelNotDefined(type);
+      }
+    }
+
+    return type;
   }
 
   normalizeRecordIdentity(

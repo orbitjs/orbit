@@ -82,6 +82,26 @@ module('StandardRecordNormalizer', function (hooks) {
     Orbit.debug = true;
   });
 
+  test('#normalizeRecordType will return a string unmodified by default', function (assert) {
+    normalizer = new StandardRecordNormalizer({ schema });
+
+    assert.strictEqual(normalizer.normalizeRecordType('moon'), 'moon');
+  });
+
+  test('#normalizeRecordType will check that `type` is a string exists in schema in `validateInputs` mode', function (assert) {
+    normalizer = new StandardRecordNormalizer({ schema, validateInputs: true });
+
+    assert.strictEqual(normalizer.normalizeRecordType('moon'), 'moon');
+
+    assert.throws(() => {
+      normalizer.normalizeRecordType({ type: 'moon' } as any);
+    }, new Error(`Assertion failed: StandardRecordNormalizer expects record types to be strings`));
+
+    assert.throws(() => {
+      normalizer.normalizeRecordType('FAKE');
+    }, new Error(`Schema: Model 'FAKE' not defined.`));
+  });
+
   test('#normalizeRecordIdentity will return a complete record identity unmodified by default', function (assert) {
     normalizer = new StandardRecordNormalizer({ schema });
 

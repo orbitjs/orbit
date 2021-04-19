@@ -14,18 +14,18 @@ export type RecordQueryBuilderFunc = QueryBuilderFunc<
   RecordQueryBuilder
 >;
 
-export interface RecordQueryBuilderSettings<RI = RecordIdentity> {
-  normalizer?: RecordNormalizer<RI>;
+export interface RecordQueryBuilderSettings<RT = string, RI = RecordIdentity> {
+  normalizer?: RecordNormalizer<RT, RI>;
 }
 
-export class RecordQueryBuilder<RI = RecordIdentity> {
-  protected _normalizer?: RecordNormalizer<RI>;
+export class RecordQueryBuilder<RT = string, RI = RecordIdentity> {
+  protected _normalizer?: RecordNormalizer<RT, RI>;
 
-  constructor(settings: RecordQueryBuilderSettings<RI> = {}) {
+  constructor(settings: RecordQueryBuilderSettings<RT, RI> = {}) {
     this._normalizer = settings.normalizer;
   }
 
-  get normalizer(): RecordNormalizer<RI> | undefined {
+  get normalizer(): RecordNormalizer<RT, RI> | undefined {
     return this._normalizer;
   }
 
@@ -41,13 +41,15 @@ export class RecordQueryBuilder<RI = RecordIdentity> {
    *
    * If `type` is unspecified, find all records unfiltered by type.
    */
-  findRecords(typeOrIdentities?: string | RI[]): FindRecordsTerm {
+  findRecords(typeOrIdentities?: RT | RI[]): FindRecordsTerm {
     if (Array.isArray(typeOrIdentities)) {
       return new FindRecordsTerm(
         typeOrIdentities.map((ri) => this.normalizeRecordIdentity(ri))
       );
+    } else if (typeOrIdentities === undefined) {
+      return new FindRecordsTerm();
     } else {
-      return new FindRecordsTerm(typeOrIdentities);
+      return new FindRecordsTerm(this.normalizeRecordType(typeOrIdentities));
     }
   }
 
@@ -69,6 +71,14 @@ export class RecordQueryBuilder<RI = RecordIdentity> {
       this.normalizeRecordIdentity(record),
       relationship
     );
+  }
+
+  protected normalizeRecordType(recordType: RT): string {
+    if (this._normalizer !== undefined) {
+      return this._normalizer.normalizeRecordType(recordType);
+    } else {
+      return (recordType as unknown) as string;
+    }
   }
 
   protected normalizeRecordIdentity(recordIdentity: RI): RecordIdentity {
