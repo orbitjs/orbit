@@ -284,10 +284,19 @@ export class JSONAPISerializer
     }
     const serializer = this.serializerFor(attrOptions.type || 'unknown');
     if (serializer) {
+      const serializationOptions =
+        attrOptions.serialization ?? (attrOptions as any).serializationOptions;
+
+      if ((attrOptions as any).serializationOptions !== undefined) {
+        deprecate(
+          `The attribute '${attr}' for '${record.type}' has been assigned \`serializationOptions\` in the schema. Use \`serialization\` instead.`
+        );
+      }
+
       value =
         value === null
           ? null
-          : serializer.serialize(value, attrOptions.serializationOptions);
+          : serializer.serialize(value, serializationOptions);
     }
     deepSet(
       resource,
@@ -517,12 +526,22 @@ export class JSONAPISerializer
     record.attributes = record.attributes || {};
     if (value !== undefined && value !== null) {
       const attrOptions = model.attributes?.[attr];
+      if (attrOptions === undefined) {
+        return;
+      }
       const serializer = this.serializerFor(attrOptions?.type || 'unknown');
       if (serializer) {
-        value = serializer.deserialize(
-          value,
-          attrOptions?.deserializationOptions
-        );
+        const deserializationOptions =
+          attrOptions.deserialization ??
+          (attrOptions as any).deserializationOptions;
+
+        if ((attrOptions as any).deserializationOptions !== undefined) {
+          deprecate(
+            `The attribute '${attr}' for '${record.type}' has been assigned \`deserializationOptions\` in the schema. Use \`deserialization\` instead.`
+          );
+        }
+
+        value = serializer.deserialize(value, deserializationOptions);
       }
     }
     record.attributes[attr] = value;
