@@ -1,10 +1,9 @@
 import { NoopSerializer } from '../src/noop-serializer';
-import { BooleanSerializer } from '../src/boolean-serializer';
-import { UnknownSerializerClass } from '../src/serializer';
+import { SerializerClass } from '../src/serializer';
 import {
   buildSerializerClassFor,
-  buildSerializerSettingsFor,
-  buildSerializerFor
+  buildSerializerFor,
+  buildSerializerSettingsFor
 } from '../src/serializer-builders';
 import { StringSerializer } from '../src/string-serializer';
 
@@ -13,13 +12,13 @@ const { module, test } = QUnit;
 module('Serializer builders', function (hooks) {
   test('buildSerializerClassFor returns fn that returns serializer classes', function (assert) {
     const serializerClassFor = buildSerializerClassFor({
-      boolean: BooleanSerializer as UnknownSerializerClass,
+      string: StringSerializer as SerializerClass,
       noop: NoopSerializer
     });
 
     assert.strictEqual(
-      serializerClassFor('boolean'),
-      BooleanSerializer as UnknownSerializerClass
+      serializerClassFor('string'),
+      StringSerializer as SerializerClass
     );
     assert.strictEqual(serializerClassFor('noop'), NoopSerializer);
     assert.strictEqual(serializerClassFor('unrecognized'), undefined);
@@ -31,21 +30,21 @@ module('Serializer builders', function (hooks) {
         foo: 'bar'
       },
       settingsByType: {
-        boolean: {
-          serializationOptions: { disallowNull: true }
+        string: {
+          serializationOptions: { inflectors: ['pluralize'] }
         },
         noop: {
           foo: 'baz',
-          serializationOptions: { disallowNull: false }
+          serializationOptions: { a: 'b' }
         }
       }
     });
 
     assert.deepEqual(
-      serializerSettingsFor('boolean'),
+      serializerSettingsFor('string'),
       {
         foo: 'bar',
-        serializationOptions: { disallowNull: true }
+        serializationOptions: { inflectors: ['pluralize'] }
       },
       'shared settings will be merged with typed settings'
     );
@@ -53,7 +52,7 @@ module('Serializer builders', function (hooks) {
       serializerSettingsFor('noop'),
       {
         foo: 'baz',
-        serializationOptions: { disallowNull: false }
+        serializationOptions: { a: 'b' }
       },
       'shared settings will be overridden by typed settings'
     );
@@ -68,7 +67,7 @@ module('Serializer builders', function (hooks) {
 
   test('buildSerializerFor returns fn that returns serializer', function (assert) {
     const serializerClassFor = buildSerializerClassFor({
-      string: StringSerializer as UnknownSerializerClass,
+      string: StringSerializer as SerializerClass,
       noop: NoopSerializer
     });
 
