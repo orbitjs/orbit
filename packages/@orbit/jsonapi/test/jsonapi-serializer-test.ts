@@ -258,8 +258,8 @@ module('JSONAPISerializer', function (hooks) {
             birthtime: { type: 'datetime' },
             height: {
               type: 'distance',
-              serializationOptions: { format: 'cm', digits: 2 },
-              deserializationOptions: { format: 'cm' }
+              serialization: { format: 'cm', digits: 2 },
+              deserialization: { format: 'cm' }
             },
             isAdult: { type: 'boolean' }
           }

@@ -1,5 +1,5 @@
 import { Dict } from '@orbit/utils';
-import { BaseSerializationOptions, BaseSerializer } from './base-serializer';
+import { BaseSerializer } from './base-serializer';
 import { Inflector } from './inflector';
 import {
   standardInflectors,
@@ -9,7 +9,7 @@ import {
 
 export type InflectorOrName = Inflector | StandardInflectorName;
 
-export interface StringSerializationOptions extends BaseSerializationOptions {
+export interface StringSerializationOptions {
   inflectors?: InflectorOrName[];
 }
 
@@ -21,8 +21,8 @@ export interface StringSerializerSettings {
 }
 
 export class StringSerializer extends BaseSerializer<
-  string | null,
-  string | null,
+  string,
+  string,
   StringSerializationOptions,
   StringSerializationOptions
 > {
@@ -39,27 +39,15 @@ export class StringSerializer extends BaseSerializer<
       this.serializationOptions &&
       this.deserializationOptions === undefined
     ) {
-      const { disallowNull, inflectors } = this.serializationOptions;
+      const { inflectors } = this.serializationOptions;
       this.deserializationOptions = {
-        disallowNull,
         inflectors: this.buildInverseInflectors(inflectors)
       };
     }
   }
 
-  serialize(
-    arg: string | null,
-    customOptions?: StringSerializationOptions
-  ): string | null {
+  serialize(arg: string, customOptions?: StringSerializationOptions): string {
     const options = this.buildSerializationOptions(customOptions);
-
-    if (arg === null) {
-      if (options.disallowNull) {
-        throw new Error('null values are not allowed');
-      }
-      return null;
-    }
-
     const { inflectors } = options;
     let result = arg;
 
@@ -72,19 +60,8 @@ export class StringSerializer extends BaseSerializer<
     return result;
   }
 
-  deserialize(
-    arg: string | null,
-    customOptions?: StringSerializationOptions
-  ): string | null {
+  deserialize(arg: string, customOptions?: StringSerializationOptions): string {
     const options = this.buildDeserializationOptions(customOptions);
-
-    if (arg === null) {
-      if (options.disallowNull) {
-        throw new Error('null values are not allowed');
-      }
-      return null;
-    }
-
     const { inflectors } = options;
     let result = arg;
 

@@ -12,8 +12,8 @@ const { uuid, deprecate } = Orbit;
 
 export interface AttributeDefinition {
   type?: string;
-  serializationOptions?: Dict<unknown>;
-  deserializationOptions?: Dict<unknown>;
+  serialization?: Dict<unknown>;
+  deserialization?: Dict<unknown>;
   meta?: Dict<unknown>;
 }
 

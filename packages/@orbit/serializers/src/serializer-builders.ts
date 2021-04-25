@@ -1,25 +1,25 @@
-import { UnknownSerializer, UnknownSerializerClass } from './serializer';
+import { Serializer, SerializerClass } from './serializer';
 import { Dict } from '@orbit/utils';
 
-export type SerializerForFn = (type: string) => UnknownSerializer | undefined;
+export type SerializerForFn<S = Serializer> = (type: string) => S | undefined;
 
-export function buildSerializerFor(settings: {
-  serializers?: Dict<UnknownSerializer>;
-  serializerClassFor?: SerializerClassForFn;
+export function buildSerializerFor<S = Serializer>(settings: {
+  serializers?: Dict<S>;
+  serializerClassFor?: SerializerClassForFn<S>;
   serializerSettingsFor?: SerializerSettingsForFn;
-}): SerializerForFn {
-  const customSerializers = settings.serializers || {};
+}): SerializerForFn<S> {
+  const customSerializers = settings.serializers ?? {};
   const serializers = {
     ...customSerializers
   };
   const serializerClassFor = settings.serializerClassFor;
   const serializerSettingsFor = settings.serializerSettingsFor;
 
-  function serializerFor(type: string): UnknownSerializer | undefined {
-    return serializers[type] || createSerializer(type);
+  function serializerFor(type: string): S | undefined {
+    return (serializers[type] as S) ?? createSerializer(type);
   }
 
-  function createSerializer(type: string): UnknownSerializer | undefined {
+  function createSerializer(type: string): S | undefined {
     const SerializerClass = serializerClassFor && serializerClassFor(type);
     if (SerializerClass) {
       const settings =
@@ -34,11 +34,13 @@ export function buildSerializerFor(settings: {
   return serializerFor;
 }
 
-export type SerializerClassForFn = (type: string) => UnknownSerializerClass;
+export type SerializerClassForFn<S = Serializer> = (
+  type: string
+) => SerializerClass<S>;
 
-export function buildSerializerClassFor(
-  serializerClasses: Dict<UnknownSerializerClass> = {}
-): SerializerClassForFn {
+export function buildSerializerClassFor<S = Serializer>(
+  serializerClasses: Dict<SerializerClass<S>> = {}
+): SerializerClassForFn<S> {
   return (type: string) => serializerClasses[type];
 }
 

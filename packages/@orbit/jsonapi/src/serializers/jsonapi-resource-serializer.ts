@@ -1,5 +1,5 @@
 import { deepSet } from '@orbit/utils';
-import { Assertion } from '@orbit/core';
+import { Assertion, Orbit } from '@orbit/core';
 import {
   InitializedRecord,
   RecordIdentity,
@@ -9,6 +9,7 @@ import { Resource, ResourceIdentity } from '../resource-document';
 import { JSONAPIBaseSerializer } from './jsonapi-base-serializer';
 import { JSONAPIResourceIdentityDeserializationOptions } from './jsonapi-resource-identity-serializer';
 
+const { deprecate } = Orbit;
 export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
   InitializedRecord,
   Resource,
@@ -75,17 +76,25 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
       return;
     }
 
-    let resValue: any;
+    let resValue: unknown;
     if (value === null) {
       resValue = null;
     } else {
-      const type = fieldOptions.type || 'unknown';
+      const type = fieldOptions.type ?? 'unknown';
       const serializer = this.serializerFor(type);
       if (serializer) {
-        resValue = serializer.serialize(
-          value,
-          fieldOptions.serializationOptions
-        );
+        const serializationOptions =
+          fieldOptions.serialization ??
+          (fieldOptions as any).serializationOptions;
+
+        if ((fieldOptions as any).serializationOptions !== undefined) {
+          // TODO: Remove in v0.18
+          deprecate(
+            `The attribute '${field}' for '${record.type}' has been assigned \`serializationOptions\` in the schema. Use \`serialization\` instead.`
+          );
+        }
+
+        resValue = serializer.serialize(value, serializationOptions);
       } else {
         throw new Assertion(
           `Serializer could not be found for attribute type '${type}'`
@@ -196,17 +205,25 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
       return;
     }
 
-    let value: any;
+    let value: unknown;
     if (resValue === null) {
       value = null;
     } else {
       const type = fieldOptions.type || 'unknown';
       const serializer = this.serializerFor(type);
       if (serializer) {
-        value = serializer.deserialize(
-          resValue,
-          fieldOptions.serializationOptions
-        );
+        const deserializationOptions =
+          fieldOptions.deserialization ??
+          (fieldOptions as any).deserializationOptions;
+
+        if ((fieldOptions as any).deserializationOptions !== undefined) {
+          // TODO: Remove in v0.18
+          deprecate(
+            `The attribute '${field}' for '${record.type}' has been assigned \`deserializationOptions\` in the schema. Use \`deserialization\` instead.`
+          );
+        }
+
+        value = serializer.deserialize(resValue, deserializationOptions);
       } else {
         throw new Assertion(
           `Serializer could not be found for attribute type '${type}'`

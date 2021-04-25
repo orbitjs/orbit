@@ -1,53 +1,11 @@
-import { BaseSerializer, BaseSerializationOptions } from './base-serializer';
+import { BaseSerializer } from './base-serializer';
 
-export interface BooleanSerializerSettings {
-  serializationOptions?: BaseSerializationOptions;
-  deserializationOptions?: BaseSerializationOptions;
-}
-
-export class BooleanSerializer extends BaseSerializer<
-  boolean | null,
-  boolean | null,
-  BaseSerializationOptions,
-  BaseSerializationOptions
-> {
-  constructor(settings?: BooleanSerializerSettings) {
-    super(settings);
-
-    if (
-      this.serializationOptions &&
-      this.deserializationOptions === undefined
-    ) {
-      const { disallowNull } = this.serializationOptions;
-      this.deserializationOptions = {
-        disallowNull
-      };
-    }
+export class BooleanSerializer extends BaseSerializer<boolean, boolean> {
+  serialize(arg: boolean): boolean {
+    return arg ? true : false;
   }
 
-  serialize(
-    arg: boolean | null,
-    customOptions?: BaseSerializationOptions
-  ): boolean | null {
-    const options = this.buildSerializationOptions(customOptions);
-
-    if (arg === null && options.disallowNull) {
-      throw new Error('null values are not allowed');
-    }
-
-    return arg;
-  }
-
-  deserialize(
-    arg: boolean | null,
-    customOptions?: BaseSerializationOptions
-  ): boolean | null {
-    const options = this.buildDeserializationOptions(customOptions);
-
-    if (arg === null && options.disallowNull) {
-      throw new Error('null values are not allowed');
-    }
-
-    return arg;
+  deserialize(arg: boolean): boolean {
+    return arg ? true : false;
   }
 }
