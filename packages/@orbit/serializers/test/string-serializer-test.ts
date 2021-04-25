@@ -18,50 +18,6 @@ module('StringSerializer', function (hooks) {
     test('#deserialize returns arg untouched', function (assert) {
       assert.equal(serializer.deserialize('abc'), 'abc');
     });
-
-    test('#serialize returns nulls', function (assert) {
-      assert.equal(serializer.serialize(null), null);
-    });
-
-    test('#deserialize returns nulls', function (assert) {
-      assert.equal(serializer.deserialize(null), null);
-    });
-  });
-
-  module('serializationOptions: { disallowNull: false }', function (hooks) {
-    hooks.beforeEach(function () {
-      serializer = new StringSerializer({
-        serializationOptions: { disallowNull: false }
-      });
-    });
-
-    test('#serialize returns nulls', function (assert) {
-      assert.equal(serializer.serialize(null), null);
-    });
-
-    test('#deserialize returns nulls', function (assert) {
-      assert.equal(serializer.deserialize(null), null);
-    });
-  });
-
-  module('serializationOptions: { disallowNull: true }', function (hooks) {
-    hooks.beforeEach(function () {
-      serializer = new StringSerializer({
-        serializationOptions: { disallowNull: true }
-      });
-    });
-
-    test('#serialize throws error on null', function (assert) {
-      assert.throws(() => {
-        serializer.serialize(null);
-      }, 'null is not allowed');
-    });
-
-    test('#deserialize throws error on null', function (assert) {
-      assert.throws(() => {
-        serializer.deserialize(null);
-      }, 'null is not allowed');
-    });
   });
 
   module(

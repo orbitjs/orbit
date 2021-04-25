@@ -1,15 +1,11 @@
 import { Serializer } from './serializer';
 import { SerializerForFn } from './serializer-builders';
 
-export interface BaseSerializationOptions {
-  disallowNull?: boolean;
-}
-
 export abstract class BaseSerializer<
   From,
   To,
-  SerializationOptions,
-  DeserializationOptions
+  SerializationOptions = unknown,
+  DeserializationOptions = unknown
 > implements
     Serializer<From, To, SerializationOptions, DeserializationOptions> {
   serializerFor?: SerializerForFn;

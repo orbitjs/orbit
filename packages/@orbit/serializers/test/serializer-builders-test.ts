@@ -6,6 +6,7 @@ import {
   buildSerializerSettingsFor,
   buildSerializerFor
 } from '../src/serializer-builders';
+import { StringSerializer } from '../src/string-serializer';
 
 const { module, test } = QUnit;
 
@@ -67,7 +68,7 @@ module('Serializer builders', function (hooks) {
 
   test('buildSerializerFor returns fn that returns serializer', function (assert) {
     const serializerClassFor = buildSerializerClassFor({
-      boolean: BooleanSerializer as UnknownSerializerClass,
+      string: StringSerializer as UnknownSerializerClass,
       noop: NoopSerializer
     });
 
@@ -76,12 +77,11 @@ module('Serializer builders', function (hooks) {
         foo: 'bar'
       },
       settingsByType: {
-        boolean: {
-          serializationOptions: { disallowNull: true }
+        string: {
+          serializationOptions: { inflectors: ['pluralize'] }
         },
         noop: {
-          foo: 'baz',
-          serializationOptions: { disallowNull: false }
+          foo: 'baz'
         }
       }
     });
@@ -98,15 +98,16 @@ module('Serializer builders', function (hooks) {
       serializers
     });
 
-    assert.strictEqual(
-      (serializerFor('boolean') as BooleanSerializer).serialize(true),
-      true,
+    assert.ok(
+      serializerFor('string') instanceof StringSerializer,
       'serializerFor returns a serializer created from a provided class'
     );
 
-    assert.throws(() => {
-      (serializerFor('boolean') as BooleanSerializer).serialize(null);
-    }, 'type-specific settings (such as disallowNull) will be passed into the constructor');
+    assert.strictEqual(
+      (serializerFor('string') as StringSerializer).serialize('brownCow'),
+      'brownCows',
+      'type-specific settings are used by the serializer'
+    );
 
     assert.strictEqual(
       serializerFor('noop'),
