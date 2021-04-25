@@ -9,7 +9,8 @@ import { JSONAPIResourceSerializer } from '../../src/serializers/jsonapi-resourc
 import {
   Serializer,
   buildSerializerClassFor,
-  buildSerializerSettingsFor
+  buildSerializerSettingsFor,
+  SerializerClass
 } from '@orbit/serializers';
 import { buildJSONAPISerializerFor } from '../../src/serializers/jsonapi-serializer-builder';
 import { JSONAPISerializers } from '../../src/serializers/jsonapi-serializers';
@@ -520,14 +521,14 @@ module('JSONAPIResourceSerializer', function (hooks) {
       }
 
       class MysterySerializer
-        implements Serializer<unknown, SerializedMystery, any, any> {
-        serialize(arg: unknown, options?: any): SerializedMystery {
+        implements Serializer<unknown, SerializedMystery> {
+        serialize(arg: unknown): SerializedMystery {
           return {
             whatDoWeHaveHere: arg
           };
         }
 
-        deserialize(arg: SerializedMystery, options?: any): unknown {
+        deserialize(arg: SerializedMystery): unknown {
           return arg.whatDoWeHaveHere;
         }
       }
@@ -538,7 +539,7 @@ module('JSONAPIResourceSerializer', function (hooks) {
         let schema = new RecordSchema({ models: modelDefinitions });
         const serializerClassFor = buildSerializerClassFor({
           distance: DistanceSerializer,
-          unknown: MysterySerializer
+          unknown: MysterySerializer as SerializerClass
         });
         const serializerSettingsFor = buildSerializerSettingsFor({
           settingsByType: {

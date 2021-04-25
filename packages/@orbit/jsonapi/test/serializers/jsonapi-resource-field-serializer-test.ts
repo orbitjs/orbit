@@ -22,14 +22,6 @@ module('JSONAPIResourceFieldSerializer', function (hooks) {
     test('#deserialize returns arg untouched', function (assert) {
       assert.equal(serializer.deserialize('abc'), 'abc');
     });
-
-    test('#serialize returns nulls', function (assert) {
-      assert.equal(serializer.serialize(null), null);
-    });
-
-    test('#deserialize returns nulls', function (assert) {
-      assert.equal(serializer.deserialize(null), null);
-    });
   });
 
   module(

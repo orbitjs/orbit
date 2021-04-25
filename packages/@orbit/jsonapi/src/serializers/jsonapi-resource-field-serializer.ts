@@ -10,16 +10,16 @@ export interface JSONAPIResourceFieldSerializationOptions
 
 export class JSONAPIResourceFieldSerializer extends StringSerializer {
   serialize(
-    arg: string | null,
+    arg: string,
     customOptions?: JSONAPIResourceFieldSerializationOptions
-  ): string | null {
+  ): string {
     return super.serialize(arg, customOptions as StringSerializationOptions);
   }
 
   deserialize(
-    arg: string | null,
+    arg: string,
     customOptions?: JSONAPIResourceFieldSerializationOptions
-  ): string | null {
+  ): string {
     return super.deserialize(arg, customOptions as StringSerializationOptions);
   }
 }

@@ -10,7 +10,6 @@ import {
 } from '@orbit/records';
 import {
   Serializer,
-  UnknownSerializer,
   SerializerForFn,
   StringSerializer,
   buildSerializerSettingsFor
@@ -44,7 +43,7 @@ export interface JSONAPISerializationOptions {
 export interface JSONAPISerializerSettings {
   schema: RecordSchema;
   keyMap?: RecordKeyMap;
-  serializers?: Dict<UnknownSerializer>;
+  serializers?: Dict<Serializer>;
 }
 
 /**

@@ -80,7 +80,7 @@ export class JSONAPIResourceSerializer extends JSONAPIBaseSerializer<
     if (value === null) {
       resValue = null;
     } else {
-      const type = fieldOptions.type || 'unknown';
+      const type = fieldOptions.type ?? 'unknown';
       const serializer = this.serializerFor(type);
       if (serializer) {
         const serializationOptions =
