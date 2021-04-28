@@ -1,0 +1,3 @@
+{
+  "extends": "../build/snowpack.config.json"
+}

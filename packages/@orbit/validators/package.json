@@ -1,0 +1,41 @@
+{
+  "name": "@orbit/validators",
+  "version": "0.17.0-beta.14",
+  "description": "Validators for Orbit.",
+  "contributors": [
+    "Dan Gebhardt <dan@cerebris.com>"
+  ],
+  "keywords": [
+    "orbit",
+    "orbit.js",
+    "data",
+    "synchronization"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": "https://github.com/orbitjs/orbit",
+  "license": "MIT",
+  "main": "dist/commonjs/index.js",
+  "module": "dist/modules/index.js",
+  "types": "dist/modules/index.d.ts",
+  "scripts": {
+    "build": "rm -rf ./dist && yarn build:modules && yarn build:commonjs",
+    "build:modules": "tsc --project ./tsconfig.modules.json",
+    "build:commonjs": "tsc --project ./tsconfig.commonjs.json",
+    "compile": "tsc",
+    "clean": "git clean -x -f",
+    "lint": "eslint . --ext .ts",
+    "prepare": "yarn build",
+    "prepublishOnly": "yarn clean",
+    "start": "node ../build dev && snowpack dev",
+    "test": "node ../build ci && snowpack build && testem ci"
+  },
+  "dependencies": {
+    "@orbit/utils": "^0.17.0-beta.14"
+  },
+  "devDependencies": {
+    "@orbit/build": "^0.17.0-beta.12"
+  },
+  "prettier": "@orbit/prettier-config"
+}
