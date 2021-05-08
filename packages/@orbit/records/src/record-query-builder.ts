@@ -1,13 +1,22 @@
+import { Orbit } from '@orbit/core';
 import { QueryBuilderFunc } from '@orbit/data';
+import { StandardValidator, ValidatorForFn } from '@orbit/validators';
 import { RecordIdentity } from './record';
 import { RecordNormalizer } from './record-normalizer';
-import { RecordQueryExpression } from './record-query-expression';
+import {
+  FindRecords,
+  FindRelatedRecords,
+  RecordQueryExpression
+} from './record-query-expression';
 import {
   FindRecordsTerm,
   FindRecordTerm,
-  FindRelatedRecordsTerm,
   FindRelatedRecordTerm
 } from './record-query-term';
+import { RecordSchema } from './record-schema';
+import { StandardRecordValidator } from './record-validators/standard-record-validators';
+
+const { assert } = Orbit;
 
 export type RecordQueryBuilderFunc = QueryBuilderFunc<
   RecordQueryExpression,
@@ -15,25 +24,36 @@ export type RecordQueryBuilderFunc = QueryBuilderFunc<
 >;
 
 export interface RecordQueryBuilderSettings<RT = string, RI = RecordIdentity> {
+  schema?: RecordSchema;
   normalizer?: RecordNormalizer<RT, RI>;
+  validatorFor?: ValidatorForFn<StandardValidator | StandardRecordValidator>;
 }
 
 export class RecordQueryBuilder<RT = string, RI = RecordIdentity> {
-  protected _normalizer?: RecordNormalizer<RT, RI>;
+  $schema?: RecordSchema;
+  $normalizer?: RecordNormalizer<RT, RI>;
+  $validatorFor?: ValidatorForFn<StandardValidator | StandardRecordValidator>;
 
   constructor(settings: RecordQueryBuilderSettings<RT, RI> = {}) {
-    this._normalizer = settings.normalizer;
-  }
+    const { schema, normalizer, validatorFor } = settings;
 
-  get normalizer(): RecordNormalizer<RT, RI> | undefined {
-    return this._normalizer;
+    if (validatorFor) {
+      assert(
+        'A RecordQueryBuilder that has been assigned a `validatorFor` requires a `schema`',
+        schema !== undefined
+      );
+    }
+
+    this.$schema = schema;
+    this.$normalizer = normalizer;
+    this.$validatorFor = validatorFor;
   }
 
   /**
    * Find a record by its identity.
    */
-  findRecord(record: RI): FindRecordTerm {
-    return new FindRecordTerm(this.normalizeRecordIdentity(record));
+  findRecord(record: RI): FindRecordTerm<RT, RI> {
+    return new FindRecordTerm(this, this.$normalizeRecordIdentity(record));
   }
 
   /**
@@ -41,24 +61,32 @@ export class RecordQueryBuilder<RT = string, RI = RecordIdentity> {
    *
    * If `type` is unspecified, find all records unfiltered by type.
    */
-  findRecords(typeOrIdentities?: RT | RI[]): FindRecordsTerm {
+  findRecords(typeOrIdentities?: RT | RI[]): FindRecordsTerm<RT, RI> {
+    const expression: FindRecords = {
+      op: 'findRecords'
+    };
+
     if (Array.isArray(typeOrIdentities)) {
-      return new FindRecordsTerm(
-        typeOrIdentities.map((ri) => this.normalizeRecordIdentity(ri))
+      expression.records = typeOrIdentities.map((ri) =>
+        this.$normalizeRecordIdentity(ri)
       );
-    } else if (typeOrIdentities === undefined) {
-      return new FindRecordsTerm();
-    } else {
-      return new FindRecordsTerm(this.normalizeRecordType(typeOrIdentities));
+    } else if (typeOrIdentities !== undefined) {
+      expression.type = this.$normalizeRecordType(typeOrIdentities);
     }
+
+    return new FindRecordsTerm(this, expression);
   }
 
   /**
    * Find a record in a to-one relationship.
    */
-  findRelatedRecord(record: RI, relationship: string): FindRelatedRecordTerm {
+  findRelatedRecord(
+    record: RI,
+    relationship: string
+  ): FindRelatedRecordTerm<RT, RI> {
     return new FindRelatedRecordTerm(
-      this.normalizeRecordIdentity(record),
+      this,
+      this.$normalizeRecordIdentity(record),
       relationship
     );
   }
@@ -66,26 +94,32 @@ export class RecordQueryBuilder<RT = string, RI = RecordIdentity> {
   /**
    * Find records in a to-many relationship.
    */
-  findRelatedRecords(record: RI, relationship: string): FindRelatedRecordsTerm {
-    return new FindRelatedRecordsTerm(
-      this.normalizeRecordIdentity(record),
+  findRelatedRecords(
+    record: RI,
+    relationship: string
+  ): FindRecordsTerm<RT, RI> {
+    const expression: FindRelatedRecords = {
+      op: 'findRelatedRecords',
+      record: this.$normalizeRecordIdentity(record),
       relationship
-    );
+    };
+
+    return new FindRecordsTerm(this, expression);
   }
 
-  protected normalizeRecordType(recordType: RT): string {
-    if (this._normalizer !== undefined) {
-      return this._normalizer.normalizeRecordType(recordType);
+  $normalizeRecordType(rt: RT): string {
+    if (this.$normalizer !== undefined) {
+      return this.$normalizer.normalizeRecordType(rt);
     } else {
-      return (recordType as unknown) as string;
+      return (rt as unknown) as string;
     }
   }
 
-  protected normalizeRecordIdentity(recordIdentity: RI): RecordIdentity {
-    if (this._normalizer !== undefined) {
-      return this._normalizer.normalizeRecordIdentity(recordIdentity);
+  $normalizeRecordIdentity(ri: RI): RecordIdentity {
+    if (this.$normalizer !== undefined) {
+      return this.$normalizer.normalizeRecordIdentity(ri);
     } else {
-      return (recordIdentity as unknown) as RecordIdentity;
+      return (ri as unknown) as RecordIdentity;
     }
   }
 }

@@ -33,7 +33,8 @@
   },
   "dependencies": {
     "@orbit/data": "^0.17.0-beta.14",
-    "@orbit/utils": "^0.17.0-beta.14"
+    "@orbit/utils": "^0.17.0-beta.14",
+    "@orbit/validators": "^0.17.0-beta.14"
   },
   "devDependencies": {
     "@orbit/build": "^0.17.0-beta.12"

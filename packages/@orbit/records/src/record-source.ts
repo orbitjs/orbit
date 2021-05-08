@@ -5,11 +5,15 @@ import {
   SourceClass,
   SourceSettings
 } from '@orbit/data';
+import { Dict } from '@orbit/utils';
+import { StandardValidator, ValidatorForFn } from '@orbit/validators';
 import { RecordKeyMap } from './record-key-map';
 import { RecordNormalizer } from './record-normalizer';
 import { RecordQueryBuilder } from './record-query-builder';
 import { RecordSchema } from './record-schema';
 import { RecordTransformBuilder } from './record-transform-builder';
+import { buildRecordValidatorFor } from './record-validators/record-validator-builder';
+import { StandardRecordValidator } from './record-validators/standard-record-validators';
 import { StandardRecordNormalizer } from './standard-record-normalizer';
 
 const { assert } = Orbit;
@@ -27,6 +31,8 @@ export interface RecordSourceSettings<
   schema: RecordSchema;
   keyMap?: RecordKeyMap;
   normalizer?: RecordNormalizer;
+  validatorFor?: ValidatorForFn<StandardValidator | StandardRecordValidator>;
+  validators?: Dict<StandardValidator | StandardRecordValidator>;
   autoUpgrade?: boolean;
 }
 
@@ -48,6 +54,9 @@ export abstract class RecordSource<
 > extends Source<QO, TO, QB, TB> {
   protected _keyMap?: RecordKeyMap;
   protected _schema: RecordSchema;
+  protected _validatorFor?: ValidatorForFn<
+    StandardValidator | StandardRecordValidator
+  >;
 
   // Unlike in `Source`, builders will always be set
   protected _queryBuilder!: QB;
@@ -58,6 +67,16 @@ export abstract class RecordSource<
       settings.autoActivate === undefined || settings.autoActivate;
 
     const { schema } = settings;
+    let { validatorFor, validators } = settings;
+
+    if (validatorFor) {
+      assert(
+        'RecordSource can be constructed with either a `validatorFor` or `validators`, but not both',
+        validators === undefined
+      );
+    } else if (Orbit.debug || validators !== undefined) {
+      validatorFor = buildRecordValidatorFor({ validators });
+    }
 
     assert(
       "RecordSource's `schema` must be specified in `settings.schema` constructor argument",
@@ -79,13 +98,17 @@ export abstract class RecordSource<
 
       if (settings.queryBuilder === undefined) {
         (settings as any).queryBuilder = new RecordQueryBuilder({
-          normalizer
+          schema,
+          normalizer,
+          validatorFor
         });
       }
 
       if (settings.transformBuilder === undefined) {
         (settings as any).transformBuilder = new RecordTransformBuilder({
-          normalizer
+          schema,
+          normalizer,
+          validatorFor
         });
       }
     }
@@ -94,6 +117,7 @@ export abstract class RecordSource<
 
     this._schema = schema;
     this._keyMap = settings.keyMap;
+    this._validatorFor = validatorFor;
 
     if (settings.autoUpgrade === undefined || settings.autoUpgrade) {
       this._schema.on('upgrade', () => this.upgrade());
@@ -110,6 +134,12 @@ export abstract class RecordSource<
 
   get keyMap(): RecordKeyMap | undefined {
     return this._keyMap;
+  }
+
+  get validatorFor():
+    | ValidatorForFn<StandardValidator | StandardRecordValidator>
+    | undefined {
+    return this._validatorFor;
   }
 
   get queryBuilder(): QB {
