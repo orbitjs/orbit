@@ -14,8 +14,12 @@ import {
   RecordQuery,
   RecordTransform,
   RecordNormalizer,
-  StandardRecordNormalizer
+  StandardRecordNormalizer,
+  StandardRecordValidator,
+  buildRecordValidatorFor
 } from '@orbit/records';
+import { Dict } from '@orbit/utils';
+import { StandardValidator, ValidatorForFn } from '@orbit/validators';
 const { assert } = Orbit;
 
 export interface RecordCacheQueryOptions extends RequestOptions {
@@ -37,6 +41,8 @@ export interface RecordCacheSettings<
   schema: RecordSchema;
   keyMap?: RecordKeyMap;
   normalizer?: RecordNormalizer;
+  validatorFor?: ValidatorForFn<StandardValidator | StandardRecordValidator>;
+  validators?: Dict<StandardValidator | StandardRecordValidator>;
   queryBuilder?: QueryBuilder;
   transformBuilder?: TransformBuilder;
   defaultQueryOptions?: DefaultRequestOptions<QueryOptions>;
@@ -58,6 +64,9 @@ export abstract class RecordCache<
   protected _schema: RecordSchema;
   protected _queryBuilder: QueryBuilder;
   protected _transformBuilder: TransformBuilder;
+  protected _validatorFor?: ValidatorForFn<
+    StandardValidator | StandardRecordValidator
+  >;
   protected _defaultQueryOptions?: DefaultRequestOptions<QueryOptions>;
   protected _defaultTransformOptions?: DefaultRequestOptions<TransformOptions>;
 
@@ -70,7 +79,7 @@ export abstract class RecordCache<
     >
   ) {
     assert(
-      "SyncRecordCache's `schema` must be specified in `settings.schema` constructor argument",
+      'RecordCache requires a `schema` setting to be constructed',
       !!settings.schema
     );
 
@@ -79,6 +88,17 @@ export abstract class RecordCache<
     this._name = name;
     this._schema = schema;
     this._keyMap = keyMap;
+
+    let { validatorFor, validators } = settings;
+    if (validatorFor) {
+      assert(
+        'RecordCache can be constructed with either a `validatorFor` or `validators`, but not both',
+        validators === undefined
+      );
+    } else if (Orbit.debug || validators !== undefined) {
+      validatorFor = buildRecordValidatorFor({ validators });
+    }
+    this._validatorFor = validatorFor;
 
     if (
       settings.queryBuilder === undefined ||
@@ -95,13 +115,17 @@ export abstract class RecordCache<
 
       if (settings.queryBuilder === undefined) {
         (settings as any).queryBuilder = new RecordQueryBuilder({
-          normalizer
+          schema,
+          normalizer,
+          validatorFor
         });
       }
 
       if (settings.transformBuilder === undefined) {
         (settings as any).transformBuilder = new RecordTransformBuilder({
-          normalizer
+          schema,
+          normalizer,
+          validatorFor
         });
       }
     }
@@ -123,6 +147,12 @@ export abstract class RecordCache<
 
   get keyMap(): RecordKeyMap | undefined {
     return this._keyMap;
+  }
+
+  get validatorFor():
+    | ValidatorForFn<StandardValidator | StandardRecordValidator>
+    | undefined {
+    return this._validatorFor;
   }
 
   get queryBuilder(): QueryBuilder {
