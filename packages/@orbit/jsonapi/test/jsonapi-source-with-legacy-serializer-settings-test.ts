@@ -2418,7 +2418,7 @@ module('JSONAPISource with legacy serialization settings', function () {
       let transforms = (await source.pull((q) =>
         q.findRecords('moon').filter({
           relation: 'planet',
-          record: { id: 'earth', type: 'planets' }
+          record: { id: 'earth', type: 'planet' }
         })
       )) as RecordTransform[];
 
@@ -2488,8 +2488,8 @@ module('JSONAPISource with legacy serialization settings', function () {
         q.findRecords('moon').filter({
           relation: 'planet',
           record: [
-            { id: 'earth', type: 'planets' },
-            { id: 'mars', type: 'planets' }
+            { id: 'earth', type: 'planet' },
+            { id: 'mars', type: 'planet' }
           ]
         })
       )) as RecordTransform[];
@@ -2549,8 +2549,8 @@ module('JSONAPISource with legacy serialization settings', function () {
         q.findRecords('planet').filter({
           relation: 'moons',
           records: [
-            { id: 'phobos', type: 'moons' },
-            { id: 'deimos', type: 'moons' }
+            { id: 'phobos', type: 'moon' },
+            { id: 'deimos', type: 'moon' }
           ],
           op: 'equal'
         })
@@ -4045,7 +4045,7 @@ module('JSONAPISource with legacy serialization settings', function () {
       let records = (await source.query((q) =>
         q.findRecords('moon').filter({
           relation: 'planet',
-          record: { id: 'earth', type: 'planets' }
+          record: { id: 'earth', type: 'planet' }
         })
       )) as InitializedRecord[];
 
@@ -4106,8 +4106,8 @@ module('JSONAPISource with legacy serialization settings', function () {
         q.findRecords('moon').filter({
           relation: 'planet',
           record: [
-            { id: 'earth', type: 'planets' },
-            { id: 'mars', type: 'planets' }
+            { id: 'earth', type: 'planet' },
+            { id: 'mars', type: 'planet' }
           ]
         })
       )) as InitializedRecord[];
@@ -4158,8 +4158,8 @@ module('JSONAPISource with legacy serialization settings', function () {
         q.findRecords('planet').filter({
           relation: 'moons',
           records: [
-            { id: 'phobos', type: 'moons' },
-            { id: 'deimos', type: 'moons' }
+            { id: 'phobos', type: 'moon' },
+            { id: 'deimos', type: 'moon' }
           ],
           op: 'equal'
         })
@@ -4446,7 +4446,7 @@ module('JSONAPISource with legacy serialization settings', function () {
       let records = (await source.query((q) =>
         q.findRelatedRecords(solarSystem, 'moons').filter({
           relation: 'planet',
-          record: { id: 'earth', type: 'planets' }
+          record: { id: 'earth', type: 'planet' }
         })
       )) as InitializedRecord[];
 
@@ -4512,8 +4512,8 @@ module('JSONAPISource with legacy serialization settings', function () {
         q.findRelatedRecords(solarSystem, 'moons').filter({
           relation: 'planet',
           record: [
-            { id: 'earth', type: 'planets' },
-            { id: 'mars', type: 'planets' }
+            { id: 'earth', type: 'planet' },
+            { id: 'mars', type: 'planet' }
           ]
         })
       )) as InitializedRecord[];
@@ -4569,8 +4569,8 @@ module('JSONAPISource with legacy serialization settings', function () {
         q.findRelatedRecords(solarSystem, 'planets').filter({
           relation: 'moons',
           records: [
-            { id: 'phobos', type: 'moons' },
-            { id: 'deimos', type: 'moons' }
+            { id: 'phobos', type: 'moon' },
+            { id: 'deimos', type: 'moon' }
           ],
           op: 'equal'
         })
@@ -5189,19 +5189,15 @@ module('JSONAPISource with legacy serialization settings', function () {
     test('#push - addRecord - url option can be passed', async function (assert) {
       assert.expect(1);
 
-      const planetResource = {
+      const planet = {
         id: '12345',
-        type: 'planets',
+        type: 'planet',
         attributes: { name: 'Jupiter' }
       };
 
-      const planet = resourceSerializer.deserialize(
-        planetResource
-      ) as InitializedRecord;
-
       fetchStub.withArgs('/custom/path/here').returns(
         jsonapiResponse(201, {
-          data: planetResource
+          data: planet
         })
       );
 
@@ -5376,7 +5372,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         })
       );
 
-      await source.query((q) => q.findRelatedRecord(planet, 'star'), {
+      await source.query((q) => q.findRelatedRecord(planet, 'solarSystem'), {
         url: '/custom/path/here'
       });
 

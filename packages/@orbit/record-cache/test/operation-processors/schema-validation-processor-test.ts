@@ -118,7 +118,7 @@ module('SchemaValidationProcessor', function (hooks) {
           id: '2'
         })
       );
-    }, new Error('Validation failed'));
+    }, new Error('Validation isssues encountered while building a transform operation'));
   });
 
   test('addToRelatedRecord with a related record with an invalid type for a non-polymorphic relationship', (assert) => {
@@ -129,7 +129,7 @@ module('SchemaValidationProcessor', function (hooks) {
           id: '1'
         })
       );
-    }, new Error('Validation failed'));
+    }, new Error('Validation isssues encountered while building a transform operation'));
   });
 
   test('addToRelatedRecords with a related record with an invalid type for a polymorphic relationship', (assert) => {
@@ -140,7 +140,7 @@ module('SchemaValidationProcessor', function (hooks) {
           id: '2'
         })
       );
-    }, new Error('Validation failed'));
+    }, new Error('Validation isssues encountered while building a transform operation'));
   });
 
   test('removeFromRelatedRecords with an unknown model type', (assert) => {
@@ -174,7 +174,7 @@ module('SchemaValidationProcessor', function (hooks) {
           { type: 'node', id: '2' }
         ])
       );
-    }, new Error('Validation failed'));
+    }, new Error('Validation isssues encountered while building a transform operation'));
   });
 
   test('replaceRelatedRecords with a related record with an invalid type for a non-polymorphic relationship', (assert) => {
@@ -184,7 +184,7 @@ module('SchemaValidationProcessor', function (hooks) {
           { type: 'person', id: '1' }
         ])
       );
-    }, new Error('Validation failed'));
+    }, new Error('Validation isssues encountered while building a transform operation'));
   });
 
   test('replaceRelatedRecords with a related record with an invalid type for a polymorphic relationship', (assert) => {
@@ -194,7 +194,7 @@ module('SchemaValidationProcessor', function (hooks) {
           { type: 'person', id: '2' }
         ])
       );
-    }, new Error('Validation failed'));
+    }, new Error('Validation isssues encountered while building a transform operation'));
   });
 
   test('replaceRelatedRecord with an unknown model type', (assert) => {
@@ -222,7 +222,7 @@ module('SchemaValidationProcessor', function (hooks) {
           id: '1'
         })
       );
-    }, new Error('Validation failed'));
+    }, new Error('Validation isssues encountered while building a transform operation'));
   });
 
   test('replaceRelatedRecord with a related record with an invalid type for a non-polymorphic relationship', (assert) => {
@@ -233,7 +233,7 @@ module('SchemaValidationProcessor', function (hooks) {
           id: '1'
         })
       );
-    }, new Error('Validation failed'));
+    }, new Error('Validation isssues encountered while building a transform operation'));
   });
 
   test('replaceRelatedRecord with a related record with an invalid type for a polymorphic relationship', (assert) => {
@@ -244,6 +244,6 @@ module('SchemaValidationProcessor', function (hooks) {
           id: '2'
         })
       );
-    }, new Error('Validation failed'));
+    }, new Error('Validation isssues encountered while building a transform operation'));
   });
 });

@@ -23,6 +23,7 @@ module('IndexedDBSource - pushable', function (hooks) {
           attributes: {
             name: { type: 'string' },
             classification: { type: 'string' },
+            order: { type: 'number' },
             revised: { type: 'boolean' }
           },
           relationships: {

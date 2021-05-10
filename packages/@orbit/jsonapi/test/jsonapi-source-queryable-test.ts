@@ -2024,7 +2024,7 @@ module('JSONAPISource - queryable', function (hooks) {
         })
       );
 
-      await source.query((q) => q.findRelatedRecord(planet, 'star'), {
+      await source.query((q) => q.findRelatedRecord(planet, 'solarSystem'), {
         url: '/custom/path/here'
       });
 
