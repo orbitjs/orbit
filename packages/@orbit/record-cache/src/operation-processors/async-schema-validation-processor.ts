@@ -1,179 +1,44 @@
 import { Assertion } from '@orbit/core';
 import {
-  InitializedRecord,
-  RecordIdentity,
   RecordOperation,
-  ModelNotDefined,
-  isRecordIdentity,
-  InvalidRelatedRecordType
+  RecordSchema,
+  StandardRecordValidator,
+  validateRecordOperation,
+  ValidationError
 } from '@orbit/records';
+import { StandardValidator, ValidatorForFn } from '@orbit/validators';
 import { AsyncOperationProcessor } from '../async-operation-processor';
+import { AsyncRecordAccessor } from '../record-accessor';
+import { RecordCache } from '../record-cache';
 
 /**
  * An operation processor that ensures that an operation is compatible with
  * its associated schema.
  */
 export class AsyncSchemaValidationProcessor extends AsyncOperationProcessor {
-  async validate(operation: RecordOperation): Promise<void> {
-    switch (operation.op) {
-      case 'addRecord':
-        return this._recordAdded(operation.record);
+  schema: RecordSchema;
+  validatorFor: ValidatorForFn<StandardValidator | StandardRecordValidator>;
 
-      case 'updateRecord':
-        return this._recordReplaced(operation.record);
+  constructor(accessor: AsyncRecordAccessor) {
+    super(accessor);
 
-      case 'removeRecord':
-        return this._recordRemoved(operation.record);
-
-      case 'replaceKey':
-        return this._keyReplaced(operation.record);
-
-      case 'replaceAttribute':
-        return this._attributeReplaced(operation.record);
-
-      case 'addToRelatedRecords':
-        return this._relatedRecordAdded(
-          operation.record,
-          operation.relationship,
-          operation.relatedRecord
-        );
-
-      case 'removeFromRelatedRecords':
-        return this._relatedRecordRemoved(
-          operation.record,
-          operation.relationship,
-          operation.relatedRecord
-        );
-
-      case 'replaceRelatedRecords':
-        return this._relatedRecordsReplaced(
-          operation.record,
-          operation.relationship,
-          operation.relatedRecords
-        );
-
-      case 'replaceRelatedRecord':
-        return this._relatedRecordReplaced(
-          operation.record,
-          operation.relationship,
-          operation.relatedRecord
-        );
-
-      default:
-        return;
-    }
-  }
-
-  protected _recordAdded(record: InitializedRecord): void {
-    this._validateRecord(record);
-  }
-
-  protected _recordReplaced(record: InitializedRecord): void {
-    this._validateRecord(record);
-  }
-
-  protected _recordRemoved(record: RecordIdentity): void {
-    this._validateRecordIdentity(record);
-  }
-
-  protected _keyReplaced(record: RecordIdentity): void {
-    this._validateRecordIdentity(record);
-  }
-
-  protected _attributeReplaced(record: RecordIdentity): void {
-    this._validateRecordIdentity(record);
-  }
-
-  protected _relatedRecordAdded(
-    record: RecordIdentity,
-    relationship: string,
-    relatedRecord: RecordIdentity
-  ): void {
-    this._validateRecordIdentity(record);
-    this._validateRecordIdentity(relatedRecord);
-    this._validateRelationship(record, relationship, relatedRecord);
-  }
-
-  protected _relatedRecordRemoved(
-    record: RecordIdentity,
-    relationship: string,
-    relatedRecord: RecordIdentity
-  ): void {
-    this._validateRecordIdentity(record);
-    this._validateRecordIdentity(relatedRecord);
-  }
-
-  protected _relatedRecordsReplaced(
-    record: RecordIdentity,
-    relationship: string,
-    relatedRecords: RecordIdentity[]
-  ): void {
-    this._validateRecordIdentity(record);
-
-    relatedRecords.forEach((relatedRecord) => {
-      this._validateRecordIdentity(relatedRecord);
-      this._validateRelationship(record, relationship, relatedRecord);
-    });
-  }
-
-  protected _relatedRecordReplaced(
-    record: RecordIdentity,
-    relationship: string,
-    relatedRecord: RecordIdentity | null
-  ): void {
-    this._validateRecordIdentity(record);
-
-    if (relatedRecord) {
-      this._validateRecordIdentity(relatedRecord);
-      this._validateRelationship(record, relationship, relatedRecord);
-    }
-  }
-
-  protected _validateRecord(record: InitializedRecord): void {
-    this._validateRecordIdentity(record);
-  }
-
-  protected _validateRecordIdentity(record: RecordIdentity): void {
-    if (!isRecordIdentity(record)) {
+    const cache = (this.accessor as unknown) as RecordCache;
+    const { schema, validatorFor } = cache;
+    if (validatorFor === undefined || schema === undefined) {
       throw new Assertion(
-        'Record identities must be in the form `{ type: string, id: string }`.'
+        'SyncSchemaValidationProcessor requires a RecordCache with both a `validationFor` and a `schema`.'
       );
     }
-    if (!this.accessor.schema.hasModel(record.type)) {
-      throw new ModelNotDefined(record.type);
-    }
+
+    this.schema = schema;
+    this.validatorFor = validatorFor;
   }
 
-  protected _validateRelationship(
-    record: InitializedRecord,
-    relationship: string,
-    relatedRecord: RecordIdentity
-  ): void {
-    const relationshipDef = this.accessor.schema.getRelationship(
-      record.type,
-      relationship
-    );
-    const type = relationshipDef.kind
-      ? relationshipDef.type
-      : relationshipDef.model;
-    if (Array.isArray(type)) {
-      if (!type.includes(relatedRecord.type)) {
-        throw new InvalidRelatedRecordType(
-          record.type,
-          record.id,
-          relationship,
-          relatedRecord.type
-        );
-      }
-    } else if (typeof type === 'string') {
-      if (type !== relatedRecord.type) {
-        throw new InvalidRelatedRecordType(
-          record.type,
-          record.id,
-          relationship,
-          relatedRecord.type
-        );
-      }
+  async validate(operation: RecordOperation): Promise<void> {
+    const { schema, validatorFor } = this;
+    const issues = validateRecordOperation(operation, { schema, validatorFor });
+    if (issues) {
+      throw new ValidationError('Validation failed', issues);
     }
   }
 }

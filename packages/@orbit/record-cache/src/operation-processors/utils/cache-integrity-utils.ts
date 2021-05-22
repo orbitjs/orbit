@@ -91,7 +91,8 @@ export function getInverseRelationshipRemovalOps(
     const { relationship } = inverseRelationship;
     const relationshipDef = schema.getRelationship(type, relationship);
 
-    if ((relationshipDef.kind || relationshipDef.type) === 'hasMany') {
+    // TODO - remove deprecated `type` check
+    if ((relationshipDef.kind ?? (relationshipDef as any).type) === 'hasMany') {
       ops.push({
         op: 'removeFromRelatedRecords',
         record: inverseRelationship.record,

@@ -166,7 +166,7 @@ module('RecordQueryBuilder', function (hooks) {
         // testing a common mistake for a new Orbiteer not using TypeScript
         .filter({ name: 'Pluto' } as any)
         .toQueryExpression();
-    }, new Error('Unrecognized filter param.'));
+    }, new Error('Unrecognized `filter` param encountered while building query expression'));
   });
 
   test('findRecords + attribute filter', function (assert) {
@@ -366,7 +366,7 @@ module('RecordQueryBuilder', function (hooks) {
   test('findRecords + sort (invalid sort expression)', function (assert) {
     assert.throws(() => {
       oqb.findRecords('planet').sort(null as any);
-    }, new Error('Unrecognized sort param.'));
+    }, new Error('Unrecognized `sort` param encountered while building query expression'));
   });
 
   test('findRecords + page', function (assert) {
@@ -565,7 +565,7 @@ module('RecordQueryBuilder', function (hooks) {
         // testing a common mistake for a new Orbiteer not using TypeScript
         .filter({ name: 'Pluto' } as any)
         .toQueryExpression();
-    }, new Error('Unrecognized filter param.'));
+    }, new Error('Unrecognized `filter` param encountered while building query expression'));
   });
 
   test('findRelatedRecords + attribute filter', function (assert) {
@@ -815,7 +815,7 @@ module('RecordQueryBuilder', function (hooks) {
       oqb
         .findRelatedRecords({ type: 'planet', id: '123' }, 'moons')
         .sort(null as any);
-    }, new Error('Unrecognized sort param.'));
+    }, new Error('Unrecognized `sort` param encountered while building query expression'));
   });
 
   test('findRelatedRecords + page', function (assert) {

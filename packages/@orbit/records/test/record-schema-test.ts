@@ -220,14 +220,7 @@ module('RecordSchema', function () {
 
     assert.equal(schema.hasAttribute('planet', 'name'), true);
     assert.equal(schema.hasAttribute('planet', 'unknown'), false);
-  });
-
-  test('#hasAttribute throws an exception if a model definition is not found', function (assert) {
-    const schema = new RecordSchema();
-
-    assert.throws(function () {
-      schema.hasAttribute('planet', 'name');
-    }, /Error: Schema: Model 'planet' not defined./);
+    assert.equal(schema.hasAttribute('fake', 'name'), false);
   });
 
   test('#getKey', function (assert) {
@@ -323,14 +316,7 @@ module('RecordSchema', function () {
 
     assert.equal(schema.hasKey('planet', 'key1'), true);
     assert.equal(schema.hasKey('planet', 'key3'), false);
-  });
-
-  test('#hasKey throws an exception if a model definition is not found', function (assert) {
-    const schema = new RecordSchema();
-
-    assert.throws(function () {
-      schema.hasKey('planet', 'remoteId');
-    }, /Error: Schema: Model 'planet' not defined./);
+    assert.equal(schema.hasKey('fake', 'key1'), false);
   });
 
   test('#getRelationship', function (assert) {
@@ -423,14 +409,7 @@ module('RecordSchema', function () {
 
     assert.equal(schema.hasRelationship('planet', 'moons'), true);
     assert.equal(schema.hasRelationship('planet', 'unknown'), false);
-  });
-
-  test('#hasRelationship throws an exception if a model definition is not found', function (assert) {
-    const schema = new RecordSchema();
-
-    assert.throws(function () {
-      schema.hasRelationship('planet', 'moons');
-    }, /Error: Schema: Model 'planet' not defined./);
+    assert.equal(schema.hasRelationship('fake', 'moons'), false);
   });
 
   test('#pluralize simply adds an `s` to the end of words', function (assert) {

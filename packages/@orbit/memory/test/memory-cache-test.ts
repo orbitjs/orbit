@@ -25,7 +25,7 @@ module('MemoryCache', function (hooks) {
           attributes: {
             name: { type: 'string' },
             classification: { type: 'string' },
-            atmosphere: { type: 'string' },
+            atmosphere: { type: 'boolean' },
             sequence: { type: 'number' }
           },
           keys: {

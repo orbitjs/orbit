@@ -1,5 +1,6 @@
 import { Orbit } from '@orbit/core';
 import { TransformBuilderFunc } from '@orbit/data';
+import { StandardValidator, ValidatorForFn } from '@orbit/validators';
 import {
   InitializedRecord,
   RecordIdentity,
@@ -10,15 +11,17 @@ import { RecordNormalizer } from './record-normalizer';
 import { RecordOperation } from './record-operation';
 import {
   AddRecordTerm,
-  UpdateRecordTerm,
-  RemoveRecordTerm,
-  ReplaceKeyTerm,
-  ReplaceAttributeTerm,
   AddToRelatedRecordsTerm,
-  ReplaceRelatedRecordTerm,
+  RemoveFromRelatedRecordsTerm,
+  RemoveRecordTerm,
+  ReplaceAttributeTerm,
+  ReplaceKeyTerm,
   ReplaceRelatedRecordsTerm,
-  RemoveFromRelatedRecordsTerm
+  ReplaceRelatedRecordTerm,
+  UpdateRecordTerm
 } from './record-operation-term';
+import { RecordSchema } from './record-schema';
+import { StandardRecordValidator } from './record-validators/standard-record-validators';
 
 const { assert, deprecate } = Orbit;
 
@@ -37,7 +40,9 @@ export interface RecordTransformBuilderSettings<
    */
   recordInitializer?: RecordInitializer;
 
+  schema?: RecordSchema;
   normalizer?: RecordNormalizer<RT, RI, R>;
+  validatorFor?: ValidatorForFn<StandardValidator | StandardRecordValidator>;
 }
 
 export class RecordTransformBuilder<
@@ -45,14 +50,26 @@ export class RecordTransformBuilder<
   RI = RecordIdentity,
   R = UninitializedRecord
 > {
-  protected _normalizer?: RecordNormalizer<RT, RI, R>;
+  $schema?: RecordSchema;
+  $normalizer?: RecordNormalizer<RT, RI, R>;
+  $validatorFor?: ValidatorForFn<StandardValidator | StandardRecordValidator>;
 
   constructor(settings: RecordTransformBuilderSettings<RT, RI, R> = {}) {
-    this._normalizer = settings.normalizer;
+    const { schema, normalizer, validatorFor, recordInitializer } = settings;
 
-    const { recordInitializer } = settings;
+    if (validatorFor) {
+      assert(
+        'A RecordTransformBuilder that has been assigned a `validatorFor` requires a `schema`',
+        schema !== undefined
+      );
+    }
+
+    this.$schema = schema;
+    this.$normalizer = normalizer;
+    this.$validatorFor = validatorFor;
+
     if (recordInitializer) {
-      if (this._normalizer !== undefined) {
+      if (this.$normalizer !== undefined) {
         deprecate(
           'A `normalizer` and `recordInitializer` have both been assigned to the `TransformBuilder`. Only the `normalizer` will be used.'
         );
@@ -60,7 +77,7 @@ export class RecordTransformBuilder<
         deprecate(
           'A `recordInitializer` has been assigned to the `TransformBuilder`. The `recordInitializer` setting has been deprecated in favor of `normalizer`, and will be treated as if it were a `RecordNormalizer`.'
         );
-        this._normalizer = {
+        this.$normalizer = {
           normalizeRecordType(type: RT): string {
             return (type as unknown) as string;
           },
@@ -77,36 +94,41 @@ export class RecordTransformBuilder<
     }
   }
 
-  get normalizer(): RecordNormalizer<RT, RI, R> | undefined {
-    return this._normalizer;
-  }
-
   /**
    * Instantiate a new `addRecord` operation.
    */
-  addRecord(record: R): AddRecordTerm {
-    return new AddRecordTerm(this.normalizeRecord(record));
+  addRecord(record: R): AddRecordTerm<RT, RI, R> {
+    return new AddRecordTerm(this, this.$normalizeRecord(record));
   }
 
   /**
    * Instantiate a new `updateRecord` operation.
    */
-  updateRecord(record: R): UpdateRecordTerm {
-    return new UpdateRecordTerm(this.normalizeRecord(record));
+  updateRecord(record: R): UpdateRecordTerm<RT, RI, R> {
+    return new UpdateRecordTerm(this, this.$normalizeRecord(record));
   }
 
   /**
    * Instantiate a new `removeRecord` operation.
    */
-  removeRecord(record: RI): RemoveRecordTerm {
-    return new RemoveRecordTerm(this.normalizeRecordIdentity(record));
+  removeRecord(record: RI): RemoveRecordTerm<RT, RI, R> {
+    return new RemoveRecordTerm(this, this.$normalizeRecordIdentity(record));
   }
 
   /**
    * Instantiate a new `replaceKey` operation.
    */
-  replaceKey(record: RI, key: string, value: string): ReplaceKeyTerm {
-    return new ReplaceKeyTerm(this.normalizeRecordIdentity(record), key, value);
+  replaceKey(
+    record: RI,
+    key: string,
+    value: string
+  ): ReplaceKeyTerm<RT, RI, R> {
+    return new ReplaceKeyTerm(
+      this,
+      this.$normalizeRecordIdentity(record),
+      key,
+      value
+    );
   }
 
   /**
@@ -116,9 +138,10 @@ export class RecordTransformBuilder<
     record: RI,
     attribute: string,
     value: unknown
-  ): ReplaceAttributeTerm {
+  ): ReplaceAttributeTerm<RT, RI, R> {
     return new ReplaceAttributeTerm(
-      this.normalizeRecordIdentity(record),
+      this,
+      this.$normalizeRecordIdentity(record),
       attribute,
       value
     );
@@ -131,11 +154,12 @@ export class RecordTransformBuilder<
     record: RI,
     relationship: string,
     relatedRecord: RI
-  ): AddToRelatedRecordsTerm {
+  ): AddToRelatedRecordsTerm<RT, RI, R> {
     return new AddToRelatedRecordsTerm(
-      this.normalizeRecordIdentity(record),
+      this,
+      this.$normalizeRecordIdentity(record),
       relationship,
-      this.normalizeRecordIdentity(relatedRecord)
+      this.$normalizeRecordIdentity(relatedRecord)
     );
   }
 
@@ -146,11 +170,12 @@ export class RecordTransformBuilder<
     record: RI,
     relationship: string,
     relatedRecord: RI
-  ): RemoveFromRelatedRecordsTerm {
+  ): RemoveFromRelatedRecordsTerm<RT, RI, R> {
     return new RemoveFromRelatedRecordsTerm(
-      this.normalizeRecordIdentity(record),
+      this,
+      this.$normalizeRecordIdentity(record),
       relationship,
-      this.normalizeRecordIdentity(relatedRecord)
+      this.$normalizeRecordIdentity(relatedRecord)
     );
   }
 
@@ -161,11 +186,12 @@ export class RecordTransformBuilder<
     record: RI,
     relationship: string,
     relatedRecords: RI[]
-  ): ReplaceRelatedRecordsTerm {
+  ): ReplaceRelatedRecordsTerm<RT, RI, R> {
     return new ReplaceRelatedRecordsTerm(
-      this.normalizeRecordIdentity(record),
+      this,
+      this.$normalizeRecordIdentity(record),
       relationship,
-      relatedRecords.map((ri) => this.normalizeRecordIdentity(ri))
+      relatedRecords.map((ri) => this.$normalizeRecordIdentity(ri))
     );
   }
 
@@ -176,35 +202,28 @@ export class RecordTransformBuilder<
     record: RI,
     relationship: string,
     relatedRecord: RI | null
-  ): ReplaceRelatedRecordTerm {
+  ): ReplaceRelatedRecordTerm<RT, RI, R> {
     return new ReplaceRelatedRecordTerm(
-      this.normalizeRecordIdentity(record),
+      this,
+      this.$normalizeRecordIdentity(record),
       relationship,
-      relatedRecord ? this.normalizeRecordIdentity(relatedRecord) : null
+      relatedRecord ? this.$normalizeRecordIdentity(relatedRecord) : null
     );
   }
 
-  protected normalizeRecord(r: R): InitializedRecord {
-    let record: InitializedRecord;
-    if (this._normalizer) {
-      record = this._normalizer.normalizeRecord(r);
+  $normalizeRecord(r: R): InitializedRecord {
+    if (this.$normalizer) {
+      return this.$normalizer.normalizeRecord(r);
     } else {
-      record = (r as unknown) as InitializedRecord;
+      return (r as unknown) as InitializedRecord;
     }
-
-    assert(
-      'All records must be assigned an `id` - either directly or via a `RecordNormalizer` assigned to the `RecordTransformBuilder`.',
-      record.id !== undefined
-    );
-
-    return record;
   }
 
-  protected normalizeRecordIdentity(recordIdentity: RI): RecordIdentity {
-    if (this._normalizer !== undefined) {
-      return this._normalizer.normalizeRecordIdentity(recordIdentity);
+  $normalizeRecordIdentity(ri: RI): RecordIdentity {
+    if (this.$normalizer !== undefined) {
+      return this.$normalizer.normalizeRecordIdentity(ri);
     } else {
-      return (recordIdentity as unknown) as RecordIdentity;
+      return (ri as unknown) as RecordIdentity;
     }
   }
 }

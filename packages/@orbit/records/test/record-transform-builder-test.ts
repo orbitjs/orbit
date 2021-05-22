@@ -251,18 +251,4 @@ module('RecordTransformBuilder', function (hooks) {
       record: { type: 'planet', id: 'abc123' }
     } as AddRecordOperation);
   });
-
-  test('#addRecord - requires records to have an `id` when a `normalizer` has not been set', function (assert) {
-    tb = new RecordTransformBuilder();
-
-    assert.throws(
-      function () {
-        tb.addRecord({ type: 'planet' }).toOperation();
-      },
-      Error(
-        'Assertion failed: All records must be assigned an `id` - either directly or via a `RecordNormalizer` assigned to the `RecordTransformBuilder`.'
-      ),
-      'assertion raised'
-    );
-  });
 });

@@ -1137,19 +1137,15 @@ module('JSONAPISource - pushable', function (hooks) {
     test('#push - addRecord - url option can be passed', async function (assert) {
       assert.expect(1);
 
-      const planetResource = {
+      const planet = {
         id: '12345',
         type: 'planet',
         attributes: { name: 'Jupiter' }
       };
 
-      const planet = resourceSerializer.deserialize(
-        planetResource
-      ) as InitializedRecord;
-
       fetchStub.withArgs('/custom/path/here').returns(
         jsonapiResponse(201, {
-          data: planetResource
+          data: planet
         })
       );
 

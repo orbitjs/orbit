@@ -7,18 +7,21 @@ import { RequestOptions } from './request';
  * query expressions in composable patterns.
  */
 export class QueryTerm<QE extends QueryExpression> {
-  expression: QE;
+  protected _expression: QE;
 
   constructor(expression: QE) {
-    this.expression = expression;
+    this._expression = expression;
   }
 
   toQueryExpression(): QE {
-    return this.expression;
+    return this._expression;
   }
 
   options(options: RequestOptions): this {
-    this.expression.options = deepMerge(this.expression.options || {}, options);
+    this._expression.options = deepMerge(
+      this._expression.options || {},
+      options
+    );
     return this;
   }
 }

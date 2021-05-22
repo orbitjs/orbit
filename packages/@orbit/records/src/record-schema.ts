@@ -1,6 +1,7 @@
 /* eslint-disable valid-jsdoc */
 import { evented, Evented, fulfillAll, Orbit } from '@orbit/core';
 import { Dict } from '@orbit/utils';
+import { ArrayValidationOptions } from '@orbit/validators';
 import {
   AttributeNotDefined,
   KeyNotDefined,
@@ -10,24 +11,52 @@ import {
 
 const { uuid, deprecate } = Orbit;
 
+export interface FieldValidationOptions {
+  required?: boolean;
+  [key: string]: unknown;
+}
+
 export interface AttributeDefinition {
   type?: string;
   serialization?: Dict<unknown>;
   deserialization?: Dict<unknown>;
+  validation?: FieldValidationOptions & {
+    notNull?: boolean;
+  };
   meta?: Dict<unknown>;
 }
 
-export interface RelationshipDefinition {
-  kind?: 'hasMany' | 'hasOne';
+export interface HasOneRelationshipDefinition {
+  kind: 'hasOne';
   type?: string | string[];
   model?: string | string[];
   inverse?: string;
   dependent?: 'remove';
+  validation?: FieldValidationOptions & {
+    notNull?: boolean;
+  };
   meta?: Dict<unknown>;
 }
 
+export interface HasManyRelationshipDefinition {
+  kind: 'hasMany';
+  type?: string | string[];
+  model?: string | string[];
+  inverse?: string;
+  dependent?: 'remove';
+  validation?: FieldValidationOptions & ArrayValidationOptions;
+  meta?: Dict<unknown>;
+}
+
+export type RelationshipDefinition =
+  | HasOneRelationshipDefinition
+  | HasManyRelationshipDefinition;
+
 export interface KeyDefinition {
   primaryKey?: boolean;
+  validation?: FieldValidationOptions & {
+    notNull?: boolean;
+  };
   meta?: Dict<unknown>;
 }
 
@@ -242,15 +271,15 @@ export class RecordSchema {
   }
 
   hasAttribute(type: string, attribute: string): boolean {
-    return this.getModel(type).attributes?.[attribute] !== undefined;
+    return this.models[type]?.attributes?.[attribute] !== undefined;
   }
 
   hasKey(type: string, key: string): boolean {
-    return this.getModel(type).keys?.[key] !== undefined;
+    return this.models[type]?.keys?.[key] !== undefined;
   }
 
   hasRelationship(type: string, relationship: string): boolean {
-    return this.getModel(type).relationships?.[relationship] !== undefined;
+    return this.models[type]?.relationships?.[relationship] !== undefined;
   }
 
   eachAttribute(

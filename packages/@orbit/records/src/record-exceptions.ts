@@ -1,4 +1,5 @@
 import { Exception } from '@orbit/core';
+import { ValidationIssue } from '@orbit/validators';
 
 /**
  * An error occured related to the schema.
@@ -9,6 +10,20 @@ export class SchemaError extends Exception {
   constructor(description: string) {
     super(`Schema: ${description}`);
     this.description = description;
+  }
+}
+
+/**
+ * A validation failed.
+ */
+export class ValidationError extends Exception {
+  public description: string;
+  public issues?: ValidationIssue[];
+
+  constructor(description: string, issues?: ValidationIssue[]) {
+    super(description);
+    this.description = description;
+    this.issues = issues;
   }
 }
 
@@ -58,11 +73,13 @@ export abstract class RecordException extends Exception {
   public field?: string;
 
   constructor(description: string, type: string, id: string, field?: string) {
-    let message = `${description}: ${type}:${id}`;
+    let specifier = `${type}:${id}`;
 
     if (field) {
-      message += '/' + field;
+      specifier = `${specifier}/${field}`;
     }
+
+    let message = `${description}: ${specifier}`;
 
     super(message);
 
@@ -79,38 +96,5 @@ export abstract class RecordException extends Exception {
 export class RecordNotFoundException extends RecordException {
   constructor(type: string, id: string) {
     super('Record not found', type, id);
-  }
-}
-
-/**
- * Record attribute is an incorrect type.
- */
-export class InvalidRecordAttributeType extends RecordException {
-  constructor(
-    type: string,
-    id: string,
-    attribute: string,
-    expectedType: string
-  ) {
-    super(`Expected attribute type '${expectedType}'`, type, id, attribute);
-  }
-}
-
-/**
- * Related record is an incorrect type for a relationship.
- */
-export class InvalidRelatedRecordType extends RecordException {
-  constructor(
-    type: string,
-    id: string,
-    relationship: string,
-    invalidType: string
-  ) {
-    super(
-      `Record of type '${invalidType}' is not allowed in relationship`,
-      type,
-      id,
-      relationship
-    );
   }
 }

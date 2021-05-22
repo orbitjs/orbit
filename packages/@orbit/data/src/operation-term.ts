@@ -7,18 +7,18 @@ import { RequestOptions } from './request';
  * operations in composable patterns.
  */
 export class OperationTerm<O extends Operation> {
-  operation: O;
+  protected _operation: O;
 
   constructor(operation: O) {
-    this.operation = operation;
+    this._operation = operation;
   }
 
   toOperation(): O {
-    return this.operation;
+    return this._operation;
   }
 
   options(options: RequestOptions): this {
-    this.operation.options = deepMerge(this.operation.options || {}, options);
+    this._operation.options = deepMerge(this._operation.options || {}, options);
     return this;
   }
 }
