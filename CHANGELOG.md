@@ -1,5 +1,41 @@
 # Changelog
 
+## v0.17.0-beta.16 (2021-05-22)
+
+#### :rocket: Enhancement
+
+- `@orbit/data`, `@orbit/indexeddb`, `@orbit/jsonapi`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/records`, `@orbit/validators`
+  - [#842](https://github.com/orbitjs/orbit/pull/842) Introduce @orbit/validators and record-specific validators ([@dgeb](https://github.com/dgeb))
+- `@orbit/jsonapi`, `@orbit/records`, `@orbit/serializers`
+  - [#837](https://github.com/orbitjs/orbit/pull/837) Refinement of serialization options ([@dgeb](https://github.com/dgeb))
+- `@orbit/data`, `@orbit/indexeddb`, `@orbit/jsonapi`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/records`, `@orbit/utils`
+  - [#835](https://github.com/orbitjs/orbit/pull/835) Introduce record normalizers ([@dgeb](https://github.com/dgeb))
+- `@orbit/data`
+  - [#832](https://github.com/orbitjs/orbit/pull/832) Deprecate Pullable and Pushable interfaces ([@dgeb](https://github.com/dgeb))
+- `@orbit/coordinator`, `@orbit/core`, `@orbit/indexeddb-bucket`, `@orbit/jsonapi`, `@orbit/record-cache`, `@orbit/records`
+  - [#831](https://github.com/orbitjs/orbit/pull/831) Add debug setting to `Orbit` global ([@dgeb](https://github.com/dgeb))
+- `@orbit/data`, `@orbit/records`
+  - [#830](https://github.com/orbitjs/orbit/pull/830) Support use of a transform builder in Syncable ([@dgeb](https://github.com/dgeb))
+- `@orbit/indexeddb`, `@orbit/jsonapi`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/records`
+  - [#828](https://github.com/orbitjs/orbit/pull/828) Deprecate Record interface in favor of InitializedRecord ([@dgeb](https://github.com/dgeb))
+- `@orbit/indexeddb`, `@orbit/local-storage`, `@orbit/memory`
+  - [#827](https://github.com/orbitjs/orbit/pull/827) Allow record-cache-based sources to define a custom `cacheClass` ([@dgeb](https://github.com/dgeb))
+- `@orbit/indexeddb`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/records`
+  - [#822](https://github.com/orbitjs/orbit/pull/822) Introduce RecordTransformBuffer for improving performance and atomicity of cache updates ([@dgeb](https://github.com/dgeb))
+
+#### :house: Internal
+
+- [#838](https://github.com/orbitjs/orbit/pull/838) Bump underscore from 1.10.2 to 1.13.1 ([@dependabot[bot]](https://github.com/apps/dependabot))
+- [#839](https://github.com/orbitjs/orbit/pull/839) Bump handlebars from 4.7.6 to 4.7.7 ([@dependabot[bot]](https://github.com/apps/dependabot))
+- [#840](https://github.com/orbitjs/orbit/pull/840) Bump lodash from 4.17.19 to 4.17.21 ([@dependabot[bot]](https://github.com/apps/dependabot))
+- [#841](https://github.com/orbitjs/orbit/pull/841) Bump hosted-git-info from 2.8.8 to 2.8.9 ([@dependabot[bot]](https://github.com/apps/dependabot))
+- [#836](https://github.com/orbitjs/orbit/pull/836) Bump ssri from 6.0.1 to 6.0.2 ([@dependabot[bot]](https://github.com/apps/dependabot))
+- [#833](https://github.com/orbitjs/orbit/pull/833) Bump y18n from 4.0.0 to 4.0.1 ([@dependabot[bot]](https://github.com/apps/dependabot))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.15 (2021-03-07)
 
 #### :rocket: Enhancement
