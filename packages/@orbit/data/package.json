@@ -1,6 +1,6 @@
 {
   "name": "@orbit/data",
-  "version": "0.17.0-beta.14",
+  "version": "0.17.0-beta.16",
   "description": "A flexible data access and synchronization layer.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -32,8 +32,8 @@
     "test": "node ../build ci && snowpack build && testem ci"
   },
   "dependencies": {
-    "@orbit/core": "^0.17.0-beta.14",
-    "@orbit/utils": "^0.17.0-beta.14"
+    "@orbit/core": "^0.17.0-beta.16",
+    "@orbit/utils": "^0.17.0-beta.16"
   },
   "devDependencies": {
     "@orbit/build": "^0.17.0-beta.12"
