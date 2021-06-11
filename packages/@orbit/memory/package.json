@@ -1,6 +1,6 @@
 {
   "name": "@orbit/memory",
-  "version": "0.17.0-beta.16",
+  "version": "0.17.0-beta.17",
   "description": "Orbit source for managing in-memory records.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -33,10 +33,10 @@
   },
   "dependencies": {
     "@orbit/core": "^0.17.0-beta.16",
-    "@orbit/data": "^0.17.0-beta.16",
+    "@orbit/data": "^0.17.0-beta.17",
     "@orbit/immutable": "^0.17.0-beta.14",
-    "@orbit/record-cache": "^0.17.0-beta.16",
-    "@orbit/records": "^0.17.0-beta.16",
+    "@orbit/record-cache": "^0.17.0-beta.17",
+    "@orbit/records": "^0.17.0-beta.17",
     "@orbit/utils": "^0.17.0-beta.16"
   },
   "devDependencies": {
