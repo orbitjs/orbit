@@ -121,6 +121,13 @@ export class IndexedDBSource<
     cacheSettings.defaultTransformOptions =
       cacheSettings.defaultTransformOptions ?? settings.defaultTransformOptions;
 
+    if (
+      cacheSettings.validatorFor === undefined &&
+      cacheSettings.validators === undefined
+    ) {
+      cacheSettings.validatorFor = this._validatorFor;
+    }
+
     const cacheClass = settings.cacheClass ?? IndexedDBCache;
     this._cache = new cacheClass(
       cacheSettings as IndexedDBCacheSettings<QO, TO, QB, TB>

@@ -195,6 +195,15 @@ module('MemorySource', function (hooks) {
     );
   });
 
+  test('shares its `validatorFor` with its cache', function (assert) {
+    const source = new MemorySource({ schema, keyMap });
+    assert.strictEqual(
+      source.cache.validatorFor,
+      source.validatorFor,
+      'validatorFor is shared'
+    );
+  });
+
   test('#sync - appends transform to log', async function (assert) {
     const source = new MemorySource({ schema, keyMap });
     const recordA = {

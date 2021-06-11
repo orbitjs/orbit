@@ -116,6 +116,13 @@ export class MemorySource<
     cacheSettings.defaultTransformOptions =
       cacheSettings.defaultTransformOptions ?? settings.defaultTransformOptions;
 
+    if (
+      cacheSettings.validatorFor === undefined &&
+      cacheSettings.validators === undefined
+    ) {
+      cacheSettings.validatorFor = this._validatorFor;
+    }
+
     const { base } = settings;
     if (base) {
       this._base = base;

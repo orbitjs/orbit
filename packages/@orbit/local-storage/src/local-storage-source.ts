@@ -126,6 +126,13 @@ export class LocalStorageSource<
     cacheSettings.namespace = cacheSettings.namespace ?? settings.namespace;
     cacheSettings.delimiter = cacheSettings.delimiter ?? settings.delimiter;
 
+    if (
+      cacheSettings.validatorFor === undefined &&
+      cacheSettings.validators === undefined
+    ) {
+      cacheSettings.validatorFor = this._validatorFor;
+    }
+
     const cacheClass = settings.cacheClass ?? LocalStorageCache;
     this._cache = new cacheClass(
       cacheSettings as LocalStorageCacheSettings<QO, TO, QB, TB>

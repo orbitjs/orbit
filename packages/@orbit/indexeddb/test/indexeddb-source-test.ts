@@ -172,6 +172,19 @@ module('IndexedDBSource', function (hooks) {
     );
   });
 
+  test('shares its `validatorFor` with its cache', function (assert) {
+    const source = new IndexedDBSource({
+      schema,
+      keyMap,
+      autoActivate: false
+    });
+    assert.strictEqual(
+      source.cache.validatorFor,
+      source.validatorFor,
+      'validatorFor is shared'
+    );
+  });
+
   module('activated', function (hooks) {
     hooks.beforeEach(async () => {
       source = new IndexedDBSource({ schema, keyMap });
