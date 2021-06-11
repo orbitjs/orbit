@@ -90,9 +90,7 @@ export function updatable(Klass: unknown): void {
     );
 
     if (this.transformLog.contains(transform.id)) {
-      const transforms: Transform<Operation>[] = [];
-      const response = options?.fullResponse ? { transforms } : transforms;
-      return response;
+      return options?.fullResponse ? { transforms: [] } : undefined;
     } else {
       const response = await this._enqueueRequest('update', transform);
       return options?.fullResponse ? response : response.data;

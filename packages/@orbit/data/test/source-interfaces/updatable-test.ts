@@ -322,6 +322,37 @@ module('@updatable', function (hooks) {
     assert.equal(++order, 6, 'promise resolved last');
   });
 
+  test('#update should return early if the transform has already been applied', async function (assert) {
+    assert.expect(2);
+
+    const addRecordTransform = buildTransform<RecordOperation>({
+      op: 'addRecord',
+      record: { type: 'planet', id: '1' }
+    });
+    source.transformLog.append(addRecordTransform.id);
+
+    source.on('beforeUpdate', async () => {
+      assert.ok(false, 'beforeUpdate should not be triggered');
+    });
+
+    source._update = async function (transform) {
+      assert.ok(false, '_update should not be reached');
+      return { data: undefined };
+    };
+
+    source.on('update', () => {
+      assert.ok(false, 'update should not be triggered');
+    });
+
+    const fullResponse = await source.update(addRecordTransform, {
+      fullResponse: true
+    });
+    assert.deepEqual(fullResponse, { transforms: [] }, 'empty full response');
+
+    const data = await source.update(addRecordTransform);
+    assert.strictEqual(data, undefined, 'no data response');
+  });
+
   test('#update should still call `_update` if the transform has been applied as a result of `beforeUpdate` resolution', async function (assert) {
     assert.expect(5);
 
