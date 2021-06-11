@@ -265,8 +265,9 @@ export class MemorySource<
     settings.schema = schema;
     settings.cacheSettings = settings.cacheSettings || { schema };
     settings.keyMap = this._keyMap;
-    settings.queryBuilder = this.queryBuilder;
-    settings.transformBuilder = this.transformBuilder;
+    settings.queryBuilder = this._queryBuilder;
+    settings.transformBuilder = this._transformBuilder;
+    settings.validatorFor = this._validatorFor;
     settings.base = this;
 
     return new MemorySource<QO, TO, QB, TB, QRD, TRD>(settings);

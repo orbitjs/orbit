@@ -425,17 +425,22 @@ module('MemorySource', function (hooks) {
       jupiter,
       'data in fork matches data in source'
     );
-    assert.strictEqual(source.schema, fork.schema, 'schema matches');
-    assert.strictEqual(source.keyMap, fork.keyMap, 'keyMap matches');
+    assert.strictEqual(fork.schema, source.schema, 'schema matches');
+    assert.strictEqual(fork.keyMap, source.keyMap, 'keyMap matches');
     assert.strictEqual(
-      source.transformBuilder,
       fork.transformBuilder,
+      source.transformBuilder,
       'transformBuilder is shared'
     );
     assert.strictEqual(
-      source.queryBuilder,
       fork.queryBuilder,
+      source.queryBuilder,
       'queryBuilder is shared'
+    );
+    assert.strictEqual(
+      fork.validatorFor,
+      source.validatorFor,
+      'validatorFor is shared'
     );
     assert.strictEqual(
       fork.forkPoint,
