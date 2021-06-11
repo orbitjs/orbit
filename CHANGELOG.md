@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.17.0-beta.17 (2021-06-11)
+
+#### :bug: Bug Fix
+
+- `@orbit/indexeddb`, `@orbit/local-storage`, `@orbit/memory`
+  - [#848](https://github.com/orbitjs/orbit/pull/848) Fix sharing of validatorFor function between record sources and caches, and memory sources and forks ([@dgeb](https://github.com/dgeb))
+- `@orbit/data`
+  - [#847](https://github.com/orbitjs/orbit/pull/847) Fix data-only response from `update` when a transform has already been applied ([@dgeb](https://github.com/dgeb))
+
+#### :house: Internal
+
+- [#844](https://github.com/orbitjs/orbit/pull/844) Bump ws from 7.4.2 to 7.4.6 ([@dependabot[bot]](https://github.com/apps/dependabot))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.16 (2021-05-22)
 
 #### :rocket: Enhancement
