@@ -163,6 +163,19 @@ module('LocalStorageSource', function (hooks) {
     );
   });
 
+  test('shares its `validatorFor` with its cache', function (assert) {
+    const source = new LocalStorageSource({
+      schema,
+      keyMap,
+      autoActivate: false
+    });
+    assert.strictEqual(
+      source.cache.validatorFor,
+      source.validatorFor,
+      'validatorFor is shared'
+    );
+  });
+
   test('#getKeyForRecord returns the local storage key that will be used for a record', function (assert) {
     assert.equal(
       source.getKeyForRecord({ type: 'planet', id: 'jupiter' }),
