@@ -18,6 +18,9 @@ module('validateRecordAttribute', function (hooks) {
           name: {
             type: 'string',
             validation: { required: true, notNull: true, minLength: 2 }
+          },
+          description: {
+            type: 'fake' // Validator does not exist for this type
           }
         },
         relationships: {
@@ -251,6 +254,37 @@ module('validateRecordAttribute', function (hooks) {
             }
           ],
           description: `value is invalid`
+        }
+      ]
+    );
+  });
+
+  test('will check if an `attribute` has a validator defined for its `type`', function (assert) {
+    const attributeDef = schema.getAttribute('planet', 'description');
+
+    assert.deepEqual(
+      validateRecordAttribute(
+        {
+          record: { type: 'planet', id: '1' },
+          attribute: 'description',
+          value: 'a'
+        },
+        {
+          attributeDef,
+          validatorFor
+        }
+      ),
+      [
+        {
+          validator: StandardRecordValidators.RecordAttribute,
+          validation: 'type',
+          ref: {
+            record: { type: 'planet', id: '1' },
+            attribute: 'description',
+            value: 'a'
+          },
+          description:
+            "validator has not been provided for attribute 'description' of `type` 'fake'"
         }
       ]
     );

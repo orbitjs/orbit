@@ -25,6 +25,10 @@ interface BaseIssue extends ValidationIssue {
   };
 }
 
+interface TypeIssue extends BaseIssue {
+  validation: 'type';
+}
+
 interface ValueRequiredIssue extends BaseIssue {
   validation: 'valueRequired';
 }
@@ -45,6 +49,7 @@ export interface RecordAttributeInput {
 }
 
 export type RecordAttributeValidationIssue =
+  | TypeIssue
   | RecordFieldDefinitionIssue
   | ValueRequiredIssue
   | ValueNotNullIssue
@@ -129,8 +134,8 @@ export const validateRecordAttribute: RecordAttributeValidator = (
     }
   } else if (attributeDef.type) {
     const validateRecordValue = validatorFor(attributeDef.type) as Validator;
-    const valueIssues = validateRecordValue(value, attributeDef.validation);
-    if (valueIssues) {
+
+    if (validateRecordValue === undefined) {
       return [
         {
           validator: StandardRecordValidators.RecordAttribute,
@@ -139,11 +144,27 @@ export const validateRecordAttribute: RecordAttributeValidator = (
             attribute,
             value
           },
-          validation: 'valueValid',
-          description: 'value is invalid',
-          details: valueIssues
+          validation: 'type',
+          description: `validator has not been provided for attribute '${attribute}' of \`type\` '${attributeDef.type}'`
         }
       ];
+    } else {
+      const valueIssues = validateRecordValue(value, attributeDef.validation);
+      if (valueIssues) {
+        return [
+          {
+            validator: StandardRecordValidators.RecordAttribute,
+            ref: {
+              record,
+              attribute,
+              value
+            },
+            validation: 'valueValid',
+            description: 'value is invalid',
+            details: valueIssues
+          }
+        ];
+      }
     }
   }
 };
