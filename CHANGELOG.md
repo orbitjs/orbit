@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.17.0-beta.18 (2021-06-22)
+
+#### :rocket: Enhancement
+
+- `@orbit/memory`
+  - [#852](https://github.com/orbitjs/orbit/pull/852) Fix typings for MemorySource#merge ([@dgeb](https://github.com/dgeb))
+- `@orbit/records`
+  - [#850](https://github.com/orbitjs/orbit/pull/850) Validate that validator exists for attribute type [records] ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.17 (2021-06-11)
 
 #### :bug: Bug Fix
