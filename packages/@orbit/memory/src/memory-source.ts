@@ -49,10 +49,12 @@ export interface MemorySourceSettings<
   cacheSettings?: Partial<MemoryCacheSettings<QO, TO, QB, TB, QRD, TRD>>;
 }
 
-export interface MemorySourceMergeOptions {
+export interface MemorySourceMergeOptions<
+  TO extends RequestOptions = RequestOptions
+> {
   coalesce?: boolean;
   sinceTransformId?: string;
-  transformOptions?: RequestOptions;
+  transformOptions?: TO;
 }
 
 export interface MemorySource<
@@ -288,9 +290,12 @@ export class MemorySource<
    * @returns The result of calling `update()` with the forked transforms.
    */
   merge(
-    forkedSource: MemorySource,
-    options: MemorySourceMergeOptions = {}
-  ): Promise<any> {
+    forkedSource: MemorySource<QO, TO, QB, TB, QRD, TRD>,
+    options: MemorySourceMergeOptions<TO> = {}
+  ): Promise<
+    | RecordTransformResult
+    | FullResponse<RecordTransformResult, TRD, RecordOperation>
+  > {
     let transforms: RecordTransform[];
     if (options.sinceTransformId) {
       transforms = forkedSource.transformsSince(options.sinceTransformId);
