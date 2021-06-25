@@ -1,40 +1,41 @@
-import { Assertion } from '@orbit/core';
+import { Assertion, Orbit } from '@orbit/core';
+import {
+  DefaultRequestOptions,
+  FullRequestOptions,
+  FullResponse,
+  queryable,
+  RequestOptions,
+  ResponseHints,
+  syncable,
+  updatable
+} from '@orbit/data';
+import { RecordCacheUpdateDetails } from '@orbit/record-cache';
 import {
   coalesceRecordOperations,
   RecordOperation,
   RecordOperationResult,
-  RecordQueryResult,
-  RecordQueryExpressionResult,
-  RecordTransformResult,
-  RecordSource,
-  RecordSourceSettings,
-  RecordTransform,
   RecordQuery,
-  RecordSyncable,
-  RecordUpdatable,
   RecordQueryable,
-  RecordSourceQueryOptions,
   RecordQueryBuilder,
-  RecordTransformBuilder
+  RecordQueryExpressionResult,
+  RecordQueryResult,
+  RecordSource,
+  RecordSourceQueryOptions,
+  RecordSourceSettings,
+  RecordSyncable,
+  RecordTransform,
+  RecordTransformBuilder,
+  RecordTransformResult,
+  RecordUpdatable
 } from '@orbit/records';
-import {
-  syncable,
-  RequestOptions,
-  queryable,
-  updatable,
-  buildTransform,
-  FullResponse,
-  DefaultRequestOptions,
-  FullRequestOptions
-} from '@orbit/data';
-import { ResponseHints } from '@orbit/data';
 import { Dict } from '@orbit/utils';
 import {
   MemoryCache,
   MemoryCacheClass,
   MemoryCacheSettings
 } from './memory-cache';
-import { RecordCacheUpdateDetails } from '@orbit/record-cache';
+
+const { deprecate } = Orbit;
 
 export interface MemorySourceSettings<
   QO extends RequestOptions = RecordSourceQueryOptions,
@@ -49,12 +50,14 @@ export interface MemorySourceSettings<
   cacheSettings?: Partial<MemoryCacheSettings<QO, TO, QB, TB, QRD, TRD>>;
 }
 
-export interface MemorySourceMergeOptions<
-  TO extends RequestOptions = RequestOptions
-> {
+export interface MemorySourceMergeOptions {
   coalesce?: boolean;
   sinceTransformId?: string;
-  transformOptions?: TO;
+
+  /**
+   * @deprecated
+   */
+  transformOptions?: RequestOptions;
 }
 
 export interface MemorySource<
@@ -289,33 +292,62 @@ export class MemorySource<
    * @param options - Merge options
    * @returns The result of calling `update()` with the forked transforms.
    */
-  merge(
+  merge<RequestData extends RecordTransformResult = RecordTransformResult>(
     forkedSource: MemorySource<QO, TO, QB, TB, QRD, TRD>,
-    options: MemorySourceMergeOptions<TO> = {}
+    options?: DefaultRequestOptions<TO> & MemorySourceMergeOptions
+  ): Promise<RequestData>;
+  merge<RequestData extends RecordTransformResult = RecordTransformResult>(
+    forkedSource: MemorySource<QO, TO, QB, TB, QRD, TRD>,
+    options: FullRequestOptions<TO> & MemorySourceMergeOptions
+  ): Promise<FullResponse<RequestData, TRD, RecordOperation>>;
+  async merge<
+    RequestData extends RecordTransformResult = RecordTransformResult
+  >(
+    forkedSource: MemorySource<QO, TO, QB, TB, QRD, TRD>,
+    options?: TO & MemorySourceMergeOptions
   ): Promise<
-    | RecordTransformResult
-    | FullResponse<RecordTransformResult, TRD, RecordOperation>
+    RecordTransformResult | FullResponse<RequestData, TRD, RecordOperation>
   > {
+    let { coalesce, sinceTransformId, transformOptions, ...remainingOptions } =
+      options ?? {};
+
+    let requestOptions: TO;
+    if (transformOptions) {
+      deprecate(
+        'In MemorySource#merge, passing `transformOptions` nested within `options` is deprecated. Instead, include them directly alongside other options.'
+      );
+      requestOptions = transformOptions as TO;
+    } else {
+      requestOptions = (remainingOptions ?? {}) as TO;
+    }
+
     let transforms: RecordTransform[];
-    if (options.sinceTransformId) {
-      transforms = forkedSource.transformsSince(options.sinceTransformId);
+    if (sinceTransformId) {
+      transforms = forkedSource.transformsSince(sinceTransformId);
     } else {
       transforms = forkedSource.allTransforms();
     }
 
-    let reducedTransform;
     let ops: RecordOperation[] = [];
     transforms.forEach((t) => {
       Array.prototype.push.apply(ops, t.operations);
     });
 
-    if (options.coalesce !== false) {
+    if (coalesce !== false) {
       ops = coalesceRecordOperations(ops);
     }
 
-    reducedTransform = buildTransform(ops, options.transformOptions);
-
-    return this.update(reducedTransform);
+    if (requestOptions.fullResponse) {
+      return this.update<RequestData>(
+        ops,
+        requestOptions as FullRequestOptions<TO>
+      );
+    } else {
+      return this.update<RequestData>(
+        ops,
+        requestOptions as DefaultRequestOptions<TO>
+      );
+    }
   }
 
   /**

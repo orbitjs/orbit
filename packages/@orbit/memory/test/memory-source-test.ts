@@ -482,7 +482,7 @@ module('MemorySource', function (hooks) {
     );
   });
 
-  test('#merge - can accept options that will be assigned to the resulting transform', async function (assert) {
+  test('#merge - can accept options in deprecated `transformOptions` object that will be assigned to the resulting transform', async function (assert) {
     assert.expect(3);
 
     const source = new MemorySource({ schema, keyMap });
@@ -508,6 +508,40 @@ module('MemorySource', function (hooks) {
     );
 
     await source.merge(fork, { transformOptions: { label: 'Create Jupiter' } });
+
+    assert.deepEqual(
+      source.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }),
+      jupiter,
+      'data in source matches data in fork'
+    );
+  });
+
+  test('#merge - can accept options that will be assigned to the resulting transform', async function (assert) {
+    assert.expect(3);
+
+    const source = new MemorySource({ schema, keyMap });
+
+    const jupiter: InitializedRecord = {
+      type: 'planet',
+      id: 'jupiter-id',
+      attributes: { name: 'Jupiter', classification: 'gas giant' }
+    };
+
+    let fork = source.fork();
+
+    source.on('update', (transform) => {
+      assert.equal(transform.options.label, 'Create Jupiter');
+    });
+
+    await fork.update((t) => t.addRecord(jupiter));
+
+    assert.deepEqual(
+      fork.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }),
+      jupiter,
+      'verify fork data'
+    );
+
+    await source.merge(fork, { label: 'Create Jupiter' });
 
     assert.deepEqual(
       source.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }),
