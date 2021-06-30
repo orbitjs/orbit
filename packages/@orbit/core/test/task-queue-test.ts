@@ -1,7 +1,7 @@
 import { Bucket } from '../src/bucket';
 import { Task, Performer } from '../src/task';
 import { TaskQueue } from '../src/task-queue';
-import { FakeBucket } from './support/fake-bucket';
+import { StringBucket, TaskBucket } from './support/buckets';
 
 const { module, test } = QUnit;
 
@@ -1187,10 +1187,10 @@ module('TaskQueue', function () {
     const op1 = { op: 'add', path: ['planets', '123'], value: 'Mercury' };
     const op2 = { op: 'add', path: ['planets', '234'], value: 'Venus' };
 
-    let bucket: Bucket;
+    let bucket: TaskBucket;
 
     hooks.beforeEach(function () {
-      bucket = new FakeBucket({ name: 'fake-bucket' });
+      bucket = new TaskBucket({ name: 'fake-bucket' });
     });
 
     test('requires a name for lookups in the bucket', function (assert) {

@@ -9,7 +9,11 @@ const { assert } = Orbit;
 /**
  * Settings for a `TaskQueue`.
  */
-export interface TaskQueueSettings {
+export interface TaskQueueSettings<
+  Type = string,
+  Data = unknown,
+  Options = unknown
+> {
   /**
    * Name used for tracking and debugging a task queue.
    */
@@ -18,7 +22,7 @@ export interface TaskQueueSettings {
   /**
    * A bucket in which to persist queue state.
    */
-  bucket?: Bucket;
+  bucket?: Bucket<Task<Type, Data, Options>[]>;
 
   /**
    * A flag indicating whether tasks should be processed as soon as they are
@@ -54,14 +58,19 @@ export interface TaskQueue extends Evented {}
  * processing.
  */
 @evented
-export class TaskQueue {
+export class TaskQueue<
+  Type = string,
+  Data = unknown,
+  Options = unknown,
+  Result = unknown
+> {
   public autoProcess: boolean;
 
-  private _performer: Performer;
+  private _performer: Performer<Type, Data, Options, Result>;
   private _name?: string;
-  private _bucket?: Bucket;
-  private _tasks: Task[] = [];
-  private _processors: TaskProcessor[] = [];
+  private _bucket?: Bucket<Task<Type, Data, Options>[]>;
+  private _tasks: Task<Type, Data, Options>[] = [];
+  private _processors: TaskProcessor<Type, Data, Options, Result>[] = [];
   private _error?: Error;
   private _resolution?: Promise<void>;
   private _resolve?: () => void;
@@ -71,7 +80,10 @@ export class TaskQueue {
   /**
    * Creates an instance of `TaskQueue`.
    */
-  constructor(target: Performer, settings: TaskQueueSettings = {}) {
+  constructor(
+    target: Performer<Type, Data, Options, Result>,
+    settings: TaskQueueSettings<Type, Data, Options> = {}
+  ) {
     this._performer = target;
     this._name = settings.name;
     this._bucket = settings.bucket;
@@ -110,14 +122,14 @@ export class TaskQueue {
   /**
    * The object which will `perform` the tasks in this queue.
    */
-  get performer(): Performer {
+  get performer(): Performer<Type, Data, Options, Result> {
     return this._performer;
   }
 
   /**
    * A bucket used to persist the state of this queue.
    */
-  get bucket(): Bucket | undefined {
+  get bucket(): Bucket<Task<Type, Data>[]> | undefined {
     return this._bucket;
   }
 
@@ -131,7 +143,7 @@ export class TaskQueue {
   /**
    * The tasks in the queue.
    */
-  get entries(): Task[] {
+  get entries(): Task<Type, Data>[] {
     return this._tasks;
   }
 
@@ -139,7 +151,7 @@ export class TaskQueue {
    * The current task being processed (if actively processing), or the next
    * task to be processed (if not actively processing).
    */
-  get current(): Task {
+  get current(): Task<Type, Data> {
     return this._tasks[0];
   }
 
@@ -147,7 +159,7 @@ export class TaskQueue {
    * The processor wrapper that is processing the current task (or next task,
    * if none are being processed).
    */
-  get currentProcessor(): TaskProcessor {
+  get currentProcessor(): TaskProcessor<Type, Data, Options, Result> {
     return this._processors[0];
   }
 
@@ -192,14 +204,17 @@ export class TaskQueue {
    *
    * Returns the result of processing the pushed task.
    */
-  async push(task: Task): Promise<unknown> {
+  async push(task: Task<Type, Data, Options>): Promise<Result> {
     await this._reified;
 
-    let processor = new TaskProcessor(this._performer, task);
+    const processor = new TaskProcessor(this._performer, task);
     this._tasks.push(task);
     this._processors.push(processor);
     await this._persist();
-    return this._settle(processor);
+    if (this.autoProcess) {
+      await this._settle();
+    }
+    return processor.settle();
   }
 
   /**
@@ -207,14 +222,15 @@ export class TaskQueue {
    *
    * Returns the result of the retried task.
    */
-  async retry(): Promise<unknown> {
+  async retry(): Promise<Result> {
     await this._reified;
 
     this._cancel();
-    let processor: TaskProcessor = this.currentProcessor;
+    let processor = this.currentProcessor;
     processor.reset();
     await this._persist();
-    return this._settle(processor, true);
+    await this._settle();
+    return processor.settle();
   }
 
   /**
@@ -235,7 +251,9 @@ export class TaskQueue {
       );
     }
     await this._persist();
-    await this._settle();
+    if (this.autoProcess) {
+      await this._settle();
+    }
   }
 
   /**
@@ -255,7 +273,7 @@ export class TaskQueue {
     }
     this._processors = [];
     await this._persist();
-    await this._settle(undefined, true);
+    await this._settle();
   }
 
   /**
@@ -263,7 +281,7 @@ export class TaskQueue {
    *
    * Returns the canceled and removed task.
    */
-  async shift(e?: Error): Promise<Task | undefined> {
+  async shift(e?: Error): Promise<Task<Type, Data> | undefined> {
     await this._reified;
 
     let task = this._tasks.shift();
@@ -286,15 +304,21 @@ export class TaskQueue {
    *
    * Returns the result of processing the new task.
    */
-  async unshift(task: Task): Promise<void> {
+  async unshift(task: Task<Type, Data, Options>): Promise<Result> {
     await this._reified;
 
-    let processor = new TaskProcessor(this._performer, task);
+    let processor = new TaskProcessor<Type, Data, Options, Result>(
+      this._performer,
+      task
+    );
     this._cancel();
     this._tasks.unshift(task);
     this._processors.unshift(processor);
     await this._persist();
-    return this._settle(processor);
+    if (this.autoProcess) {
+      await this._settle();
+    }
+    return processor.settle();
   }
 
   /**
@@ -319,18 +343,10 @@ export class TaskQueue {
     return resolution;
   }
 
-  private _settle(
-    processor?: TaskProcessor,
-    alwaysProcess?: boolean
-  ): Promise<void> {
-    if (this.autoProcess || alwaysProcess) {
-      let settle = processor ? () => processor.settle() : () => {};
-      return this.process().then(settle, settle);
-    } else if (processor) {
-      return processor.settle();
-    } else {
-      return Promise.resolve();
-    }
+  private async _settle(): Promise<void> {
+    try {
+      await this.process();
+    } catch (e) {}
   }
 
   private async _complete(): Promise<void> {
@@ -344,7 +360,7 @@ export class TaskQueue {
     await settleInSeries(this, 'complete');
   }
 
-  private async _fail(task: Task, e: Error): Promise<void> {
+  private async _fail(task: Task<Type, Data>, e: Error): Promise<void> {
     if (this._reject) {
       this._reject(e);
     }
@@ -360,30 +376,29 @@ export class TaskQueue {
     this._resolution = undefined;
   }
 
-  private _settleEach(resolution: any): Promise<void> {
+  private async _settleEach(resolution: any): Promise<void> {
     if (this._tasks.length === 0) {
       return this._complete();
     } else {
-      let task = this._tasks[0];
-      let processor = this._processors[0];
+      const task = this._tasks[0];
+      const processor = this._processors[0];
 
-      return settleInSeries(this, 'beforeTask', task)
-        .then(() => processor.process())
-        .then(() => {
-          if (resolution === this._resolution) {
-            this._tasks.shift();
-            this._processors.shift();
+      try {
+        await settleInSeries(this, 'beforeTask', task);
+        await processor.process();
+        if (resolution === this._resolution) {
+          this._tasks.shift();
+          this._processors.shift();
 
-            return this._persist()
-              .then(() => settleInSeries(this, 'task', task))
-              .then(() => this._settleEach(resolution));
-          }
-        })
-        .catch((e) => {
-          if (resolution === this._resolution) {
-            return this._fail(task, e);
-          }
-        });
+          await this._persist();
+          await settleInSeries(this, 'task', task);
+          await this._settleEach(resolution);
+        }
+      } catch (e) {
+        if (resolution === this._resolution) {
+          return this._fail(task, e);
+        }
+      }
     }
   }
 
@@ -392,7 +407,7 @@ export class TaskQueue {
     this._processors = [];
 
     this._reified = this._loadTasksFromBucket().then(
-      (tasks: Task[] | undefined) => {
+      (tasks: Task<Type, Data, Options>[] | undefined) => {
         if (tasks) {
           this._tasks = tasks;
           this._processors = tasks.map(
@@ -405,9 +420,11 @@ export class TaskQueue {
     return this._reified;
   }
 
-  private async _loadTasksFromBucket(): Promise<Task[] | undefined> {
+  private async _loadTasksFromBucket(): Promise<
+    Task<Type, Data, Options>[] | undefined
+  > {
     if (this._bucket && this._name) {
-      return (await this._bucket.getItem(this._name)) as Task[] | undefined;
+      return this._bucket.getItem(this._name);
     }
   }
 

@@ -1,41 +1,21 @@
-import { Bucket } from '../src/bucket';
+import { StringBucket } from './support/buckets';
 
 const { module, test } = QUnit;
 
 module('Bucket', function () {
-  // Extend Bucket because it's an abstract class
-  class MyBucket extends Bucket {
-    constructor(settings = {}) {
-      super(settings);
-    }
-
-    getItem(key: string): Promise<any> {
-      return Promise.resolve();
-    }
-    setItem(key: string, value: any): Promise<void> {
-      return Promise.resolve();
-    }
-    removeItem(key: string): Promise<void> {
-      return Promise.resolve();
-    }
-    clear(): Promise<void> {
-      return Promise.resolve();
-    }
-  }
-
   test('can be instantiated', function (assert) {
-    let bucket = new MyBucket();
+    let bucket = new StringBucket();
     assert.ok(bucket, 'bucket exists');
   });
 
   test('has a default namespace and version', function (assert) {
-    let bucket = new MyBucket();
+    let bucket = new StringBucket();
     assert.equal(bucket.namespace, 'orbit-bucket', 'default namespace');
     assert.equal(bucket.version, 1, 'default version');
   });
 
   test('can be instantiated with a name, namespace, and version', function (assert) {
-    let bucket = new MyBucket({
+    let bucket = new StringBucket({
       name: 'my-bucket',
       namespace: 'app-settings',
       version: 1
@@ -50,7 +30,7 @@ module('Bucket', function () {
 
     assert.expect(5);
 
-    let bucket = new MyBucket({
+    let bucket = new StringBucket({
       name: 'my-bucket',
       namespace: 'ns1',
       version: 1

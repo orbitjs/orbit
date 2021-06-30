@@ -11,20 +11,28 @@ import { Task, Performer } from './task';
  * A task can be re-tried by first calling `reset()` on the processor. This
  * will clear the processor's state and allow `process()` to be invoked again.
  */
-export class TaskProcessor {
-  target: Performer;
-  task: Task;
+export class TaskProcessor<
+  Type = string,
+  Data = unknown,
+  Options = unknown,
+  Result = unknown
+> {
+  target: Performer<Type, Data, Options, Result>;
+  task: Task<Type, Data, Options>;
 
   private _started!: boolean;
   private _settled!: boolean;
-  private _settlement!: Promise<unknown>;
-  private _success?: (resolution: unknown) => void;
+  private _settlement!: Promise<Result>;
+  private _success?: (resolution: Result) => void;
   private _fail?: (e: Error) => void;
 
   /**
    * Creates an instance of TaskProcessor.
    */
-  constructor(target: Performer, task: Task) {
+  constructor(
+    target: Performer<Type, Data, Options, Result>,
+    task: Task<Type, Data, Options>
+  ) {
     this.target = target;
     this.task = task;
 
@@ -67,14 +75,14 @@ export class TaskProcessor {
   /**
    * The eventual result of processing.
    */
-  settle(): Promise<any> {
+  settle(): Promise<Result> {
     return this._settlement;
   }
 
   /**
    * Invokes `perform` on the target.
    */
-  process(): Promise<any> {
+  process(): Promise<Result> {
     if (!this._started) {
       this._started = true;
 
