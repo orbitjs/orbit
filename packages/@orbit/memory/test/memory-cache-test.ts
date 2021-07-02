@@ -975,23 +975,22 @@ module('MemoryCache', function (hooks) {
     let cache = new MemoryCache({ schema, keyMap });
     const tb = cache.transformBuilder;
 
-    cache.update((t) => [
+    cache.update((t) =>
       t.addRecord({
         type: 'planet',
         id: '1',
         attributes: { name: 'Earth' },
         relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
       })
-    ]);
+    );
 
     let result = cache.update(
-      (t) => [
+      (t) =>
         t.updateRecord({
           type: 'planet',
           id: '1',
           attributes: { classification: 'terrestrial' }
-        })
-      ],
+        }),
       { fullResponse: true }
     );
 
@@ -1066,21 +1065,20 @@ module('MemoryCache', function (hooks) {
     let cache = new MemoryCache({ schema, keyMap });
     const tb = cache.transformBuilder;
 
-    cache.update((t) => [
+    cache.update((t) =>
       t.addRecord({
         type: 'planet',
         id: '1',
         attributes: { name: 'Earth' },
         relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
       })
-    ]);
+    );
 
     let result = cache.update(
-      (t) => [
+      (t) =>
         t.replaceRelatedRecords({ type: 'planet', id: '1' }, 'moons', [
           { type: 'moon', id: 'm1' }
-        ])
-      ],
+        ]),
       { fullResponse: true }
     );
 
@@ -1098,11 +1096,10 @@ module('MemoryCache', function (hooks) {
     );
 
     result = cache.update(
-      (t) => [
+      (t) =>
         t.replaceRelatedRecords({ type: 'planet', id: '1' }, 'moons', [
           { type: 'moon', id: 'm2' }
-        ])
-      ],
+        ]),
       { fullResponse: true }
     );
 
@@ -1209,7 +1206,7 @@ module('MemoryCache', function (hooks) {
       relationships: { moons: { data: [{ type: 'moon', id: 'm2' }] } }
     };
 
-    let result = cache.update([tb.addRecord(earth)], { fullResponse: true });
+    let result = cache.update(tb.addRecord(earth), { fullResponse: true });
 
     assert.deepEqual(result, {
       data: earth,
@@ -1259,7 +1256,7 @@ module('MemoryCache', function (hooks) {
       }
     });
 
-    result = cache.update([tb.updateRecord(jupiter)], { fullResponse: true });
+    result = cache.update(tb.updateRecord(jupiter), { fullResponse: true });
 
     assert.deepEqual(result, {
       data: jupiter,

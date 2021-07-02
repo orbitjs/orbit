@@ -3,6 +3,7 @@ import {
   AddRecordOperation,
   InitializedRecord,
   RecordKeyMap,
+  RecordOperation,
   RecordSchema,
   RecordTransform
 } from '@orbit/records';
@@ -112,8 +113,9 @@ module('LocalStorageSource - pullable', function (hooks) {
       source.transformLog.contains(transforms[0].id),
       'log contains transform'
     );
+
     assert.deepEqual(
-      transforms[0].operations.map((o) => o.op),
+      (transforms[0].operations as RecordOperation[]).map((o) => o.op),
       ['updateRecord', 'updateRecord', 'updateRecord'],
       'operations match expectations'
     );
@@ -185,7 +187,7 @@ module('LocalStorageSource - pullable', function (hooks) {
       'log contains transform'
     );
     assert.deepEqual(
-      transforms[0].operations.map((o) => o.op),
+      (transforms[0].operations as RecordOperation[]).map((o) => o.op),
       ['updateRecord', 'updateRecord'],
       'operations match expectations'
     );
@@ -236,12 +238,12 @@ module('LocalStorageSource - pullable', function (hooks) {
       'log contains transform'
     );
     assert.deepEqual(
-      transforms[0].operations.map((o) => o.op),
+      (transforms[0].operations as RecordOperation[]).map((o) => o.op),
       ['updateRecord', 'updateRecord'],
       'operations match expectations'
     );
     assert.deepEqual(
-      transforms[0].operations.map(
+      (transforms[0].operations as RecordOperation[]).map(
         (o) => (o as AddRecordOperation)?.record?.type
       ),
       ['planet', 'moon'],
@@ -302,8 +304,8 @@ module('LocalStorageSource - pullable', function (hooks) {
       'log contains transform'
     );
     assert.deepEqual(
-      transforms[0].operations.map((o) => o.op),
-      ['updateRecord'],
+      (transforms[0].operations as RecordOperation[])[0].op,
+      'updateRecord',
       'operations match expectations'
     );
     assert.equal(
@@ -329,6 +331,10 @@ module('LocalStorageSource - pullable', function (hooks) {
       source.transformLog.contains(transforms[0].id),
       'log contains transform'
     );
-    assert.equal(transforms[0].operations.length, 0, 'no operations returned');
+    assert.equal(
+      (transforms[0].operations as RecordOperation[]).length,
+      0,
+      'no operations returned'
+    );
   });
 });

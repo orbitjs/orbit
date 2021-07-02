@@ -142,7 +142,7 @@ module('buildTransform', function () {
     );
     assert.deepEqual(
       transform.operations,
-      [operation],
+      operation,
       'operations was populated'
     );
   });

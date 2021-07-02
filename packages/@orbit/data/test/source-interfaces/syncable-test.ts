@@ -106,7 +106,7 @@ module('@syncable', function (hooks) {
   });
 
   test('#sync can accept a transform builder function, create a transform, and call internal method `_sync`', async function (assert) {
-    assert.expect(4);
+    assert.expect(2);
 
     const earth = { type: 'planet', id: 'earth' };
     const jupiter = { type: 'planet', id: 'jupiter' };
@@ -115,26 +115,19 @@ module('@syncable', function (hooks) {
     source._sync = async function (transform: Transform<RecordOperation>) {
       order++;
       if (order === 1) {
-        assert.strictEqual(
-          transform.operations.length,
-          2,
-          'transform passed to _sync with correct operations count'
-        );
         assert.deepEqual(
-          transform.operations[0],
-          {
-            op: 'addRecord',
-            record: earth
-          },
-          'expected operation'
-        );
-        assert.deepEqual(
-          transform.operations[1],
-          {
-            op: 'addRecord',
-            record: jupiter
-          },
-          'expected operation'
+          transform.operations as RecordOperation[],
+          [
+            {
+              op: 'addRecord',
+              record: earth
+            },
+            {
+              op: 'addRecord',
+              record: jupiter
+            }
+          ],
+          'transform passed to _sync with correct data'
         );
       } else {
         assert.ok(false, 'unexpected');

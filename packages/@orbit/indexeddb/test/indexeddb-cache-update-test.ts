@@ -992,13 +992,12 @@ module('IndexedDBCache - update', function (hooks) {
           ]);
 
           let result = await cache.update(
-            (t) => [
+            (t) =>
               t.updateRecord({
                 type: 'planet',
                 id: '1',
                 attributes: { classification: 'terrestrial' }
-              })
-            ],
+              }),
             { fullResponse: true }
           );
 
@@ -1072,21 +1071,20 @@ module('IndexedDBCache - update', function (hooks) {
         test('#update can replace related records but only if they are different', async function (assert) {
           const tb = cache.transformBuilder;
 
-          await cache.update((t) => [
+          await cache.update((t) =>
             t.addRecord({
               type: 'planet',
               id: '1',
               attributes: { name: 'Earth' },
               relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
             })
-          ]);
+          );
 
           let result = await cache.update(
-            (t) => [
+            (t) =>
               t.replaceRelatedRecords({ type: 'planet', id: '1' }, 'moons', [
                 { type: 'moon', id: 'm1' }
-              ])
-            ],
+              ]),
             { fullResponse: true }
           );
 
@@ -1233,7 +1231,7 @@ module('IndexedDBCache - update', function (hooks) {
             relationships: { moons: { data: [{ type: 'moon', id: 'm2' }] } }
           };
 
-          let result = await cache.update([tb.addRecord(earth)], {
+          let result = await cache.update(tb.addRecord(earth), {
             fullResponse: true
           });
 
@@ -1292,7 +1290,7 @@ module('IndexedDBCache - update', function (hooks) {
             'addRecord full response is correct'
           );
 
-          result = await cache.update([tb.updateRecord(jupiter)], {
+          result = await cache.update(tb.updateRecord(jupiter), {
             fullResponse: true
           });
 
@@ -1376,7 +1374,7 @@ module('IndexedDBCache - update', function (hooks) {
           const tb = cache.transformBuilder;
 
           let result = await cache.update(
-            (t) => [t.addRecord({ id: '1', type: 'planet' })],
+            (t) => t.addRecord({ id: '1', type: 'planet' }),
             { fullResponse: true }
           );
 
@@ -1413,15 +1411,14 @@ module('IndexedDBCache - update', function (hooks) {
           );
 
           result = await cache.update(
-            (t) => [
+            (t) =>
               t.updateRecord({
                 id: '1',
                 type: 'planet',
                 relationships: {
                   moons: { data: [] }
                 }
-              })
-            ],
+              }),
             { fullResponse: true }
           );
 

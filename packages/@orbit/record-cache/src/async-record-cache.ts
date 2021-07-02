@@ -21,7 +21,6 @@ import {
   RecordQuery,
   RecordQueryBuilder,
   RecordQueryExpression,
-  RecordQueryExpressionResult,
   RecordQueryResult,
   recordsReferencedByOperations,
   RecordTransform,
@@ -29,7 +28,7 @@ import {
   RecordTransformBuilderFunc,
   RecordTransformResult
 } from '@orbit/records';
-import { deepGet, Dict } from '@orbit/utils';
+import { deepGet, Dict, toArray } from '@orbit/utils';
 import {
   AsyncOperationProcessor,
   AsyncOperationProcessorClass
@@ -375,23 +374,35 @@ export abstract class AsyncRecordCache<
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     options?: QO
   ): Promise<FullResponse<RequestData, QueryResponseDetails, RecordOperation>> {
-    const results: RecordQueryExpressionResult[] = [];
+    let data;
 
-    for (let expression of query.expressions) {
+    if (Array.isArray(query.expressions)) {
+      data = [];
+      for (let expression of query.expressions) {
+        const queryOperator = this.getQueryOperator(expression.op);
+        if (!queryOperator) {
+          throw new Error(`Unable to find query operator: ${expression.op}`);
+        }
+        data.push(
+          await queryOperator(
+            this,
+            expression,
+            this.getQueryOptions(query, expression)
+          )
+        );
+      }
+    } else {
+      const expression = query.expressions as RecordQueryExpression;
       const queryOperator = this.getQueryOperator(expression.op);
       if (!queryOperator) {
         throw new Error(`Unable to find query operator: ${expression.op}`);
       }
-      results.push(
-        await queryOperator(
-          this,
-          expression,
-          this.getQueryOptions(query, expression)
-        )
+      data = await queryOperator(
+        this,
+        expression,
+        this.getQueryOptions(query, expression)
       );
     }
-
-    const data = query.expressions.length === 1 ? results[0] : results;
 
     return { data: data as RequestData };
   }
@@ -448,17 +459,26 @@ export abstract class AsyncRecordCache<
         };
       }
 
-      await this._applyTransformOperations(
-        transform,
-        transform.operations,
-        response,
-        true
-      );
       let data: RecordTransformResult;
-      if (transform.operations.length === 1 && Array.isArray(response.data)) {
-        data = response.data[0];
-      } else {
+
+      if (Array.isArray(transform.operations)) {
+        await this._applyTransformOperations(
+          transform,
+          transform.operations,
+          response,
+          true
+        );
         data = response.data;
+      } else {
+        await this._applyTransformOperation(
+          transform,
+          transform.operations,
+          response,
+          true
+        );
+        if (Array.isArray(response.data)) {
+          data = response.data[0];
+        }
       }
 
       if (options?.fullResponse) {
@@ -491,7 +511,9 @@ export abstract class AsyncRecordCache<
   ): Promise<RecordTransformBuffer> {
     const buffer = this._getTransformBuffer();
 
-    const records = recordsReferencedByOperations(transform.operations);
+    const records = recordsReferencedByOperations(
+      toArray(transform.operations)
+    );
     const inverseRelationships = await this.getInverseRelationshipsAsync(
       records
     );

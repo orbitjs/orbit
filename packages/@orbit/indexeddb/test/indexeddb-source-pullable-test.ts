@@ -2,6 +2,7 @@ import {
   AddRecordOperation,
   InitializedRecord,
   RecordKeyMap,
+  RecordOperation,
   RecordSchema,
   RecordTransform
 } from '@orbit/records';
@@ -120,7 +121,7 @@ module('IndexedDBSource - pullable', function (hooks) {
 
     assert.equal(transforms.length, 1, 'one transform returned');
     assert.deepEqual(
-      transforms[0].operations.map((o) => o.op),
+      (transforms[0].operations as RecordOperation[]).map((o) => o.op),
       ['updateRecord', 'updateRecord', 'updateRecord'],
       'operations match expectations'
     );
@@ -186,12 +187,12 @@ module('IndexedDBSource - pullable', function (hooks) {
       'log contains transform'
     );
     assert.deepEqual(
-      transforms[0].operations.map((o) => o.op),
+      (transforms[0].operations as RecordOperation[]).map((o) => o.op),
       ['updateRecord', 'updateRecord'],
       'operations match expectations'
     );
     assert.deepEqual(
-      transforms[0].operations.map(
+      (transforms[0].operations as RecordOperation[]).map(
         (o) => (o as AddRecordOperation)?.record?.type
       ),
       ['planet', 'planet'],
@@ -244,12 +245,12 @@ module('IndexedDBSource - pullable', function (hooks) {
       'log contains transform'
     );
     assert.deepEqual(
-      transforms[0].operations.map((o) => o.op),
+      (transforms[0].operations as RecordOperation[]).map((o) => o.op),
       ['updateRecord', 'updateRecord'],
       'operations match expectations'
     );
     assert.deepEqual(
-      transforms[0].operations.map(
+      (transforms[0].operations as RecordOperation[]).map(
         (o) => (o as AddRecordOperation).record.type
       ),
       ['planet', 'moon'],
@@ -308,7 +309,7 @@ module('IndexedDBSource - pullable', function (hooks) {
       'log contains transform'
     );
     assert.deepEqual(
-      transforms[0].operations.map((o) => o.op),
+      (transforms[0].operations as RecordOperation[]).map((o) => o.op),
       ['updateRecord'],
       'operations match expectations'
     );

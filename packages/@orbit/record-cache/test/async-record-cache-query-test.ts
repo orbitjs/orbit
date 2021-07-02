@@ -31,16 +31,16 @@ module('AsyncRecordCache - query', function (hooks) {
       }
     };
 
-    const updatedRecord = await cache.update<InitializedRecord>((t) => [
+    const updatedRecord = await cache.update<InitializedRecord>((t) =>
       t.addRecord(jupiter)
-    ]);
+    );
 
     const foundRecord = await cache.query<InitializedRecord>((q) =>
       q.findRecord({ type: 'planet', id: 'jupiter' })
     );
 
-    assert.strictEqual(updatedRecord, jupiter);
-    assert.strictEqual(foundRecord, jupiter);
+    assert.strictEqual(updatedRecord, jupiter, 'updated record is correct');
+    assert.strictEqual(foundRecord, jupiter, 'found record is correct');
   });
 
   test('#query can retrieve multiple expressions', async function (assert) {

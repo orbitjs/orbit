@@ -19,7 +19,6 @@ import {
   RecordQuery,
   RecordQueryBuilder,
   RecordQueryExpression,
-  RecordQueryExpressionResult,
   RecordQueryResult,
   recordsReferencedByOperations,
   RecordTransform,
@@ -29,7 +28,7 @@ import {
   SyncRecordQueryable,
   SyncRecordUpdatable
 } from '@orbit/records';
-import { deepGet, Dict } from '@orbit/utils';
+import { deepGet, Dict, toArray } from '@orbit/utils';
 import { SyncLiveQuery } from './live-query/sync-live-query';
 import { SyncCacheIntegrityProcessor } from './operation-processors/sync-cache-integrity-processor';
 import { SyncSchemaConsistencyProcessor } from './operation-processors/sync-schema-consistency-processor';
@@ -355,19 +354,35 @@ export abstract class SyncRecordCache<
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     options?: QO
   ): FullResponse<RequestData, QueryResponseDetails, RecordOperation> {
-    const results: RecordQueryExpressionResult[] = [];
+    let data;
 
-    for (let expression of query.expressions) {
+    if (Array.isArray(query.expressions)) {
+      data = [];
+      for (let expression of query.expressions) {
+        const queryOperator = this.getQueryOperator(expression.op);
+        if (!queryOperator) {
+          throw new Error(`Unable to find query operator: ${expression.op}`);
+        }
+        data.push(
+          queryOperator(
+            this,
+            expression,
+            this.getQueryOptions(query, expression)
+          )
+        );
+      }
+    } else {
+      const expression = query.expressions as RecordQueryExpression;
       const queryOperator = this.getQueryOperator(expression.op);
       if (!queryOperator) {
         throw new Error(`Unable to find query operator: ${expression.op}`);
       }
-      results.push(
-        queryOperator(this, expression, this.getQueryOptions(query, expression))
+      data = queryOperator(
+        this,
+        expression,
+        this.getQueryOptions(query, expression)
       );
     }
-
-    const data = query.expressions.length === 1 ? results[0] : results;
 
     return { data: data as RequestData };
   }
@@ -422,18 +437,26 @@ export abstract class SyncRecordCache<
         };
       }
 
-      this._applyTransformOperations(
-        transform,
-        transform.operations,
-        response,
-        true
-      );
-
       let data: RecordTransformResult;
-      if (transform.operations.length === 1 && Array.isArray(response.data)) {
-        data = response.data[0];
-      } else {
+
+      if (Array.isArray(transform.operations)) {
+        this._applyTransformOperations(
+          transform,
+          transform.operations,
+          response,
+          true
+        );
         data = response.data;
+      } else {
+        this._applyTransformOperation(
+          transform,
+          transform.operations,
+          response,
+          true
+        );
+        if (Array.isArray(response.data)) {
+          data = response.data[0];
+        }
       }
 
       if (options?.fullResponse) {
@@ -466,7 +489,9 @@ export abstract class SyncRecordCache<
   ): RecordTransformBuffer {
     const buffer = this._getTransformBuffer();
 
-    const records = recordsReferencedByOperations(transform.operations);
+    const records = recordsReferencedByOperations(
+      toArray(transform.operations)
+    );
     const inverseRelationships = this.getInverseRelationshipsSync(records);
     const relatedRecords = inverseRelationships.map((ir) => ir.record);
     Array.prototype.push.apply(records, relatedRecords);

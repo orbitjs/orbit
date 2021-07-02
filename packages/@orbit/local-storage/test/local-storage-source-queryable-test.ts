@@ -3,6 +3,7 @@ import {
   InitializedRecord,
   RecordKeyMap,
   RecordQuery,
+  RecordQueryExpression,
   RecordSchema
 } from '@orbit/records';
 import { LocalStorageSource } from '../src/local-storage-source';
@@ -84,7 +85,7 @@ module('LocalStorageSource - queryable', function (hooks) {
       attributes: { name: 'Jupiter', classification: 'gas giant' }
     };
 
-    source.cache.patch((t) => t.addRecord(jupiter));
+    source.cache.update((t) => t.addRecord(jupiter));
 
     assert.equal(
       source.cache.getRecordsSync('planet').length,
@@ -111,12 +112,10 @@ module('LocalStorageSource - queryable', function (hooks) {
     };
 
     source.on('beforeQuery', (query: RecordQuery, hints: any) => {
-      if (query.expressions[0].op === 'findRecord') {
-        hints.data = jupiter2;
-      }
+      hints.data = jupiter2;
     });
 
-    source.cache.patch((t) => t.addRecord(jupiter2));
+    source.cache.update((t) => t.addRecord(jupiter2));
 
     assert.equal(
       source.cache.getRecordsSync('planet').length,
@@ -155,10 +154,7 @@ module('LocalStorageSource - queryable', function (hooks) {
     };
 
     source.on('beforeQuery', (query: RecordQuery, hints: any) => {
-      if (
-        query.expressions[0].op === 'findRecords' &&
-        query.options?.sources?.remote.customFilter === 'distantPlanets'
-      ) {
+      if (query.options?.sources?.remote.customFilter === 'distantPlanets') {
         hints.data = [
           { type: 'planet', id: 'uranus' },
           { type: 'planet', id: 'jupiter' }
@@ -166,7 +162,7 @@ module('LocalStorageSource - queryable', function (hooks) {
       }
     });
 
-    source.cache.patch((t) => [
+    source.cache.update((t) => [
       t.addRecord(jupiter),
       t.addRecord(earth),
       t.addRecord(uranus)

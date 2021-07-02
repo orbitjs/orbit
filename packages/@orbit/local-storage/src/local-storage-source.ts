@@ -215,7 +215,12 @@ export class LocalStorageSource<
     }
 
     if (hints?.data) {
-      if (transform.operations.length > 1 && Array.isArray(hints.data)) {
+      if (Array.isArray(transform.operations)) {
+        assert(
+          'LocalStorageSource#update: `hints.data` must be an array if `transform.operations` is an array',
+          Array.isArray(hints.data)
+        );
+
         response.data = (hints.data as RecordOperationResult[]).map((h) =>
           this._retrieveOperationResult(h)
         );
@@ -225,11 +230,7 @@ export class LocalStorageSource<
         );
       }
     } else if (results) {
-      if (transform.operations.length === 1 && Array.isArray(results)) {
-        response.data = results[0];
-      } else {
-        response.data = results;
-      }
+      response.data = results;
     }
 
     if (hints?.details) {
@@ -251,7 +252,12 @@ export class LocalStorageSource<
 
     if (hints?.data) {
       response = {};
-      if (query.expressions.length > 1 && Array.isArray(hints.data)) {
+      if (Array.isArray(query.expressions)) {
+        assert(
+          'LocalStorageSource#query: `hints.data` must be an array if `query.expressions` is an array',
+          Array.isArray(hints.data)
+        );
+
         response.data = (hints.data as RecordQueryExpressionResult[]).map((h) =>
           this._retrieveQueryExpressionResult(h)
         );
@@ -302,15 +308,15 @@ export class LocalStorageSource<
 
     const results = this._cache.query(query);
 
-    if (query.expressions.length === 1) {
-      operations = this._operationsFromQueryResult(
-        results as RecordQueryExpressionResult
-      );
-    } else {
+    if (Array.isArray(query.expressions)) {
       operations = [];
       for (let result of results as RecordQueryExpressionResult[]) {
         operations.push(...this._operationsFromQueryResult(result));
       }
+    } else {
+      operations = this._operationsFromQueryResult(
+        results as RecordQueryExpressionResult
+      );
     }
 
     fullResponse.transforms = [buildTransform(operations)];

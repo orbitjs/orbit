@@ -19,6 +19,7 @@ import {
   ReplaceRelatedRecordsOperation,
   RecordTransform
 } from '@orbit/records';
+import { toArray } from '@orbit/utils';
 import { jsonapiResponse } from './support/jsonapi';
 import { JSONAPISource } from '../src/jsonapi-source';
 import { Resource, ResourceDocument } from '../src/resource-document';
@@ -249,7 +250,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         if (transformCount === 1) {
           assert.deepEqual(
             transform.operations,
-            [addPlanetOp],
+            addPlanetOp,
             'transform event initially returns add-record op'
           );
         } else if (transformCount === 2) {
@@ -379,7 +380,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         if (transformCount === 1) {
           assert.deepEqual(
             transform.operations,
-            [addPlanetOp],
+            addPlanetOp,
             'transform event initially returns add-record op'
           );
         } else if (transformCount === 2) {
@@ -390,7 +391,7 @@ module('JSONAPISource with legacy serialization settings', function () {
             'transform event then returns add-remote-id op'
           );
         } else if (transformCount === 3) {
-          let operationsWithoutId = transform.operations.map((op) => {
+          let operationsWithoutId = toArray(transform.operations).map((op) => {
             let clonedOp = Object.assign({}, op) as RecordOperation;
             delete (clonedOp as any).record.id;
             return clonedOp;
@@ -522,7 +523,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         if (transformCount === 1) {
           assert.deepEqual(
             transform.operations,
-            [replacePlanetOp],
+            replacePlanetOp,
             'transform event initially returns replace-record op'
           );
         }
@@ -645,11 +646,13 @@ module('JSONAPISource with legacy serialization settings', function () {
       )) as RecordTransform[];
 
       assert.deepEqual(
-        transforms[1].operations.map((o) => o.op),
+        toArray(transforms[1].operations).map((o) => o.op),
         ['replaceAttribute', 'replaceKey']
       );
       assert.deepEqual(
-        transforms[1].operations.map((o) => (o as ReplaceKeyOperation).value),
+        toArray(transforms[1].operations).map(
+          (o) => (o as ReplaceKeyOperation).value
+        ),
         ['Mars', 'remote-id-123']
       );
     });
@@ -1180,7 +1183,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         if (transformCount === 1) {
           assert.deepEqual(
             transform.operations,
-            [addPlanetOp],
+            addPlanetOp,
             'transform event initially returns add-record op'
           );
         } else if (transformCount === 2) {
@@ -1281,7 +1284,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         if (transformCount === 1) {
           assert.deepEqual(
             transform.operations,
-            [addPlanetOp],
+            addPlanetOp,
             'transform event initially returns add-record op'
           );
         } else if (transformCount === 2) {
@@ -1292,7 +1295,7 @@ module('JSONAPISource with legacy serialization settings', function () {
             'transform event then returns add-remote-id op'
           );
         } else if (transformCount === 3) {
-          let operationsWithoutId = transform.operations.map((op) => {
+          let operationsWithoutId = toArray(transform.operations).map((op) => {
             let clonedOp = Object.assign({}, op) as RecordOperation;
             delete (clonedOp as any).record.id;
             return clonedOp;
@@ -1389,7 +1392,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         if (transformCount === 1) {
           assert.deepEqual(
             transform.operations,
-            [replacePlanetOp],
+            replacePlanetOp,
             'transform event initially returns replace-record op'
           );
         }
@@ -1517,11 +1520,13 @@ module('JSONAPISource with legacy serialization settings', function () {
       );
 
       assert.deepEqual(
-        transforms[1].operations.map((o) => o.op),
+        toArray(transforms[1].operations).map((o) => o.op),
         ['replaceAttribute', 'replaceKey']
       );
       assert.deepEqual(
-        transforms[1].operations.map((o) => (o as ReplaceKeyOperation).value),
+        toArray(transforms[1].operations).map(
+          (o) => (o as ReplaceKeyOperation).value
+        ),
         ['Mars', 'remote-id-123']
       );
       assert.deepEqual(data, {
@@ -2058,11 +2063,11 @@ module('JSONAPISource with legacy serialization settings', function () {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Jupiter']
@@ -2264,11 +2269,11 @@ module('JSONAPISource with legacy serialization settings', function () {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord', 'updateRecord', 'updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Jupiter', 'Earth', 'Saturn']
@@ -2325,11 +2330,11 @@ module('JSONAPISource with legacy serialization settings', function () {
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Earth']
@@ -2379,11 +2384,11 @@ module('JSONAPISource with legacy serialization settings', function () {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Earth']
@@ -2428,11 +2433,11 @@ module('JSONAPISource with legacy serialization settings', function () {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Moon']
@@ -2500,11 +2505,11 @@ module('JSONAPISource with legacy serialization settings', function () {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord', 'updateRecord', 'updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Moon', 'Phobos', 'Deimos']
@@ -2562,11 +2567,11 @@ module('JSONAPISource with legacy serialization settings', function () {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Mars']
@@ -2612,11 +2617,11 @@ module('JSONAPISource with legacy serialization settings', function () {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord', 'updateRecord', 'updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Earth', 'Jupiter', 'Saturn']
@@ -2662,11 +2667,11 @@ module('JSONAPISource with legacy serialization settings', function () {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord', 'updateRecord', 'updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Saturn', 'Jupiter', 'Earth']
@@ -2724,11 +2729,11 @@ module('JSONAPISource with legacy serialization settings', function () {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord', 'updateRecord', 'updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Jupiter', 'Saturn', 'Earth']
@@ -2778,11 +2783,11 @@ module('JSONAPISource with legacy serialization settings', function () {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord', 'updateRecord', 'updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Jupiter', 'Earth', 'Saturn']
@@ -2842,12 +2847,14 @@ module('JSONAPISource with legacy serialization settings', function () {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         ['updateRecord', 'addToRelatedRecords']
       );
 
-      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
+      const op1 = ops[0] as UpdateRecordOperation;
 
       assert.equal(op1.record.attributes?.name, 'Earth');
 
@@ -2899,12 +2906,14 @@ module('JSONAPISource with legacy serialization settings', function () {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         ['updateRecord', 'addToRelatedRecords']
       );
 
-      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
+      const op1 = ops[0] as UpdateRecordOperation;
 
       assert.equal(op1.record.attributes?.name, 'Earth');
 
@@ -2955,12 +2964,14 @@ module('JSONAPISource with legacy serialization settings', function () {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         ['updateRecord', 'addToRelatedRecords']
       );
 
-      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
+      const op1 = ops[0] as UpdateRecordOperation;
 
       assert.equal(op1.record.attributes?.name, 'Moon');
 
@@ -3030,8 +3041,10 @@ module('JSONAPISource with legacy serialization settings', function () {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         [
           'updateRecord',
           'updateRecord',
@@ -3042,9 +3055,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         ]
       );
 
-      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
-      let op2 = transforms[0].operations[1] as UpdateRecordOperation;
-      let op3 = transforms[0].operations[2] as UpdateRecordOperation;
+      let op1 = ops[0] as UpdateRecordOperation;
+      let op2 = ops[1] as UpdateRecordOperation;
+      let op3 = ops[2] as UpdateRecordOperation;
 
       assert.deepEqual(
         [op1, op2, op3].map((o) => o.record.attributes?.name),
@@ -3107,12 +3120,14 @@ module('JSONAPISource with legacy serialization settings', function () {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         ['updateRecord', 'addToRelatedRecords']
       );
 
-      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
+      const op1 = ops[0] as UpdateRecordOperation;
 
       assert.equal(op1.record.attributes?.name, 'Mars');
 
@@ -3160,8 +3175,10 @@ module('JSONAPISource with legacy serialization settings', function () {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         [
           'updateRecord',
           'updateRecord',
@@ -3172,9 +3189,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         ]
       );
 
-      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
-      let op2 = transforms[0].operations[1] as UpdateRecordOperation;
-      let op3 = transforms[0].operations[2] as UpdateRecordOperation;
+      let op1 = ops[0] as UpdateRecordOperation;
+      let op2 = ops[1] as UpdateRecordOperation;
+      let op3 = ops[2] as UpdateRecordOperation;
 
       assert.deepEqual(
         [op1, op2, op3].map((o) => o.record.attributes?.name),
@@ -3225,8 +3242,10 @@ module('JSONAPISource with legacy serialization settings', function () {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         [
           'updateRecord',
           'updateRecord',
@@ -3237,9 +3256,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         ]
       );
 
-      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
-      let op2 = transforms[0].operations[1] as UpdateRecordOperation;
-      let op3 = transforms[0].operations[2] as UpdateRecordOperation;
+      let op1 = ops[0] as UpdateRecordOperation;
+      let op2 = ops[1] as UpdateRecordOperation;
+      let op3 = ops[2] as UpdateRecordOperation;
 
       assert.deepEqual(
         [op1, op2, op3].map((o) => o.record.attributes?.name),
@@ -3306,8 +3325,10 @@ module('JSONAPISource with legacy serialization settings', function () {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         [
           'updateRecord',
           'updateRecord',
@@ -3318,9 +3339,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         ]
       );
 
-      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
-      let op2 = transforms[0].operations[1] as UpdateRecordOperation;
-      let op3 = transforms[0].operations[2] as UpdateRecordOperation;
+      let op1 = ops[0] as UpdateRecordOperation;
+      let op2 = ops[1] as UpdateRecordOperation;
+      let op3 = ops[2] as UpdateRecordOperation;
 
       assert.deepEqual(
         [op1, op2, op3].map((o) => o.record.attributes?.name),
@@ -3377,8 +3398,10 @@ module('JSONAPISource with legacy serialization settings', function () {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         [
           'updateRecord',
           'updateRecord',
@@ -3389,9 +3412,9 @@ module('JSONAPISource with legacy serialization settings', function () {
         ]
       );
 
-      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
-      let op2 = transforms[0].operations[1] as UpdateRecordOperation;
-      let op3 = transforms[0].operations[2] as UpdateRecordOperation;
+      let op1 = ops[0] as UpdateRecordOperation;
+      let op2 = ops[1] as UpdateRecordOperation;
+      let op3 = ops[2] as UpdateRecordOperation;
 
       assert.deepEqual(
         [op1, op2, op3].map((o) => o.record.attributes?.name),
@@ -3548,15 +3571,17 @@ module('JSONAPISource with legacy serialization settings', function () {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         ['updateRecord', 'replaceRelatedRecords']
       );
 
-      const op1 = transforms[0].operations[0] as UpdateRecordOperation;
+      const op1 = ops[0] as UpdateRecordOperation;
       assert.equal(op1.record.attributes?.name, 'Io');
 
-      const op2 = transforms[0].operations[1] as ReplaceRelatedRecordsOperation;
+      const op2 = ops[1] as ReplaceRelatedRecordsOperation;
       assert.equal(op2.record.id, planet.id);
       assert.equal(op2.relationship, 'moons');
       assert.deepEqual(
@@ -5144,7 +5169,7 @@ module('JSONAPISource with legacy serialization settings', function () {
         if (transformCount === 1) {
           assert.deepEqual(
             transform.operations,
-            [addPlanetOp],
+            addPlanetOp,
             'transform event initially returns add-record op'
           );
         }

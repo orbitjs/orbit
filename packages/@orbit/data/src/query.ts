@@ -5,10 +5,14 @@ import { QueryExpression } from './query-expression';
 
 /**
  * Queries are used to extract data from a source.
+ *
+ * Each query's `expressions` must be a query expression or an array of
+ * expressions. This distinction allows for a clear distinction between queries
+ * that return singular vs. arrayed results.
  */
 export interface Query<QE extends QueryExpression> {
   id: string;
-  expressions: QE[];
+  expressions: QE | QE[];
   options?: RequestOptions;
 }
 
@@ -51,7 +55,7 @@ export function buildQuery<QE extends QueryExpression, QB = unknown>(
     );
   } else {
     let query = queryOrExpressions as Query<QE>;
-    let expressions: QE[];
+    let expressions: QE | QE[];
     let options: RequestOptions | undefined;
     let id: string;
 
@@ -73,13 +77,13 @@ export function buildQuery<QE extends QueryExpression, QB = unknown>(
     } else {
       if (Array.isArray(queryOrExpressions)) {
         expressions = [];
-        for (let queryOrExpression of queryOrExpressions) {
-          expressions.push(toQueryExpression<QE>(queryOrExpression));
+        for (let qe of queryOrExpressions) {
+          expressions.push(toQueryExpression<QE>(qe));
         }
       } else {
-        expressions = [
-          toQueryExpression(queryOrExpressions as QE | QueryTerm<QE>)
-        ];
+        expressions = toQueryExpression(
+          queryOrExpressions as QE | QueryTerm<QE>
+        );
       }
       options = queryOptions;
       id = queryId ?? Orbit.uuid();
@@ -109,5 +113,5 @@ export function isQuery<
   QE extends QueryExpression = QueryExpression,
   QB = unknown
 >(query: QueryOrExpressions<QE, QB>): query is Query<QE> {
-  return Array.isArray((query as Query<QE>).expressions);
+  return (query as Query<QE>).expressions !== undefined;
 }

@@ -54,7 +54,7 @@ export abstract class LiveQuery {
   constructor(settings: LiveQuerySettings) {
     assert(
       'Only single expression queries are supported on LiveQuery',
-      settings.query.expressions.length === 1
+      !Array.isArray(settings.query.expressions)
     );
     this.debounce = settings.debounce;
     this._query = settings.query;
@@ -62,7 +62,7 @@ export abstract class LiveQuery {
 
   operationRelevantForQuery(operation: RecordOperation): boolean {
     const change = recordOperationChange(operation);
-    const expression = this._query.expressions[0];
+    const expression = this._query.expressions as RecordQueryExpression;
     return this.queryExpressionRelevantForChange(expression, change);
   }
 

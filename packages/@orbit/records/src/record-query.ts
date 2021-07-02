@@ -5,9 +5,7 @@ import {
   RecordQueryExpressionResult
 } from './record-query-expression';
 
-export interface RecordQuery extends Query<RecordQueryExpression> {
-  expressions: RecordQueryExpression[];
-}
+export type RecordQuery = Query<RecordQueryExpression>;
 
 export type RecordQueryResult<T = InitializedRecord> =
   | RecordQueryExpressionResult<T>
