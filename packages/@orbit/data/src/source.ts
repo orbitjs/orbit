@@ -101,19 +101,19 @@ export abstract class Source<
 
     this._transformLog = new Log({
       name: name ? `${name}-log` : undefined,
-      bucket
+      bucket: bucket as Bucket<string[]>
     });
 
     this._syncQueue = new TaskQueue(this, {
       name: name ? `${name}-sync` : undefined,
-      bucket,
+      bucket: bucket as Bucket<Task[]>,
       autoActivate: false,
       ...syncQueueSettings
     });
 
     this._requestQueue = new TaskQueue(this, {
       name: name ? `${name}-requests` : undefined,
-      bucket,
+      bucket: bucket as Bucket<Task[]>,
       autoActivate: false,
       ...requestQueueSettings
     });

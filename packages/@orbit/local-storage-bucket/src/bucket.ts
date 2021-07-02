@@ -38,20 +38,20 @@ export class LocalStorageBucket extends Bucket {
   }
 
   getItem(key: string): Promise<unknown> {
-    const fullKey: string = this.getFullKeyForItem(key);
+    const fullKey = this.getFullKeyForItem(key);
     return Promise.resolve(
       JSON.parse(Orbit.globals.localStorage.getItem(fullKey))
     );
   }
 
   setItem(key: string, value: unknown): Promise<void> {
-    const fullKey: string = this.getFullKeyForItem(key);
+    const fullKey = this.getFullKeyForItem(key);
     Orbit.globals.localStorage.setItem(fullKey, JSON.stringify(value));
     return Promise.resolve();
   }
 
   removeItem(key: string): Promise<void> {
-    const fullKey: string = this.getFullKeyForItem(key);
+    const fullKey = this.getFullKeyForItem(key);
     Orbit.globals.localStorage.removeItem(fullKey);
     return Promise.resolve();
   }
