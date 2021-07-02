@@ -90,7 +90,10 @@ export function queryable(Klass: unknown): void {
       id,
       this.queryBuilder
     );
-    const response = await this._enqueueRequest('query', query);
+    const response = await this._requestQueue.push({
+      type: 'query',
+      data: query
+    });
     return options?.fullResponse ? response : response.data;
   };
 

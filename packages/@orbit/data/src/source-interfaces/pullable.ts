@@ -119,7 +119,10 @@ export function pullable(Klass: unknown): void {
       id,
       this.queryBuilder
     );
-    const response = await this._enqueueRequest('pull', query);
+    const response = await this._requestQueue.push({
+      type: 'pull',
+      data: query
+    });
     return options?.fullResponse ? response : response.transforms || [];
   };
 

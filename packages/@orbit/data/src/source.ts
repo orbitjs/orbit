@@ -203,9 +203,14 @@ export abstract class Source<
 
   // Performer interface
   perform(task: Task): Promise<unknown> {
-    let method = (this as any)[`__${task.type}__`] as (
-      data: any
-    ) => Promise<unknown>;
+    const methodName = `__${task.type}__`;
+    const method = (this as any)[methodName] as (data: any) => Promise<unknown>;
+
+    assert(
+      `Method '${methodName}' does not exist on Source`,
+      method !== undefined
+    );
+
     return method.call(this, task.data);
   }
 
@@ -265,13 +270,5 @@ export abstract class Source<
     await this._transformLog.reified;
     await this._syncQueue.activate();
     await this._requestQueue.activate();
-  }
-
-  protected _enqueueRequest(type: string, data: unknown): Promise<unknown> {
-    return this._requestQueue.push({ type, data });
-  }
-
-  protected _enqueueSync(type: string, data: unknown): Promise<unknown> {
-    return this._syncQueue.push({ type, data });
   }
 }

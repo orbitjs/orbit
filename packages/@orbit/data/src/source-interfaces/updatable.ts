@@ -1,4 +1,4 @@
-import { Orbit, settleInSeries, fulfillInSeries } from '@orbit/core';
+import { Orbit, fulfillInSeries, settleInSeries } from '@orbit/core';
 import { Source, SourceClass } from '../source';
 import { Transform, TransformOrOperations, buildTransform } from '../transform';
 import { RequestOptions } from '../request';
@@ -92,7 +92,10 @@ export function updatable(Klass: unknown): void {
     if (this.transformLog.contains(transform.id)) {
       return options?.fullResponse ? { transforms: [] } : undefined;
     } else {
-      const response = await this._enqueueRequest('update', transform);
+      const response = await this._requestQueue.push({
+        type: 'update',
+        data: transform
+      });
       return options?.fullResponse ? response : response.data;
     }
   };
