@@ -67,7 +67,7 @@ module('TaskProcessor', function () {
     }
   });
 
-  test("it creates a promise immediately that won't be resolved until process is called", function (assert) {
+  test("it creates a promise immediately that won't be resolved until process is called", async function (assert) {
     assert.expect(5);
 
     const target: Performer = {
@@ -88,7 +88,7 @@ module('TaskProcessor', function () {
       assert.ok(true, 'process resolved');
     });
 
-    return processor.process();
+    await processor.process();
   });
 
   test('#reset returns to an unstarted, unsettled state', async function (assert) {

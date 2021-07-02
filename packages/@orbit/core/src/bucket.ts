@@ -25,8 +25,8 @@ export interface BucketSettings {
   version?: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface Bucket extends Evented<'upgrade'> {}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-interface
+export interface Bucket<Item> extends Evented<'upgrade'> {}
 
 /**
  * Buckets can persist state. The base `Bucket` class is abstract and should be
@@ -42,7 +42,7 @@ export interface Bucket extends Evented<'upgrade'> {}
  * The upgrade process allows buckets to migrate their data between versions.
  */
 @evented
-export abstract class Bucket {
+export abstract class Bucket<Item = unknown> {
   private _name?: string;
   private _namespace!: string;
   private _version!: number;
@@ -62,12 +62,12 @@ export abstract class Bucket {
   /**
    * Retrieves an item from the bucket.
    */
-  abstract getItem(key: string): Promise<unknown>;
+  abstract getItem(key: string): Promise<Item>;
 
   /**
    * Stores an item in the bucket.
    */
-  abstract setItem(key: string, value: unknown): Promise<void>;
+  abstract setItem(key: string, value: Item): Promise<void>;
 
   /**
    * Removes an item from the bucket.

@@ -125,7 +125,10 @@ export function pushable(Klass: unknown): void {
       const response = options?.fullResponse ? { transforms } : transforms;
       return response;
     } else {
-      const response = await this._enqueueRequest('push', transform);
+      const response = await this._requestQueue.push({
+        type: 'push',
+        data: transform
+      });
       return options?.fullResponse ? response : response.transforms || [];
     }
   };

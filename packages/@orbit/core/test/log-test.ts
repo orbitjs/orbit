@@ -1,6 +1,6 @@
 import { Log } from '../src/log';
 import { NotLoggedException, OutOfRangeException } from '../src/exception';
-import { FakeBucket } from './support/fake-bucket';
+import { StringArrayBucket, StringBucket } from './support/buckets';
 import { Bucket } from '../src/bucket';
 
 const { module, test } = QUnit;
@@ -327,10 +327,10 @@ module('Log', function () {
   });
 
   module('using a bucket', function (hooks) {
-    let bucket: Bucket;
+    let bucket: StringArrayBucket;
 
     hooks.beforeEach(function () {
-      bucket = new FakeBucket({ name: 'fake-bucket' });
+      bucket = new StringArrayBucket({ name: 'fake-bucket' });
     });
 
     test('requires a name for lookups in the bucket', function (assert) {

@@ -1,5 +1,5 @@
 export * from './arrays';
-export * from './dict';
+export * from './types';
 export * from './eq';
 export * from './objects';
 export * from './strings';

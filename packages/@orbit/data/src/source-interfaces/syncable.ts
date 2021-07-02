@@ -66,28 +66,35 @@ export function syncable(Klass: unknown): void {
       | TransformBuilderFunc<Operation, unknown>
   ): Promise<void> {
     await this.activated;
-    if (typeof transformOrTransforms === 'function') {
-      const transform = buildTransform(
-        transformOrTransforms,
-        undefined,
-        undefined,
-        this.transformBuilder
-      );
-      return this._enqueueSync('sync', transform);
-    } else if (Array.isArray(transformOrTransforms)) {
+
+    if (Array.isArray(transformOrTransforms)) {
       const transforms = transformOrTransforms as Transform<Operation>[];
 
-      return transforms.reduce((chain, transform) => {
-        return chain.then(() => this.sync(transform));
-      }, Promise.resolve());
+      for (let transform of transforms) {
+        await this.sync(transform);
+      }
     } else {
-      const transform = transformOrTransforms as Transform<Operation>;
+      let transform;
 
-      if (this.transformLog.contains(transform.id)) {
-        return Promise.resolve();
+      if (typeof transformOrTransforms === 'function') {
+        transform = buildTransform(
+          transformOrTransforms,
+          undefined,
+          undefined,
+          this.transformBuilder
+        );
+      } else {
+        transform = transformOrTransforms as Transform<Operation>;
+
+        if (this.transformLog.contains(transform.id)) {
+          return;
+        }
       }
 
-      return this._enqueueSync('sync', transform);
+      return this._syncQueue.push({
+        type: 'sync',
+        data: transform
+      });
     }
   };
 

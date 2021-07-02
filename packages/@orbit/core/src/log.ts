@@ -8,7 +8,7 @@ const { assert } = Orbit;
 export interface LogOptions {
   name?: string;
   data?: string[];
-  bucket?: Bucket;
+  bucket?: Bucket<string[]>;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -25,7 +25,7 @@ export interface Log
 @evented
 export class Log {
   private _name?: string;
-  private _bucket?: Bucket;
+  private _bucket?: Bucket<string[]>;
   private _data: string[] = [];
 
   public reified!: Promise<void>;
@@ -45,7 +45,7 @@ export class Log {
     return this._name;
   }
 
-  get bucket(): Bucket | undefined {
+  get bucket(): Bucket<string[]> | undefined {
     return this._bucket;
   }
 
