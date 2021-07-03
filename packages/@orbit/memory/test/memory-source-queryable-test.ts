@@ -105,9 +105,7 @@ module('MemorySource - queryable', function (hooks) {
     };
 
     source.on('beforeQuery', (query: RecordQuery, hints: any) => {
-      if (query.expressions[0].op === 'findRecord') {
-        hints.data = jupiter2;
-      }
+      hints.data = jupiter2;
     });
 
     source.cache.patch((t) => t.addRecord(jupiter2));
@@ -149,10 +147,7 @@ module('MemorySource - queryable', function (hooks) {
     };
 
     source.on('beforeQuery', (query: RecordQuery, hints: any) => {
-      if (
-        query.expressions[0].op === 'findRecords' &&
-        query.options?.sources?.remote.customFilter === 'distantPlanets'
-      ) {
+      if (query.options?.sources?.remote.customFilter === 'distantPlanets') {
         hints.data = [
           { type: 'planet', id: 'uranus' },
           { type: 'planet', id: 'jupiter' }

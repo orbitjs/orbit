@@ -1,4 +1,3 @@
-/* eslint-disable valid-jsdoc */
 import { Orbit } from '@orbit/core';
 import {
   InitializedRecord,

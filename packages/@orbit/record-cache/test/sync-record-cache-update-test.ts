@@ -1222,23 +1222,22 @@ module('SyncRecordCache', function (hooks) {
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
         const tb = cache.transformBuilder;
 
-        cache.update((t) => [
+        cache.update((t) =>
           t.addRecord({
             type: 'planet',
             id: '1',
             attributes: { name: 'Earth' },
             relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
           })
-        ]);
+        );
 
         let result = cache.update(
-          (t) => [
+          (t) =>
             t.updateRecord({
               type: 'planet',
               id: '1',
               attributes: { classification: 'terrestrial' }
-            })
-          ],
+            }),
           { fullResponse: true }
         );
 
@@ -1313,21 +1312,20 @@ module('SyncRecordCache', function (hooks) {
         const cache = new ExampleSyncRecordCache({ schema, keyMap });
         const tb = cache.transformBuilder;
 
-        cache.update((t) => [
+        cache.update((t) =>
           t.addRecord({
             type: 'planet',
             id: '1',
             attributes: { name: 'Earth' },
             relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
           })
-        ]);
+        );
 
         let result = cache.update(
-          (t) => [
+          (t) =>
             t.replaceRelatedRecords({ type: 'planet', id: '1' }, 'moons', [
               { type: 'moon', id: 'm1' }
-            ])
-          ],
+            ]),
           { fullResponse: true }
         );
 
@@ -1463,7 +1461,7 @@ module('SyncRecordCache', function (hooks) {
           relationships: { moons: { data: [{ type: 'moon', id: 'm2' }] } }
         };
 
-        let result = cache.update([tb.addRecord(earth)], {
+        let result = cache.update(tb.addRecord(earth), {
           fullResponse: true
         });
 
@@ -1518,7 +1516,7 @@ module('SyncRecordCache', function (hooks) {
           'addRecord full response is correct'
         );
 
-        result = cache.update([tb.updateRecord(jupiter)], {
+        result = cache.update(tb.updateRecord(jupiter), {
           fullResponse: true
         });
 
@@ -1603,7 +1601,7 @@ module('SyncRecordCache', function (hooks) {
         const tb = cache.transformBuilder;
 
         let result = cache.update(
-          (t) => [t.addRecord({ id: '1', type: 'planet' })],
+          (t) => t.addRecord({ id: '1', type: 'planet' }),
           { fullResponse: true }
         );
 
@@ -1640,15 +1638,14 @@ module('SyncRecordCache', function (hooks) {
         );
 
         result = cache.update(
-          (t) => [
+          (t) =>
             t.updateRecord({
               id: '1',
               type: 'planet',
               relationships: {
                 moons: { data: [] }
               }
-            })
-          ],
+            }),
           { fullResponse: true }
         );
 

@@ -1,4 +1,4 @@
-import { clone, deepSet, Dict } from '@orbit/utils';
+import { clone, deepSet, Dict, toArray } from '@orbit/utils';
 import {
   cloneRecordIdentity,
   equalRecordIdentities,
@@ -317,80 +317,75 @@ export function getTransformRequests(
   transform: RecordTransform
 ): RecordTransformRequest[] {
   const requests: RecordTransformRequest[] = [];
-  let prevRequest: RecordTransformRequest | null;
+  let prevRequest: RecordTransformRequest | null = null;
 
-  (transform.operations as RecordOperation[]).forEach(
-    (operation: RecordOperation) => {
-      let request;
-      let newRequestNeeded = true;
+  for (let operation of toArray(transform.operations)) {
+    let request;
+    let newRequestNeeded = true;
 
-      if (
-        prevRequest &&
-        equalRecordIdentities(prevRequest.record, operation.record)
+    if (
+      prevRequest &&
+      equalRecordIdentities(prevRequest.record, operation.record)
+    ) {
+      if (operation.op === 'removeRecord') {
+        newRequestNeeded = false;
+
+        if (prevRequest.op !== 'removeRecord') {
+          prevRequest = null;
+          requests.pop();
+        }
+      } else if (
+        prevRequest.op === 'addRecord' ||
+        prevRequest.op === 'updateRecord'
       ) {
-        if (operation.op === 'removeRecord') {
+        if (operation.op === 'replaceAttribute') {
           newRequestNeeded = false;
-
-          if (prevRequest.op !== 'removeRecord') {
-            prevRequest = null;
-            requests.pop();
-          }
-        } else if (
-          prevRequest.op === 'addRecord' ||
-          prevRequest.op === 'updateRecord'
-        ) {
-          if (operation.op === 'replaceAttribute') {
-            newRequestNeeded = false;
-            replaceRecordAttribute(
-              prevRequest.record,
-              operation.attribute,
-              operation.value
-            );
-          } else if (operation.op === 'replaceRelatedRecord') {
-            newRequestNeeded = false;
-            replaceRecordHasOne(
-              prevRequest.record,
-              operation.relationship,
-              operation.relatedRecord as RecordIdentity
-            );
-          } else if (operation.op === 'replaceRelatedRecords') {
-            newRequestNeeded = false;
-            replaceRecordHasMany(
-              prevRequest.record,
-              operation.relationship,
-              operation.relatedRecords
-            );
-          }
-        } else if (
-          prevRequest.op === 'addToRelatedRecords' &&
-          operation.op === 'addToRelatedRecords' &&
-          (prevRequest as AddToRelatedRecordsRequest).relationship ===
-            operation.relationship
-        ) {
+          replaceRecordAttribute(
+            prevRequest.record,
+            operation.attribute,
+            operation.value
+          );
+        } else if (operation.op === 'replaceRelatedRecord') {
           newRequestNeeded = false;
-          (prevRequest as AddToRelatedRecordsRequest).relatedRecords.push(
-            cloneRecordIdentity(operation.relatedRecord)
+          replaceRecordHasOne(
+            prevRequest.record,
+            operation.relationship,
+            operation.relatedRecord as RecordIdentity
+          );
+        } else if (operation.op === 'replaceRelatedRecords') {
+          newRequestNeeded = false;
+          replaceRecordHasMany(
+            prevRequest.record,
+            operation.relationship,
+            operation.relatedRecords
           );
         }
-      }
-
-      if (newRequestNeeded) {
-        request = OperationToRequestMap[operation.op](operation);
-      }
-
-      if (request) {
-        let options = requestProcessor.customRequestOptions(
-          transform,
-          operation
+      } else if (
+        prevRequest.op === 'addToRelatedRecords' &&
+        operation.op === 'addToRelatedRecords' &&
+        (prevRequest as AddToRelatedRecordsRequest).relationship ===
+          operation.relationship
+      ) {
+        newRequestNeeded = false;
+        (prevRequest as AddToRelatedRecordsRequest).relatedRecords.push(
+          cloneRecordIdentity(operation.relatedRecord)
         );
-        if (options) {
-          request.options = options;
-        }
-        requests.push(request);
-        prevRequest = request;
       }
     }
-  );
+
+    if (newRequestNeeded) {
+      request = OperationToRequestMap[operation.op](operation);
+    }
+
+    if (request) {
+      let options = requestProcessor.customRequestOptions(transform, operation);
+      if (options) {
+        request.options = options;
+      }
+      requests.push(request);
+      prevRequest = request;
+    }
+  }
 
   return requests;
 }

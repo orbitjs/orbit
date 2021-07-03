@@ -39,9 +39,9 @@ module('buildQuery', function () {
 
     assert.strictEqual(query.id, 'abc123', 'id was populated');
     assert.strictEqual(
-      query.expressions[0],
+      query.expressions,
       expression,
-      'expression was populated'
+      'expressions was populated'
     );
     assert.strictEqual(query.options, options, 'options was populated');
   });
@@ -53,13 +53,13 @@ module('buildQuery', function () {
     };
     let expressions = [expression];
     let options = { sources: { jsonapi: { include: 'comments' } } };
-    let query = buildQuery(expression, options, 'abc123');
+    let query = buildQuery(expressions, options, 'abc123');
 
     assert.strictEqual(query.id, 'abc123', 'id was populated');
     assert.deepEqual(
       query.expressions,
       expressions,
-      'expression was populated'
+      'expressions was populated'
     );
     assert.strictEqual(query.options, options, 'options was populated');
   });
@@ -76,8 +76,8 @@ module('buildQuery', function () {
     assert.strictEqual(query.id, 'abc123', 'id was populated');
     assert.deepEqual(
       query.expressions,
-      [{ op: 'findRecords', type: 'planet' }],
-      'expression was populated'
+      { op: 'findRecords', type: 'planet' },
+      'expressions was populated'
     );
     assert.strictEqual(query.options, options, 'options was populated');
   });
@@ -108,7 +108,7 @@ module('buildQuery', function () {
         { op: 'findRecords', type: 'planet' },
         { op: 'findRecords', type: 'moon' }
       ],
-      'expression was populated'
+      'expressions was populated'
     );
     assert.strictEqual(query.options, options, 'options was populated');
   });
@@ -131,12 +131,10 @@ module('buildQuery', function () {
     let query2 = buildQuery(query1, { a: '2', b: '2' }, '2');
     assert.notStrictEqual(query1, query2);
     assert.deepEqual(query2, {
-      expressions: [
-        {
-          op: 'findRecords',
-          type: 'planet'
-        }
-      ],
+      expressions: {
+        op: 'findRecords',
+        type: 'planet'
+      },
       options: {
         a: '2',
         b: '2',
@@ -160,8 +158,8 @@ module('buildQuery', function () {
     );
     assert.deepEqual(
       query.expressions,
-      [expression],
-      'expression was populated'
+      expression,
+      'expressions was populated'
     );
   });
 
@@ -173,9 +171,9 @@ module('buildQuery', function () {
     let queryFactory = new QueryTerm(expression);
     let query = buildQuery<RecordQueryExpression>(queryFactory);
     assert.strictEqual(
-      query.expressions[0],
+      query.expressions,
       expression,
-      'expression was populated'
+      'expressions was populated'
     );
   });
 
@@ -189,15 +187,8 @@ module('buildQuery', function () {
       type: 'moon'
     };
     let query = buildQuery<RecordQueryExpression>([expression1, expression2]);
-    assert.strictEqual(
-      query.expressions[0],
-      expression1,
-      'expression1 was populated'
-    );
-    assert.strictEqual(
-      query.expressions[1],
-      expression2,
-      'expression2 was populated'
-    );
+    let qe = query.expressions as RecordQueryExpression[];
+    assert.strictEqual(qe[0], expression1, 'expression1 was populated');
+    assert.strictEqual(qe[1], expression2, 'expression2 was populated');
   });
 });

@@ -14,6 +14,7 @@ import {
   RecordTransform,
   UpdateRecordOperation
 } from '@orbit/records';
+import { toArray } from '@orbit/utils';
 import * as sinon from 'sinon';
 import { SinonStub } from 'sinon';
 import { JSONAPIResourceSerializer } from '../src';
@@ -90,7 +91,7 @@ module('JSONAPISource - pushable', function (hooks) {
         if (transformCount === 1) {
           assert.deepEqual(
             transform.operations,
-            [addPlanetOp],
+            addPlanetOp,
             'transform event initially returns add-record op'
           );
         } else if (transformCount === 2) {
@@ -220,7 +221,7 @@ module('JSONAPISource - pushable', function (hooks) {
         if (transformCount === 1) {
           assert.deepEqual(
             transform.operations,
-            [addPlanetOp],
+            addPlanetOp,
             'transform event initially returns add-record op'
           );
         } else if (transformCount === 2) {
@@ -231,7 +232,7 @@ module('JSONAPISource - pushable', function (hooks) {
             'transform event then returns add-remote-id op'
           );
         } else if (transformCount === 3) {
-          let operationsWithoutId = transform.operations.map((op) => {
+          let operationsWithoutId = toArray(transform.operations).map((op) => {
             let clonedOp = Object.assign({}, op) as RecordOperation;
             delete (clonedOp as any).record.id;
             return clonedOp;
@@ -363,7 +364,7 @@ module('JSONAPISource - pushable', function (hooks) {
         if (transformCount === 1) {
           assert.deepEqual(
             transform.operations,
-            [replacePlanetOp],
+            replacePlanetOp,
             'transform event initially returns replace-record op'
           );
         }
@@ -486,7 +487,7 @@ module('JSONAPISource - pushable', function (hooks) {
       )) as RecordTransform[];
 
       assert.deepEqual(
-        transforms[1].operations.map((o) => o.op),
+        toArray(transforms[1].operations).map((o) => o.op),
         ['replaceAttribute', 'replaceKey']
       );
       const ops = transforms[1].operations as ReplaceKeyOperation[];
@@ -1021,7 +1022,7 @@ module('JSONAPISource - pushable', function (hooks) {
         if (transformCount === 1) {
           assert.deepEqual(
             transform.operations,
-            [addPlanetOp],
+            addPlanetOp,
             'transform event initially returns add-record op'
           );
         }

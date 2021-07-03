@@ -1,4 +1,4 @@
-import { Dict } from '@orbit/utils';
+import { Dict, toArray } from '@orbit/utils';
 import {
   RecordQuery,
   AddToRelatedRecordsOperation,
@@ -78,7 +78,7 @@ export function getQueryRequests(
 ): RecordQueryRequest[] {
   const requests: RecordQueryRequest[] = [];
 
-  for (let expression of query.expressions) {
+  for (let expression of toArray(query.expressions)) {
     let request = ExpressionToRequestMap[expression.op](
       expression as RecordQueryExpression,
       requestProcessor

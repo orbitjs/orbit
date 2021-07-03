@@ -90,7 +90,7 @@ module('@queryable', function (hooks) {
 
     source._query = async function (query) {
       assert.equal(++order, 1, 'action performed after beforeQuery');
-      assert.strictEqual(query.expressions[0], qe, 'query object matches');
+      assert.strictEqual(query.expressions, qe, 'query object matches');
       return fullResponse;
     };
 
@@ -100,7 +100,7 @@ module('@queryable', function (hooks) {
         2,
         'query triggered after action performed successfully'
       );
-      assert.strictEqual(query.expressions[0], qe, 'query matches');
+      assert.strictEqual(query.expressions, qe, 'query matches');
       assert.strictEqual(result, fullResponse, 'result matches');
     });
 
@@ -121,7 +121,7 @@ module('@queryable', function (hooks) {
 
     source._query = async function (query) {
       assert.equal(++order, 1, 'action performed after beforeQuery');
-      assert.strictEqual(query.expressions[0], qe, 'query object matches');
+      assert.strictEqual(query.expressions, qe, 'query object matches');
       return fullResponse;
     };
 
@@ -131,7 +131,7 @@ module('@queryable', function (hooks) {
         2,
         'query triggered after action performed successfully'
       );
-      assert.strictEqual(query.expressions[0], qe, 'query matches');
+      assert.strictEqual(query.expressions, qe, 'query matches');
       assert.equal(result, fullResponse, 'result matches');
     });
 
@@ -157,7 +157,7 @@ module('@queryable', function (hooks) {
 
     source._query = async function (query) {
       assert.equal(++order, 1, 'action performed after beforeQuery');
-      assert.strictEqual(query.expressions[0], qe, 'query object matches');
+      assert.strictEqual(query.expressions, qe, 'query object matches');
       return fullResponse;
     };
 
@@ -167,7 +167,7 @@ module('@queryable', function (hooks) {
         2,
         'query triggered after action performed successfully'
       );
-      assert.strictEqual(query.expressions[0], qe, 'query matches');
+      assert.strictEqual(query.expressions, qe, 'query matches');
       assert.deepEqual(result, fullResponse, 'result matches');
     });
 
@@ -185,7 +185,7 @@ module('@queryable', function (hooks) {
 
     source._query = function (query) {
       assert.equal(++order, 1, 'action performed after beforeQuery');
-      assert.strictEqual(query.expressions[0], qe, 'query object matches');
+      assert.strictEqual(query.expressions, qe, 'query object matches');
       return Promise.reject(':(');
     };
 
@@ -199,7 +199,7 @@ module('@queryable', function (hooks) {
         2,
         'queryFail triggered after an unsuccessful query'
       );
-      assert.strictEqual(query.expressions[0], qe, 'query matches');
+      assert.strictEqual(query.expressions, qe, 'query matches');
       assert.equal(error, ':(', 'error matches');
     });
 
@@ -403,7 +403,7 @@ module('@queryable', function (hooks) {
     ];
     source._query = async function (query) {
       assert.equal(++order, 1, 'action performed after beforeQuery');
-      assert.strictEqual(query.expressions[0], qe, 'query object matches');
+      assert.strictEqual(query.expressions, qe, 'query object matches');
       return { data: result1 };
     };
 
@@ -413,7 +413,7 @@ module('@queryable', function (hooks) {
         2,
         'query triggered after action performed successfully'
       );
-      assert.strictEqual(query.expressions[0], qe, 'query matches');
+      assert.strictEqual(query.expressions, qe, 'query matches');
       assert.deepEqual(result, { data: result1 }, 'result matches');
     });
 
@@ -452,18 +452,14 @@ module('@queryable', function (hooks) {
 
     source.on('beforeQuery', async (query) => {
       assert.equal(++order, 1, 'beforeQuery triggered first');
-      assert.strictEqual(
-        query.expressions[0],
-        qe,
-        'beforeQuery: query matches'
-      );
+      assert.strictEqual(query.expressions, qe, 'beforeQuery: query matches');
 
       return ['remote', { details: details1 }];
     });
 
     source._query = async function (query) {
       assert.equal(++order, 2, 'action performed after beforeQuery');
-      assert.strictEqual(query.expressions[0], qe, '_query: query matches');
+      assert.strictEqual(query.expressions, qe, '_query: query matches');
       return { data: data1, details: details1 };
     };
 
@@ -473,7 +469,7 @@ module('@queryable', function (hooks) {
         3,
         'query triggered after action performed successfully'
       );
-      assert.strictEqual(query.expressions[0], qe, 'query: query matches');
+      assert.strictEqual(query.expressions, qe, 'query: query matches');
       assert.deepEqual(result, expectedResult, 'result matches');
     });
 

@@ -137,24 +137,21 @@ module('@updatable', function (hooks) {
   });
 
   test('#update can accept a transform builder function', async function (assert) {
-    assert.expect(3);
+    assert.expect(2);
 
     const earth = { type: 'planet', id: 'earth' };
     const fullResponse = { data: earth, transforms: [] };
 
     source._update = async function (transform: Transform<RecordOperation>) {
-      assert.strictEqual(
-        transform.operations.length,
-        1,
-        'transform passed to _update with correct operations count'
-      );
       assert.deepEqual(
-        transform.operations[0],
-        {
-          op: 'addRecord',
-          record: earth
-        },
-        'expected operation'
+        transform.operations as RecordOperation[],
+        [
+          {
+            op: 'addRecord',
+            record: earth
+          }
+        ],
+        'transform passed to _update with correct operations'
       );
       return fullResponse;
     };

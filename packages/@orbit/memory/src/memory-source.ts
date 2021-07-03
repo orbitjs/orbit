@@ -28,14 +28,14 @@ import {
   RecordTransformResult,
   RecordUpdatable
 } from '@orbit/records';
-import { Dict } from '@orbit/utils';
+import { Dict, toArray } from '@orbit/utils';
 import {
   MemoryCache,
   MemoryCacheClass,
   MemoryCacheSettings
 } from './memory-cache';
 
-const { deprecate } = Orbit;
+const { assert, deprecate } = Orbit;
 
 export interface MemorySourceSettings<
   QO extends RequestOptions = RecordSourceQueryOptions,
@@ -189,7 +189,12 @@ export class MemorySource<
     }
 
     if (hints?.data) {
-      if (transform.operations.length > 1 && Array.isArray(hints.data)) {
+      if (Array.isArray(transform.operations)) {
+        assert(
+          'MemorySource#update: `hints.data` must be an array if `transform.operations` is an array',
+          Array.isArray(hints.data)
+        );
+
         response.data = (hints.data as RecordOperationResult[]).map((h) =>
           this._retrieveOperationResult(h)
         );
@@ -199,11 +204,7 @@ export class MemorySource<
         );
       }
     } else if (results) {
-      if (transform.operations.length === 1 && Array.isArray(results)) {
-        response.data = results[0];
-      } else {
-        response.data = results;
-      }
+      response.data = results;
     }
 
     if (hints?.details) {
@@ -225,7 +226,12 @@ export class MemorySource<
 
     if (hints?.data) {
       response = {};
-      if (query.expressions.length > 1 && Array.isArray(hints.data)) {
+      if (Array.isArray(query.expressions)) {
+        assert(
+          'MemorySource#query: `hints.data` must be an array if `query.expressions` is an array',
+          Array.isArray(hints.data)
+        );
+
         response.data = (hints.data as RecordQueryExpressionResult[]).map((h) =>
           this._retrieveQueryExpressionResult(h)
         );
@@ -330,7 +336,7 @@ export class MemorySource<
 
     let ops: RecordOperation[] = [];
     transforms.forEach((t) => {
-      Array.prototype.push.apply(ops, t.operations);
+      Array.prototype.push.apply(ops, toArray(t.operations));
     });
 
     if (coalesce !== false) {

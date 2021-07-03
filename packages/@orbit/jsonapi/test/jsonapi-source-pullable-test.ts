@@ -12,6 +12,7 @@ import {
 } from '@orbit/records';
 import * as sinon from 'sinon';
 import { SinonStub } from 'sinon';
+import { toArray } from '@orbit/utils';
 import {
   JSONAPIResourceIdentitySerializer,
   JSONAPIResourceSerializer,
@@ -83,11 +84,11 @@ module('JSONAPISource - pullable', function (hooks) {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Jupiter']
@@ -289,11 +290,11 @@ module('JSONAPISource - pullable', function (hooks) {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord', 'updateRecord', 'updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Jupiter', 'Earth', 'Saturn']
@@ -350,11 +351,11 @@ module('JSONAPISource - pullable', function (hooks) {
 
       assert.equal(transforms.length, 1, 'one transform returned');
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Earth']
@@ -404,11 +405,11 @@ module('JSONAPISource - pullable', function (hooks) {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Earth']
@@ -453,11 +454,11 @@ module('JSONAPISource - pullable', function (hooks) {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Moon']
@@ -525,11 +526,11 @@ module('JSONAPISource - pullable', function (hooks) {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord', 'updateRecord', 'updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Moon', 'Phobos', 'Deimos']
@@ -587,11 +588,11 @@ module('JSONAPISource - pullable', function (hooks) {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Mars']
@@ -637,11 +638,11 @@ module('JSONAPISource - pullable', function (hooks) {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord', 'updateRecord', 'updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Earth', 'Jupiter', 'Saturn']
@@ -687,11 +688,11 @@ module('JSONAPISource - pullable', function (hooks) {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord', 'updateRecord', 'updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Saturn', 'Jupiter', 'Earth']
@@ -749,11 +750,11 @@ module('JSONAPISource - pullable', function (hooks) {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord', 'updateRecord', 'updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Jupiter', 'Saturn', 'Earth']
@@ -803,11 +804,11 @@ module('JSONAPISource - pullable', function (hooks) {
         'log contains transform'
       );
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord', 'updateRecord', 'updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Jupiter', 'Earth', 'Saturn']
@@ -867,12 +868,14 @@ module('JSONAPISource - pullable', function (hooks) {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         ['updateRecord', 'addToRelatedRecords']
       );
 
-      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
+      let op1 = ops[0] as UpdateRecordOperation;
 
       assert.equal(op1.record.attributes?.name, 'Earth');
 
@@ -924,12 +927,14 @@ module('JSONAPISource - pullable', function (hooks) {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         ['updateRecord', 'addToRelatedRecords']
       );
 
-      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
+      let op1 = ops[0] as UpdateRecordOperation;
 
       assert.equal(op1.record.attributes?.name, 'Earth');
 
@@ -980,12 +985,14 @@ module('JSONAPISource - pullable', function (hooks) {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         ['updateRecord', 'addToRelatedRecords']
       );
 
-      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
+      let op1 = ops[0] as UpdateRecordOperation;
 
       assert.equal(op1.record.attributes?.name, 'Moon');
 
@@ -1055,8 +1062,10 @@ module('JSONAPISource - pullable', function (hooks) {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         [
           'updateRecord',
           'updateRecord',
@@ -1067,9 +1076,9 @@ module('JSONAPISource - pullable', function (hooks) {
         ]
       );
 
-      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
-      let op2 = transforms[0].operations[1] as UpdateRecordOperation;
-      let op3 = transforms[0].operations[2] as UpdateRecordOperation;
+      let op1 = ops[0] as UpdateRecordOperation;
+      let op2 = ops[1] as UpdateRecordOperation;
+      let op3 = ops[2] as UpdateRecordOperation;
 
       assert.deepEqual(
         [op1, op2, op3].map((o) => o.record.attributes?.name),
@@ -1132,12 +1141,14 @@ module('JSONAPISource - pullable', function (hooks) {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         ['updateRecord', 'addToRelatedRecords']
       );
 
-      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
+      let op1 = ops[0] as UpdateRecordOperation;
 
       assert.equal(op1.record.attributes?.name, 'Mars');
 
@@ -1185,8 +1196,10 @@ module('JSONAPISource - pullable', function (hooks) {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         [
           'updateRecord',
           'updateRecord',
@@ -1197,9 +1210,9 @@ module('JSONAPISource - pullable', function (hooks) {
         ]
       );
 
-      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
-      let op2 = transforms[0].operations[1] as UpdateRecordOperation;
-      let op3 = transforms[0].operations[2] as UpdateRecordOperation;
+      let op1 = ops[0] as UpdateRecordOperation;
+      let op2 = ops[1] as UpdateRecordOperation;
+      let op3 = ops[2] as UpdateRecordOperation;
 
       assert.deepEqual(
         [op1, op2, op3].map((o) => o.record.attributes?.name),
@@ -1250,8 +1263,10 @@ module('JSONAPISource - pullable', function (hooks) {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         [
           'updateRecord',
           'updateRecord',
@@ -1262,9 +1277,9 @@ module('JSONAPISource - pullable', function (hooks) {
         ]
       );
 
-      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
-      let op2 = transforms[0].operations[1] as UpdateRecordOperation;
-      let op3 = transforms[0].operations[2] as UpdateRecordOperation;
+      let op1 = ops[0] as UpdateRecordOperation;
+      let op2 = ops[1] as UpdateRecordOperation;
+      let op3 = ops[2] as UpdateRecordOperation;
 
       assert.deepEqual(
         [op1, op2, op3].map((o) => o.record.attributes?.name),
@@ -1331,8 +1346,10 @@ module('JSONAPISource - pullable', function (hooks) {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         [
           'updateRecord',
           'updateRecord',
@@ -1343,9 +1360,9 @@ module('JSONAPISource - pullable', function (hooks) {
         ]
       );
 
-      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
-      let op2 = transforms[0].operations[1] as UpdateRecordOperation;
-      let op3 = transforms[0].operations[2] as UpdateRecordOperation;
+      let op1 = ops[0] as UpdateRecordOperation;
+      let op2 = ops[1] as UpdateRecordOperation;
+      let op3 = ops[2] as UpdateRecordOperation;
 
       assert.deepEqual(
         [op1, op2, op3].map((o) => o.record.attributes?.name),
@@ -1402,8 +1419,10 @@ module('JSONAPISource - pullable', function (hooks) {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         [
           'updateRecord',
           'updateRecord',
@@ -1414,9 +1433,9 @@ module('JSONAPISource - pullable', function (hooks) {
         ]
       );
 
-      let op1 = transforms[0].operations[0] as UpdateRecordOperation;
-      let op2 = transforms[0].operations[1] as UpdateRecordOperation;
-      let op3 = transforms[0].operations[2] as UpdateRecordOperation;
+      let op1 = ops[0] as UpdateRecordOperation;
+      let op2 = ops[1] as UpdateRecordOperation;
+      let op3 = ops[2] as UpdateRecordOperation;
 
       assert.deepEqual(
         [op1, op2, op3].map((o) => o.record.attributes?.name),
@@ -1573,15 +1592,17 @@ module('JSONAPISource - pullable', function (hooks) {
         source.transformLog.contains(transforms[0].id),
         'log contains transform'
       );
+
+      const ops = transforms[0].operations as RecordOperation[];
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        ops.map((o) => o.op),
         ['updateRecord', 'replaceRelatedRecords']
       );
 
-      const op1 = transforms[0].operations[0] as UpdateRecordOperation;
+      const op1 = ops[0] as UpdateRecordOperation;
       assert.equal(op1.record.attributes?.name, 'Io');
 
-      const op2 = transforms[0].operations[1] as ReplaceRelatedRecordsOperation;
+      const op2 = ops[1] as ReplaceRelatedRecordsOperation;
       assert.equal(op2.record.id, planet.id);
       assert.equal(op2.relationship, 'moons');
       assert.deepEqual(
@@ -1671,11 +1692,11 @@ module('JSONAPISource - pullable', function (hooks) {
       assert.equal(transforms.length, 1, 'one transform returned');
 
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord', 'updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Jupiter', 'Earth']
@@ -1726,22 +1747,22 @@ module('JSONAPISource - pullable', function (hooks) {
       assert.equal(transforms.length, 2, 'two transforms returned');
 
       assert.deepEqual(
-        transforms[0].operations.map((o) => o.op),
+        toArray(transforms[0].operations).map((o) => o.op),
         ['updateRecord', 'updateRecord']
       );
       assert.deepEqual(
-        transforms[0].operations.map(
+        toArray(transforms[0].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Jupiter', 'Earth']
       );
 
       assert.deepEqual(
-        transforms[1].operations.map((o) => o.op),
+        toArray(transforms[1].operations).map((o) => o.op),
         ['updateRecord', 'updateRecord']
       );
       assert.deepEqual(
-        transforms[1].operations.map(
+        toArray(transforms[1].operations).map(
           (o) => (o as UpdateRecordOperation).record.attributes?.name
         ),
         ['Io', 'Europa']

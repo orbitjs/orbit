@@ -21,7 +21,7 @@ export type TransformOrOperations<O extends Operation, TB> =
  */
 export interface Transform<O extends Operation> {
   id: string;
-  operations: O[];
+  operations: O | O[];
   options?: RequestOptions;
 }
 
@@ -55,7 +55,7 @@ export function buildTransform<O extends Operation, TB = unknown>(
     );
   } else {
     let transform = transformOrOperations as Transform<O>;
-    let operations: O[];
+    let operations: O | O[];
     let options: RequestOptions | undefined;
     let id: string;
 
@@ -77,11 +77,11 @@ export function buildTransform<O extends Operation, TB = unknown>(
     } else {
       if (Array.isArray(transformOrOperations)) {
         operations = [];
-        for (let transformOrOperation of transformOrOperations) {
-          operations.push(toOperation<O>(transformOrOperation));
+        for (let o of transformOrOperations) {
+          operations.push(toOperation<O>(o));
         }
       } else {
-        operations = [toOperation<O>(transformOrOperations as O)];
+        operations = toOperation<O>(transformOrOperations as O);
       }
       options = transformOptions;
       id = transformId ?? Orbit.uuid();
@@ -110,5 +110,5 @@ function isOperationTerm<O extends Operation = Operation>(
 function isTransform<O extends Operation = Operation>(
   transform: TransformOrOperations<O, unknown>
 ): transform is Transform<O> {
-  return Array.isArray((transform as Transform<O>).operations);
+  return (transform as Transform<O>).operations !== undefined;
 }

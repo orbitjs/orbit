@@ -212,7 +212,12 @@ export class IndexedDBSource<
     }
 
     if (hints?.data) {
-      if (transform.operations.length > 1 && Array.isArray(hints.data)) {
+      if (Array.isArray(transform.operations)) {
+        assert(
+          'IndexedDBSource#update: `hints.data` must be an array if `transform.operations` is an array',
+          Array.isArray(hints.data)
+        );
+
         const responseData = [];
         const hintsData = hints.data as RecordOperationResult[];
         for (let h of hintsData) {
@@ -225,11 +230,7 @@ export class IndexedDBSource<
         );
       }
     } else if (results) {
-      if (transform.operations.length === 1 && Array.isArray(results)) {
-        response.data = results[0];
-      } else {
-        response.data = results;
-      }
+      response.data = results;
     }
 
     if (hints?.details) {
@@ -251,7 +252,12 @@ export class IndexedDBSource<
 
     if (hints?.data) {
       response = {};
-      if (query.expressions.length > 1 && Array.isArray(hints.data)) {
+      if (Array.isArray(query.expressions)) {
+        assert(
+          'IndexedDBSource#query: `hints.data` must be an array if `query.expressions` is an array',
+          Array.isArray(hints.data)
+        );
+
         const responseData = [];
         const hintsData = hints.data as RecordQueryExpressionResult[];
         for (let h of hintsData) {
@@ -305,15 +311,15 @@ export class IndexedDBSource<
 
     const results = await this._cache.query(query);
 
-    if (query.expressions.length === 1) {
-      operations = this._operationsFromQueryResult(
-        results as RecordQueryExpressionResult
-      );
-    } else {
+    if (Array.isArray(query.expressions)) {
       operations = [];
       for (let result of results as RecordQueryExpressionResult[]) {
         operations.push(...this._operationsFromQueryResult(result));
       }
+    } else {
+      operations = this._operationsFromQueryResult(
+        results as RecordQueryExpressionResult
+      );
     }
 
     fullResponse.transforms = [buildTransform(operations)];

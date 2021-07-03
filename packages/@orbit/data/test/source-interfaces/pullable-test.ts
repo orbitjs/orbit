@@ -96,7 +96,7 @@ module('@pullable', function (hooks) {
 
     source._pull = async function (query) {
       assert.equal(++order, 1, 'action performed after willPull');
-      assert.strictEqual(query.expressions[0], qe, 'query object matches');
+      assert.strictEqual(query.expressions, qe, 'query object matches');
       return fullResponse;
     };
 
@@ -116,7 +116,7 @@ module('@pullable', function (hooks) {
         2,
         'pull triggered after action performed successfully'
       );
-      assert.strictEqual(query.expressions[0], qe, 'query matches');
+      assert.strictEqual(query.expressions, qe, 'query matches');
       assert.strictEqual(result, fullResponse, 'result matches');
     });
 
@@ -162,7 +162,7 @@ module('@pullable', function (hooks) {
 
     source._pull = async function (query) {
       assert.equal(++order, 4, 'action performed after willPull');
-      assert.strictEqual(query.expressions[0], qe, 'query object matches');
+      assert.strictEqual(query.expressions, qe, 'query object matches');
       return fullResponse;
     };
 
@@ -182,7 +182,7 @@ module('@pullable', function (hooks) {
         5,
         'pull triggered after action performed successfully'
       );
-      assert.strictEqual(query.expressions[0], qe, 'query matches');
+      assert.strictEqual(query.expressions, qe, 'query matches');
       assert.strictEqual(result, fullResponse, 'result matches');
     });
 
@@ -226,7 +226,7 @@ module('@pullable', function (hooks) {
         3,
         'pullFail triggered after an unsuccessful beforePull'
       );
-      assert.strictEqual(query.expressions[0], qe, 'query matches');
+      assert.strictEqual(query.expressions, qe, 'query matches');
       assert.equal(error, ':(', 'error matches');
     });
 
@@ -246,7 +246,7 @@ module('@pullable', function (hooks) {
 
     source._pull = function (query) {
       assert.equal(++order, 1, 'action performed after willPull');
-      assert.strictEqual(query.expressions[0], qe, 'query object matches');
+      assert.strictEqual(query.expressions, qe, 'query object matches');
       return Promise.reject(':(');
     };
 
@@ -256,7 +256,7 @@ module('@pullable', function (hooks) {
 
     source.on('pullFail', (query, error) => {
       assert.equal(++order, 2, 'pullFail triggered after an unsuccessful pull');
-      assert.strictEqual(query.expressions[0], qe, 'query matches');
+      assert.strictEqual(query.expressions, qe, 'query matches');
       assert.equal(error, ':(', 'error matches');
     });
 
@@ -385,7 +385,7 @@ module('@pullable', function (hooks) {
 
     source._pull = async function (query) {
       assert.equal(++order, 1, 'action performed after beforeQuery');
-      assert.strictEqual(query.expressions[0], qe, 'query object matches');
+      assert.strictEqual(query.expressions, qe, 'query object matches');
       return fullResponse;
     };
 
@@ -395,7 +395,7 @@ module('@pullable', function (hooks) {
         2,
         'pull triggered after action performed successfully'
       );
-      assert.strictEqual(query.expressions[0], qe, 'query matches');
+      assert.strictEqual(query.expressions, qe, 'query matches');
       assert.deepEqual(result, fullResponse, 'result matches');
     });
 
@@ -444,14 +444,14 @@ module('@pullable', function (hooks) {
 
     source.on('beforePull', async (query) => {
       assert.equal(++order, 1, 'beforePull triggered first');
-      assert.strictEqual(query.expressions[0], qe, 'beforePull: query matches');
+      assert.strictEqual(query.expressions, qe, 'beforePull: query matches');
 
       return ['remote', { details: details1 }];
     });
 
     source._pull = async function (query) {
       assert.equal(++order, 2, 'action performed after beforeQuery');
-      assert.strictEqual(query.expressions[0], qe, '_pull: query matches');
+      assert.strictEqual(query.expressions, qe, '_pull: query matches');
       return {
         transforms: transforms1,
         details: details1
@@ -464,7 +464,7 @@ module('@pullable', function (hooks) {
         3,
         'pull triggered after action performed successfully'
       );
-      assert.strictEqual(query.expressions[0], qe, 'pull: query matches');
+      assert.strictEqual(query.expressions, qe, 'pull: query matches');
       assert.deepEqual(result, expectedResult, 'pull: result matches');
     });
 
