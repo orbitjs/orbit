@@ -1,6 +1,6 @@
 {
   "name": "@orbit/indexeddb-bucket",
-  "version": "0.17.0-beta.16",
+  "version": "0.17.0-beta.19",
   "description": "An IndexedDB bucket implementation for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -31,8 +31,8 @@
     "test": "node ../build ci && snowpack build && testem ci"
   },
   "dependencies": {
-    "@orbit/core": "^0.17.0-beta.16",
-    "@orbit/utils": "^0.17.0-beta.16"
+    "@orbit/core": "^0.17.0-beta.19",
+    "@orbit/utils": "^0.17.0-beta.19"
   },
   "devDependencies": {
     "@orbit/build": "^0.17.0-beta.12"

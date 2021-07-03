@@ -1,6 +1,6 @@
 {
   "name": "@orbit/coordinator",
-  "version": "0.17.0-beta.17",
+  "version": "0.17.0-beta.19",
   "description": "A coordinator and set of coordination strategies for managing data flow and keeping @orbit/data sources in sync.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -32,9 +32,9 @@
     "test": "node ../build ci && snowpack build && testem ci"
   },
   "dependencies": {
-    "@orbit/core": "^0.17.0-beta.16",
-    "@orbit/data": "^0.17.0-beta.17",
-    "@orbit/utils": "^0.17.0-beta.16"
+    "@orbit/core": "^0.17.0-beta.19",
+    "@orbit/data": "^0.17.0-beta.19",
+    "@orbit/utils": "^0.17.0-beta.19"
   },
   "devDependencies": {
     "@orbit/build": "^0.17.0-beta.12"
