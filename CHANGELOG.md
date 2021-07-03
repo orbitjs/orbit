@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.17.0-beta.19 (2021-07-03)
+
+#### :boom: Breaking Change
+
+- `@orbit/data`, `@orbit/indexeddb`, `@orbit/jsonapi`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/records`
+  - [#855](https://github.com/orbitjs/orbit/pull/855) Allow for explicit "singular" requests (queries / transforms) ([@dgeb](https://github.com/dgeb))
+
+#### :rocket: Enhancement
+
+- `@orbit/data`, `@orbit/indexeddb`, `@orbit/jsonapi`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/records`
+  - [#855](https://github.com/orbitjs/orbit/pull/855) Allow for explicit "singular" requests (queries / transforms) ([@dgeb](https://github.com/dgeb))
+- `@orbit/core`, `@orbit/data`, `@orbit/local-storage-bucket`, `@orbit/utils`
+  - [#854](https://github.com/orbitjs/orbit/pull/854) Improve typings for core interfaces ([@dgeb](https://github.com/dgeb))
+- `@orbit/memory`
+  - [#853](https://github.com/orbitjs/orbit/pull/853) Improve MemorySource#merge typings and deprecate `transformOptions` ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.18 (2021-06-22)
 
 #### :rocket: Enhancement
