@@ -211,9 +211,7 @@ export class TaskQueue<
     this._tasks.push(task);
     this._processors.push(processor);
     await this._persist();
-    if (this.autoProcess) {
-      await this._settle();
-    }
+    if (this.autoProcess) this._settle();
     return processor.settle();
   }
 
@@ -229,7 +227,7 @@ export class TaskQueue<
     let processor = this.currentProcessor;
     processor.reset();
     await this._persist();
-    await this._settle();
+    this._settle();
     return processor.settle();
   }
 
@@ -251,9 +249,7 @@ export class TaskQueue<
       );
     }
     await this._persist();
-    if (this.autoProcess) {
-      await this._settle();
-    }
+    if (this.autoProcess) this._settle();
   }
 
   /**
@@ -315,9 +311,7 @@ export class TaskQueue<
     this._tasks.unshift(task);
     this._processors.unshift(processor);
     await this._persist();
-    if (this.autoProcess) {
-      await this._settle();
-    }
+    if (this.autoProcess) this._settle();
     return processor.settle();
   }
 
