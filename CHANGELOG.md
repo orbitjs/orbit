@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.17.0-beta.20 (2021-07-04)
+
+#### :bug: Bug Fix
+
+- `@orbit/core`
+  - [#856](https://github.com/orbitjs/orbit/pull/856) Do not await TaskQueue settlement as part of `push`, `retry`, `skip`, and `unshift` ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.19 (2021-07-03)
 
 #### :boom: Breaking Change
