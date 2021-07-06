@@ -25,12 +25,11 @@
     "@orbit/prettier-config": "^1.0.0",
     "lerna": "^3.22.1",
     "prettier": "^2.2.1",
-    "typedoc": "^0.20.25",
-    "typedoc-plugin-lerna-packages": "^0.3.1"
+    "typedoc": "^0.21.2"
   },
   "prettier": "@orbit/prettier-config",
   "volta": {
-    "node": "10.23.0",
+    "node": "14.17.3",
     "yarn": "1.22.10"
   },
   "workspaces": [
