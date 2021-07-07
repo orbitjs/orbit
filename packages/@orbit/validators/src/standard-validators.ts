@@ -3,6 +3,7 @@ import { ArrayValidator, validateArray } from './array-validator';
 import { BooleanValidator, validateBoolean } from './boolean-validator';
 import { DateValidator, validateDate } from './date-validator';
 import { NumberValidator, validateNumber } from './number-validator';
+import { ObjectValidator, validateObject } from './object-validator';
 import { StringValidator, validateString } from './string-validator';
 
 export enum StandardValidators {
@@ -11,6 +12,7 @@ export enum StandardValidators {
   Date = 'date',
   DateTime = 'datetime',
   Number = 'number',
+  Object = 'object',
   String = 'string'
 }
 
@@ -19,6 +21,7 @@ export type StandardValidator =
   | BooleanValidator
   | DateValidator
   | NumberValidator
+  | ObjectValidator
   | StringValidator;
 
 export const standardValidators: Dict<StandardValidator> = {
@@ -27,5 +30,6 @@ export const standardValidators: Dict<StandardValidator> = {
   date: validateDate,
   datetime: validateDate,
   number: validateNumber,
+  object: validateObject,
   string: validateString
 };
