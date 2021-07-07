@@ -9,7 +9,7 @@ export function buildValidatorFor<V = Validator>(settings: {
   const { validators } = settings;
 
   function validatorFor(type: string): V | undefined {
-    return validators[type];
+    return validators[type] ?? validators['unknown'];
   }
 
   return validatorFor;
