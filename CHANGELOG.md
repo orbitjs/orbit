@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.17.0-beta.21 (2021-07-07)
+
+#### :rocket: Enhancement
+
+- `@orbit/validators`
+  - [#858](https://github.com/orbitjs/orbit/pull/858) Fill in gaps in @orbit/validators ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.20 (2021-07-04)
 
 #### :bug: Bug Fix
