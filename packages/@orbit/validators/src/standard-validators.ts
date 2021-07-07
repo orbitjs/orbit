@@ -9,6 +9,7 @@ export enum StandardValidators {
   Array = 'array',
   Boolean = 'boolean',
   Date = 'date',
+  DateTime = 'datetime',
   Number = 'number',
   String = 'string'
 }
@@ -24,6 +25,7 @@ export const standardValidators: Dict<StandardValidator> = {
   array: validateArray,
   boolean: validateBoolean,
   date: validateDate,
+  datetime: validateDate,
   number: validateNumber,
   string: validateString
 };
