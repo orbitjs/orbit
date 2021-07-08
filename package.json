@@ -33,6 +33,7 @@
     "yarn": "1.22.10"
   },
   "workspaces": [
-    "packages/@orbit/*"
+    "packages/@orbit/*",
+    "website"
   ]
 }
