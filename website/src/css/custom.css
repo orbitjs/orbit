@@ -27,3 +27,27 @@
 html[data-theme='dark'] .docusaurus-highlight-code-line {
   background-color: rgba(0, 0, 0, 0.3);
 }
+
+html[data-theme='dark'] .navbar__brand img {
+  filter: invert(1);
+}
+
+.medium-pic {
+  width: 250px;
+  border: 1px solid #ccc;
+}
+
+.left-pic {
+  float: left;
+  margin-right: 1rem;
+}
+
+.right-pic {
+  float: right;
+  margin-left: 1rem;
+  margin-top: -2.5rem;
+}
+
+.clearfix {
+  clear: both;
+}

@@ -3,32 +3,47 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
-  title: 'My Site',
-  tagline: 'Dinosaurs are cool',
-  url: 'https://your-docusaurus-test-site.com',
+  title: 'Orbit.js',
+  tagline: 'The Universal Data Layer',
+  url: 'https://orbitjs.com',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
-  organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
+  organizationName: 'orbitjs', // Usually your GitHub org/user name.
+  projectName: 'orbit', // Usually your repo name.
   themeConfig: {
     navbar: {
-      title: 'My Site',
+      // title: 'Orbit.js',
       logo: {
-        alt: 'My Site Logo',
-        src: 'img/logo.svg',
+        alt: 'Orbit.js',
+        src: 'img/orbitjs-text.svg',
       },
       items: [
         {
           type: 'doc',
           docId: 'intro',
           position: 'left',
-          label: 'Tutorial',
+          label: 'Guide',
         },
-        {to: '/blog', label: 'Blog', position: 'left'},
         {
-          href: 'https://github.com/facebook/docusaurus',
+          to: '/blog',
+          label: 'Blog',
+          position: 'left'
+        },
+        {
+          type: 'docsVersionDropdown',
+          position: 'right',
+          dropdownActiveClassDisabled: true,
+          dropdownItemsAfter: [
+            {
+              to: '/versions',
+              label: 'All versions',
+            },
+          ],
+        },
+        {
+          href: 'https://github.com/orbitjs/orbit',
           label: 'GitHub',
           position: 'right',
         },
@@ -50,16 +65,16 @@ module.exports = {
           title: 'Community',
           items: [
             {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-            },
-            {
-              label: 'Discord',
-              href: 'https://discordapp.com/invite/docusaurus',
+              label: 'Gitter',
+              href: 'https://gitter.im/orbitjs/orbit.js',
             },
             {
               label: 'Twitter',
-              href: 'https://twitter.com/docusaurus',
+              href: 'https://twitter.com/orbitjs',
+            },
+            {
+              label: 'Stack Overflow',
+              href: 'https://stackoverflow.com/questions/tagged/orbit.js',
             },
           ],
         },
@@ -72,33 +87,72 @@ module.exports = {
             },
             {
               label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
+              href: 'https://github.com/orbitjs/orbit',
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `Copyright © 2014-${new Date().getFullYear()} Cerebris Corporation.`,
     },
     prism: {
       theme: lightCodeTheme,
       darkTheme: darkCodeTheme,
     },
   },
+  plugins: [
+    [
+      'docusaurus-plugin-typedoc',
+      {
+        id: 'typedoc-utils',
+        out: 'api/utils',
+        theme: 'default',
+        excludePrivate: true,
+        readme: '../packages/@orbit/utils/readme.md',
+        packages: [
+          '../packages/@orbit/utils'
+        ]
+      },
+    ],
+    [
+      'docusaurus-plugin-typedoc',
+      {
+        id: 'typedoc-core',
+        out: 'api/core',
+        theme: 'default',
+        excludePrivate: true,
+        readme: '../packages/@orbit/core/readme.md',
+        packages: [
+          '../packages/@orbit/core'
+        ]
+      },
+    ],
+    [
+      'docusaurus-plugin-typedoc',
+      {
+        id: 'typedoc-data',
+        out: 'api/data',
+        theme: 'default',
+        excludePrivate: true,
+        readme: '../packages/@orbit/data/readme.md',
+        packages: [
+          '../packages/@orbit/data'
+        ]
+      },
+    ],
+  ],
   presets: [
     [
       '@docusaurus/preset-classic',
       {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          // Please change this to your repo.
           editUrl:
-            'https://github.com/facebook/docusaurus/edit/master/website/',
+            'https://github.com/orbitjs/orbit/edit/main/website/',
         },
         blog: {
           showReadingTime: true,
-          // Please change this to your repo.
           editUrl:
-            'https://github.com/facebook/docusaurus/edit/master/website/blog/',
+            'https://github.com/orbitjs/orbit/edit/main/website/blog/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),

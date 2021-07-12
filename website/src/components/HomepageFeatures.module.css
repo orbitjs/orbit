@@ -7,7 +7,18 @@
   width: 100%;
 }
 
-.featureSvg {
-  height: 200px;
-  width: 200px;
+.features section {
+  margin-bottom: 4rem;
+}
+
+.featureImgContainer {
+  height: 240px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.featureImgContainer img {
+  max-height: 240px;
 }
