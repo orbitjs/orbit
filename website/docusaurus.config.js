@@ -17,14 +17,14 @@ module.exports = {
       // title: 'Orbit.js',
       logo: {
         alt: 'Orbit.js',
-        src: 'img/orbitjs-text.svg',
+        src: 'img/orbitjs-text.svg'
       },
       items: [
         {
           type: 'doc',
           docId: 'intro',
           position: 'left',
-          label: 'Guide',
+          label: 'Guide'
         },
         {
           to: '/blog',
@@ -38,16 +38,17 @@ module.exports = {
           dropdownItemsAfter: [
             {
               to: '/versions',
-              label: 'All versions',
-            },
-          ],
+              label: 'All versions'
+            }
+          ]
         },
         {
           href: 'https://github.com/orbitjs/orbit',
-          label: 'GitHub',
-          position: 'right',
-        },
-      ],
+          className: 'header-github-link',
+          // label: 'GitHub',
+          position: 'right'
+        }
+      ]
     },
     footer: {
       style: 'dark',
@@ -57,49 +58,50 @@ module.exports = {
           items: [
             {
               label: 'Tutorial',
-              to: '/docs/intro',
-            },
-          ],
+              to: '/docs/intro'
+            }
+          ]
         },
         {
           title: 'Community',
           items: [
             {
               label: 'Gitter',
-              href: 'https://gitter.im/orbitjs/orbit.js',
+              href: 'https://gitter.im/orbitjs/orbit.js'
             },
             {
               label: 'Twitter',
-              href: 'https://twitter.com/orbitjs',
+              href: 'https://twitter.com/orbitjs'
             },
             {
               label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/orbit.js',
-            },
-          ],
+              href: 'https://stackoverflow.com/questions/tagged/orbit.js'
+            }
+          ]
         },
         {
           title: 'More',
           items: [
             {
               label: 'Blog',
-              to: '/blog',
+              to: '/blog'
             },
             {
               label: 'GitHub',
-              href: 'https://github.com/orbitjs/orbit',
-            },
-          ],
-        },
+              href: 'https://github.com/orbitjs/orbit'
+            }
+          ]
+        }
       ],
-      copyright: `Copyright © 2014-${new Date().getFullYear()} Cerebris Corporation.`,
+      copyright: `Copyright © 2014-${new Date().getFullYear()} Cerebris Corporation.`
     },
     prism: {
       theme: lightCodeTheme,
-      darkTheme: darkCodeTheme,
-    },
+      darkTheme: darkCodeTheme
+    }
   },
   plugins: [
+    'docusaurus-plugin-sass',
     [
       'docusaurus-plugin-typedoc',
       {
@@ -108,10 +110,8 @@ module.exports = {
         theme: 'default',
         excludePrivate: true,
         readme: '../packages/@orbit/utils/readme.md',
-        packages: [
-          '../packages/@orbit/utils'
-        ]
-      },
+        packages: ['../packages/@orbit/utils']
+      }
     ],
     [
       'docusaurus-plugin-typedoc',
@@ -121,10 +121,8 @@ module.exports = {
         theme: 'default',
         excludePrivate: true,
         readme: '../packages/@orbit/core/readme.md',
-        packages: [
-          '../packages/@orbit/core'
-        ]
-      },
+        packages: ['../packages/@orbit/core']
+      }
     ],
     [
       'docusaurus-plugin-typedoc',
@@ -134,11 +132,9 @@ module.exports = {
         theme: 'default',
         excludePrivate: true,
         readme: '../packages/@orbit/data/readme.md',
-        packages: [
-          '../packages/@orbit/data'
-        ]
-      },
-    ],
+        packages: ['../packages/@orbit/data']
+      }
+    ]
   ],
   presets: [
     [
@@ -146,18 +142,16 @@ module.exports = {
       {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl:
-            'https://github.com/orbitjs/orbit/edit/main/website/',
+          editUrl: 'https://github.com/orbitjs/orbit/edit/main/website/'
         },
         blog: {
           showReadingTime: true,
-          editUrl:
-            'https://github.com/orbitjs/orbit/edit/main/website/blog/',
+          editUrl: 'https://github.com/orbitjs/orbit/edit/main/website/blog/'
         },
         theme: {
-          customCss: require.resolve('./src/css/custom.css'),
-        },
-      },
-    ],
-  ],
+          customCss: require.resolve('./src/css/custom.scss')
+        }
+      }
+    ]
+  ]
 };
