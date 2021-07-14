@@ -1,5 +1,5 @@
 {
-  "name": "website",
+  "name": "orbit-website",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -26,6 +26,7 @@
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "sass": "^1.35.2",
+    "typedoc": "^0.21.4",
     "typedoc-plugin-markdown": "^3.10.2",
     "url-loader": "^4.1.1"
   },
