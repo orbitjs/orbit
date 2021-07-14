@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: volta-cli/action@v1
         with:
-          node-version: 10.x
+          node-version: 14.x
       - run: yarn install --frozen-lockfile
       - run: yarn lint
       - run: yarn compile
@@ -30,6 +30,6 @@ jobs:
       - uses: actions/checkout@v2
       - uses: volta-cli/action@v1
         with:
-          node-version: 10.x
+          node-version: 14.x
       - run: yarn install --frozen-lockfile
       - run: yarn test
