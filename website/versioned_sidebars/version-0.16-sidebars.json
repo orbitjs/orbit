@@ -1,0 +1,19 @@
+{
+  "version-0.16/docsSidebar": [
+    "version-0.16/intro",
+    "version-0.16/getting-started",
+    "version-0.16/whats-new",
+    "version-0.16/packages",
+    "version-0.16/modeling-data",
+    "version-0.16/data-sources",
+    "version-0.16/updating-data",
+    "version-0.16/querying-data",
+    "version-0.16/task-processing",
+    "version-0.16/data-flows",
+    "version-0.16/coordination",
+    "version-0.16/memory-sources"
+  ],
+  "version-0.16/apiSidebar": [
+    "version-0.16/api/index"
+  ]
+}

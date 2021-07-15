@@ -1,0 +1,24 @@
+/* stylelint-disable docusaurus/copyright-header */
+
+.features {
+  display: flex;
+  align-items: center;
+  padding: 2rem 0;
+  width: 100%;
+}
+
+.features section {
+  margin-bottom: 4rem;
+}
+
+.featureImgContainer {
+  height: 240px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.featureImgContainer img {
+  max-height: 240px;
+}
