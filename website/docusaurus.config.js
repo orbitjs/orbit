@@ -10,8 +10,8 @@ module.exports = {
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
-  organizationName: 'orbitjs', // Usually your GitHub org/user name.
-  projectName: 'orbit', // Usually your repo name.
+  organizationName: 'orbitjs',
+  projectName: 'orbitjs.com',
   themeConfig: {
     navbar: {
       logo: {
