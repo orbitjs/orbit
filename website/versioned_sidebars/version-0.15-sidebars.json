@@ -1,0 +1,18 @@
+{
+  "version-0.15/docsSidebar": [
+    "version-0.15/intro",
+    "version-0.15/getting-started",
+    "version-0.15/packages",
+    "version-0.15/modeling-data",
+    "version-0.15/data-sources",
+    "version-0.15/updating-data",
+    "version-0.15/querying-data",
+    "version-0.15/task-processing",
+    "version-0.15/data-flows",
+    "version-0.15/coordination",
+    "version-0.15/data-stores"
+  ],
+  "version-0.15/apiSidebar": [
+    "version-0.15/api/index"
+  ]
+}

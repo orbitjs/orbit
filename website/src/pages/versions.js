@@ -76,7 +76,7 @@ const Versions = () => {
             />
           </tbody>
         </table>
-        {/* <h2>Previous versions</h2>
+        <h2>Previous versions</h2>
         <table className={styles.versions}>
           <tbody>
             {stableVersions.map(version => (
@@ -87,7 +87,7 @@ const Versions = () => {
               />
             ))}
           </tbody>
-        </table> */}
+        </table>
       </main>
     </Layout>
   );
