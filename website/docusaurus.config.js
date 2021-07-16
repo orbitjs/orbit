@@ -10,6 +10,7 @@ module.exports = {
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
+  trailingSlash: false,
   organizationName: 'orbitjs',
   projectName: 'orbitjs.com',
   themeConfig: {
