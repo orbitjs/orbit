@@ -1,6 +1,5 @@
 ---
 title: Querying data
-sidebar_position: 60
 ---
 
 The contents of a source can be interrogated using a `Query`. Orbit comes with a

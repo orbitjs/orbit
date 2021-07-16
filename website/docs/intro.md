@@ -1,6 +1,5 @@
 ---
 title: Introduction
-sidebar_position: 0
 ---
 
 ## What is Orbit.js?

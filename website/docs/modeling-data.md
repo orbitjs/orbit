@@ -1,6 +1,5 @@
 ---
 title: Modeling data
-sidebar_position: 30
 ---
 
 Data records must have a normalized structure that's consistent

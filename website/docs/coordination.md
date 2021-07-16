@@ -1,6 +1,5 @@
 ---
 title: Coordination strategies
-sidebar_position: 90
 ---
 
 Orbit provides another layer of abstraction on top of direct event observation

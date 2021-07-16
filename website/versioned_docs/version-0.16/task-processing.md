@@ -1,6 +1,5 @@
 ---
 title: Task processing
-sidebar_position: 70
 ---
 
 Tasks and queues are primitives contained in `@orbit/core` that are useful for

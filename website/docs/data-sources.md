@@ -1,6 +1,5 @@
 ---
 title: Data sources
-sidebar_position: 40
 ---
 
 Sources provide access to data. They vary widely in their capabilities: some

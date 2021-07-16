@@ -1,6 +1,5 @@
 ---
 title: Getting started
-sidebar_position: 10
 ---
 
 This brief tutorial walks through using Orbit to manage data in a client-side

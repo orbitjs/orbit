@@ -1,6 +1,5 @@
 ---
 title: Data flows
-sidebar_position: 80
 ---
 
 Orbit enables the coordination of many independent sources of data, each of

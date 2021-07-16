@@ -1,6 +1,5 @@
 ---
 title: Memory sources
-sidebar_position: 100
 ---
 
 Memory sources, which come from the `@orbit/memory` package, have been discussed at

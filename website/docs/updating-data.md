@@ -1,6 +1,5 @@
 ---
 title: Updating data
-sidebar_position: 50
 ---
 
 Data in a source can be updated by applying a transform, which consists of one
