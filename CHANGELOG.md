@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.17.0-beta.22 (2021-07-16)
+
+#### :bug: Bug Fix
+
+- `@orbit/jsonapi`
+  - [#867](https://github.com/orbitjs/orbit/pull/867) Ensure JSONAPISource query and update return arrays to match array requests ([@dgeb](https://github.com/dgeb))
+- `@orbit/validators`
+  - [#866](https://github.com/orbitjs/orbit/pull/866) validateObject should not accept null as a valid object ([@dgeb](https://github.com/dgeb))
+
+#### :memo: Documentation
+
+- Other
+  - [#865](https://github.com/orbitjs/orbit/pull/865) Update welcome blog post ([@dgeb](https://github.com/dgeb))
+  - [#864](https://github.com/orbitjs/orbit/pull/864) Explicitly set trailingSlash: false [website] ([@dgeb](https://github.com/dgeb))
+  - [#863](https://github.com/orbitjs/orbit/pull/863) Docs site refinements ([@dgeb](https://github.com/dgeb))
+- `@orbit/records`
+  - [#862](https://github.com/orbitjs/orbit/pull/862) Introduce new docs site ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.21 (2021-07-07)
 
 #### :rocket: Enhancement
