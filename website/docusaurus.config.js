@@ -423,8 +423,15 @@ module.exports = {
           editUrl: 'https://github.com/orbitjs/orbit/edit/main/website/'
         },
         blog: {
+          path: 'blog',
+          blogSidebarCount: 'ALL',
+          blogSidebarTitle: 'All Blog Posts',
           showReadingTime: true,
-          editUrl: 'https://github.com/orbitjs/orbit/edit/main/website/blog/'
+          editUrl: 'https://github.com/orbitjs/orbit/edit/main/website/blog/',
+          feedOptions: {
+            type: 'all',
+            copyright: `Copyright © 2014-${new Date().getFullYear()} Cerebris Corporation`,
+          },
         },
         theme: {
           customCss: require.resolve('./src/css/custom.scss')
