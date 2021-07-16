@@ -78,7 +78,7 @@ interface ReplaceRelatedRecordOperation extends Operation {
   op: "replaceRelatedRecord";
   record: RecordIdentity;
   relationship: string;
-  relatedRecord: RecordIdentity;
+  relatedRecord: RecordIdentity | null;
 }
 ```
 
@@ -237,3 +237,22 @@ The `sources: { ${sourceName}: sourceSpecificOptions }` pattern is used to pass
 options that only a particular source will understand when processing a
 transform. In this instance, we're telling our remote source to use a custom
 timeout when performing this particular update.
+
+It is possible to pass different options to each operation in the transform.
+
+```javascript
+memory.update(t => [
+  t.addRecord({
+    type: "planet",
+    attributes: {
+      name: "Earth"
+    }
+  }).options({ timeout: 1000 }),
+  t.addRecord({
+    type: "planet",
+    attributes: {
+      name: "Jupiter"
+    }
+  }).options({ timeout: 2000 })
+]);
+```

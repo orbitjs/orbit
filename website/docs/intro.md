@@ -19,7 +19,7 @@ runtime.
 
 Looking a quick code walkthrough? Check out the [Getting Started Guide](./getting-started).
 
-Upgrading from v0.15? [Learn what's new](./whats-new).
+Upgrading from v0.16? [Learn what's new](./whats-new).
 
 </section>
 
