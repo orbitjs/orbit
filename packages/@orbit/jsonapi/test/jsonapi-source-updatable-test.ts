@@ -1217,5 +1217,48 @@ module('JSONAPISource - updatable', function (hooks) {
         'fetch called with expected data'
       );
     });
+
+    test('#update - will return an array of results for a transform that contains a single operation', async function (assert) {
+      assert.expect(5);
+
+      const planet1: InitializedRecord = {
+        type: 'planet',
+        id: 'p1',
+        attributes: { name: 'Jupiter' }
+      };
+
+      fetchStub.withArgs('/planets').callsFake(() =>
+        jsonapiResponse(201, {
+          data: planet1
+        })
+      );
+
+      let [planet] = (await source.update((t) => [
+        t.addRecord(planet1)
+      ])) as InitializedRecord[];
+
+      assert.deepEqual(planet, planet1, 'planet matches');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+
+      const firstFetchCall = fetchStub.getCall(0);
+      assert.equal(
+        firstFetchCall.args[1].method,
+        'POST',
+        'fetch called with expected method'
+      );
+      assert.equal(
+        firstFetchCall.args[1].headers['Content-Type'],
+        'application/vnd.api+json',
+        'fetch called with expected content type'
+      );
+      assert.deepEqual(
+        JSON.parse(firstFetchCall.args[1].body),
+        {
+          data: planet1
+        },
+        'fetch called with expected data'
+      );
+    });
   });
 });

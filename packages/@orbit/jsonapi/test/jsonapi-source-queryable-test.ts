@@ -2051,5 +2051,38 @@ module('JSONAPISource - queryable', function (hooks) {
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
     });
+
+    test('#query - will return an array of results for a query that contains an array with a single expression', async function (assert) {
+      assert.expect(4);
+
+      const data1: Resource = {
+        type: 'planet',
+        id: '12345',
+        attributes: { name: 'Jupiter' }
+      };
+
+      const planet1 = resourceSerializer.deserialize({
+        type: 'planet',
+        id: '12345'
+      }) as InitializedRecord;
+
+      fetchStub
+        .withArgs('/planets/12345')
+        .returns(jsonapiResponse(200, { data: data1 }));
+
+      let records = (await source.query((q) => [
+        q.findRecord({ type: 'planet', id: planet1.id })
+      ])) as InitializedRecord[];
+
+      assert.ok(Array.isArray(records), 'multiple primary records returned');
+      assert.equal(records[0].attributes?.name, 'Jupiter');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
   });
 });
