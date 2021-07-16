@@ -22,7 +22,7 @@ export const validateObject: ObjectValidator = (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   options?: ObjectValidationOptions
 ): undefined | ObjectValidationIssue[] => {
-  if (typeof input !== 'object') {
+  if (typeof input !== 'object' || input === null) {
     return [
       {
         validator: 'object',
