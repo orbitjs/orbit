@@ -398,7 +398,7 @@ export class JSONAPISource<
     }
 
     return {
-      data: responses.length > 1 ? data : data[0],
+      data: Array.isArray(transform.operations) ? data : data[0],
       details,
       transforms: [transform, ...transforms]
     };
