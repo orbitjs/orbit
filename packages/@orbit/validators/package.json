@@ -1,6 +1,6 @@
 {
   "name": "@orbit/validators",
-  "version": "0.17.0-beta.21",
+  "version": "0.17.0-beta.22",
   "description": "Validators for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"

@@ -1,7 +1,7 @@
 {
   "name": "@orbit/integration-tests",
   "private": true,
-  "version": "0.17.0-beta.21",
+  "version": "0.17.0-beta.22",
   "description": "Integration tests for core Orbit packages.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -20,14 +20,14 @@
     "@orbit/core": "^0.17.0-beta.20",
     "@orbit/data": "^0.17.0-beta.20",
     "@orbit/immutable": "^0.17.0-beta.14",
-    "@orbit/indexeddb": "^0.17.0-beta.21",
+    "@orbit/indexeddb": "^0.17.0-beta.22",
     "@orbit/indexeddb-bucket": "^0.17.0-beta.20",
-    "@orbit/jsonapi": "^0.17.0-beta.21",
-    "@orbit/local-storage": "^0.17.0-beta.21",
+    "@orbit/jsonapi": "^0.17.0-beta.22",
+    "@orbit/local-storage": "^0.17.0-beta.22",
     "@orbit/local-storage-bucket": "^0.17.0-beta.20",
-    "@orbit/memory": "^0.17.0-beta.21",
-    "@orbit/record-cache": "^0.17.0-beta.21",
-    "@orbit/records": "^0.17.0-beta.21",
+    "@orbit/memory": "^0.17.0-beta.22",
+    "@orbit/record-cache": "^0.17.0-beta.22",
+    "@orbit/records": "^0.17.0-beta.22",
     "@orbit/serializers": "^0.17.0-beta.19",
     "@orbit/utils": "^0.17.0-beta.19"
   },
