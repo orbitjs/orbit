@@ -8,10 +8,10 @@ broadcast changes.
 
 Orbit includes a number of "standard" sources:
 
-- [@orbit/memory](https://www.npmjs.com/package/@orbit/memory) - an in-memory source
-- [@orbit/jsonapi](https://www.npmjs.com/package/@orbit/jsonapi) - a JSON API client
-- [@orbit/indexeddb](https://www.npmjs.com/package/@orbit/indexeddb) - for accessing IndexedDB databases
-- [@orbit/local-storage](https://www.npmjs.com/package/@orbit/local-storage) - for accessing LocalStorage
+* [@orbit/store](https://www.npmjs.com/package/@orbit/store) - an in-memory store
+* [@orbit/jsonapi](https://www.npmjs.com/package/@orbit/jsonapi) - a JSON API client
+* [@orbit/indexeddb](https://www.npmjs.com/package/@orbit/indexeddb) - for accessing IndexedDB databases
+* [@orbit/local-storage](https://www.npmjs.com/package/@orbit/local-storage) - for accessing LocalStorage
 
 Custom sources can also be written to access to virtually any source of data.
 
@@ -23,26 +23,26 @@ set of capabilities.
 Sources must be instantiated with a schema. A schema provides sources with an
 understanding of the domain-specific data they manage.
 
-Let's create a simple schema and memory source:
+Let's create a simple schema and store:
 
 ```javascript
-import { Schema } from "@orbit/data";
-import MemorySource from "@orbit/memory";
+import { Schema } from '@orbit/data';
+import Store from '@orbit/store';
 
 // Create a schema
 const schema = new Schema({
   models: {
     planet: {
       attributes: {
-        name: { type: "string" },
-        classification: { type: "string" }
+        name: { type: 'string' },
+        classification: { type: 'string' }
       }
     }
   }
 });
 
-// Create a memory source that uses the schema
-const memory = new MemorySource({ schema });
+// Create a store that uses the schema
+const store = new Store({ schema });
 ```
 
 All sources can be mutated, although not all sources support _requests_ to
@@ -64,28 +64,27 @@ Let's look at an example of a simple mutation triggered by a call to `update`:
 ```javascript
 // Define a record
 const jupiter = {
-  type: "planet",
-  id: "jupiter",
+  type: 'planet',
+  id: 'jupiter',
   attributes: {
-    name: "Jupiter",
-    classification: "gas giant"
+    name: 'Jupiter',
+    classification: 'gas giant'
   }
 };
 
 // Observe and log all transforms
-memory.on("transform", t => {
-  console.log("transform", t);
+store.on('transform', t => {
+  console.log('transform', t);
 });
 
 // Check the size of the transform log before updates
-console.log(`transforms: ${memory.transformLog.length}`);
+console.log(`transforms: ${store.transformLog.length}`);
 
-// Update the memory source with a transform that adds a record
-memory
-  .update(t => t.addRecord(jupiter))
+// Update the store with a transform that adds a record
+store.update(t => t.addRecord(jupiter))
   .then(() => {
     // Verify that the transform log has grown
-    console.log(`transforms: ${memory.transformLog.length}`);
+    console.log(`transforms: ${store.transformLog.length}`);
   });
 ```
 
@@ -93,25 +92,26 @@ The following should be logged as a result:
 
 ```javascript
 "transforms: 0",
-  "transform",
-  {
-    operations: [
-      {
-        op: "addRecord",
-        record: {
-          type: "planet",
-          id: "jupiter",
-          attributes: {
-            name: "Jupiter",
-            classification: "gas giant"
-          }
+
+"transform", {
+  operations: [
+    {
+      op: "addRecord",
+      record: {
+        type: "planet",
+        id: "jupiter",
+        attributes: {
+          name: "Jupiter",
+          classification: "gas giant"
         }
       }
-    ],
-    options: undefined,
-    id: "05e5d20e-02c9-42c4-a083-99662c647fd1"
-  },
-  "transforms: 1";
+    }
+  ],
+  options: undefined,
+  id: "05e5d20e-02c9-42c4-a083-99662c647fd1"
+},
+
+"transforms: 1"
 ```
 
 > Want to learn more about updating data? [See the guide](./updating-data)
@@ -121,20 +121,20 @@ The following should be logged as a result:
 Orbit includes a number of standard interfaces that may be implemented by
 sources:
 
-- `Updatable` - Allows sources to be updated via an `update` method that takes
+* `Updatable` - Allows sources to be updated via an `update` method that takes
   a transform and returns the updated records that result.
 
-- `Queryable` - Allows sources to be queried via a `query` method that receives
+* `Queryable` - Allows sources to be queried via a `query` method that receives
   a query expression and returns a recordset as a result.
 
-- `Pushable` - Allows sources to be updated via a `push` method that takes a
+* `Pushable` - Allows sources to be updated via a `push` method that takes a
   transform and returns the results of the change and its side effects as an
   array of transforms.
 
-- `Pullable` - Allows sources to be queried via a `pull` method that takes a
+* `Pullable` - Allows sources to be queried via a `pull` method that takes a
   query expression and returns the results as an array of transforms.
 
-- `Syncable` - Applies a transform or transforms to a source via a `sync`
+* `Syncable` - Applies a transform or transforms to a source via a `sync`
   method.
 
 ### Events
@@ -190,5 +190,5 @@ to be used directly by developers in most applications. The other interfaces are
 used to coordinate data requests and synchronization between sources.
 
 > See guides that cover [querying data](./querying-data),
-> [updating data](./updating-data), and
-> [configuring coordination strategies](./coordination).
+  [updating data](./updating-data), and
+  [configuring coordination strategies](./coordination).

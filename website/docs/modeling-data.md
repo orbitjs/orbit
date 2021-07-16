@@ -1,6 +1,5 @@
 ---
 title: Modeling data
-sidebar_position: 30
 ---
 
 Data records must have a normalized structure that's consistent
@@ -133,7 +132,7 @@ const schema = new Schema({
         classification: { type: "string" }
       },
       relationships: {
-        moons: { type: "hasMany", model: "moon", inverse: "planet" }
+        moons: { kind: "hasMany", type: "moon", inverse: "planet" }
       }
     },
     moon: {
@@ -141,7 +140,7 @@ const schema = new Schema({
         name: { type: "string" }
       },
       relationships: {
-        planet: { type: "hasOne", model: "planet", inverse: "moons" }
+        planet: { kind: "hasOne", type: "planet", inverse: "moons" }
       }
     }
   }
@@ -159,18 +158,25 @@ should be serialized. Valid attribute types are:
 
 - `boolean`
 - `date`
-- `date-time`
+- `datetime`
 - `number`
 - `string`
 
+The following attribute types are passed through as-is and no special
+serialization is performed:
+
+- `object`
+- `array`
+- `unknown`
+
 ### Model relationships
 
-Two types of relationships between models are allowed:
+Two kind of relationships between models are allowed:
 
 - `hasOne` - for to-one relationships
 - `hasMany` - for to-many relationships
 
-Relationships must define the related `model` and may optionally define their
+Relationships must define the related `type` and may optionally define their
 `inverse`, which should correspond to the name of a relationship on the related
 model. Inverse relationships should be defined when relationships must be kept
 synchronized, so that adding or removing a relationship on the primary model
@@ -186,12 +192,12 @@ const schema = new Schema({
   models: {
     planet: {
       relationships: {
-        moons: { type: "hasMany", model: "moon", inverse: "planet" }
+        moons: { kind: "hasMany", type: "moon", inverse: "planet" }
       }
     },
     moon: {
       relationships: {
-        planet: { type: "hasOne", model: "planet", inverse: "moons" }
+        planet: { kind: "hasOne", type: "planet", inverse: "moons" }
       }
     }
   }
@@ -203,7 +209,7 @@ const schema = new Schema({
 By default, Orbit uses very simple inflections, or pluralization/singularization
 of model names - e.g. `user <-> users`. Depending on your API, you may need to
 handle this yourself. A common error from same is where `countries` gets converted
-to `countrie`, as the `s` is programatically removed from it when it's singularized.
+to `countrie`, as the `s` is programmatically removed from it when it's singularized.
 
 You can override the Orbit inflectors via the Schema factory, e.g.
 

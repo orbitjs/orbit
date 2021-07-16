@@ -1,6 +1,5 @@
 ---
 title: Querying data
-sidebar_position: 60
 ---
 
 The contents of a source can be interrogated using a `Query`. Orbit comes with a
@@ -69,7 +68,7 @@ export interface AttributeSortSpecifier extends SortSpecifier {
   attribute: string;
 }
 
-export type ComparisonOperator = "equal" | "gt" | "lt" | "gte" | "lte";
+export type ComparisonOperator = "equal" | "gt" | "lt" | "gte" | "lte" | "some" | "all" | "none";
 
 export interface FilterSpecifier {
   op: ComparisonOperator;
@@ -98,7 +97,7 @@ export interface OffsetLimitPageSpecifier extends PageSpecifier {
 The `Query` interface has the following members:
 
 - `id` - a string that uniquely identifies the query
-- `expression` - a `QueryExpression` object
+- `expressions` - an array of `QueryExpression` objects
 - `options` - an optional object that represents options that can influence how
   a query is processed
 
@@ -108,7 +107,7 @@ to use a builder function that returns a query.
 To use a query builder, pass a function into a source's method that expects
 a query, such as `query` or `pull`. A `QueryBuilder` that's compatible
 with the source should be applied as an argument. You can then use this builder
-to create a query expression.
+to create query expressions.
 
 ### Standard queries
 
@@ -208,6 +207,95 @@ memory.query(q => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' },
                   .page({ offset: 0, limit: 10 }));
 ```
 
+## Filtering
+
+As shown in some of the previous examples, you can filter over the records that are found by a `findRecords` or `findRelatedRecords` query. Filtering is done building a boolean expression and only retrieving the records for which this expression returns `true`. This boolean expression, just like it is with regular javascript, is built out of three parts.
+
+Javascript:
+```
+ const denserThanEarth = planets.filter((planet) => {
+    return planet.density    >     earth.density
+ }) //    |      1       |   2    |      3      |
+
+```
+
+Filter expression:
+```
+const denserThanEarth = orbit.cache.query((q) => {
+  return q.findRecords('planets')
+    .filter({ attribute: 'radius', op: 'lt', value: earth.density })
+}) //       |         1          |    2    |          3           |
+```
+
+1. the left hand value:
+ This is a reference to the property of the records that you want to compare. This can either be a `relationship` or an `attribute`. During evaluation, the reference will be replaced by the actual values of the records.
+
+2. the comparison operation
+ The operation determines the way the two values will be compared.
+
+3. the right hand value:
+ This is a value that will remain constant for the entirety of the filter. This value determines, given the operation, which records will be returned and which will not.
+
+### Comparison operators for filtering
+
+There are two different kinds of filtering. Filtering on attribute values and filtering on relationship values.
+Both have their own comparison operators.
+
+#### Attribute filtering
+
+Attribute filtering looks like the following:
+
+```
+const denserThanEarth = orbit.cache.query((q) => {
+  return q.findRecords('planets')
+    .filter({ attribute: 'radius', op: 'lt', value: earth.density })
+})
+```
+
+For attribute filtering, the following comparison operators are available.
+
+- `equal`: alias for the `===` operator.
+- `gt`: alias for the `>` operator.
+- `lt`: alias for the `<` operator.
+- `gte`: alias for the `>=` operator.
+- `lte`: alias for the `<=` operator.
+
+#### Relationship filtering
+
+Relationship filtering has two types:
+
+Filtering on a `hasOne` relationship:
+```
+const moonsOfJupiter = orbit.cache.query((q) => {
+  return q.findRecords('moon')
+    .filter({ relationship: 'planet', op: 'equal', record: { type: 'planet', id: 'jupiter' } })
+})
+```
+
+Filtering on a `hasMany` relationship:
+```
+const theSolarSystem = orbit.cache.query((q) => {
+  return q.findRecords('planetarySystem')
+    .filter({
+      relationship: 'planets',
+      op: 'some',
+      records: [{ type: 'planet', id: 'earth' }]
+     })
+})
+```
+
+Filtering on a `hasOne` relationship has different comparison operations available than filtering on a `hasMany` relationship.
+
+`hasOne` operations:
+
+- `equal`: returns a record if the left hand relationship is equal to the right hand relationship.
+
+`hasMany` operations:
+- `equal`: returns a record if the left hand relationsips are identical to the right hand relationships.
+- `all`: returns a record if the left hand relationships contain all the right hand relationships.
+- `some`: returns a record if the left hand relationships contain one or more of the right hand relationships.
+- `none`: returns a record if none of the left hand relationships are present in the right hand relationships.
+
 #### findRelatedRecords vs findRecords.filter({ relation: ..., record: ... })
 
 If you're using the default settings for JSONAPISource, `findRelatedRecords` and `findRecords.filter(...)` produce very different URLs.
@@ -251,6 +339,15 @@ In this instance, we're telling a source named `remote` (let's say it's a
 result in a server response that includes contacts together with their related
 phone numbers.
 
+It is possible to pass different options to each expression in the query.
+
+```javascript
+memory.query(q => [
+  q.findRecords("contact").options({ include: ["phone-numbers"] }),
+  q.findRecords("meeting").options({ include: ["location"] })
+]);
+```
+
 ## Querying a memory source's cache
 
 Note that `memory.query` is asynchronous and thus returns results wrapped in a
@@ -268,3 +365,25 @@ let planets = memory.cache.query(q => q.findRecords("planet").sort("name"));
 > sources to participate in the fulfillment of the query. If you want to
 > coordinate queries across multiple sources, it's critical to make requests
 > directly on the memory source.
+
+### LiveQuery
+
+On a memory source, you can subscribe to a `LiveQuery`. For that you need to create
+a `LiveQuery` instance and then subscribe to changes. By default `LiveQuery` will
+run on memory cache `patch` event with a debounce. Subscription callback will be
+called on every operation which is relevant to the query.
+
+> If you use a pull based reactive system (for example Glimmer tracking) you can
+> set debounceLiveQueries option to false on memory cache.
+
+```javascript
+// Create a new LiveQuery instance
+let planetsLiveQuery = memory.cache.liveQuery(q => q.findRecords("planet"));
+// Subscribe to LiveQuery changes
+let unsubscribe = planetsLiveQuery.subscribe((update) => {
+  // Query for results when a change occure
+  update.query();
+});
+// Unsubscribe from the LiveQuery
+unsubscribe();
+```

@@ -1,6 +1,5 @@
 ---
 title: Coordination strategies
-sidebar_position: 90
 ---
 
 Orbit provides another layer of abstraction on top of direct event observation
@@ -165,8 +164,8 @@ coordinator.addStrategy(
 
     filter(query) {
       return (
-        query.expression.op === "findRecords" &&
-        query.expression.type === "planet"
+        query.expressions.op === "findRecords" &&
+        query.expressions.type === "planet"
       );
     }
   })

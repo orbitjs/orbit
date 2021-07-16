@@ -1,6 +1,5 @@
 ---
 title: Packages
-sidebar_position: 20
 ---
 
 Orbit is distributed on npm through the

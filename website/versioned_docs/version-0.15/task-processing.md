@@ -66,8 +66,8 @@ Tasks are normally added to the end of a queue via the `push` method:
 
 ```javascript
 queue.push({
-  type: "query",
-  data: { expression: { op: "findRecords", type: "planet" } }
+  type: 'query',
+  data: { expression: { op: 'findRecords', type: 'planet' } }
 });
 ```
 
@@ -78,32 +78,32 @@ start either immediately or after the `process` method has been called.
 
 Queues emit the following events when processing tasks:
 
-- `change` - whenever a task has been added or removed to a queue
+* `change` - whenever a task has been added or removed to a queue
 
-- `beforeTask` - before processing of a task begins
+* `beforeTask` - before processing of a task begins
 
-- `task` - after a task has been processed successfully
+* `task` - after a task has been processed successfully
 
-- `fail` - when a task has failed to process
+* `fail` - when a task has failed to process
 
-- `complete` - when all tasks have been processed
+* `complete` - when all tasks have been processed
 
 As each task is processed successfully, it will be removed from the queue.
 
 If processing fails, the queue will emit the `fail` event and processing will
 stop. At that point, you have several options:
 
-- `retry()` will retry the task that failed.
+* `retry()` will retry the task that failed.
 
-- `skip()` will cancel and discard the current task and proceed to
+* `skip()` will cancel and discard the current task and proceed to
   process the next task.
 
-- `clear()` will cancel the current task and completely clear the queue.
+* `clear()` will cancel the current task and completely clear the queue.
 
-- `shift()` will cancel the current task and remove it, but will not continue
+* `shift()` will cancel the current task and remove it, but will not continue
   processing.
 
-- `unshift(newTask)` will cancel the current task and insert a new task in front
+* `unshift(newTask)` will cancel the current task and insert a new task in front
   of it at the beginning of the queue.
 
 These options provide fairly complete control over task processing, which can
@@ -113,8 +113,8 @@ prove useful when handling exceptions, debugging, and testing.
 
 Every `Source` in `@orbit/data` maintains two task queues:
 
-- A `requestQueue` for processing requests, such as updates and queries.
+* A `requestQueue` for processing requests, such as updates and queries.
 
-- A `syncQueue` for synchronizing changes between sources.
+* A `syncQueue` for synchronizing changes between sources.
 
 These queues are discussed in more detail as part of the guide on "data flows".

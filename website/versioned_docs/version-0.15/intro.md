@@ -13,42 +13,32 @@ module formats and ES language levels. Most Orbit packages are isomorphic—they
 can run in modern browsers as well as in the [Node.js](https://nodejs.org/)
 runtime.
 
-## Quick links
-
-<section>
-
-Looking a quick code walkthrough? Check out the [Getting Started Guide](./getting-started).
-
-Upgrading from v0.15? [Learn what's new](./whats-new).
-
-</section>
-
-## Orbit's goals
+## Goals
 
 Orbit was primarily designed to support the data needs of ambitious client-side
 web applications, including:
 
-- Optimistic and pessimistic UX patterns.
+* Optimistic and pessimistic UX patterns.
 
-- Pluggable sources that share common interfaces, to allow similar behavior on
+* Pluggable sources that share common interfaces, to allow similar behavior on
   different devices.
 
-- Connection durability by queueing and retrying requests.
+* Connection durability by queueing and retrying requests.
 
-- Application durability by persisting all transient state.
+* Application durability by persisting all transient state.
 
-- Warm caches of data available immediately on startup.
+* Warm caches of data available immediately on startup.
 
-- Client-first / serverless development.
+* Client-first / serverless development.
 
-- Custom request coordination across multiple sources, allowing for priority
+* Custom request coordination across multiple sources, allowing for priority
   and fallback plans.
 
-- Branching and merging of data caches.
+* Branching and merging of data caches.
 
-- Deterministic change tracking.
+* Deterministic change tracking.
 
-- Undo / redo editing support.
+* Undo / redo editing support.
 
 ## Basic constraints
 
@@ -57,66 +47,66 @@ constraints related to data sources and interactions between them.
 
 ### Disparate sources
 
-<img src="/img/concepts/disparate-sources.png" className="medium-pic right-pic" />
+<img src="/img/concepts/disparate-sources.png" class="medium-pic right-pic" />
 
 Any number of data sources of varying types and faculties may be required to
 build any given web application.
 
-<div className="clearfix"></div>
+<div class="clearfix"></div>
 
 ### Disparate data
 
-<img src="/img/concepts/disparate-data.png" className="medium-pic right-pic" />
+<img src="/img/concepts/disparate-data.png" class="medium-pic right-pic" />
 
 Sources of data vary widely in how they internally represent and access that
 data.
 
-<div className="clearfix"></div>
+<div class="clearfix"></div>
 
 ### Compatible interfaces
 
-<img src="/img/concepts/common-interfaces.png" className="medium-pic right-pic" />
+<img src="/img/concepts/common-interfaces.png" class="medium-pic right-pic" />
 
 Communication between sources must happen using a compatible set of interfaces.
 
-<div className="clearfix"></div>
+<div class="clearfix"></div>
 
 ### Normalized data
 
-<img src="/img/concepts/normalized-data.png" className="medium-pic right-pic" />
+<img src="/img/concepts/normalized-data.png" class="medium-pic right-pic" />
 
 Data that flows between sources must be normalized to a shared schema.
 
-<div className="clearfix"></div>
+<div class="clearfix"></div>
 
 ### Notifications
 
-<img src="/img/concepts/evented-connections.png" className="medium-pic right-pic" />
+<img src="/img/concepts/evented-connections.png" class="medium-pic right-pic" />
 
 Sources need a notification system through which changes can be
 observed. Changes in one source must be able to trigger changes in other
 sources.
 
-<div className="clearfix"></div>
+<div class="clearfix"></div>
 
 ### Flow control
 
-<img src="/img/concepts/flow-control.png" className="medium-pic right-pic" />
+<img src="/img/concepts/flow-control.png" class="medium-pic right-pic" />
 
 Data flow across sources must be configurable. Flows can be _optimistic_
 (successful regardless of their impact) or _pessimistic_ (blocked until
 dependent changes have resolved).
 
-<div className="clearfix"></div>
+<div class="clearfix"></div>
 
 ### Change tracking
 
-<img src="/img/concepts/change-tracking.png" className="medium-pic right-pic" />
+<img src="/img/concepts/change-tracking.png" class="medium-pic right-pic" />
 
 Mutations, and not just the effects of mutations, must be trackable to allow
 changes to be logged, diff'd, sync’d, and even reverted.
 
-<div className="clearfix"></div>
+<div class="clearfix"></div>
 
 ## Orbit primitives
 
@@ -190,7 +180,7 @@ Orbit's primitives allow you to start simple and add complexity gradually
 without impacting your working code. Need to support real time sockets or SSE?
 Add another source and coordination strategy. Need offline support? Add another
 source and coordination strategy. When offline, you can issue the same queries
-against your in-memory source as you could against a backend REST server.
+against your in-memory store as you could against a backend REST server.
 
 Not only does Orbit allow you to incur the cost of complexity gradually, that
 cost can be contained. New capabilities can often be added through declarative
