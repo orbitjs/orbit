@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.17.0-beta.23 (2021-07-18)
+
+#### :rocket: Enhancement
+
+- `@orbit/indexeddb`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`
+  - [#868](https://github.com/orbitjs/orbit/pull/868) Extract RecordTransformBuffer interface ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.22 (2021-07-16)
 
 #### :bug: Bug Fix
