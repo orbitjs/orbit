@@ -8,6 +8,7 @@ import {
   RecordSchema,
   RecordNotFoundException
 } from '@orbit/records';
+import { SimpleRecordTransformBuffer } from '../src/simple-record-transform-buffer';
 import { ExampleSyncRecordCache } from './support/example-sync-record-cache';
 import { createSchemaWithRemoteKey } from './support/setup';
 
@@ -16,7 +17,9 @@ const { module, test } = QUnit;
 QUnit.dump.maxDepth = 7;
 
 module('SyncRecordCache', function (hooks) {
-  let schema: RecordSchema, keyMap: RecordKeyMap;
+  let schema: RecordSchema;
+  let keyMap: RecordKeyMap;
+  let transformBuffer: SimpleRecordTransformBuffer | undefined;
 
   [true, false].forEach((useBuffer) => {
     module(`useBuffer: ${useBuffer}`, function (hooks) {
@@ -26,6 +29,15 @@ module('SyncRecordCache', function (hooks) {
       hooks.beforeEach(function () {
         schema = createSchemaWithRemoteKey();
         keyMap = new RecordKeyMap();
+
+        if (useBuffer) {
+          transformBuffer = new SimpleRecordTransformBuffer({
+            schema,
+            keyMap
+          });
+        } else {
+          transformBuffer = undefined;
+        }
       });
 
       test('#update sets data and #records retrieves it', function (assert) {
@@ -34,7 +46,8 @@ module('SyncRecordCache', function (hooks) {
         const cache = new ExampleSyncRecordCache({
           schema,
           keyMap,
-          defaultTransformOptions
+          defaultTransformOptions,
+          transformBuffer
         });
 
         const earth: InitializedRecord = {
@@ -69,7 +82,11 @@ module('SyncRecordCache', function (hooks) {
       test('#update can replace records', function (assert) {
         assert.expect(5);
 
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const earth: InitializedRecord = {
           type: 'planet',
@@ -108,7 +125,11 @@ module('SyncRecordCache', function (hooks) {
       test('#update can replace keys', function (assert) {
         assert.expect(4);
 
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const earth: InitializedRecord = { type: 'planet', id: '1' };
 
@@ -141,7 +162,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update updates the cache and returns primary data', function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         let p1 = { type: 'planet', id: '1', attributes: { name: 'Earth' } };
         let p2 = { type: 'planet', id: '2' };
@@ -159,7 +184,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update updates the cache and returns a full response if requested', function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         let p1 = { type: 'planet', id: '1', attributes: { name: 'Earth' } };
         let p2 = { type: 'planet', id: '2' };
@@ -191,7 +220,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update updates inverse hasOne relationship when a record with relationships unspecified is added - record added after', function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const jupiter: InitializedRecord = {
           type: 'planet',
@@ -224,7 +257,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update updates inverse hasOne relationship when a record with relationships unspecified is added - record added before', function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const jupiter: InitializedRecord = {
           type: 'planet',
@@ -257,7 +294,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update updates inverse hasMany relationship when a record with relationships unspecified is added - record added after', function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const io: InitializedRecord = {
           type: 'moon',
@@ -290,7 +331,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update updates inverse hasMany relationship when a record with relationships unspecified is added - record added before', function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const io: InitializedRecord = {
           type: 'moon',
@@ -323,7 +368,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update updates inverse hasOne relationship when a record with an empty relationship is added', function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const io: InitializedRecord = {
           type: 'moon',
@@ -357,7 +406,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update updates inverse hasMany relationship when a record with an empty relationship is added', function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const jupiter: InitializedRecord = {
           type: 'planet',
@@ -391,7 +444,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update updates inverse hasMany polymorphic relationship', function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const sun: InitializedRecord = {
           type: 'star',
@@ -449,7 +506,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update updates inverse hasOne polymorphic relationship', function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const jupiter: InitializedRecord = {
           type: 'planet',
@@ -501,7 +562,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update tracks refs and clears them from hasOne relationships when a referenced record is removed', function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const jupiter: InitializedRecord = {
           type: 'planet',
@@ -564,7 +629,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update tracks refs and clears them from hasMany relationships when a referenced record is removed', function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const io: InitializedRecord = {
           type: 'moon',
@@ -644,7 +713,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test("#update adds link to hasMany if record doesn't exist", function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         cache.update((t) =>
           t.addToRelatedRecords({ type: 'planet', id: 'p1' }, 'moons', {
@@ -673,7 +746,11 @@ module('SyncRecordCache', function (hooks) {
       test("#update does not remove hasMany relationship if record doesn't exist", function (assert) {
         assert.expect(1);
 
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         cache.on('patch', () => {
           assert.ok(false, 'no operations were applied');
@@ -696,7 +773,11 @@ module('SyncRecordCache', function (hooks) {
       test("#update adds hasOne if record doesn't exist", function (assert) {
         assert.expect(2);
 
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const tb = cache.transformBuilder;
         const replacePlanet = tb.replaceRelatedRecord(
@@ -737,7 +818,11 @@ module('SyncRecordCache', function (hooks) {
       test("#update will add empty hasOne link if record doesn't exist", function (assert) {
         assert.expect(2);
 
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const tb = cache.transformBuilder;
         const clearPlanet = tb.replaceRelatedRecord(
@@ -768,7 +853,11 @@ module('SyncRecordCache', function (hooks) {
       test('#update does not add link to hasMany if link already exists', function (assert) {
         assert.expect(1);
 
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const jupiter: InitializedRecord = {
           id: 'p1',
@@ -793,7 +882,11 @@ module('SyncRecordCache', function (hooks) {
       test("#update does not remove relationship from hasMany if relationship doesn't exist", function (assert) {
         assert.expect(1);
 
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const jupiter: InitializedRecord = {
           id: 'p1',
@@ -820,7 +913,11 @@ module('SyncRecordCache', function (hooks) {
       test('#update can add and remove to has-many relationship', function (assert) {
         assert.expect(2);
 
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const jupiter: InitializedRecord = { id: 'jupiter', type: 'planet' };
         cache.update((t) => t.addRecord(jupiter));
@@ -862,7 +959,11 @@ module('SyncRecordCache', function (hooks) {
       test('#update can add and clear has-one relationship', function (assert) {
         assert.expect(2);
 
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const jupiter: InitializedRecord = { id: 'jupiter', type: 'planet' };
         cache.update((t) => t.addRecord(jupiter));
@@ -899,7 +1000,11 @@ module('SyncRecordCache', function (hooks) {
       test('does not replace hasOne if relationship already exists', function (assert) {
         assert.expect(1);
 
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const europa: InitializedRecord = {
           id: 'm1',
@@ -924,7 +1029,11 @@ module('SyncRecordCache', function (hooks) {
       test("does not remove hasOne if relationship doesn't exist", function (assert) {
         assert.expect(1);
 
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const europa: InitializedRecord = {
           type: 'moon',
@@ -1219,7 +1328,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update merges records when "replacing" and will not stomp on attributes and relationships that are not replaced', function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
         const tb = cache.transformBuilder;
 
         cache.update((t) =>
@@ -1309,7 +1422,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update can replace related records but only if they are different', function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
         const tb = cache.transformBuilder;
 
         cache.update((t) =>
@@ -1444,7 +1561,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update merges records when "replacing" and _will_ replace specified attributes and relationships', function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
         const tb = cache.transformBuilder;
 
         const earth: InitializedRecord = {
@@ -1597,7 +1718,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update can update existing record with empty relationship', function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
         const tb = cache.transformBuilder;
 
         let result = cache.update(
@@ -1706,7 +1831,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update will not overwrite an existing relationship with a missing relationship', function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
         const tb = cache.transformBuilder;
 
         let result = cache.update(
@@ -1805,7 +1934,11 @@ module('SyncRecordCache', function (hooks) {
       test('#update allows replaceRelatedRecord to be called on a relationship with no inverse and to be followed up by removing the replaced record', function (assert) {
         assert.expect(2);
 
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const star1 = {
           id: 'star1',
@@ -1871,7 +2004,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test("#update - updateRecord - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const earth: InitializedRecord = {
           type: 'planet',
@@ -1892,7 +2029,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test("#update - removeRecord - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const earth: InitializedRecord = {
           type: 'planet',
@@ -1911,7 +2052,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test("#update - replaceKey - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const earth: InitializedRecord = {
           type: 'planet',
@@ -1932,7 +2077,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test("#update - replaceAttribute - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         const earth: InitializedRecord = {
           type: 'planet',
@@ -1953,7 +2102,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test("#update - addToRelatedRecords - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         assert.throws(
           () =>
@@ -1972,7 +2125,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test("#update - removeFromRelatedRecords - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         assert.throws(
           () =>
@@ -1995,7 +2152,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test("#update - replaceRelatedRecords - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         assert.throws(
           () =>
@@ -2016,7 +2177,11 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test("#update - replaceRelatedRecord - throws RecordNotFoundException if record doesn't exist with `raiseNotFoundExceptions` option", function (assert) {
-        const cache = new ExampleSyncRecordCache({ schema, keyMap });
+        const cache = new ExampleSyncRecordCache({
+          schema,
+          keyMap,
+          transformBuffer
+        });
 
         assert.throws(
           () =>

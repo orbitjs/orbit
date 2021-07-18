@@ -11,6 +11,8 @@ import {
   RecordCacheTransformOptions,
   RecordCacheUpdateDetails,
   RecordRelationshipIdentity,
+  RecordTransformBuffer,
+  SimpleRecordTransformBuffer,
   SyncRecordCache,
   SyncRecordCacheSettings
 } from '@orbit/record-cache';
@@ -260,5 +262,25 @@ export class LocalStorageCache<
     for (let processor of this._processors) {
       processor.upgrade();
     }
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Protected methods
+  /////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Override `_getTransformBuffer` on base `SyncRecordCache` to provide a
+   * `transformBuffer` if a custom one hasn't been provided via the constructor
+   * setting.
+   */
+  protected _getTransformBuffer(): RecordTransformBuffer {
+    if (this._transformBuffer === undefined) {
+      const { schema, keyMap } = this;
+      this._transformBuffer = new SimpleRecordTransformBuffer({
+        schema,
+        keyMap
+      });
+    }
+    return this._transformBuffer;
   }
 }
