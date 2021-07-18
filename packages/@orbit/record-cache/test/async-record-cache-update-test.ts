@@ -8,6 +8,7 @@ import {
   RecordSchema,
   RecordNotFoundException
 } from '@orbit/records';
+import { SimpleRecordTransformBuffer } from '../src/simple-record-transform-buffer';
 import { ExampleAsyncRecordCache } from './support/example-async-record-cache';
 import { createSchemaWithRemoteKey } from './support/setup';
 
@@ -16,7 +17,9 @@ const { module, test } = QUnit;
 QUnit.dump.maxDepth = 7;
 
 module('AsyncRecordCache - update', function (hooks) {
-  let schema: RecordSchema, keyMap: RecordKeyMap;
+  let schema: RecordSchema;
+  let keyMap: RecordKeyMap;
+  let transformBuffer: SimpleRecordTransformBuffer | undefined;
 
   [true, false].forEach((useBuffer) => {
     module(`useBuffer: ${useBuffer}`, function (hooks) {
@@ -32,10 +35,21 @@ module('AsyncRecordCache - update', function (hooks) {
 
         hooks.beforeEach(function () {
           schema = createSchemaWithRemoteKey();
+
+          if (useBuffer) {
+            transformBuffer = new SimpleRecordTransformBuffer({
+              schema,
+              keyMap
+            });
+          } else {
+            transformBuffer = undefined;
+          }
+
           cache = new ExampleAsyncRecordCache({
             schema,
             keyMap,
-            defaultTransformOptions
+            defaultTransformOptions,
+            transformBuffer
           });
         });
 
@@ -1811,10 +1825,20 @@ module('AsyncRecordCache - update', function (hooks) {
             }
           });
 
+          if (useBuffer) {
+            transformBuffer = new SimpleRecordTransformBuffer({
+              schema: hasOneSchema,
+              keyMap
+            });
+          } else {
+            transformBuffer = undefined;
+          }
+
           const cache = new ExampleAsyncRecordCache({
             schema: hasOneSchema,
             keyMap,
-            defaultTransformOptions
+            defaultTransformOptions,
+            transformBuffer
           });
 
           await cache.update((t) => [
@@ -1893,10 +1917,20 @@ module('AsyncRecordCache - update', function (hooks) {
             }
           });
 
+          if (useBuffer) {
+            transformBuffer = new SimpleRecordTransformBuffer({
+              schema: dependentSchema,
+              keyMap
+            });
+          } else {
+            transformBuffer = undefined;
+          }
+
           const cache = new ExampleAsyncRecordCache({
             schema: dependentSchema,
             keyMap,
-            defaultTransformOptions
+            defaultTransformOptions,
+            transformBuffer
           });
 
           const jupiter: InitializedRecord = {
@@ -1961,10 +1995,20 @@ module('AsyncRecordCache - update', function (hooks) {
             }
           });
 
+          if (useBuffer) {
+            transformBuffer = new SimpleRecordTransformBuffer({
+              schema: dependentSchema,
+              keyMap
+            });
+          } else {
+            transformBuffer = undefined;
+          }
+
           const cache = new ExampleAsyncRecordCache({
             schema: dependentSchema,
             keyMap,
-            defaultTransformOptions
+            defaultTransformOptions,
+            transformBuffer
           });
 
           const jupiter: InitializedRecord = {
@@ -2029,10 +2073,20 @@ module('AsyncRecordCache - update', function (hooks) {
             }
           });
 
+          if (useBuffer) {
+            transformBuffer = new SimpleRecordTransformBuffer({
+              schema: dependentSchema,
+              keyMap
+            });
+          } else {
+            transformBuffer = undefined;
+          }
+
           const cache = new ExampleAsyncRecordCache({
             schema: dependentSchema,
             keyMap,
-            defaultTransformOptions
+            defaultTransformOptions,
+            transformBuffer
           });
 
           const jupiter: InitializedRecord = {

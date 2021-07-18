@@ -1,4 +1,4 @@
-import { Orbit } from '@orbit/core';
+import { Assertion, Orbit } from '@orbit/core';
 import {
   buildQuery,
   buildTransform,
@@ -60,12 +60,8 @@ import {
   RecordCacheSettings,
   RecordCacheTransformOptions
 } from './record-cache';
-import {
-  RecordTransformBuffer,
-  RecordTransformBufferClass
-} from './record-transform-buffer';
+import { RecordTransformBuffer } from './record-transform-buffer';
 import { PatchResult, RecordCacheUpdateDetails } from './response';
-import { SyncRecordCacheSettings } from './sync-record-cache';
 
 const { assert, deprecate } = Orbit;
 
@@ -80,8 +76,7 @@ export interface AsyncRecordCacheSettings<
   transformOperators?: Dict<AsyncTransformOperator>;
   inverseTransformOperators?: Dict<AsyncInverseTransformOperator>;
   debounceLiveQueries?: boolean;
-  transformBufferClass?: RecordTransformBufferClass;
-  transformBufferSettings?: SyncRecordCacheSettings<QO, TO>;
+  transformBuffer?: RecordTransformBuffer;
 }
 
 export abstract class AsyncRecordCache<
@@ -103,8 +98,6 @@ export abstract class AsyncRecordCache<
   protected _inverseTransformOperators: Dict<AsyncInverseTransformOperator>;
   protected _debounceLiveQueries: boolean;
   protected _transformBuffer?: RecordTransformBuffer;
-  protected _transformBufferClass?: RecordTransformBufferClass;
-  protected _transformBufferSettings?: SyncRecordCacheSettings<QO, TO>;
 
   constructor(settings: AsyncRecordCacheSettings<QO, TO, QB, TB>) {
     super(settings);
@@ -115,6 +108,7 @@ export abstract class AsyncRecordCache<
     this._inverseTransformOperators =
       settings.inverseTransformOperators ?? AsyncInverseTransformOperators;
     this._debounceLiveQueries = settings.debounceLiveQueries !== false;
+    this._transformBuffer = settings.transformBuffer;
 
     const processors: AsyncOperationProcessorClass[] = settings.processors
       ? settings.processors
@@ -494,14 +488,9 @@ export abstract class AsyncRecordCache<
 
   protected _getTransformBuffer(): RecordTransformBuffer {
     if (this._transformBuffer === undefined) {
-      let transformBufferClass =
-        this._transformBufferClass ?? RecordTransformBuffer;
-      let settings = this._transformBufferSettings ?? { schema: this.schema };
-      settings.schema = settings.schema ?? this.schema;
-      settings.keyMap = settings.keyMap ?? this.keyMap;
-      this._transformBuffer = new transformBufferClass(settings);
-    } else {
-      this._transformBuffer.reset();
+      throw new Assertion(
+        'transformBuffer must be provided to cache via constructor settings'
+      );
     }
     return this._transformBuffer;
   }
@@ -520,6 +509,7 @@ export abstract class AsyncRecordCache<
     const relatedRecords = inverseRelationships.map((ir) => ir.record);
     Array.prototype.push.apply(records, relatedRecords);
 
+    buffer.resetState();
     buffer.setRecordsSync(await this.getRecordsAsync(records));
     buffer.addInverseRelationshipsSync(inverseRelationships);
 

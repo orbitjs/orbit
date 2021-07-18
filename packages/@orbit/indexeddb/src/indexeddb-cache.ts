@@ -13,7 +13,9 @@ import {
   AsyncRecordCacheSettings,
   RecordCacheQueryOptions,
   RecordCacheTransformOptions,
-  RecordCacheUpdateDetails
+  RecordCacheUpdateDetails,
+  RecordTransformBuffer,
+  SimpleRecordTransformBuffer
 } from '@orbit/record-cache';
 import { supportsIndexedDB } from './lib/indexeddb';
 import { RequestOptions } from '@orbit/data';
@@ -563,6 +565,22 @@ export class IndexedDBCache<
   /////////////////////////////////////////////////////////////////////////////
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * Override `_getTransformBuffer` on base `AsyncRecordCache` to provide a
+   * `transformBuffer` if a custom one hasn't been provided via the constructor
+   * setting.
+   */
+  protected _getTransformBuffer(): RecordTransformBuffer {
+    if (this._transformBuffer === undefined) {
+      const { schema, keyMap } = this;
+      this._transformBuffer = new SimpleRecordTransformBuffer({
+        schema,
+        keyMap
+      });
+    }
+    return this._transformBuffer;
+  }
 
   protected async _getAllRecords(): Promise<InitializedRecord[]> {
     if (!this._db) return Promise.reject(DB_NOT_OPEN);
