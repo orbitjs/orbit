@@ -7,8 +7,8 @@ length throughout this guide already. Memory sources implement the `Updatable`,
 `Queryable`, and `Syncable` interfaces, and are the primary interface through
 which developers will interact with an Orbit application.
 
-Instead of re-explaining [querying](./querying-data) and
-[updating](./updating-data) memory sources, this section explores some unique
+Instead of re-explaining [querying](./querying-data.md) and
+[updating](./updating-data.md) memory sources, this section explores some unique
 capabilities of memory sources and their inner workings.
 
 ## Cache
@@ -67,7 +67,7 @@ a high fidelity log of changes to a memory source, observe its cache's `patch` e
 
 ### Querying cache data
 
-As has been [discussed](./querying-data), the contents of a cache can be
+As has been [discussed](./querying-data.md), the contents of a cache can be
 queried directly and synchronously, using the same query expressions that can be
 applied to other sources.
 

@@ -114,7 +114,7 @@ The following should be logged as a result:
 "transforms: 1"
 ```
 
-> Want to learn more about updating data? [See the guide](./updating-data)
+> Want to learn more about updating data? [See the guide](./updating-data.md)
 
 ## Standard interfaces
 
@@ -181,7 +181,7 @@ flows back down.
 The `Syncable` interface participates in the "sync flow", in which data flowing
 downstream is synchronized with other sources.
 
-> Want to learn more about data flows? [See the guide](./data-flows)
+> Want to learn more about data flows? [See the guide](./data-flows.md)
 
 ### Developer-facing interfaces
 
@@ -189,6 +189,6 @@ Generally speaking, only the `Updatable` and `Queryable` interfaces are designed
 to be used directly by developers in most applications. The other interfaces are
 used to coordinate data requests and synchronization between sources.
 
-> See guides that cover [querying data](./querying-data),
-  [updating data](./updating-data), and
-  [configuring coordination strategies](./coordination).
+> See guides that cover [querying data](./querying-data.md),
+  [updating data](./updating-data.md), and
+  [configuring coordination strategies](./coordination.md).

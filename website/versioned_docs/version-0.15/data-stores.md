@@ -7,8 +7,8 @@ length throughout this guide already. Stores implement the `Updatable`,
 `Queryable`, and `Syncable` interfaces, and are the primary interface through
 which developers will interact with an Orbit application.
 
-Instead of re-explaining [querying](./querying-data) and
-[updating](./updating-data) stores, this section explores some unique
+Instead of re-explaining [querying](./querying-data.md) and
+[updating](./updating-data.md) stores, this section explores some unique
 capabilities of stores and their inner workings.
 
 ## Cache
@@ -67,7 +67,7 @@ a high fidelity log of changes to a store, observe its cache's `patch` events.
 
 ### Querying cache data
 
-As has been [discussed](./querying-data), the contents of a cache can be
+As has been [discussed](./querying-data.md), the contents of a cache can be
 queried directly and synchronously, using the same query expressions that can be
 applied to other sources.
 
