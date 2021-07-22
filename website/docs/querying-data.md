@@ -2,41 +2,41 @@
 title: Querying data
 ---
 
-The contents of a source can be interrogated using a `Query`. Orbit comes with a
-standard set of query expressions for finding records and related records. These
-expressions can be paired with refinements (e.g. filters, sort order, etc.).
+The contents of a source can be interrogated using a
+[`Query`](./api/data/interfaces/Query.md). Orbit comes with a standard set of
+query expressions for finding records and related records. These expressions can
+be paired with refinements (e.g. filters, sort order, etc.).
 
 Custom query expressions can also be developed, as long as all the sources
 participating can understand them.
 
 ## Query expressions
 
-The `QueryExpression` interface requires one member:
+The base [`QueryExpression`](./api/data/interfaces/QueryExpression.md) interface
+consists of:
 
 - `op` - a string identifying the type of query operation
+- `options` - (Optional) a [`RequestOptions`](./api/data/interfaces/RequestOptions.md) object
 
-The other members of a `QueryExpression` are specific to the `op`.
-
-The following standard query expressions are defined in `@orbit/data`:
+The other members of a
+[`QueryExpression`](./api/data/interfaces/QueryExpression.md) are specific to
+the `op`. The following standard record-specific query expressions are defined
+in [`@orbit/records`](./api/records/index.md):
 
 ```typescript
-interface QueryExpression {
-  op: string;
-}
-
 interface FindRecord extends QueryExpression {
-  op: "findRecord";
+  op: 'findRecord';
   record: RecordIdentity;
 }
 
 interface FindRelatedRecord extends QueryExpression {
-  op: "findRelatedRecord";
+  op: 'findRelatedRecord';
   record: RecordIdentity;
   relationship: string;
 }
 
 interface FindRelatedRecords extends QueryExpression {
-  op: "findRelatedRecords";
+  op: 'findRelatedRecords';
   record: RecordIdentity;
   relationship: string;
   sort?: SortSpecifier[];
@@ -45,7 +45,7 @@ interface FindRelatedRecords extends QueryExpression {
 }
 
 interface FindRecords extends QueryExpression {
-  op: "findRecords";
+  op: 'findRecords';
   type?: string;
   sort?: SortSpecifier[];
   filter?: FilterSpecifier[];
@@ -56,7 +56,7 @@ interface FindRecords extends QueryExpression {
 Supporting interfaces include:
 
 ```typescript
-export type SortOrder = "ascending" | "descending";
+export type SortOrder = 'ascending' | 'descending';
 
 export interface SortSpecifier {
   kind: string;
@@ -64,11 +64,19 @@ export interface SortSpecifier {
 }
 
 export interface AttributeSortSpecifier extends SortSpecifier {
-  kind: "attribute";
+  kind: 'attribute';
   attribute: string;
 }
 
-export type ComparisonOperator = "equal" | "gt" | "lt" | "gte" | "lte" | "some" | "all" | "none";
+export type ComparisonOperator =
+  | 'equal'
+  | 'gt'
+  | 'lt'
+  | 'gte'
+  | 'lte'
+  | 'some'
+  | 'all'
+  | 'none';
 
 export interface FilterSpecifier {
   op: ComparisonOperator;
@@ -76,7 +84,7 @@ export interface FilterSpecifier {
 }
 
 export interface AttributeFilterSpecifier extends FilterSpecifier {
-  kind: "attribute";
+  kind: 'attribute';
   attribute: string;
   value: any;
 }
@@ -86,7 +94,7 @@ export interface PageSpecifier {
 }
 
 export interface OffsetLimitPageSpecifier extends PageSpecifier {
-  kind: "offsetLimit";
+  kind: 'offsetLimit';
   offset?: number;
   limit?: number;
 }
@@ -94,10 +102,11 @@ export interface OffsetLimitPageSpecifier extends PageSpecifier {
 
 ## Queries
 
-The `Query` interface has the following members:
+The [`Query`](./api/data/interfaces/Query.md) interface has the following
+members:
 
 - `id` - a string that uniquely identifies the query
-- `expressions` - an array of `QueryExpression` objects
+- `expressions` - an instance or array of [`QueryExpression`](./api/data/interfaces/QueryExpression.md) objects
 - `options` - an optional object that represents options that can influence how
   a query is processed
 
@@ -115,17 +124,17 @@ You can use the standard `@orbit/data` query builder as follows:
 
 ```javascript
 // Find a single record by identity
-memory.query(q => q.findRecord({ type: "planet", id: "earth" }));
+memory.query((q) => q.findRecord({ type: 'planet', id: 'earth' }));
 
 // Find all records by type
-memory.query(q => q.findRecords("planet"));
+memory.query((q) => q.findRecords('planet'));
 
 // Find a related record in a to-one relationship
-memory.query(q => q.findRelatedRecord({ type: "moon", id: "io" }, "planet"));
+memory.query((q) => q.findRelatedRecord({ type: 'moon', id: 'io' }, 'planet'));
 
 // Find related records in a to-many relationship
-memory.query(q =>
-  q.findRelatedRecords({ type: "planet", id: "earth" }, "moons")
+memory.query((q) =>
+  q.findRelatedRecords({ type: 'planet', id: 'earth' }, 'moons')
 );
 ```
 
@@ -133,78 +142,78 @@ The base `findRecords` query can be enhanced significantly:
 
 ```javascript
 // Sort by name
-memory.query(q => q.findRecords('planet')
-                  .sort('name'));
+memory.query((q) => q.findRecords('planet')
+                     .sort('name'));
 
 // Sort by classification, then name (descending)
-memory.query(q => q.findRecords('planet')
-                  .sort('classification', '-name'));
+memory.query((q) => q.findRecords('planet')
+                     .sort('classification', '-name'));
 
 // Filter by a single attribute
-memory.query(q => q.findRecords('planet')
-                  .filter({ attribute: 'classification', value: 'terrestrial' });
+memory.query((q) => q.findRecords('planet')
+                     .filter({ attribute: 'classification', value: 'terrestrial' });
 
 // Filter by multiple attributes
-memory.query(q => q.findRecords('planet')
-                  .filter({ attribute: 'classification', value: 'terrestrial' },
-                          { attribute: 'mass', op: 'gt', value: 987654321 });
+memory.query((q) => q.findRecords('planet')
+                     .filter({ attribute: 'classification', value: 'terrestrial' },
+                             { attribute: 'mass', op: 'gt', value: 987654321 });
 
 // Filter by related records
-memory.query(q => q.findRecords('moons')
-                  .filter({ relation: 'planet', record: { type: 'planet', id: 'earth' }});
+memory.query((q) => q.findRecords('moons')
+                     .filter({ relation: 'planet', record: { type: 'planet', id: 'earth' }});
 
 // Filter by multiple related records
-memory.query(q => q.findRecords('moons')
-                  .filter({ relation: 'planet', records: [{ type: 'planet', id: 'earth' }, { type: 'planet', id: 'jupiter'}]});
+memory.query((q) => q.findRecords('moons')
+                     .filter({ relation: 'planet', records: [{ type: 'planet', id: 'earth' }, { type: 'planet', id: 'jupiter'}]});
 
 // Paginate by offset and limit
-memory.query(q => q.findRecords('planet')
-                  .page({ offset: 0, limit: 10 }));
+memory.query((q) => q.findRecords('planet')
+                     .page({ offset: 0, limit: 10 }));
 
 // Combine filtering, sorting, and paginating
-memory.query(q => q.findRecords('planet')
-                  .filter({ attribute: 'classification', value: 'terrestrial' })
-                  .sort('name')
-                  .page({ offset: 0, limit: 10 }));
+memory.query((q) => q.findRecords('planet')
+                     .filter({ attribute: 'classification', value: 'terrestrial' })
+                     .sort('name')
+                     .page({ offset: 0, limit: 10 }));
 ```
 
 The same parameters can be applied to `findRelatedRecords`:
 
 ```javascript
 // Sort by name
-memory.query(q => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' }, 'planets')
-                  .sort('name'));
+memory.query((q) => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' }, 'planets')
+                     .sort('name'));
 
 // Sort by classification, then name (descending)
-memory.query(q => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' }, 'planets')
-                  .sort('classification', '-name'));
+memory.query((q) => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' }, 'planets')
+                     .sort('classification', '-name'));
 
 // Filter by a single attribute
-memory.query(q => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' }, 'planets')
-                  .filter({ attribute: 'classification', value: 'terrestrial' });
+memory.query((q) => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' }, 'planets')
+                     .filter({ attribute: 'classification', value: 'terrestrial' });
 
 // Filter by multiple attributes
-memory.query(q => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' }, 'planets')
-                  .filter({ attribute: 'classification', value: 'terrestrial' },
-                          { attribute: 'mass', op: 'gt', value: 987654321 });
+memory.query((q) => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' }, 'planets')
+                     .filter({ attribute: 'classification', value: 'terrestrial' },
+                             { attribute: 'mass', op: 'gt', value: 987654321 });
 
 // Filter by related records
-memory.query(q => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' }, 'moons')
-                  .filter({ relation: 'planet', record: { type: 'planet', id: 'earth' }});
+memory.query((q) => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' }, 'moons')
+                     .filter({ relation: 'planet', record: { type: 'planet', id: 'earth' }});
 
 // Filter by multiple related records
-memory.query(q => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' }, 'moons')
-                  .filter({ relation: 'planet', records: [{ type: 'planet', id: 'earth' }, { type: 'planet', id: 'jupiter'}]});
+memory.query((q) => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' }, 'moons')
+                     .filter({ relation: 'planet', records: [{ type: 'planet', id: 'earth' }, { type: 'planet', id: 'jupiter'}]});
 
 // Paginate by offset and limit
-memory.query(q => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' }, 'planets')
-                  .page({ offset: 0, limit: 10 }));
+memory.query((q) => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' }, 'planets')
+                     .page({ offset: 0, limit: 10 }));
 
 // Combine filtering, sorting, and paginating
-memory.query(q => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' }, 'planets')
-                  .filter({ attribute: 'classification', value: 'terrestrial' })
-                  .sort('name')
-                  .page({ offset: 0, limit: 10 }));
+memory.query((q) => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' }, 'planets')
+                     .filter({ attribute: 'classification', value: 'terrestrial' })
+                     .sort('name')
+                     .page({ offset: 0, limit: 10 }));
 ```
 
 ## Filtering
@@ -212,7 +221,8 @@ memory.query(q => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' },
 As shown in some of the previous examples, you can filter over the records that are found by a `findRecords` or `findRelatedRecords` query. Filtering is done building a boolean expression and only retrieving the records for which this expression returns `true`. This boolean expression, just like it is with regular javascript, is built out of three parts.
 
 Javascript:
-```
+
+```typescript
  const denserThanEarth = planets.filter((planet) => {
     return planet.density    >     earth.density
  }) //    |      1       |   2    |      3      |
@@ -220,21 +230,22 @@ Javascript:
 ```
 
 Filter expression:
-```
+
+```typescript
 const denserThanEarth = orbit.cache.query((q) => {
   return q.findRecords('planets')
-    .filter({ attribute: 'radius', op: 'lt', value: earth.density })
-}) //       |         1          |    2    |          3           |
+          .filter({ attribute: 'radius', op: 'lt', value: earth.density })
+}) //             |         1          |    2    |          3           |
 ```
 
 1. the left hand value:
- This is a reference to the property of the records that you want to compare. This can either be a `relationship` or an `attribute`. During evaluation, the reference will be replaced by the actual values of the records.
+   This is a reference to the property of the records that you want to compare. This can either be a `relationship` or an `attribute`. During evaluation, the reference will be replaced by the actual values of the records.
 
 2. the comparison operation
- The operation determines the way the two values will be compared.
+   The operation determines the way the two values will be compared.
 
 3. the right hand value:
- This is a value that will remain constant for the entirety of the filter. This value determines, given the operation, which records will be returned and which will not.
+   This is a value that will remain constant for the entirety of the filter. This value determines, given the operation, which records will be returned and which will not.
 
 ### Comparison operators for filtering
 
@@ -245,7 +256,7 @@ Both have their own comparison operators.
 
 Attribute filtering looks like the following:
 
-```
+```typescript
 const denserThanEarth = orbit.cache.query((q) => {
   return q.findRecords('planets')
     .filter({ attribute: 'radius', op: 'lt', value: earth.density })
@@ -265,22 +276,24 @@ For attribute filtering, the following comparison operators are available.
 Relationship filtering has two types:
 
 Filtering on a `hasOne` relationship:
-```
+
+```typescript
 const moonsOfJupiter = orbit.cache.query((q) => {
   return q.findRecords('moon')
-    .filter({ relationship: 'planet', op: 'equal', record: { type: 'planet', id: 'jupiter' } })
+          .filter({ relationship: 'planet', op: 'equal', record: { type: 'planet', id: 'jupiter' } })
 })
 ```
 
 Filtering on a `hasMany` relationship:
-```
+
+```typescript
 const theSolarSystem = orbit.cache.query((q) => {
   return q.findRecords('planetarySystem')
-    .filter({
-      relationship: 'planets',
-      op: 'some',
-      records: [{ type: 'planet', id: 'earth' }]
-     })
+          .filter({
+            relationship: 'planets',
+            op: 'some',
+            records: [{ type: 'planet', id: 'earth' }]
+          })
 })
 ```
 
@@ -291,6 +304,7 @@ Filtering on a `hasOne` relationship has different comparison operations availab
 - `equal`: returns a record if the left hand relationship is equal to the right hand relationship.
 
 `hasMany` operations:
+
 - `equal`: returns a record if the left hand relationsips are identical to the right hand relationships.
 - `all`: returns a record if the left hand relationships contain all the right hand relationships.
 - `some`: returns a record if the left hand relationships contain one or more of the right hand relationships.
@@ -300,14 +314,14 @@ Filtering on a `hasOne` relationship has different comparison operations availab
 
 If you're using the default settings for JSONAPISource, `findRelatedRecords` and `findRecords.filter(...)` produce very different URLs.
 
-```
+```typescript
 const relatedRecordId = { type: 'planet', id: 'earth' };
 
 // This fetches from: /planets/earth/moons
-memory.query(q => q.findRelatedRecords(relatedRecordId, 'moons'));
+memory.query((q) => q.findRelatedRecords(relatedRecordId, 'moons'));
 
 // This fetches from: /moons?filter[planet]=earth
-memory.query(q => q.findRecords('moon')).filter({ relation: 'planet', record: relatedRecordId });
+memory.query((q) => q.findRecords('moon')).filter({ relation: 'planet', record: relatedRecordId });
 ```
 
 ### Query options
@@ -319,11 +333,11 @@ For example, the following query is given a `label` and contains instructions
 for the source named `remote`:
 
 ```javascript
-memory.query(q => q.findRecords("contact").sort("lastName", "firstName"), {
-  label: "Find all contacts",
+memory.query((q) => q.findRecords('contact').sort('lastName', 'firstName'), {
+  label: 'Find all contacts',
   sources: {
     remote: {
-      include: ["phone-numbers"]
+      include: ['phone-numbers']
     }
   }
 });
@@ -342,9 +356,9 @@ phone numbers.
 It is possible to pass different options to each expression in the query.
 
 ```javascript
-memory.query(q => [
-  q.findRecords("contact").options({ include: ["phone-numbers"] }),
-  q.findRecords("meeting").options({ include: ["location"] })
+memory.query((q) => [
+  q.findRecords('contact').options({ include: ['phone-numbers'] }),
+  q.findRecords('meeting').options({ include: ['location'] })
 ]);
 ```
 
@@ -358,7 +372,7 @@ For example:
 
 ```javascript
 // Results will be returned synchronously by querying the cache
-let planets = memory.cache.query(q => q.findRecords("planet").sort("name"));
+const planets = memory.cache.query((q) => q.findRecords('planet').sort('name'));
 ```
 
 > By querying the cache instead of the memory source, you're not allowing other
@@ -366,24 +380,30 @@ let planets = memory.cache.query(q => q.findRecords("planet").sort("name"));
 > coordinate queries across multiple sources, it's critical to make requests
 > directly on the memory source.
 
-### LiveQuery
+### Live queries
 
-On a memory source, you can subscribe to a `LiveQuery`. For that you need to create
-a `LiveQuery` instance and then subscribe to changes. By default `LiveQuery` will
-run on memory cache `patch` event with a debounce. Subscription callback will be
-called on every operation which is relevant to the query.
-
-> If you use a pull based reactive system (for example Glimmer tracking) you can
-> set debounceLiveQueries option to false on memory cache.
+On a memory source's cach, you can subscribe to a
+[`SyncLiveQuery`](/api/record-cache/classes/SyncLiveQuery.md). For that you need
+to request a [`SyncLiveQuery`](/api/record-cache/classes/SyncLiveQuery.md)
+instance and then subscribe to changes. By default the
+[`SyncLiveQuery`](/api/record-cache/classes/SyncLiveQuery.md) will observe cache
+`patch` events with a debounce. The subscription callback will be called on
+every operation which is relevant to the query.
 
 ```javascript
 // Create a new LiveQuery instance
-let planetsLiveQuery = memory.cache.liveQuery(q => q.findRecords("planet"));
+const planetsLiveQuery = memory.cache.liveQuery((q) => q.findRecords('planet'));
 // Subscribe to LiveQuery changes
-let unsubscribe = planetsLiveQuery.subscribe((update) => {
+const unsubscribe = planetsLiveQuery.subscribe((update) => {
   // Query for results when a change occure
   update.query();
 });
 // Unsubscribe from the LiveQuery
 unsubscribe();
 ```
+
+:::tip
+
+If you use a pull based reactive system (for example Glimmer tracking) you can
+set debounceLiveQueries option to false on memory cache.
+:::

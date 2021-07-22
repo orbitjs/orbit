@@ -26,16 +26,16 @@ understanding of the domain-specific data they manage.
 Let's create a simple schema and memory source:
 
 ```javascript
-import { Schema } from "@orbit/data";
-import MemorySource from "@orbit/memory";
+import { RecordSchema } from '@orbit/records';
+import { MemorySource } from '@orbit/memory';
 
 // Create a schema
-const schema = new Schema({
+const schema = new RecordSchema({
   models: {
     planet: {
       attributes: {
-        name: { type: "string" },
-        classification: { type: "string" }
+        name: { type: 'string' },
+        classification: { type: 'string' }
       }
     }
   }
@@ -64,17 +64,17 @@ Let's look at an example of a simple mutation triggered by a call to `update`:
 ```javascript
 // Define a record
 const jupiter = {
-  type: "planet",
-  id: "jupiter",
+  type: 'planet',
+  id: 'jupiter',
   attributes: {
-    name: "Jupiter",
-    classification: "gas giant"
+    name: 'Jupiter',
+    classification: 'gas giant'
   }
 };
 
 // Observe and log all transforms
-memory.on("transform", t => {
-  console.log("transform", t);
+memory.on('transform', (t) => {
+  console.log('transform', t);
 });
 
 // Check the size of the transform log before updates
@@ -82,7 +82,7 @@ console.log(`transforms: ${memory.transformLog.length}`);
 
 // Update the memory source with a transform that adds a record
 memory
-  .update(t => t.addRecord(jupiter))
+  .update((t) => t.addRecord(jupiter))
   .then(() => {
     // Verify that the transform log has grown
     console.log(`transforms: ${memory.transformLog.length}`);
@@ -92,29 +92,31 @@ memory
 The following should be logged as a result:
 
 ```javascript
-"transforms: 0",
-  "transform",
+'transforms: 0',
+  'transform',
   {
     operations: [
       {
-        op: "addRecord",
+        op: 'addRecord',
         record: {
-          type: "planet",
-          id: "jupiter",
+          type: 'planet',
+          id: 'jupiter',
           attributes: {
-            name: "Jupiter",
-            classification: "gas giant"
+            name: 'Jupiter',
+            classification: 'gas giant'
           }
         }
       }
     ],
     options: undefined,
-    id: "05e5d20e-02c9-42c4-a083-99662c647fd1"
+    id: '05e5d20e-02c9-42c4-a083-99662c647fd1'
   },
-  "transforms: 1";
+  'transforms: 1';
 ```
 
-> Want to learn more about updating data? [See the guide](./updating-data.md)
+:::info
+Want to learn more about updating data? [See the guide](./updating-data.md)
+:::
 
 ## Standard interfaces
 
@@ -127,15 +129,13 @@ sources:
 - `Queryable` - Allows sources to be queried via a `query` method that receives
   a query expression and returns a recordset as a result.
 
-- `Pushable` - Allows sources to be updated via a `push` method that takes a
-  transform and returns the results of the change and its side effects as an
-  array of transforms.
-
-- `Pullable` - Allows sources to be queried via a `pull` method that takes a
-  query expression and returns the results as an array of transforms.
-
 - `Syncable` - Applies a transform or transforms to a source via a `sync`
   method.
+
+:::caution
+The `Pullable` and `Pushable` interfaces have been deprecated in
+v0.17 and are scheduled to be removed in v0.18.
+:::
 
 ### Events
 
@@ -174,9 +174,8 @@ be ignored by the emitter.
 
 ### Data flows
 
-The `Updatable`, `Queryable`, `Pushable`, and `Pullable` interfaces all
-participate in the "request flow", in which requests are made upstream and data
-flows back down.
+The `Updatable` and `Queryable` interfaces participate in the "request flow", in
+which requests are made upstream and data flows back down.
 
 The `Syncable` interface participates in the "sync flow", in which data flowing
 downstream is synchronized with other sources.
@@ -185,9 +184,9 @@ downstream is synchronized with other sources.
 
 ### Developer-facing interfaces
 
-Generally speaking, only the `Updatable` and `Queryable` interfaces are designed
-to be used directly by developers in most applications. The other interfaces are
-used to coordinate data requests and synchronization between sources.
+Generally speaking, developers will primarily interact the `Updatable` and
+`Queryable` interfaces. The `Syncable` interface is used primarily via
+coordination strategies.
 
 > See guides that cover [querying data](./querying-data.md),
 > [updating data](./updating-data.md), and
