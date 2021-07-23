@@ -126,7 +126,7 @@ constraints enumerated above.
 ### Source
 
 Every source of data, from an in-memory store to an IndexedDB database to a REST
-server, is represented as a [`Source`](./api/data/interfaces/Source.md). Sources
+server, is represented as a [`Source`](./api/data/classes/Source.md). Sources
 vary widely in their capabilities: some may support interfaces for updating
 and/or querying data, while other sources may simply broadcast changes.
 
@@ -141,7 +141,7 @@ together.
 ### Query
 
 The contents of sources can be interrogated using a
-[`Query`]((./api/data/interfaces/Query.md)), which is composed of one or more
+[`Query`](./api/data/interfaces/Query.md), which is composed of one or more
 expressions. Each [`QueryExpression`](./api/data/interfaces/QueryExpression.md)
 represents a request for a single piece or collection of data.
 
@@ -181,7 +181,7 @@ attributes and relationships with other records.
 
 A [`RecordSchema`](./api/records/classes/RecordSchema.md) defines all the models
 in a given domain. And within this schema, a
-[`ModelDefinition`](./api/records/classes/ModelDefinition.md) defines the
+[`ModelDefinition`](./api/records/interfaces/ModelDefinition.md) defines the
 characteristics for records of a given type.
 
 ## The Orbit Philosophy
