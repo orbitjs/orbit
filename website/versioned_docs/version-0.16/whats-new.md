@@ -47,7 +47,8 @@ returned from the server. If the server is using a complex sorting algorithm, it
 may be impossible to recreate that same logic (and full dataset) on the client
 in the `MemorySource`.
 
-Read more about using hints in the guide to [coordination strategies](./coordination#Using-hints).
+Read more about using hints in the guide to [coordination
+strategies](./coordination.md#using-hints).
 
 ## Memory sources can now be "rebased"
 

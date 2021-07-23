@@ -11,17 +11,17 @@ Orbit is written in [Typescript](https://www.typescriptlang.org) and distributed
 on [npm](https://www.npmjs.com/org/orbit) as packages containing a variety of
 module formats and ES language levels. Most Orbit packages are isomorphic—they
 can run in modern browsers as well as in the [Node.js](https://nodejs.org/)
-runtime.
+runtime. Each package is described in depth in [Orbit's API
+Reference](./api/index.md).
 
-## Quick links
+:::tip  Quick links
 
-<section>
+Looking a quick code walkthrough? Check out the [Getting Started
+Guide](./getting-started.md).
 
-Looking a quick code walkthrough? Check out the [Getting Started Guide](./getting-started).
+Upgrading from v0.16? [Learn what's new](./whats-new.md).
 
-Upgrading from v0.16? [Learn what's new](./whats-new).
-
-</section>
+:::
 
 ## Orbit's goals
 
@@ -123,38 +123,27 @@ changes to be logged, diff'd, sync’d, and even reverted.
 Orbit's core primitives were developed to align with the goals and
 constraints enumerated above.
 
-### Records
-
-Records are used to represent data in a normalized form. Each record has a
-`type` and `id`, which together establish its identity. Records may also include
-other fields, such as attributes and relationships with other records.
-
-### Schema
-
-A `Schema` defines all the models in a given domain. Each `Model` defines the
-characteristics for records of a given type.
-
 ### Source
 
 Every source of data, from an in-memory store to an IndexedDB database to a REST
-server, is represented as a `Source`. Sources vary widely in their capabilities:
-some may support interfaces for updating and/or querying records, while other
-sources may simply broadcast changes. Schemas provide sources with an
-understanding of the data they manage.
+server, is represented as a [`Source`](./api/data/interfaces/Source.md). Sources
+vary widely in their capabilities: some may support interfaces for updating
+and/or querying data, while other sources may simply broadcast changes.
 
 ### Transform
 
-A `Transform` is used to represent a set of record mutations, or "operations".
-Each `Operation` represents a single change to a record or relationship (e.g.
-adding a record, updating a field, deleting a relationship, etc.). Transforms
-must be applied atomically—all operations succeed or fail together.
+A [`Transform`](./api/data/interfaces/Transform.md) is used to represent a set
+of record mutations, or "operations". Each
+[`Operation`](./api/data/interfaces/Operation.md) represents a single mutation.
+Transforms must be applied atomically&mdash;all operations succeed or fail
+together.
 
 ### Query
 
-The contents of sources can be interrogated using a `Query`. Orbit comes with a
-standard set of query expressions for finding records and related records. These
-expressions can be paired with refinements (e.g. filters, sort order, etc.). A
-query builder is provided to improve the ergonomics of composing queries.
+The contents of sources can be interrogated using a
+[`Query`]((./api/data/interfaces/Query.md)), which is composed of one or more
+expressions. Each [`QueryExpression`](./api/data/interfaces/QueryExpression.md)
+represents a request for a single piece or collection of data.
 
 ### Log
 
@@ -178,6 +167,22 @@ application working smoothly. A coordinator observes any number of sources and
 applies coordination strategies to keep them in sync, handle problems, perform
 logging, and more. Strategies can be customized to observe only certain events
 on specific sources.
+
+### Record-specific primitives
+
+While the above primitives allow you to work with any data, Orbit only becomes
+truly practical to use once you've settled on a particular shape of normalized
+data. And currently, all of Orbit's standard sources use a normalized form of
+data called "records".
+
+Each [`Record`](./api/records/interfaces/Record.md) has a `type` and `id`, which
+together establish its identity. Records may also include other fields, such as
+attributes and relationships with other records.
+
+A [`RecordSchema`](./api/records/classes/RecordSchema.md) defines all the models
+in a given domain. And within this schema, a
+[`ModelDefinition`](./api/records/classes/ModelDefinition.md) defines the
+characteristics for records of a given type.
 
 ## The Orbit Philosophy
 

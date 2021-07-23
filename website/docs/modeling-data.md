@@ -39,6 +39,15 @@ Here's an example record that represents a planet:
 }
 ```
 
+:::caution
+
+Just like [JSON:API resource
+fields](https://jsonapi.org/format/#document-resource-object-fields), all the
+fields in an Orbit record share the same namespace and must be unique. A record
+can not have an attribute and relationship with the same name, nor can it have
+an attribute or relationship named `type` or `id`.
+:::
+
 ### Identity
 
 Each record's identity is established by a union of the following fields:
@@ -53,21 +62,31 @@ Applications can take one of the following approaches to managing identity:
 1. Auto-generate IDs, typically as v4 UUIDs, and then use the same IDs locally
    and remotely.
 
-2. Auto-generate IDs locally and map those IDs to canonical IDs (or "keys")
+2. Remotely generate IDs and only reference records by those IDs.
+
+3. Auto-generate IDs locally and map those IDs to canonical IDs (or "keys")
    generated remotely.
 
-3. Remotely generate IDs and don't reference records until those IDs have been
-   assigned.
+The first approach is the most straightforward, flexible, and requires the least
+configuration. However, it is not feasible when working with servers that do not
+accept client-generated IDs.
 
-The first two approaches are "optimistic" and allow for offline usage, while
-the third is "pessimistic" and requires persistent connectivity.
+The second approach only works if you never need to generate _new_ records
+with Orbit, only reference existing ones generated remotely.
 
-> Note: It's possible to mix these approaches for different types of records
-> (i.e. models) within a given application.
+The third approach is a pragmatic blend of local and remote generated IDs.
+Although mapping IDs requires more configuration and complexity than having a
+single ID for each record, this approach does not constrain the capabilities of
+your application.
+
+:::tip
+It's possible to mix these approaches for different types of records
+(i.e. models) within a given application.
+:::
 
 ### Keys
 
-When using locally-generated IDs, Orbit uses "keys" to support mapping between
+When pairing locally-generated IDs, Orbit uses "keys" to support mapping between
 local and remote IDs.
 
 Remote IDs should be kept in a `keys` object at the root of a record.
@@ -115,16 +134,16 @@ identities.
 
 ## Schema
 
-A `Schema` defines the models allowed in a source, including their keys,
+A [`RecordSchema`](./api/records/classes/RecordSchema.md) defines the models allowed in a source, including their keys,
 attributes, and relationships. Typically, a single schema is shared among all
 the sources in an application.
 
 Schemas are defined with their initial settings as follows:
 
 ```javascript
-import { Schema } from "@orbit/data";
+import { RecordSchema } from "@orbit/records";
 
-const schema = new Schema({
+const schema = new RecordSchema({
   models: {
     planet: {
       attributes: {
@@ -154,20 +173,15 @@ object that contains `attributes`, `relationships`, and/or `keys`.
 
 Attributes may be defined by their `type`, which determines what type of data
 they can contain. An attribute's type may also be used to determine how it
-should be serialized. Valid attribute types are:
+should be serialized and validated. Standard attribute types are:
 
+- `array`
 - `boolean`
 - `date`
 - `datetime`
 - `number`
-- `string`
-
-The following attribute types are passed through as-is and no special
-serialization is performed:
-
 - `object`
-- `array`
-- `unknown`
+- `string`
 
 ### Model relationships
 
@@ -186,9 +200,9 @@ Here's an example of a schema definition that includes relationships with
 inverses:
 
 ```javascript
-import { Schema } from "@orbit/data";
+import { RecordSchema } from "@orbit/records";
 
-const schema = new Schema({
+const schema = new RecordSchema({
   models: {
     planet: {
       relationships: {
@@ -204,42 +218,6 @@ const schema = new Schema({
 });
 ```
 
-### Model name inflections
-
-By default, Orbit uses very simple inflections, or pluralization/singularization
-of model names - e.g. `user <-> users`. Depending on your API, you may need to
-handle this yourself. A common error from same is where `countries` gets converted
-to `countrie`, as the `s` is programmatically removed from it when it's singularized.
-
-You can override the Orbit inflectors via the Schema factory, e.g.
-
-```javascript
-new Schema({
-  models,
-  pluralize,
-  singularize
-});
-```
-
-There are several inflection packages available on NPM, or you can keep it super
-simple for a small application and do something like the following, where a simple
-map containing your model names and their inflections can be kept up to date with
-your models.
-
-```javascript
-const inflect = {
-  country: 'countries',
-  countries: 'country',
-  ...
-}
-
-new Schema({
-  models,
-  pluralize: word => inflect[word],
-  singularize: word => inflect[word]
-})
-```
-
 ### Model keys
 
 When working with remote servers that do not support client-generated IDs, it's
@@ -250,7 +228,7 @@ Keys currently accept no _standard_ options, so they should be declared with an
 empty options hash as follows:
 
 ```javascript
-const schema = new Schema({
+const schema = new RecordSchema({
   models: {
     moon: {
       keys: { remoteId: {} }
@@ -262,60 +240,16 @@ const schema = new Schema({
 });
 ```
 
-> Note: Keys can only be of type `"string"`, which is unnecessary to declare.
+:::info
 
-> Note: A key such as `remoteId` might be serialized as simply `id` when
-> communicating with a server. However, it's important to distinguish it from the
-> client-generated `id` used within Orbit, so it requires a unique name.
+Since keys can only be of type `"string"`, it is unnecessary to explicitly
+declare this (although `{ type: "string" }` is technically allowed in a key's
+declaration).
+:::
 
-### Record initialization
+:::info
 
-Schemas support the ability to initialize records via an
-`initializeRecord()` method that takes a record (`Record`) argument.
-Currently, `initializeRecord` just assigns an `id` to a record if the field
-is undefined. It may be extended to allow per-model defaults to be set as well.
-
-Here's an example that creates a schema and initializes a record:
-
-```javascript
-import { Schema } from "@orbit/schema";
-
-const schema = new Schema({
-  models: {
-    planet: {
-      attributes: {
-        name: { type: "string" }
-      }
-    }
-  }
-});
-
-let earth = {
-  type: "planet",
-  attributes: {
-    name: "Earth"
-  }
-};
-
-schema.initializeRecord(earth);
-
-console.log(earth.id); // "4facf3cc-7270-4b5e-aedd-94d777d31c31"
-```
-
-The default implementation of `initializeRecord` internally calls the schema's
-`generateId()` method to generate an `id`. By default, this invokes
-`Orbit.uuid()` to generate a v4 UUID (where `Orbit` is the default export from
-`@orbit/core`).
-
-It's possible to override `generateId` for a given schema to use a different
-local ID scheme. Here's a naive example:
-
-```javascript
-let counter = 0;
-
-const schema = new Schema({
-  generateId(type) {
-    return counter++;
-  }
-});
-```
+A key such as `remoteId` might be serialized as simply `id` when communicating
+with a server. However, it's important to distinguish it from the
+client-generated `id` used within Orbit, so it requires a unique name.
+:::

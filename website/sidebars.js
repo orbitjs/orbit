@@ -14,7 +14,6 @@ module.exports = {
     'intro',
     'getting-started',
     'whats-new',
-    'packages',
     'modeling-data',
     'data-sources',
     'updating-data',

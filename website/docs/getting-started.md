@@ -2,7 +2,8 @@
 title: Getting started
 ---
 
-This brief tutorial walks through using Orbit to manage data in a client-side
+This brief tutorial walks through using Orbit to manage
+[record-specific](/intro.md#record-specific-primitives) data in a client-side
 application. Sticking with the "orbit" theme, this application will track some
 objects orbiting in our own solar system.
 
@@ -13,25 +14,26 @@ Schemas are used to define the models and relationships for an application.
 Let's start by defining a schema for our solar system's data:
 
 ```javascript
-import { Schema } from "@orbit/data";
+import { RecordSchema } from '@orbit/records';
 
-const schema = new Schema({
+const schema = new RecordSchema({
   models: {
     planet: {
       attributes: {
-        name: { type: "string" },
-        classification: { type: "string" }
+        name: { type: 'string' },
+        classification: { type: 'string' },
+        atmosphere: { type: 'boolean' }
       },
       relationships: {
-        moons: { kind: "hasMany", type: "moon", inverse: "planet" }
+        moons: { kind: 'hasMany', type: 'moon', inverse: 'planet' }
       }
     },
     moon: {
       attributes: {
-        name: { type: "string" }
+        name: { type: 'string' }
       },
       relationships: {
-        planet: { kind: "hasOne", type: "planet", inverse: "moons" }
+        planet: { kind: 'hasOne', type: 'planet', inverse: 'moons' }
       }
     }
   }
@@ -53,7 +55,7 @@ schema.
 Let's create an in-memory source as our first data source:
 
 ```javascript
-import MemorySource from "@orbit/memory";
+import { MemorySource } from '@orbit/memory';
 
 const memory = new MemorySource({ schema });
 ```
@@ -64,43 +66,43 @@ We can now load some data into our memory source and then query its contents:
 
 ```javascript
 const earth = {
-  type: "planet",
-  id: "earth",
+  type: 'planet',
+  id: 'earth',
   attributes: {
-    name: "Earth",
-    classification: "terrestrial",
+    name: 'Earth',
+    classification: 'terrestrial',
     atmosphere: true
   }
 };
 
 const venus = {
-  type: "planet",
-  id: "venus",
+  type: 'planet',
+  id: 'venus',
   attributes: {
-    name: "Venus",
-    classification: "terrestrial",
+    name: 'Venus',
+    classification: 'terrestrial',
     atmosphere: true
   }
 };
 
 const theMoon = {
-  type: "moon",
-  id: "theMoon",
+  type: 'moon',
+  id: 'theMoon',
   attributes: {
-    name: "The Moon"
+    name: 'The Moon'
   },
   relationships: {
-    planet: { data: { type: "planet", id: "earth" } }
+    planet: { data: { type: 'planet', id: 'earth' } }
   }
 };
 
-await memory.update(t => [
+await memory.update((t) => [
   t.addRecord(venus),
   t.addRecord(earth),
   t.addRecord(theMoon)
 ]);
 
-let planets = await memory.query(q => q.findRecords("planet").sort("name"));
+let planets = await memory.query((q) => q.findRecords('planet').sort('name'));
 console.log(planets);
 ```
 
@@ -109,25 +111,25 @@ The following output should be logged:
 ```javascript
 [
   {
-    type: "planet",
-    id: "earth",
+    type: 'planet',
+    id: 'earth',
     attributes: {
-      name: "Earth",
-      classification: "terrestrial",
+      name: 'Earth',
+      classification: 'terrestrial',
       atmosphere: true
     },
     relationships: {
       moons: {
-        data: [{ type: "moon", id: "theMoon" }]
+        data: [{ type: 'moon', id: 'theMoon' }]
       }
     }
   },
   {
-    type: "planet",
-    id: "venus",
+    type: 'planet',
+    id: 'venus',
     attributes: {
-      name: "Venus",
-      classification: "terrestrial",
+      name: 'Venus',
+      classification: 'terrestrial',
       atmosphere: true
     }
   }
@@ -142,9 +144,10 @@ the [JSON:API](http://jsonapi.org/) specification. Every record has an identity
 established by a `type` and `id` pair. Relationship linkage is specified in a
 `data` object via identities.
 
-In order to add records to the memory source, we call `memory.update()` and pass an array
-of operations. Passing a function to `update` provides us with a transform
-builder (`t`), which we use to create an array of `addRecord` operations.
+In order to add records to the memory source, we call `memory.update()` and pass
+an array of operations. Passing a function to `update` provides us with a
+transform builder (`t`), which we use to create an array of `addRecord`
+operations.
 
 Note that we added the relationship between the moon and the planet on just the
 moon record. However, when we query the planet, we can see that the inverse
@@ -154,7 +157,7 @@ to the memory source's cache passes through a schema consistency check.
 Let's look at how the memory source is queried:
 
 ```javascript
-let planets = await memory.query(q => q.findRecords("planet").sort("name"));
+let planets = await memory.query((q) => q.findRecords('planet').sort('name'));
 ```
 
 Because we pass a function to `query`, Orbit provides us with a query builder
@@ -168,11 +171,11 @@ involved).
 Here's an example of a more complex query that filters, sorts, and paginates:
 
 ```javascript
-let planets = await memory.query(q =>
+let planets = await memory.query((q) =>
   q
-    .findRecords("planet")
-    .filter({ attribute: "classification", value: "terrestrial" })
-    .sort({ attribute: "name", order: "descending" })
+    .findRecords('planet')
+    .filter({ attribute: 'classification', value: 'terrestrial' })
+    .sort({ attribute: 'name', order: 'descending' })
     .page({ offset: 0, limit: 10 })
 );
 ```
@@ -187,18 +190,16 @@ For example:
 
 ```javascript
 // Results will be returned synchronously by querying the cache
-let planets = memory.cache.query(q => q.findRecords("planet").sort("name"));
+let planets = memory.cache.query((q) => q.findRecords('planet').sort('name'));
 ```
 
 By querying the cache instead of the memory source, you're not allowing other sources to
 participate in the fulfillment of the query. Continue reading to understand how
 requests to sources can be "coordinated".
 
-<hr />
-
-Want to experiment with some of the concepts presented so far?
-
-See [Part 1 of this example in CodeSandbox](https://codesandbox.io/s/orbitjs-v016-getting-started-part-1-wurdu?previewwindow=console).
+:::tip Want to experiment?
+See [Part 1 of this example in CodeSandbox](https://codesandbox.io/s/orbitjs-v017-getting-started-part-1-q4n3s?previewwindow=console).
+:::
 
 ## Defining a backup source
 
@@ -209,12 +210,12 @@ whole planet or moon! 😱
 Let's create a browser storage source to keep data around locally:
 
 ```javascript
-import IndexedDBSource from "@orbit/indexeddb";
+import { IndexedDBSource } from '@orbit/indexeddb';
 
 const backup = new IndexedDBSource({
   schema,
-  name: "backup",
-  namespace: "solarsystem"
+  name: 'backup',
+  namespace: 'solarsystem'
 });
 ```
 
@@ -224,7 +225,7 @@ Every time a source is transformed, it emits a `transform` event. It's simple
 to observe these events directly:
 
 ```javascript
-memory.on("transform", transform => {
+memory.on('transform', (transform) => {
   console.log(transform);
 });
 ```
@@ -233,7 +234,7 @@ It's possible to pipe changes that occur in one source into another via the
 `sync` method:
 
 ```javascript
-memory.on("transform", transform => {
+memory.on('transform', (transform) => {
   backup.sync(transform);
 });
 ```
@@ -244,7 +245,7 @@ source without also being backed up, we should return the promise in the event
 handler:
 
 ```javascript
-memory.on("transform", transform => {
+memory.on('transform', (transform) => {
   return backup.sync(transform);
 });
 ```
@@ -252,7 +253,7 @@ memory.on("transform", transform => {
 Or more simply:
 
 ```javascript
-memory.on("transform", transform => backup.sync(transform));
+memory.on('transform', (transform) => backup.sync(transform));
 ```
 
 With this single line of code we've guaranteed that every change to the
@@ -269,15 +270,15 @@ sources to which it applies a set of coordination strategies.
 A coordinator could be configured to handle the above scenario as follows:
 
 ```javascript
-import Coordinator, { SyncStrategy } from "@orbit/coordinator";
+import { Coordinator, SyncStrategy } from '@orbit/coordinator';
 
 const coordinator = new Coordinator({
   sources: [memory, backup]
 });
 
 const backupMemorySync = new SyncStrategy({
-  source: "memory",
-  target: "backup",
+  source: 'memory',
+  target: 'backup',
   blocking: true
 });
 
@@ -312,44 +313,43 @@ If we want our app to restore all of its data from browser storage when it
 first boots, we could perform the following:
 
 ```javascript
-let transform = await backup.pull(q => q.findRecords());
-await memory.sync(transform);
+let allRecords = await backup.query((q) => q.findRecords());
+await memory.sync((t) => allRecords.map((r) => t.addRecord(r)));
 await coordinator.activate();
 ```
 
-This code first pulls all the records from backup and then syncs them with the
-main memory source _before_ activating the coordinator. In this way, the
-coordination strategy that backs up the memory source won't be enabled until
-after the restore is complete.
+This code first queries all the records from the backup source and then syncs
+them with the main memory source _before_ activating the coordinator. In this
+way, the coordination strategy that backs up the memory source won't be enabled
+until after the restore is complete.
 
 We now have an application which has data fully contained in the browser. Any
 data that's entered can be accessed while offline and will even persist across
 browser refreshes.
 
-<hr />
-
-Want to experiment more?
-
-See [Part 2 of this example in CodeSandbox](https://codesandbox.io/s/orbitjs-v016-getting-started-part-2-pd2z3?previewwindow=console).
+:::tip Want to experiment?
+See [Part 2 of this example in CodeSandbox](https://codesandbox.io/s/orbitjs-v017-getting-started-part-2-vt4ct?previewwindow=console).
+:::
 
 ## Communicating with a server
 
-Most apps can't exist in the vacuum of a browser—data tends to be far more
-useful when it's shared with a server.
+Most apps can't exist in the vacuum of a browser&mdash;data tends to be far
+more useful when it's shared with a server.
 
 Let's say that we have a web server that conforms with the
 [JSON:API](http://jsonapi.org/) specification. We can use Orbit's
-`JSONAPISource` to allow our app to communicate with that server.
+[`JSONAPISource`](./api/jsonapi/classes/JSONAPISource.md) to allow our app to
+communicate with that server.
 
 We'll start by creating a new `remote` source:
 
 ```javascript
-import JSONAPISource from "@orbit/jsonapi";
+import { JSONAPISource } from '@orbit/jsonapi';
 
 const remote = new JSONAPISource({
   schema,
-  name: "remote",
-  host: "http://api.example.com"
+  name: 'remote',
+  host: 'http://api.example.com'
 });
 ```
 
@@ -363,16 +363,16 @@ And then we can add strategies to ensure that queries and updates made against
 the memory source are processed by the remote server:
 
 ```javascript
-import { RequestStrategy, SyncStrategy } from "@orbit/coordinator";
+import { RequestStrategy, SyncStrategy } from '@orbit/coordinator';
 
 // Query the remote server whenever the memory source is queried
 coordinator.addStrategy(
   new RequestStrategy({
-    source: "memory",
-    on: "beforeQuery",
+    source: 'memory',
+    on: 'beforeQuery',
 
-    target: "remote",
-    action: "query",
+    target: 'remote',
+    action: 'query',
 
     blocking: false
   })
@@ -381,11 +381,11 @@ coordinator.addStrategy(
 // Update the remote server whenever the memory source is updated
 coordinator.addStrategy(
   new RequestStrategy({
-    source: "memory",
-    on: "beforeUpdate",
+    source: 'memory',
+    on: 'beforeUpdate',
 
-    target: "remote",
-    action: "update",
+    target: 'remote',
+    action: 'update',
 
     blocking: false
   })
@@ -394,17 +394,17 @@ coordinator.addStrategy(
 // Sync all changes received from the remote server to the memory source
 coordinator.addStrategy(
   new SyncStrategy({
-    source: "remote",
-    target: "memory",
+    source: 'remote',
+    target: 'memory',
     blocking: false
   })
 );
 ```
 
-These strategies are all non-blocking, which means that the memory source will be
-updated / queried optimistically without waiting for responses from the server.
-Once the server responses are received, they will then be sync'd back with the
-memory source.
+These strategies are all non-blocking, which means that the memory source will
+be updated / queried optimistically without waiting for responses from the
+server. Once the server responses are received, they will then be sync'd back
+with the memory source.
 
 This set of coordination strategies is certainly not yet production ready. We
 will need exception handling in our strategies to tell Orbit how to handle
@@ -412,9 +412,10 @@ network errors (e.g. retry after X secs) as well as other types of exceptions.
 
 Optimistic server requests paired with an in-browser backup can work well for
 some kinds of applications. For other applications, it's more appropriate to use
-blocking strategies that tie the success of memory source requests to a successful
-round trip to the server. Still other applications might choose to mix
-strategies, so that only certain updates are blocking (e.g. a store purchase).
+blocking strategies that tie the success of memory source requests to a
+successful round trip to the server. Still other applications might choose to
+mix strategies, so that only certain updates are blocking (e.g. a store
+purchase).
 
 Orbit allows for filtering, exception handling, and more in strategies to
 enable any of these options. We'll dive deeper into these topics in the rest of
@@ -431,11 +432,11 @@ In order to persist this state, we can create a "bucket" that can be shared
 among our sources:
 
 ```javascript
-import LocalStorageBucket from "@orbit/local-storage-bucket";
-import IndexedDBBucket, { supportsIndexedDB } from "@orbit/indexeddb-bucket";
+import { LocalStorageBucket } from '@orbit/local-storage-bucket';
+import { IndexedDBBucket, supportsIndexedDB } from '@orbit/indexeddb-bucket';
 
 const BucketClass = supportsIndexedDB() ? IndexedDBBucket : LocalStorageBucket;
-const bucket = new BucketClass({ namespace: "my-app" });
+const bucket = new BucketClass({ namespace: 'my-app' });
 ```
 
 Note that the above code favors using an IndexedDB-based bucket and only falls
@@ -448,8 +449,8 @@ For instance:
 const backup = new IndexedDBSource({
   bucket,
   schema,
-  name: "backup",
-  namespace: "solarsystem"
+  name: 'backup',
+  namespace: 'solarsystem'
 });
 
 const memory = new MemorySource({ bucket, schema });

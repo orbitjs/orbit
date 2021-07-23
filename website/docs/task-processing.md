@@ -66,8 +66,8 @@ Tasks are normally added to the end of a queue via the `push` method:
 
 ```javascript
 queue.push({
-  type: "query",
-  data: { expression: { op: "findRecords", type: "planet" } }
+  type: 'query',
+  data: { expression: { op: 'findRecords', type: 'planet' } }
 });
 ```
 

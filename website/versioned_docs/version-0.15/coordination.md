@@ -104,7 +104,7 @@ strategies.
 
 ### Request strategies
 
-Request strategies participate in the [request flow](./data-flows). Every
+Request strategies participate in the [request flow](./data-flows.md). Every
 request strategy should be defined with:
 
 * `source` - the name of the observed source
@@ -169,7 +169,7 @@ coordinator.addStrategy(new RequestStrategy({
 
 ### Sync strategies
 
-Sync strategies participate in the [sync flow](./data-flows). Every
+Sync strategies participate in the [sync flow](./data-flows.md). Every
 sync strategy should be defined with:
 
 * `source` - the name of the observed source

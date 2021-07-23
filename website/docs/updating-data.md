@@ -11,71 +11,69 @@ succeed or fail together.
 Operations each represent a single change to a record or relationship (e.g.
 adding a record, updating a field, deleting a relationship, etc.).
 
-The `Operation` interface requires one member:
+The base [`Operation`](./api/data/interfaces/Operation.md) interface consists
+of:
 
 - `op` - a string identifying the type of operation
+- `options` - (Optional) a [`RequestOptions`](./api/data/interfaces/RequestOptions.md) object
 
-The other members of an `Operation` are specific to the `op`.
-
-The following standard operations are defined in `@orbit/data`:
+The other members of an [`Operation`](./api/data/interfaces/Operation.md) are
+specific to the `op`. The following standard record-specific operations are
+defined in [`@orbit/records`](./api/records/index.md):
 
 ```typescript
-interface Operation {
-  op: string;
-}
-
 interface AddRecordOperation extends Operation {
-  op: "addRecord";
-  record: Record;
+  op: 'addRecord';
+  record: InitializedRecord;
 }
 
 interface UpdateRecordOperation extends Operation {
-  op: "updateRecord";
-  record: Record;
+  op: 'updateRecord';
+  record: InitializedRecord;
 }
 
 interface RemoveRecordOperation extends Operation {
-  op: "removeRecord";
+  op: 'removeRecord';
   record: RecordIdentity;
 }
 
 interface ReplaceKeyOperation extends Operation {
-  op: "replaceKey";
+  op: 'replaceKey';
   record: RecordIdentity;
   key: string;
   value: string;
 }
 
 interface ReplaceAttributeOperation extends Operation {
-  op: "replaceAttribute";
+  op: 'replaceAttribute';
   record: RecordIdentity;
   attribute: string;
-  value: any;
+  value: unknown;
 }
 
 interface AddToRelatedRecordsOperation extends Operation {
-  op: "addToRelatedRecords";
+  op: 'addToRelatedRecords';
   record: RecordIdentity;
   relationship: string;
   relatedRecord: RecordIdentity;
 }
 
 interface RemoveFromRelatedRecordsOperation extends Operation {
-  op: "removeFromRelatedRecords";
+  op: 'removeFromRelatedRecords';
   record: RecordIdentity;
   relationship: string;
   relatedRecord: RecordIdentity;
 }
 
 interface ReplaceRelatedRecordsOperation extends Operation {
-  op: "replaceRelatedRecords";
+  op: 'replaceRelatedRecords';
   record: RecordIdentity;
   relationship: string;
   relatedRecords: RecordIdentity[];
 }
 
 interface ReplaceRelatedRecordOperation extends Operation {
-  op: "replaceRelatedRecord";
+  op: 'replaceRelatedRecord';
   record: RecordIdentity;
   relationship: string;
   relatedRecord: RecordIdentity | null;
@@ -84,10 +82,11 @@ interface ReplaceRelatedRecordOperation extends Operation {
 
 ## Transforms
 
-The `Transform` interface has the following members:
+The [`Transform`](./api/data/interfaces/Transform.md) interface has the
+following members:
 
 - `id` - a string that uniquely identifies the transform
-- `operations` - an array of `Operation` objects
+- `operations` - an instance or array of [`Operation`](./api/data/interfaces/Operation.md) objects
 - `options` - an optional object that represents options that can influence how
   a transform is processed
 
@@ -103,21 +102,21 @@ For instance, here's how you might update a memory source with a single record:
 
 ```javascript
 const earth = {
-  type: "planet",
-  id: "earth",
+  type: 'planet',
+  id: 'earth',
   attributes: {
-    name: "Earth"
+    name: 'Earth'
   }
 };
 
-memory.update(t => t.addRecord(earth));
+memory.update((t) => t.addRecord(earth));
 ```
 
 To perform more than one operation in a single transform, just return an array
 of operations:
 
 ```javascript
-memory.update(t => [t.addRecord(earth), t.addRecord(jupiter)]);
+memory.update((t) => [t.addRecord(earth), t.addRecord(jupiter)]);
 ```
 
 ### Standard transforms
@@ -126,75 +125,75 @@ You can use the standard `@orbit/data` transform builder as follows:
 
 ```javascript
 // Adding a new record
-memory.update(t =>
+memory.update((t) =>
   t.addRecord({
-    type: "planet",
-    id: "earth",
+    type: 'planet',
+    id: 'earth',
     attributes: {
-      name: "Earth"
+      name: 'Earth'
     }
   })
 );
 
 // Updating a record
-memory.update(t =>
+memory.update((t) =>
   t.updateRecord({
-    type: "planet",
-    id: "earth",
+    type: 'planet',
+    id: 'earth',
     attributes: {
-      name: "Earth",
-      classification: "terrestrial",
+      name: 'Earth',
+      classification: 'terrestrial',
       atmosphere: true
     }
   })
 );
 
 // Removing a record
-memory.update(t => t.removeRecord({ type: "planet", id: "earth" }));
+memory.update((t) => t.removeRecord({ type: 'planet', id: 'earth' }));
 
 // Replacing a key
-memory.update(t =>
-  t.replaceKey({ type: "planet", id: "earth" }, "remoteId", "abc123")
+memory.update((t) =>
+  t.replaceKey({ type: 'planet', id: 'earth' }, 'remoteId', 'abc123')
 );
 
 // Replacing an attribute
-memory.update(t =>
+memory.update((t) =>
   t.replaceAttribute(
-    { type: "planet", id: "earth" },
-    "classification",
-    "gaseous"
+    { type: 'planet', id: 'earth' },
+    'classification',
+    'gaseous'
   )
 );
 
 // Adding a member to a to-many relationship
-memory.update(t =>
-  t.addToRelatedRecords({ type: "planet", id: "jupiter" }, "moons", {
-    type: "moon",
-    id: "io"
+memory.update((t) =>
+  t.addToRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', {
+    type: 'moon',
+    id: 'io'
   })
 );
 
 // Removing a member from a to-many relationship
-memory.update(t =>
-  t.removeFromRelatedRecords({ type: "planet", id: "jupiter" }, "moons", {
-    type: "moon",
-    id: "io"
+memory.update((t) =>
+  t.removeFromRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', {
+    type: 'moon',
+    id: 'io'
   })
 );
 
 // Replacing every member of a to-many relationship
-memory.update(t =>
-  t.replaceRelatedRecords({ type: "planet", id: "jupiter" }, "moons", [
-    { type: "moon", id: "io" },
-    { type: "moon", id: "europa" }
+memory.update((t) =>
+  t.replaceRelatedRecords({ type: 'planet', id: 'jupiter' }, 'moons', [
+    { type: 'moon', id: 'io' },
+    { type: 'moon', id: 'europa' }
   ])
 );
 
 // Replacing a to-one relationship
-memory.update(t =>
-  t.replaceRelatedRecord({ type: "planet", id: "jupiter" }, "solarSystem", {
-    type: "solarSystem",
-    id: "ourSolarSystem"
+memory.update((t) =>
+  t.replaceRelatedRecord({ type: 'planet', id: 'jupiter' }, 'solarSystem', {
+    type: 'solarSystem',
+    id: 'ourSolarSystem'
   })
 );
 ```
@@ -209,18 +208,18 @@ instructions for the source named `remote`:
 
 ```javascript
 memory.update(
-  t =>
+  (t) =>
     t.updateRecord({
-      type: "planet",
-      id: "earth",
+      type: 'planet',
+      id: 'earth',
       attributes: {
-        name: "Earth",
-        classification: "terrestrial",
+        name: 'Earth',
+        classification: 'terrestrial',
         atmosphere: true
       }
     }),
   {
-    label: "Update planet Earth",
+    label: 'Update planet Earth',
     sources: {
       remote: {
         timeout: 100000
@@ -241,18 +240,22 @@ timeout when performing this particular update.
 It is possible to pass different options to each operation in the transform.
 
 ```javascript
-memory.update(t => [
-  t.addRecord({
-    type: "planet",
-    attributes: {
-      name: "Earth"
-    }
-  }).options({ timeout: 1000 }),
-  t.addRecord({
-    type: "planet",
-    attributes: {
-      name: "Jupiter"
-    }
-  }).options({ timeout: 2000 })
+memory.update((t) => [
+  t
+    .addRecord({
+      type: 'planet',
+      attributes: {
+        name: 'Earth'
+      }
+    })
+    .options({ timeout: 1000 }),
+  t
+    .addRecord({
+      type: 'planet',
+      attributes: {
+        name: 'Jupiter'
+      }
+    })
+    .options({ timeout: 2000 })
 ]);
 ```
