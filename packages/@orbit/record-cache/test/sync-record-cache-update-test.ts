@@ -80,7 +80,7 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update can replace records', function (assert) {
-        assert.expect(5);
+        assert.expect(6);
 
         const cache = new ExampleSyncRecordCache({
           schema,
@@ -103,8 +103,9 @@ module('SyncRecordCache', function (hooks) {
           assert.deepEqual(data, earth);
         });
 
-        cache.update((t) => t.updateRecord(earth));
+        const response = cache.update((t) => t.updateRecord(earth));
 
+        assert.deepEqual(response, earth, 'updated record is returned');
         assert.deepEqual(
           cache.getRecordSync({ type: 'planet', id: '1' }),
           earth,
@@ -123,7 +124,7 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update can replace keys', function (assert) {
-        assert.expect(4);
+        assert.expect(5);
 
         const cache = new ExampleSyncRecordCache({
           schema,
@@ -147,8 +148,15 @@ module('SyncRecordCache', function (hooks) {
           });
         });
 
-        cache.update((t) => t.replaceKey(earth, 'remoteId', 'a'));
+        const response = cache.update((t) =>
+          t.replaceKey(earth, 'remoteId', 'a')
+        );
 
+        assert.deepEqual(
+          response,
+          { type: 'planet', id: '1', keys: { remoteId: 'a' } },
+          'updated record is returned'
+        );
         assert.deepEqual(
           cache.getRecordSync({ type: 'planet', id: '1' }),
           { type: 'planet', id: '1', keys: { remoteId: 'a' } },
@@ -226,13 +234,13 @@ module('SyncRecordCache', function (hooks) {
           transformBuffer
         });
 
-        const jupiter: InitializedRecord = {
+        const jupiter = {
           type: 'planet',
           id: 'p1',
           attributes: { name: 'Jupiter' },
           relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
         };
-        const io: InitializedRecord = {
+        const io = {
           type: 'moon',
           id: 'm1',
           attributes: { name: 'Io' }
@@ -249,8 +257,8 @@ module('SyncRecordCache', function (hooks) {
           'Io has been assigned to Jupiter'
         );
         assert.deepEqual(
-          (cache.getRecordSync({ type: 'moon', id: 'm1' }) as InitializedRecord)
-            ?.relationships?.planet.data,
+          cache.getRecordSync({ type: 'moon', id: 'm1' })?.relationships?.planet
+            .data,
           { type: 'planet', id: 'p1' },
           'Jupiter has been assigned to Io'
         );
@@ -263,13 +271,13 @@ module('SyncRecordCache', function (hooks) {
           transformBuffer
         });
 
-        const jupiter: InitializedRecord = {
+        const jupiter = {
           type: 'planet',
           id: 'p1',
           attributes: { name: 'Jupiter' },
           relationships: { moons: { data: [{ type: 'moon', id: 'm1' }] } }
         };
-        const io: InitializedRecord = {
+        const io = {
           type: 'moon',
           id: 'm1',
           attributes: { name: 'Io' }
@@ -911,7 +919,7 @@ module('SyncRecordCache', function (hooks) {
       });
 
       test('#update can add and remove to has-many relationship', function (assert) {
-        assert.expect(2);
+        assert.expect(3);
 
         const cache = new ExampleSyncRecordCache({
           schema,
@@ -919,18 +927,28 @@ module('SyncRecordCache', function (hooks) {
           transformBuffer
         });
 
-        const jupiter: InitializedRecord = { id: 'jupiter', type: 'planet' };
+        const jupiter = { id: 'jupiter', type: 'planet' };
         cache.update((t) => t.addRecord(jupiter));
 
-        const callisto: InitializedRecord = { id: 'callisto', type: 'moon' };
+        const callisto = { id: 'callisto', type: 'moon' };
         cache.update((t) => t.addRecord(callisto));
 
-        cache.update((t) =>
+        const response = cache.update((t) =>
           t.addToRelatedRecords(jupiter, 'moons', {
             type: 'moon',
             id: 'callisto'
           })
         );
+
+        assert.deepEqual(response, {
+          id: 'jupiter',
+          type: 'planet',
+          relationships: {
+            moons: {
+              data: [{ id: 'callisto', type: 'moon' }]
+            }
+          }
+        });
 
         assert.ok(
           recordsInclude(
