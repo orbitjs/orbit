@@ -427,7 +427,7 @@ module.exports = {
           blogSidebarCount: 'ALL',
           blogSidebarTitle: 'All Blog Posts',
           showReadingTime: true,
-          editUrl: 'https://github.com/orbitjs/orbit/edit/main/website/blog/',
+          editUrl: 'https://github.com/orbitjs/orbit/edit/main/website/',
           feedOptions: {
             type: 'all',
             copyright: `Copyright © 2014-${new Date().getFullYear()} Cerebris Corporation`,
