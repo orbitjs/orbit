@@ -359,16 +359,14 @@ export class MemorySource<
   /**
    * Rebase works similarly to a git rebase:
    *
-   * After a source is forked, there is a parent- and a child-source. Both may be
-   * updated with transforms. If, after some updates on both sources
-   * `childSource.rebase()` is called, the result on the child source will look
-   * like, as if all updates to the parent source were added first, followed by
-   * those made in the child source. This means that updates in the child source
-   * have a tendency of winning.
+   * After a source is forked, there is a parent- and a child-source. Both may
+   * be updated with transforms. When `childSource.rebase()` is called, the
+   * child source's state will be reset to match the current state of its
+   * parent, and then any locally made transforms will be replayed on the child
+   * source.
    */
   rebase(): void {
-    let base = this._base;
-    let forkPoint = this._forkPoint;
+    const base = this._base;
 
     if (!base) {
       throw new Assertion(
@@ -376,29 +374,14 @@ export class MemorySource<
       );
     }
 
-    let baseTransforms: RecordTransform[];
-    if (forkPoint === undefined) {
-      // source was empty at fork point
-      baseTransforms = base.allTransforms();
-    } else {
-      baseTransforms = base.transformsSince(forkPoint);
-    }
+    // reset the state of the cache to match the base cache
+    this.cache.reset(base.cache);
 
-    if (baseTransforms.length > 0) {
-      let localTransforms = this.allTransforms();
+    // replay all locally made transforms
+    this.allTransforms().forEach((t) => this._applyTransform(t));
 
-      localTransforms.reverse().forEach((transform) => {
-        const inverseOperations = this._transformInverses[transform.id];
-        if (inverseOperations) {
-          this.cache.update(inverseOperations);
-        }
-        this._clearTransformFromHistory(transform.id);
-      });
-
-      baseTransforms.forEach((transform) => this._applyTransform(transform));
-      localTransforms.forEach((transform) => this._applyTransform(transform));
-      this._forkPoint = base.transformLog.head;
-    }
+    // reset the fork point
+    this._forkPoint = base.transformLog.head;
   }
 
   /**
