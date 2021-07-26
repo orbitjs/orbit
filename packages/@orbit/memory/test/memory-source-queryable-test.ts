@@ -78,7 +78,7 @@ module('MemorySource - queryable', function (hooks) {
       attributes: { name: 'Jupiter', classification: 'gas giant' }
     };
 
-    source.cache.patch((t) => t.addRecord(jupiter));
+    source.cache.update((t) => t.addRecord(jupiter));
 
     assert.equal(
       source.cache.getRecordsSync('planet').length,
@@ -108,7 +108,7 @@ module('MemorySource - queryable', function (hooks) {
       hints.data = jupiter2;
     });
 
-    source.cache.patch((t) => t.addRecord(jupiter2));
+    source.cache.update((t) => t.addRecord(jupiter2));
 
     assert.equal(
       source.cache.getRecordsSync('planet').length,
@@ -155,7 +155,7 @@ module('MemorySource - queryable', function (hooks) {
       }
     });
 
-    source.cache.patch((t) => [
+    source.cache.update((t) => [
       t.addRecord(jupiter),
       t.addRecord(earth),
       t.addRecord(uranus)

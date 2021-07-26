@@ -212,10 +212,10 @@ module('MemoryCache', function (hooks) {
     let cache1 = new MemoryCache({ schema, keyMap });
     let cache2 = new MemoryCache({ schema, keyMap });
 
-    cache1.patch((t) =>
+    cache1.update((t) =>
       t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } })
     );
-    cache2.patch((t) =>
+    cache2.update((t) =>
       t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Jupiter' } })
     );
 
