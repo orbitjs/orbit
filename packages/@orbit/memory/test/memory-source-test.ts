@@ -261,7 +261,7 @@ module('MemorySource', function (hooks) {
     ]);
   });
 
-  test('#transformsSince - returns all transforms since a specified transformId', async function (assert) {
+  test('#getTransformsSince - returns all transforms since a specified transformId', async function (assert) {
     const source = new MemorySource({ schema, keyMap });
     const recordA = {
       id: 'jupiter',
@@ -289,13 +289,13 @@ module('MemorySource', function (hooks) {
     await source.sync(addRecordCTransform);
 
     assert.deepEqual(
-      source.transformsSince(addRecordATransform.id),
+      source.getTransformsSince(addRecordATransform.id),
       [addRecordBTransform, addRecordCTransform],
       'returns transforms since the specified transform'
     );
   });
 
-  test('#allTransforms - returns all tracked transforms', async function (assert) {
+  test('#getAllTransforms - returns all tracked transforms', async function (assert) {
     const source = new MemorySource({ schema, keyMap });
     const recordA = {
       id: 'jupiter',
@@ -323,7 +323,7 @@ module('MemorySource', function (hooks) {
     await source.sync(addRecordCTransform);
 
     assert.deepEqual(
-      source.allTransforms(),
+      source.getAllTransforms(),
       [addRecordATransform, addRecordBTransform, addRecordCTransform],
       'tracks transforms in correct order'
     );
@@ -359,7 +359,7 @@ module('MemorySource', function (hooks) {
     await source.transformLog.truncate(addRecordBTransform.id);
 
     assert.deepEqual(
-      source.allTransforms(),
+      source.getAllTransforms(),
       [addRecordBTransform, addRecordCTransform],
       'remaining transforms are in correct order'
     );
@@ -395,7 +395,7 @@ module('MemorySource', function (hooks) {
     await source.transformLog.clear();
 
     assert.deepEqual(
-      source.allTransforms(),
+      source.getAllTransforms(),
       [],
       'no transforms remain in history'
     );
@@ -644,7 +644,7 @@ module('MemorySource', function (hooks) {
 
     fork.rebase();
 
-    assert.deepEqual(fork.allTransforms(), [addRecordD, addRecordE]);
+    assert.deepEqual(fork.getAllTransforms(), [addRecordD, addRecordE]);
 
     assert.deepEqual(fork.cache.getRecordSync(recordA), recordA);
     assert.deepEqual(fork.cache.getRecordSync(recordB), recordB);

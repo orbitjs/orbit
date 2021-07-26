@@ -329,9 +329,9 @@ export class MemorySource<
 
     let transforms: RecordTransform[];
     if (sinceTransformId) {
-      transforms = forkedSource.transformsSince(sinceTransformId);
+      transforms = forkedSource.getTransformsSince(sinceTransformId);
     } else {
-      transforms = forkedSource.allTransforms();
+      transforms = forkedSource.getAllTransforms();
     }
 
     let ops: RecordOperation[] = [];
@@ -378,7 +378,7 @@ export class MemorySource<
     this.cache.reset(base.cache);
 
     // replay all locally made transforms
-    this.allTransforms().forEach((t) => this._applyTransform(t));
+    this.getAllTransforms().forEach((t) => this._applyTransform(t));
 
     // reset the fork point
     this._forkPoint = base.transformLog.head;
@@ -395,19 +395,39 @@ export class MemorySource<
   }
 
   /**
-   * Returns all transforms since a particular `transformId`.
+   * Returns all logged transforms since a particular `transformId`.
    */
-  transformsSince(transformId: string): RecordTransform[] {
+  getTransformsSince(transformId: string): RecordTransform[] {
     return this.transformLog
       .after(transformId)
       .map((id) => this._transforms[id]);
   }
 
   /**
-   * Returns all tracked transforms.
+   * @deprecated since v0.17, call `getTransformsSince` instead
+   */
+  transformsSince(transformId: string): RecordTransform[] {
+    deprecate(
+      'MemorySource#transformsSince has been deprecated. Please call `source.getTransformsSince(tranformId)` instead.'
+    );
+    return this.getTransformsSince(transformId);
+  }
+
+  /**
+   * Returns all logged transforms.
+   */
+  getAllTransforms(): RecordTransform[] {
+    return this.transformLog.entries.map((id) => this._transforms[id]);
+  }
+
+  /**
+   * @deprecated since v0.17, call `getAllTransforms` instead
    */
   allTransforms(): RecordTransform[] {
-    return this.transformLog.entries.map((id) => this._transforms[id]);
+    deprecate(
+      'MemorySource#allTransforms has been deprecated. Please call `source.getAllTransforms()` instead.'
+    );
+    return this.getAllTransforms();
   }
 
   getTransform(transformId: string): RecordTransform {
