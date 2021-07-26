@@ -71,12 +71,14 @@ module('MemoryCache', function (hooks) {
 
   test('will track update operations by default if a `base` cache is passed', function (assert) {
     let base = new MemoryCache({ schema });
+    assert.strictEqual(base.base, undefined, 'base.base is undefined');
     assert.notOk(
       base.isTrackingUpdateOperations,
       'base is not tracking update ops'
     );
 
     let cache = new MemoryCache({ schema, base });
+    assert.strictEqual(cache.base, base, 'cache.base is defined');
     assert.ok(cache.isTrackingUpdateOperations, 'child is tracking update ops');
   });
 

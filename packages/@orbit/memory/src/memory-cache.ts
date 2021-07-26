@@ -73,6 +73,7 @@ export class MemoryCache<
   QRD = unknown,
   TRD extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
 > extends SyncRecordCache<QO, TO, QB, TB, QRD, TRD> {
+  protected _base?: MemoryCache<QO, TO, QB, TB, QRD, TRD>;
   protected _records!: Dict<ImmutableMap<string, InitializedRecord>>;
   protected _inverseRelationships!: Dict<
     ImmutableMap<string, RecordRelationshipIdentity[]>
@@ -81,14 +82,24 @@ export class MemoryCache<
   protected _isTrackingUpdateOperations: boolean;
 
   constructor(settings: MemoryCacheSettings<QO, TO, QB, TB, QRD, TRD>) {
+    const { base, trackUpdateOperations } = settings;
+
     super(settings);
+
+    this._base = base;
 
     // Track update operations if explicitly told to do so, or if a `base`
     // cache has been specified.
     this._isTrackingUpdateOperations =
-      settings.trackUpdateOperations ?? settings.base !== undefined;
+      trackUpdateOperations ?? base !== undefined;
 
-    this.reset(settings.base);
+    this.reset(base);
+  }
+
+  get base(): MemoryCache<QO, TO, QB, TB, QRD, TRD> | undefined {
+    return this._base;
+  }
+
   }
 
   getRecordSync(identity: RecordIdentity): InitializedRecord | undefined {
