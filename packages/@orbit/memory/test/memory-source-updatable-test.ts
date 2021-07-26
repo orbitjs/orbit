@@ -242,7 +242,7 @@ module('MemorySource - updatable', function (hooks) {
       attributes: { name: 'Earth' }
     };
 
-    source.cache.patch((t) => t.addRecord(earth));
+    source.cache.update((t) => t.addRecord(earth));
 
     source.on('beforeUpdate', (transform: RecordTransform, hints: any) => {
       if (transform?.options?.customizeResults) {

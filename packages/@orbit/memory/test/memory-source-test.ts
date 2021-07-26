@@ -261,7 +261,7 @@ module('MemorySource', function (hooks) {
     ]);
   });
 
-  test('#transformsSince - returns all transforms since a specified transformId', async function (assert) {
+  test('#getTransformsSince - returns all transforms since a specified transformId', async function (assert) {
     const source = new MemorySource({ schema, keyMap });
     const recordA = {
       id: 'jupiter',
@@ -289,13 +289,13 @@ module('MemorySource', function (hooks) {
     await source.sync(addRecordCTransform);
 
     assert.deepEqual(
-      source.transformsSince(addRecordATransform.id),
+      source.getTransformsSince(addRecordATransform.id),
       [addRecordBTransform, addRecordCTransform],
       'returns transforms since the specified transform'
     );
   });
 
-  test('#allTransforms - returns all tracked transforms', async function (assert) {
+  test('#getAllTransforms - returns all tracked transforms', async function (assert) {
     const source = new MemorySource({ schema, keyMap });
     const recordA = {
       id: 'jupiter',
@@ -323,7 +323,7 @@ module('MemorySource', function (hooks) {
     await source.sync(addRecordCTransform);
 
     assert.deepEqual(
-      source.allTransforms(),
+      source.getAllTransforms(),
       [addRecordATransform, addRecordBTransform, addRecordCTransform],
       'tracks transforms in correct order'
     );
@@ -359,7 +359,7 @@ module('MemorySource', function (hooks) {
     await source.transformLog.truncate(addRecordBTransform.id);
 
     assert.deepEqual(
-      source.allTransforms(),
+      source.getAllTransforms(),
       [addRecordBTransform, addRecordCTransform],
       'remaining transforms are in correct order'
     );
@@ -395,7 +395,7 @@ module('MemorySource', function (hooks) {
     await source.transformLog.clear();
 
     assert.deepEqual(
-      source.allTransforms(),
+      source.getAllTransforms(),
       [],
       'no transforms remain in history'
     );
@@ -454,7 +454,7 @@ module('MemorySource', function (hooks) {
     );
   });
 
-  test('#merge - merges transforms from a forked source back into a base source', async function (assert) {
+  test('#merge - merges changes from a forked source back into a base source', async function (assert) {
     const source = new MemorySource({ schema, keyMap });
 
     const jupiter: InitializedRecord = {
@@ -479,6 +479,114 @@ module('MemorySource', function (hooks) {
       source.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }),
       jupiter,
       'data in source matches data in fork'
+    );
+  });
+
+  test("#merge - will apply all operations from a forked source's cache, if that cache is tracking update operations", async function (assert) {
+    const source = new MemorySource({ schema, keyMap });
+
+    const jupiter: InitializedRecord = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: { name: 'Jupiter', classification: 'gas giant' }
+    };
+
+    const earth: InitializedRecord = {
+      type: 'planet',
+      id: 'earth',
+      attributes: { name: 'Jupiter', classification: 'gas giant' }
+    };
+
+    let fork = source.fork();
+
+    assert.ok(
+      fork.cache.isTrackingUpdateOperations,
+      "forked source's cache is tracking update operations"
+    );
+
+    // apply change to fork.cache
+    fork.cache.update((t) => t.addRecord(jupiter));
+
+    // apply other change to fork directly
+    await fork.update((t) => t.addRecord(earth));
+
+    assert.deepEqual(
+      fork.cache.getRecordSync({ type: 'planet', id: 'jupiter' }),
+      jupiter,
+      'jupiter is present in fork.cache'
+    );
+    assert.deepEqual(
+      fork.cache.getRecordSync({ type: 'planet', id: 'earth' }),
+      earth,
+      'earth is present in fork.cache'
+    );
+
+    await source.merge(fork);
+
+    assert.deepEqual(
+      source.cache.getRecordSync({ type: 'planet', id: 'jupiter' }),
+      jupiter,
+      'jupiter is present in source.cache'
+    );
+
+    assert.deepEqual(
+      source.cache.getRecordSync({ type: 'planet', id: 'earth' }),
+      earth,
+      'earth is present in source.cache'
+    );
+  });
+
+  test('#merge - will apply only operations from a forked source, if its cache is NOT tracking update operations', async function (assert) {
+    const source = new MemorySource({ schema, keyMap });
+
+    const jupiter: InitializedRecord = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: { name: 'Jupiter', classification: 'gas giant' }
+    };
+
+    const earth: InitializedRecord = {
+      type: 'planet',
+      id: 'earth',
+      attributes: { name: 'Jupiter', classification: 'gas giant' }
+    };
+
+    let fork = source.fork({ cacheSettings: { trackUpdateOperations: false } });
+
+    assert.notOk(
+      fork.cache.isTrackingUpdateOperations,
+      "forked source's cache is NOT tracking update operations"
+    );
+
+    // apply change to fork.cache
+    fork.cache.update((t) => t.addRecord(jupiter));
+
+    // apply other change to fork directly
+    await fork.update((t) => t.addRecord(earth));
+
+    assert.deepEqual(
+      fork.cache.getRecordSync({ type: 'planet', id: 'jupiter' }),
+      jupiter,
+      'jupiter is present in fork.cache'
+    );
+    assert.deepEqual(
+      fork.cache.getRecordSync({ type: 'planet', id: 'earth' }),
+      earth,
+      'earth is present in fork.cache'
+    );
+
+    await source.merge(fork);
+
+    assert.strictEqual(
+      source.cache.getRecordSync({ type: 'planet', id: 'jupiter' }),
+      undefined,
+      'jupiter is NOT present in source.cache'
+    );
+
+    assert.deepEqual(
+      source.cache.getRecordSync({ type: 'planet', id: 'earth' }),
+      earth,
+      'earth is present in source.cache'
     );
   });
 
@@ -644,7 +752,7 @@ module('MemorySource', function (hooks) {
 
     fork.rebase();
 
-    assert.deepEqual(fork.allTransforms(), [addRecordD, addRecordE]);
+    assert.deepEqual(fork.getAllTransforms(), [addRecordD, addRecordE]);
 
     assert.deepEqual(fork.cache.getRecordSync(recordA), recordA);
     assert.deepEqual(fork.cache.getRecordSync(recordB), recordB);

@@ -52,10 +52,14 @@ export interface MemorySourceSettings<
 
 export interface MemorySourceMergeOptions {
   coalesce?: boolean;
+
+  /**
+   * @deprecated since v0.17
+   */
   sinceTransformId?: string;
 
   /**
-   * @deprecated
+   * @deprecated since v0.17, include transform options alongside merge options instead
    */
   transformOptions?: RequestOptions;
 }
@@ -95,7 +99,7 @@ export class MemorySource<
   protected _transformInverses: Dict<RecordOperation[]>;
 
   constructor(settings: MemorySourceSettings<QO, TO, QB, TB, QRD, TRD>) {
-    const { keyMap, schema } = settings;
+    const { keyMap, schema, base } = settings;
 
     settings.name = settings.name ?? 'memory';
 
@@ -112,14 +116,10 @@ export class MemorySource<
       settings.cacheSettings ?? {};
     cacheSettings.schema = schema;
     cacheSettings.keyMap = keyMap;
-    cacheSettings.queryBuilder =
-      cacheSettings.queryBuilder ?? this.queryBuilder;
-    cacheSettings.transformBuilder =
-      cacheSettings.transformBuilder ?? this.transformBuilder;
-    cacheSettings.defaultQueryOptions =
-      cacheSettings.defaultQueryOptions ?? settings.defaultQueryOptions;
-    cacheSettings.defaultTransformOptions =
-      cacheSettings.defaultTransformOptions ?? settings.defaultTransformOptions;
+    cacheSettings.queryBuilder ??= this.queryBuilder;
+    cacheSettings.transformBuilder ??= this.transformBuilder;
+    cacheSettings.defaultQueryOptions ??= this.defaultQueryOptions;
+    cacheSettings.defaultTransformOptions ??= this.defaultTransformOptions;
 
     if (
       cacheSettings.validatorFor === undefined &&
@@ -128,7 +128,6 @@ export class MemorySource<
       cacheSettings.validatorFor = this._validatorFor;
     }
 
-    const { base } = settings;
     if (base) {
       this._base = base;
       this._forkPoint = base.transformLog.head;
@@ -267,21 +266,23 @@ export class MemorySource<
    * @returns The forked source.
    */
   fork(
-    settings: MemorySourceSettings<QO, TO, QB, TB, QRD, TRD> = {
-      schema: this.schema
-    }
+    settings: Partial<MemorySourceSettings<QO, TO, QB, TB, QRD, TRD>> = {}
   ): MemorySource<QO, TO, QB, TB, QRD, TRD> {
-    const schema = this.schema;
-
-    settings.schema = schema;
-    settings.cacheSettings = settings.cacheSettings || { schema };
-    settings.keyMap = this._keyMap;
-    settings.queryBuilder = this._queryBuilder;
-    settings.transformBuilder = this._transformBuilder;
-    settings.validatorFor = this._validatorFor;
+    // required settings
     settings.base = this;
+    settings.schema = this.schema;
+    settings.keyMap = this.keyMap;
 
-    return new MemorySource<QO, TO, QB, TB, QRD, TRD>(settings);
+    // customizable settings
+    settings.queryBuilder ??= this._queryBuilder;
+    settings.transformBuilder ??= this._transformBuilder;
+    settings.validatorFor ??= this._validatorFor;
+    settings.defaultQueryOptions ??= this._defaultQueryOptions;
+    settings.defaultTransformOptions ??= this._defaultTransformOptions;
+
+    return new MemorySource<QO, TO, QB, TB, QRD, TRD>(
+      settings as MemorySourceSettings<QO, TO, QB, TB, QRD, TRD>
+    );
   }
 
   /**
@@ -327,17 +328,25 @@ export class MemorySource<
       requestOptions = (remainingOptions ?? {}) as TO;
     }
 
-    let transforms: RecordTransform[];
-    if (sinceTransformId) {
-      transforms = forkedSource.transformsSince(sinceTransformId);
-    } else {
-      transforms = forkedSource.allTransforms();
-    }
-
     let ops: RecordOperation[] = [];
-    transforms.forEach((t) => {
-      Array.prototype.push.apply(ops, toArray(t.operations));
-    });
+
+    if (forkedSource.cache.isTrackingUpdateOperations) {
+      ops = forkedSource.cache.getAllUpdateOperations();
+    } else {
+      let transforms: RecordTransform[];
+      if (sinceTransformId) {
+        deprecate(
+          'In MemorySource#merge, passing `sinceTransformId` is deprecated. Instead, call `update` with a custom transform/operations.'
+        );
+        transforms = forkedSource.getTransformsSince(sinceTransformId);
+      } else {
+        transforms = forkedSource.getAllTransforms();
+      }
+
+      transforms.forEach((t) => {
+        Array.prototype.push.apply(ops, toArray(t.operations));
+      });
+    }
 
     if (coalesce !== false) {
       ops = coalesceRecordOperations(ops);
@@ -359,16 +368,14 @@ export class MemorySource<
   /**
    * Rebase works similarly to a git rebase:
    *
-   * After a source is forked, there is a parent- and a child-source. Both may be
-   * updated with transforms. If, after some updates on both sources
-   * `childSource.rebase()` is called, the result on the child source will look
-   * like, as if all updates to the parent source were added first, followed by
-   * those made in the child source. This means that updates in the child source
-   * have a tendency of winning.
+   * After a source is forked, there is a parent- and a child-source. Both may
+   * be updated with transforms. When `childSource.rebase()` is called, the
+   * child source's state will be reset to match the current state of its
+   * parent, and then any locally made transforms will be replayed on the child
+   * source.
    */
   rebase(): void {
-    let base = this._base;
-    let forkPoint = this._forkPoint;
+    const base = this._base;
 
     if (!base) {
       throw new Assertion(
@@ -376,29 +383,14 @@ export class MemorySource<
       );
     }
 
-    let baseTransforms: RecordTransform[];
-    if (forkPoint === undefined) {
-      // source was empty at fork point
-      baseTransforms = base.allTransforms();
-    } else {
-      baseTransforms = base.transformsSince(forkPoint);
-    }
+    // reset the state of the cache to match the base cache
+    this.cache.reset(base.cache);
 
-    if (baseTransforms.length > 0) {
-      let localTransforms = this.allTransforms();
+    // replay all locally made transforms
+    this.getAllTransforms().forEach((t) => this._applyTransform(t));
 
-      localTransforms.reverse().forEach((transform) => {
-        const inverseOperations = this._transformInverses[transform.id];
-        if (inverseOperations) {
-          this.cache.update(inverseOperations);
-        }
-        this._clearTransformFromHistory(transform.id);
-      });
-
-      baseTransforms.forEach((transform) => this._applyTransform(transform));
-      localTransforms.forEach((transform) => this._applyTransform(transform));
-      this._forkPoint = base.transformLog.head;
-    }
+    // reset the fork point
+    this._forkPoint = base.transformLog.head;
   }
 
   /**
@@ -412,19 +404,39 @@ export class MemorySource<
   }
 
   /**
-   * Returns all transforms since a particular `transformId`.
+   * Returns all logged transforms since a particular `transformId`.
    */
-  transformsSince(transformId: string): RecordTransform[] {
+  getTransformsSince(transformId: string): RecordTransform[] {
     return this.transformLog
       .after(transformId)
       .map((id) => this._transforms[id]);
   }
 
   /**
-   * Returns all tracked transforms.
+   * @deprecated since v0.17, call `getTransformsSince` instead
+   */
+  transformsSince(transformId: string): RecordTransform[] {
+    deprecate(
+      'MemorySource#transformsSince has been deprecated. Please call `source.getTransformsSince(tranformId)` instead.'
+    );
+    return this.getTransformsSince(transformId);
+  }
+
+  /**
+   * Returns all logged transforms.
+   */
+  getAllTransforms(): RecordTransform[] {
+    return this.transformLog.entries.map((id) => this._transforms[id]);
+  }
+
+  /**
+   * @deprecated since v0.17, call `getAllTransforms` instead
    */
   allTransforms(): RecordTransform[] {
-    return this.transformLog.entries.map((id) => this._transforms[id]);
+    deprecate(
+      'MemorySource#allTransforms has been deprecated. Please call `source.getAllTransforms()` instead.'
+    );
+    return this.getAllTransforms();
   }
 
   getTransform(transformId: string): RecordTransform {
@@ -440,7 +452,7 @@ export class MemorySource<
   }
 
   set defaultQueryOptions(options: DefaultRequestOptions<QO> | undefined) {
-    super.defaultQueryOptions = this.cache.defaultQueryOptions = options;
+    super.defaultQueryOptions = this._cache.defaultQueryOptions = options;
   }
 
   get defaultTransformOptions(): DefaultRequestOptions<TO> | undefined {
@@ -448,7 +460,7 @@ export class MemorySource<
   }
 
   set defaultTransformOptions(options: DefaultRequestOptions<TO> | undefined) {
-    this._defaultTransformOptions = this.cache.defaultTransformOptions = options;
+    this._defaultTransformOptions = this._cache.defaultTransformOptions = options;
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -482,7 +494,7 @@ export class MemorySource<
       fullResponse: true
     } as FullRequestOptions<TO>);
     this._transforms[transform.id] = transform;
-    this._transformInverses[transform.id] = details?.inverseOperations || [];
+    this._transformInverses[transform.id] = details?.inverseOperations ?? [];
     return data;
   }
 

@@ -6,7 +6,8 @@ import {
   equalRecordIdentities,
   recordsInclude,
   recordsIncludeAll,
-  RecordIdentity
+  RecordIdentity,
+  RecordOperation
 } from '@orbit/records';
 import { clone } from '@orbit/utils';
 import { MemoryCache } from '../src/memory-cache';
@@ -66,6 +67,19 @@ module('MemoryCache', function (hooks) {
   test('creates a `transformBuilder` upon first access', function (assert) {
     let cache = new MemoryCache({ schema });
     assert.ok(cache.transformBuilder, 'transformBuilder has been instantiated');
+  });
+
+  test('will track update operations by default if a `base` cache is passed', function (assert) {
+    let base = new MemoryCache({ schema });
+    assert.strictEqual(base.base, undefined, 'base.base is undefined');
+    assert.notOk(
+      base.isTrackingUpdateOperations,
+      'base is not tracking update ops'
+    );
+
+    let cache = new MemoryCache({ schema, base });
+    assert.strictEqual(cache.base, base, 'cache.base is defined');
+    assert.ok(cache.isTrackingUpdateOperations, 'child is tracking update ops');
   });
 
   test('#update sets data and #records retrieves it', function (assert) {
@@ -200,10 +214,10 @@ module('MemoryCache', function (hooks) {
     let cache1 = new MemoryCache({ schema, keyMap });
     let cache2 = new MemoryCache({ schema, keyMap });
 
-    cache1.patch((t) =>
+    cache1.update((t) =>
       t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } })
     );
-    cache2.patch((t) =>
+    cache2.update((t) =>
       t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Jupiter' } })
     );
 
@@ -1338,6 +1352,38 @@ module('MemoryCache', function (hooks) {
       },
       'records have been merged'
     );
+  });
+
+  test('#getAllUpdateOperations will return update ops if they are tracked', function (assert) {
+    let cache = new MemoryCache({ schema, trackUpdateOperations: true });
+    assert.ok(cache.isTrackingUpdateOperations, 'cache is tracking update ops');
+
+    const addEarth: RecordOperation = {
+      op: 'addRecord',
+      record: {
+        type: 'planet',
+        id: '1',
+        attributes: { name: 'Earth' }
+      }
+    };
+    cache.update(addEarth);
+
+    const removeEarth: RecordOperation = {
+      op: 'removeRecord',
+      record: { type: 'planet', id: '1' }
+    };
+    cache.update(removeEarth);
+
+    assert.deepEqual(cache.getAllUpdateOperations(), [addEarth, removeEarth]);
+  });
+
+  test('#getAllUpdateOperations will assert if update ops are not being tracked', function (assert) {
+    let cache = new MemoryCache({ schema });
+    assert.notOk(
+      cache.isTrackingUpdateOperations,
+      'cache is not tracking update ops'
+    );
+    assert.throws(() => cache.getAllUpdateOperations());
   });
 
   test('#query can retrieve an individual record with `record`', function (assert) {
@@ -2502,6 +2548,188 @@ module('MemoryCache', function (hooks) {
         q.findRelatedRecord({ type: 'moon', id: 'callisto' }, 'planet')
       ),
       jupiter
+    );
+  });
+
+  test('#fork - creates a new cache that starts with the same schema and keyMap as the base cache', function (assert) {
+    const cache = new MemoryCache({ schema, keyMap });
+
+    const jupiter: InitializedRecord = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: { name: 'Jupiter', classification: 'gas giant' }
+    };
+
+    cache.update((t) => t.addRecord(jupiter));
+
+    assert.deepEqual(
+      cache.getRecordSync({ type: 'planet', id: 'jupiter' }),
+      jupiter,
+      'verify base data'
+    );
+
+    const fork = cache.fork();
+
+    assert.deepEqual(
+      fork.getRecordSync({ type: 'planet', id: 'jupiter' }),
+      jupiter,
+      'data in fork matches data in source'
+    );
+    assert.strictEqual(fork.schema, cache.schema, 'schema matches');
+    assert.strictEqual(fork.keyMap, cache.keyMap, 'keyMap matches');
+    assert.strictEqual(
+      fork.transformBuilder,
+      cache.transformBuilder,
+      'transformBuilder is shared'
+    );
+    assert.strictEqual(
+      fork.queryBuilder,
+      cache.queryBuilder,
+      'queryBuilder is shared'
+    );
+    assert.strictEqual(
+      fork.validatorFor,
+      cache.validatorFor,
+      'validatorFor is shared'
+    );
+    assert.strictEqual(
+      fork.base,
+      cache,
+      'base cache is set on the forked cache'
+    );
+  });
+
+  test('#merge - merges changes from a forked cache back into a base cache', function (assert) {
+    const cache = new MemoryCache({ schema, keyMap });
+
+    const jupiter: InitializedRecord = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: { name: 'Jupiter', classification: 'gas giant' }
+    };
+
+    let fork = cache.fork();
+
+    fork.update((t) => t.addRecord(jupiter));
+
+    assert.deepEqual(
+      fork.getRecordSync({ type: 'planet', id: 'jupiter' }),
+      jupiter,
+      'verify fork data'
+    );
+
+    let response = cache.merge(fork);
+
+    assert.deepEqual(response, [jupiter], 'response is array');
+
+    assert.deepEqual(
+      cache.getRecordSync({ type: 'planet', id: 'jupiter' }),
+      jupiter,
+      'data in cache matches data in fork'
+    );
+  });
+
+  test('#rebase - change in base ends up in fork', function (assert) {
+    assert.expect(3);
+
+    const jupiter: InitializedRecord = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: { name: 'Jupiter', classification: 'gas giant' }
+    };
+
+    const cache = new MemoryCache({ schema, keyMap });
+
+    let fork = cache.fork();
+
+    cache.update((t) => t.addRecord(jupiter));
+
+    assert.deepEqual(
+      cache.getRecordSync({ type: 'planet', id: 'jupiter' }),
+      jupiter,
+      'verify base cache data'
+    );
+    assert.equal(
+      fork.getRecordsSync('planet').length,
+      0,
+      'forked cache is still empty'
+    );
+
+    fork.rebase();
+
+    assert.deepEqual(
+      fork.getRecordSync({ type: 'planet', id: 'jupiter' }),
+      jupiter,
+      'verify data in forked cache'
+    );
+  });
+
+  test('#rebase - changes in fork are replayed after reset', function (assert) {
+    assert.expect(8);
+
+    const jupiter: InitializedRecord = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: { name: 'Jupiter', classification: 'gas giant' }
+    };
+
+    const earth: InitializedRecord = {
+      type: 'planet',
+      id: 'earth',
+      attributes: { name: 'Earth', classification: 'terrestrial' }
+    };
+
+    const cache = new MemoryCache({ schema, keyMap });
+
+    let fork = cache.fork();
+
+    cache.update((t) => t.addRecord(jupiter));
+    fork.update((t) => t.addRecord(earth));
+
+    assert.deepEqual(
+      cache.getRecordSync({ type: 'planet', id: 'jupiter' }),
+      jupiter,
+      'jupiter is in base'
+    );
+    assert.deepEqual(
+      cache.getRecordSync({ type: 'planet', id: 'earth' }),
+      undefined,
+      'earth is not in base'
+    );
+
+    assert.deepEqual(
+      fork.getRecordSync({ type: 'planet', id: 'jupiter' }),
+      undefined,
+      'jupiter is not in fork'
+    );
+    assert.deepEqual(
+      fork.getRecordSync({ type: 'planet', id: 'earth' }),
+      earth,
+      'earth is in fork'
+    );
+
+    fork.rebase();
+
+    assert.deepEqual(
+      fork.getRecordSync({ type: 'planet', id: 'jupiter' }),
+      jupiter,
+      'after rebase, jupiter is now in fork'
+    );
+    assert.deepEqual(
+      fork.getRecordSync({ type: 'planet', id: 'earth' }),
+      earth,
+      'after rebase, earth is still in fork'
+    );
+
+    assert.deepEqual(
+      cache.getRecordSync({ type: 'planet', id: 'jupiter' }),
+      jupiter,
+      'after rebase, jupiter is still in base'
+    );
+    assert.deepEqual(
+      cache.getRecordSync({ type: 'planet', id: 'earth' }),
+      undefined,
+      'after rebase, earth is still not in base'
     );
   });
 });
