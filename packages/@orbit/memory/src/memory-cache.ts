@@ -1,11 +1,6 @@
-import { clone, Dict } from '@orbit/utils';
-import {
-  InitializedRecord,
-  RecordIdentity,
-  equalRecordIdentities,
-  RecordQueryBuilder,
-  RecordTransformBuilder
-} from '@orbit/records';
+import { Orbit } from '@orbit/core';
+import { FullResponse, RequestOptions } from '@orbit/data';
+import { ImmutableMap } from '@orbit/immutable';
 import {
   RecordCacheQueryOptions,
   RecordCacheTransformOptions,
@@ -16,8 +11,23 @@ import {
   SyncRecordCache,
   SyncRecordCacheSettings
 } from '@orbit/record-cache';
-import { ImmutableMap } from '@orbit/immutable';
-import { RequestOptions } from '@orbit/data';
+import {
+  equalRecordIdentities,
+  InitializedRecord,
+  RecordIdentity,
+  RecordOperation,
+  RecordQueryBuilder,
+  RecordTransform,
+  RecordTransformBuilder,
+  RecordTransformResult
+} from '@orbit/records';
+import { clone, Dict, toArray } from '@orbit/utils';
+
+const { assert } = Orbit;
+
+export interface MemoryCacheMergeOptions {
+  coalesce?: boolean;
+}
 
 export interface MemoryCacheSettings<
   QO extends RequestOptions = RecordCacheQueryOptions,
@@ -28,6 +38,7 @@ export interface MemoryCacheSettings<
   TRD extends RecordCacheUpdateDetails = RecordCacheUpdateDetails
 > extends SyncRecordCacheSettings<QO, TO, QB, TB> {
   base?: MemoryCache<QO, TO, QB, TB, QRD, TRD>;
+  trackUpdateOperations?: boolean;
 }
 
 export interface MemoryCacheClass<
@@ -66,9 +77,16 @@ export class MemoryCache<
   protected _inverseRelationships!: Dict<
     ImmutableMap<string, RecordRelationshipIdentity[]>
   >;
+  protected _updateOperations!: RecordOperation[];
+  protected _isTrackingUpdateOperations: boolean;
 
   constructor(settings: MemoryCacheSettings<QO, TO, QB, TB, QRD, TRD>) {
     super(settings);
+
+    // Track update operations if explicitly told to do so, or if a `base`
+    // cache has been specified.
+    this._isTrackingUpdateOperations =
+      settings.trackUpdateOperations ?? settings.base !== undefined;
 
     this.reset(settings.base);
   }
@@ -221,6 +239,7 @@ export class MemoryCache<
    */
   reset(base?: MemoryCache<QO, TO, QB, TB, QRD, TRD>): void {
     this._records = {};
+    this._updateOperations = [];
 
     Object.keys(this._schema.models).forEach((type) => {
       let baseRecords = base && base._records[type];
@@ -254,9 +273,37 @@ export class MemoryCache<
     }
   }
 
+  get isTrackingUpdateOperations(): boolean {
+    return this._isTrackingUpdateOperations;
+  }
+
+  getAllUpdateOperations(): RecordOperation[] {
+    assert(
+      'MemoryCache#getAllUpdateOperations: requires that cache be configured with `trackUpdateOperations: true`.',
+      this._isTrackingUpdateOperations
+    );
+
+    return this._updateOperations;
+  }
+
   /////////////////////////////////////////////////////////////////////////////
   // Protected methods
   /////////////////////////////////////////////////////////////////////////////
+
+  protected _update<
+    RequestData extends RecordTransformResult = RecordTransformResult
+  >(
+    transform: RecordTransform,
+    options?: TO
+  ): FullResponse<RequestData, TRD, RecordOperation> {
+    if (this._isTrackingUpdateOperations) {
+      Array.prototype.push.apply(
+        this._updateOperations,
+        toArray(transform.operations)
+      );
+    }
+    return super._update<RequestData>(transform, options);
+  }
 
   /**
    * Override `_getTransformBuffer` on base `SyncRecordCache` to provide a

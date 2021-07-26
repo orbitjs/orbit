@@ -6,7 +6,8 @@ import {
   equalRecordIdentities,
   recordsInclude,
   recordsIncludeAll,
-  RecordIdentity
+  RecordIdentity,
+  RecordOperation
 } from '@orbit/records';
 import { clone } from '@orbit/utils';
 import { MemoryCache } from '../src/memory-cache';
@@ -66,6 +67,17 @@ module('MemoryCache', function (hooks) {
   test('creates a `transformBuilder` upon first access', function (assert) {
     let cache = new MemoryCache({ schema });
     assert.ok(cache.transformBuilder, 'transformBuilder has been instantiated');
+  });
+
+  test('will track update operations by default if a `base` cache is passed', function (assert) {
+    let base = new MemoryCache({ schema });
+    assert.notOk(
+      base.isTrackingUpdateOperations,
+      'base is not tracking update ops'
+    );
+
+    let cache = new MemoryCache({ schema, base });
+    assert.ok(cache.isTrackingUpdateOperations, 'child is tracking update ops');
   });
 
   test('#update sets data and #records retrieves it', function (assert) {
@@ -1338,6 +1350,38 @@ module('MemoryCache', function (hooks) {
       },
       'records have been merged'
     );
+  });
+
+  test('#getAllUpdateOperations will return update ops if they are tracked', function (assert) {
+    let cache = new MemoryCache({ schema, trackUpdateOperations: true });
+    assert.ok(cache.isTrackingUpdateOperations, 'cache is tracking update ops');
+
+    const addEarth: RecordOperation = {
+      op: 'addRecord',
+      record: {
+        type: 'planet',
+        id: '1',
+        attributes: { name: 'Earth' }
+      }
+    };
+    cache.update(addEarth);
+
+    const removeEarth: RecordOperation = {
+      op: 'removeRecord',
+      record: { type: 'planet', id: '1' }
+    };
+    cache.update(removeEarth);
+
+    assert.deepEqual(cache.getAllUpdateOperations(), [addEarth, removeEarth]);
+  });
+
+  test('#getAllUpdateOperations will assert if update ops are not being tracked', function (assert) {
+    let cache = new MemoryCache({ schema });
+    assert.notOk(
+      cache.isTrackingUpdateOperations,
+      'cache is not tracking update ops'
+    );
+    assert.throws(() => cache.getAllUpdateOperations());
   });
 
   test('#query can retrieve an individual record with `record`', function (assert) {
