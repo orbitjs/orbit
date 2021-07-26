@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.17.0-beta.24 (2021-07-26)
+
+#### :rocket: Enhancement
+
+- `@orbit/memory`
+  - [#873](https://github.com/orbitjs/orbit/pull/873) Introduce new fork / merge possibilities in MemorySource and MemoryCache ([@dgeb](https://github.com/dgeb))
+
+#### :memo: Documentation
+
+- [#870](https://github.com/orbitjs/orbit/pull/870) Progress on v0.17 docs ([@dgeb](https://github.com/dgeb))
+
+#### :house: Internal
+
+- Other
+  - [#872](https://github.com/orbitjs/orbit/pull/872) Create CNAME for website ([@dgeb](https://github.com/dgeb))
+- `@orbit/integration-tests`, `@orbit/record-cache`
+  - [#871](https://github.com/orbitjs/orbit/pull/871) Fill out tests to improve checking `update` responses ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.23 (2021-07-18)
 
 #### :rocket: Enhancement
