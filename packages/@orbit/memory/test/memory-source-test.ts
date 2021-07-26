@@ -454,7 +454,7 @@ module('MemorySource', function (hooks) {
     );
   });
 
-  test('#merge - merges transforms from a forked source back into a base source', async function (assert) {
+  test('#merge - merges changes from a forked source back into a base source', async function (assert) {
     const source = new MemorySource({ schema, keyMap });
 
     const jupiter: InitializedRecord = {
@@ -479,6 +479,114 @@ module('MemorySource', function (hooks) {
       source.cache.getRecordSync({ type: 'planet', id: 'jupiter-id' }),
       jupiter,
       'data in source matches data in fork'
+    );
+  });
+
+  test("#merge - will apply all operations from a forked source's cache, if that cache is tracking update operations", async function (assert) {
+    const source = new MemorySource({ schema, keyMap });
+
+    const jupiter: InitializedRecord = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: { name: 'Jupiter', classification: 'gas giant' }
+    };
+
+    const earth: InitializedRecord = {
+      type: 'planet',
+      id: 'earth',
+      attributes: { name: 'Jupiter', classification: 'gas giant' }
+    };
+
+    let fork = source.fork();
+
+    assert.ok(
+      fork.cache.isTrackingUpdateOperations,
+      "forked source's cache is tracking update operations"
+    );
+
+    // apply change to fork.cache
+    fork.cache.update((t) => t.addRecord(jupiter));
+
+    // apply other change to fork directly
+    await fork.update((t) => t.addRecord(earth));
+
+    assert.deepEqual(
+      fork.cache.getRecordSync({ type: 'planet', id: 'jupiter' }),
+      jupiter,
+      'jupiter is present in fork.cache'
+    );
+    assert.deepEqual(
+      fork.cache.getRecordSync({ type: 'planet', id: 'earth' }),
+      earth,
+      'earth is present in fork.cache'
+    );
+
+    await source.merge(fork);
+
+    assert.deepEqual(
+      source.cache.getRecordSync({ type: 'planet', id: 'jupiter' }),
+      jupiter,
+      'jupiter is present in source.cache'
+    );
+
+    assert.deepEqual(
+      source.cache.getRecordSync({ type: 'planet', id: 'earth' }),
+      earth,
+      'earth is present in source.cache'
+    );
+  });
+
+  test('#merge - will apply only operations from a forked source, if its cache is NOT tracking update operations', async function (assert) {
+    const source = new MemorySource({ schema, keyMap });
+
+    const jupiter: InitializedRecord = {
+      type: 'planet',
+      id: 'jupiter',
+      attributes: { name: 'Jupiter', classification: 'gas giant' }
+    };
+
+    const earth: InitializedRecord = {
+      type: 'planet',
+      id: 'earth',
+      attributes: { name: 'Jupiter', classification: 'gas giant' }
+    };
+
+    let fork = source.fork({ cacheSettings: { trackUpdateOperations: false } });
+
+    assert.notOk(
+      fork.cache.isTrackingUpdateOperations,
+      "forked source's cache is NOT tracking update operations"
+    );
+
+    // apply change to fork.cache
+    fork.cache.update((t) => t.addRecord(jupiter));
+
+    // apply other change to fork directly
+    await fork.update((t) => t.addRecord(earth));
+
+    assert.deepEqual(
+      fork.cache.getRecordSync({ type: 'planet', id: 'jupiter' }),
+      jupiter,
+      'jupiter is present in fork.cache'
+    );
+    assert.deepEqual(
+      fork.cache.getRecordSync({ type: 'planet', id: 'earth' }),
+      earth,
+      'earth is present in fork.cache'
+    );
+
+    await source.merge(fork);
+
+    assert.strictEqual(
+      source.cache.getRecordSync({ type: 'planet', id: 'jupiter' }),
+      undefined,
+      'jupiter is NOT present in source.cache'
+    );
+
+    assert.deepEqual(
+      source.cache.getRecordSync({ type: 'planet', id: 'earth' }),
+      earth,
+      'earth is present in source.cache'
     );
   });
 
