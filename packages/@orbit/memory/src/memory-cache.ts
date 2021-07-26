@@ -1,5 +1,10 @@
 import { Orbit } from '@orbit/core';
-import { FullResponse, RequestOptions } from '@orbit/data';
+import {
+  DefaultRequestOptions,
+  FullRequestOptions,
+  FullResponse,
+  RequestOptions
+} from '@orbit/data';
 import { ImmutableMap } from '@orbit/immutable';
 import {
   RecordCacheQueryOptions,
@@ -12,6 +17,7 @@ import {
   SyncRecordCacheSettings
 } from '@orbit/record-cache';
 import {
+  coalesceRecordOperations,
   equalRecordIdentities,
   InitializedRecord,
   RecordIdentity,
@@ -78,7 +84,7 @@ export class MemoryCache<
   protected _inverseRelationships!: Dict<
     ImmutableMap<string, RecordRelationshipIdentity[]>
   >;
-  protected _updateOperations!: RecordOperation[];
+  protected _updateOperations?: RecordOperation[];
   protected _isTrackingUpdateOperations: boolean;
 
   constructor(settings: MemoryCacheSettings<QO, TO, QB, TB, QRD, TRD>) {
@@ -100,6 +106,106 @@ export class MemoryCache<
     return this._base;
   }
 
+  /**
+   * Create a clone, or "fork", from a "base" cache.
+   *
+   * The forked cache will have the same `schema` and `keyMap` as its base
+   * source. The forked cache will start with the same immutable document as the
+   * base source. Its contents and log will evolve independently.
+   *
+   * @returns the forked cache
+   */
+  fork(
+    settings: Partial<MemoryCacheSettings<QO, TO, QB, TB, QRD, TRD>> = {}
+  ): MemoryCache<QO, TO, QB, TB, QRD, TRD> {
+    // required settings
+    settings.base = this;
+    settings.schema = this.schema;
+    settings.keyMap = this._keyMap;
+
+    // customizable settings
+    settings.queryBuilder ??= this._queryBuilder;
+    settings.transformBuilder ??= this._transformBuilder;
+    settings.validatorFor ??= this._validatorFor;
+    settings.defaultQueryOptions ??= this._defaultQueryOptions;
+    settings.defaultTransformOptions ??= this._defaultTransformOptions;
+
+    return new MemoryCache(
+      settings as MemoryCacheSettings<QO, TO, QB, TB, QRD, TRD>
+    );
+  }
+
+  /**
+   * Merges the operations from a forked cache back to this cache.
+   *
+   * @returns the result of calling `update` with the operations
+   */
+  merge<RequestData extends RecordTransformResult = RecordTransformResult>(
+    forkedCache: MemoryCache<QO, TO, QB, TB, QRD, TRD>,
+    options?: DefaultRequestOptions<TO> & MemoryCacheMergeOptions
+  ): RequestData;
+  merge<RequestData extends RecordTransformResult = RecordTransformResult>(
+    forkedCache: MemoryCache<QO, TO, QB, TB, QRD, TRD>,
+    options: FullRequestOptions<TO> & MemoryCacheMergeOptions
+  ): FullResponse<RequestData, TRD, RecordOperation>;
+  merge<RequestData extends RecordTransformResult = RecordTransformResult>(
+    forkedCache: MemoryCache<QO, TO, QB, TB, QRD, TRD>,
+    options?: TO & MemoryCacheMergeOptions
+  ): RequestData | FullResponse<RequestData, TRD, RecordOperation> {
+    let { coalesce, ...remainingOptions } = options ?? {};
+
+    assert(
+      'MemoryCache#merge can only merge a forked cache that is configured with `trackUpdateOperations: true`.',
+      forkedCache.isTrackingUpdateOperations
+    );
+
+    let ops = forkedCache.getAllUpdateOperations();
+
+    if (coalesce !== false) {
+      ops = coalesceRecordOperations(ops);
+    }
+
+    if (options?.fullResponse) {
+      return this.update<RequestData>(
+        ops,
+        remainingOptions as FullRequestOptions<TO>
+      );
+    } else {
+      return this.update<RequestData>(
+        ops,
+        remainingOptions as DefaultRequestOptions<TO>
+      );
+    }
+  }
+
+  /**
+   * Rebase resets this cache's state to that of its base cache, then re-applies
+   * any tracked update operations.
+   *
+   * Rebasing requires both a `base` cache as well as tracking of update
+   * operations (which is enabled by default when a `base` cache is assigned).
+   */
+  rebase(): void {
+    const base = this._base;
+
+    assert(
+      'A `base` cache must be defined for `rebase` to work',
+      base !== undefined
+    );
+
+    assert(
+      'MemoryCache#rebase requires that the cache is configured with `trackUpdateOperations: true`.',
+      this._isTrackingUpdateOperations
+    );
+
+    // get update ops prior to resetting state
+    let ops = this.getAllUpdateOperations();
+
+    // reset the state of the cache to match the base cache
+    this.reset(base);
+
+    // reapply update ops
+    this.update(ops);
   }
 
   getRecordSync(identity: RecordIdentity): InitializedRecord | undefined {
@@ -250,7 +356,10 @@ export class MemoryCache<
    */
   reset(base?: MemoryCache<QO, TO, QB, TB, QRD, TRD>): void {
     this._records = {};
-    this._updateOperations = [];
+
+    if (this._isTrackingUpdateOperations) {
+      this._updateOperations = [];
+    }
 
     Object.keys(this._schema.models).forEach((type) => {
       let baseRecords = base && base._records[type];
@@ -290,11 +399,11 @@ export class MemoryCache<
 
   getAllUpdateOperations(): RecordOperation[] {
     assert(
-      'MemoryCache#getAllUpdateOperations: requires that cache be configured with `trackUpdateOperations: true`.',
+      'MemoryCache#getAllUpdateOperations requires that cache be configured with `trackUpdateOperations: true`.',
       this._isTrackingUpdateOperations
     );
 
-    return this._updateOperations;
+    return this._updateOperations as RecordOperation[];
   }
 
   /////////////////////////////////////////////////////////////////////////////
