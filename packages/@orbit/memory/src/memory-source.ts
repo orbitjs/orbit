@@ -5,6 +5,7 @@ import {
   FullResponse,
   queryable,
   RequestOptions,
+  Resettable,
   ResponseHints,
   syncable,
   updatable
@@ -91,7 +92,8 @@ export class MemorySource<
   implements
     RecordSyncable,
     RecordQueryable<QRD, QB, QO>,
-    RecordUpdatable<TRD, TB, TO> {
+    RecordUpdatable<TRD, TB, TO>,
+    Resettable {
   protected _cache: MemoryCache<QO, TO, QB, TB, QRD, TRD>;
   protected _base?: MemorySource<QO, TO, QB, TB, QRD, TRD>;
   protected _forkPoint?: string;
@@ -391,6 +393,21 @@ export class MemorySource<
 
     // reset the fork point
     this._forkPoint = base.transformLog.head;
+  }
+
+  /**
+   * Reset the source's cache and transform log to its initial state, which will
+   * be either empty or a matching its `base`, if it has one.
+   */
+  async reset(): Promise<void> {
+    // reset the state of the cache (which will match a base cache, if present)
+    this.cache.reset();
+
+    // reset the fork point
+    this._forkPoint = this._base ? this._base.transformLog.head : undefined;
+
+    // clear the transform log, which in turn will clear any tracked transforms
+    await this.transformLog.clear();
   }
 
   /**
