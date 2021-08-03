@@ -384,7 +384,7 @@ export class MemorySource<
     }
 
     // reset the state of the cache to match the base cache
-    this.cache.reset(base.cache);
+    this.cache.reset();
 
     // replay all locally made transforms
     this.getAllTransforms().forEach((t) => this._applyTransform(t));

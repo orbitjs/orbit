@@ -29,7 +29,7 @@ import {
 } from '@orbit/records';
 import { clone, Dict, toArray } from '@orbit/utils';
 
-const { assert } = Orbit;
+const { assert, deprecate } = Orbit;
 
 export interface MemoryCacheMergeOptions {
   coalesce?: boolean;
@@ -99,7 +99,7 @@ export class MemoryCache<
     this._isTrackingUpdateOperations =
       trackUpdateOperations ?? base !== undefined;
 
-    this.reset(base);
+    this.reset();
   }
 
   get base(): MemoryCache<QO, TO, QB, TB, QRD, TRD> | undefined {
@@ -201,8 +201,8 @@ export class MemoryCache<
     // get update ops prior to resetting state
     let ops = this.getAllUpdateOperations();
 
-    // reset the state of the cache to match the base cache
-    this.reset(base);
+    // reset the state of the cache to match its base cache
+    this.reset();
 
     // reapply update ops
     this.update(ops);
@@ -345,16 +345,19 @@ export class MemoryCache<
   }
 
   /**
-   * Resets the cache's state to be either empty or to match the state of
-   * another cache.
-   *
-   * @example
-   * ``` javascript
-   * cache.reset(); // empties cache
-   * cache.reset(cache2); // clones the state of cache2
-   * ```
+   * Resets the cache's to its initial state, which will be either empty or a
+   * clone of its `base` cache, if it has one.
    */
-  reset(base?: MemoryCache<QO, TO, QB, TB, QRD, TRD>): void {
+  reset(): void {
+    let base = this._base;
+
+    if (arguments.length > 0) {
+      deprecate(
+        'Calling MemoryCache#reset with a `base` argument is deprecated. Instead configure your MemoryCache with a `base` cache.'
+      );
+      base ??= arguments[0];
+    }
+
     this._records = {};
 
     if (this._isTrackingUpdateOperations) {
@@ -362,7 +365,7 @@ export class MemoryCache<
     }
 
     Object.keys(this._schema.models).forEach((type) => {
-      let baseRecords = base && base._records[type];
+      let baseRecords = base?._records[type];
 
       this._records[type] = new ImmutableMap<string, InitializedRecord>(
         baseRecords
