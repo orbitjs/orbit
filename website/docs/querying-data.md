@@ -122,7 +122,7 @@ to create query expressions.
 
 You can use the standard `@orbit/data` query builder as follows:
 
-```javascript
+```typescript
 // Find a single record by identity
 memory.query((q) => q.findRecord({ type: 'planet', id: 'earth' }));
 
@@ -140,7 +140,7 @@ memory.query((q) =>
 
 The base `findRecords` query can be enhanced significantly:
 
-```javascript
+```typescript
 // Sort by name
 memory.query((q) => q.findRecords('planet')
                      .sort('name'));
@@ -179,7 +179,7 @@ memory.query((q) => q.findRecords('planet')
 
 The same parameters can be applied to `findRelatedRecords`:
 
-```javascript
+```typescript
 // Sort by name
 memory.query((q) => q.findRelatedRecords({ id: 'solar', type: 'planetarySystem' }, 'planets')
                      .sort('name'));
@@ -310,7 +310,9 @@ Filtering on a `hasOne` relationship has different comparison operations availab
 
 #### findRelatedRecords vs findRecords.filter({ relation: ..., record: ... })
 
-If you're using the default settings for JSONAPISource, `findRelatedRecords` and `findRecords.filter(...)` produce very different URLs.
+If you're using the default settings for
+[JSONAPISource](./api/jsonapi/classes/JSONAPISource.md), `findRelatedRecords`
+and `findRecords.filter(...)` produce very different URLs.
 
 ```typescript
 const relatedRecordId = { type: 'planet', id: 'earth' };
@@ -330,12 +332,12 @@ sources and to include metadata about queries.
 For example, the following query is given a `label` and contains instructions
 for the source named `remote`:
 
-```javascript
+```typescript
 memory.query((q) => q.findRecords('contact').sort('lastName', 'firstName'), {
   label: 'Find all contacts',
   sources: {
     remote: {
-      include: ['phone-numbers']
+      include: ['phoneNumbers']
     }
   }
 });
@@ -353,9 +355,9 @@ phone numbers.
 
 It is possible to pass different options to each expression in the query.
 
-```javascript
+```typescript
 memory.query((q) => [
-  q.findRecords('contact').options({ include: ['phone-numbers'] }),
+  q.findRecords('contact').options({ include: ['phoneNumbers'] }),
   q.findRecords('meeting').options({ include: ['location'] })
 ]);
 ```
@@ -368,7 +370,7 @@ In fact, if you want to just "peek" into the contents of the memory source,
 you can issue the same queries synchronously against the memory source's `Cache`.
 For example:
 
-```javascript
+```typescript
 // Results will be returned synchronously by querying the cache
 const planets = memory.cache.query((q) => q.findRecords('planet').sort('name'));
 ```
@@ -388,7 +390,7 @@ instance and then subscribe to changes. By default the
 `patch` events with a debounce. The subscription callback will be called on
 every operation which is relevant to the query.
 
-```javascript
+```typescript
 // Create a new LiveQuery instance
 const planetsLiveQuery = memory.cache.liveQuery((q) => q.findRecords('planet'));
 // Subscribe to LiveQuery changes

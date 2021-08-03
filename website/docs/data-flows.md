@@ -21,8 +21,8 @@ Orbit divides the movement of data into two different "flows":
 Every source interface has events and methods that correspond with one of these
 flows:
 
-- The `Updatable`, `Queryable`, `Pushable`, and `Pullable` interfaces all
-  participate in the request flow.
+- The `Updatable` and `Queryable` interfaces all participate in the request
+  flow.
 
 - The `Syncable` interface participates in the sync flow.
 
@@ -41,8 +41,7 @@ listener for one source that triggers actions on another.
 
 Let's take a look at what events can trigger other actions:
 
-- Update events (`beforeUpdate`, `update`, `beforePush`, `push`) can trigger
-  `push`.
+- Update events (`beforeUpdate`, `update`) can trigger `update`.
 
 - Query events (`beforeQuery`, `query`, `beforePull`, `pull`) can trigger
   `pull`.
@@ -53,26 +52,26 @@ Let's take a look at what events can trigger other actions:
 
 We can coordinate sources through simple event listeners, such as:
 
-```javascript
-memory.on("beforeUpdate", transform => {
-  remote.push(transform);
+```typescript
+memory.on('beforeUpdate', transform => {
+  remote.update(transform);
 });
 ```
 
 The above listener is "non-blocking" because it doesn't return anything to
-the emitter. The call to `remote.push()` is async and may take a while to
+the emitter. The call to `remote.update()` is async and may take a while to
 complete, so it will proceed in parallel with the `memory` source being updated.
 
 As an alternative, we can use a "blocking" strategy in our event listener by
 simply returning a promise:
 
-```javascript
-memory.on("beforeUpdate", transform => remote.push(transform));
+```typescript
+memory.on('beforeUpdate', transform => remote.update(transform));
 ```
 
-This will prevent the `memory` source from updating before the transform has been pushed
-up to the `remote` source. An error in `remote.push` will cause `memory.update`
-to error as well.
+This will prevent the `memory` source from updating before the transform has
+been pushed up to the `remote` source. An error in `remote.update` will cause
+`memory.update` to error as well.
 
 ### Coordination guidelines
 
@@ -89,5 +88,6 @@ Here are some guidelines for working with data flows:
   proceeding, use blocking connections for all the request and
   sync flows that may be involved.
 
-Last but not least, it's recommended that you use a `Coordinator` instead of
-manually configuring event listeners. Read on to understand why ...
+Last but not least, it's recommended that you use a
+[`Coordinator`](./api/coordinator/classes/Coordinator.md) instead of manually
+configuring event listeners. Read on to understand why ...

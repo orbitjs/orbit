@@ -100,7 +100,7 @@ to create one or more operations.
 
 For instance, here's how you might update a memory source with a single record:
 
-```javascript
+```typescript
 const earth = {
   type: 'planet',
   id: 'earth',
@@ -115,7 +115,7 @@ memory.update((t) => t.addRecord(earth));
 To perform more than one operation in a single transform, just return an array
 of operations:
 
-```javascript
+```typescript
 memory.update((t) => [t.addRecord(earth), t.addRecord(jupiter)]);
 ```
 
@@ -123,7 +123,7 @@ memory.update((t) => [t.addRecord(earth), t.addRecord(jupiter)]);
 
 You can use the standard `@orbit/data` transform builder as follows:
 
-```javascript
+```typescript
 // Adding a new record
 memory.update((t) =>
   t.addRecord({
@@ -206,7 +206,7 @@ particular sources and to include metadata about transforms.
 For example, the following transform is given a `label` and contains
 instructions for the source named `remote`:
 
-```javascript
+```typescript
 memory.update(
   (t) =>
     t.updateRecord({
@@ -239,7 +239,7 @@ timeout when performing this particular update.
 
 It is possible to pass different options to each operation in the transform.
 
-```javascript
+```typescript
 memory.update((t) => [
   t
     .addRecord({

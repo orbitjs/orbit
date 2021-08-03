@@ -17,7 +17,7 @@ and relationships with other records.
 
 Here's an example record that represents a planet:
 
-```javascript
+```typescript
 {
   type: 'planet',
   id: 'earth',
@@ -94,7 +94,7 @@ Remote IDs should be kept in a `keys` object at the root of a record.
 For example, the following record has a `remoteId` key that is assigned by a
 server:
 
-```javascript
+```typescript
 {
   type: 'planet',
   id: '34677136-c0b7-4015-b9e5-57f6fdd16bd2',
@@ -105,10 +105,11 @@ server:
 ```
 
 The `remoteId` key of `123456` can be mapped to the locally generated `id` using
-a `KeyMap`, which can be shared by any sources that need access to the mapping.
-When communicating with the server, `remoteId` might be serialized as `id`—such
-a translation should occur within the source that communicates directly with the
-remote server (e.g. Orbit's standard `JSONAPISource`).
+a [`RecordKeyMap`](./api/records/classes/RecordKeyMap.md), which can be shared
+by any sources that need access to the mapping. When communicating with the
+server, `remoteId` might be serialized as `id`—such a translation should occur
+within the source that communicates directly with the remote server (e.g.
+Orbit's standard [`JSONAPISource`](./api/jsonapi/classes/JSONAPISource.md)).
 
 ### Attributes
 
@@ -140,26 +141,26 @@ the sources in an application.
 
 Schemas are defined with their initial settings as follows:
 
-```javascript
-import { RecordSchema } from "@orbit/records";
+```typescript
+import { RecordSchema } from '@orbit/records';
 
 const schema = new RecordSchema({
   models: {
     planet: {
       attributes: {
-        name: { type: "string" },
-        classification: { type: "string" }
+        name: { type: 'string' },
+        classification: { type: 'string' }
       },
       relationships: {
-        moons: { kind: "hasMany", type: "moon", inverse: "planet" }
+        moons: { kind: 'hasMany', type: 'moon', inverse: 'planet' }
       }
     },
     moon: {
       attributes: {
-        name: { type: "string" }
+        name: { type: 'string' }
       },
       relationships: {
-        planet: { kind: "hasOne", type: "planet", inverse: "moons" }
+        planet: { kind: 'hasOne', type: 'planet', inverse: 'moons' }
       }
     }
   }
@@ -173,7 +174,9 @@ object that contains `attributes`, `relationships`, and/or `keys`.
 
 Attributes may be defined by their `type`, which determines what type of data
 they can contain. An attribute's type may also be used to determine how it
-should be serialized and validated. Standard attribute types are:
+should be serialized and validated.
+
+Standard attribute types are:
 
 - `array`
 - `boolean`
@@ -185,7 +188,7 @@ should be serialized and validated. Standard attribute types are:
 
 ### Model relationships
 
-Two kind of relationships between models are allowed:
+Two kinds of relationships between models are allowed:
 
 - `hasOne` - for to-one relationships
 - `hasMany` - for to-many relationships
@@ -201,19 +204,19 @@ results in a corresponding change on the inverse model.
 Here's an example of a schema definition that includes relationships with
 inverses:
 
-```javascript
-import { RecordSchema } from "@orbit/records";
+```typescript
+import { RecordSchema } from '@orbit/records';
 
 const schema = new RecordSchema({
   models: {
     planet: {
       relationships: {
-        moons: { kind: "hasMany", type: ["moon", "satellite"], inverse: "planet" }
+        moons: { kind: 'hasMany', type: ['moon', 'satellite'], inverse: 'planet' }
       }
     },
     moon: {
       relationships: {
-        planet: { kind: "hasOne", type: "planet", inverse: "moons" }
+        planet: { kind: 'hasOne', type: 'planet', inverse: 'moons' }
       }
     }
   }
@@ -226,10 +229,10 @@ When working with remote servers that do not support client-generated IDs, it's
 necessary to correlate locally generated IDs with remotely generated IDs, or
 "keys". Like `id`, keys uniquely identify a record of a particular model type.
 
-Keys currently accept no _standard_ options, so they should be declared with an
-empty options hash as follows:
+In the simplest case, keys can be declared with an empty options object as
+follows:
 
-```javascript
+```typescript
 const schema = new RecordSchema({
   models: {
     moon: {
@@ -241,6 +244,9 @@ const schema = new RecordSchema({
   }
 });
 ```
+
+Like attributes and relationships, keys can also be declared with options that
+are specific to validation or serialization.
 
 :::info
 
