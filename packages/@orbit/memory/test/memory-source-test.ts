@@ -399,6 +399,54 @@ module('MemorySource', function (hooks) {
       [],
       'no transforms remain in history'
     );
+
+    assert.equal(
+      source.cache.getRecordsSync().length,
+      3,
+      'records remain in cache'
+    );
+  });
+
+  test('reset - clears transform log and resets cache', async function (assert) {
+    const source = new MemorySource({ schema, keyMap });
+    const recordA = {
+      id: 'jupiter',
+      type: 'planet',
+      attributes: { name: 'Jupiter' }
+    };
+    const recordB = {
+      id: 'saturn',
+      type: 'planet',
+      attributes: { name: 'Saturn' }
+    };
+    const recordC = {
+      id: 'pluto',
+      type: 'planet',
+      attributes: { name: 'Pluto' }
+    };
+    const tb = source.transformBuilder;
+
+    const addRecordATransform = buildTransform(tb.addRecord(recordA));
+    const addRecordBTransform = buildTransform(tb.addRecord(recordB));
+    const addRecordCTransform = buildTransform(tb.addRecord(recordC));
+
+    await source.sync(addRecordATransform);
+    await source.sync(addRecordBTransform);
+    await source.sync(addRecordCTransform);
+
+    await source.reset();
+
+    assert.deepEqual(
+      source.getAllTransforms(),
+      [],
+      'no transforms remain in history'
+    );
+
+    assert.equal(
+      source.cache.getRecordsSync().length,
+      0,
+      'cache has been cleared'
+    );
   });
 
   test('#fork - creates a new source that starts with the same schema, keyMap, and cache contents as the base source', async function (assert) {
