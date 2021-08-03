@@ -210,7 +210,7 @@ module('MemoryCache', function (hooks) {
     assert.equal(cache.getRecordsSync('planet').length, 0);
   });
 
-  test('#reset overrides the cache completely with data from another cache', function (assert) {
+  test('#reset overrides the cache completely with data from another cache (DEPRECATED)', function (assert) {
     let cache1 = new MemoryCache({ schema, keyMap });
     let cache2 = new MemoryCache({ schema, keyMap });
 
@@ -221,7 +221,28 @@ module('MemoryCache', function (hooks) {
       t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Jupiter' } })
     );
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore: Passing an argument to reset is deprecated
     cache1.reset(cache2);
+
+    assert.strictEqual(
+      cache1.getRecordSync({ type: 'planet', id: '1' })?.attributes?.name,
+      'Jupiter'
+    );
+  });
+
+  test('#reset overrides the cache completely with data from a base cache, if configured', function (assert) {
+    let cache2 = new MemoryCache({ schema, keyMap });
+    let cache1 = new MemoryCache({ schema, keyMap, base: cache2 });
+
+    cache1.update((t) =>
+      t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Earth' } })
+    );
+    cache2.update((t) =>
+      t.addRecord({ type: 'planet', id: '1', attributes: { name: 'Jupiter' } })
+    );
+
+    cache1.reset();
 
     assert.strictEqual(
       cache1.getRecordSync({ type: 'planet', id: '1' })?.attributes?.name,
