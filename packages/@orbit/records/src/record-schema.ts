@@ -53,10 +53,15 @@ export type RelationshipDefinition =
   | HasManyRelationshipDefinition;
 
 export interface KeyDefinition {
+  /**
+   * @deprecated since v0.17 - not used by any standard serializers
+   */
   primaryKey?: boolean;
+
   validation?: FieldValidationOptions & {
     notNull?: boolean;
   };
+
   meta?: Dict<unknown>;
 }
 
