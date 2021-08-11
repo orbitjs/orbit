@@ -174,12 +174,28 @@ export class IndexedDBCache<
     return this.openDB();
   }
 
+  /**
+   * Initializes the contents of the database.
+   *
+   * Idempotently register models which do not yet have corresponding object
+   * stores. Also, creates an object store for tracking inverse relationships,
+   * if it is missing.
+   *
+   * Override this method and/or `registerModel` to provide more advanced
+   * db initialization.
+   */
   createDB(db: IDBDatabase): void {
+    const objectStoreNames = db.objectStoreNames;
+
     Object.keys(this.schema.models).forEach((model) => {
-      this.registerModel(db, model);
+      if (!objectStoreNames.contains(model)) {
+        this.registerModel(db, model);
+      }
     });
 
-    this.createInverseRelationshipStore(db);
+    if (!objectStoreNames.contains(INVERSE_RELS)) {
+      this.createInverseRelationshipStore(db);
+    }
   }
 
   createInverseRelationshipStore(db: IDBDatabase): void {
@@ -193,15 +209,22 @@ export class IndexedDBCache<
   }
 
   /**
-   * Migrate database.
+   * Migrates the database to align with an updated schema.
+   *
+   * By default, this will attempt a naive migration by invoking `createDB`,
+   * which idempotently creates object stores as needed.
+   *
+   * Override this method to provide more sophisticated migrations.
    */
   migrateDB(db: IDBDatabase, event: IDBVersionChangeEvent): void {
-    console.error(
-      'IndexedDBSource#migrateDB - should be overridden to upgrade IDBDatabase from: ',
-      event.oldVersion,
-      ' -> ',
-      event.newVersion
-    );
+    if (Orbit.debug) {
+      console.log(
+        `IndexedDBCache#migrateDB - upgrading ${event.oldVersion} -> ${event.newVersion}`
+      );
+    }
+
+    // Attempt naive migration, creating object stores as needed.
+    this.createDB(db);
   }
 
   async deleteDB(): Promise<void> {
