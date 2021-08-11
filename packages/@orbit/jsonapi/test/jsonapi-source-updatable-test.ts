@@ -471,7 +471,7 @@ module('JSONAPISource - updatable', function (hooks) {
       );
     });
 
-    test('#update - can add a hasMany relationship with POST', async function (assert) {
+    test('#update - can add a single record to a hasMany relationship with POST', async function (assert) {
       assert.expect(5);
 
       const planet: InitializedRecord = resourceSerializer.deserialize({
@@ -509,7 +509,58 @@ module('JSONAPISource - updatable', function (hooks) {
       );
     });
 
-    test('#update - can remove a relationship with DELETE', async function (assert) {
+    test('#update - can add multiple records to a hasMany relationship with POST', async function (assert) {
+      assert.expect(5);
+
+      const planet: InitializedRecord = resourceSerializer.deserialize({
+        type: 'planet',
+        id: '12345'
+      }) as InitializedRecord;
+
+      let moon1 = resourceSerializer.deserialize({
+        type: 'moon',
+        id: '1'
+      }) as InitializedRecord;
+
+      let moon2 = resourceSerializer.deserialize({
+        type: 'moon',
+        id: '2'
+      }) as InitializedRecord;
+
+      fetchStub
+        .withArgs('/planets/12345/relationships/moons')
+        .returns(jsonapiResponse(204));
+
+      await source.update((t) => [
+        t.addToRelatedRecords(planet, 'moons', moon1),
+        t.addToRelatedRecords(planet, 'moons', moon2)
+      ]);
+
+      assert.ok(true, 'records linked');
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        'POST',
+        'fetch called with expected method'
+      );
+      assert.equal(
+        fetchStub.getCall(0).args[1].headers['Content-Type'],
+        'application/vnd.api+json',
+        'fetch called with expected content type'
+      );
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        {
+          data: [
+            { type: 'moon', id: '1' },
+            { type: 'moon', id: '2' }
+          ]
+        },
+        'fetch called with expected data'
+      );
+    });
+
+    test('#update - can remove a single record from a hasMany relationship with DELETE', async function (assert) {
       assert.expect(4);
 
       const planet: InitializedRecord = resourceSerializer.deserialize({
@@ -540,6 +591,52 @@ module('JSONAPISource - updatable', function (hooks) {
       assert.deepEqual(
         JSON.parse(fetchStub.getCall(0).args[1].body),
         { data: [{ type: 'moon', id: '987' }] },
+        'fetch called with expected data'
+      );
+    });
+
+    test('#update - can remove multiple records from a hasMany relationships with DELETE', async function (assert) {
+      assert.expect(4);
+
+      const planet: InitializedRecord = resourceSerializer.deserialize({
+        type: 'planet',
+        id: '12345'
+      });
+
+      let moon1 = resourceSerializer.deserialize({
+        type: 'moon',
+        id: '1'
+      }) as InitializedRecord;
+
+      let moon2 = resourceSerializer.deserialize({
+        type: 'moon',
+        id: '2'
+      }) as InitializedRecord;
+
+      fetchStub
+        .withArgs('/planets/12345/relationships/moons')
+        .returns(jsonapiResponse(200));
+
+      await source.update((t) => [
+        t.removeFromRelatedRecords(planet, 'moons', moon1),
+        t.removeFromRelatedRecords(planet, 'moons', moon2)
+      ]);
+
+      assert.ok(true, 'records unlinked');
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        'DELETE',
+        'fetch called with expected method'
+      );
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        {
+          data: [
+            { type: 'moon', id: '1' },
+            { type: 'moon', id: '2' }
+          ]
+        },
         'fetch called with expected data'
       );
     });

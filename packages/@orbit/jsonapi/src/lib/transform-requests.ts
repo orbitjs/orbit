@@ -370,6 +370,16 @@ export function getTransformRequests(
         (prevRequest as AddToRelatedRecordsRequest).relatedRecords.push(
           cloneRecordIdentity(operation.relatedRecord)
         );
+      } else if (
+        prevRequest.op === 'removeFromRelatedRecords' &&
+        operation.op === 'removeFromRelatedRecords' &&
+        (prevRequest as RemoveFromRelatedRecordsRequest).relationship ===
+          operation.relationship
+      ) {
+        newRequestNeeded = false;
+        (prevRequest as RemoveFromRelatedRecordsRequest).relatedRecords.push(
+          cloneRecordIdentity(operation.relatedRecord)
+        );
       }
     }
 
