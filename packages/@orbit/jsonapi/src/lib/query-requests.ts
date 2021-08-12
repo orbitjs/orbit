@@ -295,7 +295,6 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
   ): Promise<QueryRequestProcessorResponse> {
     const { record, relationship } = request as FindRelatedRecordsRequest;
     const options = request.options || {};
-    const isFiltered = !!(options.filter || options.sort || options.page);
     const settings = requestProcessor.buildFetchSettings(options);
     const url =
       options.url ||
@@ -318,7 +317,17 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
       const operations = requestProcessor.operationsFromDeserializedDocument(
         recordDoc
       );
-      if (isFiltered) {
+
+      const partialSet =
+        options.partialSet ??
+        !!(
+          options.filter ||
+          options.page ||
+          recordDoc.links?.next ||
+          recordDoc.links?.prev
+        );
+
+      if (partialSet) {
         for (let relatedRecord of relatedRecords) {
           operations.push({
             op: 'addToRelatedRecords',
