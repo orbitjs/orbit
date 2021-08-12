@@ -1,6 +1,6 @@
 {
   "name": "@orbit/serializers",
-  "version": "0.17.0-beta.19",
+  "version": "0.17.0-beta.25",
   "description": "Serializers for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -32,7 +32,7 @@
     "test": "node ../build ci && snowpack build && testem ci"
   },
   "dependencies": {
-    "@orbit/utils": "^0.17.0-beta.19"
+    "@orbit/utils": "^0.17.0-beta.25"
   },
   "devDependencies": {
     "@orbit/build": "^0.17.0-beta.12"
