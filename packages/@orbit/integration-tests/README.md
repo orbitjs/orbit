@@ -58,4 +58,4 @@ yarn start
 
 ## License
 
-Copyright 2014-2020 Cerebris Corporation. MIT License (see LICENSE for details).
+Copyright 2014-2021 Cerebris Corporation. MIT License (see LICENSE for details).
