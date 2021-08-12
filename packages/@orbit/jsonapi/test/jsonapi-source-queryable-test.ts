@@ -4,7 +4,8 @@ import {
   InitializedRecord,
   RecordIdentity,
   RecordSchema,
-  RecordNotFoundException
+  RecordNotFoundException,
+  RecordOperation
 } from '@orbit/records';
 import * as sinon from 'sinon';
 import { SinonStub } from 'sinon';
@@ -1376,7 +1377,7 @@ module('JSONAPISource - queryable', function (hooks) {
     });
 
     test('#query - related records with pagination', async function (assert) {
-      assert.expect(5);
+      assert.expect(8);
 
       const solarSystem = resourceSerializer.deserialize({
         type: 'solarSystem',
@@ -1404,20 +1405,197 @@ module('JSONAPISource - queryable', function (hooks) {
             'page[offset]'
           )}=1&${encodeURIComponent('page[limit]')}=10`
         )
-        .returns(jsonapiResponse(200, { data }));
+        .returns(
+          jsonapiResponse(200, {
+            data,
+            links: {
+              next: `/solar-systems/sun/planets?${encodeURIComponent(
+                'page[offset]'
+              )}=2&${encodeURIComponent('page[limit]')}=10`
+            }
+          })
+        );
 
-      let records = (await source.query((q) =>
-        q
-          .findRelatedRecords(solarSystem, 'planets')
-          .page({ offset: 1, limit: 10 })
-      )) as InitializedRecord[];
+      let { data: records, transforms } = await source.query<
+        InitializedRecord[]
+      >(
+        (q) =>
+          q
+            .findRelatedRecords(solarSystem, 'planets')
+            .page({ offset: 1, limit: 10 }),
+        { fullResponse: true }
+      );
 
       assert.ok(Array.isArray(records), 'returned an array of data');
-      assert.equal(records.length, 3, 'three objects in data returned');
-      assert.deepEqual(
-        records.map((o) => o.attributes?.name),
-        ['Jupiter', 'Earth', 'Saturn']
+      if (records) {
+        assert.equal(records.length, 3, 'three objects in data returned');
+        assert.deepEqual(
+          records.map((o) => o.attributes?.name),
+          ['Jupiter', 'Earth', 'Saturn']
+        );
+      }
+
+      assert.ok(Array.isArray(transforms), 'returned an array of transforms');
+      if (transforms) {
+        assert.equal(transforms.length, 1, 'one transform returned');
+
+        const ops = transforms[0].operations as RecordOperation[];
+        assert.deepEqual(
+          ops.map((o) => o.op),
+          [
+            'updateRecord',
+            'updateRecord',
+            'updateRecord',
+            'addToRelatedRecords',
+            'addToRelatedRecords',
+            'addToRelatedRecords'
+          ]
+        );
+      }
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
       );
+    });
+
+    test('#query - related records without pagination, but explicit `partialSet: true` option', async function (assert) {
+      assert.expect(8);
+
+      const solarSystem = resourceSerializer.deserialize({
+        type: 'solarSystem',
+        id: 'sun'
+      }) as InitializedRecord;
+
+      const data: Resource[] = [
+        {
+          type: 'planet',
+          attributes: { name: 'Jupiter', classification: 'gas giant' }
+        },
+        {
+          type: 'planet',
+          attributes: { name: 'Earth', classification: 'terrestrial' }
+        },
+        {
+          type: 'planet',
+          attributes: { name: 'Saturn', classification: 'gas giant' }
+        }
+      ];
+
+      fetchStub.withArgs(`/solar-systems/sun/planets`).returns(
+        jsonapiResponse(200, {
+          data,
+          links: {}
+        })
+      );
+
+      let { data: records, transforms } = await source.query<
+        InitializedRecord[]
+      >((q) => q.findRelatedRecords(solarSystem, 'planets'), {
+        fullResponse: true,
+        partialSet: true
+      });
+
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      if (records) {
+        assert.equal(records.length, 3, 'three objects in data returned');
+        assert.deepEqual(
+          records.map((o) => o.attributes?.name),
+          ['Jupiter', 'Earth', 'Saturn']
+        );
+      }
+
+      assert.ok(Array.isArray(transforms), 'returned an array of transforms');
+      if (transforms) {
+        assert.equal(transforms.length, 1, 'one transform returned');
+
+        const ops = transforms[0].operations as RecordOperation[];
+        assert.deepEqual(
+          ops.map((o) => o.op),
+          [
+            'updateRecord',
+            'updateRecord',
+            'updateRecord',
+            'addToRelatedRecords',
+            'addToRelatedRecords',
+            'addToRelatedRecords'
+          ],
+          'add to, but do not replace, related records'
+        );
+      }
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#query - related records without pagination, but explicit `partialSet: false` option', async function (assert) {
+      assert.expect(8);
+
+      const solarSystem = resourceSerializer.deserialize({
+        type: 'solarSystem',
+        id: 'sun'
+      }) as InitializedRecord;
+
+      const data: Resource[] = [
+        {
+          type: 'planet',
+          attributes: { name: 'Jupiter', classification: 'gas giant' }
+        },
+        {
+          type: 'planet',
+          attributes: { name: 'Earth', classification: 'terrestrial' }
+        },
+        {
+          type: 'planet',
+          attributes: { name: 'Saturn', classification: 'gas giant' }
+        }
+      ];
+
+      fetchStub.withArgs(`/solar-systems/sun/planets`).returns(
+        jsonapiResponse(200, {
+          data,
+          links: {}
+        })
+      );
+
+      let { data: records, transforms } = await source.query<
+        InitializedRecord[]
+      >((q) => q.findRelatedRecords(solarSystem, 'planets'), {
+        fullResponse: true,
+        partialSet: false
+      });
+
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      if (records) {
+        assert.equal(records.length, 3, 'three objects in data returned');
+        assert.deepEqual(
+          records.map((o) => o.attributes?.name),
+          ['Jupiter', 'Earth', 'Saturn']
+        );
+      }
+
+      assert.ok(Array.isArray(transforms), 'returned an array of transforms');
+      if (transforms) {
+        assert.equal(transforms.length, 1, 'one transform returned');
+
+        const ops = transforms[0].operations as RecordOperation[];
+        assert.deepEqual(
+          ops.map((o) => o.op),
+          [
+            'updateRecord',
+            'updateRecord',
+            'updateRecord',
+            'replaceRelatedRecords'
+          ],
+          'replacement of related records'
+        );
+      }
 
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
       assert.equal(

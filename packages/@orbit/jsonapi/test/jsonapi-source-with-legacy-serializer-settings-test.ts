@@ -3183,9 +3183,7 @@ module('JSONAPISource with legacy serialization settings', function () {
           'updateRecord',
           'updateRecord',
           'updateRecord',
-          'addToRelatedRecords',
-          'addToRelatedRecords',
-          'addToRelatedRecords'
+          'replaceRelatedRecords'
         ]
       );
 
@@ -3250,9 +3248,7 @@ module('JSONAPISource with legacy serialization settings', function () {
           'updateRecord',
           'updateRecord',
           'updateRecord',
-          'addToRelatedRecords',
-          'addToRelatedRecords',
-          'addToRelatedRecords'
+          'replaceRelatedRecords'
         ]
       );
 
@@ -3333,9 +3329,7 @@ module('JSONAPISource with legacy serialization settings', function () {
           'updateRecord',
           'updateRecord',
           'updateRecord',
-          'addToRelatedRecords',
-          'addToRelatedRecords',
-          'addToRelatedRecords'
+          'replaceRelatedRecords'
         ]
       );
 
@@ -3385,7 +3379,16 @@ module('JSONAPISource with legacy serialization settings', function () {
             'page[offset]'
           )}=1&${encodeURIComponent('page[limit]')}=10`
         )
-        .returns(jsonapiResponse(200, { data }));
+        .returns(
+          jsonapiResponse(200, {
+            data,
+            links: {
+              next: `/solar-systems/sun/planets?${encodeURIComponent(
+                'page[offset]'
+              )}=2&${encodeURIComponent('page[limit]')}=10`
+            }
+          })
+        );
 
       let transforms = (await source.pull((q) =>
         q
