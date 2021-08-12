@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.17.0-beta.25 (2021-08-12)
+
+#### :rocket: Enhancement
+
+- `@orbit/jsonapi`
+  - [#883](https://github.com/orbitjs/orbit/pull/883) [jsonapi] Introduce `partialSet` request option ([@dgeb](https://github.com/dgeb))
+  - [#882](https://github.com/orbitjs/orbit/pull/882) JSONAPISource: Allow multiple consecutive removeFromRelatedRecords ops to be coalesced ([@dgeb](https://github.com/dgeb))
+- `@orbit/indexeddb`
+  - [#881](https://github.com/orbitjs/orbit/pull/881) IndexedDBCache: Provide a naive, idempotent default implementation of `migrateDB` ([@dgeb](https://github.com/dgeb))
+- `@orbit/memory`
+  - [#877](https://github.com/orbitjs/orbit/pull/877) Introduce MemorySource#reset ([@dgeb](https://github.com/dgeb))
+  - [#876](https://github.com/orbitjs/orbit/pull/876) MemoryCache#reset now resets state to match its base cache, if present ([@dgeb](https://github.com/dgeb))
+
+#### :house: Internal
+
+- `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/integration-tests`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/records`, `@orbit/serializers`, `@orbit/utils`
+  - [#884](https://github.com/orbitjs/orbit/pull/884) Add top-level LICENSE file and update all copyright dates ([@dgeb](https://github.com/dgeb))
+- Other
+  - [#880](https://github.com/orbitjs/orbit/pull/880) Bump path-parse from 1.0.6 to 1.0.7 ([@dependabot[bot]](https://github.com/apps/dependabot))
+  - [#879](https://github.com/orbitjs/orbit/pull/879) Bump tar from 4.4.13 to 4.4.15 ([@dependabot[bot]](https://github.com/apps/dependabot))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.24 (2021-07-26)
 
 #### :rocket: Enhancement
