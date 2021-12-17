@@ -271,7 +271,7 @@ For attribute filtering, the following comparison operators are available.
 - `gte`: alias for the `>=` operator.
 - `lte`: alias for the `<=` operator.
 
-#### Relationship filtering
+### Relationship filtering
 
 Relationship filtering has two types:
 
@@ -280,7 +280,7 @@ Filtering on a `hasOne` relationship:
 ```typescript
 const moonsOfJupiter = orbit.cache.query((q) => {
   return q.findRecords('moon')
-          .filter({ relationship: 'planet', op: 'equal', record: { type: 'planet', id: 'jupiter' } })
+          .filter({ relationship: 'planet', op: 'equal', records: { type: 'planet', id: 'jupiter' } })
 })
 ```
 
