@@ -280,7 +280,7 @@ Filtering on a `hasOne` relationship:
 ```typescript
 const moonsOfJupiter = orbit.cache.query((q) => {
   return q.findRecords('moon')
-          .filter({ relationship: 'planet', op: 'equal', records: { type: 'planet', id: 'jupiter' } })
+          .filter({ relationship: 'planet', op: 'equal', record: { type: 'planet', id: 'jupiter' } })
 })
 ```
 
