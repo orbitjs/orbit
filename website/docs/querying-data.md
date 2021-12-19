@@ -247,12 +247,10 @@ const denserThanEarth = orbit.cache.query((q) => {
 3. the right hand value:
    This is a value that will remain constant for the entirety of the filter. This value determines, given the operation, which records will be returned and which will not.
 
-### Comparison operators for filtering
-
 There are two different kinds of filtering. Filtering on attribute values and filtering on relationship values.
 Both have their own comparison operators.
 
-#### Attribute filtering
+### Attribute filtering
 
 Attribute filtering looks like the following:
 
@@ -271,7 +269,7 @@ For attribute filtering, the following comparison operators are available.
 - `gte`: alias for the `>=` operator.
 - `lte`: alias for the `<=` operator.
 
-#### Relationship filtering
+### Relationship filtering
 
 Relationship filtering has two types:
 
