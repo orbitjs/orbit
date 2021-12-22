@@ -2,6 +2,7 @@ import { RecordSchema } from '../../src/record-schema';
 import { StandardRecordValidators } from '../../src/record-validators/standard-record-validators';
 import { buildRecordValidatorFor } from '../../src/record-validators/record-validator-builder';
 import { validateRecordRelationship } from '../../src/record-validators/record-relationship-validator';
+import { formatValidationDescription } from '@orbit/validators';
 
 const { module, test } = QUnit;
 
@@ -168,6 +169,32 @@ module('validateRecordRelationship', function (hooks) {
   test('will check that records in data are valid record identities', function (assert) {
     const relationshipDef = schema.getRelationship('moon', 'planet');
 
+    const relationshipDataIssues = [
+      {
+        description: "Record type 'fake' does not exist in schema",
+        ref: 'fake',
+        validation: 'recordTypeDefined',
+        validator: 'recordType'
+      }
+    ];
+
+    const issues = [
+      {
+        validator: StandardRecordValidators.RelatedRecord,
+        validation: 'relatedRecordValid',
+        ref: {
+          record: { type: 'moon', id: 'm1' },
+          relationship: 'planet',
+          relatedRecord: { type: 'fake', id: 'p1' }
+        },
+        details: relationshipDataIssues,
+        description: formatValidationDescription(
+          'relatedRecord is not a valid record identity',
+          relationshipDataIssues
+        )
+      }
+    ];
+
     assert.deepEqual(
       validateRecordRelationship(
         {
@@ -190,27 +217,11 @@ module('validateRecordRelationship', function (hooks) {
             relationship: 'planet',
             data: { type: 'fake', id: 'p1' }
           },
-          description: 'relationship data is invalid',
-          details: [
-            {
-              validator: StandardRecordValidators.RelatedRecord,
-              validation: 'relatedRecordValid',
-              ref: {
-                record: { type: 'moon', id: 'm1' },
-                relationship: 'planet',
-                relatedRecord: { type: 'fake', id: 'p1' }
-              },
-              description: 'relatedRecord is not a valid record identity',
-              details: [
-                {
-                  description: "Record type 'fake' does not exist in schema",
-                  ref: 'fake',
-                  validation: 'recordTypeDefined',
-                  validator: 'recordType'
-                }
-              ]
-            }
-          ]
+          details: issues,
+          description: formatValidationDescription(
+            'relationship data is invalid',
+            issues
+          )
         }
       ]
     );
@@ -235,6 +246,23 @@ module('validateRecordRelationship', function (hooks) {
       undefined
     );
 
+    const issues = [
+      {
+        validator: StandardRecordValidators.RelatedRecord,
+        validation: 'relatedRecordType',
+        ref: {
+          record: { type: 'moon', id: 'm1' },
+          relationship: 'planet',
+          relatedRecord: { type: 'solarSystem', id: 'ss1' }
+        },
+        details: {
+          allowedTypes: ['planet']
+        },
+        description:
+          "relatedRecord has a type 'solarSystem' which is not an allowed type for this relationship"
+      }
+    ];
+
     assert.deepEqual(
       validateRecordRelationship(
         {
@@ -257,23 +285,11 @@ module('validateRecordRelationship', function (hooks) {
             relationship: 'planet',
             data: { type: 'solarSystem', id: 'ss1' }
           },
-          description: 'relationship data is invalid',
-          details: [
-            {
-              validator: StandardRecordValidators.RelatedRecord,
-              validation: 'relatedRecordType',
-              ref: {
-                record: { type: 'moon', id: 'm1' },
-                relationship: 'planet',
-                relatedRecord: { type: 'solarSystem', id: 'ss1' }
-              },
-              details: {
-                allowedTypes: ['planet']
-              },
-              description:
-                "relatedRecord has a type 'solarSystem' which is not an allowed type for this relationship"
-            }
-          ]
+          details: issues,
+          description: formatValidationDescription(
+            'relationship data is invalid',
+            issues
+          )
         }
       ]
     );
@@ -298,6 +314,23 @@ module('validateRecordRelationship', function (hooks) {
       undefined
     );
 
+    const issues = [
+      {
+        validator: StandardRecordValidators.RelatedRecord,
+        validation: 'relatedRecordType',
+        ref: {
+          record: { type: 'solarSystem', id: 'ss1' },
+          relationship: 'objects',
+          relatedRecord: { type: 'solarSystem', id: 'ss1' }
+        },
+        details: {
+          allowedTypes: ['planet', 'moon']
+        },
+        description:
+          "relatedRecord has a type 'solarSystem' which is not an allowed type for this relationship"
+      }
+    ];
+
     assert.deepEqual(
       validateRecordRelationship(
         {
@@ -320,23 +353,11 @@ module('validateRecordRelationship', function (hooks) {
             relationship: 'objects',
             data: [{ type: 'solarSystem', id: 'ss1' }]
           },
-          description: 'relationship data is invalid',
-          details: [
-            {
-              validator: StandardRecordValidators.RelatedRecord,
-              validation: 'relatedRecordType',
-              ref: {
-                record: { type: 'solarSystem', id: 'ss1' },
-                relationship: 'objects',
-                relatedRecord: { type: 'solarSystem', id: 'ss1' }
-              },
-              details: {
-                allowedTypes: ['planet', 'moon']
-              },
-              description:
-                "relatedRecord has a type 'solarSystem' which is not an allowed type for this relationship"
-            }
-          ]
+          details: issues,
+          description: formatValidationDescription(
+            'relationship data is invalid',
+            issues
+          )
         }
       ]
     );
@@ -376,6 +397,18 @@ module('validateRecordRelationship', function (hooks) {
   test('will check array validations like minItems for hasMany relationships', function (assert) {
     const relationshipDef = schema.getRelationship('solarSystem', 'objects');
 
+    const issues = [
+      {
+        validator: 'array',
+        validation: 'minItems',
+        ref: [],
+        details: {
+          minItems: 1
+        },
+        description: 'has too few members'
+      }
+    ];
+
     assert.deepEqual(
       validateRecordRelationship(
         {
@@ -398,18 +431,11 @@ module('validateRecordRelationship', function (hooks) {
             relationship: 'objects',
             data: []
           },
-          description: 'relationship data is invalid',
-          details: [
-            {
-              validator: 'array',
-              validation: 'minItems',
-              ref: [],
-              details: {
-                minItems: 1
-              },
-              description: 'has too few members'
-            }
-          ]
+          details: issues,
+          description: formatValidationDescription(
+            'relationship data is invalid',
+            issues
+          )
         }
       ]
     );

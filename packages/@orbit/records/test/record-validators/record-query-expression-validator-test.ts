@@ -3,6 +3,7 @@ import { StandardRecordValidators } from '../../src/record-validators/standard-r
 import { buildRecordValidatorFor } from '../../src/record-validators/record-validator-builder';
 import { validateRecordQueryExpression } from '../../src/record-validators/record-query-expression-validator';
 import { RecordQueryExpression } from '../../src';
+import { formatValidationDescription } from '@orbit/validators';
 
 const { module, test } = QUnit;
 
@@ -90,6 +91,15 @@ module('validateRecordQueryExpression', function (hooks) {
       id: '1'
     };
 
+    const issues = [
+      {
+        validator: StandardRecordValidators.RecordType,
+        validation: 'recordTypeDefined',
+        ref: 'unknown',
+        description: `Record type 'unknown' does not exist in schema`
+      }
+    ];
+
     assert.deepEqual(
       validateRecordQueryExpression(
         {
@@ -109,15 +119,11 @@ module('validateRecordQueryExpression', function (hooks) {
             op: 'findRecord',
             record: invalidRecord
           },
-          details: [
-            {
-              validator: StandardRecordValidators.RecordType,
-              validation: 'recordTypeDefined',
-              ref: 'unknown',
-              description: `Record type 'unknown' does not exist in schema`
-            }
-          ],
-          description: 'record query expression is invalid'
+          details: issues,
+          description: formatValidationDescription(
+            'record query expression is invalid',
+            issues
+          )
         }
       ],
       'invalid query expression'
@@ -151,6 +157,25 @@ module('validateRecordQueryExpression', function (hooks) {
       id: '1'
     };
 
+    const issues = [
+      {
+        validator: StandardRecordValidators.RecordType,
+        validation: 'recordTypeDefined',
+        ref: 'unknown',
+        description: `Record type 'unknown' does not exist in schema`
+      },
+      {
+        validator: StandardRecordValidators.RecordFieldDefinition,
+        validation: 'fieldDefined',
+        ref: {
+          field: 'planet',
+          kind: 'relationship',
+          type: 'unknown'
+        },
+        description: `relationship 'planet' for type 'unknown' is not defined in schema`
+      }
+    ];
+
     assert.deepEqual(
       validateRecordQueryExpression(
         {
@@ -172,25 +197,11 @@ module('validateRecordQueryExpression', function (hooks) {
             record: invalidRecord,
             relationship: 'planet'
           },
-          details: [
-            {
-              validator: StandardRecordValidators.RecordType,
-              validation: 'recordTypeDefined',
-              ref: 'unknown',
-              description: `Record type 'unknown' does not exist in schema`
-            },
-            {
-              validator: StandardRecordValidators.RecordFieldDefinition,
-              validation: 'fieldDefined',
-              ref: {
-                field: 'planet',
-                kind: 'relationship',
-                type: 'unknown'
-              },
-              description: `relationship 'planet' for type 'unknown' is not defined in schema`
-            }
-          ],
-          description: 'record query expression is invalid'
+          details: issues,
+          description: formatValidationDescription(
+            'record query expression is invalid',
+            issues
+          )
         }
       ],
       'invalid query expression'
@@ -224,6 +235,25 @@ module('validateRecordQueryExpression', function (hooks) {
       id: '1'
     };
 
+    const issues = [
+      {
+        validator: StandardRecordValidators.RecordType,
+        validation: 'recordTypeDefined',
+        ref: 'unknown',
+        description: `Record type 'unknown' does not exist in schema`
+      },
+      {
+        validator: StandardRecordValidators.RecordFieldDefinition,
+        validation: 'fieldDefined',
+        ref: {
+          field: 'moons',
+          kind: 'relationship',
+          type: 'unknown'
+        },
+        description: `relationship 'moons' for type 'unknown' is not defined in schema`
+      }
+    ];
+
     assert.deepEqual(
       validateRecordQueryExpression(
         {
@@ -245,25 +275,11 @@ module('validateRecordQueryExpression', function (hooks) {
             record: invalidRecord,
             relationship: 'moons'
           },
-          details: [
-            {
-              validator: StandardRecordValidators.RecordType,
-              validation: 'recordTypeDefined',
-              ref: 'unknown',
-              description: `Record type 'unknown' does not exist in schema`
-            },
-            {
-              validator: StandardRecordValidators.RecordFieldDefinition,
-              validation: 'fieldDefined',
-              ref: {
-                field: 'moons',
-                kind: 'relationship',
-                type: 'unknown'
-              },
-              description: `relationship 'moons' for type 'unknown' is not defined in schema`
-            }
-          ],
-          description: 'record query expression is invalid'
+          details: issues,
+          description: formatValidationDescription(
+            'record query expression is invalid',
+            issues
+          )
         }
       ],
       'invalid query expression'
@@ -286,6 +302,15 @@ module('validateRecordQueryExpression', function (hooks) {
       'valid query expression'
     );
 
+    const issues = [
+      {
+        validator: StandardRecordValidators.RecordType,
+        validation: 'recordTypeDefined',
+        ref: 'unknown',
+        description: `Record type 'unknown' does not exist in schema`
+      }
+    ];
+
     assert.deepEqual(
       validateRecordQueryExpression(
         {
@@ -305,15 +330,11 @@ module('validateRecordQueryExpression', function (hooks) {
             op: 'findRecords',
             type: 'unknown'
           },
-          details: [
-            {
-              validator: StandardRecordValidators.RecordType,
-              validation: 'recordTypeDefined',
-              ref: 'unknown',
-              description: `Record type 'unknown' does not exist in schema`
-            }
-          ],
-          description: 'record query expression is invalid'
+          details: issues,
+          description: formatValidationDescription(
+            'record query expression is invalid',
+            issues
+          )
         }
       ],
       'invalid query expression'
@@ -346,6 +367,15 @@ module('validateRecordQueryExpression', function (hooks) {
       id: '1'
     };
 
+    const issues = [
+      {
+        validator: StandardRecordValidators.RecordType,
+        validation: 'recordTypeDefined',
+        ref: 'unknown',
+        description: `Record type 'unknown' does not exist in schema`
+      }
+    ];
+
     assert.deepEqual(
       validateRecordQueryExpression(
         {
@@ -365,15 +395,11 @@ module('validateRecordQueryExpression', function (hooks) {
             op: 'findRecords',
             records: [invalidRecord]
           },
-          details: [
-            {
-              validator: StandardRecordValidators.RecordType,
-              validation: 'recordTypeDefined',
-              ref: 'unknown',
-              description: `Record type 'unknown' does not exist in schema`
-            }
-          ],
-          description: 'record query expression is invalid'
+          details: issues,
+          description: formatValidationDescription(
+            'record query expression is invalid',
+            issues
+          )
         }
       ],
       'invalid query expression'

@@ -1,6 +1,7 @@
 import { Assertion } from '@orbit/core';
 import {
   ArrayValidator,
+  formatValidationDescription,
   StandardValidator,
   StandardValidators,
   ValidationIssue,
@@ -217,8 +218,11 @@ export const validateRecordRelationship: RecordRelationshipValidator = (
             data
           },
           validation: 'dataValid',
-          description: 'relationship data is invalid',
-          details: dataIssues
+          details: dataIssues,
+          description: formatValidationDescription(
+            'relationship data is invalid',
+            dataIssues
+          )
         }
       ];
     }
