@@ -1,5 +1,6 @@
 import { Assertion } from '@orbit/core';
 import {
+  formatValidationDescription,
   StandardValidator,
   ValidationIssue,
   Validator,
@@ -110,7 +111,10 @@ export const validateRelatedRecord: RelatedRecordValidator = (
           relatedRecord
         },
         details: relatedRecordIssues,
-        description: 'relatedRecord is not a valid record identity'
+        description: formatValidationDescription(
+          'relatedRecord is not a valid record identity',
+          relatedRecordIssues
+        )
       }
     ];
   }

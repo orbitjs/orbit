@@ -1,5 +1,6 @@
 import { Assertion } from '@orbit/core';
 import {
+  formatValidationDescription,
   StandardValidator,
   ValidationIssue,
   Validator,
@@ -242,7 +243,10 @@ export const validateRecordQueryExpression: RecordQueryExpressionValidator = (
         validation: 'queryExpressionValid',
         ref: expression,
         details: issues,
-        description: 'record query expression is invalid'
+        description: formatValidationDescription(
+          'record query expression is invalid',
+          issues
+        )
       }
     ];
   }

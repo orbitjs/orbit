@@ -1,5 +1,6 @@
 import { Assertion } from '@orbit/core';
 import {
+  formatValidationDescription,
   StandardValidator,
   ValidationIssue,
   Validator,
@@ -159,7 +160,10 @@ export const validateRecordOperation: RecordOperationValidator = (
         validation: 'operationValid',
         ref: operation,
         details: issues,
-        description: 'record operation is invalid'
+        description: formatValidationDescription(
+          'record operation is invalid',
+          issues
+        )
       }
     ];
   }

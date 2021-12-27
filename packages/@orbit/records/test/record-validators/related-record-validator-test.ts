@@ -2,6 +2,7 @@ import { RecordSchema } from '../../src/record-schema';
 import { StandardRecordValidators } from '../../src/record-validators/standard-record-validators';
 import { buildRecordValidatorFor } from '../../src/record-validators/record-validator-builder';
 import { validateRelatedRecord } from '../../src/record-validators/related-record-validator';
+import { formatValidationDescription } from '@orbit/validators';
 
 const { module, test } = QUnit;
 
@@ -160,6 +161,15 @@ module('validateRelatedRecord', function (hooks) {
   test('will check if relatedRecord is a valid record identity', function (assert) {
     const relationshipDef = schema.getRelationship('moon', 'planet');
 
+    const issues = [
+      {
+        description: "Record type 'fake' does not exist in schema",
+        ref: 'fake',
+        validation: 'recordTypeDefined',
+        validator: 'recordType'
+      }
+    ];
+
     assert.deepEqual(
       validateRelatedRecord(
         {
@@ -182,15 +192,11 @@ module('validateRelatedRecord', function (hooks) {
             relationship: 'planet',
             relatedRecord: { type: 'fake', id: 'p1' }
           },
-          details: [
-            {
-              description: "Record type 'fake' does not exist in schema",
-              ref: 'fake',
-              validation: 'recordTypeDefined',
-              validator: 'recordType'
-            }
-          ],
-          description: 'relatedRecord is not a valid record identity'
+          description: formatValidationDescription(
+            'relatedRecord is not a valid record identity',
+            issues
+          ),
+          details: issues
         }
       ]
     );

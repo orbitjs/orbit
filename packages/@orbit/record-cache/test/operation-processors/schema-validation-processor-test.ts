@@ -4,8 +4,10 @@ import {
   RecordSchema,
   RecordSchemaSettings,
   RelationshipNotDefined,
+  StandardRecordValidators,
   ValidationError
 } from '@orbit/records';
+import { ValidationIssue } from '@orbit/validators';
 import { ExampleSyncRecordCache } from '../support/example-sync-record-cache';
 import { SyncSchemaValidationProcessor } from '../../src/operation-processors/sync-schema-validation-processor';
 
@@ -70,180 +72,292 @@ module('SchemaValidationProcessor', function (hooks) {
 
   test('addRecord with an unknown model type', (assert) => {
     assert.throws(() => {
-      cache.patch((t) => t.addRecord(unknown));
+      cache.update((t) => t.addRecord(unknown));
     }, unknownError);
   });
 
   test('updateRecord with an unknown model type', (assert) => {
     assert.throws(() => {
-      cache.patch((t) => t.updateRecord(unknown));
+      cache.update((t) => t.updateRecord(unknown));
     }, unknownError);
   });
 
   test('removeRecord with an unknown model type', (assert) => {
     assert.throws(() => {
-      cache.patch((t) => t.removeRecord(unknown));
+      cache.update((t) => t.removeRecord(unknown));
     }, unknownError);
   });
 
   test('replaceKey with an unknown model type', (assert) => {
     assert.throws(() => {
-      cache.patch((t) => t.replaceKey(unknown, 'key', 'value'));
+      cache.update((t) => t.replaceKey(unknown, 'key', 'value'));
     }, unknownError);
   });
 
   test('replaceAttribute with an unknown model type', (assert) => {
     assert.throws(() => {
-      cache.patch((t) => t.replaceAttribute(unknown, 'attribute', 'value'));
+      cache.update((t) => t.replaceAttribute(unknown, 'attribute', 'value'));
     }, unknownError);
   });
 
   test('addToRelatedRecords with an unknown model type', (assert) => {
     assert.throws(() => {
-      cache.patch((t) => t.addToRelatedRecords(unknown, 'children', node));
+      cache.update((t) => t.addToRelatedRecords(unknown, 'children', node));
     }, unknownError);
   });
 
   test('addToRelatedRecords with an unknown related model type', (assert) => {
     assert.throws(() => {
-      cache.patch((t) => t.addToRelatedRecords(node, 'children', unknown));
+      cache.update((t) => t.addToRelatedRecords(node, 'children', unknown));
     }, unknownError);
   });
 
   test('addToRelatedRecords with a relationship not defined in the schema', (assert) => {
-    assert.throws(() => {
-      cache.patch((t) =>
-        t.addToRelatedRecords({ type: 'node', id: '1' }, 'sibling', {
-          type: 'node',
-          id: '2'
-        })
-      );
-    }, new Error('Validation isssues encountered while building a transform operation'));
+    assert.throws(
+      () => {
+        cache.update((t) =>
+          t.addToRelatedRecords({ type: 'node', id: '1' }, 'sibling', {
+            type: 'node',
+            id: '2'
+          })
+        );
+      },
+      new ValidationError(
+        'Validation isssues encountered while building a transform operation',
+        [
+          {
+            validator: StandardRecordValidators.RecordOperation,
+            validation: 'operationValid',
+            description: `record operation is invalid\n- relationship 'sibling' for type 'node' is not defined in schema`
+          }
+        ]
+      )
+    );
   });
 
   test('addToRelatedRecord with a related record with an invalid type for a non-polymorphic relationship', (assert) => {
-    assert.throws(() => {
-      cache.patch((t) =>
-        t.addToRelatedRecords({ type: 'node', id: '1' }, 'children', {
-          type: 'person',
-          id: '1'
-        })
-      );
-    }, new Error('Validation isssues encountered while building a transform operation'));
+    assert.throws(
+      () => {
+        cache.update((t) =>
+          t.addToRelatedRecords({ type: 'node', id: '1' }, 'children', {
+            type: 'person',
+            id: '1'
+          })
+        );
+      },
+      new ValidationError(
+        'Validation isssues encountered while building a transform operation',
+        [
+          {
+            validator: StandardRecordValidators.RecordOperation,
+            validation: 'operationValid',
+            description: `record operation is invalid\n- relatedRecord has a type 'person' which is not an allowed type for this relationship`
+          }
+        ]
+      )
+    );
   });
 
   test('addToRelatedRecords with a related record with an invalid type for a polymorphic relationship', (assert) => {
-    assert.throws(() => {
-      cache.patch((t) =>
-        t.addToRelatedRecords({ type: 'person', id: '1' }, 'pets', {
-          type: 'person',
-          id: '2'
-        })
-      );
-    }, new Error('Validation isssues encountered while building a transform operation'));
+    assert.throws(
+      () => {
+        cache.update((t) =>
+          t.addToRelatedRecords({ type: 'person', id: '1' }, 'pets', {
+            type: 'person',
+            id: '2'
+          })
+        );
+      },
+      new ValidationError(
+        'Validation isssues encountered while building a transform operation',
+        [
+          {
+            validator: StandardRecordValidators.RecordOperation,
+            validation: 'operationValid',
+            description: `record operation is invalid\n- relatedRecord has a type 'person' which is not an allowed type for this relationship`
+          }
+        ]
+      )
+    );
   });
 
   test('removeFromRelatedRecords with an unknown model type', (assert) => {
     assert.throws(() => {
-      cache.patch((t) => t.removeFromRelatedRecords(unknown, 'children', node));
+      cache.update((t) =>
+        t.removeFromRelatedRecords(unknown, 'children', node)
+      );
     }, unknownError);
   });
 
   test('removeFromRelatedRecords with an unknown related model type', (assert) => {
     assert.throws(() => {
-      cache.patch((t) => t.removeFromRelatedRecords(node, 'children', unknown));
+      cache.update((t) =>
+        t.removeFromRelatedRecords(node, 'children', unknown)
+      );
     }, unknownError);
   });
 
   test('replaceRelatedRecords with an unknown model type', (assert) => {
     assert.throws(() => {
-      cache.patch((t) => t.replaceRelatedRecords(unknown, 'children', [node]));
+      cache.update((t) => t.replaceRelatedRecords(unknown, 'children', [node]));
     }, unknownError);
   });
 
   test('replaceRelatedRecords with an unknown related model type', (assert) => {
     assert.throws(() => {
-      cache.patch((t) => t.replaceRelatedRecords(node, 'children', [unknown]));
+      cache.update((t) => t.replaceRelatedRecords(node, 'children', [unknown]));
     }, unknownError);
   });
 
   test('replaceRelatedRecords with a relationship not defined in the schema', (assert) => {
-    assert.throws(() => {
-      cache.patch((t) =>
-        t.replaceRelatedRecords({ type: 'node', id: '1' }, 'siblings', [
-          { type: 'node', id: '2' }
-        ])
-      );
-    }, new Error('Validation isssues encountered while building a transform operation'));
+    assert.throws(
+      () => {
+        cache.update((t) =>
+          t.replaceRelatedRecords({ type: 'node', id: '1' }, 'siblings', [
+            { type: 'node', id: '2' }
+          ])
+        );
+      },
+      new ValidationError(
+        'Validation isssues encountered while building a transform operation',
+        [
+          {
+            validator: StandardRecordValidators.RecordOperation,
+            validation: 'operationValid',
+            description: `record operation is invalid\n- relationship 'siblings' for type 'node' is not defined in schema`
+          }
+        ]
+      )
+    );
   });
 
   test('replaceRelatedRecords with a related record with an invalid type for a non-polymorphic relationship', (assert) => {
-    assert.throws(() => {
-      cache.patch((t) =>
-        t.replaceRelatedRecords({ type: 'node', id: '1' }, 'children', [
-          { type: 'person', id: '1' }
-        ])
-      );
-    }, new Error('Validation isssues encountered while building a transform operation'));
+    assert.throws(
+      () => {
+        cache.update((t) =>
+          t.replaceRelatedRecords({ type: 'node', id: '1' }, 'children', [
+            { type: 'person', id: '1' }
+          ])
+        );
+      },
+      new ValidationError(
+        'Validation isssues encountered while building a transform operation',
+        [
+          {
+            validator: StandardRecordValidators.RecordOperation,
+            validation: 'operationValid',
+            description: `record operation is invalid\n- relationship data is invalid\n  - relatedRecord has a type 'person' which is not an allowed type for this relationship`
+          }
+        ]
+      )
+    );
   });
 
   test('replaceRelatedRecords with a related record with an invalid type for a polymorphic relationship', (assert) => {
-    assert.throws(() => {
-      cache.patch((t) =>
-        t.replaceRelatedRecords({ type: 'person', id: '1' }, 'pets', [
-          { type: 'person', id: '2' }
-        ])
-      );
-    }, new Error('Validation isssues encountered while building a transform operation'));
+    assert.throws(
+      () => {
+        cache.update((t) =>
+          t.replaceRelatedRecords({ type: 'person', id: '1' }, 'pets', [
+            { type: 'person', id: '2' }
+          ])
+        );
+      },
+      new ValidationError(
+        'Validation isssues encountered while building a transform operation',
+        [
+          {
+            validator: StandardRecordValidators.RecordOperation,
+            validation: 'operationValid',
+            description: `record operation is invalid\n- relationship data is invalid\n  - relatedRecord has a type 'person' which is not an allowed type for this relationship`
+          }
+        ]
+      )
+    );
   });
 
   test('replaceRelatedRecord with an unknown model type', (assert) => {
     assert.throws(() => {
-      cache.patch((t) => t.replaceRelatedRecord(unknown, 'parent', node));
+      cache.update((t) => t.replaceRelatedRecord(unknown, 'parent', node));
     }, unknownError);
   });
 
   test('replaceRelatedRecord with an unknown related model type', (assert) => {
     assert.throws(() => {
-      cache.patch((t) => t.replaceRelatedRecord(node, 'parent', unknown));
+      cache.update((t) => t.replaceRelatedRecord(node, 'parent', unknown));
     }, unknownError);
   });
 
   test('replaceRelatedRecord with a null related model', (assert) => {
-    cache.patch((t) => t.replaceRelatedRecord(node, 'parent', null));
+    cache.update((t) => t.replaceRelatedRecord(node, 'parent', null));
     assert.ok(true, 'no error is thrown');
   });
 
   test('replaceRelatedRecord with a relationship not defined in the schema', (assert) => {
-    assert.throws(() => {
-      cache.patch((t) =>
-        t.replaceRelatedRecord({ type: 'node', id: '1' }, 'mother', {
-          type: 'node',
-          id: '1'
-        })
-      );
-    }, new Error('Validation isssues encountered while building a transform operation'));
+    assert.throws(
+      () => {
+        cache.update((t) =>
+          t.replaceRelatedRecord({ type: 'node', id: '1' }, 'mother', {
+            type: 'node',
+            id: '1'
+          })
+        );
+      },
+      new ValidationError(
+        'Validation isssues encountered while building a transform operation',
+        [
+          {
+            validator: StandardRecordValidators.RecordOperation,
+            validation: 'operationValid',
+            description: `record operation is invalid\n- relationship 'mother' for type 'node' is not defined in schema`
+          }
+        ]
+      )
+    );
   });
 
   test('replaceRelatedRecord with a related record with an invalid type for a non-polymorphic relationship', (assert) => {
-    assert.throws(() => {
-      cache.patch((t) =>
-        t.replaceRelatedRecord({ type: 'node', id: '1' }, 'parent', {
-          type: 'person',
-          id: '1'
-        })
-      );
-    }, new Error('Validation isssues encountered while building a transform operation'));
+    assert.throws(
+      () => {
+        cache.update((t) =>
+          t.replaceRelatedRecord({ type: 'node', id: '1' }, 'parent', {
+            type: 'person',
+            id: '1'
+          })
+        );
+      },
+      new ValidationError(
+        'Validation isssues encountered while building a transform operation',
+        [
+          {
+            validator: StandardRecordValidators.RecordOperation,
+            validation: 'operationValid',
+            description: `record operation is invalid\n- relationship data is invalid\n  - relatedRecord has a type 'person' which is not an allowed type for this relationship`
+          }
+        ]
+      )
+    );
   });
 
   test('replaceRelatedRecord with a related record with an invalid type for a polymorphic relationship', (assert) => {
-    assert.throws(() => {
-      cache.patch((t) =>
-        t.replaceRelatedRecord({ type: 'person', id: '1' }, 'favoritePet', {
-          type: 'person',
-          id: '2'
-        })
-      );
-    }, new Error('Validation isssues encountered while building a transform operation'));
+    assert.throws(
+      () => {
+        cache.update((t) =>
+          t.replaceRelatedRecord({ type: 'person', id: '1' }, 'favoritePet', {
+            type: 'person',
+            id: '2'
+          })
+        );
+      },
+      new ValidationError(
+        'Validation isssues encountered while building a transform operation',
+        [
+          {
+            validator: StandardRecordValidators.RecordOperation,
+            validation: 'operationValid',
+            description: `record operation is invalid\n- relationship data is invalid\n  - relatedRecord has a type 'person' which is not an allowed type for this relationship`
+          }
+        ]
+      )
+    );
   });
 });

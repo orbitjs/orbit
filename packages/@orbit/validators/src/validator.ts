@@ -40,3 +40,16 @@ export type Validator<
   Options = ValidationOptions,
   Issue = ValidationIssue<Input>
 > = (input: Input, options?: Options) => undefined | Issue[];
+
+export function formatValidationDescription(
+  summary: string,
+  issues?: ValidationIssue[]
+): string {
+  if (issues && issues.length > 0) {
+    return `${summary}\n${issues
+      .map((i) => `- ${i.description.replace(/\n/g, '\n  ')}`)
+      .join('\n')}`;
+  } else {
+    return summary;
+  }
+}

@@ -1,5 +1,8 @@
 import { Exception } from '@orbit/core';
-import { ValidationIssue } from '@orbit/validators';
+import {
+  formatValidationDescription,
+  ValidationIssue
+} from '@orbit/validators';
 
 /**
  * An error occured related to the schema.
@@ -17,12 +20,10 @@ export class SchemaError extends Exception {
  * A validation failed.
  */
 export class ValidationError extends Exception {
-  public description: string;
   public issues?: ValidationIssue[];
 
   constructor(description: string, issues?: ValidationIssue[]) {
-    super(description);
-    this.description = description;
+    super(formatValidationDescription(description, issues));
     this.issues = issues;
   }
 }
