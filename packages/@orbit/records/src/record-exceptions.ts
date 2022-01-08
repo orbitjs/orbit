@@ -8,11 +8,8 @@ import {
  * An error occured related to the schema.
  */
 export class SchemaError extends Exception {
-  public description: string;
-
   constructor(description: string) {
     super(`Schema: ${description}`);
-    this.description = description;
   }
 }
 
@@ -68,7 +65,6 @@ export class RelationshipNotDefined extends SchemaError {
  * An error occurred related to a particular record.
  */
 export abstract class RecordException extends Exception {
-  public description: string;
   public type: string;
   public id: string;
   public field?: string;
@@ -80,11 +76,8 @@ export abstract class RecordException extends Exception {
       specifier = `${specifier}/${field}`;
     }
 
-    let message = `${description}: ${specifier}`;
+    super(`${description}: ${specifier}`);
 
-    super(message);
-
-    this.description = description;
     this.type = type;
     this.id = id;
     this.field = field;

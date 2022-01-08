@@ -8,12 +8,10 @@ import { Transform } from './transform';
  * A query expression could not be parsed.
  */
 export class QueryExpressionParseError extends Exception {
-  public description: string;
   public expression?: QueryExpression;
 
   constructor(description: string, expression?: QueryExpression) {
     super(`Query expression parse error: ${description}`);
-    this.description = description;
     this.expression = expression;
   }
 }
@@ -22,12 +20,10 @@ export class QueryExpressionParseError extends Exception {
  * A query is invalid for a particular source.
  */
 export class QueryNotAllowed extends Exception {
-  public description: string;
   public query: Query<QueryExpression>;
 
   constructor(description: string, query: Query<QueryExpression>) {
     super(`Query not allowed: ${description}`);
-    this.description = description;
     this.query = query;
   }
 }
@@ -36,12 +32,10 @@ export class QueryNotAllowed extends Exception {
  * A transform is invalid for a particular source.
  */
 export class TransformNotAllowed extends Exception {
-  public description: string;
   public transform: Transform<Operation>;
 
   constructor(description: string, transform: Transform<Operation>) {
     super(`Transform not allowed: ${description}`);
-    this.description = description;
     this.transform = transform;
   }
 }

@@ -1,7 +1,21 @@
+import { deprecate } from './deprecate';
+
 /**
  * Base exception class.
  */
-export class Exception extends Error {}
+export class Exception extends Error {
+  /**
+   * A synonym for message.
+   *
+   * @deprecated since v0.17, access `message` instead
+   */
+  public get description(): string {
+    deprecate(
+      "'Exception#description' has been deprecated. Please access 'message' instead."
+    );
+    return this.message;
+  }
+}
 
 /**
  * Exception raised when an item does not exist in a log.
