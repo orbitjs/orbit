@@ -1,4 +1,4 @@
-import { NetworkError, QueryNotAllowed } from '@orbit/data';
+import { QueryNotAllowed } from '@orbit/data';
 import {
   RecordKeyMap,
   InitializedRecord,
@@ -13,6 +13,7 @@ import {
   JSONAPIResourceIdentitySerializer,
   JSONAPIResourceSerializer
 } from '../src';
+import { NetworkError } from '../src/lib/exceptions';
 import { JSONAPISource } from '../src/jsonapi-source';
 import { Resource, ResourceDocument } from '../src/resource-document';
 import { JSONAPISerializers } from '../src/serializers/jsonapi-serializers';

@@ -1,4 +1,4 @@
-import { ClientError, NetworkError, TransformNotAllowed } from '@orbit/data';
+import { TransformNotAllowed } from '@orbit/data';
 import {
   RecordKeyMap,
   InitializedRecord,
@@ -13,6 +13,7 @@ import { toArray } from '@orbit/utils';
 import * as sinon from 'sinon';
 import { SinonStub } from 'sinon';
 import { JSONAPIResourceSerializer } from '../src';
+import { ClientError, NetworkError } from '../src/lib/exceptions';
 import { JSONAPISource } from '../src/jsonapi-source';
 import { JSONAPISerializers } from '../src/serializers/jsonapi-serializers';
 import { jsonapiResponse } from './support/jsonapi';

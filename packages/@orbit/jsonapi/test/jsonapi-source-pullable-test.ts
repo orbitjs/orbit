@@ -1,4 +1,3 @@
-import { NetworkError } from '@orbit/data';
 import {
   RecordKeyMap,
   InitializedRecord,
@@ -18,6 +17,7 @@ import {
   JSONAPIResourceSerializer,
   Resource
 } from '../src';
+import { NetworkError } from '../src/lib/exceptions';
 import { JSONAPISource } from '../src/jsonapi-source';
 import { JSONAPISerializers } from '../src/serializers/jsonapi-serializers';
 import { jsonapiResponse } from './support/jsonapi';

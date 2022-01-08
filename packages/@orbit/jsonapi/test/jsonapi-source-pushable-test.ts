@@ -1,17 +1,12 @@
-import {
-  buildTransform,
-  ClientError,
-  NetworkError,
-  TransformNotAllowed
-} from '@orbit/data';
+import { buildTransform, TransformNotAllowed } from '@orbit/data';
 import {
   AddRecordOperation,
-  RecordKeyMap,
   InitializedRecord,
+  RecordKeyMap,
   RecordOperation,
-  ReplaceKeyOperation,
   RecordSchema,
   RecordTransform,
+  ReplaceKeyOperation,
   UpdateRecordOperation
 } from '@orbit/records';
 import { toArray } from '@orbit/utils';
@@ -19,6 +14,7 @@ import * as sinon from 'sinon';
 import { SinonStub } from 'sinon';
 import { JSONAPIResourceSerializer } from '../src';
 import { JSONAPISource } from '../src/jsonapi-source';
+import { ClientError, NetworkError } from '../src/lib/exceptions';
 import { JSONAPISerializers } from '../src/serializers/jsonapi-serializers';
 import { jsonapiResponse } from './support/jsonapi';
 import {

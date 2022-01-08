@@ -1,9 +1,4 @@
-import {
-  buildTransform,
-  ClientError,
-  NetworkError,
-  TransformNotAllowed
-} from '@orbit/data';
+import { buildTransform, TransformNotAllowed } from '@orbit/data';
 import {
   AddRecordOperation,
   RecordKeyMap,
@@ -29,6 +24,7 @@ import { JSONAPISerializers } from '../src/serializers/jsonapi-serializers';
 import { buildSerializerSettingsFor } from '@orbit/serializers';
 import { JSONAPIResourceSerializer } from '../src/serializers/jsonapi-resource-serializer';
 import { JSONAPIResourceIdentitySerializer } from '../src/serializers/jsonapi-resource-identity-serializer';
+import { ClientError, NetworkError } from '../src/lib/exceptions';
 
 const { module, test } = QUnit;
 

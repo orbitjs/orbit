@@ -5,43 +5,6 @@ import { QueryExpression } from './query-expression';
 import { Transform } from './transform';
 
 /**
- * An client-side error occurred while communicating with a remote server.
- */
-export class ClientError extends Exception {
-  public description: string;
-
-  constructor(description: string) {
-    super(`Client error: ${description}`);
-    this.description = description;
-  }
-}
-
-/**
- * A server-side error occurred while communicating with a remote server.
- */
-export class ServerError extends Exception {
-  public description: string;
-
-  constructor(description: string) {
-    super(`Server error: ${description}`);
-    this.description = description;
-  }
-}
-
-/**
- * A networking error occurred while attempting to communicate with a remote
- * server.
- */
-export class NetworkError extends Exception {
-  public description: string;
-
-  constructor(description: string) {
-    super(`Network error: ${description}`);
-    this.description = description;
-  }
-}
-
-/**
  * A query expression could not be parsed.
  */
 export class QueryExpressionParseError extends Exception {

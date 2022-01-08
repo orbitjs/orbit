@@ -1,10 +1,5 @@
 import { Orbit } from '@orbit/core';
-import {
-  ClientError,
-  NetworkError,
-  requestOptionsForSource,
-  ServerError
-} from '@orbit/data';
+import { requestOptionsForSource } from '@orbit/data';
 import {
   RecordKeyMap,
   InitializedRecord,
@@ -14,7 +9,12 @@ import {
   RecordQuery
 } from '@orbit/records';
 import { Dict } from '@orbit/utils';
-import { InvalidServerResponse } from './lib/exceptions';
+import {
+  NetworkError,
+  InvalidServerResponse,
+  ClientError,
+  ServerError
+} from './lib/exceptions';
 import { RecordTransformRequest } from './lib/transform-requests';
 import { RecordQueryRequest } from './lib/query-requests';
 import { deepMerge, toArray } from '@orbit/utils';

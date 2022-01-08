@@ -10,6 +10,7 @@ import { JSONAPIRequestProcessor } from '../src/jsonapi-request-processor';
 import { jsonapiResponse } from './support/jsonapi';
 import { SinonStub } from 'sinon';
 import * as sinon from 'sinon';
+import { InvalidServerResponse } from '../src/lib/exceptions';
 
 const { module, test } = QUnit;
 
