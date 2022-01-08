@@ -1,10 +1,5 @@
 import { Orbit } from '@orbit/core';
-import {
-  ClientError,
-  NetworkError,
-  requestOptionsForSource,
-  ServerError
-} from '@orbit/data';
+import { requestOptionsForSource } from '@orbit/data';
 import {
   RecordKeyMap,
   InitializedRecord,
@@ -14,7 +9,12 @@ import {
   RecordQuery
 } from '@orbit/records';
 import { Dict } from '@orbit/utils';
-import { InvalidServerResponse } from './lib/exceptions';
+import {
+  NetworkError,
+  InvalidServerResponse,
+  ClientError,
+  ServerError
+} from './lib/exceptions';
 import { RecordTransformRequest } from './lib/transform-requests';
 import { RecordQueryRequest } from './lib/query-requests';
 import { deepMerge, toArray } from '@orbit/utils';
@@ -267,10 +267,6 @@ export class JSONAPIRequestProcessor {
   /* eslint-enable @typescript-eslint/no-unused-vars */
 
   protected responseHasContent(response: Response): boolean {
-    if (response.status === 204) {
-      return false;
-    }
-
     let contentType = response.headers.get('Content-Type');
     if (contentType) {
       for (let allowedContentType of this.allowedContentTypes) {
@@ -278,6 +274,11 @@ export class JSONAPIRequestProcessor {
           return true;
         }
       }
+      throw new InvalidServerResponse(
+        `The server responded with the content type '${contentType}', which is not allowed. Allowed content types include: '${this.allowedContentTypes.join(
+          "', '"
+        )}'.`
+      );
     }
     return false;
   }
@@ -304,20 +305,8 @@ export class JSONAPIRequestProcessor {
     const responseDetail: JSONAPIResponse = {
       response
     };
-    if (response.status === 201) {
-      if (this.responseHasContent(response)) {
-        responseDetail.document = await response.json();
-      } else {
-        throw new InvalidServerResponse(
-          `Server responses with a ${
-            response.status
-          } status should return content with one of the following content types: ${this.allowedContentTypes.join(
-            ', '
-          )}.`
-        );
-      }
-    } else if (response.status >= 200 && response.status < 300) {
-      if (this.responseHasContent(response)) {
+    if (response.status >= 200 && response.status < 300) {
+      if (response.status !== 204 && this.responseHasContent(response)) {
         responseDetail.document = await response.json();
       }
     } else if (response.status !== 304 && response.status !== 404) {

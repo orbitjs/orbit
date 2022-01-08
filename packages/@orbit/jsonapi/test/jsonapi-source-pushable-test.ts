@@ -1,17 +1,12 @@
-import {
-  buildTransform,
-  ClientError,
-  NetworkError,
-  TransformNotAllowed
-} from '@orbit/data';
+import { buildTransform, TransformNotAllowed } from '@orbit/data';
 import {
   AddRecordOperation,
-  RecordKeyMap,
   InitializedRecord,
+  RecordKeyMap,
   RecordOperation,
-  ReplaceKeyOperation,
   RecordSchema,
   RecordTransform,
+  ReplaceKeyOperation,
   UpdateRecordOperation
 } from '@orbit/records';
 import { toArray } from '@orbit/utils';
@@ -19,6 +14,7 @@ import * as sinon from 'sinon';
 import { SinonStub } from 'sinon';
 import { JSONAPIResourceSerializer } from '../src';
 import { JSONAPISource } from '../src/jsonapi-source';
+import { ClientError, NetworkError } from '../src/lib/exceptions';
 import { JSONAPISerializers } from '../src/serializers/jsonapi-serializers';
 import { jsonapiResponse } from './support/jsonapi';
 import {
@@ -884,7 +880,10 @@ module('JSONAPISource - pushable', function (hooks) {
         assert.ok(false, 'should not be reached');
       } catch (e) {
         assert.ok(e instanceof NetworkError, 'Network error raised');
-        assert.equal(e.description, 'No fetch response within 10ms.');
+        assert.equal(
+          (e as NetworkError).message,
+          'Network error: No fetch response within 10ms.'
+        );
       }
     });
 
@@ -922,7 +921,10 @@ module('JSONAPISource - pushable', function (hooks) {
         assert.ok(false, 'should not be reached');
       } catch (e) {
         assert.ok(e instanceof NetworkError, 'Network error raised');
-        assert.equal(e.description, 'No fetch response within 10ms.');
+        assert.equal(
+          (e as NetworkError).message,
+          'Network error: No fetch response within 10ms.'
+        );
       }
     });
 
@@ -947,7 +949,7 @@ module('JSONAPISource - pushable', function (hooks) {
         assert.ok(false, 'should not be reached');
       } catch (e) {
         assert.ok(e instanceof NetworkError, 'Network error raised');
-        assert.equal(e.description, ':(');
+        assert.equal((e as NetworkError).message, 'Network error: :(');
       }
     });
 
@@ -981,8 +983,15 @@ module('JSONAPISource - pushable', function (hooks) {
         assert.ok(false, 'should not be reached');
       } catch (e) {
         assert.ok(e instanceof ClientError, 'Client error raised');
-        assert.equal(e.description, 'Unprocessable Entity');
-        assert.deepEqual(e.data, { errors }, 'Error data included');
+        assert.equal(
+          (e as ClientError).message,
+          'Client error: Unprocessable Entity'
+        );
+        assert.deepEqual(
+          (e as ClientError).data,
+          { errors },
+          'Error data included'
+        );
       }
     });
   });

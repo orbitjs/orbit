@@ -1,4 +1,4 @@
-import { NetworkError, QueryNotAllowed } from '@orbit/data';
+import { QueryNotAllowed } from '@orbit/data';
 import {
   RecordKeyMap,
   InitializedRecord,
@@ -13,6 +13,7 @@ import {
   JSONAPIResourceIdentitySerializer,
   JSONAPIResourceSerializer
 } from '../src';
+import { NetworkError } from '../src/lib/exceptions';
 import { JSONAPISource } from '../src/jsonapi-source';
 import { Resource, ResourceDocument } from '../src/resource-document';
 import { JSONAPISerializers } from '../src/serializers/jsonapi-serializers';
@@ -382,7 +383,10 @@ module('JSONAPISource - queryable', function (hooks) {
         assert.ok(false, 'should not be reached');
       } catch (e) {
         assert.ok(e instanceof NetworkError, 'Network error raised');
-        assert.equal(e.description, 'No fetch response within 10ms.');
+        assert.equal(
+          (e as NetworkError).message,
+          'Network error: No fetch response within 10ms.'
+        );
       }
     });
 
@@ -423,7 +427,10 @@ module('JSONAPISource - queryable', function (hooks) {
         assert.ok(false, 'should not be reached');
       } catch (e) {
         assert.ok(e instanceof NetworkError, 'Network error raised');
-        assert.equal(e.description, 'No fetch response within 10ms.');
+        assert.equal(
+          (e as NetworkError).message,
+          'Network error: No fetch response within 10ms.'
+        );
       }
     });
 
@@ -444,7 +451,7 @@ module('JSONAPISource - queryable', function (hooks) {
         assert.ok(false, 'should not be reached');
       } catch (e) {
         assert.ok(e instanceof NetworkError, 'Network error raised');
-        assert.equal(e.description, ':(');
+        assert.equal((e as NetworkError).message, 'Network error: :(');
       }
     });
 
