@@ -158,6 +158,7 @@ module('JSONAPIRequestProcessor', function (hooks) {
         { data: null }
       )
     );
+
     try {
       let result = await processor.fetch(
         '/planets/12345/relationships/moons',
@@ -229,15 +230,16 @@ module('JSONAPIRequestProcessor', function (hooks) {
         }
       )
     );
-    let result = await processor.fetch(
-      '/planets/12345/relationships/moons',
-      {}
-    );
-    assert.strictEqual(
-      result.document,
-      undefined,
-      'XML is not acceptable but HTTP Status is good, so just ignore response'
-    );
+
+    try {
+      await processor.fetch('/planets/12345/relationships/moons', {});
+      assert.ok(false, 'xml is not an allowed content-type');
+    } catch (e) {
+      assert.equal(
+        (e as InvalidServerResponse).message,
+        "Invalid server response: The server responded with the content type 'application/xml', which is not allowed. Allowed content types include: 'application/vnd.api+json', 'application/json'."
+      );
+    }
 
     processor.allowedContentTypes = ['application/custom'];
     fetchStub.withArgs('/planets/12345/relationships/moons').returns(
@@ -253,7 +255,10 @@ module('JSONAPIRequestProcessor', function (hooks) {
         }
       )
     );
-    result = await processor.fetch('/planets/12345/relationships/moons', {});
+    let result = await processor.fetch(
+      '/planets/12345/relationships/moons',
+      {}
+    );
     assert.ok(
       result,
       'will accept custom content type if specifically allowed'
