@@ -154,7 +154,10 @@ module('JSONAPISource - pullable', function (hooks) {
         assert.ok(false, 'should not be reached');
       } catch (e) {
         assert.ok(e instanceof NetworkError, 'Network error raised');
-        assert.equal(e.description, 'No fetch response within 10ms.');
+        assert.equal(
+          (e as NetworkError).message,
+          'Network error: No fetch response within 10ms.'
+        );
       }
     });
 
@@ -195,7 +198,10 @@ module('JSONAPISource - pullable', function (hooks) {
         assert.ok(false, 'should not be reached');
       } catch (e) {
         assert.ok(e instanceof NetworkError, 'Network error raised');
-        assert.equal(e.description, 'No fetch response within 10ms.');
+        assert.equal(
+          (e as NetworkError).message,
+          'Network error: No fetch response within 10ms.'
+        );
       }
     });
 
@@ -216,7 +222,7 @@ module('JSONAPISource - pullable', function (hooks) {
         assert.ok(false, 'should not be reached');
       } catch (e) {
         assert.ok(e instanceof NetworkError, 'Network error raised');
-        assert.equal(e.description, ':(');
+        assert.equal((e as NetworkError).message, 'Network error: :(');
       }
     });
 

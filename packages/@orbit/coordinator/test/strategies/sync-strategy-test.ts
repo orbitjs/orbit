@@ -169,7 +169,7 @@ module('SyncStrategy', function (hooks) {
       source: 's1',
       target: 's2',
       blocking: true,
-      catch(e: Exception, transform: Transform<RecordOperation>) {
+      catch(e: Error, transform: Transform<RecordOperation>) {
         assert.equal(e.message, ':(', 'error matches');
         assert.strictEqual(
           transform,
@@ -210,7 +210,7 @@ module('SyncStrategy', function (hooks) {
       source: 's1',
       target: 's2',
       blocking: true,
-      catch(e: Exception, transform: Transform<RecordOperation>) {
+      catch(e: Error, transform: Transform<RecordOperation>) {
         assert.equal(e.message, ':(', 'error matches');
         assert.strictEqual(
           transform,

@@ -961,7 +961,10 @@ module('JSONAPISource - updatable', function (hooks) {
         assert.ok(false, 'should not be reached');
       } catch (e) {
         assert.ok(e instanceof NetworkError, 'Network error raised');
-        assert.equal(e.description, 'No fetch response within 10ms.');
+        assert.equal(
+          (e as NetworkError).message,
+          'Network error: No fetch response within 10ms.'
+        );
       }
     });
 
@@ -999,7 +1002,10 @@ module('JSONAPISource - updatable', function (hooks) {
         assert.ok(false, 'should not be reached');
       } catch (e) {
         assert.ok(e instanceof NetworkError, 'Network error raised');
-        assert.equal(e.description, 'No fetch response within 10ms.');
+        assert.equal(
+          (e as NetworkError).message,
+          'Network error: No fetch response within 10ms.'
+        );
       }
     });
 
@@ -1024,7 +1030,7 @@ module('JSONAPISource - updatable', function (hooks) {
         assert.ok(false, 'should not be reached');
       } catch (e) {
         assert.ok(e instanceof NetworkError, 'Network error raised');
-        assert.equal(e.description, ':(');
+        assert.equal((e as NetworkError).message, 'Network error: :(');
       }
     });
 
@@ -1058,8 +1064,15 @@ module('JSONAPISource - updatable', function (hooks) {
         assert.ok(false, 'should not be reached');
       } catch (e) {
         assert.ok(e instanceof ClientError, 'Client error raised');
-        assert.equal(e.description, 'Unprocessable Entity');
-        assert.deepEqual(e.data, { errors }, 'Error data included');
+        assert.equal(
+          (e as ClientError).message,
+          'Client error: Unprocessable Entity'
+        );
+        assert.deepEqual(
+          (e as ClientError).data,
+          { errors },
+          'Error data included'
+        );
       }
     });
   });
