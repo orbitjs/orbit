@@ -380,9 +380,9 @@ const planets = memory.cache.query((q) => q.findRecords('planet').sort('name'));
 
 ### Live queries
 
-On a memory source's cach, you can subscribe to a
-[`SyncLiveQuery`](/api/record-cache/classes/SyncLiveQuery.md). For that you need
-to request a [`SyncLiveQuery`](/api/record-cache/classes/SyncLiveQuery.md)
+You may subscribe to a
+[`SyncLiveQuery`](/api/record-cache/classes/SyncLiveQuery.md) on a memory source's cache.
+To do so, request a [`SyncLiveQuery`](/api/record-cache/classes/SyncLiveQuery.md)
 instance and then subscribe to changes. By default the
 [`SyncLiveQuery`](/api/record-cache/classes/SyncLiveQuery.md) will observe cache
 `patch` events with a debounce. The subscription callback will be called on
