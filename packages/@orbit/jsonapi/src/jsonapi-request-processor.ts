@@ -20,10 +20,7 @@ import { RecordQueryRequest } from './lib/query-requests';
 import { deepMerge, toArray } from '@orbit/utils';
 import { ResourceDocument } from './resource-document';
 import { RecordDocument } from './record-document';
-import {
-  JSONAPIRequestOptions,
-  buildFetchSettings
-} from './lib/jsonapi-request-options';
+import { JSONAPIRequestOptions } from './lib/jsonapi-request-options';
 import {
   JSONAPIURLBuilder,
   JSONAPIURLBuilderSettings
@@ -135,6 +132,9 @@ export class JSONAPIRequestProcessor {
     this.initDefaultFetchSettings(settings);
   }
 
+  /**
+   * @deprecated since v0.17, use `serializerFor` instead
+   */
   get serializer(): JSONAPISerializer {
     deprecate(
       "'JSONAPIRequestProcessor#serializer' has been deprecated. Use 'serializerFor' instead."
@@ -218,7 +218,7 @@ export class JSONAPIRequestProcessor {
     }
 
     if (settings.headers && !settings.body) {
-      delete (settings.headers as any)['Content-Type'];
+      delete settings.headers['Content-Type'];
     }
 
     return settings;
@@ -243,20 +243,75 @@ export class JSONAPIRequestProcessor {
   }
 
   buildFetchSettings(
-    options: JSONAPIRequestOptions = {},
-    customSettings?: FetchSettings
+    request: RecordQueryRequest | RecordTransformRequest
   ): FetchSettings {
-    return buildFetchSettings(options, customSettings);
+    const settings = {
+      params: {},
+      ...request.options?.settings
+    };
+
+    if (request.options) {
+      const { filter, sort, page, include, fields } = request.options;
+
+      if (filter) {
+        settings.params.filter = this.urlBuilder.buildFilterParam(
+          filter,
+          request
+        );
+      }
+
+      if (sort) {
+        settings.params.sort = this.urlBuilder.buildSortParam(sort, request);
+      }
+
+      if (page) {
+        settings.params.page = this.urlBuilder.buildPageParam(page, request);
+      }
+
+      if (include) {
+        settings.params.include = this.urlBuilder.buildIncludeParam(
+          include,
+          request
+        );
+      }
+
+      if (fields) {
+        settings.params.fields = this.urlBuilder.buildFieldsParam(
+          fields,
+          request
+        );
+      }
+    }
+
+    return settings;
   }
 
+  mergeRequestOptions(
+    options:
+      | JSONAPIRequestOptions
+      | undefined
+      | (JSONAPIRequestOptions | undefined)[]
+  ): JSONAPIRequestOptions | undefined {
+    return requestOptionsForSource<JSONAPIRequestOptions>(
+      options,
+      this.sourceName
+    );
+  }
+
+  /**
+   * @deprecated since v0.17, use `mergeRequestOptions` instead
+   */
   customRequestOptions(
     queryOrTransform: RecordQuery | RecordTransform,
     queryExpressionOrOperation: RecordQueryExpression | RecordOperation
   ): JSONAPIRequestOptions | undefined {
-    return requestOptionsForSource(
-      [queryOrTransform.options, queryExpressionOrOperation.options],
-      this.sourceName
-    ) as JSONAPIRequestOptions | undefined;
+    deprecate(
+      "'JSONAPIRequestProcessor#customRequestOptions' has been deprecated. Use 'mergeRequestOptions' instead."
+    );
+    return this.mergeRequestOptions([
+      queryOrTransform.options,
+      queryExpressionOrOperation.options
+    ]);
   }
 
   /* eslint-disable @typescript-eslint/no-unused-vars */

@@ -17,10 +17,7 @@ import {
 } from '@orbit/records';
 import { buildTransform, FullResponse } from '@orbit/data';
 import { JSONAPIRequestProcessor } from '../jsonapi-request-processor';
-import {
-  JSONAPIRequestOptions,
-  mergeJSONAPIRequestOptions
-} from './jsonapi-request-options';
+import { JSONAPIRequestOptions } from './jsonapi-request-options';
 import { JSONAPISerializers } from '../serializers/jsonapi-serializers';
 import { JSONAPIDocumentSerializer } from '../serializers/jsonapi-document-serializer';
 import { RecordDocument } from '../record-document';
@@ -79,19 +76,17 @@ export function getQueryRequests(
   const requests: RecordQueryRequest[] = [];
 
   for (let expression of toArray(query.expressions)) {
-    let request = ExpressionToRequestMap[expression.op](
+    const request = ExpressionToRequestMap[expression.op](
       expression as RecordQueryExpression,
       requestProcessor
     );
 
-    let options = requestProcessor.customRequestOptions(query, expression);
-    if (options) {
-      if (request.options) {
-        request.options = mergeJSONAPIRequestOptions(request.options, options);
-      } else {
-        request.options = options;
-      }
-    }
+    const options = requestProcessor.mergeRequestOptions([
+      request.options,
+      query.options,
+      expression.options
+    ]);
+    if (options) request.options = options;
 
     requests.push(request);
   }
@@ -113,32 +108,14 @@ const ExpressionToRequestMap: Dict<ExpressionToRequestConverter> = {
       record: cloneRecordIdentity(exp.record)
     };
   },
-  findRecords(
-    expression: RecordQueryExpression,
-    requestProcessor: JSONAPIRequestProcessor
-  ): FindRecordsRequest {
+  findRecords(expression: RecordQueryExpression): FindRecordsRequest {
     const exp = expression as FindRecords;
-    let request: FindRecordsRequest = {
+    const { filter, sort, page } = exp;
+    return {
       op: 'findRecords',
-      type: exp.type as string
+      type: exp.type as string,
+      options: { filter, sort, page }
     };
-    let options: JSONAPIRequestOptions = {};
-
-    if (exp.filter) {
-      options.filter = requestProcessor.urlBuilder.buildFilterParam(exp.filter);
-    }
-
-    if (exp.sort) {
-      options.sort = requestProcessor.urlBuilder.buildSortParam(exp.sort);
-    }
-
-    if (exp.page) {
-      options.page = requestProcessor.urlBuilder.buildPageParam(exp.page);
-    }
-
-    request.options = options;
-
-    return request;
   },
   findRelatedRecord(
     expression: RecordQueryExpression
@@ -151,32 +128,16 @@ const ExpressionToRequestMap: Dict<ExpressionToRequestConverter> = {
     };
   },
   findRelatedRecords(
-    expression: RecordQueryExpression,
-    requestProcessor: JSONAPIRequestProcessor
+    expression: RecordQueryExpression
   ): FindRelatedRecordsRequest {
     const exp = expression as FindRelatedRecords;
-    const request: FindRelatedRecordsRequest = {
+    const { filter, sort, page } = exp;
+    return {
       op: 'findRelatedRecords',
       record: cloneRecordIdentity(exp.record),
-      relationship: exp.relationship
+      relationship: exp.relationship,
+      options: { filter, sort, page }
     };
-    const options: JSONAPIRequestOptions = {};
-
-    if (exp.filter) {
-      options.filter = requestProcessor.urlBuilder.buildFilterParam(exp.filter);
-    }
-
-    if (exp.sort) {
-      options.sort = requestProcessor.urlBuilder.buildSortParam(exp.sort);
-    }
-
-    if (exp.page) {
-      options.page = requestProcessor.urlBuilder.buildPageParam(exp.page);
-    }
-
-    request.options = options;
-
-    return request;
   }
 };
 
@@ -186,10 +147,9 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
     request: RecordQueryRequest
   ): Promise<QueryRequestProcessorResponse> {
     const { record } = request as FindRecordRequest;
-    const options = request.options || {};
-    const settings = requestProcessor.buildFetchSettings(options);
+    const settings = requestProcessor.buildFetchSettings(request);
     const url =
-      options.url ||
+      request.options?.url ??
       requestProcessor.urlBuilder.resourceURL(record.type, record.id);
 
     const details = await requestProcessor.fetch(url, settings);
@@ -208,7 +168,7 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
 
       return { transforms, data: recordDoc.data, details };
     } else {
-      if (options?.raiseNotFoundExceptions) {
+      if (request.options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(record.type, record.id);
       }
       return { transforms: [] };
@@ -220,9 +180,9 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
     request: RecordQueryRequest
   ): Promise<QueryRequestProcessorResponse> {
     const { type } = request as FindRecordsRequest;
-    const options = request.options || {};
-    const settings = requestProcessor.buildFetchSettings(options);
-    const url = options.url || requestProcessor.urlBuilder.resourceURL(type);
+    const settings = requestProcessor.buildFetchSettings(request);
+    const url =
+      request.options?.url ?? requestProcessor.urlBuilder.resourceURL(type);
 
     const details = await requestProcessor.fetch(url, settings);
     const { document } = details;
@@ -249,10 +209,9 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
     request: RecordQueryRequest
   ): Promise<QueryRequestProcessorResponse> {
     const { record, relationship } = request as FindRelatedRecordRequest;
-    const options = request.options || {};
-    const settings = requestProcessor.buildFetchSettings(options);
+    const settings = requestProcessor.buildFetchSettings(request);
     const url =
-      options.url ||
+      request.options?.url ??
       requestProcessor.urlBuilder.relatedResourceURL(
         record.type,
         record.id,
@@ -282,7 +241,7 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
 
       return { transforms, data: relatedRecord, details };
     } else {
-      if (options?.raiseNotFoundExceptions) {
+      if (request.options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(record.type, record.id);
       }
       return { transforms: [] };
@@ -294,10 +253,9 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
     request: RecordQueryRequest
   ): Promise<QueryRequestProcessorResponse> {
     const { record, relationship } = request as FindRelatedRecordsRequest;
-    const options = request.options || {};
-    const settings = requestProcessor.buildFetchSettings(options);
+    const settings = requestProcessor.buildFetchSettings(request);
     const url =
-      options.url ||
+      request.options?.url ??
       requestProcessor.urlBuilder.relatedResourceURL(
         record.type,
         record.id,
@@ -319,10 +277,10 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
       );
 
       const partialSet =
-        options.partialSet ??
+        request.options?.partialSet ??
         !!(
-          options.filter ||
-          options.page ||
+          request.options?.filter ||
+          request.options?.page ||
           recordDoc.links?.next ||
           recordDoc.links?.prev
         );
@@ -348,7 +306,7 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
 
       return { transforms, data: relatedRecords, details };
     } else {
-      if (options?.raiseNotFoundExceptions) {
+      if (request.options?.raiseNotFoundExceptions) {
         throw new RecordNotFoundException(record.type, record.id);
       }
       return { transforms: [] };

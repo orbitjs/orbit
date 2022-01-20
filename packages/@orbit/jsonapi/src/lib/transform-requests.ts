@@ -103,19 +103,20 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     request: RecordTransformRequest
   ): Promise<TransformRequestProcessorResponse> {
     const { record } = request as AddRecordRequest;
-    const options = request.options || {};
     const serializer = requestProcessor.serializerFor(
       JSONAPISerializers.ResourceDocument
     ) as JSONAPIDocumentSerializer;
     const requestDoc = serializer.serialize({
       data: record
     }) as ResourceDocument;
-    const settings = requestProcessor.buildFetchSettings(options, {
+    const settings = {
+      ...requestProcessor.buildFetchSettings(request),
       method: 'POST',
       json: requestDoc
-    });
+    };
     const url =
-      options.url || requestProcessor.urlBuilder.resourceURL(record.type);
+      request.options?.url ??
+      requestProcessor.urlBuilder.resourceURL(record.type);
 
     const details = await requestProcessor.fetch(url, settings);
     const document = details.document as ResourceDocument;
@@ -132,13 +133,13 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     request: RecordTransformRequest
   ): Promise<TransformRequestProcessorResponse> {
     const { record } = request as RemoveRecordRequest;
-    const options = request.options || {};
     const { type, id } = record;
-    const settings = requestProcessor.buildFetchSettings(options, {
+    const settings = {
+      ...requestProcessor.buildFetchSettings(request),
       method: 'DELETE'
-    });
+    };
     const url =
-      options.url || requestProcessor.urlBuilder.resourceURL(type, id);
+      request.options?.url ?? requestProcessor.urlBuilder.resourceURL(type, id);
 
     const details = await requestProcessor.fetch(url, settings);
     return { transforms: [], data: record, details };
@@ -149,7 +150,6 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     request: RecordTransformRequest
   ): Promise<TransformRequestProcessorResponse> {
     const { record } = request as UpdateRecordRequest;
-    const options = request.options || {};
     const { type, id } = record;
     const serializer = requestProcessor.serializerFor(
       JSONAPISerializers.ResourceDocument
@@ -157,12 +157,13 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const requestDoc = serializer.serialize({
       data: record
     }) as ResourceDocument;
-    const settings = requestProcessor.buildFetchSettings(options, {
+    const settings = {
+      ...requestProcessor.buildFetchSettings(request),
       method: 'PATCH',
       json: requestDoc
-    });
+    };
     const url =
-      options.url || requestProcessor.urlBuilder.resourceURL(type, id);
+      request.options?.url ?? requestProcessor.urlBuilder.resourceURL(type, id);
 
     const details = await requestProcessor.fetch(url, settings);
     const { document } = details;
@@ -186,7 +187,6 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
       record,
       relatedRecords
     } = request as AddToRelatedRecordsRequest;
-    const options = request.options || {};
     const { type, id } = record;
     const resourceIdentitySerializer = requestProcessor.serializerFor(
       JSONAPISerializers.ResourceIdentity
@@ -194,12 +194,13 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const json = {
       data: relatedRecords.map((r) => resourceIdentitySerializer.serialize(r))
     };
-    const settings = requestProcessor.buildFetchSettings(options, {
+    const settings = {
+      ...requestProcessor.buildFetchSettings(request),
       method: 'POST',
       json
-    });
+    };
     const url =
-      options.url ||
+      request.options?.url ??
       requestProcessor.urlBuilder.resourceRelationshipURL(
         type,
         id,
@@ -219,7 +220,6 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
       record,
       relatedRecords
     } = request as RemoveFromRelatedRecordsRequest;
-    const options = request.options || {};
     const { type, id } = record;
     const resourceIdentitySerializer = requestProcessor.serializerFor(
       JSONAPISerializers.ResourceIdentity
@@ -227,12 +227,13 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const json = {
       data: relatedRecords.map((r) => resourceIdentitySerializer.serialize(r))
     };
-    const settings = requestProcessor.buildFetchSettings(options, {
+    const settings = {
+      ...requestProcessor.buildFetchSettings(request),
       method: 'DELETE',
       json
-    });
+    };
     const url =
-      options.url ||
+      request.options?.url ??
       requestProcessor.urlBuilder.resourceRelationshipURL(
         type,
         id,
@@ -252,7 +253,6 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
       relatedRecord,
       record
     } = request as ReplaceRelatedRecordRequest;
-    const options = request.options || {};
     const { type, id } = record;
     const resourceIdentitySerializer = requestProcessor.serializerFor(
       JSONAPISerializers.ResourceIdentity
@@ -262,12 +262,13 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
         ? resourceIdentitySerializer.serialize(relatedRecord)
         : null
     };
-    const settings = requestProcessor.buildFetchSettings(options, {
+    const settings = {
+      ...requestProcessor.buildFetchSettings(request),
       method: 'PATCH',
       json
-    });
+    };
     const url =
-      options.url ||
+      request.options?.url ??
       requestProcessor.urlBuilder.resourceRelationshipURL(
         type,
         id,
@@ -287,7 +288,6 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
       relatedRecords,
       record
     } = request as ReplaceRelatedRecordsRequest;
-    const options = request.options || {};
     const { type, id } = record;
     const resourceIdentitySerializer = requestProcessor.serializerFor(
       JSONAPISerializers.ResourceIdentity
@@ -295,12 +295,13 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     const json = {
       data: relatedRecords.map((r) => resourceIdentitySerializer.serialize(r))
     };
-    const settings = requestProcessor.buildFetchSettings(options, {
+    const settings = {
+      ...requestProcessor.buildFetchSettings(request),
       method: 'PATCH',
       json
-    });
+    };
     const url =
-      options.url ||
+      request.options?.url ??
       requestProcessor.urlBuilder.resourceRelationshipURL(
         type,
         id,
@@ -388,10 +389,13 @@ export function getTransformRequests(
     }
 
     if (request) {
-      let options = requestProcessor.customRequestOptions(transform, operation);
-      if (options) {
-        request.options = options;
-      }
+      const options = requestProcessor.mergeRequestOptions([
+        request.options,
+        transform.options,
+        operation.options
+      ]);
+      if (options) request.options = options;
+
       requests.push(request);
       prevRequest = request;
     }

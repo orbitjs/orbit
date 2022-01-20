@@ -45,6 +45,7 @@ export function buildJSONAPISerializerFor(settings: {
     [JSONAPISerializers.ResourceIdentity as string]: JSONAPIResourceIdentitySerializer as SerializerClass,
     [JSONAPISerializers.ResourceAtomicOperation as string]: JSONAPIAtomicOperationSerializer as SerializerClass,
     [JSONAPISerializers.ResourceType as string]: StringSerializer as SerializerClass,
+    [JSONAPISerializers.ResourceTypeParam as string]: StringSerializer as SerializerClass,
     [JSONAPISerializers.ResourceTypePath as string]: StringSerializer as SerializerClass,
     [JSONAPISerializers.ResourceField as string]: JSONAPIResourceFieldSerializer as SerializerClass,
     [JSONAPISerializers.ResourceFieldParam as string]: JSONAPIResourceFieldSerializer as SerializerClass,

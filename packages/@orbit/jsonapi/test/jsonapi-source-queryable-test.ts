@@ -662,6 +662,85 @@ module('JSONAPISource - queryable', function (hooks) {
       );
     });
 
+    test('#query - records with multiple attribute filters', async function (assert) {
+      assert.expect(4);
+
+      const data: Resource[] = [
+        {
+          type: 'planet',
+          attributes: {
+            name: 'Earth',
+            classification: 'terrestrial',
+            lengthOfDay: 24
+          }
+        }
+      ];
+
+      const value1 = encodeURIComponent('le:24');
+      const value2 = encodeURIComponent('ge:24');
+      const attribute = encodeURIComponent('filter[lengthOfDay]');
+      const expectedUrl = `/planets?${attribute}=${value1}&${attribute}=${value2}`;
+
+      fetchStub.withArgs(expectedUrl).returns(jsonapiResponse(200, { data }));
+
+      const records = await source.query<InitializedRecord[]>((q) =>
+        q
+          .findRecords('planet')
+          .filter(
+            { attribute: 'lengthOfDay', value: 'le:24' },
+            { attribute: 'lengthOfDay', value: 'ge:24' }
+          )
+      );
+
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 1, 'one objects in data returned');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
+    test('#query - records with filters specified as an option', async function (assert) {
+      assert.expect(4);
+
+      const data: Resource[] = [
+        {
+          type: 'planet',
+          attributes: {
+            name: 'Earth',
+            classification: 'terrestrial',
+            lengthOfDay: 24
+          }
+        }
+      ];
+
+      const value1 = encodeURIComponent('le:24');
+      const value2 = encodeURIComponent('ge:24');
+      const attribute = encodeURIComponent('filter[lengthOfDay]');
+      const expectedUrl = `/planets?${attribute}=${value1}&${attribute}=${value2}`;
+
+      fetchStub.withArgs(expectedUrl).returns(jsonapiResponse(200, { data }));
+
+      const records = await source.query<InitializedRecord[]>((q) =>
+        q.findRecords('planet').options({
+          filter: { lengthOfDay: ['le:24', 'ge:24'] }
+        })
+      );
+
+      assert.ok(Array.isArray(records), 'returned an array of data');
+      assert.equal(records.length, 1, 'one objects in data returned');
+
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        undefined,
+        'fetch called with no method (equivalent to GET)'
+      );
+    });
+
     test('#query - records with relatedRecord filter (single value)', async function (assert) {
       assert.expect(5);
 
@@ -2034,10 +2113,10 @@ module('JSONAPISource - queryable', function (hooks) {
 
       const startTime = new Date().getTime();
 
-      let [planets, moons] = (await source.query((q) => [
+      let [planets, moons] = await source.query<InitializedRecord[][]>((q) => [
         q.findRecords('planet'),
         q.findRecords('moon')
-      ])) as InitializedRecord[][];
+      ]);
 
       const endTime = new Date().getTime();
       const elapsedTime = endTime - startTime;

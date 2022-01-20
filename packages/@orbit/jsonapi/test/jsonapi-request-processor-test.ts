@@ -280,7 +280,7 @@ module('JSONAPIRequestProcessor', function (hooks) {
     );
   });
 
-  test('#customRequestOptions', function (assert) {
+  test('#mergeRequestOptions', function (assert) {
     const queryExpression: RecordQueryExpression = {
       op: 'findRecord',
       record: { type: 'planet', id: 'p1' },
@@ -288,7 +288,7 @@ module('JSONAPIRequestProcessor', function (hooks) {
         url: 'url2',
         sources: {
           foo: {
-            page: 'page2'
+            page: { kind: 'offsetLimit', offset: 2 }
           }
         }
       }
@@ -314,7 +314,7 @@ module('JSONAPIRequestProcessor', function (hooks) {
         url: 'url2',
         sources: {
           foo: {
-            page: 'page2'
+            page: { kind: 'offsetLimit', offset: 2 }
           }
         }
       }
@@ -334,17 +334,23 @@ module('JSONAPIRequestProcessor', function (hooks) {
       }
     };
 
-    assert.deepEqual(processor.customRequestOptions(query, queryExpression), {
-      sort: 'sort',
-      include: 'include',
-      page: 'page2',
-      url: 'url2'
-    });
-    assert.deepEqual(processor.customRequestOptions(transform, operation), {
-      sort: 'sort',
-      include: 'include',
-      page: 'page2',
-      url: 'url2'
-    });
+    assert.deepEqual(
+      processor.mergeRequestOptions([query.options, queryExpression.options]),
+      {
+        sort: 'sort',
+        include: 'include',
+        page: { kind: 'offsetLimit', offset: 2 },
+        url: 'url2'
+      }
+    );
+    assert.deepEqual(
+      processor.mergeRequestOptions([transform.options, operation.options]),
+      {
+        sort: 'sort',
+        include: 'include',
+        page: { kind: 'offsetLimit', offset: 2 },
+        url: 'url2'
+      }
+    );
   });
 });

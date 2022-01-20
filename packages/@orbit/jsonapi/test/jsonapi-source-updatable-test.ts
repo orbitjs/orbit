@@ -140,7 +140,7 @@ module('JSONAPISource - updatable', function (hooks) {
       );
     });
 
-    test('#update - can add sideloaded records', async function (assert) {
+    test('#update - handles included records sent from the server (without being requested via `include`)', async function (assert) {
       assert.expect(8);
 
       let transformCount = 0;
@@ -233,6 +233,132 @@ module('JSONAPISource - updatable', function (hooks) {
       );
 
       await source.update((t) => t.addRecord(planet));
+
+      assert.ok(true, 'transform resolves successfully');
+      assert.equal(fetchStub.callCount, 1, 'fetch called once');
+      assert.equal(
+        fetchStub.getCall(0).args[1].method,
+        'POST',
+        'fetch called with expected method'
+      );
+      assert.equal(
+        fetchStub.getCall(0).args[1].headers['Content-Type'],
+        'application/vnd.api+json',
+        'fetch called with expected content type'
+      );
+      assert.deepEqual(
+        JSON.parse(fetchStub.getCall(0).args[1].body),
+        {
+          data: {
+            type: 'planet',
+            attributes: {
+              name: 'Jupiter',
+              classification: 'gas giant'
+            }
+          }
+        },
+        'fetch called with expected data'
+      );
+    });
+
+    test('#update - can request included records to be sent from the server', async function (assert) {
+      assert.expect(8);
+
+      let transformCount = 0;
+
+      const planet: InitializedRecord = resourceSerializer.deserialize({
+        type: 'planet',
+        attributes: { name: 'Jupiter', classification: 'gas giant' }
+      });
+
+      const addPlanetOp: AddRecordOperation = {
+        op: 'addRecord',
+        record: {
+          type: 'planet',
+          id: planet.id,
+          attributes: {
+            name: 'Jupiter',
+            classification: 'gas giant'
+          }
+        }
+      };
+
+      const addPlanetRemoteIdOp: ReplaceKeyOperation = {
+        op: 'replaceKey',
+        record: { type: 'planet', id: planet.id },
+        key: 'remoteId',
+        value: '12345'
+      };
+
+      let addMoonOp = {
+        op: 'updateRecord',
+        record: {
+          type: 'moon',
+          keys: {
+            remoteId: '321'
+          },
+          attributes: {
+            name: 'Europa'
+          }
+        }
+      };
+
+      source.on('transform', (transform: RecordTransform) => {
+        transformCount++;
+
+        if (transformCount === 1) {
+          assert.deepEqual(
+            transform.operations,
+            {
+              ...addPlanetOp,
+              options: { include: 'moons' }
+            },
+            'transform event initially returns add-record op (plus options)'
+          );
+        } else if (transformCount === 2) {
+          // Remote ID is added as a separate operation
+          assert.deepEqual(
+            transform.operations,
+            [addPlanetRemoteIdOp],
+            'transform event then returns add-remote-id op'
+          );
+        } else if (transformCount === 3) {
+          let operationsWithoutId = toArray(transform.operations).map((op) => {
+            let clonedOp = Object.assign({}, op) as RecordOperation;
+            delete (clonedOp as any).record.id;
+            return clonedOp;
+          });
+          assert.deepEqual(
+            operationsWithoutId,
+            [addMoonOp as any],
+            'transform event to add included records'
+          );
+        }
+      });
+
+      fetchStub.withArgs('/planets?include=moons').returns(
+        jsonapiResponse(201, {
+          data: {
+            id: '12345',
+            type: 'planet',
+            attributes: { name: 'Jupiter', classification: 'gas giant' },
+            relationships: { moons: [{ id: '321', type: 'moon' }] }
+          },
+          included: [
+            {
+              id: '321',
+              type: 'moon',
+              attributes: {
+                name: 'Europa'
+              }
+            }
+          ]
+        })
+      );
+
+      await source.update((t) =>
+        t.addRecord(planet).options({ include: 'moons' })
+      );
 
       assert.ok(true, 'transform resolves successfully');
       assert.equal(fetchStub.callCount, 1, 'fetch called once');
