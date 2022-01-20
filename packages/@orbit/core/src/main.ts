@@ -1,6 +1,6 @@
 import { assert } from './assert';
 import { deprecate } from './deprecate';
-import { uuid } from '@orbit/utils';
+import { uuid as customRandomUUID } from '@orbit/utils';
 
 declare const self: any;
 declare const global: any;
@@ -26,6 +26,11 @@ const globals =
   (typeof self == 'object' && self.self === self && self) ||
   (typeof global == 'object' && global) ||
   {};
+
+const uuid =
+  globals.crypto?.randomUUID !== undefined
+    ? () => globals.crypto.randomUUID()
+    : customRandomUUID;
 
 export const Orbit: OrbitGlobal = {
   globals,
