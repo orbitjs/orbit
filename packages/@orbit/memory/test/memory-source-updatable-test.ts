@@ -121,7 +121,7 @@ module('MemorySource - updatable', function (hooks) {
         { raiseNotFoundExceptions: true }
       );
     } catch (e) {
-      assert.equal(e.message, 'Record not found: planet:jupiter');
+      assert.equal((e as Error).message, 'Record not found: planet:jupiter');
     }
   });
 

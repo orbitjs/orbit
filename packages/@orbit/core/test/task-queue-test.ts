@@ -316,7 +316,11 @@ module('TaskQueue', function () {
         data: op2
       })
       .catch((e) => {
-        assert.equal(e.message, ':(', 'error can be caught from `push`');
+        assert.equal(
+          (e as Error).message,
+          ':(',
+          'error can be caught from `push`'
+        );
       });
 
     queue
@@ -329,7 +333,11 @@ module('TaskQueue', function () {
       });
 
     return queue.process().catch((e) => {
-      assert.equal(e.message, ':(', 'error can be caught from `process`');
+      assert.equal(
+        (e as Error).message,
+        ':(',
+        'error can be caught from `process`'
+      );
       assert.equal(
         queue.empty,
         false,
@@ -404,7 +412,11 @@ module('TaskQueue', function () {
         data: op2
       })
       .catch((e) => {
-        assert.equal(e.message, ':(', 'error can be caught from `push`');
+        assert.equal(
+          (e as Error).message,
+          ':(',
+          'error can be caught from `push`'
+        );
       });
 
     queue
@@ -417,7 +429,11 @@ module('TaskQueue', function () {
       });
 
     return queue.process().catch((e) => {
-      assert.equal(e.message, ':(', 'error can be caught from `process`');
+      assert.equal(
+        (e as Error).message,
+        ':(',
+        'error can be caught from `process`'
+      );
       assert.equal(
         queue.empty,
         false,
@@ -723,7 +739,7 @@ module('TaskQueue', function () {
       await failedPush;
     } catch (e) {
       assert.equal(
-        e.message,
+        (e as Error).message,
         ':(',
         'failure message matches the processing error'
       );
@@ -769,7 +785,7 @@ module('TaskQueue', function () {
       await t1;
     } catch (e) {
       assert.equal(
-        e.message,
+        (e as Error).message,
         'Processing cancelled via `TaskQueue#skip`',
         'processing cancelled error raised'
       );
@@ -816,7 +832,11 @@ module('TaskQueue', function () {
     try {
       await t1;
     } catch (e) {
-      assert.equal(e.message, ':(', 'processing cancelled error raised');
+      assert.equal(
+        (e as Error).message,
+        ':(',
+        'processing cancelled error raised'
+      );
     }
 
     assert.equal(queue.length, 1, 'queue now has one member');
@@ -935,7 +955,7 @@ module('TaskQueue', function () {
       await failedPush;
     } catch (e) {
       assert.equal(
-        e.message,
+        (e as Error).message,
         ':(',
         'failure message matches the processing error'
       );
@@ -981,7 +1001,7 @@ module('TaskQueue', function () {
       await t1;
     } catch (e) {
       assert.equal(
-        e.message,
+        (e as Error).message,
         'Processing cancelled via `TaskQueue#shift`',
         'processing cancelled error raised'
       );
@@ -1028,7 +1048,11 @@ module('TaskQueue', function () {
     try {
       await t1;
     } catch (e) {
-      assert.equal(e.message, ':(', 'processing cancelled error raised');
+      assert.equal(
+        (e as Error).message,
+        ':(',
+        'processing cancelled error raised'
+      );
     }
 
     assert.equal(queue.length, 1, 'queue now has one member');
@@ -1230,7 +1254,7 @@ module('TaskQueue', function () {
       await t1;
     } catch (e) {
       assert.equal(
-        e.message,
+        (e as Error).message,
         'Processing cancelled via `TaskQueue#clear`',
         'processing cancelled error raised'
       );
@@ -1240,7 +1264,7 @@ module('TaskQueue', function () {
       await t2;
     } catch (e) {
       assert.equal(
-        e.message,
+        (e as Error).message,
         'Processing cancelled via `TaskQueue#clear`',
         'processing cancelled error raised'
       );
@@ -1287,13 +1311,21 @@ module('TaskQueue', function () {
     try {
       await t1;
     } catch (e) {
-      assert.equal(e.message, ':(', 'processing cancelled error raised');
+      assert.equal(
+        (e as Error).message,
+        ':(',
+        'processing cancelled error raised'
+      );
     }
 
     try {
       await t2;
     } catch (e) {
-      assert.equal(e.message, ':(', 'processing cancelled error raised');
+      assert.equal(
+        (e as Error).message,
+        ':(',
+        'processing cancelled error raised'
+      );
     }
 
     assert.ok(true, 'queue was cleared');

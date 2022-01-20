@@ -390,7 +390,7 @@ export class TaskQueue<
         }
       } catch (e) {
         if (resolution === this._resolution) {
-          return this._fail(task, e);
+          return this._fail(task, e as Error);
         }
       }
     }
