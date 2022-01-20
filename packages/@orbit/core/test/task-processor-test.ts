@@ -142,7 +142,11 @@ module('TaskProcessor', function () {
     try {
       await processor.settle();
     } catch (e) {
-      assert.equal(e.message, ':(', 'fail - error matches expectation');
+      assert.equal(
+        (e as Error).message,
+        ':(',
+        'fail - error matches expectation'
+      );
     }
 
     processor.reset();
@@ -173,7 +177,11 @@ module('TaskProcessor', function () {
     try {
       await processor.process();
     } catch (e) {
-      assert.equal(e.message, ':(', 'fail - error matches expectation');
+      assert.equal(
+        (e as Error).message,
+        ':(',
+        'fail - error matches expectation'
+      );
     }
 
     assert.ok(processor.started, 'processor started');
@@ -207,7 +215,7 @@ module('TaskProcessor', function () {
       processor.reject(new Error(':('));
     } catch (e) {
       assert.equal(
-        e.message,
+        (e as Error).message,
         'TaskProcessor#reject can not be invoked when processing has already settled.',
         'error matches expectation'
       );

@@ -239,9 +239,9 @@ module('@syncable', function (hooks) {
 
     try {
       await source.sync(addRecordTransform);
-    } catch (error) {
+    } catch (e) {
       assert.equal(++order, 3, 'promise resolved last');
-      assert.equal(error.message, ':(', 'failure');
+      assert.equal((e as Error).message, ':(', 'failure');
     }
   });
 
