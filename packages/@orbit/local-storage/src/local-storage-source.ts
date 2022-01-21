@@ -115,16 +115,12 @@ export class LocalStorageSource<
       settings.cacheSettings ?? {};
     cacheSettings.schema = settings.schema;
     cacheSettings.keyMap = settings.keyMap;
-    cacheSettings.queryBuilder =
-      cacheSettings.queryBuilder ?? this.queryBuilder;
-    cacheSettings.transformBuilder =
-      cacheSettings.transformBuilder ?? this.transformBuilder;
-    cacheSettings.defaultQueryOptions =
-      cacheSettings.defaultQueryOptions ?? settings.defaultQueryOptions;
-    cacheSettings.defaultTransformOptions =
-      cacheSettings.defaultTransformOptions ?? settings.defaultTransformOptions;
-    cacheSettings.namespace = cacheSettings.namespace ?? settings.namespace;
-    cacheSettings.delimiter = cacheSettings.delimiter ?? settings.delimiter;
+    cacheSettings.queryBuilder ??= this.queryBuilder;
+    cacheSettings.transformBuilder ??= this.transformBuilder;
+    cacheSettings.defaultQueryOptions ??= settings.defaultQueryOptions;
+    cacheSettings.defaultTransformOptions ??= settings.defaultTransformOptions;
+    cacheSettings.namespace ??= settings.namespace;
+    cacheSettings.delimiter ??= settings.delimiter;
 
     if (
       cacheSettings.validatorFor === undefined &&
