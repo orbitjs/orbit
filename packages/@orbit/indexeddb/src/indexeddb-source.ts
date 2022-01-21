@@ -111,15 +111,11 @@ export class IndexedDBSource<
       settings.cacheSettings ?? {};
     cacheSettings.schema = settings.schema;
     cacheSettings.keyMap = settings.keyMap;
-    cacheSettings.queryBuilder =
-      cacheSettings.queryBuilder ?? this.queryBuilder;
-    cacheSettings.transformBuilder =
-      cacheSettings.transformBuilder ?? this.transformBuilder;
-    cacheSettings.namespace = cacheSettings.namespace ?? settings.namespace;
-    cacheSettings.defaultQueryOptions =
-      cacheSettings.defaultQueryOptions ?? settings.defaultQueryOptions;
-    cacheSettings.defaultTransformOptions =
-      cacheSettings.defaultTransformOptions ?? settings.defaultTransformOptions;
+    cacheSettings.queryBuilder ??= this.queryBuilder;
+    cacheSettings.transformBuilder ??= this.transformBuilder;
+    cacheSettings.defaultQueryOptions ??= settings.defaultQueryOptions;
+    cacheSettings.defaultTransformOptions ??= settings.defaultTransformOptions;
+    cacheSettings.namespace ??= settings.namespace;
 
     if (
       cacheSettings.validatorFor === undefined &&
