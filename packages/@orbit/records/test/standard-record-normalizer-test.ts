@@ -62,24 +62,10 @@ module('StandardRecordNormalizer', function (hooks) {
     assert.ok(normalizer);
   });
 
-  test('has default settings, some dependent on debug mode', function (assert) {
-    assert.ok(Orbit.debug, 'debug mode');
+  test('has default settings', function (assert) {
     normalizer = new StandardRecordNormalizer({ schema });
-    assert.ok(normalizer.validateInputs, 'validateInputs = true in debug mode');
-    assert.notOk(normalizer.cloneInputs, 'cloneInputs = false by default');
-
-    // temporarily change debug mode
-    Orbit.debug = false;
-
-    normalizer = new StandardRecordNormalizer({ schema });
-    assert.notOk(
-      normalizer.validateInputs,
-      'validateInputs = false when not in debug mode'
-    );
-    assert.notOk(normalizer.cloneInputs, 'cloneInputs = false by default');
-
-    // reset global debug mode
-    Orbit.debug = true;
+    assert.notOk(normalizer.validateInputs, 'validateInputs defaults to false');
+    assert.notOk(normalizer.cloneInputs, 'cloneInputs defaults to false');
   });
 
   test('#normalizeRecordType will return a string unmodified by default', function (assert) {

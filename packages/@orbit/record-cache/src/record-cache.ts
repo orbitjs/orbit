@@ -43,6 +43,18 @@ export interface RecordCacheSettings<
   normalizer?: RecordNormalizer;
   validatorFor?: ValidatorForFn<StandardValidator | StandardRecordValidator>;
   validators?: Dict<StandardValidator | StandardRecordValidator>;
+
+  /**
+   * Automatically validate the contents of all requests.
+   *
+   * If true, builds a `validatorFor` function if one has not been provided.
+   * This will include standard validators as well as any custom `validators`
+   * that may be provided.
+   *
+   * @default true
+   */
+  autoValidate?: boolean;
+
   queryBuilder?: QueryBuilder;
   transformBuilder?: TransformBuilder;
   defaultQueryOptions?: DefaultRequestOptions<QueryOptions>;
@@ -90,14 +102,22 @@ export abstract class RecordCache<
     this._keyMap = keyMap;
 
     let { validatorFor, validators } = settings;
-    if (validatorFor) {
+    const autoValidate = settings.autoValidate !== false;
+
+    if (!autoValidate) {
+      assert(
+        'RecordCache should not be constructed with a `validatorFor` or `validators` if `autoValidate === false`',
+        validators === undefined && validatorFor === undefined
+      );
+    } else if (validatorFor !== undefined) {
       assert(
         'RecordCache can be constructed with either a `validatorFor` or `validators`, but not both',
         validators === undefined
       );
-    } else if (Orbit.debug || validators !== undefined) {
+    } else {
       validatorFor = buildRecordValidatorFor({ validators });
     }
+
     this._validatorFor = validatorFor;
 
     if (
@@ -109,7 +129,8 @@ export abstract class RecordCache<
       if (normalizer === undefined) {
         normalizer = new StandardRecordNormalizer({
           schema,
-          keyMap
+          keyMap,
+          validateInputs: autoValidate
         });
       }
 

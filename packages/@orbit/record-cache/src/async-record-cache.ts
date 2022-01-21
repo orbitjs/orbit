@@ -114,7 +114,7 @@ export abstract class AsyncRecordCache<
       ? settings.processors
       : [AsyncSchemaConsistencyProcessor, AsyncCacheIntegrityProcessor];
 
-    if (Orbit.debug && settings.processors === undefined) {
+    if (settings.autoValidate !== false && settings.processors === undefined) {
       processors.push(AsyncSchemaValidationProcessor);
     }
 

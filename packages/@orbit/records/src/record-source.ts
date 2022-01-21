@@ -31,8 +31,36 @@ export interface RecordSourceSettings<
   schema: RecordSchema;
   keyMap?: RecordKeyMap;
   normalizer?: RecordNormalizer;
+
+  /**
+   * A completely custom set of validators.
+   */
   validatorFor?: ValidatorForFn<StandardValidator | StandardRecordValidator>;
+
+  /**
+   * Custom validators to override, and be merged with, the standard ones which
+   * will be built as long as `autoValidate !== false`.
+   */
   validators?: Dict<StandardValidator | StandardRecordValidator>;
+
+  /**
+   * Automatically validate the contents of all requests.
+   *
+   * If true, builds a `validatorFor` function if one has not been provided.
+   * This will include standard validators as well as any custom `validators`
+   * that may be provided.
+   *
+   * @default true
+   */
+  autoValidate?: boolean;
+
+  /**
+   * Automatically upgrade this source whenever its schema is upgraded.
+   *
+   * Override the `upgrade` method to provide an upgrade implementation.
+   *
+   * @default true
+   */
   autoUpgrade?: boolean;
 }
 
@@ -69,12 +97,19 @@ export abstract class RecordSource<
     const { schema } = settings;
     let { validatorFor, validators } = settings;
 
-    if (validatorFor) {
+    const autoValidate = settings.autoValidate !== false;
+
+    if (!autoValidate) {
+      assert(
+        'RecordSource should not be constructed with a `validatorFor` or `validators` if `autoValidate === false`',
+        validators === undefined && validatorFor === undefined
+      );
+    } else if (validatorFor !== undefined) {
       assert(
         'RecordSource can be constructed with either a `validatorFor` or `validators`, but not both',
         validators === undefined
       );
-    } else if (Orbit.debug || validators !== undefined) {
+    } else {
       validatorFor = buildRecordValidatorFor({ validators });
     }
 
@@ -92,7 +127,8 @@ export abstract class RecordSource<
       if (normalizer === undefined) {
         normalizer = new StandardRecordNormalizer({
           schema,
-          keyMap: settings.keyMap
+          keyMap: settings.keyMap,
+          validateInputs: autoValidate
         });
       }
 

@@ -36,14 +36,7 @@ module('Source', function (hooks) {
     assert.ok(true, 'after upgrade');
   });
 
-  test('it will be assigned a transformBuilder and queryBuilder by default', async function (assert) {
-    source = new MySource({ schema });
-
-    assert.ok(source.queryBuilder, 'queryBuilder has been created');
-    assert.ok(source.transformBuilder, 'transformBuilder has been created');
-  });
-
-  test('it will not be auto-upgraded if autoUpgrade: false option is specified', function (assert) {
+  test('it will not be auto-upgraded if autoUpgrade: false setting is specified', function (assert) {
     assert.expect(1);
 
     class MyDynamicSource extends RecordSource {
@@ -55,6 +48,48 @@ module('Source', function (hooks) {
     source = new MyDynamicSource({ schema, autoUpgrade: false });
     schema.upgrade({});
     assert.ok(true, 'after upgrade');
+  });
+
+  test('it will create a validatorFor, transformBuilder, and queryBuilder by default', async function (assert) {
+    source = new MySource({ schema });
+
+    assert.ok(source.validatorFor, 'validatorFor has been created');
+    assert.ok(source.queryBuilder, 'queryBuilder has been created');
+    assert.ok(
+      source.queryBuilder.$normalizer,
+      'normalizer has been created for queryBuilder'
+    );
+    assert.ok(
+      source.queryBuilder.$normalizer.validateInputs,
+      'normalizer will validate inputs'
+    );
+    assert.ok(source.transformBuilder, 'transformBuilder has been created');
+    assert.strictEqual(
+      source.queryBuilder.$normalizer,
+      source.transformBuilder.$normalizer,
+      'normalizer is the same for transformBuilder'
+    );
+  });
+
+  test('it will NOT be assigned a validatorFor function if autoValidate: false is specified', async function (assert) {
+    source = new MySource({ schema, autoValidate: false });
+
+    assert.notOk(source.validatorFor, 'validatorFor has NOT been created');
+    assert.ok(source.queryBuilder, 'queryBuilder has been created');
+    assert.ok(
+      source.queryBuilder.$normalizer,
+      'normalizer has been created for queryBuilder'
+    );
+    assert.notOk(
+      source.queryBuilder.$normalizer.validateInputs,
+      'normalizer will NOT validate inputs'
+    );
+    assert.ok(source.transformBuilder, 'transformBuilder has been created');
+    assert.strictEqual(
+      source.queryBuilder.$normalizer,
+      source.transformBuilder.$normalizer,
+      'normalizer is the same for transformBuilder'
+    );
   });
 
   test('creates a `transformLog`, `requestQueue`, and `syncQueue`, and assigns each the same bucket as the Source', function (assert) {
