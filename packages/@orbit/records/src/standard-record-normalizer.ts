@@ -45,11 +45,7 @@ export class StandardRecordNormalizer
     this.schema = schema;
     this.keyMap = keyMap;
     this.cloneInputs = cloneInputs;
-    if (validateInputs === undefined) {
-      this.validateInputs = Orbit.debug ? true : false;
-    } else {
-      this.validateInputs = validateInputs;
-    }
+    this.validateInputs = validateInputs;
   }
 
   normalizeRecordType(type: string): string {
