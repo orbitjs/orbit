@@ -81,6 +81,18 @@ export class IndexedDBCache<
   constructor(settings: IndexedDBCacheSettings<QO, TO, QB, TB>) {
     assert('Your browser does not support IndexedDB!', supportsIndexedDB());
 
+    if (
+      Orbit.debug &&
+      settings.defaultTransformOptions?.useBuffer === undefined
+    ) {
+      console.warn(
+        'IndexedDBCache will perform much better when it buffers bulk writes to IndexedDB. ' +
+          'To enable buffered writes, configure IndexedDBSource or IndexedDBCache with `{ defaultTransformOptions: { useBuffer: true } }`. ' +
+          'The only known transforms which are not fully handled by buffered writes are cascading (> 1 level of) dependent deletes. ' +
+          '(To hide this warning set `Orbit.debug = false` or set the `useBuffer` default explicitly to `true` or `false`.)'
+      );
+    }
+
     super(settings);
 
     this._namespace = settings.namespace || 'orbit';
