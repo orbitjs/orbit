@@ -1,5 +1,58 @@
 # Changelog
 
+## v0.17.0-beta.26 (2022-01-22)
+
+#### :boom: Breaking Change
+
+- `@orbit/record-cache`, `@orbit/records`
+  - [#915](https://github.com/orbitjs/orbit/pull/915) Introduce autoValidate setting for RecordCache and RecordSource ([@dgeb](https://github.com/dgeb))
+- `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/jsonapi`, `@orbit/records`
+  - [#905](https://github.com/orbitjs/orbit/pull/905) Exception refactoring ([@dgeb](https://github.com/dgeb))
+
+#### :rocket: Enhancement
+
+- `@orbit/indexeddb`
+  - [#916](https://github.com/orbitjs/orbit/pull/916) Encourage use of `useBuffer: true` for improved IndexedDB write performance ([@dgeb](https://github.com/dgeb))
+- `@orbit/record-cache`, `@orbit/records`
+  - [#915](https://github.com/orbitjs/orbit/pull/915) Introduce autoValidate setting for RecordCache and RecordSource ([@dgeb](https://github.com/dgeb))
+- `@orbit/core`
+  - [#913](https://github.com/orbitjs/orbit/pull/913) Use crypto.randomUUID by default for Orbit.uuid ([@dgeb](https://github.com/dgeb))
+- `@orbit/build`, `@orbit/core`, `@orbit/data`, `@orbit/indexeddb`, `@orbit/jsonapi`, `@orbit/local-storage`, `@orbit/memory`
+  - [#911](https://github.com/orbitjs/orbit/pull/911) Improve building of JSONAPI fetch params ([@dgeb](https://github.com/dgeb))
+- `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/jsonapi`, `@orbit/records`
+  - [#905](https://github.com/orbitjs/orbit/pull/905) Exception refactoring ([@dgeb](https://github.com/dgeb))
+- `@orbit/record-cache`, `@orbit/records`, `@orbit/validators`
+  - [#896](https://github.com/orbitjs/orbit/pull/896) Expand validation error descriptions ([@dgeb](https://github.com/dgeb))
+
+#### :memo: Documentation
+
+- `@orbit/records`
+  - [#919](https://github.com/orbitjs/orbit/pull/919) Mark KeyDefinition#primaryKey deprecated ([@dgeb](https://github.com/dgeb))
+- Other
+  - [#909](https://github.com/orbitjs/orbit/pull/909) Update grammar/spelling on live query section ([@bradjones1](https://github.com/bradjones1))
+  - [#895](https://github.com/orbitjs/orbit/pull/895) [Docs] Update "Relationship filtering" section in querying docs ([@bradjones1](https://github.com/bradjones1))
+
+#### :house: Internal
+
+- Other
+  - [#918](https://github.com/orbitjs/orbit/pull/918) Bump nanoid from 3.1.23 to 3.2.0 in /website ([@dependabot[bot]](https://github.com/apps/dependabot))
+  - [#912](https://github.com/orbitjs/orbit/pull/912) Bump trim-off-newlines from 1.0.1 to 1.0.3 ([@dependabot[bot]](https://github.com/apps/dependabot))
+  - [#906](https://github.com/orbitjs/orbit/pull/906) Bump follow-redirects from 1.12.1 to 1.14.7 ([@dependabot[bot]](https://github.com/apps/dependabot))
+  - [#907](https://github.com/orbitjs/orbit/pull/907) Bump shelljs from 0.8.4 to 0.8.5 in /website ([@dependabot[bot]](https://github.com/apps/dependabot))
+  - [#908](https://github.com/orbitjs/orbit/pull/908) Bump follow-redirects from 1.14.6 to 1.14.7 in /website ([@dependabot[bot]](https://github.com/apps/dependabot))
+  - [#898](https://github.com/orbitjs/orbit/pull/898) Bump axios from 0.21.1 to 0.21.4 in /website ([@dependabot[bot]](https://github.com/apps/dependabot))
+  - [#899](https://github.com/orbitjs/orbit/pull/899) Bump prismjs from 1.24.1 to 1.25.0 in /website ([@dependabot[bot]](https://github.com/apps/dependabot))
+  - [#900](https://github.com/orbitjs/orbit/pull/900) Update docusaurus to latest 2.0.0-beta.14 [website] ([@dgeb](https://github.com/dgeb))
+  - [#894](https://github.com/orbitjs/orbit/pull/894) Bump algoliasearch-helper from 3.5.4 to 3.6.2 in /website ([@dependabot[bot]](https://github.com/apps/dependabot))
+  - [#888](https://github.com/orbitjs/orbit/pull/888) Bump tar from 4.4.15 to 4.4.19 ([@dependabot[bot]](https://github.com/apps/dependabot))
+- `@orbit/indexeddb`, `@orbit/local-storage`
+  - [#917](https://github.com/orbitjs/orbit/pull/917) Streamline syntax for processing of settings ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 2
+
+- Brad Jones ([@bradjones1](https://github.com/bradjones1))
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.25 (2021-08-12)
 
 #### :rocket: Enhancement
