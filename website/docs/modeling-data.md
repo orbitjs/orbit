@@ -192,7 +192,7 @@ Two kind of relationships between models are allowed:
 
 Relationships must define the related `type` and may optionally define their
 `inverse`, which should correspond to the name of a relationship on the related
-model. Multiple values may be expressed as elements of an array.
+model. Multiple `type` values may be expressed as elements of an array.
 
 Inverse relationships should be defined when relationships must be kept
 synchronized, so that adding or removing a relationship on the primary model
