@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.17.0-beta.28 (2022-01-30)
+
+#### :bug: Bug Fix
+
+- `@orbit/memory`
+  - [#923](https://github.com/orbitjs/orbit/pull/923) Fix autoValidate: false setting to work for forks ([@dgeb](https://github.com/dgeb))
+
+#### :house: Internal
+
+- [#922](https://github.com/orbitjs/orbit/pull/922) Bump node-fetch from 2.6.1 to 2.6.7 ([@dependabot[bot]](https://github.com/apps/dependabot))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.27 (2022-01-30)
 
 #### :bug: Bug Fix
