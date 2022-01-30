@@ -116,8 +116,10 @@ export class IndexedDBSource<
     cacheSettings.defaultQueryOptions ??= settings.defaultQueryOptions;
     cacheSettings.defaultTransformOptions ??= settings.defaultTransformOptions;
     cacheSettings.namespace ??= settings.namespace;
+    cacheSettings.autoValidate ??= settings.autoValidate;
 
     if (
+      cacheSettings.autoValidate !== false &&
       cacheSettings.validatorFor === undefined &&
       cacheSettings.validators === undefined
     ) {

@@ -121,8 +121,10 @@ export class LocalStorageSource<
     cacheSettings.defaultTransformOptions ??= settings.defaultTransformOptions;
     cacheSettings.namespace ??= settings.namespace;
     cacheSettings.delimiter ??= settings.delimiter;
+    cacheSettings.autoValidate ??= settings.autoValidate;
 
     if (
+      cacheSettings.autoValidate !== false &&
       cacheSettings.validatorFor === undefined &&
       cacheSettings.validators === undefined
     ) {

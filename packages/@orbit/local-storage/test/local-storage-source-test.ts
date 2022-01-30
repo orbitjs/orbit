@@ -176,6 +176,25 @@ module('LocalStorageSource', function (hooks) {
     );
   });
 
+  test('will not create a `validatorFor` fn if `autoValidate: false`', function (assert) {
+    const source = new LocalStorageSource({
+      schema,
+      keyMap,
+      autoActivate: false,
+      autoValidate: false
+    });
+    assert.strictEqual(
+      source.validatorFor,
+      undefined,
+      'validatorFor is undefined'
+    );
+    assert.strictEqual(
+      source.cache.validatorFor,
+      undefined,
+      'cache.validatorFor is undefined'
+    );
+  });
+
   test('#getKeyForRecord returns the local storage key that will be used for a record', function (assert) {
     assert.equal(
       source.getKeyForRecord({ type: 'planet', id: 'jupiter' }),

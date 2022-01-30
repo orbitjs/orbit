@@ -122,8 +122,10 @@ export class MemorySource<
     cacheSettings.transformBuilder ??= this.transformBuilder;
     cacheSettings.defaultQueryOptions ??= this.defaultQueryOptions;
     cacheSettings.defaultTransformOptions ??= this.defaultTransformOptions;
+    cacheSettings.autoValidate ??= settings.autoValidate;
 
     if (
+      cacheSettings.autoValidate !== false &&
       cacheSettings.validatorFor === undefined &&
       cacheSettings.validators === undefined
     ) {
@@ -278,9 +280,15 @@ export class MemorySource<
     // customizable settings
     settings.queryBuilder ??= this._queryBuilder;
     settings.transformBuilder ??= this._transformBuilder;
-    settings.validatorFor ??= this._validatorFor;
     settings.defaultQueryOptions ??= this._defaultQueryOptions;
     settings.defaultTransformOptions ??= this._defaultTransformOptions;
+    settings.validatorFor ??= this._validatorFor;
+    if (
+      settings.autoValidate === undefined &&
+      settings.validatorFor === undefined
+    ) {
+      settings.autoValidate = false;
+    }
 
     return new MemorySource<QO, TO, QB, TB, QRD, TRD>(
       settings as MemorySourceSettings<QO, TO, QB, TB, QRD, TRD>

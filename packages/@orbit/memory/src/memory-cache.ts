@@ -126,9 +126,15 @@ export class MemoryCache<
     // customizable settings
     settings.queryBuilder ??= this._queryBuilder;
     settings.transformBuilder ??= this._transformBuilder;
-    settings.validatorFor ??= this._validatorFor;
     settings.defaultQueryOptions ??= this._defaultQueryOptions;
     settings.defaultTransformOptions ??= this._defaultTransformOptions;
+    settings.validatorFor ??= this._validatorFor;
+    if (
+      settings.autoValidate === undefined &&
+      settings.validatorFor === undefined
+    ) {
+      settings.autoValidate = false;
+    }
 
     return new MemoryCache(
       settings as MemoryCacheSettings<QO, TO, QB, TB, QRD, TRD>
