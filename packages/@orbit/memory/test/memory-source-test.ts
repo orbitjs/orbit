@@ -204,6 +204,20 @@ module('MemorySource', function (hooks) {
     );
   });
 
+  test('will not create a `validatorFor` fn if `autoValidate: false`', function (assert) {
+    const source = new MemorySource({ schema, keyMap, autoValidate: false });
+    assert.strictEqual(
+      source.validatorFor,
+      undefined,
+      'validatorFor is undefined'
+    );
+    assert.strictEqual(
+      source.cache.validatorFor,
+      undefined,
+      'cache.validatorFor is undefined'
+    );
+  });
+
   test('#sync - appends transform to log', async function (assert) {
     const source = new MemorySource({ schema, keyMap });
     const recordA = {
@@ -499,6 +513,34 @@ module('MemorySource', function (hooks) {
       fork.base,
       source,
       'base source is set on the forked source'
+    );
+  });
+
+  test('#fork - skips creating validatorFor if none is set for the base source', async function (assert) {
+    const source = new MemorySource({ schema, keyMap, autoValidate: false });
+
+    assert.strictEqual(
+      source.validatorFor,
+      undefined,
+      'source.validatorFor is undefined'
+    );
+    assert.strictEqual(
+      source.cache.validatorFor,
+      undefined,
+      'source.cache.validatorFor is undefined'
+    );
+
+    const fork = source.fork();
+
+    assert.strictEqual(
+      fork.validatorFor,
+      undefined,
+      'fork.validatorFor is undefined'
+    );
+    assert.strictEqual(
+      fork.cache.validatorFor,
+      undefined,
+      'fork.cache.validatorFor is undefined'
     );
   });
 

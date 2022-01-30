@@ -185,6 +185,25 @@ module('IndexedDBSource', function (hooks) {
     );
   });
 
+  test('will not create a `validatorFor` fn if `autoValidate: false`', function (assert) {
+    const source = new IndexedDBSource({
+      schema,
+      keyMap,
+      autoActivate: false,
+      autoValidate: false
+    });
+    assert.strictEqual(
+      source.validatorFor,
+      undefined,
+      'validatorFor is undefined'
+    );
+    assert.strictEqual(
+      source.cache.validatorFor,
+      undefined,
+      'cache.validatorFor is undefined'
+    );
+  });
+
   module('activated', function (hooks) {
     hooks.beforeEach(async () => {
       source = new IndexedDBSource({ schema, keyMap });

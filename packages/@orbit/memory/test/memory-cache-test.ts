@@ -69,6 +69,15 @@ module('MemoryCache', function (hooks) {
     assert.ok(cache.transformBuilder, 'transformBuilder has been instantiated');
   });
 
+  test('will not create a `validatorFor` fn if `autoValidate: false`', function (assert) {
+    let cache = new MemoryCache({ schema, autoValidate: false });
+    assert.strictEqual(
+      cache.validatorFor,
+      undefined,
+      'cache.validatorFor is undefined'
+    );
+  });
+
   test('will track update operations by default if a `base` cache is passed', function (assert) {
     let base = new MemoryCache({ schema });
     assert.strictEqual(base.base, undefined, 'base.base is undefined');
@@ -2617,6 +2626,24 @@ module('MemoryCache', function (hooks) {
       fork.base,
       cache,
       'base cache is set on the forked cache'
+    );
+  });
+
+  test('#fork - skips creating validatorFor if none is set for the base source', async function (assert) {
+    const cache = new MemoryCache({ schema, keyMap, autoValidate: false });
+
+    assert.strictEqual(
+      cache.validatorFor,
+      undefined,
+      'cache.validatorFor is undefined'
+    );
+
+    const fork = cache.fork();
+
+    assert.strictEqual(
+      fork.validatorFor,
+      undefined,
+      'fork.validatorFor is undefined'
     );
   });
 
