@@ -544,6 +544,34 @@ module('MemorySource', function (hooks) {
     );
   });
 
+  test('#fork - can have different settings from the base source', async function (assert) {
+    const source = new MemorySource({ schema, keyMap });
+
+    assert.notStrictEqual(
+      source.validatorFor,
+      undefined,
+      'source.validatorFor is defined'
+    );
+    assert.notStrictEqual(
+      source.cache.validatorFor,
+      undefined,
+      'source.cache.validatorFor is defined'
+    );
+
+    const fork = source.fork({ autoValidate: false });
+
+    assert.strictEqual(
+      fork.validatorFor,
+      undefined,
+      'fork.validatorFor is undefined'
+    );
+    assert.strictEqual(
+      fork.cache.validatorFor,
+      undefined,
+      'fork.cache.validatorFor is undefined'
+    );
+  });
+
   test('#merge - merges changes from a forked source back into a base source', async function (assert) {
     const source = new MemorySource({ schema, keyMap });
 

@@ -2629,7 +2629,7 @@ module('MemoryCache', function (hooks) {
     );
   });
 
-  test('#fork - skips creating validatorFor if none is set for the base source', async function (assert) {
+  test('#fork - skips creating validatorFor if none is set for the base cache', async function (assert) {
     const cache = new MemoryCache({ schema, keyMap, autoValidate: false });
 
     assert.strictEqual(
@@ -2639,6 +2639,24 @@ module('MemoryCache', function (hooks) {
     );
 
     const fork = cache.fork();
+
+    assert.strictEqual(
+      fork.validatorFor,
+      undefined,
+      'fork.validatorFor is undefined'
+    );
+  });
+
+  test('#fork - can have different settings from the base cache', async function (assert) {
+    const cache = new MemoryCache({ schema, keyMap });
+
+    assert.notStrictEqual(
+      cache.validatorFor,
+      undefined,
+      'cache.validatorFor is defined'
+    );
+
+    const fork = cache.fork({ autoValidate: false });
 
     assert.strictEqual(
       fork.validatorFor,

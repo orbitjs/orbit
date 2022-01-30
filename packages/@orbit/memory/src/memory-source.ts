@@ -282,12 +282,14 @@ export class MemorySource<
     settings.transformBuilder ??= this._transformBuilder;
     settings.defaultQueryOptions ??= this._defaultQueryOptions;
     settings.defaultTransformOptions ??= this._defaultTransformOptions;
-    settings.validatorFor ??= this._validatorFor;
-    if (
-      settings.autoValidate === undefined &&
-      settings.validatorFor === undefined
-    ) {
-      settings.autoValidate = false;
+    if (settings.autoValidate !== false) {
+      settings.validatorFor ??= this._validatorFor;
+      if (
+        settings.autoValidate === undefined &&
+        settings.validatorFor === undefined
+      ) {
+        settings.autoValidate = false;
+      }
     }
 
     return new MemorySource<QO, TO, QB, TB, QRD, TRD>(
