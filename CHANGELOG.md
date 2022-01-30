@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.17.0-beta.27 (2022-01-30)
+
+#### :bug: Bug Fix
+
+- `@orbit/indexeddb`, `@orbit/local-storage`, `@orbit/memory`
+  - [#921](https://github.com/orbitjs/orbit/pull/921) Ensure that validator settings are properly transferred to caches and forks ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 2
+
+- Brad Jones ([@bradjones1](https://github.com/bradjones1))
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.26 (2022-01-22)
 
 #### :boom: Breaking Change
