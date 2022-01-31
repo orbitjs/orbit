@@ -419,6 +419,12 @@ module.exports = {
       '@docusaurus/preset-classic',
       {
         docs: {
+          lastVersion: 'current',
+          versions: {
+            current: {
+              label: '0.17'
+            }
+          },
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl: 'https://github.com/orbitjs/orbit/edit/main/website/'
         },

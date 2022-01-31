@@ -13,7 +13,7 @@ Schemas are used to define the models and relationships for an application.
 
 Let's start by defining a schema for our solar system's data:
 
-```javascript
+```typescript
 import { RecordSchema } from '@orbit/records';
 
 const schema = new RecordSchema({
@@ -54,7 +54,7 @@ schema.
 
 Let's create an in-memory source as our first data source:
 
-```javascript
+```typescript
 import { MemorySource } from '@orbit/memory';
 
 const memory = new MemorySource({ schema });
@@ -64,7 +64,7 @@ const memory = new MemorySource({ schema });
 
 We can now load some data into our memory source and then query its contents:
 
-```javascript
+```typescript
 const earth = {
   type: 'planet',
   id: 'earth',
@@ -108,7 +108,7 @@ console.log(planets);
 
 The following output should be logged:
 
-```javascript
+```typescript
 [
   {
     type: 'planet',
@@ -156,7 +156,7 @@ to the memory source's cache passes through a schema consistency check.
 
 Let's look at how the memory source is queried:
 
-```javascript
+```typescript
 let planets = await memory.query((q) => q.findRecords('planet').sort('name'));
 ```
 
@@ -170,7 +170,7 @@ involved).
 
 Here's an example of a more complex query that filters, sorts, and paginates:
 
-```javascript
+```typescript
 let planets = await memory.query((q) =>
   q
     .findRecords('planet')
@@ -188,7 +188,7 @@ In fact, if you want to just "peek" into the contents of the memory source,
 you can issue the same queries synchronously against the memory source's `Cache`.
 For example:
 
-```javascript
+```typescript
 // Results will be returned synchronously by querying the cache
 let planets = memory.cache.query((q) => q.findRecords('planet').sort('name'));
 ```
@@ -209,7 +209,7 @@ whole planet or moon! 😱
 
 Let's create a browser storage source to keep data around locally:
 
-```javascript
+```typescript
 import { IndexedDBSource } from '@orbit/indexeddb';
 
 const backup = new IndexedDBSource({
@@ -224,7 +224,7 @@ const backup = new IndexedDBSource({
 Every time a source is transformed, it emits a `transform` event. It's simple
 to observe these events directly:
 
-```javascript
+```typescript
 memory.on('transform', (transform) => {
   console.log(transform);
 });
@@ -233,7 +233,7 @@ memory.on('transform', (transform) => {
 It's possible to pipe changes that occur in one source into another via the
 `sync` method:
 
-```javascript
+```typescript
 memory.on('transform', (transform) => {
   backup.sync(transform);
 });
@@ -244,7 +244,7 @@ promise. If we want to guarantee that transforms can't be applied to our memory
 source without also being backed up, we should return the promise in the event
 handler:
 
-```javascript
+```typescript
 memory.on('transform', (transform) => {
   return backup.sync(transform);
 });
@@ -252,7 +252,7 @@ memory.on('transform', (transform) => {
 
 Or more simply:
 
-```javascript
+```typescript
 memory.on('transform', (transform) => backup.sync(transform));
 ```
 
@@ -269,7 +269,7 @@ sources to which it applies a set of coordination strategies.
 
 A coordinator could be configured to handle the above scenario as follows:
 
-```javascript
+```typescript
 import { Coordinator, SyncStrategy } from '@orbit/coordinator';
 
 const coordinator = new Coordinator({
@@ -312,7 +312,7 @@ yet set up a process to restore that backed up data.
 If we want our app to restore all of its data from browser storage when it
 first boots, we could perform the following:
 
-```javascript
+```typescript
 let allRecords = await backup.query((q) => q.findRecords());
 await memory.sync((t) => allRecords.map((r) => t.addRecord(r)));
 await coordinator.activate();
@@ -343,7 +343,7 @@ communicate with that server.
 
 We'll start by creating a new `remote` source:
 
-```javascript
+```typescript
 import { JSONAPISource } from '@orbit/jsonapi';
 
 const remote = new JSONAPISource({
@@ -355,14 +355,14 @@ const remote = new JSONAPISource({
 
 Next let's add the source to the coordinator:
 
-```javascript
+```typescript
 coordinator.addSource(remote);
 ```
 
 And then we can add strategies to ensure that queries and updates made against
 the memory source are processed by the remote server:
 
-```javascript
+```typescript
 import { RequestStrategy, SyncStrategy } from '@orbit/coordinator';
 
 // Query the remote server whenever the memory source is queried
@@ -431,7 +431,7 @@ state that we'd like to reify if our application was closed unexpectedly.
 In order to persist this state, we can create a "bucket" that can be shared
 among our sources:
 
-```javascript
+```typescript
 import { LocalStorageBucket } from '@orbit/local-storage-bucket';
 import { IndexedDBBucket, supportsIndexedDB } from '@orbit/indexeddb-bucket';
 
@@ -445,7 +445,7 @@ back to using a LocalStorage-based bucket if necessary.
 This `bucket` can be passed as a setting to any and all of our sources.
 For instance:
 
-```javascript
+```typescript
 const backup = new IndexedDBSource({
   bucket,
   schema,

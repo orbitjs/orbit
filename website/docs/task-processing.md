@@ -2,8 +2,9 @@
 title: Task processing
 ---
 
-Tasks and queues are primitives contained in `@orbit/core` that are useful for
-processing actions asynchronously and serially.
+Tasks and queues are primitives contained in
+[`@orbit/core`](./api/core/index.md) that are useful for processing actions
+asynchronously and serially.
 
 Although you'll typically work with tasks indirectly, understanding these
 concepts can help you better troubleshoot and harden your Orbit applications.
@@ -13,32 +14,41 @@ concepts can help you better troubleshoot and harden your Orbit applications.
 Every action performed by sources, from updates to queries, is considered a
 "task" to be performed asynchronously.
 
-The `Task` interface is simply:
+The [`Task`](/api/core/interfaces/Task.md) interface is simply:
 
 ```typescript
-interface Task {
-  type: string;
+interface Task<Type = string, Data = unknown, Options = unknown> {
+  type: Type;
   id?: string;
-  data?: any;
+  data?: Data;
+  options?: Options;
 }
 ```
 
 A task's `type`, such as `"query"` or `"update"`, signals how that task should
 be performed. An `id` is assigned to uniquely identify the task. And `data`
 should contain the type-specific data needed to perform the task, such as an
-object that conforms with the `Query` or `Transform` interfaces.
+object that conforms with the [`Query`](./api/data/interfaces/Query.md) or
+[`Transform`](./api/data/interfaces/Transform.md) interfaces.
 
 ## Performers
 
-Tasks are performed asynchronously by a `Performer`:
+Tasks are performed asynchronously by a
+[`Performer`](./api/core/interfaces/Performer.md):
 
 ```typescript
-export interface Performer {
-  perform(task: Task): Promise<any>;
+interface Performer<
+  Type = string,
+  Data = unknown,
+  Options = unknown,
+  Result = unknown
+> {
+  perform(task: Task<Type, Data, Options>): Promise<Result>;
 }
 ```
 
-In `@orbit/data`, every `Source` implements the `Performer` interface.
+In [`@orbit/data`](./api/data/index.md), every
+[`Source`](./api/data/classes/Source.md) implements the `Performer` interface.
 
 ## Task queues
 
@@ -47,9 +57,9 @@ serially and asynchronously.
 
 Task queues are associated with a single `performer`, such as a `Source`, that
 will perform each task. A `performer` must be assigned when instantiating a
-`TaskQueue`:
+[`TaskQueue`](./api/core/classes/TaskQueue.md):
 
-```javascript
+```typescript
 const queue = new TaskQueue(source); // `source` implements `Performer`
 ```
 
@@ -58,16 +68,16 @@ and will continue until either all tasks have been performed or a problem has
 been encountered. For finer control over processing, it's possible to
 instantiate a queue that will only process tasks explicitly:
 
-```javascript
+```typescript
 const queue = new TaskQueue(source, { autoProcess: false });
 ```
 
 Tasks are normally added to the end of a queue via the `push` method:
 
-```javascript
+```typescript
 queue.push({
   type: 'query',
-  data: { expression: { op: 'findRecords', type: 'planet' } }
+  data: { expressions: { op: 'findRecords', type: 'planet' } }
 });
 ```
 
@@ -111,7 +121,8 @@ prove useful when handling exceptions, debugging, and testing.
 
 ### Task queues for sources
 
-Every `Source` in `@orbit/data` maintains two task queues:
+Every [`Source`](./api/data/classes/Source.md#requestqueue) in `@orbit/data`
+maintains two task queues:
 
 - A `requestQueue` for processing requests, such as updates and queries.
 

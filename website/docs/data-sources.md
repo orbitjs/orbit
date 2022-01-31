@@ -6,26 +6,26 @@ Sources provide access to data. They vary widely in their capabilities: some
 support interfaces for updating and/or querying records, while others simply
 broadcast changes.
 
-Orbit includes a number of "standard" sources:
+Orbit includes a number of "standard" record-specific sources:
 
-- [@orbit/memory](https://www.npmjs.com/package/@orbit/memory) - an in-memory source
-- [@orbit/jsonapi](https://www.npmjs.com/package/@orbit/jsonapi) - a JSON API client
-- [@orbit/indexeddb](https://www.npmjs.com/package/@orbit/indexeddb) - for accessing IndexedDB databases
-- [@orbit/local-storage](https://www.npmjs.com/package/@orbit/local-storage) - for accessing LocalStorage
+- [@orbit/memory](./api/memory/index.md) - an in-memory source
+- [@orbit/jsonapi](./api/jsonapi/index.md) - a JSON:API client
+- [@orbit/indexeddb](./api/indexeddb/index.md) - for accessing IndexedDB
+- [@orbit/local-storage](./api/local-storage/index.md) - for accessing LocalStorage
 
 Custom sources can also be written to access to virtually any source of data.
 
 ## Base class
 
-Every source derives from an abstract base class, `Source`, which has a core
-set of capabilities.
+Every source derives from an abstract base class,
+[`Source`](./api/data/classes/Source.md), which has a core set of capabilities.
 
 Sources must be instantiated with a schema. A schema provides sources with an
 understanding of the domain-specific data they manage.
 
 Let's create a simple schema and memory source:
 
-```javascript
+```typescript
 import { RecordSchema } from '@orbit/records';
 import { MemorySource } from '@orbit/memory';
 
@@ -61,7 +61,7 @@ emitted when that source changes. Most sources emit additional events as well
 
 Let's look at an example of a simple mutation triggered by a call to `update`:
 
-```javascript
+```typescript
 // Define a record
 const jupiter = {
   type: 'planet',
@@ -81,17 +81,15 @@ memory.on('transform', (t) => {
 console.log(`transforms: ${memory.transformLog.length}`);
 
 // Update the memory source with a transform that adds a record
-memory
-  .update((t) => t.addRecord(jupiter))
-  .then(() => {
-    // Verify that the transform log has grown
-    console.log(`transforms: ${memory.transformLog.length}`);
-  });
+await memory.update((t) => t.addRecord(jupiter));
+
+// Verify that the transform log has grown
+console.log(`transforms: ${memory.transformLog.length}`);
 ```
 
 The following should be logged as a result:
 
-```javascript
+```typescript
 'transforms: 0',
   'transform',
   {
@@ -123,14 +121,16 @@ Want to learn more about updating data? [See the guide](./updating-data.md)
 Orbit includes a number of standard interfaces that may be implemented by
 sources:
 
-- `Updatable` - Allows sources to be updated via an `update` method that takes
-  a transform and returns the updated records that result.
+- [`Updatable`](./api/data/interfaces/Updatable.md) - Allows sources to be
+  updated via an `update` method that takes a transform and returns the updated
+  records that result.
 
-- `Queryable` - Allows sources to be queried via a `query` method that receives
-  a query expression and returns a recordset as a result.
+- [`Queryable`](./api/data/interfaces/Queryable.md) - Allows sources to be
+  queried via a `query` method that receives a query expression and returns a
+  recordset as a result.
 
-- `Syncable` - Applies a transform or transforms to a source via a `sync`
-  method.
+- [`Syncable`](./api/data/interfaces/Syncable.md) - Applies a transform or
+  transforms to a source via a `sync` method.
 
 :::caution
 The `Pullable` and `Pushable` interfaces have been deprecated in
@@ -174,20 +174,29 @@ be ignored by the emitter.
 
 ### Data flows
 
-The `Updatable` and `Queryable` interfaces participate in the "request flow", in
-which requests are made upstream and data flows back down.
+The [`Updatable`](./api/data/interfaces/Updatable.md) and
+[`Queryable`](./api/data/interfaces/Queryable.md) interfaces participate in the
+"request flow", in which requests are made upstream and data flows back down.
 
-The `Syncable` interface participates in the "sync flow", in which data flowing
-downstream is synchronized with other sources.
+The [`Syncable`](./api/data/interfaces/Syncable.md) interface participates in
+the "sync flow", in which data flowing downstream is synchronized with other
+sources.
 
-> Want to learn more about data flows? [See the guide](./data-flows.md)
+:::info
+Want to learn more about data flows? [See the guide](./data-flows.md)
+:::
 
 ### Developer-facing interfaces
 
-Generally speaking, developers will primarily interact the `Updatable` and
-`Queryable` interfaces. The `Syncable` interface is used primarily via
+Generally speaking, developers will primarily interact the
+[`Updatable`](./api/data/interfaces/Updatable.md) and
+[`Queryable`](./api/data/interfaces/Queryable.md) interfaces. The
+[`Syncable`](./api/data/interfaces/Syncable.md) interface is used primarily via
 coordination strategies.
 
-> See guides that cover [querying data](./querying-data.md),
-> [updating data](./updating-data.md), and
-> [configuring coordination strategies](./coordination.md).
+:::info
+See more specific guides that cover:
+* [Updating data](./updating-data.md)
+* [Querying data](./querying-data.md)
+* [Coordination strategies](./coordination.md)
+:::

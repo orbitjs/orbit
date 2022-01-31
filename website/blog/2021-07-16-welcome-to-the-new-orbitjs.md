@@ -18,7 +18,7 @@ with code, preferably even in the same PRs.
 I'm especially excited to announce that we are finally publishing API reference
 docs, generated with [TypeDoc](https://typedoc.org/), alongside the Orbit
 guides. The first API docs available are for the upcoming v0.17, which can be
-accessed directly [here](/docs/next/api) or by choosing `Next` from the
+accessed directly [here](/docs/api/index.md) or by choosing `Next` from the
 documentation version selector in the upper right.
 
 While the current API docs are much better than nothing, the prose and examples

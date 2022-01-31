@@ -13,8 +13,8 @@ capabilities of memory sources and their inner workings.
 
 ## Cache
 
-Every memory source keeps its data in memory in a `Cache`, which is accessible via the
-`memory.cache` member.
+Every memory source keeps its data in memory in a `Cache`, which is accessible
+via the `cache` getter.
 
 ### Immutable data
 
@@ -39,31 +39,21 @@ operation processors. For instance, when a record is removed, it must be
 removed from all of its associated relationships. When a relationship with an
 inverse is removed, that inverse relationship must also be removed.
 
-### Patches
+### Updating a cache
 
 Typically you should not be applying changes directly to a cache. It's far
-preferable to apply changes to the associated memory source through its `update` event.
+preferable to apply changes to the associated memory source through its `update`
+event.
 
-However, caches can be modified via a `patch` method, that takes an `Operation`
-or array of `Operation`s.
-
-The `PatchResult` that's returned has the following signature:
-
-```typescript
-type PatchResultData = Record | RecordIdentity | null;
-
-interface PatchResult {
-  inverse: RecordOperation[];
-  data: PatchResultData[];
-}
-```
+However, caches can be modified via an `update` method, just like sources.
 
 All changes to a cache will be emitted as `patch` events. These events include
 the `Operation` that was applied as well as any data returned.
 
 Its important to recognize that `patch` events will be emitted for _EVERY_
-change, including those made by operation processors. Therefore, if you need
-a high fidelity log of changes to a memory source, observe its cache's `patch` events.
+change, including those made by operation processors. Therefore, if you need a
+high fidelity log of changes to a memory source, observe its cache's `patch`
+events.
 
 ### Querying cache data
 
@@ -75,9 +65,9 @@ While `memory.query` is asynchronous and thus returns results wrapped in a
 promise, `memory.cache.query` is synchronous and returns results directly. For
 example:
 
-```javascript
+```typescript
 // Results will be returned synchronously by querying the cache
-let planets = memory.cache.query(q => q.findRecords("planet").sort("name"));
+let planets = memory.cache.query((q) => q.findRecords('planet').sort('name'));
 ```
 
 > By querying the cache instead of the memory source, you're not allowing other
@@ -95,37 +85,37 @@ Let's look at an example of memory source forking and merging:
 
 ```typescript
 // start by adding two planets and a moon to the memory source
-await memory.update(t => [
+await memory.update((t) => [
   t.addRecord(earth),
   t.addRecord(venus),
   t.addRecord(theMoon)
 ]);
 
-let planets = await memory.query(q => q.findRecords("planet").sort("name"));
-console.log("original planets", planets);
+let planets = await memory.query((q) => q.findRecords('planet').sort('name'));
+console.log('original planets', planets);
 
 // fork the memory source
 let forkedMemorySource = memory.fork();
 
 // add a planet and moons to the fork
-await forkedMemorySource.update(t => [
+await forkedMemorySource.update((t) => [
   t.addRecord(jupiter),
   t.addRecord(io),
   t.addRecord(europa)
 ]);
 
 // query the planets in the forked memory source
-planets = await forkedMemorySource.query(q =>
-  q.findRecords("planet").sort("name")
+planets = await forkedMemorySource.query((q) =>
+  q.findRecords('planet').sort('name')
 );
-console.log("planets in fork", planets);
+console.log('planets in fork', planets);
 
 // merge the forked memory source back into the original memory source
 await memory.merge(forkedMemorySource);
 
 // query the planets in the original memory source
-planets = await memory.query(q => q.findRecords("planet").sort("name"));
-console.log("merged planets", planets);
+planets = await memory.query((q) => q.findRecords('planet').sort('name'));
+console.log('merged planets', planets);
 ```
 
 It's important to note a few things about memory source forking and merging:
@@ -138,9 +128,3 @@ It's important to note a few things about memory source forking and merging:
 - Merging a fork will gather the transforms applied since the fork point,
   coalesce the operations in those transforms into a single new transform,
   and then update the original memory source.
-
-<hr />
-
-Want to experiment with memory source forking and merging?
-
-See [this example in CodeSandbox](https://codesandbox.io/s/40lo886nn7?previewwindow=console).
