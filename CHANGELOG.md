@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.17.0 (2022-01-31)
+
+#### :memo: Documentation
+
+- [#875](https://github.com/orbitjs/orbit/pull/875) v0.17 blog post and docs ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0-beta.28 (2022-01-30)
 
 #### :bug: Bug Fix
