@@ -1,6 +1,6 @@
 {
   "name": "@orbit/identity-map",
-  "version": "0.17.0-beta.26",
+  "version": "0.17.0",
   "description": "Orbit identity map to manage model instances.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>",
@@ -33,8 +33,8 @@
     "test": "node ../build ci && snowpack build && testem ci"
   },
   "devDependencies": {
-    "@orbit/build": "^0.17.0-beta.26",
-    "@orbit/records": "^0.17.0-beta.26"
+    "@orbit/build": "^0.17.0",
+    "@orbit/records": "^0.17.0"
   },
   "prettier": "@orbit/prettier-config"
 }
