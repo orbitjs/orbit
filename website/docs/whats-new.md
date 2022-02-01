@@ -452,7 +452,7 @@ fork.cache.update((t) =>
 // (async) merge changes from the fork back to its base
 await source.merge(fork);
 
-// (async) jupiter should now be in the base source
+// (async) jupiter should now be in the base source (as well as its cache)
 let jupiter = await source.query((q) =>
   q.findRecord({ type: 'planet', id: 'jupiter' })
 );
@@ -494,8 +494,8 @@ using a more verbose, developer-friendly "debug" mode of Orbit vs. a leaner,
 more performant production mode.
 
 ** Debug mode is enabled by default. ** Some standard features of debug mode
-include deprecation warnings and creation of validation processors on all your
-caches.
+include deprecation warnings and extra debug-friendly verifications and
+messaging.
 
 To disable debug mode:
 
@@ -505,6 +505,17 @@ import { Orbit } from '@orbit/core';
 // disable debug mode
 Orbit.debug = false;
 ```
+
+:::info
+
+For several releases in the v0.17 beta cycle, debug mode was used to control
+whether validators would be created by default. This is no longer the case
+&mdash; validators will now always be used within sources and caches unless
+disabled using the `autoValidate: false` setting described above. This provides
+more fine-grained control over validation settings throughout your app and its
+sources.
+
+:::
 
 ## Increased reliance on The Platform™
 

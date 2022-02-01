@@ -152,22 +152,20 @@ be handled by a remote server:
 ```typescript
 import { RequestStrategy } from '@orbit/coordinator';
 
-// Only forward requests for planets on to the remote server
+// Only forward requests to the remote server based on a custom option
+// named `forwardToRemote` (note: this name could be anything in your app)
 coordinator.addStrategy(
   new RequestStrategy({
     source: 'memory',
     on: 'beforeQuery',
 
     target: 'remote',
-    action: 'pull',
+    action: 'query',
 
     blocking: true,
 
     filter(query) {
-      return (
-        query.expressions.op === 'findRecords' &&
-        query.expressions.type === 'planet'
-      );
+      return query.options?.forwardToRemote;
     }
   })
 );
@@ -224,13 +222,13 @@ specified as follows:
 ```typescript
 coordinator.addStrategy(
   new EventLoggingStrategy({
-    interfaces: ['updatable', 'pushable', 'syncable']
+    interfaces: ['updatable', 'syncable']
   })
 );
 ```
 
-Valid interfaces include `updatable`, `queryable`, `pushable`, `pullable`, and
-`syncable` (note the lower case).
+Valid interfaces include `updatable`, `queryable`, and `syncable` (note the
+lower case).
 
 Furthermore, you may wish to only observe certain sources, which can be
 specified by name:
@@ -319,7 +317,7 @@ coordinator.addStrategy(
 Several things to note here:
 
 - `blocking: true` is strictly required for hints to function.
-- The results of `action` will be sent as hints, so the method needs to return records as results. `query` will work, but `pull` will not.
+- The results of `action` will be sent as hints, so the method needs to return records as results. Both `query` and `update` will work.
 - `passHints: true` tells the strategy to actually pass the results of `remote.query` as hints.
 
 You'll also want to create a blocking `SyncStrategy` that syncs any transforms applied to the `remote` source back to the `memory` source:
