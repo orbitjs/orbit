@@ -515,3 +515,18 @@ new language features such as nullish coalescing and optional chaining have been
 adopted, and platform features such as
 [`crypto.randomUUID`](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID)
 have been adopted (with a fallback implementation if unavailable).
+
+## Contributors
+
+Many thanks to the contributors who made v0.17 possible:
+
+- Paweł Bator ([@jembezmamy](https://github.com/jembezmamy))
+- Philipp Brumm ([@brumm](https://github.com/brumm))
+- Christian ([@makepanic](https://github.com/makepanic))
+- Miguel Camba ([@cibernox](https://github.com/cibernox))
+- Paul Chavard ([@tchak](https://github.com/tchak))
+- Michiel de Vos ([@Michiel87](https://github.com/Michiel87))
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+- Brad Jones ([@bradjones1](https://github.com/bradjones1))
+- Andreas Minnich ([@enspandi](https://github.com/enspandi))
+- Clemens Mueller ([@pangratz](https://github.com/pangratz))
