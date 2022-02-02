@@ -113,10 +113,10 @@ members:
 Although queries can be created "manually", you'll probably find it easier
 to use a builder function that returns a query.
 
-To use a query builder, pass a function into a source's method that expects
-a query, such as `query` or `pull`. A `QueryBuilder` that's compatible
-with the source should be applied as an argument. You can then use this builder
-to create query expressions.
+To use a query builder, pass a function into a source's method that expects a
+query, such as `query`. A `QueryBuilder` that's compatible with the source
+should be applied as an argument. You can then use this builder to create query
+expressions.
 
 ### Standard queries
 
@@ -405,5 +405,5 @@ unsubscribe();
 :::tip
 
 If you use a pull based reactive system (for example Glimmer tracking) you can
-set debounceLiveQueries option to false on memory cache.
+set `debounceLiveQueries` option to `false` on memory cache.
 :::
