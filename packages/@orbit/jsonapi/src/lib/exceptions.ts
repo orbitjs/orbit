@@ -5,6 +5,7 @@ import { Exception } from '@orbit/core';
  */
 export class ClientError extends Exception {
   public data?: unknown;
+  public response?: Response;
 
   constructor(description: string) {
     super(`Client error: ${description}`);
@@ -16,6 +17,7 @@ export class ClientError extends Exception {
  */
 export class ServerError extends Exception {
   public data?: unknown;
+  public response?: Response;
 
   constructor(description: string) {
     super(`Server error: ${description}`);

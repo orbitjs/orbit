@@ -321,7 +321,10 @@ export class JSONAPIRequestProcessor {
   ): void {}
   /* eslint-enable @typescript-eslint/no-unused-vars */
 
-  protected responseHasContent(response: Response): boolean {
+  protected responseHasContent(
+    response: Response,
+    ignoreUnrecognizedContent?: boolean
+  ): boolean {
     let contentType = response.headers.get('Content-Type');
     if (contentType) {
       for (let allowedContentType of this.allowedContentTypes) {
@@ -329,11 +332,13 @@ export class JSONAPIRequestProcessor {
           return true;
         }
       }
-      throw new InvalidServerResponse(
-        `The server responded with the content type '${contentType}', which is not allowed. Allowed content types include: '${this.allowedContentTypes.join(
-          "', '"
-        )}'.`
-      );
+      if (!ignoreUnrecognizedContent) {
+        throw new InvalidServerResponse(
+          `The server responded with the content type '${contentType}', which is not allowed. Allowed content types include: '${this.allowedContentTypes.join(
+            "', '"
+          )}'.`
+        );
+      }
     }
     return false;
   }
@@ -365,7 +370,7 @@ export class JSONAPIRequestProcessor {
         responseDetail.document = await response.json();
       }
     } else if (response.status !== 304 && response.status !== 404) {
-      if (this.responseHasContent(response)) {
+      if (this.responseHasContent(response, true)) {
         const document = await response.json();
         await this.handleFetchResponseError(response, document);
       } else {

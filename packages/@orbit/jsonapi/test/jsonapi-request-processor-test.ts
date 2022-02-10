@@ -10,7 +10,7 @@ import { JSONAPIRequestProcessor } from '../src/jsonapi-request-processor';
 import { jsonapiResponse } from './support/jsonapi';
 import { SinonStub } from 'sinon';
 import * as sinon from 'sinon';
-import { InvalidServerResponse } from '../src/lib/exceptions';
+import { InvalidServerResponse, ServerError } from '../src/lib/exceptions';
 
 const { module, test } = QUnit;
 
@@ -278,6 +278,62 @@ module('JSONAPIRequestProcessor', function (hooks) {
       undefined,
       'A 204 - No Content response has no content'
     );
+  });
+
+  test('#fetch - throws an error if the server returns an error response', async function (assert) {
+    assert.expect(4);
+
+    fetchStub.withArgs('/planets/UNAUTHORIZED-1').returns(
+      jsonapiResponse(
+        {
+          status: 401,
+          headers: {
+            'Content-Type': 'application/vnd.api+json'
+          }
+        },
+        {
+          errors: []
+        }
+      )
+    );
+
+    try {
+      await processor.fetch('/planets/UNAUTHORIZED-1', {});
+      assert.ok(false, 'should not be successful');
+    } catch (e) {
+      assert.equal((e as ServerError).response?.status, 401);
+      assert.deepEqual(
+        (e as ServerError).data,
+        { errors: [] },
+        'error includes parsed response data because its content type is recognized'
+      );
+    }
+
+    fetchStub.withArgs('/planets/UNAUTHORIZED-2').returns(
+      jsonapiResponse(
+        {
+          status: 401,
+          headers: {
+            'Content-Type': 'application/xml' // unrecognized type
+          }
+        },
+        {
+          bogus: {}
+        }
+      )
+    );
+
+    try {
+      await processor.fetch('/planets/UNAUTHORIZED-2', {});
+      assert.ok(false, 'should not be successful');
+    } catch (e) {
+      assert.equal((e as ServerError).response?.status, 401);
+      assert.strictEqual(
+        (e as ServerError).data,
+        undefined,
+        'xml is not an allowed content-type and cannot be parsed as `data`, but an error response should still be returned'
+      );
+    }
   });
 
   test('#mergeRequestOptions', function (assert) {
