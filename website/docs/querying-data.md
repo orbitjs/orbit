@@ -32,13 +32,13 @@ interface FindRecord extends QueryExpression {
 interface FindRelatedRecord extends QueryExpression {
   op: 'findRelatedRecord';
   record: RecordIdentity;
-  relationship: string;
+  relation: string;
 }
 
 interface FindRelatedRecords extends QueryExpression {
   op: 'findRelatedRecords';
   record: RecordIdentity;
-  relationship: string;
+  relation: string;
   sort?: SortSpecifier[];
   filter?: FilterSpecifier[];
   page?: PageSpecifier;
@@ -278,7 +278,7 @@ Filtering on a `hasOne` relationship:
 ```typescript
 const moonsOfJupiter = orbit.cache.query((q) => {
   return q.findRecords('moon')
-          .filter({ relationship: 'planet', op: 'equal', record: { type: 'planet', id: 'jupiter' } })
+          .filter({ relation: 'planet', op: 'equal', record: { type: 'planet', id: 'jupiter' } })
 })
 ```
 
@@ -288,12 +288,14 @@ Filtering on a `hasMany` relationship:
 const theSolarSystem = orbit.cache.query((q) => {
   return q.findRecords('planetarySystem')
           .filter({
-            relationship: 'planets',
+            relation: 'planets',
             op: 'some',
             records: [{ type: 'planet', id: 'earth' }]
           })
 })
 ```
+
+Note that the filter is on a relationship but the key in the filter is `relation`.
 
 Filtering on a `hasOne` relationship has different comparison operations available than filtering on a `hasMany` relationship.
 
