@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.17.1 (2022-03-01)
+
+#### :bug: Bug Fix
+
+- `@orbit/indexeddb`
+  - [#932](https://github.com/orbitjs/orbit/pull/932) IndexedDBCache: Fix handling of empty operations array ([@dgeb](https://github.com/dgeb))
+- `@orbit/jsonapi`
+  - [#925](https://github.com/orbitjs/orbit/pull/925) Ensure that fetch errors always throw errors that contain `response` [jsonapi] ([@dgeb](https://github.com/dgeb))
+
+#### :memo: Documentation
+
+- [#928](https://github.com/orbitjs/orbit/pull/928) Fix incorrect uses of "relationship" instead of "relation" in filtering docs ([@bradjones1](https://github.com/bradjones1))
+- [#924](https://github.com/orbitjs/orbit/pull/924) Refinements to v0.17 docs ([@dgeb](https://github.com/dgeb))
+
+#### :house: Internal
+
+- [#930](https://github.com/orbitjs/orbit/pull/930) Bump prismjs from 1.25.0 to 1.27.0 in /website ([@dependabot[bot]](https://github.com/apps/dependabot))
+- [#926](https://github.com/orbitjs/orbit/pull/926) Bump follow-redirects from 1.14.7 to 1.14.8 ([@dependabot[bot]](https://github.com/apps/dependabot))
+- [#927](https://github.com/orbitjs/orbit/pull/927) Bump follow-redirects from 1.14.7 to 1.14.8 in /website ([@dependabot[bot]](https://github.com/apps/dependabot))
+
+#### Committers: 2
+
+- Brad Jones ([@bradjones1](https://github.com/bradjones1))
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.0 (2022-01-31)
 
 #### :memo: Documentation
