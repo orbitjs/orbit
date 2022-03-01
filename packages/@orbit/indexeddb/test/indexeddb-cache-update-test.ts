@@ -167,6 +167,12 @@ module('IndexedDBCache - update', function (hooks) {
           );
         });
 
+        test('#update can handle an empty array of operations', async function (assert) {
+          const result = await cache.update(() => []);
+
+          assert.deepEqual(result, [], 'response includes just primary data');
+        });
+
         test('#update updates the cache and returns a full response if requested', async function (assert) {
           let p1 = { type: 'planet', id: '1', attributes: { name: 'Earth' } };
           let p2 = { type: 'planet', id: '2' };
