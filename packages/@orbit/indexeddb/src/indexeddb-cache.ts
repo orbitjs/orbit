@@ -503,29 +503,33 @@ export class IndexedDBCache<
         : [recordIdentityOrIdentities];
 
       const len = identities.length;
-      let completed = 0;
-      for (let i = 0; i < len; i++) {
-        const identity = identities[i];
-        const keyRange = Orbit.globals.IDBKeyRange.only(
-          serializeRecordIdentity(identity)
-        );
-        const request = index.openCursor(keyRange);
+      if (len === 0) {
+        resolve([]);
+      } else {
+        let completed = 0;
+        for (let i = 0; i < len; i++) {
+          const identity = identities[i];
+          const keyRange = Orbit.globals.IDBKeyRange.only(
+            serializeRecordIdentity(identity)
+          );
+          const request = index.openCursor(keyRange);
 
-        request.onsuccess = (event: any) => {
-          const cursor = event.target.result;
-          if (cursor) {
-            let result = this._fromInverseRelationshipForIDB(cursor.value);
-            results.push(result);
-            cursor.continue();
-          } else {
-            completed += 1;
-            if (completed === len) {
-              resolve(results);
+          request.onsuccess = (event: any) => {
+            const cursor = event.target.result;
+            if (cursor) {
+              let result = this._fromInverseRelationshipForIDB(cursor.value);
+              results.push(result);
+              cursor.continue();
+            } else {
+              completed += 1;
+              if (completed === len) {
+                resolve(results);
+              }
             }
-          }
-        };
+          };
 
-        request.onerror = () => reject(request.error);
+          request.onerror = () => reject(request.error);
+        }
       }
     });
   }
