@@ -1,6 +1,6 @@
 {
   "name": "@orbit/jsonapi",
-  "version": "0.17.0",
+  "version": "0.17.1",
   "description": "JSON:API support for Orbit.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"

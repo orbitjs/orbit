@@ -1,7 +1,7 @@
 {
   "name": "@orbit/integration-tests",
   "private": true,
-  "version": "0.17.0",
+  "version": "0.17.1",
   "description": "Integration tests for core Orbit packages.",
   "contributors": [
     "Dan Gebhardt <dan@cerebris.com>"
@@ -20,9 +20,9 @@
     "@orbit/core": "^0.17.0",
     "@orbit/data": "^0.17.0",
     "@orbit/immutable": "^0.17.0",
-    "@orbit/indexeddb": "^0.17.0",
+    "@orbit/indexeddb": "^0.17.1",
     "@orbit/indexeddb-bucket": "^0.17.0",
-    "@orbit/jsonapi": "^0.17.0",
+    "@orbit/jsonapi": "^0.17.1",
     "@orbit/local-storage": "^0.17.0",
     "@orbit/local-storage-bucket": "^0.17.0",
     "@orbit/memory": "^0.17.0",
