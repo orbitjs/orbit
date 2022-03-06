@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.17.2 (2022-03-06)
+
+#### :bug: Bug Fix
+
+- `@orbit/record-cache`
+  - [#937](https://github.com/orbitjs/orbit/pull/937) Improve robustness of isNode check ([@dgeb](https://github.com/dgeb))
+
+#### :house: Internal
+
+- `@orbit/record-cache`
+  - [#938](https://github.com/orbitjs/orbit/pull/938) Make sync-record-cache-update-test mirror async equivalents ([@dgeb](https://github.com/dgeb))
+
+#### Committers: 1
+
+- Dan Gebhardt ([@dgeb](https://github.com/dgeb))
+
 ## v0.17.1 (2022-03-01)
 
 #### :bug: Bug Fix
