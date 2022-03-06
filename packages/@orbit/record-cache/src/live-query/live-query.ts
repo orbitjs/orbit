@@ -153,9 +153,7 @@ export abstract class LiveQuery {
   }
 }
 
-const isNode =
-  typeof Orbit.globals.process === 'object' &&
-  typeof Orbit.globals.process.nextTick === 'function';
+const isNode = typeof Orbit.globals.process?.nextTick === 'function';
 let resolvedPromise: Promise<void>;
 const nextTick = isNode
   ? function (fn: () => void) {
@@ -166,7 +164,7 @@ const nextTick = isNode
         Orbit.globals.process.nextTick(fn);
       });
     }
-  : Orbit.globals.setImmediate || setTimeout;
+  : Orbit.globals.setImmediate ?? setTimeout;
 
 function onceTick(fn: () => void) {
   return function tick() {
