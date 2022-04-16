@@ -11,7 +11,7 @@ export interface OrbitGlobal {
   deprecate: (message: string, test?: boolean | (() => boolean)) => void;
   uuid: () => string;
   debug: boolean;
-  fetch: typeof fetch;
+  fetch: (input: any, init?: any) => Promise<any>;
 }
 
 // Establish the root object, `window` (`self`) in the browser, `global`
