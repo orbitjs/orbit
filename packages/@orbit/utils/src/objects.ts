@@ -182,7 +182,7 @@ export function deepGet(obj: any, path: string[]): any {
   let result = obj;
 
   while (++index < path.length) {
-    result = result[path[index]];
+    result = result?.[path[index]];
     if (!result) {
       return result;
     }
