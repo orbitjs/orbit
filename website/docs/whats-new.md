@@ -93,7 +93,7 @@ Here's a single expression to a query builder, which can be expected to return
 a single result:
 
 ```typescript
-const earth = source.query((q) =>
+const earth = await source.query((q) =>
   q.findRecord({ type: 'planet', id: 'earth' })
 );
 ```
@@ -102,7 +102,7 @@ That same expression could be passed in an array, which will cause results to be
 returned in an array:
 
 ```typescript
-const [earth] = source.query((q) => [
+const [earth] = await source.query((q) => [
   q.findRecord({ type: 'planet', id: 'earth' })
 ]);
 ```
@@ -110,7 +110,7 @@ const [earth] = source.query((q) => [
 And of course, that array could be expanded to include more than one expression:
 
 ```typescript
-const [earth, jupiter, saturn] = source.query((q) => [
+const [earth, jupiter, saturn] = await source.query((q) => [
   q.findRecord({ type: 'planet', id: 'earth' }),
   q.findRecord({ type: 'planet', id: 'jupiter' }),
   q.findRecord({ type: 'planet', id: 'saturn' })
@@ -134,7 +134,7 @@ All the patterns mentioned above for queries also apply to transforms.
 A single operation provided to a transform builder will return a single result:
 
 ```typescript
-const earth = source.update((t) =>
+const earth = await source.update((t) =>
   t.addRecord({ type: 'planet', id: 'earth' })
 );
 ```
@@ -143,7 +143,7 @@ The same expression passed in an array will cause results to be returned in an
 array:
 
 ```typescript
-const [earth] = source.update((t) => [
+const [earth] = await source.update((t) => [
   t.addRecord({ type: 'planet', id: 'earth' })
 ]);
 ```
@@ -151,7 +151,7 @@ const [earth] = source.update((t) => [
 And as before, multi-operation transforms will produce an array of results:
 
 ```typescript
-const [earth, jupiter, saturn] = source.update((t) => [
+const [earth, jupiter, saturn] = await source.update((t) => [
   t.addRecord({ type: 'planet', id: 'earth' }),
   t.addRecord({ type: 'planet', id: 'jupiter' }),
   t.addRecord({ type: 'planet', id: 'saturn' })
