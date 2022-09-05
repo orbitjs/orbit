@@ -17,6 +17,7 @@
   "license": "MIT",
   "main": "dist/commonjs/index.js",
   "module": "dist/modules/index.js",
+  "sideEffects": false,
   "types": "dist/modules/index.d.ts",
   "scripts": {
     "build": "rm -rf ./dist && yarn build:modules && yarn build:commonjs",
