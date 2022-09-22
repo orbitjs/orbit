@@ -104,13 +104,15 @@ export const AsyncInverseTransformOperators: Dict<AsyncInverseTransformOperator>
                   currentData,
                   data
                 );
+                currentData = data;
               } else {
                 relationshipChanged = true;
                 currentData = [];
               }
             } else {
               if (currentData) {
-                relationshipChanged = !equalRecordIdentities(currentData, data);
+                relationshipChanged = !equalRecordIdentities(currentData, data) || !!data?.meta;
+                currentData = data;
               } else {
                 relationshipChanged = true;
                 currentData = null;
