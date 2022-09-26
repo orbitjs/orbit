@@ -161,9 +161,7 @@ export class JSONAPIRequestProcessor {
       delete settings.params;
     }
 
-    let fetchFn = (Orbit as any).fetch || Orbit.globals.fetch;
-
-    // console.log('fetch', fullUrl, settings, 'polyfill', fetchFn.polyfill);
+    let fetchFn = Orbit.fetch || Orbit.globals.fetch;
 
     if (settings.timeout !== undefined && settings.timeout > 0) {
       let timeout = settings.timeout;
