@@ -12,14 +12,18 @@ export interface RecordIdentity {
   id: string;
 }
 
+export interface ResourceLinkage extends RecordIdentity {
+  meta?: Dict<unknown>;
+}
+
 export interface RecordHasOneRelationship {
-  data?: RecordIdentity | null;
+  data?: ResourceLinkage | null;
   links?: Dict<Link>;
   meta?: Dict<unknown>;
 }
 
 export interface RecordHasManyRelationship {
-  data?: RecordIdentity[];
+  data?: ResourceLinkage[];
   links?: Dict<Link>;
   meta?: Dict<unknown>;
 }
