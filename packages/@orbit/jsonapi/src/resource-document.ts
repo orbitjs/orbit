@@ -24,6 +24,7 @@ export type ResourceRelationship =
 
 export interface Resource {
   id?: string;
+  lid?: string;
   type: string;
   attributes?: Dict<unknown>;
   relationships?: Dict<ResourceRelationship>;

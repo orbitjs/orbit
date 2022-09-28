@@ -91,6 +91,8 @@ export class JSONAPIResourceIdentitySerializer extends JSONAPIBaseSerializer<
 
     if (resourceId !== undefined) {
       resource.id = resourceId;
+    } else {
+      resource.lid = id;
     }
 
     return resource;
