@@ -15,7 +15,7 @@ export function getRecordFromLocalStorage(
 
 export function isLocalStorageEmpty(source: LocalStorageSource): boolean {
   let isEmpty = true;
-  for (let key in Orbit.globals.localStorage) {
+  for (let [key, _] of Orbit.globals.localStorage) {
     if (key.indexOf(source.namespace + source.delimiter) === 0) {
       isEmpty = false;
       break;
