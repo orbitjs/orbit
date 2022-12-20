@@ -114,8 +114,9 @@ export class LocalStorageCache<
       typeof typeOrIdentities === 'string'
     ) {
       const type: string | undefined = typeOrIdentities;
-      for (let key in Orbit.globals.localStorage) {
-        if (key.indexOf(this.namespace + this.delimiter) === 0) {
+      const prefix: string = this.namespace + this.delimiter;
+      for (let [key, value] of Orbit.globals.localStorage) {
+        if (key.startsWith(prefix) && !key.startsWith(prefix + 'inverseRels')) {
           let typesMatch = type === undefined;
 
           if (!typesMatch) {
@@ -127,7 +128,7 @@ export class LocalStorageCache<
           }
 
           if (typesMatch) {
-            let record = JSON.parse(Orbit.globals.localStorage.getItem(key));
+            let record = JSON.parse(value);
 
             if (this.keyMap) {
               this.keyMap.pushRecord(record);
