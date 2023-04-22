@@ -1005,33 +1005,6 @@ module('JSONAPISource - updatable', function (hooks) {
       );
     });
 
-    test('#update - source can limit the number of allowed requests per transform with `maxRequestsPerTransform` (deprecated)', async function (assert) {
-      assert.expect(1);
-
-      let planet1 = resourceSerializer.deserialize({
-        type: 'planet',
-        id: '1'
-      }) as InitializedRecord;
-      let planet2 = resourceSerializer.deserialize({
-        type: 'planet',
-        id: '2'
-      }) as InitializedRecord;
-
-      source.maxRequestsPerTransform = 1;
-
-      try {
-        await source.update((t) => [
-          t.removeRecord(planet1),
-          t.removeRecord(planet2)
-        ]);
-      } catch (e) {
-        assert.ok(
-          e instanceof TransformNotAllowed,
-          'TransformNotAllowed thrown'
-        );
-      }
-    });
-
     test('#update - source can limit the number of allowed requests per transform with `maxRequests` option', async function (assert) {
       assert.expect(1);
 

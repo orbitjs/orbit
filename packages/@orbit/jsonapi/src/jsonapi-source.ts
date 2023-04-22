@@ -1,4 +1,4 @@
-import { Orbit, Assertion } from '@orbit/core';
+import { Assertion } from '@orbit/core';
 import {
   RequestOptions,
   pullable,
@@ -34,10 +34,6 @@ import {
   FetchSettings
 } from './jsonapi-request-processor';
 import {
-  JSONAPISerializer,
-  JSONAPISerializerSettings
-} from './jsonapi-serializer';
-import {
   JSONAPIURLBuilder,
   JSONAPIURLBuilderSettings
 } from './jsonapi-url-builder';
@@ -62,8 +58,6 @@ import {
 } from '@orbit/serializers';
 import { JSONAPIResponse } from './jsonapi-response';
 
-const { deprecate } = Orbit;
-
 interface JSONAPISharedRequestOptions {
   maxRequests?: number;
   parallelRequests?: boolean;
@@ -82,20 +76,6 @@ export interface JSONAPISourceSettings<
   QB = RecordQueryBuilder,
   TB = RecordTransformBuilder
 > extends RecordSourceSettings<QO, TO, QB, TB> {
-  /**
-   * Deprecated in favor of `defaultTransformOptions.maxRequests`
-   *
-   * @deprecated since v0.17, remove in v0.18
-   */
-  maxRequestsPerTransform?: number;
-
-  /**
-   * Deprecated in favor of `defaultQueryOptions.maxRequests`
-   *
-   * @deprecated since v0.17, remove in v0.18
-   */
-  maxRequestsPerQuery?: number;
-
   name?: string;
   namespace?: string;
   host?: string;
@@ -104,9 +84,6 @@ export interface JSONAPISourceSettings<
   serializerFor?: SerializerForFn;
   serializerClassFor?: SerializerClassForFn;
   serializerSettingsFor?: SerializerSettingsForFn;
-  SerializerClass?: new (
-    settings: JSONAPISerializerSettings
-  ) => JSONAPISerializer;
   RequestProcessorClass?: new (
     settings: JSONAPIRequestProcessorSettings
   ) => JSONAPIRequestProcessor;
@@ -165,8 +142,6 @@ export class JSONAPISource<
 
     let {
       name,
-      maxRequestsPerTransform,
-      maxRequestsPerQuery,
       namespace,
       host,
       defaultFetchSettings,
@@ -174,7 +149,6 @@ export class JSONAPISource<
       serializerFor,
       serializerClassFor,
       serializerSettingsFor,
-      SerializerClass,
       RequestProcessorClass,
       URLBuilderClass,
       keyMap
@@ -198,26 +172,12 @@ export class JSONAPISource<
       this._defaultQueryOptions.parallelRequests = true;
     }
 
-    if (maxRequestsPerTransform !== undefined) {
-      deprecate(
-        "The 'maxRequestsPerTransform' setting for 'JSONAPSource' has been deprecated in favor of 'defaultTransformOptions.maxRequests'."
-      );
-      this._defaultTransformOptions.maxRequests = maxRequestsPerTransform;
-    }
-    if (maxRequestsPerQuery !== undefined) {
-      deprecate(
-        "The 'maxRequestsPerQuery' setting for 'JSONAPSource' has been deprecated in favor of 'defaultQueryOptions.maxRequests'."
-      );
-      this._defaultQueryOptions.maxRequests = maxRequestsPerQuery;
-    }
-
     RequestProcessorClass = RequestProcessorClass || JSONAPIRequestProcessor;
     this.requestProcessor = new RequestProcessorClass({
       sourceName: name,
       serializerFor,
       serializerClassFor,
       serializerSettingsFor,
-      SerializerClass,
       URLBuilderClass: URLBuilderClass || JSONAPIURLBuilder,
       allowedContentTypes,
       defaultFetchSettings,
@@ -228,59 +188,6 @@ export class JSONAPISource<
     });
   }
 
-  /**
-   * Deprecated in favor of `defaultTransformOptions.maxRequests`
-   *
-   * @deprecated since v0.17, remove in v0.18
-   */
-  get maxRequestsPerTransform(): number | undefined {
-    deprecate(
-      "The 'maxRequestsPerTransform' property for 'JSONAPSource' has been deprecated in favor of 'defaultTransformOptions.maxRequests'."
-    );
-    return this._defaultTransformOptions?.maxRequests;
-  }
-
-  /**
-   * Deprecated in favor of `defaultTransformOptions.maxRequests`
-   *
-   * @deprecated since v0.17, remove in v0.18
-   */
-  set maxRequestsPerTransform(val: number | undefined) {
-    deprecate(
-      "The 'maxRequestsPerTransform' property for 'JSONAPSource' has been deprecated in favor of 'defaultTransformOptions.maxRequests'."
-    );
-    if (this._defaultTransformOptions === undefined) {
-      this._defaultTransformOptions = {} as DefaultRequestOptions<TO>;
-    }
-    this._defaultTransformOptions.maxRequests = val;
-  }
-
-  /**
-   * Deprecated in favor of `defaultQueryOptions.maxRequests`
-   *
-   * @deprecated since v0.17, remove in v0.18
-   */
-  get maxRequestsPerQuery(): number | undefined {
-    deprecate(
-      "The 'maxRequestsPerQuery' property for 'JSONAPSource' has been deprecated in favor of 'defaultQueryOptions.maxRequests'."
-    );
-    return this._defaultQueryOptions?.maxRequests;
-  }
-
-  /**
-   * Deprecated in favor of `defaultQueryOptions.maxRequests`
-   *
-   * @deprecated since v0.17, remove in v0.18
-   */
-  set maxRequestsPerQuery(val: number | undefined) {
-    deprecate(
-      "The 'maxRequestsPerQuery' property for 'JSONAPSource' has been deprecated in favor of 'defaultQueryOptions.maxRequests'."
-    );
-    if (this._defaultQueryOptions === undefined) {
-      this._defaultQueryOptions = {} as DefaultRequestOptions<QO>;
-    }
-    this._defaultQueryOptions.maxRequests = val;
-  }
 
   /////////////////////////////////////////////////////////////////////////////
   // Pushable interface implementation

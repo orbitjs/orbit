@@ -1,4 +1,3 @@
-import { Orbit } from '@orbit/core';
 import { QueryExpressionParseError } from '@orbit/data';
 import {
   AttributeFilterSpecifier,
@@ -11,7 +10,6 @@ import {
   SortSpecifier
 } from '@orbit/records';
 import { clone, Dict } from '@orbit/utils';
-import { JSONAPISerializer } from './jsonapi-serializer';
 import { appendQueryParams } from './lib/query-params';
 import { SerializerForFn, StringSerializer } from '@orbit/serializers';
 import { JSONAPISerializers } from './serializers/jsonapi-serializers';
@@ -21,12 +19,9 @@ import { JSONAPIResourceFieldSerializer } from './serializers/jsonapi-resource-f
 import { RecordQueryRequest } from './lib/query-requests';
 import { RecordTransformRequest } from './lib/transform-requests';
 
-const { deprecate } = Orbit;
-
 export interface JSONAPIURLBuilderSettings {
   host?: string;
   namespace?: string;
-  serializer?: JSONAPISerializer;
   serializerFor: SerializerForFn;
   keyMap?: RecordKeyMap;
 }
@@ -35,19 +30,12 @@ export class JSONAPIURLBuilder {
   host?: string;
   namespace?: string;
   serializerFor: SerializerForFn;
-  serializer?: JSONAPISerializer;
   keyMap?: RecordKeyMap;
 
   constructor(settings: JSONAPIURLBuilderSettings) {
     this.host = settings.host;
     this.namespace = settings.namespace;
     this.serializerFor = settings.serializerFor;
-    if (settings.serializer) {
-      this.serializer = settings.serializer;
-      deprecate(
-        "The 'serializer' setting for 'JSONAPIURLBuilder' has been deprecated. Pass 'serializerFor' instead."
-      );
-    }
     this.keyMap = settings.keyMap;
   }
 
@@ -83,26 +71,19 @@ export class JSONAPIURLBuilder {
 
   resourcePath(type: string, id?: string): string {
     let resourceType, resourceId;
-    if (this.serializer) {
-      resourceType = this.serializer.resourceType(type);
-      if (id) {
-        resourceId = this.serializer.resourceId(type, id);
-      }
-    } else {
-      const resourceTypeSerializer = this.serializerFor(
-        JSONAPISerializers.ResourceTypePath
-      ) as StringSerializer;
-      resourceType = resourceTypeSerializer.serialize(type);
-      if (id) {
-        const resourceIdentitySerializer = this.serializerFor(
-          JSONAPISerializers.ResourceIdentity
-        ) as JSONAPIResourceIdentitySerializer;
-        const identity = resourceIdentitySerializer.serialize({
-          type,
-          id
-        }) as ResourceIdentity;
-        resourceId = identity.id;
-      }
+    const resourceTypeSerializer = this.serializerFor(
+      JSONAPISerializers.ResourceTypePath
+    ) as StringSerializer;
+    resourceType = resourceTypeSerializer.serialize(type);
+    if (id) {
+      const resourceIdentitySerializer = this.serializerFor(
+        JSONAPISerializers.ResourceIdentity
+      ) as JSONAPIResourceIdentitySerializer;
+      const identity = resourceIdentitySerializer.serialize({
+        type,
+        id
+      }) as ResourceIdentity;
+      resourceId = identity.id;
     }
 
     let path = [resourceType];
@@ -317,33 +298,19 @@ export class JSONAPIURLBuilder {
       kind?: 'attribute' | 'relationship';
     }
   ): string {
-    if (this.serializer) {
-      if (options?.kind === 'attribute') {
-        return this.serializer.resourceAttribute(options?.type, field);
-      } else if (options?.kind === 'relationship') {
-        return this.serializer.resourceRelationship(options?.type, field);
-      } else {
-        return field;
-      }
-    } else {
-      const serializer = this.serializerFor(
-        JSONAPISerializers.ResourceFieldParam
-      ) as JSONAPIResourceFieldSerializer;
-      return serializer.serialize(field, { type: options?.type }) as string;
-    }
+    const serializer = this.serializerFor(
+      JSONAPISerializers.ResourceFieldParam
+    ) as JSONAPIResourceFieldSerializer;
+    return serializer.serialize(field, { type: options?.type }) as string;
   }
 
   protected serializeRelationshipInPath(
     type: string | undefined,
     relationship: string
   ): string {
-    if (this.serializer) {
-      return this.serializer.resourceRelationship(type, relationship);
-    } else {
-      const serializer = this.serializerFor(
-        JSONAPISerializers.ResourceFieldPath
-      ) as JSONAPIResourceFieldSerializer;
-      return serializer.serialize(relationship, { type }) as string;
-    }
+    const serializer = this.serializerFor(
+      JSONAPISerializers.ResourceFieldPath
+    ) as JSONAPIResourceFieldSerializer;
+    return serializer.serialize(relationship, { type }) as string;
   }
 }

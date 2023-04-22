@@ -1,6 +1,5 @@
 export { JSONAPISource as default } from './jsonapi-source';
 export * from './jsonapi-source';
-export * from './jsonapi-serializer';
 export * from './serializers/jsonapi-base-serializer';
 export * from './serializers/jsonapi-document-serializer';
 export * from './serializers/jsonapi-atomic-operation-serializer';

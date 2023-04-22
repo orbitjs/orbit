@@ -1,13 +1,6 @@
 import { Orbit } from '@orbit/core';
 import { requestOptionsForSource } from '@orbit/data';
-import {
-  RecordKeyMap,
-  InitializedRecord,
-  RecordSchema,
-  RecordQueryExpression,
-  RecordTransform,
-  RecordQuery
-} from '@orbit/records';
+import { RecordKeyMap, InitializedRecord, RecordSchema } from '@orbit/records';
 import { Dict } from '@orbit/utils';
 import {
   NetworkError,
@@ -26,20 +19,15 @@ import {
   JSONAPIURLBuilderSettings
 } from './jsonapi-url-builder';
 import {
-  JSONAPISerializer,
-  JSONAPISerializerSettings
-} from './jsonapi-serializer';
-import {
   SerializerForFn,
   SerializerClassForFn,
   SerializerSettingsForFn
 } from '@orbit/serializers';
 import { buildJSONAPISerializerFor } from './serializers/jsonapi-serializer-builder';
-import { JSONAPISerializers } from './serializers/jsonapi-serializers';
 import { RecordOperation } from '@orbit/records';
 import { JSONAPIResponse } from './jsonapi-response';
 
-const { assert, deprecate } = Orbit;
+const { assert } = Orbit;
 
 export interface FetchSettings {
   headers?: Dict<any>;
@@ -61,9 +49,6 @@ export interface JSONAPIRequestProcessorSettings {
   serializerFor?: SerializerForFn;
   serializerClassFor?: SerializerClassForFn;
   serializerSettingsFor?: SerializerSettingsForFn;
-  SerializerClass?: new (
-    settings: JSONAPISerializerSettings
-  ) => JSONAPISerializer;
   URLBuilderClass?: new (
     settings: JSONAPIURLBuilderSettings
   ) => JSONAPIURLBuilder;
@@ -82,7 +67,6 @@ export class JSONAPIRequestProcessor {
   defaultFetchSettings!: FetchSettings;
   schema: RecordSchema;
   keyMap?: RecordKeyMap;
-  protected _serializer?: JSONAPISerializer;
   protected _serializerFor: SerializerForFn;
 
   constructor(settings: JSONAPIRequestProcessorSettings) {
@@ -91,7 +75,6 @@ export class JSONAPIRequestProcessor {
       allowedContentTypes,
       schema,
       keyMap,
-      SerializerClass,
       serializerFor,
       serializerClassFor,
       serializerSettingsFor
@@ -104,15 +87,6 @@ export class JSONAPIRequestProcessor {
     ];
     this.schema = schema;
     this.keyMap = keyMap;
-    if (SerializerClass) {
-      deprecate(
-        "The 'SerializerClass' setting for 'JSONAPIRequestProcessor' has been deprecated. Pass 'serializerFor', 'serializerClassFor', and/or 'serializerSettingsFor' instead."
-      );
-      this._serializer = new SerializerClass({
-        schema,
-        keyMap
-      });
-    }
     this._serializerFor = buildJSONAPISerializerFor({
       schema,
       keyMap,
@@ -125,27 +99,10 @@ export class JSONAPIRequestProcessor {
       host: settings.host,
       namespace: settings.namespace,
       keyMap: settings.keyMap,
-      serializer: this._serializer,
       serializerFor: this._serializerFor
     };
     this.urlBuilder = new URLBuilderClass(urlBuilderOptions);
     this.initDefaultFetchSettings(settings);
-  }
-
-  /**
-   * @deprecated since v0.17, use `serializerFor` instead
-   */
-  get serializer(): JSONAPISerializer {
-    deprecate(
-      "'JSONAPIRequestProcessor#serializer' has been deprecated. Use 'serializerFor' instead."
-    );
-    if (this._serializer) {
-      return this._serializer;
-    } else {
-      return this._serializerFor(
-        JSONAPISerializers.ResourceDocument
-      ) as JSONAPISerializer;
-    }
   }
 
   get serializerFor(): SerializerForFn {
@@ -296,22 +253,6 @@ export class JSONAPIRequestProcessor {
       options,
       this.sourceName
     );
-  }
-
-  /**
-   * @deprecated since v0.17, use `mergeRequestOptions` instead
-   */
-  customRequestOptions(
-    queryOrTransform: RecordQuery | RecordTransform,
-    queryExpressionOrOperation: RecordQueryExpression | RecordOperation
-  ): JSONAPIRequestOptions | undefined {
-    deprecate(
-      "'JSONAPIRequestProcessor#customRequestOptions' has been deprecated. Use 'mergeRequestOptions' instead."
-    );
-    return this.mergeRequestOptions([
-      queryOrTransform.options,
-      queryExpressionOrOperation.options
-    ]);
   }
 
   /* eslint-disable @typescript-eslint/no-unused-vars */
