@@ -171,8 +171,11 @@ function onceTick(fn: () => void) {
     if (!ticks.has(tick)) {
       ticks.add(tick);
       nextTick(() => {
-        fn();
-        cancelTick(tick);
+        // Might have been cancelled
+        if (ticks.has(tick)) {
+          fn();
+          cancelTick(tick);
+        }
       });
     }
   };
