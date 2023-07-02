@@ -15,6 +15,12 @@ const { module, test } = QUnit;
 module('MemorySource - updatable', function (hooks) {
   const schemaDefinition: RecordSchemaSettings = {
     models: {
+      thingy: {
+        attributes: {
+          ab: { type: 'object' },
+          other: { type: 'object' },
+        },
+      },
       star: {
         attributes: {
           name: { type: 'string' }
@@ -68,6 +74,25 @@ module('MemorySource - updatable', function (hooks) {
   hooks.beforeEach(function () {
     schema = new RecordSchema(schemaDefinition);
     keyMap = new RecordKeyMap();
+  });
+
+  test("#update - works with array buffers", async function(assert) {
+    const source = new MemorySource({schema, keyMap});
+    const ident = {type: 'thingy', id: 'a'};
+
+    const record = {...ident, attributes: {
+      ab: new ArrayBuffer(32),
+      other: {x: 10, y: 10},
+    }};
+
+    await source.update(t => t.addRecord(record));
+
+    await source.update(t =>
+      t.replaceAttribute(ident, 'other', {x: 2, y: 2})
+    );
+
+    let result = await source.query(q => q.findRecord(ident));
+    assert.ok(result.attributes.ab instanceof ArrayBuffer);
   });
 
   test("#update - transforms the source's cache", async function (assert) {
